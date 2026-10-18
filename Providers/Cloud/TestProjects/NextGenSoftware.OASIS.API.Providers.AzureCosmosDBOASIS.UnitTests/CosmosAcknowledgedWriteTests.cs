@@ -1,0 +1,161 @@
+using Microsoft.Azure.Cosmos;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
+
+namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
+
+[TestClass]
+public class CosmosAcknowledgedWriteTests
+{
+    [DataTestMethod][DataRow("payload")][DataRow("missing")][DataRow("id")][DataRow("malformed")]
+    public async Task ReplacementRequiresCanonicalAcknowledgementFromSdk(string mode)
+    {
+        var entity=new Avatar{Id=Guid.NewGuid(),FirstName="submitted",ProviderUniqueStorageKey=null!};
+        var document=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(entity));
+        document["id"]=entity.Id.ToString();
+        if(mode=="payload")document["FirstName"]="changed";
+        if(mode=="id")document["id"]=Guid.NewGuid().ToString();
+        var body=mode=="missing"?"":mode=="malformed"?"not-json":document.ToString();
+        var response=new ResponseMessage(System.Net.HttpStatusCode.OK){Content=new MemoryStream(System.Text.Encoding.UTF8.GetBytes(body))};
+        var container=new Mock<Container>();
+        container.Setup(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(new CosmosDbClient(container.Object));
+        var failure=await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(()=>new AvatarRepository(factory.Object).UpdateAsync(entity));
+        Assert.IsTrue(failure.Acknowledged);Assert.AreEqual(entity.Id.ToString(),failure.DocumentId);
+        Assert.IsInstanceOfType<InvalidDataException>(failure.InnerException);Assert.IsNull(entity.ProviderUniqueStorageKey);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task EquivalentAcknowledgementIgnoresOnlyCosmosSystemProperties(bool create)
+    {
+        var entity=new Avatar{FirstName="submitted",ProviderUniqueStorageKey=null!};
+        entity.MetaData["owned"]=7;
+        entity.MetaData["Longitude"]=151d;
+        var client=new Mock<ICosmosDbClient>();
+        string Reply(object value)
+        {
+            var document=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(value));
+            document["id"]=document["Id"];document["_etag"]="owned-sdk-etag";document["_rid"]="owned-sdk-rid";document["_ts"]=123;
+            document["MetaData"]!["Longitude"]=151;
+            return document.ToString();
+        }
+        client.Setup(c=>c.CreateDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()))
+            .Returns((object value,PartitionKey? _,CancellationToken __)=>Task.FromResult(Reply(value)));
+        client.Setup(c=>c.UpsertDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()))
+            .Returns((object value,PartitionKey? _,CancellationToken __)=>Task.FromResult(Reply(value)));
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
+        var repository=new AvatarRepository(factory.Object);
+        var stored=create?await repository.AddAsync(entity):await repository.UpsertAsync(entity);
+        Assert.AreNotEqual(Guid.Empty,entity.Id);Assert.AreEqual(entity.Id,stored.Id);Assert.AreNotSame(entity,stored);
+        Assert.AreEqual("submitted",stored.FirstName);Assert.AreEqual(7,Convert.ToInt32(stored.MetaData["owned"]));
+        Assert.AreEqual(entity.Id.ToString(),entity.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AzureCosmosDBOASIS]);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task MissingOrDifferentAcknowledgedPayloadCannotPublishSuccess(bool create,bool missing)
+    {
+        var entity=new Avatar{Id=Guid.NewGuid(),FirstName="submitted",ProviderUniqueStorageKey=null!};
+        var client=new Mock<ICosmosDbClient>();
+        string Reply(object value)
+        {
+            if(missing)return null!;
+            var document=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(value));
+            document["id"]=entity.Id.ToString();document["FirstName"]="different server payload";
+            return document.ToString();
+        }
+        client.Setup(c=>c.CreateDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()))
+            .Returns((object value,PartitionKey? _,CancellationToken __)=>Task.FromResult(Reply(value)));
+        client.Setup(c=>c.UpsertDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()))
+            .Returns((object value,PartitionKey? _,CancellationToken __)=>Task.FromResult(Reply(value)));
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
+        var repository=new AvatarRepository(factory.Object);
+        var failed=await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(async()=>{if(create)await repository.AddAsync(entity);else await repository.UpsertAsync(entity);});
+        Assert.IsTrue(failed.Acknowledged);Assert.AreEqual(entity.Id.ToString(),failed.DocumentId);
+        Assert.IsInstanceOfType<InvalidDataException>(failed.InnerException);Assert.IsNull(entity.ProviderUniqueStorageKey);
+        Assert.AreEqual("submitted",entity.FirstName);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task ReplacementFreezesPayloadAndRetainsOriginalFailure(bool uncertain)
+    {
+        var entity=new Avatar {Id=Guid.NewGuid(),FirstName="submitted",ProviderUniqueStorageKey=null!};
+        var id=entity.Id;object? sent=null;
+        Exception cause=uncertain ? new CosmosMutationReconciliationException(id.ToString(),new IOException("lost reply"))
+            :new CosmosException("owned404",System.Net.HttpStatusCode.NotFound,1002,"owned",0);
+        var client=new Mock<ICosmosDbClient>();
+        client.Setup(c=>c.ReplaceDocumentAsync(id.ToString(),It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()))
+            .Returns((string _,object value,PartitionKey? __,CancellationToken ___)=> {sent=value;entity.FirstName="changed";return Task.FromException<string>(cause);});
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
+        var repository=new AvatarRepository(factory.Object);
+        Exception failed=uncertain ? await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(()=>repository.UpdateAsync(entity))
+            :await Assert.ThrowsExceptionAsync<CosmosException>(()=>repository.UpdateAsync(entity));
+        Assert.AreSame(cause,failed);Assert.IsNull(entity.ProviderUniqueStorageKey);Assert.AreEqual("submitted",((Avatar)sent!).FirstName);
+    }
+
+    [TestMethod]
+    public async Task EntityDeleteUsesCanonicalIdentityNotStaleProviderKey()
+    {
+        var id=Guid.NewGuid();var client=new Mock<ICosmosDbClient>();
+        client.Setup(c=>c.DeleteDocumentAsync(id.ToString(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
+        await new AvatarRepository(factory.Object).DeleteAsync(new Avatar {Id=id,ProviderUniqueStorageKey=null!});
+        client.Verify(c=>c.DeleteDocumentAsync(id.ToString(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()),Times.Once);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task FailedWriteDoesNotPublishGeneratedIdentityOrProviderKey(bool create)
+    {
+        var entity=new Avatar {Id=Guid.Empty,FirstName="submitted",ProviderUniqueStorageKey=null!};
+        object? sent=null;var cause=new IOException("owned SDK failure");
+        var client=new Mock<ICosmosDbClient>();
+        Task<string> Fail(object value) {sent=value;entity.FirstName="changed";return Task.FromException<string>(cause);}
+        client.Setup(c=>c.CreateDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).Returns((object value,PartitionKey? _,CancellationToken __)=>Fail(value));
+        client.Setup(c=>c.UpsertDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).Returns((object value,PartitionKey? _,CancellationToken __)=>Fail(value));
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
+        var repository=new AvatarRepository(factory.Object);
+        var failed=await Assert.ThrowsExceptionAsync<IOException>(async()=> {if(create) await repository.AddAsync(entity);else await repository.UpsertAsync(entity);});
+        Assert.AreSame(cause,failed);Assert.AreEqual(Guid.Empty,entity.Id);Assert.IsNull(entity.ProviderUniqueStorageKey);
+        Assert.IsNotNull(sent);Assert.AreNotSame(entity,sent);var snapshot=(Avatar)sent;
+        Assert.AreNotEqual(Guid.Empty,snapshot.Id);Assert.AreEqual("submitted",snapshot.FirstName);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(false,true)] [DataRow(true,false)] [DataRow(true,true)]
+    public async Task AcknowledgedInvalidResponseRetainsSubmittedIdentity(bool create,bool malformed)
+    {
+        var id=Guid.NewGuid();var other=Guid.NewGuid();
+        var json=malformed ? "not-json":$"{{\"Id\":\"{other}\",\"id\":\"{other}\"}}";
+        var client=new Mock<ICosmosDbClient>();
+        client.Setup(c=>c.CreateDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).ReturnsAsync(json);
+        client.Setup(c=>c.UpsertDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).ReturnsAsync(json);
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
+        var repository=new AvatarRepository(factory.Object);var entity=new Avatar {Id=id,ProviderUniqueStorageKey=null!};
+        var failure=await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(async()=>
+        {
+            if(create) await repository.AddAsync(entity);else await repository.UpsertAsync(entity);
+        });
+        Assert.AreEqual(id.ToString(),failure.DocumentId);Assert.IsTrue(failure.Acknowledged);
+        Assert.AreEqual(string.Empty,failure.OriginalTransactionId);Assert.IsNotNull(failure.InnerException);
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
+    }
+
+    [TestMethod]
+    public async Task CallerIdentityChangeAfterAcknowledgementCannotReturnDifferentRecord()
+    {
+        var entity=new Avatar {Id=Guid.NewGuid()};var submitted=entity.Id;
+        var client=new Mock<ICosmosDbClient>();
+        client.Setup(c=>c.UpsertDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()))
+            .Returns((object value,PartitionKey? _,CancellationToken __)=>{
+                var json=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(value));
+                json["id"]=submitted.ToString();entity.Id=Guid.NewGuid();return Task.FromResult(json.ToString());});
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
+        var failure=await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(()=>new AvatarRepository(factory.Object).UpsertAsync(entity));
+        Assert.AreEqual(submitted.ToString(),failure.DocumentId);Assert.IsTrue(failure.Acknowledged);
+        Assert.IsInstanceOfType(failure.InnerException,typeof(InvalidDataException));
+    }
+}

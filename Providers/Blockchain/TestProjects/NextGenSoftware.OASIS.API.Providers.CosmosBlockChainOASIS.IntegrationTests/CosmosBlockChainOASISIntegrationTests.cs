@@ -1,114 +1,149 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using System.Threading.Tasks;
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests;
+
+[TestClass]
+public class CosmosBlockChainOASISIntegrationTests
 {
-    [TestClass]
-    public class CosmosBlockChainOASISIntegrationTests
+    private CosmosBlockChainOASIS _provider = null!;
+    // Retained public local-only fixture key, independent of signing credentials.
+    private static byte[] LocalStorageKey()=>System.Security.Cryptography.SHA256.HashData(
+        System.Text.Encoding.UTF8.GetBytes("oasis-cosmos-local-storage-fixture-v1"));
+
+    private static string Required(string name) => Environment.GetEnvironmentVariable(name)
+        ?? throw new InvalidOperationException($"Required real-chain test setting {name} is missing. No mock or skipped evidence is allowed.");
+
+    [TestInitialize]
+    public async Task Setup()
     {
-        private CosmosBlockChainOASIS _provider;
+        _provider = new CosmosBlockChainOASIS(Required("OASIS_COSMOS_TEST_RPC"),
+            Required("OASIS_COSMOS_TEST_CHAIN"), Required("OASIS_COSMOS_TEST_KEY"),
+            Required("OASIS_COSMOS_TEST_CONTRACT"), "wasm", "0.025stake",storageEncryptionKeyResolver:LocalStorageKey)
+        { IsVersionControlEnabled = true };
+        var activation = await _provider.ActivateProviderAsync();
+        Assert.IsFalse(activation.IsError, activation.Message);
+        Assert.IsTrue(activation.Result);
+    }
 
-        [TestInitialize]
-        public void Setup()
+    [TestCleanup]
+    public async Task Cleanup()
+    {
+        if (_provider != null)
         {
-            _provider = new CosmosBlockChainOASIS();
+            await _provider.DeActivateProviderAsync();
+            _provider.Dispose();
         }
+    }
 
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
+    [TestMethod]
+    public async Task AvatarAndDetailPersistWithIndexesAndVersions()
+    {
+        var id = Guid.NewGuid();
+        var avatar = new Avatar { Id = id, Username = "cosmos-" + id.ToString("N"),
+            Email = id.ToString("N") + "@example.test", FirstName = "Before" };
+        try
         {
-            // Arrange
-            var avatar = new Avatar
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            var firstVersion = saved.Result.Version;
+            var loaded = await _provider.LoadAvatarAsync(id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual("Before", loaded.Result.FirstName);
+            Assert.AreEqual(id, (await _provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
+            Assert.AreEqual(id, (await _provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
+            avatar.FirstName = "After";
+            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.AreEqual("After", (await _provider.LoadAvatarAsync(id)).Result.FirstName);
+            Assert.AreEqual("Before", (await _provider.LoadAvatarAsync(id, firstVersion)).Result.FirstName);
+            var detail = new AvatarDetail { Id = id, Username = avatar.Username, Email = avatar.Email };
+            Assert.IsFalse((await _provider.SaveAvatarDetailAsync(detail)).IsError);
+            Assert.AreEqual(id, (await _provider.LoadAvatarDetailAsync(id)).Result.Id);
+            Assert.AreEqual(id, (await _provider.LoadAvatarDetailByEmailAsync(avatar.Email)).Result.Id);
+        }
+        finally
+        {
+            var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
+        }
+        Assert.IsTrue((await _provider.LoadAvatarAsync(id)).IsError);
+    }
+
+    [TestMethod]
+    public async Task HolonsPersistMetadataParentIndexesAndDeletion()
+    {
+        var parentId = Guid.NewGuid();
+        var id = Guid.NewGuid();
+        var directory = new System.IO.DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !System.IO.File.Exists(System.IO.Path.Combine(directory.FullName,"Scripts/TestHosts/stop-owned-cosmos-test-node.sh"))) directory = directory.Parent;
+        Assert.IsNotNull(directory);
+        var journal = System.IO.Path.Combine(directory!.FullName,"TestResults/CosmosRuntime/holon-query-pending.json");
+        using var ownership = new System.IO.FileStream(journal,System.IO.FileMode.CreateNew,System.IO.FileAccess.Write,System.IO.FileShare.Read);
+        await System.Text.Json.JsonSerializer.SerializeAsync(ownership,new { id,parentId,
+            chainId=Required("OASIS_COSMOS_TEST_CHAIN"),contract=Required("OASIS_COSMOS_TEST_CONTRACT"),
+            recovery="Owned local holon query fixture. Reconcile these IDs before any rerun; do not reset the ledger." });
+        ownership.Flush(true);
+        var verified = false;
+        var queryKeys = new[] { "CreatedByAvatarId", "Active", "HolonType", "STARNETHolonId", "_versionStamp", "data",
+            "Username", "Email", "Name", "Description", "ParentId", "ParentProviderKey", "SearchQuery", "parkType", "env",
+            "web3TokenId", "NFT.MintedByAvatarId", "NFT.MintWalletAddress", "NFT.ParentWeb4NFTId",
+            "GEONFT.PlacedByAvatarId", "GEONFT.MintedByAvatarId", "GEONFT.OriginalOASISNFT.MintWalletAddress", "GEONFT.LatLong",
+            "Status", "ActiveQuestId", "ActiveObjectiveId", "ParentMissionId", "Avatar", "AppRegion" };
+        var holon = new Holon { Id = id, ParentHolonId = parentId, Name = "Cosmos roundtrip", Description = "real contract storage" };
+        holon.MetaData["evidence"] = id.ToString("N");
+        foreach (var name in queryKeys) holon.MetaData[name] = id.ToString("N") + ":" + name;
+        try
+        {
+            var saved = await _provider.SaveHolonAsync(holon, saveChildren: false);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            var loaded = await _provider.LoadHolonAsync(id, loadChildren: false);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual(holon.Description, loaded.Result.Description);
+            var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+            var raw=(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend)
+                typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",flags)!.GetValue(_provider)!;
+            var physicalKeys=await raw.ListKeysAsync("oasis/private/v1/");
+            Assert.IsTrue(physicalKeys.Count>0);
+            foreach(var physicalKey in physicalKeys){
+                Assert.IsFalse(physicalKey.Contains(id.ToString(),StringComparison.OrdinalIgnoreCase));
+                var ciphertext=await raw.GetAsync(physicalKey);
+                StringAssert.StartsWith(ciphertext,"oasis-aes256gcm-");
+                Assert.IsFalse(ciphertext.Contains(holon.Description,StringComparison.Ordinal));
+            }
+            using(var reopened=new CosmosBlockChainOASIS(Required("OASIS_COSMOS_TEST_RPC"),Required("OASIS_COSMOS_TEST_CHAIN"),
+                Required("OASIS_COSMOS_TEST_KEY"),Required("OASIS_COSMOS_TEST_CONTRACT"),"wasm","0.025stake",storageEncryptionKeyResolver:LocalStorageKey)){
+                var activation=await reopened.ActivateProviderAsync();Assert.IsFalse(activation.IsError,activation.Message);
+                var persisted=await reopened.LoadHolonAsync(id,loadChildren:false);
+                Assert.IsFalse(persisted.IsError,persisted.Message);Assert.AreEqual(holon.Description,persisted.Result.Description);
+            }
+            Assert.AreEqual(id.ToString("N"), loaded.Result.MetaData["evidence"].ToString());
+            var children = await _provider.LoadHolonsForParentAsync(parentId, loadChildren: false);
+            Assert.IsFalse(children.IsError, children.Message);
+            Assert.IsTrue(children.Result.Any(x => x.Id == id));
+            var filtered = await _provider.LoadHolonsByMetaDataAsync("evidence", id.ToString("N"), loadChildren: false);
+            Assert.IsFalse(filtered.IsError, filtered.Message);
+            Assert.IsTrue(filtered.Result.Any(x => x.Id == id));
+            foreach (var name in queryKeys)
             {
-                Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
-            };
-
-            // Act
-            var result = await _provider.SaveAvatarAsync(avatar);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
+                var match = await _provider.LoadHolonsByMetaDataAsync(name,id.ToString("N") + ":" + name,loadChildren:false);
+                Assert.IsFalse(match.IsError,match.Message);
+                Assert.AreEqual(id,match.Result.Single().Id,name);
+            }
+            verified = true;
         }
-
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
+        finally
         {
-            // Arrange
-            var avatarId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var holon = new Holon
+            if (verified)
             {
-                Id = Guid.NewGuid(),
-                Name = "TestHolon",
-                Description = "Test Holon Description"
-            };
-
-            // Act
-            var result = await _provider.SaveHolonAsync(holon);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            // Arrange
-            var holonId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadHolonAsync(holonId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        [Ignore("Search not implemented on this provider")]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            await Task.CompletedTask;
-        }
-
-        [TestMethod]
-        [Ignore("Search not implemented on this provider")]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            await Task.CompletedTask;
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
+                var deleted = await _provider.DeleteHolonAsync(id);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.IsTrue((await _provider.LoadHolonAsync(id)).IsError);
+                Assert.IsFalse((await _provider.LoadHolonsForParentAsync(parentId)).Result.Any(x => x.Id == id));
+                ownership.Dispose();
+                System.IO.File.Delete(journal);
             }
         }
     }

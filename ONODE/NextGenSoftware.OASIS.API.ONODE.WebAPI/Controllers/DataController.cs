@@ -36,6 +36,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (_holonManager == null)
                 {
+                    if(AdmittedStorageManagerAcquisition.TryCreate(
+                        ()=>OASISBootLoader.OASISBootLoader.OASISDNA,
+                        ()=>ProviderManager.Instance.CurrentStorageProvider,
+                        (provider,dna)=>new HolonManager(provider,dna),out HolonManager admitted))
+                    {
+                        _holonManager=admitted;
+                        return _holonManager;
+                    }
                     OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
                     if (result.IsError)

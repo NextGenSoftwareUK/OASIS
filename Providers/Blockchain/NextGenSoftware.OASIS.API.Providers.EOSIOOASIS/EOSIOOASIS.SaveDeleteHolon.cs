@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using EOSNewYork.EOSCore;
 using Newtonsoft.Json;
 using NextGenSoftware.Logging;
@@ -58,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 foreach (var holon in holons)
                 {
-                    var holonInfo = JsonConvert.SerializeObject(holon);
+                    var holonInfo = OasisJson.Serialize<object>(holon);
 
                     // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
                     var existAvatar = _holonRepository.Read(holon.Id).Result;
@@ -105,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 foreach (var holon in holons)
                 {
-                    var holonInfo = JsonConvert.SerializeObject(holon);
+                    var holonInfo = OasisJson.Serialize<object>(holon);
 
                     // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
                     var existAvatar = _holonRepository.Read(holon.Id).Result;

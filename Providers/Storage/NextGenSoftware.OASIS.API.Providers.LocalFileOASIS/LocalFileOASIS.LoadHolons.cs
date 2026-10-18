@@ -48,6 +48,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     Directory.CreateDirectory(_avatarFolderPath);
 
                 var avatarFilePath = Path.Combine(_avatarFolderPath, $"{Avatar.Id}.json");
+                Avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                Avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] = Avatar.Id.ToString();
                 var jsonContent = JsonConvert.SerializeObject(Avatar, Formatting.Indented);
                 await File.WriteAllTextAsync(avatarFilePath, jsonContent);
 
@@ -94,6 +96,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     Directory.CreateDirectory(_avatarDetailFolderPath);
 
                 var avatarDetailFilePath = Path.Combine(_avatarDetailFolderPath, $"{Avatar.Id}.json");
+                Avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                Avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] = Avatar.Id.ToString();
                 var jsonContent = JsonConvert.SerializeObject(Avatar, Formatting.Indented);
                 await File.WriteAllTextAsync(avatarDetailFilePath, jsonContent);
 
@@ -139,6 +143,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         if (!loadResult.IsError && loadResult.Result != null)
                         {
                             loadResult.Result.DeletedDate = DateTime.UtcNow;
+                            loadResult.Result.IsActive = false;
                             var saveResult = await SaveAvatarAsync(loadResult.Result);
                             result.Result = !saveResult.IsError;
                             result.IsError = saveResult.IsError;
@@ -151,7 +156,10 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     }
                     else
                     {
-                        // Hard delete - remove file
+                        // Explicit permanent avatar deletion also removes its matching detail,
+                        // consistent with the shared storage provider contract. Soft deletion does not.
+                        var avatarDetailFilePath = Path.Combine(_avatarDetailFolderPath, $"{id}.json");
+                        File.Delete(avatarDetailFilePath);
                         File.Delete(avatarFilePath);
                         result.Result = true;
                         result.IsError = false;
@@ -408,90 +416,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return RemoveKarmaFromAvatarAsync(Avatar, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, karmaSourceWebLink).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (holon == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
-                    return result;
-                }
-
-                // The public holon ID is the persistence identity for every provider.  A caller may
-                // preallocate it for a graph/metadata relationship, so never infer create vs update
-                // from lifecycle fields such as CreatedDate or IsNewHolon.
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
-
-                // Ensure holon directory exists
-                if (!Directory.Exists(_holonDirectory))
-                    Directory.CreateDirectory(_holonDirectory);
-
-                var holonFilePath = Path.Combine(_holonDirectory, $"{holon.Id}.json");
-
-                // A full-document update must not allow the caller to rewrite creation audit data.
-                // File existence is the LocalFile provider's authoritative create/update test.
-                if (File.Exists(holonFilePath))
-                {
-                    var persistedJson = await File.ReadAllTextAsync(holonFilePath);
-                    var persistedHolon = JsonConvert.DeserializeObject<Holon>(persistedJson);
-
-                    if (persistedHolon != null)
-                    {
-                        holon.CreatedDate = persistedHolon.CreatedDate;
-                        holon.CreatedByAvatarId = persistedHolon.CreatedByAvatarId;
-                        holon.CreatedProviderType = persistedHolon.CreatedProviderType;
-                    }
-                }
-                else
-                {
-                    if (holon.CreatedDate == DateTime.MinValue)
-                        holon.CreatedDate = DateTime.UtcNow;
-
-                    holon.ModifiedDate = DateTime.MinValue;
-                    holon.ModifiedByAvatarId = Guid.Empty;
-                }
-
-                var jsonContent = JsonConvert.SerializeObject(holon, Formatting.Indented);
-                await File.WriteAllTextAsync(holonFilePath, jsonContent);
-
-                // Save children if requested
-                if (saveChildren && holon.Children != null && holon.Children.Any() && maxChildDepth > 0)
-                {
-                    foreach (var child in holon.Children)
-                    {
-                        var childResult = await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth - 1, continueOnError, saveChildrenOnProvider);
-                        if (childResult.IsError && !continueOnError)
-                        {
-                            OASISErrorHandling.HandleError(ref result, $"Error saving child holon: {childResult.Message}");
-                            return result;
-                        }
-                    }
-                }
-
-                result.Result = holon;
-                result.IsError = false;
-                result.IsSaved = true;
-                result.Message = "Holon saved successfully";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error saving holon: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveSelectedGraphAsync(holon,saveChildren,recursive,maxChildDepth);
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {

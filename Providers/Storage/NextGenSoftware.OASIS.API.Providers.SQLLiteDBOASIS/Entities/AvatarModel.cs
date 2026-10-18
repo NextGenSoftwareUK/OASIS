@@ -13,10 +13,20 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
     [Table("Avatar")]
+    [Microsoft.EntityFrameworkCore.Index(nameof(LocalProviderKey), IsUnique = true)]
     public class AvatarModel {
 
         [Required, Key]
         public string Id { get; set;}
+        public string LocalProviderKey { get; set; }
+        public string ProviderKeysJson { get; set; } = "{}";
+        public string ProviderWalletsJson { get; set; } = "{}";
+        public Guid ParentHolonId { get; set; }
+        public string MetaDataJson { get; set; } = "{}";
+        public bool IsPublic { get; set; }
+        public Guid VersionId { get; set; }
+        public Guid PreviousVersionId { get; set; }
+        public string CustomHolonType { get; set; }
 
         public AvatarType AvatarType { get; set;}
         public HolonType HolonType { get; set;}
@@ -94,6 +104,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.AvatarType = source.AvatarType.Value;
 
             this.Username=source.Username;
+            this.ProviderWalletsJson=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(source.ProviderWallets ?? new Dictionary<ProviderType,List<IProviderWallet>>());
+            this.ParentHolonId=source.ParentHolonId;
             this.Email=source.Email;
             
             this.AcceptTerms = source.AcceptTerms;
@@ -113,6 +125,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             
             this.Version=source.Version;
             this.IsActive=source.IsActive;
+            this.IsPublic=source.IsPublic;
+            this.VersionId=source.VersionId;
+            this.PreviousVersionId=source.PreviousVersionId;
+            this.CustomHolonType=source.CustomHolonType;
             this.IsChanged = source.IsChanged;
             this.IsNewHolon = source.IsNewHolon;
 
@@ -189,6 +205,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             
             item.Version=this.Version;
             item.IsActive=this.IsActive;
+            item.IsPublic=this.IsPublic;
+            item.VersionId=this.VersionId;
+            item.PreviousVersionId=this.PreviousVersionId;
+            item.CustomHolonType=this.CustomHolonType;
             item.IsChanged = this.IsChanged;
             item.IsNewHolon = this.IsNewHolon;
 

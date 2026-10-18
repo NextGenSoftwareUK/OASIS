@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SubscriptionReconciliation;
 
@@ -33,7 +34,7 @@ public sealed class UsageExternalReceipt
         if (Source is not ("provider" or "stripe") || (AmountUsd < 0 && !(Source=="stripe" && BillingCostBasis=="overage_charge_usd_v1")) || string.IsNullOrWhiteSpace(ExternalId) || ExternalId.Length > 200)
             throw new ArgumentException("Receipt source, non-negative USD amount and external identifier are required.");
         if (Source == "provider" && (!Guid.TryParseExact(OperationId, "D", out _) ||
-            ConsumingService is not ("WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10") ||
+            !SubscriptionServiceIdentity.IsService(ConsumingService) ||
             string.IsNullOrWhiteSpace(Provider) || string.IsNullOrWhiteSpace(ProviderRequestId)))
             throw new ArgumentException("Provider evidence must identify the operation, service, provider and provider request.");
         if (string.IsNullOrEmpty(EvidenceSha256) || EvidenceSha256.Length != 64 || !EvidenceSha256.All(Uri.IsHexDigit))
@@ -84,7 +85,7 @@ public static class UsageReconciliationMath
     // not a caller-supplied label that could conceal actual external provider work.
     public static bool IsInternalReceipt(JsonElement receipt, string service, string operationId, string outcome)
     {
-        if (service is not ("WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10")) return false;
+        if (!SubscriptionServiceIdentity.IsService(service)) return false;
         if (outcome is not ("succeeded" or "failed" or "cancelled")) return false;
         string provider = String(receipt, "Provider");
         string source = String(receipt, "CostSource");

@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests
         [TestInitialize]
         public void Setup()
         {
-            _provider = new AWSOASIS();
+            _provider = new AWSOASIS("us-east-1","owned-local","owned-local","http://127.0.0.1:1");
         }
 
         [TestMethod]
@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.AWSOASIS, providerType);
+            Assert.AreEqual(ProviderType.AWSOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -60,25 +60,21 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests
         }
 
         [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        public void ProviderImplementsActualStorageAndNearbyContracts()
         {
             // Arrange
             Assert.IsFalse(_provider.IsProviderActivated);
 
-            // Act
-            var result = _provider.ActivateProvider();
-
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsInstanceOfType(_provider,typeof(IOASISStorageProvider));
+            Assert.IsInstanceOfType(_provider,typeof(IOASISNETProvider));
+            // Successful activation is verified by the owned real DynamoDB suite, not an offline stub.
         }
 
         [TestMethod]
         public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
         {
             // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsFalse(_provider.IsProviderActivated);
 
             // Act
             var result = _provider.DeActivateProvider();
@@ -89,20 +85,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void DeactivationIsIdempotentWithoutNetworkAccess()
         {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.IsFalse(_provider.DeActivateProvider().IsError);
+            Assert.IsFalse(_provider.DeActivateProvider().IsError);
+            Assert.IsFalse(_provider.IsProviderActivated);
         }
 
         [TestCleanup]
         public void Cleanup()
         {
-            if (_provider != null && _provider.IsProviderActivated)
+            if (_provider != null)
             {
                 _provider.DeActivateProvider();
             }

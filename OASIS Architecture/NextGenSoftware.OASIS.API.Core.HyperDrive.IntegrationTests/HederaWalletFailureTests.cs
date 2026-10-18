@@ -1,0 +1,210 @@
+using System.Reflection;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
+using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
+using Xunit;
+
+namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
+
+public sealed class HederaWalletFailureTests
+{
+    [Theory]
+    [InlineData(false, "id", false)]
+    [InlineData(true, "id", false)]
+    [InlineData(false, "username", false)]
+    [InlineData(true, "username", false)]
+    [InlineData(false, "email", false)]
+    [InlineData(true, "email", false)]
+    [InlineData(false, "username", true)]
+    [InlineData(true, "username", true)]
+    [InlineData(false, "email", true)]
+    [InlineData(true, "email", true)]
+    [InlineData(false,"escrow-lock",false)] [InlineData(true,"escrow-lock",false)]
+    [InlineData(false,"escrow-release",false)] [InlineData(true,"escrow-release",false)]
+    [InlineData(false,"escrow-associate",false)] [InlineData(true,"escrow-associate",false)]
+    [InlineData(false,"escrow-lock",true)] [InlineData(true,"escrow-lock",true)]
+    [InlineData(false,"escrow-release",true)] [InlineData(true,"escrow-release",true)]
+    [InlineData(false,"cosmos-escrow-lock",false)] [InlineData(true,"cosmos-escrow-lock",false)]
+    [InlineData(false,"cosmos-escrow-release",false)] [InlineData(true,"cosmos-escrow-release",false)]
+    [InlineData(false,"mint",false)] [InlineData(true,"mint",false)]
+    [InlineData(false,"burn",false)] [InlineData(true,"burn",false)]
+    [InlineData(false,"mint",true)] [InlineData(true,"mint",true)]
+    [InlineData(false,"burn",true)] [InlineData(true,"burn",true)]
+    [InlineData(false,"cosmos-mint",false)] [InlineData(true,"cosmos-mint",false)]
+    [InlineData(false,"cosmos-burn",false)] [InlineData(true,"cosmos-burn",false)]
+    [InlineData(false,"cosmos-nft-mint",false)] [InlineData(true,"cosmos-nft-mint",false)]
+    [InlineData(false,"cosmos-nft-burn",false)] [InlineData(true,"cosmos-nft-burn",false)]
+    [InlineData(false,"cosmos-nft-lock",false)] [InlineData(true,"cosmos-nft-lock",false)]
+    [InlineData(false,"cosmos-nft-unlock",false)] [InlineData(true,"cosmos-nft-unlock",false)]
+    [InlineData(false,"nft-mint",true)] [InlineData(true,"nft-mint",true)]
+    [InlineData(false,"nft-burn",true)] [InlineData(true,"nft-burn",true)]
+    [InlineData(false,"nft-lock",true)] [InlineData(true,"nft-lock",true)]
+    [InlineData(false,"nft-unlock",true)] [InlineData(true,"nft-unlock",true)]
+    [InlineData(false,"nft-mint",false)] [InlineData(true,"nft-mint",false)]
+    [InlineData(false,"tron-mint",false)] [InlineData(true,"tron-mint",false)]
+    [InlineData(false,"tron-nft-mint",false)] [InlineData(true,"tron-nft-mint",false)]
+    [InlineData(false,"tron-escrow-aggregate-release",false)] [InlineData(true,"tron-escrow-aggregate-release",false)]
+    [InlineData(false,"nft-recipient-id",false)] [InlineData(true,"nft-recipient-id",false)]
+    [InlineData(false,"nft-recipient-username",false)] [InlineData(true,"nft-recipient-username",false)]
+    [InlineData(false,"nft-recipient-email",false)] [InlineData(true,"nft-recipient-email",false)]
+    [InlineData(false,"escrow-create",true)] [InlineData(true,"escrow-create",true)]
+    public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector, bool sui)
+    {
+        var tron = selector.StartsWith("tron-", StringComparison.Ordinal);
+        if(tron)selector=selector.Substring("tron-".Length);
+        var cosmos = selector.StartsWith("cosmos-", StringComparison.Ordinal);
+        if (cosmos) selector = selector.Substring("cosmos-".Length);
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "AGENTS.md"))) directory = directory.Parent;
+        Assert.NotNull(directory);
+        var root = Path.Combine(directory!.FullName, "TestResults", "HederaCurrent", "wallet-failure-files");
+        Directory.CreateDirectory(root);
+        using var lease = new FileStream(Path.Combine(root, "fixture.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var sender = Guid.Parse("478e4ef2-b442-459f-93e0-fec53c7de2f1");
+        var recipient = Guid.Parse("478e4ef2-b442-459f-93e0-fec53c7de2f2");
+        var path = Path.Combine(root, "wallets_" + sender + ".json");
+        Assert.False(File.Exists(path), "Preserve existing fixture before retry.");
+        const string corruptFixture = "{synthetic-invalid-wallet-json";
+        var local = new LocalFileOASIS(filePath: root + Path.DirectorySeparatorChar, storageDirectory: root);
+        Assert.False((await local.ActivateProviderAsync()).IsError);
+        var created = new List<Guid>();
+        var previousSuiBridge=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        try
+        {
+            if(sui&&selector.StartsWith("nft-",StringComparison.Ordinal))Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",
+                Path.Combine(directory.FullName,"Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests/Fixtures/unlock-readback-failure.mjs"));
+            if (selector is "username" or "email" or "nft-recipient-username" or "nft-recipient-email") foreach (var pair in new[] { (sender, "hedera-failure-sender"), (recipient, "hedera-failure-recipient") }) {
+                Assert.Null((await local.LoadAvatarAsync(pair.Item1)).Result);
+                var saved = await local.SaveAvatarAsync(new Core.Holons.Avatar { Id = pair.Item1, Username = pair.Item2,
+                    Email = pair.Item2 + "@example.invalid", IsActive = true });
+                Assert.False(saved.IsError, saved.Message); created.Add(pair.Item1);
+            }
+            var dna = new OASISDNA(); dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
+            dna.OASIS.StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false };
+            var providers = new ProviderManager(null, dna); providers.RegisterProvider(local);
+            Assert.False(providers.SetAndActivateCurrentStorageProvider(local).IsError);
+            var constructor = typeof(WalletManager).GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic).Single(c => c.GetParameters().Length == 4);
+            var wallets = (WalletManager)constructor.Invoke(new object?[] { local, dna, providers, null });
+            await File.WriteAllTextAsync(path, corruptFixture);
+            var walletProvider = tron?ProviderType.TRONOASIS:cosmos ? ProviderType.CosmosBlockChainOASIS : sui ? ProviderType.SuiOASIS : ProviderType.HashgraphOASIS;
+            var expected = selector.EndsWith("username",StringComparison.Ordinal)
+                ? await wallets.GetAvatarDefaultWalletByUsernameAsync("hedera-failure-sender", showPrivateKeys: true, providerType: walletProvider)
+                : selector.EndsWith("email",StringComparison.Ordinal)
+                ? await wallets.GetAvatarDefaultWalletByEmailAsync("hedera-failure-sender@example.invalid", walletProvider, showPrivateKeys: true)
+                : await wallets.GetAvatarDefaultWalletByIdAsync(sender, walletProvider, showPrivateKeys: true);
+            Assert.True(expected.IsError); Assert.NotNull(expected.Exception);
+            var hedera = new HashgraphOASIS(rpcEndpoint:"http://127.0.0.1:17689",walletManager: wallets,
+                tokenEscrowConfiguration:selector.StartsWith("escrow-",StringComparison.Ordinal)?new(){
+                    Protocol=HederaTokenEscrowProtocol.IdBoundV1,ContractId="0.0.2001",RuntimeCodeHash="0x"+new string('1',64),GasLimit=400000,MaxFeeTinybars=100000000}:null);
+            var sharedEscrow = "0x" + new string('2', 64);
+            using var suiProvider = new SuiOASIS(contractAddress:"0x1",tokenEscrow:sui&&selector!="escrow-create"?new(sharedEscrow):null) { WalletManager = wallets };
+            using var cosmosProvider = new Providers.CosmosBlockChainOASIS.CosmosBlockChainOASIS(contractAddress:"fixture-contract",
+                tokenEscrow:cosmos?new("fixture-contract",new string('c',64)):null) { WalletManager = wallets };
+            var tronProvider = new Providers.TRONOASIS.TRONOASIS(contractAddress:"fixture-token",walletManager:wallets,escrowContractAddress:"fixture-escrow");
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Escrow(){
+                if(tron&&selector=="escrow-aggregate-release"){
+                    var request=new Core.Objects.Wallet.Requests.UnlockWeb3TokenRequest {UnlockedByAvatarId=sender,TokenAddress="fixture-token",EscrowContractAddress="fixture-escrow"};
+                    return synchronous?tronProvider.UnlockToken(request):await tronProvider.UnlockTokenAsync(request);
+                }
+                var id=Guid.Parse("5f31afde-1229-4e99-8088-a0034d33a557");
+                if(selector=="escrow-create"){
+                    var created=synchronous?suiProvider.CreateTokenEscrowRegistry(sender):await suiProvider.CreateTokenEscrowRegistryAsync(sender);
+                    return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Providers.SuiOASIS.SuiEscrowRegistryResponse,Core.Interfaces.Wallet.Responses.ITransactionResponse>(created);
+                }
+                if(selector=="escrow-associate")return synchronous?hedera.AssociateTokenWithEscrow(sender,"0.0.3001","0.0.2001")
+                    :await hedera.AssociateTokenWithEscrowAsync(sender,"0.0.3001","0.0.2001");
+                if(selector=="escrow-lock"){
+                    var request=new Core.Objects.Wallet.Requests.LockWeb3TokenRequest{LockedByAvatarId=sender,LockId=id,Amount=1.23m,
+                        TokenAddress=cosmos?"TREE":sui?"0x1::token::TOKEN":"0.0.3001",EscrowContractAddress=cosmos?"fixture-contract":sui?sharedEscrow:"0.0.2001"};
+                    return cosmos?synchronous?cosmosProvider.LockToken(request):await cosmosProvider.LockTokenAsync(request)
+                        :sui?synchronous?suiProvider.LockToken(request):await suiProvider.LockTokenAsync(request)
+                        :synchronous?hedera.LockToken(request):await hedera.LockTokenAsync(request);
+                }
+                var release=new Core.Objects.Wallet.Requests.UnlockWeb3TokenRequest{UnlockedByAvatarId=sender,LockId=id,
+                    TokenAddress=cosmos?"TREE":sui?"0x1::token::TOKEN":"0.0.3001",EscrowContractAddress=cosmos?"fixture-contract":sui?sharedEscrow:"0.0.2001"};
+                return cosmos?synchronous?cosmosProvider.UnlockToken(release):await cosmosProvider.UnlockTokenAsync(release)
+                    :sui?synchronous?suiProvider.UnlockToken(release):await suiProvider.UnlockTokenAsync(release)
+                    :synchronous?hedera.UnlockToken(release):await hedera.UnlockTokenAsync(release);
+            }
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Token(){
+                if(selector=="mint"){
+                    var mint=new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId=sender,Amount=1,Symbol=cosmos?"TREE":"HTS",
+                        MetaData=new(){{"TokenAddress",sui?"0x1::token::TOKEN":"0.0.3001"},{"MintToWalletAddress","fixture-owner"}} };
+                    if(tron)mint.ProviderType=new(ProviderType.TRONOASIS);
+                    return tron?synchronous?tronProvider.MintToken(mint):await tronProvider.MintTokenAsync(mint)
+                        :cosmos?synchronous?cosmosProvider.MintToken(mint):await cosmosProvider.MintTokenAsync(mint)
+                        :sui?synchronous?suiProvider.MintToken(mint):await suiProvider.MintTokenAsync(mint)
+                        :synchronous?hedera.MintToken(mint):await hedera.MintTokenAsync(mint);
+                }
+                var burn=new Core.Objects.Wallet.Requests.BurnWeb3TokenRequest { BurntByAvatarId=sender,Amount=1,TokenAddress=cosmos?"TREE":sui?"0x1::token::TOKEN":"0.0.3001",
+                    OwnerSeedPhrase="",OwnerPrivateKey="",OwnerPublicKey="" };
+                return cosmos?synchronous?cosmosProvider.BurnToken(burn):await cosmosProvider.BurnTokenAsync(burn)
+                    :sui?synchronous?suiProvider.BurnToken(burn):await suiProvider.BurnTokenAsync(burn)
+                    :synchronous?hedera.BurnToken(burn):await hedera.BurnTokenAsync(burn);
+            }
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Nft(){
+                NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.NFT.Responses.IWeb3NFTTransactionResponse> response;
+                var locator=sui?"0x"+new string('3',64):"fixture-contract#fixture-token";
+                if(selector=="nft-mint"||selector.StartsWith("nft-recipient-",StringComparison.Ordinal)){
+                    var request=new Core.Objects.NFT.Requests.MintWeb3NFTRequest{MintedByAvatarId=sender};
+                    if(tron){request.Amount=1;request.NumberToMint=1;request.JSONMetaDataURL="https://example.invalid/original.json";
+                        request.MetaData=new(){{"MintFunctionSignature","mint(address,uint256,string)"},{"TokenAddress","fixture-token"},{"TokenId","1"}};}
+                    if(!cosmos&&!sui){request.CollectionPublicKey="0.0.3001";request.JSONMetaDataURL="https://example.invalid/original.json";}
+                    if(selector=="nft-recipient-id")request.SendToAvatarAfterMintingId=sender;
+                    if(selector=="nft-recipient-username")request.SendToAvatarAfterMintingUsername="hedera-failure-sender";
+                    if(selector=="nft-recipient-email")request.SendToAvatarAfterMintingEmail="hedera-failure-sender@example.invalid";
+                    response=tron?synchronous?tronProvider.MintNFT(request):await tronProvider.MintNFTAsync(request)
+                        :sui?synchronous?suiProvider.MintNFT(request):await suiProvider.MintNFTAsync(request)
+                        :cosmos?synchronous?cosmosProvider.MintNFT(request):await cosmosProvider.MintNFTAsync(request)
+                        :synchronous?hedera.MintNFT(request):await hedera.MintNFTAsync(request);
+                }else if(selector=="nft-burn"){
+                    var request=new Core.Objects.NFT.Requests.BurnWeb3NFTRequest{BurntByAvatarId=sender,NFTTokenAddress=locator,OwnerPrivateKey="",OwnerPublicKey="",OwnerSeedPhrase=""};
+                    response=sui?synchronous?suiProvider.BurnNFT(request):await suiProvider.BurnNFTAsync(request)
+                        :synchronous?cosmosProvider.BurnNFT(request):await cosmosProvider.BurnNFTAsync(request);
+                }else if(selector=="nft-lock"){
+                    var request=new Core.Objects.NFT.Requests.LockWeb3NFTRequest{LockedByAvatarId=sender,NFTTokenAddress=locator};
+                    response=sui?synchronous?suiProvider.LockNFT(request):await suiProvider.LockNFTAsync(request)
+                        :synchronous?cosmosProvider.LockNFT(request):await cosmosProvider.LockNFTAsync(request);
+                }else{
+                    var request=new Core.Objects.NFT.Requests.UnlockWeb3NFTRequest{UnlockedByAvatarId=sender,NFTTokenAddress=locator};
+                    response=sui?synchronous?suiProvider.UnlockNFT(request):await suiProvider.UnlockNFTAsync(request)
+                        :synchronous?cosmosProvider.UnlockNFT(request):await cosmosProvider.UnlockNFTAsync(request);
+                }
+                return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.NFT.Responses.IWeb3NFTTransactionResponse,Core.Interfaces.Wallet.Responses.ITransactionResponse>(response);
+            }
+            var result = selector.StartsWith("nft-",StringComparison.Ordinal)?await Nft():selector is "mint" or "burn"?await Token():selector.StartsWith("escrow-",StringComparison.Ordinal)?await Escrow():sui
+                ? selector == "username"
+                    ? synchronous ? suiProvider.SendTransactionByUsername("hedera-failure-sender", "hedera-failure-recipient", 1m)
+                        : await suiProvider.SendTransactionByUsernameAsync("hedera-failure-sender", "hedera-failure-recipient", 1m)
+                    : synchronous ? suiProvider.SendTransactionByEmail("hedera-failure-sender@example.invalid", "hedera-failure-recipient@example.invalid", 1m)
+                        : await suiProvider.SendTransactionByEmailAsync("hedera-failure-sender@example.invalid", "hedera-failure-recipient@example.invalid", 1m)
+                : selector == "username"
+                ? synchronous ? hedera.SendTransactionByUsername("hedera-failure-sender", "hedera-failure-recipient", 1m)
+                    : await hedera.SendTransactionByUsernameAsync("hedera-failure-sender", "hedera-failure-recipient", 1m)
+                : selector == "email"
+                ? synchronous ? hedera.SendTransactionByEmail("hedera-failure-sender@example.invalid", "hedera-failure-recipient@example.invalid", 1m)
+                    : await hedera.SendTransactionByEmailAsync("hedera-failure-sender@example.invalid", "hedera-failure-recipient@example.invalid", 1m)
+                : synchronous ? hedera.SendTransactionById(sender, recipient, 1m)
+                    : await hedera.SendTransactionByIdAsync(sender, recipient, 1m);
+            Assert.True(result.IsError); Assert.Null(result.Result);
+            Assert.NotNull(result.Exception); Assert.IsType(expected.Exception.GetType(), result.Exception);
+            Assert.Equal(expected.ErrorCode, result.ErrorCode); Assert.Equal(expected.DetailedMessage, result.DetailedMessage);
+            Assert.Equal(expected.Message, result.Message); Assert.False(hedera.IsProviderActivated);
+            Assert.False(suiProvider.IsProviderActivated);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previousSuiBridge);
+            try {
+                if (File.Exists(path)) {
+                    Assert.Equal(corruptFixture, await File.ReadAllTextAsync(path));
+                    File.Delete(path);
+                }
+                foreach (var id in created) Assert.False((await local.DeleteAvatarAsync(id, softDelete: false)).IsError);
+            } finally { await local.DeActivateProviderAsync(); }
+        }
+    }
+}

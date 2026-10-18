@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using EOSNewYork.EOSCore;
 using Newtonsoft.Json;
 using NextGenSoftware.Logging;
@@ -167,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -291,7 +292,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -315,7 +316,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -329,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatarInfo = JsonConvert.SerializeObject(Avatar);
+                var avatarInfo = OasisJson.Serialize<object>(Avatar);
 
                 // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
                 var existAvatar = _avatarRepository.Read(Avatar.Id).Result;
@@ -359,7 +360,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -373,7 +374,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatarInfo = JsonConvert.SerializeObject(Avatar);
+                var avatarInfo = OasisJson.Serialize<object>(Avatar);
 
                 // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
                 var existAvatar = await _avatarRepository.Read(Avatar.Id);
@@ -402,7 +403,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -416,7 +417,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var avatarDetailInfo = JsonConvert.SerializeObject(Avatar);
+                var avatarDetailInfo = OasisJson.Serialize<object>(Avatar);
 
                 // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
                 var existAvatarDetail = _avatarDetailRepository.Read(Avatar.Id).Result;
@@ -444,7 +445,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -458,7 +459,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var avatarDetailInfo = JsonConvert.SerializeObject(Avatar);
+                var avatarDetailInfo = OasisJson.Serialize<object>(Avatar);
 
                 // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
                 var existAvatarDetail = await _avatarDetailRepository.Read(Avatar.Id);
@@ -486,7 +487,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -511,7 +512,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -546,7 +547,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;

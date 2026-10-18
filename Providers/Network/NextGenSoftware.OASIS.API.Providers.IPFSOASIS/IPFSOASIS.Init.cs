@@ -23,6 +23,7 @@ using NextGenSoftware.Utilities;
 using Ipfs.CoreApi;
 using System.Xml.Linq;
 using System.Threading;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -54,11 +55,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 IsProviderActivated = false;
 
-                if (IPFSClient != null)
-                    await _ipfsClient.ShutdownAsync();
-
                 _ipfsClient = null;
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In ActivateProviderAsync Method. Reason: {e}");
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In ActivateProviderAsync Method. Reason: {e}",e);
             }
 
             return result;
@@ -66,42 +64,15 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                _ipfsClient.ShutdownAsync().GetAwaiter().GetResult();
-                _ipfsClient = null;
-                result.Result = true;
-                IsProviderActivated = false;
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In DeActivateProvider Method. Reason: {e}");
-            }
-
-            return result;
+            return DeActivateProviderAsync().GetAwaiter().GetResult();
         }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                if (IPFSClient != null)
-                    await _ipfsClient.ShutdownAsync();
-
-                _ipfsClient = null;
-                result.Result = true;
-                IsProviderActivated = false;
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In DeActivateProviderAsync Method. Reason: {e}");
-            }
-
-            return result;
+            // This provider owns a client handle, not the externally managed IPFS daemon.
+            _ipfsClient = null;
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> {Result=true});
         }
 
         public async Task<string> LoadFileToJson(string address)
@@ -127,17 +98,47 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         /******************************/
         public async Task<Dictionary<string, HolonResume>> LoadLookupToJson()
         {
-            try
+            if(_OASISDNA?.OASIS?.StorageProviders?.IPFSOASIS == null)
+                throw new InvalidOperationException("IPFS storage configuration is required before reading the private index.");
+            var address=_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+            if(string.IsNullOrWhiteSpace(address))
             {
-                string json = await LoadStringToJson(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
-                _idLookup = JsonConvert.DeserializeObject<Dictionary<string, HolonResume>>(json);
+                if(_idLookup.Count>0) throw new InvalidOperationException("IPFS lookup root is missing while a populated index is retained; refusing to replace it with an empty index.");
+                return _idLookup;
             }
-            catch
-            {
-                _idLookup = new Dictionary<string, HolonResume>();
-            }
-
+            if(IPFSClient == null) throw new InvalidOperationException("An active IPFS client is required to read the configured lookup root.");
+            var json=UnprotectIndex(await LoadStringToJson(address));
+            Dictionary<string,HolonResume> loaded;
+            try { loaded=DeserializeLookup(json); }
+            catch(JsonException cause) { throw new InvalidDataException("IPFS stored private index JSON is invalid.",cause); }
+            _idLookup=loaded;
             return _idLookup;
+        }
+
+        private static Dictionary<string,HolonResume> DeserializeLookup(string json)
+        {
+            var token=Newtonsoft.Json.Linq.JToken.Parse(json,new Newtonsoft.Json.Linq.JsonLoadSettings {
+                DuplicatePropertyNameHandling=Newtonsoft.Json.Linq.DuplicatePropertyNameHandling.Error });
+            if(token.Type==Newtonsoft.Json.Linq.JTokenType.Null) throw new InvalidDataException("IPFS lookup root contained no index object.");
+            if(token is not Newtonsoft.Json.Linq.JObject) throw new JsonSerializationException("IPFS lookup root must be an object.");
+            var records=token.ToObject<Dictionary<string,HolonResume>>();
+            foreach(var entry in records)
+            {
+                var row=entry.Value;
+                if(string.IsNullOrWhiteSpace(entry.Key) || row==null || row.Id==Guid.Empty
+                    || row.RecordKind is not ("avatar" or "avatar-detail" or "holon")
+                    || row.ProviderUniqueStorageKey==null
+                    || !row.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS,out var cid) || cid!=entry.Key)
+                    throw new InvalidDataException("IPFS index entry has invalid kind, identity or storage-key binding.");
+            }
+            if(records.Values.GroupBy(row=>(row.RecordKind,row.Id)).Any(group=>group.Count()>1))
+                throw new StorageIdentityAmbiguousException();
+            foreach(var cid in records.Keys)
+            {
+                try { _=(Cid)cid; }
+                catch(Exception cause) { throw new InvalidDataException("IPFS index entry has an invalid CID.",cause); }
+            }
+            return records;
         }
 
         public async Task<string> SaveJsonToFile<T>(List<T> list)
@@ -149,136 +150,84 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public async Task<string> SaveLookupToFile(Dictionary<string, HolonResume> idLookup)
         {
-            string json = JsonConvert.SerializeObject(idLookup);
+            string json = ProtectIndex(JsonConvert.SerializeObject(idLookup));
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
 
+            var previousRoot=_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
             _OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = fsn.Id;
-            OASISDNAManager.SaveDNA(_OASISDNAPath, _OASISDNA);
+            try
+            {
+                var saved=OASISDNAManager.SaveDNA(_OASISDNAPath, _OASISDNA);
+                EnsureIndexPublication(fsn.Id,previousRoot,saved);
+            }
+            catch(IPFSIndexPublicationException) { throw; }
+            catch(Exception cause) { throw new IPFSIndexPublicationException(fsn.Id,previousRoot,cause); }
 
             return fsn.Id;
         }
 
+        private static void EnsureIndexPublication(string cid,string previousRoot,OASISResult<bool> saved)
+        {
+            if(saved == null || saved.IsError || !saved.Result)
+                throw new IPFSIndexPublicationException(cid,previousRoot,saved?.Exception
+                    ?? new InvalidOperationException(saved?.Message ?? "DNA pointer persistence returned no result."));
+        }
+
+        private async Task PublishAcknowledgedRecordAsync(string recordCid, HolonResume record)
+        {
+            try { ReplaceIndexEntry(recordCid, record); await SaveLookupToFile(_idLookup); }
+            catch (Exception cause) { throw new IPFSRecordPublicationException(recordCid, cause); }
+        }
+
+        private async Task SavePrivateEntityAsync(IHolonBase entity, string kind, HolonResume index)
+        {
+            if (entity == null || entity.Id == Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
+            _idLookup = await LoadLookupToJson();
+            var previous = FindIndexEntry(kind, row => row.Id == entity.Id, true);
+            entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+            entity.PreviousVersionProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+            if (previous.Value != null) entity.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = previous.Key;
+            index.Id = entity.Id;
+            index.RecordKind = kind;
+            var json = ProtectRecord(kind, entity.Id, OasisJson.Serialize(entity));
+            var acknowledged = await IPFSClient.FileSystem.AddTextAsync(json);
+            var cid = acknowledged.Id.ToString();
+            try
+            {
+                entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = cid;
+                index.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType,string>(entity.ProviderUniqueStorageKey);
+                await PublishAcknowledgedRecordAsync(cid, index);
+            }
+            catch (IPFSRecordPublicationException) { throw; }
+            catch (Exception cause) { throw new IPFSRecordPublicationException(cid, cause); }
+        }
+
         public async Task<IAvatar> SaveAvatarToFile(IAvatar avatar)
         {
-            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
-            _idLookup = await LoadLookupToJson();
-            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == avatar.Id);
-
-            // in case there is no element in _idlookup dictionary
-            if (dico == null)
-                dico = new HolonResume();
-
-
-            if (_idLookup.Count(a => a.Value.Id == avatar.Id) > 0)
-                avatar.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
-                    _idLookup.FirstOrDefault(a => a.Value.Id == avatar.Id).Key;
-
-            string json = JsonConvert.SerializeObject(avatar);
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
-
-            // we store just values that we will use as a filter of search in other methods.
-
-            dico.Id = avatar.Id;
-            dico.login = avatar.Username;
-            dico.password = avatar.Password;
-            dico.ProviderUniqueStorageKey = avatar.ProviderUniqueStorageKey;
-            dico.email = avatar.Email;
-            dico.HolonType = HolonType.Avatar;
-
-            if (_idLookup.Count == 0)
-                _idLookup.Add(fsn.Id, dico);
-            else
-                _idLookup[fsn.Id] = dico;
-
-
-            await SaveLookupToFile(_idLookup);
-
+            if (avatar == null) throw new ArgumentNullException(nameof(avatar));
+            await SavePrivateEntityAsync(avatar, "avatar", new HolonResume {
+                login=avatar.Username, email=avatar.Email, HolonType=HolonType.Avatar });
             return avatar;
         }
 
         public async Task<IHolon> SaveHolonToFile(IHolon holon)
         {
-            try
-            {
-                //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
-                _idLookup = await LoadLookupToJson();
-                HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == holon.Id);
-
-                // in case there is no element in _idlookup dictionary
-                if (dico == null)
-                    dico = new HolonResume();
-
-                if (_idLookup.Count(a => a.Value.Id == holon.Id) > 0)
-                    holon.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
-                        _idLookup.FirstOrDefault(a => a.Value.Id == holon.Id).Key;
-
-                string json = JsonConvert.SerializeObject(holon);
-                var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
-
-                // we store just values that we will use as a filter of search in other methods.
-                dico.Id = holon.Id;
-                dico.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
-                dico.ParentHolonId = holon.ParentHolonId;
-                dico.HolonType = holon.HolonType;
-
-                if (_idLookup.Count == 0)
-                    _idLookup.Add(fsn.Id, dico);
-                else
-                    _idLookup[fsn.Id] = dico;
-
-                string id = await SaveLookupToFile(_idLookup);
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError($"Error occured in SaveHolonToFile method in IPFSOASIS Provider. Reason: {e}");
-            }
-
+            if (holon == null) throw new ArgumentNullException(nameof(holon));
+            await SavePrivateEntityAsync(holon, "holon", new HolonResume {
+                ParentHolonId=holon.ParentHolonId, HolonType=holon.HolonType });
             return holon;
         }
 
         public async Task<IAvatarDetail> SaveAvatarDetailToFile(IAvatarDetail avatarDetail)
         {
-            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
-            _idLookup = await LoadLookupToJson();
-            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == avatarDetail.Id);
-
-            // in case there is no element in _idlookup dictionary
-            if (dico == null)
-                dico = new HolonResume();
-
-
-            if (_idLookup.Count(a => a.Value.Id == avatarDetail.Id) > 0)
-                avatarDetail.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
-                    _idLookup.FirstOrDefault(a => a.Value.Id == avatarDetail.Id).Key;
-
-            string json = JsonConvert.SerializeObject(avatarDetail);
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
-
-            // we store just values that we will use as a filter of search in other methods.
-
-            dico.Id = avatarDetail.Id;
-            dico.login = avatarDetail.Username;           
-            dico.ProviderUniqueStorageKey = avatarDetail.ProviderUniqueStorageKey;
-            dico.email = avatarDetail.Email;
-            dico.HolonType = HolonType.AvatarDetail;
-
-            if (_idLookup.Count == 0)
-                _idLookup.Add(fsn.Id, dico);
-            else
-                _idLookup[fsn.Id] = dico;
-
-
-            await SaveLookupToFile(_idLookup);
-
+            if (avatarDetail == null) throw new ArgumentNullException(nameof(avatarDetail));
+            await SavePrivateEntityAsync(avatarDetail, "avatar-detail", new HolonResume {
+                login=avatarDetail.Username, email=avatarDetail.Email, HolonType=HolonType.AvatarDetail });
             return avatarDetail;
         }
 
         //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
         //{
-        //    return await LoadAvatarTemplateAsync(a => a.login == username && a.password == password);
         //}
         /************************************************************/
 
@@ -381,99 +330,32 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
-            OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync();
-            OASISResult<IEnumerable<IHolon>> holonsResult = await LoadAllHolonsAsync();
-            List<IAvatar> avatars = new List<IAvatar>();
-            List<IHolon> holons = new List<IHolon>();
-
-            if (avatarsResult.Result != null && !avatarsResult.IsError)
-                avatars = avatarsResult.Result.ToList();
-            else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the avatars. Reason: {avatarsResult.Message}");
-
-            if (holonsResult.Result != null && !holonsResult.IsError)
-                holons = holonsResult.Result.ToList();
-            else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the holons. Reason: {holonsResult.Message}");
-
-            if (!result.IsError)
+            var result=new OASISResult<ISearchResults>();
+            try
             {
-                foreach (ISearchGroupBase searchGroup in searchParams.SearchGroups)
-                {
-                    ISearchTextGroup searchTextGroup = searchGroup as ISearchTextGroup;
-
-                    if (searchTextGroup != null)
-                    {
-                        // Fallback simple search for current model
-                        if (!string.IsNullOrWhiteSpace(searchTextGroup.SearchQuery))
-                        {
-                            var q = searchTextGroup.SearchQuery.ToLower();
-                            result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                (a.Name ?? string.Empty).ToLower().Contains(q) || (a.Description ?? string.Empty).ToLower().Contains(q)));
-                            result.Result.SearchResultHolons.AddRange(holons.Where(h =>
-                                (h.Name ?? string.Empty).ToLower().Contains(q) || (h.Description ?? string.Empty).ToLower().Contains(q)));
-                        }
-
-                        if (searchTextGroup.SearchAvatars)
-                        {
-                            // Simplified: only name/username/email/description for current model
-                            var qLower = (searchTextGroup.SearchQuery ?? string.Empty).ToLower();
-                            result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                (a.Name ?? string.Empty).ToLower().Contains(qLower)
-                                || (a.Username ?? string.Empty).ToLower().Contains(qLower)
-                                || (a.Email ?? string.Empty).ToLower().Contains(qLower)
-                                || (a.Description ?? string.Empty).ToLower().Contains(qLower)));
-                        }
-
-                        if (searchTextGroup.SearchHolons)
-                        {
-                            if (searchTextGroup.HolonSearchParams.Name)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.Name.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-
-                            if (searchTextGroup.HolonSearchParams.Description)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.Description.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-
-                            // Search ALL holon properties comprehensively
-                            if (searchTextGroup.HolonSearchParams.HolonType)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.HolonType.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.CreatedDate)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.CreatedDate.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.ModifiedDate)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.ModifiedDate.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.Version)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.Version.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            // Simplified: only name/description/holontype/date for current model
-                            var qLower = (searchTextGroup.SearchQuery ?? string.Empty).ToLower();
-                            result.Result.SearchResultHolons.AddRange(holons.Where(h =>
-                                (h.Name ?? string.Empty).ToLower().Contains(qLower)
-                                || (h.Description ?? string.Empty).ToLower().Contains(qLower)
-                                || h.HolonType.ToString().ToLower().Contains(qLower)
-                                || h.CreatedDate.ToString().ToLower().Contains(qLower)
-                                || h.ModifiedDate.ToString().ToLower().Contains(qLower)));
-                        }
-                    }
-                }
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
+                var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+                var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+                var snapshot=await LoadLookupToJson();
+                var avatars=wantsAvatars ? await ReadIndexSnapshotAsync<Avatar>(snapshot,"avatar",row=>true,version):new List<Avatar>();
+                var holons=wantsHolons || searchParams.ParentId!=Guid.Empty
+                    ? await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true,version):new List<Holon>();
+                var graphHolons=version!=0 && loadChildren && wantsHolons
+                    ? await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true,0):holons;
+                var project=HolonGraphProjection.Create(graphHolons,loadChildren,recursive,maxChildDepth,0,true,
+                    source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+                var found=new SearchResults();
+                found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,searchParams,holons)));
+                if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,searchParams,holons)).Select(project));
+                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+                result.Result=found; result.IsLoaded=true;
             }
-
+            catch(Exception cause)
+            {
+                OASISErrorHandling.HandleError(ref result,"IPFS private search failed: "+cause.Message,cause);
+                if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+            }
             return result;
         }
 

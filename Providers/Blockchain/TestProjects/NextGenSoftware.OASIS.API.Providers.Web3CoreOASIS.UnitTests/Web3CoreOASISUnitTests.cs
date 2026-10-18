@@ -46,19 +46,20 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests
         }
 
         [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        public void ActivateProvider_WithMissingCredentialsMustRemainInactive()
         {
             Assert.IsFalse(_provider.IsProviderActivated);
             var result = _provider.ActivateProvider();
-            Assert.IsFalse(result.IsError);
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsTrue(result.IsError);
+            Assert.IsInstanceOfType(result.Exception,typeof(InvalidOperationException));
+            Assert.IsFalse(_provider.IsProviderActivated);
         }
 
         [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
+        public void DeActivateProvider_AfterFailedActivationIsSafeAndInactive()
         {
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsTrue(_provider.ActivateProvider().IsError);
+            Assert.IsFalse(_provider.IsProviderActivated);
             var result = _provider.DeActivateProvider();
             Assert.IsFalse(result.IsError);
             Assert.IsFalse(_provider.IsProviderActivated);

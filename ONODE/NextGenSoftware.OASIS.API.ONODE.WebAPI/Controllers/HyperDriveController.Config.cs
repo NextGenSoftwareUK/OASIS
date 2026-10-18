@@ -101,6 +101,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                 normalizedMode = string.Equals(normalizedMode, HyperDriveModes.V2, StringComparison.OrdinalIgnoreCase)
                     ? HyperDriveModes.V2 : HyperDriveModes.Legacy;
+                var compatibility = _providerManager.ValidateHyperDriveModeTransition(normalizedMode);
+                if (compatibility.IsError) return BadRequest(compatibility);
                 string previousMode = dna.HyperDriveMode;
                 dna.HyperDriveMode = normalizedMode;
                 OASISResult<bool> saveResult = await OASISDNAManager.SaveDNAAsync();

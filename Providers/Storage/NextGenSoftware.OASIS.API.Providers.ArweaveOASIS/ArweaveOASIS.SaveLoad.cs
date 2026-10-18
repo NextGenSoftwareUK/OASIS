@@ -175,6 +175,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
                     return result;
                 }
 
+                if (await HasTombstoneAsync("Holon", id))
+                {
+                    result.Result = null;
+                    result.Message = $"Holon with ID {id} has an Arweave tombstone.";
+                    return result;
+                }
+
                 var data = await _arweaveService.GetTransactionDataAsync(txIds.First());
                 var holon = JsonConvert.DeserializeObject<Holon>(Encoding.UTF8.GetString(data));
                 result.Result = holon;

@@ -11,6 +11,7 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
     [Table("Holon")]
+    [Microsoft.EntityFrameworkCore.Index(nameof(LocalProviderKey), IsUnique = true)]
     public class HolonModel {
 
         [Required, Key]
@@ -25,6 +26,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public bool IsChanged { get; set; }
         public int Version { get; set; }
         public bool IsActive { get; set; }
+        public bool IsPublic { get; set; }
+        public Guid VersionId { get; set; }
+        public Guid PreviousVersionId { get; set; }
+        public string CustomHolonType { get; set; }
+        // Repository metadata payload belongs to this holon, not a global property-key row.
+        public string MetaDataJson { get; set; } = "{}";
+        public string LocalProviderKey { get; set; }
+        public string ProviderKeysJson { get; set; } = "{}";
         
         public DimensionModel ParentDimension { get; set; }
         public DimensionLevel DimensionLevel { get; set; }

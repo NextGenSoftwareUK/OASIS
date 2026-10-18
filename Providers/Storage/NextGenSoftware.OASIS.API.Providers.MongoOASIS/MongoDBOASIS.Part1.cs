@@ -74,55 +74,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            // MongoDB serializers are process-global. Provider construction can happen
-            // repeatedly during failover, tests, and host reconfiguration, so registration
-            // must be idempotent rather than throwing on the second provider instance.
-            var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("NextGenSoftware") || type.FullName.StartsWith("System"));
-            BsonSerializer.TryRegisterSerializer(objectSerializer);
-            //BsonClassMap.RegisterClassMap<OAPPDNA>();
-
-            try
-            {
-                ConventionRegistry.Register(
-                    "DictionaryRepresentationConvention",
-                    new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) },
-                    _ => true);
-            }
-            catch
-            {
-                // Convention may already be registered in long-lived host processes.
-            }
+            // Assembly-owned member conventions are installed once before class maps freeze.
+            // Constructing a provider must not replace the host's process-global object serializer.
         }
 
         public override OASISResult<bool> ActivateProvider()
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                if (Database == null)
-                {
-                    Database = new MongoDbContext(ConnectionString, DBName);
-                    SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
-                    SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
-                    SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
-                    _avatarRepository = new AvatarRepository(Database);
-                    _holonRepository = new HolonRepository(Database);
-                    _holonRepository.EnsurePublicIdentityIndex();
-                    _searchRepository = new SearchRepository(Database);
-                }
-
-                IsProviderActivated = true;
-                result.Result = true;
-            }
-            catch (Exception ex) 
-            {
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In MongoDBOASISProvider.ActivateProvider. Reason: {ex}");
-            }
-            
-            return result;
-            //return base.ActivateProvider();
-        }
+            => ActivateMongoAsync(true).GetAwaiter().GetResult();
 
         public override OASISResult<bool> DeActivateProvider()
         {
@@ -152,35 +109,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return result;
         }
 
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                if (Database == null)
-                {
-                    Database = new MongoDbContext(ConnectionString, DBName);
-                    SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
-                    SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
-                    SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
-                    _avatarRepository = new AvatarRepository(Database);
-                    _holonRepository = new HolonRepository(Database);
-                    await _holonRepository.EnsurePublicIdentityIndexAsync();
-                    _searchRepository = new SearchRepository(Database);
-                }
-
-                IsProviderActivated = true;
-                result.Result = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In MongoDBOASISProvider.ActivateProviderAsync. Reason: {ex}");
-            }
-
-            return result;
-            //return await base.ActivateProviderAsync();
-        }
+        public override Task<OASISResult<bool>> ActivateProviderAsync()
+            => ActivateMongoAsync(false);
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
@@ -213,40 +143,40 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            return DataHelper.ConvertMongoEntitysToOASISAvatars(await _avatarRepository.GetAvatarsAsync());
+            return DataHelper.ConvertMongoEntitysToOASISAvatars(await _avatarRepository.GetAvatarsAsync(version));
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return DataHelper.ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars());
+            return DataHelper.ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars(version));
         }
 
         public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.VerificationToken == verificationToken));
+            => ReadTokenAvatarAsync(verificationToken,version,0).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.VerificationToken == verificationToken));
+        public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+            => ReadTokenAvatarAsync(verificationToken,version,0);
 
         public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.ResetToken == resetToken));
+            => ReadTokenAvatarAsync(resetToken,version,1).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.ResetToken == resetToken));
+        public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+            => ReadTokenAvatarAsync(resetToken,version,1);
 
         public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.RefreshTokens.Any(r => r.Token == refreshToken)));
+            => ReadTokenAvatarAsync(refreshToken,version,2).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.RefreshTokens.Any(r => r.Token == refreshToken)));
+        public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+            => ReadTokenAvatarAsync(refreshToken,version,2);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Email == avatarEmail));
+            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Email == avatarEmail && (version == 0 || x.Version == version)));
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Username == avatarUsername));
+            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Username == avatarUsername && (version == 0 || x.Version == version)));
         }
 
         //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
@@ -256,7 +186,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Username == avatarUsername));
+            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Username == avatarUsername && (version == 0 || x.Version == version)));
         }
 
         //public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
@@ -266,17 +196,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(Id));
+            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.HolonId == Id && (version == 0 || x.Version == version)));
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Email == avatarEmail));
+            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Email == avatarEmail && (version == 0 || x.Version == version)));
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id));
+            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.HolonId == Id && (version == 0 || x.Version == version)));
         }
 
         //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
@@ -291,30 +221,50 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
-               await _avatarRepository.AddAsync(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)) :
-               await _avatarRepository.UpdateAsync(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)));
+            var existing = await _avatarRepository.GetAvatarAsync(avatar.Id);
+            if (existing.IsError) return DataHelper.ConvertMongoEntityToOASISAvatar(existing);
+            var entity = DataHelper.ConvertOASISAvatarToMongoEntity(avatar);
+            if (existing.Result == null) return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.AddAsync(entity));
+            entity.Id = existing.Result.Id;
+            entity.CreatedDate = existing.Result.CreatedDate;
+            entity.CreatedByAvatarId = existing.Result.CreatedByAvatarId;
+            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.UpdateAsync(entity));
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
-               _avatarRepository.Add(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)) :
-               _avatarRepository.Update(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)));
+            var existing = _avatarRepository.GetAvatarDetail(avatar.Id);
+            if (existing.IsError) return DataHelper.ConvertMongoEntityToOASISAvatarDetail(existing);
+            var entity = DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar);
+            if (existing.Result == null) return DataHelper.ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.Add(entity));
+            entity.Id = existing.Result.Id;
+            entity.CreatedDate = existing.Result.CreatedDate;
+            entity.CreatedByAvatarId = existing.Result.CreatedByAvatarId;
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.Update(entity));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
-               await _avatarRepository.AddAsync(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)) :
-               await _avatarRepository.UpdateAsync(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)));
+            var existing = await _avatarRepository.GetAvatarDetailAsync(avatar.Id);
+            if (existing.IsError) return DataHelper.ConvertMongoEntityToOASISAvatarDetail(existing);
+            var entity = DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar);
+            if (existing.Result == null) return DataHelper.ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.AddAsync(entity));
+            entity.Id = existing.Result.Id;
+            entity.CreatedDate = existing.Result.CreatedDate;
+            entity.CreatedByAvatarId = existing.Result.CreatedByAvatarId;
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.UpdateAsync(entity));
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
-                _avatarRepository.Add(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)) :
-                _avatarRepository.Update(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)));
+            var existing = _avatarRepository.GetAvatar(avatar.Id);
+            if (existing.IsError) return DataHelper.ConvertMongoEntityToOASISAvatar(existing);
+            var entity = DataHelper.ConvertOASISAvatarToMongoEntity(avatar);
+            if (existing.Result == null) return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.Add(entity));
+            entity.Id = existing.Result.Id;
+            entity.CreatedDate = existing.Result.CreatedDate;
+            entity.CreatedByAvatarId = existing.Result.CreatedByAvatarId;
+            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.Update(entity));
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
@@ -324,7 +274,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            return await _avatarRepository.DeleteAsync(id);
+            return await _avatarRepository.DeleteAsync(id, softDelete);
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
@@ -349,12 +299,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(providerKey));
+            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Id == providerKey && (version == 0 || x.Version == version)));
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey));
+            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Id == providerKey && (version == 0 || x.Version == version)));
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
@@ -369,17 +319,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return await _searchRepository.SearchAsync(searchParams);
+            return await SearchValidatedAsync(searchParams,loadChildren,recursive,maxChildDepth,version,false).ConfigureAwait(false);
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return _searchRepository.Search(searchParams);
+            return SearchValidatedAsync(searchParams,loadChildren,recursive,maxChildDepth,version,true).GetAwaiter().GetResult();
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Username == avatarUsername));
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Username == avatarUsername && (version == 0 || x.Version == version)));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
@@ -387,12 +337,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (_avatarRepository == null)
                 return new OASISResult<IAvatarDetail> { IsError = true, Message = "MongoDBOASIS provider is not fully initialised (avatarRepository is null). Provider may be activating or was concurrently deactivated — OASIS Hyperdrive will retry." };
 
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(id));
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.HolonId == id && (version == 0 || x.Version == version)));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Username == avatarUsername));
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Username == avatarUsername && (version == 0 || x.Version == version)));
         }
     }
 }

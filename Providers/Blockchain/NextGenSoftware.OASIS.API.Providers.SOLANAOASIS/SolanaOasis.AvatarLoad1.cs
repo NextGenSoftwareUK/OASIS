@@ -53,6 +53,10 @@ public partial class SolanaOASIS
 
         try
         {
+            var health = await _rpcClient.GetHealthAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            if (!health.WasSuccessful || !string.Equals(health.Result, "ok", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException($"Solana RPC health check failed: {health.Reason ?? health.RawRpcResponse}. ");
+
             _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
             _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
 
@@ -61,8 +65,11 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
+            _solanaRepository = null;
+            _solanaService = null;
+            IsProviderActivated = false;
             OASISErrorHandling.HandleError(ref result,
-                $"Unknown Error Occured In SolanaOASIS Provider in ActivateProviderAsync. Reason: {e}");
+                $"Unknown Error Occured In SolanaOASIS Provider in ActivateProviderAsync. Reason: {e}", e);
         }
 
         return result;
@@ -70,23 +77,7 @@ public partial class SolanaOASIS
 
     public override OASISResult<bool> ActivateProvider()
     {
-        OASISResult<bool> result = new();
-
-        try
-        {
-            _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
-            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
-
-            result.Result = true;
-            IsProviderActivated = true;
-        }
-        catch (Exception e)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                $"Unknown Error Occured In SolanaOASIS Provider in ActivateProvider. Reason: {e}");
-        }
-
-        return result;
+        return ActivateProviderAsync().GetAwaiter().GetResult();
     }
 
     public override async Task<OASISResult<bool>> DeActivateProviderAsync()
@@ -111,15 +102,25 @@ public partial class SolanaOASIS
         var result = new OASISResult<IAvatar>();
         try
         {
+            if(string.IsNullOrWhiteSpace(providerKey)) throw new ArgumentException("A Solana storage signature is required.",nameof(providerKey));
+            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
+            }
             var solanaAvatarDto = await _solanaRepository.GetAsync<SolanaAvatarDto>(providerKey);
-
+            if(version!=0 && solanaAvatarDto.Version!=version)
+                throw new KeyNotFoundException("Solana signature does not reference the requested avatar version.");
+            var avatar=solanaAvatarDto.GetAvatar();
+            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=providerKey;
+            result.Result=avatar;
             result.IsLoaded = true;
             result.IsError = false;
-            result.Result = solanaAvatarDto.GetAvatar();
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, e.Message);
+            OASISErrorHandling.HandleError(ref result, e.Message,e);
         }
 
         return result;
@@ -138,89 +139,27 @@ public partial class SolanaOASIS
 
     public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
     {
-        var result = new OASISResult<IEnumerable<IAvatar>>();
+        var result=new OASISResult<IEnumerable<IAvatar>>();
         try
         {
-            if (!IsProviderActivated)
+            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+            if(!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
             }
-
-            // Query all avatars from Solana program using RPC client
-            var avatarsData = new OASISResult<List<SolanaAvatarDto>>();
-            try
+            var records=await _solanaRepository.GetAllAsync<SolanaAvatarDto>(version);
+            var mapped=new List<IAvatar>();
+            foreach(var entry in records)
             {
-                // Real Solana implementation: Get all accounts from the program
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    var avatarList = new List<SolanaAvatarDto>();
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            // Parse account data to SolanaAvatarDto
-                            var avatarDto = new SolanaAvatarDto
-                            {
-                                Id = CreateDeterministicGuid($"{ProviderType.Value}:{account.PublicKey}"),
-                                AvatarId = CreateDeterministicGuid($"{ProviderType.Value}:{account.PublicKey}"),
-                                UserName = $"solana_user_{account.PublicKey[..8]}",
-                                Email = $"user_{account.PublicKey[..8]}@solana.example",
-                                Password = "solana_secure_password",
-                                Version = 1,
-                                PreviousVersionId = Guid.Empty,
-                                IsDeleted = false
-                            };
-                            avatarList.Add(avatarDto);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error parsing Solana account {account.PublicKey}: {ex.Message}");
-                        }
-                    }
-                    avatarsData.Result = avatarList;
-                    avatarsData.IsError = false;
-                    avatarsData.Message = $"Successfully loaded {avatarList.Count} avatars from Solana blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref avatarsData, $"Failed to get program accounts from Solana: {accounts.Reason}");
-                }
+                var record=entry.Record.GetAvatar();
+                record.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=entry.Signature;
+                mapped.Add(record);
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref avatarsData, $"Error querying avatars from Solana: {ex.Message}", ex);
-            }
-            if (avatarsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatars from Solana: {avatarsData.Message}");
-                return result;
-            }
-
-            var avatars = new List<IAvatar>();
-            foreach (var avatarData in avatarsData.Result)
-            {
-                var avatar = ParseSolanaToAvatar(avatarData);
-                if (avatar != null)
-                {
-                    avatars.Add(avatar);
-                }
-            }
-
-            result.Result = avatars;
-            result.IsError = false;
-            result.Message = $"Successfully loaded {avatars.Count} avatars from Solana with full object mapping";
+            result.Result=mapped;
+            result.IsLoaded=true;
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from Solana: {ex.Message}", ex);
-        }
+        catch(Exception cause) { OASISErrorHandling.HandleError(ref result,"Solana finalized collection read failed: "+cause.Message,cause); }
         return result;
     }
 
@@ -229,155 +168,14 @@ public partial class SolanaOASIS
         return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-    {
-        var result = new OASISResult<IAvatar>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
+    public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        => FindStoredIdentityAsync(!string.IsNullOrWhiteSpace(avatarUsername),()=>LoadAllAvatarsAsync(version),record=>string.Equals(record.Username,avatarUsername,StringComparison.OrdinalIgnoreCase));
 
-            // Real Solana implementation: Query Solana smart contract for avatar by username
-            var avatarData = await _solanaService.GetAvatarByUsernameAsync(avatarUsername);
-            if (avatarData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Solana: {avatarData.Message}");
-                return result;
-            }
+    public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
+        => FindStoredIdentityAsync(Id != Guid.Empty,()=>LoadAllAvatarsAsync(version),record=>record.Id==Id);
 
-            if (avatarData.Result != null)
-            {
-                var avatar = ParseSolanaToAvatar(avatarData.Result);
-                if (avatar != null)
-                {
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully by username from Solana with full object mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Solana");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by username in Solana");
-            }
-
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
-    {
-        var response = new OASISResult<IAvatar>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return response;
-                }
-            }
-
-            // Real Solana implementation: Query Solana smart contract for avatar by ID
-            var avatarData = await _solanaService.GetAvatarByIdAsync(Id);
-            if (avatarData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by ID from Solana: {avatarData.Message}");
-                return response;
-            }
-
-            if (avatarData.Result != null)
-            {
-                var avatar = ParseSolanaToAvatar(avatarData.Result);
-                if (avatar != null)
-                {
-                    response.Result = avatar;
-                    response.IsError = false;
-                    response.Message = "Avatar loaded from Solana successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to parse avatar from Solana response");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref response, "Avatar not found on Solana blockchain");
-            }
-            
-        }
-        catch (Exception ex)
-        {
-            response.Exception = ex;
-            OASISErrorHandling.HandleError(ref response, $"Error loading avatar from Solana: {ex.Message}");
-        }
-        return response;
-    }
-
-    public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-    {
-        var result = new OASISResult<IAvatar>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Real Solana implementation: Query Solana smart contract for avatar by email
-            var svcResult = await _solanaService.GetAvatarByEmailAsync(avatarEmail);
-            if (svcResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Solana: {svcResult.Message}");
-                return result;
-            }
-
-            if (svcResult.Result != null)
-            {
-                var avatar = ParseSolanaToAvatar(svcResult.Result);
-                if (avatar != null)
-                {
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully by email from Solana with full object mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Solana");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by email in Solana");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+    public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        => FindStoredIdentityAsync(!string.IsNullOrWhiteSpace(avatarEmail),()=>LoadAllAvatarsAsync(version),record=>string.Equals(record.Email,avatarEmail,StringComparison.OrdinalIgnoreCase));
 
     public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
     {
@@ -388,24 +186,6 @@ public partial class SolanaOASIS
     {
         return LoadAvatarByEmailAsync(avatarEmail, version).Result;
     }
-
-    public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
-        => new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
-
-    public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
-        => Task.FromResult(LoadAvatarByVerificationToken(verificationToken, version));
-
-    public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
-        => new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
-
-    public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
-        => Task.FromResult(LoadAvatarByResetToken(resetToken, version));
-
-    public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
-        => new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
-
-    public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
-        => Task.FromResult(LoadAvatarByRefreshToken(refreshToken, version));
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
     {
@@ -422,153 +202,13 @@ public partial class SolanaOASIS
         return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-    {
-        var result = new OASISResult<IAvatarDetail>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        => FindStoredIdentityAsync(id != Guid.Empty,()=>LoadAllAvatarDetailsAsync(version),record=>record.Id==id);
 
-            // Query avatar detail by ID from Solana program
-            var avatarDetailData = await _solanaService.GetAvatarDetailByIdAsync(id);
-            if (avatarDetailData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by ID from Solana: {avatarDetailData.Message}");
-                return result;
-            }
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        => FindStoredIdentityAsync(!string.IsNullOrWhiteSpace(avatarUsername),()=>LoadAllAvatarDetailsAsync(version),record=>string.Equals(record.Username,avatarUsername,StringComparison.OrdinalIgnoreCase));
 
-            if (avatarDetailData.Result != null)
-            {
-                var avatarDetail = ParseSolanaToAvatarDetail(avatarDetailData.Result);
-                if (avatarDetail != null)
-                {
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully by ID from Solana with full object mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar detail data from Solana");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by ID in Solana");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by ID from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername,
-        int version = 0)
-    {
-        var result = new OASISResult<IAvatarDetail>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Query avatar detail by username from Solana program
-            var avatarDetailData = await _solanaService.GetAvatarDetailByUsernameAsync(avatarUsername);
-            if (avatarDetailData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Solana: {avatarDetailData.Message}");
-                return result;
-            }
-
-            if (avatarDetailData.Result != null)
-            {
-                var avatarDetail = ParseSolanaToAvatarDetail(avatarDetailData.Result);
-                if (avatarDetail != null)
-                {
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully by username from Solana with full object mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar detail data from Solana");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by username in Solana");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail,
-        int version = 0)
-    {
-        var result = new OASISResult<IAvatarDetail>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Query avatar detail by email from Solana program
-            var avatarDetailData = await _solanaService.GetAvatarDetailByEmailAsync(avatarEmail);
-            if (avatarDetailData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Solana: {avatarDetailData.Message}");
-                return result;
-            }
-
-            if (avatarDetailData.Result != null)
-            {
-                var avatarDetail = ParseSolanaToAvatarDetail(avatarDetailData.Result);
-                if (avatarDetail != null)
-                {
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully by email from Solana with full object mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar detail data from Solana");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email in Solana");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        => FindStoredIdentityAsync(!string.IsNullOrWhiteSpace(avatarEmail),()=>LoadAllAvatarDetailsAsync(version),record=>string.Equals(record.Email,avatarEmail,StringComparison.OrdinalIgnoreCase));
 
 }

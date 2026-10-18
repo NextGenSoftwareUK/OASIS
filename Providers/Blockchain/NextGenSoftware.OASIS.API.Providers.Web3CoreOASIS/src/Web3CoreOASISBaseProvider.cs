@@ -49,12 +49,13 @@ using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
-public partial class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, string contractAddress) :
+public partial class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, string contractAddress, BigInteger? expectedChainId = null) :
     OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
     private readonly string _hostURI = hostUri;
     private readonly string _chainPrivateKey = chainPrivateKey;
     private readonly string _contractAddress = contractAddress;
+    private readonly BigInteger? _expectedChainId = expectedChainId;
 
     private Web3CoreOASIS? _web3CoreOASIS;
     private readonly HttpClient _httpClient = new HttpClient();

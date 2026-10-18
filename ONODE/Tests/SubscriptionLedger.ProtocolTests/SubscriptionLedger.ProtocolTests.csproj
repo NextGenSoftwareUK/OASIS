@@ -1,17 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable></PropertyGroup>
+    <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><IsTestProject>true</IsTestProject><ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Include="MongoDB.Driver" Version="3.12.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/BootstrapAuthority.cs" Link="Production/BootstrapAuthority.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Enums/AvatarType.cs" Link="Production/AvatarType.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionLedgerMetrics.cs" Link="Production/SubscriptionLedgerMetrics.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Migration.cs" Link="Production/MongoSubscriptionUsageRepository.Migration.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageOpeningBalanceManifest.cs" Link="Production/UsageOpeningBalanceManifest.cs" />
@@ -31,5 +34,12 @@
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageLedgerValidation.cs" Link="Production/UsageLedgerValidation.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/Web4SubscriptionAuthorizationClient.cs" Link="Production/Web4SubscriptionAuthorizationClient.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/UsageExecutionContracts.cs" Link="Production/UsageExecutionContracts.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/NativeOperationFeeAccounting.cs" Link="Production/NativeOperationFeeAccounting.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/NativeFeePriceQuote.cs" Link="Production/NativeFeePriceQuote.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/NativeFeeMaximum.cs" Link="Production/NativeFeeMaximum.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/Bridge/Services/IAssetUsdQuoteSource.cs" Link="Production/IAssetUsdQuoteSource.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/UsageReceiptAccounting.cs" Link="Production/UsageReceiptAccounting.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/NativeFeeAuditSnapshot.cs" Link="Production/NativeFeeAuditSnapshot.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/UsageSettlementProtocol.cs" Link="Production/UsageSettlementProtocol.cs" />
   </ItemGroup>
 </Project>

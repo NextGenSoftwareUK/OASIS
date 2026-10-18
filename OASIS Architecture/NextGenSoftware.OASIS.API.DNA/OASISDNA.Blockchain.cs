@@ -71,16 +71,68 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class TRONOASISProviderSettings : ProviderSettingsBase
     {
+        public string StorageContractAddress { get; set; } = "";
+        public string StorageOwnerAddress { get; set; } = "";
+        public string StorageSigningKeyEnvironmentVariable { get; set; } = "OASIS_TRON_STORAGE_PRIVATE_KEY";
+        public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_TRON_STORAGE_ENCRYPTION_KEY";
+        public long ContractFeeLimitSun { get; set; } = 100000000;
+        public string ContractAddress { get; set; } = "";
+        public string BridgePoolWalletAddress { get; set; } = "";
+        public string EscrowContractAddress { get; set; } = "";
+        public TronIdBoundEscrowSettings IdBoundTokenEscrow { get; set; }
+        public string FullNodeGrpcEndpoint { get; set; } = "";
+        public string SolidityNodeGrpcEndpoint { get; set; } = "";
+        public string GenesisBlockId { get; set; } = "";
+        public string SigningKeyEnvironmentVariable { get; set; } = "OASIS_TRON_PRIVATE_KEY";
+        public string ApiKeyEnvironmentVariable { get; set; } = "OASIS_TRON_API_KEY";
         public string RpcEndpoint { get; set; } = "https://api.trongrid.io";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "0x2b6653dc";
     }
 
+    public class TronIdBoundEscrowSettings
+    {
+        public string ContractAddress { get; set; }
+        public string RuntimeSha256 { get; set; }
+    }
+
     public class HashgraphOASISProviderSettings : ProviderSettingsBase
     {
+        public string BridgePoolAccountId { get; set; } = "";
+        public string BridgePoolSigningKeyEnvironmentVariable { get; set; } = "OASIS_HEDERA_BRIDGE_POOL_PRIVATE_KEY";
+        public string RawTransferAccountId { get; set; }
+        public string RawTransferSigningKeyEnvironmentVariable { get; set; } = "OASIS_HEDERA_RAW_TRANSFER_PRIVATE_KEY";
+        public string NftEscrowContractId { get; set; } = "";
+        public string NftEscrowRuntimeCodeHash { get; set; } = "";
+        public long NftEscrowGasLimit { get; set; }
+        public long NftEscrowMaxFeeTinybars { get; set; }
+        public string TokenEscrowContractId { get; set; } = "";
+        public string TokenEscrowProtocol { get; set; } = "aggregate-v1";
+        public string TokenEscrowRuntimeCodeHash { get; set; } = "";
+        public long TokenEscrowGasLimit { get; set; }
+        public long TokenEscrowMaxFeeTinybars { get; set; }
+        public string StorageContractId { get; set; } = "";
+        public string StorageOperatorAccountId { get; set; } = "";
+        public string StorageSigningKeyType { get; set; } = "der";
+        public string StorageSigningKeyEnvironmentVariable { get; set; } = "OASIS_HEDERA_STORAGE_PRIVATE_KEY";
+        public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_HEDERA_STORAGE_ENCRYPTION_KEY";
+        public long StorageGasLimit { get; set; }
+        public long StorageMaxFeeTinybars { get; set; }
+        // Optional admission ceilings; absence must not implicitly enable sponsored paid queries.
+        public HashgraphStorageQueryPreparationSettings StorageQueryPreparation { get; set; }
+        public System.Collections.Generic.Dictionary<string, string> ConsensusNodes { get; set; } = new();
         public string RpcEndpoint { get; set; } = "https://mainnet-public.mirrornode.hedera.com/api/v1";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "295";
+    }
+
+    public class HashgraphStorageQueryPreparationSettings
+    {
+        public string[] AuthorizedNodeAccountIds { get; set; }
+        public long MaxPaymentTinybars { get; set; }
+        public long MaxTransactionFeeTinybars { get; set; }
+        public int MaximumRequestsPerInvocation { get; set; } = 64;
+        public int PersistenceTimeoutMs { get; set; } = 10000;
     }
 
     public class AvalancheOASISProviderSettings : ProviderSettingsBase
@@ -92,11 +144,28 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ContractAddress { get; set; } = "";
     }
 
+    public class CosmosIdBoundTokenEscrowSettings
+    {
+        public string ContractAddress { get; set; } = "";
+        public string CodeSha256 { get; set; } = "";
+    }
+
     public class CosmosBlockChainOASISProviderSettings : ProviderSettingsBase
     {
+        /// <summary>Optional explicit per-transaction fee+tip ceilings: denomination to positive integer unit text.
+        /// Absent means unconfigured; not a USD budget or sponsorship grant.</summary>
+        public Dictionary<string,string> MaximumFeeUnitsByDenomination { get; set; }
+        public CosmosIdBoundTokenEscrowSettings IdBoundTokenEscrow { get; set; }
+        public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_COSMOS_STORAGE_ENCRYPTION_KEY";
         public string RpcEndpoint { get; set; } = "https://cosmos-rpc.polkachu.com";
         public string Network { get; set; } = "cosmos";
         public string ChainId { get; set; } = "cosmoshub-4";
+        public string PrivateKey { get; set; } = "";
+        public string ContractAddress { get; set; } = "";
+        public string AddressPrefix { get; set; } = "cosmos";
+        public string GasPrice { get; set; } = "0.025uatom";
+        public string NativeDenom { get; set; } = "uatom";
+        public int NativeDecimals { get; set; } = 6;
     }
 
     public class NEAROASISProviderSettings : ProviderSettingsBase
@@ -104,6 +173,9 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://rpc.mainnet.near.org";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "mainnet";
+        public string ContractAddress { get; set; } = "oasis.near";
+        public string AccountId { get; set; } = "";
+        public string PrivateKey { get; set; } = "";
     }
 
     public class BaseOASISProviderSettings : ProviderSettingsBase
@@ -117,10 +189,23 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SuiOASISProviderSettings : ProviderSettingsBase
     {
+        /// <summary>Optional canonical positive u64 MIST ceiling as decimal text (precision-safe in JSON).
+        /// Null leaves the provider unconfigured; this is not aggregate reservation or sponsorship authorization.</summary>
+        public string MaximumGasBudgetMist { get; set; }
+        public SuiIdBoundTokenEscrowSettings IdBoundTokenEscrow { get; set; }
+        public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_SUI_STORAGE_ENCRYPTION_KEY";
         public string RpcEndpoint { get; set; } = "https://fullnode.mainnet.sui.io:443";
         public string Network { get; set; } = "mainnet";
-        public string ChainId { get; set; } = "mainnet";
+        public string ChainId { get; set; } = "";
+        public string PrivateKey { get; set; } = "";
         public string ContractAddress { get; set; } = "";
+        public string StorageObjectId { get; set; } = "";
+        public string CurrencyObjectId { get; set; } = "";
+    }
+
+    public class SuiIdBoundTokenEscrowSettings
+    {
+        public string EscrowObjectId { get; set; } = "";
     }
 
     public class MoralisOASISProviderSettings : ProviderSettingsBase
@@ -149,6 +234,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://api.telos.net";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11";
+        public string AccountName { get; set; }
+        public string AccountPrivateKey { get; set; }
     }
 
     public class ActivityPubOASISProviderSettings : ProviderSettingsBase

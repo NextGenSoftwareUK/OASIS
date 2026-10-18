@@ -301,11 +301,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", b =>
                 {
+                    b.Property<Guid>("ParentHolonId").HasColumnType("TEXT");
+                    b.Property<Guid>("ParentHolonId2").HasColumnType("TEXT");
+                    b.Property<Guid>("ParentHolonId3").HasColumnType("TEXT");
+                    b.Property<string>("ProviderLinksJson").IsRequired().HasColumnType("TEXT");
+                    b.Property<string>("DimensionLevelIdsJson").IsRequired().HasColumnType("TEXT");
+                    b.Property<string>("CelestialParentIdsJson").IsRequired().HasColumnType("TEXT");
+                    b.Property<string>("Portrait").HasColumnType("TEXT");
+                    b.Property<string>("UmaJson").HasColumnType("TEXT");
+                    b.Property<Guid>("VersionId").HasColumnType("TEXT");
+                    b.Property<Guid>("PreviousVersionId").HasColumnType("TEXT");
+                    b.Property<string>("CustomHolonType").HasColumnType("TEXT");
+                    b.Property<bool>("IsPublic").HasColumnType("INTEGER");
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Address")
                         .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ActiveQuestId").HasColumnType("TEXT");
+                    b.Property<Guid?>("ActiveObjectiveId").HasColumnType("TEXT");
 
                     b.Property<int>("AvatarType")
                         .HasColumnType("INTEGER");
@@ -493,6 +508,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", b =>
                 {
+                    b.Property<Guid>("VersionId").HasColumnType("TEXT");
+                    b.Property<Guid>("PreviousVersionId").HasColumnType("TEXT");
+                    b.Property<string>("CustomHolonType").HasColumnType("TEXT");
+                    b.Property<bool>("IsPublic").HasColumnType("INTEGER");
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
@@ -1223,6 +1242,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HeartRateEntryModel", b =>
                 {
+                    b.Property<int>("SequenceIndex").HasColumnType("INTEGER");
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
@@ -1250,6 +1270,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", b =>
                 {
+                    b.Property<Guid>("VersionId").HasColumnType("TEXT");
+                    b.Property<Guid>("PreviousVersionId").HasColumnType("TEXT");
+                    b.Property<string>("CustomHolonType").HasColumnType("TEXT");
+                    b.Property<bool>("IsPublic").HasColumnType("INTEGER");
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
@@ -1374,6 +1398,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.InventoryItemModel", b =>
                 {
+                    b.Property<string>("ExtendedValueJson").IsRequired().HasColumnType("TEXT").HasDefaultValue("{}");
+                    b.Property<byte[]>("Image2D").HasColumnType("BLOB");
+                    b.Property<byte[]>("PublishedSTARNETHolon").HasColumnType("BLOB");
+                    b.Property<byte[]>("Object3D").HasColumnType("BLOB");
+                    b.Property<string>("Image2DURI").HasColumnType("TEXT");
+                    b.Property<string>("Object3DURI").HasColumnType("TEXT");
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
@@ -2763,9 +2793,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                 {
                     b.Navigation("Achievements");
 
-                    b.Navigation("Attributes");
+                    b.Navigation("Attributes").AutoInclude();
 
-                    b.Navigation("Aura");
+                    b.Navigation("Aura").AutoInclude();
 
                     b.Navigation("AvatarChakras");
 
@@ -2775,7 +2805,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
                     b.Navigation("HeartRates");
 
-                    b.Navigation("HumanDesign");
+                    b.Navigation("HumanDesign").AutoInclude();
 
                     b.Navigation("InventoryItems");
 
@@ -2791,13 +2821,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
                     b.Navigation("ProviderWalletAddress");
 
-                    b.Navigation("Skills");
+                    b.Navigation("Skills").AutoInclude();
 
                     b.Navigation("Spells");
 
-                    b.Navigation("Stats");
+                    b.Navigation("Stats").AutoInclude();
 
-                    b.Navigation("SuperPowers");
+                    b.Navigation("SuperPowers").AutoInclude();
                 });
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", b =>

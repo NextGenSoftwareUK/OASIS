@@ -66,6 +66,7 @@
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FantomOASIS\NextGenSoftware.OASIS.API.Providers.FantomOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.OptimismOASIS\NextGenSoftware.OASIS.API.Providers.OptimismOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSOASIS\NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj" />
+    <ProjectReference Include="..\..\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Network\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj" />

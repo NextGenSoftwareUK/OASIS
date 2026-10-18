@@ -30,11 +30,20 @@ $archives=[ordered]@{
 }
 function Get-Archive([string]$key){
     $target=Join-Path $downloads $archives[$key][0]
+    if(Test-Path $target){
+        try{$zip=[IO.Compression.ZipFile]::OpenRead($target);$zip.Dispose()}
+        catch{Remove-Item -LiteralPath $target -Force}
+    }
     if(!(Test-Path $target)){Write-Host "Downloading pinned $key runtime...";Invoke-WebRequest -Uri $archives[$key][1] -OutFile $target -MaximumRedirection 8}
     $target
 }
 function Expand-Cached([string]$key,[string]$destination){
-    if(!(Test-Path $destination)){New-Item -ItemType Directory -Force $destination|Out-Null;Expand-Archive -LiteralPath (Get-Archive $key) -DestinationPath $destination -Force}
+    $hasFiles=(Test-Path $destination) -and (Get-ChildItem -LiteralPath $destination -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1)
+    if(!$hasFiles){
+        if(Test-Path $destination){Remove-Item -LiteralPath $destination -Recurse -Force}
+        New-Item -ItemType Directory -Force $destination|Out-Null
+        Expand-Archive -LiteralPath (Get-Archive $key) -DestinationPath $destination -Force
+    }
 }
 function Wait-Port([int]$port,[int]$seconds=120){
     $deadline=[DateTime]::UtcNow.AddSeconds($seconds)

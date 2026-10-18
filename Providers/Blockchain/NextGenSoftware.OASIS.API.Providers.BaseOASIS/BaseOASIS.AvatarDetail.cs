@@ -55,7 +55,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 
-public sealed partial class BaseOASIS
+public sealed partial class BaseOASIS_Legacy
 {
     public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
     {

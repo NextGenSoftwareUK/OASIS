@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
 {
     public static class DataHelper
     {
+        private static Guid ParseGuidOrEmpty(string value) => Guid.TryParse(value, out Guid parsed) ? parsed : Guid.Empty;
         public static bool UseReflection { get; set; }
 
         public static IHcAvatar ConvertAvatarToHoloOASISAvatar(IAvatar avatar, IHcAvatar hcAvatar)
@@ -85,11 +86,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Description = hcAvatar.Description,
                 FirstName = hcAvatar.FirstName,
                 LastName = hcAvatar.LastName,
-                CreatedByAvatarId = new Guid(hcAvatar.CreatedBy),
+                CreatedByAvatarId = ParseGuidOrEmpty(hcAvatar.CreatedBy),
                 CreatedDate = hcAvatar.CreatedDate,
-                ModifiedByAvatarId = new Guid(hcAvatar.ModifiedBy),
+                ModifiedByAvatarId = ParseGuidOrEmpty(hcAvatar.ModifiedBy),
                 ModifiedDate = hcAvatar.ModifiedDate,
-                DeletedByAvatarId = new Guid(hcAvatar.DeletedBy),
+                DeletedByAvatarId = ParseGuidOrEmpty(hcAvatar.DeletedBy),
                 DeletedDate = hcAvatar.DeletedDate,
                 HolonType = hcAvatar.HolonType,
                 AcceptTerms = hcAvatar.AcceptTerms,
@@ -125,7 +126,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 VersionId = hcAvatar.VersionId
             };
 
-            avatar.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatar.EntryHash;
+            avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+            avatar.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatar.ActionHash;
             return avatar;
         }
 
@@ -585,12 +587,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             Holon holon = new Holon
             {
                 Id = hcHolon.Id,
+                Name = hcHolon.Name,
                 Description = hcHolon.Description,
-                CreatedByAvatarId = new Guid(hcHolon.CreatedBy),
+                CreatedByAvatarId = ParseGuidOrEmpty(hcHolon.CreatedBy),
                 CreatedDate = hcHolon.CreatedDate,
-                ModifiedByAvatarId = new Guid(hcHolon.ModifiedBy),
+                ModifiedByAvatarId = ParseGuidOrEmpty(hcHolon.ModifiedBy),
                 ModifiedDate = hcHolon.ModifiedDate,
-                DeletedByAvatarId = new Guid(hcHolon.DeletedBy),
+                DeletedByAvatarId = ParseGuidOrEmpty(hcHolon.DeletedBy),
                 DeletedDate = hcHolon.DeletedDate,
                 HolonType = hcHolon.HolonType,
                 AllChildIdListCache = hcHolon.AllChildIdListCache,
@@ -629,7 +632,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 SubDimensionLevel = hcHolon.SubDimensionLevel
             };
 
-            holon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcHolon.EntryHash;
+            holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+            holon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcHolon.ActionHash;
             return holon;
         }
 

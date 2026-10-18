@@ -36,10 +36,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         //IEnumerable<Holon> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, HolonType holonType);
 
         //Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentByCustomKeyAsync(string customKey, HolonType holonType);
-        OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(string metaKey, string metaValue, HolonType holonType);
-        Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType);
-        OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType);
-        Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType);
+        OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(string metaKey, string metaValue, HolonType holonType, int version = 0);
+        Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType, int version = 0);
+        OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType, int version = 0);
+        Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType, int version = 0);
         Holon GetHolon(Guid id);
         Task<Holon> GetHolonAsync(Guid id);
         Holon GetHolon(string providerKey);

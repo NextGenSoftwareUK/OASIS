@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Net.Http;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -21,544 +22,93 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
     {
         public override OASISResult<bool> ActivateProvider()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in ActivateProviderAsync method in AzureCosmosDBOASIS Provider. Reason:";
-
-            try
-            {
-                if (dbClientFactory == null)
-                {
-                    var cosmosClient = new CosmosClient(serviceEndpoint.ToString(), authKey);
-                    dbClientFactory = new CosmosDbClientFactory(cosmosClient, databaseName, collectionNames);
-                    OASISResult<bool> ensureDbSetupResult = dbClientFactory.EnsureDbSetupAsync().Result;
-
-                    if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
-                    else
-                    {
-                        avatarRepository = new AvatarRepository(dbClientFactory);
-                        holonRepository = new HolonRepository(dbClientFactory);
-                        avatarDetailRepository = new AvatarDetailRepository(dbClientFactory);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
-            }
-
-            return result;
+            return ActivateProviderAsync().GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in ActivateProviderAsync method in AzureCosmosDBOASIS Provider. Reason:";
-
+            await lifecycleGate.WaitAsync();
+            var result=new OASISResult<bool>();
             try
             {
-                if (dbClientFactory == null)
+                if(IsProviderActivated) return new OASISResult<bool>(true);
+                ArgumentNullException.ThrowIfNull(serviceEndpoint);
+                if(string.IsNullOrWhiteSpace(authKey) || string.IsNullOrWhiteSpace(databaseName)
+                    || collectionNames==null || new[] {"avatarItems","avatarDetailItems","holonItems"}.Any(name=>!collectionNames.Contains(name)))
+                    throw new ArgumentException("Cosmos activation requires credentials, database and all three OASIS containers.");
+                var options=new CosmosClientOptions {ConnectionMode=ConnectionMode.Gateway};
+                if(serviceEndpoint.IsLoopback)
+                    options.HttpClientFactory=()=>new HttpClient(new HttpClientHandler {ServerCertificateCustomValidationCallback=HttpClientHandler.DangerousAcceptAnyServerCertificateValidator});
+                var client=new CosmosClient(serviceEndpoint.ToString(),authKey,options);
+                dbClientFactory=new CosmosDbClientFactory(client,databaseName,collectionNames);
+                var setup=await dbClientFactory.EnsureDbSetupAsync();
+                if(setup.IsError || !setup.Result)
                 {
-                    var cosmosClient = new CosmosClient(serviceEndpoint.ToString(), authKey);
-                    dbClientFactory = new CosmosDbClientFactory(cosmosClient, databaseName, collectionNames);
-                    OASISResult<bool> ensureDbSetupResult = await dbClientFactory.EnsureDbSetupAsync();
-
-                    if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
-                    else
-                    {
-                        avatarRepository = new AvatarRepository(dbClientFactory);
-                        holonRepository = new HolonRepository(dbClientFactory);
-                        avatarDetailRepository = new AvatarDetailRepository(dbClientFactory);
-                    }
-
-                    IsProviderActivated = true;
+                    if(!setup.IsError) OASISErrorHandling.HandleError(ref setup,"Cosmos setup did not acknowledge readiness.");
+                    var cleanup=ReleaseCosmosClients();
+                    if(cleanup.IsError)
+                        OASISErrorHandling.HandleError(ref setup,"Cosmos setup and cleanup failed.",new AggregateException(setup.Exception ?? new InvalidOperationException(setup.Message),cleanup.Exception));
+                    return setup;
                 }
+                avatarRepository=new AvatarRepository(dbClientFactory);
+                avatarDetailRepository=new AvatarDetailRepository(dbClientFactory);
+                holonRepository=new HolonRepository(dbClientFactory);
+                IsProviderActivated=true;result.Result=true;
             }
-            catch (Exception ex)
+            catch(Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
+                var cleanup=ReleaseCosmosClients();
+                var error=cleanup.IsError ? new AggregateException("Cosmos activation and cleanup failed.",cause,cleanup.Exception):cause;
+                OASISErrorHandling.HandleError(ref result,error.Message,error);
             }
+            finally {lifecycleGate.Release();}
+            return result;
+        }
 
+        private OASISResult<bool> ReleaseCosmosClients()
+        {
+            var factory=dbClientFactory;
+            dbClientFactory=null;avatarRepository=null;avatarDetailRepository=null;holonRepository=null;
+            IsProviderActivated=false;
+            var result=new OASISResult<bool>();
+            try {factory?.Dispose();result.Result=true;}
+            catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
             return result;
         }
 
         public override OASISResult<bool> DeActivateProvider()
-        {
-            dbClientFactory = null;
-            avatarRepository = null;
-            avatarDetailRepository = null;
-            holonRepository = null;
-
-            IsProviderActivated = false;
-            return new OASISResult<bool>(true);
-            //return base.DeActivateProvider();
-        }
+            => DeActivateProviderAsync().GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            dbClientFactory = null;
-            avatarRepository = null;
-            avatarDetailRepository = null;
-            holonRepository = null;
-
-            IsProviderActivated = false;
-            return new OASISResult<bool>(true);
-            //return await base.DeActivateProviderAsync();
+            await lifecycleGate.WaitAsync();
+            try {return ReleaseCosmosClients();}
+            finally {lifecycleGate.Release();}
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-            string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the avatar with id {id}";
-            try
-            {
-                if (softDelete)
-                {
-                    OASISResult<IAvatar> avatarResult = LoadAvatar(id);
-
-                    if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                    {
-                        avatarResult.Result.DeletedDate = DateTime.Now;
-                        avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatarResult.Result);
-
-                        if (saveAvatarResult != null && !saveAvatarResult.IsError && saveAvatarResult.Result != null)
-                        {
-                            result.Result = true;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
-                                reason = saveAvatarResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
-                            reason = avatarResult.Message;
-
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                    }
-                }
-                else
-                    avatarRepository.DeleteAsync(id).Wait();
-
-                result.Result = true;
-                result.IsSaved = true;                
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-            return result;
-        }
+            => DeleteCurrentAvatarAsync(id.ToString(),softDelete).GetAwaiter().GetResult();
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-            string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the avatar with providerKey {providerKey}";
-            try
-            {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-                //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
-                if (softDelete)
-                {
-                    OASISResult<IAvatar> avatarResult = LoadAvatar(new Guid(providerKey));
-
-                    if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                    {
-                        avatarResult.Result.DeletedDate = DateTime.Now;
-                        avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatarResult.Result);
-
-                        if (saveAvatarResult != null && !saveAvatarResult.IsError && saveAvatarResult.Result != null)
-                        {
-                            result.Result = true;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
-                                reason = saveAvatarResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
-                            reason = avatarResult.Message;
-
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                    }
-                }
-                else
-                    avatarRepository.DeleteAsync(providerKey).Wait();
-
-                result.Result = true;
-                result.IsSaved = true;                
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-            return result;
-        }
+            => DeleteCurrentAvatarAsync(providerKey,softDelete).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-            string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the avatar with id {id}";
-            try
-            {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-                if (softDelete)
-                {
-                    OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(id);
-
-                    if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                    {
-                        avatarResult.Result.DeletedDate = DateTime.Now;
-                        avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IAvatar> saveAvatarResult = await SaveAvatarAsync(avatarResult.Result);
-
-                        if (saveAvatarResult != null && !saveAvatarResult.IsError && saveAvatarResult.Result != null)
-                        {
-                            result.Result = true;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
-                                reason = saveAvatarResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} and name {avatarResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
-                            reason = avatarResult.Message;
-
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                    }
-                }
-                else
-                    await avatarRepository.DeleteAsync(id);                
-            }
-            catch (Exception ex) {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-            return result;
-        }
+            => await DeleteCurrentAvatarAsync(id.ToString(),softDelete);
 
         public async override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-            string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the avatar with providerKey {providerKey}";
-            try
-            {
-                //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
-                if (softDelete)
-                {
-                    OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(new Guid(providerKey));
-
-                    if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                    {
-                        avatarResult.Result.DeletedDate = DateTime.Now;
-                        avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IAvatar> saveAvatarResult = await SaveAvatarAsync(avatarResult.Result);
-
-                        if (saveAvatarResult != null && !saveAvatarResult.IsError && saveAvatarResult.Result != null)
-                        {
-                            result.Result = true;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
-                                reason = saveAvatarResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
-                            reason = avatarResult.Message;
-
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                    }
-                }
-                else
-                    await avatarRepository.DeleteAsync(providerKey);                
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-            return result;
-        }
+            => await DeleteCurrentAvatarAsync(providerKey,softDelete);
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-            string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the avatar with email {avatarEmail}";
-            try
-            {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-                //TODO: May want to cache this in future?
-
-                OASISResult<IAvatar> avatarResult = LoadAvatarByEmail(avatarEmail);
-
-                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                {
-                    if (softDelete)
-                    {
-                        avatarResult.Result.DeletedDate = DateTime.Now;
-                        avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatarResult.Result);
-
-                        if (saveAvatarResult != null && !saveAvatarResult.IsError && saveAvatarResult.Result != null)
-                        {
-                            result.Result = true;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
-                                reason = saveAvatarResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        avatarRepository.DeleteAsync(avatarResult.Result).Wait();
-                    }
-                }
-                else
-                {
-                    if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
-                        reason = avatarResult.Message;
-
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-            return result;
-        }
+            => DeleteCurrentAvatarSelectorAsync(avatarEmail,true,softDelete).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-            string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the avatar with email {avatarEmail}";
-            try
-            {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-                //TODO: May want to cache this in future?
-                
-                OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
-
-                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                {
-                    if (softDelete)
-                    {
-                        avatarResult.Result.DeletedDate = DateTime.Now;
-                        avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IAvatar> saveAvatarResult = await SaveAvatarAsync(avatarResult.Result);
-
-                        if (saveAvatarResult != null && !saveAvatarResult.IsError && saveAvatarResult.Result != null)
-                        {
-                            result.Result = true;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
-                                reason = saveAvatarResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        await avatarRepository.DeleteAsync(avatarResult.Result);
-                    }
-                }
-                else
-                {
-                    if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
-                        reason = avatarResult.Message;
-
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                }                            
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-            return result;
-        }
+            => await DeleteCurrentAvatarSelectorAsync(avatarEmail,true,softDelete);
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-            string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the avatar with username {avatarUsername}";
-            try
-            {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-                //TODO: May want to cache this in future?
-
-                OASISResult<IAvatar> avatarResult = LoadAvatarByUsername(avatarUsername);
-
-                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                {
-                    if (softDelete)
-                    {
-                        avatarResult.Result.DeletedDate = DateTime.Now;
-                        avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatarResult.Result);
-
-                        if (saveAvatarResult != null && !saveAvatarResult.IsError && saveAvatarResult.Result != null)
-                        {
-                            result.Result = true;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
-                                reason = saveAvatarResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        avatarRepository.DeleteAsync(avatarResult.Result).Wait();
-                    }
-                }
-                else
-                {
-                    if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
-                        reason = avatarResult.Message;
-
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-            return result;
-        }
+            => DeleteCurrentAvatarSelectorAsync(avatarUsername,false,softDelete).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>(false);
-            string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the avatar with user name {avatarUsername}";
-            try
-            {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-                //TODO: May want to cache this in future?
-
-                OASISResult<IAvatar> avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-
-                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                {
-                    if (softDelete)
-                    {
-                        avatarResult.Result.DeletedDate = DateTime.Now;
-                        avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IAvatar> saveAvatarResult = await SaveAvatarAsync(avatarResult.Result);
-
-                        if (saveAvatarResult != null && !saveAvatarResult.IsError && saveAvatarResult.Result != null)
-                        {
-                            result.Result = true;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveAvatarResult != null && !string.IsNullOrEmpty(saveAvatarResult.Message))
-                                reason = saveAvatarResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {avatarResult.Result.Id} and name {avatarResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        await avatarRepository.DeleteAsync(avatarResult.Result);
-                    }
-                }
-                else
-                {
-                    if (avatarResult != null && !string.IsNullOrEmpty(avatarResult.Message))
-                        reason = avatarResult.Message;
-
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-            return result;
-        }
+            => await DeleteCurrentAvatarSelectorAsync(avatarUsername,false,softDelete);
 
         //public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         //{

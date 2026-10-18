@@ -2,7 +2,40 @@
 
 Follow this checklist in Railway's **development** environment first. Do not enable production until the complete development test at the end passes.
 
+## Observed development rollout checkpoint — 2026-10-12
+
+Railway project `712f50f6-3b7b-46d4-b229-44b49922f16b`, environment `dev` (`a31011a2-d047-4057-b5e8-57d52ebcfefe`): the missing WEB5 and WEB7–WEB10 credential pairs and authority URLs were provisioned with `--skip-deploys`. Existing WEB6 credentials were preserved. Subsequent variable readback verified all six authority/consumer credential pairs match and every consumer URL is `https://dev.api.web4.oasisomniverse.one`. Secret values are deliberately not recorded.
+
+WEB6 already had `SUBSCRIPTION_USAGE_ENABLED=true`; WEB5 and WEB7–WEB10 do not. WEB4 has the one-time `empty-new-installation` setting and no usage-enable flag. No deployment, usage enablement, Stripe checkout, webhook delivery, ledger initialization/migration, or production configuration change was performed in this checkpoint. Saved variable settings are not evidence that running deployments have consumed them.
+
+Do not assume the ledger is still empty from this runbook's original installation description. Verify the existing marker and records before initialization/removal of the one-time setting. Current Stripe credentials/price configuration and the live end-to-end release gates below remain to be verified. The NFT endpoint's temporary Wizard-only gate must remain until the intended subscription/fee authorization is implemented and verified; replacing it with unrestricted authenticated minting would not satisfy that gate.
+
 ## What is already configured
+
+### Stripe read-only verification and currency blocker — 2026-10-12
+
+Read Railway WEB4 dev variables/DNA in memory without exposing credential values. Effective secret is test-mode and a webhook secret is present. Official Stripe GET price lookups returned all four configured IDs as exact matching, active, non-live monthly prices: Bronze GBP 900 minor units, Silver GBP 2900, Gold GBP 9900, Enterprise GBP 99900. No checkout, invoice, customer, webhook or charge was created. Enterprise checkout remains contact-sales-only in the controller; its configured price does not mean that flow is enabled.
+
+Hosted dev GET `/api/subscription/plans` independently returned USD 9/29/99 for Bronze/Silver/Gold before this correction. On 2026-10-12 the user explicitly chose GBP to match existing Stripe prices. Source now advertises GBP 9/29/99, requires GBP for signed paid-invoice ingestion, and records new Stripe invoice orders in GBP. Existing stored orders are not migrated or relabelled. Enterprise remains contact-sales-only with no advertised self-service price; its configured GBP 999 Stripe price is not newly enabled. USD usage-cost budgets and the separate existing USD overage estimate are unchanged: neither is converted by changing plan-fee currency. Do not remove NFT restrictions on the strength of this catalogue correction. Deployment/readback, webhook delivery, subscription activation, ledger initialization, billing and reconciliation remain unverified live.
+
+Current checkout's structural authority validator failed because STAR/WEB6 middleware source files are absent; rollout validator stopped at absent STAR Program.cs. Neither is a passing release gate. Existing sibling STAR/WEB6 repositories were identified but their revisions differ from this task's pins; no fresh clone/download or substituted source-graph validation was performed.
+
+### Exact pinned-source structural verification — 2026-10-12
+
+Later inspection confirmed both manifest-pinned commits are already available as Git objects in the existing sibling repositories. The validators now offer an explicit immutable-source mode; they read those exact commits, not the sibling worktree/branch tips. Commit objects and the parent committed gitlinks must agree with the manifest. No clone, checkout, fetch, source export or replacement environment is performed. Other service sources are explicitly read from the parent worktree.
+
+```powershell
+python Scripts/validate_web4_subscription_authority.py --pinned-star-repository 'C:\Source\OASIS\STAR ODK' --pinned-web6-repository C:\Source\OASIS\WEB6
+python Scripts/validate_subscription_rollout_gate.py --pinned-star-repository 'C:\Source\OASIS\STAR ODK' --pinned-web6-repository C:\Source\OASIS\WEB6
+```
+
+Both structural checks passed with this exact input. Source-reader tests pass 5/5, covering immutable identity, gitlink mismatch, noncommit/moving-ref rejection, lookup failure without fallback and explicitly retained parent-worktree reads. Default checkout mode still fails for the missing STAR/WEB6 files, reporting them instead of crashing. This is not exact-pin compilation, Docker image reproduction, hosted deployment, webhook delivery, subscription activation, ledger initialization or mint fee authorization; those release gates remain open. Do not interpret this as permission to enable billing or remove the NFT gate.
+
+### NFT minting is not yet protected by the usage protocol
+
+Source audit on 2026-10-12: `SubscriptionService.AuthorizeUsageAsync` accepts only WEB5–WEB10 consuming services and `ai.tokens`/`api.request` meter categories. WEB4 `NftController.MintNftAsync` directly invokes `NFTManager.MintNftAsync` after its temporary Wizard check; it does not consult the subscription service or reserve/settle native mint fees. The inspected JWT and OASIS middleware do not supply that missing authorization. Therefore even a successful checkout/webhook/consumer-ledger rollout is insufficient by itself to remove the temporary NFT gate.
+
+Before removal, implement and verify the intended NFT policy using the existing durable authority: authenticated caller ownership versus Wizard delegation; active eligible subscription; bounded provider fee reservation before any charge-bearing activation/mint; stable operation identity and replay prevention; receipt-backed settlement including charged failures and uncertain outcomes. Establish provider-specific fee evidence and who pays rather than inventing a flat cost or treating a paid plan as unlimited sponsored gas. Required tests include unsubscribed/expired/quota denials with zero provider calls, caller defaults, non-Wizard override rejection, Wizard delegation, successful mint/metadata persistence, and duplicate/partial/timeout reconciliation. No unrestricted minting or paid public-chain test is authorized by this checkpoint.
 
 Railway already has `OASIS_DNA_JSON`, the existing `STRIPE_*` variables, and `GITHUB_PAT`. Keep them. Do not create another MongoDB connection or another set of Stripe variables. WEB4-WEB10 write `OASIS_DNA_JSON` to `/app/OASIS_DNA.json` and reuse its MongoDB connection.
 

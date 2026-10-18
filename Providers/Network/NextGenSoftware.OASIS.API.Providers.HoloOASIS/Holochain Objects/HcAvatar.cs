@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainRustFieldName("username")]
         public string Username { get; set; }
 
-        [HolochainRustFieldName("password")]
+        // Authentication secrets are intentionally never written to the public Holochain DHT.
         public string Password { get; set; }
 
         [HolochainRustFieldName("email")]
@@ -49,25 +49,20 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainRustFieldName("is_verified")]
         public bool IsVerified { get; }
 
-        [HolochainRustFieldName("jwt_token")]
         public string JwtToken { get; set; }
 
         [HolochainRustFieldName("password_reset")]
         public DateTime? PasswordReset { get; set; }
 
-        [HolochainRustFieldName("refresh_token")]
         public string RefreshToken { get; set; }
 
-        [HolochainRustFieldName("refresh_tokens")]
         public List<RefreshToken> RefreshTokens { get; set; }
 
-        [HolochainRustFieldName("reset_token")]
         public string ResetToken { get; set; }
 
         [HolochainRustFieldName("reset_token_expires")]
         public DateTime? ResetTokenExpires { get; set; }
 
-        [HolochainRustFieldName("verification_token")]
         public string VerificationToken { get; set; }
 
         [HolochainRustFieldName("verified")]

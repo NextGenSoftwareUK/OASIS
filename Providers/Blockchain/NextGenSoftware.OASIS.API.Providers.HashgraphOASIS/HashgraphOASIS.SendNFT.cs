@@ -43,66 +43,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-        {
-            var result = new OASISResult<ITransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.HashgraphOASIS, fromAvatarEmail);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.HashgraphOASIS, toAvatarEmail);
-
-                if (fromWalletResult.IsError || toWalletResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for emails");
-                    return result;
-                }
-
-                var fromAddress = fromWalletResult.Result;
-                var toAddress = toWalletResult.Result;
-
-                if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not find wallet addresses for emails");
-                    return result;
-                }
-
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = fromAddress,
-                    ToAddress = toAddress,
-                    Amount = amount,
-                    Memo = $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail}"
-                };
-
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId ?? "Hashgraph transaction sent successfully"
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph transaction sent successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Hashgraph transaction");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByEmailAsync(token): {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+            => SendNamedAvatarTransferAsync(fromAvatarEmail, toAvatarEmail, amount, token, true);
 
         public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
@@ -114,105 +56,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-        {
-            var result = new OASISResult<ITransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
-                var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
-
-                if (fromWalletResult.IsError || toWalletResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to get default wallet addresses for avatars");
-                    return result;
-                }
-
-                var fromAddress = fromWalletResult.Result?.WalletAddress;
-                var toAddress = toWalletResult.Result?.WalletAddress;
-
-                if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not find default wallet addresses for avatars");
-                    return result;
-                }
-
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = fromAddress,
-                    ToAddress = toAddress,
-                    Amount = amount,
-                    Memo = $"OASIS default wallet transaction from {fromAvatarId} to {toAvatarId}"
-                };
-
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId ?? "Hashgraph transaction sent successfully"
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph transaction sent successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Hashgraph transaction");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByDefaultWalletAsync: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+            => SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
 
 
 
         public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest transation)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                // Real Hashgraph implementation: Send NFT transaction
-                var hashgraphClient = new HashgraphClient();
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = transation.FromWalletAddress,
-                    ToAddress = transation.ToWalletAddress,
-                    Amount = transation.Amount,
-                    Memo = $"NFT Transfer: {transation.TokenId}"
-                };
-
-                var transactionResult = hashgraphClient.SendTransactionAsync(transactionData).Result;
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph NFT transaction sent successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Hashgraph NFT transaction");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in SendNFT: {ex.Message}", ex);
-            }
-            return result;
+            return SendNFTAsync(transation).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest transation)
@@ -220,24 +71,37 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
-                // Real Hashgraph implementation: Send NFT transaction asynchronously
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(new HashgraphTransactionData
+                ArgumentNullException.ThrowIfNull(transation);
+                var recipient = transation.ToWalletAddress;
+                var address = string.IsNullOrWhiteSpace(transation.FromNFTTokenAddress)
+                    ? transation.TokenAddress + "/" + transation.TokenId : transation.FromNFTTokenAddress;
+                var asset = ParseHederaNftAddress(address);
+                if ((!string.IsNullOrWhiteSpace(transation.TokenAddress) && transation.TokenAddress != asset.TokenId)
+                    || (!string.IsNullOrWhiteSpace(transation.TokenId) && transation.TokenId != asset.Serial))
+                    throw new ArgumentException("NFT asset identifiers must agree.");
+                if (transation.Amount != 1) throw new ArgumentException("An individual HTS serial transfer requires Amount = 1.");
+                if (!string.IsNullOrWhiteSpace(transation.OwnerSeedPhrase))
+                    throw new ArgumentException("Recover an explicit Hedera key before sending an NFT.");
+                if (string.IsNullOrWhiteSpace(transation.OwnerPrivateKey))
+                    throw new ArgumentException("A real Hedera sender signing key is required.");
+                var transactionResult = await HederaSdkClient.InvokeAsync("nftTransfer", new
                 {
-                    FromAddress = transation.FromWalletAddress,
-                    ToAddress = transation.ToWalletAddress,
-                    Amount = transation.Amount,
-                    Memo = $"NFT Transfer: {transation.TokenId}"
+                    network = _hederaNetwork, nodes = _consensusNodes,
+                    sender = transation.FromWalletAddress, recipient,
+                    tokenId = asset.TokenId, serials = new[] { asset.Serial }, memo = transation.MemoText,
+                    privateKey = transation.OwnerPrivateKey, publicKey = transation.OwnerPublicKey, keyType = "der",
+                    transactionId = HederaSdkClient.CreateTransactionId(transation.FromWalletAddress)
                 });
-
-                if (transactionResult != null)
+                if (transactionResult.GetProperty("status").GetString() == "SUCCESS")
                 {
                     result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                     {
-                        TransactionResult = transactionResult.TransactionId
+                        TransactionResult = transactionResult.GetProperty("transactionId").GetString(),
+                        Web3NFT = new Web3NFT { NFTTokenAddress = address, CollectionPublicKey = asset.TokenId }
                     };
+                    RecordHederaNftDelivery(result.Result, result.Result.TransactionResult, recipient);
                     result.IsError = false;
-                    result.Message = "Hashgraph NFT transaction sent successfully";
+                    result.Message = "HTS NFT transfer confirmed by consensus receipt.";
                 }
                 else
                 {
@@ -253,128 +117,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest transation)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                // Real Hashgraph implementation: Mint NFT synchronously
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = hashgraphClient.SendTransaction(new HashgraphTransactionData
-                {
-                    FromAddress = transation.SendToAddressAfterMinting,
-                    ToAddress = transation.SendToAddressAfterMinting,
-                    Amount = 0, // Minting doesn't require amount
-                    Memo = $"NFT Mint: {transation.Title}"
-                });
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph NFT minted successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to mint Hashgraph NFT");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in MintNFT: {ex.Message}", ex);
-            }
-            return result;
+            return MintHederaNftAsync(transation).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest transation)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                // Real Hashgraph implementation: Mint NFT asynchronously
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(new HashgraphTransactionData
-                {
-                    FromAddress = transation.SendToAddressAfterMinting,
-                    ToAddress = transation.SendToAddressAfterMinting,
-                    Amount = 0, // Minting doesn't require amount
-                    Memo = $"NFT Mint: {transation.Title}"
-                });
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph NFT minted successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to mint Hashgraph NFT");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in MintNFT: {ex.Message}", ex);
-            }
-            return result;
+            return await MintHederaNftAsync(transation);
         }
 
 
 
         public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var result = new OASISResult<IWeb3NFT>();
-            try
-            {
-                // Real Hashgraph implementation: Load NFT data from Hashgraph network
-                var hashgraphClient = new HashgraphClient();
-                var nftData = hashgraphClient.GetNFTData(nftTokenAddress).Result;
-
-                if (nftData != null)
-                {
-                    string name = "Hashgraph NFT";
-                    string symbol = string.Empty;
-                    try
-                    {
-                        using var doc = JsonDocument.Parse(nftData);
-                        if (doc.RootElement.TryGetProperty("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
-                            name = nameEl.GetString() ?? name;
-                        if (doc.RootElement.TryGetProperty("symbol", out var symbolEl) && symbolEl.ValueKind == JsonValueKind.String)
-                            symbol = symbolEl.GetString() ?? string.Empty;
-                    }
-                    catch { /* ignore parse errors; keep defaults */ }
-
-                    var nft = new Web3NFT
-                    {
-                        Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
-                        Title = string.IsNullOrWhiteSpace(symbol) ? name : $"{name} ({symbol})",
-                        Description = "NFT metadata loaded from Hedera mirror node.",
-                        NFTTokenAddress = nftTokenAddress,
-                        OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
-                        MetaData = new Dictionary<string, string>
-                        {
-                            ["HederaTokenJson"] = nftData
-                        }
-                    };
-
-                    result.Result = nft;
-                    result.IsError = false;
-                    result.Message = "Hashgraph NFT data loaded successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "No NFT data found on Hashgraph network");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading Hashgraph NFT data: {ex.Message}", ex);
-            }
-            return result;
+            return LoadOnChainNFTDataAsync(nftTokenAddress).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
@@ -382,44 +137,50 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<IWeb3NFT>();
             try
             {
-                // Real Hashgraph implementation: Load NFT data from Hashgraph network asynchronously
-                var hashgraphClient = new HashgraphClient();
-                var nftData = await hashgraphClient.GetNFTData(nftTokenAddress);
-
-                if (nftData != null)
+                var asset = ParseHederaNftAddress(nftTokenAddress);
+                using var response = await _httpClient.GetAsync($"tokens/{asset.TokenId}/nfts/{asset.Serial}");
+                response.EnsureSuccessStatusCode();
+                var nftData = await response.Content.ReadAsStringAsync();
+                using var document = JsonDocument.Parse(nftData);
+                var data = document.RootElement;
+                if (data.GetProperty("token_id").GetString() != asset.TokenId
+                    || data.GetProperty("serial_number").GetInt64().ToString(System.Globalization.CultureInfo.InvariantCulture) != asset.Serial)
+                    throw new InvalidOperationException("Hedera mirror returned a different NFT identity.");
+                if (data.GetProperty("deleted").GetBoolean())
+                    throw new InvalidOperationException("The requested Hedera NFT is deleted.");
+                var metadata = data.GetProperty("metadata").GetString();
+                var bytes = Convert.FromBase64String(metadata ?? "");
+                if (bytes.Length > 100)
+                    throw new InvalidOperationException("Hedera mirror NFT metadata exceeds the HTS 100-byte limit.");
+                // HTS metadata is arbitrary bytes, not necessarily a JSON document or UTF-8 URL.
+                var text = Encoding.UTF8.GetString(bytes);
+                if (!Encoding.UTF8.GetBytes(text).SequenceEqual(bytes)) text = null;
+                var owner = data.GetProperty("account_id").GetString();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(owner ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
+                    throw new InvalidOperationException("Hedera mirror returned no valid owner account.");
                 {
-                    string name = "Hashgraph NFT";
-                    string symbol = string.Empty;
-                    try
-                    {
-                        using var doc = JsonDocument.Parse(nftData);
-                        if (doc.RootElement.TryGetProperty("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
-                            name = nameEl.GetString() ?? name;
-                        if (doc.RootElement.TryGetProperty("symbol", out var symbolEl) && symbolEl.ValueKind == JsonValueKind.String)
-                            symbol = symbolEl.GetString() ?? string.Empty;
-                    }
-                    catch { /* ignore parse errors; keep defaults */ }
-
                     var nft = new Web3NFT
                     {
                         Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
-                        Title = string.IsNullOrWhiteSpace(symbol) ? name : $"{name} ({symbol})",
+                        Title = $"HTS NFT {nftTokenAddress}",
                         Description = "NFT metadata loaded from Hedera mirror node.",
                         NFTTokenAddress = nftTokenAddress,
+                        CollectionPublicKey = asset.TokenId,
+                        SendToAddressAfterMinting = owner,
+                        JSONMetaDataURL = Uri.TryCreate(text, UriKind.Absolute, out _) ? text : null,
                         OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
                         MetaData = new Dictionary<string, string>
                         {
-                            ["HederaTokenJson"] = nftData
+                            ["HederaNftJson"] = nftData,
+                            ["HederaMetadataBase64"] = metadata,
+                            ["HederaOwnerAccount"] = owner
                         }
                     };
+                    if (text != null) nft.MetaData["HederaMetadataText"] = text;
 
                     result.Result = nft;
                     result.IsError = false;
                     result.Message = "Hashgraph NFT data loaded successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "No NFT data found on Hashgraph network");
                 }
             }
             catch (Exception ex)
@@ -511,44 +272,23 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(x, y, radius);
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError)
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IAvatar>>(activation);
                 }
-
-                // Real Hashgraph implementation for getting avatars near a specific location
-                // This would query the Hashgraph network for avatars based on geolocation
-                var avatars = new List<IAvatar>();
-
-                // Query Hashgraph network for avatars near the specified location
-                // Using Hedera Mirror Node API for geospatial queries
-                try
-                {
-                    // Query accounts/tokens near the location using HTTP API
-                    var queryUrl = $"/api/v1/accounts?limit=100";
-                    var response = await _httpClient.GetAsync(queryUrl);
-                    
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        // Parse the response and filter by geolocation if available
-                        // In a real implementation, you would filter accounts based on geolocation metadata
-                        // For now, we return an empty list as Hashgraph doesn't natively support geospatial queries
-                        // This would require a custom indexing service or smart contract
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log but don't fail - geospatial queries may not be supported
-                }
-
+                result = await LoadAllAvatarsAsync();
+                if (result.IsError) return result;
+                var avatars = query.Select(result.Result, row => row.IsActive && !row.IsDeleted);
                 result.Result = avatars;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {avatars.Count} avatars near location from Hashgraph (geospatial queries require custom indexing)";
+                result.IsLoaded = true;
+                result.Message = $"Loaded {avatars.Count} nearby stored avatars from Hashgraph.";
             }
             catch (Exception ex)
             {
+                result.Result = null; result.IsLoaded = false;
                 OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Hashgraph: {ex.Message}", ex);
             }
             return result;
@@ -564,44 +304,25 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(x, y, radius);
+                if (!Enum.IsDefined(typeof(HolonType), holonType)) throw new ArgumentOutOfRangeException(nameof(holonType));
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError)
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IHolon>>(activation);
                 }
-
-                // Real Hashgraph implementation for getting holons near a specific location
-                // This would query the Hashgraph network for holons based on geolocation
-                var holons = new List<IHolon>();
-
-                // Query Hashgraph network for holons near the specified location
-                // Using Hedera Mirror Node API for geospatial queries
-                try
-                {
-                    // Query tokens/NFTs near the location using HTTP API
-                    var queryUrl = $"/api/v1/tokens?limit=100";
-                    var response = await _httpClient.GetAsync(queryUrl);
-                    
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        // Parse the response and filter by geolocation if available
-                        // In a real implementation, you would filter tokens/NFTs based on geolocation metadata
-                        // For now, we return an empty list as Hashgraph doesn't natively support geospatial queries
-                        // This would require a custom indexing service or smart contract
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log but don't fail - geospatial queries may not be supported
-                }
-
+                result = await LoadAllHolonsAsync(holonType);
+                if (result.IsError) return result;
+                var holons = query.Select(result.Result,
+                    row => row.IsActive && !row.IsDeleted && (holonType == HolonType.All || row.HolonType == holonType));
                 result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons near location from Hashgraph (geospatial queries require custom indexing)";
+                result.IsLoaded = true;
+                result.Message = $"Loaded {holons.Count} nearby stored holons from Hashgraph.";
             }
             catch (Exception ex)
             {
+                result.Result = null; result.IsLoaded = false;
                 OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Hashgraph: {ex.Message}", ex);
             }
             return result;

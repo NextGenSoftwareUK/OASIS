@@ -54,97 +54,11 @@ public partial class SolanaOASIS
         return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
         HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
         int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
         int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Load holons for parent from Solana blockchain
-            // Query Solana program accounts to find holons with the given parent ID
-            var holons = new List<IHolon>();
-            try
-            {
-                // Query program accounts owned by the OASIS program
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            // Parse account data to check if it's a holon with the matching parent ID
-                            // In a real implementation, you would deserialize the account data
-                            // and check the parent ID field
-                            var holonDto = new Entities.Models.SolanaHolonDto
-                            {
-                                Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{id}:{account.PublicKey}"),
-                                Name = $"Solana Child Holon for Parent {id}",
-                                Description = $"Solana blockchain holon with parent {id}",
-                                CreatedDate = DateTime.UtcNow,
-                                ModifiedDate = DateTime.UtcNow,
-                                Version = 1,
-                                IsActive = true,
-                                PublicKey = account.PublicKey,
-                                AccountInfo = account.Account,
-                                Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner,
-                                Executable = account.Account.Executable,
-                                RentEpoch = account.Account.RentEpoch,
-                                Data = account.Account.Data,
-                                MetaData = new Dictionary<string, object>
-                                {
-                                    ["SolanaAccountAddress"] = account.PublicKey,
-                                    ["SolanaParentId"] = id.ToString(),
-                                    ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner
-                                }
-                            };
-                            
-                            var holon = holonDto.GetHolon();
-                            if (holon != null)
-                            {
-                                holon.ParentHolonId = id;
-                                holons.Add(holon);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!continueOnError)
-                                throw;
-                            // Continue processing other accounts
-                        }
-                    }
-                }
-                
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons for parent from Solana";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Solana: {ex.Message}", ex);
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => ReadHolonCollectionAsync(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey,
         HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
@@ -207,102 +121,10 @@ public partial class SolanaOASIS
         return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
         bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
         bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Load all holons from Solana blockchain
-            // Real Solana implementation: Get all accounts and parse as holons
-            var holonsData = new OASISResult<List<SolanaHolonDto>>();
-            try
-            {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    var holonList = new List<SolanaHolonDto>();
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            var holonDto = new SolanaHolonDto
-                            {
-                                Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{account.PublicKey}"),
-                                Name = $"Solana Holon {account.PublicKey[..8]}",
-                                Description = $"Solana blockchain holon with account {account.PublicKey}",
-                                CreatedDate = DateTime.UtcNow,
-                                ModifiedDate = DateTime.UtcNow,
-                                Version = 1,
-                                IsActive = true,
-                                PublicKey = account.PublicKey,
-                                AccountInfo = account.Account,
-                                Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner,
-                                Executable = account.Account.Executable,
-                                RentEpoch = account.Account.RentEpoch,
-                                Data = account.Account.Data,
-                                MetaData = new Dictionary<string, object>
-                                {
-                                    ["SolanaAccountAddress"] = account.PublicKey,
-                                    ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner,
-                                    ["SolanaExecutable"] = account.Account.Executable,
-                                    ["SolanaRentEpoch"] = account.Account.RentEpoch,
-                                    ["SolanaDataLength"] = account.Account.Data?.Count ?? 0,
-                                    ["SolanaNetwork"] = "mainnet-beta",
-                                    ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
-                                    ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
-                                }
-                            };
-                            holonList.Add(holonDto);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error parsing Solana holon {account.PublicKey}: {ex.Message}");
-                        }
-                    }
-                    holonsData.Result = holonList;
-                    holonsData.IsError = false;
-                    holonsData.Message = $"Successfully loaded {holonList.Count} holons from Solana blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref holonsData, $"Failed to get program accounts from Solana: {accounts.Reason}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref holonsData, $"Error querying holons from Solana: {ex.Message}", ex);
-            }
-            if (holonsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all holons: {holonsData.Message}");
-                return result;
-            }
-
-            result.Result = holonsData.Result?.Select(h => h.GetHolon());
-            result.IsError = false;
-            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons from Solana";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading all holons from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => ReadHolonCollectionAsync(row=>type==HolonType.All || row.HolonType==type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true,
         int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -310,61 +132,12 @@ public partial class SolanaOASIS
         return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError).Result;
     }
 
-    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true,
-        bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
-        bool saveChildrenOnProvider = false)
+    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,
+        int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
     {
-        var result = new OASISResult<IHolon>();
-
-        try
-        {
-            string transactionHash;
-            // Update if avatar if transaction hash exist
-            if (holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
-                holon.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,
-                    out var avatarDetailSolanaHash))
-            {
-                var solanaAvatarDetailDto =
-                    await _solanaRepository.GetAsync<SolanaAvatarDetailDto>(avatarDetailSolanaHash);
-                transactionHash = await _solanaRepository.UpdateAsync(solanaAvatarDetailDto);
-            }
-            // Create avatar if transaction hash not exist
-            else
-            {
-                var solanaAvatarDetailDto = holon.GetSolanaHolonDto();
-                transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
-            }
-
-            if (string.IsNullOrEmpty(transactionHash))
-            {
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
-
-                if (saveChildren)
-                {
-                    var holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth,
-                        0, continueOnError);
-
-                    if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
-                        holon.Children = holonsResult.Result.ToList();
-                    else
-                        OASISErrorHandling.HandleWarning(ref result,
-                            $"{holonsResult?.Message} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
-                }
-
-                result.Result = holon;
-                result.IsSaved = true;
-                result.IsError = false;
-            }
-            else
-                OASISErrorHandling.HandleError(ref result,
-                    "Error Occured In SolanaOASIS.SaveAvatarAsync. Transaction processing failed!");
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, ex.Message);
-        }
-
-        return result;
+        var saved=await SavePlannedSolanaGraphAsync(new[] {holon},saveChildren,recursive,maxChildDepth,0,continueOnError);
+        return new OASISResult<IHolon> {Result=saved.Result?.Single(),IsSaved=saved.IsSaved,IsError=saved.IsError,
+            ErrorCode=saved.ErrorCode,ErrorCount=saved.ErrorCount,Message=saved.Message,Exception=saved.Exception};
     }
 
     public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons,
@@ -375,180 +148,59 @@ public partial class SolanaOASIS
             .Result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
-        bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0,
-        bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        var errorMessage = "Error occured in SaveHolonsAsync method in SolanaOASIS Provider";
-        var result = new OASISResult<IEnumerable<IHolon>>();
-
-        try
-        {
-            foreach (var holon in holons)
-            {
-                string transactionHash;
-                // Update if avatar if transaction hash exist
-                if (holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
-                    holon.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,
-                        out var avatarDetailSolanaHash))
-                {
-                    var solanaAvatarDetailDto =
-                        await _solanaRepository.GetAsync<SolanaAvatarDetailDto>(avatarDetailSolanaHash);
-                    transactionHash = await _solanaRepository.UpdateAsync(solanaAvatarDetailDto);
-                }
-                // Create avatar if transaction hash not exist
-                else
-                {
-                    var solanaAvatarDetailDto = holon.GetSolanaHolonDto();
-                    transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
-                }
-
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
-
-                if (string.IsNullOrEmpty(transactionHash))
-                {
-                    OASISErrorHandling.HandleWarning(ref result,
-                        $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)}. Reason: transaction processing failed!");
-                    if (!continueOnError)
-                        break;
-                }
-
-                // Note: Child saving logic is provider-specific. For cross-provider persistence, use ProviderManager to save to multiple providers.
-                if ((saveChildren && !recursive && currentChildDepth == 0) || saveChildren && recursive &&
-                    currentChildDepth >= 0 &&
-                    (maxChildDepth == 0 || (maxChildDepth > 0 && currentChildDepth <= maxChildDepth)))
-                {
-                    currentChildDepth++;
-                    var holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth,
-                        currentChildDepth, continueOnError);
-
-                    if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
-                        holon.Children = holonsResult.Result.ToList();
-                    else
-                    {
-                        OASISErrorHandling.HandleWarning(ref result,
-                            $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
-                        if (!continueOnError)
-                            break;
-                    }
-                }
-            }
-
-            result.Result = holons;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}");
-        }
-
-        return result;
-    }
+    public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
+        bool saveChildren=true,bool recursive=true,int maxChildDepth=0,int currentChildDepth=0,
+        bool continueOnError=true,bool saveChildrenOnProvider=false)
+        => SavePlannedSolanaGraphAsync(holons,saveChildren,recursive,maxChildDepth,currentChildDepth,continueOnError);
 
     public override OASISResult<IHolon> DeleteHolon(string providerKey)
     {
         return DeleteHolonAsync(providerKey).Result;
     }
 
-    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams,
-        bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
-        int version = 0)
-    {
-        var result = new OASISResult<ISearchResults>();
-        try
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Search avatars and holons using Solana program
-            // Real Solana implementation: Query program accounts and filter by search criteria
-            var searchResults = new SearchResults();
-            var matchingAvatars = new List<IAvatar>();
-            var matchingHolons = new List<IHolon>();
-
+            var result=new OASISResult<ISearchResults>();
             try
             {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
+                var wantsAvatars=groups.Count == 0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+                var wantsHolons=groups.Count == 0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+                var avatars=new List<IAvatar>();
+                var holons=new List<IHolon>();
+                if(wantsAvatars)
                 {
-                    foreach (var account in accounts.Result)
+                    var loaded=await LoadAllAvatarsAsync(version);
+                    if(loaded.IsError)
                     {
-                        try
-                        {
-                            var accountData = account.Account.Data;
-                            if (accountData != null && accountData.Count > 0)
-                            {
-                                var accountDataString = accountData is IReadOnlyList<byte> bytes ? Encoding.UTF8.GetString(bytes.ToArray()) : string.Join("", (IEnumerable<string>)accountData);
-                                var searchQuery = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery ?? "";
-                                // Try parsing as avatar
-                                try
-                                {
-                                    var avatarDto = JsonConvert.DeserializeObject<SolanaAvatarDto>(accountDataString);
-                                    if (avatarDto != null && !string.IsNullOrEmpty(searchQuery))
-                                    {
-                                        if (avatarDto.UserName?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true ||
-                                            avatarDto.Email?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                                        {
-                                            var avatar = avatarDto.GetAvatar();
-                                            if (avatar != null) matchingAvatars.Add(avatar);
-                                        }
-                                    }
-                                }
-                                catch { }
-
-                                // Try parsing as holon
-                                try
-                                {
-                                    var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
-                                    if (holonDto != null && !string.IsNullOrEmpty(searchQuery))
-                                    {
-                                        if (holonDto.Name?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true ||
-                                            holonDto.Description?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                                        {
-                                            holonDto.PublicKey = account.PublicKey;
-                                            holonDto.AccountInfo = account.Account;
-                                            var holon = holonDto.GetHolon();
-                                            if (holon != null) matchingHolons.Add(holon);
-                                        }
-                                    }
-                                }
-                                catch { }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!continueOnError) throw;
-                            continue;
-                        }
+                        OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
+                        result.ErrorCode=loaded.ErrorCode; return result;
                     }
+                    avatars=loaded.Result.ToList();
                 }
-
-                searchResults.SearchResultAvatars = matchingAvatars;
-                searchResults.SearchResultHolons = matchingHolons;
-                searchResults.NumberOfResults = matchingAvatars.Count + matchingHolons.Count;
-
-                result.Result = searchResults;
-                result.IsError = false;
-                result.Message = $"Search completed: Found {matchingAvatars.Count} avatars and {matchingHolons.Count} holons";
+                if(wantsHolons || searchParams.ParentId != Guid.Empty)
+                {
+                    var loaded=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,false,version);
+                    if(loaded.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
+                        result.ErrorCode=loaded.ErrorCode; return result;
+                    }
+                    holons=loaded.Result.ToList();
+                }
+                var found=new SearchResults();
+                found.SearchResultAvatars.AddRange(avatars.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,holons)));
+                if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,holons)));
+                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+                result.Result=found; result.IsLoaded=true;
             }
-            catch (Exception ex)
+            catch(Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error searching Solana program accounts: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result,$"Solana native search failed: {cause.Message}",cause);
             }
+            return result;
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error searching in Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
     {

@@ -120,125 +120,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public async Task<OASISResult<Holon>> AddAsync(Holon holon)
-        {
-            OASISResult<Holon> result = new OASISResult<Holon>();
-
-            try
-            {
-                if (holon.HolonId == Guid.Empty)
-                    holon.HolonId = Guid.NewGuid();
-
-                //holon.IsNewHolon = false;
-                holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
-
-                await _dbContext.Holon.InsertOneAsync(holon);
-                holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
-
-                await UpdateAsync(holon);
-                result.Result = holon;
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in AddAsync method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
-            }
-
-            return result;
-        }
+        public Task<OASISResult<Holon>> AddAsync(Holon holon)
+            => SaveNativeHolonAsync(holon,false,false);
 
         public OASISResult<Holon> Add(Holon holon)
-        {
-            OASISResult<Holon> result = new OASISResult<Holon>();
+            => SaveNativeHolonAsync(holon,false,true).GetAwaiter().GetResult();
 
-            try
-            {
-                if (holon.HolonId == Guid.Empty)
-                    holon.HolonId = Guid.NewGuid();
-
-                holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
-
-                _dbContext.Holon.InsertOne(holon);
-                holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
-
-                Update(holon);
-                result.Result = holon;
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in Add method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
-            }
-
-            return result;
-        }
+        private static void PrepareNativeHolonIdentity(Holon holon)
+            => MongoNativeRecordWriter.PrepareIdentity(holon);
 
         public async Task<Holon> GetHolonAsync(Guid id)
-        {
-            try
-            {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue);
-                //return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
-
-                Holon holon = await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
-
-                if (holon != null)
-                {
-                    //if (holon.DeletedDate == DateTime.MinValue)
-                    //{
-
-                    //}
-
-                    if ((holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS) && holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] != holon.Id)
-                        || (holon.ProviderUniqueStorageKey != null && !holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS))
-                        || holon.ProviderUniqueStorageKey == null)
-                    {
-                        if (holon.ProviderUniqueStorageKey == null)
-                            holon.ProviderUniqueStorageKey = new Dictionary<ProviderType, string>();
-
-                        holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
-                        await UpdateAsync(holon);
-                    }
-                }
-
-                return holon;
-            }
-            catch
-            {
-                throw;
-            }
-        }
+            => await ReadNativeHolonAsync(Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue));
 
         public Holon GetHolon(Guid id)
-        {
-            try
-            {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue);
-                //return _dbContext.Holon.Find(filter).FirstOrDefault();
-
-                Holon holon = _dbContext.Holon.Find(filter).FirstOrDefault();
-
-                if (holon != null)
-                {
-                    if ((holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS) && holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] != holon.Id)
-                        || (holon.ProviderUniqueStorageKey != null && !holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS))
-                        || holon.ProviderUniqueStorageKey == null)
-                    {
-                        if (holon.ProviderUniqueStorageKey == null)
-                            holon.ProviderUniqueStorageKey = new Dictionary<ProviderType, string>();
-
-                        holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
-                        Update(holon);
-                    }
-                }
-
-                return holon;
-            }
-            catch
-            {
-                throw;
-            }
-        }
+            => ReadNativeHolon(Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue));
 
         //public T GetHolon<T>(Guid id) where T : IHolon
         //{
@@ -254,30 +149,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         //}
 
         public async Task<Holon> GetHolonAsync(string providerKey)
-        {
-            try
-            {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey && x.DeletedDate == DateTime.MinValue);
-                return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
-            }
-            catch
-            {
-                throw;
-            }
-        }
+            => await ReadNativeHolonAsync(Builders<Holon>.Filter.Where(x => x.Id == providerKey && x.DeletedDate == DateTime.MinValue));
 
         public Holon GetHolon(string providerKey)
-        {
-            try
-            {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey && x.DeletedDate == DateTime.MinValue);
-                return _dbContext.Holon.Find(filter).FirstOrDefault();
-            }
-            catch
-            {
-                throw;
-            }
-        }
+            => ReadNativeHolon(Builders<Holon>.Filter.Where(x => x.Id == providerKey && x.DeletedDate == DateTime.MinValue));
 
         //public async Task<Holon> GetHolonByMetaDataAsync(string metaKey, string metaValue)
         //{

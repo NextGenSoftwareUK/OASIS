@@ -97,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                     return reader.ReadString();
 
                 case BsonType.DateTime:
-                    return reader.ReadDateTime();
+                    return DateTimeOffset.FromUnixTimeMilliseconds(reader.ReadDateTime()).UtcDateTime;
 
                 case BsonType.ObjectId:
                     return reader.ReadObjectId().ToString();
@@ -263,12 +263,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
             }
             else
             {
-                // Complex types (e.g. Quest, holons, List<Quest>) cannot be mapped to BsonValue; store as JSON string so save does not throw.
+                // Supported complex metadata uses JSON text; encoding failures must
+                // remain errors rather than silently substituting a null value.
                 WriteComplexTypeAsJson(writer, value);
             }
         }
 
-        /// <summary>Serialize complex .NET types (e.g. Quest, holons) as JSON string so MongoDB save does not throw. Deserialization returns a string for that key.</summary>
+        /// <summary>Encode supported complex metadata as JSON text. Unsupported values fail the enclosing save; deserialization returns the stored string.</summary>
         private static void WriteComplexTypeAsJson(IBsonWriter writer, object value)
         {
             try
@@ -277,9 +278,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 var json = JsonSerializer.Serialize(value, options);
                 writer.WriteString(json);
             }
-            catch
+            catch (Exception cause)
             {
-                writer.WriteNull();
+                throw new BsonSerializationException("Mongo metadata value cannot be serialized without data loss.", cause);
             }
         }
 

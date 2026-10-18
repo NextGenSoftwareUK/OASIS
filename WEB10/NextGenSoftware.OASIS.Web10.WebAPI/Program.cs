@@ -83,8 +83,10 @@ builder.Services.AddRateLimiter(options =>
 });
 
 bool subscriptionUsageEnabled = string.Equals(builder.Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
+var storageUsagePolicy=builder.Services.AddConfiguredStorageAdmission(builder.Configuration,subscriptionUsageEnabled,NextGenSoftware.OASIS.Web10.WebAPI.Middleware.SubscriptionPolicy.Resolve,
+    ()=>NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetAllRegisteredProviders());
 if (subscriptionUsageEnabled)
-    builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB10", NextGenSoftware.OASIS.Web10.WebAPI.Middleware.SubscriptionPolicy.Resolve);
+    builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB10", storageUsagePolicy);
 
 var app = builder.Build();
 
@@ -102,11 +104,18 @@ app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web10.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.Web10.WebAPI.Middleware.ApiKeyMiddleware>();
 if (subscriptionUsageEnabled)
+{
     app.UseMiddleware<Web4UsageLedgerMiddleware>();
+    app.UseConfiguredStorageAdmission();
+}
 
 app.MapGrpcService<SourceGrpcService>();
 app.MapGraphQL();
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
+if(builder.Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null){
+    var admittedBoot=await OASISBootLoader.BootOASISForAdmittedStorageAsync(OASISBootLoader.OASISDNAPath??System.IO.Path.Combine(AppContext.BaseDirectory,"OASIS_DNA.json"));
+    if(admittedBoot.IsError||!admittedBoot.Result)throw new InvalidOperationException(admittedBoot.Message);
+}
 app.Run();

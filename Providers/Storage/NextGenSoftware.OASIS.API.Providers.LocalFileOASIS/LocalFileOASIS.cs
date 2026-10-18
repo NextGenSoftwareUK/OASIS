@@ -19,12 +19,24 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 {
-    public partial class LocalFileOASIS : OASISStorageProviderBase, IOASISLocalStorageProvider
+    public partial class LocalFileOASIS : OASISStorageProviderBase, IOASISLocalStorageProvider, IOASISStorageProvider
     {
         private static readonly JsonSerializerSettings AvatarDeserializeSettings = new JsonSerializerSettings
         {
-            Converters = { new ProviderWalletsJsonConverter() }
+            Converters = { new ProviderWalletsJsonConverter(), new KarmaAkashicRecordJsonConverter(), new InventoryItemJsonConverter() }
         };
+        private static T DeserializeStoredProfile<T>(string json) where T : class
+        {
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(json, AvatarDeserializeSettings)
+                    ?? throw new System.IO.InvalidDataException("Stored local profile is null.");
+            }
+            catch (Newtonsoft.Json.JsonException cause)
+            {
+                throw new System.IO.InvalidDataException("Stored local profile JSON is invalid.", cause);
+            }
+        }
         //private string _filePath = "wallets.json";
         private string _filePath = "";
         private string _basePath = "";
@@ -34,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 
         public event EventDelegates.StorageProviderError OnStorageProviderError;
 
-        public LocalFileOASIS(string filePath = "")
+        public LocalFileOASIS(string filePath = "", string storageDirectory = "")
         {
             this.ProviderName = "LocalFileOASIS";
             this.ProviderDescription = "LocalFile Provider";
@@ -44,18 +56,13 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             if (!string.IsNullOrEmpty(filePath))
                 _filePath = filePath;
 
-            _basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OASIS", "LocalFileOASIS");
+            _basePath = string.IsNullOrWhiteSpace(storageDirectory)
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OASIS", "LocalFileOASIS")
+                : Path.GetFullPath(storageDirectory);
             _avatarFolderPath = Path.Combine(_basePath, "Avatars");
             _avatarDetailFolderPath = Path.Combine(_basePath, "AvatarDetails");
             _holonDirectory = Path.Combine(_basePath, "Holons");
             
-            // Ensure directories exist
-            if (!Directory.Exists(_avatarFolderPath))
-                Directory.CreateDirectory(_avatarFolderPath);
-            if (!Directory.Exists(_avatarDetailFolderPath))
-                Directory.CreateDirectory(_avatarDetailFolderPath);
-            if (!Directory.Exists(_holonDirectory))
-                Directory.CreateDirectory(_holonDirectory);
         }
 
     }

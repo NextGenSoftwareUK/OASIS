@@ -49,6 +49,7 @@ using NextGenSoftware.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 //using NextGenSoftware.OASIS.API.Providers.ElrondOASIS;
@@ -90,7 +91,55 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return BootOASISAsync(OASISDNA, activateDefaultStorageProvider).Result;
         }
 
-        public static async Task<OASISResult<bool>> BootOASISAsync(OASISDNA OASISDNA, bool activateDefaultStorageProvider = true)
+        /// <summary>Explicit paid-admission host startup: passive Warm registration only. System-account
+        /// provisioning and all provider activation belong to separately authorized operations, not boot.</summary>
+        public static async Task<OASISResult<bool>> BootOASISForAdmittedStorageAsync(string dnaPath)
+        {
+            if (IsOASISBooted || IsOASISBooting || ProviderManager.Instance.GetAllRegisteredProviders().Exists(provider => provider.IsProviderActivated))
+                return new OASISResult<bool> { IsError = true, Result = false, Message = "Admitted storage requires a fresh passive host boot; existing activation cannot be reclassified as admitted." };
+            var loaded = LoadOASISDNA(dnaPath);
+            if (loaded.IsError || loaded.Result == null)
+                return new OASISResult<bool> { IsError = true, Result = false, Message = loaded.Message };
+            return await BootOASISForAdmittedStorageAsync(loaded.Result);
+        }
+
+        public static async Task<OASISResult<bool>> BootOASISForAdmittedStorageAsync(OASISDNA dna)
+        {
+            if (IsOASISBooted || IsOASISBooting || ProviderManager.Instance.GetAllRegisteredProviders().Exists(provider => provider.IsProviderActivated))
+                return new OASISResult<bool> { IsError = true, Result = false, Message = "Admitted storage requires a fresh passive host boot; existing activation cannot be reclassified as admitted." };
+            if (dna?.OASIS?.HyperDriveMode != HyperDriveModes.V2
+                || dna.OASIS?.StorageProviders?.OASISProviderBootType != nameof(OASISProviderBootType.Warm))
+                return new OASISResult<bool> { IsError = true, Result = false, Message = "Admitted storage boot requires HyperDrive V2 and explicit Warm passive registration; Hot/Cold boot is not permitted." };
+            if (string.IsNullOrWhiteSpace(dna.OASIS.Security?.SecretKey))
+                return new OASISResult<bool> { IsError = true, Result = false, Message = "Admitted storage boot requires preconfigured JWT signing material; provisioning is not a passive boot operation." };
+            return await BootOASISAsync(dna, false, registrationOnly: true);
+        }
+
+        public static Task<OASISResult<bool>> BootOASISAsync(OASISDNA OASISDNA, bool activateDefaultStorageProvider = true)
+            => BootOASISAsync(OASISDNA, activateDefaultStorageProvider, registrationOnly: false);
+
+        private static OASISResult<bool> ValidateAdmittedRegistrations()
+        {
+            var manager = ProviderManager.Instance;
+            // Match the same six lists used by RegisterProvidersInAllLists. Registration errors
+            // must not be hidden merely because RegisterProvider returned a non-null result wrapper.
+            var requested = new[] { manager.GetProviderAutoFailOverList(), manager.GetProviderAutoFailOverListForAvatarLogin(),
+                manager.GetProviderAutoFailOverListForCheckIfEmailAlreadyInUse(), manager.GetProviderAutoFailOverListForCheckIfUsernameAlreadyInUse(),
+                manager.GetProviderAutoLoadBalanceList(), manager.GetProvidersThatAreAutoReplicating() }
+                .SelectMany(list => list).Select(type => type.Value).Distinct().ToArray();
+            if (requested.Length == 0)
+                return new OASISResult<bool> { IsError = true, Result = false, Message = "Admitted boot requires explicit passive provider registrations." };
+            var registered = manager.GetAllRegisteredProviders();
+            foreach (var type in requested)
+            {
+                var matches = registered.Where(provider => provider.ProviderType?.Value == type).ToArray();
+                if (matches.Length != 1 || matches[0] is not IOASISStorageProvider || matches[0].IsProviderActivated)
+                    return new OASISResult<bool> { IsError = true, Result = false, Message = $"Admitted passive registration is missing, ambiguous, invalid or activated for {type}." };
+            }
+            return new OASISResult<bool>(true);
+        }
+
+        private static async Task<OASISResult<bool>> BootOASISAsync(OASISDNA OASISDNA, bool activateDefaultStorageProvider, bool registrationOnly)
         {
             OASISResult<bool> result = new OASISResult<bool>(false);
             object OASISProviderBootTypeObject = null;
@@ -203,6 +252,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             //LoggingManager.Log($"REGISTERING PROVIDERS...", LogType.Info, true, false, false, 1, true);
                             LoggingManager.BeginLogAction($"REGISTERING PROVIDERS...", LogType.Info);
                             result = RegisterProvidersInAllLists();
+                            if (registrationOnly && result.Result && !result.IsError)
+                                result = ValidateAdmittedRegistrations();
                             LoggingManager.EndLogAction($"DONE", LogType.Info);
                             //LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
 
@@ -233,6 +284,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     if (result.Result && !result.IsError)
                     {
+                        if (!registrationOnly)
+                        {
                         List<EnumValue<ProviderType>> currentProviderFailOverList = ProviderManager.Instance.GetProviderAutoFailOverList();
                         ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(ProviderManager.Instance.GetProviderAutoFailOverListForCheckIfOASISSystemAccountExists());
 
@@ -278,6 +331,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISBootLoader.BootOASISAsync Calling AvatarManager.Instance.RegisterAsync Attempting To Create The OASISSystem Account. Reason: {avatarResult.Message}");
                         }
 
+                        }
                         IsOASISBooted = true;
                         LoggingManager.Log($"OASIS HYPERDRIVE ONLINE.", LogType.Info);
                         LoggingManager.Log($"OASIS BOOTED.", LogType.Info);
@@ -301,11 +355,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);
 
+                        if (!registrationOnly)
+                        {
                         OASISResult<bool> jwtReady = await OASISDNAManager.EnsureJwtSecretKeyReadyForAvatarAuthAsync();
                         if (jwtReady.IsWarning && !string.IsNullOrEmpty(jwtReady.Message))
                             LoggingManager.Log(jwtReady.Message, LogType.Warning);
                         if (jwtReady.IsError)
                             OASISErrorHandling.HandleWarning(ref result, jwtReady.Message ?? "EnsureJwtSecretKeyReadyForAvatarAuth failed.");
+                        }
                     }
 
                     IsOASISBooting = false;

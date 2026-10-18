@@ -2,6 +2,7 @@ using System;
 using Microsoft.Azure.Cosmos;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
@@ -10,6 +11,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         public AvatarRepository(ICosmosDbClientFactory factory) : base(factory) { }
 
         public override string CollectionName { get; } = "avatarItems";
+        protected override Type EntityType => typeof(Avatar);
+        protected override IAvatar ProjectInput(IAvatar entity) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Avatar>(entity);
         public override Guid GenerateId(IAvatar entity) => Guid.NewGuid();
         public override PartitionKey? ResolvePartitionKey(string entityId) => new PartitionKey(entityId);
     }

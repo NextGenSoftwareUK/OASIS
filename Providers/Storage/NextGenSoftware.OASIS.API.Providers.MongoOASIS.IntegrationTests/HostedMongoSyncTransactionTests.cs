@@ -722,7 +722,10 @@ public sealed class HostedMongoSyncTransactionTests
                     Id = ObjectId.GenerateNewId().ToString(), HolonId = sourceId, VersionId = Guid.NewGuid(),
                     Inventory = new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>
                     {
-                        new() { Id = itemId, Name = "Transferred key", GameSource = "Our World", Quantity = 3 }
+                        new() { Id = itemId, Name = "Transferred key", GameSource = "Our World", Quantity = 3,
+                            PublishedSTARNETHolon = new byte[] {0,255,19}, IsPublic = true,
+                            Version = 7, VersionId = operationId, ParentHolonId = sourceId,
+                            CustomHolonType = "owned-transfer-package" }
                     }
                 },
                 new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
@@ -754,6 +757,12 @@ public sealed class HostedMongoSyncTransactionTests
             var transferred = Assert.Single(target.Inventory);
             Assert.Equal(itemId, transferred.Id);
             Assert.Equal(3, transferred.Quantity);
+            Assert.Equal(new byte[] {0,255,19}, transferred.PublishedSTARNETHolon);
+            Assert.True(transferred.IsPublic);
+            Assert.Equal(7, transferred.Version);
+            Assert.Equal(operationId, transferred.VersionId);
+            Assert.Equal(sourceId, transferred.ParentHolonId);
+            Assert.Equal("owned-transfer-package", transferred.CustomHolonType);
             Assert.Contains(operationId.ToString("D"), source.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
             Assert.Contains(operationId.ToString("D"), target.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
         }
@@ -784,6 +793,8 @@ public sealed class HostedMongoSyncTransactionTests
                     new()
                     {
                         Id = itemId, Name = "Clan crystal", GameSource = "Our World", Quantity = 3,
+                        PublishedSTARNETHolon = new byte[] {0,255,19},
+                        Object3DURI = new Uri("models/clan-crystal.glb", UriKind.Relative),
                         ItemType = InventoryItemType.QuestItem,
                         Properties = new Dictionary<string, object> { ["rarity"] = "purple" }
                     }
@@ -832,6 +843,10 @@ public sealed class HostedMongoSyncTransactionTests
             Assert.Equal(destinationItemId, transferred.Id);
             Assert.Equal(2, transferred.Quantity);
             Assert.Equal("purple", transferred.Properties["rarity"].ToString());
+            var restored = ClanManager.FromPersistentInventoryItem(transferred);
+            Assert.Equal(new byte[] {0,255,19}, restored.PublishedSTARNETHolon);
+            Assert.Equal("models/clan-crystal.glb", restored.Object3DURI.OriginalString);
+            Assert.Equal(new byte[] {0,255,19}, Assert.Single(source.Inventory).PublishedSTARNETHolon);
             Assert.Contains(operationId.ToString("D"),
                 source.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
             Assert.Contains(operationId.ToString("D"),

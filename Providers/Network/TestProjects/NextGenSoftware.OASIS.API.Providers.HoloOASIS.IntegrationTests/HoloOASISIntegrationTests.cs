@@ -1,102 +1,56 @@
-using System;
-using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using Xunit;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 
-namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests;
+
+public class HoloOASISIntegrationTests
 {
-    public class HoloOASISIntegrationTests
+    [Fact]
+    public async Task AvatarAndHolonCrud_PersistOnOfficialHolochainConductor()
     {
-        [Fact]
-        public async Task FullProviderLifecycle_ShouldWorkCorrectly()
+        string adminUri = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_ADMIN_URI")
+            ?? throw new InvalidOperationException("Set OASIS_HOLOCHAIN_ADMIN_URI to run the official conductor test.");
+        var provider = new HoloOASIS(adminUri, useHoloNetwork: false);
+        var activation = await provider.ActivateProviderAsync();
+        Assert.False(activation.IsError, activation.Message);
+        Assert.True(activation.Result);
+
+        var avatar = new Avatar
         {
-            // Arrange
-            var holoProvider = new HoloOASIS();
+            Id = Guid.NewGuid(),
+            Username = $"holo-{Guid.NewGuid():N}",
+            Email = $"holo-{Guid.NewGuid():N}@oasis.test",
+            FirstName = "Before"
+        };
+        var createdAvatar = await provider.SaveAvatarAsync(avatar);
+        Assert.False(createdAvatar.IsError, createdAvatar.Message);
+        var loadedAvatar = await provider.LoadAvatarAsync(avatar.Id);
+        Assert.False(loadedAvatar.IsError, loadedAvatar.Message);
+        Assert.Equal("Before", loadedAvatar.Result.FirstName);
+        avatar.FirstName = "After";
+        var updatedAvatar = await provider.SaveAvatarAsync(avatar);
+        Assert.False(updatedAvatar.IsError, updatedAvatar.Message);
+        loadedAvatar = await provider.LoadAvatarAsync(avatar.Id);
+        Assert.False(loadedAvatar.IsError, loadedAvatar.Message);
+        Assert.Equal("After", loadedAvatar.Result.FirstName);
 
-            // Act & Assert - Activation
-            var activationResult = await holoProvider.ActivateProviderAsync();
-            Assert.False(activationResult.IsError);
-            Assert.True(activationResult.Result);
-            Assert.Contains("Holo provider activated successfully", activationResult.Message);
+        var holon = new Holon { Id = Guid.NewGuid(), Name = "Before" };
+        var createdHolon = await provider.SaveHolonAsync(holon);
+        Assert.False(createdHolon.IsError, createdHolon.Message);
+        var loadedHolon = await provider.LoadHolonAsync(holon.Id);
+        Assert.False(loadedHolon.IsError, loadedHolon.Message);
+        Assert.Equal("Before", loadedHolon.Result.Name);
+        holon.Name = "After";
+        var updatedHolon = await provider.SaveHolonAsync(holon);
+        Assert.False(updatedHolon.IsError, updatedHolon.Message);
+        loadedHolon = await provider.LoadHolonAsync(holon.Id);
+        Assert.False(loadedHolon.IsError, loadedHolon.Message);
+        Assert.Equal("After", loadedHolon.Result.Name);
 
-            // Act & Assert - Deactivation
-            var deactivationResult = await holoProvider.DeActivateProviderAsync();
-            Assert.False(deactivationResult.IsError);
-            Assert.True(deactivationResult.Result);
-            Assert.Contains("Holo provider deactivated successfully", deactivationResult.Message);
-        }
-
-        [Fact]
-        public async Task MultipleActivationDeactivationCycles_ShouldWorkCorrectly()
-        {
-            // Arrange
-            var holoProvider = new HoloOASIS();
-
-            // Act & Assert - Multiple cycles
-            for (int i = 0; i < 3; i++)
-            {
-                var activationResult = await holoProvider.ActivateProviderAsync();
-                Assert.False(activationResult.IsError);
-                Assert.True(activationResult.Result);
-
-                var deactivationResult = await holoProvider.DeActivateProviderAsync();
-                Assert.False(deactivationResult.IsError);
-                Assert.True(deactivationResult.Result);
-            }
-        }
-
-        [Fact]
-        public void NFTDataLoading_ShouldHandleDifferentTokenAddresses()
-        {
-            // Arrange
-            var holoProvider = new HoloOASIS();
-            var testAddresses = new[]
-            {
-                "HoloTestTokenAddress123",
-                "HoloAnotherTokenAddress456",
-                "HoloThirdTokenAddress789"
-            };
-
-            // Act & Assert
-            foreach (var address in testAddresses)
-            {
-                var result = holoProvider.LoadOnChainNFTData(address);
-                Assert.False(result.IsError);
-                Assert.NotNull(result.Result);
-                Assert.Equal(address, result.Result.TokenId);
-                Assert.Contains("Holochain NFT", result.Result.Name);
-            }
-        }
-
-        [Fact]
-        public async Task AsyncNFTDataLoading_ShouldWorkCorrectly()
-        {
-            // Arrange
-            var holoProvider = new HoloOASIS();
-            var tokenAddress = "HoloAsyncTestTokenAddress123";
-
-            // Act
-            var result = await holoProvider.LoadOnChainNFTDataAsync(tokenAddress);
-
-            // Assert
-            Assert.False(result.IsError);
-            Assert.NotNull(result.Result);
-            Assert.Equal(tokenAddress, result.Result.TokenId);
-            Assert.Contains("Holochain NFT", result.Result.Name);
-            Assert.Contains("Holochain DHT", result.Result.Description);
-        }
-
-        [Fact]
-        public void ProviderProperties_ShouldBeConsistent()
-        {
-            // Arrange
-            var holoProvider = new HoloOASIS();
-
-            // Act & Assert
-            Assert.Equal("HoloOASIS", holoProvider.ProviderName);
-            Assert.Equal("Holo Provider", holoProvider.ProviderDescription);
-            Assert.NotNull(holoProvider.ProviderType);
-            Assert.NotNull(holoProvider.ProviderCategory);
-        }
+        var deletedAvatar = await provider.DeleteAvatarAsync(avatar.Id, false);
+        Assert.False(deletedAvatar.IsError, deletedAvatar.Message);
+        var deletedHolon = await provider.DeleteHolonAsync(holon.Id);
+        Assert.False(deletedHolon.IsError, deletedHolon.Message);
     }
 }

@@ -11,7 +11,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         string ReadDocumentByField(string fieldName, string fieldValue, int version = 0);
         List<string> ReadAllDocuments();
         Task<string> CreateDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default);
-        Task ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default);
+        Task<string> UpsertDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default);
+        Task<string> ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default);
+        Task<string> ReplaceUnchangedDocumentAsync(string documentId, object expected, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default);
         Task DeleteDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default);
     }
 }

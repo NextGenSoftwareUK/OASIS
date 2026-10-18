@@ -211,14 +211,19 @@ public partial class SolanaOASIS
     public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        OASISResult<IWeb3NFTTransactionResponse> result = new(new Web3NFTTransactionResponse());
+        OASISResult<IWeb3NFTTransactionResponse> result = new();
 
         try
         {
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
+            }
             OASISResult<BurnNftResult> solanaNftTransactionResult = await _solanaService.BurnNftAsync(request);
 
             if (solanaNftTransactionResult.IsError ||
-                string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
+                string.IsNullOrEmpty(solanaNftTransactionResult.Result?.TransactionHash))
             {
                 OASISErrorHandling.HandleError(ref result,
                     solanaNftTransactionResult.Message,
@@ -228,6 +233,7 @@ public partial class SolanaOASIS
 
             result.IsError = false;
             result.IsSaved = true;
+            result.Result=new Web3NFTTransactionResponse();
 
             //Web3NFT Web3NFT = new Web3NFT()
             //{
@@ -430,82 +436,11 @@ public partial class SolanaOASIS
         return result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
         string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
         int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
         bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Query holons by metadata from Solana program
-            // Real Solana implementation: Query program accounts and filter by metadata
-            var holons = new List<IHolon>();
-            try
-            {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            var accountData = account.Account.Data;
-                            if (accountData != null && accountData.Count > 0)
-                            {
-                                var accountDataString = accountData is IReadOnlyList<byte> bytes ? Encoding.UTF8.GetString(bytes.ToArray()) : string.Join("", (IEnumerable<string>)accountData);
-                                var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
-                                
-                                if (holonDto != null)
-                                {
-                                    holonDto.PublicKey = account.PublicKey;
-                                    holonDto.AccountInfo = account.Account;
-                                    holonDto.Lamports = account.Account.Lamports;
-                                    
-                                    var holon = holonDto.GetHolon();
-                                    if (holon != null && holon.MetaData != null && 
-                                        holon.MetaData.ContainsKey(metaKey) &&
-                                        holon.MetaData[metaKey]?.ToString()?.Equals(metaValue, StringComparison.OrdinalIgnoreCase) == true)
-                                    {
-                                        holons.Add(holon);
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!continueOnError) throw;
-                            continue;
-                        }
-                    }
-                }
-
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Found {holons.Count} holons matching metadata key '{metaKey}' = '{metaValue}'";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error querying Solana program accounts by metadata: {ex.Message}", ex);
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => ReadHolonMetadataAsync(metaKey==null ? null:new Dictionary<string,string> {{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue,
         HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,

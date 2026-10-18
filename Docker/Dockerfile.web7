@@ -4,11 +4,15 @@
 # For local builds run from C:/Source/OASIS2/:
 #   docker build -f Docker/Dockerfile.web7 -t oasis-web7-webapi .
 
+# Official Node runtime pinned to its multi-platform manifest.
+FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS provider_node
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+COPY --from=provider_node /usr/local/ /usr/local/
 
 COPY Docker/oasis-dependency-versions.env /tmp/oasis-dependency-versions.env
 RUN apt-get update && apt-get install -y --no-install-recommends git \
@@ -41,8 +45,12 @@ WORKDIR "/src/WEB7/NextGenSoftware.OASIS.Web7.WebAPI"
 RUN dotnet restore "NextGenSoftware.OASIS.Web7.WebAPI.csproj"
 RUN dotnet publish "NextGenSoftware.OASIS.Web7.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
+RUN bash /src/Docker/package-provider-sdk-bridges.sh /app/publish
+
 FROM base AS final
 WORKDIR /app
+COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
+RUN node --version
 COPY --from=build /app/publish .
 COPY Docker/entrypoint.web7.sh /entrypoint.sh
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh

@@ -1,0 +1,127 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Extensions;
+
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
+
+[TestClass]
+public class SolanaAvatarMappingTests
+{
+    [DataTestMethod]
+    [DataRow("Title")][DataRow("AcceptTerms")][DataRow("PasswordReset")][DataRow("Verified")]
+    [DataRow("LastBeamedIn")][DataRow("LastBeamedOut")][DataRow("IsBeamedIn")]
+    [DataRow("DID")][DataRow("DIDPublicKey")][DataRow("HerzId")][DataRow("HerzCountryCode")]
+    [DataRow("HerzSequentialNumber")][DataRow("HerzClearanceLevel")][DataRow("HerzVoucherId")]
+    [DataRow("HerzVouchesRemaining")][DataRow("HerzIdAssignedDate")][DataRow("HerzVoiceprintId")]
+    [DataRow("HerzQeaProfile")][DataRow("VoiceprintId")][DataRow("BiometricEnrolled")][DataRow("ProviderUsername")]
+    public void DurableAvatarInterfaceFieldsSurviveCanonicalRecord(string field)
+    {
+        var source=new Avatar{Id=Guid.NewGuid()};
+        var property=typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar).GetProperty(field)!;
+        for(var revision=1;revision<=2;revision++){
+            object? value=property.PropertyType==typeof(string)?(revision==1?"stored-"+field:null):
+                property.PropertyType==typeof(bool)?revision==1:property.PropertyType==typeof(int)?100+revision:
+                property.PropertyType==typeof(DateTime?)?(revision==1?new DateTime(2024,2,3,4,5,6,DateTimeKind.Utc):null):
+                revision==1?new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>{{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS,"provider-user"}}:null;
+            property.SetValue(source,value);
+            var dto=source.GetSolanaAvatarDto();
+            var loaded=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models.SolanaAvatarDto>(
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(dto)).GetAvatar();
+            // DID has a specified computed fallback when its explicit value is null.
+            if(property.GetValue(source) is Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string> expected){
+                var found=(Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>)property.GetValue(loaded)!;
+                Assert.AreEqual(expected.Count,found.Count);foreach(var pair in expected)Assert.AreEqual(pair.Value,found[pair.Key]);
+            }else Assert.AreEqual(property.GetValue(source),property.GetValue(loaded),field+" revision "+revision);
+            if(field=="Verified" || field=="PasswordReset")Assert.AreEqual(source.IsVerified,loaded.IsVerified);
+        }
+    }
+
+    [TestMethod]
+    public void DetailMappingPreservesEveryStoredProfileAndOwnedValue()
+    {
+        var detail = new AvatarDetail {
+            Id = Guid.NewGuid(), UmaJson = "{}",
+            Portrait = "portrait", Model3D = "model", FavouriteColour = ConsoleColor.Green,
+            STARCLIColour = ConsoleColor.Cyan
+        };
+        var dto = detail.GetSolanaAvatarDetailDto();
+        var loaded = dto.GetAvatarDetail();
+        foreach (var name in new[] {
+            "UmaJson", "Portrait", "Model3D", "FavouriteColour", "STARCLIColour", "KarmaAkashicRecords",
+            "HeartRateData", "Omniverse", "Gifts", "DimensionLevelIds", "DimensionLevels", "Chakras", "Aura",
+            "Stats", "GeneKeys", "HumanDesign", "Skills", "Attributes", "SuperPowers", "Spells", "Achievements", "Inventory"})
+        {
+            var expected = typeof(AvatarDetail).GetProperty(name)!.GetValue(detail);
+            var stored = dto.GetType().GetProperty(name)!.GetValue(dto);
+            var actual = typeof(AvatarDetail).GetProperty(name)!.GetValue(loaded);
+            Assert.AreEqual(expected, stored, name + " write"); Assert.AreEqual(expected, actual, name + " read");
+        }
+    }
+
+    [TestMethod]
+    public void AvatarProfileScalarsSurviveDtoSerialization()
+    {
+        var avatar=new Avatar {Id=Guid.NewGuid(),FirstName="Actual",LastName="Profile",Description="stored description",
+            CreatedDate=new DateTime(2026,10,14,1,2,3,DateTimeKind.Utc),ModifiedDate=new DateTime(2026,10,14,2,3,4,DateTimeKind.Utc),
+            AvatarType=new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.AvatarType>(NextGenSoftware.OASIS.API.Core.Enums.AvatarType.User),
+            MetaData=new Dictionary<string,object> {{"parkType","woodland"}}};
+        var serialized=Newtonsoft.Json.JsonConvert.SerializeObject(avatar.GetSolanaAvatarDto());
+        var loaded=Newtonsoft.Json.JsonConvert.DeserializeObject<NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models.SolanaAvatarDto>(serialized)!.GetAvatar();
+        Assert.AreEqual(avatar.FirstName,loaded.FirstName); Assert.AreEqual(avatar.LastName,loaded.LastName);
+        Assert.AreEqual(avatar.Description,loaded.Description); Assert.AreEqual(avatar.CreatedDate,loaded.CreatedDate); Assert.AreEqual(avatar.ModifiedDate,loaded.ModifiedDate);
+        Assert.AreEqual(avatar.AvatarType.Value,loaded.AvatarType.Value); Assert.AreEqual("woodland",loaded.MetaData["parkType"].ToString());
+    }
+
+    [TestMethod]
+    public void DetailContactScalarsSurviveDtoSerialization()
+    {
+        var detail=new AvatarDetail {Id=Guid.NewGuid(),Description="actual detail",Country="country",Town="town",County="county",Postcode="code",Landline="phone",
+            ModifiedDate=new DateTime(2026,10,14,2,3,4,DateTimeKind.Utc),MetaData=new Dictionary<string,object> {{"parkType","woodland"}}};
+        var serialized=Newtonsoft.Json.JsonConvert.SerializeObject(detail.GetSolanaAvatarDetailDto());
+        var loaded=Newtonsoft.Json.JsonConvert.DeserializeObject<NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models.SolanaAvatarDetailDto>(serialized)!.GetAvatarDetail();
+        Assert.AreEqual(detail.Country,loaded.Country); Assert.AreEqual(detail.Town,loaded.Town); Assert.AreEqual(detail.County,loaded.County);
+        Assert.AreEqual(detail.Postcode,loaded.Postcode); Assert.AreEqual(detail.Landline,loaded.Landline);
+        Assert.AreEqual(detail.Description,loaded.Description); Assert.AreEqual(detail.ModifiedDate,loaded.ModifiedDate);
+        Assert.AreEqual("woodland",loaded.MetaData["parkType"].ToString());
+    }
+
+    [TestMethod]
+    public void InvalidStoredAvatarTypeIsNotInvented()
+    {
+        var dto=new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models.SolanaAvatarDto {AvatarType="not-a-type"};
+        Assert.ThrowsException<InvalidOperationException>(()=>dto.GetAvatar());
+    }
+
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void AvatarDeletionFlagHasInverseActiveMeaning(bool active)
+    {
+        var avatar = new Avatar { Id = Guid.NewGuid(), IsActive = active, Version = 3 };
+        var dto = avatar.GetSolanaAvatarDto();
+        Assert.AreEqual(!active, dto.IsDeleted);
+        Assert.AreEqual(active, dto.GetAvatar().IsActive);
+        Assert.AreEqual(avatar.Id, dto.GetAvatar().Id);
+    }
+
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void DetailRetainsIdentityProgressAndActiveState(bool active)
+    {
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), IsActive = active,
+            Username = "synthetic-avatar", Email = "fixture@example.invalid", XP = 321, Karma = 654,
+            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
+        var dto = detail.GetSolanaAvatarDetailDto();
+        Assert.AreEqual(!active, dto.IsDeleted);
+        var loaded = dto.GetAvatarDetail();
+        Assert.AreEqual(active, loaded.IsActive);
+        Assert.AreEqual(detail.Id, loaded.Id);
+        Assert.AreEqual(detail.Username, loaded.Username);
+        Assert.AreEqual(detail.Email, loaded.Email);
+        Assert.AreEqual(detail.Level, loaded.Level);
+        Assert.AreEqual(detail.XP, loaded.XP);
+        Assert.AreEqual(detail.Karma, loaded.Karma);
+        Assert.AreEqual(detail.CreatedDate, loaded.CreatedDate);
+    }
+}

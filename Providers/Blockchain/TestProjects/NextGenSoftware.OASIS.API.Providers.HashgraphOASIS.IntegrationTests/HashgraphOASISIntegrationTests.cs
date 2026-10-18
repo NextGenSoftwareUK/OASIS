@@ -1,15 +1,19 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests
 {
     [TestClass]
-    public class HashgraphOASISIntegrationTests
+    public class HashgraphUnconfiguredStorageTests
     {
         private HashgraphOASIS _provider;
 
@@ -20,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
+        public async Task UnconfiguredAvatarSaveReportsMissingStorageConfiguration()
         {
             // Arrange
             var avatar = new Avatar
@@ -37,12 +41,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
+            Assert.IsTrue(result.IsError);
+            StringAssert.Contains(result.Message, "explicit contract");
         }
 
         [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
+        public async Task UnconfiguredAvatarLoadReportsMissingStorageConfiguration()
         {
             // Arrange
             var avatarId = Guid.NewGuid();
@@ -52,11 +56,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests
 
             // Assert
             Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
+            Assert.IsTrue(result.IsError);
+            StringAssert.Contains(result.Message, "explicit contract");
         }
 
         [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
+        public async Task UnconfiguredHolonSaveReportsMissingStorageConfiguration()
         {
             // Arrange
             var holon = new Holon
@@ -71,11 +76,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
+            Assert.IsTrue(result.IsError);
+            StringAssert.Contains(result.Message, "explicit contract");
         }
 
         [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
+        public async Task UnconfiguredHolonLoadReportsMissingStorageConfiguration()
         {
             // Arrange
             var holonId = Guid.NewGuid();
@@ -85,45 +91,48 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests
 
             // Assert
             Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
+            Assert.IsTrue(result.IsError);
+            StringAssert.Contains(result.Message, "explicit contract");
         }
 
         [TestMethod]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
+        public async Task UnconfiguredAvatarSearchReportsMissingStorageConfiguration()
         {
             // Arrange
             var searchParams = new SearchParams
             {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
+                SearchOnlyForCurrentAvatar = false,
+                FilterByMetaData = new Dictionary<string, string> { ["Username"] = "TestUser" },
+                SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = "TestUser" } }
             };
 
             // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
+            var result = await _provider.SearchAsync(searchParams);
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
+            Assert.IsTrue(result.IsError);
+            StringAssert.Contains(result.Message, "explicit contract");
         }
 
         [TestMethod]
-        public async Task SearchHolons_ShouldReturnSearchResults()
+        public async Task UnconfiguredHolonSearchReportsMissingStorageConfiguration()
         {
             // Arrange
             var searchParams = new SearchParams
             {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
+                SearchOnlyForCurrentAvatar = false,
+                FilterByMetaData = new Dictionary<string, string> { ["Name"] = "TestHolon" },
+                SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = "TestHolon" } }
             };
 
             // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
+            var result = await _provider.SearchAsync(searchParams);
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
+            Assert.IsTrue(result.IsError);
+            StringAssert.Contains(result.Message, "explicit contract");
         }
 
         [TestCleanup]

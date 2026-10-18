@@ -1,6 +1,12 @@
 # NextGenSoftware.OASIS.API.Providers.AWSOASIS
 
-Connects the OASIS to Amazon Web Services -- leveraging DynamoDB (key-value/document) and S3 (object storage) for OASIS holon and avatar persistence at global AWS scale. Ideal for existing AWS-hosted applications adding OASIS capabilities with enterprise SLAs. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
+Connects OASIS to DynamoDB through the official AWSSDK.DynamoDBv2 client. AWSOASIS reuses DynamoDBOASIS storage operations with AWS-specific provider identity and configuration; this adapter does not implement S3 object storage. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
+
+## Current verification scope
+
+The retained DynamoDB Local runner is `Scripts/run_aws_provider_evidence.ps1`; it reuses the installed runtime, shared dependency cache and fixed output directories. Local native tests do not certify hosted AWS credentials, costs, scale or all provider interfaces/options. The runner uses a test-owned in-memory database; it is not a durable production recovery journal.
+
+Save operations require an authoritative SDK HTTP 200 acknowledgement before publishing caller IDs/provider keys. Missing/invalid responses retain mutation-reconciliation evidence; do not blindly retry them. Avatar-detail records persist the provider-specific storage key and deletion projection, like profile/holon records. Historical versions are still unsupported; additional interface, concurrency, recovery and hosted-release gates remain open. Current evidence and limitations are recorded in `Docs/Devs/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
 
 ## Installation
 

@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
     public class AvatarEosProviderRepository : IEosProviderRepository<AvatarDto>
     {
         private static readonly string _avatarTable = "avatar";
-        private readonly Eos _eos;
+        private readonly EosBase _eos;
 
         private readonly string _eosAccountName;
         private readonly IEosClient _eosClient;
@@ -38,9 +38,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             _eosClient = eosClient ?? throw new ArgumentNullException(nameof(eosClient));
             _eosAccountName = eosAccountName;
 
-            _eos = new Eos(new EosConfigurator
+            _eos = new CompatibleEosClient(new EosConfigurator
             {
-                HttpEndpoint = eosChainUrl,
+                HttpEndpoint = eosChainUrl.TrimEnd('/'),
                 ChainId = eosChainId,
                 ExpireSeconds = 60,
                 SignProvider = new DefaultSignProvider(eosAccountPk)

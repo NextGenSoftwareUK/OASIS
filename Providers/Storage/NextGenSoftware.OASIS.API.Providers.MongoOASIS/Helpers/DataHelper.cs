@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -7,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
 using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
 using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
@@ -15,6 +17,73 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 {
     public static class DataHelper
     {
+        internal static InventoryItem CopyInventoryItem(IInventoryItem value)
+            => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<InventoryItem>(value);
+        private static EnumValue<T> CopyEnum<T>(EnumValue<T> value)=>value==null?null:new EnumValue<T>(value.Value);
+        private static Crystal CopyCrystal(Crystal value)=>value==null?null:new Crystal{
+            Name=CopyEnum(value.Name),Type=CopyEnum(value.Type),Description=value.Description,
+            ProtectionLevel=value.ProtectionLevel,EnergisingLevel=value.EnergisingLevel,GroundingLevel=value.GroundingLevel,
+            CleansingLevel=value.CleansingLevel,AmplifyicationLevel=value.AmplifyicationLevel};
+        private static T CopyChakra<T>(T value) where T:Chakra,new()
+        {
+            if(value==null)return null;
+            return new T{Name=value.Name,SanskritName=value.SanskritName,Description=value.Description,
+                WhatItControls=value.WhatItControls,WhenItDevelops=value.WhenItDevelops,
+                YogaPose=CopyEnum(value.YogaPose),Element=CopyEnum(value.Element),Type=CopyEnum(value.Type),
+                Crystal=CopyCrystal(value.Crystal),Level=value.Level,Progress=value.Progress,XP=value.XP,
+                GiftsUnlocked=value.GiftsUnlocked==null?null:value.GiftsUnlocked.Select(CopyGift).ToList()};
+        }
+        private static AvatarChakras CopyChakras(IAvatarChakras value)=>value==null?null:new AvatarChakras{
+            Crown=CopyChakra(value.Crown),Heart=CopyChakra(value.Heart),Root=CopyChakra(value.Root),
+            Sacral=CopyChakra(value.Sacral),SolarPlexus=CopyChakra(value.SolarPlexus),
+            ThirdEye=CopyChakra(value.ThirdEye),Throat=CopyChakra(value.Throat)};
+        private static Spell CopySpell(ISpell value)=>value==null?null:new Spell{
+            Name=value.Name,Description=value.Description,FireDamage=value.FireDamage,WaterDamage=value.WaterDamage,
+            IceDamage=value.IceDamage,WindDamage=value.WindDamage,LightningDamage=value.LightningDamage,
+            PoisonDamage=value.PoisonDamage,HealingPower=value.HealingPower};
+        private static GeneKey CopyGeneKey(IGeneKey value)=>value==null?null:new GeneKey{
+            Name=value.Name,Description=value.Description,Shadow=value.Shadow,Gift=value.Gift,Sidhi=value.Sidhi};
+        private static AvatarGift CopyGift(IAvatarGift value)=>value==null?null:new AvatarGift{
+            AvatarId=value.AvatarId,GiftEarnt=value.GiftEarnt,GiftType=value.GiftType,KarmaSource=CopyEnum(value.KarmaSource),
+            KarmaSourceDesc=value.KarmaSourceDesc,KarmaSourceTitle=value.KarmaSourceTitle,Provider=CopyEnum(value.Provider),WebLink=value.WebLink};
+        private static Achievement CopyAchievement(IAchievement value)=>value==null?null:new Achievement{
+            AvatarId=value.AvatarId,AchievementEarnt=value.AchievementEarnt,AchievementType=value.AchievementType,
+            Name=value.Name,Description=value.Description,KarmaSource=CopyEnum(value.KarmaSource),
+            KarmaSourceDesc=value.KarmaSourceDesc,KarmaSourceTitle=value.KarmaSourceTitle,Provider=CopyEnum(value.Provider),WebLink=value.WebLink};
+        private static KarmaAkashicRecord CopyKarmaRecord(IKarmaAkashicRecord value)=>value==null?null:new KarmaAkashicRecord{
+            AvatarId=value.AvatarId,Date=value.Date,Karma=value.Karma,TotalKarma=value.TotalKarma,
+            KarmaEarntOrLost=CopyEnum(value.KarmaEarntOrLost),KarmaSource=CopyEnum(value.KarmaSource),
+            KarmaTypeNegative=CopyEnum(value.KarmaTypeNegative),KarmaTypePositive=CopyEnum(value.KarmaTypePositive),
+            KarmaSourceDesc=value.KarmaSourceDesc,KarmaSourceTitle=value.KarmaSourceTitle,Provider=CopyEnum(value.Provider),WebLink=value.WebLink};
+        private static AvatarStat CopyAvatarStat(AvatarStat value)=>value==null?null:new AvatarStat{Current=value.Current,Max=value.Max};
+        private static AvatarStats CopyAvatarStats(IAvatarStats value)=>value==null?null:new AvatarStats{
+            Energy=CopyAvatarStat(value.Energy),HP=CopyAvatarStat(value.HP),Mana=CopyAvatarStat(value.Mana),Stamina=CopyAvatarStat(value.Stamina)};
+        private static AvatarSuperPowers CopyAvatarPowers(IAvatarSuperPowers value)=>value==null?null:new AvatarSuperPowers{
+            AstralProjection=value.AstralProjection,BioLocatation=value.BioLocatation,Flight=value.Flight,
+            FreezeBreath=value.FreezeBreath,HeatVision=value.HeatVision,Invulnerability=value.Invulnerability,
+            RemoteViewing=value.RemoteViewing,SuperSpeed=value.SuperSpeed,SuperStrength=value.SuperStrength,
+            Telekinesis=value.Telekinesis,Telepathy=value.Telepathy,Teleportation=value.Teleportation,XRayVision=value.XRayVision};
+        private static AvatarAura CopyAvatarAura(IAvatarAura value)=>value==null?null:new AvatarAura{
+            Progress=value.Progress,Brightness=value.Brightness,Size=value.Size,ColourBlue=value.ColourBlue,
+            ColourGreen=value.ColourGreen,ColourRed=value.ColourRed,Level=value.Level,Value=value.Value};
+        private static HumanDesign CopyHumanDesign(IHumanDesign value)=>value==null?null:new HumanDesign{Type=value.Type};
+
+        private static AvatarSkills CopyAvatarSkills(IAvatarSkills value) => value == null ? null : new AvatarSkills
+        {
+            Computers=value.Computers,Engineering=value.Engineering,Farming=value.Farming,
+            FireStarting=value.FireStarting,Fishing=value.Fishing,Languages=value.Languages,
+            Meditation=value.Meditation,MeleeCombat=value.MeleeCombat,Mindfulness=value.Mindfulness,
+            Negotiating=value.Negotiating,RangedCombat=value.RangedCombat,Research=value.Research,
+            Science=value.Science,SpellCasting=value.SpellCasting,Translating=value.Translating,Yoga=value.Yoga
+        };
+
+        private static AvatarAttributes CopyAvatarAttributes(IAvatarAttributes value) => value == null ? null : new AvatarAttributes
+        {
+            Strength = value.Strength, Speed = value.Speed, Dexterity = value.Dexterity,
+            Toughness = value.Toughness, Wisdom = value.Wisdom, Intelligence = value.Intelligence,
+            Magic = value.Magic, Vitality = value.Vitality, Endurance = value.Endurance
+        };
+
         public static OASISResult<IEnumerable<IAvatar>> ConvertMongoEntitysToOASISAvatars(OASISResult<IEnumerable<Avatar>> avatars, bool mapChildren = true)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
@@ -123,8 +192,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.PreviousVersionId = avatarResult.Result.PreviousVersionId;
             result.Result.PreviousVersionProviderUniqueStorageKey = avatarResult.Result.PreviousVersionProviderUniqueStorageKey;
             result.Result.ProviderMetaData = avatarResult.Result.ProviderMetaData;
+            result.Result.MetaData = avatarResult.Result.MetaData != null
+                ? new Dictionary<string, object>(avatarResult.Result.MetaData) : new Dictionary<string, object>();
             result.Result.Description = avatarResult.Result.Description;
             result.Result.Title = avatarResult.Result.Title;
+            result.Result.ParentHolonId = avatarResult.Result.ParentHolonId;
             result.Result.FirstName = avatarResult.Result.FirstName;
             result.Result.LastName = avatarResult.Result.LastName;
             result.Result.Email = avatarResult.Result.Email;
@@ -160,7 +232,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.LastBeamedOut = avatarResult.Result.LastBeamedOut;
             result.Result.IsBeamedIn = avatarResult.Result.IsBeamedIn;
             result.Result.Version = avatarResult.Result.Version;
+            result.Result.VersionId = avatarResult.Result.VersionId;
             result.Result.IsActive = avatarResult.Result.IsActive;
+            result.Result.IsPublic = avatarResult.Result.IsPublic;
+            result.Result.CustomHolonType = avatarResult.Result.CustomHolonType;
             //result.Result.CustomKey = avatarResult.Result.CustomKey;
 
             if (mapChildren)
@@ -210,9 +285,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.ModifiedDate = avatar.Result.ModifiedDate;
             oasisAvatar.DeletedDate = avatar.Result.DeletedDate;
             oasisAvatar.Version = avatar.Result.Version;
+            oasisAvatar.VersionId = avatar.Result.VersionId;
             oasisAvatar.IsActive = avatar.Result.IsActive;
+            oasisAvatar.IsPublic = avatar.Result.IsPublic;
+            oasisAvatar.CustomHolonType = avatar.Result.CustomHolonType;
             oasisAvatar.Portrait = avatar.Result.Portrait;
             oasisAvatar.UmaJson = avatar.Result.UmaJson;
+            oasisAvatar.Model3D = avatar.Result.Model3D;
+            oasisAvatar.Attributes = CopyAvatarAttributes(avatar.Result.Attributes);
+            oasisAvatar.DimensionLevelIds = avatar.Result.DimensionLevelIds == null ? null : new Dictionary<DimensionLevel, Guid>(avatar.Result.DimensionLevelIds);
+            oasisAvatar.HeartRateData = avatar.Result.HeartRateData?.Select(entry => (IHeartRateEntry)new Core.Objects.Avatar.HeartRateEntry
+                { HeartRateValue = entry.HeartRateValue, TimeStamp = entry.TimeStamp }).ToList();
             oasisAvatar.ActiveQuestId = avatar.Result.ActiveQuestId;
             oasisAvatar.ActiveObjectiveId = avatar.Result.ActiveObjectiveId;
             //oasisAvatar.ProviderPrivateKey = avatar.Result.ProviderPrivateKey;
@@ -222,76 +305,49 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.XP = avatar.Result.XP;
             oasisAvatar.FavouriteColour = avatar.Result.FavouriteColour;
             oasisAvatar.STARCLIColour = avatar.Result.STARCLIColour;
-            oasisAvatar.Skills = avatar.Result.Skills;
+            oasisAvatar.Skills = CopyAvatarSkills(avatar.Result.Skills);
             //oasisAvatar.Spells = avatar.Result.Spells;
 
             if (avatar.Result.Spells != null)
             {
                 foreach (var item in avatar.Result.Spells)
-                    oasisAvatar.Spells.Add((Spell)item);
+                    oasisAvatar.Spells.Add(CopySpell(item));
             }
 
-            oasisAvatar.Stats = avatar.Result.Stats;
-            oasisAvatar.SuperPowers = avatar.Result.SuperPowers;
+            oasisAvatar.Stats = CopyAvatarStats(avatar.Result.Stats);
+            oasisAvatar.SuperPowers = CopyAvatarPowers(avatar.Result.SuperPowers);
             //oasisAvatar.GeneKeys = avatar.Result.GeneKeys;
 
             if (avatar.Result.GeneKeys != null)
             {
                 foreach (var item in avatar.Result.GeneKeys)
-                    oasisAvatar.GeneKeys.Add((GeneKey)item);
+                    oasisAvatar.GeneKeys.Add(CopyGeneKey(item));
             }
   
-            oasisAvatar.HumanDesign = avatar.Result.HumanDesign;
+            oasisAvatar.HumanDesign = CopyHumanDesign(avatar.Result.HumanDesign);
             //oasisAvatar.Gifts = avatar.Result.Gifts;
 
             if (avatar.Result.Gifts != null)
             {
                 foreach (var item in avatar.Result.Gifts)
-                    oasisAvatar.Gifts.Add((AvatarGift)item);
+                    oasisAvatar.Gifts.Add(CopyGift(item));
             }
 
-            oasisAvatar.Chakras = avatar.Result.Chakras;
-            oasisAvatar.Aura = avatar.Result.Aura;
+            oasisAvatar.Chakras = CopyChakras(avatar.Result.Chakras);
+            oasisAvatar.Aura = CopyAvatarAura(avatar.Result.Aura);
             //oasisAvatar.Achievements = avatar.Result.Achievements;
 
             if (avatar.Result.Achievements != null)
             {
                 foreach (var item in avatar.Result.Achievements)
-                    oasisAvatar.Achievements.Add((Achievement)item);
+                    oasisAvatar.Achievements.Add(CopyAchievement(item));
             }
 
             if (avatar.Result.Inventory != null)
             {
                 foreach (var item in avatar.Result.Inventory)
                 {
-                    var inv = item as InventoryItem ?? new InventoryItem();
-                    var copy = new InventoryItem
-                    {
-                        Name = inv.Name,
-                        Description = inv.Description,
-                        Quantity = inv.Quantity,
-                        Stack = inv.Stack,
-                        Id = inv.Id,
-                        Image2D = inv.Image2D,
-                        Image2DURI = inv.Image2DURI,
-                        Object3D = inv.Object3D,
-                        Object3DURI = inv.Object3DURI,
-                        GameSource = inv.GameSource,
-                        ItemType = inv.ItemType,
-                        NftId = inv.NftId,
-                        GeoNFTId = inv.GeoNFTId,
-                        Rarity = inv.Rarity,
-                        MaxQuantity = inv.MaxQuantity,
-                        Weight = inv.Weight,
-                        IsUsable = inv.IsUsable,
-                        IsTradeable = inv.IsTradeable,
-                        AcquiredOn = inv.AcquiredOn,
-                        LastUsedOn = inv.LastUsedOn,
-                        Properties = inv.Properties == null ? null : new Dictionary<string, object>(inv.Properties)
-                    };
-                    if (inv.MetaData != null && inv.MetaData.Count > 0)
-                        copy.MetaData = new Dictionary<string, object>(inv.MetaData);
-                    oasisAvatar.Inventory.Add(copy);
+                    oasisAvatar.Inventory.Add(CopyInventoryItem(item));
                 }
             }
 
@@ -314,7 +370,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             {
                 oasisAvatar.KarmaAkashicRecords ??= new List<IKarmaAkashicRecord>();
                 foreach (var item in avatar.Result.KarmaAkashicRecords)
-                    oasisAvatar.KarmaAkashicRecords.Add((KarmaAkashicRecord)item);
+                    oasisAvatar.KarmaAkashicRecords.Add(CopyKarmaRecord(item));
             }
 
             oasisAvatar.ParentHolonId = avatar.Result.ParentHolonId;
@@ -329,6 +385,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.ParentOmniverseId = avatar.Result.ParentOmniverseId;
             oasisAvatar.ParentDimension = avatar.Result.ParentDimension;
             oasisAvatar.ParentDimensionId = avatar.Result.ParentDimensionId;
+            oasisAvatar.DimensionLevel = avatar.Result.DimensionLevel;
+            oasisAvatar.SubDimensionLevel = avatar.Result.SubDimensionLevel;
             oasisAvatar.ParentMultiverse = avatar.Result.ParentMultiverse;
             oasisAvatar.ParentMultiverseId = avatar.Result.ParentMultiverseId;
             oasisAvatar.ParentUniverse = avatar.Result.ParentUniverse;
@@ -418,6 +476,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.Email = avatar.Email;
             mongoAvatar.Password = avatar.Password;
             mongoAvatar.Title = avatar.Title;
+            mongoAvatar.ParentHolonId = avatar.ParentHolonId;
             mongoAvatar.Username = avatar.Username;
             mongoAvatar.HolonType = avatar.HolonType;
             mongoAvatar.AvatarType = avatar.AvatarType;
@@ -452,6 +511,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
             mongoAvatar.VersionId = avatar.VersionId;
             mongoAvatar.IsActive = avatar.IsActive;
+            mongoAvatar.IsPublic = avatar.IsPublic;
+            mongoAvatar.CustomHolonType = avatar.CustomHolonType;
             //mongoAvatar.CustomKey = avatar.CustomKey;
 
             if (mapChildren)
@@ -560,87 +621,67 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
             mongoAvatar.VersionId = avatar.VersionId;
             mongoAvatar.IsActive = avatar.IsActive;
+            mongoAvatar.IsPublic = avatar.IsPublic;
+            mongoAvatar.CustomHolonType = avatar.CustomHolonType;
 
             //AvatarDetail Properties
             mongoAvatar.ActiveQuestId = avatar.ActiveQuestId;
             mongoAvatar.ActiveObjectiveId = avatar.ActiveObjectiveId;
             mongoAvatar.UmaJson = avatar.UmaJson;
+            mongoAvatar.Model3D = avatar.Model3D;
+            mongoAvatar.Attributes = CopyAvatarAttributes(avatar.Attributes);
+            mongoAvatar.DimensionLevelIds = avatar.DimensionLevelIds == null ? null : new Dictionary<DimensionLevel, Guid>(avatar.DimensionLevelIds);
+            mongoAvatar.HeartRateData = avatar.HeartRateData?.Select(entry => new Core.Objects.Avatar.HeartRateEntry
+                { HeartRateValue = entry.HeartRateValue, TimeStamp = entry.TimeStamp }).ToList();
             //mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             //mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
             //mongoAvatar.ProviderUsername = avatar.ProviderUsername;
             //mongoAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
             mongoAvatar.FavouriteColour = avatar.FavouriteColour;
             mongoAvatar.STARCLIColour = avatar.STARCLIColour;
-            mongoAvatar.Skills = (AvatarSkills)avatar.Skills;
+            mongoAvatar.Skills = CopyAvatarSkills(avatar.Skills);
             //mongoAvatar.Spells = avatar.Spells;
 
             if (avatar.Spells != null)
             {
                 foreach (var item in avatar.Spells)
-                    mongoAvatar.Spells.Add((Spell)item);
+                    mongoAvatar.Spells.Add(CopySpell(item));
             }
 
-            mongoAvatar.Stats = (AvatarStats)avatar.Stats;
-            mongoAvatar.SuperPowers = (AvatarSuperPowers)avatar.SuperPowers;
+            mongoAvatar.Stats = CopyAvatarStats(avatar.Stats);
+            mongoAvatar.SuperPowers = CopyAvatarPowers(avatar.SuperPowers);
             //mongoAvatar.GeneKeys = avatar.GeneKeys;
 
             if (avatar.GeneKeys != null)
             {
                 foreach (var item in avatar.GeneKeys)
-                    mongoAvatar.GeneKeys.Add((GeneKey)item);
+                    mongoAvatar.GeneKeys.Add(CopyGeneKey(item));
             }
 
-            mongoAvatar.HumanDesign = (HumanDesign)avatar.HumanDesign;
+            mongoAvatar.HumanDesign = CopyHumanDesign(avatar.HumanDesign);
             //mongoAvatar.Gifts = avatar.Gifts;
 
             if (avatar.Gifts != null)
             {
                 foreach (var item in avatar.Gifts)
-                    mongoAvatar.Gifts.Add((AvatarGift)item);
+                    mongoAvatar.Gifts.Add(CopyGift(item));
             }
 
-            mongoAvatar.Chakras = (AvatarChakras)avatar.Chakras;
-            mongoAvatar.Aura = (AvatarAura)avatar.Aura;
+            mongoAvatar.Chakras = CopyChakras(avatar.Chakras);
+            mongoAvatar.Aura = CopyAvatarAura(avatar.Aura);
             //mongoAvatar.Achievements = avatar.Achievements;
 
             if (avatar.Achievements != null)
             {
                 foreach (var item in avatar.Achievements)
-                    mongoAvatar.Achievements.Add((Achievement)item);
+                    mongoAvatar.Achievements.Add(CopyAchievement(item));
             }
 
             if (avatar.Inventory != null && avatar.Inventory.Count > 0)
             {
                 foreach (var item in avatar.Inventory)
                 {
-                    var inv = item as InventoryItem ?? new InventoryItem();
-                    var mongoInv = new InventoryItem
-                    {
-                        Name = inv.Name,
-                        Description = inv.Description,
-                        Quantity = inv.Quantity,
-                        Stack = inv.Stack,
-                        Id = inv.Id,
-                        Image2D = inv.Image2D,
-                        Image2DURI = inv.Image2DURI,
-                        Object3D = inv.Object3D,
-                        Object3DURI = inv.Object3DURI,
-                        GameSource = inv.GameSource,
-                        ItemType = inv.ItemType,
-                        NftId = inv.NftId,
-                        GeoNFTId = inv.GeoNFTId,
-                        Rarity = inv.Rarity,
-                        MaxQuantity = inv.MaxQuantity,
-                        Weight = inv.Weight,
-                        IsUsable = inv.IsUsable,
-                        IsTradeable = inv.IsTradeable,
-                        AcquiredOn = inv.AcquiredOn,
-                        LastUsedOn = inv.LastUsedOn,
-                        Properties = inv.Properties == null ? null : new Dictionary<string, object>(inv.Properties)
-                    };
-                    if (inv.MetaData != null && inv.MetaData.Count > 0)
-                        mongoInv.MetaData = new Dictionary<string, object>(inv.MetaData);
-                    mongoAvatar.Inventory.Add(mongoInv);
+                    mongoAvatar.Inventory.Add(CopyInventoryItem(item));
                 }
             }
 
@@ -660,7 +701,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             if (avatar.KarmaAkashicRecords != null)
             {
                 foreach (var item in avatar.KarmaAkashicRecords)
-                    mongoAvatar.KarmaAkashicRecords.Add((KarmaAkashicRecord)item);
+                    mongoAvatar.KarmaAkashicRecords.Add(CopyKarmaRecord(item));
             }
 
             mongoAvatar.MetaData = avatar.MetaData;
@@ -676,6 +717,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.ParentOmniverseId = avatar.ParentOmniverseId;
             mongoAvatar.ParentDimension = avatar.ParentDimension;
             mongoAvatar.ParentDimensionId = avatar.ParentDimensionId;
+            mongoAvatar.DimensionLevel = avatar.DimensionLevel;
+            mongoAvatar.SubDimensionLevel = avatar.SubDimensionLevel;
             mongoAvatar.ParentMultiverse = avatar.ParentMultiverse;
             mongoAvatar.ParentMultiverseId = avatar.ParentMultiverseId;
             mongoAvatar.ParentUniverse = avatar.ParentUniverse;
@@ -726,7 +769,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             Core.Holons.Holon oasisHolon = new Core.Holons.Holon();
             oasisHolon.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
             oasisHolon.Id = holon.HolonId;
-            oasisHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
+            oasisHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>()
+                : new Dictionary<ProviderType,string>(holon.ProviderUniqueStorageKey);
 
             //Just in case this has not been set yet or has been lost/corrupted somehow! ;-)
             oasisHolon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
@@ -757,6 +801,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisHolon.ParentOmniverseId = holon.ParentOmniverseId;
             oasisHolon.ParentDimension = holon.ParentDimension;
             oasisHolon.ParentDimensionId = holon.ParentDimensionId;
+            oasisHolon.DimensionLevel = holon.DimensionLevel;
+            oasisHolon.SubDimensionLevel = holon.SubDimensionLevel;
             oasisHolon.ParentMultiverse = holon.ParentMultiverse;
             oasisHolon.ParentMultiverseId = holon.ParentMultiverseId;
             oasisHolon.ParentUniverse = holon.ParentUniverse;
@@ -808,6 +854,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisHolon.VersionId = holon.VersionId;
             oasisHolon.PreviousVersionId = holon.PreviousVersionId;
             oasisHolon.IsActive = holon.IsActive;
+            oasisHolon.IsPublic = holon.IsPublic;
 
             return oasisHolon;
         }
@@ -869,6 +916,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.ParentOmniverseId = holon.ParentOmniverseId;
             mongoHolon.ParentDimension = holon.ParentDimension;
             mongoHolon.ParentDimensionId = holon.ParentDimensionId;
+            mongoHolon.DimensionLevel = holon.DimensionLevel;
+            mongoHolon.SubDimensionLevel = holon.SubDimensionLevel;
             mongoHolon.ParentMultiverse = holon.ParentMultiverse;
             mongoHolon.ParentMultiverseId = holon.ParentMultiverseId;
             mongoHolon.ParentUniverse = holon.ParentUniverse;
@@ -922,6 +971,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.VersionId = holon.VersionId;
             mongoHolon.PreviousVersionId = holon.PreviousVersionId;
             mongoHolon.IsActive = holon.IsActive;
+            mongoHolon.IsPublic = holon.IsPublic;
 
             return mongoHolon;
         }

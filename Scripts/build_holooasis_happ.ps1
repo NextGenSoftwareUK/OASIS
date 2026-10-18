@@ -29,7 +29,9 @@ try {
     # The hApp's Git-backed flake deliberately excludes ignored target/node_modules
     # content. Do not change this to `path:.`: doing so copies those directories into
     # the Nix store before the flake is evaluated and can consume tens of gigabytes.
-    $buildCommand = 'cargo test -p oasis_integrity --lib && cargo build --release --target wasm32-unknown-unknown && hc dna pack dnas/oasis/workdir && cargo test -p oasis --test sweettest && hc app pack workdir'
+    # npm's pinned build command supplies the wasm target flags required by the
+    # Holochain 0.7 toolchain before packing the DNA and hApp.
+    $buildCommand = 'npm run build:happ && CARGO_TARGET_DIR=target/native-tests cargo test -p oasis_integrity --lib && CARGO_TARGET_DIR=target/native-tests cargo test -p oasis --test sweettest'
     if ($IsWindows) {
         if (!(Get-Command wsl.exe -ErrorAction SilentlyContinue)) {
             throw 'WSL with Nix is required to build the pinned Holochain toolchain on Windows.'
@@ -38,7 +40,7 @@ try {
         if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($wslSourceRoot)) {
             throw "Unable to resolve the WSL path for '$sourceRoot'."
         }
-        & wsl.exe --cd $wslSourceRoot /nix/var/nix/profiles/default/bin/nix develop . --command bash -lc $buildCommand
+        & wsl.exe bash -lc "cd '$wslSourceRoot' && nix develop . --command bash -lc '$buildCommand'"
     }
     else {
         if (!(Get-Command nix -ErrorAction SilentlyContinue)) {

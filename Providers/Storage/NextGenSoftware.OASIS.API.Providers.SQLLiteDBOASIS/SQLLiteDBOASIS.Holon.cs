@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
             // SQLite provider does not generate native code from STAR metadata.
-            return true;
+            return false;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
@@ -116,12 +116,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             var result = new OASISResult<ISearchResults>();
             try
             {
+                // SQLite accepts an explicit stored-Version filter; this does not imply archived revisions.
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(
+                    searchParams,version,maxChildDepth,supportsHistory:true);
+            }
+            catch(Exception cause) when(cause is ArgumentException or NotSupportedException)
+            {
+                OASISErrorHandling.HandleError(ref result,"Invalid SQLite search request: "+cause.Message,cause);
+                result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
+                return result;
+            }
+            try
+            {
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -132,30 +145,180 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
-                    var firstGroup = searchParams.SearchGroups.First() as ISearchTextGroup;
-                    var q = (firstGroup?.SearchQuery?.ToString() ?? string.Empty).ToLower();
+                    var groups = searchParams.SearchGroups;
+                    HashSet<Guid> avatarParentScope=null;
+                    bool MatchesGroups(Func<ISearchGroupBase, bool> matches)
+                    {
+                        var matched = matches(groups[0]);
+                        foreach (var group in groups.Skip(1))
+                        {
+                            var next = matches(group);
+                            matched = group.PreviousSearchGroupOperator switch {
+                                SearchParamGroupOperator.And => matched && next,
+                                SearchParamGroupOperator.Or => matched || next,
+                                _ => throw new ArgumentException("Invalid search group operator.")
+                            };
+                        }
+                        return matched;
+                    }
+                    bool Contains(string value, ISearchTextGroup group) =>
+                        (value ?? string.Empty).Contains(group.SearchQuery ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+                    bool ExtendedMask(object mask,params string[] nativeFields)=>mask!=null && mask.GetType().GetProperties().Any(property=>
+                        property.PropertyType==typeof(bool) && (bool)property.GetValue(mask) && !nativeFields.Contains(property.Name));
+                    bool MatchesIdentityAndMetadata(IHolonBase value, ISearchTextGroup group, bool providerKeys, bool metadata, string metadataKey)
+                    {
+                        if (group.SearchIds && NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesTextIds(value,group.SearchQuery)) return true;
+                        if ((group.SearchProviderKeys || providerKeys) && value.ProviderUniqueStorageKey != null &&
+                            value.ProviderUniqueStorageKey.Values.Any(key => Contains(key, group))) return true;
+                        if (!metadata || value.MetaData == null) return false;
+                        if (!string.IsNullOrEmpty(metadataKey))
+                            return value.MetaData.TryGetValue(metadataKey, out var selected) && selected != null && Contains(selected.ToString(), group);
+                        return value.MetaData.Values.Any(item => item != null && Contains(item.ToString(), group));
+                    }
+                    bool Compare(int value, ISearchNumberGroup group) => group.NumberOperator switch {
+                        SearchOperatorType.LessThan => value < group.Number,
+                        SearchOperatorType.LessThanOrEqualTo => value <= group.Number,
+                        SearchOperatorType.EqualTo => value == group.Number,
+                        SearchOperatorType.NotEqualTo => value != group.Number,
+                        SearchOperatorType.GreaterThan => value > group.Number,
+                        SearchOperatorType.GreaterThanOrEqualTo => value >= group.Number,
+                        _ => throw new ArgumentException("Invalid numeric search operator.")
+                    };
+                    bool CompareDate(DateTime value, ISearchDateGroup group) => group.DateOperator switch {
+                        SearchOperatorType.LessThan => value < group.Date,
+                        SearchOperatorType.LessThanOrEqualTo => value <= group.Date,
+                        SearchOperatorType.EqualTo => value == group.Date,
+                        SearchOperatorType.NotEqualTo => value != group.Date,
+                        SearchOperatorType.GreaterThan => value > group.Date,
+                        SearchOperatorType.GreaterThanOrEqualTo => value >= group.Date,
+                        _ => throw new ArgumentException("Invalid date search operator.")
+                    };
                     // Basic in-memory search using available repo APIs
-                    var holonLoad = await _holonRepository.LoadAllHolonsAsync();
+                    var holonLoad = await _holonRepository.LoadAllHolonsAsync(loadChildren: loadChildren,
+                        recursive: recursive, maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version);
+                    if(holonLoad.IsError){
+                        OASISErrorHandling.HandleError(ref result,"SQLite holon search failed: "+holonLoad.Message,holonLoad.Exception);
+                        return result;
+                    }
                     if (!holonLoad.IsError && holonLoad.Result != null)
                     {
-                        holons.AddRange(holonLoad.Result.Where(h =>
-                            (h.Name ?? string.Empty).ToLower().Contains(q) || (h.Description ?? string.Empty).ToLower().Contains(q)));
+                        var candidates = holonLoad.Result.Where(h => h.DeletedDate == DateTime.MinValue).ToList();
+                        if (searchParams.ParentId != Guid.Empty)
+                        {
+                            // Version filters returned roots, not the independently versioned
+                            // ancestors needed to reach those roots under the requested parent.
+                            var scopeRows=candidates;
+                            if(version!=0)
+                            {
+                                var scopeLoad=await _holonRepository.LoadAllHolonsAsync(loadChildren:false,version:0);
+                                if(scopeLoad.IsError)
+                                {
+                                    OASISErrorHandling.HandleError(ref result,"SQLite search parent links failed: "+scopeLoad.Message,scopeLoad.Exception);
+                                    return result;
+                                }
+                                if(scopeLoad.Result==null) throw new System.IO.InvalidDataException("SQLite search parent-link collection is missing.");
+                                scopeRows=scopeLoad.Result.Where(row=>row.DeletedDate==DateTime.MinValue).ToList();
+                            }
+                            var descendants = new HashSet<Guid>();
+                            var visited = new HashSet<Guid> { searchParams.ParentId };
+                            var pending = new Queue<Guid>();
+                            pending.Enqueue(searchParams.ParentId);
+                            var byParent = scopeRows.ToLookup(h => h.ParentHolonId);
+                            while (pending.Count > 0)
+                            {
+                                foreach (var child in byParent[pending.Dequeue()])
+                                {
+                                    if(child.Id==Guid.Empty || !visited.Add(child.Id))
+                                        throw new System.IO.InvalidDataException("SQLite search parent scope contains an invalid, duplicate or cyclic identity.");
+                                    descendants.Add(child.Id);
+                                    if (searchParams.Recursive) pending.Enqueue(child.Id);
+                                }
+                            }
+                            candidates = candidates.Where(h => descendants.Contains(h.Id)).ToList();
+                            avatarParentScope=new HashSet<Guid> {searchParams.ParentId};
+                            if(searchParams.Recursive) avatarParentScope.UnionWith(descendants);
+                        }
+                        holons.AddRange(candidates.Where(h => MatchesGroups(group =>
+                            (group.HolonType == HolonType.All || group.HolonType == h.HolonType) && (group switch {
+                            ISearchNumberGroup number when ExtendedMask(number.HolonSearchParams,"Version")=>number.SearchHolons &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(h,false,number),
+                            ISearchDateGroup date when ExtendedMask(date.HolonSearchParams,"CreatedDate","ModifiedDate","DeletedDate")=>date.SearchHolons &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(h,false,date),
+                            ISearchTextGroup text when ExtendedMask(text.HolonSearchParams,"Name","Description")=>(!text.SearchAvatars||text.SearchHolons) &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(h,false,text),
+                            ISearchNumberGroup number => number.SearchHolons && (number.HolonSearchParams?.Version ?? true) && Compare(h.Version, number),
+                            ISearchDateGroup date => date.SearchHolons && (
+                                (date.HolonSearchParams?.CreatedDate ?? true) && CompareDate(h.CreatedDate, date) ||
+                                (date.HolonSearchParams?.ModifiedDate ?? true) && CompareDate(h.ModifiedDate, date) ||
+                                date.HolonSearchParams?.DeletedDate == true && CompareDate(h.DeletedDate, date)),
+                            ISearchTextGroup text => (!text.SearchAvatars || text.SearchHolons) &&
+                                (MatchesIdentityAndMetadata(h, text,
+                                text.HolonSearchParams?.ProviderUniqueStorageKey == true || text.HolonSearchParams?.SearchAllFields == true,
+                                text.HolonSearchParams?.MetaData == true || text.HolonSearchParams?.SearchAllFields == true,
+                                text.HolonSearchParams?.MetaDataKey) || (text.HolonSearchParams == null
+                                ? Contains(h.Name, text) || Contains(h.Description, text)
+                                : (text.HolonSearchParams.Name || text.HolonSearchParams.SearchAllFields) && Contains(h.Name, text) ||
+                                  (text.HolonSearchParams.Description || text.HolonSearchParams.SearchAllFields) && Contains(h.Description, text))),
+                            _ => false
+                        }))));
                     }
 
-                    var avatarLoad = await _avatarRepository.LoadAllAvatarsAsync();
+                    var avatarLoad = await _avatarRepository.LoadAllAvatarsAsync(version);
+                    if(avatarLoad.IsError){
+                        OASISErrorHandling.HandleError(ref result,"SQLite avatar search failed: "+avatarLoad.Message,avatarLoad.Exception);
+                        return result;
+                    }
                     if (!avatarLoad.IsError && avatarLoad.Result != null)
                     {
-                        avatars.AddRange(avatarLoad.Result.Where(a =>
-                            (a.Name ?? string.Empty).ToLower().Contains(q) || (a.Username ?? string.Empty).ToLower().Contains(q) || (a.Email ?? string.Empty).ToLower().Contains(q)));
+                        avatars.AddRange(avatarLoad.Result.Where(a => (avatarParentScope==null || avatarParentScope.Contains(a.ParentHolonId)) && MatchesGroups(group => group switch {
+                            ISearchNumberGroup number when ExtendedMask(number.AvatarSearchParams,"Version")=>number.SearchAvatars &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(a,true,number),
+                            ISearchDateGroup date when ExtendedMask(date.AvatarSearchParams,"CreatedDate","ModifiedDate","DeletedDate")=>date.SearchAvatars &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(a,true,date),
+                            ISearchTextGroup text when ExtendedMask(text.AvatarSearchParams,"Username","Email","FirstName","LastName","Title")=>(!text.SearchHolons||text.SearchAvatars) &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(a,true,text),
+                            ISearchNumberGroup number => number.SearchAvatars && (number.AvatarSearchParams?.Version ?? true) && Compare(a.Version, number),
+                            ISearchDateGroup date => date.SearchAvatars && (
+                                (date.AvatarSearchParams?.CreatedDate ?? true) && CompareDate(a.CreatedDate, date) ||
+                                (date.AvatarSearchParams?.ModifiedDate ?? true) && CompareDate(a.ModifiedDate, date) ||
+                                date.AvatarSearchParams?.DeletedDate == true && CompareDate(a.DeletedDate, date)),
+                            ISearchTextGroup text => (!text.SearchHolons || text.SearchAvatars) && (MatchesIdentityAndMetadata(a, text,
+                                text.AvatarSearchParams?.ProviderUniqueStorageKey == true || text.AvatarSearchParams?.SearchAllFields == true,
+                                text.AvatarSearchParams?.MetaData == true || text.AvatarSearchParams?.SearchAllFields == true, null) || (text.AvatarSearchParams == null
+                                ? Contains(a.Name, text) || Contains(a.Username, text) || Contains(a.Email, text)
+                                : (text.AvatarSearchParams.Username || text.AvatarSearchParams.SearchAllFields) && Contains(a.Username, text) ||
+                                  (text.AvatarSearchParams.Email || text.AvatarSearchParams.SearchAllFields) && Contains(a.Email, text) ||
+                                  (text.AvatarSearchParams.FirstName || text.AvatarSearchParams.SearchAllFields) && Contains(a.FirstName, text) ||
+                                  (text.AvatarSearchParams.LastName || text.AvatarSearchParams.SearchAllFields) && Contains(a.LastName, text) ||
+                                  (text.AvatarSearchParams.Title || text.AvatarSearchParams.SearchAllFields) && Contains(a.Title, text))),
+                            _ => false
+                        })));
                     }
                 }
                 
+                // Deleted, ownership and metadata constraints apply to both result sets.
+                holons = holons.Where(h => h.DeletedDate == DateTime.MinValue).ToList();
+                avatars = avatars.Where(a => a.DeletedDate == DateTime.MinValue).ToList();
+                if (searchParams.SearchOnlyForCurrentAvatar)
+                {
+                    holons = holons.Where(h => h.CreatedByAvatarId == searchParams.AvatarId).ToList();
+                    avatars = avatars.Where(a => a.CreatedByAvatarId == searchParams.AvatarId).ToList();
+                }
+                if (searchParams.FilterByMetaData?.Count > 0)
+                {
+                    holons=holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(
+                        row.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
+                    avatars=avatars.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(
+                        row.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
+                }
+
                 searchResults.SearchResultHolons = holons;
                 searchResults.SearchResultAvatars = avatars;
+                searchResults.NumberOfResults = holons.Count + avatars.Count;
                 
                 result.Result = searchResults;
                 result.IsError = false;
-                result.Message = $"Search completed successfully in SQLite with full property mapping ({holons.Count} holons, {avatars.Count} avatars)";
+                result.Message = $"SQLite text search returned {holons.Count} holons and {avatars.Count} avatars";
             }
             catch (Exception ex)
             {
@@ -179,7 +342,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -188,7 +352,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var allAvatarsResult = await _avatarRepository.LoadAllAvatarsAsync();
                 if (allAvatarsResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}", allAvatarsResult.Exception);
+                    result.ErrorCode = allAvatarsResult.ErrorCode;
                     return result;
                 }
 
@@ -197,9 +362,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 // Aggregate wallets from all avatars
                 foreach (var avatar in allAvatarsResult.Result ?? Enumerable.Empty<IAvatar>())
                 {
-                    if (avatar.ProviderWallets != null)
+                    var localWallets = await ReadLocalWalletsAsync(avatar.Id);
+                    if (localWallets != null)
                     {
-                        foreach (var kvp in avatar.ProviderWallets)
+                        foreach (var kvp in localWallets)
                         {
                             if (!wallets.ContainsKey(kvp.Key))
                             {
@@ -236,7 +402,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -247,45 +414,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                // Save provider wallets for all avatars that have these wallets
-                // Load all avatars and update their provider wallets
-                var allAvatarsResult = await _avatarRepository.LoadAllAvatarsAsync();
-                if (allAvatarsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}");
-                    return result;
-                }
-
-                int updatedCount = 0;
-                foreach (var avatar in allAvatarsResult.Result ?? Enumerable.Empty<IAvatar>())
-                {
-                    if (avatar.ProviderWallets != null)
-                    {
-                        // Update provider wallets for this avatar
-                        foreach (var providerType in providerWallets.Keys)
-                        {
-                            if (avatar.ProviderWallets.ContainsKey(providerType))
-                            {
-                                avatar.ProviderWallets[providerType] = providerWallets[providerType];
-                            }
-                            else
-                            {
-                                avatar.ProviderWallets.Add(providerType, providerWallets[providerType]);
-                            }
-                        }
-
-                        // Save the updated avatar
-                        var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
-                        if (!saveResult.IsError)
-                        {
-                            updatedCount++;
-                        }
-                    }
-                }
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Successfully saved provider wallets for {updatedCount} avatars in SQLite";
+                return await StoreOwnedWalletBatchAsync(providerWallets);
             }
             catch (Exception ex)
             {
@@ -309,7 +438,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -318,16 +448,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var avatarResult = await _avatarRepository.LoadAvatarAsync(id);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}", avatarResult.Exception);
+                    result.ErrorCode = avatarResult.ErrorCode;
                     return result;
                 }
 
-                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
-                if (avatarResult.Result?.ProviderWallets != null)
-                {
-                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
-                        providerWallets[grp.Key] = grp.SelectMany(g => g.Value).ToList();
-                }
+                var providerWallets = avatarResult.Result == null
+                    ? new Dictionary<ProviderType, List<IProviderWallet>>()
+                    : await ReadLocalWalletsAsync(avatarResult.Result.Id);
 
                 result.Result = providerWallets;
                 result.IsError = false;
@@ -355,7 +483,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -364,16 +493,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var avatarResult = await _avatarRepository.LoadAvatarByUsernameAsync(username);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}", avatarResult.Exception);
+                    result.ErrorCode = avatarResult.ErrorCode;
                     return result;
                 }
 
-                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
-                if (avatarResult.Result?.ProviderWallets != null)
-                {
-                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
-                        providerWallets[grp.Key] = grp.SelectMany(g => g.Value).ToList();
-                }
+                var providerWallets = avatarResult.Result == null
+                    ? new Dictionary<ProviderType, List<IProviderWallet>>()
+                    : await ReadLocalWalletsAsync(avatarResult.Result.Id);
 
                 result.Result = providerWallets;
                 result.IsError = false;
@@ -401,7 +528,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -410,16 +538,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var avatarResult = await _avatarRepository.LoadAvatarByEmailAsync(email);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}", avatarResult.Exception);
+                    result.ErrorCode = avatarResult.ErrorCode;
                     return result;
                 }
 
-                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
-                if (avatarResult.Result?.ProviderWallets != null)
-                {
-                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
-                        providerWallets[grp.Key] = grp.SelectMany(g => g.Value).ToList();
-                }
+                var providerWallets = avatarResult.Result == null
+                    ? new Dictionary<ProviderType, List<IProviderWallet>>()
+                    : await ReadLocalWalletsAsync(avatarResult.Result.Id);
 
                 result.Result = providerWallets;
                 result.IsError = false;
@@ -447,7 +573,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -456,7 +583,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var avatarResult = await _avatarRepository.LoadAvatarAsync(id);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}", avatarResult.Exception);
+                    result.ErrorCode = avatarResult.ErrorCode;
                     return result;
                 }
 
@@ -472,10 +600,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     avatar.ProviderWallets = providerWallets;
 
                     // Save updated avatar
-                    var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
+                    var saveResult = await StoreLocalWalletsAsync(avatar.Id, providerWallets);
                     if (saveResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Error saving local wallets: {saveResult.Message}", saveResult.Exception);
+                        result.ErrorCode = saveResult.ErrorCode;
                         return result;
                     }
 

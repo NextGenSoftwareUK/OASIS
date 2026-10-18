@@ -20,6 +20,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [ApiController]
     public class WalletTokenController : OASISControllerBase
     {
+        private OASISResult<ITransactionResponse> ForbiddenTokenOperation(string operation)
+        {
+            Response.StatusCode = StatusCodes.Status403Forbidden;
+            return new OASISResult<ITransactionResponse> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
+                Message = $"Forbidden. You can only {operation} tokens for your own avatar." };
+        }
         private WalletManager _walletManager;
 
         private WalletManager WalletManager
@@ -47,13 +53,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         [Authorize]
         [HttpPost("burn-token")]
+        [ProducesResponseType(typeof(OASISResult<ITransactionResponse>), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(OASISResult<ITransactionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<ITransactionResponse>> BurnToken([FromBody] BurnWeb4TokenRequest request)
         {
             if (request.BurntByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                return new OASISResult<ITransactionResponse> { IsError = true, Message = "Unauthorized. You can only burn tokens for your own avatar." };
+                return ForbiddenTokenOperation("burn");
             return await WalletManager.BurnTokenAsync(request);
         }
 
@@ -67,13 +74,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         [Authorize]
         [HttpPost("lock-token")]
+        [ProducesResponseType(typeof(OASISResult<ITransactionResponse>), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(OASISResult<ITransactionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<ITransactionResponse>> LockToken([FromBody] LockWeb4TokenRequest request)
         {
             if (request.LockedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                return new OASISResult<ITransactionResponse> { IsError = true, Message = "Unauthorized. You can only lock tokens for your own avatar." };
+                return ForbiddenTokenOperation("lock");
             return await WalletManager.LockTokenAsync(request);
         }
 
@@ -87,13 +95,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         [Authorize]
         [HttpPost("unlock-token")]
+        [ProducesResponseType(typeof(OASISResult<ITransactionResponse>), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(OASISResult<ITransactionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<ITransactionResponse>> UnlockToken([FromBody] UnlockWeb4TokenRequest request)
         {
             if (request.UnlockedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                return new OASISResult<ITransactionResponse> { IsError = true, Message = "Unauthorized. You can only unlock tokens for your own avatar." };
+                return ForbiddenTokenOperation("unlock");
             return await WalletManager.UnlockTokenAsync(request);
         }
 

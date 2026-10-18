@@ -5,11 +5,21 @@ using Nethereum.Web3.Accounts;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS.ContractDefinition;
 using CoreHolon = NextGenSoftware.OASIS.API.Core.Holons.Holon;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.DNA;
+using SQLiteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 
 [TestClass]
-public class EthereumOASISIntegrationTests
+public partial class EthereumOASISIntegrationTests
 {
     private const string DefaultHost = "http://127.0.0.1:8545";
     // Ganache's documented deterministic development key. It has no value outside the disposable chain.
@@ -47,6 +57,1112 @@ public class EthereumOASISIntegrationTests
         Assert.IsFalse(provider.IsProviderActivated);
     }
 
+    [DataTestMethod]
+    [DataRow("LegacyStorageProtocolFixture")]
+    [DataRow("UnsupportedStorageProtocolFixture")]
+    public async Task ActivationRejectsIncompatibleStorageProtocolWithoutSubmittingWrites(string fixtureName)
+    {
+        var path = Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON")!;
+        using var fixture = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(path)!,fixtureName+".json")));
+        var account = new Account(PrivateKey,ChainId);
+        var web3 = new Web3(account,Host);
+        var deployed = await web3.Eth.DeployContract.SendRequestAndWaitForReceiptAsync(
+            fixture.RootElement.GetProperty("abi").GetRawText(),fixture.RootElement.GetProperty("bytecode").GetString(),
+            account.Address,new Nethereum.Hex.HexTypes.HexBigInteger(4000000));
+        Assert.AreEqual(BigInteger.One,deployed.Status.Value);
+        var before = await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        var provider = new EthereumOASIS(Host,PrivateKey,ChainId,deployed.ContractAddress);
+        var activation = await provider.ActivateProviderAsync();
+        Assert.IsTrue(activation.IsError); Assert.IsFalse(activation.Result);
+        Assert.IsFalse(provider.IsProviderActivated); Assert.IsNull(provider.Web3Client);
+        Assert.IsNotNull(activation.Exception);
+        if(fixtureName == "UnsupportedStorageProtocolFixture") StringAssert.Contains(activation.Message,"version 3 is required");
+        var after = await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        Assert.AreEqual(before.Value,after.Value);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeAvatarDetailCollectionReadsEncryptedRowsAndRejectsCorruption(bool synchronous)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var empty = synchronous ? provider.LoadAllAvatarDetails() : await provider.LoadAllAvatarDetailsAsync();
+        Assert.IsFalse(empty.IsError,empty.Message); Assert.IsTrue(empty.IsLoaded); Assert.AreEqual(0,empty.Result.Count());
+        var first = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username="native first",Karma=12,XP=34 };
+        var second = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username="native second",Karma=56,XP=78 };
+        var item=new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem {Id=Guid.NewGuid(),Name="native oak seed",Quantity=5,GameSource="Our World"};
+        first.Inventory.Add(item);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(first)).IsError);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(second)).IsError);
+        var loaded = synchronous ? provider.LoadAllAvatarDetails() : await provider.LoadAllAvatarDetailsAsync();
+        Assert.IsFalse(loaded.IsError,loaded.Message); Assert.IsTrue(loaded.IsLoaded);
+        Assert.AreEqual(2,loaded.Result.Count());
+        Assert.AreEqual(first.Karma,loaded.Result.Single(row=>row.Id == first.Id).Karma);
+        Assert.AreEqual(second.XP,loaded.Result.Single(row=>row.Id == second.Id).XP);
+        var inventory=loaded.Result.Single(row=>row.Id==first.Id).Inventory;
+        Assert.AreEqual(1,inventory.Count); Assert.IsInstanceOfType<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(inventory[0]);
+        Assert.AreEqual(item.Id,inventory[0].Id); Assert.AreEqual(5,inventory[0].Quantity); Assert.AreEqual("Our World",inventory[0].GameSource);
+        var history = synchronous ? provider.LoadAllAvatarDetails(1) : await provider.LoadAllAvatarDetailsAsync(1);
+        Assert.IsTrue(history.IsError); Assert.IsNull(history.Result); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(second.Id.ToString()),second.Id.ToString(),"plaintext corruption");
+        var corrupt = synchronous ? provider.LoadAllAvatarDetails() : await provider.LoadAllAvatarDetailsAsync();
+        Assert.IsTrue(corrupt.IsError); Assert.IsFalse(corrupt.IsLoaded); Assert.IsNull(corrupt.Result);
+        Assert.IsNotNull(corrupt.Exception);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeAvatarCollectionReturnsStoredRowsAndRejectsCorruption(bool synchronous)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var empty = synchronous ? provider.LoadAllAvatars() : await provider.LoadAllAvatarsAsync();
+        Assert.IsFalse(empty.IsError,empty.Message); Assert.IsTrue(empty.IsLoaded); Assert.AreEqual(0,empty.Result.Count());
+        var first = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username="first avatar",Email="first@example.invalid" };
+        var second = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username="second avatar",Email="second@example.invalid" };
+        Assert.IsFalse((await provider.SaveAvatarAsync(first)).IsError);
+        Assert.IsFalse((await provider.SaveAvatarAsync(second)).IsError);
+        var loaded = synchronous ? provider.LoadAllAvatars() : await provider.LoadAllAvatarsAsync();
+        Assert.IsFalse(loaded.IsError,loaded.Message); Assert.IsTrue(loaded.IsLoaded); Assert.AreEqual(2,loaded.Result.Count());
+        Assert.AreEqual(first.Email,loaded.Result.Single(row=>row.Id == first.Id).Email);
+        Assert.AreEqual(second.Username,loaded.Result.Single(row=>row.Id == second.Id).Username);
+        var history = synchronous ? provider.LoadAllAvatars(1) : await provider.LoadAllAvatarsAsync(1);
+        Assert.IsTrue(history.IsError); Assert.IsNull(history.Result); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(second.Id.ToString()),second.Id.ToString(),"plaintext corruption");
+        var corrupt = synchronous ? provider.LoadAllAvatars() : await provider.LoadAllAvatarsAsync();
+        Assert.IsTrue(corrupt.IsError); Assert.IsFalse(corrupt.IsLoaded); Assert.IsNull(corrupt.Result); Assert.IsNotNull(corrupt.Exception);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task CollectionRejectsAuthenticCiphertextUnderCollidingPublicIdentity(bool synchronous,bool details)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var original = Guid.Parse("00005f42-0000-0000-0000-000000000000");
+        var other = Guid.Parse("00017b6d-0000-0000-0000-000000000000");
+        var key = NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(original.ToString());
+        Assert.AreEqual(key,NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(other.ToString()));
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        if(details)
+        {
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=original,Username="authentic detail" })).IsError);
+            var encrypted = (await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info;
+            await service.DeleteAvatarDetailRequestAndWaitForReceiptAsync(key);
+            await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(key,other.ToString(),encrypted);
+            var result = synchronous ? provider.LoadAllAvatarDetails() : await provider.LoadAllAvatarDetailsAsync();
+            Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsLoaded); Assert.IsNull(result.Result);
+            Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+            StringAssert.Contains(result.Exception!.Message,"requested GUID");
+        }
+        else
+        {
+            Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=original,Username="authentic avatar" })).IsError);
+            var encrypted = (await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info;
+            await service.DeleteAvatarRequestAndWaitForReceiptAsync(key);
+            await service.CreateAvatarRequestAndWaitForReceiptAsync(key,other.ToString(),encrypted);
+            var result = synchronous ? provider.LoadAllAvatars() : await provider.LoadAllAvatarsAsync();
+            Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsLoaded); Assert.IsNull(result.Result);
+            Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+            StringAssert.Contains(result.Exception!.Message,"requested GUID");
+        }
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeHolonCollectionHonorsTypesAndGraphReadOptions(bool synchronous)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        async Task<OASISResult<IEnumerable<IHolon>>> Read(bool load=true,bool recursive=true,int max=0,int current=0,bool native=false,HolonType type=HolonType.All,int version=0)
+            => synchronous ? provider.LoadAllHolons(type,load,recursive,max,current,loadChildrenFromProvider:native,version:version)
+                : await provider.LoadAllHolonsAsync(type,load,recursive,max,current,loadChildrenFromProvider:native,version:version);
+        var empty = await Read(); Assert.IsFalse(empty.IsError,empty.Message); Assert.AreEqual(0,empty.Result.Count());
+        var root = new CoreHolon { Id=Guid.NewGuid(),Name="root",HolonType=HolonType.Holon };
+        var child = new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="child",HolonType=HolonType.Holon };
+        var grandchild = new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="grandchild",HolonType=HolonType.Holon };
+        child.Children.Add(grandchild); root.Children.Add(child);
+        foreach(var row in new[] {root,child,grandchild}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:true)).IsError);
+        foreach(var native in new[] {false,true})
+        {
+            var all = await Read(native:native); Assert.IsFalse(all.IsError,all.Message); Assert.IsTrue(all.IsLoaded); Assert.AreEqual(3,all.Result.Count());
+            Assert.AreEqual(grandchild.Id,all.Result.Single(row=>row.Id==root.Id).Children.Single().Children.Single().Id);
+            var flat = await Read(load:false,native:native); Assert.IsFalse(flat.IsError,flat.Message); Assert.IsTrue(flat.Result.All(row=>row.Children.Count==0));
+            var direct = await Read(recursive:false,native:native); Assert.IsFalse(direct.IsError,direct.Message);
+            Assert.AreEqual(0,direct.Result.Single(row=>row.Id==root.Id).Children.Single().Children.Count);
+            var depth = await Read(max:1,native:native); Assert.IsFalse(depth.IsError,depth.Message);
+            Assert.AreEqual(0,depth.Result.Single(row=>row.Id==root.Id).Children.Single().Children.Count);
+            var offset = await Read(max:1,current:1,native:native); Assert.IsFalse(offset.IsError,offset.Message); Assert.IsTrue(offset.Result.All(row=>row.Children.Count==0));
+        }
+        var filtered = await Read(type:HolonType.Avatar); Assert.IsFalse(filtered.IsError,filtered.Message); Assert.AreEqual(0,filtered.Result.Count());
+        var history = await Read(version:1); Assert.IsTrue(history.IsError); Assert.IsNull(history.Result);
+        var invalid = await Read(max:-1); Assert.IsTrue(invalid.IsError); Assert.IsNull(invalid.Result);
+        // A provider-linked cycle must be rejected, not silently truncated.
+        root.ParentHolonId=grandchild.Id;
+        Assert.IsFalse((await provider.SaveHolonAsync(root,saveChildren:false)).IsError);
+        var cycle = await Read(native:true); Assert.IsTrue(cycle.IsError); Assert.IsNull(cycle.Result); Assert.IsFalse(cycle.IsLoaded);
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(child.Id.ToString()),child.Id.ToString(),"corrupt payload");
+        var corrupt = await Read(load:false); Assert.IsTrue(corrupt.IsError); Assert.IsNull(corrupt.Result); Assert.IsFalse(corrupt.IsLoaded);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task NativeIdentityQueriesUseStoredFieldsAndRejectAmbiguity(bool synchronous,bool details)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var id=Guid.NewGuid();
+        const string username="RealStoredName",email="Stored@Example.invalid";
+        if(details) Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=id,Username=username,Email=email,XP=77 })).IsError);
+        else Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=id,Username=username,Email=email })).IsError);
+        async Task<(bool Error,Guid? Id,bool Loaded,string Code,Exception? Cause)> Query(string value,bool byEmail=false,int version=0)
+        {
+            if(details)
+            {
+                var result = byEmail
+                    ? synchronous ? provider.LoadAvatarDetailByEmail(value,version) : await provider.LoadAvatarDetailByEmailAsync(value,version)
+                    : synchronous ? provider.LoadAvatarDetailByUsername(value,version) : await provider.LoadAvatarDetailByUsernameAsync(value,version);
+                return (result.IsError,result.Result?.Id,result.IsLoaded,result.ErrorCode,result.Exception);
+            }
+            else
+            {
+                var result = byEmail
+                    ? synchronous ? provider.LoadAvatarByEmail(value,version) : await provider.LoadAvatarByEmailAsync(value,version)
+                    : synchronous ? provider.LoadAvatarByUsername(value,version) : await provider.LoadAvatarByUsernameAsync(value,version);
+                return (result.IsError,result.Result?.Id,result.IsLoaded,result.ErrorCode,result.Exception);
+            }
+        }
+        foreach(var byEmail in new[] {false,true})
+        {
+            var found=await Query((byEmail?email:username).ToUpperInvariant(),byEmail);
+            Assert.IsFalse(found.Error); Assert.IsTrue(found.Loaded); Assert.AreEqual(id,found.Id);
+            var absent=await Query("not-present",byEmail); Assert.IsTrue(absent.Error); Assert.IsNull(absent.Id); Assert.IsFalse(absent.Loaded);
+            var blank=await Query(" ",byEmail); Assert.IsTrue(blank.Error); Assert.IsInstanceOfType(blank.Cause,typeof(ArgumentException));
+            var history=await Query(byEmail?email:username,byEmail,1); Assert.IsTrue(history.Error); Assert.IsInstanceOfType(history.Cause,typeof(NotSupportedException));
+        }
+        if(details)
+        {
+            Assert.AreEqual(id,(await provider.LoadAvatarDetailByEmailVersionAsync(email)).Result.Id);
+            Assert.AreEqual(id,(await provider.LoadAvatarDetailByUsernameVersionAsync(username)).Result.Id);
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username=username,Email=email })).IsError);
+        }
+        else Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username=username,Email=email })).IsError);
+        foreach(var byEmail in new[] {false,true})
+        {
+            var ambiguous=await Query(byEmail?email:username,byEmail);
+            Assert.IsTrue(ambiguous.Error); Assert.IsNull(ambiguous.Id); Assert.IsFalse(ambiguous.Loaded);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,ambiguous.Code);
+            Assert.IsInstanceOfType(ambiguous.Cause,typeof(NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException));
+        }
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task V2AmbiguousNativeIdentityCannotFallThroughToUniqueBackup(bool synchronous,bool details)
+    {
+        var (ethereum,_) = await CreateActivatedProviderAsync();
+        var folder=Path.GetDirectoryName(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON"))!;
+        var path=Path.Combine(folder,"v2-identity.db");
+        if(File.Exists(path)) throw new InvalidOperationException("Existing identity fixture requires inspection; refusing overwrite.");
+        using var sqlite=new SQLiteProvider($"Data Source={path};Pooling=False");
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            const string username="v2-duplicate-identity",email="v2-duplicate@example.invalid";
+            for(var index=0;index<2;index++)
+            {
+                if(details) Assert.IsFalse((await ethereum.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username=username,Email=email })).IsError);
+                else Assert.IsFalse((await ethereum.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username=username,Email=email })).IsError);
+            }
+            var backupId=Guid.NewGuid();
+            if(details) Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=backupId,Username=username,Email=email })).IsError);
+            else
+            {
+                var saved=await sqlite.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=backupId,Username=username,Email=email,AvatarType=new EnumValue<AvatarType>(AvatarType.User) });
+                Assert.IsFalse(saved.IsError,saved.Message);
+            }
+            var dna=new OASISDNA { OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings() } };
+            dna.OASIS.SubscriptionConfig.PlanType="Gold";
+            var manager=new ProviderManager(null,dna) { IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true };
+            manager.RegisterProvider(ethereum); manager.RegisterProvider(sqlite);
+            var stores=new[] {new EnumValue<ProviderType>(ProviderType.EthereumOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(stores).IsError);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(stores).IsError);
+            var router=new OASISHyperDrive(manager);
+            foreach(var byEmail in new[] {false,true})
+            {
+                var request=new StorageOperationRequest { Operation=details ? byEmail?"LoadAvatarDetailByEmail":"LoadAvatarDetailByUsername" : byEmail?"LoadAvatarByEmail":"LoadAvatarByUsername",
+                    Username=username,Email=email,PreferredProvider=ProviderType.EthereumOASIS };
+                if(details)
+                {
+                    var result=synchronous ? router.RouteRequest<IAvatarDetail>(request) : await router.RouteRequestAsync<IAvatarDetail>(request);
+                    Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+                    Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);
+                }
+                else
+                {
+                    var result=synchronous ? router.RouteRequest<IAvatar>(request) : await router.RouteRequestAsync<IAvatar>(request);
+                    Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+                    Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);
+                }
+            }
+            Assert.AreEqual(2L,manager.PerformanceMonitor.GetMetrics(ProviderType.EthereumOASIS).TotalRequests);
+            Assert.AreEqual(0L,manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0L);
+            if(details) Assert.AreEqual(backupId,(await sqlite.LoadAvatarDetailByUsernameAsync(username)).Result.Id);
+            else Assert.AreEqual(backupId,(await sqlite.LoadAvatarByUsernameAsync(username)).Result.Id);
+        }
+        finally { sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync(); }
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task MissingGuidCannotReportLoadedSuccess(bool synchronous,bool populated)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        if(populated)
+        {
+            Assert.IsFalse((await provider.SaveHolonAsync(new CoreHolon { Id=Guid.NewGuid(),Name="retained" })).IsError);
+            Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username="retained" })).IsError);
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username="retained" })).IsError);
+        }
+        var absent=Guid.NewGuid();
+        var holon=synchronous ? provider.LoadHolon(absent) : await provider.LoadHolonAsync(absent);
+        var avatar=synchronous ? provider.LoadAvatar(absent) : await provider.LoadAvatarAsync(absent);
+        var detail=synchronous ? provider.LoadAvatarDetail(absent) : await provider.LoadAvatarDetailAsync(absent);
+        Assert.IsTrue(holon.IsError); Assert.IsFalse(holon.IsLoaded); Assert.IsNull(holon.Result); Assert.IsNotNull(holon.Exception);
+        Assert.IsTrue(avatar.IsError); Assert.IsFalse(avatar.IsLoaded); Assert.IsNull(avatar.Result); Assert.IsNotNull(avatar.Exception);
+        Assert.IsTrue(detail.IsError); Assert.IsFalse(detail.IsLoaded); Assert.IsNull(detail.Result); Assert.IsNotNull(detail.Exception);
+        if(populated)
+        {
+            Assert.IsInstanceOfType(holon.Exception,typeof(KeyNotFoundException));
+            Assert.IsInstanceOfType(avatar.Exception,typeof(KeyNotFoundException));
+            Assert.IsInstanceOfType(detail.Exception,typeof(KeyNotFoundException));
+        }
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ProviderKeysResolveSavedNativeIdentitiesWithoutCollisionOrSyntheticData(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var id=Guid.Parse("00005f42-0000-0000-0000-000000000000");
+        var collision=Guid.Parse("00017b6d-0000-0000-0000-000000000000");
+        var savedHolon=await provider.SaveHolonAsync(new CoreHolon { Id=id,Name="keyed holon" });
+        var savedAvatar=await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=id,Username="keyed avatar" });
+        Assert.IsFalse(savedHolon.IsError,savedHolon.Message); Assert.IsFalse(savedAvatar.IsError,savedAvatar.Message);
+        Assert.AreEqual(id.ToString(),savedHolon.Result.ProviderUniqueStorageKey[ProviderType.EthereumOASIS]);
+        Assert.AreEqual(id.ToString(),savedAvatar.Result.ProviderUniqueStorageKey[ProviderType.EthereumOASIS]);
+        var key=id.ToString().ToUpperInvariant();
+        var holon=synchronous ? provider.LoadHolon(key) : await provider.LoadHolonAsync(key);
+        var avatar=synchronous ? provider.LoadAvatarByProviderKey(key) : await provider.LoadAvatarByProviderKeyAsync(key);
+        Assert.IsFalse(holon.IsError,holon.Message); Assert.IsTrue(holon.IsLoaded); Assert.AreEqual(id,holon.Result.Id); Assert.AreEqual("keyed holon",holon.Result.Name);
+        Assert.IsFalse(avatar.IsError,avatar.Message); Assert.IsTrue(avatar.IsLoaded); Assert.AreEqual(id,avatar.Result.Id); Assert.AreEqual("keyed avatar",avatar.Result.Username);
+        Assert.AreEqual(id.ToString(),avatar.Result.ProviderUniqueStorageKey[ProviderType.EthereumOASIS]);
+        Assert.AreEqual(id,(await provider.LoadAvatarByProviderKeyVersionAsync(key)).Result.Id);
+        Assert.AreEqual(1,(await provider.LoadAllAvatarsByVersionAsync()).Result.Count());
+        foreach(var bad in new[] {"not-a-guid",Guid.Empty.ToString(),collision.ToString(),Guid.NewGuid().ToString()})
+        {
+            var h=synchronous ? provider.LoadHolon(bad) : await provider.LoadHolonAsync(bad);
+            var a=synchronous ? provider.LoadAvatarByProviderKey(bad) : await provider.LoadAvatarByProviderKeyAsync(bad);
+            Assert.IsTrue(h.IsError); Assert.IsNull(h.Result); Assert.IsFalse(h.IsLoaded);
+            Assert.IsTrue(a.IsError); Assert.IsNull(a.Result); Assert.IsFalse(a.IsLoaded);
+            if(bad==collision.ToString()) { Assert.IsInstanceOfType(h.Exception,typeof(InvalidDataException)); Assert.IsInstanceOfType(a.Exception,typeof(InvalidDataException)); }
+        }
+        Assert.IsTrue((await provider.LoadHolonAsync(key,version:1)).IsError);
+        Assert.IsTrue((await provider.LoadAvatarByProviderKeyVersionAsync(key,1)).IsError);
+        Assert.IsTrue((await provider.LoadAllAvatarsByVersionAsync(1)).IsError);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ParentQueriesUseNativeSnapshotAndPreserveReadErrors(bool synchronous)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var parent=Guid.NewGuid();
+        var child=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=parent,Name="direct child",HolonType=HolonType.Holon };
+        var grandchild=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="grandchild",HolonType=HolonType.Holon };
+        var unrelated=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=Guid.NewGuid(),Name="unrelated",HolonType=HolonType.Holon };
+        child.Children.Add(grandchild);
+        foreach(var row in new[] {child,grandchild,unrelated}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        async Task<OASISResult<IEnumerable<IHolon>>> Read(bool byKey=false,bool children=true,HolonType type=HolonType.All,int version=0)
+        {
+            if(byKey) return synchronous ? provider.LoadHolonsForParent(parent.ToString().ToUpperInvariant(),type,children,loadChildrenFromProvider:true,version:version)
+                : await provider.LoadHolonsForParentAsync(parent.ToString().ToUpperInvariant(),type,children,loadChildrenFromProvider:true,version:version);
+            return synchronous ? provider.LoadHolonsForParent(parent,type,children,loadChildrenFromProvider:true,version:version)
+                : await provider.LoadHolonsForParentAsync(parent,type,children,loadChildrenFromProvider:true,version:version);
+        }
+        foreach(var byKey in new[] {false,true})
+        {
+            var loaded=await Read(byKey); Assert.IsFalse(loaded.IsError,loaded.Message); Assert.IsTrue(loaded.IsLoaded);
+            Assert.AreEqual(child.Id,loaded.Result.Single().Id); Assert.AreEqual(grandchild.Id,loaded.Result.Single().Children.Single().Id);
+            var flat=await Read(byKey,children:false); Assert.IsFalse(flat.IsError,flat.Message); Assert.AreEqual(0,flat.Result.Single().Children.Count);
+            var filtered=await Read(byKey,type:HolonType.Avatar); Assert.IsFalse(filtered.IsError,filtered.Message); Assert.AreEqual(0,filtered.Result.Count());
+            var history=await Read(byKey,version:1); Assert.IsTrue(history.IsError); Assert.IsNull(history.Result); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        }
+        var malformed=await provider.LoadHolonsForParentAsync("not-a-guid"); Assert.IsTrue(malformed.IsError); Assert.IsInstanceOfType(malformed.Exception,typeof(ArgumentException));
+        var absent=await provider.LoadHolonsForParentAsync(Guid.NewGuid()); Assert.IsFalse(absent.IsError,absent.Message); Assert.AreEqual(0,absent.Result.Count());
+        var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(child.Id.ToString()),child.Id.ToString(),"corrupt payload");
+        var corrupt=await Read(); Assert.IsTrue(corrupt.IsError); Assert.IsNull(corrupt.Result); Assert.IsFalse(corrupt.IsLoaded); Assert.IsNotNull(corrupt.Exception);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SingleNativeHolonReadHonorsGraphFlagsAndRejectsFakeHistory(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var root=new CoreHolon { Id=Guid.NewGuid(),Name="single root" };
+        var child=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="single child" };
+        var grandchild=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="single grandchild" };
+        child.Children.Add(grandchild); root.Children.Add(child);
+        foreach(var row in new[] {root,child,grandchild}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:true)).IsError);
+        async Task<OASISResult<IHolon>> Read(bool load=true,bool recursive=true,int max=0,bool native=false,int version=0)
+            => synchronous ? provider.LoadHolon(root.Id,load,recursive,max,loadChildrenFromProvider:native,version:version)
+                : await provider.LoadHolonAsync(root.Id,load,recursive,max,loadChildrenFromProvider:native,version:version);
+        foreach(var native in new[] {false,true})
+        {
+            var full=await Read(native:native); Assert.IsFalse(full.IsError,full.Message); Assert.IsTrue(full.IsLoaded);
+            Assert.AreEqual(grandchild.Id,full.Result.Children.Single().Children.Single().Id);
+            var flat=await Read(load:false,native:native); Assert.IsFalse(flat.IsError,flat.Message); Assert.AreEqual(0,flat.Result.Children.Count);
+            var direct=await Read(recursive:false,native:native); Assert.IsFalse(direct.IsError,direct.Message); Assert.AreEqual(0,direct.Result.Children.Single().Children.Count);
+            var depth=await Read(max:1,native:native); Assert.IsFalse(depth.IsError,depth.Message); Assert.AreEqual(0,depth.Result.Children.Single().Children.Count);
+        }
+        var versioned=await Read(version:1); Assert.IsTrue(versioned.IsError); Assert.IsNull(versioned.Result); Assert.IsInstanceOfType(versioned.Exception,typeof(NotSupportedException));
+        var invalid=await Read(max:-1); Assert.IsTrue(invalid.IsError); Assert.IsNull(invalid.Result); Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentOutOfRangeException));
+        // Provider-linked children must be loaded even when absent in the root's embedded payload.
+        root.Children.Clear(); Assert.IsFalse((await provider.SaveHolonAsync(root,saveChildren:false)).IsError);
+        Assert.AreEqual(0,(await Read()).Result.Children.Count);
+        Assert.AreEqual(grandchild.Id,(await Read(native:true)).Result.Children.Single().Children.Single().Id);
+        var key=synchronous ? provider.LoadHolon(root.Id.ToString(),loadChildrenFromProvider:true)
+            : await provider.LoadHolonAsync(root.Id.ToString(),loadChildrenFromProvider:true);
+        Assert.IsFalse(key.IsError,key.Message); Assert.AreEqual(child.Id,key.Result.Children.Single().Id);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task MetadataQueriesReadEncryptedNativeFieldsWithAllAndAnySemantics(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var first=new CoreHolon { Id=Guid.NewGuid(),Name="first metadata",MetaData=new Dictionary<string,object> { ["Region"]="park",["Count"]=5,["Enabled"]=true } };
+        var second=new CoreHolon { Id=Guid.NewGuid(),Name="second metadata",MetaData=new Dictionary<string,object> { ["Region"]="park",["Count"]=9 } };
+        foreach(var row in new[] {first,second}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        async Task<OASISResult<IEnumerable<IHolon>>> Read(Dictionary<string,string> query,MetaKeyValuePairMatchMode mode=MetaKeyValuePairMatchMode.All,int version=0)
+            => synchronous ? provider.LoadHolonsByMetaData(query,mode,loadChildren:false,version:version)
+                : await provider.LoadHolonsByMetaDataAsync(query,mode,loadChildren:false,version:version);
+        var single=synchronous ? provider.LoadHolonsByMetaData("Region","park",loadChildren:false) : await provider.LoadHolonsByMetaDataAsync("Region","park",loadChildren:false);
+        Assert.IsFalse(single.IsError,single.Message); Assert.IsTrue(single.IsLoaded); Assert.AreEqual(2,single.Result.Count());
+        var query=new Dictionary<string,string> { ["Region"]="park",["Count"]="5" };
+        var all=await Read(query); Assert.IsFalse(all.IsError,all.Message); Assert.AreEqual(first.Id,all.Result.Single().Id);
+        var any=await Read(query,MetaKeyValuePairMatchMode.Any); Assert.IsFalse(any.IsError,any.Message); Assert.AreEqual(2,any.Result.Count());
+        var boolean=await Read(new Dictionary<string,string> { ["Enabled"]="True" }); Assert.IsFalse(boolean.IsError,boolean.Message); Assert.AreEqual(first.Id,boolean.Result.Single().Id);
+        var absent=await Read(new Dictionary<string,string> { ["region"]="park" }); Assert.IsFalse(absent.IsError,absent.Message); Assert.AreEqual(0,absent.Result.Count());
+        var history=await Read(query,version:1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        var empty=await Read(new Dictionary<string,string>()); Assert.IsTrue(empty.IsError); Assert.IsInstanceOfType(empty.Exception,typeof(ArgumentException));
+        var invalid=await Read(query,(MetaKeyValuePairMatchMode)99); Assert.IsTrue(invalid.IsError); Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentOutOfRangeException));
+        var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(second.Id.ToString()),second.Id.ToString(),"corrupt payload");
+        var corrupt=await Read(query); Assert.IsTrue(corrupt.IsError); Assert.IsNull(corrupt.Result); Assert.IsFalse(corrupt.IsLoaded); Assert.IsNotNull(corrupt.Exception);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task CustomKeyQueriesHaveOneStoredMeaningAndRejectDuplicateParents(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var unrelatedId=Guid.NewGuid();
+        var customKey=unrelatedId.ToString();
+        var parent=new CoreHolon { Id=Guid.NewGuid(),Name="custom parent",MetaData=new Dictionary<string,object> { ["CustomKey"]=customKey } };
+        var child=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=parent.Id,Name="custom child" };
+        var unrelated=new CoreHolon { Id=unrelatedId,Name="must not win provider-key fallback" };
+        foreach(var row in new[] {parent,child,unrelated}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        var loaded=synchronous ? provider.LoadHolonByCustomKey(customKey) : await provider.LoadHolonByCustomKeyAsync(customKey);
+        Assert.IsFalse(loaded.IsError,loaded.Message); Assert.IsTrue(loaded.IsLoaded); Assert.AreEqual(parent.Id,loaded.Result.Id);
+        var children=synchronous ? provider.LoadHolonsForParentByCustomKey(customKey,loadChildren:false)
+            : await provider.LoadHolonsForParentByCustomKeyAsync(customKey,loadChildren:false);
+        Assert.IsFalse(children.IsError,children.Message); Assert.IsTrue(children.IsLoaded); Assert.AreEqual(child.Id,children.Result.Single().Id);
+        var missing=await provider.LoadHolonByCustomKeyAsync("absent-custom-key"); Assert.IsTrue(missing.IsError); Assert.IsInstanceOfType(missing.Exception,typeof(KeyNotFoundException));
+        var blank=await provider.LoadHolonsForParentByCustomKeyAsync(" "); Assert.IsTrue(blank.IsError); Assert.IsInstanceOfType(blank.Exception,typeof(ArgumentException));
+        var history=await provider.LoadHolonByCustomKeyAsync(customKey,version:1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        Assert.IsFalse((await provider.SaveHolonAsync(new CoreHolon { Id=Guid.NewGuid(),MetaData=new Dictionary<string,object> { ["CustomKey"]=customKey } },saveChildren:false)).IsError);
+        var duplicate=synchronous ? provider.LoadHolonByCustomKey(customKey) : await provider.LoadHolonByCustomKeyAsync(customKey);
+        Assert.IsTrue(duplicate.IsError); Assert.IsNull(duplicate.Result); Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,duplicate.ErrorCode);
+        var duplicateParent=synchronous ? provider.LoadHolonsForParentByCustomKey(customKey) : await provider.LoadHolonsForParentByCustomKeyAsync(customKey);
+        Assert.IsTrue(duplicateParent.IsError); Assert.IsNull(duplicateParent.Result); Assert.IsFalse(duplicateParent.IsLoaded);
+        Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,duplicateParent.ErrorCode);
+        Assert.IsInstanceOfType(duplicateParent.Exception,typeof(StorageIdentityAmbiguousException));
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeSearchFiltersStoredRecordsAndPreservesReadFailures(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var owner=Guid.NewGuid();
+        var root=new CoreHolon { Id=Guid.NewGuid(),Name="forest guardian",Version=7,CreatedByAvatarId=owner,CreatedDate=new DateTime(2026,1,1),MetaData=new Dictionary<string,object> { ["Region"]="park" } };
+        var child=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="forest seed",Version=2,CreatedDate=new DateTime(2020,1,1) };
+        foreach(var row in new[] {root,child}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username="forest friend",CreatedDate=new DateTime(2020,1,1) })).IsError);
+        SearchParams Query(params ISearchGroupBase[] groups)=>new SearchParams { SearchOnlyForCurrentAvatar=false,SearchGroups=groups.ToList() };
+        async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults>> Run(SearchParams query,int version=0)
+            => synchronous ? provider.Search(query,loadChildren:false,version:version) : await provider.SearchAsync(query,loadChildren:false,version:version);
+        var text=new SearchTextGroup { SearchQuery="guardian",SearchHolons=true,HolonType=HolonType.All };
+        var found=await Run(Query(text)); Assert.IsFalse(found.IsError,found.Message); Assert.IsTrue(found.IsLoaded);
+        Assert.AreEqual(root.Id,found.Result.SearchResultHolons.Single().Id); Assert.AreEqual(0,found.Result.SearchResultAvatars.Count);
+        var both=await Run(Query(new SearchTextGroup { SearchQuery="forest",HolonType=HolonType.All }));
+        Assert.IsFalse(both.IsError,both.Message); Assert.AreEqual(3,both.Result.NumberOfResults);
+        var number=new SearchNumberGroup { Number=5,NumberOperator=SearchOperatorType.GreaterThan,SearchHolons=true,HolonType=HolonType.All,PreviousSearchGroupOperator=SearchParamGroupOperator.And };
+        var combined=await Run(Query(new SearchTextGroup { SearchQuery="forest",SearchHolons=true,HolonType=HolonType.All },number));
+        Assert.IsFalse(combined.IsError,combined.Message); Assert.AreEqual(root.Id,combined.Result.SearchResultHolons.Single().Id);
+        var date=await Run(Query(new SearchDateGroup { Date=new DateTime(2025,1,1),DateOperator=SearchOperatorType.GreaterThan,SearchHolons=true,HolonType=HolonType.All }));
+        Assert.IsFalse(date.IsError,date.Message); Assert.AreEqual(root.Id,date.Result.SearchResultHolons.Single().Id);
+        var owned=Query(); owned.SearchOnlyForCurrentAvatar=true; owned.AvatarId=owner;
+        Assert.AreEqual(root.Id,(await Run(owned)).Result.SearchResultHolons.Single().Id);
+        var parent=Query(); parent.ParentId=root.Id; Assert.AreEqual(child.Id,(await Run(parent)).Result.SearchResultHolons.Single().Id);
+        var metadata=Query(); metadata.FilterByMetaData=new Dictionary<string,string> { ["Region"]="park" };
+        Assert.AreEqual(root.Id,(await Run(metadata)).Result.SearchResultHolons.Single().Id);
+        var history=await Run(Query(text),1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        var invalid=await Run(Query(new SearchTextGroup { SearchQuery=" " })); Assert.IsTrue(invalid.IsError); Assert.IsNull(invalid.Result);
+        var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(child.Id.ToString()),child.Id.ToString(),"corrupt payload");
+        var corrupt=await Run(Query(text)); Assert.IsTrue(corrupt.IsError); Assert.IsNull(corrupt.Result); Assert.IsFalse(corrupt.IsLoaded); Assert.IsNotNull(corrupt.Exception);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeSearchIsolatesTargetsAndHonorsParentGuidSearch(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var parent=Guid.NewGuid();
+        var row=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=parent,Name="targeted holon" };
+        var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username="targeted avatar" };
+        Assert.IsFalse((await provider.SaveHolonAsync(row)).IsError); Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults>> Run(SearchTextGroup group)
+        {
+            var query=new SearchParams { SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group} };
+            return synchronous ? provider.Search(query,loadChildren:false) : await provider.SearchAsync(query,loadChildren:false);
+        }
+        var idGroup=new SearchTextGroup { SearchQuery=parent.ToString(),SearchHolons=true,SearchIds=false,HolonType=HolonType.All };
+        var noIds=await Run(idGroup); Assert.IsFalse(noIds.IsError,noIds.Message); Assert.AreEqual(0,noIds.Result.NumberOfResults);
+        idGroup.SearchIds=true;
+        var ids=await Run(idGroup); Assert.IsFalse(ids.IsError,ids.Message); Assert.AreEqual(row.Id,ids.Result.SearchResultHolons.Single().Id);
+        var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(avatar.Id.ToString()),avatar.Id.ToString(),"corrupt avatar");
+        var holons=await Run(new SearchTextGroup { SearchQuery="targeted",SearchHolons=true,HolonType=HolonType.All });
+        Assert.IsFalse(holons.IsError,holons.Message); Assert.AreEqual(row.Id,holons.Result.SearchResultHolons.Single().Id);
+        var avatars=await Run(new SearchTextGroup { SearchQuery="targeted",SearchAvatars=true,HolonType=HolonType.All });
+        Assert.IsTrue(avatars.IsError); Assert.IsNull(avatars.Result); Assert.IsNotNull(avatars.Exception);
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(row.Id.ToString()),row.Id.ToString(),"corrupt holon");
+        var isolated=await Run(new SearchTextGroup { SearchQuery="targeted",SearchAvatars=true,HolonType=HolonType.All });
+        Assert.IsFalse(isolated.IsError,isolated.Message); Assert.AreEqual(avatar.Id,isolated.Result.SearchResultAvatars.Single().Id);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeSearchComparisonAndFieldSelectionMatrix(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var first=new CoreHolon { Id=Guid.NewGuid(),Name="amber",Description="hidden",Version=4,HolonType=HolonType.Park,CreatedDate=new DateTime(2024,1,1),MetaData=new Dictionary<string,object> { ["tag"]="markerA" } };
+        var second=new CoreHolon { Id=Guid.NewGuid(),Name="blue",Description="amber",Version=7,HolonType=HolonType.Quest,CreatedDate=new DateTime(2027,1,1) };
+        foreach(var row in new[] {first,second}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        async Task<List<IHolon>> Run(params ISearchGroupBase[] groups)
+        {
+            var query=new SearchParams { SearchOnlyForCurrentAvatar=false,SearchGroups=groups.ToList() };
+            var result=synchronous ? provider.Search(query,loadChildren:false) : await provider.SearchAsync(query,loadChildren:false);
+            Assert.IsFalse(result.IsError,result.Message); return result.Result.SearchResultHolons;
+        }
+        SearchTextGroup Text(string value,SearchHolonParams fields,HolonType type=HolonType.All)=>new SearchTextGroup {
+            SearchQuery=value,SearchHolons=true,HolonType=type,HolonSearchParams=fields };
+        Assert.AreEqual(first.Id,(await Run(Text("amber",new SearchHolonParams { Name=true }))).Single().Id);
+        Assert.AreEqual(second.Id,(await Run(Text("amber",new SearchHolonParams { Description=true }))).Single().Id);
+        Assert.AreEqual(first.Id,(await Run(Text("amber",new SearchHolonParams { Name=true,Description=true },HolonType.Park))).Single().Id);
+        Assert.AreEqual(first.Id,(await Run(Text("markerA",new SearchHolonParams { MetaData=true,MetaDataKey="tag" }))).Single().Id);
+        Assert.AreEqual(0,(await Run(Text("markerA",new SearchHolonParams { MetaData=true,MetaDataKey="absent" }))).Count);
+        var firstGroup=Text("amber",new SearchHolonParams { Name=true });
+        var secondGroup=Text("blue",new SearchHolonParams { Name=true });
+        secondGroup.PreviousSearchGroupOperator=SearchParamGroupOperator.Or;
+        Assert.AreEqual(2,(await Run(firstGroup,secondGroup)).Count);
+        secondGroup.PreviousSearchGroupOperator=SearchParamGroupOperator.And;
+        Assert.AreEqual(0,(await Run(firstGroup,secondGroup)).Count);
+        foreach(var pair in new[] {(SearchOperatorType.LessThan,0),(SearchOperatorType.LessThanOrEqualTo,1),(SearchOperatorType.EqualTo,1),
+            (SearchOperatorType.NotEqualTo,1),(SearchOperatorType.GreaterThan,1),(SearchOperatorType.GreaterThanOrEqualTo,2)})
+        {
+            Assert.AreEqual(pair.Item2,(await Run(new SearchNumberGroup { Number=4,NumberOperator=pair.Item1,SearchHolons=true,HolonType=HolonType.All,HolonSearchParams=new SearchHolonParams { Version=true } })).Count,"number "+pair.Item1);
+            Assert.AreEqual(pair.Item2,(await Run(new SearchDateGroup { Date=first.CreatedDate,DateOperator=pair.Item1,SearchHolons=true,HolonType=HolonType.All,HolonSearchParams=new SearchHolonParams { CreatedDate=true } })).Count,"date "+pair.Item1);
+        }
+        var keyGroup=Text(first.Id.ToString(),new SearchHolonParams()); keyGroup.SearchProviderKeys=true;
+        Assert.AreEqual(first.Id,(await Run(keyGroup)).Single().Id);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task AllFieldsSearchIncludesStructuredValuesButExcludesNestedCredentials(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var secretGuid=Guid.NewGuid();
+        var holon=new CoreHolon { Id=Guid.NewGuid(),MetaData=new Dictionary<string,object> { ["nested"]=new Dictionary<string,object> {
+            ["public"]="deep-public-marker",["pRiVaTeKeY"]="deep-secret-marker",["ResetToken"]=secretGuid.ToString() } } };
+        var verified=new DateTime(2024,7,8,9,10,11,DateTimeKind.Utc);
+        var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username="verified fixture",Password="password-secret-marker",Verified=verified };
+        Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        async Task<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults> Run(ISearchGroupBase group)
+        {
+            var query=new SearchParams { SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group} };
+            var result=synchronous ? provider.Search(query,loadChildren:false) : await provider.SearchAsync(query,loadChildren:false);
+            Assert.IsFalse(result.IsError,result.Message); return result.Result;
+        }
+        SearchTextGroup Text(string value,bool avatars=false)=>new SearchTextGroup { SearchQuery=value,HolonType=HolonType.All,
+            SearchHolons=!avatars,SearchAvatars=avatars,HolonSearchParams=new SearchHolonParams { SearchAllFields=true },
+            AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { SearchAllFields=true } };
+        Assert.AreEqual(holon.Id,(await Run(Text("deep-public-marker"))).SearchResultHolons.Single().Id);
+        Assert.AreEqual(0,(await Run(Text("deep-secret-marker"))).NumberOfResults);
+        Assert.AreEqual(0,(await Run(Text("password-secret-marker",true))).NumberOfResults);
+        var idQuery=Text(secretGuid.ToString()); idQuery.SearchIds=true;
+        Assert.AreEqual(0,(await Run(idQuery)).NumberOfResults);
+        var culture=System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture=System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+            var date=new SearchDateGroup { Date=verified,DateOperator=SearchOperatorType.EqualTo,SearchAvatars=true,HolonType=HolonType.All,
+                AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { VerifiedDate=true } };
+            Assert.AreEqual(avatar.Id,(await Run(date)).SearchResultAvatars.Single().Id);
+        }
+        finally { System.Globalization.CultureInfo.CurrentCulture=culture; }
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task GraphSaveSelectsNativeRowsBeforeSubmitting(bool synchronous,bool bulk)
+    {
+        foreach(var option in new[] {(false,true,0,0,1),(true,false,0,0,2),(true,true,1,0,2),(true,true,0,0,3),(true,true,1,1,1)})
+        {
+            if(!bulk && option.Item4 != 0) continue;
+            var (provider,address)=await CreateActivatedProviderAsync();
+            var root=new CoreHolon { Name="planned root" };
+            var child=new CoreHolon { Name="planned child" };
+            var grandchild=new CoreHolon { Name="planned grandchild" };
+            child.Children.Add(grandchild); root.Children.Add(child);
+            if(bulk)
+            {
+                var saved=synchronous ? provider.SaveHolons(new[] {root},option.Item1,option.Item2,option.Item3,option.Item4)
+                    : await provider.SaveHolonsAsync(new[] {root},option.Item1,option.Item2,option.Item3,option.Item4);
+                Assert.IsFalse(saved.IsError,saved.Message); Assert.IsTrue(saved.IsSaved); Assert.AreEqual(1,saved.Result.Count());
+            }
+            else
+            {
+                var saved=synchronous ? provider.SaveHolon(root,option.Item1,option.Item2,option.Item3)
+                    : await provider.SaveHolonAsync(root,option.Item1,option.Item2,option.Item3);
+                Assert.IsFalse(saved.IsError,saved.Message); Assert.IsTrue(saved.IsSaved); Assert.AreEqual(root.Id,saved.Result.Id);
+                Assert.AreEqual(root.Id.ToString(),saved.Result.ProviderUniqueStorageKey[ProviderType.EthereumOASIS]);
+            }
+            Assert.AreNotEqual(Guid.Empty,root.Id);
+            var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+            Assert.AreEqual(new BigInteger(option.Item5),await service.GetHolonsCountQueryAsync());
+            var loaded=await provider.LoadHolonAsync(root.Id);
+            Assert.IsFalse(loaded.IsError,loaded.Message); Assert.AreEqual(option.Item5>1?1:0,loaded.Result.Children.Count);
+            if(option.Item5>1)
+            {
+                Assert.AreNotEqual(Guid.Empty,child.Id); Assert.AreEqual(root.Id,child.ParentHolonId);
+                Assert.AreEqual(option.Item5>2?1:0,loaded.Result.Children.Single().Children.Count);
+                Assert.AreEqual(root.Id,(await provider.LoadHolonAsync(child.Id)).Result.ParentHolonId);
+            }
+            else Assert.AreEqual(Guid.Empty,child.Id,"Unselected subtree must not be traversed or allocated");
+            if(option.Item5>2) { Assert.AreNotEqual(Guid.Empty,grandchild.Id); Assert.AreEqual(child.Id,grandchild.ParentHolonId); }
+            else Assert.AreEqual(Guid.Empty,grandchild.Id);
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task InvalidSelectedGraphsSubmitNoNativeTransactions(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var web3=new Web3(new Account(PrivateKey,ChainId),Host);
+        var before=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address);
+        var cycle=new CoreHolon { Id=Guid.NewGuid() }; cycle.Children.Add(cycle);
+        var duplicate=Guid.NewGuid();
+        var conflict=new CoreHolon { Id=Guid.NewGuid() }; conflict.Children.Add(new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=Guid.NewGuid() });
+        foreach(var roots in new IEnumerable<IHolon>[] {new[] {cycle},new[] {new CoreHolon {Id=duplicate},new CoreHolon {Id=duplicate}},new[] {conflict},new IHolon[] {new CoreHolon {Id=Guid.NewGuid()},null!},
+            new[] {new CoreHolon {Id=Guid.Parse("00005f42-0000-0000-0000-000000000000")},new CoreHolon {Id=Guid.Parse("00017b6d-0000-0000-0000-000000000000")}}})
+        {
+            var result=synchronous ? provider.SaveHolons(roots) : await provider.SaveHolonsAsync(roots);
+            Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsSaved); Assert.IsNull(result.Result);
+            Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode); Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
+        }
+        var after=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address);
+        Assert.AreEqual(before.Value,after.Value);
+        Assert.AreEqual(BigInteger.Zero,await new NextGenSoftwareOASISService(web3,address).GetHolonsCountQueryAsync());
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task FailedGraphPlanningDoesNotPublishAllocatedIdsOrParentLinks(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var account=new Account(PrivateKey,ChainId);
+        var web3=new Web3(account,Host);
+        var before=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        var root=new CoreHolon(); var child=new CoreHolon(); root.Children.Add(child); root.Children.Add(null!);
+        var invalid=synchronous ? provider.SaveHolon(root) : await provider.SaveHolonAsync(root);
+        Assert.IsTrue(invalid.IsError); Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalid.ErrorCode);
+        Assert.AreEqual(Guid.Empty,root.Id); Assert.AreEqual(Guid.Empty,child.Id); Assert.AreEqual(Guid.Empty,child.ParentHolonId);
+        root.Children.RemoveAt(1);
+        var key=Environment.GetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY");
+        try
+        {
+            Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",null);
+            var missingKey=synchronous ? provider.SaveHolon(root) : await provider.SaveHolonAsync(root);
+            Assert.IsTrue(missingKey.IsError); Assert.IsFalse(missingKey.IsSaved); Assert.IsNull(missingKey.Result);
+            Assert.AreEqual(Guid.Empty,root.Id); Assert.AreEqual(Guid.Empty,child.Id); Assert.AreEqual(Guid.Empty,child.ParentHolonId);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",key); }
+        var after=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        Assert.AreEqual(before.Value,after.Value);
+        Assert.AreEqual(BigInteger.Zero,await new NextGenSoftwareOASISService(web3,address).GetHolonsCountQueryAsync());
+        // The same input can be repaired and saved without retaining phantom allocations.
+        var saved=synchronous ? provider.SaveHolon(root) : await provider.SaveHolonAsync(root);
+        Assert.IsFalse(saved.IsError,saved.Message); Assert.IsTrue(saved.IsSaved);
+        Assert.AreNotEqual(Guid.Empty,root.Id); Assert.AreNotEqual(Guid.Empty,child.Id); Assert.AreEqual(root.Id,child.ParentHolonId);
+        Assert.AreEqual(child.Id,saved.Result.Children.Single().Id);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task PlannedChildCachesAreConsistentWithoutErasingManagerReferences(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var stale=Guid.NewGuid();
+        var root=new CoreHolon { ChildIdListCache=stale.ToString(),AllChildIdListCache=stale.ToString(),ChildrenIds=new List<Guid> {stale} };
+        var child=new CoreHolon(); var grandchild=new CoreHolon(); root.Children.Add(child); child.Children.Add(grandchild);
+        var saved=synchronous ? provider.SaveHolon(root,saveChildren:true) : await provider.SaveHolonAsync(root,saveChildren:true);
+        Assert.IsFalse(saved.IsError,saved.Message);
+        var loaded=await provider.LoadHolonAsync(root.Id);
+        Assert.IsFalse(loaded.IsError,loaded.Message);
+        Assert.AreEqual(child.Id.ToString(),loaded.Result.ChildIdListCache);
+        Assert.AreEqual(child.Id+","+grandchild.Id,loaded.Result.AllChildIdListCache);
+        Assert.AreEqual(grandchild.Id.ToString(),loaded.Result.Children.Single().ChildIdListCache);
+        CollectionAssert.AreEqual(new[] {child.Id},((CoreHolon)loaded.Result).ChildrenIds.ToArray());
+        var managerReference=Guid.NewGuid();
+        var managerRoot=new CoreHolon { Id=Guid.NewGuid(),ChildIdListCache=managerReference.ToString(),AllChildIdListCache=managerReference.ToString(),ChildrenIds=new List<Guid> {managerReference} };
+        var separate=synchronous ? provider.SaveHolon(managerRoot,saveChildren:false) : await provider.SaveHolonAsync(managerRoot,saveChildren:false);
+        Assert.IsFalse(separate.IsError,separate.Message);
+        var referenced=await provider.LoadHolonAsync(managerRoot.Id);
+        Assert.AreEqual(0,referenced.Result.Children.Count);
+        Assert.AreEqual(managerReference.ToString(),referenced.Result.ChildIdListCache);
+        Assert.AreEqual(managerReference.ToString(),referenced.Result.AllChildIdListCache);
+        CollectionAssert.AreEqual(new[] {managerReference},((CoreHolon)referenced.Result).ChildrenIds.ToArray());
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task V2GraphsReplicateBalanceAndRejectInvalidInputWithoutBackupWrites(bool synchronous)
+    {
+        var (ethereum,address)=await CreateActivatedProviderAsync();
+        var path=Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON"))!,"v2-graph.db");
+        if(File.Exists(path)) throw new InvalidOperationException("Existing graph fixture requires inspection.");
+        using var sqlite=new SQLiteProvider($"Data Source={path};Pooling=False");
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            var dna=new OASISDNA { OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings() } };
+            dna.OASIS.SubscriptionConfig.PlanType="Gold";
+            var stores=new[] {new EnumValue<ProviderType>(ProviderType.EthereumOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
+            var manager=new ProviderManager(null,dna) { IsAutoReplicationEnabled=true };
+            manager.RegisterProvider(ethereum); manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(stores).IsError);
+            var router=new OASISHyperDrive(manager);
+            CoreHolon? selected=null;
+            foreach(var primary in new[] {ProviderType.EthereumOASIS,ProviderType.SQLLiteDBOASIS})
+            {
+                var root=new CoreHolon {Id=Guid.NewGuid(),Name="replicated graph "+primary};
+                var child=new CoreHolon {Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="replicated child"};
+                var grandchild=new CoreHolon {Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="replicated grandchild"};
+                root.Children.Add(child); child.Children.Add(grandchild); selected=root;
+                var request=new StorageOperationRequest {Operation="SaveHolon",Payload=root,SaveChildren=true,PreferredProvider=primary};
+                var saved=synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+                Assert.IsFalse(saved.IsError,saved.Message); Assert.IsFalse(saved.IsWarning,saved.Message);
+                foreach(var store in new IOASISStorageProvider[] {ethereum,sqlite})
+                {
+                    var read=await store.LoadHolonAsync(root.Id,loadChildrenFromProvider:true);
+                    Assert.IsFalse(read.IsError,read.Message);
+                    Assert.AreEqual(child.Id,read.Result.Children.Single().Id);
+                    Assert.AreEqual(grandchild.Id,read.Result.Children.Single().Children.Single().Id);
+                    foreach(var node in new[] {root,child,grandchild})
+                    {
+                        var independent=await store.LoadHolonAsync(node.Id,loadChildren:false);
+                        Assert.IsFalse(independent.IsError,independent.Message); Assert.AreEqual(node.Name,independent.Result.Name);
+                    }
+                }
+            }
+            var balancing=new ProviderManager(null,dna) { IsAutoLoadBalanceEnabled=true };
+            balancing.RegisterProvider(ethereum); balancing.RegisterProvider(sqlite);
+            Assert.IsFalse(balancing.SetAndReplaceAutoLoadBalanceListForProviders(stores).IsError);
+            var balanced=new OASISHyperDrive(balancing);
+            for(var index=0;index<6;index++)
+            {
+                var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=selected!.Id,LoadChildren=true,ChildrenFromProvider=true};
+                var read=synchronous ? balanced.RouteRequest<IHolon>(request,LoadBalancingStrategy.RoundRobin) : await balanced.RouteRequestAsync<IHolon>(request,LoadBalancingStrategy.RoundRobin);
+                Assert.IsFalse(read.IsError,read.Message); Assert.AreEqual(selected.Children.Single().Children.Single().Id,read.Result.Children.Single().Children.Single().Id);
+            }
+            Assert.AreEqual(3L,balancing.PerformanceMonitor.GetMetrics(ProviderType.EthereumOASIS).TotalRequests);
+            Assert.AreEqual(3L,balancing.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+            var invalidRoot=new CoreHolon {Id=Guid.NewGuid()};
+            var invalidChild=new CoreHolon {Id=Guid.NewGuid(),ParentHolonId=Guid.NewGuid()}; invalidRoot.Children.Add(invalidChild);
+            var failover=new ProviderManager(null,dna) { IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true };
+            failover.RegisterProvider(ethereum); failover.RegisterProvider(sqlite);
+            Assert.IsFalse(failover.SetAndReplaceAutoFailOverListForProviders(stores).IsError);
+            Assert.IsFalse(failover.SetAndReplaceAutoReplicationListForProviders(stores).IsError);
+            var native=new Web3(new Account(PrivateKey,ChainId),Host);
+            var before=await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address);
+            var rejected=new StorageOperationRequest {Operation="SaveHolon",Payload=invalidRoot,SaveChildren=true,PreferredProvider=ProviderType.EthereumOASIS};
+            var fenced=synchronous ? new OASISHyperDrive(failover).RouteRequest<IHolon>(rejected) : await new OASISHyperDrive(failover).RouteRequestAsync<IHolon>(rejected);
+            Assert.IsTrue(fenced.IsError); Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",fenced.ErrorCode);
+            Assert.AreEqual(0L,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0L);
+            Assert.AreEqual(before.Value,(await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address)).Value);
+            Assert.IsNull((await sqlite.LoadHolonAsync(invalidRoot.Id,loadChildren:false)).Result);
+            Assert.IsNull((await sqlite.LoadHolonAsync(invalidChild.Id,loadChildren:false)).Result);
+            var unavailable=new EthereumOASIS("http://127.0.0.1:18546",PrivateKey,ChainId,address);
+            var outage=new ProviderManager(null,dna) { IsAutoFailOverEnabled=true };
+            outage.RegisterProvider(unavailable); outage.RegisterProvider(sqlite);
+            Assert.IsFalse(outage.SetAndReplaceAutoFailOverListForProviders(stores).IsError);
+            var recoveredRoot=new CoreHolon {Id=Guid.NewGuid(),Name="outage graph root"};
+            var recoveredChild=new CoreHolon {Id=Guid.NewGuid(),ParentHolonId=recoveredRoot.Id,Name="outage graph child"};
+            recoveredRoot.Children.Add(recoveredChild);
+            var recoveryRequest=new StorageOperationRequest {Operation="SaveHolon",Payload=recoveredRoot,SaveChildren=true,PreferredProvider=ProviderType.EthereumOASIS};
+            var recoveryRouter=new OASISHyperDrive(outage);
+            var recovery=synchronous ? recoveryRouter.RouteRequest<IHolon>(recoveryRequest) : await recoveryRouter.RouteRequestAsync<IHolon>(recoveryRequest);
+            Assert.IsFalse(recovery.IsError,recovery.Message);
+            var recovered=await sqlite.LoadHolonAsync(recoveredRoot.Id,loadChildrenFromProvider:true);
+            Assert.IsFalse(recovered.IsError,recovered.Message); Assert.AreEqual(recoveredChild.Id,recovered.Result.Children.Single().Id);
+            Assert.AreEqual(recoveredChild.Name,(await sqlite.LoadHolonAsync(recoveredChild.Id,loadChildren:false)).Result.Name);
+            Assert.IsNull((await ethereum.LoadHolonAsync(recoveredRoot.Id,loadChildren:false)).Result);
+            Assert.IsNull((await ethereum.LoadHolonAsync(recoveredChild.Id,loadChildren:false)).Result);
+            Assert.AreEqual(1L,outage.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+            Assert.AreEqual(before.Value,(await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address)).Value);
+        }
+        finally { sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync(); }
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task DefaultAvatarDeletionRetainsEncryptedRecordsAndRejectsStaleUpdates(bool synchronous,bool withDetail)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var id=Guid.NewGuid();
+        var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="retained soft avatar",Email="retained@example.invalid",IsActive=true};
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        if(withDetail) Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,Username=avatar.Username,XP=91,Karma=37,IsActive=true})).IsError);
+        var native=new Web3(new Account(PrivateKey,ChainId),Host);
+        var service=new NextGenSoftwareOASISService(native,address);
+        var key=NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(id.ToString());
+        var oldInfo=(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info;
+        var oldDetail=withDetail ? (await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info : string.Empty;
+        var deleted=synchronous ? provider.DeleteAvatar(id) : await provider.DeleteAvatarAsync(id);
+        Assert.IsFalse(deleted.IsError,deleted.Message); Assert.IsTrue(deleted.Result); Assert.IsTrue(deleted.IsDeleted);
+        Assert.AreEqual(BigInteger.One,await service.GetAvatarsCountQueryAsync());
+        var loaded=await provider.LoadAvatarAsync(id); Assert.IsFalse(loaded.IsError,loaded.Message);
+        Assert.AreEqual(avatar.Username,loaded.Result.Username); Assert.AreEqual(avatar.Email,loaded.Result.Email);
+        Assert.AreNotEqual(DateTime.MinValue,loaded.Result.DeletedDate); Assert.IsFalse(loaded.Result.IsActive);
+        if(withDetail)
+        {
+            var detail=await provider.LoadAvatarDetailAsync(id); Assert.IsFalse(detail.IsError,detail.Message);
+            Assert.AreEqual(91L,Convert.ToInt64(detail.Result.XP)); Assert.AreEqual(37L,Convert.ToInt64(detail.Result.Karma));
+            Assert.AreEqual(loaded.Result.DeletedDate,detail.Result.DeletedDate); Assert.IsFalse(detail.Result.IsActive);
+            Assert.AreEqual(BigInteger.One,await service.GetAvatarDetailsCountQueryAsync());
+        }
+        var current=(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info;
+        StringAssert.StartsWith(current,"oasis-aes256gcm-gzip-v2:"); Assert.AreNotEqual(oldInfo,current);
+        var stale=new UpdateAvatarPairByIdentityFunction {EntityId=key,AvatarId=id.ToString(),
+            ExpectedAvatarHash=Nethereum.Util.Sha3Keccack.Current.CalculateHash(System.Text.Encoding.UTF8.GetBytes(oldInfo)),AvatarInfo=oldInfo,
+            ExpectedDetailHash=withDetail ? Nethereum.Util.Sha3Keccack.Current.CalculateHash(System.Text.Encoding.UTF8.GetBytes(oldDetail)) : new byte[32],DetailInfo=oldDetail};
+        Exception? conflict=null;
+        try { await native.Eth.GetContractHandler(address).SendRequestAndWaitForReceiptAsync(stale); } catch(Exception error) {conflict=error;}
+        Assert.IsNotNull(conflict); StringAssert.Contains(conflict!.ToString(),"OASIS avatar changed");
+        Assert.AreEqual(current,(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info);
+        if(!withDetail) Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,Username="concurrently created detail"})).IsError);
+        var currentDetail=(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info;
+        stale.ExpectedAvatarHash=Nethereum.Util.Sha3Keccack.Current.CalculateHash(System.Text.Encoding.UTF8.GetBytes(current));
+        conflict=null;
+        try { await native.Eth.GetContractHandler(address).SendRequestAndWaitForReceiptAsync(stale); } catch(Exception error) {conflict=error;}
+        Assert.IsNotNull(conflict); StringAssert.Contains(conflict!.ToString(),"OASIS avatar detail changed");
+        Assert.AreEqual(current,(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info);
+        Assert.AreEqual(currentDetail,(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info);
+        var repeated=synchronous ? provider.DeleteAvatar(id) : await provider.DeleteAvatarAsync(id);
+        Assert.IsTrue(repeated.IsError); Assert.IsFalse(repeated.Result);
+        Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,repeated.ErrorCode);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SoftDeletePreflightFailuresLeaveBothCiphertextsAndNonceUnchanged(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var id=Guid.Parse("00005f42-0000-0000-0000-000000000000");
+        var other=Guid.Parse("00017b6d-0000-0000-0000-000000000000");
+        var account=new Account(PrivateKey,ChainId);
+        var web3=new Web3(account,Host);
+        var service=new NextGenSoftwareOASISService(web3,address);
+        var key=NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(id.ToString());
+        Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="protected avatar",IsActive=true})).IsError);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,XP=101,Karma=202})).IsError);
+        var originalAvatar=(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info;
+        var originalDetail=(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info;
+        var before=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        var collision=synchronous ? provider.DeleteAvatar(other) : await provider.DeleteAvatarAsync(other);
+        Assert.IsTrue(collision.IsError); Assert.IsFalse(collision.Result); Assert.IsInstanceOfType(collision.Exception,typeof(InvalidDataException));
+        var secret=Environment.GetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY");
+        try
+        {
+            Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",null);
+            var missing=synchronous ? provider.DeleteAvatar(id) : await provider.DeleteAvatarAsync(id);
+            Assert.IsTrue(missing.IsError); Assert.IsFalse(missing.Result); Assert.IsFalse(missing.IsDeleted);
+            Assert.IsNotNull(missing.Exception);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",secret); }
+        Assert.AreEqual(before.Value,(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address)).Value);
+        Assert.AreEqual(originalAvatar,(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info);
+        Assert.AreEqual(originalDetail,(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info);
+        // A detail belonging to the colliding OTHER identity must not be touched either.
+        await service.DeleteAvatarDetailRequestAndWaitForReceiptAsync(key);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=other,XP=303})).IsError);
+        var otherDetail=(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info;
+        before=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        var wrongDetail=synchronous ? provider.DeleteAvatar(id) : await provider.DeleteAvatarAsync(id);
+        Assert.IsTrue(wrongDetail.IsError); Assert.IsFalse(wrongDetail.Result); Assert.IsInstanceOfType(wrongDetail.Exception,typeof(InvalidDataException));
+        Assert.AreEqual(before.Value,(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address)).Value);
+        Assert.AreEqual(originalAvatar,(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info);
+        Assert.AreEqual(otherDetail,(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info);
+        Assert.AreEqual(DateTime.MinValue,(await provider.LoadAvatarAsync(id)).Result.DeletedDate);
+        Assert.AreEqual(303L,Convert.ToInt64((await provider.LoadAvatarDetailAsync(other)).Result.XP));
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task V2SoftDeletePropagatesExactCommittedState(bool synchronous)
+    {
+        var (ethereum,_) = await CreateActivatedProviderAsync();
+        var path=Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON"))!,"v2-soft-delete.db");
+        if(File.Exists(path)) throw new InvalidOperationException("Existing deletion fixture requires inspection.");
+        using var sqlite=new SQLiteProvider($"Data Source={path};Pooling=False");
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            var dna=new OASISDNA { OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings() } };
+            dna.OASIS.SubscriptionConfig.PlanType="Gold";
+            var manager=new ProviderManager(null,dna) { IsAutoReplicationEnabled=true };
+            manager.RegisterProvider(ethereum); manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.EthereumOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)}).IsError);
+            var router=new OASISHyperDrive(manager);
+            foreach(var primary in new[] {ProviderType.EthereumOASIS,ProviderType.SQLLiteDBOASIS})
+            {
+                var id=Guid.NewGuid(); var actor=Guid.NewGuid();
+                var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="v2 deletion fixture",Email="delete@example.invalid",IsActive=true,DeletedByAvatarId=actor,AvatarType=new EnumValue<AvatarType>(AvatarType.User)};
+                var detail=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,Username=avatar.Username,XP=57,Karma=29,IsActive=true};
+                foreach(var store in new IOASISStorageProvider[] {ethereum,sqlite})
+                {
+                    var saved=await store.SaveAvatarAsync(avatar); Assert.IsFalse(saved.IsError,saved.Message);
+                    var savedDetail=await store.SaveAvatarDetailAsync(detail); Assert.IsFalse(savedDetail.IsError,savedDetail.Message);
+                }
+                var request=new StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=primary};
+                var deleted=synchronous ? router.RouteRequest<bool>(request) : await router.RouteRequestAsync<bool>(request);
+                Assert.IsFalse(deleted.IsError,deleted.Message); Assert.IsFalse(deleted.IsWarning,deleted.Message); Assert.IsTrue(deleted.Result);
+                var nativeAvatar=(await ethereum.LoadAvatarAsync(id)).Result;
+                var backupAvatar=(await sqlite.LoadAvatarAsync(id)).Result;
+                var nativeDetail=(await ethereum.LoadAvatarDetailAsync(id)).Result;
+                var backupDetail=(await sqlite.LoadAvatarDetailAsync(id)).Result;
+                foreach(var stored in new[] {nativeAvatar,backupAvatar})
+                {
+                    Assert.IsNotNull(stored); Assert.AreNotEqual(DateTime.MinValue,stored.DeletedDate); Assert.AreEqual(avatar.Email,stored.Email);
+                    Assert.IsFalse(stored.IsActive);
+                }
+                foreach(var stored in new[] {nativeDetail,backupDetail})
+                {
+                    Assert.IsNotNull(stored); Assert.AreNotEqual(DateTime.MinValue,stored.DeletedDate);
+                    Assert.AreEqual(57L,Convert.ToInt64(stored.XP)); Assert.AreEqual(29L,Convert.ToInt64(stored.Karma));
+                    Assert.IsFalse(stored.IsActive);
+                }
+                Assert.AreEqual(nativeAvatar.DeletedDate,nativeDetail.DeletedDate);
+                Assert.AreEqual(backupAvatar.DeletedDate,backupDetail.DeletedDate);
+                Assert.AreEqual(nativeAvatar.DeletedDate,backupAvatar.DeletedDate);
+                Assert.AreEqual(actor,nativeAvatar.DeletedByAvatarId); Assert.AreEqual(actor,backupAvatar.DeletedByAvatarId);
+                Assert.AreEqual(actor,nativeDetail.DeletedByAvatarId); Assert.AreEqual(actor,backupDetail.DeletedByAvatarId);
+                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var evidence));
+                Assert.AreEqual(nativeAvatar.DeletedDate,evidence.DeletedAtUtc);
+                if(primary==ProviderType.EthereumOASIS)
+                {
+                    manager.IsAutoFailOverEnabled=true;
+                    Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.EthereumOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)}).IsError);
+                    var beforeBackup=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests;
+                    var rejected=synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request);
+                    Assert.IsTrue(rejected.IsError); Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,rejected.ErrorCode);
+                    Assert.AreEqual(beforeBackup,manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests);
+                    Assert.AreEqual(backupAvatar.DeletedDate,(await sqlite.LoadAvatarAsync(id)).Result.DeletedDate);
+                    manager.IsAutoFailOverEnabled=false;
+                }
+                Console.WriteLine($"Soft-delete state comparison primary={primary}: Ethereum avatar={nativeAvatar.DeletedDate:O} active={nativeAvatar.IsActive}, detail={nativeDetail.DeletedDate:O} active={nativeDetail.IsActive}; SQLite avatar={backupAvatar.DeletedDate:O} active={backupAvatar.IsActive}, detail={backupDetail.DeletedDate:O} active={backupDetail.IsActive}");
+            }
+        }
+        finally { sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync(); }
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task V2TombstoneReplicaFailurePreservesPrimaryAndRollsBackReplicaPair(bool synchronous)
+    {
+        var (ethereum,_) = await CreateActivatedProviderAsync();
+        var path=Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON"))!,"v2-tombstone-failure.db");
+        if(File.Exists(path)) throw new InvalidOperationException("Existing failure fixture requires inspection.");
+        using var sqlite=new SQLiteProvider($"Data Source={path};Pooling=False");
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            var id=Guid.NewGuid();
+            foreach(var store in new IOASISStorageProvider[] {ethereum,sqlite})
+            {
+                Assert.IsFalse((await store.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="replica failure",IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError);
+                Assert.IsFalse((await store.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,Username="replica failure",IsActive=true,XP=57})).IsError);
+            }
+            using var control=new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={path};Pooling=False");
+            await control.OpenAsync();
+            using(var command=control.CreateCommand())
+            {
+                command.CommandText="CREATE TRIGGER reject_tombstone BEFORE UPDATE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned tombstone failure'); END;";
+                await command.ExecuteNonQueryAsync();
+            }
+            var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings()}};
+            dna.OASIS.SubscriptionConfig.PlanType="Gold";
+            var manager=new ProviderManager(null,dna) {IsAutoReplicationEnabled=true};
+            manager.RegisterProvider(ethereum); manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.EthereumOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)}).IsError);
+            var router=new OASISHyperDrive(manager);
+            var request=new StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=ProviderType.EthereumOASIS};
+            var result=synchronous ? router.RouteRequest<bool>(request) : await router.RouteRequestAsync<bool>(request);
+            Assert.IsFalse(result.IsError,result.Message); Assert.IsTrue(result.Result); Assert.IsTrue(result.IsWarning,result.Message);
+            Assert.IsFalse((await ethereum.LoadAvatarAsync(id)).Result.IsActive);
+            Assert.IsFalse((await ethereum.LoadAvatarDetailAsync(id)).Result.IsActive);
+            var backup=(await sqlite.LoadAvatarAsync(id)).Result;
+            var detail=(await sqlite.LoadAvatarDetailAsync(id)).Result;
+            Assert.AreEqual(DateTime.MinValue,backup.DeletedDate); Assert.IsTrue(backup.IsActive);
+            Assert.AreEqual(DateTime.MinValue,detail.DeletedDate); Assert.IsTrue(detail.IsActive);
+            Assert.AreEqual(57L,Convert.ToInt64(detail.XP));
+        }
+        finally {sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync();}
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task EthereumAppliesExactCommittedTombstoneWithoutOverwritingReplicaProfile(bool synchronous)
+    {
+        var (primary,_) = await CreateActivatedProviderAsync();
+        var (replica,address)=await CreateActivatedProviderAsync();
+        var id=Guid.NewGuid(); var actor=Guid.NewGuid();
+        foreach(var provider in new[] {primary,replica})
+        {
+            Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username=provider==primary?"primary name":"replica name",IsActive=true,DeletedByAvatarId=actor})).IsError);
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,XP=provider==primary?11:22,Karma=provider==primary?33:44,IsActive=true})).IsError);
+        }
+        var deleted=synchronous ? primary.DeleteAvatar(id) : await primary.DeleteAvatarAsync(id);
+        Assert.IsFalse(deleted.IsError,deleted.Message);
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var snapshot));
+        Assert.AreEqual(id,snapshot.AvatarId); Assert.AreEqual(actor,snapshot.DeletedByAvatarId);
+        var applied=synchronous ? replica.ApplyAvatarTombstone(snapshot) : await replica.ApplyAvatarTombstoneAsync(snapshot);
+        Assert.IsFalse(applied.IsError,applied.Message); Assert.IsTrue(applied.Result); Assert.IsTrue(applied.IsSaved);
+        var profile=(await replica.LoadAvatarAsync(id)).Result; var detail=(await replica.LoadAvatarDetailAsync(id)).Result;
+        Assert.AreEqual("replica name",profile.Username); Assert.AreEqual(22L,Convert.ToInt64(detail.XP)); Assert.AreEqual(44L,Convert.ToInt64(detail.Karma));
+        Assert.AreEqual(snapshot.DeletedAtUtc,profile.DeletedDate); Assert.AreEqual(snapshot.DeletedAtUtc,detail.DeletedDate);
+        Assert.AreEqual(actor,profile.DeletedByAvatarId); Assert.AreEqual(actor,detail.DeletedByAvatarId);
+        Assert.IsFalse(profile.IsActive); Assert.IsFalse(detail.IsActive);
+        var native=new Web3(new Account(PrivateKey,ChainId),Host);
+        var signer=new Account(PrivateKey,ChainId).Address;
+        var before=await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(signer);
+        var repeated=synchronous ? replica.ApplyAvatarTombstone(snapshot) : await replica.ApplyAvatarTombstoneAsync(snapshot);
+        Assert.IsFalse(repeated.IsError,repeated.Message); Assert.IsTrue(repeated.Result); Assert.IsFalse(repeated.IsSaved);
+        var conflict=new AvatarTombstone(id,snapshot.DeletedAtUtc.AddTicks(1),actor);
+        var rejected=synchronous ? replica.ApplyAvatarTombstone(conflict) : await replica.ApplyAvatarTombstoneAsync(conflict);
+        Assert.IsTrue(rejected.IsError); Assert.IsFalse(rejected.Result);
+        Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,rejected.ErrorCode);
+        Assert.AreEqual(before.Value,(await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(signer)).Value);
+        Assert.AreEqual(snapshot.DeletedAtUtc,(await replica.LoadAvatarAsync(id)).Result.DeletedDate);
+        Assert.IsTrue((await replica.ApplyAvatarTombstoneAsync(new AvatarTombstone(Guid.NewGuid(),snapshot.DeletedAtUtc))).IsError);
+        await primary.DeActivateProviderAsync(); await replica.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(2)]
+    public async Task DeletionSelectorsRetainCommittedTombstoneEvidence(int selector)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync(); var id=Guid.NewGuid();
+        Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="selector tombstone",Email="selector@example.invalid"})).IsError);
+        var result=selector==0 ? await provider.DeleteAvatarByEmailAsync("selector@example.invalid")
+            : selector==1 ? await provider.DeleteAvatarByUsernameAsync("selector tombstone") : await provider.DeleteAvatarAsync(id.ToString());
+        Assert.IsFalse(result.IsError,result.Message);
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(result,out var snapshot)); Assert.AreEqual(id,snapshot.AvatarId);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
@@ -62,11 +1178,167 @@ public class EthereumOASISIntegrationTests
         Assert.IsFalse(saved.IsError, saved.Message);
         Assert.IsTrue(saved.IsSaved);
 
+        var nativeService = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),provider.ContractAddress);
+        var payload = (await nativeService.GetHolonByIdQueryAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(holon.Id.ToString()))).ReturnValue1.Info;
+        StringAssert.StartsWith(payload,"oasis-aes256gcm-gzip-v2:");
+        Assert.IsFalse(payload.Contains(holon.Name));
+
         var loaded = await provider.LoadHolonAsync(holon.Id);
         Assert.IsFalse(loaded.IsError, loaded.Message);
         Assert.IsNotNull(loaded.Result);
         Assert.AreEqual(holon.Id, loaded.Result.Id);
         Assert.AreEqual(holon.Name, loaded.Result.Name);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task GuidHashCollisionCannotReturnAnotherPrivateRecord(bool synchronous)
+    {
+        var storedId = Guid.Parse("00005f42-0000-0000-0000-000000000000");
+        var otherId = Guid.Parse("00017b6d-0000-0000-0000-000000000000");
+        Assert.AreNotEqual(storedId,otherId);
+        Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(storedId.ToString()),
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(otherId.ToString()));
+        var (provider, _) = await CreateActivatedProviderAsync();
+        Assert.IsFalse((await provider.SaveHolonAsync(new CoreHolon { Id=storedId,Name="collision fixture" })).IsError);
+        Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=storedId,Username="collision fixture" })).IsError);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=storedId,Username="collision fixture" })).IsError);
+        var holon = synchronous ? provider.LoadHolon(otherId) : await provider.LoadHolonAsync(otherId);
+        var avatar = synchronous ? provider.LoadAvatar(otherId) : await provider.LoadAvatarAsync(otherId);
+        var detail = synchronous ? provider.LoadAvatarDetail(otherId) : await provider.LoadAvatarDetailAsync(otherId);
+        Assert.IsTrue(holon.IsError); Assert.IsNull(holon.Result); Assert.IsFalse(holon.IsLoaded);
+        Assert.IsTrue(avatar.IsError); Assert.IsNull(avatar.Result); Assert.IsFalse(avatar.IsLoaded);
+        Assert.IsTrue(detail.IsError); Assert.IsNull(detail.Result); Assert.IsFalse(detail.IsLoaded);
+        Assert.IsInstanceOfType(holon.Exception,typeof(InvalidDataException));
+        Assert.IsInstanceOfType(avatar.Exception,typeof(InvalidDataException));
+        Assert.IsInstanceOfType(detail.Exception,typeof(InvalidDataException));
+        var deletedHolon = synchronous ? provider.DeleteHolon(otherId) : await provider.DeleteHolonAsync(otherId);
+        var deletedAvatar = synchronous ? provider.DeleteAvatar(otherId,softDelete:false) : await provider.DeleteAvatarAsync(otherId,softDelete:false);
+        Assert.IsTrue(deletedHolon.IsError); Assert.IsFalse(deletedHolon.IsDeleted); Assert.AreEqual(0,deletedHolon.DeletedCount);
+        Assert.IsTrue(deletedAvatar.IsError); Assert.IsFalse(deletedAvatar.Result);
+        StringAssert.Contains(deletedHolon.Exception.ToString(),"OASIS identity collision");
+        StringAssert.Contains(deletedAvatar.Exception.ToString(),"OASIS identity collision");
+        Assert.AreEqual(storedId,(await provider.LoadHolonAsync(storedId)).Result.Id);
+        Assert.AreEqual(storedId,(await provider.LoadAvatarAsync(storedId)).Result.Id);
+        Assert.AreEqual(storedId,(await provider.LoadAvatarDetailAsync(storedId)).Result.Id);
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),provider.ContractAddress);
+        var handler = new Web3(new Account(PrivateKey,ChainId),Host).Eth.GetContractHandler(provider.ContractAddress);
+        Exception? detailCollision = null;
+        try { await handler.SendRequestAndWaitForReceiptAsync(new DeleteAvatarDetailByIdentityFunction {
+            EntityId=NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(otherId.ToString()),Identity=otherId.ToString() }); }
+        catch(Exception error) { detailCollision=error; }
+        Assert.IsNotNull(detailCollision);
+        StringAssert.Contains(detailCollision.ToString(),"OASIS identity collision");
+        Assert.AreEqual(storedId,(await provider.LoadAvatarDetailAsync(storedId)).Result.Id);
+        var correctHolon = synchronous ? provider.DeleteHolon(storedId) : await provider.DeleteHolonAsync(storedId);
+        var correctAvatar = synchronous ? provider.DeleteAvatar(storedId,softDelete:false) : await provider.DeleteAvatarAsync(storedId,softDelete:false);
+        Assert.IsFalse(correctHolon.IsError,correctHolon.Message); Assert.IsTrue(correctHolon.IsDeleted);
+        Assert.IsFalse(correctAvatar.IsError,correctAvatar.Message); Assert.IsTrue(correctAvatar.Result);
+        Assert.AreEqual(BigInteger.Zero,await service.GetHolonsCountQueryAsync());
+        Assert.AreEqual(BigInteger.Zero,await service.GetAvatarsCountQueryAsync());
+        Assert.AreEqual(BigInteger.Zero,await service.GetAvatarDetailsCountQueryAsync(),"Hard avatar deletion must remove its detail atomically.");
+        // Independently exercise the detail-only contract operation, without relying on an orphan.
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=storedId,Username="detail-only collision fixture"})).IsError);
+        var detailReceipt = await handler.SendRequestAndWaitForReceiptAsync(new DeleteAvatarDetailByIdentityFunction {
+            EntityId=NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(storedId.ToString()),Identity=storedId.ToString() });
+        Assert.AreEqual(BigInteger.One,detailReceipt.Status.Value);
+        Assert.AreEqual(BigInteger.Zero,await service.GetAvatarDetailsCountQueryAsync());
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task BulkNativeRejectionRetainsCommittedEvidence(bool synchronous, bool throughV2)
+    {
+        var fixturePath = Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON")
+            ?? throw new InvalidOperationException("Compile the retained local rejection fixture first.");
+        using var fixture = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(fixturePath));
+        var account = new Account(PrivateKey,ChainId);
+        var web3 = new Web3(account,Host);
+        var deployed = await web3.Eth.DeployContract.SendRequestAndWaitForReceiptAsync(
+            fixture.RootElement.GetProperty("abi").GetRawText(),fixture.RootElement.GetProperty("bytecode").GetString(),
+            account.Address,new Nethereum.Hex.HexTypes.HexBigInteger(4000000));
+        Assert.AreEqual(BigInteger.One,deployed.Status.Value);
+        var provider = new EthereumOASIS(Host,PrivateKey,ChainId,deployed.ContractAddress);
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var first = new CoreHolon { Id = Guid.NewGuid(), Name = "owned committed first holon" };
+        var second = new CoreHolon { Id = Guid.NewGuid(), Name = "owned rejected second holon" };
+        var batch = new[] { first,second };
+        SQLiteProvider? backup = null;
+        var backupPath = Path.Combine(Path.GetDirectoryName(fixturePath)!,"v2-backup.db");
+        try
+        {
+        OASISResult<IEnumerable<IHolon>> result;
+        ProviderManager? manager = null;
+        if (throughV2)
+        {
+            if (File.Exists(backupPath)) throw new InvalidOperationException("Existing backup fixture requires inspection; refusing overwrite.");
+            backup = new SQLiteProvider($"Data Source={backupPath};Pooling=False");
+            Assert.IsFalse((await backup.ActivateProviderAsync()).IsError);
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+            dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+            manager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
+            manager.RegisterProvider(provider);
+            manager.RegisterProvider(backup);
+            var stores = new[] { new EnumValue<ProviderType>(ProviderType.EthereumOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(stores).IsError);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(stores).IsError);
+            var router = new OASISHyperDrive(manager);
+            var request = new StorageOperationRequest { Operation = "SaveHolons", Payload = batch,
+                PreferredProvider = ProviderType.EthereumOASIS, SaveChildren = false };
+            result = synchronous ? router.RouteRequest<IEnumerable<IHolon>>(request) : await router.RouteRequestAsync<IEnumerable<IHolon>>(request);
+        }
+        else result = synchronous ? provider.SaveHolons(batch,saveChildren:false) : await provider.SaveHolonsAsync(batch,saveChildren:false);
+        Assert.IsTrue(result.IsError);
+        Assert.IsFalse(result.IsSaved);
+        Assert.IsInstanceOfType(result.Exception,typeof(EthereumPartialStorageMutationException));
+        var evidence = (EthereumPartialStorageMutationException)result.Exception;
+        Assert.AreEqual(1,evidence.CommittedTransactions.Count);
+        Assert.IsNotNull(evidence.InnerException);
+        var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(evidence.OriginalTransactionId);
+        Assert.AreEqual(BigInteger.One,receipt.Status.Value);
+        var firstRead = await provider.LoadHolonAsync(first.Id);
+        Assert.IsFalse(firstRead.IsError,firstRead.Message);
+        Assert.AreEqual(first.Name,firstRead.Result.Name);
+        var rejectedRead = await provider.LoadHolonAsync(second.Id);
+        Assert.IsNull(rejectedRead.Result);
+        if (throughV2)
+        {
+            Assert.AreEqual(0L,manager!.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+            Assert.AreEqual(1L,manager.PerformanceMonitor.GetMetrics(ProviderType.EthereumOASIS).TotalRequests);
+            foreach (var node in batch) Assert.IsNull((await backup!.LoadHolonAsync(node.Id,loadChildren:false)).Result);
+        }
+        }
+        finally
+        {
+            if (backup != null)
+            {
+                backup.Dispose();
+                File.Delete(backupPath);
+            }
+        }
+        await provider.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
+    public async Task NativeHolonUpdateDoesNotDependOnAvatarDetailsCount()
+    {
+        var (provider,contract) = await CreateActivatedProviderAsync();
+        var web3 = new Web3(new Account(PrivateKey,ChainId),Host);
+        var service = new NextGenSoftwareOASISService(web3,contract);
+        Assert.AreEqual(BigInteger.Zero,await service.GetAvatarDetailsCountQueryAsync());
+        var identity = new BigInteger(101);
+        var created = await service.CreateHolonRequestAndWaitForReceiptAsync(identity,Guid.NewGuid().ToString(),"before");
+        Assert.AreEqual(BigInteger.One,created.Status.Value);
+        var updated = await service.UpdateHolonRequestAndWaitForReceiptAsync(identity,"after");
+        Assert.AreEqual(BigInteger.One,updated.Status.Value);
+        Assert.AreEqual("after",(await service.GetHolonByIdQueryAsync(identity)).ReturnValue1.Info);
+        await provider.DeActivateProviderAsync();
     }
 
     [TestMethod]
@@ -78,5 +1350,381 @@ public class EthereumOASISIntegrationTests
         Assert.IsTrue(activation.IsError);
         Assert.IsFalse(provider.IsProviderActivated);
         StringAssert.Contains(activation.Message, "does not match configured chain ID");
+    }
+
+    [TestMethod]
+    public async Task PrivateReadsRejectPlaintextAndCrossTypeCiphertext()
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        var holon = new CoreHolon { Id=Guid.NewGuid(),Name="synthetic encrypted source" };
+        Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
+        var entityId = NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(holon.Id.ToString());
+        var ciphertext = (await service.GetHolonByIdQueryAsync(entityId)).ReturnValue1.Info;
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(entityId,holon.Id.ToString(),ciphertext);
+        var crossed = await provider.LoadAvatarAsync(holon.Id);
+        Assert.IsTrue(crossed.IsError);
+        Assert.IsNull(crossed.Result);
+        Assert.IsInstanceOfType(crossed.Exception,typeof(System.Security.Cryptography.CryptographicException));
+        var plain = new CoreHolon { Id=Guid.NewGuid(),Name="synthetic plaintext must reject" };
+        await service.CreateHolonRequestAndWaitForReceiptAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(plain.Id.ToString()),plain.Id.ToString(),Newtonsoft.Json.JsonConvert.SerializeObject(plain));
+        var rejected = await provider.LoadHolonAsync(plain.Id,loadChildren:false);
+        Assert.IsTrue(rejected.IsError);
+        Assert.IsNull(rejected.Result);
+        Assert.IsInstanceOfType(rejected.Exception,typeof(System.Security.Cryptography.CryptographicException));
+        Assert.AreEqual(holon.Name,(await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
+    public async Task AvatarAndDetailPayloadsAreEncryptedWithRealNativeReadback()
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),
+            Username="synthetic-private-avatar",Email="private-avatar@example.invalid",Password="synthetic-password-hash" };
+        var saved = await provider.SaveAvatarAsync(avatar);
+        Assert.IsFalse(saved.IsError,saved.Message);
+        var raw = (await service.GetAvatarByIdQueryAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(avatar.Id.ToString()))).ReturnValue1.Info;
+        StringAssert.StartsWith(raw,"oasis-aes256gcm-gzip-v2:");
+        Assert.IsFalse(raw.Contains(avatar.Email));
+        Assert.IsFalse(raw.Contains(avatar.Password));
+        var read = await provider.LoadAvatarAsync(avatar.Id);
+        Assert.IsFalse(read.IsError,read.Message);
+        Assert.AreEqual(avatar.Email,read.Result.Email);
+        Assert.AreEqual(avatar.Password,read.Result.Password);
+        var detail = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),
+            Email="private-detail@example.invalid",Karma=654,XP=321 };
+        var savedDetail = await provider.SaveAvatarDetailAsync(detail);
+        Assert.IsFalse(savedDetail.IsError,savedDetail.Message);
+        var rawDetail = (await service.GetAvatarDetailByIdQueryAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(detail.Id.ToString()))).ReturnValue1.Info;
+        StringAssert.StartsWith(rawDetail,"oasis-aes256gcm-gzip-v2:");
+        Assert.IsFalse(rawDetail.Contains(detail.Email));
+        var readDetail = await provider.LoadAvatarDetailAsync(detail.Id);
+        Assert.IsFalse(readDetail.IsError,readDetail.Message);
+        Assert.AreEqual(detail.Email,readDetail.Result.Email);
+        Assert.AreEqual(detail.Karma,readDetail.Result.Karma);
+        Assert.AreEqual(detail.XP,readDetail.Result.XP);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task MissingPrivateStorageKeyDoesNotSubmitAnEthereumTransaction(bool synchronous)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var web3 = new Web3(new Account(PrivateKey,ChainId),Host);
+        var service = new NextGenSoftwareOASISService(web3,address);
+        var before = await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address);
+        var prior = Environment.GetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY");
+        try
+        {
+            Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",null);
+            var holon = new CoreHolon { Id=Guid.NewGuid(),Name="must not be published" };
+            var result = synchronous ? provider.SaveHolon(holon,saveChildren:false) : await provider.SaveHolonAsync(holon,saveChildren:false);
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(result.IsSaved);
+            Assert.IsNotNull(result.Exception);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",prior); }
+        Assert.AreEqual(before.Value,(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address)).Value);
+        Assert.AreEqual(BigInteger.Zero,await service.GetHolonsCountQueryAsync());
+        await provider.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
+    public async Task ActivationRejectsSignerThatDoesNotOwnStorageWithoutSubmission()
+    {
+        var (owner,contract) = await CreateActivatedProviderAsync();
+        var unrelatedKey = Nethereum.Signer.EthECKey.GenerateKey().GetPrivateKey();
+        var unrelated = new Account(unrelatedKey,ChainId);
+        var reader = new Web3(Host);
+        var nonceBefore = await reader.Eth.Transactions.GetTransactionCount.SendRequestAsync(unrelated.Address);
+        var provider = new EthereumOASIS(Host,unrelatedKey,ChainId,contract);
+        var activation = await provider.ActivateProviderAsync();
+        Assert.IsTrue(activation.IsError);
+        Assert.IsFalse(provider.IsProviderActivated);
+        Assert.IsNotNull(activation.Exception);
+        StringAssert.Contains(activation.Message,"does not own the storage contract");
+        var nonceAfter = await reader.Eth.Transactions.GetTransactionCount.SendRequestAsync(unrelated.Address);
+        Assert.AreEqual(nonceBefore.Value,nonceAfter.Value);
+        await owner.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
+    public async Task StorageMutationsRejectAnUnrelatedNativeAccount()
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(101,"holon","holon-original");
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(101,"avatar","avatar-original");
+        await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(101,"detail","detail-original");
+        var fixturePath = Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON")!;
+        using var compiled = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(fixturePath)!,"default-storage.json")));
+        var unlocked = new Web3(Host);
+        var accounts = await unlocked.Eth.Accounts.SendRequestAsync();
+        var owner = new Account(PrivateKey,ChainId).Address;
+        var outsider = accounts.First(account => !string.Equals(account,owner,StringComparison.OrdinalIgnoreCase));
+        var contract = unlocked.Eth.GetContract(compiled.RootElement.GetProperty("abi").GetRawText(),address);
+        foreach(var name in new[] {"CreateHolon","CreateAvatar","CreateAvatarDetail","UpdateHolon","UpdateAvatar","UpdateAvatarDetail","DeleteHolon","DeleteAvatar","DeleteAvatarDetail","DeleteHolonByIdentity","DeleteAvatarByIdentity","DeleteAvatarDetailByIdentity","UpdateAvatarPairByIdentity"})
+        {
+            object[] input = name == "UpdateAvatarPairByIdentity" ? new object[] {new BigInteger(101),"avatar",new byte[32],"changed",new byte[32],"changed"}
+                : name.StartsWith("Create") ? new object[] {new BigInteger(999),"unrelated-id","unrelated-value"}
+                : name.StartsWith("Update") || name.EndsWith("ByIdentity") ? new object[] {new BigInteger(101),"corrupted"} : new object[] {new BigInteger(101)};
+            var denied = false;
+            try
+            {
+                var receipt = await contract.GetFunction(name).SendTransactionAndWaitForReceiptAsync(outsider,
+                    new Nethereum.Hex.HexTypes.HexBigInteger(2000000),null,null,input);
+                denied = receipt.Status?.Value == 0;
+            }
+            catch(Exception error) { denied = error.ToString().Contains("OASIS storage owner required",StringComparison.Ordinal); }
+            Assert.IsTrue(denied,"Unrelated account must not execute " + name);
+        }
+        Assert.AreEqual("holon-original",(await service.GetHolonByIdQueryAsync(101)).ReturnValue1.Info);
+        Assert.AreEqual("avatar-original",(await service.GetAvatarByIdQueryAsync(101)).ReturnValue1.Info);
+        Assert.AreEqual("detail-original",(await service.GetAvatarDetailByIdQueryAsync(101)).ReturnValue1.Info);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
+    public async Task NativeDeleteThenInsertKeepsAllRecordArraysQueryable()
+    {
+        var (provider,contract) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),contract);
+        async Task Check(Func<BigInteger,string,string,Task<Nethereum.RPC.Eth.DTOs.TransactionReceipt>> save,
+            Func<BigInteger,Task<Nethereum.RPC.Eth.DTOs.TransactionReceipt>> remove,
+            Func<BigInteger,Task<string>> read,Func<Task<BigInteger>> count)
+        {
+            await save(301,"first","deleted record");
+            await save(302,"retained","retained record");
+            Assert.AreEqual(BigInteger.One,(await remove(301)).Status.Value);
+            Assert.AreEqual(BigInteger.One,await count());
+            await save(303,"inserted","new record after deletion");
+            Assert.AreEqual(new BigInteger(2),await count());
+            Assert.AreEqual("retained record",await read(302));
+            Assert.AreEqual("new record after deletion",await read(303));
+            await remove(302);
+            await remove(303);
+            Assert.AreEqual(BigInteger.Zero,await count());
+            await save(304,"after-empty","new record after empty array");
+            Assert.AreEqual(BigInteger.One,await count());
+            Assert.AreEqual("new record after empty array",await read(304));
+        }
+        await Check((id,key,info)=>service.CreateHolonRequestAndWaitForReceiptAsync(id,key,info),
+            id=>service.DeleteHolonRequestAndWaitForReceiptAsync(id),async id=>(await service.GetHolonByIdQueryAsync(id)).ReturnValue1.Info,
+            ()=>service.GetHolonsCountQueryAsync());
+        await Check((id,key,info)=>service.CreateAvatarRequestAndWaitForReceiptAsync(id,key,info),
+            id=>service.DeleteAvatarRequestAndWaitForReceiptAsync(id),async id=>(await service.GetAvatarByIdQueryAsync(id)).ReturnValue1.Info,
+            ()=>service.GetAvatarsCountQueryAsync());
+        await Check((id,key,info)=>service.CreateAvatarDetailRequestAndWaitForReceiptAsync(id,key,info),
+            id=>service.DeleteAvatarDetailRequestAndWaitForReceiptAsync(id),async id=>(await service.GetAvatarDetailByIdQueryAsync(id)).ReturnValue1.Info,
+            ()=>service.GetAvatarDetailsCountQueryAsync());
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task MissingNativeMutationCannotProduceSuccessfulReceipt(bool populated)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        if(populated)
+        {
+            await service.CreateHolonRequestAndWaitForReceiptAsync(901,"retained","holon");
+            await service.CreateAvatarRequestAndWaitForReceiptAsync(901,"retained","avatar");
+            await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(901,"retained","detail");
+        }
+        foreach(var attempt in new Func<Task<Nethereum.RPC.Eth.DTOs.TransactionReceipt>>[] {
+            ()=>service.UpdateHolonRequestAndWaitForReceiptAsync(902,"missing"),
+            ()=>service.UpdateAvatarRequestAndWaitForReceiptAsync(902,"missing"),
+            ()=>service.UpdateAvatarDetailRequestAndWaitForReceiptAsync(902,"missing"),
+            ()=>service.DeleteHolonRequestAndWaitForReceiptAsync(902),
+            ()=>service.DeleteAvatarRequestAndWaitForReceiptAsync(902),
+            ()=>service.DeleteAvatarDetailRequestAndWaitForReceiptAsync(902)
+        })
+        {
+            Exception? rejection = null;
+            try { var receipt=await attempt(); Assert.AreEqual(BigInteger.Zero,receipt.Status.Value,"Missing mutation must not succeed"); }
+            catch(Exception error) when(error is not AssertFailedException) { rejection=error; }
+            if(rejection != null && populated) StringAssert.Contains(rejection.ToString(),"OASIS record not found");
+        }
+        var expected = populated ? BigInteger.One : BigInteger.Zero;
+        Assert.AreEqual(expected,await service.GetHolonsCountQueryAsync());
+        Assert.AreEqual(expected,await service.GetAvatarsCountQueryAsync());
+        Assert.AreEqual(expected,await service.GetAvatarDetailsCountQueryAsync());
+        if(populated)
+        {
+            Assert.AreEqual("holon",(await service.GetHolonByIdQueryAsync(901)).ReturnValue1.Info);
+            Assert.AreEqual("avatar",(await service.GetAvatarByIdQueryAsync(901)).ReturnValue1.Info);
+            Assert.AreEqual("detail",(await service.GetAvatarDetailByIdQueryAsync(901)).ReturnValue1.Info);
+        }
+        await provider.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
+    public async Task RepeatedStorageSavesUpdateOneIdentityRatherThanAppendDuplicates()
+    {
+        var (provider,contract) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),contract);
+        var holon = new CoreHolon { Id = Guid.NewGuid(), Name = "before repeated save" };
+        Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
+        holon.Name = "after repeated save";
+        Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
+        Assert.AreEqual(holon.Name,(await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name);
+        Assert.AreEqual(BigInteger.One,await service.GetHolonsCountQueryAsync());
+        var avatarId = Guid.NewGuid().ToString();
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(201,avatarId,"avatar-before");
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(201,avatarId,"avatar-after");
+        Assert.AreEqual("avatar-after",(await service.GetAvatarByIdQueryAsync(201)).ReturnValue1.Info);
+        Assert.AreEqual(BigInteger.One,await service.GetAvatarsCountQueryAsync());
+        await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(202,avatarId,"detail-before");
+        await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(202,avatarId,"detail-after");
+        Assert.AreEqual("detail-after",(await service.GetAvatarDetailByIdQueryAsync(202)).ReturnValue1.Info);
+        Assert.AreEqual(BigInteger.One,await service.GetAvatarDetailsCountQueryAsync());
+        foreach(var attempt in new Func<Task<Nethereum.RPC.Eth.DTOs.TransactionReceipt>>[] {
+            () => service.CreateHolonRequestAndWaitForReceiptAsync(
+                NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(holon.Id.ToString()),Guid.NewGuid().ToString(),"wrong identity"),
+            () => service.CreateAvatarRequestAndWaitForReceiptAsync(201,Guid.NewGuid().ToString(),"wrong identity"),
+            () => service.CreateAvatarDetailRequestAndWaitForReceiptAsync(202,Guid.NewGuid().ToString(),"wrong identity")
+        })
+        {
+            Exception? collision = null;
+            try { await attempt(); } catch(Exception error) { collision=error; }
+            Assert.IsNotNull(collision,"a reused numeric key must not overwrite a different public identity");
+            StringAssert.Contains(collision.ToString(),"OASIS identity collision");
+        }
+        Assert.AreEqual(holon.Name,(await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name);
+        Assert.AreEqual("avatar-after",(await service.GetAvatarByIdQueryAsync(201)).ReturnValue1.Info);
+        Assert.AreEqual("detail-after",(await service.GetAvatarDetailByIdQueryAsync(202)).ReturnValue1.Info);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task V2HealthyReplicationAndRoundRobinUseBothRealStores(bool synchronous)
+    {
+        var (ethereum,_) = await CreateActivatedProviderAsync();
+        var fixturePath = Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON")
+            ?? throw new InvalidOperationException("Owned reusable runner required.");
+        var path = Path.Combine(Path.GetDirectoryName(fixturePath)!,"v2-priority.db");
+        if(File.Exists(path)) throw new InvalidOperationException("Existing fixture requires inspection.");
+        using var sqlite = new SQLiteProvider($"Data Source={path};Pooling=False");
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+            dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+            var stores = new[] { new EnumValue<ProviderType>(ProviderType.EthereumOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
+            var replication = new ProviderManager(null,dna) { IsAutoReplicationEnabled = true };
+            replication.RegisterProvider(ethereum);
+            replication.RegisterProvider(sqlite);
+            Assert.IsFalse(replication.SetAndReplaceAutoReplicationListForProviders(stores).IsError);
+            var router = new OASISHyperDrive(replication);
+            CoreHolon? selected = null;
+            foreach(var primary in new[] { ProviderType.EthereumOASIS,ProviderType.SQLLiteDBOASIS })
+            {
+                var holon = new CoreHolon { Id = Guid.NewGuid(), Name = "owned v2 replication " + primary };
+                selected = holon;
+                var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, PreferredProvider = primary, SaveChildren = false };
+                var saved = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+                Assert.IsFalse(saved.IsError,saved.Message);
+                Assert.IsFalse(saved.IsWarning,saved.Message);
+                foreach(var store in new IOASISStorageProvider[] { ethereum,sqlite })
+                {
+                    var loaded = await store.LoadHolonAsync(holon.Id,loadChildren:false);
+                    Assert.IsFalse(loaded.IsError,loaded.Message);
+                    Assert.AreEqual(holon.Name,loaded.Result.Name);
+                    Assert.AreEqual(holon.Id,loaded.Result.Id);
+                }
+            }
+            var balancing = new ProviderManager(null,dna) { IsAutoLoadBalanceEnabled = true };
+            balancing.RegisterProvider(ethereum);
+            balancing.RegisterProvider(sqlite);
+            Assert.IsFalse(balancing.SetAndReplaceAutoLoadBalanceListForProviders(stores).IsError);
+            var balanced = new OASISHyperDrive(balancing);
+            for(var index=0;index<6;index++)
+            {
+                var read = new StorageOperationRequest { Operation = "LoadHolon", HolonId = selected!.Id, LoadChildren = false };
+                var loaded = synchronous ? balanced.RouteRequest<IHolon>(read,LoadBalancingStrategy.RoundRobin)
+                    : await balanced.RouteRequestAsync<IHolon>(read,LoadBalancingStrategy.RoundRobin);
+                Assert.IsFalse(loaded.IsError,loaded.Message);
+                Assert.AreEqual(selected.Id,loaded.Result.Id);
+                Assert.AreEqual(selected.Name,loaded.Result.Name);
+            }
+            foreach(var store in new[] { ProviderType.EthereumOASIS,ProviderType.SQLLiteDBOASIS })
+                Assert.AreEqual(3L,balancing.PerformanceMonitor.GetMetrics(store).TotalRequests);
+
+            // No service is allowed on this owned fixture endpoint: failure occurs before signing/submission.
+            var unavailable = new EthereumOASIS("http://127.0.0.1:18546",PrivateKey,ChainId,ethereum.ContractAddress);
+            var failover = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+            failover.RegisterProvider(unavailable);
+            failover.RegisterProvider(sqlite);
+            Assert.IsFalse(failover.SetAndReplaceAutoFailOverListForProviders(stores).IsError);
+            var failoverRouter = new OASISHyperDrive(failover);
+            var recovered = new CoreHolon { Id = Guid.NewGuid(), Name = "owned pre-submission failover" };
+            var recoveryRequest = new StorageOperationRequest { Operation = "SaveHolon", Payload = recovered,
+                PreferredProvider = ProviderType.EthereumOASIS, SaveChildren = false };
+            var recovery = synchronous ? failoverRouter.RouteRequest<IHolon>(recoveryRequest)
+                : await failoverRouter.RouteRequestAsync<IHolon>(recoveryRequest);
+            Assert.IsFalse(recovery.IsError,recovery.Message);
+            Assert.AreEqual(recovered.Id,recovery.Result.Id);
+            Assert.AreEqual(recovered.Name,(await sqlite.LoadHolonAsync(recovered.Id,loadChildren:false)).Result.Name);
+            Assert.IsNull((await ethereum.LoadHolonAsync(recovered.Id,loadChildren:false)).Result);
+            Assert.AreEqual(1L,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+            // Failed activation must not permanently quarantine the same registered instance.
+            Assert.IsFalse(unavailable.IsProviderActivated);
+            dna.OASIS.OASISHyperDriveConfig=new() {HealthCheckIntervalMs=1000};
+            var predictionEngine=PredictiveFailoverEngine.ForProviderManager(failover);
+            var recoveryFlags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+            var recoveryNow=DateTime.UtcNow;
+            typeof(PredictiveFailoverEngine).GetField("_utcNow",recoveryFlags)!.SetValue(predictionEngine,(Func<DateTime>)(()=>recoveryNow));
+            await (Task)typeof(PredictiveFailoverEngine).GetMethod("ExecutePreventiveFailoverAsync",recoveryFlags)!
+                .Invoke(predictionEngine,new object[] {ProviderType.EthereumOASIS,ProviderType.SQLLiteDBOASIS})!;
+            var redirectedBefore=failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests;
+            var redirectedRequest=new StorageOperationRequest {Operation="LoadHolon",HolonId=selected!.Id,
+                LoadChildren=false,PreferredProvider=ProviderType.EthereumOASIS};
+            var redirected=synchronous ? failoverRouter.RouteRequest<IHolon>(redirectedRequest)
+                : await failoverRouter.RouteRequestAsync<IHolon>(redirectedRequest);
+            Assert.IsFalse(redirected.IsError,redirected.Message);
+            Assert.AreEqual(redirectedBefore+1,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+            unavailable.HostURI=Host;
+            recoveryNow=recoveryNow.AddSeconds(1);
+            var reactivationSqliteBefore=failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests;
+            var reactivationRequest=new StorageOperationRequest {Operation="LoadHolon",HolonId=selected!.Id,
+                LoadChildren=false,PreferredProvider=ProviderType.EthereumOASIS};
+            var reactivated=synchronous ? failoverRouter.RouteRequest<IHolon>(reactivationRequest)
+                : await failoverRouter.RouteRequestAsync<IHolon>(reactivationRequest);
+            Assert.IsFalse(reactivated.IsError,reactivated.Message);Assert.IsTrue(unavailable.IsProviderActivated);
+            Assert.AreEqual(ProviderType.Default,predictionEngine.GetFailoverOverride(ProviderType.EthereumOASIS));
+            Assert.AreEqual(selected.Id,reactivated.Result.Id);Assert.AreEqual(selected.Name,reactivated.Result.Name);
+            Assert.AreEqual(reactivationSqliteBefore,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+            // Repair the registered endpoint without recreating manager/router or erasing outage metrics.
+            Assert.IsTrue(failover.UnRegisterProvider(unavailable));
+            Assert.IsTrue(failover.RegisterProvider(ethereum));
+            var ethereumBefore=failover.PerformanceMonitor.GetMetrics(ProviderType.EthereumOASIS)?.TotalRequests??0;
+            var sqliteBefore=failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests;
+            var repairedRequest=new StorageOperationRequest {Operation="LoadHolon",HolonId=selected!.Id,
+                LoadChildren=false,PreferredProvider=ProviderType.EthereumOASIS};
+            var repaired=synchronous ? failoverRouter.RouteRequest<IHolon>(repairedRequest)
+                : await failoverRouter.RouteRequestAsync<IHolon>(repairedRequest);
+            Assert.IsFalse(repaired.IsError,repaired.Message);
+            Assert.AreEqual(selected.Id,repaired.Result.Id);Assert.AreEqual(selected.Name,repaired.Result.Name);
+            Assert.AreEqual(ethereumBefore+1,failover.PerformanceMonitor.GetMetrics(ProviderType.EthereumOASIS).TotalRequests);
+            Assert.AreEqual(sqliteBefore,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+        }
+        finally
+        {
+            sqlite.Dispose();
+            File.Delete(path);
+            await ethereum.DeActivateProviderAsync();
+        }
     }
 }

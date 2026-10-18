@@ -76,18 +76,7 @@ public partial class SolanaOASIS
                 if (holonResult.Result.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
                     holonResult.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS, out var providerKey))
                 {
-                    var deleteSuccess = await _solanaRepository.DeleteAsync(providerKey);
-                    if (deleteSuccess)
-                    {
-                        result.Result = holonResult.Result;
-                        result.IsDeleted = true;
-                        result.IsError = false;
-                        result.Message = "Holon deleted successfully from Solana";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to delete holon from Solana repository");
-                    }
+                    return await DeleteHolonAsync(providerKey);
                 }
                 else
                 {
@@ -112,120 +101,63 @@ public partial class SolanaOASIS
 
         try
         {
-            if (await _solanaRepository.DeleteAsync(providerKey))
+            if(string.IsNullOrWhiteSpace(providerKey)) throw new ArgumentException("A Solana storage signature is required.",nameof(providerKey));
+            if(!IsProviderActivated)
             {
-                result.IsDeleted = true;
-                result.DeletedCount = 1;
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
             }
-            else
-                result.IsError = true;
+            var stored = await _solanaRepository.GetAsync<SolanaHolonDto>(providerKey);
+            var (deleted,tombstone)=await CreateVerifiedTombstoneAsync<SolanaHolonDto,IHolon>(
+                providerKey,stored.Id,stored.Version,record=>record.GetHolon());
+            deleted.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = tombstone;
+            result.Result = deleted;
+            result.IsDeleted = true;
+            result.DeletedCount = 1;
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, e.Message);
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
         }
 
         return result;
     }
 
     OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
-    {
-        var result = new OASISResult<IEnumerable<IAvatar>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            var avatarsResult = LoadAllAvatars();
-            if (avatarsResult.IsError || avatarsResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
-                return result;
-            }
-
-            var centerLat = geoLat / 1e6d;
-            var centerLng = geoLong / 1e6d;
-            var nearby = new List<IAvatar>();
-
-            foreach (var avatar in avatarsResult.Result)
-            {
-                if (avatar.MetaData != null &&
-                    avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
-                    avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
-                    double.TryParse(latObj?.ToString(), out var lat) &&
-                    double.TryParse(lngObj?.ToString(), out var lng))
-                {
-                    var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
-                    if (distance <= radiusInMeters)
-                        nearby.Add(avatar);
-                }
-            }
-
-            result.Result = nearby;
-            result.IsError = false;
-            result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => ReadNearbyRecords(geoLat, geoLong, radiusInMeters, () => LoadAllAvatars());
 
     OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        => ReadNearbyRecords(geoLat, geoLong, radiusInMeters, () => LoadAllHolons(HolonType.All), Type);
+
+    private OASISResult<IEnumerable<T>> ReadNearbyRecords<T>(long latitude, long longitude, int radius,
+        Func<OASISResult<IEnumerable<T>>> load, HolonType type = HolonType.All) where T : IHolonBase
     {
-        var result = new OASISResult<IEnumerable<IHolon>>();
+        var result = new OASISResult<IEnumerable<T>>();
         try
         {
+            var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(latitude, longitude, radius);
+            if (!Enum.IsDefined(typeof(HolonType), type)) throw new ArgumentOutOfRangeException(nameof(type));
             if (!IsProviderActivated)
             {
-                var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
-                if (activateResult.IsError)
+                var activated = ActivateProviderAsync().GetAwaiter().GetResult();
+                if (activated.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, activated.Message, activated.Exception);
+                    result.ErrorCode = activated.ErrorCode;
                     return result;
                 }
             }
-
-            var holonsResult = LoadAllHolons(Type);
-            if (holonsResult.IsError || holonsResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
-                return result;
-            }
-
-            var centerLat = geoLat / 1e6d;
-            var centerLng = geoLong / 1e6d;
-            var nearby = new List<IHolon>();
-
-            foreach (var holon in holonsResult.Result)
-            {
-                if (holon.MetaData != null &&
-                    holon.MetaData.TryGetValue("Latitude", out var latObj) &&
-                    holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
-                    double.TryParse(latObj?.ToString(), out var lat) &&
-                    double.TryParse(lngObj?.ToString(), out var lng))
-                {
-                    var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
-                    if (distance <= radiusInMeters)
-                        nearby.Add(holon);
-                }
-            }
-
-            result.Result = nearby;
-            result.IsError = false;
-            result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
+            var loaded = load();
+            if (loaded.IsError) return loaded;
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<T>>(loaded);
+            result.Result = query.Select(loaded.Result, row => row.IsActive && !row.IsDeleted && (type == HolonType.All || row.HolonType == type));
+            result.IsLoaded = true;
         }
-        catch (Exception ex)
+        catch (Exception cause)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Solana: {ex.Message}", ex);
+            result.Result = null;
+            result.IsLoaded = false;
+            OASISErrorHandling.HandleError(ref result, cause.Message, cause);
         }
         return result;
     }
@@ -508,11 +440,23 @@ public partial class SolanaOASIS
         OASISResult<IWeb3NFTTransactionResponse> result = new();
         try
         {
+            var snapshot=new SendWeb3NFTRequest
+            {
+                FromNFTTokenAddress=transaction.FromNFTTokenAddress,FromWalletAddress=transaction.FromWalletAddress,
+                ToWalletAddress=transaction.ToWalletAddress,TokenAddress=transaction.TokenAddress,TokenId=transaction.TokenId,
+                Amount=transaction.Amount,MemoText=transaction.MemoText,OwnerPrivateKey=transaction.OwnerPrivateKey,
+                OwnerPublicKey=transaction.OwnerPublicKey,OwnerSeedPhrase=transaction.OwnerSeedPhrase
+            };
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
+            }
             OASISResult<SendTransactionResult> solanaNftTransactionResult =
-                await _solanaService.SendNftAsync(transaction as SendWeb3NFTRequest);
+                await _solanaService.SendNftAsync(snapshot);
 
             if (solanaNftTransactionResult.IsError ||
-                string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
+                string.IsNullOrEmpty(solanaNftTransactionResult.Result?.TransactionHash))
             {
                 OASISErrorHandling.HandleError(ref result,
                     solanaNftTransactionResult.Message,

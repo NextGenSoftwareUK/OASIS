@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -8,6 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.Common;
+using System.Text.RegularExpressions;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
@@ -15,23 +19,56 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
     {
         private readonly Container _container;
 
+        private static CosmosException CreateServiceException(ResponseMessage response,string message)
+        {
+            var header=response.Headers.Get("x-ms-substatus");
+            var substatus=int.TryParse(header,NumberStyles.Integer,CultureInfo.InvariantCulture,out var value) ? value:0;
+            return new CosmosException(response.ErrorMessage ?? message,response.StatusCode,substatus,response.Headers.ActivityId,response.Headers.RequestCharge);
+        }
+
         public CosmosDbClient(Container container)
         {
             _container = container ?? throw new ArgumentNullException(nameof(container));
         }
 
+        private static async Task<ResponseMessage> ObserveMutationAsync(Func<Task<ResponseMessage>> operation,string id)
+        {
+            ResponseMessage response=null;
+            try
+            {
+                response=await operation();
+                if(response.IsSuccessStatusCode) return response;
+                throw CreateServiceException(response,"Mutation failed");
+            }
+            catch(Exception cause)
+            {
+                response?.Dispose();
+                if(cause is CosmosException rejection && (int)rejection.StatusCode is 400 or 401 or 403 or 404 or 409 or 412 or 413 or 429) throw;
+                throw new CosmosMutationReconciliationException(id,cause);
+            }
+        }
+
         public async Task<string> ReadDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
         {
             var pk = partitionKey ?? PartitionKey.None;
-            var response = await _container.ReadItemStreamAsync(documentId, pk, null, cancellationToken);
+            using var response = await _container.ReadItemStreamAsync(documentId, pk, null, cancellationToken);
+            var substatus=response.Headers.Get("x-ms-substatus");
+            if(response.StatusCode==System.Net.HttpStatusCode.NotFound && (string.IsNullOrEmpty(substatus) || substatus=="0"))
+            {
+                // Item absence is authoritative only while the parent container remains readable.
+                await _container.ReadContainerAsync(cancellationToken:cancellationToken);
+                return null;
+            }
             if (!response.IsSuccessStatusCode)
-                throw new CosmosException(response.ErrorMessage ?? "Read failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+                throw CreateServiceException(response,"Read failed");
             using var reader = new StreamReader(response.Content);
             return await reader.ReadToEndAsync();
         }
 
         public string ReadDocumentByField(string fieldName, string fieldValue, int version = 0)
         {
+            if(string.IsNullOrWhiteSpace(fieldName) || !Regex.IsMatch(fieldName,@"\A[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*\z"))
+                throw new ArgumentException("A valid Cosmos property path is required.",nameof(fieldName));
             var query = new QueryDefinition($"SELECT * FROM c WHERE c.{fieldName} = @value")
                 .WithParameter("@value", fieldValue);
             if (version > 0)
@@ -40,18 +77,21 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                     .WithParameter("@version", version);
 
             using var iterator = _container.GetItemQueryStreamIterator(query);
-            if (!iterator.HasMoreResults)
-                return null;
-            var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
-            if (!response.IsSuccessStatusCode)
-                throw new CosmosException(response.ErrorMessage ?? "Query failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
-            using var reader = new StreamReader(response.Content);
-            var content = reader.ReadToEnd();
-            var obj = JObject.Parse(content);
-            var docs = obj["Documents"] as JArray;
-            if (docs == null || !docs.Any())
-                return null;
-            return docs.First().ToString();
+            string match=null;
+            while(iterator.HasMoreResults)
+            {
+                using var response=iterator.ReadNextAsync().GetAwaiter().GetResult();
+                if(!response.IsSuccessStatusCode)
+                    throw CreateServiceException(response,"Query failed");
+                using var reader=new StreamReader(response.Content);
+                var docs=DecodeQueryDocuments(reader.ReadToEnd());
+                foreach(var doc in docs)
+                {
+                    if(match!=null) throw new StorageIdentityAmbiguousException();
+                    match=doc.ToString();
+                }
+            }
+            return match;
         }
 
         public List<string> ReadAllDocuments()
@@ -61,46 +101,103 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             using var iterator = _container.GetItemQueryStreamIterator(query);
             while (iterator.HasMoreResults)
             {
-                var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
+                using var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
                 if (!response.IsSuccessStatusCode)
-                    throw new CosmosException(response.ErrorMessage ?? "Query failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+                    throw CreateServiceException(response,"Query failed");
                 using var reader = new StreamReader(response.Content);
                 var content = reader.ReadToEnd();
-                var obj = JObject.Parse(content);
-                var docs = obj["Documents"] as JArray;
-                if (docs != null)
-                {
-                    foreach (var doc in docs)
-                        list.Add(doc.ToString());
-                }
+                foreach (var doc in DecodeQueryDocuments(content))
+                    list.Add(doc.ToString());
             }
             return list;
         }
 
-        public async Task<string> CreateDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+        private static JArray DecodeQueryDocuments(string content)
         {
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(document)));
-            var pk = partitionKey ?? PartitionKey.None;
-            var response = await _container.CreateItemStreamAsync(stream, pk, null, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-                throw new CosmosException(response.ErrorMessage ?? "Create failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
-            using var reader = new StreamReader(response.Content);
-            return await reader.ReadToEndAsync();
+            try
+            {
+                var obj=JObject.Parse(content);
+                if(obj["Documents"] is not JArray docs) throw new InvalidDataException("Cosmos query response lacks a Documents array.");
+                if(docs.Any(doc=>doc is not JObject)) throw new InvalidDataException("Cosmos query response contains a non-object document.");
+                return docs;
+            }
+            catch(JsonException cause)
+            {
+                throw new InvalidDataException("Cosmos query response JSON is invalid.",cause);
+            }
         }
 
-        public async Task ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+        private static async Task<string> ReadAcknowledgedPayloadAsync(ResponseMessage response,string id)
+        {
+            try
+            {
+                if(response.Content==null)throw new InvalidDataException("Acknowledged Cosmos mutation response lacks content.");
+                using var reader=new StreamReader(response.Content);
+                return await reader.ReadToEndAsync();
+            }
+            catch(Exception cause){throw new CosmosMutationReconciliationException(id,cause,acknowledged:true);}
+        }
+
+        public async Task<string> CreateDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+        {
+            var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
+            jsonDocument["id"] = jsonDocument["Id"]?.ToString();
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
+            var pk = partitionKey ?? PartitionKey.None;
+            cancellationToken.ThrowIfCancellationRequested();
+            using var response = await ObserveMutationAsync(()=>_container.CreateItemStreamAsync(stream, pk, null, cancellationToken),jsonDocument["id"].ToString());
+            if (!response.IsSuccessStatusCode)
+                throw CreateServiceException(response,"Create failed");
+            return await ReadAcknowledgedPayloadAsync(response,jsonDocument["id"].ToString());
+        }
+
+        public async Task<string> UpsertDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+        {
+            var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
+            jsonDocument["id"] = jsonDocument["Id"]?.ToString();
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
+            cancellationToken.ThrowIfCancellationRequested();
+            using var response = await ObserveMutationAsync(()=>_container.UpsertItemStreamAsync(stream, partitionKey ?? PartitionKey.None, null, cancellationToken),jsonDocument["id"].ToString());
+            if (!response.IsSuccessStatusCode)
+                throw CreateServiceException(response,"Upsert failed");
+            return await ReadAcknowledgedPayloadAsync(response,jsonDocument["id"].ToString());
+        }
+
+        public async Task<string> ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+            =>await ReplaceDocumentCoreAsync(documentId,document,partitionKey,null,cancellationToken);
+
+        public async Task<string> ReplaceUnchangedDocumentAsync(string documentId,object expected,object document,PartitionKey? partitionKey,CancellationToken cancellationToken=default)
+        {
+            ArgumentNullException.ThrowIfNull(expected);ArgumentNullException.ThrowIfNull(document);
+            var json=await ReadDocumentAsync(documentId,partitionKey,cancellationToken);
+            if(json==null)throw new Core.Helpers.StorageLifecycleConflictException("Cosmos record disappeared before conditional replacement.");
+            var current=JObject.Parse(json);
+            var etag=current["_etag"]?.Type==JTokenType.String?current["_etag"].Value<string>():null;
+            if(string.IsNullOrWhiteSpace(etag))throw new InvalidDataException("Cosmos conditional replacement requires a native ETag.");
+            foreach(var field in new[]{"id","_etag","_rid","_self","_attachments","_ts"})current.Remove(field);
+            if(!StoredRecordPayloadEquality.Equivalent(JObject.Parse(OasisJson.Serialize(expected)),current))
+                throw new Core.Helpers.StorageLifecycleConflictException("Cosmos record changed before conditional replacement.");
+            return await ReplaceDocumentCoreAsync(documentId,document,partitionKey,new ItemRequestOptions{IfMatchEtag=etag},cancellationToken);
+        }
+
+        private async Task<string> ReplaceDocumentCoreAsync(string documentId, object document, PartitionKey? partitionKey,ItemRequestOptions options,CancellationToken cancellationToken)
         {
             var pk = partitionKey ?? PartitionKey.None;
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(document)));
-            var response = await _container.ReplaceItemStreamAsync(stream, documentId, pk, null, cancellationToken);
+            var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
+            jsonDocument["id"] = documentId;
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
+            cancellationToken.ThrowIfCancellationRequested();
+            using var response = await ObserveMutationAsync(()=>_container.ReplaceItemStreamAsync(stream, documentId, pk, options, cancellationToken),documentId);
             if (!response.IsSuccessStatusCode)
-                throw new CosmosException(response.ErrorMessage ?? "Replace failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+                throw CreateServiceException(response,"Replace failed");
+            return await ReadAcknowledgedPayloadAsync(response,documentId);
         }
 
         public async Task DeleteDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
         {
             var pk = partitionKey ?? PartitionKey.None;
-            await _container.DeleteItemAsync<object>(documentId, pk, null, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            using var response=await ObserveMutationAsync(()=>_container.DeleteItemStreamAsync(documentId,pk,null,cancellationToken),documentId);
         }
     }
 }
