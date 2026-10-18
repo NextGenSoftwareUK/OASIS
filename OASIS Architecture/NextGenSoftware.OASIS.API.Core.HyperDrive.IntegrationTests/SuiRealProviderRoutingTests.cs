@@ -180,11 +180,27 @@ public sealed class SuiRealProviderRoutingTests
         var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-sui-failover" };
         try
         {
-            var result = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(new StorageOperationRequest
-                { Operation = "SaveHolon", Payload = holon });
-            result.IsError.Should().BeFalse(result.Message);
+            var router=new OASISHyperDrive(manager);
+            void AssertPhysicalFailover()
+            {
+                var diagnostic=manager.LastFailoverDiagnostic;
+                diagnostic.OriginalProvider.Should().Be(ProviderType.SuiOASIS);
+                diagnostic.SelectedProvider.Should().Be(ProviderType.LocalFileOASIS);
+                diagnostic.Succeeded.Should().BeTrue();
+                diagnostic.Attempts.Select(value=>value.Provider).Should().Equal(ProviderType.SuiOASIS,ProviderType.LocalFileOASIS);
+                diagnostic.Attempts.Select(value=>value.Succeeded).Should().Equal(false,true);
+            }
+            foreach(var synchronous in new[]{false,true}){
+                holon.Name="real-v2-sui-failover-"+synchronous;
+                var save=new StorageOperationRequest {Operation="SaveHolon",Payload=holon,PreferredProvider=ProviderType.SuiOASIS};
+                var result=synchronous?router.RouteRequest<IHolon>(save):await router.RouteRequestAsync<IHolon>(save);
+                result.IsError.Should().BeFalse(result.Message);AssertPhysicalFailover();
+                var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=holon.Id,LoadChildren=false,PreferredProvider=ProviderType.SuiOASIS};
+                var read=synchronous?router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request);
+                read.IsError.Should().BeFalse(read.Message);read.Result.Name.Should().Be(holon.Name);AssertPhysicalFailover();
+            }
             (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
-            manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.LocalFileOASIS);
+            Console.WriteLine($"Verified4 real V2 sync/async save/load failovers; stoppedNode={stopOwnedNode}; each original Sui failed then LocalFile succeeded.");
         }
         finally
         {
@@ -215,12 +231,14 @@ public sealed class SuiRealProviderRoutingTests
             ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = holon.ParentHolonId.ToString() } };
         var parentSaved = false;
         holon.MetaData = new Dictionary<string, object> { ["owned-routing-fixture"] = holon.Id.ToString() };
+        holon.MetaData["Latitude"]=0d;holon.MetaData["Longitude"]=179.999999d;
         var deletedThroughRouter = false;
         var holonSaved = false;
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "sui-v2-" + Guid.NewGuid().ToString("N"),
             Email = Guid.NewGuid().ToString("N") + "@example.invalid" };
         avatar.VerificationToken = "owned-sui-verification-" + avatar.Id;
         avatar.ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = avatar.Id.ToString() };
+        avatar.MetaData=new() {{"Latitude",0d},{"Longitude",179.999999d}};
         avatar.ResetToken = "owned-sui-reset-" + avatar.Id;
         avatar.RefreshTokens = new() { new RefreshToken { Token = "owned-sui-refresh-" + avatar.Id } };
         // Synthetic stored wallet fields, not an on-chain balance or a newly funded wallet.
@@ -404,6 +422,33 @@ public sealed class SuiRealProviderRoutingTests
             replicated.IsError.Should().BeFalse(replicated.Message);
             replicated.Result.Name.Should().Be(holon.Name);
             (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
+            var nearby=(IOASISNETProvider)sui;
+            void AssertNearby(bool present)
+            {
+                // API coordinates are microdegrees; persisted metadata is degrees. The
+                // date-line query is ~0.11m away, while exact radius zero includes only
+                // the same coordinate. This exercises real decrypted native records.
+                foreach(var point in new[]{(Longitude:179999999L,Radius:0,Match:present),
+                    (Longitude:-180000000L,Radius:1,Match:present),
+                    (Longitude:-180000000L,Radius:0,Match:false),
+                    (Longitude:0L,Radius:1,Match:false)}){
+                    var avatars=nearby.GetAvatarsNearMe(0,point.Longitude,point.Radius);
+                    avatars.IsError.Should().BeFalse(avatars.Message);
+                    avatars.Result.Any(value=>value.Id==avatar.Id).Should().Be(point.Match);
+                    var holons=nearby.GetHolonsNearMe(0,point.Longitude,point.Radius,HolonType.All);
+                    holons.IsError.Should().BeFalse(holons.Message);
+                    holons.Result.Any(value=>value.Id==holon.Id).Should().Be(point.Match);
+                }
+                var wrongType=nearby.GetHolonsNearMe(0,179999999,0,HolonType.Avatar);
+                wrongType.IsError.Should().BeFalse(wrongType.Message);
+                wrongType.Result.Any(value=>value.Id==holon.Id).Should().BeFalse();
+            }
+            AssertNearby(true);
+            nearby.GetAvatarsNearMe(90000001,0,1).IsError.Should().BeTrue();
+            nearby.GetAvatarsNearMe(0,180000001,1).IsError.Should().BeTrue();
+            nearby.GetAvatarsNearMe(0,0,-1).IsError.Should().BeTrue();
+            nearby.GetHolonsNearMe(0,0,1,(HolonType)int.MaxValue).IsError.Should().BeTrue();
+            Console.WriteLine("Verified9 nearby native avatar/holon reads: exact zero-radius/date-line/radius/type boundaries;4invalid inputs rejected.");
             foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
             {
                 foreach (var operation in new[] { "LoadAllHolons", "LoadHolonsByMetaData", "LoadHolonsByMetaDataPairs" })
@@ -580,6 +625,8 @@ public sealed class SuiRealProviderRoutingTests
                 }
             }
             avatarSaved = false;
+            AssertNearby(false);
+            Console.WriteLine("Verified9 nearby native reads exclude both deleted fixture identities.");
             await AssertAvatarLists(false);
             await AssertTokenLookups(false);
             allAssertionsPassed=true;
