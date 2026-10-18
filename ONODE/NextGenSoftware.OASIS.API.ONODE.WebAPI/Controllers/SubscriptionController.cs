@@ -76,12 +76,66 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 if (request == null) return BadRequest(new { IsError = true, Code = "INVALID_USAGE_AUTHORIZATION" });
+                if (request.GrantId != null) return BadRequest(new { IsError = true, Code = "INVALID_USAGE_AUTHORIZATION", Message = "Delegated grants are only accepted on usage/authorize-delegated." });
                 OASISSub.SubscriptionServiceIdentity.RequireService(HttpContext, _configuration, request.ConsumingService);
                 var decision = await _subscriptionService.AuthorizeUsageAsync(userId, await GetCurrentKarmaAsync(userId), request, HttpContext.RequestAborted);
                 return StatusCode(decision.StatusCode, decision);
             }
             catch (UnauthorizedAccessException ex) { return Unauthorized(new { IsError = true, Code = "SERVICE_IDENTITY_REQUIRED", ex.Message }); }
             catch (ArgumentException ex) { return BadRequest(new { IsError = true, Code = "INVALID_USAGE_AUTHORIZATION", ex.Message }); }
+        }
+
+        /// <summary>
+        /// Reserve on behalf of the avatar that issued a delegated grant. Only the consuming service named on the grant may
+        /// call this, authenticated by service identity; the avatar is resolved from the grant, never from the caller.
+        /// </summary>
+        [HttpPost("usage/authorize-delegated")]
+        public async Task<ActionResult> AuthorizeDelegatedUsage([FromBody] UsageAuthorizationRequest request, [FromServices] OASISSub.IDelegatedUsageGrantRepository grants)
+        {
+            try
+            {
+                if (request == null || !Guid.TryParseExact(request.GrantId, "D", out _))
+                    return BadRequest(new { IsError = true, StatusCode = 400, Code = "INVALID_USAGE_AUTHORIZATION", Message = "A canonical GrantId is required." });
+                OASISSub.SubscriptionServiceIdentity.RequireService(HttpContext, _configuration, request.ConsumingService);
+                var grant = await grants.GetGrantAsync(request.GrantId, HttpContext.RequestAborted);
+                var decision = await _subscriptionService.AuthorizeUsageAsync(grant.UserId, await GetCurrentKarmaAsync(grant.UserId, HttpContext.RequestAborted), request, HttpContext.RequestAborted);
+                return StatusCode(decision.StatusCode, decision);
+            }
+            catch (UnauthorizedAccessException ex) { return Unauthorized(new { IsError = true, StatusCode = 401, Code = "SERVICE_IDENTITY_REQUIRED", ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { IsError = true, StatusCode = 400, Code = "INVALID_USAGE_AUTHORIZATION", ex.Message }); }
+            catch (KeyNotFoundException ex) { return StatusCode(403, new { IsError = true, StatusCode = 403, Code = "GRANT_NOT_FOUND", ex.Message }); }
+        }
+
+        /// <summary>Issue a revocable, budget-capped delegated grant for one consuming service and an explicit endpoint list.</summary>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpPost("usage/grants")]
+        public async Task<ActionResult> CreateUsageGrant([FromBody] CreateDelegatedUsageGrantRequest request, [FromServices] OASISSub.IDelegatedUsageGrantRepository grants)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            try { return Ok(await grants.CreateGrantAsync(userId, request, HttpContext.RequestAborted)); }
+            catch (ArgumentException ex) { return BadRequest(new { IsError = true, Code = "INVALID_USAGE_GRANT", ex.Message }); }
+            catch (OASISSub.SubscriptionUsageLimitException ex) { return StatusCode(ex.StatusCode, new { IsError = true, ex.Code, ex.Message }); }
+        }
+
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpGet("usage/grants")]
+        public async Task<ActionResult> ListUsageGrants([FromServices] OASISSub.IDelegatedUsageGrantRepository grants)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            return Ok(await grants.ListGrantsAsync(userId, HttpContext.RequestAborted));
+        }
+
+        /// <summary>Stops new reservations immediately; reservations already executing still settle.</summary>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpPost("usage/grants/{grantId}/revoke")]
+        public async Task<ActionResult> RevokeUsageGrant(string grantId, [FromServices] OASISSub.IDelegatedUsageGrantRepository grants)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            try { return Ok(await grants.RevokeGrantAsync(userId, grantId, HttpContext.RequestAborted)); }
+            catch (KeyNotFoundException ex) { return NotFound(new { IsError = true, Code = "GRANT_NOT_FOUND", ex.Message }); }
         }
 
         /// <summary>Marks the durable execution boundary; a provider must never execute without this acknowledgement.</summary>

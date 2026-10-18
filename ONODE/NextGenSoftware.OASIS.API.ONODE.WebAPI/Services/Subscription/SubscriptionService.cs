@@ -58,6 +58,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 RequestedUnits = request.RequestedUnits,
                 ReservedCostUsd = request.EstimatedCostUsd,
                 RequestFingerprint = request.RequestFingerprint,
+                GrantId = request.GrantId,
                 ExpiresAtUtc = now.AddMinutes(15),
                 AuthorizedAtUtc = now
             };
