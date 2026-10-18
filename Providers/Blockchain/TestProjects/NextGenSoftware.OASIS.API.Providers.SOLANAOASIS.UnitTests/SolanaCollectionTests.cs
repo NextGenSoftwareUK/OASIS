@@ -15,6 +15,42 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public class SolanaCollectionTests
 {
     [DataTestMethod]
+    [DataRow(0,false,1,2)]
+    [DataRow(1,false,1,1)]
+    [DataRow(2,false,1,2)]
+    [DataRow(3,false,0,0)]
+    [DataRow(0,true,0,0)]
+    [DataRow(1,true,1,1)]
+    [DataRow(2,true,0,0)]
+    [DataRow(-1,false,0,0)]
+    public async Task ExactVersionSelectionPreservesHistoricalRecordsAcrossTombstones(int version,bool deleted,int count,int expectedVersion)
+    {
+        var account=new Account();
+        var rpc=DispatchProxy.Create<IRpcClient,HistoryProxy>();
+        var proxy=(HistoryProxy)(object)rpc;
+        proxy.Writer=account.PublicKey.Key;
+        var key=RandomNumberGenerator.GetBytes(32);
+        var repository=new SolanaRepository(account,rpc,()=> (byte[])key.Clone());
+        var id=Guid.NewGuid();
+        string Memo<T>(T dto) => Encoders.Base58.EncodeData(Encoding.UTF8.GetBytes((string)typeof(SolanaRepository).GetMethod("EncodeEntity",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(T)).Invoke(repository,new object[] {dto!})!));
+        proxy.Memos["new"]=Memo(new SolanaAvatarDto {Id=id,Version=2,IsDeleted=deleted});
+        proxy.Memos["old"]=Memo(new SolanaAvatarDto {Id=id,Version=1});
+        proxy.Memos["detail"]=Memo(new SolanaAvatarDetailDto {Id=id,Version=9});
+        if(version<0)
+        {
+            await Assert.ThrowsExceptionAsync<ArgumentOutOfRangeException>(()=>repository.GetAllAsync<SolanaAvatarDto>(version));
+            Assert.AreEqual(0,proxy.Pages);
+            Assert.AreEqual(0,proxy.Writes);
+            return;
+        }
+        var records=await repository.GetAllAsync<SolanaAvatarDto>(version);
+        Assert.AreEqual(count,records.Count);
+        if(count==1){Assert.AreEqual(expectedVersion,records[0].Record.Version);Assert.AreEqual(expectedVersion==1 ? "old":"new",records[0].Signature);}
+        Assert.AreEqual(2,proxy.Pages);
+        Assert.AreEqual(0,proxy.Writes);
+    }
+
+    [DataTestMethod]
     [DataRow("valid")]
     [DataRow("deleted")]
     [DataRow("conflict")]

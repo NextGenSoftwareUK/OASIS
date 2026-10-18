@@ -307,7 +307,7 @@ public class SolanaHolonAdapterTests
         public List<SolanaBaseDto> Written=new();
         public int WriteCalls;
         public Exception WriteCause=new System.IO.IOException("Owned second write rejection");
-        public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>() where T:SolanaBaseDto,new()
+        public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>(int version=0) where T:SolanaBaseDto,new()
         {
             Reads++;
             if(ReadCause!=null) throw ReadCause;
