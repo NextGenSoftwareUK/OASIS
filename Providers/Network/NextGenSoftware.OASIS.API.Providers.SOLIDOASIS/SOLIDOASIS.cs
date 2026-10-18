@@ -170,14 +170,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                 if (softDelete)
                 {
                     var loadResult = await LoadAvatarAsync(id);
-                    if (!loadResult.IsError && loadResult.Result != null)
-                    {
-                        loadResult.Result.DeletedDate = DateTime.UtcNow;
-                        await SaveAvatarAsync(loadResult.Result);
-                        result.Result = true;
-                        result.Message = "Avatar soft-deleted in SOLID pod";
-                        return result;
-                    }
+                    if (loadResult.IsError)
+                        return NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(loadResult);
+                    if (loadResult.Result == null)
+                        throw new System.IO.InvalidDataException("SOLID avatar read returned no record; refusing deletion.");
+                    loadResult.Result.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveAvatarAsync(loadResult.Result);
+                    if (saved.IsError)
+                        return NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(saved);
+                    if (saved.Result == null)
+                        throw new System.IO.InvalidDataException("SOLID soft-delete save returned no confirmed record.");
+                    result.Result = true;
+                    result.Message = "Avatar soft-deleted in SOLID pod";
+                    return result;
                 }
                 var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/avatars/{id}.ttl");
                 result.Result = response.IsSuccessStatusCode;
