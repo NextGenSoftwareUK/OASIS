@@ -6,6 +6,7 @@ import { verifyNativePreparation } from './verify-preparation.mjs';
 import { pathToFileURL } from 'node:url';
 import { readFinalizedReceipt, validateReceiptRequest } from './finalized-receipt.mjs';
 import { originalSubmission, submitOriginalPreparation } from './original-submission.mjs';
+import { readOriginalOutcome, validateOutcomeRange } from './original-outcome.mjs';
 
 // Metadata/preparation transport is read-only. Only explicitly owned submission gains a one-shot capability.
 let api;
@@ -14,7 +15,8 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
-  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (request.operation === 'originalOutcome') validateOutcomeRange(request);
   if (request.operation === 'finalizedReceipt') validateReceiptRequest(request);
   if (['persistNativePreparation', 'submitNativePreparation'].includes(request.operation) && (!process.env.OASIS_NATIVE_PREPARATION_PIPE || !process.env.OASIS_NATIVE_PREPARATION_MODULE))
     throw new Error('Owned persistence transport is required; no preparation acknowledgement can be invented.');
@@ -31,7 +33,7 @@ try {
   if (api.genesisHash.toHex().toLowerCase() !== request.genesisHash.toLowerCase())
     throw new Error('Polkadot SDK genesis hash differs from the activated network.');
   let decimals;
-  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt'].includes(request.operation)) {
+  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome'].includes(request.operation)) {
   stage = 'native precision query';
   const properties = await api.rpc.system.properties();
   if (properties.tokenDecimals.isNone || properties.tokenDecimals.unwrap().length !== 1)
@@ -40,7 +42,10 @@ try {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
   }
-  if (request.operation === 'finalizedReceipt') {
+  if (request.operation === 'originalOutcome') {
+    stage = 'original signed finalized outcome recovery';
+    process.stdout.write(JSON.stringify({ ok: true, result: await readOriginalOutcome(api, request) }));
+  } else if (request.operation === 'finalizedReceipt') {
     stage = 'finalized canonical dispatch and native fee receipt';
     process.stdout.write(JSON.stringify({ ok: true, result: await readFinalizedReceipt(api, request) }));
   } else if (request.operation === 'submitNativePreparation') {
