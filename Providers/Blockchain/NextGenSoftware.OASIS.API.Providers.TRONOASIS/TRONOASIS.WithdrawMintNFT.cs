@@ -199,18 +199,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(request);
+                // Own the validated interface input before the runtime lease can await.
                 var asset = TronNativeTransferClient.ParseNftAddress(request.NFTTokenAddress);
-                if (string.IsNullOrWhiteSpace(request.OwnerPrivateKey) || !string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                var privateKey=request.OwnerPrivateKey;var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
+                if (string.IsNullOrWhiteSpace(privateKey) || !string.IsNullOrWhiteSpace(seed))
                     throw new ArgumentException("An explicit owner private signing key is required; seed phrases are not accepted.");
-                if (!string.IsNullOrWhiteSpace(request.OwnerPublicKey))
+                if (!string.IsNullOrWhiteSpace(publicKey))
                 {
-                    var actual = Convert.ToHexString(new EthECKey(request.OwnerPrivateKey).GetPubKey());
-                    var supplied = request.OwnerPublicKey.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-                        ? request.OwnerPublicKey[2..] : request.OwnerPublicKey;
+                    var actual = Convert.ToHexString(new EthECKey(privateKey).GetPubKey());
+                    var supplied = publicKey.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+                        ? publicKey[2..] : publicKey;
                     if (!string.Equals(actual, supplied, StringComparison.OrdinalIgnoreCase))
                         throw new ArgumentException("NFT signing key does not match the supplied public key.");
                 }
-                var hash = await ExecuteNativeRuntimeAsync(client => client.BurnNftAsync(asset.Contract, asset.TokenId, request.OwnerPrivateKey));
+                var hash = await ExecuteNativeRuntimeAsync(client => client.BurnNftAsync(asset.Contract, asset.TokenId, privateKey));
                 result.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
                 result.Message = "TRC721 burn extension confirmed by solidified contract receipt.";
             }
