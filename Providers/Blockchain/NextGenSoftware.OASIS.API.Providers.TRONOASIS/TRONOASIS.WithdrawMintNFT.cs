@@ -60,12 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (!System.Text.RegularExpressions.Regex.IsMatch(senderPrivateKey,"\\A[0-9a-fA-F]{64}\\z")
                     || !string.Equals(new TronNet.TronECKey(senderPrivateKey,TronNet.TronNetwork.MainNet).GetPublicAddress(),senderAccountAddress,StringComparison.Ordinal))
                     throw new ArgumentException("Signing key does not own the canonical TRON sender address.");
-                if (!IsProviderActivated)
-                {
-                    var activation = await ActivateProviderAsync();
-                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
-                }
-                var hash = await ExecuteRuntimeAsync(client => client.SendAsync(senderAccountAddress, _bridgePoolWalletAddress, amount, senderPrivateKey, null));
+                var hash = await ExecuteNativeRuntimeAsync(client => client.SendAsync(senderAccountAddress, _bridgePoolWalletAddress, amount, senderPrivateKey, null));
                 result.Result = new BridgeTransactionResponse
                 {
                     TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed
@@ -97,12 +92,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (!System.Text.RegularExpressions.Regex.IsMatch(key ?? "","\\A[0-9a-fA-F]{64}\\z")
                     || !string.Equals(new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress(),_bridgePoolWalletAddress,StringComparison.Ordinal))
                     throw new ArgumentException("Signing key does not own the canonical TRON pool address.");
-                if (!IsProviderActivated)
-                {
-                    var activation = await ActivateProviderAsync();
-                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
-                }
-                var hash = await ExecuteRuntimeAsync(client => client.SendAsync(_bridgePoolWalletAddress, receiverAccountAddress, amount, key, null));
+                var hash = await ExecuteNativeRuntimeAsync(client => client.SendAsync(_bridgePoolWalletAddress, receiverAccountAddress, amount, key, null));
                 result.Result = new BridgeTransactionResponse
                 {
                     TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed
