@@ -56,15 +56,15 @@ public partial class Neo4jNativeAvatarTests
     }
 
     [DataTestMethod]
-    [DataRow(false)] [DataRow(true)]
-    public async Task OwnedNativeDetailConflictRollsBackProfileDeletion(bool softDelete)
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task OwnedNativeDetailConflictRollsBackProfileDeletion(bool softDelete,bool history)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
         using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
         using var heldSession = raw.AsyncSession();
         Assert.AreEqual(0L, (await (await heldSession.RunAsync("MATCH (a) WHERE a:Avatar OR a:AvatarDetail RETURN count(a) AS count")).SingleAsync())["count"].As<long>());
-        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only"){IsVersionControlEnabled=history};
         Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
         var id = Guid.NewGuid();
         var avatar = new Avatar { Id = id, Username = "owned-rollback", IsActive = true };
@@ -86,7 +86,7 @@ public partial class Neo4jNativeAvatarTests
                 blocked = rows.Any(row => row["status"].As<string>().StartsWith("Blocked", StringComparison.OrdinalIgnoreCase));
                 if (!blocked) await Task.Delay(50);
             } while (!blocked && !deletion.IsCompleted && DateTime.UtcNow < deadline);
-            Assert.IsTrue(blocked, "Actual paired-delete detail mutation must block after profile mutation, before concurrent update commits.");
+            Assert.IsTrue(blocked, "Actual paired-delete detail lock must block after profile processing, before concurrent update commits.");
             detail.XP = 999;
             var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(detail);
             await (await transaction.RunAsync("MATCH (a:AvatarDetail {Id:$id}) SET a.SnapshotJson=$snapshot RETURN a.Id", new { id = id.ToString(), snapshot })).ConsumeAsync();
@@ -99,6 +99,13 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse(profile.IsError, profile.Message); Assert.IsFalse(currentDetail.IsError, currentDetail.Message);
             Assert.IsTrue(profile.Result.IsActive); Assert.IsFalse(profile.Result.IsDeleted);
             Assert.IsTrue(currentDetail.Result.IsActive); Assert.IsFalse(currentDetail.Result.IsDeleted); Assert.AreEqual(999L, currentDetail.Result.XP);
+            if(history)
+            {
+                Assert.AreEqual(avatar.VersionId,profile.Result.VersionId);Assert.AreEqual(detail.VersionId,currentDetail.Result.VersionId);
+                Assert.AreEqual(1,profile.Result.Version);Assert.AreEqual(1,currentDetail.Result.Version);
+                Assert.AreEqual(0L,(await(await heldSession.RunAsync("MATCH (v:OasisRecordVersion {RecordId:$id}) RETURN count(v) AS count",new{id=id.ToString()})).SingleAsync())["count"].As<long>(),
+                    "Archives from the rejected paired operation must roll back, not survive the independently committed detail edit.");
+            }
             Assert.IsFalse((await provider.DeleteAvatarAsync(id, false)).IsError);
         }
         finally
@@ -110,8 +117,8 @@ public partial class Neo4jNativeAvatarTests
     }
 
     [DataTestMethod]
-    [DataRow(false)] [DataRow(true)]
-    public async Task OwnedNativeAvatarDeletionPreservesOrRemovesItsDetailInSameCommit(bool softDelete)
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task OwnedNativeAvatarDeletionPreservesOrRemovesItsDetailInSameCommit(bool softDelete,bool history)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -119,7 +126,7 @@ public partial class Neo4jNativeAvatarTests
         using var inspection = raw.AsyncSession();
         var before = await (await inspection.RunAsync("MATCH (a) WHERE a:Avatar OR a:AvatarDetail RETURN count(a) AS count")).SingleAsync();
         Assert.AreEqual(0L, before["count"].As<long>(), "Retained pair evidence exists; no overwrite allowed.");
-        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only"){IsVersionControlEnabled=history};
         try
         {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
@@ -137,6 +144,14 @@ public partial class Neo4jNativeAvatarTests
                 Assert.IsFalse(profile.IsError, profile.Message); Assert.IsFalse(storedDetail.IsError, storedDetail.Message);
                 Assert.IsFalse(profile.Result.IsActive); Assert.IsFalse(storedDetail.Result.IsActive);
                 Assert.IsTrue(profile.Result.IsDeleted); Assert.IsTrue(storedDetail.Result.IsDeleted);
+                if(history)
+                {
+                    Assert.AreEqual(2,profile.Result.Version);Assert.AreEqual(2,storedDetail.Result.Version);
+                    Assert.AreEqual(DateTime.MinValue,(await provider.LoadAvatarAsync(id,1)).Result.DeletedDate);
+                    var previousDetail=await provider.LoadAvatarDetailAsync(id,1);
+                    Assert.IsFalse(previousDetail.IsError,previousDetail.Message);Assert.AreEqual(DateTime.MinValue,previousDetail.Result.DeletedDate);
+                    Assert.AreEqual(4321L,previousDetail.Result.XP);Assert.AreEqual("preserved inventory",previousDetail.Result.Inventory.Single().Name);
+                }
                 Assert.AreEqual(profile.Result.DeletedDate, storedDetail.Result.DeletedDate);
                 Assert.AreEqual("preserved profile", profile.Result.FirstName);
                 Assert.AreEqual(4321L, storedDetail.Result.XP); Assert.AreEqual(321L, storedDetail.Result.Karma);
