@@ -36,7 +36,7 @@ public partial class GoogleCloudOASIS
             var snapshot=await reference.GetSnapshotAsync();
             if(!snapshot.Exists) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore holon not found.";return result;}
             var holon=DecodeHolon(snapshot.ConvertTo<Dictionary<string,object>>(),snapshot.Id);
-            try {await reference.DeleteAsync(Google.Cloud.Firestore.Precondition.LastUpdated(snapshot.UpdateTime.Value));}
+            try {RequireFirestoreAcknowledgement(await reference.DeleteAsync(Google.Cloud.Firestore.Precondition.LastUpdated(snapshot.UpdateTime.Value)));}
             catch(Grpc.Core.RpcException cause) when(cause.StatusCode==Grpc.Core.StatusCode.FailedPrecondition || cause.StatusCode==Grpc.Core.StatusCode.NotFound)
             {
                 OASISErrorHandling.HandleError(ref result,cause.Message,cause);result.ErrorCode=StorageLifecycleConflictException.ErrorCode;return result;

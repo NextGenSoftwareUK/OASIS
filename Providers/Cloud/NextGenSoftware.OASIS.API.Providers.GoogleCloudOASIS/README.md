@@ -4,6 +4,8 @@ GoogleCloudOASIS uses the Google Cloud SDKs. Canonical OASIS avatar/detail/holon
 
 ## Current direct verification
 
+Single-holon hard deletes also validate the SDK acknowledgement timestamp before publishing deletion success. Invalid acknowledgement retains reconciliation-required evidence even when independent inspection shows the original was deleted; do not replay it blindly. Existing server precondition conflicts remain known rejections. Transactional avatar deletion acknowledgement and durable recovery still require separate verification.
+
 Avatar export roots are selected by CreatedByAvatarId, not merely ParentHolonId. Native regressions cover ID, username and email routes synchronously and asynchronously. Existing descendant projection is unchanged; this does not establish an authorization policy for graph descendants.
 
 Use the retained local runner `Scripts/TestHosts/Run-ReusableGoogleTests.ps1`. It requires the already-installed Firestore emulator, reuses cached dependencies/fixed outputs, takes an exclusive environment lease and stops its owned Java process afterward. No implicit installation or production credentials. Test results are scoped to native Firestore SDK calls, not hosted cloud authorization, charges or complete provider/interface certification.

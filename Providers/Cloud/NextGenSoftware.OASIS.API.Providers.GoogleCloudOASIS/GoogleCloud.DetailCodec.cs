@@ -17,12 +17,16 @@ public partial class GoogleCloudOASIS
     {
         try
         {
-            var acknowledged=await operation();
-            if(acknowledged==null || acknowledged.UpdateTime.Equals(default(Google.Cloud.Firestore.Timestamp)))
-                throw new InvalidDataException("Firestore save lacks an authoritative native update timestamp.");
-            return acknowledged;
+            return RequireFirestoreAcknowledgement(await operation());
         }
         catch(Exception cause) {throw new GoogleFirestoreMutationReconciliationException(documentPath,cause);}
+    }
+
+    private static Google.Cloud.Firestore.WriteResult RequireFirestoreAcknowledgement(Google.Cloud.Firestore.WriteResult acknowledged)
+    {
+        if(acknowledged==null || acknowledged.UpdateTime.Equals(default(Google.Cloud.Firestore.Timestamp)))
+            throw new InvalidDataException("Firestore mutation lacks an authoritative native timestamp.");
+        return acknowledged;
     }
 
     private static void ValidateFirestoreVersion(int version)
