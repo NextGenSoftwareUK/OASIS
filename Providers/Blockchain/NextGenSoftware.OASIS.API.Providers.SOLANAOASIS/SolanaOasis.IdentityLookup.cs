@@ -34,6 +34,7 @@ public partial class SolanaOASIS
         {
             OASISErrorHandling.HandleError(ref result,"Solana authenticated identity lookup failed: "+cause.Message,cause);
             if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+            else if(cause is KeyNotFoundException) result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
         }
         return result;
     }

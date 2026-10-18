@@ -115,6 +115,35 @@ public class SolanaCredentialSelectorTests
         Assert.AreEqual(scenario is "blank" or "negative" ? 0:1,repository.Reads);
     }
 
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)]
+    [DataRow(false,true)] [DataRow(true,true)]
+    public async Task HistoricalSelectorExportResolvesCurrentOwnerAndVersionsOnlyRoots(bool sync,bool email)
+    {
+        var owner=Guid.NewGuid();var rootId=Guid.NewGuid();var childId=Guid.NewGuid();
+        var repository=new RecordsRepository();
+        repository.Records.Add(new SolanaAvatarDto {Id=owner,AvatarId=owner,Version=9,UserName="current-owner",Email="owner@example.invalid"});
+        repository.Holons.Add(new SolanaHolonDto {Id=rootId,Version=2,CreatedByAvatarId=owner,Name="historical owned root"});
+        repository.Holons.Add(new SolanaHolonDto {Id=childId,Version=11,ParentHolonId=rootId,Name="current child"});
+        repository.Holons.Add(new SolanaHolonDto {Id=Guid.NewGuid(),Version=2,CreatedByAvatarId=Guid.NewGuid(),Name="unrelated"});
+        var provider=new ActiveProvider(repository);
+        async Task<OASISResult<IEnumerable<IHolon>>> Read(string selector,int version) => email
+            ? sync ? provider.ExportAllDataForAvatarByEmail(selector,version):await provider.ExportAllDataForAvatarByEmailAsync(selector,version)
+            : sync ? provider.ExportAllDataForAvatarByUsername(selector,version):await provider.ExportAllDataForAvatarByUsernameAsync(selector,version);
+        var selector=email ? "owner@example.invalid":"current-owner";
+        Assert.IsTrue((await Read(selector,-1)).IsError);Assert.AreEqual(0,repository.Reads);
+        var result=await Read(selector,2);
+        Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);
+        var root=result.Result.Single();Assert.AreEqual(rootId,root.Id);Assert.AreEqual(2,root.Version);
+        Assert.AreEqual(childId,root.Children.Single().Id);Assert.AreEqual(11,root.Children.Single().Version);
+        CollectionAssert.AreEqual(new[] {0,2,0},repository.Versions);
+        var missing=await Read("missing",2);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,missing.ErrorCode);Assert.IsNull(missing.Result);
+        repository.Records.Add(new SolanaAvatarDto {Id=Guid.NewGuid(),Version=4,UserName="current-owner",Email="owner@example.invalid"});
+        var ambiguous=await Read(selector,2);Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,ambiguous.ErrorCode);Assert.IsNull(ambiguous.Result);
+        var cause=new System.IO.IOException("owned selector history failure");repository.Cause=cause;
+        var failed=await Read(selector,2);Assert.AreSame(cause,failed.Exception);Assert.IsNull(failed.Result);
+    }
+
     private sealed class ActiveProvider:SolanaOASIS
     {
         public ActiveProvider(ISolanaRepository repository):this(new Account(),repository) {}
@@ -128,9 +157,13 @@ public class SolanaCredentialSelectorTests
     {
         public List<SolanaAvatarDto> Records=new();public int Reads;public int LastVersion;public Exception? Cause;
         public List<SolanaAvatarDetailDto> Details=new();
+        public List<SolanaHolonDto> Holons=new();public List<int> Versions=new();
         public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>(int version=0) where T:SolanaBaseDto,new()
         {
-            Reads++;LastVersion=version;if(Cause!=null) throw Cause;
+            Reads++;LastVersion=version;Versions.Add(version);if(Cause!=null) throw Cause;
+            if(typeof(T)==typeof(SolanaHolonDto))
+                return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Holons.Where(row=>version==0 || row.Version==version)
+                    .Select(row=>((T)(SolanaBaseDto)row,"owned-signature-"+row.Id)).ToList());
             if(typeof(T)==typeof(SolanaAvatarDetailDto))
                 return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Details.Where(row=>version==0 || row.Version==version)
                     .Select(row=>((T)(SolanaBaseDto)row,"owned-signature-"+row.Id)).ToList());

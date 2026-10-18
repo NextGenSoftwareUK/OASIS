@@ -55,6 +55,7 @@ public class SolanaIdentityLookupTests
         var result=synchronous ? provider.LoadAvatarByEmail(selector):await provider.LoadAvatarByEmailAsync(selector);
         Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsLoaded); Assert.IsNull(result.Result);
         if(scenario=="duplicate") Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);
+        if(scenario=="missing") Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,result.ErrorCode);
         if(scenario=="collection-error") {Assert.AreEqual("owned-collection-error",result.ErrorCode); Assert.AreSame(provider.Cause,result.Exception);}
         if(scenario=="invalid") Assert.AreEqual(0,provider.Reads);
     }
