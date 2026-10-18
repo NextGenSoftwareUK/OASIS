@@ -30,8 +30,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
                 RequestTimeout=TimeSpan.FromSeconds(10),MaxRetryAttemptsOnRateLimitedRequests=0,
                 HttpClientFactory=()=>new System.Net.Http.HttpClient(new System.Net.Http.HttpClientHandler {
                     ServerCertificateCustomValidationCallback=System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator})});
-            try {await _client.GetDatabase(DatabaseName).ReadAsync();Assert.Fail("Refusing existing fixture database.");}
-            catch(CosmosException cause) when(cause.StatusCode==HttpStatusCode.NotFound) {_ownsDatabase=true;}
+            try {await _client.GetDatabase(DatabaseName).ReadAsync();await VerifyEmptyFixtureAsync();}
+            catch(CosmosException cause) when(cause.StatusCode==HttpStatusCode.NotFound) { }
+            _ownsDatabase=true;
 
             _provider = new AzureCosmosDBOASIS(
                 new Uri(endpoint),
@@ -110,12 +111,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
             {
                 try
                 {
-                    if(_ownsDatabase)
-                        try {await _client.GetDatabase(DatabaseName).DeleteAsync();}
-                        catch(CosmosException cause) when(cause.StatusCode==HttpStatusCode.NotFound) { }
+                    if(_ownsDatabase)await VerifyEmptyFixtureAsync();
                 }
                 finally {_client?.Dispose();}
             }
+        }
+
+        private async Task VerifyEmptyFixtureAsync()
+        {
+            using var containers=_client.GetDatabase(DatabaseName).GetContainerQueryIterator<ContainerProperties>();
+            var expected=new HashSet<string>{"avatarItems","avatarDetailItems","holonItems"};
+            while(containers.HasMoreResults)
+                foreach(var container in await containers.ReadNextAsync())
+                {
+                    Assert.IsTrue(expected.Contains(container.Id),"Unexpected retained fixture container; preserve for inspection.");
+                    Assert.AreEqual("/id",container.PartitionKeyPath);
+                    using var query=_client.GetContainer(DatabaseName,container.Id).GetItemQueryIterator<long>("SELECT VALUE COUNT(1) FROM c");
+                    long count=0;while(query.HasMoreResults)count+=(await query.ReadNextAsync()).Single();
+                    Assert.AreEqual(0L,count,"Retained fixture records require inspection; no reset or broad cleanup allowed.");
+                }
         }
     }
 }

@@ -72,6 +72,8 @@ public partial class AzureCosmosDBOASISIntegrationTests
                 Assert.AreEqual("not-an-integer",retained["Version"]!.Value<string>());
                 Assert.AreEqual(key,retained["Id"]!.Value<string>());
             }
+            // Only this acknowledged, independently inspected corruption fixture may be removed.
+            using(var deleted=await container.DeleteItemStreamAsync(key,new PartitionKey(key)))deleted.EnsureSuccessStatusCode();
             verified=true;
         }
         finally

@@ -11,6 +11,45 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
 [DoNotParallelize]
 public class CosmosNativeStorageTests
 {
+    public TestContext TestContext {get;set;}=null!;
+    [TestMethod][TestCategory("Inspection")]
+    public async Task InspectRetainedFixtureWithoutMutation()
+    {
+        Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_COSMOSDB_NATIVE"));
+        using var client=new CosmosClient("https://127.0.0.1:8081",EmulatorKey,new CosmosClientOptions {ConnectionMode=ConnectionMode.Gateway,
+            RequestTimeout=TimeSpan.FromSeconds(10),MaxRetryAttemptsOnRateLimitedRequests=0,
+            HttpClientFactory=()=>new HttpClient(new HttpClientHandler {ServerCertificateCustomValidationCallback=HttpClientHandler.DangerousAcceptAnyServerCertificateValidator})});
+        var database=client.GetDatabase("oasis-cosmos-crud");
+        await database.ReadAsync();
+        using var containers=database.GetContainerQueryIterator<ContainerProperties>();
+        while(containers.HasMoreResults)
+            foreach(var container in await containers.ReadNextAsync())
+            {
+                using var query=database.GetContainer(container.Id).GetItemQueryIterator<long>("SELECT VALUE COUNT(1) FROM c");
+                long count=0;while(query.HasMoreResults)count+=(await query.ReadNextAsync()).Single();
+                TestContext.WriteLine("Retained fixture container={0}; records={1}; partition={2}",container.Id,count,container.PartitionKeyPath);
+            }
+        var sqlitePath=Path.Combine(AppContext.BaseDirectory,"TestResults","CosmosDBRouting","delete-backup.db");
+        if(File.Exists(sqlitePath))
+        {
+            using(var stream=File.OpenRead(sqlitePath))TestContext.WriteLine("Retained SQLite bytes={0}; SHA256={1}",stream.Length,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stream)));
+            using var sqlite=new Microsoft.Data.Sqlite.SqliteConnection(new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder{DataSource=sqlitePath,Mode=Microsoft.Data.Sqlite.SqliteOpenMode.ReadOnly,Pooling=false}.ToString());
+            await sqlite.OpenAsync();
+            var names=new List<string>();
+            using(var tables=sqlite.CreateCommand())
+            {
+                tables.CommandText="SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+                using var reader=await tables.ExecuteReaderAsync();while(await reader.ReadAsync())names.Add(reader.GetString(0));
+            }
+            foreach(var name in names)
+            {
+                using var count=sqlite.CreateCommand();count.CommandText="SELECT COUNT(*) FROM \""+name.Replace("\"","\"\"")+"\"";
+                var rows=Convert.ToInt64(await count.ExecuteScalarAsync());
+                if(rows>0)TestContext.WriteLine("Retained SQLite table={0}; records={1}",name,rows);
+            }
+        }
+        // Diagnostic evidence only. No create/delete/replace, keys or record payloads emitted.
+    }
     private const string EmulatorKey="C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
     [TestMethod]
     public async Task RetainedEmulatorPersistsProfilesInventoryAndGraphThroughOfficialSdk()
