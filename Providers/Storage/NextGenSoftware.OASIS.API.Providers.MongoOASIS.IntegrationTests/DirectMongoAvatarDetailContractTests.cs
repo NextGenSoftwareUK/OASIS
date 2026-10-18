@@ -32,6 +32,28 @@ public sealed class DirectMongoAvatarDetailContractTests
                     .Contains(Nullable.GetUnderlyingType(property.PropertyType)??property.PropertyType)).ToArray();
             Assert.True(scalarProperties.Length>=19,"Do not silently shrink the profile-field contract.");
             for(var revision=1;revision<=2;revision++){
+                var inventory=new InventoryItem{Id=Guid.NewGuid(),Name="inventory-"+revision,
+                    Description="owned-item-"+revision,Image2D=new byte[]{1,2,(byte)revision},Object3D=new byte[]{4,5,(byte)revision},
+                    Image2DURI=new Uri($"https://example.invalid/image-{revision}"),Object3DURI=new Uri($"https://example.invalid/object-{revision}"),
+                    Quantity=revision*3,Stack=revision==1,GameSource="Our World",ItemType=NextGenSoftware.OASIS.API.Core.Enums.InventoryItemType.Weapon,
+                    NftId=revision==1?Guid.NewGuid():Guid.Empty,GeoNFTId=revision==2?Guid.NewGuid():Guid.Empty,
+                    Rarity="rarity-"+revision,MaxQuantity=revision*10,Weight=revision*1.25f,IsUsable=revision==1,IsTradeable=revision==2,
+                    AcquiredOn=new DateTime(2020+revision,1,2,3,4,5,DateTimeKind.Utc),LastUsedOn=new DateTime(2020+revision,2,3,4,5,6,DateTimeKind.Utc),
+                    Properties=new System.Collections.Generic.Dictionary<string,object>{{"revision","value-"+revision}}};
+                detail.Inventory=new System.Collections.Generic.List<IInventoryItem>{inventory};
+                void VerifyInventory(System.Collections.Generic.IEnumerable<IInventoryItem> values){
+                    var actual=Assert.Single(values);Assert.Equal(inventory.Id,actual.Id);Assert.Equal(inventory.Name,actual.Name);
+                    Assert.Equal(inventory.Description,actual.Description);
+                    foreach(var property in typeof(IInventoryItem).GetProperties()){
+                        var expected=property.GetValue(inventory);var restored=property.GetValue(actual);
+                        if(expected is byte[] bytes)Assert.Equal(bytes,(byte[])restored!);
+                        else if(expected is System.Collections.Generic.Dictionary<string,object> properties){
+                            var found=(System.Collections.Generic.Dictionary<string,object>)restored!;
+                            Assert.Equal(properties.Count,found.Count);
+                            foreach(var pair in properties)Assert.Equal(pair.Value,found[pair.Key]);
+                        }else Assert.Equal(expected,restored);
+                    }
+                }
                 detail.Chakras=IndependentAvatarChakras.Create(revision);
                 void VerifyChakras(IAvatarChakras actual){
                     Assert.NotNull(actual);
@@ -95,6 +117,7 @@ public sealed class DirectMongoAvatarDetailContractTests
                 VerifyStructured(raw,true);VerifyStructured(saved.Result,false);
                 VerifyCollections(raw,true);VerifyCollections(saved.Result,false);
                 VerifyChakras(raw.Chakras);VerifyChakras(saved.Result.Chakras);
+                VerifyInventory(raw.Inventory);VerifyInventory(saved.Result.Inventory);
                 foreach(var property in skillProperties){
                     Assert.Equal(property.GetValue(skills),property.GetValue(raw.Skills));
                     Assert.Equal(property.GetValue(skills),property.GetValue(saved.Result.Skills));
@@ -116,6 +139,7 @@ public sealed class DirectMongoAvatarDetailContractTests
                         VerifyStructured(loaded.Result,false);
                         VerifyCollections(loaded.Result,false);
                         VerifyChakras(loaded.Result.Chakras);
+                        VerifyInventory(loaded.Result.Inventory);
                         foreach(var property in scalarProperties)Assert.Equal(property.GetValue(detail),property.GetValue(loaded.Result));
                         foreach(var property in skillProperties)Assert.Equal(property.GetValue(skills),property.GetValue(loaded.Result.Skills));
                     }
