@@ -109,7 +109,7 @@ async function execute(input, persistPreparedSubmission) {
         return await client.getBalance(input.walletAddress, input.denom ?? "uatom");
       case "transactions": {
         const address = input.walletAddress;
-        const indexed = await indexedHistorySnapshot(client, address);
+        const indexed = await indexedHistorySnapshot(client, address, {fromBlock:input.fromBlock,toBlock:input.toBlock});
         const registry = new Registry(defaultRegistryTypes);
         const transfers = [];
         for (const tx of indexed) {

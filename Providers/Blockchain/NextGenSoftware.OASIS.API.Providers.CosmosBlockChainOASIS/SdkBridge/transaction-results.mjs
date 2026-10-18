@@ -197,16 +197,23 @@ export function guardCosmosSigningClient(client, persistPreparedSubmission, maxi
   return client;
 }
 
-export async function indexedHistorySnapshot(client, address) {
+export async function indexedHistorySnapshot(client, address, {fromBlock,toBlock}={}) {
   fromBech32(address, 90);
+  for(const value of [fromBlock,toBlock])
+    if(value!==undefined&&value!==null&&(!Number.isSafeInteger(value)||value<0))
+      throw new Error('Cosmos history block range must use exact nonnegative safe integers');
+  if(fromBlock!=null&&toBlock!=null&&fromBlock>toBlock)
+    throw new Error('Cosmos history block range is reversed');
   const height = await client.getHeight();
   if (!Number.isSafeInteger(height) || height <= 0) throw new Error('Cosmos history requires a committed snapshot height');
-  const bound = ` AND tx.height<=${height}`;
+  const lower=fromBlock??0;const upper=Math.min(height,toBlock??height);
+  if(upper===0||lower>upper)return [];
+  const bound = ` AND tx.height<=${upper}`+(lower>0?` AND tx.height>=${lower}`:'');
   const received = await client.searchTx(`transfer.recipient='${address}'${bound}`);
   const sent = await client.searchTx(`message.sender='${address}'${bound}`);
   const indexed = new Map();
   for (const tx of [...received, ...sent]) {
-    if (!/^[0-9A-F]{64}$/.test(tx.hash ?? '') || !Number.isSafeInteger(tx.height) || tx.height <= 0 || tx.height > height
+    if (!/^[0-9A-F]{64}$/.test(tx.hash ?? '') || !Number.isSafeInteger(tx.height) || tx.height <= 0 || tx.height > upper || tx.height < lower
         || !Number.isSafeInteger(tx.txIndex) || tx.txIndex < 0 || !Number.isInteger(tx.code) || tx.code < 0 || tx.code > 4294967295
         || !(tx.tx instanceof Uint8Array)
         || createHash('sha256').update(tx.tx).digest('hex').toUpperCase() !== tx.hash)
