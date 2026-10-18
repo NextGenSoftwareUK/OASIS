@@ -2,6 +2,14 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Avatar identity deletion routing (2026-10-18)
+
+Provider-key deletion now parses the existing GUID key and delegates to GUID deletion with softDelete unchanged. Username/email deletion resolves the existing encrypted private identity lookup and then delegates to that same GUID path; no guessed by-key/by-username/by-email HTTP route or identity in request URI. Lookup failures preserve original envelope/classification and prevent mutation. Existing lookup rejects missing/ambiguous identities. This does NOT solve concurrent identity reassignment or avatar/detail consistency; identity scan and subsequent GUID read are not atomic.
+
+Eight genuine before-change failures77ms (six key/username/email sync+async default soft-delete cases and two missing identity cases). Before report solid-avatar-identity-delete-before.trx SHA256 A3C9EA5C5835DA5FC44DFDBB56F09DF96F8ECF7515150C5CDCEE57B1BF33A4A8. Final complete139/139 controlled unit tests passed289ms, zero skipped; current report SHA256 8BF475759CFA5C580ED6A1D0467AB2E5D0014A7687E97C7DEC90F5B8C3E11E60. Tests verify retained encrypted avatar/password/ID and nonzero DeletedDate, not just a success flag. Cached bounded provider build passed2warnings. Reused existing HTTP fixture/environment, no restore/install/runtime launch; free Windows space86703255552bytes.
+
+Permanent GUID avatar deletion still unconditional/unverified and does not handle detail record; all identity hard-delete routes delegate to that unfinished operation, not a new certified implementation. Conditional soft-save, durable recovery, native pod/auth, history/paging and full-provider/all-provider release gates remain OPEN. No merge/deploy.
+
 ## Avatar soft-delete failure propagation (2026-10-18)
 
 GUID soft deletion previously fell through into unconditional permanent DELETE when its read failed, and ignored SaveAvatar errors before reporting success. Fixed both: original read/save OASISResult error and exception copied; no permanent deletion on soft-delete failure. Missing success payload is also an explicit error. Four genuine before-change failing tests (sync/async read503 and save403), 84ms, report solid-avatar-delete-before.trx SHA256 E8EB7BF4245B49909DEB43C7BDFA56462F58816F847B9316CED32767464C989C. Final cached provider build passed (2 warnings), full131/131 unit tests passed288ms/zero skipped; current report SHA256 3C2B1792C45651E2C4EAFA65F7F4C429B1AE3873A82F6E3FF9A72A8F0B179F09. Initial compile caught missing System.IO qualification, corrected before verification.

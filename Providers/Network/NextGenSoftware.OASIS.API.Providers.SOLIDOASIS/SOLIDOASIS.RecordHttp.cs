@@ -30,6 +30,15 @@ public sealed class SolidRecordReconciliationException : IOException,INativeMuta
 public partial class SOLIDOASIS
 {
     private readonly SolidPrivateRecordCodec _privateRecords;
+    private async Task<OASISResult<bool>> DeleteAvatarByIdentityAsync(string identity,bool email,bool softDelete)
+    {
+        var found=email?await LoadAvatarByEmailAsync(identity):await LoadAvatarByUsernameAsync(identity);
+        if(found.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(found);
+        if(found.Result!=null)return await DeleteAvatarAsync(found.Result.Id,softDelete);
+        var result=new OASISResult<bool>();
+        OASISErrorHandling.HandleError(ref result,"SOLID avatar lookup returned no record; refusing deletion.",new InvalidDataException("Missing identity result."));
+        return result;
+    }
     private static Guid ParsePrivateRecordKey(string key)
     {
         if(Guid.TryParse(key,out var id)&&id!=Guid.Empty)return id;
