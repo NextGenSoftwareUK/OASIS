@@ -51,7 +51,20 @@ public sealed class MongoBootstrapAuthority
         return record;
     }
 
-    // No upsert: creating the initial trusted projection is a separate reviewed provisioning operation.
+    /// <summary>
+    /// Trusted server provisioning only, after independently verifying canonical identity and karma.
+    /// Not an HTTP/client DTO: existence or an uncertain prior insert must be reconciled, never overwritten.
+    /// </summary>
+    public async Task ProvisionVerifiedAsync(BootstrapAuthorityRecord verified, CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(verified);
+        if (verified.Revision != 1)
+            throw new ArgumentException("Initial authority revision must be exactly one.", nameof(verified));
+        ValidatePublication(verified);
+        await _records.InsertOneAsync(verified, cancellationToken: token);
+    }
+
+    // No upsert: invalidation cannot create authority or recover an uncertain provisioning operation.
     public async Task<long> InvalidateAsync(Guid avatarId, long expectedRevision, CancellationToken token = default)
     {
         RequireId(avatarId);
@@ -69,11 +82,7 @@ public sealed class MongoBootstrapAuthority
     public async Task PublishAsync(BootstrapAuthorityRecord verified,
         CancellationToken token = default)
     {
-        ArgumentNullException.ThrowIfNull(verified);
-        if (!Guid.TryParseExact(verified.Id, "D", out var id) || id == Guid.Empty)
-            throw new ArgumentException("A canonical avatar ID is required.", nameof(verified));
-        ValidateShape(verified, _clock.GetUtcNow().UtcDateTime);
-        if (!verified.Ready) throw new ArgumentException("Published authority must be ready.", nameof(verified));
+        ValidatePublication(verified);
         var result = await _records.ReplaceOneAsync(
             x => x.Id == verified.Id && x.Revision == verified.Revision && !x.Ready
                 && (x.TokenVersion < verified.TokenVersion
@@ -83,6 +92,15 @@ public sealed class MongoBootstrapAuthority
             verified, cancellationToken: token);
         if (result.ModifiedCount != 1)
             throw new InvalidOperationException("Bootstrap publication conflicted; authority remains unavailable.");
+    }
+
+    private void ValidatePublication(BootstrapAuthorityRecord verified)
+    {
+        ArgumentNullException.ThrowIfNull(verified);
+        if (!Guid.TryParseExact(verified.Id, "D", out var id) || id == Guid.Empty)
+            throw new ArgumentException("A canonical avatar ID is required.", nameof(verified));
+        ValidateShape(verified, _clock.GetUtcNow().UtcDateTime);
+        if (!verified.Ready) throw new ArgumentException("Published authority must be ready.", nameof(verified));
     }
 
     public static void Validate(BootstrapAuthorityRecord record, Guid avatarId, long tokenVersion, DateTime utcNow)
