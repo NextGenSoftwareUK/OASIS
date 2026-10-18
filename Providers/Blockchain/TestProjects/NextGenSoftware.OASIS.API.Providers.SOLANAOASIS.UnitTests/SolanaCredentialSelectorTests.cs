@@ -64,7 +64,7 @@ public class SolanaCredentialSelectorTests
     private sealed class RecordsRepository:ISolanaRepository
     {
         public List<SolanaAvatarDto> Records=new();public int Reads;public Exception? Cause;
-        public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>() where T:SolanaBaseDto,new()
+        public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>(int version=0) where T:SolanaBaseDto,new()
         {
             Reads++;if(Cause!=null) throw Cause;
             return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Records.Select(row=>

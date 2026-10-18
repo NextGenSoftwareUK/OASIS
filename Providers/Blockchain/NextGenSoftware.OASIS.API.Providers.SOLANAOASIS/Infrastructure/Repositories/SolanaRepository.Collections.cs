@@ -6,8 +6,9 @@ public partial class SolanaRepository
     private const int HistoryPagesLimit=100;
     private const ulong HistoryPageSize=100;
 
-    public async Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>() where T:SolanaBaseDto,new()
+    public async Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>(int version=0) where T:SolanaBaseDto,new()
     {
+        if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
         var writer=oasisAccount.PublicKey.Key;
         var expectedKind=new T().RecordKind;
         var selected=new Dictionary<Guid,(T Record,string Signature)>();
@@ -59,7 +60,8 @@ public partial class SolanaRepository
                 if(lastVersions.TryGetValue(record.Id,out var newerVersion) && record.Version>=newerVersion)
                     throw new InvalidOperationException("Solana storage history contains conflicting or non-monotonic versions.");
                 lastVersions[record.Id]=record.Version;
-                if(!selected.ContainsKey(record.Id)) selected.Add(record.Id,(record,entry.Signature));
+                if((version==0 || record.Version==version) && !selected.ContainsKey(record.Id))
+                    selected.Add(record.Id,(record,entry.Signature));
             }
         }
         throw new InvalidOperationException("Solana storage history exceeds the bounded scan; no partial collection returned. A durable indexed history is required.");
