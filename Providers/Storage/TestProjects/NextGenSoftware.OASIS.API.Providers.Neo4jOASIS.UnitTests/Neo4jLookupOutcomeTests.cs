@@ -19,26 +19,28 @@ public class Neo4jLookupOutcomeTests
         void Check<T>(OASISResult<T> result)
         {
             Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);
-            Assert.IsInstanceOfType(result.Exception,version<0 ? typeof(ArgumentOutOfRangeException):typeof(NotSupportedException));
+            Assert.IsInstanceOfType(result.Exception,typeof(ArgumentOutOfRangeException));
         }
-        void CheckAvatar(OASISResult<IAvatar> result)
+        void CheckHistorical<T>(OASISResult<T> result)
         {
             if(version<0){Check(result);return;}
             Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,result.ErrorCode);
             Assert.IsNull(result.Exception);
         }
-        CheckAvatar(synchronous ? provider.LoadAvatar(id,version):await provider.LoadAvatarAsync(id,version));
-        CheckAvatar(synchronous ? provider.LoadAvatarByProviderKey(id.ToString(),version):await provider.LoadAvatarByProviderKeyAsync(id.ToString(),version));
-        CheckAvatar(synchronous ? provider.LoadAvatarByUsername("owned",version):await provider.LoadAvatarByUsernameAsync("owned",version));
-        CheckAvatar(synchronous ? provider.LoadAvatarByEmail("owned@example.invalid",version):await provider.LoadAvatarByEmailAsync("owned@example.invalid",version));
+        CheckHistorical(synchronous ? provider.LoadAvatar(id,version):await provider.LoadAvatarAsync(id,version));
+        CheckHistorical(synchronous ? provider.LoadAvatarByProviderKey(id.ToString(),version):await provider.LoadAvatarByProviderKeyAsync(id.ToString(),version));
+        CheckHistorical(synchronous ? provider.LoadAvatarByUsername("owned",version):await provider.LoadAvatarByUsernameAsync("owned",version));
+        CheckHistorical(synchronous ? provider.LoadAvatarByEmail("owned@example.invalid",version):await provider.LoadAvatarByEmailAsync("owned@example.invalid",version));
         var all=synchronous ? provider.LoadAllAvatars(version):await provider.LoadAllAvatarsAsync(version);
         if(version<0)Check(all);
         else{Assert.IsFalse(all.IsError,all.Message);Assert.IsTrue(all.IsLoaded);Assert.AreEqual(0,all.Result.Count());}
-        Check(synchronous ? provider.LoadAvatarDetail(id,version):await provider.LoadAvatarDetailAsync(id,version));
-        Check(synchronous ? provider.LoadAvatarDetailByUsername("owned",version):await provider.LoadAvatarDetailByUsernameAsync("owned",version));
-        Check(synchronous ? provider.LoadAvatarDetailByEmail("owned@example.invalid",version):await provider.LoadAvatarDetailByEmailAsync("owned@example.invalid",version));
-        Check(synchronous ? provider.LoadAllAvatarDetails(version):await provider.LoadAllAvatarDetailsAsync(version));
+        CheckHistorical(synchronous ? provider.LoadAvatarDetail(id,version):await provider.LoadAvatarDetailAsync(id,version));
+        CheckHistorical(synchronous ? provider.LoadAvatarDetailByUsername("owned",version):await provider.LoadAvatarDetailByUsernameAsync("owned",version));
+        CheckHistorical(synchronous ? provider.LoadAvatarDetailByEmail("owned@example.invalid",version):await provider.LoadAvatarDetailByEmailAsync("owned@example.invalid",version));
+        var details=synchronous ? provider.LoadAllAvatarDetails(version):await provider.LoadAllAvatarDetailsAsync(version);
+        if(version<0)Check(details);
+        else{Assert.IsFalse(details.IsError,details.Message);Assert.IsTrue(details.IsLoaded);Assert.AreEqual(0,details.Result.Count());}
     }
 
     public class ReadProbe : DispatchProxy

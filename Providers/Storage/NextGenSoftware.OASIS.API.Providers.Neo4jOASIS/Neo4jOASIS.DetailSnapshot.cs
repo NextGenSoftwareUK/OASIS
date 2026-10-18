@@ -30,6 +30,7 @@ public partial class Neo4jOASIS
     {
         var result = new OASISResult<IAvatarDetail>();
         var dispatched = false;
+        var archiveVersions = IsVersionControlEnabled;
         try
         {
             ArgumentNullException.ThrowIfNull(source);
@@ -43,10 +44,12 @@ public partial class Neo4jOASIS
             using (var session = _driver.AsyncSession())
             {
                 using var transaction = await session.BeginTransactionAsync();
-                var query = "MERGE (a:AvatarDetail {Id:$id}) SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot RETURN a";
                 dispatched = true;
+                var expected=archiveVersions ? await StampRecordHistoryAsync(transaction,"AvatarDetail",staged,ReadDetailNode):null;
+                var query=SnapshotWritePrefix("AvatarDetail",archiveVersions)
+                    + "SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot RETURN a";
                 var rows = await (await transaction.RunAsync(query, new { id = staged.Id.ToString(), username = staged.Username,
-                    email = staged.Email, snapshot = OasisJson.Serialize(staged) })).ToListAsync();
+                    email = staged.Email, snapshot = OasisJson.Serialize(staged),expected,writeId=Guid.NewGuid().ToString("N") })).ToListAsync();
                 if (rows.Count != 1) throw new InvalidDataException("Neo4j detail save did not acknowledge exactly one record.");
                 acknowledged = ReadDetailNode(rows[0]["a"].As<Neo4j.Driver.INode>());
                 if (acknowledged.Id != staged.Id) throw new InvalidDataException("Neo4j detail save acknowledged another identity.");
@@ -55,6 +58,7 @@ public partial class Neo4jOASIS
             source.Id = acknowledged.Id;
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = acknowledged.Id.ToString();
             source.IsNewHolon = false;
+            if(archiveVersions){source.Version=acknowledged.Version;source.VersionId=acknowledged.VersionId;source.PreviousVersionId=acknowledged.PreviousVersionId;}
             result.Result = acknowledged; result.IsSaved = true;
         }
         catch (Exception cause)
@@ -71,6 +75,7 @@ public partial class Neo4jOASIS
 
     private async Task<OASISResult<IEnumerable<IAvatarDetail>>> ReadDetailsAsync(string field = null, string value = null,int version=0)
     {
+        if(version>0)return await ReadHistoricalDetailsAsync(field,value,version);
         var result = new OASISResult<IEnumerable<IAvatarDetail>>();
         try
         {
@@ -89,6 +94,21 @@ public partial class Neo4jOASIS
         catch (Exception cause) { result.IsError = true; result.Exception = cause; result.Message = cause.Message;
             if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
         return result;
+    }
+
+    private async Task<OASISResult<IEnumerable<IAvatarDetail>>> ReadHistoricalDetailsAsync(string field,string value,int version)
+    {
+        var result=new OASISResult<IEnumerable<IAvatarDetail>>();
+        try
+        {
+            if(field!=null && field is not "Id" and not "Username" and not "Email")throw new ArgumentException("Unknown detail selector.");
+            var read=await ReadHistoricalRecordsAsync<IAvatarDetail>("AvatarDetail",version,node=>ReadDetailNode(node),json=>OasisJson.DeserializeStored<AvatarDetail>(json));
+            if(read.IsError)return read;
+            read.Result=read.Result.Where(detail=>field switch{
+                null=>true,"Id"=>detail.Id.ToString()==value,"Username"=>detail.Username==value,"Email"=>detail.Email==value,_=>false}).ToList();
+            return read;
+        }
+        catch(Exception cause){result.IsError=true;result.Exception=cause;result.Message=cause.Message;return result;}
     }
 
     private async Task<OASISResult<IAvatarDetail>> ReadOneDetailAsync(string field, string value,int version=0)

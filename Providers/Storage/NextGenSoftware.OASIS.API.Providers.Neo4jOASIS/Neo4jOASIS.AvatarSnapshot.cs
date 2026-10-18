@@ -25,13 +25,8 @@ public partial class Neo4jOASIS
             {
                 using var transaction = await session.BeginTransactionAsync();
                 dispatched = true;
-                var expected=archiveVersions ? await StampAvatarHistoryAsync(transaction,staged):null;
-                var query=archiveVersions
-                    ? "MERGE (a:Avatar {Id:$id}) ON CREATE SET a.__oasisCreatedBy=$writeId "
-                      + "SET a.__oasisAvatarLock=true REMOVE a.__oasisAvatarLock WITH a "
-                      + "WHERE ($expected IS NULL AND a.__oasisCreatedBy=$writeId) OR a.SnapshotJson=$expected "
-                      + "REMOVE a.__oasisCreatedBy "
-                    : "MERGE (a:Avatar {Id:$id}) ";
+                var expected=archiveVersions ? await StampRecordHistoryAsync(transaction,"Avatar",staged,ReadAvatarNode):null;
+                var query=SnapshotWritePrefix("Avatar",archiveVersions);
                 query+="SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot, a.CreatedDate=$createdDate, a.ModifiedDate=$modifiedDate RETURN a";
                 var rows = await (await transaction.RunAsync(query, new { id = staged.Id.ToString(), username = staged.Username,
                     email = staged.Email, snapshot = OasisJson.Serialize(staged), createdDate = staged.CreatedDate, modifiedDate = staged.ModifiedDate,
