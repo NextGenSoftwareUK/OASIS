@@ -155,7 +155,26 @@ internal sealed class NearSdkService
             transactionHash,
             signerAccountId = signerAccountId ?? _accountId
         });
-        return response.RootElement.GetProperty("status").GetString();
+        var outcome=response.RootElement.GetProperty("outcome");
+        if(outcome.GetProperty("transaction_outcome").GetProperty("id").GetString()!=transactionHash)
+            throw new InvalidDataException("NEAR status outcome does not match the requested transaction.");
+        return ClassifyTransactionOutcome(outcome);
+    }
+
+    internal static string ClassifyTransactionOutcome(JsonElement outcome)
+    {
+        if(outcome.ValueKind!=JsonValueKind.Object || !outcome.TryGetProperty("final_execution_status",out var finality)
+            || finality.ValueKind!=JsonValueKind.String)
+            throw new InvalidDataException("NEAR status requires explicit execution finality.");
+        var state=finality.GetString();
+        if(state is "NONE" or "INCLUDED" or "INCLUDED_FINAL" or "EXECUTED" or "EXECUTED_OPTIMISTIC")return "Pending";
+        if(state!="FINAL")throw new InvalidDataException("Unknown NEAR execution finality.");
+        if(!outcome.TryGetProperty("status",out var status) || status.ValueKind!=JsonValueKind.Object
+            || status.EnumerateObject().Count()!=1)
+            throw new InvalidDataException("Final NEAR outcome requires one explicit execution result.");
+        if(status.TryGetProperty("Failure",out var failure) && failure.ValueKind==JsonValueKind.Object && failure.EnumerateObject().Any())return "Failed";
+        if(status.TryGetProperty("SuccessValue",out var success) && success.ValueKind==JsonValueKind.String)return "Completed";
+        throw new InvalidDataException("Final NEAR execution outcome is malformed.");
     }
 
     private void EnsureWritable(string accountId = null, string privateKey = null)

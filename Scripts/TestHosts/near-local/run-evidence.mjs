@@ -51,6 +51,9 @@ try {
       !==createHash("sha256").update(wasm).digest("hex"))
     throw new Error("Retained NEAR contract bytecode differs; no automatic redeployment or initialization is permitted.");
   const networkId=expectedChain;
+  const failedOriginal=JSON.parse(readFileSync("/var/tmp/oasis-near-evidence/failed-status-original.json","utf8"));
+  if(failedOriginal.chain!==networkId || typeof failedOriginal.hash!=="string")
+    throw new Error("Retained original failed-status evidence is invalid; no replacement/submission attempted.");
 
   // WSL does not propagate arbitrary environment variables to Windows executables.
   // Pass owned test credentials through stdin, never a command line or plaintext file.
@@ -61,6 +64,7 @@ try {
     NEAROASIS_CONTRACTADDRESS: contract.accountId,
     NEAROASIS_ACCOUNTID: contract.accountId,
     NEAROASIS_PRIVATEKEY: key.toString(),
+    NEAROASIS_FAILED_STATUS_TRANSACTIONID: failedOriginal.hash,
     OASIS_NEAR_NODE: "C:\\Program Files\\nodejs\\node.exe",
     OASIS_NEAR_SDK_BRIDGE: toWindows(resolve(repoRoot, "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/bridge.mjs")),
   };

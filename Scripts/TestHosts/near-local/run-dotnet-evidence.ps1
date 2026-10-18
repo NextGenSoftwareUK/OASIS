@@ -14,6 +14,7 @@ $environmentNames = @(
     'NEAROASIS_CONTRACTADDRESS',
     'NEAROASIS_ACCOUNTID',
     'NEAROASIS_PRIVATEKEY',
+    'NEAROASIS_FAILED_STATUS_TRANSACTIONID',
     'OASIS_NEAR_NODE',
     'OASIS_NEAR_SDK_BRIDGE',
     'OASIS_NEAR_STORAGE_ENCRYPTION_KEY'
@@ -70,7 +71,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'NEAR native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 16 -or [int]$counts.passed -ne 16 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly16 passing native NEAR cases and zero skips.'}
+    if([int]$counts.total -ne 17 -or [int]$counts.passed -ne 17 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly17 passing native NEAR cases and zero skips.'}
 }
 finally {
     foreach ($name in $environmentNames) {

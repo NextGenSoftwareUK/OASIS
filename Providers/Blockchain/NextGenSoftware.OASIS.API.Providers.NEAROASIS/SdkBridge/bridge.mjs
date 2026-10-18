@@ -75,7 +75,7 @@ async function execute(input) {
         accountId: input.signerAccountId ?? input.accountId,
         waitUntil: "FINAL",
       });
-      return { status: outcome.final_execution_status };
+      return { outcome };
     }
     case "view":
       return await provider.callFunction({
