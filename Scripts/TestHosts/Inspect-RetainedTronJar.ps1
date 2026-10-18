@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$FeeRules)
+param([switch]$FeeRules,[switch]$VMFeeRules)
 $ErrorActionPreference='Stop'
+if($FeeRules -and $VMFeeRules){throw 'Select one bounded inspection mode.'}
 $taskRoot=[IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $work=Join-Path $taskRoot 'TestResults/HyperDriveTron'
 $tool=(Get-Command javap -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
@@ -20,11 +21,12 @@ try{
     }else{New-Item -ItemType Directory -Path $temporaryDirectory | Out-Null}
     [string[]]$inspectionArguments=@()
     if($FeeRules){$inspectionArguments=@('--fee-rules')}
+    if($VMFeeRules){$inspectionArguments=@('--vm-fee-rules')}
     $raw=& wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/inspect-retained-tron-jar.sh @inspectionArguments
     if($LASTEXITCODE-ne 0){throw 'Offline retained JAR inspection failed; no runtime replaced.'}
     $metadata=($raw-join "`n")|ConvertFrom-Json
     $materials=@([pscustomobject]@{entry='org/tron/program/Version.class';sha256=$metadata.versionClassSha256;base64=$metadata.versionClassBase64})
-    if($FeeRules){$materials+=@($metadata.feeClassMaterials);$metadata.PSObject.Properties.Remove('feeClassMaterials')}
+    if($FeeRules -or $VMFeeRules){$materials+=@($metadata.feeClassMaterials);$metadata.PSObject.Properties.Remove('feeClassMaterials')}
     $metadata.PSObject.Properties.Remove('versionClassBase64')
     $metadata.PSObject.Properties.Remove('extractedFiles')
     $inspections=[Collections.Generic.List[object]]::new();$totalBytes=0
@@ -52,6 +54,7 @@ try{
             if($line-match '^  static \{\};'){$include=$false}
             elseif($line-match '^  \S.*\('){
                 $include=$line-match '\b(consume|consumeMultiSignFee|consumeMemoFee|consumeBandwidth|useTransactionFee|consumeForCreateNewAccount|consumeBandwidthForCreateNewAccount|consumeFee\w*|contractCreateNewAccount|execute|calcFee|validateCommon|processBlock|processTransaction)\('
+                if($VMFeeRules){$include=$line-match '\b\w*(Energy|energy|pay|Pay|exec|Exec|init|Init|finalization|Finalization|setResult|validate|create|call)\w*\('}
                 if($include){$methodCount++}
             }
             if($include){$selected.Add($line)}
@@ -65,7 +68,7 @@ try{
     }
     foreach($name in $fences.Keys){if((Get-FileHash -LiteralPath (Join-Path $work $name)).Hash-ne $fences[$name]){throw 'Protected TRON original changed during offline inspection.'}}
     $metadata|Add-Member -NotePropertyName javap -NotePropertyValue $versionText
-    if($FeeRules){$metadata|Add-Member -NotePropertyName feeRuleInspections -NotePropertyValue @($inspections.ToArray())}
+    if($FeeRules -or $VMFeeRules){$metadata|Add-Member -NotePropertyName feeRuleInspections -NotePropertyValue @($inspections.ToArray())}
     $metadata|Add-Member -NotePropertyName inspectionTool -NotePropertyValue $tool
     $metadata|Add-Member -NotePropertyName temporaryClassBytes -NotePropertyValue $totalBytes
     $metadata|Add-Member -NotePropertyName retainedTemporaryClassFiles -NotePropertyValue 0
@@ -80,7 +83,7 @@ try{
         }
     }catch{$failures.Add($_.Exception)}
     try{
-        if($failures.Count-eq 0){$report=if($FeeRules){'fee-bytecode-inspection-current.json'}else{'jar-inspection-current.json'};[IO.File]::WriteAllText((Join-Path $work $report),$json)}
+        if($failures.Count-eq 0){$report=if($VMFeeRules){'vm-fee-bytecode-inspection-current.json'}elseif($FeeRules){'fee-bytecode-inspection-current.json'}else{'jar-inspection-current.json'};[IO.File]::WriteAllText((Join-Path $work $report),$json)}
     }catch{$failures.Add($_.Exception)}finally{$lease.Dispose()}
 }
 if($failures.Count-eq 1){[Runtime.ExceptionServices.ExceptionDispatchInfo]::Capture($failures[0]).Throw()}
