@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 
@@ -19,13 +20,7 @@ public partial class NEAROASIS
         var result = new OASISResult<ISearchResults>();
         try
         {
-            var groups = searchParams?.SearchGroups?.OfType<ISearchTextGroup>()
-                .Where(group => !string.IsNullOrWhiteSpace(group.SearchQuery)).ToList();
-            if (groups == null || groups.Count == 0)
-            {
-                OASISErrorHandling.HandleError(ref result, "Search requires at least one text search group with a query.");
-                return result;
-            }
+            StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
 
             var matches = new SearchResults();
             var avatarsResult = await LoadAllAvatarRecordsAsync(version);
@@ -35,21 +30,8 @@ public partial class NEAROASIS
             var avatars = avatarsResult.Result.ToList();
             var holons = holonsResult.Result.ToList();
 
-            foreach (var group in groups)
-            {
-                var query = group.SearchQuery.Trim();
-                bool Contains(string value) => value?.Contains(query, StringComparison.OrdinalIgnoreCase) == true;
-                if (group.SearchAvatars || !group.SearchHolons)
-                    matches.SearchResultAvatars.AddRange(avatars.Where(avatar =>
-                        Contains(avatar.Username) || Contains(avatar.Email) || Contains(avatar.FirstName) ||
-                        Contains(avatar.LastName) || (group.SearchIds && Contains(avatar.Id.ToString())))
-                        .Where(avatar => matches.SearchResultAvatars.All(existing => existing.Id != avatar.Id)));
-                if (group.SearchHolons || !group.SearchAvatars)
-                    matches.SearchResultHolons.AddRange(holons.Where(holon =>
-                        Contains(holon.Name) || Contains(holon.Description) ||
-                        (group.SearchIds && Contains(holon.Id.ToString())))
-                        .Where(holon => matches.SearchResultHolons.All(existing => existing.Id != holon.Id)));
-            }
+            matches.SearchResultAvatars.AddRange(avatars.Where(avatar=>StoredRecordSearch.Matches(avatar,true,searchParams,holons)));
+            matches.SearchResultHolons.AddRange(holons.Where(holon=>StoredRecordSearch.Matches(holon,false,searchParams,holons)));
 
             matches.NumberOfResults = matches.SearchResultAvatars.Count + matches.SearchResultHolons.Count;
             result.Result = matches;

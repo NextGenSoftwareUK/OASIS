@@ -424,6 +424,31 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual(grandchild.Id,(await _provider.LoadHolonAsync(root.Id)).Result.Children.Single().Children.Single().Id);
         }
 
+        [TestMethod]
+        public async Task Storage_SearchHonorsOwnerMetadataAndGroupIntersection()
+        {
+            var marker=Guid.NewGuid().ToString("N");
+            var owner=Guid.NewGuid();
+            var selected=new Holon{Id=Guid.NewGuid(),Name=$"search-{marker}",CreatedByAvatarId=owner,
+                MetaData=new Dictionary<string,object>{{"search-marker",marker}}};
+            var excluded=new Holon{Id=Guid.NewGuid(),Name=selected.Name,CreatedByAvatarId=Guid.NewGuid(),
+                MetaData=new Dictionary<string,object>{{"search-marker",marker}}};
+            Assert.IsFalse((await _provider.SaveHolonsAsync(new[]{selected,excluded},saveChildren:false)).IsError);
+            var query=new SearchParams{AvatarId=owner,SearchOnlyForCurrentAvatar=true,
+                FilterByMetaData=new Dictionary<string,string>{{"search-marker",marker}},
+                SearchGroups=new List<ISearchGroupBase>{
+                    new SearchTextGroup{SearchQuery=marker,SearchHolons=true,HolonType=HolonType.All},
+                    new SearchNumberGroup{Number=1,NumberOperator=SearchOperatorType.EqualTo,
+                        SearchHolons=true,HolonType=HolonType.All,PreviousSearchGroupOperator=SearchParamGroupOperator.And}}};
+            var result=await _provider.SearchAsync(query,loadChildren:false);
+            Assert.IsFalse(result.IsError,result.Message);
+            Assert.AreEqual(selected.Id,result.Result.SearchResultHolons.Single().Id);
+            query.SearchOnlyForCurrentAvatar=false;
+            Assert.AreEqual(2,_provider.Search(query,loadChildren:false).Result.SearchResultHolons.Count);
+            query.FilterByMetaData["search-marker"]="not-the-marker";
+            Assert.AreEqual(0,(await _provider.SearchAsync(query)).Result.NumberOfResults);
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
