@@ -65,7 +65,7 @@ public class SolanaHolonAdapterTests
         Assert.IsTrue(provider.ExportAllDataForAvatarById(Guid.Empty).IsError);
         Assert.IsTrue(provider.ExportAll(version:-1).IsError);
         Assert.IsTrue((await provider.ExportAllDataForAvatarByUsernameAsync(" ")).IsError);
-        Assert.IsTrue((await provider.ExportAllDataForAvatarByEmailAsync("email",version:1)).IsError);
+        Assert.IsTrue((await provider.ExportAllDataForAvatarByEmailAsync("email",version:-1)).IsError);
         Assert.AreEqual(0,repository.Reads);
         var owned=synchronous ? provider.ExportAllDataForAvatarById(owner):await provider.ExportAllDataForAvatarByIdAsync(owner);
         Assert.IsFalse(owned.IsError,owned.Message); Assert.IsTrue(owned.IsLoaded); Assert.AreEqual(2,owned.Result.Count());
