@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 public sealed class SuiRetainedFeeAccountingTests
 {
     [DataTestMethod]
-    [DataRow("nft",5)] [DataRow("nft-batch",9)] [DataRow("nft-offchain",5)] [DataRow("token",7)]
+    [DataRow("nft",5)] [DataRow("nft-sync",5)] [DataRow("nft-batch",9)] [DataRow("nft-offchain",5)] [DataRow("token",7)]
     public void RebatesNetAcrossOriginalOperationBeforeOneFloor(string scenario,int expectedReceipts)
     {
         var root=new DirectoryInfo(AppContext.BaseDirectory);
