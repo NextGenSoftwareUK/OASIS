@@ -44,7 +44,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SOLIDOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            _podServerUrl = (podServerUrl ?? throw new ArgumentNullException(nameof(podServerUrl))).TrimEnd('/');
+            ArgumentNullException.ThrowIfNull(podServerUrl);
+            if(!Uri.TryCreate(podServerUrl,UriKind.Absolute,out var podRoot))throw new ArgumentException("An absolute pod root is required.",nameof(podServerUrl));
+            _podServerUrl = SolidPrivateRecordCodec.NormalizePodRoot(podRoot).AbsoluteUri.TrimEnd('/');
             _privateRecords=storageKey==null?null:new SolidPrivateRecordCodec(new Uri(_podServerUrl),storageKey);
             _httpClient = new HttpClient(handler??throw new ArgumentNullException(nameof(handler))) { Timeout = TimeSpan.FromSeconds(30) };
             _httpClient.DefaultRequestHeaders.Add("Accept", "text/turtle, application/ld+json;q=0.9, */*;q=0.8");
@@ -61,13 +63,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             var result = new OASISResult<bool>();
             try
             {
+                ObjectDisposedException.ThrowIf(_disposed,this);
                 if (_isActivated)
                 {
                     result.Result = true;
                     result.Message = "SOLID provider already activated";
                     return result;
                 }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/");
+                using var response = await _httpClient.GetAsync($"{_podServerUrl}/");
+                response.EnsureSuccessStatusCode();
                 if (response.IsSuccessStatusCode)
                 {
                     _isActivated = true;
@@ -75,8 +79,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                     result.Result = true;
                     result.Message = "SOLID provider activated successfully";
                 }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"Failed to connect to SOLID pod server: {response.StatusCode}");
             }
             catch (Exception ex)
             {
@@ -485,6 +487,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             {
                 _httpClient?.Dispose();
                 _privateRecords?.Dispose();
+                _isActivated = false;
+                IsProviderActivated = false;
                 _disposed = true;
             }
         }

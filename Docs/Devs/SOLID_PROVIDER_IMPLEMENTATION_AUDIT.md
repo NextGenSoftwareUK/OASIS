@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Lifecycle and pod-root validation (2026-10-18)
+
+Activation now disposes response content on success/failure and uses EnsureSuccessStatusCode to preserve original HTTP failure status/exception. Final Dispose clears public/internal active flags; activation checks disposal before already-active short circuit, preventing false success with a disposed client. Deactivation retains the existing owned client for reactivation. Codec's existing HTTPS-or-loopback-HTTP/no-userinfo/query/fragment root validator is now one internal normalization function reused by provider construction even WITHOUT a storage key. Relative roots rejected explicitly. Does NOT prove concurrency-safe lifecycle, OIDC, DPoP, redirect security or pod capabilities; activation still only checks root HTTP success.
+
+Seven genuine before-fix regression failures17ms; solid-lifecycle-before.trx SHA2561E731B6536036E3EDDCD50E763BFAC8BDAD025B6DC94EC10F7D4052BBD900F05. Full166/166 controlled tests passed274ms/zero skipped; current TRX SHA2562131E48DA225D2C371B075C618147905E976CF314F3CB2EC92F2D6AFADC64A90. Tests cover reusable deactivation/reactivation, final idempotent disposal/refused activation, response disposal+403 cause, and four invalid roots without storage key. Cached bounded provider build passed2warnings. Same environment/no downloads/installs/native server launch. Actual server permission/proof and full-provider/release gates remain OPEN.
+
 ## Native deletion fixture expanded; not executed (2026-10-18)
 
 Existing retained-pod sync/async fixture now uses matching avatar/detail IDs and exercises provider soft-delete, reload of both inactive records with same nonzero timestamp and retained private payload, provider permanent avatar/detail deletion, provider holon-key deletion, and independent raw GET404 checks for every owned resource. Removed raw DELETE cleanup: failed provider deletion must leave the original ownership journal/key intact, not conceal failure by deleting via another route. Journal still captures all intended resources before setup/writes; no replay/reset or unrelated cleanup.

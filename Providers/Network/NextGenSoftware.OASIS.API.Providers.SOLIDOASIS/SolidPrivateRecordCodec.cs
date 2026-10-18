@@ -20,12 +20,16 @@ public sealed class SolidPrivateRecordCodec : IDisposable
     private readonly EncryptedRecordCodec _encryption;
     public SolidPrivateRecordCodec(Uri podRoot,byte[] storageKey)
     {
+        _root=NormalizePodRoot(podRoot);
+        _encryption=new EncryptedRecordCodec(storageKey);
+    }
+    internal static Uri NormalizePodRoot(Uri podRoot)
+    {
         ArgumentNullException.ThrowIfNull(podRoot);
         if(!podRoot.IsAbsoluteUri||(podRoot.Scheme!=Uri.UriSchemeHttps&&!(podRoot.Scheme==Uri.UriSchemeHttp&&podRoot.IsLoopback))
             ||!string.IsNullOrEmpty(podRoot.UserInfo)||!string.IsNullOrEmpty(podRoot.Query)||!string.IsNullOrEmpty(podRoot.Fragment))
             throw new ArgumentException("An absolute HTTPS pod root (or loopback HTTP) without credentials/query/fragment is required.",nameof(podRoot));
-        _root=new Uri(podRoot.AbsoluteUri.TrimEnd('/')+"/");
-        _encryption=new EncryptedRecordCodec(storageKey);
+        return new Uri(podRoot.AbsoluteUri.TrimEnd('/')+"/");
     }
 
     private static string Kind<T>() where T:class,IHolonBase
