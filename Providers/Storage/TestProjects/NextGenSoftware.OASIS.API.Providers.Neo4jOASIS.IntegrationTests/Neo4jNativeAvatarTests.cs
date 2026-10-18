@@ -10,15 +10,15 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public partial class Neo4jNativeAvatarTests
 {
     [DataTestMethod]
-    [DataRow(false)] [DataRow(true)]
-    public async Task OwnedNativeCommittedTombstonePreservesReplicaFieldsAndRejectsConflict(bool synchronous)
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task OwnedNativeCommittedTombstonePreservesReplicaFieldsAndRejectsConflict(bool synchronous,bool history)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
         using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
         using var check = raw.AsyncSession();
         Assert.AreEqual(0L, (await (await check.RunAsync("MATCH (a) WHERE a:Avatar OR a:AvatarDetail RETURN count(a) AS count")).SingleAsync())["count"].As<long>());
-        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only"){IsVersionControlEnabled=history};
         try
         {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
@@ -36,10 +36,21 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(committed.DeletedAtUtc, replica.Result.DeletedDate); Assert.AreEqual(actor, replica.Result.DeletedByAvatarId);
             Assert.AreEqual("keep replica profile", profile.Result.FirstName); Assert.AreEqual(888L, replica.Result.XP);
             Assert.AreEqual("replica inventory", replica.Result.Inventory.Single().Name);
+            if(history)
+            {
+                Assert.AreEqual(2,profile.Result.Version);Assert.AreEqual(2,replica.Result.Version);
+                var oldProfile=await provider.LoadAvatarAsync(id,1);
+                var oldDetail=await provider.LoadAvatarDetailAsync(id,1);
+                Assert.IsFalse(oldProfile.IsError,oldProfile.Message);Assert.IsFalse(oldDetail.IsError,oldDetail.Message);
+                Assert.AreEqual(DateTime.MinValue,oldProfile.Result.DeletedDate);Assert.AreEqual(DateTime.MinValue,oldDetail.Result.DeletedDate);
+                Assert.AreEqual(888L,oldDetail.Result.XP);Assert.AreEqual("replica inventory",oldDetail.Result.Inventory.Single().Name);
+                Assert.AreEqual(2L,(await(await check.RunAsync("MATCH (v:OasisRecordVersion {RecordId:$id}) RETURN count(v) AS count",new{id=id.ToString()})).SingleAsync())["count"].As<long>(),"Repeated identical tombstone must not create additional versions.");
+            }
             var conflict = await provider.ApplyAvatarTombstoneAsync(new NextGenSoftware.OASIS.API.Core.Objects.AvatarTombstone(id, committed.DeletedAtUtc.AddSeconds(1), actor));
             Assert.IsTrue(conflict.IsError); Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode, conflict.ErrorCode);
             Assert.AreEqual(committed.DeletedAtUtc, (await provider.LoadAvatarAsync(id)).Result.DeletedDate);
             Assert.IsFalse((await provider.DeleteAvatarAsync(id, false)).IsError);
+            Assert.AreEqual(0L,(await(await check.RunAsync("MATCH (v:OasisRecordVersion {RecordId:$id}) RETURN count(v) AS count",new{id=id.ToString()})).SingleAsync())["count"].As<long>());
         }
         finally { await provider.DeActivateProviderAsync(); }
     }

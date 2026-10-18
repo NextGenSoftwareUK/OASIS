@@ -5405,3 +5405,7 @@ Search now uses version-aware Avatar/Holon loaders with existing shared predicat
 
 ID/username/email exports now use canonical versioned records and CreatedByAvatarId ownership, matching existing shared/SQLite behavior; removed unrestricted graph reachability, partial reconstruction and silent skips. Historical owner names/email and unrelated-record exclusion proven in expanded native cases. Lookup/export errors propagate completely; empty owner ID guards added. Native71pass37s/unit78pass320ms; three DLLs16916537E666820D0843C676DEE48883F0EF0024078F3283FF922471AFDB44B9. Exact report hashes/remaining gaps in current release gates. Not authorization/API/full-interface certification; soft-delete/history-credentials/concurrency/recovery/release remain open.
 
+# 2026-10-18 Neo4j paired soft-delete history
+
+Opt-in paired profile/detail soft deletion now stamps/archives in the same native transaction as both tombstones using existing shared helpers and snapshot comparisons. Identical committed-tombstone repetition does not advance versions. Native73pass36s (two added history-enabled sync/async cases) proves pre-delete history, current v2, preserved XP/inventory, no duplicate archives, conflict/hard-delete cleanup; unit78pass326ms. DLL EB17DC788DCFFCFE449DECD738105E2A48FAA9DF24C99B74EEAF9CD9135CC27A. Ordinary-delete and forced history-enabled paired failure/concurrency need further proof; complete interfaces/recovery/hosted release remain uncertified. Exact hashes in release gates.
+
