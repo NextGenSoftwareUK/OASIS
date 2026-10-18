@@ -252,101 +252,31 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/for-parent/{id}/?type={type}");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent: {ex.Message}", ex); }
-            return result;
-        }
+            => await QueryPrivateHolonsAsync(type,record=>record.ParentHolonId==id,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/for-parent/by-key/{Uri.EscapeDataString(providerKey)}/?type={type}");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by key: {ex.Message}", ex); }
-            return result;
-        }
+            => await QueryPrivateChildrenByKeyAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool loadChildrenFromProvider = false, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/search?metaKey={Uri.EscapeDataString(metaKey)}&metaValue={Uri.EscapeDataString(metaValue)}&type={type}");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {ex.Message}", ex); }
-            return result;
-        }
+            => await QueryPrivateMetadataAsync(metaKey,metaValue,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var body = JsonSerializer.Serialize(new { metaKeyValuePairs, matchMode = metaKeyValuePairMatchMode.ToString(), type = type.ToString(), version });
-                var content = new StringContent(body, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_podServerUrl}/oasis/holons/search-multi", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holons by multi-metadata: {ex.Message}", ex); }
-            return result;
-        }
+            => await QueryPrivateMetadataAsync(metaKeyValuePairs,metaKeyValuePairMatchMode,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            if(!Enum.IsDefined(typeof(HolonType),type)){
-                var invalid=new OASISResult<IEnumerable<IHolon>>();
-                OASISErrorHandling.HandleError(ref invalid,"Invalid holon type.",new ArgumentOutOfRangeException(nameof(type)));return invalid;
-            }
-            var result=await LoadPrivateRecordsAsync<IHolon>(version);
-            if(!result.IsError)result.Result=result.Result.Where(holon=>type==HolonType.All||holon.HolonType==type).ToArray();
-            return result;
-        }
+            => await QueryPrivateHolonsAsync(type,null,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
