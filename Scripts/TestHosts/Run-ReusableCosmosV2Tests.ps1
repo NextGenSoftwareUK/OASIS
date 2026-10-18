@@ -1,4 +1,4 @@
-param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect')][string]$Mode = 'Verify')
+param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile')][string]$Mode = 'Verify')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveCosmos'
@@ -9,15 +9,16 @@ if($Mode -in @('IndependentPrepared','IndependentRouting')){
     if((Get-FileHash -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json') -Algorithm SHA256).Hash -ne '9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81'){throw 'Original intent changed; re-review isolation before native testing.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'prepared-native-pending.json')){throw 'Independent original-attempt journal requires reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'independent-routing-pending.json')){throw 'Independent routing original requires reconciliation; no rerun allowed.'}
+    if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'routing-cleanup-pending.json')){throw 'Original routing cleanup requires reconciliation; no rerun allowed.'}
 }
-if($Mode -in @('IndependentPrepared','IndependentReconcile','IndependentRouting','RoutingInspect')){
+if($Mode -in @('IndependentPrepared','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile')){
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'prepared-native-cleanup-pending.json')){throw 'An original cleanup is pending; inspect without replay.'}
-    $nativeProject=Join-Path $taskRoot $(if($Mode -in @('IndependentRouting','RoutingInspect')){'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'}else{'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests.csproj'})
+    $nativeProject=Join-Path $taskRoot $(if($Mode -in @('IndependentRouting','RoutingInspect','RoutingReconcile')){'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'}else{'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests.csproj'})
     foreach($project in @('Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj',$nativeProject)){
         & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Independent Cosmos current source build failed.'}
     }
-    $outputBridge=if($Mode -in @('IndependentRouting','RoutingInspect')){'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'}else{'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'}
+    $outputBridge=if($Mode -in @('IndependentRouting','RoutingInspect','RoutingReconcile')){'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'}else{'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'}
     & (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Cosmos -OutputBridge $outputBridge
 }
 $containerId = (& wsl -d Ubuntu -u root -- podman inspect oasis-wasmd --format '{{.Id}}').Trim()
@@ -70,7 +71,10 @@ try {
         & node (Join-Path $PSScriptRoot 'inspect-cosmos-pending-transactions.mjs')
         if ($LASTEXITCODE -ne 0) { throw 'Read-only Cosmos native transaction inspection failed; pending intent preserved.' }
     }
-    if($Mode -eq 'RoutingInspect'){
+    if($Mode -eq 'RoutingReconcile'){
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosRoutingInspect -CosmosRoutingReconcile
+        if($LASTEXITCODE -ne 0){throw 'Reviewed routing cleanup failed; preserve original attempts and journals.'}
+    }elseif($Mode -eq 'RoutingInspect'){
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosRoutingInspect
         if($LASTEXITCODE -ne 0){throw 'Read-only routing original inspection failed; preserve journals and ledger.'}
     }elseif($Mode -eq 'IndependentRouting'){
