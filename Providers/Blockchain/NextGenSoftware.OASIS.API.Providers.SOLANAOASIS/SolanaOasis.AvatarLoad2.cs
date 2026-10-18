@@ -247,6 +247,7 @@ public partial class SolanaOASIS
     public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
     {
         var result = new OASISResult<bool>();
+        var committed=new List<string>();
         try
         {
             // Immutable signature must authenticate as an avatar before generic tombstoning.
@@ -258,6 +259,30 @@ public partial class SolanaOASIS
                 return result;
             }
             if(avatar.Result==null) throw new InvalidOperationException("Solana avatar signature read returned no authenticated avatar.");
+            if(avatar.Result.Version<0) throw new InvalidDataException("Invalid Solana avatar version.");
+            _=checked(avatar.Result.Version+1);
+            var detail=await LoadAvatarDetailAsync(avatar.Result.Id);
+            if(detail.IsError && detail.ErrorCode!=OASISResultErrorCodes.RecordNotFound)
+            {
+                OASISErrorHandling.HandleError(ref result,detail.Message,detail.Exception);
+                result.ErrorCode=detail.ErrorCode;
+                return result;
+            }
+            string detailSignature=null;
+            if(!detail.IsError)
+            {
+                if(detail.Result==null || detail.Result.Id!=avatar.Result.Id || detail.Result.Version<0
+                    || !detail.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,out detailSignature)
+                    || string.IsNullOrWhiteSpace(detailSignature))
+                    throw new InvalidDataException("Authenticated Solana avatar detail has invalid deletion identity/signature.");
+                _=checked(detail.Result.Version+1);
+            }
+            if(detailSignature!=null)
+            {
+                var deletedDetail=await CreateVerifiedTombstoneAsync<SolanaAvatarDetailDto,IAvatarDetail>(
+                    detailSignature,detail.Result.Id,detail.Result.Version,record=>record.GetAvatarDetail());
+                committed.Add(deletedDetail.Signature);
+            }
             await CreateVerifiedTombstoneAsync<SolanaAvatarDto,IAvatar>(providerKey,
                 avatar.Result.Id,avatar.Result.Version,record=>record.GetAvatar());
             result.IsSaved = true;
@@ -267,7 +292,8 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, e.Message, e);
+            var evidence=committed.Count>0 ? new SolanaPartialMutationException(committed,e):e;
+            OASISErrorHandling.HandleError(ref result, evidence.Message, evidence);
         }
 
         return result;
