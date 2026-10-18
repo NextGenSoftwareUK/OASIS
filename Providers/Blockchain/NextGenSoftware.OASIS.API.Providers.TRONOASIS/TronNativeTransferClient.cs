@@ -746,6 +746,8 @@ public sealed partial class TronNativeTransferClient
         cancellationToken.ThrowIfCancellationRequested();
         if (creationBytecode == null || creationBytecode.Length == 0 || creationBytecode.Length > 1024 * 1024)
             throw new ArgumentException("Bounded creation bytecode is required.");
+        // Capture caller-owned bytes before the permission lookup can yield.
+        var bytecode = ByteString.CopyFrom(creationBytecode);
         if (!System.Text.RegularExpressions.Regex.IsMatch(privateKey ?? "", "\\A[0-9a-fA-F]{64}\\z"))
             throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
         var owner = _wallet.ParseAddress(ownerAddress);
@@ -755,7 +757,7 @@ public sealed partial class TronNativeTransferClient
             OwnerAddress = owner,
             NewContract = new SmartContract
             {
-                OriginAddress = owner, Bytecode = ByteString.CopyFrom(creationBytecode), Name = "OASIS",
+                OriginAddress = owner, Bytecode = bytecode, Name = "OASIS",
                 ConsumeUserResourcePercent = 100, OriginEnergyLimit = 10000000
             }
         };
