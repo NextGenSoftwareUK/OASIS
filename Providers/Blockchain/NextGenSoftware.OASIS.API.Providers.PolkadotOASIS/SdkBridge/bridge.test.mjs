@@ -4,6 +4,14 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const valid = { operation: 'balance', endpoint: 'http://127.0.0.1:1', genesisHash: '0x' + 'a'.repeat(64), address: 'invalid' };
+test('submission cannot access RPC without an owned persistence channel', () => {
+  const result = spawnSync(process.execPath, [fileURLToPath(new URL('./bridge.mjs', import.meta.url))], {
+    input: JSON.stringify({ ...valid, operation: 'submitNativePreparation' }), encoding: 'utf8', timeout: 10000,
+    env: { ...process.env, OASIS_NATIVE_PREPARATION_PIPE: '', OASIS_NATIVE_PREPARATION_MODULE: '' }
+  });
+  assert.equal(result.status, 1);
+  assert.match(JSON.parse(result.stdout).error, /Owned persistence transport is required/);
+});
 test('persistence cannot invent an acknowledgement without an owned transport', () => {
   const result = spawnSync(process.execPath, [fileURLToPath(new URL('./bridge.mjs', import.meta.url))], {
     input: JSON.stringify({ ...valid, operation: 'persistNativePreparation' }), encoding: 'utf8', timeout: 10000,
