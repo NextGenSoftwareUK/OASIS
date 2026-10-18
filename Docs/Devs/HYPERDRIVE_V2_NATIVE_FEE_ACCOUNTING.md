@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 retained Hedera storage resource is positively reusable without another deployment: read-only public mirror runtime equals existing pinned-compiler output with exact immutable owner, contract0.0.11017885/source/runtime fingerprints unchanged. Current C# getter verifies its historical original creation fee1259196297tinybars (12.59196297testHBAR). This historical charge is neither a fresh estimate nor permission to spend remaining0.69513926indexed testHBAR. New bounded prepared operations should use this contract/identity and a separately reviewed all-in budget; do not redeploy or replay old originals. Full funded CRUD/three-policy/fee/hosted acceptance still open. Read-only script and exact reports are recorded in release gates; no signing key/paid query/new transaction used for inspection.
+
 ## Concrete priced storage composition — 2026-10-17
 
 ### Admission bootstrap audit and pending design choice
