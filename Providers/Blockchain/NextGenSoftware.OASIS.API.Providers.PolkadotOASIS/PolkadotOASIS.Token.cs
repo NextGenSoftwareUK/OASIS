@@ -39,78 +39,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
     {
         public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
         {
-            return SendTokenAsync(request).Result;
+            return Task.Run(() => SendTokenAsync(request)).GetAwaiter().GetResult();
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
-        {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "ToWalletAddress is required");
-                    return result;
-                }
-
-                // Polkadot uses native DOT transfers or token transfers via pallets
-                // For token transfers, we need the token contract address
-                var amountInPlanck = (long)(request.Amount * 10000000000); // Convert to planck
-
-                var transferRequest = new
-                {
-                    id = 1,
-                    jsonrpc = "2.0",
-                    method = "author_submitExtrinsic",
-                    @params = new[]
-                    {
-                        new
-                        {
-                            call = new
-                            {
-                                module = string.IsNullOrWhiteSpace(request.FromTokenAddress) ? "Balances" : "Tokens",
-                                method = "transfer",
-                                args = new
-                                {
-                                    dest = request.ToWalletAddress,
-                                    value = amountInPlanck,
-                                    currencyId = string.IsNullOrWhiteSpace(request.FromTokenAddress) ? null : request.FromTokenAddress
-                                }
-                            }
-                        }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transferRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    var txHash = responseData.TryGetProperty("result", out var resultProp) ? resultProp.GetString() : string.Empty;
-                    result.Result.TransactionResult = txHash ?? string.Empty;
-                    result.IsError = false;
-                    result.Message = "Token sent successfully on Polkadot";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to send token on Polkadot: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error sending token: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+            => SendOwnedNativeTransferAsync(request);
 
         public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
         {
