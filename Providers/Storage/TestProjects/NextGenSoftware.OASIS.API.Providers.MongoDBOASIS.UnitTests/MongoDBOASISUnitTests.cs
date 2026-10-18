@@ -186,6 +186,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
         }
 
         [TestMethod]
+        public void InventoryBinaryPayloadsDetachBothDirections()
+        {
+            var original=new InventoryItem{Id=Guid.NewGuid(),Image2D=new byte[]{1,2,3},Object3D=new byte[]{4,5,6}};
+            var source=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=Guid.NewGuid()};source.Inventory.Add(original);
+            var stored=DataHelper.ConvertOASISAvatarDetailToMongoEntity(source);
+            var loaded=DataHelper.ConvertMongoEntityToOASISAvatarDetail(new OASISResult<MongoAvatarDetail>(stored));
+            Assert.IsFalse(loaded.IsError);Assert.IsNotNull(loaded.Result);
+            var native=stored.Inventory[0];var read=loaded.Result.Inventory[0];
+            CollectionAssert.AreEqual(original.Image2D,native.Image2D);CollectionAssert.AreEqual(original.Object3D,native.Object3D);
+            Assert.AreNotSame(original.Image2D,native.Image2D);Assert.AreNotSame(original.Object3D,native.Object3D);
+            Assert.AreNotSame(native.Image2D,read.Image2D);Assert.AreNotSame(native.Object3D,read.Object3D);
+            original.Image2D[0]=99;original.Object3D[0]=98;
+            Assert.AreEqual((byte)1,native.Image2D[0]);Assert.AreEqual((byte)4,native.Object3D[0]);
+            native.Image2D[0]=97;native.Object3D[0]=96;
+            Assert.AreEqual((byte)1,read.Image2D[0]);Assert.AreEqual((byte)4,read.Object3D[0]);
+        }
+
+        [TestMethod]
         public void NativeCodeGenesis_WithoutGenerator_DoesNotAcknowledgeSuccessOrActivateStorage()
         {
             NextGenSoftware.OASIS.API.Core.Interfaces.IOASISSuperStar generator = _provider;
