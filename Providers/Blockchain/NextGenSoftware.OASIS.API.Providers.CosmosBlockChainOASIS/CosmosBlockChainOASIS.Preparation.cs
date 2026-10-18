@@ -23,17 +23,19 @@ public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Inte
             var fee=verified.Receipt;
             if(fee.IsError)return new(){IsError=true,Message=fee.Message,Exception=fee.Exception,ErrorCode=fee.ErrorCode};
             var basis="observed-ante-fee-deduction";
+            NativeFeeAuditSnapshot audit=null;
             if(_reviewedDeployment!=null){
                 if(!verified.Identity.TryGetProperty("hasSignedTip",out var tip)||tip.ValueKind!=JsonValueKind.False)
                     throw new InvalidDataException("The reviewed no-post-handler Cosmos fee model requires independently verified absence of a signed tip.");
-                await _reviewedDeployment.ValidateAsync(fee.Result.GetProperty("height").GetInt64(),token);
+                var observation=await _reviewedDeployment.ValidateAsync(fee.Result.GetProperty("height").GetInt64(),token);
+                audit=_reviewedDeployment.CaptureAudit(observation,fee.Result.GetProperty("transactionHash").GetString(),fee.Result.GetProperty("height").GetInt64());
                 basis=_reviewedDeployment.Review.EvidenceBasis;
             }
             var components=new System.Collections.Generic.List<NativeFeeComponent>();
             foreach(var coin in fee.Result.GetProperty("fees").EnumerateArray())components.Add(new(coin.GetProperty("denom").GetString(),coin.GetProperty("amount").GetString()));
             result.Result=new("CosmosBlockChainOASIS",fee.Result.GetProperty("chainId").GetString(),fee.Result.GetProperty("transactionHash").GetString(),
                 fee.Result.GetProperty("payer").GetString(),fee.Result.GetProperty("success").GetBoolean(),coverage,
-                components.ToArray(),basis,coverage==NativeFeeCoverage.NetFinal&&components.Count==0);
+                components.ToArray(),basis,coverage==NativeFeeCoverage.NetFinal&&components.Count==0){Audit=audit};
         }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
         return result;
     }

@@ -2,6 +2,8 @@
 
 Audited 2026-10-17 against current task source. Scope remains CosmosBlockChainOASIS, HashgraphOASIS, SuiOASIS and TRONOASIS. This is a source-contract audit, not a new native test run or completion certificate. Current report hashes and unresolved originals remain authoritative in [release gates](HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md).
 
+Current provenance follow-up: Core551cb81 now stores immutable bounded review/observation snapshots atomically WITH native receipts (not just a temporary report hash).305shared recovery cases pass incl realMongo persistence/conflict rules. New actual Cosmos operation3510c385… has3audited durable receipts after freshclient reload/repeatrecovery; native1/1pass1m22s/reportE82BE2E7…/TRXA48210E7…. Actual18279teststake debit incl10000chargedfailure; no logicaloutcome/settlement. Old financial proof945C7A57… archived unchanged; old receipts not rewritten. Seven diagnostic API builds use identical new Core DLL, not clean-source/publish/hosted certification. Fullscope stillOPEN.
+
 Latest Cosmos reviewed fee model is wired through an explicit server-only factory, trusted endpoint-bound deployment inspection, signed height/tip guards and original receipt recovery. Real retained model acceptance1/1pass1m22s verifies2successful+1chargedfailedoriginals, exact18279stake totalwalletdebit,3sharedCore-recovered receipts/no logicaloutcome/settlement. TRX SHA256 `7BC4A53CC2A66DBCCD059EC73D558E166559D90B4A1B4104BA730B97786AB0A4`; exact runningcode/genesis/height/source policy in native-fee doc. Default/maximum-only readers remainAnteDeductionOnly; other apps/refund/tip models/feegrant and hosted billing are NOT certified. Production configuration remains unchanged.
 
 ## What an implemented interface proves
