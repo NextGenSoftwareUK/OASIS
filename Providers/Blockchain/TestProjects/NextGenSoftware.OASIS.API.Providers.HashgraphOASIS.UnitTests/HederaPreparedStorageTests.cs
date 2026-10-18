@@ -12,6 +12,23 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 
 public partial class HederaPreparationTests
 {
+    private sealed class BudgetAlternateBackend:NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend
+    {
+        public int Touches;
+        public Task VerifyAsync(CancellationToken token=default){Touches++;return Task.CompletedTask;}
+        public Task<string> GetAsync(string key,CancellationToken token=default){Touches++;return Task.FromResult<string>(null!);}
+        public Task PutAsync(string key,string value,CancellationToken token=default){Touches++;return Task.CompletedTask;}
+        public Task DeleteAsync(string key,CancellationToken token=default){Touches++;return Task.CompletedTask;}
+        public Task<IReadOnlyList<string>> ListKeysAsync(string prefix,CancellationToken token=default){Touches++;return Task.FromResult<IReadOnlyList<string>>(Array.Empty<string>());}
+    }
+    private sealed class BudgetAlternateProvider:NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase
+    {
+        public BudgetAlternateProvider(BudgetAlternateBackend backend):base(backend){
+            ProviderName="Controlled alternate for native budget rejection";
+            ProviderType=new NextGenSoftware.Utilities.EnumValue<ProviderType>(Core.Enums.ProviderType.LocalFileOASIS);
+            ProviderCategory=new NextGenSoftware.Utilities.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        }
+    }
     [DataTestMethod]
     [DataRow("payment")] [DataRow("duplicate-node")] [DataRow("payer-node")] [DataRow("timeout")]
     public void InvalidPreparedStorageQueryPolicyIsRejectedBeforeResolvingSecrets(string mode)
@@ -69,7 +86,8 @@ public partial class HederaPreparationTests
     [DataRow(false,true,false,false,false,true)] [DataRow(false,true,true,false,false,true)]
     [DataRow(false,false,false,false,false,true,true)]
     [DataRow(false,true,false,false,false,true,true)] [DataRow(false,true,true,false,false,true,true)]
-    public async Task AdmittedEncryptedStoragePersistsOriginalBeforeControlledSubmission(bool rejectPersistence,bool routed=false,bool synchronous=false,bool cancelQuery=false,bool attemptBudget=false,bool aggregateBudget=false,bool acceptAggregateBudget=false)
+    [DataRow(false,true,false,false,false,true,false,true)] [DataRow(false,true,true,false,false,true,false,true)]
+    public async Task AdmittedEncryptedStoragePersistsOriginalBeforeControlledSubmission(bool rejectPersistence,bool routed=false,bool synchronous=false,bool cancelQuery=false,bool attemptBudget=false,bool aggregateBudget=false,bool acceptAggregateBudget=false,bool alternate=false)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -135,7 +153,12 @@ public partial class HederaPreparationTests
             var manager=new ProviderManager(null,new OASISDNA {OASIS=new() {HyperDriveMode=HyperDriveModes.V2,
                 StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}}) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=false};
             manager.RegisterProvider(provider);var router=new OASISHyperDrive(manager);
-            var admitted=new PreparedStorageExecution(execution,"storage",new Dictionary<ProviderType,string> {{ProviderType.HashgraphOASIS,"0.0.1001"}},Array.Empty<ProviderType>());
+            var alternateBackend=new BudgetAlternateBackend();var alternateProvider=new BudgetAlternateProvider(alternateBackend);
+            if(alternate){
+                manager.RegisterProvider(alternateProvider);
+                Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[]{new NextGenSoftware.Utilities.EnumValue<ProviderType>(ProviderType.HashgraphOASIS),new NextGenSoftware.Utilities.EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError);
+            }
+            var admitted=new PreparedStorageExecution(execution,"storage",new Dictionary<ProviderType,string> {{ProviderType.HashgraphOASIS,"0.0.1001"}},alternate?new[]{ProviderType.LocalFileOASIS}:Array.Empty<ProviderType>());
             HolonManager holonManager=null;
             Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> Save(Holon holon){
                 if(!routed)return provider.SaveHolonAsync(holon,saveChildren:false);
@@ -172,6 +195,7 @@ public partial class HederaPreparationTests
                     ||error?.InnerException!=null&&HasBudgetCause(error.InnerException);
                 Assert.IsTrue(HasBudgetCause(result.Exception),"Routed activation must preserve its original durable budget rejection.");
                 Assert.IsFalse(provider.IsProviderActivated);
+                if(alternate){Assert.AreEqual(0,alternateBackend.Touches,"Operation-budget rejection must not become fallback activation/read/write.");Assert.IsFalse(alternateProvider.IsProviderActivated);}
                 Assert.AreEqual(0,File.ReadAllLines(log).Length,"No storage mutation may be submitted after query admission exhausted the operation budget.");
                 var retained=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,deadline.Token);
                 Assert.AreEqual(attemptBudget?1:512,retained.Policy.MaximumProviderAttempts);Assert.AreEqual(1,retained.ProviderAttempts.Count);
