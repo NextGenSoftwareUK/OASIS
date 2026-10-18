@@ -86,6 +86,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
         }
 
         [TestMethod]
+        public void AvatarDetailConversionPreservesDescriptionAndModel()
+        {
+            var stored=new MongoAvatarDetail{HolonId=Guid.NewGuid(),Description="stored-description",Model3D="stored-model"};
+            var converted=DataHelper.ConvertMongoEntityToOASISAvatarDetail(new OASISResult<MongoAvatarDetail>(stored));
+            Assert.IsFalse(converted.IsError);Assert.IsNotNull(converted.Result);
+            Assert.AreEqual(stored.Description,converted.Result.Description);Assert.AreEqual(stored.Model3D,converted.Result.Model3D);
+            var roundtrip=DataHelper.ConvertOASISAvatarDetailToMongoEntity(converted.Result);
+            Assert.AreEqual(stored.Description,roundtrip.Description);Assert.AreEqual(stored.Model3D,roundtrip.Model3D);
+        }
+
+        [TestMethod]
         public void NativeCodeGenesis_WithoutGenerator_DoesNotAcknowledgeSuccessOrActivateStorage()
         {
             NextGenSoftware.OASIS.API.Core.Interfaces.IOASISSuperStar generator = _provider;
