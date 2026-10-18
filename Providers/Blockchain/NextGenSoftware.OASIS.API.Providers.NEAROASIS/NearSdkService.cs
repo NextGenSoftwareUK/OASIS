@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -204,6 +205,9 @@ internal sealed class NearSdkService
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            StandardInputEncoding = new UTF8Encoding(false, true),
+            StandardOutputEncoding = new UTF8Encoding(false, true),
+            StandardErrorEncoding = new UTF8Encoding(false, true),
             UseShellExecute = false,
             CreateNoWindow = true
         };
