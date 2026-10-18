@@ -1,5 +1,9 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Cosmos expanded admitted assets — 2026-10-17
+
+Tokenlock/unlock and NFTmint/read/burn now included in retained-native admitted fixture:2/2pass53s,10signed originals across direct2/scoped8writes, exact original ante fees/exposure and zero-budget rejection verified. Explicit synthetic aggregate0.08USD at0.000001USD/stake covers up to8configured10000stake per-transaction ceilings. This is test pricing only; Cosmos reader remains AnteDeductionOnly, not net-final automatic settlement. Prior stale0.02assertion fixture reconciled without replay: all8native originals/signed durable attempts/fees/current zero supply+NFTabsence verified and archived; no unadmitted originals or retroactive settlement. Exact hashes/failures in release journal. Broader sends/bridge/ID-bound escrow/hosted fees remain open.
+
 ## Cosmos asset ambient-admission bypass — 2026-10-17
 
 Incident now archived after exact live/native/durable reconciliation: archive E91AA98E… retains both admitted storage attempts and both explicitly UNADMITTED asset originals, with no retroactive admission/settlement authorization. Reviewed disposable test DB/journal removed only afterward; unrelated old original remains fenced. New independent native acceptance2/2passed32s verifies all6expected durable originals across direct/storage-scope cases, including public C# token mint/burn under active owner. Signed maxima and actual ante deductions match, asset supply/balance returnzero. This closes that scoped bypass acceptance, not net-final/production billing or all asset/interface gates. Full hashes in release journal.
