@@ -29,6 +29,8 @@
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionUsageModels.cs" Link="Production/SubscriptionUsageModels.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/ISubscriptionUsageRepository.cs" Link="Production/ISubscriptionUsageRepository.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs" Link="Production/MongoSubscriptionUsageRepository.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Grants.cs" Link="Production/MongoSubscriptionUsageRepository.Grants.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/DelegatedUsageGrants.cs" Link="Production/DelegatedUsageGrants.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionMongoConfiguration.cs" Link="Production/SubscriptionMongoConfiguration.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionServiceIdentity.cs" Link="Production/SubscriptionServiceIdentity.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageLedgerValidation.cs" Link="Production/UsageLedgerValidation.cs" />

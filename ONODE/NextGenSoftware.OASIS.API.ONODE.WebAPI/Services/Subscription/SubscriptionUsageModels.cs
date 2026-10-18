@@ -62,6 +62,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public DateTime ExpiresAtUtc { get; set; }
         public DateTime? SettledAtUtc { get; set; }
         public string ProviderReceiptsJson { get; set; }
+        /// <summary>Delegated grant that authorized this reservation; null for avatar-bearer reservations.</summary>
+        public string GrantId { get; set; }
         [BsonIgnore] public bool AlreadyAuthorized { get; set; }
     }
 
