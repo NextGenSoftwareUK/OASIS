@@ -474,7 +474,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         private static OASISResult<T> RejectPrivateRecordStorage<T>()
         {
-            const string message = "ActivityPub does not provide private OASIS avatar record storage. Mastodon account registration is a separate consented operation, not SaveAvatar. Use a storage provider for private records; no data was sent.";
+            const string message = "ActivityPub does not provide private OASIS record storage. Account registration and public status publication are separate consented operations, not generic record saves/imports. Use a storage provider for private records; no data was sent.";
             var result = new OASISResult<T>();
             OASISErrorHandling.HandleError(ref result, message, new NotSupportedException(message));
             return result;

@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; not release certification.
 
+## Holon save/import publication boundary (2026-10-18)
+
+Generic SaveHolon/SaveHolons/Import sync+async now use the SAME explicit private-record storage rejection as avatar saves, BEFORE activation, enumeration, serialization or HTTP. Generic record storage is not authorization to publish a public status. Removed obsolete ConvertHolonToActivityPub serializer and its lossy string-interpolated Note fallback; source recoverable in Git. Original batch loop could swallow item failures and report a successful empty batch/import; unsupported operation now retains NotSupportedException instead. No hidden storage backend, fake social publication or claim to implement generic private persistence on Mastodon. Bootloader storage exclusion remains.
+
+Six genuine before-fix failing cases132ms with controlled successful native responses; all now assert NotSupportedException/no result, zero HTTP requests and unchanged caller private metadata. Before activitypub-holon-boundary-before.trx SHA256AC9E11685286B0DB8C9EDE22C58E735905E6F332C23864B1C8F197102C57E683. Full53/53 unit tests passed144ms/zero skipped; current TRX SHA256BF1415016FEE0123404103148F7B66F8EDC00FCE77538DB53174BAE73DC14DFB. Cached bounded build2warnings; no restore/install/new environment or public write. Search confirms no remaining PostAsync or ConvertHolonToActivityPub reference in adapter. This boundary correction is NOT implemented/verified social-post creation. Explicit consented public-operation contract, OAuth scopes, acknowledgements and native authenticated proof remain OPEN; other incorrect read/delete mappings remain unfinished.
+
 ## Shared public-profile reader and separate detail projection (2026-10-18)
 
 LoadAvatarDetailByUsername now uses the SAME validated native HTTP/parser/identity path as avatar handle and native-key reads. Internal MastodonPublicProfile DTO contains explicitly selected public values; separate projection functions create Avatar or AvatarDetail independently with fresh metadata/provider dictionaries. Detail is not built from credential-bearing Avatar and no raw whole-record native deserialization/fallback is used on this path. Same native identity/scoped projected GUID; no fabricated email/private detail data. Original HTTP/activation/history/selector errors flow through generic typed reader unchanged. Other old GUID/email/detail-list parsers remain unfinished, not silently reclassified as safe.
