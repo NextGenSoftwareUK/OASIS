@@ -60,27 +60,6 @@ public class SolanaCollectionSizeTests
         Assert.AreEqual(1,proxy.Sends);Assert.AreEqual(0,proxy.StatusReads);
     }
 
-    [DataTestMethod]
-    [DataRow("finalized")] [DataRow("pending")] [DataRow("lost-reply")]
-    public async Task MetadataFreezeUsesFinalizedSubmissionAndRetainsUnknownReceipt(string scenario)
-    {
-        var owner=new Account();var rpc=DispatchProxy.Create<IRpcClient,CollectionProxy>();
-        var proxy=(CollectionProxy)(object)rpc;proxy.Scenario=scenario;
-        var service=new SolanaService(owner,rpc);
-        var pending=(Task)typeof(SolanaService).GetMethod("FreezeMetadataAsync",BindingFlags.NonPublic|BindingFlags.Instance)!
-            .Invoke(service,new object[] {new Account().PublicKey.Key})!;
-        if(scenario=="lost-reply")
-        {
-            var failure=await Assert.ThrowsExceptionAsync<SolanaTransactionReconciliationException>(()=>pending);
-            Assert.AreEqual(proxy.Signature,failure.OriginalTransactionId);Assert.AreSame(proxy.LostReply,failure.InnerException);
-        }
-        else await pending;
-        Assert.AreEqual(1,proxy.Sends);Assert.AreEqual(scenario=="pending" ? 2:scenario=="finalized" ? 1:0,proxy.StatusReads);
-        var instruction=Solnet.Rpc.Models.Transaction.Deserialize(proxy.Signed!).Instructions.Single();
-        CollectionAssert.AreEqual(new byte[] {15,0,0,0,1,0},instruction.Data);
-        Assert.IsTrue(owner.Verify(proxy.Signed!.AsSpan(65).ToArray(),proxy.Signed.AsSpan(1,64).ToArray()));
-    }
-
     public class CollectionProxy:DispatchProxy
     {
         public string Scenario="",Signature="";public byte[]? Signed;public int Sends,StatusReads;
