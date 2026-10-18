@@ -6,6 +6,9 @@ if($LASTEXITCODE -ne 0 -or "$state".Trim() -ne '58bee7c3f6a20498d72eb6f8334ba842
     throw 'Pinned retained oasis-solid container is not running; no creation/start/download/reset attempted.'
 }
 $work=Join-Path $taskRoot 'TestResults/SolidCurrent'
+New-Item -ItemType Directory -Path $work -Force | Out-Null
+$lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+try {
 $journal=Join-Path $work 'native-pending.json'
 if(Test-Path -LiteralPath $journal){throw 'Pending original Solid fixture requires reconciliation; never replay/reset.'}
 $project=Join-Path $taskRoot 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.csproj'
@@ -21,7 +24,11 @@ if(!(Test-Path -LiteralPath $keyPath)){
     $key=New-Object byte[] 32
     $random=[Security.Cryptography.RandomNumberGenerator]::Create()
     try{$random.GetBytes($key)}finally{$random.Dispose()}
-    try{[IO.File]::WriteAllBytes($keyPath,[Security.Cryptography.ProtectedData]::Protect($key,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser))}
+    try{
+        $protected=[Security.Cryptography.ProtectedData]::Protect($key,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+        $created=[IO.File]::Open($keyPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+        try{$created.Write($protected,0,$protected.Length)}finally{$created.Dispose()}
+    }
     finally{[Array]::Clear($key,0,$key.Length)}
 }
 $names=@('OASIS_SOLID_NATIVE_ROOT','OASIS_SOLID_NATIVE_KEY_PATH','OASIS_SOLID_NATIVE_JOURNAL');$prior=@{}
@@ -35,8 +42,9 @@ try{
     $report=Get-Item -LiteralPath (Join-Path $work 'solid-native-current.trx')
     [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
     $counts=$evidence.TestRun.ResultSummary.Counters
-    if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 2 -or [int]$counts.passed -ne 2 -or [int]$counts.notExecuted -ne 0 -or (Test-Path -LiteralPath $journal)){
-        throw 'Two fresh successful native cases and cleared original fixture journal are required.'
+    if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0 -or (Test-Path -LiteralPath $journal)){
+        throw 'Four fresh successful native cases and cleared original fixture journal are required.'
     }
 }finally{foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$prior[$name],'Process')}}
 # Container belongs to its operator, not this reuse-only runner: do not stop/remove/reset it.
+} finally { $lease.Dispose() }
