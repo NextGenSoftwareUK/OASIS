@@ -83,6 +83,38 @@ public class SolanaCredentialSelectorTests
         Assert.AreEqual(3,repository.LastVersion);Assert.AreEqual(1,repository.Reads);
     }
 
+    [DataTestMethod]
+    [DataRow(false,"latest")] [DataRow(true,"latest")]
+    [DataRow(false,"exact")] [DataRow(true,"exact")]
+    [DataRow(false,"mismatch")] [DataRow(true,"mismatch")]
+    [DataRow(false,"blank")] [DataRow(true,"blank")]
+    [DataRow(false,"negative")] [DataRow(true,"negative")]
+    [DataRow(false,"failure")] [DataRow(true,"failure")]
+    public async Task ProviderKeyAvatarReadValidatesVersionAndPreservesNativeIdentityAndCause(bool sync,string scenario)
+    {
+        var repository=new RecordsRepository();
+        repository.Records.Add(new SolanaAvatarDto {Id=Guid.NewGuid(),Version=4,UserName="signature avatar"});
+        var cause=new System.IO.IOException("owned signature read failure");
+        if(scenario=="failure") repository.Cause=cause;
+        var provider=new ActiveProvider(repository);
+        var signature=scenario=="blank" ? " ":"owned-avatar-signature";
+        var version=scenario=="negative" ? -1:scenario=="mismatch" ? 3:scenario=="exact" ? 4:0;
+        var result=sync ? provider.LoadAvatarByProviderKey(signature,version):await provider.LoadAvatarByProviderKeyAsync(signature,version);
+        if(scenario is "latest" or "exact")
+        {
+            Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);
+            Assert.AreEqual(4,result.Result.Version);Assert.AreEqual("signature avatar",result.Result.Username);
+            Assert.AreEqual(signature,result.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+        }
+        else
+        {
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);
+            if(scenario=="failure") Assert.AreSame(cause,result.Exception);
+            else Assert.IsInstanceOfType(result.Exception,scenario=="mismatch" ? typeof(KeyNotFoundException):typeof(ArgumentException));
+        }
+        Assert.AreEqual(scenario is "blank" or "negative" ? 0:1,repository.Reads);
+    }
+
     private sealed class ActiveProvider:SolanaOASIS
     {
         public ActiveProvider(ISolanaRepository repository):this(new Account(),repository) {}
@@ -105,7 +137,12 @@ public class SolanaCredentialSelectorTests
             return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Records.Where(row=>version==0 || row.Version==version).Select(row=>
                 ((T)(SolanaBaseDto)Newtonsoft.Json.JsonConvert.DeserializeObject<SolanaAvatarDto>(Newtonsoft.Json.JsonConvert.SerializeObject(row))!,"owned-signature-"+row.Id)).ToList());
         }
-        public Task<T> GetAsync<T>(string reference) where T:SolanaBaseDto,new()=>throw new InvalidOperationException("Unexpected point read");
+        public Task<T> GetAsync<T>(string reference) where T:SolanaBaseDto,new()
+        {
+            Reads++;if(Cause!=null) throw Cause;
+            Assert.AreEqual("owned-avatar-signature",reference);
+            return Task.FromResult((T)(SolanaBaseDto)Records.Single());
+        }
         public Task<string> CreateAsync<T>(T entity) where T:SolanaBaseDto,new()=>throw new InvalidOperationException("Unexpected write");
         public Task<string> UpdateAsync<T>(T entity) where T:SolanaBaseDto,new()=>throw new InvalidOperationException("Unexpected write");
         public Task<bool> DeleteAsync(string reference)=>throw new InvalidOperationException("Unexpected write");
