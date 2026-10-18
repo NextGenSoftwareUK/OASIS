@@ -204,6 +204,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
         }
 
         [TestMethod]
+        public void InventoryInheritedValuesSurviveBothMappingDirections()
+        {
+            var item=new InventoryItem{Id=Guid.NewGuid(),Name="inherited",Version=17,VersionId=Guid.NewGuid(),
+                PreviousVersionId=Guid.NewGuid(),CreatedByAvatarId=Guid.NewGuid(),CreatedDate=new DateTime(2024,1,2,3,4,5,DateTimeKind.Utc),
+                IsPublic=true,CustomHolonType="custom-owned-item",ParentHolonId=Guid.NewGuid(),ParentHolonId2=Guid.NewGuid(),
+                ParentHolonId3=Guid.NewGuid(),ProviderUniqueStorageKey=new(){{ProviderType.MongoDBOASIS,"owned-key"}}};
+            var source=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=Guid.NewGuid()};source.Inventory.Add(item);
+            var stored=DataHelper.ConvertOASISAvatarDetailToMongoEntity(source);
+            var loaded=DataHelper.ConvertMongoEntityToOASISAvatarDetail(new OASISResult<MongoAvatarDetail>(stored));
+            Assert.IsFalse(loaded.IsError);Assert.IsNotNull(loaded.Result);
+            foreach(var copy in new NextGenSoftware.OASIS.API.Core.Interfaces.IInventoryItem[]{stored.Inventory[0],loaded.Result.Inventory[0]}){
+                Assert.AreEqual(item.Version,copy.Version);Assert.AreEqual(item.VersionId,copy.VersionId);
+                Assert.AreEqual(item.PreviousVersionId,copy.PreviousVersionId);Assert.AreEqual(item.CreatedByAvatarId,copy.CreatedByAvatarId);
+                Assert.AreEqual(item.CreatedDate,copy.CreatedDate);Assert.AreEqual(item.IsPublic,copy.IsPublic);
+                Assert.AreEqual(item.CustomHolonType,copy.CustomHolonType);Assert.AreEqual(item.ParentHolonId,copy.ParentHolonId);
+                Assert.AreEqual(item.ParentHolonId2,copy.ParentHolonId2);Assert.AreEqual(item.ParentHolonId3,copy.ParentHolonId3);
+                Assert.AreEqual("owned-key",copy.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS]);
+                Assert.AreNotSame(item.ProviderUniqueStorageKey,copy.ProviderUniqueStorageKey);
+            }
+        }
+
+        [TestMethod]
         public void NativeCodeGenesis_WithoutGenerator_DoesNotAcknowledgeSuccessOrActivateStorage()
         {
             NextGenSoftware.OASIS.API.Core.Interfaces.IOASISSuperStar generator = _provider;
