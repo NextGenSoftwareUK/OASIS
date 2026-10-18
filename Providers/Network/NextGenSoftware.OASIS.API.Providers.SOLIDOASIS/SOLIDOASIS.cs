@@ -48,6 +48,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             if(!Uri.TryCreate(podServerUrl,UriKind.Absolute,out var podRoot))throw new ArgumentException("An absolute pod root is required.",nameof(podServerUrl));
             _podServerUrl = SolidPrivateRecordCodec.NormalizePodRoot(podRoot).AbsoluteUri.TrimEnd('/');
             _privateRecords=storageKey==null?null:new SolidPrivateRecordCodec(new Uri(_podServerUrl),storageKey);
+            // Resource URIs bind encrypted records and conditional mutations: never relocate them implicitly.
+            if(handler is HttpClientHandler httpHandler)httpHandler.AllowAutoRedirect=false;
+            if(handler is SocketsHttpHandler socketsHandler)socketsHandler.AllowAutoRedirect=false;
             _httpClient = new HttpClient(handler??throw new ArgumentNullException(nameof(handler))) { Timeout = TimeSpan.FromSeconds(30) };
             _httpClient.DefaultRequestHeaders.Add("Accept", "text/turtle, application/ld+json;q=0.9, */*;q=0.8");
 

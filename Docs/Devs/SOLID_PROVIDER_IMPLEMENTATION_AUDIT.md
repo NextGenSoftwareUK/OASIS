@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Canonical-resource redirect policy (2026-10-18)
+
+Disabled AllowAutoRedirect centrally for owned standard HttpClientHandler and SocketsHttpHandler. Canonical resource URI binds ciphertext AAD, namespace membership and conditional mutation target; implicit relocation is not a supported compatibility path. A redirect response is an explicit HTTP error, not activation success. Arbitrary custom handlers remain a trusted injection seam and must not implement their own implicit redirects. No endpoint discovery or OIDC redirect flow is implied.
+
+Three genuine before-fix failures44ms using actual bounded TCP loopback HTTP302/307/308; default client previously followed Location and reported successful activation. After fix each case verifies exactly one GET at configured root, original redirect status retained, inactive state and no redirected request. Full169/169 tests passed300ms/zero skipped, current report SHA2562ECA27F9294F3A5F7830180C22AE8CEC64F8373F50084F4221CD0B2400598CBF; before report solid-redirect-before.trx SHA25678B61AAE95DB400F7D01162BF47CD3ED396B933222B83A288C5FE61138D8E914. Existing no-restore bounded build passed2warnings. Listener bound127.0.0.1 ephemeral port, deadline/cancellation/final disposal; no retained service, installation or download. This proves default transport activation redirect behavior, NOT native SOLID server/auth or every mutation redirect scenario. Native/paging/history/concurrency/durable-recovery/full-provider/release gates remain OPEN.
+
 ## Lifecycle and pod-root validation (2026-10-18)
 
 Activation now disposes response content on success/failure and uses EnsureSuccessStatusCode to preserve original HTTP failure status/exception. Final Dispose clears public/internal active flags; activation checks disposal before already-active short circuit, preventing false success with a disposed client. Deactivation retains the existing owned client for reactivation. Codec's existing HTTPS-or-loopback-HTTP/no-userinfo/query/fragment root validator is now one internal normalization function reused by provider construction even WITHOUT a storage key. Relative roots rejected explicitly. Does NOT prove concurrency-safe lifecycle, OIDC, DPoP, redirect security or pod capabilities; activation still only checks root HTTP success.
