@@ -1456,3 +1456,7 @@ Reused same pinned container/volume/SDK/cache/fixed output for71native37s/76unit
 
 Native71pass37s/unit78pass320ms reused SAME pinned container/volume/caches/fixed outputs. Runner6582 terminal0, container independently exited. Previous native report preserved once neo4j-native-before-owned-export.trx; current compact reports retained. Scoped acknowledged owned Avatar/Holon/history fixture cleanup and acknowledged corruption restoration only; no unrelated/source/credential/uncertain-journal deletion. No install/download/restore/new environment/reset/public gas. Free90243371008→90242859008bytes observed, no reclaim claim.
 
+# 2026-10-18 Neo4j paired soft-delete history verification
+
+Reused same retained pinned container/volume/dependencies/fixed outputs:73native36s/78unit326ms, runner97236 terminal0 and independently exited. Prior71native report retained once neo4j-native-before-soft-delete-history.trx; compact current reports retained. Owned acknowledged fixture records/history removed by normal scoped hard deletion, no uncertain replay/unrelated deletion. No downloads/restores/installations/new environment/reset/public gas. Free90240765952→90240053248bytes observed, no reclaim claim. Source/credentials/protected journals intact.
+
