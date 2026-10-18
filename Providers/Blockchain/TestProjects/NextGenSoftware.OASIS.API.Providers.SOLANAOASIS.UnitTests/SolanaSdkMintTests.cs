@@ -103,9 +103,29 @@ public class SolanaSdkMintTests
         }
     }
 
+    [TestMethod]
+    public async Task FreezeAtCreationIsEncodedBySdkWithoutSecondMutation()
+    {
+        var owner=new Account();var metadata=new List<byte[]>();
+        foreach(var freeze in new[] {false,true})
+        {
+            var rpc=DispatchProxy.Create<IRpcClient,MintProxy>();var proxy=(MintProxy)(object)rpc;proxy.Scenario="finalized";
+            var result=await new SolanaService(owner,rpc).MintNftAsync(new MintWeb3NFTRequest
+            {Title="freeze fixture",Symbol="OASIS",JSONMetaDataURL="https://example.invalid/nft.json",FreezeMetadata=freeze});
+            Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(1,proxy.Sends,"Freeze must be encoded at creation, not a second mutation.");
+            var tx=Solnet.Rpc.Models.Transaction.Deserialize(proxy.SignedTransactions.Single());
+            metadata.Add(tx.Instructions.Where(instruction=>instruction.ProgramId.SequenceEqual(Solnet.Metaplex.NFT.Library.MetadataProgram.ProgramIdKey.KeyBytes))
+                .SelectMany(instruction=>instruction.Data).ToArray());
+        }
+        Assert.AreEqual(metadata[0].Length,metadata[1].Length);Assert.IsTrue(metadata[0].Length>0);
+        var differences=Enumerable.Range(0,metadata[0].Length).Where(index=>metadata[0][index]!=metadata[1][index]).ToArray();
+        Assert.AreEqual(1,differences.Length);Assert.AreEqual((byte)1,metadata[0][differences[0]]);Assert.AreEqual((byte)0,metadata[1][differences[0]]);
+    }
+
     public class MintProxy:SolanaCollectionSizeTests.CollectionProxy
     {
         public bool FailVerification,FailFollowupSimulation;public List<string> Submitted=new();
+        public List<byte[]> SignedTransactions=new();
         protected override object? Invoke(MethodInfo? method,object?[]? args)
         {
             string? json=method!.Name switch
@@ -120,7 +140,7 @@ public class SolanaSdkMintTests
                 if(method.Name=="SimulateTransactionAsync" && FailFollowupSimulation && Sends==1) Scenario="simulation-failure";
                 var before=Sends;
                 try {return base.Invoke(method,args);}
-                finally {if(Sends>before) Submitted.Add(Signature);}
+                finally {if(Sends>before){Submitted.Add(Signature);SignedTransactions.Add((byte[])Signed!.Clone());}}
             }
             var resultType=method.ReturnType.GetGenericArguments()[0];var valueType=resultType.GetGenericArguments()[0];
             var response=Activator.CreateInstance(resultType,new HttpResponseMessage(System.Net.HttpStatusCode.OK),JsonConvert.DeserializeObject(json,valueType));
