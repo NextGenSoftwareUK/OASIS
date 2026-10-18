@@ -164,13 +164,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         }
 
         public async Task<string> ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+            =>await ReplaceDocumentCoreAsync(documentId,document,partitionKey,null,cancellationToken);
+
+        public async Task<string> ReplaceUnchangedDocumentAsync(string documentId,object expected,object document,PartitionKey? partitionKey,CancellationToken cancellationToken=default)
+        {
+            ArgumentNullException.ThrowIfNull(expected);ArgumentNullException.ThrowIfNull(document);
+            var json=await ReadDocumentAsync(documentId,partitionKey,cancellationToken);
+            if(json==null)throw new Core.Helpers.StorageLifecycleConflictException("Cosmos record disappeared before conditional replacement.");
+            var current=JObject.Parse(json);
+            var etag=current["_etag"]?.Type==JTokenType.String?current["_etag"].Value<string>():null;
+            if(string.IsNullOrWhiteSpace(etag))throw new InvalidDataException("Cosmos conditional replacement requires a native ETag.");
+            foreach(var field in new[]{"id","_etag","_rid","_self","_attachments","_ts"})current.Remove(field);
+            if(!StoredRecordPayloadEquality.Equivalent(JObject.Parse(OasisJson.Serialize(expected)),current))
+                throw new Core.Helpers.StorageLifecycleConflictException("Cosmos record changed before conditional replacement.");
+            return await ReplaceDocumentCoreAsync(documentId,document,partitionKey,new ItemRequestOptions{IfMatchEtag=etag},cancellationToken);
+        }
+
+        private async Task<string> ReplaceDocumentCoreAsync(string documentId, object document, PartitionKey? partitionKey,ItemRequestOptions options,CancellationToken cancellationToken)
         {
             var pk = partitionKey ?? PartitionKey.None;
             var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
             jsonDocument["id"] = documentId;
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
             cancellationToken.ThrowIfCancellationRequested();
-            using var response = await ObserveMutationAsync(()=>_container.ReplaceItemStreamAsync(stream, documentId, pk, null, cancellationToken),documentId);
+            using var response = await ObserveMutationAsync(()=>_container.ReplaceItemStreamAsync(stream, documentId, pk, options, cancellationToken),documentId);
             if (!response.IsSuccessStatusCode)
                 throw CreateServiceException(response,"Replace failed");
             return await ReadAcknowledgedPayloadAsync(response,documentId);

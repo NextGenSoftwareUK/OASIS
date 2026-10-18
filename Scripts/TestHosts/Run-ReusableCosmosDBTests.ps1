@@ -1,4 +1,4 @@
-param([switch]$InspectRetainedFixture)
+param([switch]$InspectRetainedFixture,[switch]$ReconcileRetainedRoutingFixture)
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $work=Join-Path $root 'TestResults/CosmosDBCurrent'
@@ -29,15 +29,16 @@ try {
     if(!$ready) {throw 'Retained Cosmos DB gateway readiness timed out.'}
     $env:OASIS_COSMOSDB_NATIVE='1'
     $testsStarted=[DateTime]::UtcNow
-    $filter=if($InspectRetainedFixture){'TestCategory=Inspection'}else{'TestCategory!=Inspection'}
-    $reportName=if($InspectRetainedFixture){'cosmos-retained-inspection-current.trx'}else{'cosmos-native-current.trx'}
+    if($InspectRetainedFixture -and $ReconcileRetainedRoutingFixture){throw 'Select only one diagnostic mode.'}
+    $filter=if($InspectRetainedFixture){'TestCategory=Inspection'}elseif($ReconcileRetainedRoutingFixture){'TestCategory=Reconciliation'}else{'TestCategory!=Inspection&TestCategory!=Reconciliation'}
+    $reportName=if($InspectRetainedFixture){'cosmos-retained-inspection-current.trx'}elseif($ReconcileRetainedRoutingFixture){'cosmos-routing-reconciliation-current.trx'}else{'cosmos-native-current.trx'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE) {throw 'Cosmos DB native test failed.'}
     $reportFile=Get-Item -LiteralPath (Join-Path $work $reportName) -ErrorAction Stop
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'Cosmos DB native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    $expected=if($InspectRetainedFixture){1}else{17}
+    $expected=if($InspectRetainedFixture -or $ReconcileRetainedRoutingFixture){1}else{19}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0) {throw 'Exact expected native Cosmos DB case count with no skips required.'}
 }
 finally {

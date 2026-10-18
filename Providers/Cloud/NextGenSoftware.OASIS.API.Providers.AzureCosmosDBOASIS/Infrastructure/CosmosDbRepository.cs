@@ -87,6 +87,20 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             return acknowledged;
         }
 
+        public async Task<T> ReplaceIfUnchangedAsync(T expected,T replacement)
+        {
+            ArgumentNullException.ThrowIfNull(expected);ArgumentNullException.ThrowIfNull(replacement);
+            if(expected.Id==Guid.Empty || expected.Id!=replacement.Id)throw new ArgumentException("Conditional Cosmos replacement requires matching nonempty identities.");
+            var original=(T)OasisJson.Deserialize(OasisJson.Serialize(expected),EntityType);
+            var staged=(T)OasisJson.Deserialize(OasisJson.Serialize(replacement),EntityType);
+            var key=staged.Id.ToString();
+            staged.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
+            staged.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
+            var client=_cosmosDbClientFactory.GetClient(CollectionName);
+            var json=await client.ReplaceUnchangedDocumentAsync(key,original,staged,ResolvePartitionKey(key));
+            return DecodeAcknowledgedEntity(json,staged,key);
+        }
+
         public async Task UpdateAsync(T entity)
         {
             ArgumentNullException.ThrowIfNull(entity);

@@ -22,8 +22,8 @@ public class CosmosMutationResultTests
         avatars.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(new Avatar {Id=id,IsActive=true});
         details.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(new AvatarDetail {Id=id,IsActive=true});
         holons.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(new Holon {Id=id,IsActive=true});
-        avatars.Setup(r=>r.UpsertAsync(It.IsAny<IAvatar>())).ReturnsAsync((IAvatar value)=>value);
-        details.Setup(r=>r.UpsertAsync(It.IsAny<IAvatarDetail>())).ReturnsAsync((IAvatarDetail value)=>value);
+        avatars.Setup(r=>r.ReplaceIfUnchangedAsync(It.IsAny<IAvatar>(),It.IsAny<IAvatar>())).ReturnsAsync((IAvatar _,IAvatar value)=>value);
+        details.Setup(r=>r.ReplaceIfUnchangedAsync(It.IsAny<IAvatarDetail>(),It.IsAny<IAvatarDetail>())).ReturnsAsync((IAvatarDetail _,IAvatarDetail value)=>value);
         avatars.Setup(r=>r.DeleteAsync(id.ToString())).Returns(Task.CompletedTask);
         details.Setup(r=>r.DeleteAsync(id.ToString())).Returns(Task.CompletedTask);
         holons.Setup(r=>r.DeleteAsync(id.ToString())).Returns(Task.CompletedTask);
