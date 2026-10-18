@@ -69,11 +69,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
                     throw new ArgumentException("Wallet address is required.");
+                // Capture caller intent before asynchronous SDK work. CosmJS heights are safe integers;
+                // never round an unsigned API bound silently at the JSON/JavaScript boundary.
+                var walletAddress=request.WalletAddress;var fromBlock=request.FromBlock;var toBlock=request.ToBlock;
+                const ulong maximumSdkHeight=9007199254740991UL;
+                if(fromBlock>maximumSdkHeight||toBlock>maximumSdkHeight||fromBlock.HasValue&&toBlock.HasValue&&fromBlock>toBlock)
+                    throw new ArgumentOutOfRangeException(nameof(request),"Cosmos history block range must be ordered and exactly representable by the SDK.");
                 var indexed = await _sdkBackend.InvokeAsync("transactions",
-                    new { walletAddress = request.WalletAddress, denom = _nativeDenom });
+                    new { walletAddress, denom = _nativeDenom,fromBlock,toBlock });
                 var transactions = new List<IWalletTransaction>();
                 foreach (var tx in indexed.EnumerateArray())
-                    transactions.Add(MapIndexedWalletTransaction(tx, request.WalletAddress));
+                    transactions.Add(MapIndexedWalletTransaction(tx, walletAddress));
                 result.Result = transactions;
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }

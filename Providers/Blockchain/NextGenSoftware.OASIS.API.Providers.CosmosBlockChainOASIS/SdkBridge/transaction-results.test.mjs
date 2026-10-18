@@ -305,6 +305,44 @@ test('Cosmos history binds both indexes to one committed height and reconciles o
   assert.ok(queries[0].startsWith('transfer.recipient='));
   assert.ok(queries[1].startsWith('message.sender='));
 });
+test('Cosmos history range is inclusive and bound into both index queries', async () => {
+  const address=toBech32('wasm',new Uint8Array(20).fill(1));
+  const bytes=new Uint8Array([1,2]);
+  const tx={hash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),height:42,txIndex:0,code:0,tx:bytes};
+  const queries=[];
+  assert.deepEqual(await indexedHistorySnapshot({getHeight:async()=>100,searchTx:async query=>{queries.push(query);return [tx];}},address,{fromBlock:40,toBlock:45}),[tx]);
+  assert.equal(queries.length,2);
+  assert.ok(queries.every(query=>query.endsWith(' AND tx.height<=45 AND tx.height>=40')));
+});
+
+test('Cosmos history range empty at zero or beyond snapshot performs no index lookup', async () => {
+  const address=toBech32('wasm',new Uint8Array(20).fill(1));
+  for(const range of [{toBlock:0},{fromBlock:101},{fromBlock:101,toBlock:200}])
+    assert.deepEqual(await indexedHistorySnapshot({getHeight:async()=>100,searchTx:async()=>assert.fail('Empty range must not query indexes')},address,range),[]);
+});
+
+test('Cosmos history range invalid values fail before any RPC', async () => {
+  const address=toBech32('wasm',new Uint8Array(20).fill(1));
+  for(const range of [{fromBlock:-1},{toBlock:'2'},{fromBlock:1.5},{toBlock:Number.MAX_SAFE_INTEGER+1},{fromBlock:3,toBlock:2}]){
+    let calls=0;
+    await assert.rejects(indexedHistorySnapshot({getHeight:async()=>{calls++;return 100;},searchTx:async()=>[]},address,range),/range/);
+    assert.equal(calls,0);
+  }
+});
+
+test('Cosmos history range rejects indexed rows outside requested bounds', async () => {
+  const address=toBech32('wasm',new Uint8Array(20).fill(1));const bytes=new Uint8Array([1]);
+  const original={hash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),txIndex:0,code:0,tx:bytes};
+  for(const height of [39,46])
+    await assert.rejects(indexedHistorySnapshot({getHeight:async()=>100,searchTx:async()=>[{...original,height}]},address,{fromBlock:40,toBlock:45}),/snapshot/);
+});
+
+test('Cosmos history range upper bound is clamped to committed snapshot', async () => {
+  const address=toBech32('wasm',new Uint8Array(20).fill(1));const queries=[];
+  assert.deepEqual(await indexedHistorySnapshot({getHeight:async()=>100,searchTx:async query=>{queries.push(query);return [];}},address,{fromBlock:90,toBlock:200}),[]);
+  assert.ok(queries.every(query=>query.endsWith(' AND tx.height<=100 AND tx.height>=90')));
+});
+
 test('Cosmos history rejects out-of-snapshot and conflicting indexed receipts', async () => {
   const address = toBech32('wasm', new Uint8Array(20).fill(1));
   const bytes = new Uint8Array([1]);
