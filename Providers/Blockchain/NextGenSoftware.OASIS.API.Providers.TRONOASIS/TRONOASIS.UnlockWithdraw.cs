@@ -116,12 +116,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 ArgumentNullException.ThrowIfNull(request);
                 if (string.IsNullOrWhiteSpace(request.WalletAddress)) throw new ArgumentException("Wallet address is required.");
+                var walletAddress=request.WalletAddress;var fromBlock=request.FromBlock;var toBlock=request.ToBlock;
+                if(fromBlock.HasValue&&toBlock.HasValue&&fromBlock>toBlock)
+                    throw new ArgumentOutOfRangeException(nameof(request),"TRON history block range is reversed.");
+                var maximumTimestamp=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 result.Result = await ExecuteNativeRuntimeAsync(async client =>
                 {
                     var history = await new TronGridTokenHistoryClient(_httpClient, client.ExpectedGenesisBlockId)
-                        .ReadNativeAsync(request.WalletAddress, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-                    return (IList<IWalletTransaction>)(await client.ReadWalletTransactionsAsync(request.WalletAddress,
-                        history.Select(record => record.GetProperty("txID").GetString()))).ToList();
+                        .ReadNativeAsync(walletAddress,maximumTimestamp);
+                    return (IList<IWalletTransaction>)(await client.ReadWalletTransactionsAsync(walletAddress,
+                        history.Select(record => record.GetProperty("txID").GetString()),fromBlock,toBlock)).ToList();
                 });
                 result.Message = "Indexed confirmed native history verified through SDK receipts; native hashes and exact SUN values are provided separately from OASIS IDs and display amounts.";
             }
