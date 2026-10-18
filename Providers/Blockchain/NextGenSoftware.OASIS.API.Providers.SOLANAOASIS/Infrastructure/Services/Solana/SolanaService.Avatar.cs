@@ -54,7 +54,9 @@ public sealed partial class SolanaService
             .Build(oasisAccount);
 
         var simResult = await rpcClient.SimulateTransactionAsync(txBytes);
-        if (simResult?.Result?.Value?.Error != null)
+        if(simResult==null || !simResult.WasSuccessful || simResult.Result?.Value==null)
+            throw new InvalidOperationException("SetCollectionSize simulation result is unavailable; no transaction submitted.");
+        if (simResult.Result.Value.Error != null)
         {
             string logs = simResult.Result.Value.Logs != null
                 ? string.Join(" | ", simResult.Result.Value.Logs)
@@ -62,12 +64,8 @@ public sealed partial class SolanaService
             throw new Exception($"SetCollectionSize simulation failed [ix={instructionData[0]} accounts={accounts.Count}]: {simResult.Result.Value.Error} — logs: {logs}");
         }
 
-        RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
-
-        if (!sendResult.WasSuccessful)
-            throw new Exception($"SetCollectionSize send failed: {sendResult.Reason}");
-
-        return sendResult.Result;
+        return await new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaRepository(
+            oasisAccount,rpcClient).SubmitSignedTransactionAsync(txBytes);
     }
 
     public async Task<OASISResult<BurnNftResult>> BurnNftAsync(IBurnWeb3NFTRequest mintNftRequest)
