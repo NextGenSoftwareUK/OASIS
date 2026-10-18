@@ -38,8 +38,9 @@ public class CosmosPreparedNativeLedgerTests
         var backend=typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(provider)!;
         var method=backend.GetType().GetMethod("InvokeAsync",BindingFlags.Instance|BindingFlags.NonPublic)!;
         Task<JsonElement> Invoke(string op,object args)=>(Task<JsonElement>)method.Invoke(backend,new object[]{op,args,token})!;
-        var sender=(await Invoke("restoreKey",new{})).GetProperty("address").GetString()!;
+        var identity=await Invoke("restoreKey",new{});var sender=identity.GetProperty("address").GetString()!;
         var key="oasis/independent-prepared-budget/"+Guid.NewGuid().ToString("N");
+        var assetSymbol="PREP"+Guid.NewGuid().ToString("N");
         Assert.AreEqual(JsonValueKind.Null,(await Invoke("get",new{key})).ValueKind);
         using var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.Read);
         var complete=false;
@@ -50,13 +51,13 @@ public class CosmosPreparedNativeLedgerTests
             var executor=new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6"});
             async Task<UsageExecutionHandle> Begin(string suffix,decimal maximum){
                 var handle=await executor.BeginAsync("test-only",user,key+suffix,new string('a',64),"POST /independent-local-test",
-                    new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=0.02m,MaximumNativeFeeCostUsd=maximum},token);
+                    new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=0.04m,MaximumNativeFeeCostUsd=maximum},token);
                 var time=DateTime.UtcNow.AddSeconds(-1);
                 return handle.WithNativePrices(new[]{new NativeFeePriceQuote(Guid.Parse(handle.OperationId),"CosmosBlockChainOASIS",chain,"stake","local-test-stake",0,
                     0.000001m,"synthetic-local-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5))});
             }
-            var execution=await Begin("-accepted",0.02m);var rejected=await Begin("-zero-budget",0m);
-            await JsonSerializer.SerializeAsync(file,new{database,key,chain,contract,sender,storageScope,operationId=execution.OperationId,rejectedOperationId=rejected.OperationId,
+            var execution=await Begin("-accepted",0.04m);var rejected=await Begin("-zero-budget",0m);
+            await JsonSerializer.SerializeAsync(file,new{database,key,chain,contract,sender,storageScope,assetSymbol,operationId=execution.OperationId,rejectedOperationId=rejected.OperationId,
                 preservedOriginalJournalSha256=oldHash,recovery="Reconcile only these original outbox attempts; never replay unknown submission or alter replication-pending.json."},cancellationToken:token);
             file.Flush(true);
             Task<JsonElement> Mutate(string op,object args,string correlation,UsageExecutionHandle handle)=>storageScope
@@ -77,8 +78,19 @@ public class CosmosPreparedNativeLedgerTests
             Assert.AreEqual("isolated prepared fixture",(await Invoke("get",new{key})).GetString());
             await Mutate("delete",new{key},"cleanup",execution);
             Assert.AreEqual(JsonValueKind.Null,(await Invoke("get",new{key})).ValueKind);
+            if(storageScope){
+                var minted=await provider.ExecutePreparedStorageAsync(()=>provider.MintTokenAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.MintWeb3TokenRequest{
+                    Symbol=assetSymbol,Title="Prepared native acceptance",Amount=1.25m}),execution,"asset-mint",sender,token);
+                Assert.IsFalse(minted.IsError,minted.Message);
+                var balance=await provider.GetCustomTokenBalanceAsync(assetSymbol,sender);Assert.IsFalse(balance.IsError,balance.Message);Assert.AreEqual(1.25m,balance.Result);
+                var burned=await provider.ExecutePreparedStorageAsync(()=>provider.BurnTokenAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.BurnWeb3TokenRequest{
+                    TokenAddress=assetSymbol,Amount=1.25m,OwnerPublicKey=identity.GetProperty("publicKey").GetString()!,OwnerPrivateKey="",OwnerSeedPhrase=""}),execution,"asset-burn",sender,token);
+                Assert.IsFalse(burned.IsError,burned.Message);
+                balance=await provider.GetCustomTokenBalanceAsync(assetSymbol,sender);Assert.IsFalse(balance.IsError,balance.Message);Assert.AreEqual(0m,balance.Result);
+                var asset=await provider.GetCustomTokenAsync(assetSymbol);Assert.IsFalse(asset.IsError,asset.Message);Assert.AreEqual("0",asset.Result.GetProperty("supply").GetString());
+            }
             var stored=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,token);
-            Assert.AreEqual(2,stored.ProviderAttempts.Count);
+            Assert.AreEqual(storageScope?4:2,stored.ProviderAttempts.Count);
             Assert.AreEqual(stored.ProviderAttempts.Sum(attempt=>NativeFeeMaximumAccounting.ValueUsd(attempt.NativePreparation.FeeMaximums,attempt.NativePreparation.PriceQuotes)),stored.NativeFeeExposureUsd);
             Assert.IsTrue(stored.NativeFeeExposureUsd>0m&&stored.NativeFeeExposureUsd<=0.02m);
             foreach(var attempt in stored.ProviderAttempts){

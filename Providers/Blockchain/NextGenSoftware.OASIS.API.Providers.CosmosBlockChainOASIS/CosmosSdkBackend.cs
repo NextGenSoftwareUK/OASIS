@@ -113,6 +113,11 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         var isMutation = operation is "put" or "delete" or "execute" or "transfer" or "upload" or "instantiate";
         if (preparationServer != null && !isMutation) throw new ArgumentException("Preparation gate is only valid for a native mutation.");
+        // Public asset/contract/transfer facades share this invocation boundary.
+        // An ambient owner must cover them too, not just IKeyValueBackend put/delete.
+        using var ambientPreparation=preparationServer==null && isMutation
+            ? _storagePreparation.CreateCurrent(operation,null):null;
+        preparationServer ??= ambientPreparation;
         if (!File.Exists(_bridgePath))
             throw new FileNotFoundException("Install the locked official CosmJS SDK bridge before activating Cosmos.", _bridgePath);
         var request = new Dictionary<string, object>
