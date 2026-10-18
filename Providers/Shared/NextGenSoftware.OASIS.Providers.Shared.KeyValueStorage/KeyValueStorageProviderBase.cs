@@ -58,43 +58,19 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private async Task StampVersionAsync(string recordKey, IHolonBase entity, IHolonBase previous,List<string> acknowledged=null)
         {
-            // Saves must enforce the same stored-ID/key invariant as reads and deletes, before archiving or writing.
-            await ReadVersionAsync(recordKey,previous,0);
-            if (entity.VersionId == Guid.Empty) entity.VersionId = Guid.NewGuid();
-            if (previous == null)
-            {
-                if (entity.Version < 1) entity.Version = 1;
-                return;
-            }
-
-            // Validate the next stamp before any paid/durable history mutation.
-            int nextVersion;
-            try { nextVersion=checked(previous.Version+1); }
-            catch (OverflowException cause)
-            { throw new System.IO.InvalidDataException("Stored record version is exhausted; refusing rollover or another-provider retry.",cause); }
-            if (IsVersionControlEnabled)
-            {
-                var historyKey=VersionKey(recordKey,previous.Version);
-                await Backend.PutAsync(historyKey, OasisJson.Serialize(previous));
-                acknowledged?.Add(historyKey);
-            }
-
-            entity.Version = nextVersion;
-            entity.PreviousVersionId = previous.VersionId;
-            entity.VersionId = Guid.NewGuid();
+            await StoredRecordVersions.StampAsync(IdFromKey(recordKey), entity, previous,
+                IsVersionControlEnabled ? async stored =>
+                {
+                    var historyKey = VersionKey(recordKey, stored.Version);
+                    await Backend.PutAsync(historyKey, OasisJson.Serialize(stored));
+                    acknowledged?.Add(historyKey);
+                } : null);
         }
 
         private async Task<T> ReadVersionAsync<T>(string recordKey, T current, int version) where T : class, IHolonBase
         {
-            if (version < 0) throw new ArgumentOutOfRangeException(nameof(version), "Version must be zero (latest) or a positive historical version.");
-            var expectedId = IdFromKey(recordKey);
-            if (current != null && current.Id != expectedId)
-                throw new System.IO.InvalidDataException("Stored record ID does not match its storage key.");
-            if (current == null || version == 0 || current.Version == version) return current;
-            var historical = await ReadAsync<T>(VersionKey(recordKey, version));
-            if (historical != null && (historical.Id != expectedId || historical.Version != version))
-                throw new System.IO.InvalidDataException("Stored historical record ID or version does not match its storage key.");
-            return historical;
+            return await StoredRecordVersions.ReadAsync(IdFromKey(recordKey), current, version,
+                selected => ReadAsync<T>(VersionKey(recordKey, selected)));
         }
 
         private async Task DeleteVersionsAsync(string recordKey,List<string> acknowledged=null)
