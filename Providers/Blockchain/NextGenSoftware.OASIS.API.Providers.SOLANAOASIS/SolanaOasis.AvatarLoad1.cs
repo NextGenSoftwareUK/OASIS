@@ -132,13 +132,13 @@ public partial class SolanaOASIS
         var result=new OASISResult<IEnumerable<IAvatar>>();
         try
         {
-            if(version != 0) throw new NotSupportedException("Solana collection reads currently require latest version (0).");
+            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
             if(!IsProviderActivated)
             {
                 var activation=await ActivateProviderAsync();
                 if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
             }
-            var records=await _solanaRepository.GetAllAsync<SolanaAvatarDto>();
+            var records=await _solanaRepository.GetAllAsync<SolanaAvatarDto>(version);
             var mapped=new List<IAvatar>();
             foreach(var entry in records)
             {
