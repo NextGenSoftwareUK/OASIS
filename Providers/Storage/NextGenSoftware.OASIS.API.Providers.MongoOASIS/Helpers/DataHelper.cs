@@ -18,6 +18,23 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
     public static class DataHelper
     {
         private static EnumValue<T> CopyEnum<T>(EnumValue<T> value)=>value==null?null:new EnumValue<T>(value.Value);
+        private static Crystal CopyCrystal(Crystal value)=>value==null?null:new Crystal{
+            Name=CopyEnum(value.Name),Type=CopyEnum(value.Type),Description=value.Description,
+            ProtectionLevel=value.ProtectionLevel,EnergisingLevel=value.EnergisingLevel,GroundingLevel=value.GroundingLevel,
+            CleansingLevel=value.CleansingLevel,AmplifyicationLevel=value.AmplifyicationLevel};
+        private static T CopyChakra<T>(T value) where T:Chakra,new()
+        {
+            if(value==null)return null;
+            return new T{Name=value.Name,SanskritName=value.SanskritName,Description=value.Description,
+                WhatItControls=value.WhatItControls,WhenItDevelops=value.WhenItDevelops,
+                YogaPose=CopyEnum(value.YogaPose),Element=CopyEnum(value.Element),Type=CopyEnum(value.Type),
+                Crystal=CopyCrystal(value.Crystal),Level=value.Level,Progress=value.Progress,XP=value.XP,
+                GiftsUnlocked=value.GiftsUnlocked==null?null:value.GiftsUnlocked.Select(CopyGift).ToList()};
+        }
+        private static AvatarChakras CopyChakras(IAvatarChakras value)=>value==null?null:new AvatarChakras{
+            Crown=CopyChakra(value.Crown),Heart=CopyChakra(value.Heart),Root=CopyChakra(value.Root),
+            Sacral=CopyChakra(value.Sacral),SolarPlexus=CopyChakra(value.SolarPlexus),
+            ThirdEye=CopyChakra(value.ThirdEye),Throat=CopyChakra(value.Throat)};
         private static Spell CopySpell(ISpell value)=>value==null?null:new Spell{
             Name=value.Name,Description=value.Description,FireDamage=value.FireDamage,WaterDamage=value.WaterDamage,
             IceDamage=value.IceDamage,WindDamage=value.WindDamage,LightningDamage=value.LightningDamage,
@@ -314,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     oasisAvatar.Gifts.Add(CopyGift(item));
             }
 
-            oasisAvatar.Chakras = avatar.Result.Chakras;
+            oasisAvatar.Chakras = CopyChakras(avatar.Result.Chakras);
             oasisAvatar.Aura = CopyAvatarAura(avatar.Result.Aura);
             //oasisAvatar.Achievements = avatar.Result.Achievements;
 
@@ -676,7 +693,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     mongoAvatar.Gifts.Add(CopyGift(item));
             }
 
-            mongoAvatar.Chakras = (AvatarChakras)avatar.Chakras;
+            mongoAvatar.Chakras = CopyChakras(avatar.Chakras);
             mongoAvatar.Aura = CopyAvatarAura(avatar.Aura);
             //mongoAvatar.Achievements = avatar.Achievements;
 

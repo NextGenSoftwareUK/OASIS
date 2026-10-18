@@ -163,6 +163,29 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
         }
 
         [TestMethod]
+        public void ChakraInterfaceAndNestedValuesDetachBothDirections()
+        {
+            var chakras=IndependentAvatarChakras.Create(1);
+            var source=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=Guid.NewGuid(),Chakras=chakras};
+            var stored=DataHelper.ConvertOASISAvatarDetailToMongoEntity(source);
+            var loaded=DataHelper.ConvertMongoEntityToOASISAvatarDetail(new OASISResult<MongoAvatarDetail>(stored));
+            Assert.IsFalse(loaded.IsError);Assert.IsNotNull(loaded.Result);
+            foreach(var slot in typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarChakras).GetProperties()){
+                var original=(Chakra)slot.GetValue(chakras)!;
+                var native=(Chakra)slot.GetValue(stored.Chakras)!;
+                var read=(Chakra)slot.GetValue(loaded.Result.Chakras)!;
+                Assert.AreEqual(Newtonsoft.Json.JsonConvert.SerializeObject(original),Newtonsoft.Json.JsonConvert.SerializeObject(native));
+                Assert.AreEqual(Newtonsoft.Json.JsonConvert.SerializeObject(original),Newtonsoft.Json.JsonConvert.SerializeObject(read));
+                Assert.AreNotSame(original,native);Assert.AreNotSame(native,read);
+                Assert.AreNotSame(original.Crystal,native.Crystal);Assert.AreNotSame(native.Crystal,read.Crystal);
+                Assert.AreNotSame(original.Element,native.Element);Assert.AreNotSame(native.Element,read.Element);
+                Assert.AreNotSame(original.Crystal.Name,native.Crystal.Name);Assert.AreNotSame(native.Crystal.Name,read.Crystal.Name);
+                Assert.AreNotSame(original.GiftsUnlocked,native.GiftsUnlocked);Assert.AreNotSame(native.GiftsUnlocked,read.GiftsUnlocked);
+                Assert.AreNotSame(original.GiftsUnlocked[0],native.GiftsUnlocked[0]);Assert.AreNotSame(native.GiftsUnlocked[0],read.GiftsUnlocked[0]);
+            }
+        }
+
+        [TestMethod]
         public void NativeCodeGenesis_WithoutGenerator_DoesNotAcknowledgeSuccessOrActivateStorage()
         {
             NextGenSoftware.OASIS.API.Core.Interfaces.IOASISSuperStar generator = _provider;

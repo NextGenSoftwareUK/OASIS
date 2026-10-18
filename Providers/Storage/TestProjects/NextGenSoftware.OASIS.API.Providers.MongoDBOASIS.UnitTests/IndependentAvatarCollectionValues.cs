@@ -6,8 +6,47 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
+
+internal sealed class IndependentAvatarChakras:IAvatarChakras
+{
+    public CrownChakra Crown {get;set;}=new();
+    public HeartChakra Heart {get;set;}=new();
+    public RootChakra Root {get;set;}=new();
+    public SacralChakra Sacral {get;set;}=new();
+    public SolarPlexusChakra SolarPlexus {get;set;}=new();
+    public ThirdEyeChakra ThirdEye {get;set;}=new();
+    public ThroatChakra Throat {get;set;}=new();
+
+    internal static IndependentAvatarChakras Create(int revision)
+    {
+        var result=new IndependentAvatarChakras();
+        foreach(var slot in typeof(IAvatarChakras).GetProperties()){
+            var chakra=(Chakra)slot.GetValue(result)!;
+            foreach(var property in typeof(IChakra).GetProperties()){
+                var type=property.PropertyType;
+                if(type==typeof(string))property.SetValue(chakra,$"{slot.Name}-{property.Name}-{revision}");
+                else if(type==typeof(int))property.SetValue(chakra,100*revision+property.Name.Length);
+                else if(type.IsGenericType && type.GetGenericTypeDefinition()==typeof(EnumValue<>)){
+                    var values=Enum.GetValues(type.GetGenericArguments()[0]);
+                    property.SetValue(chakra,Activator.CreateInstance(type,values.GetValue(revision%values.Length)));
+                }
+            }
+            chakra.Crystal=new Crystal{Description=$"crystal-{slot.Name}-{revision}",
+                Name=new EnumValue<CrystalName>((CrystalName)Enum.GetValues(typeof(CrystalName)).GetValue(revision%Enum.GetValues(typeof(CrystalName)).Length)!),
+                Type=new EnumValue<CrystalType>((CrystalType)Enum.GetValues(typeof(CrystalType)).GetValue(revision%Enum.GetValues(typeof(CrystalType)).Length)!),
+                ProtectionLevel=revision+1,EnergisingLevel=revision+2,GroundingLevel=revision+3,
+                CleansingLevel=revision+4,AmplifyicationLevel=revision+5};
+            var gift=(IAvatarGift)IndependentAvatarCollections.Create("Gifts",revision);
+            chakra.GiftsUnlocked=new List<AvatarGift>{new(){AvatarId=gift.AvatarId,GiftEarnt=gift.GiftEarnt,
+                GiftType=gift.GiftType,KarmaSource=gift.KarmaSource,KarmaSourceDesc=gift.KarmaSourceDesc,
+                KarmaSourceTitle=gift.KarmaSourceTitle,Provider=gift.Provider,WebLink=gift.WebLink}};
+        }
+        return result;
+    }
+}
 
 internal sealed class IndependentSpell:ISpell
 {
@@ -57,7 +96,7 @@ internal static class IndependentAvatarCollections
             var type=property.PropertyType;object value;
             if(type==typeof(string))value=$"revision-{revision}-{property.Name}";
             else if(type==typeof(int))value=number++;
-            else if(type==typeof(long))value=(long)number++;
+            else if(type==typeof(long))value=revision==1?(long)int.MaxValue+number++:(long)int.MinValue-number++;
             else if(type==typeof(Guid))value=Guid.NewGuid();
             else if(type==typeof(DateTime))value=new DateTime(2000+revision,2,3,4,5,6,DateTimeKind.Utc);
             else if(type.IsEnum)value=Enum.GetValues(type).GetValue(revision%Enum.GetValues(type).Length)!;
