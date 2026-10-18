@@ -16,9 +16,9 @@ public class CosmosCurrentReadTests
         var avatars=new Mock<IAvatarRepository>();var details=new Mock<IAvatarDetailRepository>();
         avatars.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(new Avatar {Id=id,IsActive=true});
         details.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(new AvatarDetail {Id=id,IsActive=true,XP=321});
-        avatars.Setup(r=>r.UpsertAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>())).ReturnsAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar row)=>row);
+        avatars.Setup(r=>r.ReplaceIfUnchangedAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>(),It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>())).ReturnsAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar _,NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar row)=>row);
         var cause=new IOException("owned detail write rejection");
-        details.Setup(r=>r.UpsertAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>())).ThrowsAsync(cause);
+        details.Setup(r=>r.ReplaceIfUnchangedAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(),It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>())).ThrowsAsync(cause);
         typeof(AzureCosmosDBOASIS).GetField("avatarRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,avatars.Object);
         typeof(AzureCosmosDBOASIS).GetField("avatarDetailRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,details.Object);
         var result=await provider.DeleteAvatarAsync(id);
@@ -38,15 +38,15 @@ public class CosmosCurrentReadTests
         var avatar=new Avatar {Id=id,IsActive=true};
         repository.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(avatar);
         var cause=new CosmosMutationReconciliationException(id.ToString(),new IOException("lost tombstone reply"));
-        repository.Setup(r=>r.UpsertAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>())).ThrowsAsync(cause);
+        repository.Setup(r=>r.ReplaceIfUnchangedAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>(),It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>())).ThrowsAsync(cause);
         typeof(AzureCosmosDBOASIS).GetField("avatarRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
         var failed=provider.DeleteAvatar(id);
         Assert.IsTrue(failed.IsError);Assert.IsFalse(failed.Result);Assert.IsFalse(failed.IsSaved);Assert.AreSame(cause,failed.Exception);
         Assert.IsTrue(avatar.IsActive);
-        repository.Setup(r=>r.UpsertAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>())).ReturnsAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar value)=>value);
+        repository.Setup(r=>r.ReplaceIfUnchangedAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>(),It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>())).ReturnsAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar _,NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar value)=>value);
         var saved=await provider.DeleteAvatarAsync(id);
         Assert.IsFalse(saved.IsError,saved.Message);Assert.IsTrue(saved.Result);Assert.IsTrue(saved.IsSaved);
-        repository.Verify(r=>r.UpsertAsync(It.Is<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>(a=>!a.IsActive && a.DeletedDate.Kind==DateTimeKind.Utc)),Times.Exactly(2));
+        repository.Verify(r=>r.ReplaceIfUnchangedAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>(),It.Is<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>(a=>!a.IsActive && a.DeletedDate.Kind==DateTimeKind.Utc)),Times.Exactly(2));
     }
 
     [TestMethod]
