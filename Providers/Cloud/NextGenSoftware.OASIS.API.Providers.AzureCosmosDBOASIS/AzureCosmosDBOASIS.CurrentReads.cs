@@ -168,6 +168,7 @@ public partial class AzureCosmosDBOASIS
         try
         {
             if(!Guid.TryParse(key,out var id) || id==Guid.Empty) throw new ArgumentException("A nonempty Cosmos parent GUID key is required.",nameof(key));
+            if(!Enum.IsDefined(typeof(HolonType),type))throw new ArgumentOutOfRangeException(nameof(type));
             if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
             var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version);
             if(loaded.IsError) return loaded;
@@ -186,6 +187,7 @@ public partial class AzureCosmosDBOASIS
         var result=new OASISResult<IEnumerable<IHolon>>();
         try
         {
+            if(!Enum.IsDefined(typeof(HolonType),type))throw new ArgumentOutOfRangeException(nameof(type));
             if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
             var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version);
             if(loaded.IsError) return loaded;
