@@ -2,6 +2,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using Provider=NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
@@ -64,6 +67,16 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse(keyedChildren.IsError,keyedChildren.Message);Assert.AreEqual(2,keyedChildren.Result.Single().Version);
             var absent=await provider.LoadAllHolonsAsync(version:99);
             Assert.IsFalse(absent.IsError,absent.Message);Assert.AreEqual(0,absent.Result.Count());
+            var query=new SearchParams{SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string>{{"history-marker",marker}},
+                SearchGroups=new List<ISearchGroupBase>{new SearchTextGroup{SearchHolons=true,HolonType=HolonType.All,SearchQuery=$"root-v1-{marker}"}}};
+            var searched=synchronous?provider.Search(query,version:1):await provider.SearchAsync(query,version:1);
+            Assert.IsFalse(searched.IsError,searched.Message);Assert.AreEqual(root.Id,searched.Result.SearchResultHolons.Single().Id);
+            Assert.AreEqual(2,searched.Result.SearchResultHolons.Single().Children.Single().Version);
+            var exported=synchronous?provider.ExportAll(1):await provider.ExportAllAsync(1);
+            Assert.IsFalse(exported.IsError,exported.Message);Assert.AreEqual(3,exported.Result.Count());
+            Assert.AreEqual(marker,exported.Result.Single(h=>h.Id==root.Id).MetaData["history-marker"]);
+            var currentExport=await provider.ExportAllAsync();
+            Assert.IsFalse(currentExport.IsError,currentExport.Message);Assert.AreEqual(3,currentExport.Result.Single(h=>h.Id==root.Id).Version);
             Assert.IsTrue((await provider.LoadHolonAsync(root.Id,version:99)).IsError);
             Assert.IsTrue((await provider.LoadHolonAsync(root.Id,version:-1)).IsError);
             Assert.AreEqual(2L,(await(await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon',RecordId:$id}) RETURN count(v) AS count",new{id=root.Id.ToString()})).SingleAsync())["count"].As<long>());
@@ -74,6 +87,8 @@ public partial class Neo4jNativeAvatarTests
                 var invalid=await provider.LoadHolonAsync(root.Id,version:1);
                 Assert.IsTrue(invalid.IsError);Assert.IsNull(invalid.Result);
                 Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,invalid.ErrorCode);
+                var invalidExport=await provider.ExportAllAsync(1);
+                Assert.IsTrue(invalidExport.IsError);Assert.IsNull(invalidExport.Result);
             }
             finally
             {

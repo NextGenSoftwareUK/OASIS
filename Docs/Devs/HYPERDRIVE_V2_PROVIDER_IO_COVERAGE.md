@@ -5397,3 +5397,7 @@ Opt-in graph writes now atomically archive replaced holons alongside current sna
 
 All/parent/metadata loaders now apply positive versions to selected root snapshots and historical predicates, then load independently current descendants. Shared native archive reader and shared metadata matcher reused; parent key resolves current parent identity independently of child version. Expanded native history cases pass within71/71 suite36s; unit76/76pass319ms, matching DLL EBF49BB2C006E1F63D17038B8FF6E886EDC4702C394FFD6BA6379A44021F17FE. Exact hashes/limitations in current release gates. Search/export/credentials, soft-delete, concurrency/recovery and full-interface/release gates remain open; scan/N+1 history lookup performance not certified.
 
+# 2026-10-18 Neo4j historical search / canonical all-holon export
+
+Search now uses version-aware Avatar/Holon loaders with existing shared predicates; ExportAll replaces lossy partial-column reconstruction and silent decode skipping with canonical LoadAllHolons(loadChildren:false,version). Native71pass37s/unit76pass298ms with matched DLL BAC14BFE2A8294252B1B16A0DABF0E0CE26F89508C0B311BE545A03B68E30800. Historical search/metadata/descendants and current/historical export plus corrupt archive error proven in expanded two native history cases. Per-avatar exports remain old and incomplete; full interfaces/search options/recovery/release not certified. Exact report hashes in current release gates.
+

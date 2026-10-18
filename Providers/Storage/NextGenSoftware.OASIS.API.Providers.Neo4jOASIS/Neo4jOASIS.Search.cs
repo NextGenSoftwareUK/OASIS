@@ -19,7 +19,7 @@ public partial class Neo4jOASIS
         var result=new OASISResult<ISearchResults>();
         try
         {
-            StoredRecordSearch.Validate(search,version,maximumDepth);
+            StoredRecordSearch.Validate(search,version,maximumDepth,supportsHistory:true);
             var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
             var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
             var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
