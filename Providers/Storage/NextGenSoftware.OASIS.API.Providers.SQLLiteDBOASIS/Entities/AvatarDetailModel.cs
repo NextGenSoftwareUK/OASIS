@@ -18,6 +18,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 
         [Required, Key]
         public String Id{ set; get; }
+        public string MetaDataJson { get; set; } = "{}";
+        [Required]
+        public string ProviderLinksJson { get; set; } = "{}";
+        [Required]
+        public string DimensionLevelIdsJson { get; set; } = "{}";
+        [Required]
+        public string CelestialParentIdsJson { get; set; } = "{}";
+        public bool IsPublic { get; set; }
+        public Guid VersionId { get; set; }
+        public Guid PreviousVersionId { get; set; }
+        public Guid ParentHolonId { get; set; }
+        public Guid ParentHolonId2 { get; set; }
+        public Guid ParentHolonId3 { get; set; }
+        public string CustomHolonType { get; set; }
 
         public string Name { get; set; }
         public string Description { get; set; }
@@ -47,13 +61,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public string Email { get; set; }
         public string Image2D { get; set; }
         public string Model3D { get; set; }
+        public string Portrait { get; set; }
+        public string UmaJson { get; set; }
 
         public ConsoleColor FavouriteColour { get; set; }
         public ConsoleColor STARCLIColour { get; set; }
         
         public AvatarType AvatarType { get; set; }
-        public OASISType CreatedOASISType { get; set; }
-        public ProviderType CreatedProviderType { get; set; }
+        public OASISType? CreatedOASISType { get; set; }
+        public ProviderType? CreatedProviderType { get; set; }
 
         public long Karma { get; set; }
         public int XP { get; set; }
@@ -110,9 +126,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         //public IHolon Original { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         
         public AvatarDetailModel(){}
-        public AvatarDetailModel(IAvatarDetail source){
+        public AvatarDetailModel(IAvatarDetail source,Guid? plannedId=null){
+            this.ProviderLinksJson=AvatarDetailProviderLinks.Encode(source);
+            this.DimensionLevelIdsJson=AvatarDetailDimensionLinks.Encode(source);
+            this.CelestialParentIdsJson=AvatarDetailCelestialLinks.Encode(source);
 
-            if(source.Id == Guid.Empty){
+            if(plannedId.HasValue) this.Id=plannedId.Value.ToString();
+            else if(source.Id == Guid.Empty){
                 this.Id = Guid.NewGuid().ToString();
             }
             else{
@@ -127,6 +147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             this.Address=source.Address;
             this.Town=source.Town;
             this.County=source.County;
+            this.Country=source.Country;
             this.Postcode=source.Postcode;
             this.Mobile=source.Mobile;
             this.Landline=source.Landline;
@@ -134,12 +155,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             this.Username=source.Username;
             this.Email=source.Email;
             this.Model3D=source.Model3D;
+            this.Portrait=source.Portrait;
+            this.UmaJson=source.UmaJson;
 
             this.FavouriteColour=source.FavouriteColour;
             this.STARCLIColour=source.STARCLIColour;
             
-            this.CreatedOASISType=source.CreatedOASISType.Value;
-            this.CreatedProviderType = source.CreatedProviderType.Value;
+            this.CreatedOASISType=source.CreatedOASISType?.Value;
+            this.CreatedProviderType = source.CreatedProviderType?.Value;
 
             this.Karma=source.Karma;
             this.XP=source.XP;
@@ -149,6 +172,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 
             this.Version=source.Version;
             this.IsActive=source.IsActive;
+            this.IsPublic=source.IsPublic;
+            this.VersionId=source.VersionId;
+            this.PreviousVersionId=source.PreviousVersionId;
+            this.ParentHolonId=source.ParentHolonId;
+            this.ParentHolonId2=source.ParentHolonId2;
+            this.ParentHolonId3=source.ParentHolonId3;
+            this.CustomHolonType=source.CustomHolonType;
             this.IsChanged = source.IsChanged;
             this.IsNewHolon = source.IsNewHolon;
 
@@ -160,36 +190,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             this.ModifiedByAvatarId=source.ModifiedByAvatarId.ToString();
             this.DeletedByAvatarId=source.DeletedByAvatarId.ToString();
 
-            this.Stats=new AvatarStatsModel(source.Stats);
-            this.Stats.AvatarId=this.Id;
+            if (source.Stats != null)
+            {
+                this.Stats=new AvatarStatsModel(source.Stats);
+                this.Stats.Id=this.Id;
+                this.Stats.AvatarId=this.Id;
+            }
 
-            this.Aura=new AvatarAuraModel(source.Aura);
-            this.Aura.AvatarId=this.Id;
-
-            this.HumanDesign = new AvatarHumanDesignModel(source.HumanDesign);
-            this.HumanDesign.AvatarId=this.Id;
-
-            this.Skills=new AvatarSkillsModel(source.Skills);
-            this.Skills.AvatarId=this.Id;
-
-            this.Attributes=new AvatarAttributesModel(source.Attributes);
-            this.Attributes.AvatarId=this.Id;
-
-            this.SuperPowers=new AvatarSuperPowersModel(source.SuperPowers);
-            this.SuperPowers.AvatarId=this.Id;
+            this.Aura=source.Aura==null ? null:new AvatarAuraModel(source.Aura) {AvatarId=this.Id};
+            this.HumanDesign=source.HumanDesign==null ? null:new AvatarHumanDesignModel(source.HumanDesign) {Id=this.Id,AvatarId=this.Id};
+            this.Skills=source.Skills==null ? null:new AvatarSkillsModel(source.Skills) {AvatarId=this.Id};
+            this.Attributes=source.Attributes==null ? null:new AvatarAttributesModel(source.Attributes) {AvatarId=this.Id};
+            this.SuperPowers=source.SuperPowers==null ? null:new AvatarSuperPowersModel(source.SuperPowers) {AvatarId=this.Id};
 
             foreach(AvatarGift gift in source.Gifts){
                 this.Gifts.Add(new AvatarGiftModel(gift));
             }
 
-            foreach(HeartRateEntry heartRate in source.HeartRateData){
+            foreach(var heartRate in source.HeartRateData ?? new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IHeartRateEntry>()){
 
                 HeartRateEntryModel model=new HeartRateEntryModel(heartRate);
                 model.AvatarId=this.Id;
+                model.SequenceIndex=this.HeartRates.Count;
                 this.HeartRates.Add(model);
             }
 
-            foreach(InventoryItem item in source.Inventory){
+            foreach(var item in source.Inventory ?? new List<IInventoryItem>()){
 
                 InventoryItemModel model=new InventoryItemModel(item);
                 model.AvatarId=this.Id;
@@ -218,12 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 this.KarmaAkashicRecords.Add(new KarmaAkashicRecordModel(record));
             }
 
-            foreach(KeyValuePair<string, object> item in source.MetaData){
-
-                MetaDataModel metaModel=new MetaDataModel(item.Key,item.Value);
-                metaModel.OwnerId=this.Id;
-                this.MetaData.Add(metaModel);
-            }
+            this.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(source.MetaData ?? new Dictionary<string, object>());
 
             this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Root));
             this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Sacral));
@@ -247,6 +268,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             item.Address=this.Address;
             item.Town=this.Town;
             item.County=this.County;
+            item.Country=this.Country;
             item.Postcode=this.Postcode;
             item.Mobile=this.Mobile;
             item.Landline=this.Landline;
@@ -254,18 +276,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             item.Username=this.Username;
             item.Email=this.Email;
             item.Model3D=this.Model3D;
+            item.Portrait=this.Portrait;
+            item.UmaJson=this.UmaJson;
 
             item.FavouriteColour=this.FavouriteColour;
             item.STARCLIColour=this.STARCLIColour;
             
-            item.CreatedOASISType= new EnumValue<OASISType>(this.CreatedOASISType);
-            item.CreatedProviderType = new EnumValue<ProviderType>(this.CreatedProviderType);
+            item.CreatedOASISType= this.CreatedOASISType.HasValue ? new EnumValue<OASISType>(this.CreatedOASISType.Value) : null;
+            item.CreatedProviderType = this.CreatedProviderType.HasValue ? new EnumValue<ProviderType>(this.CreatedProviderType.Value) : null;
 
             item.Karma=this.Karma;
             item.XP=this.XP;
 
             item.Version=this.Version;
             item.IsActive=this.IsActive;
+            item.IsPublic=this.IsPublic;
+            item.VersionId=this.VersionId;
+            item.PreviousVersionId=this.PreviousVersionId;
+            item.ParentHolonId=this.ParentHolonId;
+            item.ParentHolonId2=this.ParentHolonId2;
+            item.ParentHolonId3=this.ParentHolonId3;
+            item.CustomHolonType=this.CustomHolonType;
             item.IsChanged = this.IsChanged;
             item.IsNewHolon = this.IsNewHolon;
 
@@ -349,6 +380,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 }
             }
 
+            AvatarDetailProviderLinks.Apply(this.ProviderLinksJson,item);
+            item.DimensionLevelIds=AvatarDetailDimensionLinks.Decode(this.DimensionLevelIdsJson);
+            AvatarDetailCelestialLinks.Apply(this.CelestialParentIdsJson,item);
             return(item);
         }
     }

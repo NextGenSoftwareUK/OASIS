@@ -3,12 +3,14 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
 {
     public class DataContext : DbContext
     {
         public DbSet<AvatarModel> Avatars { get; set; }
+        public DbSet<AvatarWalletStore> AvatarWalletStores { get; set; }
         public DbSet<AvatarDetailModel> AvatarDetails { get; set; }
         public DbSet<HolonModel> Holons { get; set; }
 
@@ -48,6 +50,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // SQLite does not retain DateTime.Kind. DeletedDate is UTC by contract;
+            // keep its ticks and restore that kind at the materialization boundary.
+            var deletionUtc=new ValueConverter<DateTime,DateTime>(
+                value=>ValidateDeletionUtc(value),
+                value=>value==DateTime.MinValue ? DateTime.MinValue:DateTime.SpecifyKind(value,DateTimeKind.Utc));
+            modelBuilder.Entity<AvatarModel>().Property(row=>row.DeletedDate).HasConversion(deletionUtc);
+            modelBuilder.Entity<AvatarDetailModel>().Property(row=>row.DeletedDate).HasConversion(deletionUtc);
+            modelBuilder.Entity<HolonModel>().Property(row=>row.DeletedDate).HasConversion(deletionUtc);
+            modelBuilder.Entity<AvatarWalletStore>().HasOne<AvatarModel>().WithMany()
+                .HasForeignKey(wallet => wallet.AvatarId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AvatarModel>().HasMany(a => a.RefreshTokens).WithOne()
+                .HasForeignKey(t => t.AvatarId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AvatarModel>().Navigation(a => a.RefreshTokens).AutoInclude();
+            modelBuilder.Entity<RefreshTokenModel>().Property(t => t.StorageId).ValueGeneratedOnAdd();
             #region Child Entities Setting Up
 
              modelBuilder.Entity<AvatarDetailModel>()
@@ -72,21 +88,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             // inventory record fields belong in AvatarInventory; attempting to infer the
             // runtime interface graph makes EF reject the complete model before any SQLite
             // operation can run.
-            var inventoryColumns = new HashSet<string>(StringComparer.Ordinal)
-            {
-                nameof(InventoryItemModel.Id), nameof(InventoryItemModel.AvatarId),
-                nameof(InventoryItemModel.Name), nameof(InventoryItemModel.Description),
-                nameof(InventoryItemModel.Quantity), nameof(InventoryItemModel.Stack),
-                nameof(InventoryItemModel.GameSource), nameof(InventoryItemModel.ItemType),
-                nameof(InventoryItemModel.NftId), nameof(InventoryItemModel.GeoNFTId),
-                nameof(InventoryItemModel.Rarity), nameof(InventoryItemModel.MaxQuantity),
-                nameof(InventoryItemModel.Weight), nameof(InventoryItemModel.IsUsable),
-                nameof(InventoryItemModel.IsTradeable), nameof(InventoryItemModel.AcquiredOn),
-                nameof(InventoryItemModel.LastUsedOn), nameof(InventoryItemModel.HolonType)
-            };
+            var inventoryColumns = new HashSet<string>(InventoryItemModel.RelationalColumnNames,StringComparer.Ordinal);
             foreach (var property in typeof(InventoryItemModel).GetProperties())
                 if (!inventoryColumns.Contains(property.Name))
                     modelBuilder.Entity<InventoryItemModel>().Ignore(property.Name);
+            modelBuilder.Entity<InventoryItemModel>().Property(x=>x.ExtendedValueJson).IsRequired().HasDefaultValue("{}");
+            modelBuilder.Entity<InventoryItemModel>().Property(x=>x.Image2DURI)
+                .HasConversion(value=>value.OriginalString,value=>new Uri(value,UriKind.RelativeOrAbsolute));
+            modelBuilder.Entity<InventoryItemModel>().Property(x=>x.Object3DURI)
+                .HasConversion(value=>value.OriginalString,value=>new Uri(value,UriKind.RelativeOrAbsolute));
             
             modelBuilder.Entity<AvatarDetailModel>()
                 .HasMany(avatar => avatar.GeneKeys)
@@ -167,6 +177,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
                 .HasOne<AvatarSuperPowersModel>(avatar => avatar.SuperPowers)
                 .WithOne()
                 .HasForeignKey<AvatarSuperPowersModel>(ob => ob.AvatarId);
+
+            // Complete one-to-one detail state belongs to every detail read,
+            // including selectors, collections and read-modify-save operations.
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.Attributes).AutoInclude();
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.Aura).AutoInclude();
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.Skills).AutoInclude();
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.SuperPowers).AutoInclude();
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.HumanDesign).AutoInclude();
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.Stats).AutoInclude();
 
             modelBuilder.Entity<AvatarChakraModel>()
                 .HasOne<CrystalModel>(c => c.Crystal)
@@ -310,6 +329,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             #endregion
             
             base.OnModelCreating(modelBuilder);
+        }
+
+        private static DateTime ValidateDeletionUtc(DateTime value)
+        {
+            if(value!=DateTime.MinValue && value.Kind!=DateTimeKind.Utc)
+                throw new ArgumentException("SQLite deletion timestamps must be UTC, or the empty DateTime.MinValue sentinel.");
+            return value;
         }
     }
 }

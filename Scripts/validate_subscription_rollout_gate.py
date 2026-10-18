@@ -2,6 +2,7 @@
 """Fail CI if a consuming service can activate the ledger without the Railway rollout gate."""
 from pathlib import Path
 import re
+from subscription_source_tree import source_tree_from_args
 
 ROOT = Path(__file__).resolve().parents[1]
 PROGRAMS = {
@@ -14,8 +15,12 @@ PROGRAMS = {
 }
 
 errors = []
+tree = source_tree_from_args()
 for service, path in PROGRAMS.items():
-    source = path.read_text(encoding="utf-8")
+    if not tree.exists(path):
+        errors.append(f"{service}: missing {path.relative_to(ROOT)}")
+        continue
+    source = tree.read(path)
     if 'builder.Configuration["SUBSCRIPTION_USAGE_ENABLED"]' not in source:
         errors.append(f"{service}: missing SUBSCRIPTION_USAGE_ENABLED configuration gate")
     registration = rf"if \(subscriptionUsageEnabled\)\s*builder\.Services\.AddWeb4UsageLedger\(builder\.Configuration, \"{service}\""
@@ -29,7 +34,7 @@ if errors:
     raise SystemExit("Subscription rollout gate validation failed:\n- " + "\n- ".join(errors))
 print("Subscription rollout gate validation passed for WEB5-WEB10.")
 
-web4 = (ROOT / "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs").read_text(encoding="utf-8")
+web4 = tree.read(ROOT / "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs")
 if "AddUsageReconciliation(services, subscriptionUsageEnabled)" not in web4:
     raise SystemExit("WEB4 reconciliation worker is not guarded by SUBSCRIPTION_USAGE_ENABLED.")
 enabled_block = re.search(r'if \(subscriptionUsageEnabled\)\s*\{(?P<body>.*?)\}', web4, re.DOTALL)

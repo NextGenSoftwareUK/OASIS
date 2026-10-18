@@ -1,581 +1,174 @@
-﻿using System;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
-using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.Utilities;
-using System.Security.Cryptography;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
-namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
+namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
+
+public partial class NEAROASIS
 {
-    public partial class NEAROASIS
+    private async Task<OASISResult<IHolon>> SaveHolonTreeAsync(IHolon holon, bool saveChildren,
+        bool recursive, int maxChildDepth, int depth, bool continueOnError)
     {
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid parentId, HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0)
+        var saved = await SaveHolonForestAsync(new[] { holon }, saveChildren, recursive, maxChildDepth, depth, continueOnError);
+        return new OASISResult<IHolon>(saved.Result?.FirstOrDefault())
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Query holons for parent from NEAR smart contract
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = "dontcare",
-                    method = "query",
-                    @params = new
-                    {
-                        request_type = "call_function",
-                        finality = "final",
-                        account_id = "oasis.near",
-                        method_name = "get_holons_for_parent",
-                        args_base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{{\"parent_id\":\"{parentId}\",\"holon_type\":\"{holonType}\"}}"))
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-                    
-                    if (result.TryGetProperty("result", out var resultElement))
-                    {
-                        var holons = new List<IHolon>();
-                        if (resultElement.TryGetProperty("result", out var dataElement))
-                        {
-                            var dataString = dataElement.GetString();
-                            if (!string.IsNullOrEmpty(dataString))
-                            {
-                                var holonData = JsonSerializer.Deserialize<List<JsonElement>>(dataString);
-                                foreach (var holonJson in holonData)
-                                {
-                                    var holon = new Holon
-                                    {
-                                        Id = Guid.Parse(holonJson.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
-                                        Name = holonJson.GetProperty("name").GetString() ?? "",
-                                        Description = holonJson.GetProperty("description").GetString() ?? "",
-                                        Version = version
-                                    };
-                                    holons.Add(holon);
-                                }
-                            }
-                        }
-                        response.Result = holons;
-                        response.IsError = false;
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "No holons found for parent");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons for parent from NEAR: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent from NEAR: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid parentId, HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0)
-        {
-            return LoadHolonsForParentAsync(parentId, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenRecursiveDepth).Result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string parentProviderKey, HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Query holons for parent by provider key from NEAR smart contract
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = "dontcare",
-                    method = "query",
-                    @params = new
-                    {
-                        request_type = "call_function",
-                        finality = "final",
-                        account_id = "oasis.near",
-                        method_name = "get_holons_for_parent_by_provider_key",
-                        args_base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{{\"parent_provider_key\":\"{parentProviderKey}\",\"holon_type\":\"{holonType}\"}}"))
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-                    
-                    if (result.TryGetProperty("result", out var resultElement))
-                    {
-                        var holons = new List<IHolon>();
-                        if (resultElement.TryGetProperty("result", out var dataElement))
-                        {
-                            var dataString = dataElement.GetString();
-                            if (!string.IsNullOrEmpty(dataString))
-                            {
-                                var holonData = JsonSerializer.Deserialize<List<JsonElement>>(dataString);
-                                foreach (var holonJson in holonData)
-                                {
-                                    var holon = new Holon
-                                    {
-                                        Id = Guid.Parse(holonJson.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
-                                        Name = holonJson.GetProperty("name").GetString() ?? "",
-                                        Description = holonJson.GetProperty("description").GetString() ?? "",
-                                        Version = version
-                                    };
-                                    holons.Add(holon);
-                                }
-                            }
-                        }
-                        response.Result = holons;
-                        response.IsError = false;
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "No holons found for parent");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons for parent from NEAR: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent from NEAR: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string parentProviderKey, HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0)
-        {
-            return LoadHolonsForParentAsync(parentProviderKey, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenRecursiveDepth).Result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                var savedHolons = new List<IHolon>();
-                foreach (var holon in holons)
-                {
-                    var saveResult = await SaveHolonAsync(holon);
-                    if (saveResult.IsError)
-                    {
-                        if (!continueOnError)
-                        {
-                            OASISErrorHandling.HandleError(ref response, $"Failed to save holon {holon.Id}: {saveResult.Message}");
-                            return response;
-                        }
-                    }
-                    else
-                    {
-                        savedHolons.Add(saveResult.Result);
-                    }
-                }
-
-                response.Result = savedHolons;
-                response.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving holons to NEAR: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true)
-        {
-            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, version, continueOnError).Result;
-        }
-
-        // Missing methods for avatar details
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var response = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Save avatar detail to NEAR smart contract
-                var avatarDetailData = new
-                {
-                    id = avatarDetail.Id.ToString(),
-                    avatar_id = avatarDetail.Id.ToString(),
-                    first_name = avatarDetail.Username,
-                    last_name = avatarDetail.Username,
-                    email = avatarDetail.Email,
-                    version = avatarDetail.Version
-                };
-
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = "dontcare",
-                    method = "query",
-                    @params = new
-                    {
-                        request_type = "call_function",
-                        finality = "final",
-                        account_id = "oasis.near",
-                        method_name = "save_avatar_detail",
-                        args_base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(avatarDetailData)))
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = avatarDetail;
-                    response.IsError = false;
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar detail to NEAR: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving avatar detail to NEAR: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
-        {
-            return SaveAvatarDetailAsync(avatarDetail).Result;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
-        {
-            var response = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Query avatar detail by email from NEAR smart contract
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = "dontcare",
-                    method = "query",
-                    @params = new
-                    {
-                        request_type = "call_function",
-                        finality = "final",
-                        account_id = "oasis.near",
-                        method_name = "get_avatar_detail_by_email",
-                        args_base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{{\"email\":\"{email}\"}}"))
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-                    
-                    if (result.TryGetProperty("result", out var resultElement))
-                    {
-                        var avatarDetail = new AvatarDetail
-                        {
-                            Id = Guid.Parse(resultElement.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
-                            Username = resultElement.GetProperty("first_name").GetString() ?? "",
-                            Email = resultElement.GetProperty("email").GetString() ?? "",
-                            Version = version
-                        };
-                        response.Result = avatarDetail;
-                        response.IsError = false;
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar detail not found");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from NEAR: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail from NEAR: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
-        {
-            return LoadAvatarDetailByEmailAsync(email, version).Result;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
-        {
-            var response = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Query avatar detail by username from NEAR smart contract
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = "dontcare",
-                    method = "query",
-                    @params = new
-                    {
-                        request_type = "call_function",
-                        finality = "final",
-                        account_id = "oasis.near",
-                        method_name = "get_avatar_detail_by_username",
-                        args_base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{{\"username\":\"{username}\"}}"))
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-                    
-                    if (result.TryGetProperty("result", out var resultElement))
-                    {
-                        var avatarDetail = new AvatarDetail
-                        {
-                            Id = Guid.Parse(resultElement.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
-                            Username = resultElement.GetProperty("first_name").GetString() ?? "",
-                            Email = resultElement.GetProperty("email").GetString() ?? "",
-                            Version = version
-                        };
-                        response.Result = avatarDetail;
-                        response.IsError = false;
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar detail not found");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from NEAR: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail from NEAR: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0)
-        {
-            return LoadAvatarDetailByUsernameAsync(username, version).Result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Query all avatar details from NEAR smart contract
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = "dontcare",
-                    method = "query",
-                    @params = new
-                    {
-                        request_type = "call_function",
-                        finality = "final",
-                        account_id = "oasis.near",
-                        method_name = "get_all_avatar_details",
-                        args_base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("{}"))
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-                    
-                    if (result.TryGetProperty("result", out var resultElement))
-                    {
-                        var avatarDetails = new List<IAvatarDetail>();
-                        if (resultElement.TryGetProperty("result", out var dataElement))
-                        {
-                            var dataString = dataElement.GetString();
-                            if (!string.IsNullOrEmpty(dataString))
-                            {
-                                var avatarDetailData = JsonSerializer.Deserialize<List<JsonElement>>(dataString);
-                                foreach (var avatarDetailJson in avatarDetailData)
-                                {
-                                    var avatarDetail = new AvatarDetail
-                                    {
-                                        Id = Guid.Parse(avatarDetailJson.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
-                                        Username = avatarDetailJson.GetProperty("first_name").GetString() ?? "",
-                                        Email = avatarDetailJson.GetProperty("email").GetString() ?? "",
-                                        Version = version
-                                    };
-                                    avatarDetails.Add(avatarDetail);
-                                }
-                            }
-                        }
-                        response.Result = avatarDetails;
-                        response.IsError = false;
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "No avatar details found");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar details from NEAR: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar details from NEAR: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-        {
-            return LoadAllAvatarDetailsAsync(version).Result;
-        }
-
-        // Missing methods for search
+            IsError = saved.IsError, IsSaved = saved.IsSaved, Message = saved.Message, Exception = saved.Exception
+        };
     }
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonForestAsync(IEnumerable<IHolon> holons,
+        bool saveChildren, bool recursive, int maxChildDepth, int depth, bool continueOnError)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        (List<IHolon> Roots, List<PlannedHolonWrite> Nodes) plan;
+        try
+        {
+            if (maxChildDepth < 0 || depth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+            var children = saveChildren && (depth == 0 || recursive) && (maxChildDepth == 0 || depth + 1 < maxChildDepth);
+            // OASIS save depth includes the root; the shared plan counts edges.
+            plan = HolonGraphWritePlan.Create(holons, children, recursive, maxChildDepth == 0 ? 0 : maxChildDepth - 1, depth);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Invalid NEAR save graph: {ex.Message}", ex);
+            return result;
+        }
+        var blocked = new HashSet<Guid>();
+        var acknowledged = new HashSet<IHolon>(ReferenceEqualityComparer.Instance);
+        foreach (var node in plan.Nodes)
+        {
+            if (blocked.Contains(node.Snapshot.ParentHolonId))
+            {
+                blocked.Add(node.Snapshot.Id);
+                continue;
+            }
+            var saved = await SaveHolonRecordAsync(node.Snapshot);
+            if (saved.IsError)
+            {
+                blocked.Add(node.Snapshot.Id);
+                OASISErrorHandling.HandleError(ref result, saved.Message, saved.Exception);
+                if (!continueOnError) break;
+                continue;
+            }
+            // Publish only identities/stamps whose current-record write was acknowledged.
+            PublishRecordStamp(node.Source,node.Snapshot);
+            node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
+            acknowledged.Add(node.Source);
+        }
+        result.Result = plan.Roots.Where(acknowledged.Contains).ToList();
+        result.IsSaved = !result.IsError;
+        result.Message = $"Acknowledged {acknowledged.Count} of {plan.Nodes.Count} selected NEAR graph writes. " + result.Message;
+        return result;
+    }
+
+    private async Task<List<IHolon>> LoadChildTreeAsync(Guid parentId, HolonType type, bool recursive,
+        int maxChildDepth, int depth, int version = 0)
+    {
+        var all = await LoadAllHolonRecordsAsync();
+        if (all.IsError) throw all.Exception ?? new InvalidOperationException(all.Message);
+        var records = all.Result.ToList();
+        var roots = all;
+        if (version != 0)
+        {
+            roots = await LoadAllHolonRecordsAsync(version);
+            if (roots.IsError) throw roots.Exception ?? new InvalidOperationException(roots.Message);
+        }
+        var direct = roots.Result.Where(item => item.ParentHolonId == parentId &&
+            (type == HolonType.All || item.HolonType == type)).ToList();
+        var project = HolonGraphProjection.Create(records, recursive, true, maxChildDepth, checked(depth + 1), true,
+            item => OasisJson.Deserialize<Holon>(OasisJson.Serialize(item)));
+        return direct.Select(project).ToList();
+    }
+
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid parentId,
+        HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+        int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true,
+        int loadChildrenRecursiveDepthInt = 0)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            result.Result = await LoadChildTreeAsync(parentId, holonType, loadChildren && recursive,
+                maxChildDepth, loadChildrenRecursiveDepthInt, version);
+            result.Message = "Child holons loaded from NEAR contract storage.";
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading NEAR child holons: {ex.Message}", ex); }
+        return result;
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid parentId, HolonType holonType,
+        bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0,
+        bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0) =>
+        LoadHolonsForParentAsync(parentId, holonType, loadChildren, recursive, maxChildDepth, version,
+            continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt).GetAwaiter().GetResult();
+
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string parentProviderKey,
+        HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+        int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true,
+        int loadChildrenRecursiveDepthInt = 0)
+    {
+        var parent = await LoadHolonByProviderKeyAsync(parentProviderKey);
+        if (parent.IsError || parent.Result == null)
+            return new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()) { IsError = parent.IsError, Message = parent.Message, Exception = parent.Exception };
+        return await LoadHolonsForParentAsync(parent.Result.Id, holonType, loadChildren, recursive, maxChildDepth,
+            version, continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt);
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string parentProviderKey,
+        HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+        int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true,
+        int loadChildrenRecursiveDepthInt = 0) =>
+        LoadHolonsForParentAsync(parentProviderKey, holonType, loadChildren, recursive, maxChildDepth,
+            version, continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt).GetAwaiter().GetResult();
+
+    public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
+        bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+        bool continueOnError = true, bool loadChildrenRecursiveDepth = true)
+    {
+        return await SaveHolonForestAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons,
+        bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+        bool continueOnError = true, bool loadChildrenRecursiveDepth = true) =>
+        SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError,
+            loadChildrenRecursiveDepth).GetAwaiter().GetResult();
+
+    public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail) =>
+        SaveAvatarDetailRecordAsync(avatarDetail);
+
+    public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) =>
+        SaveAvatarDetailAsync(avatarDetail).GetAwaiter().GetResult();
+
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+    {
+        var all = await LoadAllAvatarDetailRecordsAsync(version);
+        if (all.IsError) return new OASISResult<IAvatarDetail>(null) { IsError=true, Message=all.Message, Exception=all.Exception };
+        return new OASISResult<IAvatarDetail>(all.Result.FirstOrDefault(item => string.Equals(item.Email,email,StringComparison.OrdinalIgnoreCase)));
+    }
+
+    public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0) =>
+        LoadAvatarDetailByEmailAsync(email, version).GetAwaiter().GetResult();
+
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
+    {
+        var all = await LoadAllAvatarDetailRecordsAsync(version);
+        if (all.IsError) return new OASISResult<IAvatarDetail>(null) { IsError=true, Message=all.Message, Exception=all.Exception };
+        return new OASISResult<IAvatarDetail>(all.Result.FirstOrDefault(item => string.Equals(item.Username,username,StringComparison.OrdinalIgnoreCase)));
+    }
+
+    public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0) =>
+        LoadAvatarDetailByUsernameAsync(username, version).GetAwaiter().GetResult();
+
+    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) =>
+        LoadAllAvatarDetailRecordsAsync(version);
+
+    public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) =>
+        LoadAllAvatarDetailsAsync(version).GetAwaiter().GetResult();
 }

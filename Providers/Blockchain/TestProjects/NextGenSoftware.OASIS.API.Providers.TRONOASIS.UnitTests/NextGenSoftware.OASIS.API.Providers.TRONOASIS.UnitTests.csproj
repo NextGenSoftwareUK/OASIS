@@ -28,4 +28,5 @@
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
   </ItemGroup>
 
+  <ItemGroup><Compile Include="../../../Shared/TestSupport/NativeCodeGenesisContract.cs" Link="Shared/NativeCodeGenesisContract.cs" /></ItemGroup>
 </Project>

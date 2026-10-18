@@ -51,45 +51,43 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 public partial class Web3CoreOASISBaseProvider
 {
-    public override Task<OASISResult<bool>> ActivateProviderAsync()
-    {
-        OASISResult<bool> result;
-
-        try
-        {
-            result = ActivateProvider();
-        }
-        catch (Exception ex)
-        {
-            return Task.FromException<OASISResult<bool>>(ex);
-        }
-
-        return Task.FromResult(result);
-    }
-
-    public override OASISResult<bool> ActivateProvider()
+    public override async Task<OASISResult<bool>> ActivateProviderAsync()
     {
         OASISResult<bool> result = new();
 
         try
         {
-            if (_hostURI is { Length: > 0 } &&
-                _chainPrivateKey is { Length: > 0 })
-            {
-                _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi);
-                // Initialize Web3 client for bridge operations
-                var account = new Account(_chainPrivateKey);
-                _web3Client = new Nethereum.Web3.Web3(account, _hostURI);
-                this.IsProviderActivated = true;
-            }
+            if (string.IsNullOrWhiteSpace(_hostURI) || string.IsNullOrWhiteSpace(_chainPrivateKey) || string.IsNullOrWhiteSpace(_contractAddress))
+                throw new InvalidOperationException("The EVM provider requires an RPC URI, private key and deployed contract address.");
+
+            var account = new Account(_chainPrivateKey,_expectedChainId);
+            _web3Client = new Nethereum.Web3.Web3(account, _hostURI);
+            HexBigInteger remoteChainId = await _web3Client.Eth.ChainId.SendRequestAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            if (_expectedChainId.HasValue && remoteChainId.Value != _expectedChainId.Value)
+                throw new InvalidOperationException($"EVM RPC chain ID '{remoteChainId.Value}' does not match expected chain ID '{_expectedChainId.Value}'.");
+
+            string contractCode = await _web3Client.Eth.GetCode.SendRequestAsync(_contractAddress).WaitAsync(TimeSpan.FromSeconds(10));
+            if (string.IsNullOrWhiteSpace(contractCode) || contractCode == "0x" || contractCode == "0x0")
+                throw new InvalidOperationException($"No contract bytecode was found at configured address '{_contractAddress}'.");
+
+            _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi,_expectedChainId);
+            IsProviderActivated = true;
+            result.Result = true;
         }
         catch (Exception ex)
         {
-            this.IsProviderActivated = false;
-            OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync in {this.ProviderName} -> Web3CoreOASIS Provider. Reason: {ex}");
+            _web3CoreOASIS = null;
+            _web3Client = null;
+            IsProviderActivated = false;
+            OASISErrorHandling.HandleError(ref result, $"Error activating {ProviderName} through Web3CoreOASIS. Reason: {ex.Message}", ex);
         }
 
         return result;
+    }
+
+    public override OASISResult<bool> ActivateProvider()
+    {
+        return ActivateProviderAsync().GetAwaiter().GetResult();
     }
 
     public override Task<OASISResult<bool>> DeActivateProviderAsync()
@@ -117,368 +115,88 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        => DeleteAvatarAsync(id, softDelete).Result;
+        => DeletePrivateAvatarAsync(id,softDelete).GetAwaiter().GetResult();
 
     public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
-    {
-        return DeleteAvatarAsync(providerKey, softDelete).Result;
-    }
+        => ReadPrivateKeyAsync<bool>(providerKey,id=>DeletePrivateAvatarAsync(id,softDelete)).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-    {
-        OASISResult<bool> result = new();
-        string errorMessage = "Error in DeleteAvatarAsync method in Web3CoreOASIS while deleting avatar. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            int avatarEntityId = HashUtility.GetNumericHash(id.ToString());
-            bool isDeleted = await _web3CoreOASIS.DeleteAvatarAsync((uint)avatarEntityId);
-
-            result.Result = isDeleted;
-            result.IsError = false;
-            result.IsSaved = isDeleted;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-        return result;
-    }
+        => await DeletePrivateAvatarAsync(id,softDelete);
 
     public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-    {
-        OASISResult<bool> result = new();
-        string errorMessage = "Error in DeleteAvatarAsync method in Web3CoreOASIS while deleting avatar by provider key. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            result = await DeleteAvatarAsync(providerKey, softDelete);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateKeyAsync<bool>(providerKey,id=>DeletePrivateAvatarAsync(id,softDelete));
 
     public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-    {
-        return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
-    }
+        => DeletePrivateAvatarSelectorAsync(avatarEmail,true,softDelete).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-    {
-        OASISResult<bool> result = new();
-        string errorMessage = "Error in DeleteAvatarByEmailAsync method in Web3CoreOASIS while deleting avatar by email. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            result = await DeleteAvatarByEmailAsync(avatarEmail, softDelete);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
-        }
-        return result;
-    }
+        => await DeletePrivateAvatarSelectorAsync(avatarEmail,true,softDelete);
 
     public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-    {
-        return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
-    }
+        => DeletePrivateAvatarSelectorAsync(avatarUsername,false,softDelete).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-    {
-        OASISResult<bool> result = new();
-        string errorMessage = "Error in DeleteAvatarByUsernameAsync method in Web3CoreOASIS while deleting avatar by username. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            result = await DeleteAvatarByUsernameAsync(avatarUsername, softDelete);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
-        }
-        return result;
-    }
+        => await DeletePrivateAvatarSelectorAsync(avatarUsername,false,softDelete);
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
-    {
-        return DeleteHolonAsync(id).Result;
-    }
+        => DeleteHolonAsync(id).GetAwaiter().GetResult();
 
     public override OASISResult<IHolon> DeleteHolon(string providerKey)
-    {
-        return DeleteHolonAsync(providerKey).Result;
-    }
+        => DeleteHolonAsync(providerKey).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
     {
-        OASISResult<IHolon> result = new();
-        string errorMessage = "Error in DeleteHolonAsync method in Web3CoreOASIS while deleting holon. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
+        var result=new OASISResult<IHolon>();
         try
         {
-            OASISResult<IHolon> holonToDeleteResult = await LoadHolonAsync(id);
-            if (holonToDeleteResult.IsError)
-            {
-                OASISErrorHandling.HandleError(
-                    ref result, string.Concat(errorMessage, holonToDeleteResult.Message), holonToDeleteResult.Exception);
-                return result;
-            }
-
-            int holonEntityId = HashUtility.GetNumericHash(id.ToString());
-            bool isDeleted = await _web3CoreOASIS.DeleteHolonAsync((uint)holonEntityId);
-
-            result.Result = holonToDeleteResult.Result;
-            result.IsError = false;
-            result.IsSaved = true;
+            if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core holon identity is required.",nameof(id));
+            if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            var key=(uint)HashUtility.GetNumericHash(id.ToString());
+            var stored=await _web3CoreOASIS.GetHolonByIdAsync(key);
+            if(IsPrivateRecordAbsent(stored))
+            {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core holon not found.";return result;}
+            var holon=DecodePrivateRecord<Holon>("holon",id,stored);
+            await _web3CoreOASIS.DeleteHolonCheckedAsync(key,PrivateExternalId(id),Nethereum.Util.Sha3Keccack.Current.CalculateHash(stored.Info));
+            result.Result=holon;result.IsSaved=true;result.IsDeleted=true;result.DeletedCount=1;
         }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
     }
 
     public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        => DeleteHolonByProviderKeyAsync(providerKey);
+
+    public Task<OASISResult<IHolon>> DeleteHolonByProviderKeyAsync(string providerKey)
     {
-        return DeleteHolonByProviderKeyAsync(providerKey);
-    }
-
-    public async Task<OASISResult<IHolon>> DeleteHolonByProviderKeyAsync(string providerKey)
-    {
-        var result = new OASISResult<IHolon>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Load holon by provider key first
-            var holonResult = await LoadHolonAsync(providerKey);
-            if (holonResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
-                return result;
-            }
-
-            if (holonResult.Result != null)
-            {
-                // Delete holon by ID
-                var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = holonResult.Result;
-                result.IsError = false;
-                result.Message = "Holon deleted successfully by provider key from Web3Core";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Web3Core: {ex.Message}", ex);
-        }
-        return result;
+        if(Guid.TryParse(providerKey,out var id) && id!=Guid.Empty) return DeleteHolonAsync(id);
+        var result=new OASISResult<IHolon>();
+        var cause=new ArgumentException("A Web3Core provider key must be a nonempty GUID.",nameof(providerKey));
+        OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+        return Task.FromResult(result);
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-    {
-        return ExportAllAsync(version).Result;
-    }
+        => LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version).GetAwaiter().GetResult();
 
     public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-    {
-        return LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
-    }
+        => LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-    {
-        return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-    }
+        => ExportPrivateSelectorAsync(avatarEmailAddress,true,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Load avatar by email first
-            var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
-            if (avatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
-                return result;
-            }
-
-            if (avatarResult.Result != null)
-            {
-                // Export all holons for this avatar
-                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
-                if (holonsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
-                    return result;
-                }
-
-                result.Result = holonsResult.Result;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by email from Web3Core";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by email from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ExportPrivateSelectorAsync(avatarEmailAddress,true,version);
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-    {
-        return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-    }
+        => ExportPrivateOwnedAsync(avatarId,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Export all holons for avatar from Web3Core
-            var holonsResult = await LoadHolonsForParentAsync(avatarId);
-            if (holonsResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
-                return result;
-            }
-
-            result.Result = holonsResult.Result;
-            result.IsError = false;
-            result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar from Web3Core";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ExportPrivateOwnedAsync(avatarId,version);
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
-    {
-        return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-    }
+        => ExportPrivateSelectorAsync(avatarUsername,false,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Load avatar by username first
-            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (avatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
-                return result;
-            }
-
-            if (avatarResult.Result != null)
-            {
-                // Export all holons for this avatar
-                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
-                if (holonsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
-                    return result;
-                }
-
-                result.Result = holonsResult.Result;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by username from Web3Core";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by username from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ExportPrivateSelectorAsync(avatarUsername,false,version);
 
 }

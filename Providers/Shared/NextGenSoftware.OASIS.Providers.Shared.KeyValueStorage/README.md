@@ -2,6 +2,10 @@
 
 Complete OASIS storage provider implementation (avatars, avatar details, holons, parent/child links, search, import/export) over any key-value or blob service. Used by the edge KV and blob storage providers. https://oasisomniverse.one
 
+## Native NFT request ownership
+
+`NftMintIntent.Capture(IMintWeb3NFTRequest)` returns an invocation-owned copy of the public request contract. Capture once before validation and the first await; use that copy for recipient lookup, metadata projection and signing. Metadata dictionaries (including comparer), tags and image/thumbnail bytes are copied; nulls and scalar defaults are preserved. The caller must not mutate during synchronous capture. The helper does not authorize spending, validate chain support, publish metadata or submit transactions. Cosmos and Sui mint cores use it; this is not automatic adoption by every provider. `NftMintIntentTests` enumerates inherited contract properties and checks nested mutation/null behavior.
+
 ## Installation
 
 ```sh

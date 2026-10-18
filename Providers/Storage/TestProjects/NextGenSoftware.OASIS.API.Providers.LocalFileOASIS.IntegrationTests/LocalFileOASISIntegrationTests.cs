@@ -1,138 +1,90 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
-using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.IntegrationTests;
+
+[TestClass]
+public class LocalFileOASISIntegrationTests
 {
-    [TestClass]
-    public class LocalFileOASISIntegrationTests
+    private string _storageDirectory = null!;
+    private LocalFileOASIS _provider = null!;
+
+    [TestInitialize]
+    public void Setup()
     {
-        private LocalFileOASIS _provider;
+        _storageDirectory = Path.Combine(Path.GetTempPath(), "OASIS-LocalFile-tests", Guid.NewGuid().ToString("N"));
+        _provider = new LocalFileOASIS(storageDirectory: _storageDirectory);
+    }
 
-        [TestInitialize]
-        public void Setup()
+    [TestCleanup]
+    public void Cleanup()
+    {
+        _provider.DeActivateProvider();
+        if (Directory.Exists(_storageDirectory))
+            Directory.Delete(_storageDirectory, recursive: true);
+    }
+
+    [TestMethod]
+    public async Task AvatarCrud_PersistsToIsolatedDirectory()
+    {
+        var activated = await _provider.ActivateProviderAsync();
+        Assert.IsFalse(activated.IsError, activated.Message);
+
+        var avatar = new Avatar
         {
-            _provider = new LocalFileOASIS();
+            Id = Guid.NewGuid(),
+            Username = $"local-{Guid.NewGuid():N}",
+            Email = $"{Guid.NewGuid():N}@example.test",
+            FirstName = "Local",
+            LastName = "File"
+        };
+
+        var saved = await _provider.SaveAvatarAsync(avatar);
+        Assert.IsFalse(saved.IsError, saved.Message);
+        var loaded = await _provider.LoadAvatarAsync(avatar.Id);
+        Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.AreEqual(avatar.Username, loaded.Result.Username);
+
+        avatar.FirstName = "Updated";
+        Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+        Assert.AreEqual("Updated", (await _provider.LoadAvatarAsync(avatar.Id)).Result.FirstName);
+        Assert.IsTrue((await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false)).Result);
+        Assert.IsNull((await _provider.LoadAvatarAsync(avatar.Id)).Result);
+    }
+
+    [TestMethod]
+    public async Task HolonCrud_PersistsToIsolatedDirectory()
+    {
+        Assert.IsFalse((await _provider.ActivateProviderAsync()).IsError);
+        var holon = new Holon { Id = Guid.NewGuid(), Name = $"local-{Guid.NewGuid():N}" };
+
+        var saved = await _provider.SaveHolonAsync(holon);
+        Assert.IsFalse(saved.IsError, saved.Message);
+        Assert.AreEqual(holon.Name, (await _provider.LoadHolonAsync(holon.Id)).Result.Name);
+
+        holon.Name += "-updated";
+        Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+        Assert.AreEqual(holon.Name, (await _provider.LoadHolonAsync(holon.Id)).Result.Name);
+        Assert.IsFalse((await _provider.DeleteHolonAsync(holon.Id)).IsError);
+        Assert.IsNull((await _provider.LoadHolonAsync(holon.Id)).Result);
+    }
+
+    [TestMethod]
+    public void Activation_RejectsAPathThatIsNotADirectory()
+    {
+        string filePath = Path.Combine(Path.GetTempPath(), $"oasis-localfile-{Guid.NewGuid():N}.tmp");
+        File.WriteAllText(filePath, "not a directory");
+        try
+        {
+            var provider = new LocalFileOASIS(storageDirectory: filePath);
+            var result = provider.ActivateProvider();
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(provider.IsProviderActivated);
         }
-
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
+        finally
         {
-            // Arrange
-            var avatar = new Avatar
-            {
-                Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
-            };
-
-            // Act
-            var result = await _provider.SaveAvatarAsync(avatar);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
-        {
-            // Arrange
-            var avatarId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var holon = new Holon
-            {
-                Id = Guid.NewGuid(),
-                Name = "TestHolon",
-                Description = "Test Holon Description"
-            };
-
-            // Act
-            var result = await _provider.SaveHolonAsync(holon);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            // Arrange
-            var holonId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadHolonAsync(holonId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
-            };
-
-            // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
+            File.Delete(filePath);
         }
     }
 }

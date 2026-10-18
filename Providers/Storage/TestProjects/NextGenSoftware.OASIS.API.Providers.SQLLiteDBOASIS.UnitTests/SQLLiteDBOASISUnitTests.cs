@@ -67,5 +67,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests
                 _provider.DeActivateProvider();
             }
         }
+
+        [TestMethod]
+        public void NativeCodeGenesis_WithoutGenerator_DoesNotAcknowledgeSuccessOrActivateStorage()
+        {
+            // The IOASISSuperStar contract reserves true for successful generation.
+            IOASISSuperStar generator = _provider;
+            Assert.IsFalse(generator.NativeCodeGenesis(null!, null!, null!));
+            Assert.IsFalse(_provider.IsProviderActivated);
+        }
+
     }
 }

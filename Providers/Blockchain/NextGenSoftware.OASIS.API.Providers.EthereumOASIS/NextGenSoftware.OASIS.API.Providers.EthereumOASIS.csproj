@@ -54,9 +54,14 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmWalletHistory.cs" Link="Shared\EvmWalletHistory.cs" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmTokenEscrow.cs" Link="Shared\EvmTokenEscrow.cs" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmWalletBalance.cs" Link="Shared\EvmWalletBalance.cs" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmMintAccountSelection.cs" Link="Shared\EvmMintAccountSelection.cs" />
     <None Update="README.md">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>

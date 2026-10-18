@@ -420,7 +420,14 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public void Dispose()
         {
-            _httpClient?.Dispose();
+            _lifecycleGate.Wait();
+            try
+            {
+                if(_isDisposed)return;
+                _isDisposed=true;_isActivated=false;IsProviderActivated=false;
+                ReportedChainName=null;ReportedGenesisHash=null;_httpClient.Dispose();
+            }
+            finally{_lifecycleGate.Release();}
         }
 
 

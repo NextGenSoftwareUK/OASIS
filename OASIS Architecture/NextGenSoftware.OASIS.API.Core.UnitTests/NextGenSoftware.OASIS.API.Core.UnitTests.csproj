@@ -24,5 +24,8 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/AdmittedStorageManagerAcquisition.cs" Link="Production/AdmittedStorageManagerAcquisition.cs" />
+  </ItemGroup>
 
 </Project>

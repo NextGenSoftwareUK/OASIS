@@ -252,48 +252,44 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            var result = new OASISResult<ISearchResults>();
+            var result=new OASISResult<ISearchResults>();
             try
             {
-                if (!IsProviderActivated)
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
+                var wantsAvatars=groups.Count == 0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+                var wantsHolons=groups.Count == 0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+                var avatars=new List<IAvatar>();
+                var holons=new List<IHolon>();
+                if(wantsAvatars)
                 {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
+                    var loaded=await LoadAllAvatarsAsync(version);
+                    if(loaded.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
+                        OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
+                        result.ErrorCode=loaded.ErrorCode; return result;
                     }
+                    avatars=loaded.Result.ToList();
                 }
-
-                // Search avatars and holons from Ethereum smart contract
-                var searchResults = new SearchResults();
-                
-                // Search avatars
-                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+                if(wantsHolons || searchParams.ParentId != Guid.Empty)
                 {
-                    var avatarsResult = await LoadAllAvatarsAsync();
-                    if (!avatarsResult.IsError && avatarsResult.Result != null)
+                    var loaded=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,false,version);
+                    if(loaded.IsError)
                     {
-                        searchResults.SearchResultAvatars.AddRange(avatarsResult.Result);
+                        OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
+                        result.ErrorCode=loaded.ErrorCode; return result;
                     }
+                    holons=loaded.Result.ToList();
                 }
-                
-                // Search holons
-                    var holonsResult = await LoadAllHolonsAsync();
-                    if (!holonsResult.IsError && holonsResult.Result != null)
-                    {
-                    searchResults.SearchResultHolons.AddRange(holonsResult.Result);
-                }
-                
-                searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
-                
-                result.Result = searchResults;
-                result.IsError = false;
-                result.Message = $"Successfully searched Ethereum blockchain and found {searchResults.NumberOfResults} results";
+                var found=new SearchResults();
+                found.SearchResultAvatars.AddRange(avatars.Where(row=>SearchRecordMatches(row,true,searchParams,holons)));
+                if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>SearchRecordMatches(row,false,searchParams,holons)));
+                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+                result.Result=found; result.IsLoaded=true;
             }
-            catch (Exception ex)
+            catch(Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error searching Ethereum blockchain: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result,$"Ethereum native search failed: {cause.Message}",cause);
             }
             return result;
         }

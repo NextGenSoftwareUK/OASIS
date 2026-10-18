@@ -40,9 +40,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var response = new OASISResult<bool>();
+            await _lifecycleGate.WaitAsync();
 
             try
             {
+                if(_isDisposed)throw new ObjectDisposedException(nameof(PolkadotOASIS));
                 if (_isActivated)
                 {
                     response.Result = true;
@@ -50,24 +52,24 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return response;
                 }
 
-                // Test connection to Polkadot RPC endpoint
-                var testResponse = await _httpClient.GetAsync("/");
-                if (testResponse.IsSuccessStatusCode)
-                {
-                    _isActivated = true;
-                    response.Result = true;
-                    response.Message = "Polkadot provider activated successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to Polkadot RPC endpoint: {testResponse.StatusCode}");
-                }
+                var chain=(await QueryRpcAsync("system_chain",Array.Empty<object>())).GetString();
+                if(string.IsNullOrWhiteSpace(chain))throw new System.IO.InvalidDataException("Polkadot chain name is missing.");
+                if(!_chainId.StartsWith("0x",StringComparison.Ordinal) && !string.Equals(chain,_chainId,StringComparison.OrdinalIgnoreCase))
+                    throw new System.IO.InvalidDataException("Polkadot RPC chain name differs from configured network.");
+                var genesis=(await QueryRpcAsync("chain_getBlockHash",new object[]{0})).GetString();
+                if(!IsGenesisHash(genesis) || _chainId.StartsWith("0x",StringComparison.Ordinal) && !string.Equals(genesis,_chainId,StringComparison.OrdinalIgnoreCase))
+                    throw new System.IO.InvalidDataException("Polkadot RPC genesis differs from configured network or is invalid.");
+                ReportedChainName=chain;ReportedGenesisHash=genesis;
+                _isActivated=true;IsProviderActivated=true;response.Result=true;
+                response.Message="Polkadot RPC network verified; storage and transaction capabilities require separate verification.";
             }
             catch (Exception ex)
             {
+                _isActivated=false;IsProviderActivated=false;ReportedChainName=null;ReportedGenesisHash=null;
                 response.Exception = ex;
                 OASISErrorHandling.HandleError(ref response, $"Error activating Polkadot provider: {ex.Message}");
             }
+            finally{_lifecycleGate.Release();}
 
             return response;
         }
@@ -80,11 +82,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             var response = new OASISResult<bool>();
+            await _lifecycleGate.WaitAsync();
 
             try
             {
                 _isActivated = false;
-                _httpClient?.Dispose();
+                IsProviderActivated=false;ReportedChainName=null;ReportedGenesisHash=null;
                 response.Result = true;
                 response.Message = "Polkadot provider deactivated successfully";
             }
@@ -93,6 +96,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 response.Exception = ex;
                 OASISErrorHandling.HandleError(ref response, $"Error deactivating Polkadot provider: {ex.Message}");
             }
+            finally{_lifecycleGate.Release();}
 
             return response;
         }

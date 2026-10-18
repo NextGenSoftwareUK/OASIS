@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
-    public class CosmosDbClientFactory : ICosmosDbClientFactory
+    public class CosmosDbClientFactory : ICosmosDbClientFactory, IDisposable
     {
         private readonly CosmosClient _cosmosClient;
         private readonly string _databaseName;
@@ -33,23 +33,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             var result = new OASISResult<bool>();
             try
             {
-                var database = _cosmosClient.GetDatabase(_databaseName);
-                await database.ReadAsync();
+                DatabaseResponse databaseResponse = await _cosmosClient.CreateDatabaseIfNotExistsAsync(_databaseName);
+                Database database = databaseResponse.Database;
 
                 foreach (var collectionName in _collectionNames)
-                {
-                    var container = database.GetContainer(collectionName);
-                    await container.ReadContainerAsync();
-                }
+                    await database.CreateContainerIfNotExistsAsync(
+                        new ContainerProperties(collectionName, "/id"));
 
                 result.Result = true;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in EnsureDbSetupAsync in AzureCosmosDBOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in EnsureDbSetupAsync in AzureCosmosDBOASIS Provider. Reason: {ex}",ex);
             }
 
             return result;
         }
+
+        public void Dispose() => _cosmosClient.Dispose();
     }
 }

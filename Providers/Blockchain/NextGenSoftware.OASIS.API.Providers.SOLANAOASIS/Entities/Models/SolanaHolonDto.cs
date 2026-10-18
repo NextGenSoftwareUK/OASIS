@@ -7,6 +7,7 @@ public class SolanaHolonDto : SolanaBaseDto
 {
     public string Name { get; set; }
     public string Description { get; set; }
+    public NextGenSoftware.OASIS.API.Core.Enums.HolonType HolonType { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime ModifiedDate { get; set; }
     public bool IsActive { get; set; }
@@ -55,5 +56,4 @@ public class SolanaHolonDto : SolanaBaseDto
     public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
     public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
 
-    public Guid CreatedByAvatarId { get; set; }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models
 {
@@ -14,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models
         {
             if (string.IsNullOrEmpty(Info))
                 throw new ArgumentNullException(nameof(Info));
-            return JsonConvert.DeserializeObject<IAvatarDetail>(Info);
+            return (IAvatarDetail)OasisJson.Deserialize(Info, typeof(AvatarDetail));
         }
     }
 }

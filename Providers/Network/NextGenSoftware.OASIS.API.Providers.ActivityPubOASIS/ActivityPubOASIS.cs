@@ -23,12 +23,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
     /// ActivityPub Provider for OASIS
     /// Implements the ActivityPub protocol for federated social networks (Mastodon, Pleroma, etc.)
     /// </summary>
-    public partial class ActivityPubOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public partial class ActivityPubOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _instanceUrl;
         private readonly string _accessToken;
         private bool _isActivated;
+        private bool _disposed;
 
         /// <summary>
         /// Initializes a new instance of the ActivityPubOASIS provider
@@ -36,6 +37,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         /// <param name="instanceUrl">URL of the ActivityPub instance (e.g., https://mastodon.social)</param>
         /// <param name="accessToken">OAuth access token for API authentication</param>
         public ActivityPubOASIS(string instanceUrl = "https://mastodon.social", string accessToken = "")
+            : this(instanceUrl, accessToken, new HttpClientHandler()) { }
+
+        /// <summary>The provider owns the supplied transport and disposes it only at final disposal.</summary>
+        public ActivityPubOASIS(string instanceUrl, string accessToken, HttpMessageHandler handler)
         {
             this.ProviderName = "ActivityPubOASIS";
             this.ProviderDescription = "ActivityPub Provider - Federated social network protocol";
@@ -44,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
             _instanceUrl = instanceUrl ?? throw new ArgumentNullException(nameof(instanceUrl));
             _accessToken = accessToken;
-            _httpClient = new HttpClient
+            _httpClient = new HttpClient(handler ?? throw new ArgumentNullException(nameof(handler)))
             {
                 BaseAddress = new Uri(_instanceUrl)
             };
@@ -55,6 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _accessToken);
             }
         }
+
 
     }
 }

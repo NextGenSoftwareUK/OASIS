@@ -7,6 +7,18 @@ import "./NFTTransfer.sol";
 
 interface IWeb3CoreOASIS {
 
+    struct AvatarLifecycleRequest {
+        uint256 entityId;
+        bytes32 externalId;
+        bytes32 expectedAvatarHash;
+        bytes32 expectedDetailHash;
+        bool hasDetail;
+        bool hardDelete;
+        bytes avatarInfo;
+        bytes detailInfo;
+    }
+    function applyAvatarLifecycle(AvatarLifecycleRequest memory request) external returns (bool);
+
     function createAvatar(uint256 entityId, bytes32 avatarId, bytes memory info) external returns (uint256);
     function createHolon(uint256 entityId, bytes32 holonId, bytes memory info) external returns (uint256);
     function createAvatarDetail(uint256 entityId, bytes32 avatarId, bytes memory info) external returns (uint256);
@@ -14,18 +26,31 @@ interface IWeb3CoreOASIS {
     function updateAvatar(uint256 entityId, bytes memory info) external returns (bool);
     function updateAvatarDetail(uint256 entityId, bytes memory info) external returns (bool);
     function updateHolon(uint256 entityId, bytes memory info) external returns (bool);
+    function upsertAvatar(uint256 entityId, bytes32 externalId, bytes memory info) external returns (bool);
+    function upsertAvatarDetail(uint256 entityId, bytes32 externalId, bytes memory info) external returns (bool);
+    function upsertHolon(uint256 entityId, bytes32 externalId, bytes memory info) external returns (bool);
+    function upsertAvatarChecked(uint256 entityId, bytes32 externalId, bool expectedPresent, bytes32 expectedHash, bytes memory info) external returns (bool);
+    function upsertAvatarDetailChecked(uint256 entityId, bytes32 externalId, bool expectedPresent, bytes32 expectedHash, bytes memory info) external returns (bool);
+    function upsertHolonChecked(uint256 entityId, bytes32 externalId, bool expectedPresent, bytes32 expectedHash, bytes memory info) external returns (bool);
 
     function deleteAvatar(uint256 entityId) external returns (bool);
     function deleteAvatarDetail(uint256 entityId) external returns (bool);
     function deleteHolon(uint256 entityId) external returns (bool);
+    function deleteHolonChecked(uint256 entityId, bytes32 externalId, bytes32 expectedHash) external returns (bool);
 
     function getAvatarById(uint256 entityId) external view returns (EntityOASIS memory);
     function getAvatarDetailById(uint256 entityId) external view returns (EntityOASIS memory);
     function getHolonById(uint256 entityId) external view returns (EntityOASIS memory);
+    function lookupAvatar(uint256 entityId) external view returns (EntityOASIS memory);
+    function lookupAvatarDetail(uint256 entityId) external view returns (EntityOASIS memory);
+    function lookupHolon(uint256 entityId) external view returns (EntityOASIS memory);
 
     function getAvatarsCount() external view returns (uint256);
     function getAvatarDetailsCount() external view returns (uint256);
     function getHolonsCount() external view returns (uint256);
+    function getAvatarsPage(uint256 offset, uint256 limit) external view returns (EntityOASIS[] memory);
+    function getAvatarDetailsPage(uint256 offset, uint256 limit) external view returns (EntityOASIS[] memory);
+    function getHolonsPage(uint256 offset, uint256 limit) external view returns (EntityOASIS[] memory);
 
     function mint(address to, string memory metadataJson) external;
     function getTransferHistory(uint256 tokenId) external view returns (NFTTransfer[] memory);
