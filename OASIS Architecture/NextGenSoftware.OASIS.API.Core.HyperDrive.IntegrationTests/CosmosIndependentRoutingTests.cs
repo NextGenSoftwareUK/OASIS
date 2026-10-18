@@ -28,11 +28,14 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
         var oldPath=Path.Combine(root,"replication-pending.json");Assert.Equal(oldHash,Hash(oldPath));
         using var old=JsonDocument.Parse(File.ReadAllText(oldPath));
         var id=Guid.NewGuid();Assert.NotEqual(old.RootElement.GetProperty("holonId").GetGuid(),id);
+        var avatarId=Guid.NewGuid();Assert.NotEqual(old.RootElement.GetProperty("avatarId").GetGuid(),avatarId);
+        var avatar=new Avatar{Id=avatarId,Username="cosmos-independent-"+avatarId.ToString("N"),Email=avatarId.ToString("N")+"@example.invalid"};
+        var detail=new AvatarDetail{Id=avatarId,Username=avatar.Username,Email=avatar.Email};
         var journal=Path.Combine(root,"independent-routing-pending.json");Assert.False(File.Exists(journal));
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(connection,Required("SUBSCRIPTION_TEST_MONGODB_URI"));
         const string database="usage_cosmos_independent_routing";
-        var mongo=new MongoClient(connection);using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(120));var token=deadline.Token;
+        var mongo=new MongoClient(connection);using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(180));var token=deadline.Token;
         using(var names=await mongo.ListDatabaseNamesAsync(cancellationToken:token))Assert.DoesNotContain(database,await names.ToListAsync(token));
         var rpc=Required("OASIS_COSMOS_TEST_RPC");Assert.Equal("http://127.0.0.1:26657",rpc);
         var chain=Required("OASIS_COSMOS_TEST_CHAIN");Assert.Equal("oasis-cosmos-local",chain);
@@ -59,16 +62,24 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
             var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new TestAuthority(user));
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.invalid","WEB6","test-only-key");
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6"}).BeginAsync("test-only",user,id.ToString("D"),new string('a',64),
-                "POST /independent-native-routing",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=0.25m,MaximumNativeFeeCostUsd=0.25m},token);
+                "POST /independent-native-routing",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=0.75m,MaximumNativeFeeCostUsd=0.75m,MaximumProviderAttempts=128},token);
             var time=DateTime.UtcNow.AddSeconds(-1);
             execution=execution.WithNativePrices(new[]{new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"CosmosBlockChainOASIS",chain,"stake","local-test-stake",0,0.000001m,
                 "synthetic-local-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5))});
-            await JsonSerializer.SerializeAsync(file,new{holonId=id,chain,contract=Required("OASIS_COSMOS_TEST_CONTRACT"),nativePrimary,synchronous,
+            await JsonSerializer.SerializeAsync(file,new{holonId=id,avatarId,avatar.Username,avatar.Email,chain,contract=Required("OASIS_COSMOS_TEST_CONTRACT"),nativePrimary,synchronous,
                 encryptionKeyLabel=keyLabel,database,operationId=execution.OperationId,preservedOriginalJournalSha256=oldHash,
-                recovery="Inspect exact new leaf and original attempts; never replay unknown routing or alter replication-pending.json."},cancellationToken:token);file.Flush(true);
+                recovery="Inspect exact new profile/detail/leaf and original attempts; never replay unknown routing or alter replication-pending.json."},cancellationToken:token);file.Flush(true);
             var policy=new PreparedStorageExecution(execution,"independent",new Dictionary<ProviderType,string>{{ProviderType.CosmosBlockChainOASIS,sender}},new[]{ProviderType.LocalFileOASIS});
             var nonNativeReads=0;
             await policy.RunAsync(async()=>{
+                var profileWrite=new StorageOperationRequest{Operation="SaveAvatar",Payload=avatar,PreferredProvider=preferred};
+                var savedProfile=synchronous?router.RouteRequest<IAvatar>(profileWrite):await router.RouteRequestAsync<IAvatar>(profileWrite);
+                Assert.False(savedProfile.IsError,savedProfile.Message);Assert.False(savedProfile.IsWarning,savedProfile.Message);
+                Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
+                var detailWrite=new StorageOperationRequest{Operation="SaveAvatarDetail",Payload=detail,PreferredProvider=preferred};
+                var savedDetail=synchronous?router.RouteRequest<IAvatarDetail>(detailWrite):await router.RouteRequestAsync<IAvatarDetail>(detailWrite);
+                Assert.False(savedDetail.IsError,savedDetail.Message);Assert.False(savedDetail.IsWarning,savedDetail.Message);
+                Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
                 var holon=new Holon{Id=id,Name="independent-cosmos-v2-leaf",MetaData=new Dictionary<string,object>{{"owned-routing-fixture",id.ToString()}}};
                 var write=new StorageOperationRequest{Operation="SaveHolon",Payload=holon,SaveChildren=false,PreferredProvider=preferred};
                 var saved=synchronous?router.RouteRequest<IHolon>(write):await router.RouteRequestAsync<IHolon>(write);
@@ -77,6 +88,28 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 Assert.Equal(holon.Name,(await cosmos.LoadHolonAsync(id,loadChildren:false)).Result?.Name);
                 Assert.Equal(holon.Name,(await local.LoadHolonAsync(id,loadChildren:false)).Result?.Name);
                 var providers=new[]{ProviderType.LocalFileOASIS,ProviderType.CosmosBlockChainOASIS};
+                async Task ReadProfiles(bool absent){
+                    foreach(var providerType in providers){
+                        var before=manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests;
+                        foreach(var suffix in new[]{"","ByProviderKey","ByUsername","ByEmail"}){
+                            var request=new StorageOperationRequest{Operation="LoadAvatar"+suffix,AvatarId=avatarId,ProviderKey=avatarId.ToString(),Username=avatar.Username,Email=avatar.Email,PreferredProvider=providerType};
+                            foreach(var read in new[]{router.RouteRequest<IAvatar>(request),await router.RouteRequestAsync<IAvatar>(request)}){
+                                Assert.True(!read.IsError||absent&&read.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,read.Message);
+                                if(absent)Assert.Null(read.Result);else {Assert.Equal(avatarId,read.Result?.Id);Assert.Equal(avatar.Username,read.Result?.Username);Assert.Equal(avatar.Email,read.Result?.Email);}
+                            }
+                            // The storage contract has detail selectors for ID/username/email, not provider key.
+                            if(suffix=="ByProviderKey")continue;
+                            request.Operation="LoadAvatarDetail"+suffix;
+                            foreach(var read in new[]{router.RouteRequest<IAvatarDetail>(request),await router.RouteRequestAsync<IAvatarDetail>(request)}){
+                                Assert.True(!read.IsError||absent&&read.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,read.Message);
+                                if(absent)Assert.Null(read.Result);else {Assert.Equal(avatarId,read.Result?.Id);Assert.Equal(avatar.Username,read.Result?.Username);Assert.Equal(avatar.Email,read.Result?.Email);}
+                            }
+                        }
+                        Assert.Equal(before+14,manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests);
+                        if(providerType==ProviderType.LocalFileOASIS)nonNativeReads+=14;
+                    }
+                }
+                await ReadProfiles(false);
                 foreach(var providerType in providers){
                     var before=manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests;
                     foreach(var operationName in new[]{"LoadHolon","LoadHolonByProviderKey"}){
@@ -124,7 +157,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                         Assert.Equal(ProviderType.LocalFileOASIS,Assert.Single(manager.LastProviderSelectionDiagnostic.Candidates).Provider);
                     }
                     Assert.Equal(excluded,manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests);
-                    Assert.Single((await store.GetAsync(execution.OperationId,token)).ProviderAttempts.Where(attempt=>attempt.Provider=="CosmosBlockChainOASIS"));
+                    Assert.Equal(5,(await store.GetAsync(execution.OperationId,token)).ProviderAttempts.Count(attempt=>attempt.Provider=="CosmosBlockChainOASIS"));
                 }finally{
                     dna.OASIS.SubscriptionConfig.PlanType="Gold";manager.IsAutoLoadBalanceEnabled=false;manager.IsAutoReplicationEnabled=true;
                 }
@@ -133,11 +166,16 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 Assert.False(deleted.IsError,deleted.Message);Assert.False(deleted.IsWarning,deleted.Message);
                 Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
                 Assert.Null((await cosmos.LoadHolonAsync(id,loadChildren:false)).Result);
-                Assert.Null((await local.LoadHolonAsync(id,loadChildren:false)).Result);return true;
+                Assert.Null((await local.LoadHolonAsync(id,loadChildren:false)).Result);
+                var removeProfile=new StorageOperationRequest{Operation="DeleteAvatar",AvatarId=avatarId,SoftDelete=false,PreferredProvider=preferred};
+                var deletedProfile=synchronous?router.RouteRequest<bool>(removeProfile):await router.RouteRequestAsync<bool>(removeProfile);
+                Assert.False(deletedProfile.IsError,deletedProfile.Message);Assert.False(deletedProfile.IsWarning,deletedProfile.Message);Assert.True(deletedProfile.Result);
+                Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
+                await ReadProfiles(true);return true;
             });
             var operation=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,token);
             var native=operation.ProviderAttempts.Where(attempt=>attempt.Provider=="CosmosBlockChainOASIS").ToArray();
-            Assert.Equal(2,native.Length);Assert.Equal(2+nonNativeReads,operation.ProviderAttempts.Count(attempt=>attempt.Provider=="LocalFileOASIS"));
+            Assert.Equal(10,native.Length);Assert.Equal(5+nonNativeReads,operation.ProviderAttempts.Count(attempt=>attempt.Provider=="LocalFileOASIS"));
             Assert.Equal(native.Sum(attempt=>NativeFeeMaximumAccounting.ValueUsd(attempt.NativePreparation.FeeMaximums,attempt.NativePreparation.PriceQuotes)),operation.NativeFeeExposureUsd);
             var originals=new List<object>();
             foreach(var attempt in native){
@@ -145,8 +183,8 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 Assert.Equal(attempt.ProviderRequestId,fee.Result.GetProperty("transactionHash").GetString());
                 originals.Add(new{attempt,anteFeeReceipt=fee.Result});
             }
-            output.WriteLine(JsonSerializer.Serialize(new{nativePrimary,synchronous,holonId=id,operation.NativeFeeExposureUsd,originals,
-                selectorReadCount=16,strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
+            output.WriteLine(JsonSerializer.Serialize(new{nativePrimary,synchronous,holonId=id,avatarId,operation.NativeFeeExposureUsd,originals,
+                profileMatchingReadCount=28,profileAbsenceReadCount=28,selectorReadCount=16,strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
             Assert.Equal(oldHash,Hash(oldPath));Assert.Null(operation.Settlement);complete=true;
         }finally{
             if(complete){await mongo.DropDatabaseAsync(database,token);file.Dispose();File.Delete(journal);}
