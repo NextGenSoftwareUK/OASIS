@@ -1,5 +1,9 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Explicit owner replacement invariant — 2026-10-17
+
+Cosmos now mirrors Sui's rejection of an explicit prepared server when a shared ambient operation owner is already active. A caller cannot silently substitute another execution/budget through InvokePreparedAsync. Existing scoped calls use their current gate; ordinary unscoped explicit calls retain their intended path. One regression red-before and187full offline cases green-after; exact hashes in release journal. This is pre-launch rejection evidence, not new native/hosted acceptance. Hedera/TRON separate storage and explicit asset paths still need endpoint-specific ownership verification; storage admission must not be advertised as automatic coverage for every asset route.
+
 ## Cosmos expanded admitted assets — 2026-10-17
 
 Tokenlock/unlock and NFTmint/read/burn now included in retained-native admitted fixture:2/2pass53s,10signed originals across direct2/scoped8writes, exact original ante fees/exposure and zero-budget rejection verified. Explicit synthetic aggregate0.08USD at0.000001USD/stake covers up to8configured10000stake per-transaction ceilings. This is test pricing only; Cosmos reader remains AnteDeductionOnly, not net-final automatic settlement. Prior stale0.02assertion fixture reconciled without replay: all8native originals/signed durable attempts/fees/current zero supply+NFTabsence verified and archived; no unadmitted originals or retroactive settlement. Exact hashes/failures in release journal. Broader sends/bridge/ID-bound escrow/hosted fees remain open.

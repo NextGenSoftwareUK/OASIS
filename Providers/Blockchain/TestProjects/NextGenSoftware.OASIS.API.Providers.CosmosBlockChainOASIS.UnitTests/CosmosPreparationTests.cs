@@ -8,6 +8,21 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosPreparationTests
 {
+    [TestMethod]
+    public async Task ExplicitPreparationCannotReplaceCurrentOperationOwner()
+    {
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var type=typeof(CosmosBlockChainOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosSdkBackend")!;
+        using var backend=(IDisposable)Activator.CreateInstance(type,new object[]{"http://127.0.0.1:1","chain","key","contract","cosmos","0.025uatom","node",Path.Combine(AppContext.BaseDirectory,"missing-owned-bridge.mjs")})!;
+        using var other=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>throw new AssertFailedException("Other owner must not persist."));
+        Func<Task<JsonElement>> invoke=()=>{
+            try{return (Task<JsonElement>)type.GetMethod("InvokePreparedAsync",flags)!.Invoke(backend,new object[]{"execute",new{},other,CancellationToken.None})!;}
+            catch(System.Reflection.TargetInvocationException error){return Task.FromException<JsonElement>(error.InnerException!);}
+        };
+        Func<string,string,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer> factory=(_,_)=>throw new AssertFailedException("No invocation may start.");
+        var scoped=(Task<JsonElement>)type.GetMethod("WithStoragePreparationAsync",flags)!.MakeGenericMethod(typeof(JsonElement)).Invoke(backend,new object[]{invoke,factory})!;
+        var failure=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>scoped);StringAssert.Contains(failure.Message,"cannot replace the current operation owner");
+    }
     [DataTestMethod]
     [DataRow("put")] [DataRow("delete")] [DataRow("execute")] [DataRow("transfer")] [DataRow("upload")] [DataRow("instantiate")]
     public async Task EveryNativeMutationInvocationHonorsAmbientPreparationBeforeProcessLaunch(string operation)

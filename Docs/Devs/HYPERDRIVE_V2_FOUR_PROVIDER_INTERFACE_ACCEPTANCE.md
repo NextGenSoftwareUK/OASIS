@@ -34,6 +34,8 @@ The NFT interface's SetCollectionSize/SetCollectionSizeAsync have explicit defau
 
 ## Next verification work
 
+2026-10-17 ownership audit: Sui SDK invocation already honors active shared ownership across all its declared mutations and rejects explicit replacement. Cosmos now does both (new replacement regression red-before/full187offline green-after). Hedera configured storage and TRON prepared storage create scoped backend/client views; public asset paths have separate explicit preparation facilities. Do not infer that arbitrary asset calls inside a storage lambda or every hosted asset route are automatically admitted; trace the actual endpoint/SDK owner and require pre-transport proof before enablement. No new native tests in this audit.
+
 2026-10-17 Cosmos follow-up: current native routing4/4pass1m19s adds64sync/async Id/provider-key/metadata selector reads against native/file replicas, exact dispatch counters and unique leaf identities. Current matrix now184matching-record reads; original8native write/delete receipts remain verified. Broader records/options/native-fault/fee/hosted obligations remain separate.
 
 2026-10-17 follow-up: Sui healthy V2 native acceptance now includes24profile/detail Id/username/email sync/async routed reads across native/file replicas, with exact selected-provider counters. This narrows the selector gap only; provider-key/metadata/versions/options and exhaustive direct/interface parity remain separate obligations. Final1/1pass2m40s; current release journal retains report hash.
