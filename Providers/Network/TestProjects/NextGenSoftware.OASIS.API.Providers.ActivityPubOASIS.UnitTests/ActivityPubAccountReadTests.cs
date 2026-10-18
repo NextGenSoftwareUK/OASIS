@@ -51,4 +51,28 @@ public class ActivityPubAccountReadTests
         Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,result.ErrorCode);
         Assert.Equal(HttpStatusCode.NotFound,Assert.IsType<HttpRequestException>(result.Exception).StatusCode);
     }
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task DetailProjectionIsSeparateAndUsesSameNativeIdentity(bool sync)
+    {
+        var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
+        var detail=sync?provider.LoadAvatarDetailByUsername("alice@remote.invalid"):await provider.LoadAvatarDetailByUsernameAsync("alice@remote.invalid");
+        Assert.False(detail.IsError,detail.Exception?.ToString());Assert.Equal("alice@remote.invalid",detail.Result.Username);
+        Assert.True(string.IsNullOrEmpty(detail.Result.Email));
+        Assert.Equal("12345678901234567890",detail.Result.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
+        var avatar=await provider.LoadAvatarByUsernameAsync("alice@remote.invalid");Assert.False(avatar.IsError);
+        Assert.Equal(avatar.Result.Id,detail.Result.Id);Assert.NotSame(avatar.Result.MetaData,detail.Result.MetaData);
+        detail.Result.MetaData["MastodonDisplayName"]="changed";Assert.Equal("Alice",avatar.Result.MetaData["MastodonDisplayName"]);
+    }
+    [Theory][InlineData(" ",0)][InlineData("alice",1)]
+    public async Task DetailInvalidInputDoesNotSendHttp(string selector,int version)
+    {
+        var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
+        var result=await provider.LoadAvatarDetailByUsernameAsync(selector,version);Assert.True(result.IsError);Assert.Equal(0,transport.Calls);
+    }
+    [Fact]
+    public async Task MalformedDetailDoesNotProduceFabricatedIdentity()
+    {
+        var transport=new Transport{Body="{}"};using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
+        var result=await provider.LoadAvatarDetailByUsernameAsync("alice");Assert.True(result.IsError);Assert.Null(result.Result);Assert.IsType<InvalidDataException>(result.Exception);
+    }
 }

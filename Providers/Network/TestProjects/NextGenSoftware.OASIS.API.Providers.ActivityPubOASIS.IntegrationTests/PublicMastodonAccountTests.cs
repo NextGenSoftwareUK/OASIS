@@ -26,5 +26,9 @@ public class PublicMastodonAccountTests
         var byId=synchronous?provider.LoadAvatarByProviderKey(id):await provider.LoadAvatarByProviderKeyAsync(id).WaitAsync(TimeSpan.FromSeconds(20));
         Assert.False(byId.IsError,byId.Exception?.ToString());Assert.Equal(byName.Result.Id,byId.Result.Id);
         Assert.Equal(acct,byId.Result.Username);Assert.Equal(id,byId.Result.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
+        var detail=synchronous?provider.LoadAvatarDetailByUsername(handle):await provider.LoadAvatarDetailByUsernameAsync(handle).WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.False(detail.IsError,detail.Exception?.ToString());Assert.Equal(byName.Result.Id,detail.Result.Id);
+        Assert.Equal(acct,detail.Result.Username);Assert.Equal(id,detail.Result.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
+        Assert.Equal(profile,detail.Result.MetaData["MastodonProfileUrl"]);Assert.True(string.IsNullOrEmpty(detail.Result.Email));
     }
 }

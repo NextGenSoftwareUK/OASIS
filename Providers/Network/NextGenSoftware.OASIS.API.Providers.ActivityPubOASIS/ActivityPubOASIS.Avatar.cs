@@ -337,52 +337,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var response = new OASISResult<IAvatarDetail>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Load avatar detail by username from ActivityPub instance (parse as AvatarDetail, do not build from Avatar)
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/lookup?acct={Uri.EscapeDataString(avatarUsername)}";
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var avatarDetail = ParseActivityPubToAvatarDetail(content);
-                    if (avatarDetail != null)
-                    {
-                        response.Result = avatarDetail;
-                        response.IsError = false;
-                        response.Message = "Avatar detail loaded from ActivityPub by username successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail by username from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by username from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+            => await ReadMastodonDetailAsync(avatarUsername,version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
