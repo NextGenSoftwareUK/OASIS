@@ -14,6 +14,25 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 
 public partial class PolkadotOASIS
 {
+    private Task<OASISResult<ITransactionResponse>> SendOwnedAssetAsync(ISendWeb3TokenRequest request)
+        => ExecuteOwnedMutationAsync(owner => {
+            ArgumentNullException.ThrowIfNull(request);
+            if (request.Web3TokenId != Guid.Empty)
+                throw new ArgumentException("Resolve the application token ID to its explicit Assets ID before signing; no guessed storage lookup.");
+            var assetId = request.FromTokenAddress;
+            var sender = request.FromWalletAddress;
+            var recipient = request.ToWalletAddress;
+            var amount = request.Amount;
+            var memo = request.MemoText;
+            var publicKey = request.OwnerPublicKey;
+            var privateKey = request.OwnerPrivateKey;
+            var mnemonic = request.OwnerSeedPhrase;
+            ValidateAssetFields(assetId, recipient, amount);
+            if (!string.IsNullOrEmpty(memo)) throw new ArgumentException("Asset transfer memo support is not enabled.");
+            return PrepareAssetMutationAsync("transfer", assetId, sender, recipient, amount,
+                publicKey, privateKey, mnemonic, owner.Token);
+        }, true);
+
     private Task<OASISResult<ITransactionResponse>> MintOwnedAssetAsync(IMintWeb3TokenRequest request)
         => ExecuteOwnedMutationAsync(async owner => {
             ArgumentNullException.ThrowIfNull(request);

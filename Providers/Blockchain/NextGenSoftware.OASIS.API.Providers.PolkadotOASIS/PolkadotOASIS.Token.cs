@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         }
 
         public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
-            => SendOwnedNativeTransferAsync(request);
+            => !string.IsNullOrEmpty(request?.FromTokenAddress) ? SendOwnedAssetAsync(request) : SendOwnedNativeTransferAsync(request);
 
         public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
         {
