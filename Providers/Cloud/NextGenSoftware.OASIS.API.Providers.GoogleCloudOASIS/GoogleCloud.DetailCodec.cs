@@ -13,9 +13,15 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
-    private static async Task<T> ObserveFirestoreMutationAsync<T>(Func<Task<T>> operation,string documentPath)
+    private static async Task<Google.Cloud.Firestore.WriteResult> ObserveFirestoreMutationAsync(Func<Task<Google.Cloud.Firestore.WriteResult>> operation,string documentPath)
     {
-        try {return await operation();}
+        try
+        {
+            var acknowledged=await operation();
+            if(acknowledged==null || acknowledged.UpdateTime.Equals(default(Google.Cloud.Firestore.Timestamp)))
+                throw new InvalidDataException("Firestore save lacks an authoritative native update timestamp.");
+            return acknowledged;
+        }
         catch(Exception cause) {throw new GoogleFirestoreMutationReconciliationException(documentPath,cause);}
     }
 
