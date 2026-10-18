@@ -32,6 +32,13 @@ public sealed class DirectMongoAvatarDetailContractTests
                     .Contains(Nullable.GetUnderlyingType(property.PropertyType)??property.PropertyType)).ToArray();
             Assert.True(scalarProperties.Length>=19,"Do not silently shrink the profile-field contract.");
             for(var revision=1;revision<=2;revision++){
+                detail.Chakras=IndependentAvatarChakras.Create(revision);
+                void VerifyChakras(IAvatarChakras actual){
+                    Assert.NotNull(actual);
+                    foreach(var slot in typeof(IAvatarChakras).GetProperties())
+                        Assert.Equal(Newtonsoft.Json.JsonConvert.SerializeObject(slot.GetValue(detail.Chakras)),
+                            Newtonsoft.Json.JsonConvert.SerializeObject(slot.GetValue(actual)));
+                }
                 foreach(var field in IndependentAvatarCollections.Fields)
                     IndependentAvatarCollections.Assign(detail,field,IndependentAvatarCollections.Create(field,revision));
                 void VerifyCollections(object actual,bool native){
@@ -87,6 +94,7 @@ public sealed class DirectMongoAvatarDetailContractTests
                 var raw=await collection.Find(filter).SingleAsync();Assert.Equal(detail.Description,raw.Description);
                 VerifyStructured(raw,true);VerifyStructured(saved.Result,false);
                 VerifyCollections(raw,true);VerifyCollections(saved.Result,false);
+                VerifyChakras(raw.Chakras);VerifyChakras(saved.Result.Chakras);
                 foreach(var property in skillProperties){
                     Assert.Equal(property.GetValue(skills),property.GetValue(raw.Skills));
                     Assert.Equal(property.GetValue(skills),property.GetValue(saved.Result.Skills));
@@ -107,6 +115,7 @@ public sealed class DirectMongoAvatarDetailContractTests
                         Assert.Equal(id,loaded.Result.Id);Assert.Equal(detail.Description,loaded.Result.Description);
                         VerifyStructured(loaded.Result,false);
                         VerifyCollections(loaded.Result,false);
+                        VerifyChakras(loaded.Result.Chakras);
                         foreach(var property in scalarProperties)Assert.Equal(property.GetValue(detail),property.GetValue(loaded.Result));
                         foreach(var property in skillProperties)Assert.Equal(property.GetValue(skills),property.GetValue(loaded.Result.Skills));
                     }
