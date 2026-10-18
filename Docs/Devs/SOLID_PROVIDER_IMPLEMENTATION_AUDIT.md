@@ -2,6 +2,14 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Permanent avatar/detail deletion (2026-10-18)
+
+Permanent GUID deletion now follows the existing shared-provider avatar+optional-detail contract. It reads/decrypts both canonical resources and requires strong ETags for all present records BEFORE mutation. Only an actual detail GET404 means optional absence; other detail errors stop deletion. Deletes detail then avatar through the SAME conditional DELETE/readback helper used for holons. Success requires each requested resource independently confirmed404; sets Result and IsDeleted only on complete success. A later failure returns existing shared KeyValuePartialMutationException containing independently confirmed deleted resource URIs and original cause (including uncertain native mutation marker). No fake transaction, rollback, replay, or claim of cross-resource atomicity.
+
+Eight new controlled cases: pair and avatar-only sync/async success; unreadable detail and missing detail tag prevent all deletion; later avatar412/transport failure preserve detail acknowledgement and original cause. No before-change red run captured. Full147/147 controlled unit suite passed302ms/zero skipped, current TRX SHA256 5C7EEDF2A79BC1C12B54BA7374EB7AEAF5F0AF281C814B898CB6DFB2213B746E. Cached bounded provider build passed2warnings. No actual pod/server or hosted proof, runtime launch, restore or install. Free Windows space86701481984bytes.
+
+Known limits: two resources are NOT atomic; another writer can create a detail after optional404 or recreate a previously deleted resource. Individual strong tags protect changed existing resources, not that cross-resource race. Durable reconciliation/tombstone coordination remains OPEN. Soft-delete still needs pair updates and conditional writes; explicit history/paging/OIDC/DPoP/native/all-provider/release gates remain OPEN. Earlier statements that hard deletion is unconditional are superseded by this section; do not interpret scoped tests as full account lifecycle certification.
+
 ## Avatar identity deletion routing (2026-10-18)
 
 Provider-key deletion now parses the existing GUID key and delegates to GUID deletion with softDelete unchanged. Username/email deletion resolves the existing encrypted private identity lookup and then delegates to that same GUID path; no guessed by-key/by-username/by-email HTTP route or identity in request URI. Lookup failures preserve original envelope/classification and prevent mutation. Existing lookup rejects missing/ambiguous identities. This does NOT solve concurrent identity reassignment or avatar/detail consistency; identity scan and subsequent GUID read are not atomic.
