@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Private identity and GUID lookup integration
+
+Avatar/detail username+email sync/async lookups now reuse native encrypted LDP collections and match locally (trim+OrdinalIgnoreCase), with no private query value in HTTP URI. Missing identity maps to canonical RecordNotFound; duplicate identities error, no arbitrary first match. Blank values reject before I/O and upstream errors preserve cause/details. Avatar/holon provider-key reads parse nonempty GUID and access canonical encrypted resource directly instead of/by-key URLs.13newcontrolled tests/full67unitpass247ms;9true initial regressions. Exact hashes in release gates.
+
+This is an O(n)client scan, not remote indexed search; collection safety limit/nonpaged/history limitations inherited. Native authentication/data authorization, scalable HMAC/blinded indexes, privacy review and actual pod verification remain needed. No plaintext lookup index is added. Hosting read cost/latency scales with records, and absence of chain gas does not mean free hosted I/O. Existing delete-by-email/username still has old invalid-route assumptions and needs integration; metadata/parent/graph/import/export/version/ETag/recovery also unfinished. Do not infer provider completion from lookup tests.
+
 ## Nonpaged LDP collection integration
 
 All-avatar/detail/holon collection reads now follow native LDP contains URIs and decrypt each canonical member. Uses requested container as RDF base, checks container type, prevalidates every URI against exact owned category/GUID namespace, deduplicates, bounds10000records and returns no partial success after any member failure. Holon type filter is local after decryption. Twelve new controlled tests/full54unitpass99ms; six sync/async×3positive cases, unsafe member guards, pagination rejection, empty and corrupt member behavior. No actual Solid pod/server/authentication proof. Exact before/final evidence in release gates.
