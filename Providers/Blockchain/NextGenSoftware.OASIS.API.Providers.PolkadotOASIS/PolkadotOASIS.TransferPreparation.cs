@@ -12,15 +12,19 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 public partial class PolkadotOASIS
 {
     /// <summary>Independently verifies original signed bytes and decoded native call. No signing, submission or fee permission.</summary>
-    public async Task<OASISResult<JsonElement>> VerifyNativeTokenTransferPreparationAsync(JsonElement preparation)
+    public Task<OASISResult<JsonElement>> VerifyNativeTokenTransferPreparationAsync(JsonElement preparation)
+        => VerifyNativeTokenTransferPreparationAsync(preparation, CancellationToken.None);
+
+    public async Task<OASISResult<JsonElement>> VerifyNativeTokenTransferPreparationAsync(JsonElement preparation, CancellationToken cancellationToken)
     {
         var result = new OASISResult<JsonElement>();
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!_isActivated) throw new InvalidOperationException("Activate the verified network before checking original preparation.");
             var original = preparation.Clone();
             var identity = await InvokePolkadotSdkAsync(new { operation = "verifyNativePreparation", endpoint = _rpcEndpoint,
-                genesisHash = ReportedGenesisHash, preparation = original });
+                genesisHash = ReportedGenesisHash, preparation = original }, cancellationToken);
             if (identity.ValueKind != JsonValueKind.Object || !identity.TryGetProperty("verified", out var verified)
                 || verified.ValueKind != JsonValueKind.True
                 || identity.GetProperty("transactionHash").GetString() != original.GetProperty("transactionHash").GetString()
@@ -36,7 +40,10 @@ public partial class PolkadotOASIS
 
     /// <summary>Creates verified signed SCALE bytes and a runtime fee estimate. NEVER broadcasts,
     /// reserves funds or claims finality. Keep signed bytes in the durable execution owner before any later submission.</summary>
-    public async Task<OASISResult<JsonElement>> PrepareNativeTokenTransferAsync(ISendWeb3TokenRequest request, CancellationToken cancellationToken = default)
+    public Task<OASISResult<JsonElement>> PrepareNativeTokenTransferAsync(ISendWeb3TokenRequest request)
+        => PrepareNativeTokenTransferAsync(request, CancellationToken.None);
+
+    public async Task<OASISResult<JsonElement>> PrepareNativeTokenTransferAsync(ISendWeb3TokenRequest request, CancellationToken cancellationToken)
     {
         var result = new OASISResult<JsonElement>();
         try
