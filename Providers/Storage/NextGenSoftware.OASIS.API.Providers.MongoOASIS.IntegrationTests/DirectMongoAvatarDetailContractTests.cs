@@ -49,10 +49,28 @@ public sealed class DirectMongoAvatarDetailContractTests
                 inventory.ParentHolonId=Guid.NewGuid();inventory.ParentHolonId2=Guid.NewGuid();inventory.ParentHolonId3=Guid.NewGuid();
                 inventory.ProviderUniqueStorageKey=new(){{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS,"inventory-key-"+revision}};
                 inventory.Children.Add(new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),Name="not-an-owned-navigation-value"});
+                inventory.STARNETDNA=new STARNETDNA{Id=inventory.Id,Name="inventory-dna-"+revision,Version="1."+revision,
+                    FileSize=9007199254740993L+revision,Downloads=revision*13,
+                    MetaData=new(){{"revision",revision},{"public",true}}};
+                inventory.Properties["nested"]=new System.Collections.Generic.Dictionary<string,object>{
+                    {"amount",1.25m},{"values",new[]{revision,revision+1}},{"enabled",true}};
+                inventory.MetaData["nested"]=new System.Collections.Generic.Dictionary<string,object>{
+                    {"exact",9007199254740993L+revision},{"labels",new[]{"alpha","beta"}}};
                 detail.Inventory=new System.Collections.Generic.List<IInventoryItem>{inventory};
                 void VerifyInventory(System.Collections.Generic.IEnumerable<IInventoryItem> values){
                     var actual=Assert.Single(values);Assert.Equal(inventory.Id,actual.Id);Assert.Equal(inventory.Name,actual.Name);
                     Assert.Equal(inventory.Description,actual.Description);
+                    Assert.Equal(inventory.STARNETDNA.Name,actual.STARNETDNA.Name);
+                    Assert.Equal(inventory.STARNETDNA.Version,actual.STARNETDNA.Version);
+                    Assert.Equal(inventory.STARNETDNA.FileSize,actual.STARNETDNA.FileSize);
+                    Assert.Equal(inventory.STARNETDNA.Downloads,actual.STARNETDNA.Downloads);
+                    foreach(var owned in new[]{(inventory.Properties["nested"],actual.Properties["nested"]),(inventory.MetaData["nested"],actual.MetaData["nested"])}){
+                        // Object dictionaries promise JSON values, not CLR array discriminator identity.
+                        var expectedJson=Newtonsoft.Json.JsonConvert.SerializeObject(owned.Item1);
+                        var actualJson=Newtonsoft.Json.JsonConvert.SerializeObject(owned.Item2);
+                        Assert.True(Newtonsoft.Json.Linq.JToken.DeepEquals(Newtonsoft.Json.Linq.JToken.Parse(expectedJson),Newtonsoft.Json.Linq.JToken.Parse(actualJson)),
+                            "Synthetic nested inventory JSON mismatch: expected "+expectedJson+" actual "+actualJson);
+                    }
                     foreach(var name in new[]{"Version","VersionId","PreviousVersionId","CreatedByAvatarId","ModifiedByAvatarId","DeletedByAvatarId",
                         "CreatedDate","ModifiedDate","DeletedDate","CustomHolonType","IsPublic","ParentHolonId","ParentHolonId2","ParentHolonId3"}){
                         var inherited=typeof(InventoryItem).GetProperty(name)!;
@@ -65,7 +83,9 @@ public sealed class DirectMongoAvatarDetailContractTests
                         else if(expected is System.Collections.Generic.Dictionary<string,object> properties){
                             var found=(System.Collections.Generic.Dictionary<string,object>)restored!;
                             Assert.Equal(properties.Count,found.Count);
-                            foreach(var pair in properties)Assert.Equal(pair.Value,found[pair.Key]);
+                            foreach(var pair in properties)Assert.True(Newtonsoft.Json.Linq.JToken.DeepEquals(
+                                Newtonsoft.Json.Linq.JToken.FromObject(pair.Value),
+                                Newtonsoft.Json.Linq.JToken.FromObject(found[pair.Key])),"Inventory property JSON value differs: "+pair.Key);
                         }else Assert.Equal(expected,restored);
                     }
                 }
