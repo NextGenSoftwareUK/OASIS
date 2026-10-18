@@ -30,11 +30,16 @@ public sealed class SolidRecordReconciliationException : IOException,INativeMuta
 public partial class SOLIDOASIS
 {
     private readonly SolidPrivateRecordCodec _privateRecords;
+    private static Guid ParsePrivateRecordKey(string key)
+    {
+        if(Guid.TryParse(key,out var id)&&id!=Guid.Empty)return id;
+        throw new ArgumentException("SOLID provider key must be a nonempty record GUID.",nameof(key));
+    }
     private async Task<OASISResult<T>> LoadPrivateRecordByKeyAsync<T>(string key,int version) where T:class,IHolonBase
     {
-        if(Guid.TryParse(key,out var id)&&id!=Guid.Empty)return await LoadPrivateRecordAsync<T>(id,version);
         var invalid=new OASISResult<T>();
-        OASISErrorHandling.HandleError(ref invalid,"SOLID provider key must be a nonempty record GUID.",new ArgumentException("Invalid provider key.",nameof(key)));
+        try{return await LoadPrivateRecordAsync<T>(ParsePrivateRecordKey(key),version);}
+        catch(Exception error){OASISErrorHandling.HandleError(ref invalid,"SOLID provider key read failed.",error);}
         return invalid;
     }
     private async Task<OASISResult<T>> FindPrivateRecordAsync<T>(string query,Func<T,string> selector,int version) where T:class,IHolonBase
@@ -79,7 +84,10 @@ public partial class SOLIDOASIS
             RequirePrivateStorage();
             if(version!=0)throw new NotSupportedException("Explicit SOLID record versions require a verified history implementation; current-only reads must request version zero.");
             result.Result=await ReadPrivateRecordAsync<T>(id);
-        }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private record read failed.",error);}
+        }catch(Exception error){
+            OASISErrorHandling.HandleError(ref result,"SOLID private record read failed.",error);
+            if(error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
+        }
         return result;
     }
     private async Task<OASISResult<IEnumerable<T>>> LoadPrivateRecordsAsync<T>(int version) where T:class,IHolonBase
