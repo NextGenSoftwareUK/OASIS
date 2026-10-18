@@ -1,4 +1,4 @@
-param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect')][string]$Mode = 'Verify')
+param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate')][string]$Mode = 'Verify')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveCosmos'
@@ -48,7 +48,7 @@ try {
         $containerStarted = $true
     }
     # The existing local development key stays in process memory and is never printed or persisted.
-    if($Mode -notin @('RoutingInspect','RoutingFeeRecovery','EscrowInspect')){
+    if($Mode -notin @('RoutingInspect','RoutingFeeRecovery','EscrowInspect','EscrowEstimate')){
         $signingKey = ((& wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd keys export owner --keyring-backend test --unarmored-hex --unsafe --yes 2>$null) -join "`n").Trim()
         if ($LASTEXITCODE -ne 0 -or $signingKey -notmatch '^[0-9a-fA-F]{64}$') { throw 'Existing local Cosmos signing key unavailable.' }
     }
@@ -85,7 +85,7 @@ try {
         & node (Join-Path $PSScriptRoot 'inspect-cosmos-pending-transactions.mjs')
         if ($LASTEXITCODE -ne 0) { throw 'Read-only Cosmos native transaction inspection failed; pending intent preserved.' }
     }
-    if($Mode -eq 'EscrowInspect'){
+    if($Mode -in @('EscrowInspect','EscrowEstimate')){
         $escrowFence=Join-Path $fixtureRoot 'replication-pending.json'
         $escrowFenceHash=(Get-FileHash -LiteralPath $escrowFence -Algorithm SHA256).Hash
         if($escrowFenceHash -ne '9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81'){throw 'Original Cosmos fence changed; inspect before continuing.'}
@@ -96,14 +96,26 @@ try {
         $probe=($probeRaw -join "`n") | ConvertFrom-Json
         $codeRaw=& wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd query wasm code-info 1 --node http://127.0.0.1:26657 --output json
         if($LASTEXITCODE -ne 0){throw 'Existing public contract code metadata query failed.'}
-        if((Get-FileHash -LiteralPath $escrowFence -Algorithm SHA256).Hash -ne $escrowFenceHash){throw 'Read-only inspection detected a changed original fence.'}
         $evidence=@{chain='oasis-cosmos-local';contract=$contracts[0];sdkQuery=$probe;codeInfo=(($codeRaw -join "`n") | ConvertFrom-Json);
             container=$containerId;image=$image;checkedAtUtc=[DateTime]::UtcNow.ToString('O');originalFenceSha256=$escrowFenceHash;
             signingKeyExported=$false;nativeSubmissions=0;verifiedProtocol=($probeExit -eq 0 -and $probe.ok -eq $true -and $probe.result -eq 1)}
+        if($Mode -eq 'EscrowEstimate'){
+            $wasmPath='\\wsl.localhost\Ubuntu\var\tmp\oasis-cosmos-contract-target\wasm32-unknown-unknown\release\oasis_cosmos_storage.wasm'
+            $wasmHash='fcae1521a4564ae4548ad25bae886e432ad1049ece035b3f70ae3a4e961e014c'
+            if((Get-FileHash -LiteralPath $wasmPath).Hash.ToLowerInvariant() -ne $wasmHash){throw 'Pinned current escrow bytecode differs; rebuild/review before estimating.'}
+            $estimateRequest=@{operation='estimateUpload';rpcEndpoint='http://127.0.0.1:26657';chainId='oasis-cosmos-local';addressPrefix='wasm';
+                sender=$evidence.codeInfo.creator;gasPrice='0.025stake';wasmBase64=[Convert]::ToBase64String([IO.File]::ReadAllBytes($wasmPath));expectedWasmSha256=$wasmHash} | ConvertTo-Json -Compress
+            $estimateRaw=$estimateRequest | & node (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/SdkBridge/bridge.mjs')
+            $estimateExit=$LASTEXITCODE
+            $evidence.uploadEstimate=($estimateRaw -join "`n") | ConvertFrom-Json
+        }
+        if((Get-FileHash -LiteralPath $escrowFence -Algorithm SHA256).Hash -ne $escrowFenceHash){throw 'Read-only inspection detected a changed original fence.'}
         $escrowEvidenceJson=$evidence | ConvertTo-Json -Depth 12
-        [IO.File]::WriteAllText((Join-Path $fixtureRoot 'escrow-protocol-inspection-current.json'),$escrowEvidenceJson)
+        $probeReport=if($Mode -eq 'EscrowEstimate'){'escrow-upload-estimate-current.json'}else{'escrow-protocol-inspection-current.json'}
+        [IO.File]::WriteAllText((Join-Path $fixtureRoot $probeReport),$escrowEvidenceJson)
         Write-Output $escrowEvidenceJson
-        if(!$evidence.verifiedProtocol){throw 'Retained contract does not establish escrow protocol1; inspect evidence before any escrow mutation.'}
+        if($Mode -eq 'EscrowEstimate' -and ($estimateExit -ne 0 -or !$evidence.uploadEstimate.ok)){throw 'Read-only upload simulation failed; no deployment authorized.'}
+        if($Mode -eq 'EscrowInspect' -and !$evidence.verifiedProtocol){throw 'Retained contract does not establish escrow protocol1; inspect evidence before any escrow mutation.'}
     }elseif($Mode -eq 'ReviewedNFT'){
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosReviewedNFT
         if($LASTEXITCODE -ne 0){throw 'Actual NFT interface verification failed; preserve originals and ownership journal.'}
