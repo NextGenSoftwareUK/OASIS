@@ -1464,3 +1464,7 @@ Reused same retained pinned container/volume/dependencies/fixed outputs:73native
 
 Native77pass37s/unit78pass322ms in same retained pinned container/volume/caches/fixed outputs. Runner80897 terminal0, container independently exited. Previous73native report preserved once neo4j-native-before-history-delete-race.trx; compact current evidence retained. Only acknowledged owned test fixtures cleaned after original-state/archive assertions; competing edit was test-owned, no replay/reset/unrelated deletion. Free90237911040→90204180480bytes observed, no attribution/reclaim claim. No downloads/restores/installations/new environment/public gas. Protected source/credentials/uncertain journals intact.
 
+# 2026-10-18 Neo4j credential history verification
+
+Reused SAME pinned container/volume/caches/fixed outputs. Initial native77pass/2obsolete-expectation failures occurred before fixture saves; report preserved once neo4j-native-credential-obsolete-expectations.trx, no reset/replay. Final72787 terminal0 native79pass37s/unit78pass332ms, container independently exited. Prior77 report preserved once neo4j-native-before-credential-history.trx, compact current reports retained. Acknowledged own fixtures hard-deleted through normal provider paths; source/credentials/uncertain journals/unrelated data untouched. No download/install/restore/new environment/public gas. Free90201579520→90201030656bytes observed, no reclaim claim.
+

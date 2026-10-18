@@ -5413,3 +5413,7 @@ Opt-in paired profile/detail soft deletion now stamps/archives in the same nativ
 
 Four additional native data rows prove ordinary history-enabled paired hard/soft deletion and actual detail-lock concurrent-edit rejection. Rejected soft-delete rolls back profile/detail archival, preserves original versions/live profile and independently committed XP999, leaves zero archives. Native77pass37s/unit78pass322ms, matched DLL AA9300825045FD1C63E7B9FAA02DC48BC78638134B48570C51DF3A545EACD68F. Existing implementation required no production change. Does not certify arbitrary unknown outcomes/concurrent creation/all interfaces; exact hashes and remaining gates in release journal.
 
+# 2026-10-18 Neo4j explicit historical credential selectors
+
+Five sync/async token/wallet-key selectors now reuse shared nonnegative-version credential selection and canonical Avatar history. Native79pass37s/unit78pass332ms; matched E66F51CE736E114EB783F4EB4A52C94AEC456F8F77B6D469D34D9DA11E691B0A DLL. Rotation/history/current-deletion/hard-delete isolation proven in two new native cases. Default current token lookups still reject old/deleted credentials; provider historical lookup is not authentication authorization. Two obsolete positive-history rejection failures preserved and corrected to negative guards. Full security/interfaces/recovery/release not certified; exact evidence in release gates. Next priority direct audit Azure CosmosDB, retained environment only.
+

@@ -10,10 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 public partial class Neo4jOASIS
 {
     private Task<OASISResult<IAvatar>> ReadCredentialAsync(string value,int version,Func<IAvatar,bool> predicate)
-        => StoredAvatarWalletSelector.SelectMatchingAsync(value,version,requested=>{
-            ValidateCurrentAvatarVersion(requested);
-            return LoadAllAvatarsAsync(requested);
-        },predicate);
+        => StoredAvatarWalletSelector.SelectMatchingAsync(value,version,LoadAllAvatarsAsync,predicate);
 
     public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string value,int version=0)
         => ReadCredentialAsync(value,version,avatar=>string.Equals(avatar.VerificationToken,value,StringComparison.Ordinal));

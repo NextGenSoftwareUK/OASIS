@@ -12,7 +12,7 @@ public partial class Neo4jOASIS
     private static void ValidateCurrentAvatarVersion(int version)
     {
         if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
-        if(version>0) throw new NotSupportedException("This Neo4j selector supports only current version 0; historical credential selection is not implemented.");
+        if(version>0) throw new NotSupportedException("Current-record reader requires version 0; positive versions must use the historical reader.");
     }
 
     private async Task<OASISResult<IAvatar>> ReadOneAvatarAsync(string field,string value,int version)
