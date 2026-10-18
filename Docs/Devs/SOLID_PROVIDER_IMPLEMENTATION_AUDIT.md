@@ -2,6 +2,14 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Import/export integration and retired transitional code
+
+Import now uses existing encrypted graph save, preserving bool status/flags/native partial-write causes. Export uses encrypted flat holon query and existing CreatedByAvatarId scope; username/email via private identity lookup. Counts set consistently; no guessed/import or/export route, no plaintext export request body. Scope follows shared provider's holon contract, NOT a complete account/avatar-detail backup.
+
+11newcontrolled cases genuinely failed before; final118unitpass255ms after removing9obsolete reflection tests for retired unused plaintext/RDF projection parser. All actual encrypted codec/public-operation tests remain. Intermediate127 included those dead-helper cases and is superseded. Removed SolidRdfRecord, its private projection callers/writers and unused search parser recoverable in Git; encrypted dotNetRDF runtime still used. Initial historical parser stage below is now superseded, not an active alternative plaintext record format.
+
+Native server/auth proof still blocked; no new launch/bypass/download. Deletion/history/pagination/conditional writes/recovery/continuation/manager options/hosted and full all-provider gates remain unfinished.
+
 ## General search integration
 
 Search sync+async now reuses StoredRecordSearch validation/matching and canonical Core SearchParams snapshot, not POST/oasis/search. Targeted encrypted avatar/holon reads, existing masks/group/metadata/owner/parent semantics, deleted exclusion/counts and shared graph projection. Snapshot before await prevents caller mutation changing in-flight query. Invalid input classified before I/O; downstream error envelope preserved.10newcontrolled cases/full116unitpass160ms; text/numeric/UTC-date masks and credential matching exclusion tested. No actual pod/network/hosted proof.
