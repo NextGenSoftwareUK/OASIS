@@ -141,42 +141,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var importedCount = 0;
-                foreach (var holon in holons)
-                {
-                    try
-                    {
-                        await holonRepository.AddAsync(holon);
-                        importedCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {ex.Message}");
-                        return result;
-                    }
-                }
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Successfully imported {importedCount} holons to Azure Cosmos DB";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error importing holons to Azure Cosmos DB: {ex.Message}", ex);
-            }
+            var saved=await SaveHolonsAsync(holons,continueOnError:false);
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+            result.Result=!saved.IsError && saved.IsSaved;
             return result;
         }
 
