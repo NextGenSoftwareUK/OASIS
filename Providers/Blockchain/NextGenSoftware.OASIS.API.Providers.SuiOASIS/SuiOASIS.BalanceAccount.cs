@@ -157,8 +157,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             try
             {
                 var balance = await InvokeSdkAsync("balance", new { walletAddress = accountAddress }, token);
-                result.Result = decimal.Parse(balance.GetProperty("balance").GetString(),
-                    System.Globalization.CultureInfo.InvariantCulture) / 1000000000m;
+                result.Result = TokenBalanceFromUnits(balance.GetProperty("balance").GetString());
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
