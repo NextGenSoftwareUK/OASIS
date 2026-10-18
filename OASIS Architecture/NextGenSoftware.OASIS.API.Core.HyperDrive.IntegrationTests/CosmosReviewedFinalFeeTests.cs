@@ -17,7 +17,7 @@ public sealed class CosmosReviewedFinalFeeTests(Xunit.Abstractions.ITestOutputHe
 {
     private const string BinaryHash="FFDBE57FFE7CCA974AC9BF6A9E800B11B7C037FBC7650BFAF185A828D18217A4";
     private const string GenesisHash="56584C2F943A7FFE6FB8A135FE5F6BA17144484F75949B16AFEE3F096EF3D03C";
-    internal static async Task<(CosmosBlockChainOASIS Provider,CosmosFeeModelReview Review,CosmosDeploymentObservation Observation)> CreateReviewedProviderAsync(Guid id,CancellationToken token,string maximumFeeUnits="50000")
+    internal static async Task<(CosmosBlockChainOASIS Provider,CosmosFeeModelReview Review,CosmosDeploymentObservation Observation)> CreateReviewedProviderAsync(Guid id,CancellationToken token,string maximumFeeUnits="50000",CosmosTokenEscrowConfiguration escrow=null)
     {
         var endpoint=new Uri("http://127.0.0.1:26657/");var observed=await InspectAsync(endpoint,token);
         Assert.Equal(BinaryHash,observed.BinarySha256);Assert.Equal(GenesisHash,observed.GenesisSha256);
@@ -26,8 +26,8 @@ public sealed class CosmosReviewedFinalFeeTests(Xunit.Abstractions.ITestOutputHe
             observed.CommittedHeight,observed.CommittedHeight+128,now.AddSeconds(-1),now.AddHours(1),TimeSpan.FromSeconds(30));
         var provider=await CosmosBlockChainOASIS.CreateWithReviewedFinalFeesAsync(
             CosmosNativeFeeLimits.ForReviewedStandardSdkChain(new Dictionary<string,string>{{"stake",maximumFeeUnits}},"oasis-cosmos-local"),review,InspectAsync,
-            endpoint.AbsoluteUri,"oasis-cosmos-local",Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_KEY")!,Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_CONTRACT")!,
-            storageEncryptionKeyResolver:()=>SHA256.HashData(Encoding.UTF8.GetBytes("oasis-cosmos-local-storage-fixture-v1")),token:token);
+            endpoint.AbsoluteUri,"oasis-cosmos-local",Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_KEY")!,escrow?.ContractAddress??Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_CONTRACT")!,
+            storageEncryptionKeyResolver:()=>SHA256.HashData(Encoding.UTF8.GetBytes("oasis-cosmos-local-storage-fixture-v1")),tokenEscrow:escrow,token:token);
         return(provider,review,observed);
     }
     internal static async Task<CosmosDeploymentObservation> InspectAsync(Uri endpoint,CancellationToken token)

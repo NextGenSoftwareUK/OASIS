@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees,[switch]$CosmosRoutingFeeRecovery,[switch]$CosmosReviewedBank,[switch]$SuiCSharpHistory,[switch]$CosmosReviewedToken,[switch]$CosmosReviewedNFT,[ValidateSet('Fees','DeployEscrow')][string]$CosmosReviewScenario='Fees')
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees,[switch]$CosmosRoutingFeeRecovery,[switch]$CosmosReviewedBank,[switch]$SuiCSharpHistory,[switch]$CosmosReviewedToken,[switch]$CosmosReviewedNFT,[ValidateSet('Fees','DeployEscrow','LockEscrow')][string]$CosmosReviewScenario='Fees')
 $ErrorActionPreference='Stop'
 if($CosmosReviewScenario -ne 'Fees' -and (!$CosmosPreparedOwners -or !$CosmosReviewedFees -or $PSBoundParameters.Count -ne 3)){throw 'Escrow deployment requires exclusive existing-owner reviewed-fee mode.'}
 if($CosmosReviewedNFT -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Reviewed NFT interfaces require exclusive existing-owner environment mode.'}
@@ -7,7 +7,7 @@ if($CosmosReviewedToken -and (!$CosmosPreparedOwners -or $PSBoundParameters.Coun
 if($SuiCSharpHistory -and (!$SuiPreparedLedger -or $PSBoundParameters.Count -ne 2)){throw 'Read-only Sui history requires exclusive retained-ledger mode.'}
 if($CosmosReviewedBank -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Reviewed Cosmos bank test requires exclusive existing-owner environment mode.'}
 if($CosmosRoutingFeeRecovery -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Original-only Cosmos recovery requires exclusive existing-owner environment mode.'}
-if($CosmosReviewedFees -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne $(if($CosmosReviewScenario -eq 'DeployEscrow'){3}else{2}))){throw 'Reviewed Cosmos fee test requires exclusive existing-owner environment mode.'}
+if($CosmosReviewedFees -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne $(if($CosmosReviewScenario -ne 'Fees'){3}else{2}))){throw 'Reviewed Cosmos fee test requires exclusive existing-owner environment mode.'}
 if($CosmosRoutingReconcile -and !$CosmosRoutingInspect){throw 'Reviewed Cosmos routing cleanup requires explicit incident selection.'}
 if($CosmosRoutingProbe -and (!$CosmosRoutingInspect -or $CosmosRoutingReconcile)){throw 'Zero-budget probe requires exclusive incident selection, never cleanup.'}
 if($CosmosRoutingInspect -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne $(if($CosmosRoutingReconcile -or $CosmosRoutingProbe){3}else{2}))){throw 'Cosmos routing incident inspection/reconciliation requires exclusive owned environment mode.'}
@@ -105,19 +105,19 @@ try{
     }elseif($CosmosPreparedOwners){
         $cosmosProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests.csproj'
         $cosmosStarted=[DateTime]::UtcNow
-        if($CosmosReviewedToken -or $CosmosReviewedNFT){
+        if($CosmosReviewedToken -or $CosmosReviewedNFT -or $CosmosReviewScenario -eq 'LockEscrow'){
             $cosmosProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
-            $nativeReport=if($CosmosReviewedNFT){'cosmos-reviewed-nft-interface-current.trx'}else{'cosmos-reviewed-token-interface-current.trx'}
+            $nativeReport=if($CosmosReviewScenario -eq 'LockEscrow'){'cosmos-reviewed-escrow-interface-current.trx'}elseif($CosmosReviewedNFT){'cosmos-reviewed-nft-interface-current.trx'}else{'cosmos-reviewed-token-interface-current.trx'}
             $priorAssetReport=Join-Path $work $nativeReport
             if(Test-Path -LiteralPath $priorAssetReport){
                 if((Get-Item -LiteralPath $priorAssetReport).Length -gt 1MB){throw 'Review oversized native financial evidence before making another copy.'}
                 $priorAssetHash=(Get-FileHash -LiteralPath $priorAssetReport -Algorithm SHA256).Hash
-                $assetFamily=if($CosmosReviewedNFT){'nft'}else{'token'}
+                $assetFamily=if($CosmosReviewScenario -eq 'LockEscrow'){'escrow'}elseif($CosmosReviewedNFT){'nft'}else{'token'}
                 $assetArchive=Join-Path $taskRoot "TestResults/HyperDriveCosmos/$assetFamily-financial-proof-$priorAssetHash.trx"
                 if(!(Test-Path -LiteralPath $assetArchive)){[IO.File]::Copy($priorAssetReport,$assetArchive,$false)}
                 if((Get-FileHash -LiteralPath $assetArchive -Algorithm SHA256).Hash -ne $priorAssetHash){throw 'Prior native financial report archive mismatch; refusing overwrite.'}
             }
-            $assetMethod=if($CosmosReviewedNFT){'NftInterfacesRetainOwnershipAndOriginalFees'}else{'CustomTokenInterfacesRetainExactSupplyOwnershipAndOriginalFees'}
+            $assetMethod=if($CosmosReviewScenario -eq 'LockEscrow'){'IdBoundEscrowUsesPersistedAvatarWalletAndOriginalFees'}elseif($CosmosReviewedNFT){'NftInterfacesRetainOwnershipAndOriginalFees'}else{'CustomTokenInterfacesRetainExactSupplyOwnershipAndOriginalFees'}
             & dotnet test $cosmosProject --no-build --no-restore --filter "FullyQualifiedName~CosmosReviewedTokenInterfaceTests.$assetMethod" --logger "trx;LogFileName=$nativeReport" --results-directory $work -v:q
         }elseif($CosmosReviewedBank){
             $cosmosProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
@@ -166,10 +166,10 @@ try{
         if($cosmosReport.LastWriteTimeUtc -lt $cosmosStarted){throw 'Cosmos report is stale.'}
         [xml]$cosmosEvidence=Get-Content -LiteralPath $cosmosReport.FullName
         $cosmosCounts=$cosmosEvidence.TestRun.ResultSummary.Counters
-        $expectedCosmos=if($CosmosReviewedToken -or $CosmosReviewedNFT){2}elseif($CosmosRoutingInspect -or $CosmosReviewedFees -or $CosmosRoutingFeeRecovery -or $CosmosReviewedBank){1}elseif($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){240}else{3}
+        $expectedCosmos=if($CosmosReviewScenario -eq 'LockEscrow'){2}elseif($CosmosReviewedToken -or $CosmosReviewedNFT){2}elseif($CosmosRoutingInspect -or $CosmosReviewedFees -or $CosmosRoutingFeeRecovery -or $CosmosReviewedBank){1}elseif($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){240}else{3}
         if([int]$cosmosCounts.total -ne $expectedCosmos -or [int]$cosmosCounts.passed -ne $expectedCosmos -or [int]$cosmosCounts.notExecuted -ne 0){throw 'All selected Cosmos cases must actually execute and pass without skips.'}
-        if($CosmosReviewedToken -or $CosmosReviewedNFT){
-            $assetCount=if($CosmosReviewedNFT){7}else{6}
+        if($CosmosReviewedToken -or $CosmosReviewedNFT -or $CosmosReviewScenario -eq 'LockEscrow'){
+            $assetCount=if($CosmosReviewScenario -eq 'LockEscrow'){5}elseif($CosmosReviewedNFT){7}else{6}
             $tokenCombinations=[Collections.Generic.HashSet[bool]]::new()
             foreach($case in $cosmosEvidence.TestRun.Results.UnitTestResult){
                 $line=([string]$case.Output.StdOut -split "`n"|Where-Object{$_.Trim().StartsWith('{"operation"')}|Select-Object -First 1)
@@ -177,7 +177,7 @@ try{
                 $caseData=$line.Trim()|ConvertFrom-Json
                 if(!$tokenCombinations.Add([bool]$caseData.synchronous)){throw 'Duplicate asset interface mode cannot replace sync/async coverage.'}
                 if(@($caseData.hashes).Count -ne $assetCount -or @($caseData.operation.ProviderAttempts).Count -ne $assetCount -or @($caseData.operation.Receipts).Count -ne $assetCount -or
-                    (!$CosmosReviewedNFT -and $caseData.finalSupply -ne '0') -or ($CosmosReviewedNFT -and ($caseData.family -ne 'nft' -or !$caseData.nftBurned -or !$caseData.unrelatedCustodyProofRejected))){
+                    (!$CosmosReviewedNFT -and $caseData.finalSupply -ne '0') -or ($CosmosReviewScenario -eq 'LockEscrow' -and $caseData.family -ne 'escrow') -or ($CosmosReviewedNFT -and ($caseData.family -ne 'nft' -or !$caseData.nftBurned -or !$caseData.unrelatedCustodyProofRejected))){
                     throw 'Expected original asset transactions, durable receipts and verified final asset state per mode.'
                 }
             }
