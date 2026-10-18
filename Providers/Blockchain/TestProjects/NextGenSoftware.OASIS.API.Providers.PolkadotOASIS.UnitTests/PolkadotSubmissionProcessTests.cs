@@ -19,8 +19,12 @@ public class PolkadotSubmissionProcessTests
         StringAssert.Contains(failure.Message, "owned durable preparation server");
     }
 
-    [DataTestMethod][DataRow("accepted")][DataRow("error")][DataRow("wrong-hash")][DataRow("false-finality")]
-    public async Task AcknowledgedOriginalCannotLoseIdentityOrBecomeFinalSuccess(string outcome)
+    [DataTestMethod]
+    [DataRow("submitNativePreparation", "accepted")][DataRow("submitNativePreparation", "error")]
+    [DataRow("submitNativePreparation", "wrong-hash")][DataRow("submitNativePreparation", "false-finality")]
+    [DataRow("submitAssetPreparation", "accepted")][DataRow("submitAssetPreparation", "error")]
+    [DataRow("submitAssetPreparation", "wrong-hash")][DataRow("submitAssetPreparation", "false-finality")]
+    public async Task AcknowledgedOriginalCannotLoseIdentityOrBecomeFinalSuccess(string operation, string outcome)
     {
         // Real owned child/physical pipe, controlled callback/response. NOT native ledger/outbox evidence.
         var prior = Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE");
@@ -33,7 +37,7 @@ public class PolkadotSubmissionProcessTests
             using var provider = new PolkadotOASIS("http://127.0.0.1:1");
             var method = typeof(PolkadotOASIS).GetMethod("InvokePolkadotSdkAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
             var pending = (Task<JsonElement>)method.Invoke(provider, new object[] {
-                new { operation = "submitNativePreparation", fixtureOutcome = outcome,
+                new { operation, fixtureOutcome = outcome,
                     preparation = new { transactionHash = hash, signedTransactionBase64 = "AQID" } },
                 CancellationToken.None, owner })!;
             if (outcome == "accepted")
