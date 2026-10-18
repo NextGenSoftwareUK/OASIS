@@ -45,6 +45,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
     public partial class TRONOASIS
     {
+        // Identifies this adapter's expected NFT ABI, not a full contract-conformance audit.
+        private static Web3NFT NativeNftDescriptor(string nativeAddress,string metadataUri)=>new()
+        {
+            NFTTokenAddress=nativeAddress,JSONMetaDataURL=metadataUri,
+            OnChainProvider=new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS),
+            NFTStandardType=new EnumValue<NFTStandardType>(Core.Enums.NFTStandardType.TRC721)
+        };
         /// <summary>Queries one explicit enumerable TRC721 collection. This is not cross-collection discovery.</summary>
         public async Task<OASISResult<List<IWeb3NFT>>> LoadNFTsForCollectionOwnerAsync(string collectionAddress, string ownerAddress)
         {
@@ -58,12 +65,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var ids = await client.GetNftIdsForOwnerAsync(collectionAddress, ownerAddress);
                     var items = new List<IWeb3NFT>();
                     foreach (var id in ids)
-                        items.Add(new Web3NFT
-                        {
-                            NFTTokenAddress = collectionAddress + "/" + id.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                            JSONMetaDataURL = await client.GetNftMetadataUriAsync(collectionAddress, id),
-                            OnChainProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
-                        });
+                        items.Add(NativeNftDescriptor(collectionAddress + "/" + id.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                            await client.GetNftMetadataUriAsync(collectionAddress, id)));
                     return items;
                 });
                 result.Message = "Native NFT identities and metadata URIs queried for the explicit collection and owner; no OASIS IDs or off-chain metadata are fabricated.";
@@ -120,12 +123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     foreach (var address in addresses)
                     {
                         var asset = TronNativeTransferClient.ParseNftAddress(address);
-                            items.Add(new Web3NFT
-                            {
-                                NFTTokenAddress = address,
-                                JSONMetaDataURL = await client.GetNftMetadataUriAsync(asset.Contract, asset.TokenId),
-                                OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
-                            });
+                        items.Add(NativeNftDescriptor(address,await client.GetNftMetadataUriAsync(asset.Contract, asset.TokenId)));
                     }
                     return items;
                 });
@@ -200,12 +198,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 var asset = TronNativeTransferClient.ParseNftAddress(nftTokenAddress);
                 var uri = await ExecuteNativeRuntimeAsync(client => client.GetNftMetadataUriAsync(asset.Contract, asset.TokenId));
-                response.Result = new Web3NFT
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    JSONMetaDataURL = uri,
-                    OnChainProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
-                };
+                response.Result = NativeNftDescriptor(nftTokenAddress,uri);
                 response.Message = "TRC721 existence and metadata URI queried through the verified SDK node; off-chain metadata is not fetched.";
             }
             catch (Exception ex)

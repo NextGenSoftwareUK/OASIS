@@ -224,6 +224,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(transaction);
+                if(transaction.NFTStandardType.HasValue && transaction.NFTStandardType.Value!=Core.Enums.NFTStandardType.TRC721)
+                    throw new ArgumentException("This TRON adapter mints TRC721 NFTs only.",nameof(transaction.NFTStandardType));
+                if(transaction.OnChainProvider.HasValue && transaction.OnChainProvider.Value!=Core.Enums.ProviderType.TRONOASIS
+                    && transaction.OnChainProvider.Value!=Core.Enums.ProviderType.Default)
+                    throw new ArgumentException("This native mint requires TRONOASIS or Default.",nameof(transaction.OnChainProvider));
                 if (transaction.Amount != 1 || (transaction.NumberToMint.HasValue && transaction.NumberToMint != 1))
                     throw new ArgumentException("This TRC721 collection extension mints exactly one explicit token ID per transaction.");
                 if (transaction.MintedByAvatarId == Guid.Empty)
@@ -258,9 +263,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 var recipient = string.IsNullOrWhiteSpace(requestedRecipient) ? wallet.Result.WalletAddress : requestedRecipient;
                 var hash = await ExecuteNativeRuntimeAsync(client => client.MintNftAsync(wallet.Result.WalletAddress,
                     recipient, contract, tokenId, metadataUri, wallet.Result.PrivateKey, memo));
-                var nft = new Web3NFT { NFTTokenAddress = contract + "/" + tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    JSONMetaDataURL = metadataUri, MintedByAvatarId = mintedByAvatarId, SendToAddressAfterMinting = recipient,
-                    OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS) };
+                var nft = NativeNftDescriptor(contract + "/" + tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),metadataUri);
+                nft.MintedByAvatarId=mintedByAvatarId;nft.SendToAddressAfterMinting=recipient;
                 response.Result = new Web3NFTTransactionResponse { TransactionResult = hash, Web3NFT = nft,
                     Web3NFTs = new List<IWeb3NFT> { nft } };
                 response.Message = "TRC721 mint extension confirmed by solidified contract receipt.";
