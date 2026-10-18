@@ -682,7 +682,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                ValidateGraphRead(maxChildDepth,curentChildDepth,version);
+                ValidateGraphRead(maxChildDepth,curentChildDepth,version,type);
                 var records=await ScanHolonsAsync();
                 var project=CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
                 result.Result = records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();
@@ -699,7 +699,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                ValidateGraphRead(maxChildDepth,curentChildDepth,version);
+                ValidateGraphRead(maxChildDepth,curentChildDepth,version,type);
                 var holons=(await ScanHolonsAsync())
                     .Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).ToList();
                 var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():holons;
@@ -716,8 +716,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             if(version!=0) throw new NotSupportedException("DynamoDB records currently retain only the latest version (0); historical reads are not implemented.");
         }
 
-        private static void ValidateGraphRead(int maxDepth,int initialDepth,int version)
+        private static void ValidateGraphRead(int maxDepth,int initialDepth,int version,HolonType? type=null)
         {
+            if(type.HasValue && !System.Enum.IsDefined(typeof(HolonType),type.Value)) throw new ArgumentOutOfRangeException(nameof(type));
             if(maxDepth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
             ValidateRecordVersion(version);
         }
