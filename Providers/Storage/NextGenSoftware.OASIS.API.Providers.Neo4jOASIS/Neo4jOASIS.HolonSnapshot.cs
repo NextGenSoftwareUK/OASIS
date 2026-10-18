@@ -174,6 +174,7 @@ public partial class Neo4jOASIS
             for (var index = 0; index < sources.Count; index++)
             {
                 sources[index].Id = staged[index].Id;
+                sources[index].ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 sources[index].ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = staged[index].Id.ToString();
                 sources[index].IsNewHolon = false;
                 sources[index].ParentHolonId = staged[index].ParentHolonId;

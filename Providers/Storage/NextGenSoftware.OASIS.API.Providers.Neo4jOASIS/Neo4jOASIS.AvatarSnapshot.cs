@@ -37,6 +37,7 @@ public partial class Neo4jOASIS
                 await transaction.CommitAsync();
             }
             source.Id = acknowledged.Id;
+            source.ProviderUniqueStorageKey ??= new System.Collections.Generic.Dictionary<Core.Enums.ProviderType,string>();
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = acknowledged.Id.ToString();
             source.IsNewHolon = false;
             if(archiveVersions){source.Version=acknowledged.Version;source.VersionId=acknowledged.VersionId;source.PreviousVersionId=acknowledged.PreviousVersionId;}
