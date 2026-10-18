@@ -4,6 +4,7 @@ import { prepareNativeTransfer, validateTransferRequest } from './native-transfe
 import { ReadOnlyHttpProvider } from './read-only-provider.mjs';
 import { verifyNativePreparation } from './verify-preparation.mjs';
 import { pathToFileURL } from 'node:url';
+import { readFinalizedReceipt, validateReceiptRequest } from './finalized-receipt.mjs';
 
 // Network operations are read-only. Preparation can sign but NEVER submits an extrinsic.
 let api;
@@ -12,7 +13,8 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
-  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'finalizedReceipt'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (request.operation === 'finalizedReceipt') validateReceiptRequest(request);
   if (request.operation === 'persistNativePreparation' && (!process.env.OASIS_NATIVE_PREPARATION_PIPE || !process.env.OASIS_NATIVE_PREPARATION_MODULE))
     throw new Error('Owned persistence transport is required; no preparation acknowledgement can be invented.');
   const endpoint = new URL(request.endpoint);
@@ -28,7 +30,7 @@ try {
   if (api.genesisHash.toHex().toLowerCase() !== request.genesisHash.toLowerCase())
     throw new Error('Polkadot SDK genesis hash differs from the activated network.');
   let decimals;
-  if (!['verifyNativePreparation', 'persistNativePreparation'].includes(request.operation)) {
+  if (!['verifyNativePreparation', 'persistNativePreparation', 'finalizedReceipt'].includes(request.operation)) {
   stage = 'native precision query';
   const properties = await api.rpc.system.properties();
   if (properties.tokenDecimals.isNone || properties.tokenDecimals.unwrap().length !== 1)
@@ -37,7 +39,10 @@ try {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
   }
-  if (request.operation === 'persistNativePreparation') {
+  if (request.operation === 'finalizedReceipt') {
+    stage = 'finalized canonical dispatch and native fee receipt';
+    process.stdout.write(JSON.stringify({ ok: true, result: await readFinalizedReceipt(api, request) }));
+  } else if (request.operation === 'persistNativePreparation') {
     stage = 'verified original persistence acknowledgement';
     const identity = await verifyNativePreparation(api, request.preparation);
     const { preparationClient } = await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
