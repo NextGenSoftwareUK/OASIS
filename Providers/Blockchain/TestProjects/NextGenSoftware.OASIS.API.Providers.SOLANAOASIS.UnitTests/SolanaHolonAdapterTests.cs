@@ -344,6 +344,30 @@ public class SolanaHolonAdapterTests
         }
     }
 
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)]
+    [DataRow(false,true)] [DataRow(true,true)]
+    public async Task DeleteHolonDoesNotMutateRepositoryOwnedRecordBeforeConfirmedTombstone(bool sync,bool fail)
+    {
+        var stored=new SolanaHolonDto {Id=Guid.NewGuid(),Version=5,PreviousVersionId=Guid.NewGuid(),Name="owned source"};
+        var previous=stored.PreviousVersionId;
+        var repository=new RecordsRepository {Records=new[] {(stored,"owned-source")},AllowTombstone=true};
+        var cause=new SolanaTransactionReconciliationException("owned-pending-tombstone",new System.IO.IOException("owned lost reply"));
+        if(fail) repository.TombstoneCause=cause;
+        var provider=new ActiveProvider(repository);
+        var result=sync ? provider.DeleteHolon("owned-source"):await provider.DeleteHolonAsync("owned-source");
+        Assert.AreEqual(5,stored.Version);Assert.IsFalse(stored.IsDeleted);Assert.AreEqual(previous,stored.PreviousVersionId);
+        Assert.AreEqual(fail,result.IsError);
+        if(fail){Assert.IsNull(result.Result);Assert.IsFalse(result.IsDeleted);Assert.AreSame(cause,result.Exception);}
+        else
+        {
+            Assert.IsTrue(result.IsDeleted);Assert.AreEqual(1,result.DeletedCount);
+            Assert.AreEqual(6,result.Result.Version);Assert.AreEqual(stored.Id,result.Result.PreviousVersionId);
+            Assert.AreEqual("owned-tombstone",result.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+        }
+        Assert.AreEqual(1,repository.TombstoneCalls);
+    }
+
     private sealed class ActiveProvider:SolanaOASIS
     {
         public ActiveProvider(ISolanaRepository repository):this(new Account(),repository) {}
@@ -363,6 +387,7 @@ public class SolanaHolonAdapterTests
         public Exception? ReadCause;
         public bool AllowPartialWrite;
         public bool AllowAllWrites;
+        public bool AllowTombstone;public int TombstoneCalls;public Exception? TombstoneCause;
         public bool ContinueAfterOneFailure;
         public List<SolanaBaseDto> Written=new();
         public int WriteCalls;
@@ -394,6 +419,12 @@ public class SolanaHolonAdapterTests
         }
         public Task<string> UpdateAsync<T>(T entity) where T:SolanaBaseDto,new() => throw new InvalidOperationException("Unexpected write");
         public Task<bool> DeleteAsync(string reference) => throw new InvalidOperationException("Unexpected write");
-        public Task<string> CreateTombstoneAsync(string reference) => throw new InvalidOperationException("Unexpected write");
+        public Task<string> CreateTombstoneAsync(string reference)
+        {
+            if(!AllowTombstone) throw new InvalidOperationException("Unexpected write");
+            TombstoneCalls++;Assert.AreEqual("owned-source",reference);
+            if(TombstoneCause!=null) throw TombstoneCause;
+            return Task.FromResult("owned-tombstone");
+        }
     }
 }
