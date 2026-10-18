@@ -120,7 +120,7 @@ public class HederaPreparedNativeReadTests
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
         var store=new MongoUsageOutboxStore(connection,"usage_hedera_native_read");using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(40));
         var original=await store.GetAsync("222c0b6b-625a-8198-564d-08b7f55ff929",deadline.Token);
-        Assert.AreEqual(4,original.ProviderAttempts.Count);Assert.AreEqual(.28294688m,original.NativeFeeExposureUsd);Assert.IsNull(original.Settlement);Assert.AreEqual(0,original.Receipts.Count);
+        Assert.AreEqual(4,original.ProviderAttempts.Count);Assert.AreEqual(.28294688m,original.NativeFeeExposureUsd);Assert.IsNull(original.Settlement);Assert.IsTrue(original.Receipts.Count==0||original.Receipts.Count==4);
         var before=JsonSerializer.SerializeToElement(original);
         var reader=new HashgraphOASIS("https://testnet.mirrornode.hedera.com","testnet","296");var fees=new List<object>();long debit=0;
         try{
@@ -139,6 +139,63 @@ public class HederaPreparedNativeReadTests
                     readOnly=true,signingKeyLoaded=false,paidSdkQueries=0,nativeReplay=false,settlementAuthorized=false},cancellationToken:deadline.Token);file.Flush(true);
             }
             Console.WriteLine($"Verified4 original activation payments; actual debit={debit}tinybar; no replay or ledger mutation. Evidence SHA256={Hash(report)}");
+        }finally{await reader.DeActivateProviderAsync();}
+    }
+    [TestMethod,TestCategory("OriginalFeeRecovery")]
+    public async Task RecoverExactRetainedActivationFeesWithoutReplayOrSettlement()
+    {
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        while(root!=null&&!File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/inspect-reusable-hedera-store.mjs")))root=root.Parent;
+        Assert.IsNotNull(root);
+        var journal=Path.Combine(root!.FullName,"TestResults/HederaRuntime/prepared-read-pending.json");
+        string Hash(string path)=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
+        const string originalHash="D1ECE5EC7741321656DEFA52C8BD564E020DCED7342B31F4FF521F8CD1E34A81";
+        Assert.AreEqual(originalHash,Hash(journal));
+        Assert.AreEqual("A8399DD51E00CC60D0A8F22D8E83A0467BA16943084B882E6A94431CA7C22FFC",Hash(Path.Combine(root.FullName,"TestResults/SubscriptionUsageCurrent/hedera-native-routed-read-current.trx")));
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        var store=new MongoUsageOutboxStore(connection,"usage_hedera_native_read");
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(50));var token=deadline.Token;
+        var before=await store.GetAsync("222c0b6b-625a-8198-564d-08b7f55ff929",token);
+        Assert.IsNotNull(before);Assert.AreEqual(4,before.ProviderAttempts.Count);
+        Assert.IsTrue(before.Receipts.Count==0||before.Receipts.Count==4);
+        Assert.IsNull(before.Settlement);Assert.IsNull(before.ObservedOutcome);
+        Assert.AreEqual(.28294688m,before.NativeFeeExposureUsd);
+        CollectionAssert.AreEquivalent(new[]{"0.0.10993779@1792286952.005024084","0.0.10993779@1792286948.921744250",
+            "0.0.10993779@1792286953.043343477","0.0.10993779@1792286952.544962538"},before.ProviderAttempts.Select(x=>x.ProviderRequestId).ToArray());
+        var backup=Path.Combine(root.FullName,"TestResults/HederaRuntime/activation-fee-recovery-before.json");
+        if(!File.Exists(backup)){
+            Assert.AreEqual(0,before.Receipts.Count);
+            using var output=new FileStream(backup,FileMode.CreateNew,FileAccess.Write,FileShare.None);
+            await JsonSerializer.SerializeAsync(output,new{originalJournalSha256=originalHash,original=before},cancellationToken:token);output.Flush(true);
+        }
+        using(var archived=JsonDocument.Parse(File.ReadAllText(backup))){
+            Assert.AreEqual(originalHash,archived.RootElement.GetProperty("originalJournalSha256").GetString());
+            var original=JsonSerializer.Deserialize<UsageOutboxOperation>(archived.RootElement.GetProperty("original").GetRawText())!;
+            Assert.AreEqual(before.Id,original.Id);Assert.AreEqual(before.ExecutionOwner,original.ExecutionOwner);
+            Assert.AreEqual(0,original.Receipts.Count);
+            Assert.AreEqual(JsonSerializer.Serialize(before.ProviderAttempts),JsonSerializer.Serialize(original.ProviderAttempts));
+        }
+        var reader=new HashgraphOASIS("https://testnet.mirrornode.hedera.com","testnet","296");
+        try{
+            var recovery=new PreparedNativeUsageRecoveryResolver(store,new[]{(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)reader});
+            Assert.IsNull(await recovery.ResolveAsync(before,token));
+            var after=await store.GetAsync(before.Id,token);
+            Assert.AreEqual(4,after.Receipts.Count);Assert.IsNull(after.Settlement);Assert.IsNull(after.ObservedOutcome);
+            CollectionAssert.AreEquivalent(before.ProviderAttempts.Select(x=>x.ProviderRequestId).ToArray(),after.Receipts.Select(x=>x.ProviderRequestId).ToArray());
+            CollectionAssert.AreEquivalent(before.ProviderAttempts.Select(x=>x.ClientRequestId).ToArray(),after.Receipts.Select(x=>x.ClientRequestId).ToArray());
+            Assert.AreEqual(.247636m,after.Receipts.Sum(x=>x.ActualCostUsd)); // Original synthetic1USD/HBAR only.
+            Assert.AreEqual(JsonSerializer.Serialize(before.ProviderAttempts),JsonSerializer.Serialize(after.ProviderAttempts));
+            Assert.AreEqual(before.NativeFeeExposureUsd,after.NativeFeeExposureUsd);
+            Assert.IsFalse(reader.IsProviderActivated);Assert.AreEqual(originalHash,Hash(journal));
+            Assert.IsNull(await recovery.ResolveAsync(after,token));
+            var again=await store.GetAsync(before.Id,token);Assert.AreEqual(JsonSerializer.Serialize(after),JsonSerializer.Serialize(again));
+            var report=Path.Combine(root.FullName,"TestResults/HederaRuntime/activation-fee-recovery.json");
+            using(var output=new FileStream(report,FileMode.Create,FileAccess.Write,FileShare.None)){
+                await JsonSerializer.SerializeAsync(output,new{originalJournalSha256=originalHash,beforeArchiveSha256=Hash(backup),after,
+                    paidSdkQueries=0,signingKeyLoaded=false,nativeReplay=false,logicalOutcomeInferred=false,settlementAuthorized=false},cancellationToken:token);output.Flush(true);
+            }
+            Console.WriteLine("Recovered4 original activation fee receipts without native replay/settlement; journal retained. EvidenceSHA256="+Hash(report));
         }finally{await reader.DeActivateProviderAsync();}
     }
     private sealed class Authority(string user):HttpMessageHandler
