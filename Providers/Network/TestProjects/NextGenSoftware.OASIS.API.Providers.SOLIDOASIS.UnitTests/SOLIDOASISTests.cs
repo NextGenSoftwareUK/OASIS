@@ -22,7 +22,7 @@ public class SOLIDOASISTests
         // Assert
         Assert.NotNull(provider);
         Assert.Equal("SOLIDOASIS", provider.ProviderName);
-        Assert.Equal("SOLID (Social Linked Data) Provider - Decentralized personal data storage", provider.ProviderDescription);
+        Assert.Equal("SOLID (Social Linked Data) Provider — decentralized personal data storage in LDP pods", provider.ProviderDescription);
         Assert.Equal(ProviderType.SOLIDOASIS, provider.ProviderType.Value);
         Assert.Equal(ProviderCategory.StorageAndNetwork, provider.ProviderCategory.Value);
     }
@@ -159,7 +159,7 @@ public class SOLIDOASISTests
         // Assert
         Assert.Contains("SOLID", description);
         Assert.Contains("Social Linked Data", description);
-        Assert.Contains("Decentralized", description);
+        Assert.Contains("decentralized", description);
     }
 }
 
