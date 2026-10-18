@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends git \
 
 WORKDIR /src
 COPY . .
+RUN sh /src/Docker/verify-vendored-provider-sources.sh /src
 
 ARG GITHUB_PAT
 COPY Docker/clone-pinned-oasis-dependencies.sh /tmp/clone-pinned-oasis-dependencies.sh

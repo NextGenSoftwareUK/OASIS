@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
     {
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync().Result;
+            return Task.Run(() => GenerateKeyPairAsync()).GetAwaiter().GetResult();
         }
 
         public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
@@ -49,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
         {
-            return GenerateKeyPairAsync(request).Result;
+            return Task.Run(() => GenerateKeyPairAsync(request)).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
@@ -63,43 +63,24 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return result;
                 }
 
-                // Generate Polkadot SR25519 key pair using Substrate/Polkadot-specific cryptography
-                // Polkadot uses SR25519 (Schnorr signatures over Ristretto25519) for key generation
-                var privateKeyBytes = new byte[32];
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(privateKeyBytes);
-                }
-
-                // Generate SR25519 key pair for Polkadot/Substrate
-                // Note: In production, use Substrate.NetApi or similar library for proper SR25519 implementation
-                // For now, we generate compatible keys using cryptographic primitives
-                var privateKey = Convert.ToBase64String(privateKeyBytes);
-                
-                // Derive public key from private key using SR25519
-                // Simplified implementation - in production use proper SR25519 library
-                using var sha512 = System.Security.Cryptography.SHA512.Create();
-                var hash = sha512.ComputeHash(privateKeyBytes);
-                var publicKeyBytes = new byte[32];
-                Array.Copy(hash, 0, publicKeyBytes, 0, 32);
-                var publicKey = Convert.ToBase64String(publicKeyBytes);
-                
-                // Generate Polkadot address from public key (SS58 encoding)
-                // Polkadot addresses use SS58 encoding with prefix 0 (Polkadot mainnet)
-                var address = DerivePolkadotAddress(publicKeyBytes);
-
-                // Create KeyPairAndWallet using KeyHelper but override with Polkadot-specific values from SR25519
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PrivateKey = privateKey;
-                    keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = address; // Polkadot SS58 address
-                }
-
-                result.Result = keyPair;
-                result.IsError = false;
-                result.Message = "Polkadot SR25519 key pair generated successfully";
+                if (!string.IsNullOrWhiteSpace(request?.WalletAddress))
+                    throw new ArgumentException("New key generation does not recover or replace an existing wallet address.");
+                var generated = await InvokePolkadotSdkAsync(new { operation = "generateKeyPair", endpoint = _rpcEndpoint,
+                    genesisHash = ReportedGenesisHash }).ConfigureAwait(false);
+                var seed = generated.GetProperty("privateKey").GetString();
+                var publicKey = generated.GetProperty("publicKey").GetString();
+                var address = generated.GetProperty("address").GetString();
+                var prefix = generated.GetProperty("ss58Format").GetInt32();
+                if (generated.GetProperty("chainId").GetString() != ReportedGenesisHash
+                    || generated.GetProperty("cryptoType").GetString() != "sr25519"
+                    || !IsGenesisHash(seed) || !IsGenesisHash(publicKey)
+                    || prefix < 0 || prefix > 16383 || prefix is 46 or 47
+                    || address == null || address.Length < 35 || address.Length > 50
+                    || !System.Text.RegularExpressions.Regex.IsMatch(address, "^[1-9A-HJ-NP-Za-km-z]+$"))
+                    throw new System.IO.InvalidDataException("SDK key generation response is invalid; key values withheld.");
+                result.Result = new KeyHelper.KeyPairAndWallet { PrivateKey = seed, PublicKey = publicKey,
+                    WalletAddressLegacy = address, WalletAddressSegwitP2SH = null };
+                result.Message = "New SDK sr25519 seed/public key and authoritative-network SS58 address generated; no wallet stored, funded or submitted.";
             }
             catch (Exception ex)
             {

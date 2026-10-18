@@ -10,6 +10,35 @@ public class PolkadotReadOnlyNativeTests
 {
     private const string Genesis="0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3";
 
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)][TestCategory("ReadOnlyNative")]
+    public async Task GeneratedKeysPrepareAndIndependentlyVerifyWithoutFundingOrSubmission(bool synchronous,bool requestOverload)
+    {
+        Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_POLKADOT_READONLY_NATIVE"));
+        using var provider=new PolkadotOASIS("https://rpc.polkadot.io",Genesis);
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var generated=requestOverload
+            ? (synchronous ? provider.GenerateKeyPair(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3WalletBalanceRequest())
+                : await provider.GenerateKeyPairAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3WalletBalanceRequest()))
+            : (synchronous ? provider.GenerateKeyPair() : await provider.GenerateKeyPairAsync());
+        Assert.IsFalse(generated.IsError,generated.Exception?.ToString());
+        var wallet=generated.Result;
+        try {
+            Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(wallet.PrivateKey,"^0x[0-9a-fA-F]{64}$"),"Seed format invalid (value withheld).");
+            Assert.IsFalse(wallet.WalletAddressLegacy.StartsWith("0x",StringComparison.Ordinal));
+            Assert.IsNull(wallet.WalletAddressSegwitP2SH);
+            var prepared=await provider.PrepareNativeTokenTransferAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest {
+                FromWalletAddress=wallet.WalletAddressLegacy,ToWalletAddress="0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+                Amount=0.0000000001m,OwnerPublicKey=wallet.PublicKey,OwnerPrivateKey=wallet.PrivateKey,OwnerSeedPhrase=null! });
+            Assert.IsFalse(prepared.IsError,prepared.Exception?.ToString());
+            Assert.AreEqual(wallet.PublicKey,prepared.Result.GetProperty("sender").GetString());
+            Assert.AreEqual("1",prepared.Result.GetProperty("units").GetString()); // Actual Polkadot native precision, not a guessed local value.
+            Assert.IsFalse(prepared.Result.GetProperty("submitted").GetBoolean());
+            var verified=await provider.VerifyNativeTokenTransferPreparationAsync(prepared.Result);
+            Assert.IsFalse(verified.IsError,verified.Exception?.ToString());
+            Assert.AreEqual(wallet.PublicKey,verified.Result.GetProperty("sender").GetString());
+        } finally { wallet.PrivateKey=null!; } // Never persist/log/fund these ephemeral generated test keys.
+    }
+
     [DataTestMethod][DataRow(false,false,false,false)][DataRow(true,false,false,false)][DataRow(false,true,false,false)][DataRow(false,false,true,false)][DataRow(false,false,false,true)][TestCategory("ReadOnlyNative")]
     public async Task NativePreparationPipeAcknowledgesOnlyAfterVerifiedPersistence(bool rejectPersistence,bool rejectOriginalIdentity,bool cancelPersistence,bool failAfterFlush)
     {

@@ -139,34 +139,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         }
 
         /// <summary>
-        /// Derives Polkadot address from public key using SS58 encoding
-        /// Polkadot uses SS58 encoding with prefix 0 for mainnet
-        /// </summary>
-        private string DerivePolkadotAddress(byte[] publicKeyBytes)
-        {
-            try
-            {
-                // SS58 encoding for Polkadot (simplified - in production use proper SS58 library)
-                // Polkadot mainnet uses prefix 0, testnet uses prefix 42
-                var prefix = _chainId == "polkadot" ? (byte)0 : (byte)42;
-                
-                // Create address bytes: prefix + public key
-                var addressBytes = new byte[publicKeyBytes.Length + 1];
-                addressBytes[0] = prefix;
-                Array.Copy(publicKeyBytes, 0, addressBytes, 1, publicKeyBytes.Length);
-                
-                // Base58 encode (simplified - use proper Base58 library in production)
-                // For now, return hex representation
-                return "0x" + BitConverter.ToString(addressBytes).Replace("-", "").ToLowerInvariant();
-            }
-            catch
-            {
-                // Fallback to hex representation of public key
-                return "0x" + BitConverter.ToString(publicKeyBytes).Replace("-", "").ToLowerInvariant();
-            }
-        }
-
-        /// <summary>
         /// Create Avatar from Polkadot response when JSON deserialization fails
         /// </summary>
         private Avatar CreateAvatarFromPolkadot(string polkadotJson)
