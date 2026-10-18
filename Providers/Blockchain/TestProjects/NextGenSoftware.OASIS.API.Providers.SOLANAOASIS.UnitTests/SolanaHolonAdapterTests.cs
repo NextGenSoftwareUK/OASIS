@@ -278,7 +278,7 @@ public class SolanaHolonAdapterTests
         Assert.IsTrue((await provider.LoadAllHolonsAsync(maxChildDepth:-1)).IsError);
         Assert.IsTrue((await provider.LoadAllHolonsAsync(curentChildDepth:-1)).IsError);
         Assert.IsTrue((await provider.LoadHolonAsync("signature",maxChildDepth:-1)).IsError);
-        Assert.IsTrue((await provider.LoadHolonAsync("signature",version:1,loadChildrenFromProvider:true)).IsError);
+        Assert.IsTrue((await provider.LoadHolonAsync("signature",version:-1,loadChildrenFromProvider:true)).IsError);
         Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync(" ","value")).IsError);
         Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string>(),MetaKeyValuePairMatchMode.All)).IsError);
         Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string> {{"key","value"}},(MetaKeyValuePairMatchMode)999)).IsError);
@@ -315,6 +315,33 @@ public class SolanaHolonAdapterTests
         Assert.AreEqual(flat ? 0:1,root.Children.Count);
         if(!flat){Assert.AreEqual(childId,root.Children.Single().Id);Assert.AreEqual(11,root.Children.Single().Version);}
         CollectionAssert.AreEqual(flat ? new[] {2}:new[] {2,0},repository.RequestedVersions);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)]
+    [DataRow(false,true)] [DataRow(true,true)]
+    public async Task HistoricalSignatureGraphsValidateRootVersionBeforeLoadingCurrentChildren(bool sync,bool mismatch)
+    {
+        var root=new SolanaHolonDto {Id=Guid.NewGuid(),Version=2,Name="historical signature root"};
+        var child=new SolanaHolonDto {Id=Guid.NewGuid(),ParentHolonId=root.Id,Version=19,Name="independent current child"};
+        var repository=new RecordsRepository {Records=new[] {(root,"historical-root"),(child,"current-child")}};
+        var provider=new ActiveProvider(repository);
+        var result=sync ? provider.LoadHolon("historical-root",loadChildrenFromProvider:true,version:mismatch ? 3:2)
+            : await provider.LoadHolonAsync("historical-root",loadChildrenFromProvider:true,version:mismatch ? 3:2);
+        Assert.AreEqual(mismatch,result.IsError,result.Message);
+        if(mismatch)
+        {
+            Assert.IsNull(result.Result);Assert.IsInstanceOfType(result.Exception,typeof(KeyNotFoundException));
+            Assert.AreEqual(1,repository.Reads);Assert.AreEqual(0,repository.RequestedVersions.Count);
+        }
+        else
+        {
+            Assert.IsTrue(result.IsLoaded);Assert.AreEqual(2,result.Result.Version);
+            Assert.AreEqual("historical-root",result.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+            Assert.AreEqual(19,result.Result.Children.Single().Version);
+            Assert.AreEqual("current-child",result.Result.Children.Single().ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+            CollectionAssert.AreEqual(new[] {0},repository.RequestedVersions);Assert.AreEqual(2,repository.Reads);
+        }
     }
 
     private sealed class ActiveProvider:SolanaOASIS
