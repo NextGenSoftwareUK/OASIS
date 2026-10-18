@@ -6,6 +6,25 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosNftSignerTests
 {
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task SendPreservesOriginalWalletIntentAcrossSignerAwait(bool changeSender,bool verifyPublicKey)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-signer.mjs"));
+        try{
+            using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1","fixture-chain","different-configured-key","fixture-contract");
+            var request=new SendWeb3NFTRequest{TokenAddress="fixture-contract#ownership-matching",TokenId="ownership-matching",
+                FromWalletAddress="fixture-owner",ToWalletAddress="fixture-recipient",OwnerPrivateKey="test-only-explicit",OwnerPublicKey=verifyPublicKey?"fixture-public":null!,Amount=1};
+            var pending=provider.SendNFTAsync(request);Assert.IsFalse(pending.IsCompleted,"Exercise the asynchronous signer boundary.");
+            if(changeSender)request.FromWalletAddress="changed-sender";else request.ToWalletAddress="changed-recipient";
+            request.TokenAddress="other-contract#other-token";request.TokenId="other-token";
+            var result=await pending;Assert.IsFalse(result.IsError,result.Message);
+            Assert.AreEqual(new string('a',64),result.Result.SendNFTTransactionResult);
+            Assert.AreEqual("fixture-recipient",result.Result.Web3NFT.SendToAddressAfterMinting);
+            Assert.AreEqual("fixture-contract#ownership-matching",result.Result.Web3NFT.NFTTokenAddress);
+        }finally{Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
+    }
+
     [TestMethod]
     public async Task PublicRawBalancePreservesFullRangeAndDecimalQueryErrorsThroughProcess()
     {
