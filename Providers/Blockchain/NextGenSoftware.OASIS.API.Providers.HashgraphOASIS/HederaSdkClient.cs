@@ -115,11 +115,14 @@ internal static class HederaSdkClient
             {
                 string transactionId = originalId;
                 string approvalId = null, mutationId = null, stage = null, status = null;
+                bool queryPaymentCapExceeded = false;
                 bool nativeIdReported = false;
                 Exception evidenceParseError = null;
                 try
                 {
                     using var parsed = JsonDocument.Parse(failure);
+                    queryPaymentCapExceeded = parsed.RootElement.TryGetProperty("failureCode", out var failureCode)
+                        && failureCode.ValueKind == JsonValueKind.String && failureCode.GetString() == "QUERY_PAYMENT_CAP_EXCEEDED";
                     if (parsed.RootElement.TryGetProperty("transactionId", out var id))
                     {
                         var reportedId = id.GetString();
@@ -144,11 +147,13 @@ internal static class HederaSdkClient
                     evidenceParseError = ex;
                     transactionId = originalId;
                     approvalId = null; mutationId = null; stage = null; status = null;
+                    queryPaymentCapExceeded = false;
                 }
                 var reconciliation = (approvalId == null ? "" : $" Confirmed approval: {approvalId}.")
                     + (mutationId == null ? "" : $" Original escrow mutation: {mutationId}.")
                     + (stage == null ? "" : $" Failure stage: {stage}.")
-                    + (status == null ? "" : $" Native status: {status}.");
+                    + (status == null ? "" : $" Native status: {status}.")
+                    + (queryPaymentCapExceeded ? " Query payment quote exceeds the configured cap; prior attempts still require reconciliation." : "");
                 var message = (transactionId == null ? "Hedera SDK operation failed."
                     : $"Hedera verified success was not established for {transactionId}. Track the original transaction before retrying.") + reconciliation;
                 if (isMutation && (approvalId != null || stage is "submission" or "receipt" or "approval" or "mutation" or "readback"

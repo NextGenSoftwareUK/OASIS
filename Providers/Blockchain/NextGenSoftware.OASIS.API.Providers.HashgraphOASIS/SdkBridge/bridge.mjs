@@ -4,7 +4,12 @@ import { Mnemonic } from '@hiero-ledger/sdk';
 import { executeEscrow, executeTokenEscrow,verifyDepositorAccount } from './escrow.mjs';
 import { tokenUnits } from './token-amount.mjs';
 export { tokenUnits } from './token-amount.mjs';
-import {AccountInfoQuery} from '@hiero-ledger/sdk';
+import {AccountInfoQuery,MaxQueryPaymentExceeded} from '@hiero-ledger/sdk';
+// Only a real pinned-SDK exception receives this code. Never forward names/messages
+// from arbitrary errors or infer that earlier requests in this invocation were free.
+export function safeSdkFailureCode(error) {
+  return error instanceof MaxQueryPaymentExceeded ? 'QUERY_PAYMENT_CAP_EXCEEDED' : undefined;
+}
 import {executeDeployment} from './deployment.mjs';
 import { ContractId, ContractCallQuery, ContractExecuteTransaction } from '@hiero-ledger/sdk';
 import { Interface, getBytes } from 'ethers';
@@ -397,7 +402,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.stdout.write(JSON.stringify(result));
   } catch (error) {
     // Do not expose SDK exception text or stacks which could contain key input.
-    process.stderr.write(JSON.stringify({ error: 'Hedera SDK operation failed',
+    process.stderr.write(JSON.stringify({ error: 'Hedera SDK operation failed', failureCode:safeSdkFailureCode(error),
       transactionId: error.transactionId, mutationTransactionId: error.mutationTransactionId,
       approvalTransactionId: error.approvalTransactionId, stage: error.stage, status: error.status }));
     process.exitCode = 1;
