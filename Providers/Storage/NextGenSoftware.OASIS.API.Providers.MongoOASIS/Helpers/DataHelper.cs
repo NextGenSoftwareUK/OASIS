@@ -16,6 +16,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 {
     public static class DataHelper
     {
+        private static AvatarStat CopyAvatarStat(AvatarStat value)=>value==null?null:new AvatarStat{Current=value.Current,Max=value.Max};
+        private static AvatarStats CopyAvatarStats(IAvatarStats value)=>value==null?null:new AvatarStats{
+            Energy=CopyAvatarStat(value.Energy),HP=CopyAvatarStat(value.HP),Mana=CopyAvatarStat(value.Mana),Stamina=CopyAvatarStat(value.Stamina)};
+        private static AvatarSuperPowers CopyAvatarPowers(IAvatarSuperPowers value)=>value==null?null:new AvatarSuperPowers{
+            AstralProjection=value.AstralProjection,BioLocatation=value.BioLocatation,Flight=value.Flight,
+            FreezeBreath=value.FreezeBreath,HeatVision=value.HeatVision,Invulnerability=value.Invulnerability,
+            RemoteViewing=value.RemoteViewing,SuperSpeed=value.SuperSpeed,SuperStrength=value.SuperStrength,
+            Telekinesis=value.Telekinesis,Telepathy=value.Telepathy,Teleportation=value.Teleportation,XRayVision=value.XRayVision};
+        private static AvatarAura CopyAvatarAura(IAvatarAura value)=>value==null?null:new AvatarAura{
+            Progress=value.Progress,Brightness=value.Brightness,Size=value.Size,ColourBlue=value.ColourBlue,
+            ColourGreen=value.ColourGreen,ColourRed=value.ColourRed,Level=value.Level,Value=value.Value};
+        private static HumanDesign CopyHumanDesign(IHumanDesign value)=>value==null?null:new HumanDesign{Type=value.Type};
+
         private static AvatarSkills CopyAvatarSkills(IAvatarSkills value) => value == null ? null : new AvatarSkills
         {
             Computers=value.Computers,Engineering=value.Engineering,Farming=value.Farming,
@@ -262,8 +275,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     oasisAvatar.Spells.Add((Spell)item);
             }
 
-            oasisAvatar.Stats = avatar.Result.Stats;
-            oasisAvatar.SuperPowers = avatar.Result.SuperPowers;
+            oasisAvatar.Stats = CopyAvatarStats(avatar.Result.Stats);
+            oasisAvatar.SuperPowers = CopyAvatarPowers(avatar.Result.SuperPowers);
             //oasisAvatar.GeneKeys = avatar.Result.GeneKeys;
 
             if (avatar.Result.GeneKeys != null)
@@ -272,7 +285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     oasisAvatar.GeneKeys.Add((GeneKey)item);
             }
   
-            oasisAvatar.HumanDesign = avatar.Result.HumanDesign;
+            oasisAvatar.HumanDesign = CopyHumanDesign(avatar.Result.HumanDesign);
             //oasisAvatar.Gifts = avatar.Result.Gifts;
 
             if (avatar.Result.Gifts != null)
@@ -282,7 +295,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             }
 
             oasisAvatar.Chakras = avatar.Result.Chakras;
-            oasisAvatar.Aura = avatar.Result.Aura;
+            oasisAvatar.Aura = CopyAvatarAura(avatar.Result.Aura);
             //oasisAvatar.Achievements = avatar.Result.Achievements;
 
             if (avatar.Result.Achievements != null)
@@ -624,8 +637,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     mongoAvatar.Spells.Add((Spell)item);
             }
 
-            mongoAvatar.Stats = (AvatarStats)avatar.Stats;
-            mongoAvatar.SuperPowers = (AvatarSuperPowers)avatar.SuperPowers;
+            mongoAvatar.Stats = CopyAvatarStats(avatar.Stats);
+            mongoAvatar.SuperPowers = CopyAvatarPowers(avatar.SuperPowers);
             //mongoAvatar.GeneKeys = avatar.GeneKeys;
 
             if (avatar.GeneKeys != null)
@@ -634,7 +647,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     mongoAvatar.GeneKeys.Add((GeneKey)item);
             }
 
-            mongoAvatar.HumanDesign = (HumanDesign)avatar.HumanDesign;
+            mongoAvatar.HumanDesign = CopyHumanDesign(avatar.HumanDesign);
             //mongoAvatar.Gifts = avatar.Gifts;
 
             if (avatar.Gifts != null)
@@ -644,7 +657,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             }
 
             mongoAvatar.Chakras = (AvatarChakras)avatar.Chakras;
-            mongoAvatar.Aura = (AvatarAura)avatar.Aura;
+            mongoAvatar.Aura = CopyAvatarAura(avatar.Aura);
             //mongoAvatar.Achievements = avatar.Achievements;
 
             if (avatar.Achievements != null)
