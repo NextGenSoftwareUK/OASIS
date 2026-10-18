@@ -1444,3 +1444,7 @@ WEB4 verification found pinned AWS DynamoDB3.7.400.15 and S3 3.7.401 package dir
 
 Recovered existing completed native71/unit76 reports without restarting tests. Same fixed Neo4jCurrent outputs, pinned oasis-neo4j container/volume and existing dependencies reused; no downloads/restores/installations/new environment/reset. Container independently exited, no dotnet processes observed. Prior native69 report retained once; current compact evidence retained. No broad deletion, credentials or uncertain journals touched. C free observed 90,402,549,760 bytes; no GB-reclamation claim. Scoped native tests clean their acknowledged owned records and restore their acknowledged corruption, not unrelated data.
 
+# 2026-10-18 Neo4j historical list query verification
+
+Same fixed outputs and retained pinned oasis-neo4j container/volume/caches used for native71pass36s and unit76pass319ms; no downloads/restores/installations/new environment/reset. Runner21242 terminal0; container exited independently. Free90399440896→90398617600bytes observed, not a disk-reclamation claim. Current native TRX overwritten in place (preceding hash recorded, original not separately retained this turn); compact current native/unit reports retained. Test-owned acknowledged records cleaned by normal scoped hard-delete, acknowledged corruption restored; unrelated data/source/credentials/uncertain journals untouched.
+
