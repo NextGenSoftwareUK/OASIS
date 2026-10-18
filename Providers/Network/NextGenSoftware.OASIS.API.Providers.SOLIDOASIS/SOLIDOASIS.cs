@@ -332,102 +332,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                if (holons == null || !holons.Any()) { OASISErrorHandling.HandleError(ref result, "Holons cannot be null or empty"); return result; }
-                var turtle = ConvertHolonsToRDF(holons);
-                var content = new StringContent(turtle, Encoding.UTF8, "text/turtle");
-                var response = await _httpClient.PostAsync($"{_podServerUrl}/oasis/import", content);
-                result.Result = response.IsSuccessStatusCode;
-                result.IsError = !result.Result;
-                result.Message = result.Result ? $"Imported {holons.Count()} holons to SOLID pod" : $"SOLID LDP error: {response.StatusCode}";
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error importing holons: {ex.Message}", ex); }
-            return result;
-        }
+            => await ImportPrivateRecordsAsync(holons);
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/export/avatar/{avatarId}?version={version}");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data: {ex.Message}", ex); }
-            return result;
-        }
+            => await ExportPrivateRecordsAsync(avatarId,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/export/avatar/username/{Uri.EscapeDataString(avatarUsername)}?version={version}");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username: {ex.Message}", ex); }
-            return result;
-        }
+            => await ExportPrivateIdentityAsync(avatarUsername,false,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/export/avatar/email/{Uri.EscapeDataString(avatarEmailAddress)}?version={version}");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email: {ex.Message}", ex); }
-            return result;
-        }
+            => await ExportPrivateIdentityAsync(avatarEmailAddress,true,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/export/all?version={version}");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error exporting all data: {ex.Message}", ex); }
-            return result;
-        }
+            => await ExportPrivateRecordsAsync(null,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
@@ -589,114 +514,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         #region RDF helpers
 
-        private IAvatar ParseRDFToAvatar(string turtle)
-            => AvatarFromRdf(SolidRdfRecord.Read(turtle).Single());
-
-        private static IAvatar AvatarFromRdf(SolidRdfRecord record)=>new Avatar{
-            Id=record.Id,Username=record.Get("http://xmlns.com/foaf/0.1/nick")??record.Get("https://schema.org/name"),
-            Email=record.Get("https://schema.org/email"),
-            FirstName=record.Get("http://xmlns.com/foaf/0.1/firstName")??record.Get("https://schema.org/givenName"),
-            LastName=record.Get("http://xmlns.com/foaf/0.1/familyName")??record.Get("https://schema.org/familyName")};
-
-        private IEnumerable<IAvatar> ParseRDFToAvatars(string turtle)
-            => SolidRdfRecord.Read(turtle).Select(AvatarFromRdf).ToArray();
-
-        private IAvatarDetail ParseRDFToAvatarDetail(string turtle)
-            => new AvatarDetail{Id=SolidRdfRecord.Read(turtle).Single().Id};
-
-        private IEnumerable<IAvatarDetail> ParseRDFToAvatarDetails(string turtle)
-            => SolidRdfRecord.Read(turtle).Select(record=>(IAvatarDetail)new AvatarDetail{Id=record.Id}).ToArray();
-
-        private IHolon ParseRDFToHolon(string turtle)
-            => HolonFromRdf(SolidRdfRecord.Read(turtle).Single());
-
-        private static IHolon HolonFromRdf(SolidRdfRecord record)=>new Holon{Id=record.Id,
-            Name=record.Get("http://www.w3.org/2000/01/rdf-schema#label")??record.Get("https://schema.org/name"),
-            Description=record.Get("https://schema.org/description")};
-
-        private IEnumerable<IHolon> ParseRDFToHolons(string turtle)
-            => SolidRdfRecord.Read(turtle).Select(HolonFromRdf).ToArray();
-
-        private ISearchResults ParseSearchResults(string response)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(response)) return null;
-                return new SearchResults { SearchResultHolons = ParseRDFToHolons(response).Cast<IHolon>().ToList() };
-            }
-            catch { return null; }
-        }
-
-        private string ConvertAvatarToRDF(IAvatar avatar)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
-            sb.AppendLine("@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .");
-            sb.AppendLine("@prefix foaf: <http://xmlns.com/foaf/0.1/> .");
-            sb.AppendLine("@prefix schema: <https://schema.org/> .");
-            sb.AppendLine("@prefix oasis: <https://oasisomniverse.one/ns/> .");
-            sb.AppendLine();
-            sb.AppendLine($"<{_podServerUrl}/oasis/avatars/{avatar.Id}>");
-            sb.AppendLine("    rdf:type foaf:Person ;");
-            sb.AppendLine($"    oasis:id \"{avatar.Id}\" ;");
-            if (!string.IsNullOrEmpty(avatar.Username)) sb.AppendLine($"    foaf:nick \"{EscapeTtlString(avatar.Username)}\" ;");
-            if (!string.IsNullOrEmpty(avatar.Email)) sb.AppendLine($"    schema:email \"{EscapeTtlString(avatar.Email)}\" ;");
-            if (!string.IsNullOrEmpty(avatar.FirstName)) sb.AppendLine($"    foaf:firstName \"{EscapeTtlString(avatar.FirstName)}\" ;");
-            if (!string.IsNullOrEmpty(avatar.LastName)) sb.AppendLine($"    foaf:familyName \"{EscapeTtlString(avatar.LastName)}\" ;");
-            sb.AppendLine("    .");
-            return sb.ToString();
-        }
-
-        private string ConvertAvatarDetailToRDF(IAvatarDetail detail)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
-            sb.AppendLine("@prefix oasis: <https://oasisomniverse.one/ns/> .");
-            sb.AppendLine();
-            sb.AppendLine($"<{_podServerUrl}/oasis/avatar-details/{detail.Id}>");
-            sb.AppendLine("    rdf:type oasis:AvatarDetail ;");
-            sb.AppendLine($"    oasis:id \"{detail.Id}\" ;");
-            sb.AppendLine("    .");
-            return sb.ToString();
-        }
-
-        private string ConvertHolonToRDF(IHolon holon)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
-            sb.AppendLine("@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .");
-            sb.AppendLine("@prefix schema: <https://schema.org/> .");
-            sb.AppendLine("@prefix oasis: <https://oasisomniverse.one/ns/> .");
-            sb.AppendLine();
-            sb.AppendLine($"<{_podServerUrl}/oasis/holons/{holon.Id}>");
-            sb.AppendLine("    rdf:type oasis:Holon ;");
-            sb.AppendLine($"    oasis:id \"{holon.Id}\" ;");
-            if (!string.IsNullOrEmpty(holon.Name)) sb.AppendLine($"    rdfs:label \"{EscapeTtlString(holon.Name)}\" ;");
-            if (!string.IsNullOrEmpty(holon.Description)) sb.AppendLine($"    schema:description \"{EscapeTtlString(holon.Description)}\" ;");
-            sb.AppendLine("    .");
-            return sb.ToString();
-        }
-
-        private string ConvertHolonsToRDF(IEnumerable<IHolon> holons)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
-            sb.AppendLine("@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .");
-            sb.AppendLine("@prefix schema: <https://schema.org/> .");
-            sb.AppendLine("@prefix oasis: <https://oasisomniverse.one/ns/> .");
-            sb.AppendLine();
-            foreach (var holon in holons)
-            {
-                sb.AppendLine($"<{_podServerUrl}/oasis/holons/{holon.Id}>");
-                sb.AppendLine("    rdf:type oasis:Holon ;");
-                sb.AppendLine($"    oasis:id \"{holon.Id}\" ;");
-                if (!string.IsNullOrEmpty(holon.Name)) sb.AppendLine($"    rdfs:label \"{EscapeTtlString(holon.Name)}\" ;");
-                if (!string.IsNullOrEmpty(holon.Description)) sb.AppendLine($"    schema:description \"{EscapeTtlString(holon.Description)}\" ;");
-                sb.AppendLine("    .");
-                sb.AppendLine();
-            }
-            return sb.ToString();
-        }
 
         private static string EscapeTtlString(string value)
             => value?.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r") ?? "";
