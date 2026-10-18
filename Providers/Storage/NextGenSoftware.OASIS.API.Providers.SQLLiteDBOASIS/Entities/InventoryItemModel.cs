@@ -7,17 +7,33 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
     [Table("AvatarInventory")]
     public class InventoryItemModel : InventoryItem
     {
+        internal static readonly string[] RelationalColumnNames={
+            nameof(Id),nameof(AvatarId),nameof(ItemId),nameof(PublishedSTARNETHolon),
+            nameof(Image2D),nameof(Object3D),nameof(Image2DURI),nameof(Object3DURI),
+            nameof(PropertiesJson),nameof(MetaDataJson),nameof(ExtendedValueJson),nameof(Name),nameof(Description),
+            nameof(Quantity),nameof(Stack),nameof(GameSource),nameof(ItemType),nameof(NftId),nameof(GeoNFTId),
+            nameof(Rarity),nameof(MaxQuantity),nameof(Weight),nameof(IsUsable),nameof(IsTradeable),
+            nameof(AcquiredOn),nameof(LastUsedOn),nameof(HolonType)};
         [Required, Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id{ set; get; }
         // Public inventory identity is independent of SQLite's generated row key.
         public System.Guid ItemId { get; set; }
         public string PropertiesJson { get; set; } = "null";
         public string MetaDataJson { get; set; } = "{}";
+        // Canonical owned-value fields without relational columns. Direct item columns
+        // remain authoritative and are deliberately absent from this extension record.
+        public string ExtendedValueJson { get; set; } = "{}";
 
         public string AvatarId{ set; get; }
 
         public InventoryItemModel(){}
         public InventoryItemModel(NextGenSoftware.OASIS.API.Core.Interfaces.IInventoryItem source){
+            var projected=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<InventoryItem>(source);
+            var extended=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(projected));
+            foreach(var name in RelationalColumnNames)extended.Remove(name);
+            // These two values have differently named relational JSON columns.
+            extended.Remove("Properties");extended.Remove("MetaData");
+            this.ExtendedValueJson=extended.ToString(Newtonsoft.Json.Formatting.None);
             this.ItemId = source.Id;
             this.PublishedSTARNETHolon = source.PublishedSTARNETHolon == null ? null : (byte[])source.PublishedSTARNETHolon.Clone();
             this.Image2D = source.Image2D == null ? null : (byte[])source.Image2D.Clone();
@@ -48,7 +64,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         }
 
         public InventoryItem GetInventoryItem(){
-            InventoryItem item = new InventoryItem();
+            InventoryItem item = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<InventoryItem>(this.ExtendedValueJson)
+                ?? throw new System.IO.InvalidDataException("Stored inventory extension must be a JSON object.");
             item.Id = this.ItemId;
             item.PublishedSTARNETHolon = this.PublishedSTARNETHolon == null ? null : (byte[])this.PublishedSTARNETHolon.Clone();
             item.Image2D = this.Image2D == null ? null : (byte[])this.Image2D.Clone();

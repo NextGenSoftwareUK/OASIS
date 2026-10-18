@@ -1390,6 +1390,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.InventoryItemModel", b =>
                 {
+                    b.Property<string>("ExtendedValueJson").IsRequired().HasColumnType("TEXT").HasDefaultValue("{}");
                     b.Property<byte[]>("Image2D").HasColumnType("BLOB");
                     b.Property<byte[]>("PublishedSTARNETHolon").HasColumnType("BLOB");
                     b.Property<byte[]>("Object3D").HasColumnType("BLOB");
