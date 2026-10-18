@@ -30,9 +30,15 @@ export async function readFinalizedExtrinsicContext(api, request) {
   return { header, index, own };
 }
 
-export function dispatchAndFeeReceipt({ header, index, own }, request) {
+export function dispatchOutcome(own) {
   const outcomes = own.filter(event => event.section === 'system' && ['ExtrinsicSuccess', 'ExtrinsicFailed'].includes(event.method));
   if (outcomes.length !== 1) throw new Error('Exactly one terminal dispatch event is required.');
+  return { dispatchSucceeded: outcomes[0].method === 'ExtrinsicSuccess',
+    dispatchError: outcomes[0].method === 'ExtrinsicFailed' ? outcomes[0].data[0].toString() : null };
+}
+
+export function dispatchAndFeeReceipt({ header, index, own }, request) {
+  const outcome = dispatchOutcome(own);
   const fees = own.filter(event => event.section === 'transactionPayment' && event.method === 'TransactionFeePaid');
   if (fees.length !== 1) throw new Error('Exactly one native TransactionFeePaid event is required; asset fees are not inferred.');
   const [payer, actualFee, tip] = fees[0].data;
@@ -44,8 +50,7 @@ export function dispatchAndFeeReceipt({ header, index, own }, request) {
   return {
     transactionHash: request.transactionHash.toLowerCase(), blockHash: request.blockHash.toLowerCase(),
     blockNumber: header.number.toString(), extrinsicIndex: index, finalized: true,
-    dispatchSucceeded: outcomes[0].method === 'ExtrinsicSuccess',
-    dispatchError: outcomes[0].method === 'ExtrinsicFailed' ? outcomes[0].data[0].toString() : null,
+    ...outcome,
     payer: payer.toString(), actualFeeUnits: units, tipUnits,
     // FRAME actual_fee already includes the tip. Never add it a second time.
     feeCoverage: 'finalized-native-transaction-payment-event-tip-included'
