@@ -88,26 +88,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             // inventory record fields belong in AvatarInventory; attempting to infer the
             // runtime interface graph makes EF reject the complete model before any SQLite
             // operation can run.
-            var inventoryColumns = new HashSet<string>(StringComparer.Ordinal)
-            {
-                nameof(InventoryItemModel.Id), nameof(InventoryItemModel.AvatarId),
-                nameof(InventoryItemModel.ItemId),
-                nameof(InventoryItemModel.PublishedSTARNETHolon),
-                nameof(InventoryItemModel.Image2D), nameof(InventoryItemModel.Object3D),
-                nameof(InventoryItemModel.Image2DURI), nameof(InventoryItemModel.Object3DURI),
-                nameof(InventoryItemModel.PropertiesJson), nameof(InventoryItemModel.MetaDataJson),
-                nameof(InventoryItemModel.Name), nameof(InventoryItemModel.Description),
-                nameof(InventoryItemModel.Quantity), nameof(InventoryItemModel.Stack),
-                nameof(InventoryItemModel.GameSource), nameof(InventoryItemModel.ItemType),
-                nameof(InventoryItemModel.NftId), nameof(InventoryItemModel.GeoNFTId),
-                nameof(InventoryItemModel.Rarity), nameof(InventoryItemModel.MaxQuantity),
-                nameof(InventoryItemModel.Weight), nameof(InventoryItemModel.IsUsable),
-                nameof(InventoryItemModel.IsTradeable), nameof(InventoryItemModel.AcquiredOn),
-                nameof(InventoryItemModel.LastUsedOn), nameof(InventoryItemModel.HolonType)
-            };
+            var inventoryColumns = new HashSet<string>(InventoryItemModel.RelationalColumnNames,StringComparer.Ordinal);
             foreach (var property in typeof(InventoryItemModel).GetProperties())
                 if (!inventoryColumns.Contains(property.Name))
                     modelBuilder.Entity<InventoryItemModel>().Ignore(property.Name);
+            modelBuilder.Entity<InventoryItemModel>().Property(x=>x.ExtendedValueJson).IsRequired().HasDefaultValue("{}");
             modelBuilder.Entity<InventoryItemModel>().Property(x=>x.Image2DURI)
                 .HasConversion(value=>value.OriginalString,value=>new Uri(value,UriKind.RelativeOrAbsolute));
             modelBuilder.Entity<InventoryItemModel>().Property(x=>x.Object3DURI)

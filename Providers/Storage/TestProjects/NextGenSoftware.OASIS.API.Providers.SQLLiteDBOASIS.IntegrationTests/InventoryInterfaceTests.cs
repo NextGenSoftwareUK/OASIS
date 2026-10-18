@@ -13,6 +13,95 @@ public partial class SQLLiteDBOASISIntegrationTests
 {
     [Theory]
     [InlineData(true)] [InlineData(false)]
+    public async Task InventoryExtensionUpgradeRetainsOldColumnsAndSupportsNewValues(bool synchronous)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var item=new InventoryItem{Id=Guid.NewGuid(),Name="old-column-item",Quantity=7};
+        var detail=new AvatarDetail{Id=Guid.NewGuid(),Username="extension-upgrade",Inventory=new List<IInventoryItem>{item}};
+        (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
+        using(var control=new DataContext(TestConnectionString))
+            control.Database.ExecuteSqlRaw("ALTER TABLE AvatarInventory DROP COLUMN ExtendedValueJson");
+        var activated=synchronous?provider.ActivateProvider():await provider.ActivateProviderAsync();
+        activated.IsError.Should().BeFalse(activated.Message);
+        var restored=await provider.LoadAvatarDetailAsync(detail.Id);
+        restored.IsError.Should().BeFalse(restored.Message);
+        restored.Result.Inventory.Single().Name.Should().Be(item.Name);
+        restored.Result.Inventory.Single().Quantity.Should().Be(7);
+        restored.Result.Inventory.Single().Version.Should().Be(0);
+        item.Version=13;item.VersionId=Guid.NewGuid();
+        var saved=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);
+        saved.IsError.Should().BeFalse(saved.Message);
+        using var reader=new SQLLiteDBOASIS(TestConnectionString);
+        (await reader.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var actual=(await reader.LoadAvatarDetailAsync(detail.Id)).Result.Inventory.Single();
+        actual.Version.Should().Be(13);actual.VersionId.Should().Be(item.VersionId);actual.Quantity.Should().Be(7);
+    }
+
+    [Theory]
+    [InlineData(true,"null")] [InlineData(false,"null")]
+    [InlineData(true,"[")] [InlineData(false,"[")]
+    [InlineData(true,"[]")] [InlineData(false,"[]")]
+    public async Task CorruptInventoryExtensionDoesNotReturnPartialSuccess(bool synchronous,string corrupt)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var detail=new AvatarDetail{Id=Guid.NewGuid(),Username="extension-corrupt",Inventory=new List<IInventoryItem>{new InventoryItem{Id=Guid.NewGuid(),Name="corrupt-extension"}}};
+        var healthy=new AvatarDetail{Id=Guid.NewGuid(),Username="extension-healthy"};
+        (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
+        (await provider.SaveAvatarDetailAsync(healthy)).IsError.Should().BeFalse();
+        using(var control=new DataContext(TestConnectionString))
+            control.Database.ExecuteSqlRaw("UPDATE AvatarInventory SET ExtendedValueJson={0} WHERE AvatarId={1}",corrupt,detail.Id.ToString());
+        using var reader=new SQLLiteDBOASIS(TestConnectionString);
+        (await reader.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var failed=synchronous?reader.LoadAvatarDetail(detail.Id):await reader.LoadAvatarDetailAsync(detail.Id);
+        failed.IsError.Should().BeTrue();failed.Result.Should().BeNull();
+        var unaffected=synchronous?reader.LoadAvatarDetail(healthy.Id):await reader.LoadAvatarDetailAsync(healthy.Id);
+        unaffected.IsError.Should().BeFalse(unaffected.Message);unaffected.Result.Id.Should().Be(healthy.Id);
+    }
+
+    [Theory]
+    [InlineData(true)] [InlineData(false)]
+    public async Task InventoryInheritedOwnedValuesSurviveIndependentRead(bool synchronous)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var detail=new AvatarDetail{Id=Guid.NewGuid(),Username="inherited-inventory"};
+        for(var revision=1;revision<=2;revision++){
+            var item=new InventoryItem{Id=Guid.NewGuid(),Name="owned-"+revision,Version=revision+10,
+                VersionId=Guid.NewGuid(),PreviousVersionId=Guid.NewGuid(),CreatedByAvatarId=Guid.NewGuid(),
+                CreatedDate=new DateTime(2020+revision,1,2,3,4,5,DateTimeKind.Utc),IsPublic=revision==1,
+                CustomHolonType="custom-"+revision,ParentHolonId=Guid.NewGuid(),ParentHolonId2=Guid.NewGuid(),ParentHolonId3=Guid.NewGuid()};
+            item.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS]="linked-"+revision;
+            item.Children.Add(new Holon{Id=Guid.NewGuid(),Name="not-an-owned-navigation-value"});
+            var proxy=DispatchProxy.Create<IInventoryItem,InventoryInterfaceProxy>();
+            ((InventoryInterfaceProxy)(object)proxy).Item=item;
+            detail.Inventory=new List<IInventoryItem>{proxy};
+            var saved=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);
+            saved.IsError.Should().BeFalse(saved.Message);
+            using var reader=new SQLLiteDBOASIS(TestConnectionString);
+            (await reader.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var loaded=synchronous?reader.LoadAvatarDetail(detail.Id):await reader.LoadAvatarDetailAsync(detail.Id);
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            var actual=loaded.Result.Inventory.Should().ContainSingle().Subject;
+            foreach(var name in new[]{"Id","Name","Version","VersionId","PreviousVersionId","CreatedByAvatarId","CreatedDate",
+                "IsPublic","CustomHolonType","ParentHolonId","ParentHolonId2","ParentHolonId3"}){
+                var property=typeof(InventoryItem).GetProperty(name)!;
+                property.GetValue(actual).Should().Be(property.GetValue(item),name);
+            }
+            actual.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS].Should().Be("linked-"+revision);
+            actual.Children.Should().BeEmpty();
+            using var control=new DataContext(TestConnectionString);
+            var stored=control.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.InventoryItemModel>().AsNoTracking()
+                .Single(row=>row.AvatarId==detail.Id.ToString());
+            var extended=Newtonsoft.Json.Linq.JObject.Parse(stored.ExtendedValueJson);
+            extended.ContainsKey("Quantity").Should().BeFalse();extended.ContainsKey("Image2D").Should().BeFalse();
+            extended.ContainsKey("Children").Should().BeFalse();((int)extended["Version"]!).Should().Be(item.Version);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)] [InlineData(false)]
     public async Task LegacyInventoryPublishedPackageUpgradePreservesItem(bool synchronous)
     {
         var item=new InventoryItem {Id=Guid.NewGuid(),Name="legacy-package",Quantity=4};

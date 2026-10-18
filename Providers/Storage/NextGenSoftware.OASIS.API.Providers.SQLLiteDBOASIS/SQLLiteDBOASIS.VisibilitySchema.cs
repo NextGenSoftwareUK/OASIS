@@ -28,7 +28,8 @@ public partial class SQLLiteDBOASIS
                 {"ParentHolonId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"AvatarInventory",
             new Dictionary<string,string> {{"Image2D","BLOB NULL"},{"Object3D","BLOB NULL"},
-                {"Image2DURI","TEXT NULL"},{"Object3DURI","TEXT NULL"},{"PublishedSTARNETHolon","BLOB NULL"}}).ConfigureAwait(false);
+                {"Image2DURI","TEXT NULL"},{"Object3DURI","TEXT NULL"},{"PublishedSTARNETHolon","BLOB NULL"},
+                {"ExtendedValueJson","TEXT NOT NULL DEFAULT '{}'"}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"HeartRateEntry",
             new Dictionary<string,string> {{"SequenceIndex","INTEGER NOT NULL DEFAULT 0"}}).ConfigureAwait(false);
         await transaction.CommitAsync().ConfigureAwait(false);
