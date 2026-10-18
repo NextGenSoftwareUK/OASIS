@@ -348,6 +348,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.XP = avatarDetailEntity.XP;
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatarDetailEntity.MetaData ?? new Dictionary<string,object>());
                     existing.ProviderLinksJson = AvatarDetailProviderLinks.Encode(avatarDetailEntity);
+                    existing.DimensionLevelIdsJson = AvatarDetailDimensionLinks.Encode(avatarDetailEntity);
                     SetComponents(existing, avatarDetailEntity);
                     SetHeartRates(existing, avatarDetailEntity);
                     existing.Model3D = avatarDetailEntity.Model3D;
@@ -452,6 +453,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.XP = AvatarDetailEntity.XP;
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(AvatarDetailEntity.MetaData ?? new Dictionary<string,object>());
                     existing.ProviderLinksJson = AvatarDetailProviderLinks.Encode(AvatarDetailEntity);
+                    existing.DimensionLevelIdsJson = AvatarDetailDimensionLinks.Encode(AvatarDetailEntity);
                     SetComponents(existing, AvatarDetailEntity);
                     SetHeartRates(existing, AvatarDetailEntity);
                     existing.Model3D = AvatarDetailEntity.Model3D;
@@ -653,6 +655,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             };
 
             AvatarDetailProviderLinks.Apply(avatarDetailEntity.ProviderLinksJson,result);
+            result.DimensionLevelIds=AvatarDetailDimensionLinks.Decode(avatarDetailEntity.DimensionLevelIdsJson);
             return result;
         }
 
@@ -661,6 +664,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             var model = new AvatarDetailModel()
             {
                 ProviderLinksJson = AvatarDetailProviderLinks.Encode(avatarDetail),
+                DimensionLevelIdsJson = AvatarDetailDimensionLinks.Encode(avatarDetail),
                 Address = avatarDetail.Address,
                 Country = avatarDetail.Country,
                 Description = avatarDetail.Description,
