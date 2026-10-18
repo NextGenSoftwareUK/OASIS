@@ -12,8 +12,8 @@ public class ActivityPubLifecycleTests
         public HttpStatusCode Status=HttpStatusCode.OK;
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
-            Assert.Equal("/api/v1/instance",request.RequestUri!.AbsolutePath);
-            Calls++;return Task.FromResult(new HttpResponseMessage(Status){Content=new StringContent("{}")});
+            Assert.Equal("/api/v2/instance",request.RequestUri!.AbsolutePath);
+            Calls++;return Task.FromResult(new HttpResponseMessage(Status){Content=new StringContent(ActivityPubInstanceContractTests.InstanceJson)});
         }
         protected override void Dispose(bool disposing){if(disposing)Disposals++;base.Dispose(disposing);}
     }
@@ -63,9 +63,10 @@ public class ActivityPubLifecycleTests
             for(var i=0;i<2;i++){
                 using var client=await listener.AcceptTcpClientAsync(deadline.Token);
                 using var stream=client.GetStream();using var reader=new StreamReader(stream,Encoding.ASCII,false,1024,true);
-                var line=await reader.ReadLineAsync(deadline.Token);Assert.Equal("GET /api/v1/instance HTTP/1.1",line);
+                var line=await reader.ReadLineAsync(deadline.Token);Assert.Equal("GET /api/v2/instance HTTP/1.1",line);
                 while(!string.IsNullOrEmpty(await reader.ReadLineAsync(deadline.Token))){}
-                await stream.WriteAsync(Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}"),deadline.Token);
+                var body=ActivityPubInstanceContractTests.InstanceJson;
+                await stream.WriteAsync(Encoding.ASCII.GetBytes($"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {Encoding.UTF8.GetByteCount(body)}\r\nConnection: close\r\n\r\n{body}"),deadline.Token);
             }
         });
         using var provider=new ActivityPubOASIS($"http://127.0.0.1:{port}");

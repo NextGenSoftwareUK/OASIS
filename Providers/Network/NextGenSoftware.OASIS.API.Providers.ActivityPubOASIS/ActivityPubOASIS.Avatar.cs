@@ -36,19 +36,24 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     return response;
                 }
 
-                // Test connection to ActivityPub instance
-                using var testResponse = await _httpClient.GetAsync("/api/v1/instance");
-                if (testResponse.IsSuccessStatusCode)
-                {
+                // This adapter uses Mastodon REST, not universal ActivityPub C2S.
+                using var testResponse = await _httpClient.GetAsync("/api/v2/instance");
+                testResponse.EnsureSuccessStatusCode();
+                using var document=JsonDocument.Parse(await testResponse.Content.ReadAsStringAsync());
+                var server=document.RootElement;
+                if(server.ValueKind!=JsonValueKind.Object)
+                    throw new System.IO.InvalidDataException("Expected a Mastodon v2 instance object.");
+                foreach(var field in new[]{"domain","title","version"})
+                    if(!server.TryGetProperty(field,out var value)||value.ValueKind!=JsonValueKind.String||string.IsNullOrWhiteSpace(value.GetString()))
+                        throw new System.IO.InvalidDataException("Missing Mastodon instance field: "+field);
+                if(!Version.TryParse(server.GetProperty("version").GetString().Split('-')[0],out var serverVersion)||serverVersion.Major<4)
+                    throw new NotSupportedException("The Mastodon REST adapter requires version 4 or newer and the v2 instance contract.");
+                if(!server.TryGetProperty("configuration",out var configuration)||configuration.ValueKind!=JsonValueKind.Object)
+                    throw new System.IO.InvalidDataException("Missing Mastodon instance configuration object.");
                     _isActivated = true;
                     IsProviderActivated = true;
                     response.Result = true;
-                    response.Message = "ActivityPub provider activated successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to ActivityPub instance: {testResponse.StatusCode}");
-                }
+                    response.Message = "Mastodon v2 instance contract verified; authenticated operations require their own authorization.";
             }
             catch (Exception ex)
             {

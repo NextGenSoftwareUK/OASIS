@@ -2,6 +2,14 @@
 
 2026-10-18. Incomplete; not release certification.
 
+## Explicit Mastodon v2 instance contract (2026-10-18)
+
+Activation now uses ONLY GET/api/v2/instance, not deprecated v1. Requires object with nonblank domain/title/version, parseable major>=4 (prerelease suffix permitted), configuration object; invalid/malformed/unsupported response cannot publish active state. Original HTTP status/exception retained through EnsureSuccessStatusCode. No silent old-endpoint fallback. Success wording explicitly distinguishes public server contract from authenticated authorization. This intentionally supports a Mastodon4+ REST shape, NOT every ActivityPub implementation; other account/status mappings remain unfinished. Source: [official instance API](https://docs.joinmastodon.org/methods/instance/), v2 added4.0.0, v1 deprecated.
+
+Six genuine before-change failures15ms after correcting an initially overstrict test-handler path assertion that caused four false-green invalid-payload cases; final before report activitypub-instance-before.trx SHA2566A4CD60AF35C8364CBC1EAE5E91A97337D493C423633D173B3F2A620B224FB32. Existing lifecycle fixture now serves actual required fields at v2 path instead of arbitrary{}200. Full31/31 tests passed145ms/zero skipped including real loopback two-request reactivation; current report activitypub-unit-current.trx SHA2567547E3EB4D9FED602BB08304AD54FE67592609ABE7B061078E6B996719C8F27D. Cached bounded provider build passed2warnings.
+
+Separate read-only public GET https://mastodon.social/api/v2/instance returned200, domain mastodon.social, version4.8.0-alpha.3+pr-41085-a68fedb, configuration present. This was PowerShell HTTP inspection, NOT provider end-to-end/authentication/federation verification. No token or remote mutation. No new install/runtime/environment. Stable provider/native ID mapping, correct public projections, safe relevant operations, OAuth scopes, pagination/errors/reconciliation, authenticated live evidence and all-provider release gates remain OPEN. Prior audit statements about v1 activation superseded by this section.
+
 ## Private record boundary correction
 
 SaveAvatar/SaveAvatarDetail (sync+async) now reject private record storage before HTTP/activation/serialization. Removed their obsolete complete-record serializers and lossy fallback JSON. Mastodon POST/accounts creates an account with explicit terms consent and app OAuth authority; an OASIS save is not authority to register a remote account. Four genuine controlled-before cases previously claimed success on arbitrary2xx; now all verify explicit NotSupportedException, null result and ZERO HTTP calls. Full unit project25/25passes104ms; exact hashes in current release gates. This changes direct-call behavior intentionally and does not count as completed relevant provider functionality. Other holon/account/delete/query mappings remain unaudited/unfinished and must not be treated as safe publication or storage.
