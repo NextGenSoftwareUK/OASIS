@@ -21,6 +21,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public string MetaDataJson { get; set; } = "{}";
         [Required]
         public string ProviderLinksJson { get; set; } = "{}";
+        [Required]
+        public string DimensionLevelIdsJson { get; set; } = "{}";
         public bool IsPublic { get; set; }
         public Guid VersionId { get; set; }
         public Guid PreviousVersionId { get; set; }
@@ -124,6 +126,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public AvatarDetailModel(){}
         public AvatarDetailModel(IAvatarDetail source,Guid? plannedId=null){
             this.ProviderLinksJson=AvatarDetailProviderLinks.Encode(source);
+            this.DimensionLevelIdsJson=AvatarDetailDimensionLinks.Encode(source);
 
             if(plannedId.HasValue) this.Id=plannedId.Value.ToString();
             else if(source.Id == Guid.Empty){
@@ -373,6 +376,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             }
 
             AvatarDetailProviderLinks.Apply(this.ProviderLinksJson,item);
+            item.DimensionLevelIds=AvatarDetailDimensionLinks.Decode(this.DimensionLevelIdsJson);
             return(item);
         }
     }
