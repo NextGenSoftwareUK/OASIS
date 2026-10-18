@@ -14,7 +14,7 @@ public partial class Neo4jOASIS
     private static string MetadataLookupToken(string key, string value) => OasisJson.Serialize(new[] { key, value });
 
     internal static List<string> MetadataLookupTokens(IHolon holon)
-        => holon.MetaData?.Select(pair => MetadataLookupToken(pair.Key, pair.Value?.ToString())).ToList() ?? new List<string>();
+        => holon.MetaData?.Select(pair => MetadataLookupToken(pair.Key, StoredRecordSearch.MetadataValueText(pair.Value))).ToList() ?? new List<string>();
 
     internal static (string Query, Dictionary<string, object> Parameters) MetadataLookupQuery(
         Dictionary<string, string> pairs, MetaKeyValuePairMatchMode mode, HolonType type)
