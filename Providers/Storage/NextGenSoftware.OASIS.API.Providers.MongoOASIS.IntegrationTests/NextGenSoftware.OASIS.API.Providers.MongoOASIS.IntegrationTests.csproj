@@ -15,6 +15,7 @@
   <ItemGroup>
     <Compile Include="..\TestProjects\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests\IndependentAvatarSkills.cs" Link="Fixtures\IndependentAvatarSkills.cs" />
     <Compile Include="..\TestProjects\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests\IndependentAvatarProfileValues.cs" Link="Fixtures\IndependentAvatarProfileValues.cs" />
+    <Compile Include="..\TestProjects\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests\IndependentAvatarCollectionValues.cs" Link="Fixtures\IndependentAvatarCollectionValues.cs" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\NextGenSoftware.OASIS.HyperDrive.Synchronization.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Contracts\NextGenSoftware.OASIS.Contracts.csproj" />
