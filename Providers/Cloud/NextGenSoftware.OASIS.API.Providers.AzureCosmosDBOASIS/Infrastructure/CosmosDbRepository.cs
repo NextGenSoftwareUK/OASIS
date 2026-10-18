@@ -131,9 +131,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             try
             {
-                if(json!=null) return DeserializeEntity(json,expectedId);
-                if(entity.Id.ToString()!=expectedId) throw new InvalidDataException("Caller identity changed after acknowledged Cosmos write.");
-                return entity;
+                if(string.IsNullOrWhiteSpace(json))throw new InvalidDataException("Acknowledged Cosmos write lacks its canonical response record.");
+                var acknowledged=DeserializeEntity(json,expectedId);
+                // Compare OASIS-owned fields after canonical decoding; Cosmos system fields
+                // (id/_etag/_rid/_ts) are not part of the submitted domain payload.
+                if(!StoredRecordPayloadEquality.Equivalent(JObject.Parse(OasisJson.Serialize(entity)),JObject.Parse(OasisJson.Serialize(acknowledged))))
+                    throw new InvalidDataException("Acknowledged Cosmos record differs from the submitted canonical payload.");
+                return acknowledged;
             }
             catch(Exception cause) {throw new CosmosMutationReconciliationException(expectedId,cause,acknowledged:true);}
         }
