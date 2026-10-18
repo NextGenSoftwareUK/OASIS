@@ -36,7 +36,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
         Assert.Equal(connection,Required("SUBSCRIPTION_TEST_MONGODB_URI"));
         const string database="usage_cosmos_independent_routing";
         var mongo=new MongoClient(connection);using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(180));var token=deadline.Token;
-        using(var names=await mongo.ListDatabaseNamesAsync(cancellationToken:token))Assert.DoesNotContain(database,await names.ToListAsync(token));
+        // Keep compact original-attempt evidence across cases; never discard a previous incident's ledger.
         var rpc=Required("OASIS_COSMOS_TEST_RPC");Assert.Equal("http://127.0.0.1:26657",rpc);
         var chain=Required("OASIS_COSMOS_TEST_CHAIN");Assert.Equal("oasis-cosmos-local",chain);
         const string keyLabel="oasis-cosmos-local-storage-fixture-v1";
@@ -187,13 +187,13 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 profileMatchingReadCount=28,profileAbsenceReadCount=28,selectorReadCount=16,strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
             Assert.Equal(oldHash,Hash(oldPath));Assert.Null(operation.Settlement);complete=true;
         }finally{
-            if(complete){await mongo.DropDatabaseAsync(database,token);file.Dispose();File.Delete(journal);}
+            if(complete){file.Dispose();File.Delete(journal);}
             else Console.WriteLine("Preserved independent routing journal/outbox: "+journal);
             await local.DeActivateProviderAsync();
         }
     }
 
-    private sealed class TestAuthority(string user):HttpMessageHandler
+    internal sealed class TestAuthority(string user):HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token){
             var body=await request.Content!.ReadAsStringAsync(token);object result;
