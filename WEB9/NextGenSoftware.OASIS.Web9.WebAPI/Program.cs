@@ -117,4 +117,8 @@ app.MapGraphQL();
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
+if(builder.Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null){
+    var admittedBoot=await OASISBootLoader.BootOASISForAdmittedStorageAsync(OASISBootLoader.OASISDNAPath??System.IO.Path.Combine(AppContext.BaseDirectory,"OASIS_DNA.json"));
+    if(admittedBoot.IsError||!admittedBoot.Result)throw new InvalidOperationException(admittedBoot.Message);
+}
 app.Run();

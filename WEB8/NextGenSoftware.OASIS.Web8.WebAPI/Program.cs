@@ -166,7 +166,9 @@ app.MapGrpcService<ProtocolBridgeGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 var dnaPath = OASISBootLoader.OASISDNAPath ?? Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
-var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
+var admittedBoot=builder.Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null;
+var bootResult = admittedBoot?await OASISBootLoader.BootOASISForAdmittedStorageAsync(dnaPath):await OASISBootLoader.BootOASISAsync(dnaPath);
+if(admittedBoot&&(bootResult.IsError||!bootResult.Result))throw new InvalidOperationException(bootResult.Message);
 if (bootResult.IsError)
     OASISErrorHandling.HandleError($"Warning: WEB8 OASIS boot failed: {bootResult.Message}");
 
