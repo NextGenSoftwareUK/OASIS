@@ -20,6 +20,13 @@ if (request.operation === 'prepareTransfer') {
   if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'cancel-verification')
     await waitForOwnedCancellation(String(process.pid) + '\n');
   else emit({ verified: true, transactionHash: originalHash, chainId: chain, sender: 'sender' });
+} else if (request.operation === 'originalNativeFee') {
+  const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
+  if (mode === 'fee-unresolved') {
+    process.stdout.write(JSON.stringify({ ok: false, error: 'controlled unavailable original fee' })); process.exitCode = 1;
+  } else emit({ transactionHash: mode === 'fee-wrong-hash' ? 'wrong' : originalHash,
+    finalized: mode !== 'fee-unfinalized', dispatchSucceeded: mode !== 'fee-failed-dispatch', payer: 'sender',
+    feeCoverage: 'finalized-native-transaction-payment-event-tip-included', actualFeeUnits: mode === 'fee-invalid-units' ? '-1' : '12' });
 } else if (request.operation === 'originalOutcome') {
   if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wait-for-cancellation') {
     await waitForOwnedCancellation('1'); // Actual finality read entry, not a timing guess.
