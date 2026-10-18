@@ -74,6 +74,12 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         var version = deserializedEntity.Value<int?>("Version");
         if (!identity.HasValue || identity.Value == Guid.Empty || !version.HasValue || version.Value < 0)
             throw new InvalidOperationException("Stored Solana record has invalid identity/version.");
+        // A signature identifies an immutable revision, not necessarily the current record.
+        // Reject known stale revisions before signing; this is not atomic chain-side CAS.
+        var kind=deserializedEntity.Value<string>("RecordKind");
+        if(kind=="oasis.avatar.v1") await RequireCurrentTombstoneReferenceAsync<SolanaAvatarDto>(identity.Value,transactionHashReference);
+        else if(kind=="oasis.avatar-detail.v1") await RequireCurrentTombstoneReferenceAsync<SolanaAvatarDetailDto>(identity.Value,transactionHashReference);
+        else await RequireCurrentTombstoneReferenceAsync<SolanaHolonDto>(identity.Value,transactionHashReference);
         deserializedEntity["IsDeleted"] = true;
         deserializedEntity["DeletedDate"] = DateTime.UtcNow;
         deserializedEntity["Version"] = checked(version.Value + 1);
@@ -89,6 +95,14 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
             .Build(oasisAccount);
 
         return await SubmitAndConfirmAsync(entityDeleteUpdateTransactionBytes);
+    }
+
+    private async Task RequireCurrentTombstoneReferenceAsync<T>(Guid id,string signature) where T:SolanaBaseDto,new()
+    {
+        var current=(await GetAllAsync<T>()).SingleOrDefault(entry=>entry.Record.Id==id);
+        if(current.Record==null) throw new KeyNotFoundException("No current nondeleted Solana record matches the deletion identity.");
+        if(!string.Equals(current.Signature,signature,StringComparison.Ordinal))
+            throw new InvalidOperationException("Solana deletion signature is stale; no transaction submitted.");
     }
 
     public async Task<T> GetAsync<T>(string transactionHashReference)
