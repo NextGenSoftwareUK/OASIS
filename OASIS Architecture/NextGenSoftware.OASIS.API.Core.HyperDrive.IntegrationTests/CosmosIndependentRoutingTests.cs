@@ -69,7 +69,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
             var policy=new PreparedStorageExecution(execution,"independent",new Dictionary<ProviderType,string>{{ProviderType.CosmosBlockChainOASIS,sender}},new[]{ProviderType.LocalFileOASIS});
             var nonNativeReads=0;
             await policy.RunAsync(async()=>{
-                var holon=new Holon{Id=id,Name="independent-cosmos-v2-leaf"};
+                var holon=new Holon{Id=id,Name="independent-cosmos-v2-leaf",MetaData=new Dictionary<string,object>{{"owned-routing-fixture",id.ToString()}}};
                 var write=new StorageOperationRequest{Operation="SaveHolon",Payload=holon,SaveChildren=false,PreferredProvider=preferred};
                 var saved=synchronous?router.RouteRequest<IHolon>(write):await router.RouteRequestAsync<IHolon>(write);
                 Assert.False(saved.IsError,saved.Message);Assert.False(saved.IsWarning,saved.Message);
@@ -77,6 +77,25 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 Assert.Equal(holon.Name,(await cosmos.LoadHolonAsync(id,loadChildren:false)).Result?.Name);
                 Assert.Equal(holon.Name,(await local.LoadHolonAsync(id,loadChildren:false)).Result?.Name);
                 var providers=new[]{ProviderType.LocalFileOASIS,ProviderType.CosmosBlockChainOASIS};
+                foreach(var providerType in providers){
+                    var before=manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests;
+                    foreach(var operationName in new[]{"LoadHolon","LoadHolonByProviderKey"}){
+                        var request=new StorageOperationRequest{Operation=operationName,HolonId=id,ProviderKey=id.ToString(),PreferredProvider=providerType,LoadChildren=false};
+                        foreach(var read in new[]{router.RouteRequest<IHolon>(request),await router.RouteRequestAsync<IHolon>(request)}){
+                            Assert.False(read.IsError,read.Message);Assert.Equal(id,read.Result?.Id);Assert.Equal(holon.Name,read.Result?.Name);
+                        }
+                    }
+                    foreach(var operationName in new[]{"LoadHolonsByMetaData","LoadHolonsByMetaDataPairs"}){
+                        var request=new StorageOperationRequest{Operation=operationName,PreferredProvider=providerType,LoadChildren=false,
+                            MetaKey="owned-routing-fixture",MetaValue=id.ToString(),MetaKeyValuePairs=new Dictionary<string,string>{{"owned-routing-fixture",id.ToString()}}};
+                        foreach(var read in new[]{router.RouteRequest<IEnumerable<IHolon>>(request),await router.RouteRequestAsync<IEnumerable<IHolon>>(request)}){
+                            Assert.False(read.IsError,read.Message);Assert.Equal(holon.Name,Assert.Single(read.Result).Name);
+                            Assert.Equal(id,Assert.Single(read.Result).Id);
+                        }
+                    }
+                    Assert.Equal(before+8,manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests);
+                    if(providerType==ProviderType.LocalFileOASIS)nonNativeReads+=8;
+                }
                 Assert.False(manager.SetAndReplaceAutoLoadBalanceListForProviders(providers.Select(type=>new EnumValue<ProviderType>(type))).IsError);
                 manager.IsAutoReplicationEnabled=false;manager.IsAutoLoadBalanceEnabled=true;
                 async Task<ProviderType> BalancedRead(LoadBalancingStrategy strategy,bool sync){
@@ -127,7 +146,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 originals.Add(new{attempt,anteFeeReceipt=fee.Result});
             }
             output.WriteLine(JsonSerializer.Serialize(new{nativePrimary,synchronous,holonId=id,operation.NativeFeeExposureUsd,originals,
-                strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
+                selectorReadCount=16,strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
             Assert.Equal(oldHash,Hash(oldPath));Assert.Null(operation.Settlement);complete=true;
         }finally{
             if(complete){await mongo.DropDatabaseAsync(database,token);file.Dispose();File.Delete(journal);}

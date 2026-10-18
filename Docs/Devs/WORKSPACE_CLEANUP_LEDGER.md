@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 expanded Cosmos selectors4/4passed1m19s reused existing wasmd/ledger/wallet/contract/SDK/Mongo/file directory. No installation/download/new environment/reset. Fixtures performed normal own leaf/delete/DB/journal cleanup; protected old intent unchanged. Runtime exited/Mongo27029closed. Fixed compact report retained with hash in release gates; free C:85,520,756,736bytes. No broad deletion/reclaimed-space claim. TRON expiration read locally; no TRON runtime restart.
+
 2026-10-17 expanded Sui V2 selector fixture used same retained node/ledger/deployment and file directory for initial and final strengthened-source runs; no install/download/copy/reset. Each successful fixture performed normal owned-record cleanup and removed its intent; original failed provider journals elsewhere remain protected. Final node stopped, Sui pending markers absent. Fixed compact TRX retained/final hash recorded in release journal. Free C:85,519,294,464bytes; no broad deletion or disk-reclamation claim.
 
 2026-10-17 Sui original escrow receipt refresh1/1passed3s reused retained runtime/ledger/deployment/SDK and fixed outputs. No new mutations/accounts/install/download/environment; compact TRX overwritten and hash documented. Owned node and Mongo stopped, Sui pending markers absent. Retained historical receipts/deployment preserved. Free C:85,697,470,464bytes; no material deletion/reclaimed-space claim.
