@@ -78,7 +78,7 @@ export function nativeFeeReceipt(tx, digest) {
       throw new Error('Sui fee receipt lacks exact unsigned gas components');
   // Protocol net cost: non-refundable storage fee is already included, not added twice.
   const netUnits = BigInt(gas.computationCost) + BigInt(gas.storageCost) - BigInt(gas.storageRebate);
-  return { transactionHash: digest, success: tx.status.success, payer: normalizeSuiAddress(tx.transaction.gasData.owner),
+  return { transactionHash: digest, checkpoint:tx.checkpoint, success: tx.status.success, payer: normalizeSuiAddress(tx.transaction.gasData.owner),
     currency: 'SUI', unit: 'MIST', netUnits: netUnits.toString(), components: gas };
 }
 
@@ -234,6 +234,81 @@ async function custodyReceipt(client, request) {
   return { objectId: object.objectId, version: object.version, digest: object.digest };
 }
 
+// One history owner shared by the real SDK path and controlled stream-boundary tests.
+export async function readWalletHistory(client,request) {
+    if (!isValidSuiAddress(request.walletAddress)) throw new Error('Valid Sui history wallet is required');
+    const walletAddress = normalizeSuiAddress(request.walletAddress);
+    const maximum=18446744073709551615n;
+    function bound(value){
+      if(value===undefined||value===null)return undefined;
+      if(typeof value!=='string'||!/^(?:0|[1-9][0-9]*)$/.test(value)||value.length>20||BigInt(value)>maximum)
+        throw new Error('Sui history checkpoint range requires canonical u64 strings');
+      return BigInt(value);
+    }
+    const lower=bound(request.fromBlock)??0n;const requestedUpper=bound(request.toBlock);
+    if(requestedUpper!==undefined&&lower>requestedUpper)throw new Error('Sui history checkpoint range is reversed');
+    const { response: info } = await client.ledgerService.getServiceInfo({});
+    if (typeof info.checkpointHeight!=='bigint'||typeof info.lowestAvailableCheckpoint!=='bigint'
+        ||info.checkpointHeight<0n||info.checkpointHeight>maximum||info.lowestAvailableCheckpoint<0n||info.lowestAvailableCheckpoint>info.checkpointHeight)
+      throw new Error('Sui node returned no history availability bounds');
+    const upper=requestedUpper===undefined||requestedUpper>info.checkpointHeight?info.checkpointHeight:requestedUpper;
+    if(lower>upper)return [];
+    if(lower<info.lowestAvailableCheckpoint)throw new Error('Requested Sui history checkpoint range has been pruned');
+    if(upper===maximum)throw new Error('Sui exclusive history end checkpoint exceeds u64');
+    const filter = { terms: [
+      { literals: [{ negated: false, predicate: { oneofKind: 'sender', sender: { address: walletAddress } } }] },
+      { literals: [{ negated: false, predicate: { oneofKind: 'affectedAddress', affectedAddress: { address: walletAddress } } }] },
+    ] };
+    const records = [];
+    const cursors = new Set();
+    const digests = new Set();
+    const decimals = new Map();
+    let after;
+    do {
+      let cursor;
+      let end;
+      let coveredCheckpoint;
+      const call = client.ledgerService.listTransactions({ filter, startCheckpoint:lower,endCheckpoint:upper+1n,
+        readMask: { paths: ['digest'] }, options: { limit: 50, ordering: 0, after } });
+      for await (const frame of call.responses) {
+        if (frame.watermark?.cursor) cursor = frame.watermark.cursor;
+        if (frame.watermark?.checkpoint !== undefined) coveredCheckpoint = frame.watermark.checkpoint;
+        if (frame.end) end = frame.end.reason;
+        if (!frame.transaction) continue;
+        const digest = frame.transaction.digest;
+        if (!digest || digests.has(digest)) throw new Error('Sui returned missing or duplicate history digests');
+        digests.add(digest);
+        const fetched = await client.getTransaction({ digest,
+          include: { effects: true, balanceChanges: true, transaction: true, objectTypes: true } });
+        const tx = verifiedHistoryTransaction(fetched.Transaction ?? fetched.FailedTransaction, digest);
+        if (BigInt(tx.checkpoint)>upper||BigInt(tx.checkpoint)<lower)
+          throw new Error('Sui history receipt is outside the requested checkpoint range');
+        const balances = tx.balanceChanges.filter(change => change.address === walletAddress);
+        for (const change of balances) {
+          if (!decimals.has(change.coinType)) {
+            const { coinMetadata } = await client.getCoinMetadata({ coinType: change.coinType });
+            if (!coinMetadata || !Number.isInteger(coinMetadata.decimals)) throw new Error('History asset has no on-chain decimals metadata');
+            decimals.set(change.coinType, coinMetadata.decimals);
+          }
+          const recipients = [...new Set(tx.balanceChanges.filter(item => item.coinType === change.coinType
+            && item.address !== walletAddress && BigInt(item.amount) > 0n).map(item => item.address))];
+          records.push({ digest, sender: tx.transaction.sender, walletAddress, amountUnits: change.amount,
+            decimals: decimals.get(change.coinType), coinType: change.coinType, recipients,
+            checkpoint:tx.checkpoint,timestampMs: tx.timestampMs, success: tx.status.success });
+        }
+        if (!balances.length) records.push({ digest, sender: tx.transaction.sender, walletAddress,
+          amountUnits: '0', decimals: 0, coinType: null, recipients: [], timestampMs: tx.timestampMs,
+          checkpoint:tx.checkpoint,success: tx.status.success, objectChanges: tx.effects.changedObjects.map(item => item.objectId) });
+      }
+      if (historyScanComplete(end, coveredCheckpoint, upper)) return records;
+      if (!cursor) throw new Error('Sui history stream returned no valid terminal cursor');
+      const encoded = Buffer.from(cursor).toString('base64');
+      if (cursors.has(encoded)) throw new Error('Sui returned a non-advancing history cursor');
+      cursors.add(encoded);
+      after = cursor;
+    } while (true);
+}
+
 export async function invoke(request, persistPreparedSubmission) {
   return withNativeMutationEvidence(() => invokeCore(request), persistPreparedSubmission, request.maximumGasBudgetMist);
 }
@@ -275,66 +350,7 @@ async function invokeCore(request) {
     const fetched = await client.getTransaction({ digest: request.transactionHash, include: { effects: true, transaction: true } });
     return { ...nativeFeeReceipt(fetched.Transaction ?? fetched.FailedTransaction, request.transactionHash), chainIdentifier };
   }
-  if (request.operation === 'history') {
-    if (!isValidSuiAddress(request.walletAddress)) throw new Error('Valid Sui history wallet is required');
-    const walletAddress = normalizeSuiAddress(request.walletAddress);
-    const { response: info } = await client.ledgerService.getServiceInfo({});
-    if (info.checkpointHeight === undefined || info.lowestAvailableCheckpoint === undefined)
-      throw new Error('Sui node returned no history availability bounds');
-    if (info.lowestAvailableCheckpoint > 0n) throw new Error('Complete wallet history requires an unpruned Sui ledger');
-    const filter = { terms: [
-      { literals: [{ negated: false, predicate: { oneofKind: 'sender', sender: { address: walletAddress } } }] },
-      { literals: [{ negated: false, predicate: { oneofKind: 'affectedAddress', affectedAddress: { address: walletAddress } } }] },
-    ] };
-    const records = [];
-    const cursors = new Set();
-    const digests = new Set();
-    const decimals = new Map();
-    let after;
-    do {
-      let cursor;
-      let end;
-      let coveredCheckpoint;
-      const call = client.ledgerService.listTransactions({ filter, endCheckpoint: info.checkpointHeight + 1n,
-        readMask: { paths: ['digest'] }, options: { limit: 50, ordering: 0, after } });
-      for await (const frame of call.responses) {
-        if (frame.watermark?.cursor) cursor = frame.watermark.cursor;
-        if (frame.watermark?.checkpoint !== undefined) coveredCheckpoint = frame.watermark.checkpoint;
-        if (frame.end) end = frame.end.reason;
-        if (!frame.transaction) continue;
-        const digest = frame.transaction.digest;
-        if (!digest || digests.has(digest)) throw new Error('Sui returned missing or duplicate history digests');
-        digests.add(digest);
-        const fetched = await client.getTransaction({ digest,
-          include: { effects: true, balanceChanges: true, transaction: true, objectTypes: true } });
-        const tx = verifiedHistoryTransaction(fetched.Transaction ?? fetched.FailedTransaction, digest);
-        if (BigInt(tx.checkpoint) > info.checkpointHeight)
-          throw new Error('Sui history receipt exceeds the fixed committed checkpoint');
-        const balances = tx.balanceChanges.filter(change => change.address === walletAddress);
-        for (const change of balances) {
-          if (!decimals.has(change.coinType)) {
-            const { coinMetadata } = await client.getCoinMetadata({ coinType: change.coinType });
-            if (!coinMetadata || !Number.isInteger(coinMetadata.decimals)) throw new Error('History asset has no on-chain decimals metadata');
-            decimals.set(change.coinType, coinMetadata.decimals);
-          }
-          const recipients = [...new Set(tx.balanceChanges.filter(item => item.coinType === change.coinType
-            && item.address !== walletAddress && BigInt(item.amount) > 0n).map(item => item.address))];
-          records.push({ digest, sender: tx.transaction.sender, walletAddress, amountUnits: change.amount,
-            decimals: decimals.get(change.coinType), coinType: change.coinType, recipients,
-            timestampMs: tx.timestampMs, success: tx.status.success });
-        }
-        if (!balances.length) records.push({ digest, sender: tx.transaction.sender, walletAddress,
-          amountUnits: '0', decimals: 0, coinType: null, recipients: [], timestampMs: tx.timestampMs,
-          success: tx.status.success, objectChanges: tx.effects.changedObjects.map(item => item.objectId) });
-      }
-      if (historyScanComplete(end, coveredCheckpoint, info.checkpointHeight)) return records;
-      if (!cursor) throw new Error('Sui history stream returned no valid terminal cursor');
-      const encoded = Buffer.from(cursor).toString('base64');
-      if (cursors.has(encoded)) throw new Error('Sui returned a non-advancing history cursor');
-      cursors.add(encoded);
-      after = cursor;
-    } while (true);
-  }
+  if (request.operation === 'history') return readWalletHistory(client,request);
   if (request.operation === 'nftMint') {
     if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.recipient)
         || !Array.isArray(request.metadata) || request.metadata.some(value => typeof value !== 'string')
