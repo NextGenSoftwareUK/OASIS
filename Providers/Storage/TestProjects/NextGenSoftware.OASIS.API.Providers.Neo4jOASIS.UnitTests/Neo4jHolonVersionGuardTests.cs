@@ -7,6 +7,18 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 [TestClass]
 public class Neo4jHolonVersionGuardTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task EmptyExportOwnerRejectsBeforeNativeRead(bool synchronous)
+    {
+        var provider=new Provider("bolt://127.0.0.1:17687","neo4j","owned",
+            ()=>Neo4jLookupOutcomeTests.ReadProbe.Make<IDriver>(0));
+        provider.IsProviderActivated=true;
+        var result=synchronous?provider.ExportAllDataForAvatarById(Guid.Empty):await provider.ExportAllDataForAvatarByIdAsync(Guid.Empty);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
+        Assert.IsInstanceOfType<ArgumentException>(result.Exception);
+        Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);
+    }
+
     [DataTestMethod]
     [DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
     public async Task NegativeRootVersionRejectsBeforeNativeRead(bool synchronous,bool byKey)
