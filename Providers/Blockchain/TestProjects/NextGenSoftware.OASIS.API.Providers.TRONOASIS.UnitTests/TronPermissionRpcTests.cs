@@ -57,6 +57,8 @@ public class TronPermissionRpcTests
     [InlineData("escrow-lock-provider")]
     [InlineData("escrow-lock-provider-await")]
     [InlineData("deploy-await-replace")] [InlineData("deploy-await-clear")]
+    [InlineData("nft-mint-avatar-id")] [InlineData("nft-mint-avatar-username")]
+    [InlineData("nft-mint-avatar-email")] [InlineData("nft-mint-avatar-all")]
     [InlineData("contradictory-broadcast")]
     public async Task RotatedContractSignerAndConfirmedDeploymentReadbackPreserveOneSubmission(string mode)
     {
@@ -77,6 +79,9 @@ public class TronPermissionRpcTests
         var escrowLock = mode is "escrow-lock" or "escrow-lock-provider";
         var submitted=new System.Collections.Generic.List<ByteString>();
         TransactionExtention Construct(IMessage request,Transaction.Types.Contract.Types.ContractType type){
+            if(mode.StartsWith("nft-mint-avatar-",StringComparison.Ordinal)&&request is TriggerSmartContract mint){
+                Assert.Equal(new System.Numerics.BigInteger(contractBytes.AsSpan(1),true,true),new System.Numerics.BigInteger(mint.Data.Span.Slice(4,32),true,true));
+            }
             if(request is CreateSmartContract deployment)constructedBytecode=deployment.NewContract.Bytecode;
             if(mutateWhileWaiting&&request is TriggerSmartContract call)Assert.Equal(ByteString.CopyFrom(contractBytes),call.ContractAddress);
             constructions++;var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var tx=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
@@ -173,6 +178,30 @@ public class TronPermissionRpcTests
                 Assert.False(response.IsError,response.Message);
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),response.Result.TransactionResult);
                 Assert.False(provider.IsProviderActivated);
+            }
+            else if(mode.StartsWith("nft-mint-avatar-",StringComparison.Ordinal)){
+                var minter=Guid.NewGuid();var recipient=Guid.NewGuid();
+                var ciphertext=Rijndael256.Rijndael.Encrypt(key,new string('k',32),Rijndael256.KeySize.Aes256);
+                Core.Holons.Avatar Record(Guid actor,string address,string username)=>new(){Id=actor,Username=username,Email=username+"@example.invalid",IsActive=true,
+                    ProviderWallets=new(){[Core.Enums.ProviderType.TRONOASIS]=new(){new Core.Objects.ProviderWallet{Id=Guid.NewGuid(),AvatarId=actor,
+                        ProviderType=Core.Enums.ProviderType.TRONOASIS,IsDefaultWallet=true,WalletAddress=address,PrivateKey=ciphertext}}}};
+                var minterRecord=Record(minter,owner,"minter");var recipientRecord=Record(recipient,contract,"recipient");
+                var (manager,storage)=TronNativeStorageIndependenceTests.WalletManagerFor(minterRecord,recipientRecord);
+                var provider=new TRONOASIS(nativeTransfers:runtime.NativeTransfers,walletManager:manager);
+                var request=new Core.Objects.NFT.Requests.MintWeb3NFTRequest{Amount=1,MintedByAvatarId=minter,
+                    JSONMetaDataURL="https://example.invalid/metadata",NFTStandardType=Core.Enums.NFTStandardType.TRC721,
+                    MetaData=new(){{"MintFunctionSignature","mint(address,uint256,string)"},{"TokenAddress",contract},{"TokenId","1"}},
+                    SendToAvatarAfterMintingId=mode.EndsWith("-id")||mode.EndsWith("-all")?recipient:Guid.Empty,
+                    SendToAvatarAfterMintingUsername=mode.EndsWith("-username")||mode.EndsWith("-all")?"recipient":null,
+                    SendToAvatarAfterMintingEmail=mode.EndsWith("-email")||mode.EndsWith("-all")?"recipient@example.invalid":null,
+                    SendToAddressAfterMinting=mode.EndsWith("-all")?contract:null};
+                var result=await provider.MintNFTAsync(request);Assert.False(result.IsError,result.Message);
+                Assert.Equal(contract,result.Result.Web3NFT.SendToAddressAfterMinting);
+                Assert.Equal(Core.Enums.NFTStandardType.TRC721,result.Result.Web3NFT.NFTStandardType.Value);
+                Assert.Equal(ciphertext,minterRecord.ProviderWallets[Core.Enums.ProviderType.TRONOASIS][0].PrivateKey);
+                Assert.Equal(ciphertext,recipientRecord.ProviderWallets[Core.Enums.ProviderType.TRONOASIS][0].PrivateKey);
+                Assert.False(provider.IsProviderActivated);
+                Assert.False((await storage.DeActivateProviderAsync()).IsError);
             }
             else if(mode is "call" or "nft-mint" or "nft-send" or "token-send" or "approve" or "escrow-lock" or "escrow-unlock"){
                 var result=await (mode switch {

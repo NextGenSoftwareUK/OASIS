@@ -275,7 +275,7 @@ try{
         if($report.LastWriteTimeUtc -lt $tronStarted){throw 'TRON prepared storage report is stale.'}
         [xml]$evidence=Get-Content -LiteralPath $report.FullName
         $counts=$evidence.TestRun.ResultSummary.Counters
-        $expectedTron=if($TronNative){1}elseif($TronFull){476}else{10}
+        $expectedTron=if($TronNative){1}elseif($TronFull){480}else{10}
         if([int]$counts.total -ne $expectedTron -or [int]$counts.passed -ne $expectedTron -or [int]$counts.notExecuted -ne 0){throw 'Expected complete selected TRON unit suite without skips.'}
     }elseif($SuiUnit){
         $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'

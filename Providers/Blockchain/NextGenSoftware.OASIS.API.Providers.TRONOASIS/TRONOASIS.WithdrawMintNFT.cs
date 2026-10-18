@@ -224,6 +224,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(transaction);
+                transaction=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.NftMintIntent.Capture(transaction);
                 if(transaction.NFTStandardType.HasValue && transaction.NFTStandardType.Value!=Core.Enums.NFTStandardType.TRC721)
                     throw new ArgumentException("This TRON adapter mints TRC721 NFTs only.",nameof(transaction.NFTStandardType));
                 if(transaction.OnChainProvider.HasValue && transaction.OnChainProvider.Value!=Core.Enums.ProviderType.TRONOASIS
@@ -246,21 +247,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (string.IsNullOrWhiteSpace(transaction.JSONMetaDataURL))
                     throw new ArgumentException("JSONMetaDataURL must identify the NFT metadata; no URI is generated implicitly.");
                 if (transaction.StoreNFTMetaDataOnChain == true || transaction.FreezeMetadata == true
-                    || (transaction.RoyaltyPercentage.HasValue && transaction.RoyaltyPercentage != 0)
-                    || transaction.SendToAvatarAfterMintingId != Guid.Empty
-                    || !string.IsNullOrWhiteSpace(transaction.SendToAvatarAfterMintingUsername)
-                    || !string.IsNullOrWhiteSpace(transaction.SendToAvatarAfterMintingEmail))
-                    throw new ArgumentException("On-chain metadata, freeze, royalties and avatar-recipient resolution require explicit collection support.");
+                    || (transaction.RoyaltyPercentage.HasValue && transaction.RoyaltyPercentage != 0))
+                    throw new ArgumentException("On-chain metadata, freeze and royalties require explicit collection support.");
                 var mintedByAvatarId = transaction.MintedByAvatarId;
                 var metadataUri = transaction.JSONMetaDataURL;
                 var memo = transaction.MemoText;
-                var requestedRecipient = transaction.SendToAddressAfterMinting;
                 var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(mintedByAvatarId,
                     Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
                 if (wallet.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
                 if (wallet.Result == null || wallet.Result.AvatarId != mintedByAvatarId || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
                     throw new InvalidOperationException("Exact requesting avatar TRON signing wallet required.");
-                var recipient = string.IsNullOrWhiteSpace(requestedRecipient) ? wallet.Result.WalletAddress : requestedRecipient;
+                var resolvedRecipient=await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.NftMintRecipient.ResolveAsync(transaction,wallet.Result.WalletAddress,
+                    id=>WalletManager.GetAvatarDefaultWalletByIdAsync(id,Core.Enums.ProviderType.TRONOASIS),
+                    username=>WalletManager.GetAvatarDefaultWalletByUsernameAsync(username,providerType:Core.Enums.ProviderType.TRONOASIS),
+                    email=>WalletManager.GetAvatarDefaultWalletByEmailAsync(email,Core.Enums.ProviderType.TRONOASIS));
+                if(resolvedRecipient.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<string,IWeb3NFTTransactionResponse>(resolvedRecipient);
+                var recipient=resolvedRecipient.Result;
                 var hash = await ExecuteNativeRuntimeAsync(client => client.MintNftAsync(wallet.Result.WalletAddress,
                     recipient, contract, tokenId, metadataUri, wallet.Result.PrivateKey, memo));
                 var nft = NativeNftDescriptor(contract + "/" + tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),metadataUri);

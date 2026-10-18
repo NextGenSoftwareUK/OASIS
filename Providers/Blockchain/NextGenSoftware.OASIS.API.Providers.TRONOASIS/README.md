@@ -10,6 +10,8 @@ For native minting, omit `NFTStandardType` or explicitly select `TRC721`; explic
 
 The existing explicit `mint(address,uint256,string)` collection extension still requires one token, a minter avatar, a metadata URI, and `MetaData` entries `MintFunctionSignature`, `TokenAddress`, and decimal `TokenId`. This change does not implement royalties, metadata freezing, cross-collection completeness, off-chain metadata fetching, or coordinator authorization. No implicit mint ABI or NFT identity is invented.
 
+Mint recipients may be an explicit address or an avatar ID, username, email, or a consistent combination. Existing WalletManager lookups resolve only supplied selectors. All must resolve to the same exact canonical TRON wallet address; conflicting selectors, failed lookups and missing wallets stop before native signing, never silently mint to the minter. With no recipient selector, the existing minter-wallet default is retained. The shared `NftMintRecipient` coordinator is also used by Sui, which supplies its own address-equivalence comparison. Selection does not grant mint authority, fetch credentials, or authorize fees. Recipient lookups can incur storage-provider reads; hosted admission/accounting remains a separate verification gate.
+
 [Official TRC721 specification](https://developers.tron.network/docs/trc-721) describes TRON's ERC721-compatible interface and TVM-specific behavior. Verification scope and unresolved native transaction/fee/release gates are recorded in `Docs/Devs/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md` in the parent repository. Unit/gRPC fixture success is not full native or hosted provider certification.
 
 Initial Release targeting OASIS API v2.3.1 (Current LIVE REST version): \
