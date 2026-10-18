@@ -357,6 +357,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.IsPublic = avatarDetailEntity.IsPublic;
                     existing.VersionId = avatarDetailEntity.VersionId;
                     existing.PreviousVersionId = avatarDetailEntity.PreviousVersionId;
+                    existing.ParentHolonId = avatarDetailEntity.ParentHolonId;
+                    existing.ParentHolonId2 = avatarDetailEntity.ParentHolonId2;
+                    existing.ParentHolonId3 = avatarDetailEntity.ParentHolonId3;
                     existing.CustomHolonType = avatarDetailEntity.CustomHolonType;
                     existing.IsChanged = avatarDetailEntity.IsChanged;
                     existing.ModifiedByAvatarId = avatarDetailEntity.ModifiedByAvatarId.ToString();
@@ -455,6 +458,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.IsPublic = AvatarDetailEntity.IsPublic;
                     existing.VersionId = AvatarDetailEntity.VersionId;
                     existing.PreviousVersionId = AvatarDetailEntity.PreviousVersionId;
+                    existing.ParentHolonId = AvatarDetailEntity.ParentHolonId;
+                    existing.ParentHolonId2 = AvatarDetailEntity.ParentHolonId2;
+                    existing.ParentHolonId3 = AvatarDetailEntity.ParentHolonId3;
                     existing.CustomHolonType = AvatarDetailEntity.CustomHolonType;
                     existing.IsChanged = AvatarDetailEntity.IsChanged;
                     existing.ModifiedByAvatarId = AvatarDetailEntity.ModifiedByAvatarId.ToString();
@@ -615,6 +621,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 IsPublic = avatarDetailEntity.IsPublic,
                 VersionId = avatarDetailEntity.VersionId,
                 PreviousVersionId = avatarDetailEntity.PreviousVersionId,
+                ParentHolonId = avatarDetailEntity.ParentHolonId,
+                ParentHolonId2 = avatarDetailEntity.ParentHolonId2,
+                ParentHolonId3 = avatarDetailEntity.ParentHolonId3,
                 CustomHolonType = avatarDetailEntity.CustomHolonType,
                 IsChanged = avatarDetailEntity.IsChanged,
                 ModifiedByAvatarId = Guid.Parse(avatarDetailEntity.ModifiedByAvatarId),
@@ -661,6 +670,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 IsPublic = avatarDetail.IsPublic,
                 VersionId = avatarDetail.VersionId,
                 PreviousVersionId = avatarDetail.PreviousVersionId,
+                ParentHolonId = avatarDetail.ParentHolonId,
+                ParentHolonId2 = avatarDetail.ParentHolonId2,
+                ParentHolonId3 = avatarDetail.ParentHolonId3,
                 CustomHolonType = avatarDetail.CustomHolonType,
                 CreatedProviderType = avatarDetail.CreatedProviderType?.Value,
                 CreatedOASISType = avatarDetail.CreatedOASISType?.Value,

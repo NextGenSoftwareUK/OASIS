@@ -301,6 +301,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", b =>
                 {
+                    b.Property<Guid>("ParentHolonId").HasColumnType("TEXT");
+                    b.Property<Guid>("ParentHolonId2").HasColumnType("TEXT");
+                    b.Property<Guid>("ParentHolonId3").HasColumnType("TEXT");
                     b.Property<Guid>("VersionId").HasColumnType("TEXT");
                     b.Property<Guid>("PreviousVersionId").HasColumnType("TEXT");
                     b.Property<string>("CustomHolonType").HasColumnType("TEXT");
