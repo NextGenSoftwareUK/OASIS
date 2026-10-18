@@ -2,6 +2,8 @@
 
 ## Cosmos asset ambient-admission bypass — 2026-10-17
 
+Read-only follow-up positively identified all4originals and native ante deductions (put3625/delete3437/mint4293/burn4009stake) on retained chain. Asset mint and burn both successful at125000000raw units, supply nowzero, storage keyabsent. Exact hashes/raw-chain evidence in release journal and separate asset-original report; old report untouched. This proves original inclusion/state, not retroactive budget admission or billable net-final accounting. Durable outbox comparison/archive still required; journal/database remain fenced, no repeated mutation or settlement.
+
 Real public C# token mint/burn probe found the SDK backend's generic InvokeAsync did not inherit an active preparation owner, even though IKeyValueBackend put/delete did. Both asset calls succeeded/returned balance and supply to zero, but durable count was2instead of4. Native test remains FAILED; retain journal `prepared-native-pending.json` and `usage_cosmos_live_prepared` for exact original reconciliation, with unique symbol recorded before execution. No replay/automatic cleanup.
 
 Fix is at the single InvokeCoreAsync mutation boundary: when no explicit server is supplied, active owner must create the preparation gate for put/delete/execute/transfer/upload/instantiate, before process launch. Reads still do not create mutation gates; explicit prepared server is reused, not duplicated. Six admission-refusal regressions failed before fix and pass afterward; full186/186offline suite passes. This is not evidence of retroactive admission/settlement for the two untracked native asset originals. Exact hashes in release journal. Keep provider sponsorship disabled.
