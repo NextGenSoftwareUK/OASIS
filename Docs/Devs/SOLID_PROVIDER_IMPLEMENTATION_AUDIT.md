@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Conditional holon deletion (2026-10-18)
+
+GUID/provider-key sync and async deletion now use the canonical encrypted resource, read/decrypt the original record, require a strong ETag and send DELETE with If-Match. Success requires a separate GET returning 404; result contains the original detached record. No guessed by-key route, unconditional deletion or automatic replay. Missing/weak ETags prevent mutation. HTTP 412 remains the original explicit HTTP error; uncertain transport/server outcomes and acknowledged-but-unconfirmed absence preserve SolidRecordReconciliationException with canonical resource and acknowledgement state. This is a single-resource operation, not child cascade or an atomic avatar/detail deletion.
+
+Cached bounded provider build passed (2 warnings); full controlled unit suite 127/127 passed, zero skipped, 248 ms. Nine new tests cover sync/async GUID/key success, missing/weak tags, conflict, transport uncertainty and stale post-delete readback. Report TestResults/SolidCurrent/solid-unit-current.trx SHA256 7D22B9B1765A851EE3FF87665A6FD4BB458D47282C3BF1B47EFD61999B37190F. No before-change red run was captured for these nine cases. No live pod proof: existing native-runtime execution-policy gate remains unchanged. Avatar soft-delete result handling/identity routes and avatar/detail consistency, conditional saves, history, paging, durable reconciliation, manager integration and full release certification remain OPEN. Reused existing environment and caches; no install/download/service launch.
+
 ## Import/export integration and retired transitional code
 
 Import now uses existing encrypted graph save, preserving bool status/flags/native partial-write causes. Export uses encrypted flat holon query and existing CreatedByAvatarId scope; username/email via private identity lookup. Counts set consistently; no guessed/import or/export route, no plaintext export request body. Scope follows shared provider's holon contract, NOT a complete account/avatar-detail backup.

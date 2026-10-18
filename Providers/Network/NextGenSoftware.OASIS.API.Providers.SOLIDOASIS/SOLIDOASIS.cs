@@ -294,34 +294,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/holons/{id}.ttl");
-                result.IsError = !response.IsSuccessStatusCode;
-                result.Message = response.IsSuccessStatusCode ? "Holon deleted from SOLID pod" : $"SOLID LDP error: {response.StatusCode}";
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {ex.Message}", ex); }
-            return result;
-        }
+            => await DeletePrivateHolonAsync(id);
 
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/holons/by-key/{Uri.EscapeDataString(providerKey)}.ttl");
-                result.IsError = !response.IsSuccessStatusCode;
-                result.Message = response.IsSuccessStatusCode ? "Holon deleted from SOLID pod" : $"SOLID LDP error: {response.StatusCode}";
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key: {ex.Message}", ex); }
-            return result;
-        }
+            => await DeletePrivateHolonAsync(providerKey);
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
 
