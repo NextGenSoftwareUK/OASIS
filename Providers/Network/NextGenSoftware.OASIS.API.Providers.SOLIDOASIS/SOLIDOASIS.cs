@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
     /// Implements Tim Berners-Lee's decentralized web standard where users store data in personal "pods"
     /// via the Linked Data Platform (LDP) HTTP protocol using RDF/Turtle format.
     /// </summary>
-    public class SOLIDOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISSuperStar, IDisposable
+    public partial class SOLIDOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISSuperStar, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _podServerUrl;
@@ -32,6 +32,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         private bool _disposed;
 
         public SOLIDOASIS(string podServerUrl = "https://solidcommunity.net", string authToken = "")
+            :this(podServerUrl,authToken,null,new HttpClientHandler()) { }
+
+        public SOLIDOASIS(string podServerUrl,string authToken,byte[] storageKey)
+            :this(podServerUrl,authToken,storageKey,new HttpClientHandler()) { }
+
+        public SOLIDOASIS(string podServerUrl,string authToken,byte[] storageKey,HttpMessageHandler handler)
         {
             this.ProviderName = "SOLIDOASIS";
             this.ProviderDescription = "SOLID (Social Linked Data) Provider — decentralized personal data storage in LDP pods";
@@ -39,7 +45,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             _podServerUrl = (podServerUrl ?? throw new ArgumentNullException(nameof(podServerUrl))).TrimEnd('/');
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+            _privateRecords=storageKey==null?null:new SolidPrivateRecordCodec(new Uri(_podServerUrl),storageKey);
+            _httpClient = new HttpClient(handler??throw new ArgumentNullException(nameof(handler))) { Timeout = TimeSpan.FromSeconds(30) };
             _httpClient.DefaultRequestHeaders.Add("Accept", "text/turtle, application/ld+json;q=0.9, */*;q=0.8");
 
             if (!string.IsNullOrEmpty(authToken))
@@ -100,25 +107,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatars/{id}.ttl");
-                if (response.IsSuccessStatusCode)
-                {
-                    var turtle = await response.Content.ReadAsStringAsync();
-                    result.Result = ParseRDFToAvatar(turtle);
-                    result.IsError = result.Result == null;
-                    result.Message = result.Result != null ? "Avatar loaded from SOLID pod" : "Failed to parse avatar RDF";
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {ex.Message}", ex); }
-            return result;
-        }
+            => await LoadPrivateRecordAsync<IAvatar>(id,version);
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
 
@@ -186,23 +175,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatar-details/{id}.ttl");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToAvatarDetail(await response.Content.ReadAsStringAsync());
-                    result.IsError = result.Result == null;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail: {ex.Message}", ex); }
-            return result;
-        }
+            => await LoadPrivateRecordAsync<IAvatarDetail>(id,version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
 
@@ -292,52 +265,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, "Avatar cannot be null"); return result; }
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                var turtle = ConvertAvatarToRDF(avatar);
-                var content = new StringContent(turtle, Encoding.UTF8, "text/turtle");
-                var response = await _httpClient.PutAsync($"{_podServerUrl}/oasis/avatars/{avatar.Id}.ttl", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = avatar;
-                    result.Message = "Avatar saved to SOLID pod";
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error saving avatar: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {ex.Message}", ex); }
-            return result;
-        }
+            => await SavePrivateRecordAsync(avatar);
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                if (avatarDetail == null) { OASISErrorHandling.HandleError(ref result, "AvatarDetail cannot be null"); return result; }
-                if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
-                var turtle = ConvertAvatarDetailToRDF(avatarDetail);
-                var content = new StringContent(turtle, Encoding.UTF8, "text/turtle");
-                var response = await _httpClient.PutAsync($"{_podServerUrl}/oasis/avatar-details/{avatarDetail.Id}.ttl", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = avatarDetail;
-                    result.Message = "AvatarDetail saved to SOLID pod";
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error saving avatar detail: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail: {ex.Message}", ex); }
-            return result;
-        }
+            => await SavePrivateRecordAsync(avatarDetail);
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
 
@@ -420,23 +353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/{id}.ttl");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolon(await response.Content.ReadAsStringAsync());
-                    result.IsError = result.Result == null;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holon: {ex.Message}", ex); }
-            return result;
-        }
+            => await LoadPrivateRecordAsync<IHolon>(id,version);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -571,27 +488,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                if (holon == null) { OASISErrorHandling.HandleError(ref result, "Holon cannot be null"); return result; }
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                var turtle = ConvertHolonToRDF(holon);
-                var content = new StringContent(turtle, Encoding.UTF8, "text/turtle");
-                var response = await _httpClient.PutAsync($"{_podServerUrl}/oasis/holons/{holon.Id}.ttl", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = holon;
-                    result.Message = "Holon saved to SOLID pod";
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error saving holon: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving holon: {ex.Message}", ex); }
-            return result;
-        }
+            => await SavePrivateRecordAsync(holon);
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -1072,6 +969,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             if (!_disposed)
             {
                 _httpClient?.Dispose();
+                _privateRecords?.Dispose();
                 _disposed = true;
             }
         }

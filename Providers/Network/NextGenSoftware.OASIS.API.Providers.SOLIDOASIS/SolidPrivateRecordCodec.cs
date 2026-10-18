@@ -35,7 +35,7 @@ public sealed class SolidPrivateRecordCodec : IDisposable
         if(typeof(IHolon).IsAssignableFrom(typeof(T)))return "holons";
         throw new ArgumentException("A supported avatar, avatar-detail or holon contract is required.");
     }
-    private Uri Resource<T>(Guid id) where T:class,IHolonBase
+    public Uri Resource<T>(Guid id) where T:class,IHolonBase
     {
         if(id==Guid.Empty)throw new ArgumentException("A nonempty record identity is required.",nameof(id));
         return new Uri(_root,$"oasis/{Kind<T>()}/{id:D}.ttl");
