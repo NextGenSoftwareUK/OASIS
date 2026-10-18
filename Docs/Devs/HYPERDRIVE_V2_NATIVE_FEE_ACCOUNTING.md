@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Hedera activation is paid and data-dependent — 2026-10-17
+
+Real routed read demonstrated that activation is NOT just account/owner/alias verification: shared PrivateKeyValueBackend.VerifyReadOnlyAsync also enumerates the private namespace, and Hedera list queries revision/page/revision, then decrypts existing record identities. Even empty-store activation plus one missing-root read needs at least7payments; populated stores add pages/record reads. Do not declare activation free or reuse a one-read budget for it; do not remove integrity validation to reduce a test bill.
+
+Bounded routed test stopped after4original payments at0.28294688HBAR exposure, refusing next attempt under4attempt/0.35aggregate policy. Read-only recovery verified all4originals SUCCESS and **actual0.247636testHBAR debit** without signing/replay/ledger changes. Journal/database stay protected; no outcome/settlement fabricated. Current indexed test balance0.32485764HBAR. Future empty-store test is7attempt/0.75aggregate with0.85balance buffer, not run with current funds and not a production price recommendation. No new faucet request; other work can continue. Exact hashes/reconciliation boundaries in release journal.
+
 ## Configured-route recovery readiness — 2026-10-17
 
 Positive native composition verified: actual Kestrel fixture registers REAL Sui reader/exact chain, runs readiness on app.StartAsync and asserts no provider activation/quote fetch at startup; subsequent actual native writes/fees/recovery/delivery tests pass (full5/5native1m12s). Fixture uses explicit DI and controlled auth/synthetic pricing/authority, not deployed configuration or real market quotes. Actual hosted reader registration/bootstrap/pricing remain separate gates. Full report hash and marker in release journal.
