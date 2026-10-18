@@ -46,6 +46,45 @@ public class SolanaFinalityTests
         Assert.AreEqual(0, proxy.Reads);
     }
 
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task TwoSignerMintPreservesFeePayerSignatureAndNeverRebroadcasts(bool lost)
+    {
+        var payer=new Solnet.Wallet.Account();var mint=new Solnet.Wallet.Account();
+        var bytes=new Solnet.Rpc.Builders.TransactionBuilder().SetRecentBlockHash(Encoders.Base58.EncodeData(new byte[32])).SetFeePayer(payer)
+            .AddInstruction(Solnet.Programs.SystemProgram.CreateAccount(payer.PublicKey,mint.PublicKey,1_000_000,82,Solnet.Programs.TokenProgram.ProgramIdKey))
+            .Build(new List<Solnet.Wallet.Account> {payer,mint});
+        Assert.AreEqual((byte)2,bytes[0]);
+        Assert.IsTrue(payer.Verify(bytes.AsSpan(129).ToArray(),bytes.AsSpan(1,64).ToArray()));
+        Assert.IsTrue(mint.Verify(bytes.AsSpan(129).ToArray(),bytes.AsSpan(65,64).ToArray()));
+        var signature=Encoders.Base58.EncodeData(bytes.AsSpan(1,64).ToArray());
+        var rpc=DispatchProxy.Create<IRpcClient,RpcProxy>();var proxy=(RpcProxy)(object)rpc;
+        proxy.Signature=signature;proxy.LostReply=lost;
+        if(lost)
+        {
+            var failure=await Assert.ThrowsExceptionAsync<SolanaTransactionReconciliationException>(()=>Submit(new SolanaRepository(payer,rpc),bytes));
+            Assert.AreEqual(signature,failure.OriginalTransactionId);Assert.IsInstanceOfType(failure.InnerException,typeof(IOException));
+        }
+        else Assert.AreEqual(signature,await Submit(new SolanaRepository(payer,rpc),bytes));
+        Assert.AreEqual(1,proxy.Sends);Assert.AreEqual(lost ? 0:1,proxy.Reads);
+    }
+
+    [DataTestMethod]
+    [DataRow("empty")] [DataRow("zero")] [DataRow("truncated")] [DataRow("noncanonical")]
+    [DataRow("overflow")] [DataRow("missing-signatures")]
+    public async Task InvalidSignatureSectionFailsBeforeRpc(string scenario)
+    {
+        var bytes=scenario switch
+        {
+            "empty"=>Array.Empty<byte>(),"zero"=>new byte[70],"truncated"=>new byte[] {128},
+            "noncanonical"=>new byte[] {129,0}.Concat(new byte[70]).ToArray(),
+            "overflow"=>new byte[] {255,255,4},_=>new byte[] {2}.Concat(new byte[65]).ToArray()
+        };
+        var rpc=DispatchProxy.Create<IRpcClient,RpcProxy>();var proxy=(RpcProxy)(object)rpc;
+        await Assert.ThrowsExceptionAsync<ArgumentException>(()=>Submit(new SolanaRepository(null!,rpc),bytes));
+        Assert.AreEqual(0,proxy.Sends);Assert.AreEqual(0,proxy.Reads);
+    }
+
     private static Task<string> Submit(SolanaRepository repository, byte[] bytes) => (Task<string>)typeof(SolanaRepository)
         .GetMethod("SubmitAndConfirmAsync", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(repository,new object[] { bytes })!;
 
