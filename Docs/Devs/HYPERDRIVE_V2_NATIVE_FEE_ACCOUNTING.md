@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Retained Hedera activation fees durably recovered — 2026-10-17
+
+Operation `222c0b6b-625a-8198-564d-08b7f55ff929` now has4durable original fee receipts via the existing shared PreparedNativeUsageRecoveryResolver and real Hedera original-fee reader. Total **24763600tinybar=0.247636testHBAR**, below0.28294688admitted exposure. Valuation retains original synthetic1USD/HBAR test quotes, not a current market/production tariff. Original signed attempts, provider/client request correlations and exposure are unchanged. No signing key loaded, activation, paid query, replay, inferred logical outcome or hosted settlement. Native payment success does not establish the failed API read's outcome.
+
+Before mutation, exact journal/failureTRX/4transaction IDs checked; full original flushed to `TestResults/HederaRuntime/activation-fee-recovery-before.json` SHA256 `26F13B5F86A5BA50C83D319D67A7CFEE37D60DE8A36764EA067F0946C951DAB0`. Result `activation-fee-recovery.json` SHA256 `A34F2B51EEB607F0421EC37118A9F3D7828880E5BD5CB67FAE41F3244B04E4F8`. First1/1pass3s; stronger correlation/idempotent rerun1/1pass313ms/full runnerexit0 TRX SHA256 `226CE4308F2FAD1E20133AB30CD472B38511A649CAC96CD31CB910601180FE23` (whole operation unchanged on repeat).
+
+Reusable exact-case command: `pwsh -NoProfile -File Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1 -HederaPreparedOwners -HederaFeeRecovery`. No journal/database deletion, original replay or settlement authorization. Fence stays until separately reviewed logical-outcome/release criteria pass. This closes missing native-fee recording for this incident only, not routed native acceptance/full V2policy/interface/hosted certification.
+
 ## Budget exhaustion is not a provider outage — 2026-10-17
 
 Two new controlled SDK/pipe/Mongo sync/async V2 tests explicitly permit an alternate ordinary provider and enable native-first failover. After native activation query allowance is exhausted, original budget cause remains terminal and alternate activation/read/write counts remainzero. Existing query original/exposure remain, no storage mutation/settlement. Full137offline passes; no production change necessary. This protects operation-wide budget ownership, not native outage/failover certification. Paid real-testnet fixture remains fenced separately; hashes in release journal.
