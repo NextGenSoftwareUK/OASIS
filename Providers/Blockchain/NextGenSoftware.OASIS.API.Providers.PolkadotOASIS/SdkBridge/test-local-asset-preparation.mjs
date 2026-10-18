@@ -3,7 +3,7 @@ import { ApiPromise } from '@polkadot/api';
 import { ReadOnlyHttpProvider } from './read-only-provider.mjs';
 import { prepareAssetOperation, verifyAssetPreparation } from './asset-operation.mjs';
 import { verifyNativePreparation } from './verify-preparation.mjs';
-import { prepareNativeTransfer } from './native-transfer.mjs';
+import { prepareNativeTransfer, withExplicitSigner, signOriginalCall } from './native-transfer.mjs';
 
 if (process.env.OASIS_POLKADOT_LOCAL_NATIVE !== '1') throw new Error('Explicit LOCAL-only opt-in required.');
 const api = await ApiPromise.create({ provider: new ReadOnlyHttpProvider('http://127.0.0.1:19944'), noInitWarn: true });
@@ -23,6 +23,10 @@ try {
   const burn = await prepareAssetOperation(api, { ...request, action: 'burn', amount: '0.000001' });
   assert.equal(burn.units, '1');
   assert.equal((await verifyAssetPreparation(api, burn)).action, 'burn');
+  const transfer = await prepareAssetOperation(api, { ...request, action: 'transfer', amount: '0.250001',
+    recipient: '0x8ee504148e75c34e8f051899b3c6e4241ff18dc1c9211260b6a6a434bedb485f' });
+  assert.equal(transfer.units, '250001');
+  assert.equal((await verifyAssetPreparation(api, transfer)).action, 'transfer');
   let rejected = 0;
   for (const fields of [{ action: 'burn' }, { assetId: '424243' }, { units: '9' },
     { recipient: '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d' }]) {
@@ -41,8 +45,20 @@ try {
     /exceeds the observed asset balance/); rejected++;
   await assert.rejects(prepareAssetOperation(api, { ...request, assetId: '424243' })); rejected++;
   await assert.rejects(prepareAssetOperation(api, { ...request, sender: '0x8ee504148e75c34e8f051899b3c6e4241ff18dc1c9211260b6a6a434bedb485f', privateKey: '0x' + '03'.repeat(32) })); rejected++;
+  await assert.rejects(verifyAssetPreparation(api, { ...transfer, action: 'burn' })); rejected++;
+  const withoutTransferProtocol = { ...transfer }; delete withoutTransferProtocol.protocol;
+  await assert.rejects(verifyNativePreparation(api, withoutTransferProtocol)); rejected++;
+  const unreviewedPlainTransfer = await withExplicitSigner(api, request, pair => signOriginalCall(api,
+    api.tx.assets.transfer(request.assetId, transfer.recipient, '250001'), pair, mint.protocol, { action: 'transfer' }));
+  await assert.rejects(verifyAssetPreparation(api, unreviewedPlainTransfer)); rejected++;
+  const fullBalance = before.padStart(mint.decimals + 1, '0');
+  const fullAmount = fullBalance.slice(0, -mint.decimals) + '.' + fullBalance.slice(-mint.decimals);
+  await assert.rejects(prepareAssetOperation(api, { ...request, action: 'transfer', amount: fullAmount }),
+    /must preserve the sender account/); rejected++;
+  await assert.rejects(prepareAssetOperation(api, { ...request, action: 'transfer', amount: excessiveAmount }),
+    /exceeds the observed asset balance/); rejected++;
   assert.equal((await api.query.assets.account(request.assetId, request.recipient)).unwrap().balance.toString(), before);
   assert.equal((await api.query.assets.asset(request.assetId)).unwrap().supply.toString(), supplyBefore);
-  console.log(JSON.stringify({ assetId: request.assetId, decimals: 6, mintUnits: mint.units, burnUnits: burn.units,
+  console.log(JSON.stringify({ assetId: request.assetId, decimals: 6, mintUnits: mint.units, burnUnits: burn.units, transferUnits: transfer.units,
     signedAndIndependentlyVerified: true, rejectedCases: rejected, assetBalanceAndSupplyUnchanged: true, submitted: false }));
 } finally { await api.disconnect(); }

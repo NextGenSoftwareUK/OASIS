@@ -4,7 +4,7 @@ import { validateAssetRequest } from './asset-operation.mjs';
 
 const valid = { action: 'mint', assetId: '424242', sender: 'explicit-signer', recipient: 'explicit-target',
   amount: '1.250001', privateKey: '0x' + '02'.repeat(32) };
-for (const action of ['mint', 'burn']) test(`accept explicit asset ${action} intent before metadata lookup`, async () => {
+for (const action of ['mint', 'burn', 'transfer']) test(`accept explicit asset ${action} intent before metadata lookup`, async () => {
   await validateAssetRequest({ ...valid, action });
 });
 for (const [name, fields] of [
