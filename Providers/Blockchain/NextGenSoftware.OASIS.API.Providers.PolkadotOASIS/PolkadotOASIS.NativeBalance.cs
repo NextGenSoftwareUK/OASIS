@@ -13,6 +13,13 @@ public partial class PolkadotOASIS
 {
     private async Task<double> ReadNativeBalanceAsync(string address)
     {
+        var result = await InvokePolkadotSdkAsync(new { operation = "balance", endpoint = _rpcEndpoint, genesisHash = ReportedGenesisHash, address });
+        return ParseNativeBalance(result);
+    }
+
+    private async Task<JsonElement> InvokePolkadotSdkAsync(object request)
+    {
+        var input = JsonSerializer.Serialize(request);
         var bridge = Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE")
             ?? Path.Combine(AppContext.BaseDirectory, "PolkadotSdkBridge", "bridge.mjs");
         if (!File.Exists(bridge)) throw new FileNotFoundException("Pinned Polkadot SDK bridge is missing; provision its locked dependencies once.", bridge);
@@ -29,8 +36,7 @@ public partial class PolkadotOASIS
         var stderr = process.StandardError.ReadToEndAsync();
         try
         {
-            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new
-            { operation = "balance", endpoint = _rpcEndpoint, genesisHash = ReportedGenesisHash, address }).AsMemory(), deadline.Token);
+            await process.StandardInput.WriteAsync(input.AsMemory(), deadline.Token);
             process.StandardInput.Close();
             await process.WaitForExitAsync(deadline.Token);
         }
@@ -46,7 +52,7 @@ public partial class PolkadotOASIS
         using var envelope = JsonDocument.Parse(output);
         if (process.ExitCode != 0 || !envelope.RootElement.GetProperty("ok").GetBoolean())
             throw new InvalidOperationException(envelope.RootElement.GetProperty("error").GetString());
-        return ParseNativeBalance(envelope.RootElement.GetProperty("result"));
+        return envelope.RootElement.GetProperty("result").Clone();
     }
 
     private static double ParseNativeBalance(JsonElement result)
