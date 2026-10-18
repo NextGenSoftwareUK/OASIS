@@ -394,8 +394,6 @@ public partial class SolanaOASIS
         {
             if(string.IsNullOrWhiteSpace(providerKey)) throw new ArgumentException("A Solana storage signature is required.",nameof(providerKey));
             if(maxChildDepth<0 || version<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
-            if(version!=0 && loadChildrenFromProvider && loadChildren)
-                throw new NotSupportedException("Solana historical provider-child graph reads require a versioned index.");
             if(!IsProviderActivated)
             {
                 var activation=await ActivateProviderAsync();
