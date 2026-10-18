@@ -224,8 +224,20 @@ try{
             if($report.LastWriteTimeUtc -lt $suiStarted){throw 'Sui prepared report is stale.'}
             [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
             $counts=$evidence.TestRun.ResultSummary.Counters
-            $expectedSui=if($SuiCSharpAssets){4}elseif($SuiCSharpNft -or $SuiCSharpEscrow -or $SuiPreparedInspect -or $SuiCSharpHistory){1}else{5}
+            $expectedSui=if($SuiCSharpAssets){5}elseif($SuiCSharpNft){2}elseif($SuiCSharpEscrow -or $SuiPreparedInspect -or $SuiCSharpHistory){1}else{5}
             if(!$counts -or [int]$counts.total -ne $expectedSui -or [int]$counts.executed -ne $expectedSui -or [int]$counts.passed -ne $expectedSui -or [int]$counts.notExecuted -ne 0){throw "All $expectedSui selected Sui native cases must execute and pass."}
+            if($SuiCSharpNft){
+                $originalIds=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+                foreach($scenario in @('nft','nft-sync')){
+                    $receiptFile=Get-Item -LiteralPath (Join-Path $taskRoot "TestResults/SuiCurrent/sui-csharp-$scenario-receipts-current.json")
+                    if($receiptFile.LastWriteTimeUtc -lt $suiStarted){throw 'Native NFT receipt report is stale.'}
+                    $receiptData=Get-Content -LiteralPath $receiptFile.FullName -Raw | ConvertFrom-Json
+                    if($receiptData.scenario -ne $scenario -or [bool]$receiptData.synchronous -ne ($scenario -eq 'nft-sync') -or !$receiptData.burned -or @($receiptData.receipts).Count -ne 5){throw 'Both NFT call modes require their own completed lifecycle and five original receipts.'}
+                    foreach($receipt in $receiptData.receipts){
+                        if(!$receipt.success -or !$receipt.ProviderRequestId -or !$originalIds.Add($receipt.ProviderRequestId)){throw 'Native NFT modes must retain ten distinct successful originals.'}
+                    }
+                }
+            }
         }
     }elseif($MongoV2){
         $routingProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
@@ -276,7 +288,7 @@ try{
         if($report.LastWriteTimeUtc -lt $started){throw 'Sui unit report is stale.'}
         [xml]$evidence=Get-Content -LiteralPath $report.FullName
         $counts=$evidence.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 155 -or [int]$counts.passed -ne 155 -or [int]$counts.notExecuted -ne 0){throw 'Expected155 Sui unit cases must execute and pass.'}
+        if([int]$counts.total -ne 161 -or [int]$counts.passed -ne 161 -or [int]$counts.notExecuted -ne 0){throw 'Expected161 Sui unit cases must execute and pass.'}
     }elseif($HederaPreparedOwners){
         $env:OASIS_HEDERA_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs'
         $hederaProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests.csproj'
