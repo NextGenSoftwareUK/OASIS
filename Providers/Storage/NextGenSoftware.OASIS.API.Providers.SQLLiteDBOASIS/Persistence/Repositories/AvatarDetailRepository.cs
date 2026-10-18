@@ -347,6 +347,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.Username = avatarDetailEntity.Username;
                     existing.XP = avatarDetailEntity.XP;
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatarDetailEntity.MetaData ?? new Dictionary<string,object>());
+                    existing.ProviderLinksJson = AvatarDetailProviderLinks.Encode(avatarDetailEntity);
                     SetComponents(existing, avatarDetailEntity);
                     SetHeartRates(existing, avatarDetailEntity);
                     existing.Model3D = avatarDetailEntity.Model3D;
@@ -448,6 +449,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.Username = AvatarDetailEntity.Username;
                     existing.XP = AvatarDetailEntity.XP;
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(AvatarDetailEntity.MetaData ?? new Dictionary<string,object>());
+                    existing.ProviderLinksJson = AvatarDetailProviderLinks.Encode(AvatarDetailEntity);
                     SetComponents(existing, AvatarDetailEntity);
                     SetHeartRates(existing, AvatarDetailEntity);
                     existing.Model3D = AvatarDetailEntity.Model3D;
@@ -586,8 +588,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             SetComponent(existing.HumanDesign,source.HumanDesign==null ? null:new AvatarHumanDesignModel(source.HumanDesign) {Id=existing.Id,AvatarId=existing.Id},value=>existing.HumanDesign=value);
         }
 
-        private IAvatarDetail GetAvatarDetailFromEntity(AvatarDetailModel avatarDetailEntity) =>
-            new AvatarDetail()
+        private IAvatarDetail GetAvatarDetailFromEntity(AvatarDetailModel avatarDetailEntity)
+        {
+            var result=new AvatarDetail()
             {
                 Address = avatarDetailEntity.Address,
                 Country = avatarDetailEntity.Country,
@@ -643,10 +646,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     : avatarDetailEntity.InventoryItems.Select(m => (IInventoryItem)m.GetInventoryItem()).ToList(),
             };
 
+            AvatarDetailProviderLinks.Apply(avatarDetailEntity.ProviderLinksJson,result);
+            return result;
+        }
+
         private AvatarDetailModel CreateAvatarDetailModel(IAvatarDetail avatarDetail)
         {
             var model = new AvatarDetailModel()
             {
+                ProviderLinksJson = AvatarDetailProviderLinks.Encode(avatarDetail),
                 Address = avatarDetail.Address,
                 Country = avatarDetail.Country,
                 Description = avatarDetail.Description,
