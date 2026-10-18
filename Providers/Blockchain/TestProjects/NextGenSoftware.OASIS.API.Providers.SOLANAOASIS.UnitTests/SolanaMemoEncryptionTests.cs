@@ -22,16 +22,26 @@ public class SolanaMemoEncryptionTests
     {
         var key = RandomNumberGenerator.GetBytes(32);
         var writer = new SolanaRepository(null!, null!, () => (byte[])key.Clone());
-        var dto = new SolanaAvatarDto { Id = Guid.NewGuid(), Email = "private@example.invalid", Password = "synthetic-password" };
+        var dto = new SolanaAvatarDto { Id = Guid.NewGuid(), Email = "private@example.invalid", Password = "synthetic-password",
+            DID="did:oasis:synthetic-private-identity",DIDPublicKey="synthetic-public-key",HerzId="synthetic-herz-id",
+            VoiceprintId="synthetic-opaque-voice-reference",HerzVoiceprintId="synthetic-opaque-herz-reference",
+            AcceptTerms=true,Verified=new DateTime(2024,2,3,4,5,6,DateTimeKind.Utc) };
         var envelope = Encode(writer, dto);
         StringAssert.StartsWith(envelope, "oasis-aes256gcm-gzip-v2:");
         Assert.IsFalse(envelope.Contains(dto.Email));
         Assert.IsFalse(envelope.Contains(dto.Password));
+        foreach(var sensitive in new[]{dto.DID,dto.DIDPublicKey,dto.HerzId,dto.VoiceprintId,dto.HerzVoiceprintId})
+            Assert.IsFalse(envelope.Contains(sensitive));
         Assert.AreNotEqual(envelope, Encode(writer, dto));
         var reader = new SolanaRepository(null!, null!, () => (byte[])key.Clone());
         var json = Decode(reader, envelope);
         StringAssert.Contains(json, dto.Email);
         StringAssert.Contains(json, dto.Password);
+        var reopened=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<SolanaAvatarDto>(json);
+        Assert.AreEqual(dto.DID,reopened.DID);Assert.AreEqual(dto.DIDPublicKey,reopened.DIDPublicKey);
+        Assert.AreEqual(dto.HerzId,reopened.HerzId);Assert.AreEqual(dto.VoiceprintId,reopened.VoiceprintId);
+        Assert.AreEqual(dto.HerzVoiceprintId,reopened.HerzVoiceprintId);Assert.AreEqual(dto.Verified,reopened.Verified);
+        Assert.IsTrue(reopened.AcceptTerms);
         var wrongReader = new SolanaRepository(null!, null!, () => RandomNumberGenerator.GetBytes(32));
         Assert.IsInstanceOfType(Assert.ThrowsException<TargetInvocationException>(() => Decode(wrongReader, envelope)).InnerException,
             typeof(CryptographicException));

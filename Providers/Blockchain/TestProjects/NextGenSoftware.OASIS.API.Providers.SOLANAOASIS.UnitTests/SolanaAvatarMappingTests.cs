@@ -7,6 +7,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaAvatarMappingTests
 {
+    [DataTestMethod]
+    [DataRow("Title")][DataRow("AcceptTerms")][DataRow("PasswordReset")][DataRow("Verified")]
+    [DataRow("LastBeamedIn")][DataRow("LastBeamedOut")][DataRow("IsBeamedIn")]
+    [DataRow("DID")][DataRow("DIDPublicKey")][DataRow("HerzId")][DataRow("HerzCountryCode")]
+    [DataRow("HerzSequentialNumber")][DataRow("HerzClearanceLevel")][DataRow("HerzVoucherId")]
+    [DataRow("HerzVouchesRemaining")][DataRow("HerzIdAssignedDate")][DataRow("HerzVoiceprintId")]
+    [DataRow("HerzQeaProfile")][DataRow("VoiceprintId")][DataRow("BiometricEnrolled")][DataRow("ProviderUsername")]
+    public void DurableAvatarInterfaceFieldsSurviveCanonicalRecord(string field)
+    {
+        var source=new Avatar{Id=Guid.NewGuid()};
+        var property=typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar).GetProperty(field)!;
+        for(var revision=1;revision<=2;revision++){
+            object? value=property.PropertyType==typeof(string)?(revision==1?"stored-"+field:null):
+                property.PropertyType==typeof(bool)?revision==1:property.PropertyType==typeof(int)?100+revision:
+                property.PropertyType==typeof(DateTime?)?(revision==1?new DateTime(2024,2,3,4,5,6,DateTimeKind.Utc):null):
+                revision==1?new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>{{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS,"provider-user"}}:null;
+            property.SetValue(source,value);
+            var dto=source.GetSolanaAvatarDto();
+            var loaded=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models.SolanaAvatarDto>(
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(dto)).GetAvatar();
+            // DID has a specified computed fallback when its explicit value is null.
+            if(property.GetValue(source) is Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string> expected){
+                var found=(Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>)property.GetValue(loaded)!;
+                Assert.AreEqual(expected.Count,found.Count);foreach(var pair in expected)Assert.AreEqual(pair.Value,found[pair.Key]);
+            }else Assert.AreEqual(property.GetValue(source),property.GetValue(loaded),field+" revision "+revision);
+            if(field=="Verified" || field=="PasswordReset")Assert.AreEqual(source.IsVerified,loaded.IsVerified);
+        }
+    }
+
     [TestMethod]
     public void DetailMappingPreservesEveryStoredProfileAndOwnedValue()
     {
