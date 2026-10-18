@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+case "${1:-}" in ""|--compile-only) ;; *) echo 'Unsupported NEAR evidence mode.' >&2; exit 1;; esac
 
 : "${OASIS_REPO_ROOT_WSL:?OASIS_REPO_ROOT_WSL is required}"
 : "${OASIS_NEAR_CACHE_ROOT:?OASIS_NEAR_CACHE_ROOT is required}"
@@ -18,6 +19,8 @@ export PATH="${node_root}/bin:${PATH}"
 build_root="/var/tmp/oasis-near-evidence"
 mkdir -p "$build_root"
 [[ "$(realpath "$build_root")" == /var/tmp/oasis-near-evidence ]] || exit 1
+[[ -O "$build_root" ]] || { echo 'NEAR working directory belongs to another user.' >&2; exit 1; }
+chmod 700 "$build_root"
 exec 9>"$build_root/environment.lock"
 flock -n 9 || { echo 'The reusable NEAR environment is already in use.' >&2; exit 1; }
 mkdir -p "${build_root}/tmp"
@@ -37,4 +40,5 @@ if [[ ! -e node_modules ]]; then
 fi
 npm ls --all >/dev/null
 npm run build:contract
+if [[ "${1:-}" == --compile-only ]]; then exit 0; fi
 node run-evidence.mjs
