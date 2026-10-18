@@ -7,6 +7,27 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests;
 public class PublicMastodonAccountTests
 {
     [Theory][InlineData(false)][InlineData(true)]
+    public async Task PublicStatusMatchesIndependentNativeResponse(bool synchronous)
+    {
+        Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));
+        const string instance="https://mastodon.social";
+        using var client=new HttpClient{Timeout=TimeSpan.FromSeconds(15)};
+        using var accountResponse=await client.GetAsync(instance+"/api/v1/accounts/lookup?acct=Mastodon");accountResponse.EnsureSuccessStatusCode();
+        using var account=JsonDocument.Parse(await accountResponse.Content.ReadAsStringAsync());var accountId=account.RootElement.GetProperty("id").GetString()!;
+        using var statusesResponse=await client.GetAsync(instance+"/api/v1/accounts/"+Uri.EscapeDataString(accountId)+"/statuses?limit=1");statusesResponse.EnsureSuccessStatusCode();
+        using var statuses=JsonDocument.Parse(await statusesResponse.Content.ReadAsStringAsync());Assert.True(statuses.RootElement.GetArrayLength()>0);
+        var id=statuses.RootElement[0].GetProperty("id").GetString()!;
+        using var statusResponse=await client.GetAsync(instance+"/api/v1/statuses/"+Uri.EscapeDataString(id));statusResponse.EnsureSuccessStatusCode();
+        using var status=JsonDocument.Parse(await statusResponse.Content.ReadAsStringAsync());
+        using var provider=new ActivityPubOASIS(instance,"");
+        var result=synchronous?provider.LoadHolon(id,loadChildren:false):await provider.LoadHolonAsync(id,loadChildren:false).WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.False(result.IsError,result.Exception?.ToString());Assert.NotEqual(Guid.Empty,result.Result.Id);
+        Assert.Equal(id,result.Result.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
+        Assert.Equal(status.RootElement.GetProperty("uri").GetString(),result.Result.MetaData["MastodonObjectUri"]);
+        Assert.Equal(status.RootElement.GetProperty("content").GetString(),result.Result.MetaData["MastodonContentHtml"]);
+        Assert.Equal(status.RootElement.GetProperty("account").GetProperty("id").GetString(),result.Result.MetaData["MastodonAuthorId"]);
+    }
+    [Theory][InlineData(false)][InlineData(true)]
     public async Task PublicProfileMatchesIndependentNativeResponse(bool synchronous)
     {
         Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));
