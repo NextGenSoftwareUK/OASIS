@@ -189,7 +189,12 @@ public partial class CosmosBlockChainOASIS
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
         try
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.FromWalletAddress) || string.IsNullOrWhiteSpace(request.ToWalletAddress))
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            // Freeze wallet intent before signer verification can yield; use the same
+            // recipient for native execution and committed ownership verification.
+            var sender = request.FromWalletAddress;
+            var recipient = request.ToWalletAddress;
+            if (string.IsNullOrWhiteSpace(sender) || string.IsNullOrWhiteSpace(recipient))
                 throw new ArgumentException("Sender and recipient NFT wallet addresses are required.");
             if (request.Amount != 0m && request.Amount != 1m) throw new ArgumentException("A unique NFT transfer amount must be one.");
             var addresses = new[] { request.TokenAddress, request.FromNFTTokenAddress }
@@ -199,14 +204,14 @@ public partial class CosmosBlockChainOASIS
             if (!string.IsNullOrWhiteSpace(request.TokenId) && request.TokenId != locator.TokenId)
                 throw new ArgumentException("NFT token ID conflicts with its address.");
             var key = await SigningKeyAsync(Guid.Empty, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
-            var hash = await TransferNftAsync(locator.Address, request.FromWalletAddress, request.ToWalletAddress, key);
+            var hash = await TransferNftAsync(locator.Address, sender, recipient, key);
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
             try
             {
                 var loaded = await LoadOnChainNFTDataAsync(locator.Address);
                 if (loaded.IsError || loaded.Result == null)
                     throw new InvalidOperationException(loaded.Message ?? "Committed NFT readback returned no NFT.", loaded.Exception);
-                if (!string.Equals(loaded.Result.SendToAddressAfterMinting, request.ToWalletAddress, StringComparison.Ordinal))
+                if (!string.Equals(loaded.Result.SendToAddressAfterMinting, recipient, StringComparison.Ordinal))
                     throw new InvalidDataException("Post-transfer NFT ownership differs from the requested recipient.");
                 loaded.Result.SendNFTTransactionHash = hash;
                 result.Result.Web3NFT = loaded.Result;

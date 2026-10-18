@@ -6,6 +6,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiUnlockReadbackFailureTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task SendPreservesOriginalWalletIntentAcrossSignerAwait(bool changeSender)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","unlock-readback-failure.mjs"));
+        try{
+            using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",privateKey:"different-configured-secret");
+            var recipient="0x"+string.Concat(Enumerable.Repeat("ab",32));
+            var request=new SendWeb3NFTRequest{TokenAddress="ownership-matching",FromWalletAddress="fixture-owner",
+                ToWalletAddress=recipient,OwnerPrivateKey="test-only-explicit",Amount=1};
+            var pending=provider.SendNFTAsync(request);Assert.IsFalse(pending.IsCompleted);
+            if(changeSender)request.FromWalletAddress="changed-sender";else request.ToWalletAddress="changed-recipient";
+            request.TokenAddress="changed-object";
+            var result=await pending;Assert.IsFalse(result.IsError,result.Message);
+            Assert.AreEqual(new string('1',32),result.Result.SendNFTTransactionResult);
+            Assert.AreEqual(recipient,result.Result.Web3NFT.SendToAddressAfterMinting);
+        }finally{Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
+    }
+
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task HistoryMetadataPreservesCoinIdentityAndDoesNotInventAMemo(bool monetary)

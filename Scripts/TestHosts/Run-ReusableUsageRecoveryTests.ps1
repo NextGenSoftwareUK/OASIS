@@ -153,7 +153,7 @@ try{
         if($cosmosReport.LastWriteTimeUtc -lt $cosmosStarted){throw 'Cosmos report is stale.'}
         [xml]$cosmosEvidence=Get-Content -LiteralPath $cosmosReport.FullName
         $cosmosCounts=$cosmosEvidence.TestRun.ResultSummary.Counters
-        $expectedCosmos=if($CosmosReviewedToken){2}elseif($CosmosRoutingInspect -or $CosmosReviewedFees -or $CosmosRoutingFeeRecovery -or $CosmosReviewedBank){1}elseif($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){236}else{3}
+        $expectedCosmos=if($CosmosReviewedToken){2}elseif($CosmosRoutingInspect -or $CosmosReviewedFees -or $CosmosRoutingFeeRecovery -or $CosmosReviewedBank){1}elseif($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){240}else{3}
         if([int]$cosmosCounts.total -ne $expectedCosmos -or [int]$cosmosCounts.passed -ne $expectedCosmos -or [int]$cosmosCounts.notExecuted -ne 0){throw 'All selected Cosmos cases must actually execute and pass without skips.'}
         if($CosmosReviewedToken){
             $tokenCombinations=[Collections.Generic.HashSet[bool]]::new()
@@ -252,7 +252,7 @@ try{
         if($report.LastWriteTimeUtc -lt $started){throw 'Sui unit report is stale.'}
         [xml]$evidence=Get-Content -LiteralPath $report.FullName
         $counts=$evidence.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 153 -or [int]$counts.passed -ne 153 -or [int]$counts.notExecuted -ne 0){throw 'Expected153 Sui unit cases must execute and pass.'}
+        if([int]$counts.total -ne 155 -or [int]$counts.passed -ne 155 -or [int]$counts.notExecuted -ne 0){throw 'Expected155 Sui unit cases must execute and pass.'}
     }elseif($HederaPreparedOwners){
         $env:OASIS_HEDERA_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs'
         $hederaProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests.csproj'

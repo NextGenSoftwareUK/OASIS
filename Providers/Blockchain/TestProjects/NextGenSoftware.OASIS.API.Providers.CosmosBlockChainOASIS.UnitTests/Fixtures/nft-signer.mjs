@@ -65,6 +65,10 @@ else if(request.operation==='query' && request.message?.asset?.message?.token_de
  if(state.deposit && state.mode==='bad-readback')result={...state.deposit,amount:'1'};
 }
 else if(request.operation==='execute'){
+ const nftTransfer=request.message?.asset?.message?.nft_transfer;
+ if(nftTransfer?.token_id==='ownership-matching' && (nftTransfer.recipient!=='fixture-recipient'
+   ||request.fromWalletAddress!=='fixture-owner'||request.targetContractAddress!=='fixture-contract'))
+   throw new Error('Original NFT transfer wallet intent changed across signer await');
  const tokenMint=request.message?.asset?.message?.token_mint;
  if(tokenMint?.symbol?.startsWith('intent-')){
   const metadata=JSON.parse(tokenMint.metadata_json);
