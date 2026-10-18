@@ -351,6 +351,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     SetComponents(existing, avatarDetailEntity);
                     SetHeartRates(existing, avatarDetailEntity);
                     existing.Model3D = avatarDetailEntity.Model3D;
+                    existing.Portrait = avatarDetailEntity.Portrait;
+                    existing.UmaJson = avatarDetailEntity.UmaJson;
                     existing.DeletedByAvatarId = avatarDetailEntity.DeletedByAvatarId.ToString();
                     existing.DeletedDate = avatarDetailEntity.DeletedDate;
                     existing.FavouriteColour = avatarDetailEntity.FavouriteColour;
@@ -453,6 +455,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     SetComponents(existing, AvatarDetailEntity);
                     SetHeartRates(existing, AvatarDetailEntity);
                     existing.Model3D = AvatarDetailEntity.Model3D;
+                    existing.Portrait = AvatarDetailEntity.Portrait;
+                    existing.UmaJson = AvatarDetailEntity.UmaJson;
                     existing.DeletedByAvatarId = AvatarDetailEntity.DeletedByAvatarId.ToString();
                     existing.DeletedDate = AvatarDetailEntity.DeletedDate;
                     existing.FavouriteColour = AvatarDetailEntity.FavouriteColour;
@@ -606,6 +610,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Username = avatarDetailEntity.Username,
                 XP = avatarDetailEntity.XP,
                 Model3D = avatarDetailEntity.Model3D,
+                Portrait = avatarDetailEntity.Portrait,
+                UmaJson = avatarDetailEntity.UmaJson,
                 HeartRateData = avatarDetailEntity.HeartRates.OrderBy(row=>row.SequenceIndex).ThenBy(row=>row.Id)
                     .Select(row=>(Core.Interfaces.Avatar.IHeartRateEntry)row.GetHeartRateEntry()).ToList(),
                 MetaData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,object>>(avatarDetailEntity.MetaDataJson)
@@ -669,6 +675,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Town = avatarDetail.Town,
                 Username = avatarDetail.Username,
                 XP = avatarDetail.XP,
+                Portrait = avatarDetail.Portrait,
+                UmaJson = avatarDetail.UmaJson,
                 CreatedByAvatarId = avatarDetail.CreatedByAvatarId.ToString(),
                 CreatedDate = avatarDetail.CreatedDate,
                 DeletedByAvatarId = avatarDetail.DeletedByAvatarId.ToString(),
