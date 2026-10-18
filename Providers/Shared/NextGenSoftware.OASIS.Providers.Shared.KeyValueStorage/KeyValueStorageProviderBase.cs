@@ -214,6 +214,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private static bool ParseKey(string providerKey, out Guid id) => Guid.TryParse(providerKey, out id) && id!=Guid.Empty;
 
+        private OASISResult<T> InvalidVersion<T>(int version)=>Fail<T>(
+            "Version must be zero (latest) or a positive historical version.",
+            new ArgumentOutOfRangeException(nameof(version),version,"Negative versions are invalid."),"HYPERDRIVE_PAYLOAD_INVALID");
+
         private OASISResult<T> InvalidProviderKey<T>()=>Fail<T>("A nonempty GUID provider key is required.",
             new ArgumentException("A nonempty GUID provider key is required.","providerKey"),"HYPERDRIVE_PAYLOAD_INVALID");
 
@@ -279,6 +283,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
+            if(version<0)return InvalidVersion<IAvatar>(version);
             try
             {
                 var avatar = await ReadVersionAsync(AvatarKey(id), await ReadAsync<IAvatar>(AvatarKey(id)), version);
@@ -296,6 +301,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private async Task<OASISResult<IAvatar>> LoadAvatarByIndexAsync(string indexKey, string description, int version,bool byEmail)
         {
+            if(version<0)return InvalidVersion<IAvatar>(version);
             try
             {
                 var id = await ReadIdAsync(indexKey);
@@ -323,6 +329,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
+            if(version<0)return InvalidVersion<IEnumerable<IAvatar>>(version);
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}avatar/");
@@ -442,6 +449,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
+            if(version<0)return InvalidVersion<IAvatarDetail>(version);
             try
             {
                 var detail = await ReadVersionAsync(AvatarDetailKey(id), await ReadAsync<IAvatarDetail>(AvatarDetailKey(id)), version);
@@ -470,6 +478,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
+            if(version<0)return InvalidVersion<IEnumerable<IAvatarDetail>>(version);
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}avatardetail/");
@@ -634,6 +643,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
+            if(version<0)return InvalidVersion<IHolon>(version);
             try
             {
                 var holon = await ReadVersionAsync(HolonKey(id), await ReadAsync<IHolon>(HolonKey(id)), version);
@@ -693,6 +703,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
+            if(version<0)return InvalidVersion<IEnumerable<IHolon>>(version);
             try { return await LoadChildrenAsync(id, type, loadChildren && recursive, maxChildDepth, curentChildDepth, version, continueOnError: continueOnError); }
             catch (Exception ex) { return Fail<IEnumerable<IHolon>>($"Error loading holons for parent {id}: {ex.Message}", ex); }
         }
@@ -713,6 +724,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonCollectionAsync(HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, int version, Func<IHolon, bool> predicate = null, bool continueOnError = false)
         {
+            if(version<0)return InvalidVersion<IEnumerable<IHolon>>(version);
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
