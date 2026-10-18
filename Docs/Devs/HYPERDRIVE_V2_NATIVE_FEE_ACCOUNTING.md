@@ -1,6 +1,12 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Expanded real Cosmos routing acceptance — observed ante expenditure only
+
+Four actual provider-order/sync-async cases pass5m41s, forty prepared original transactions and408routedreads. Total observed ante deductions across those40originals: **170913localteststake**. This uses the existing synthetic .000001USD/stake test quote, NOT a market quote or production tariff. Receipt signatures/transaction hashes match persisted originals; no final-net-fee or hosted billing readiness claim. Same retained DB now keeps compact completed signed-attempt evidence rather than dropping it between cases. Current TRX SHA256 `173136C1C65CBA94A872AED287CE3C06F7EF286A213EBC6F0A780740A1C75A22`. See current release gates for exact selectors/strategies and original incident limitations.
+
 ## Failed Cosmos profile fixture: original payments verified, not settled
+
+Subsequent exact synthetic-state cleanup passed1/1/34s using five NEW admitted deletes, each observed ante fee3443stake (17215total), never a replay of original writes. Combined observed ante expenditure for this incident plus its cleanup is42742localteststake; still NOT proved final net charge, live marketUSD or a settled user bill. Reconciliation archive SHA256 `232DED8DD5F0C285C1A432FC4A0CEAEE5FCEEF2AD8AA254DF9B260A3C149F0B0`, TRX `DA67C942A8B16A4B9515F80747D72FBC60BE3FED2469D33448CEA221ABA4097E`. Original intent moved byte-for-byte to `routing-profile-original-intent-resolved.json` (sameF901B295… hash); cleanup intent archived SHA256 `EE204CF11B57A80DC5BAEB2B4EA7B404B2B8C7595F00D7A47F544360A57DFD67`. Native/local exact fixture records absent; original and cleanup ledgers retained. The older9B5A1511… Cosmos incident remains unresolved. The read-only command below describes the pre-cleanup incident and intentionally no longer passes after cleanup; use archived exact evidence, do not recreate the old fixture to rerun it.
 
 Exact operation `537d7453-bfa6-12e7-8cb8-e3af7c758df5` in retained `usage_cosmos_independent_routing` has five confirmed original native writes. Read-only signature/hash/payer/ante receipt inspection plus exact native avatar/detail/leaf reads passed; the logical test failed later at LocalFile provider-key readback. Native success must NOT turn that logical failure into success.
 

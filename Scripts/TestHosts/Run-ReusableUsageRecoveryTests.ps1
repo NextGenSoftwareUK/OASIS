@@ -1,7 +1,8 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect)
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile)
 $ErrorActionPreference='Stop'
-if($CosmosRoutingInspect -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Read-only Cosmos routing inspection requires exclusive owned environment mode.'}
+if($CosmosRoutingReconcile -and !$CosmosRoutingInspect){throw 'Reviewed Cosmos routing cleanup requires explicit incident selection.'}
+if($CosmosRoutingInspect -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne $(if($CosmosRoutingReconcile){3}else{2}))){throw 'Cosmos routing incident inspection/reconciliation requires exclusive owned environment mode.'}
 if($HederaFeeRecovery -and (!$HederaPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Exact Hedera fee recovery requires its exclusive owned environment mode.'}
 if($HederaRoutedRead -and !$HederaNativeRead){throw 'Routed Hedera read requires explicit native read mode.'}
 if($HederaNativeRead -and (!$HederaPreparedOwners -or $HederaFull -or $PSBoundParameters.Count -ne $(if($HederaRoutedRead){3}else{2}))){throw 'Native Hedera read requires its exclusive owned environment mode.'}
@@ -98,11 +99,22 @@ try{
         $cosmosStarted=[DateTime]::UtcNow
         if($CosmosRoutingInspect){
             $cosmosProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
-            $nativeReport='cosmos-routing-profile-inspection-current.trx'
-            & dotnet test $cosmosProject --no-build --no-restore --filter 'FullyQualifiedName~CosmosRoutingInspectionTests.InspectExactFailedProfileOriginalsWithoutMutation' --logger "trx;LogFileName=$nativeReport" --results-directory $work -v:q
+            $nativeReport=if($CosmosRoutingReconcile){'cosmos-routing-profile-reconciliation-current.trx'}else{'cosmos-routing-profile-inspection-current.trx'}
+            $incidentMethod=if($CosmosRoutingReconcile){'ReconcileExactFailedProfileWithNewAdmittedCleanupWithoutReplay'}else{'InspectExactFailedProfileOriginalsWithoutMutation'}
+            & dotnet test $cosmosProject --no-build --no-restore --filter "FullyQualifiedName~CosmosRoutingInspectionTests.$incidentMethod" --logger "trx;LogFileName=$nativeReport" --results-directory $work -v:q
         }elseif($CosmosRouting){
             $cosmosProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
             $nativeReport='cosmos-independent-routing-current.trx'
+            $priorRoutingReport=Join-Path $work $nativeReport
+            if(Test-Path -LiteralPath $priorRoutingReport){
+                [xml]$priorRoutingEvidence=Get-Content -LiteralPath $priorRoutingReport
+                if([int]$priorRoutingEvidence.TestRun.ResultSummary.Counters.failed -gt 0){
+                    $failedHash=(Get-FileHash -LiteralPath $priorRoutingReport -Algorithm SHA256).Hash
+                    $failureArchive=Join-Path $taskRoot "TestResults/HyperDriveCosmos/routing-failure-$failedHash.trx"
+                    if(!(Test-Path -LiteralPath $failureArchive)){[IO.File]::Copy($priorRoutingReport,$failureArchive,$false)}
+                    if((Get-FileHash -LiteralPath $failureArchive -Algorithm SHA256).Hash -ne $failedHash){throw 'Failed routing report archive mismatch; refusing overwrite.'}
+                }
+            }
             & dotnet test $cosmosProject --no-build --no-restore --filter 'FullyQualifiedName~CosmosIndependentRoutingTests.' --logger "trx;LogFileName=$nativeReport" --results-directory $work -v:q
         }elseif($CosmosNative){
             $cosmosProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests.csproj'
