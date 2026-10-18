@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class PolkadotOwnedTransferTests
 {
-    private static UsageExecutionHandle Handle(IUsageOutboxStore? store = null) => (UsageExecutionHandle)typeof(UsageExecutionHandle)
+    internal static UsageExecutionHandle Handle(IUsageOutboxStore? store = null) => (UsageExecutionHandle)typeof(UsageExecutionHandle)
         .GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic).Single(value => value.GetParameters().Length == 5)
         .Invoke(new object?[] { new UsageOutboxOperation { Id = Guid.NewGuid().ToString("D"), ExecutionOwner = "owner",
             Policy = new UsageEndpointPolicy() }, store, new Web4UsageLedgerOptions(), null, null });
