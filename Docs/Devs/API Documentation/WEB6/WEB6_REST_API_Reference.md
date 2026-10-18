@@ -414,6 +414,60 @@ Runs a server-side agent loop inside one request. WEB6 reserves usage for up to 
 
 Scores a completed run started by the same avatar. The run becomes a SkillOpt rollout for its task category; scores ≥ 0.7 count as successes when `/evolve` runs the next epoch.
 
+## Scheduled Agent Runs
+
+Schedules run an agent task on a cron timetable, unattended. Each run uses the agent loop (`/v1/agent/run` semantics, server tools only) and is paid for by a WEB4 delegated usage grant, never by a stored bearer.
+
+**Before creating a schedule**, issue a grant on WEB4:
+
+```json
+POST {WEB4}/api/subscription/usage/grants
+{ "consumingService": "WEB6", "scope": "schedules", "endpoints": ["SCHEDULE /v1/schedules run"],
+  "monthlyBudgetUsd": 5, "maxOperationCostUsd": 0.5, "expiresAtUtc": "2027-01-01T00:00:00Z" }
+```
+
+### POST `/v1/schedules`
+
+```json
+{
+  "name": "Morning brief",
+  "cronExpression": "0 8 * * 1-5",
+  "timeZone": "Europe/London",
+  "prompt": "Summarise what I should focus on today.",
+  "instructions": "Be brief and practical.",
+  "provider": "auto",
+  "model": "auto",
+  "maxSteps": 4,
+  "taskCategory": "planning",
+  "agentHolonId": "<optional FAHRN agent holon: applies its SkillOpt skill>",
+  "memoryHolonId": "<optional Holonic Memory holon you own: recall and curation>",
+  "grantId": "<WEB4 delegated grant id>",
+  "delivery": { "kind": "webhook", "webhookUrl": "https://example.com/hooks/oasis" }
+}
+```
+
+- `cronExpression` is standard five-field cron (minute hour day-of-month month day-of-week). `timeZone` is an IANA id (default `UTC`); daylight-saving changes follow it, and a local time skipped by spring-forward runs at the end of the gap.
+- `delivery.kind` is `webhook` (public HTTPS only; loopback, private and link-local targets are refused, redirects are not followed) or `none` (run history only). `channel` returns `CHANNEL_DELIVERY_UNAVAILABLE` until the channel layer can send unprompted messages.
+- At most 50 schedules per avatar. Returns `201` with the schedule, including `status` and `nextRunAtUtc`.
+
+### GET `/v1/schedules` · GET `/v1/schedules/{id}`
+
+List your schedules or read one. `status` is `active`, `paused`, `disabled-grant-revoked`, `disabled-grant-expired` or `disabled-grant-invalid`; `statusReason` explains a disabled schedule.
+
+### PUT `/v1/schedules/{id}`
+
+Same body as create; omitted fields keep their value. A schedule disabled by its grant is re-activated only by supplying a **new** `grantId`. Returns `409 SCHEDULE_RUN_IN_PROGRESS` while a run holds the schedule's lease.
+
+### POST `/v1/schedules/{id}/pause` · POST `/v1/schedules/{id}/resume` · DELETE `/v1/schedules/{id}`
+
+Pause, resume from the next occurrence, or delete (run history is kept).
+
+### GET `/v1/schedules/{id}/runs?limit=50`
+
+Run history, newest first. Each run has `status` (`succeeded`, `incomplete` when the step budget ran out, `failed`, `denied` when WEB4 refused the grant, `recovery-required`), `code`, `operationId` (the WEB4 usage operation), `settlement`, `agentRunId`, `providerCalls`, token counts, `output` and `deliveryStatus`.
+
+**How runs are billed and kept exactly-once:** a worker claims each due run under a durable lease, so only one WEB6 instance runs it. The run's idempotency key is the schedule id plus the due time: if a lease is lost and the run is claimed again, WEB4 and the outbox refuse to execute it a second time. Each run reserves the same budget as `POST /v1/agent/run` and settles from measured usage. When WEB4 refuses the grant as revoked, expired or invalid, the schedule is disabled with that status; a spent monthly grant budget fails only that run. Occurrences missed while WEB6 was down run once, not once each. Without `SUBSCRIPTION_USAGE_ENABLED=true`, these routes answer `503 SCHEDULER_UNAVAILABLE`.
+
 ## Messaging Channels
 
 Chat users on Telegram, WhatsApp, Slack and Discord link their chat identity to an OASIS avatar, then talk to their agent from that app.
@@ -434,7 +488,7 @@ Returns an 8-character code valid for 15 minutes. Send `link CODE` (or `/link CO
 
 List or remove your linked chat identities.
 
-> Agent replies to linked chats need the grant-backed dispatcher (delegated execution), which has not shipped yet. Until it does, linked users get an explicit "agent replies are not enabled on this server yet" reply. It is never a fabricated answer.
+> Agent replies to linked chats need a grant-backed dispatcher. Delegated execution itself has shipped (it runs scheduled agent runs), but no dispatcher uses it yet. Until one does, linked users get an explicit "agent replies are not enabled on this server yet" reply. It is never a fabricated answer.
 
 ## Holonic BRAID Reasoning Graphs
 

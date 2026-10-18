@@ -445,7 +445,7 @@ Start with Phase 1 (endpoint swap) this week to capture immediate savings, then 
 | Multi-tenant identity and billing | None (single-user design) | WEB4 avatars, per-avatar key vault, budgets, metered usage, DIDs / verifiable credentials |
 | Agent loop | Built-in (terminal app) | `POST /v1/agent/run`: metered server-side loop with SkillOpt skills, memory tools, caller-executed tools and automatic memory curation; `POST /v1/agent/feedback` feeds SkillOpt |
 | Messaging channels (WhatsApp, Telegram, Slack, Discord) | Yes | Signed webhooks and avatar linking are live (`/v1/channels/*`); agent replies wait on delegated execution |
-| Scheduled / unattended agent runs | Built-in cron | WEB4 delegated usage grants are live (revocable, budget-capped); the scheduler is next |
+| Scheduled / unattended agent runs | Built-in cron | `/v1/schedules`: avatar-owned cron schedules (IANA time zones) run the agent loop unattended under a revocable, budget-capped WEB4 delegated grant, with a durable lease so a run executes exactly once across instances, per-run history and settlement, webhook delivery, and automatic disabling when the grant is revoked or expires |
 
 ### Which to choose for Leela
 
