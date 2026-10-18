@@ -3,6 +3,10 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using VDS.RDF;
+using VDS.RDF.Parsing;
 using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -49,6 +53,44 @@ public partial class SOLIDOASIS
             if(version!=0)throw new NotSupportedException("Explicit SOLID record versions require a verified history implementation; current-only reads must request version zero.");
             result.Result=await ReadPrivateRecordAsync<T>(id);
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private record read failed.",error);}
+        return result;
+    }
+    private async Task<OASISResult<IEnumerable<T>>> LoadPrivateRecordsAsync<T>(int version) where T:class,IHolonBase
+    {
+        var result=new OASISResult<IEnumerable<T>>();
+        try{
+            RequirePrivateStorage();
+            if(version!=0)throw new NotSupportedException("Explicit SOLID collection versions require verified record history.");
+            var container=_privateRecords.Container<T>();
+            using var request=new HttpRequestMessage(HttpMethod.Get,container);
+            request.Headers.Accept.ParseAdd("text/turtle");
+            using var response=await _httpClient.SendAsync(request);response.EnsureSuccessStatusCode();
+            if(!string.Equals(response.Content.Headers.ContentType?.MediaType,"text/turtle",StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("SOLID container response must be text/turtle.");
+            // Paging is not silently interpreted as an exhaustive collection.
+            if(response.Headers.TryGetValues("Link",out var links)&&links.Any(link=>System.Text.RegularExpressions.Regex.IsMatch(link,@"\brel\s*=\s*(?:""[^""]*\bnext\b[^""]*""|'[^']*\bnext\b[^']*'|next\b)",System.Text.RegularExpressions.RegexOptions.IgnoreCase)))
+                throw new NotSupportedException("Paged SOLID containers require verified pagination before exhaustive reads.");
+            using var graph=new Graph{BaseUri=container};
+            using var input=new StringReader(await response.Content.ReadAsStringAsync());new TurtleParser().Load(graph,input);
+            var subject=graph.CreateUriNode(container);
+            var rdfType=graph.CreateUriNode(new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"));
+            if(graph.Triples.Any(triple=>triple.Object is IUriNode node&&node.Uri.AbsoluteUri=="http://www.w3.org/ns/ldp#Page"))
+                throw new NotSupportedException("LDP page documents cannot be treated as exhaustive containers.");
+            if(!graph.GetTriplesWithSubjectPredicate(subject,rdfType).Any(triple=>triple.Object is IUriNode node&&
+                node.Uri.AbsoluteUri is "http://www.w3.org/ns/ldp#BasicContainer" or "http://www.w3.org/ns/ldp#Container"))
+                throw new InvalidDataException("Expected native LDP container type at the requested resource.");
+            var ids=new HashSet<Guid>();
+            foreach(var triple in graph.GetTriplesWithSubjectPredicate(subject,graph.CreateUriNode(new Uri("http://www.w3.org/ns/ldp#contains")))){
+                if(triple.Object is not IUriNode member)throw new InvalidDataException("LDP containment must reference a resource URI.");
+                var filename=Path.GetFileNameWithoutExtension(member.Uri.AbsolutePath);
+                if(!Guid.TryParseExact(filename,"D",out var id)||id==Guid.Empty||!member.Uri.Equals(_privateRecords.Resource<T>(id)))
+                    throw new InvalidDataException("LDP member is outside the exact canonical record namespace; no request sent to that member.");
+                ids.Add(id);if(ids.Count>10000)throw new InvalidDataException("SOLID collection exceeds the 10000-record safety bound; no partial result returned.");
+            }
+            var records=new List<T>();
+            foreach(var id in ids.OrderBy(value=>value))records.Add(await ReadPrivateRecordAsync<T>(id));
+            result.Result=records;
+        }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private collection read failed.",error);}
         return result;
     }
     private async Task<OASISResult<T>> SavePrivateRecordAsync<T>(T source) where T:class,IHolonBase

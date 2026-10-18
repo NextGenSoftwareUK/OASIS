@@ -222,45 +222,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatars/");
-                if (response.IsSuccessStatusCode)
-                {
-                    var turtle = await response.Content.ReadAsStringAsync();
-                    result.Result = ParseRDFToAvatars(turtle);
-                    result.Message = $"Loaded {result.Result?.Count() ?? 0} avatars from SOLID pod";
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading all avatars: {ex.Message}", ex); }
-            return result;
-        }
+            => await LoadPrivateRecordsAsync<IAvatar>(version);
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatar-details/");
-                if (response.IsSuccessStatusCode)
-                {
-                    var turtle = await response.Content.ReadAsStringAsync();
-                    result.Result = ParseRDFToAvatarDetails(turtle);
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details: {ex.Message}", ex); }
-            return result;
-        }
+            => await LoadPrivateRecordsAsync<IAvatarDetail>(version);
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
 
@@ -468,19 +435,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/?type={type}");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            if(!Enum.IsDefined(typeof(HolonType),type)){
+                var invalid=new OASISResult<IEnumerable<IHolon>>();
+                OASISErrorHandling.HandleError(ref invalid,"Invalid holon type.",new ArgumentOutOfRangeException(nameof(type)));return invalid;
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading all holons: {ex.Message}", ex); }
+            var result=await LoadPrivateRecordsAsync<IHolon>(version);
+            if(!result.IsError)result.Result=result.Result.Where(holon=>type==HolonType.All||holon.HolonType==type).ToArray();
             return result;
         }
 
