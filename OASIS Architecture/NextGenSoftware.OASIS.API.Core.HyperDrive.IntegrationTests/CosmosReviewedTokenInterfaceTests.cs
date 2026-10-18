@@ -12,6 +12,11 @@ using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 using NextGenSoftware.OASIS.Common;
 using Xunit;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using Rijndael256;
 
 namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
@@ -25,9 +30,13 @@ public sealed class CosmosReviewedTokenInterfaceTests(Xunit.Abstractions.ITestOu
     public Task NftInterfacesRetainOwnershipAndOriginalFees(bool synchronous)
         => RunAssetInterfacesAsync(synchronous,true);
 
-    private async Task RunAssetInterfacesAsync(bool synchronous,bool nft)
+    [Theory][InlineData(false)][InlineData(true)]
+    public Task IdBoundEscrowUsesPersistedAvatarWalletAndOriginalFees(bool synchronous)
+        => RunAssetInterfacesAsync(synchronous,false,true);
+
+    private async Task RunAssetInterfacesAsync(bool synchronous,bool nft,bool escrow=false)
     {
-        var family=nft?"nft":"token";var expectedCount=nft?7:6;
+        var family=escrow?"escrow":nft?"nft":"token";var expectedCount=escrow?5:nft?7:6;
         var root=Environment.GetEnvironmentVariable("OASIS_HYPERDRIVE_TEST_ROOT")!;
         var journal=Path.Combine(root,$"reviewed-{family}-pending.json");Assert.False(File.Exists(journal));
         const string oldHash="9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81";
@@ -36,7 +45,14 @@ public sealed class CosmosReviewedTokenInterfaceTests(Xunit.Abstractions.ITestOu
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(240));var token=deadline.Token;
-        var id=Guid.NewGuid();var deployment=await CosmosReviewedFinalFeeTests.CreateReviewedProviderAsync(id,token);
+        CosmosTokenEscrowConfiguration escrowConfig=null;
+        if(escrow){
+            var descriptor=Path.Combine(root,"escrow-deployment-current.json");
+            Assert.Equal("9D14F2C5C5F7071C0DCBCC456E20AA25E4A14AFCB21DC7AC3C93B68D47C09497",Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(descriptor))));
+            using var record=JsonDocument.Parse(File.ReadAllText(descriptor));
+            escrowConfig=new(record.RootElement.GetProperty("contractAddress").GetString()!,record.RootElement.GetProperty("codeSha256").GetString()!);
+        }
+        var id=Guid.NewGuid();var deployment=await CosmosReviewedFinalFeeTests.CreateReviewedProviderAsync(id,token,escrow:escrowConfig);
         using var provider=deployment.Provider;IOASISBlockchainStorageProvider api=provider;
         var backend=typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(provider)!;
         var invoke=backend.GetType().GetMethod("InvokeAsync",BindingFlags.NonPublic|BindingFlags.Instance)!;
@@ -45,6 +61,23 @@ public sealed class CosmosReviewedTokenInterfaceTests(Xunit.Abstractions.ITestOu
         // Reuse the bank fixture's publicly known local-only actor. Never fund this key on a public chain.
         var developmentKey=Convert.ToHexString(Enumerable.Repeat((byte)7,32).ToArray());
         var secondaryKey=await Invoke("restoreKey",new{privateKey=developmentKey});var secondary=secondaryKey.GetProperty("address").GetString()!;
+        var actor=Guid.Parse("b1ec3740-adb6-4ea7-bc93-700000000007");var lockId=Guid.NewGuid();
+        LocalFileOASIS walletStore=null;string encrypted=null;
+        if(escrow){
+            walletStore=new LocalFileOASIS(storageDirectory:Path.Combine(root,"files"));
+            var dna=new OASISDNA();dna.OASIS.HyperDriveMode=HyperDriveModes.V2;dna.OASIS.StorageProviders=new StorageProviderSettings{LogSwitchingProviders=false};
+            dna.OASIS.Security=new SecuritySettings{OASISProviderPrivateKeys=new EncryptionSettings{Rijndael256EncryptionEnabled=true,Rijndael256Key=new string('k',32)}};
+            var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false,IsAutoReplicationEnabled=false};
+            manager.RegisterProvider(walletStore);Assert.False(manager.SetAndActivateCurrentStorageProvider(walletStore).IsError);
+            encrypted=Rijndael256.Rijndael.Encrypt(developmentKey,new string('k',32),KeySize.Aes256);
+            var saved=await walletStore.SaveProviderWalletsForAvatarByIdAsync(actor,new Dictionary<ProviderType,List<IProviderWallet>>{
+                [ProviderType.CosmosBlockChainOASIS]=new(){new ProviderWallet{Id=actor,AvatarId=actor,ProviderType=ProviderType.CosmosBlockChainOASIS,IsDefaultWallet=true,PrivateKey=encrypted,WalletAddress=secondary}}});
+            Assert.False(saved.IsError,saved.Message);Assert.True(saved.Result);
+            var constructor=typeof(WalletManager).GetConstructors(BindingFlags.Instance|BindingFlags.NonPublic).Single(c=>c.GetParameters().Length==4);
+            provider.WalletManager=(WalletManager)constructor.Invoke(new object[]{walletStore,dna,manager,null});
+            var loaded=await provider.WalletManager.GetAvatarDefaultWalletByIdAsync(actor,ProviderType.CosmosBlockChainOASIS,showPrivateKeys:true);
+            Assert.False(loaded.IsError,loaded.Message);Assert.Equal(developmentKey,loaded.Result.PrivateKey);Assert.Equal(secondary,loaded.Result.WalletAddress);
+        }
         async Task<decimal> Balance(string address,CancellationToken cancellation){var value=await provider.GetAccountBalanceAsync(address,cancellation);Assert.False(value.IsError,value.Message);return value.Result;}
         var primaryBefore=await Balance(primary,token);var secondaryBefore=await Balance(secondary,token);
         Assert.True(secondaryBefore>=50000,"Reuse the retained byte07 development wallet; do not fund or replace it implicitly.");
@@ -59,7 +92,7 @@ public sealed class CosmosReviewedTokenInterfaceTests(Xunit.Abstractions.ITestOu
             "synthetic-local-price","fixture-v1","fixture-v1",now,now,now,now.AddMinutes(10))});
         using var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.Read);var complete=false;
         try{
-            await JsonSerializer.SerializeAsync(file,new{operationId=execution.OperationId,family,symbol,synchronous,primary,secondary,primaryBefore,secondaryBefore,review=deployment.Review,
+            await JsonSerializer.SerializeAsync(file,new{operationId=execution.OperationId,family,symbol,synchronous,primary,secondary,primaryBefore,secondaryBefore,actor,lockId,escrowContract=escrowConfig?.ContractAddress,review=deployment.Review,
                 database="usage_cosmos_independent_routing",developmentIdentity="known-byte07-local-only",recovery="Inspect original signed asset attempts, exact native asset state and fees; never replay an uncertain operation."},cancellationToken:token);file.Flush(true);
             async Task<T> OwnedResult<T>(string stage,string sender,Func<Task<OASISResult<T>>> action){
                 var value=await provider.ExecutePreparedStorageAsync(action,execution,stage,sender,token);Assert.False(value.IsError,value.Message);Assert.NotNull(value.Result);return value.Result;
@@ -73,7 +106,31 @@ public sealed class CosmosReviewedTokenInterfaceTests(Xunit.Abstractions.ITestOu
             }
             var hashes=new List<string>();
             string nftAddress=null;
-            if(nft){
+            if(escrow){
+                var mint=new MintWeb3TokenRequest{Symbol=symbol,Title="Owned ID-bound deposit",Amount=1.25m};
+                hashes.Add(await Owned("mint",primary,()=>synchronous?Task.FromResult(api.MintToken(mint)):api.MintTokenAsync(mint)));
+                var send=new SendWeb3TokenRequest{FromTokenAddress=symbol,FromWalletAddress=primary,ToWalletAddress=secondary,Amount=1.25m};
+                hashes.Add(await Owned("send",primary,()=>synchronous?Task.FromResult(api.SendToken(send)):api.SendTokenAsync(send)));
+                await AssertState(0,1.25m,"125000000");
+                var request=new LockWeb3TokenRequest{TokenAddress=symbol,LockedByAvatarId=actor,LockId=lockId,Amount=1.25m,FromWalletAddress=secondary,EscrowContractAddress=escrowConfig.ContractAddress};
+                hashes.Add(await Owned("lock-avatar-wallet",secondary,()=>synchronous?Task.FromResult(api.LockToken(request)):api.LockTokenAsync(request)));
+                await AssertState(0,0,"125000000");
+                var depositId=Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(lockId.ToString("N")))).ToLowerInvariant();
+                async Task VerifyDeposit(bool released){
+                    var row=await provider.QueryContractAsync(escrowConfig.ContractAddress,new{asset=new{message=new{token_deposit=new{deposit_id=depositId}}}},token);
+                    Assert.False(row.IsError,row.Message);Assert.Equal(depositId,row.Result.GetProperty("deposit_id").GetString());Assert.Equal(symbol,row.Result.GetProperty("symbol").GetString());
+                    Assert.Equal(secondary,row.Result.GetProperty("owner").GetString());Assert.Equal("125000000",row.Result.GetProperty("amount").GetString());Assert.Equal(released,row.Result.GetProperty("released").GetBoolean());
+                }
+                await VerifyDeposit(false);
+                var release=new UnlockWeb3TokenRequest{TokenAddress=symbol,UnlockedByAvatarId=actor,LockId=lockId,EscrowContractAddress=escrowConfig.ContractAddress};
+                hashes.Add(await Owned("release-avatar-wallet",secondary,()=>synchronous?Task.FromResult(api.UnlockToken(release)):api.UnlockTokenAsync(release)));
+                await VerifyDeposit(true);await AssertState(0,1.25m,"125000000");
+                var burn=new BurnWeb3TokenRequest{TokenAddress=symbol,Amount=1.25m,OwnerPublicKey=secondaryKey.GetProperty("publicKey").GetString()!,OwnerPrivateKey=developmentKey,OwnerSeedPhrase=""};
+                hashes.Add(await Owned("burn",secondary,()=>synchronous?Task.FromResult(api.BurnToken(burn)):api.BurnTokenAsync(burn)));
+                await AssertState(0,0,"0");
+                var retained=await walletStore.LoadProviderWalletsForAvatarByIdAsync(actor);Assert.False(retained.IsError,retained.Message);
+                Assert.Equal(encrypted,retained.Result[ProviderType.CosmosBlockChainOASIS].Single().PrivateKey);
+            }else if(nft){
                 IOASISNFTProvider nftApi=provider;
                 async Task<IWeb3NFTTransactionResponse> OwnedNft(string stage,string sender,Func<Task<OASISResult<IWeb3NFTTransactionResponse>>> action){
                     var value=await OwnedResult(stage,sender,action);
