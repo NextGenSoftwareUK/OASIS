@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; not release certification.
 
+## Shared public-profile reader and separate detail projection (2026-10-18)
+
+LoadAvatarDetailByUsername now uses the SAME validated native HTTP/parser/identity path as avatar handle and native-key reads. Internal MastodonPublicProfile DTO contains explicitly selected public values; separate projection functions create Avatar or AvatarDetail independently with fresh metadata/provider dictionaries. Detail is not built from credential-bearing Avatar and no raw whole-record native deserialization/fallback is used on this path. Same native identity/scoped projected GUID; no fabricated email/private detail data. Original HTTP/activation/history/selector errors flow through generic typed reader unchanged. Other old GUID/email/detail-list parsers remain unfinished, not silently reclassified as safe.
+
+Five new controlled cases (no before-change red captured): sync/async detail identity and independent mutable metadata, two invalid/noHTTP detail requests, malformed response refuses fabricated identity. Full47/47 passed113ms/zero skipped, unit TRX SHA256216B2EA44DDF90CA46B45CB84308D0562450BCB913538F2EE3967E16C069197C. Extended SAME live public integration cases to detail lookups;2/2passed1s/zero skipped against mastodon.social, independent native id/acct/url and equal projected GUID checked; public TRX SHA2565571E6E04C2870C20F8E306C635A35ED25DEC8F825D735AC5B397E54AAA2EE14. Existing cached producer build2warnings; no restore/install/environment duplication this run. Free86645370880bytes; previously rejected bin cleanup NOT retried/bypassed. Still no OAuth/federation/write/private-storage/full-interface/all-provider certification.
+
 ## Real public-provider account-read proof (2026-10-18)
 
 Existing integration project now contains opt-in PublicMastodonAccountTests: sync+async default provider HTTP transport against https://mastodon.social, public Mastodon handle. Independent native GET lookup captures id/acct/url; provider activates, reads by handle and native key, matches native identity/URL, yields same nonempty projected GUID and no private email/password. No token, signup, posting, deletion or other remote mutation. Two genuine live provider cases PASSED2s/zero skipped; report TestResults/ActivityPubCurrent/activitypub-public-current.trx SHA256C50956F70D17BD82A218BA2411F69D858052D649A9D5FAA0A071603BA42D89F0. This supersedes the previous 'no live provider account request' statement ONLY for these public reads; not OAuth/federation/storage/full-interface proof.
