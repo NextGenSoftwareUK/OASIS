@@ -24,12 +24,29 @@ public sealed class TronNativeStorageIndependenceTests
                 :Task.FromResult(new OASISResult<bool>{IsError=true,Message="Unrelated storage activation must not run."});
         }
     }
-    private sealed class WalletRecords(IAvatar avatar):TRONOASIS
+    private sealed class WalletRecords(params IAvatar[] avatars):TRONOASIS
     {
         public override Task<OASISResult<bool>> ActivateProviderAsync()
         {IsProviderActivated=true;return Task.FromResult(new OASISResult<bool>(true));}
         public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id,int version=0)
-            =>Task.FromResult(new OASISResult<IAvatar>{Result=id==avatar.Id?avatar:null!,IsLoaded=id==avatar.Id});
+            =>Loaded(avatars.SingleOrDefault(avatar=>avatar.Id==id));
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username,int version=0)
+            =>Loaded(avatars.SingleOrDefault(avatar=>avatar.Username==username));
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email,int version=0)
+            =>Loaded(avatars.SingleOrDefault(avatar=>avatar.Email==email));
+        private static Task<OASISResult<IAvatar>> Loaded(IAvatar? avatar)
+            =>Task.FromResult(new OASISResult<IAvatar>{Result=avatar!,IsLoaded=avatar!=null});
+    }
+    internal static (WalletManager Manager,TRONOASIS Storage) WalletManagerFor(params IAvatar[] avatars)
+    {
+        var storage=new WalletRecords(avatars);
+        var dna=new API.DNA.OASISDNA();dna.OASIS.HyperDriveMode=API.DNA.HyperDriveModes.V2;
+        dna.OASIS.StorageProviders=new(){LogSwitchingProviders=false};
+        dna.OASIS.Security=new(){OASISProviderPrivateKeys=new(){Rijndael256EncryptionEnabled=true,Rijndael256Key=new string('k',32)}};
+        var providers=new ProviderManager(null,dna);providers.RegisterProvider(storage);
+        Assert.False(providers.SetAndActivateCurrentStorageProvider(storage).IsError);
+        var ctor=typeof(WalletManager).GetConstructors(BindingFlags.NonPublic|BindingFlags.Instance).Single(c=>c.GetParameters().Length==4);
+        return((WalletManager)ctor.Invoke(new object?[]{storage,dna,providers,null}),storage);
     }
     private static (TronNativeTransferClient Client,TronNftBurnSafetyTests.StopAtWallet Wallet,TronNftBurnSafetyTests.NoTransactions Transactions) Boundary()
     {
@@ -67,14 +84,7 @@ public sealed class TronNativeStorageIndependenceTests
         var avatar=new Avatar{Id=avatarId,IsActive=true,ProviderWallets=new(){[ProviderType.TRONOASIS]=new(){
             new Core.Objects.ProviderWallet{Id=Guid.NewGuid(),AvatarId=avatarId,ProviderType=ProviderType.TRONOASIS,
                 IsDefaultWallet=true,WalletAddress=Address(privateKey),PrivateKey=encrypted}}}};
-        var storage=new WalletRecords(avatar);
-        var dna=new API.DNA.OASISDNA();dna.OASIS.HyperDriveMode=API.DNA.HyperDriveModes.V2;
-        dna.OASIS.StorageProviders=new(){LogSwitchingProviders=false};
-        dna.OASIS.Security=new(){OASISProviderPrivateKeys=new(){Rijndael256EncryptionEnabled=true,Rijndael256Key=encryptionKey}};
-        var providers=new ProviderManager(null,dna);providers.RegisterProvider(storage);
-        Assert.False(providers.SetAndActivateCurrentStorageProvider(storage).IsError);
-        var ctor=typeof(WalletManager).GetConstructors(BindingFlags.NonPublic|BindingFlags.Instance).Single(c=>c.GetParameters().Length==4);
-        var manager=(WalletManager)ctor.Invoke(new object?[]{storage,dna,providers,null});
+        var (manager,storage)=WalletManagerFor(avatar);
         var resolved=await manager.GetAvatarDefaultWalletByIdAsync(avatarId,ProviderType.TRONOASIS,showPrivateKeys:true);
         Assert.False(resolved.IsError,resolved.Message);Assert.NotNull(resolved.Result);Assert.Equal(privateKey,resolved.Result.PrivateKey);
         var boundary=Boundary();var provider=new NativeOnly(boundary.Client,false,manager);

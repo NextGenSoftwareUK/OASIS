@@ -93,34 +93,11 @@ public partial class SuiOASIS
         return result;
     }
 
-    private async Task<string> MintRecipientAsync(IMintWeb3NFTRequest request, string signer)
-    {
-        var addresses = new List<string>();
-        if (!string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting)) addresses.Add(request.SendToAddressAfterMinting);
-        if (request.SendToAvatarAfterMintingId != Guid.Empty)
-        {
-            var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.SendToAvatarAfterMintingId, Core.Enums.ProviderType.SuiOASIS);
-            if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
-            addresses.Add(wallet.Result.WalletAddress);
-        }
-        if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingUsername))
-        {
-            var wallet = await WalletManager.GetAvatarDefaultWalletByUsernameAsync(request.SendToAvatarAfterMintingUsername, providerType: Core.Enums.ProviderType.SuiOASIS);
-            if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
-            addresses.Add(wallet.Result.WalletAddress);
-        }
-        if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingEmail))
-        {
-            var wallet = await WalletManager.GetAvatarDefaultWalletByEmailAsync(request.SendToAvatarAfterMintingEmail, Core.Enums.ProviderType.SuiOASIS);
-            if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
-            addresses.Add(wallet.Result.WalletAddress);
-        }
-        if (addresses.Any(string.IsNullOrWhiteSpace))
-            throw new InvalidOperationException("Recipient Sui wallet has no address.");
-        if (addresses.Distinct(StringComparer.Ordinal).Count() > 1)
-            throw new ArgumentException("Recipient address and avatar identifiers resolve to different Sui wallets.");
-        return addresses.Count == 0 ? signer : addresses[0];
-    }
+    private Task<OASISResult<string>> MintRecipientAsync(IMintWeb3NFTRequest request,string signer)
+        =>NftMintRecipient.ResolveAsync(request,signer,
+            id=>WalletManager.GetAvatarDefaultWalletByIdAsync(id,Core.Enums.ProviderType.SuiOASIS),
+            username=>WalletManager.GetAvatarDefaultWalletByUsernameAsync(username,providerType:Core.Enums.ProviderType.SuiOASIS),
+            email=>WalletManager.GetAvatarDefaultWalletByEmailAsync(email,Core.Enums.ProviderType.SuiOASIS),SameSuiAddress);
 
     public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         => MintNFTAsync(request).GetAwaiter().GetResult();
@@ -190,7 +167,9 @@ public partial class SuiOASIS
             var signingKey = await TokenSigningKeyAsync(actor, suppliedKey);
             var signer = await InvokeSdkAsync("restoreKey", new { privateKey = signingKey });
             var creator = signer.GetProperty("address").GetString();
-            var recipient = await MintRecipientAsync(request, creator);
+            var resolvedRecipient = await MintRecipientAsync(request, creator);
+            if(resolvedRecipient.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<string,IWeb3NFTTransactionResponse>(resolvedRecipient);
+            var recipient=resolvedRecipient.Result;
             var metadata = new Web3NFT
             {
                 Title = request.Title, Description = request.Description, Symbol = request.Symbol, MemoText = request.MemoText,
