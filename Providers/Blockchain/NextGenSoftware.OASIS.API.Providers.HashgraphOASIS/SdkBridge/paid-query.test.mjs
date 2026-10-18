@@ -1,11 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Client,AccountId,AccountInfoQuery,PrivateKey,TransactionId,Transaction,TransferTransaction,Hbar} from '@hiero-ledger/sdk';
+import {Client,AccountId,AccountInfoQuery,ContractCallQuery,PrivateKey,TransactionId,Transaction,TransferTransaction,Hbar} from '@hiero-ledger/sdk';
 import {proto} from '@hiero-ledger/proto';
 import grpc from '@grpc/grpc-js';
 import {execute} from './bridge.mjs';
 import {PreparedAccountInfoQuery,PreparedContractInfoQuery,PreparedContractByteCodeQuery,PreparedContractCallQuery,
-  PreparedFileContentsQuery,PreparedTokenInfoQuery,PreparedTokenNftInfoQuery,verifyPreparedQueryIdentity} from './paid-query-preparation.mjs';
+  PreparedFileContentsQuery,PreparedTokenInfoQuery,PreparedTokenNftInfoQuery,verifyPreparedQueryIdentity,createPaidQuery} from './paid-query-preparation.mjs';
+
+test('real SDK multiple endpoints for one node become one logical prepared-query authority',async()=>{
+ const client=Client.forNetwork({'127.0.0.1:50211':'0.0.3','127.0.0.1:50212':'0.0.3','127.0.0.1:50213':'0.0.4'});
+ const key=PrivateKey.generateECDSA();client.setOperator('0.0.1001',key);let admitted=0,transports=0;
+ try{
+  assert.equal(Object.values(client.network).filter(id=>id.toString()==='0.0.3').length,2);
+  const query=createPaidQuery(ContractCallQuery,{network:'offline-test',sender:'0.0.1001',queryMaxPaymentTinybars:'123',
+    queryMaxTransactionFeeTinybars:'1000000',queryPersistenceTimeoutMs:1000},client,key,async evidence=>{
+      assert.equal(evidence.queryNodeAccountId,'0.0.3');admitted++;
+    }).setContractId('0.0.2001').setGas(100000).setNodeAccountIds([AccountId.fromString('0.0.3')]).setQueryPayment(Hbar.fromTinybars('123'));
+  await query._beforeExecute(client);const request=await query._makeRequestAsync();
+  await assert.rejects(query._executeRequestWithGrpcDeadline({smartContract:{contractCallLocalMethod:async()=>{
+    assert.equal(admitted,1);transports++;throw new Error('controlled transport stop');
+  }}},request),/controlled transport stop/);
+  assert.equal(admitted,1);assert.equal(transports,1);
+ }finally{client.close();}
+});
 
 // Baseline SDK probes. Candidate construction/signing is NOT the durable admission boundary.
 for(const algorithm of ['ED25519','ECDSA']) {
