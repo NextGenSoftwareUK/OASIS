@@ -340,28 +340,27 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<IList<IWalletTransaction>>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
                 ArgumentNullException.ThrowIfNull(request);
                 var accountId = request.WalletAddress;
+                var fromBlock=request.FromBlock;var toBlock=request.ToBlock;
+                if(fromBlock.HasValue&&toBlock.HasValue&&fromBlock>toBlock)
+                    throw new ArgumentOutOfRangeException(nameof(request),"Hedera mirror block range is reversed.");
                 if (!System.Text.RegularExpressions.Regex.IsMatch(accountId ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
                     throw new ArgumentException("A numeric Hedera wallet account ID is required.");
                 var endpoint = _httpClient.BaseAddress;
                 var cutoffTicks = DateTime.UtcNow.Ticks - DateTime.UnixEpoch.Ticks;
                 var cutoff = (cutoffTicks / TimeSpan.TicksPerSecond).ToString(System.Globalization.CultureInfo.InvariantCulture)
                     + "." + ((cutoffTicks % TimeSpan.TicksPerSecond) * 100).ToString("D9", System.Globalization.CultureInfo.InvariantCulture);
-                var upperBound = "timestamp=lte:" + cutoff;
-                var next = new Uri(endpoint, $"transactions?account.id={accountId}&limit=100&order=asc&timestamp=gte:0&{upperBound}");
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                var range=await ResolveMirrorHistoryRangeAsync(endpoint,fromBlock,toBlock,decimal.Parse(cutoff,System.Globalization.CultureInfo.InvariantCulture),timeout.Token);
+                if(range.Empty){result.Result=new List<IWalletTransaction>();result.Message="Requested range is beyond the latest indexed mirror block.";return result;}
+                var upperBound = "timestamp=lte:" + range.Maximum.ToString("0.000000000",System.Globalization.CultureInfo.InvariantCulture);
+                var lowerBound=range.Minimum==0?"0":range.Minimum.ToString("0.000000000",System.Globalization.CultureInfo.InvariantCulture);
+                var next = new Uri(endpoint, $"transactions?account.id={accountId}&limit=100&order=asc&timestamp=gte:{lowerBound}&{upperBound}");
                 var visited = new HashSet<string>(StringComparer.Ordinal);
                 var identities = new HashSet<string>(StringComparer.Ordinal);
                 var transactions = new List<IWalletTransaction>();
                   decimal? previousConsensusTimestamp = null;
-                  var exactCutoff = decimal.Parse(cutoff, System.Globalization.CultureInfo.InvariantCulture);
-                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
                 while (next != null)
                 {
                     if (next.Scheme != endpoint.Scheme || next.Authority != endpoint.Authority
@@ -382,8 +381,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         var walletTx = MapMirrorWalletTransaction(tx, accountId);
                           var consensusTimestamp = decimal.Parse(tx.GetProperty("consensus_timestamp").GetString(),
                               System.Globalization.CultureInfo.InvariantCulture);
-                          if (consensusTimestamp > exactCutoff)
-                            throw new InvalidOperationException("Hedera history record exceeds the fixed scan timestamp.");
+                          if (consensusTimestamp > range.Maximum||consensusTimestamp<range.Minimum)
+                            throw new InvalidOperationException("Hedera history record exceeds the fixed scan timestamp or is outside the requested block range.");
                           if (previousConsensusTimestamp.HasValue && consensusTimestamp <= previousConsensusTimestamp.Value)
                               throw new InvalidOperationException("Hedera history did not preserve strictly ascending consensus timestamps.");
                           previousConsensusTimestamp = consensusTimestamp;
@@ -395,12 +394,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     next = link.ValueKind == JsonValueKind.Null ? null : new Uri(endpoint, link.GetString());
                     if (next != null)
                     {
-                        var bounds = next.Query.TrimStart('?').Split('&').Select(Uri.UnescapeDataString)
-                            .Where(value => value.StartsWith("timestamp=lte:", StringComparison.Ordinal)).ToArray();
-                        if (bounds.Length > 1 || (bounds.Length == 1 && bounds[0] != upperBound))
-                            throw new InvalidOperationException("Hedera history pagination changed the fixed scan timestamp.");
-                        if (bounds.Length == 0)
-                            next = new Uri(next.AbsoluteUri + (next.Query.Length == 0 ? "?" : "&") + upperBound);
+                        next=ConstrainMirrorHistoryPage(next,range.Minimum,upperBound);
                     }
                 }
                 result.Result = transactions;
@@ -420,8 +414,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             if (!System.Text.RegularExpressions.Regex.IsMatch(id ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[0-9]+\z"))
                 throw new InvalidOperationException("Hedera mirror record has no valid native transaction identity.");
             var timestamp = tx.GetProperty("consensus_timestamp").GetString();
-            if (!System.Text.RegularExpressions.Regex.IsMatch(timestamp ?? "", @"\A[0-9]+\.[0-9]{9}\z"))
-                throw new InvalidOperationException("Hedera mirror record has an invalid consensus timestamp.");
+            var seconds=ParseMirrorHistoryTimestamp(timestamp);
             var nativeResult = tx.GetProperty("result").GetString();
             var operation = tx.GetProperty("name").GetString();
             if (string.IsNullOrWhiteSpace(nativeResult) || string.IsNullOrWhiteSpace(operation))
@@ -430,7 +423,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             foreach (var transfer in tx.GetProperty("transfers").EnumerateArray())
                 if (transfer.GetProperty("account").GetString() == accountId)
                     delta = checked(delta + transfer.GetProperty("amount").GetInt64());
-            var seconds = decimal.Parse(timestamp, System.Globalization.CultureInfo.InvariantCulture);
             var memo=Core.Helpers.NativeWalletMemo.FromBase64(tx.TryGetProperty("memo_base64",out var encodedMemo)?encodedMemo.GetString():null);
             return new WalletTransaction
             {

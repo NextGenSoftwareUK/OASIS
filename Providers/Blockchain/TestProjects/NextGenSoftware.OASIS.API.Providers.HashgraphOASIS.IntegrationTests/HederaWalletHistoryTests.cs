@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 
 [TestClass]
-public class HederaWalletHistoryTests
+public partial class HederaWalletHistoryTests
 {
     private static WalletTransaction Map(string json)
     {
@@ -62,7 +62,7 @@ public class HederaWalletHistoryTests
     private static string Page(IEnumerable<string> records, string? next) =>
         "{\"transactions\":[" + string.Join(",", records) + "],\"links\":{\"next\":" + JsonSerializer.Serialize(next) + "}}";
 
-    private static HashgraphOASIS Provider(HistoryHandler handler)
+    private static HashgraphOASIS Provider(HttpMessageHandler handler)
     {
         var provider = new HashgraphOASIS("http://127.0.0.1:12345/api/v1", "testnet") { IsProviderActivated = true };
         var field = typeof(HashgraphOASIS).GetField("_httpClient", BindingFlags.NonPublic | BindingFlags.Instance)!;
