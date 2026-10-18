@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
@@ -57,6 +58,7 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
     {
         var response = new OASISResult<bool>();
         var dispatched = false;
+        var archiveVersions = IsVersionControlEnabled;
         Core.Objects.AvatarTombstone tombstone = null;
         try
         {
@@ -106,10 +108,27 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
                 }
                 using var transaction = await session.BeginTransactionAsync();
                 dispatched = true;
+                if(softDelete && archiveVersions)
+                {
+                    if(!original.IsDeleted)
+                    {
+                        var deleted=ReadAvatarSnapshot((string)plan.Parameters["snapshot"],indexedId);
+                        var observed=await StampRecordHistoryAsync(transaction,"Avatar",deleted,ReadAvatarNode);
+                        if(observed!=(string)plan.Parameters["expected"])throw new StorageLifecycleConflictException("Neo4j avatar changed before versioned deletion.");
+                        plan.Parameters["snapshot"]=OasisJson.Serialize(deleted);
+                    }
+                    if(detailParameters!=null && !ReadDetailNode(detailRows[0]["a"].As<Neo4j.Driver.INode>()).IsDeleted)
+                    {
+                        var deleted=OasisJson.DeserializeStored<AvatarDetail>((string)detailParameters["snapshot"]);
+                        var observed=await StampRecordHistoryAsync(transaction,"AvatarDetail",deleted,ReadDetailNode);
+                        if(observed!=(string)detailParameters["expected"])throw new StorageLifecycleConflictException("Neo4j avatar detail changed before versioned deletion.");
+                        detailParameters["snapshot"]=OasisJson.Serialize(deleted);
+                    }
+                }
                 var changed = await (await transaction.RunAsync(plan.Query, plan.Parameters)).ToListAsync();
                 if (changed.Count == 0)
                 {
-                    dispatched = false; // Acknowledged compare failure: no mutation took place.
+                    if(!softDelete || !archiveVersions)dispatched = false; // History-enabled transaction may already have archive writes.
                     throw new StorageLifecycleConflictException("Neo4j avatar changed before deletion.");
                 }
                 if (changed.Count != 1 || changed[0]["affected"].As<int>() != 1)
