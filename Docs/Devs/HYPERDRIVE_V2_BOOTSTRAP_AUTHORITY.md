@@ -2,6 +2,8 @@
 
 ## Approved design and cost boundary
 
+Owner reconfirmed proceeding with this recommendation. Mongo is the private security/quota authority, not an eventually consistent public replica. Never fall back to a paid provider during authentication or denied-request admission. Full provider data is hydrated only after the existing fee reservation boundary. Approval does not mean this foundation is enabled: canonical writer, token-version and HTTP integration gates below remain mandatory.
+
 Owner approved the recommended Mongo-only private bootstrap authority. JWT identity validation and quota admission must not initiate paid native reads before reservation, or charge users whose request is denied. No paid-chain fallback is allowed when this authority is missing, stale, conflicting or unavailable. This is not a public mirror or a replacement for encrypted provider records.
 
 ## Current implementation — foundation, NOT enabled

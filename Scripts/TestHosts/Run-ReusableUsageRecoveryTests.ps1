@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees)
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees,[switch]$CosmosRoutingFeeRecovery)
 $ErrorActionPreference='Stop'
+if($CosmosRoutingFeeRecovery -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Original-only Cosmos recovery requires exclusive existing-owner environment mode.'}
 if($CosmosReviewedFees -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Reviewed Cosmos fee test requires exclusive existing-owner environment mode.'}
 if($CosmosRoutingReconcile -and !$CosmosRoutingInspect){throw 'Reviewed Cosmos routing cleanup requires explicit incident selection.'}
 if($CosmosRoutingProbe -and (!$CosmosRoutingInspect -or $CosmosRoutingReconcile)){throw 'Zero-budget probe requires exclusive incident selection, never cleanup.'}
@@ -99,7 +100,11 @@ try{
     }elseif($CosmosPreparedOwners){
         $cosmosProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests.csproj'
         $cosmosStarted=[DateTime]::UtcNow
-        if($CosmosReviewedFees){
+        if($CosmosRoutingFeeRecovery){
+            $cosmosProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
+            $nativeReport='cosmos-reviewed-routing-recovery-current.trx'
+            & dotnet test $cosmosProject --no-build --no-restore --filter 'FullyQualifiedName~CosmosReviewedRoutingRecoveryTests.RecoverExactTimedOutReviewedRoutingWithoutNativeReplay' --logger "trx;LogFileName=$nativeReport" --results-directory $work -v:q
+        }elseif($CosmosReviewedFees){
             $cosmosProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
             $nativeReport='cosmos-reviewed-final-fee-current.trx'
             & dotnet test $cosmosProject --no-build --no-restore --filter 'FullyQualifiedName~CosmosReviewedFinalFeeTests.ActualReviewedDeploymentRecoversSuccessfulAndChargedFailedOriginalsWithoutReplay' --logger "trx;LogFileName=$nativeReport" --results-directory $work -v:q
@@ -133,26 +138,32 @@ try{
             & dotnet test $cosmosProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter 'FullyQualifiedName~RealOfflineSignedDocumentVerifiesThroughCSharp' --logger 'trx;LogFileName=cosmos-signed-owner-mongo-current.trx' --results-directory $work -v:q
         }
         if($LASTEXITCODE -ne 0){throw 'Cosmos owned regression failed.'}
-        $cosmosReport=Get-Item -LiteralPath (Join-Path $work $(if($CosmosNative -or $CosmosRouting -or $CosmosRoutingInspect -or $CosmosReviewedFees){$nativeReport}elseif($CosmosFull){'cosmos-full-owned-current.trx'}else{'cosmos-signed-owner-mongo-current.trx'}))
+        $cosmosReport=Get-Item -LiteralPath (Join-Path $work $(if($CosmosNative -or $CosmosRouting -or $CosmosRoutingInspect -or $CosmosReviewedFees -or $CosmosRoutingFeeRecovery){$nativeReport}elseif($CosmosFull){'cosmos-full-owned-current.trx'}else{'cosmos-signed-owner-mongo-current.trx'}))
         if($cosmosReport.LastWriteTimeUtc -lt $cosmosStarted){throw 'Cosmos report is stale.'}
         [xml]$cosmosEvidence=Get-Content -LiteralPath $cosmosReport.FullName
         $cosmosCounts=$cosmosEvidence.TestRun.ResultSummary.Counters
-        $expectedCosmos=if($CosmosRoutingInspect -or $CosmosReviewedFees){1}elseif($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){226}else{3}
+        $expectedCosmos=if($CosmosRoutingInspect -or $CosmosReviewedFees -or $CosmosRoutingFeeRecovery){1}elseif($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){228}else{3}
         if([int]$cosmosCounts.total -ne $expectedCosmos -or [int]$cosmosCounts.passed -ne $expectedCosmos -or [int]$cosmosCounts.notExecuted -ne 0){throw 'All selected Cosmos cases must actually execute and pass without skips.'}
         if($CosmosRouting){
+            $routingCombinations=[Collections.Generic.HashSet[string]]::new()
             foreach($case in $cosmosEvidence.TestRun.Results.UnitTestResult){
                 $line=([string]$case.Output.StdOut -split "`n"|Where-Object{$_.Trim().StartsWith('{"nativePrimary"')}|Select-Object -First 1)
                 if(!$line){throw 'Native routing signed evidence is missing from the report.'}
                 $caseData=$line.Trim()|ConvertFrom-Json
+                if(!$routingCombinations.Add("$($caseData.nativePrimary):$($caseData.synchronous)")){throw 'Duplicate routing combination cannot substitute for the complete primary/sync matrix.'}
                 if($caseData.strategyReadCount -ne 16 -or $caseData.roundRobinReadCount -ne 6 -or $caseData.freeReadCount -ne 8){throw 'Full current strategy/distribution/free-plan matrix evidence is missing.'}
                 $originals=$caseData.originals
                 if(@($originals).Count -ne 10 -or $caseData.profileMatchingReadCount -ne 28 -or $caseData.profileAbsenceReadCount -ne 28){throw 'Expected full profile/detail/leaf native attempts and matching/absence read coverage per routing case.'}
                 $expectedOutageReads=if(!$caseData.nativePrimary -and $caseData.synchronous){14}else{0}
                 if($caseData.outageProfileReadCount -ne $expectedOutageReads){throw 'Exact real stopped-node profile failover coverage is missing.'}
                 foreach($original in $originals){
-                    if(!$original.attempt.NativePreparation.SignedTransactionBase64 -or !$original.attempt.NativePreparation.SignDocBase64 -or $original.anteFeeReceipt.transactionHash -ne $original.attempt.ProviderRequestId){throw 'Original signed bytes/SignDoc or matching native fee receipt absent.'}
+                    if(!$original.attempt.NativePreparation.SignedTransactionBase64 -or !$original.attempt.NativePreparation.SignDocBase64 -or $original.receipt.ProviderRequestId -ne $original.attempt.ProviderRequestId -or !$original.receipt.NativeFeeAudit){throw 'Original signed bytes/SignDoc or matching audited native fee receipt absent.'}
+                    $audit=$original.receipt.NativeFeeAudit.PayloadJson|ConvertFrom-Json
+                    if(!$audit.NativeExecutionSucceeded -or $audit.NativeExecutionCode -ne 0 -or $original.receipt.CostSource -ne $caseData.review.EvidenceBasis){throw 'Exact reviewed native success/fee basis evidence missing.'}
                 }
+                if($caseData.netFinalNativeReceiptCount -ne 10){throw 'Expected ten durable final-fee receipts per real V2 routing case.'}
             }
+            if($routingCombinations.Count -ne 4){throw 'Both provider orders and synchronous/asynchronous routing must be represented.'}
         }
     }elseif($SuiPreparedLedger -or $SuiPreparedInspect){
         $suiProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'
