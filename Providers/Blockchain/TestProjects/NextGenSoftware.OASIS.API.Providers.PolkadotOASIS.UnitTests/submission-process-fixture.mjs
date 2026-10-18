@@ -12,11 +12,15 @@ async function waitForOwnedCancellation(signal) {
   socket.write(signal);
   await new Promise(() => {});
 }
-if (request.operation === 'prepareTransfer') {
+if (request.operation === 'prepareTransfer' || request.operation === 'prepareAssetOperation') {
+  const asset = request.operation === 'prepareAssetOperation';
+  if (asset && (request.assetId !== '424242' || request.recipient !== 'sender' || request.amount !== '1.250001'))
+    throw new Error('Controlled fixture expected the frozen typed asset intent.');
   emit({ transactionHash: originalHash, chainId: chain, sender: 'sender',
+    ...(asset ? { action: request.action, assetId: request.assetId, recipient: request.recipient, units: '1250001' } : {}),
     signedTransactionBase64: 'AQID', signature: 'fixture-signature',
     signDocBase64: Buffer.from(JSON.stringify({ signingPayload: { blockNumber: '0x01' } })).toString('base64') });
-} else if (request.operation === 'verifyNativePreparation') {
+} else if (request.operation === 'verifyNativePreparation' || request.operation === 'verifyAssetPreparation') {
   if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'cancel-verification')
     await waitForOwnedCancellation(String(process.pid) + '\n');
   else emit({ verified: true, transactionHash: originalHash, chainId: chain, sender: 'sender' });
@@ -27,7 +31,7 @@ if (request.operation === 'prepareTransfer') {
   } else emit({ transactionHash: mode === 'fee-wrong-hash' ? 'wrong' : originalHash,
     finalized: mode !== 'fee-unfinalized', dispatchSucceeded: mode !== 'fee-failed-dispatch', payer: 'sender',
     feeCoverage: 'finalized-native-transaction-payment-event-tip-included', actualFeeUnits: mode === 'fee-invalid-units' ? '-1' : '12' });
-} else if (request.operation === 'originalOutcome') {
+} else if (request.operation === 'originalOutcome' || request.operation === 'assetOutcome') {
   if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wait-for-cancellation') {
     await waitForOwnedCancellation('1'); // Actual finality read entry, not a timing guess.
   } else if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'read-error') {
@@ -36,6 +40,12 @@ if (request.operation === 'prepareTransfer') {
   } else emit({ found: true, reconciliationRequired: true, receipt: {
     transactionHash: originalHash, finalized: true,
     dispatchSucceeded: process.env.OASIS_POLKADOT_TEST_OUTCOME !== 'dispatch-failed',
+    ...(request.operation === 'assetOutcome' ? {
+      assetEffectMatchesRequest: process.env.OASIS_POLKADOT_TEST_OUTCOME !== 'effect-mismatch',
+      observedUnits: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-units' ? '1250000' : '1250001',
+      requestedUnits: '1250001', assetId: request.preparation.assetId, recipient: request.preparation.recipient,
+      action: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-action' ? 'other' : request.preparation.action
+    } : {}),
     dispatchError: 'controlled dispatch failure', actualFeeUnits: '12'
   } });
 } else {

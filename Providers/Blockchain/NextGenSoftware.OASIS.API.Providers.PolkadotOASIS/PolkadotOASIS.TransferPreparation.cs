@@ -15,7 +15,10 @@ public partial class PolkadotOASIS
     public Task<OASISResult<JsonElement>> VerifyNativeTokenTransferPreparationAsync(JsonElement preparation)
         => VerifyNativeTokenTransferPreparationAsync(preparation, CancellationToken.None);
 
-    public async Task<OASISResult<JsonElement>> VerifyNativeTokenTransferPreparationAsync(JsonElement preparation, CancellationToken cancellationToken)
+    public Task<OASISResult<JsonElement>> VerifyNativeTokenTransferPreparationAsync(JsonElement preparation, CancellationToken cancellationToken)
+        => VerifyOriginalPreparationAsync(preparation, false, cancellationToken);
+
+    private async Task<OASISResult<JsonElement>> VerifyOriginalPreparationAsync(JsonElement preparation, bool asset, CancellationToken cancellationToken)
     {
         var result = new OASISResult<JsonElement>();
         try
@@ -23,7 +26,7 @@ public partial class PolkadotOASIS
             cancellationToken.ThrowIfCancellationRequested();
             if (!_isActivated) throw new InvalidOperationException("Activate the verified network before checking original preparation.");
             var original = preparation.Clone();
-            var identity = await InvokePolkadotSdkAsync(new { operation = "verifyNativePreparation", endpoint = _rpcEndpoint,
+            var identity = await InvokePolkadotSdkAsync(new { operation = asset ? "verifyAssetPreparation" : "verifyNativePreparation", endpoint = _rpcEndpoint,
                 genesisHash = ReportedGenesisHash, preparation = original }, cancellationToken);
             if (identity.ValueKind != JsonValueKind.Object || !identity.TryGetProperty("verified", out var verified)
                 || verified.ValueKind != JsonValueKind.True
@@ -32,7 +35,7 @@ public partial class PolkadotOASIS
                 || identity.GetProperty("chainId").GetString() != ReportedGenesisHash)
                 throw new InvalidDataException("SDK verification did not bind the exact original transaction, sender and configured chain.");
             result.Result = identity;
-            result.Message = "Original signed native transfer verified; no submission or fee authorization.";
+            result.Message = "Original signed operation verified; no submission or fee authorization.";
         }
         catch (Exception failure) { OASISErrorHandling.HandleError(ref result, failure.Message, failure); }
         return result;

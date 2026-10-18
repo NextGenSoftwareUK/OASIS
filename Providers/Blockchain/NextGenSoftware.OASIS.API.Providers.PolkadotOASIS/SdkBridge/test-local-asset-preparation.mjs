@@ -34,7 +34,11 @@ try {
   const native = await prepareNativeTransfer(api, { ...request, amount: '1' }, 12);
   await assert.rejects(verifyAssetPreparation(api, { ...native, protocol: mint.protocol })); rejected++;
   await assert.rejects(prepareAssetOperation(api, { ...request, amount: '1.0000001' })); rejected++;
-  await assert.rejects(prepareAssetOperation(api, { ...request, action: 'burn', amount: '11' })); rejected++;
+  // Reused ledger balances change after verified mints/burns. Test the live bound, not the initial seed balance.
+  const aboveBalance = (BigInt(before) + 1n).toString().padStart(mint.decimals + 1, '0');
+  const excessiveAmount = aboveBalance.slice(0, -mint.decimals) + '.' + aboveBalance.slice(-mint.decimals);
+  await assert.rejects(prepareAssetOperation(api, { ...request, action: 'burn', amount: excessiveAmount }),
+    /exceeds the observed asset balance/); rejected++;
   await assert.rejects(prepareAssetOperation(api, { ...request, assetId: '424243' })); rejected++;
   await assert.rejects(prepareAssetOperation(api, { ...request, sender: '0x8ee504148e75c34e8f051899b3c6e4241ff18dc1c9211260b6a6a434bedb485f', privateKey: '0x' + '03'.repeat(32) })); rejected++;
   assert.equal((await api.query.assets.account(request.assetId, request.recipient)).unwrap().balance.toString(), before);
