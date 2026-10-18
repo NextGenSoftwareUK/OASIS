@@ -1,0 +1,6 @@
+{
+  "name": "oasis-polkadot-sdk-bridge",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@polkadot/api": "17.0.2" }
+}

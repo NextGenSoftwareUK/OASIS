@@ -55,6 +55,9 @@
 
   <ItemGroup>
     <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\bridge.mjs" />
+    <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package.json" />
+    <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package-lock.json" />
   </ItemGroup>
 </Project>
 

@@ -7,7 +7,7 @@ task_publish_root="${1:?Usage: package-provider-sdk-bridges.sh /app/publish}"
   echo 'SDK installation requires the Docker-owned /app/publish directory.' >&2
   exit 1
 }
-for task_bridge in CosmosSdkBridge HederaSdkBridge NearSdkBridge SuiSdkBridge; do
+for task_bridge in CosmosSdkBridge HederaSdkBridge NearSdkBridge SuiSdkBridge PolkadotSdkBridge; do
   task_path="$task_publish_root/$task_bridge"
   # Some API hosts do not reference every provider. A partial bridge is an error.
   [[ -d "$task_path" ]] || continue
