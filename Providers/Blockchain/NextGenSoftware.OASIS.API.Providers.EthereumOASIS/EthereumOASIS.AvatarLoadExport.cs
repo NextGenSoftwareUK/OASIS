@@ -223,6 +223,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
                 
+                CommitEthereumStorageIdentity(avatar);
                 result.Result = avatar;
                 result.IsError = false;
                 result.IsSaved = true;

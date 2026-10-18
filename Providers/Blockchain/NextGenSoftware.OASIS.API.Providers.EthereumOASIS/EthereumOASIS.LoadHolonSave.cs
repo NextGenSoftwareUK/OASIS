@@ -74,7 +74,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                         OASISErrorHandling.HandleError(ref result,"Ethereum graph write reverted.");
                         if(!continueOnError) break;
                     }
-                    else committed.Add(receipt.TransactionHash);
+                    else
+                    {
+                        committed.Add(receipt.TransactionHash);
+                        CommitEthereumStorageIdentity(node.Record);
+                    }
                 }
                 if(!result.IsError) { result.Result=plan.Roots; result.IsSaved=true; }
             }
