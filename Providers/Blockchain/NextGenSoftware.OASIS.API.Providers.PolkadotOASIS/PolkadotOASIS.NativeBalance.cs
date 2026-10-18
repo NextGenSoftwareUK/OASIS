@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Numerics;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,9 @@ public partial class PolkadotOASIS
         {
             FileName = Environment.GetEnvironmentVariable("OASIS_POLKADOT_NODE") ?? "node",
             RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
+            StandardInputEncoding = new UTF8Encoding(false, true),
+            StandardOutputEncoding = new UTF8Encoding(false, true),
+            StandardErrorEncoding = new UTF8Encoding(false, true),
             UseShellExecute = false, CreateNoWindow = true
         };
         start.ArgumentList.Add(bridge);

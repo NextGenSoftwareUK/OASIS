@@ -1,5 +1,6 @@
 import { Keyring } from '@polkadot/api';
-import { blake2AsU8a, cryptoWaitReady, mnemonicValidate, signatureVerify } from '@polkadot/util-crypto';
+import { cryptoWaitReady, mnemonicValidate } from '@polkadot/util-crypto';
+import { signingDocument, verifyNativePreparation } from './verify-preparation.mjs';
 
 export function nativeUnits(amount, decimals) {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
@@ -56,34 +57,25 @@ export async function prepareNativeTransfer(api, request, decimals) {
         throw new Error('Runtime cannot atomically include the requested transfer memo.');
       tx = api.tx.utility.batchAll([tx, api.tx.system.remarkWithEvent('0x' + Buffer.from(request.memo, 'utf8').toString('hex'))]);
     }
-    let payloadJson, signature, payloadBytes;
+    let payloadJson, signature;
     await tx.signAsync(pair.address, { tip: 0, signer: { signPayload: async payload => {
       payloadJson = structuredClone(payload);
       const encoded = api.registry.createType('ExtrinsicPayload', payload, { version: payload.version });
-      payloadBytes = encoded.toU8a({ method: true });
       signature = encoded.sign(pair).signature;
-      const message = payloadBytes.length > 256 ? blake2AsU8a(payloadBytes) : payloadBytes;
-      if (!signatureVerify(message, signature, pair.publicKey).isValid)
-        throw new Error('SDK-produced transfer signature did not verify.');
       return { id: 0, signature };
     } } });
     const bytes = tx.toU8a();
-    const decoded = api.registry.createType('Extrinsic', bytes);
-    if (!decoded.isSigned || api.createType('AccountId32', decoded.signer.toString()).toHex().toLowerCase() !== sender.toLowerCase()
-        || decoded.method.toHex() !== tx.method.toHex() || decoded.hash.toHex() !== tx.hash.toHex()
-        || payloadJson.genesisHash.toLowerCase() !== api.genesisHash.toHex().toLowerCase()
-        || payloadJson.method !== tx.method.toHex())
-      throw new Error('Signed extrinsic identity failed independent SDK decoding.');
+    const prepared = { protocol: 'oasis.polkadot.native-transfer.preparation.v2', submitted: false,
+      chainId: api.genesisHash.toHex(), genesisHash: api.genesisHash.toHex(), sender, recipient, units, decimals,
+      transactionHash: tx.hash.toHex(), signedTransactionBase64: Buffer.from(bytes).toString('base64'),
+      signDocBase64: signingDocument(payloadJson), signature };
+    await verifyNativePreparation(api, prepared);
     // Read-only runtime fee estimate against these exact signed bytes, NOT an all-fees cap or receipt.
     if (!api.call.transactionPaymentApi?.queryInfo) throw new Error('Runtime has no transaction fee estimation API.');
     const info = await api.call.transactionPaymentApi.queryInfo(bytes, bytes.length);
     const partialFeeUnits = info.partialFee.toString();
     if (!/^(0|[1-9][0-9]*)$/.test(partialFeeUnits)) throw new Error('Runtime fee estimate is malformed.');
-    return { protocol: 'oasis.polkadot.native-transfer.preparation.v1', submitted: false,
-      genesisHash: api.genesisHash.toHex(), sender, recipient, units, decimals,
-      transactionHash: tx.hash.toHex(), signedTransactionBase64: Buffer.from(bytes).toString('base64'),
-      signDocBase64: Buffer.from(payloadBytes).toString('base64'), signature, signingPayload: payloadJson,
-      partialFeeUnits, feeCoverage: 'estimate-only-not-final-or-capped' };
+    return { ...prepared, partialFeeUnits, feeCoverage: 'estimate-only-not-final-or-capped' };
   } finally {
     seed?.fill(0);
     pair?.lock();

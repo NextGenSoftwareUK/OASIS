@@ -56,6 +56,11 @@ public class PolkadotReadOnlyNativeTests
         Assert.AreEqual(66,prepared.GetProperty("transactionHash").GetString()!.Length);
         Assert.IsFalse(prepared.GetRawText().Contains(request.OwnerPrivateKey));
         StringAssert.Contains(result.Message,"not submitted");
+        var verified=await provider.VerifyNativeTokenTransferPreparationAsync(prepared);
+        Assert.IsFalse(verified.IsError,verified.Exception?.ToString());
+        Assert.IsTrue(verified.Result.GetProperty("verified").GetBoolean());
+        Assert.AreEqual(prepared.GetProperty("transactionHash").GetString(),verified.Result.GetProperty("transactionHash").GetString());
+        Assert.AreEqual(request.MemoText,verified.Result.GetProperty("memo").GetString());
     }
 
     [DataTestMethod]
