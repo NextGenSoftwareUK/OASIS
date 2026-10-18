@@ -31,6 +31,8 @@ try {
         [Environment]::SetEnvironmentVariable($name, [string] $value, 'Process')
     }
 
+    # Windows PowerShell 5.1 does not load the DPAPI assembly implicitly.
+    Add-Type -AssemblyName System.Security
     $cache=Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'OASIS/provider-evidence/near'
     New-Item -ItemType Directory -Force -Path $cache | Out-Null
     $keyPath=Join-Path $cache 'storage-key.dpapi'

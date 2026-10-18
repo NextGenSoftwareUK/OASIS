@@ -18,8 +18,7 @@ public partial class NEAROASIS
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var yocto = BigInteger.Parse(await _sdk.GetBalanceYoctoAsync(accountAddress));
-            result.Result = (decimal)yocto / 1_000_000_000_000_000_000_000_000m;
+            result.Result = NearNativeAmount.FromYocto(await _sdk.GetBalanceYoctoAsync(accountAddress));
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error reading NEAR account balance: {ex.Message}", ex); }
         return result;
@@ -64,8 +63,7 @@ public partial class NEAROASIS
         {
             if (amount <= 0 || string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
                 throw new ArgumentException("Positive amount, sender account, and sender private key are required.");
-            var yocto = new BigInteger(decimal.Round(amount * 1_000_000_000_000_000_000_000_000m,
-                0, MidpointRounding.AwayFromZero)).ToString();
+            var yocto = NearNativeAmount.ToYocto(amount);
             var tx = await _sdk.TransferAsync(_accountId, yocto, senderAccountAddress, senderPrivateKey);
             await RecordWalletTransactionAsync(tx, senderAccountAddress, _accountId, amount, "NEAR bridge withdrawal");
             result.Result = new BridgeTransactionResponse(tx, null, true, null, BridgeTransactionStatus.Completed);
@@ -82,8 +80,7 @@ public partial class NEAROASIS
         {
             if (amount <= 0 || string.IsNullOrWhiteSpace(receiverAccountAddress))
                 throw new ArgumentException("Positive amount and receiver account are required.");
-            var yocto = new BigInteger(decimal.Round(amount * 1_000_000_000_000_000_000_000_000m,
-                0, MidpointRounding.AwayFromZero)).ToString();
+            var yocto = NearNativeAmount.ToYocto(amount);
             var tx = await _sdk.TransferAsync(receiverAccountAddress, yocto);
             await RecordWalletTransactionAsync(tx, _accountId, receiverAccountAddress, amount, "NEAR bridge deposit");
             result.Result = new BridgeTransactionResponse(tx, null, true, null, BridgeTransactionStatus.Completed);

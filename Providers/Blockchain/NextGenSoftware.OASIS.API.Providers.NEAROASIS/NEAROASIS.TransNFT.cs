@@ -28,8 +28,7 @@ public partial class NEAROASIS
             if (amount <= 0 || string.IsNullOrWhiteSpace(toWalletAddress))
                 throw new ArgumentException("Destination account and a positive amount are required.");
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var yocto = new System.Numerics.BigInteger(decimal.Round(
-                amount * 1_000_000_000_000_000_000_000_000m, 0, MidpointRounding.AwayFromZero)).ToString();
+            var yocto = NearNativeAmount.ToYocto(amount);
             var tx = await _sdk.TransferAsync(toWalletAddress, yocto,
                 string.IsNullOrWhiteSpace(fromWalletAddress) ? null : fromWalletAddress);
             await RecordWalletTransactionAsync(tx,
