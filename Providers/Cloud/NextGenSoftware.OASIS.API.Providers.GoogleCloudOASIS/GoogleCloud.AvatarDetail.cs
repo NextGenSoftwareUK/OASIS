@@ -57,14 +57,17 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 }
 
                 // Save avatar detail to Firestore with FULL property mapping
-                var snapshot=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<AvatarDetail>(
-                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatarDetail));
+                var snapshot=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<AvatarDetail>(avatarDetail);
                 if(snapshot.Id==Guid.Empty) snapshot.Id=Guid.NewGuid();
+                snapshot.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
+                snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=snapshot.Id.ToString();
                 var docRef = _firestoreDb.Collection("avatarDetails").Document(snapshot.Id.ToString());
                 var avatarDetailData = EncodeAvatarDetail(snapshot);
                 
                 await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(avatarDetailData),docRef.Path);
                 avatarDetail.Id=snapshot.Id;
+                avatarDetail.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
+                avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=snapshot.Id.ToString();
                 
                 result.Result = avatarDetail;
                 result.IsSaved = true;
@@ -129,8 +132,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 }
 
                 var source=holon;
-                holon=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Holon>(
-                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(source));
+                holon=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Holon>(source);
                 if (holon.Id == Guid.Empty)
                     holon.Id = Guid.NewGuid();
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
