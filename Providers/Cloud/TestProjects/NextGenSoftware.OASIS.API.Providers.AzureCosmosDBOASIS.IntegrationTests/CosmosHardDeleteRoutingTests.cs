@@ -21,7 +21,7 @@ public partial class AzureCosmosDBOASISIntegrationTests
     public async Task NativeHardDeleteReplicatesBetweenCosmosAndSqlite(bool synchronous,bool sqlitePrimary,bool avatar)
     {
         var path=Path.GetFullPath("TestResults/CosmosDBRouting/delete-backup.db");
-        if(File.Exists(path)) Assert.Fail("Retained delete fixture exists; reconcile it before rerunning.");
+        await VerifyEmptySqliteFixtureAsync(path);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var backup=new SQLiteProvider($"Data Source={path};Pooling=False");var verified=false;
         var id=Guid.NewGuid();
@@ -74,7 +74,26 @@ public partial class AzureCosmosDBOASISIntegrationTests
         finally
         {
             backup.Dispose();
-            if(verified) File.Delete(path);else _ownsDatabase=false;
+            if(verified)await VerifyEmptySqliteFixtureAsync(path);else _ownsDatabase=false;
+        }
+    }
+
+    private static async Task VerifyEmptySqliteFixtureAsync(string path)
+    {
+        if(!File.Exists(path))return;
+        using var connection=new Microsoft.Data.Sqlite.SqliteConnection(new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder{
+            DataSource=path,Mode=Microsoft.Data.Sqlite.SqliteOpenMode.ReadOnly,Pooling=false}.ToString());
+        await connection.OpenAsync();
+        var names=new List<string>();
+        using(var command=connection.CreateCommand())
+        {
+            command.CommandText="SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+            using var reader=await command.ExecuteReaderAsync();while(await reader.ReadAsync())names.Add(reader.GetString(0));
+        }
+        foreach(var name in names)
+        {
+            using var command=connection.CreateCommand();command.CommandText="SELECT COUNT(*) FROM \""+name.Replace("\"","\"\"")+"\"";
+            Assert.AreEqual(0L,Convert.ToInt64(await command.ExecuteScalarAsync()),"Retained SQLite records require inspection; no reset or replay allowed.");
         }
     }
 }

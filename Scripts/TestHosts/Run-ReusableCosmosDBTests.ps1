@@ -1,3 +1,4 @@
+param([switch]$InspectRetainedFixture)
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $work=Join-Path $root 'TestResults/CosmosDBCurrent'
@@ -28,13 +29,16 @@ try {
     if(!$ready) {throw 'Retained Cosmos DB gateway readiness timed out.'}
     $env:OASIS_COSMOSDB_NATIVE='1'
     $testsStarted=[DateTime]::UtcNow
-    & dotnet test $project --no-build --no-restore --logger 'trx;LogFileName=cosmos-native-current.trx' --results-directory $work -v:q
+    $filter=if($InspectRetainedFixture){'TestCategory=Inspection'}else{'TestCategory!=Inspection'}
+    $reportName=if($InspectRetainedFixture){'cosmos-retained-inspection-current.trx'}else{'cosmos-native-current.trx'}
+    & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE) {throw 'Cosmos DB native test failed.'}
-    $reportFile=Get-Item -LiteralPath (Join-Path $work 'cosmos-native-current.trx') -ErrorAction Stop
+    $reportFile=Get-Item -LiteralPath (Join-Path $work $reportName) -ErrorAction Stop
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'Cosmos DB native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 17 -or [int]$counts.passed -ne 17 -or [int]$counts.notExecuted -ne 0) {throw 'Expected all seventeen native Cosmos DB tests passed, no skips.'}
+    $expected=if($InspectRetainedFixture){1}else{17}
+    if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0) {throw 'Exact expected native Cosmos DB case count with no skips required.'}
 }
 finally {
     $env:OASIS_COSMOSDB_NATIVE=$previous
