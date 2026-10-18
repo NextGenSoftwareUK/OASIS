@@ -121,6 +121,9 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
                     if (detailChanged.Count != 1 || detailChanged[0]["affected"].As<int>() != 1)
                         throw new StorageLifecycleConflictException("Neo4j avatar detail changed before paired deletion.");
                 }
+                if(!softDelete)
+                    await (await transaction.RunAsync("MATCH (v:OasisRecordVersion {RecordId:$id}) WHERE v.Kind IN ['Avatar','AvatarDetail'] DETACH DELETE v",
+                        new{id=indexedId})).ConsumeAsync();
                 await transaction.CommitAsync();
             }
             response.Result = true;

@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
     {
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
+            if(version>0)return await ReadHistoricalAvatarsAsync(version);
             var response = new OASISResult<IEnumerable<IAvatar>>();
             try
             {

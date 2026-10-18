@@ -15,6 +15,7 @@ public partial class Neo4jOASIS
     {
         var result = new OASISResult<IAvatar>();
         var dispatched = false;
+        var archiveVersions = IsVersionControlEnabled;
         try
         {
             var staged = StageAvatar(source);
@@ -23,10 +24,18 @@ public partial class Neo4jOASIS
             using (var session = _driver.AsyncSession())
             {
                 using var transaction = await session.BeginTransactionAsync();
-                const string query = "MERGE (a:Avatar {Id:$id}) SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot, a.CreatedDate=$createdDate, a.ModifiedDate=$modifiedDate RETURN a";
                 dispatched = true;
+                var expected=archiveVersions ? await StampAvatarHistoryAsync(transaction,staged):null;
+                var query=archiveVersions
+                    ? "MERGE (a:Avatar {Id:$id}) ON CREATE SET a.__oasisCreatedBy=$writeId "
+                      + "SET a.__oasisAvatarLock=true REMOVE a.__oasisAvatarLock WITH a "
+                      + "WHERE ($expected IS NULL AND a.__oasisCreatedBy=$writeId) OR a.SnapshotJson=$expected "
+                      + "REMOVE a.__oasisCreatedBy "
+                    : "MERGE (a:Avatar {Id:$id}) ";
+                query+="SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot, a.CreatedDate=$createdDate, a.ModifiedDate=$modifiedDate RETURN a";
                 var rows = await (await transaction.RunAsync(query, new { id = staged.Id.ToString(), username = staged.Username,
-                    email = staged.Email, snapshot = OasisJson.Serialize(staged), createdDate = staged.CreatedDate, modifiedDate = staged.ModifiedDate })).ToListAsync();
+                    email = staged.Email, snapshot = OasisJson.Serialize(staged), createdDate = staged.CreatedDate, modifiedDate = staged.ModifiedDate,
+                    expected,writeId=Guid.NewGuid().ToString("N") })).ToListAsync();
                 if (rows.Count != 1) throw new InvalidDataException("Neo4j avatar save did not acknowledge exactly one record.");
                 acknowledged = ReadAvatarNode(rows[0]["a"].As<Neo4j.Driver.INode>());
                 if (acknowledged.Id != staged.Id) throw new InvalidDataException("Neo4j avatar save acknowledged another identity.");
@@ -35,6 +44,7 @@ public partial class Neo4jOASIS
             source.Id = acknowledged.Id;
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = acknowledged.Id.ToString();
             source.IsNewHolon = false;
+            if(archiveVersions){source.Version=acknowledged.Version;source.VersionId=acknowledged.VersionId;source.PreviousVersionId=acknowledged.PreviousVersionId;}
             result.Result = acknowledged; result.IsSaved = true;
         }
         catch (Exception cause)
