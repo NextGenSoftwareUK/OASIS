@@ -10,6 +10,8 @@ Trusted application subclasses are projected into canonical Core DTOs before sav
 
 Historical reads currently reject positive versions. General concurrency, acknowledgement/recovery, all fields/options/interfaces, Cloud Storage/BigQuery and hosted/API/release gates remain open. Activation can perform service-side health/setup operations; Firestore tests disable Cloud Storage/BigQuery and use the loopback emulator. Current evidence and limitations: `Docs/Devs/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
 
+Single-record saves now require a nonnull SDK WriteResult with a nondefault native server UpdateTime before publishing caller IDs/keys. This validates the acknowledgement, not application CreatedDate metadata. Missing/uninitialized acknowledgements retain the attempted document path and reconciliation marker; no server transaction ID is invented. Inspect original state before retrying. The check adds no extra native requests and does not provide durable recovery or certify every mutation path.
+
 Initial Release targeting OASIS API v2.3.1 (Current LIVE REST version): \
 https://api.oasisplatform.world
 
