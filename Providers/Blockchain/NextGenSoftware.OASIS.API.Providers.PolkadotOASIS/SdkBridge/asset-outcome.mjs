@@ -4,11 +4,19 @@ import { validateOutcomeRange, readVerifiedOriginalRange } from './original-outc
 
 export function exactAssetEffect(api, identity, own, dispatchSucceeded) {
   if (!dispatchSucceeded) return { observedUnits: null, assetEffectMatchesRequest: false };
-  const expected = identity.action === 'mint' ? 'Issued' : identity.action === 'burn' ? 'Burned' : null;
+  const expected = identity.action === 'mint' ? 'Issued' : identity.action === 'burn' ? 'Burned'
+    : identity.action === 'transfer' ? 'Transferred' : null;
   if (!expected) throw new Error('Unsupported original asset action.');
   const matching = own.filter(event => event.section === 'assets' && event.method === expected);
   if (matching.length !== 1) throw new Error('Exactly one original asset effect event is required.');
-  const [id, account, amount] = matching[0].data;
+  const data = matching[0].data;
+  const transfer = identity.action === 'transfer';
+  if (data.length !== (transfer ? 4 : 3)) throw new Error('Asset effect event has an unexpected shape.');
+  const id = data[0];
+  if (transfer && api.createType('AccountId32', data[1].toString()).toHex() !== identity.sender)
+    throw new Error('Asset transfer source differs from the original signer.');
+  const account = data[transfer ? 2 : 1];
+  const amount = data[transfer ? 3 : 2];
   if (id.toString() !== identity.assetId || api.createType('AccountId32', account.toString()).toHex() !== identity.recipient)
     throw new Error('Asset effect event conflicts with the original asset/account.');
   const observedUnits = amount.toString();

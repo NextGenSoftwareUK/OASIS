@@ -19,6 +19,55 @@ public class PolkadotAssetMutationTests
         ProviderType = new NextGenSoftware.Utilities.EnumValue<ProviderType>(ProviderType.Default) };
     private static BurnWeb3TokenRequest Burn() => new() { BurntByAvatarId = Avatar, TokenAddress = "424242",
         Amount = 1.250001m, OwnerPublicKey = "sender", OwnerPrivateKey = "fixture", OwnerSeedPhrase = null! };
+    private static SendWeb3TokenRequest Send() => new() { FromTokenAddress="424242",FromWalletAddress="sender",
+        ToWalletAddress="sender",Amount=1.250001m,OwnerPublicKey="sender",OwnerPrivateKey="fixture",OwnerSeedPhrase=null! };
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task AssetSendRequiresAnAdmittedOwner(bool synchronous)
+    {
+        using var provider=new WalletProvider();
+        var result=synchronous ? provider.SendToken(Send()) : await provider.SendTokenAsync(Send());
+        Assert.IsTrue(result.IsError);StringAssert.Contains(result.Message,"admitted execution owner");
+    }
+
+    [DataTestMethod][DataRow(false,"accepted")][DataRow(true,"accepted")][DataRow(false,"dispatch-failed")]
+    [DataRow(false,"read-error")][DataRow(false,"effect-mismatch")][DataRow(false,"wrong-units")][DataRow(false,"wrong-action")]
+    public async Task AssetSendUsesExistingOwnerAndExactEffectChecks(bool synchronous,string outcome)
+    {
+        var priorBridge=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE");
+        var priorOutcome=Environment.GetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME");
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"submission-process-fixture.mjs"));
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME",outcome);
+        try {
+            using var provider=new WalletProvider();Activate(provider);
+            var store=DispatchProxy.Create<IUsageOutboxStore,PolkadotOwnedTransferTests.AttemptObserver>();
+            var result=await provider.ExecutePreparedNativeOperationAsync(()=>synchronous
+                ? Task.FromResult(provider.SendToken(Send())) : provider.SendTokenAsync(Send()),
+                PolkadotOwnedTransferTests.Handle(store),"owned-original","sender");
+            Assert.AreEqual(outcome!="accepted",result.IsError,result.Exception?.ToString());
+            Assert.AreEqual(1,((PolkadotOwnedTransferTests.AttemptObserver)(object)store).Calls);
+            Assert.AreEqual(0,provider.WalletLoads,"Explicit transfer signer must not load a service/default mint wallet.");
+            if(result.IsError)Assert.IsInstanceOfType(result.Exception,typeof(INativeMutationReconciliationRequired));
+        } finally {
+            Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",priorBridge);
+            Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME",priorOutcome);
+        }
+    }
+
+    [DataTestMethod][DataRow("id")][DataRow("amount")][DataRow("recipient")][DataRow("memo")][DataRow("application-id")]
+    public async Task InvalidAssetSendIntentFailsBeforeSigning(string mode)
+    {
+        using var provider=new WalletProvider();Activate(provider);
+        var request=Send();
+        if(mode=="id")request.FromTokenAddress="0424242";
+        if(mode=="amount")request.Amount=0;
+        if(mode=="recipient")request.ToWalletAddress="";
+        if(mode=="memo")request.MemoText="do not silently discard";
+        if(mode=="application-id")request.Web3TokenId=Guid.NewGuid();
+        var result=await provider.ExecutePreparedNativeOperationAsync(()=>provider.SendTokenAsync(request),
+            PolkadotOwnedTransferTests.Handle(),"owned-original","sender");
+        Assert.IsTrue(result.IsError);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
+    }
 
     [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
     public async Task MintAndBurnRequireAnAdmittedOwnerBeforeWalletOrTransport(bool burn, bool sync)

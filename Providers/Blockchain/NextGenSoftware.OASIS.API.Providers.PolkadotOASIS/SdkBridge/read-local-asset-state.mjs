@@ -10,5 +10,7 @@ try {
   const at = await api.at(blockHash);
   const details = (await at.query.assets.asset('424242')).unwrap();
   const account = (await at.query.assets.account('424242', '0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c')).unwrap();
-  process.stdout.write(JSON.stringify({ units: account.balance.toString(), supply: details.supply.toString(), blockHash: blockHash.toHex() }));
+  const other = await at.query.assets.account('424242', '0x8ee504148e75c34e8f051899b3c6e4241ff18dc1c9211260b6a6a434bedb485f');
+  process.stdout.write(JSON.stringify({ units: account.balance.toString(), otherUnits: other.isNone ? '0' : other.unwrap().balance.toString(),
+    supply: details.supply.toString(), blockHash: blockHash.toHex() }));
 } finally { await api.disconnect(); }

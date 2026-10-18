@@ -78,7 +78,7 @@ public class PolkadotLocalAssetTests
         Assert.AreEqual(1,provider.WalletLoads);
     }
 
-    private static async Task<(BigInteger Balance,BigInteger Supply)> State(CancellationToken token) {
+    internal static async Task<(BigInteger Balance,BigInteger Supply,BigInteger Other)> State(CancellationToken token) {
         var bridge=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE")!;
         var start=new ProcessStartInfo("node"){RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false,CreateNoWindow=true,
             StandardOutputEncoding=new UTF8Encoding(false,true),StandardErrorEncoding=new UTF8Encoding(false,true)};
@@ -90,7 +90,8 @@ public class PolkadotLocalAssetTests
             await process.WaitForExitAsync(deadline.Token);
             Assert.AreEqual(0,process.ExitCode,await stderr);
             using var state=JsonDocument.Parse(await stdout);
-            return(BigInteger.Parse(state.RootElement.GetProperty("units").GetString()!),BigInteger.Parse(state.RootElement.GetProperty("supply").GetString()!));
+            return(BigInteger.Parse(state.RootElement.GetProperty("units").GetString()!),BigInteger.Parse(state.RootElement.GetProperty("supply").GetString()!),
+                BigInteger.Parse(state.RootElement.GetProperty("otherUnits").GetString()!));
         } finally {
             if(!process.HasExited)process.Kill(true);
             await process.WaitForExitAsync();await Task.WhenAll(stdout,stderr);

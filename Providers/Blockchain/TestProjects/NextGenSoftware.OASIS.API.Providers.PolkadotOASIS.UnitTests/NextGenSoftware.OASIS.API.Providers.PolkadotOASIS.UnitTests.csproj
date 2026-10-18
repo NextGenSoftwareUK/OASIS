@@ -20,6 +20,7 @@
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotReadOnlyNativeTests.cs" Condition="'$(IncludePolkadotReadOnlyNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotLocalNativeTests.cs" Condition="'$(IncludePolkadotLocalNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotLocalAssetTests.cs" Condition="'$(IncludePolkadotLocalNativeTests)' == 'true'" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotLocalAssetTransferTests.cs" Condition="'$(IncludePolkadotLocalNativeTests)' == 'true'" />
     <None Update="submission-process-fixture.mjs" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
   </ItemGroup>
