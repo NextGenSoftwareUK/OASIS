@@ -76,7 +76,6 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         }
 
         private static string Ser(object o) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(o);
-        private static T? Des<T>(string? json) => json == null ? default : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(json);
 
         private static T ReadStoredIdentity<T>(Dictionary<string,AttributeValue> item,Guid requested) where T:class,IHolonBase
         {
@@ -246,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             {
                 ArgumentNullException.ThrowIfNull(avatar);
                 var source=avatar;
-                avatar=Des<Avatar>(Ser(source))!;
+                avatar=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Avatar>(source);
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[StorageProviderType] = avatar.Id.ToString();
@@ -466,7 +465,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             {
                 ArgumentNullException.ThrowIfNull(d);
                 var source=d;
-                d=Des<AvatarDetail>(Ser(source))!;
+                d=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<AvatarDetail>(source);
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 d.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
                 d.ProviderUniqueStorageKey[StorageProviderType]=d.Id.ToString();
@@ -560,7 +559,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     return converted;
                 }
                 var source=holon;
-                holon=Des<Holon>(Ser(source))!;
+                holon=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Holon>(source);
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[StorageProviderType] = holon.Id.ToString();
