@@ -146,6 +146,14 @@ python3 Scripts/test_railway_dependency_manifest.py
 
 The first command includes gitlink validation, then checks initialized, clean, exact-pinned private submodules and the existing shared `../NextGenSoftware-Libraries` and `../holochain-client-csharp` checkouts, plus a clean parent. It is read-only: never initializes, clones, switches or resets a checkout. An empty submodule must not inherit its parent's Git identity or silently substitute a NuGet package and be counted as tested source. Dirty builds may be useful compile diagnostics but are not immutable release evidence. Reuse suitable existing checkouts; do not reset another task's work or change pins merely to pass this guard. The six controlled boundary tests do not replace the real source preflight or actual publishes. Docker's existing pinned clone workflow is unchanged.
 
+When reusing existing default `obj/project.assets.json` with `--no-restore`, also run:
+
+```bash
+python3 Scripts/validate_railway_dependency_manifest.py --require-assets
+```
+
+This implies the checkout/gitlink checks and reads the seven API assets files without modifying them. Each `project.restore.projectPath` must match its logical API project path. Do not resolve junctions to equate different logical roots: a restored graph under another parent can reference that parent's Core/providers, even when the API source itself is the same junction target. Missing, malformed, relative or mismatched roots reject verification. The 14 controlled tests cover six checkout boundaries and eight cached-root boundaries; they do not prove a clean publish, DLL equality, all transitive restore references or hosted behavior. This check covers the default assets locations only; custom intermediate paths need their own reviewed provenance verification. It does not install/restore dependencies or authorize resetting shared work. A mismatch requires rebuilding a coherent source graph in the retained environment after shared-output ownership is resolved, not manually copying DLLs or relabeling a successful compile as release proof.
+
 For a manifest-only or Docker orchestration change:
 
 ```bash

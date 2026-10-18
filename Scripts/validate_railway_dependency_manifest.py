@@ -6,11 +6,15 @@ contain their own commit pins. With --require-gitlinks, each private dependency
 pin must also equal the commit recorded by the parent repository.
 With --require-checkouts, local source checkouts must also be initialized,
 clean and at those exact pins (including the two shared sibling repositories).
+With --require-assets, default cached restore roots for the seven API projects
+must match their logical task paths, without equating junction targets.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import re
 import subprocess
 import sys
@@ -32,6 +36,32 @@ GITLINKS = {
     "HOLONET_ORM_COMMIT": "HoloNET-ORM",
 }
 REQUIRED_COMMITS = {*GITLINKS, "LIBRARIES_COMMIT", "HOLOCHAIN_COMMIT"}
+API_PROJECTS = [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj",
+    "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj",
+    *[f"WEB{n}/NextGenSoftware.OASIS.Web{n}.WebAPI/NextGenSoftware.OASIS.Web{n}.WebAPI.csproj" for n in range(6, 11)],
+]
+
+
+def restored_project_failures(project: Path) -> list[str]:
+    """Validate the cached logical restore root without following directory junctions.
+
+    Resolving junctions here would incorrectly equate two graphs whose relative
+    cross-repository references select different parent checkouts. This is a
+    provenance check, not permission to restore, rewrite assets or copy DLLs.
+    """
+    assets = project.parent / "obj" / "project.assets.json"
+    try:
+        data = json.loads(assets.read_text(encoding="utf-8"))
+        restored = data["project"]["restore"]["projectPath"]
+        if not isinstance(restored, str) or not restored or not os.path.isabs(restored):
+            raise ValueError("restore projectPath must be an absolute path")
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return [f"{project}: cannot verify cached restore provenance: {exc}"]
+    # abspath/normcase deliberately do not resolve symlinks/junctions.
+    if os.path.normcase(os.path.abspath(restored)) != os.path.normcase(os.path.abspath(project)):
+        return [f"{project}: cached restore belongs to {restored}; no-restore build is not this source graph"]
+    return []
 
 
 def load_manifest() -> dict[str, str]:
@@ -97,7 +127,13 @@ def main() -> int:
         "--require-checkouts", action="store_true",
         help="also require clean initialized source checkouts at every manifest pin before local release verification",
     )
+    parser.add_argument(
+        "--require-assets", action="store_true",
+        help="also require seven existing default cached restore roots to match their logical project paths; implies --require-checkouts",
+    )
     args = parser.parse_args()
+    if args.require_assets:
+        args.require_checkouts = True
     failures: list[str] = []
 
     try:
@@ -158,6 +194,10 @@ def main() -> int:
             if key in values:
                 failures.extend(checkout_failures(path, values[key], path.name))
 
+    if args.require_assets:
+        for project in API_PROJECTS:
+            failures.extend(restored_project_failures(ROOT / project))
+
     if failures:
         print("Railway dependency policy failed:")
         for failure in failures:
@@ -167,6 +207,8 @@ def main() -> int:
     suffix = " and parent gitlinks" if args.require_gitlinks or args.require_checkouts else ""
     if args.require_checkouts:
         suffix += " and clean pinned source checkouts"
+    if args.require_assets:
+        suffix += " and matching cached restore roots"
     print(f"Railway dependency manifest, seven Dockerfiles{suffix}: OK")
     return 0
 
