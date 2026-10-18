@@ -3,7 +3,8 @@ import { readFileSync, realpathSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Worker, KeyPair } from "near-workspaces";
+import { KeyPair } from "near-workspaces";
+import { createRetainedWorker } from "./retained-worker.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = process.env.OASIS_REPO_ROOT_WSL ?? resolve(here, "../../..");
@@ -34,7 +35,7 @@ try{
   key=KeyPair.fromString(signer.secret_key);
 }catch{throw new Error("Retained NEAR signer configuration is invalid; no replacement is generated.");}
 // CustomnetWorker connects only. SandboxWorker.init deletes an existing home and is forbidden here.
-const worker = await Worker.init({network:"custom",rpcAddr,rootAccountId:contractId});
+const worker = await createRetainedWorker(rpcAddr,contractId);
 await worker.manager.setKey(contractId,key);
 
 try {
