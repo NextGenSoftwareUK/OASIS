@@ -25,6 +25,7 @@ public partial class SQLLiteDBOASIS
             new Dictionary<string,string> {{"ActiveQuestId","TEXT NULL"},{"ActiveObjectiveId","TEXT NULL"},
                 {"ProviderLinksJson","TEXT NOT NULL DEFAULT '{}'"},
                 {"DimensionLevelIdsJson","TEXT NOT NULL DEFAULT '{}'"},
+                {"CelestialParentIdsJson","TEXT NOT NULL DEFAULT '{}'"},
                 {"Portrait","TEXT NULL"},{"UmaJson","TEXT NULL"},
                 {"ParentHolonId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
                 {"ParentHolonId2","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},

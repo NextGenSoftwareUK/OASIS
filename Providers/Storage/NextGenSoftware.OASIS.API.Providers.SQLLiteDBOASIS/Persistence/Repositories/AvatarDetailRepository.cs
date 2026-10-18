@@ -349,6 +349,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatarDetailEntity.MetaData ?? new Dictionary<string,object>());
                     existing.ProviderLinksJson = AvatarDetailProviderLinks.Encode(avatarDetailEntity);
                     existing.DimensionLevelIdsJson = AvatarDetailDimensionLinks.Encode(avatarDetailEntity);
+                    existing.CelestialParentIdsJson = AvatarDetailCelestialLinks.Encode(avatarDetailEntity);
                     SetComponents(existing, avatarDetailEntity);
                     SetHeartRates(existing, avatarDetailEntity);
                     existing.Model3D = avatarDetailEntity.Model3D;
@@ -454,6 +455,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(AvatarDetailEntity.MetaData ?? new Dictionary<string,object>());
                     existing.ProviderLinksJson = AvatarDetailProviderLinks.Encode(AvatarDetailEntity);
                     existing.DimensionLevelIdsJson = AvatarDetailDimensionLinks.Encode(AvatarDetailEntity);
+                    existing.CelestialParentIdsJson = AvatarDetailCelestialLinks.Encode(AvatarDetailEntity);
                     SetComponents(existing, AvatarDetailEntity);
                     SetHeartRates(existing, AvatarDetailEntity);
                     existing.Model3D = AvatarDetailEntity.Model3D;
@@ -656,6 +658,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
             AvatarDetailProviderLinks.Apply(avatarDetailEntity.ProviderLinksJson,result);
             result.DimensionLevelIds=AvatarDetailDimensionLinks.Decode(avatarDetailEntity.DimensionLevelIdsJson);
+            AvatarDetailCelestialLinks.Apply(avatarDetailEntity.CelestialParentIdsJson,result);
             return result;
         }
 
@@ -665,6 +668,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 ProviderLinksJson = AvatarDetailProviderLinks.Encode(avatarDetail),
                 DimensionLevelIdsJson = AvatarDetailDimensionLinks.Encode(avatarDetail),
+                CelestialParentIdsJson = AvatarDetailCelestialLinks.Encode(avatarDetail),
                 Address = avatarDetail.Address,
                 Country = avatarDetail.Country,
                 Description = avatarDetail.Description,
