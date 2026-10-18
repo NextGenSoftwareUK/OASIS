@@ -130,6 +130,9 @@ public class CosmosPreparedNativeLedgerTests
     {
         var root=Environment.GetEnvironmentVariable("OASIS_HYPERDRIVE_TEST_ROOT")!;
         var journal=Path.Combine(root,"prepared-native-pending.json");
+        if(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(journal)))=="F80DCB5AD7192267CB9ABEDA220A8079365AB0C556DD9E6B563CF2FD2D2DAF40"){
+            await ArchiveReviewedAssetAdmissionIncident(root,journal,expanded:true);return;
+        }
         if(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(journal)))=="BBACD101A5342D65430138C499FFE4839E3508D4176354222C8A9F398B42BB52"){
             await ArchiveReviewedAssetAdmissionIncident(root,journal);return;
         }
@@ -184,21 +187,21 @@ public class CosmosPreparedNativeLedgerTests
         Console.WriteLine("Reconciled exact original="+originalHash+"; admitted cleanup="+attempt.ProviderRequestId+"; archive SHA256="+Hash(archive));
     }
 
-    private static async Task ArchiveReviewedAssetAdmissionIncident(string root,string journal)
+    private static async Task ArchiveReviewedAssetAdmissionIncident(string root,string journal,bool expanded=false)
     {
         string Hash(string path)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path)));
-        const string journalHash="BBACD101A5342D65430138C499FFE4839E3508D4176354222C8A9F398B42BB52";
+        var journalHash=expanded?"F80DCB5AD7192267CB9ABEDA220A8079365AB0C556DD9E6B563CF2FD2D2DAF40":"BBACD101A5342D65430138C499FFE4839E3508D4176354222C8A9F398B42BB52";
         Assert.AreEqual(journalHash,Hash(journal));
-        var report=Path.Combine(root,"cosmos-independent-asset-originals-current.json");
-        Assert.AreEqual("B90C18838A5E8C793FBC70BE251450E58D097FC4ADCCC8347E6EFFEB63BC60FD",Hash(report));
+        var report=Path.Combine(root,expanded?"cosmos-expanded-asset-originals-current.json":"cosmos-independent-asset-originals-current.json");
+        Assert.AreEqual(expanded?"934213459B37CF7017DF712648818508D0C739F7EA6500ED793F76984C9CB643":"B90C18838A5E8C793FBC70BE251450E58D097FC4ADCCC8347E6EFFEB63BC60FD",Hash(report));
         var failedReport=Path.Combine(root,"../SubscriptionUsageCurrent/cosmos-independent-prepared-native-current.trx");
-        Assert.AreEqual("19DBAC3F51ACA332C1DAEFBA6E27E7D04AABA46E5CF7439ECBB047B7D8F71718",Hash(failedReport));
+        Assert.AreEqual(expanded?"DF3D494D150457C1AAEC470536A46D751ADA3C88F76244D710FE7A465204B632":"19DBAC3F51ACA332C1DAEFBA6E27E7D04AABA46E5CF7439ECBB047B7D8F71718",Hash(failedReport));
         using var intent=JsonDocument.Parse(File.ReadAllBytes(journal));using var inspection=JsonDocument.Parse(File.ReadAllBytes(report));
         var data=intent.RootElement;var original=inspection.RootElement;
         Assert.AreEqual(journalHash,original.GetProperty("originalJournalSha256").GetString());
         Assert.IsTrue(original.GetProperty("readOnly").GetBoolean());Assert.IsFalse(original.GetProperty("replacementAuthorized").GetBoolean());
-        Assert.AreEqual("PREP732dd8f8434048ddb739b963d3a74069",data.GetProperty("assetSymbol").GetString());
-        Assert.AreEqual("d96f0879-13dd-60c4-c8e8-baa23158e9cd",data.GetProperty("operationId").GetString());
+        Assert.AreEqual(expanded?"PREPf8dc3cff434b4452b173ff586fcb252b":"PREP732dd8f8434048ddb739b963d3a74069",data.GetProperty("assetSymbol").GetString());
+        Assert.AreEqual(expanded?"6eef6601-b9f5-f3d1-4fd1-e117cea33ef4":"d96f0879-13dd-60c4-c8e8-baa23158e9cd",data.GetProperty("operationId").GetString());
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string database="usage_cosmos_live_prepared";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));Assert.AreEqual(database,data.GetProperty("database").GetString());
@@ -218,13 +221,20 @@ public class CosmosPreparedNativeLedgerTests
         var store=new MongoUsageOutboxStore(connection,database);
         var accepted=await store.GetAsync(data.GetProperty("operationId").GetString()!,token);
         var rejected=await store.GetAsync(data.GetProperty("rejectedOperationId").GetString()!,token);
-        Assert.AreEqual(2,accepted.ProviderAttempts.Count);Assert.AreEqual(0,rejected.ProviderAttempts.Count);
+        Assert.AreEqual(expanded?8:2,accepted.ProviderAttempts.Count);Assert.AreEqual(0,rejected.ProviderAttempts.Count);
         Assert.IsNull(accepted.Settlement);Assert.IsNull(rejected.Settlement);Assert.AreEqual(0,accepted.Receipts.Count);
-        var matches=original.GetProperty("matches").EnumerateArray().ToArray();Assert.AreEqual(4,matches.Length);
+        var matches=original.GetProperty("matches").EnumerateArray().ToArray();Assert.AreEqual(expanded?8:4,matches.Length);
         var expected=new[]{"0C90AC84B6F88C0A771BAEDCF56954C0D44300698AB55A56B45688CB02E423BD","73CB112743CD36FE45CDBFDB5324C4285BA64404D038A025C8BE492EBCD5CC12",
             "51C5AF0B055A352BA97F97435F95A9DB469D1912AB8712B965CFF53825E8F0FB","52A0D6939237FEF3C4AD0375D0C75E0B1FB11D3C9ADB19F1B07AE51389102C7F"};
+        if(expanded){
+            expected=matches.Select(row=>row.GetProperty("hash").GetString()!).ToArray();Assert.AreEqual(8,expected.Distinct().Count());
+            var absent=await provider.LoadOnChainNFTDataAsync(data.GetProperty("contract").GetString()+"#"+original.GetProperty("nftId").GetString());
+            Assert.IsTrue(absent.IsError);Assert.IsNull(absent.Result);Assert.IsTrue(absent.Message.Contains("not found",StringComparison.OrdinalIgnoreCase),absent.Message);
+            Assert.AreEqual(accepted.ProviderAttempts.Sum(attempt=>NativeFeeMaximumAccounting.ValueUsd(attempt.NativePreparation.FeeMaximums,attempt.NativePreparation.PriceQuotes)),accepted.NativeFeeExposureUsd);
+            Assert.IsTrue(accepted.NativeFeeExposureUsd>0m&&accepted.NativeFeeExposureUsd<=.08m);
+        }
         CollectionAssert.AreEqual(expected,matches.Select(row=>row.GetProperty("hash").GetString()).ToArray());
-        CollectionAssert.AreEqual(expected.Take(2).ToArray(),accepted.ProviderAttempts.Select(attempt=>attempt.ProviderRequestId).ToArray());
+        CollectionAssert.AreEqual(expected.Take(expanded?8:2).ToArray(),accepted.ProviderAttempts.Select(attempt=>attempt.ProviderRequestId).ToArray());
         foreach(var attempt in accepted.ProviderAttempts){var fee=await provider.GetPreparedNativeFeeReceiptAsync(attempt,token);Assert.IsFalse(fee.IsError,fee.Message);}
         foreach(var row in matches){
             var hash=row.GetProperty("hash").GetString()!;var fee=await provider.GetNativeFeeReceiptAsync(hash,token);Assert.IsFalse(fee.IsError,fee.Message);
@@ -237,12 +247,13 @@ public class CosmosPreparedNativeLedgerTests
             }
         }
         Assert.AreEqual("9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81",Hash(Path.Combine(root,"replication-pending.json")));
-        var archive=Path.Combine(root,"cosmos-reviewed-asset-admission-incident.json");Assert.IsFalse(File.Exists(archive));
+        var unadmitted=expanded?Array.Empty<string>():expected.Skip(2).ToArray();
+        var archive=Path.Combine(root,expanded?"cosmos-reviewed-expanded-assets.json":"cosmos-reviewed-asset-admission-incident.json");Assert.IsFalse(File.Exists(archive));
         using(var output=new FileStream(archive,FileMode.CreateNew,FileAccess.Write,FileShare.None)){
             await JsonSerializer.SerializeAsync(output,new{intent=data,inspection=original,accepted,rejected,failedReportSha256=Hash(failedReport),
-                stateReconciled=true,unadmittedAssetOriginals=expected.Skip(2).ToArray(),retroactiveAdmission=false,settlementAuthorized=false},cancellationToken:token);output.Flush(true);
+                stateReconciled=true,unadmittedAssetOriginals=unadmitted,retroactiveAdmission=false,settlementAuthorized=false},cancellationToken:token);output.Flush(true);
         }
-        using(var proof=JsonDocument.Parse(File.ReadAllBytes(archive))){Assert.IsTrue(proof.RootElement.GetProperty("stateReconciled").GetBoolean());Assert.AreEqual(2,proof.RootElement.GetProperty("unadmittedAssetOriginals").GetArrayLength());}
+        using(var proof=JsonDocument.Parse(File.ReadAllBytes(archive))){Assert.IsTrue(proof.RootElement.GetProperty("stateReconciled").GetBoolean());Assert.AreEqual(unadmitted.Length,proof.RootElement.GetProperty("unadmittedAssetOriginals").GetArrayLength());}
         Assert.AreEqual(journalHash,Hash(journal));Console.WriteLine("Archived exact asset admission incident SHA256="+Hash(archive)+"; no native mutation/retroactive admission/settlement.");
         await new MongoClient(connection).DropDatabaseAsync(database,token);File.Delete(journal);
     }
