@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-18 ActivityPub private-save boundary reused existing unit environment/assets/cache with bounded builds and no restore/download/install/new services. Four controlled HTTP cases/full25unitpass; no live server/account/mutation/credentials. Removed obsolete credential-bearing serializer SOURCE methods as part of implementation, not unrelated artifacts. No filesystem cleanup/removal or recoverability claim. Free87271686144bytes after observed; outputs retained for subsequent protocol tests, not duplicated per run.
+
 2026-10-18 ActivityPub existing unit project lacked assets; one bounded RestoreRecursive=false restore reused same project/cache, no cloned environment/runtime/server install. Cached provider built without restore/references; unit tests21pass and loopback server disposed. Before free87564783616→after87275745280bytes observed (~289MB reduction, not fully attributed; newly materialized existing unit outputs/dependencies retained for reuse). No broad deletion, no live federation/accounts/credentials/remote writes. Test evidence fixed ActivityPubCurrent directory. No duplicate per-run setup.
 
 2026-10-18 Sui NFT pre-read diagnostics fix reused existing cached builds, controlled process fixture and Mongo full-unit environment. No restore/download/install/native node/new ledger/worktree. Full-unit3279 terminal0,198passed; reusable outputs/credentials/source/compact reports retained. No broad filesystem deletion or alternate cleanup bypass. Native asset originals retained; no replay.

@@ -607,46 +607,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return LoadAllAvatarDetailsAsync(version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+            => Task.FromResult(RejectPrivateRecordStorage<IAvatar>());
+
+        private static OASISResult<T> RejectPrivateRecordStorage<T>()
         {
-            var response = new OASISResult<IAvatar>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Save avatar to ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts";
-                var activityPubJson = ConvertAvatarToActivityPub(avatar);
-                
-                var content = new StringContent(activityPubJson, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync(apiUrl, content);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = avatar;
-                    response.Message = "Avatar saved to ActivityPub instance successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to ActivityPub: {ex.Message}");
-            }
-
-            return response;
+            const string message = "ActivityPub does not provide private OASIS avatar record storage. Mastodon account registration is a separate consented operation, not SaveAvatar. Use a storage provider for private records; no data was sent.";
+            var result = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref result, message, new NotSupportedException(message));
+            return result;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -654,47 +623,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return SaveAvatarAsync(avatar).Result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var response = new OASISResult<IAvatarDetail>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Save avatar detail to ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts";
-                var activityPubJson = ConvertAvatarDetailToActivityPub(avatarDetail);
-                
-                var content = new StringContent(activityPubJson, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync(apiUrl, content);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = avatarDetail;
-                    response.Message = "Avatar detail saved to ActivityPub instance successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar detail to ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving avatar detail to ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+            => Task.FromResult(RejectPrivateRecordStorage<IAvatarDetail>());
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         {

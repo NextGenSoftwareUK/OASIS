@@ -23,35 +23,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
     {
 
         /// <summary>
-        /// Convert OASIS Avatar to ActivityPub JSON format
-        /// </summary>
-        private string ConvertAvatarToActivityPub(IAvatar avatar)
-        {
-            try
-            {
-                // Serialize the complete Avatar object to preserve all properties
-                return JsonSerializer.Serialize(avatar, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON structure if serialization fails
-                return $@"{{
-                    ""@context"": ""https://www.w3.org/ns/activitystreams"",
-                    ""type"": ""Person"",
-                    ""id"": ""{avatar.Id}"",
-                    ""name"": ""{avatar.Username}"",
-                    ""email"": ""{avatar.Email}"",
-                    ""published"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-                }}";
-            }
-        }
-
-        /// <summary>
         /// Parse ActivityPub JSON content and convert to OASIS Avatar
         /// </summary>
         private IAvatar ParseActivityPubToAvatar(string activityPubJson)
@@ -121,35 +92,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 };
             }
             catch { return null; }
-        }
-
-        /// <summary>
-        /// Convert OASIS AvatarDetail to ActivityPub JSON format
-        /// </summary>
-        private string ConvertAvatarDetailToActivityPub(IAvatarDetail avatarDetail)
-        {
-            try
-            {
-                // Serialize the complete AvatarDetail object to preserve all properties
-                return JsonSerializer.Serialize(avatarDetail, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON structure if serialization fails
-                return $@"{{
-                    ""@context"": ""https://www.w3.org/ns/activitystreams"",
-                    ""type"": ""Person"",
-                    ""id"": ""{avatarDetail.Id}"",
-                    ""name"": ""{avatarDetail.Username}"",
-                    ""email"": ""{avatarDetail.Email}"",
-                    ""published"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-                }}";
-            }
         }
 
         /// <summary>
