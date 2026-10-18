@@ -35,7 +35,7 @@ public partial class Neo4jOASIS
         {
             ArgumentNullException.ThrowIfNull(source);
             if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
-            var staged = OasisJson.Deserialize<AvatarDetail>(OasisJson.Serialize(source));
+            var staged = OasisJson.Project<AvatarDetail>(source);
             if (staged == null) throw new InvalidDataException("Neo4j detail snapshot is null.");
             if (staged.Id == Guid.Empty) staged.Id = Guid.NewGuid();
             staged.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = staged.Id.ToString();

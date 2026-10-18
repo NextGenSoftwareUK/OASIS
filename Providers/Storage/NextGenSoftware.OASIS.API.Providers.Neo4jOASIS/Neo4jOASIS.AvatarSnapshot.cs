@@ -55,7 +55,7 @@ public partial class Neo4jOASIS
     internal static Avatar StageAvatar(IAvatar source)
     {
         ArgumentNullException.ThrowIfNull(source);
-        var staged = OasisJson.Deserialize<Avatar>(OasisJson.Serialize(source));
+        var staged = OasisJson.Project<Avatar>(source);
         if (staged == null) throw new InvalidDataException("Neo4j avatar snapshot is null.");
         if (staged.Id == Guid.Empty) staged.Id = Guid.NewGuid();
         staged.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = staged.Id.ToString();
