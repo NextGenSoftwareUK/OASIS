@@ -61,6 +61,12 @@ public class PolkadotLocalNativeTests
         Assert.IsTrue(receipt.GetProperty("dispatchSucceeded").GetBoolean());
         var actualFee = BigInteger.Parse(receipt.GetProperty("actualFeeUnits").GetString()!);
         Assert.IsTrue(actualFee > 0);
+        var sharedFee = await provider.ReadPreparedNativeFeeEvidenceAsync(observed.Attempt, deadline.Token);
+        Assert.IsFalse(sharedFee.IsError, sharedFee.Exception?.ToString());
+        Assert.IsTrue(sharedFee.Result.NativeExecutionSucceeded);
+        Assert.AreEqual(NativeFeeCoverage.NetFinal, sharedFee.Result.Coverage);
+        Assert.AreEqual("native-base-unit", sharedFee.Result.Components.Single().Denomination);
+        Assert.AreEqual(actualFee.ToString(), sharedFee.Result.Components.Single().NetUnits);
         var transferred = BigInteger.Parse("1000000000001");
         Assert.AreEqual(transferred, await Balance(provider, Recipient) - beforeRecipient);
         Assert.AreEqual(transferred + actualFee, beforeSender - await Balance(provider, Sender));

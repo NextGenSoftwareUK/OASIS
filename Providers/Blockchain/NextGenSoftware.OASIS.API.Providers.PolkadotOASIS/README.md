@@ -4,6 +4,8 @@ Polkadot adapter under implementation. RPC connectivity is verified; storage, si
 
 ## Current implementation and verification limits
 
+`IPreparedNativeFeeEvidenceReader` now uses the shared immutable original-attempt snapshot and central registered-reader contract. It independently verifies the native-transfer original and searches finalized history from its signed checkpoint hash, across pages through a fixed snapshot, returning exact native-base-unit fees (tip included) and paid dispatch success/failure. Unknown/timeout/pruned history stays unresolved, not zero/replay. Only reviewed baseline ChargeTransactionPayment signed extensions are accepted; additional/asset-payment contexts and historical runtime verification remain open. Existing central pricing/settlement owns fiat accounting; no hosted subsidy/price/configuration is enabled by this reader. Native two-row ledger proof now compares shared fee evidence to independent exact state/receipt deltas; current SDK90/focused C#68 pass. See current gates/operator guide for scope, commands and hashes.
+
 2026-10-18 ordinary native sync/async transfers now have real local Substrate ledger proof, including Unicode memo and exact recipient/sender/actual-fee deltas. Two native rows pass and the reusable runner repeats against the same runtime/ledger/funding. This uses a real flushed-file execution owner, not production Mongo/hosted quota/billing; local development finality is not public consensus/network certification. [Operator guide](../../../Docs/Devs/POLKADOT_PROVIDER_NATIVE_TESTS.md) contains pinned resources, commands, pending-outcome fences and remaining gates. Other advertised provider interfaces remain unfinished.
 
 ### Explicit original submission and receipt evidence

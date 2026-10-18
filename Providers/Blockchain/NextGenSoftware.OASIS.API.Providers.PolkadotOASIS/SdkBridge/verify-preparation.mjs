@@ -72,5 +72,6 @@ export async function verifyNativePreparation(api, preparation) {
       || (preparation.units != null && preparation.units !== units))
     throw new Error('Declared transfer intent differs from the signed recipient/units.');
   return { verified: true, transactionHash: decoded.hash.toHex(), chainId: genesis, sender, recipient, units, memo,
+    signingCheckpointHash: payload.blockHash,
     feeCoverage: 'identity-only-not-a-fee-cap-or-receipt' };
 }
