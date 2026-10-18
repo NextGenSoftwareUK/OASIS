@@ -70,7 +70,23 @@ public class SuiAdmittedNftFacadeTests
             Assert.AreEqual("0",(await ReadSdk("tokenProbe")).GetProperty("treasury").GetProperty("supply").GetString());
             var retainedBalance=await owner.GetTokenBalanceAsync(ownerIdentity.Result.WalletAddressLegacy,settings.GetProperty("coinType").GetString()!,true);
             Assert.IsFalse(retainedBalance.IsError,retainedBalance.Message);Assert.AreEqual(0m,retainedBalance.Result);
-            Console.WriteLine("Retained CSharp escrow verification rechecked read-only; no signed mutation.");return;
+            var originals=prior.RootElement.GetProperty("receipts").EnumerateArray().ToArray();
+            Assert.AreEqual(4,originals.Length);
+            CollectionAssert.AreEqual(new[]{"mint.storage.1","lock.storage.1","unlock.storage.1","burn.storage.1"},
+                originals.Select(row=>row.GetProperty("ClientRequestId").GetString()).ToArray());
+            Assert.AreEqual(4,originals.Select(row=>row.GetProperty("ProviderRequestId").GetString()).Distinct().Count());
+            foreach(var original in originals){
+                Assert.IsTrue(original.GetProperty("success").GetBoolean());
+                Assert.AreEqual(settings.GetProperty("chainId").GetString(),original.GetProperty("chainId").GetString());
+                Assert.AreEqual(ownerIdentity.Result.WalletAddressLegacy,original.GetProperty("payer").GetString());
+                var digest=original.GetProperty("ProviderRequestId").GetString()!;
+                var fee=await owner.GetNativeFeeReceiptAsync(digest);Assert.IsFalse(fee.IsError,fee.Message);
+                Assert.IsTrue(fee.Result.GetProperty("success").GetBoolean());
+                Assert.AreEqual(digest,fee.Result.GetProperty("transactionHash").GetString());
+                Assert.AreEqual(original.GetProperty("payer").GetString(),fee.Result.GetProperty("payer").GetString());
+                Assert.AreEqual(original.GetProperty("netUnits").GetString(),fee.Result.GetProperty("netUnits").GetString());
+            }
+            Console.WriteLine("Retained CSharp escrow state and all4 original native fee receipts rechecked read-only; no signed mutation.");return;
         }
         var database=idBound?"usage_sui_csharp_escrow_live":token?"usage_sui_csharp_token_live":"usage_sui_csharp_nft_live";var mongo=new MongoDB.Driver.MongoClient(connection);
         using(var names=await mongo.ListDatabaseNamesAsync())CollectionAssert.DoesNotContain(await MongoDB.Driver.IAsyncCursorExtensions.ToListAsync(names),database);
