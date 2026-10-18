@@ -7,6 +7,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass, DoNotParallelize]
 public class HederaProcessBoundaryTests
 {
+    [DataTestMethod]
+    [DataRow("query-cap",true)] [DataRow("untrusted-code",false)]
+    public async Task QueryCapDiagnosticIsAllowlistedWithoutClaimingEarlierAttemptsWereFree(string mode,bool expected)
+    {
+        await WithFixture(async()=>{
+            var error=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>Invoke("storageGet",CancellationToken.None,mode));
+            Assert.AreEqual(expected,error.Message.Contains("Query payment quote exceeds the configured cap"));
+            if(expected)StringAssert.Contains(error.Message,"prior attempts still require reconciliation");
+            Assert.IsFalse(error.Message.Contains(Secret));
+        });
+    }
     [TestMethod]
     public async Task InvalidUtf8MutationReplyPreservesIdentityAndCannotEnableReplay()
     {

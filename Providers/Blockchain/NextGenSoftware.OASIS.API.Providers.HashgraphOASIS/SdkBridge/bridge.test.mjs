@@ -1,6 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execute, tokenUnits, nftTransaction, singleSubmission, nativeFailureStatus } from './bridge.mjs';
+import { execute, tokenUnits, nftTransaction, singleSubmission, nativeFailureStatus, safeSdkFailureCode } from './bridge.mjs';
+import {MaxQueryPaymentExceeded} from '@hiero-ledger/sdk';
+
+test('query payment cap diagnostic accepts only the official SDK exception without forwarding secret text',()=>{
+ const error=new MaxQueryPaymentExceeded(Hbar.fromTinybars('135'),Hbar.fromTinybars('123'));
+ error.message='private key input: never-log-this';
+ assert.equal(safeSdkFailureCode(error),'QUERY_PAYMENT_CAP_EXCEEDED');
+ assert.equal(safeSdkFailureCode({name:'MaxQueryPaymentExceededError',message:error.message}),undefined);
+ assert.equal(safeSdkFailureCode(new Error(error.message)),undefined);
+});
 import { AccountId, Transaction, TransactionId, TokenMintTransaction, TokenBurnTransaction, TransferTransaction, Hbar, Client, PrivateKey } from '@hiero-ledger/sdk';
 
 function roundTrip(transaction) {
