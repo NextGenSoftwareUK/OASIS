@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
     public partial class Neo4jOASIS
     {
         public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => ReadHolonRootAsync("Id", id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError);
+            => ReadHolonRootAsync("Id", id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError,version);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         }
 
         public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => ReadHolonRootAsync("ProviderKey", providerKey, loadChildren, recursive, maxChildDepth, continueOnError);
+            => ReadHolonRootAsync("ProviderKey", providerKey, loadChildren, recursive, maxChildDepth, continueOnError,version);
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {

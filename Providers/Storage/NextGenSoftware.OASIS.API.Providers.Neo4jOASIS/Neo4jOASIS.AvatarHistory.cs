@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 public partial class Neo4jOASIS
 {
     // Caller owns the transaction: archive and current replacement commit or roll back together.
-    private static string HistoryRecordKind(string kind) => kind is "Avatar" or "AvatarDetail" ? kind
+    private static string HistoryRecordKind(string kind) => kind is "Avatar" or "AvatarDetail" or "Holon" ? kind
         : throw new ArgumentException("Unknown Neo4j versioned record kind.",nameof(kind));
 
     private static string SnapshotWritePrefix(string kind,bool history)
@@ -66,19 +66,7 @@ public partial class Neo4jOASIS
             {
                 var current=readCurrent(row["a"].As<INode>());
                 if(!ids.Add(current.Id))throw new StorageIdentityAmbiguousException();
-                var stored=await StoredRecordVersions.ReadAsync(current.Id,current,version,async requested=>
-                {
-                    var history=await (await session.RunAsync("MATCH (v:OasisRecordVersion {Kind:$kind,RecordId:$id,Version:$version}) RETURN v",
-                        new{kind,id=current.Id.ToString(),version=requested})).ToListAsync();
-                    if(history.Count==0)return null;
-                    if(history.Count!=1)throw new InvalidDataException("Neo4j archived record identity/version is not unique.");
-                    var node=history[0]["v"].As<INode>();
-                    node.Properties.TryGetValue("SnapshotJson",out var json);
-                    if(json is not string text || string.IsNullOrWhiteSpace(text))throw new InvalidDataException("Neo4j archived canonical snapshot is missing.");
-                    var archived=readArchive(text);
-                    if(archived==null)throw new InvalidDataException("Neo4j archived canonical snapshot is null.");
-                    return archived;
-                });
+                var stored=await ReadStoredVersionAsync(session,kind,current,version,readArchive);
                 if(stored!=null)selected.Add(stored);
             }
             result.Result=selected;result.IsLoaded=true;
@@ -87,6 +75,24 @@ public partial class Neo4jOASIS
             if(cause is StorageIdentityAmbiguousException)result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
             else if(cause is InvalidDataException || cause is StorageLifecycleConflictException)result.ErrorCode=StorageLifecycleConflictException.ErrorCode;}
         return result;
+    }
+
+    private static Task<T> ReadStoredVersionAsync<T>(IAsyncSession session,string kind,T current,int version,
+        Func<string,T> readArchive) where T:class,IHolonBase
+    {
+        HistoryRecordKind(kind);
+        return StoredRecordVersions.ReadAsync(current.Id,current,version,async requested=>
+        {
+            var history=await (await session.RunAsync("MATCH (v:OasisRecordVersion {Kind:$kind,RecordId:$id,Version:$version}) RETURN v",
+                new{kind,id=current.Id.ToString(),version=requested})).ToListAsync();
+            if(history.Count==0)return null;
+            if(history.Count!=1)throw new InvalidDataException("Neo4j archived record identity/version is not unique.");
+            history[0]["v"].As<INode>().Properties.TryGetValue("SnapshotJson",out var json);
+            if(json is not string text || string.IsNullOrWhiteSpace(text))throw new InvalidDataException("Neo4j archived canonical snapshot is missing.");
+            var archived=readArchive(text);
+            if(archived==null)throw new InvalidDataException("Neo4j archived canonical snapshot is null.");
+            return archived;
+        });
     }
 
     private async Task<OASISResult<IAvatar>> ReadHistoricalAvatarAsync(string field,string value,int version)
