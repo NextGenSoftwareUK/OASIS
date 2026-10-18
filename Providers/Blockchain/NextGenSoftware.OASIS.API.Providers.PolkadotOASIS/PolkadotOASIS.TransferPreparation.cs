@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Threading;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.Common;
 
@@ -35,12 +36,13 @@ public partial class PolkadotOASIS
 
     /// <summary>Creates verified signed SCALE bytes and a runtime fee estimate. NEVER broadcasts,
     /// reserves funds or claims finality. Keep signed bytes in the durable execution owner before any later submission.</summary>
-    public async Task<OASISResult<JsonElement>> PrepareNativeTokenTransferAsync(ISendWeb3TokenRequest request)
+    public async Task<OASISResult<JsonElement>> PrepareNativeTokenTransferAsync(ISendWeb3TokenRequest request, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<JsonElement>();
         try
         {
             ArgumentNullException.ThrowIfNull(request);
+            cancellationToken.ThrowIfCancellationRequested();
             if (!_isActivated) throw new InvalidOperationException("Activate and verify the Polkadot network before preparing a transfer.");
             // Capture the whole signing intent before the first await. No configured service-key fallback.
             var intent = new { operation = "prepareTransfer", endpoint = _rpcEndpoint, genesisHash = ReportedGenesisHash,
@@ -49,7 +51,7 @@ public partial class PolkadotOASIS
                 tokenId = request.Web3TokenId == Guid.Empty ? null : request.Web3TokenId.ToString("D"),
                 memo = request.MemoText, publicKey = request.OwnerPublicKey,
                 privateKey = request.OwnerPrivateKey, mnemonic = request.OwnerSeedPhrase };
-            result.Result = await InvokePolkadotSdkAsync(intent);
+            result.Result = await InvokePolkadotSdkAsync(intent, cancellationToken);
             result.Message = "Signed native transfer prepared and fee estimated; not submitted.";
         }
         catch (Exception failure) { OASISErrorHandling.HandleError(ref result, failure.Message, failure); }
