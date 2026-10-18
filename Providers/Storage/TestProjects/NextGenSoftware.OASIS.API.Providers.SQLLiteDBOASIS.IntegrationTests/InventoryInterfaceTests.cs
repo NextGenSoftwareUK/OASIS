@@ -11,6 +11,43 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
 public partial class SQLLiteDBOASISIntegrationTests
 {
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task InventoryDnaAndNestedJsonSurviveNativeInsertUpdateAndIndependentRead(bool synchronous)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var itemId=Guid.NewGuid();var detail=new AvatarDetail{Id=Guid.NewGuid(),Username="dna-json-contract"};
+        for(var revision=1;revision<=2;revision++){
+            var item=new InventoryItem{Id=itemId,Name="dna-item-"+revision,Quantity=revision*3,
+                Properties=new(){{"nested",new Dictionary<string,object>{{"amount",1.25m},{"values",new[]{revision,revision+1}},{"enabled",true}}}}};
+            item.STARNETDNA=new STARNETDNA{Id=itemId,Name="dna-"+revision,Version="1."+revision,
+                FileSize=9007199254740993L+revision,Downloads=revision*13,MetaData=new(){{"revision",revision}}};
+            item.MetaData["nested"]=new Dictionary<string,object>{{"exact",9007199254740993L+revision},{"labels",new[]{"alpha","beta"}}};
+            detail.Inventory=new List<IInventoryItem>{item};
+            var saved=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);
+            saved.IsError.Should().BeFalse(saved.Exception?.ToString());
+            using var reader=new SQLLiteDBOASIS(TestConnectionString);(await reader.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var loaded=synchronous?reader.LoadAvatarDetail(detail.Id):await reader.LoadAvatarDetailAsync(detail.Id);
+            loaded.IsError.Should().BeFalse(loaded.Exception?.ToString());
+            var actual=loaded.Result.Inventory.Should().ContainSingle().Subject;
+            actual.Id.Should().Be(itemId);actual.Quantity.Should().Be(item.Quantity);
+            actual.STARNETDNA.Name.Should().Be(item.STARNETDNA.Name);actual.STARNETDNA.Version.Should().Be(item.STARNETDNA.Version);
+            actual.STARNETDNA.FileSize.Should().Be(item.STARNETDNA.FileSize);actual.STARNETDNA.Downloads.Should().Be(item.STARNETDNA.Downloads);
+            foreach(var pair in new[]{(item.Properties["nested"],actual.Properties["nested"]),(item.MetaData["nested"],actual.MetaData["nested"])}){
+                // JSON value equality, not serializer-specific runtime array types; JsonElement must retain its native value.
+                var expected=Newtonsoft.Json.Linq.JToken.Parse(System.Text.Json.JsonSerializer.Serialize(pair.Item1));
+                var restored=Newtonsoft.Json.Linq.JToken.Parse(System.Text.Json.JsonSerializer.Serialize(pair.Item2));
+                Newtonsoft.Json.Linq.JToken.DeepEquals(expected,restored).Should().BeTrue("nested owned JSON values must survive SQLite persistence");
+            }
+            using var control=new DataContext(TestConnectionString);
+            var raw=control.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.InventoryItemModel>().AsNoTracking().Single(row=>row.AvatarId==detail.Id.ToString());
+            using var nativeProperties=System.Text.Json.JsonDocument.Parse(raw.PropertiesJson);
+            nativeProperties.RootElement.GetProperty("nested").GetProperty("values")[0].GetInt32().Should().Be(revision);
+            using var nativeMetadata=System.Text.Json.JsonDocument.Parse(raw.MetaDataJson);
+            nativeMetadata.RootElement.GetProperty("nested").GetProperty("exact").GetInt64().Should().Be(9007199254740993L+revision);
+        }
+    }
+
     [Theory]
     [InlineData(true)] [InlineData(false)]
     public async Task InventoryExtensionUpgradeRetainsOldColumnsAndSupportsNewValues(bool synchronous)
