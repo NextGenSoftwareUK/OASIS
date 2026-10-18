@@ -170,9 +170,7 @@ public sealed partial class SolanaService
         }
         catch (Exception ex)
         {
-            var cause=submissionState?.SubmissionFailure ?? ex;
-            var evidence=submissionState?.FinalizedSignatures.Count>0
-                ? new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaPartialMutationException(submissionState.FinalizedSignatures,cause):cause;
+            var evidence=submissionState?.DescribeFailure(ex) ?? ex;
             return HandleError<MintNftResult>(evidence.Message,evidence);
         }
     }
@@ -356,6 +354,7 @@ public sealed partial class SolanaService
     public async Task<OASISResult<CreateCollectionNftResult>> CreateCollectionNftAsync(
         string name, string symbol, string metadataUri, ulong initialSize = 0, bool freezeMetadata = false)
     {
+        FinalizedSolanaRpc submissionState=null;
         try
         {
             Account collectionMintAccount = new();
@@ -375,13 +374,16 @@ public sealed partial class SolanaService
             {
                 Console.SetOut(new NullTextWriter());
 
-                RequestResult<string> createResult = await MetadataClient.CreateNFT(
+                var finalized=FinalizedSolanaRpc.Wrap(rpcClient,oasisAccount);
+                submissionState=finalized.State;
+                RequestResult<string> createResult = await new MetadataClient(finalized.Client).CreateNFT(
                     ownerAccount: oasisAccount,
                     mintAccount: collectionMintAccount,
                     TokenStandard.NonFungible,
                     tokenMetadata,
                     isMasterEdition: true,
                     isMutable: !freezeMetadata);
+                if(submissionState.SubmissionFailure!=null) throw submissionState.SubmissionFailure;
 
                 if (!createResult.WasSuccessful)
                 {
@@ -393,10 +395,12 @@ public sealed partial class SolanaService
                         log.Contains("insufficient lamports", StringComparison.OrdinalIgnoreCase)) == true;
 
                     if (isBalanceError || isLamportError)
-                        return HandleError<CreateCollectionNftResult>($"{createResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
+                        throw new InvalidOperationException($"{createResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
 
-                    return HandleError<CreateCollectionNftResult>(createResult.Reason);
+                    throw new InvalidOperationException(createResult.Reason);
                 }
+                if(!submissionState.FinalizedSignatures.Contains(createResult.Result))
+                    throw new InvalidOperationException("Metaplex SDK collection mint returned no independently finalized native receipt.");
 
                 // Immediately set collectionDetails so Phantom/DAS API recognises this as a collection parent.
                 string setSizeTxHash = await SetCollectionSizeAsync(collectionMintAccount.PublicKey.Key, initialSize);
@@ -419,7 +423,8 @@ public sealed partial class SolanaService
         }
         catch (Exception ex)
         {
-            return HandleError<CreateCollectionNftResult>(ex.Message);
+            var evidence=submissionState?.DescribeFailure(ex) ?? ex;
+            return HandleError<CreateCollectionNftResult>(evidence.Message,evidence);
         }
     }
 }

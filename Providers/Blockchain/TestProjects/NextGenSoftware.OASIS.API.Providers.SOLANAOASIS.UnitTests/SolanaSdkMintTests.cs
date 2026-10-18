@@ -68,9 +68,44 @@ public class SolanaSdkMintTests
         Assert.AreSame(first,second);Assert.AreSame(first,wrapped.State.SubmissionFailure);Assert.AreEqual(1,proxy.Sends);Assert.AreEqual(0,wrapped.State.FinalizedSignatures.Count);
     }
 
+    [DataTestMethod]
+    [DataRow("valid")] [DataRow("mint-unknown")] [DataRow("size-unknown")] [DataRow("size-preflight")]
+    public async Task ActualSdkCollectionCreationRetainsBothFinalizedOrPartialNativeOutcomes(string scenario)
+    {
+        var owner=new Account();var rpc=DispatchProxy.Create<IRpcClient,MintProxy>();var proxy=(MintProxy)(object)rpc;
+        proxy.Scenario=scenario=="mint-unknown" ? "lost-reply":"finalized";
+        proxy.FailVerification=scenario=="size-unknown";proxy.FailFollowupSimulation=scenario=="size-preflight";
+        var result=await new SolanaService(owner,rpc).CreateCollectionNftAsync("SDK collection","OASIS","https://example.invalid/collection.json",19);
+        Assert.AreEqual(scenario!="valid",result.IsError,result.Exception?.ToString());
+        if(scenario=="valid")
+        {
+            Assert.IsTrue(result.IsSaved);Assert.AreEqual(2,proxy.Sends);Assert.AreEqual(2,proxy.StatusReads);
+            Assert.AreEqual(proxy.Submitted[0],result.Result.TransactionHash);Assert.AreEqual(proxy.Submitted[1],result.Result.SetCollectionSizeTransactionHash);
+        }
+        else
+        {
+            Assert.IsNull(result.Result);Assert.IsFalse(result.IsSaved);
+            if(scenario=="mint-unknown")
+            {
+                Assert.AreEqual(1,proxy.Sends);Assert.AreEqual(proxy.Submitted[0],((SolanaTransactionReconciliationException)result.Exception).OriginalTransactionId);
+            }
+            else
+            {
+                var partial=(SolanaPartialMutationException)result.Exception;
+                Assert.AreEqual(proxy.Submitted[0],partial.CommittedSignatures.Single());
+                if(scenario=="size-unknown")
+                {
+                    Assert.AreEqual(2,proxy.Sends);
+                    Assert.AreEqual(proxy.Submitted[1],((SolanaTransactionReconciliationException)partial.InnerException!).OriginalTransactionId);
+                }
+                else {Assert.AreEqual(1,proxy.Sends);Assert.IsInstanceOfType(partial.InnerException,typeof(InvalidOperationException));}
+            }
+        }
+    }
+
     public class MintProxy:SolanaCollectionSizeTests.CollectionProxy
     {
-        public bool FailVerification;public List<string> Submitted=new();
+        public bool FailVerification,FailFollowupSimulation;public List<string> Submitted=new();
         protected override object? Invoke(MethodInfo? method,object?[]? args)
         {
             string? json=method!.Name switch
@@ -82,6 +117,7 @@ public class SolanaSdkMintTests
             if(json==null)
             {
                 if(method.Name=="SendTransactionAsync" && FailVerification && Sends==1) Scenario="lost-reply";
+                if(method.Name=="SimulateTransactionAsync" && FailFollowupSimulation && Sends==1) Scenario="simulation-failure";
                 var before=Sends;
                 try {return base.Invoke(method,args);}
                 finally {if(Sends>before) Submitted.Add(Signature);}

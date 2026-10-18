@@ -15,6 +15,11 @@ public class FinalizedSolanaRpc:DispatchProxy
     private readonly List<string> _finalized=new();
     public IReadOnlyList<string> FinalizedSignatures=>_finalized.AsReadOnly();
     public Exception SubmissionFailure {get;private set;}
+    internal Exception DescribeFailure(Exception error)
+    {
+        var cause=SubmissionFailure ?? error;
+        return _finalized.Count>0 ? new SolanaPartialMutationException(_finalized,cause):cause;
+    }
 
     internal static (IRpcClient Client,FinalizedSolanaRpc State) Wrap(IRpcClient client,Solnet.Wallet.Account payer)
     {
