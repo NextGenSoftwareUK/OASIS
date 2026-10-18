@@ -53,6 +53,7 @@ public partial class Neo4jOASIS
                 if (rows.Count != 1) throw new InvalidDataException("Neo4j detail save did not acknowledge exactly one record.");
                 acknowledged = ReadDetailNode(rows[0]["a"].As<Neo4j.Driver.INode>());
                 if (acknowledged.Id != staged.Id) throw new InvalidDataException("Neo4j detail save acknowledged another identity.");
+                RequireAcknowledgedRecord(staged,acknowledged);
                 await transaction.CommitAsync();
             }
             source.Id = acknowledged.Id;
