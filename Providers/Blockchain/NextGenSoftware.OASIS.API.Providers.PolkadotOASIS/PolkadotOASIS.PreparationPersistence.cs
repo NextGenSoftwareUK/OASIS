@@ -45,7 +45,7 @@ public partial class PolkadotOASIS
         return new PreparedSubmissionServer(execution.NativePreparationPersistence("PolkadotOASIS",null,clientRequestId,
             ReportedGenesisHash,expectedSender,async(evidence,token)=>{
                 token.ThrowIfCancellationRequested();
-                var verified=await VerifyNativeTokenTransferPreparationAsync(evidence);
+                var verified=await VerifyNativeTokenTransferPreparationAsync(evidence,token);
                 token.ThrowIfCancellationRequested();
                 if(verified.IsError)throw verified.Exception??new InvalidOperationException(verified.Message);
             }),expectedTransactionId);
