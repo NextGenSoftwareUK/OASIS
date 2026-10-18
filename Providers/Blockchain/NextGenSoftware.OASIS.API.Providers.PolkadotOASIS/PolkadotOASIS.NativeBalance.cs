@@ -23,6 +23,10 @@ public partial class PolkadotOASIS
         PreparedSubmissionServer preparationServer = null)
     {
         var input = JsonSerializer.Serialize(request);
+        using var requestDocument = JsonDocument.Parse(input);
+        var submitsOriginal = requestDocument.RootElement.GetProperty("operation").GetString() == "submitNativePreparation";
+        if (submitsOriginal && preparationServer == null)
+            throw new InvalidOperationException("Original submission requires an owned durable preparation server.");
         var bridge = Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE")
             ?? Path.Combine(AppContext.BaseDirectory, "PolkadotSdkBridge", "bridge.mjs");
         if (!File.Exists(bridge)) throw new FileNotFoundException("Pinned Polkadot SDK bridge is missing; provision its locked dependencies once.", bridge);
@@ -72,10 +76,21 @@ public partial class PolkadotOASIS
                 await serving;servingObserved=true;
                 if(preparationServer.PreparedTransactionId==null
                     ||result.GetProperty("transactionHash").GetString()!=preparationServer.PreparedTransactionId
-                    ||!result.GetProperty("persisted").GetBoolean()||result.GetProperty("submitted").GetBoolean())
+                    ||!result.GetProperty("persisted").GetBoolean()||result.GetProperty("submitted").GetBoolean()!=submitsOriginal)
                     throw new InvalidDataException("SDK persistence reply does not bind the acknowledged original preparation.");
+                if(submitsOriginal && (!result.GetProperty("poolAccepted").GetBoolean()
+                    || result.GetProperty("finalized").GetBoolean() || !result.GetProperty("reconciliationRequired").GetBoolean()))
+                    throw new InvalidDataException("Pool acceptance cannot be promoted to finalized completion.");
             }
             return result.Clone();
+        }
+        catch (OperationCanceledException cancelled) when(submitsOriginal && preparationServer.PreparedTransactionId != null)
+        {
+            throw new PolkadotNativeMutationCanceledException(preparationServer.PreparedTransactionId, cancelled, cancelled.CancellationToken);
+        }
+        catch (Exception failure) when(submitsOriginal && preparationServer.PreparedTransactionId != null)
+        {
+            throw new PolkadotNativeMutationReconciliationException(preparationServer.PreparedTransactionId, failure);
         }
         finally
         {

@@ -123,6 +123,16 @@ public class PolkadotReadOnlyNativeTests
         Assert.IsTrue(verified.Result.GetProperty("verified").GetBoolean());
         Assert.AreEqual(prepared.GetProperty("transactionHash").GetString(),verified.Result.GetProperty("transactionHash").GetString());
         Assert.AreEqual(request.MemoText,verified.Result.GetProperty("memo").GetString());
+        using var signing=JsonDocument.Parse(Convert.FromBase64String(prepared.GetProperty("signDocBase64").GetString()!));
+        var signingBlock=signing.RootElement.GetProperty("signingPayload").GetProperty("blockNumber").GetString()!;
+        var start=Convert.ToUInt64(signingBlock[2..],16).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var outcome=await provider.ReadOriginalNativeOutcomeAsync(prepared,start,1);
+        Assert.IsFalse(outcome.IsError,outcome.Exception?.ToString());
+        Assert.IsFalse(outcome.Result.GetProperty("found").GetBoolean());
+        Assert.IsFalse(outcome.Result.GetProperty("finalized").GetBoolean());
+        Assert.IsTrue(outcome.Result.GetProperty("reconciliationRequired").GetBoolean());
+        Assert.AreEqual(prepared.GetProperty("transactionHash").GetString(),outcome.Result.GetProperty("transactionHash").GetString());
+        Assert.IsTrue(outcome.Result.GetProperty("inspectedBlocks").GetInt32()<=1);
     }
 
     [DataTestMethod]

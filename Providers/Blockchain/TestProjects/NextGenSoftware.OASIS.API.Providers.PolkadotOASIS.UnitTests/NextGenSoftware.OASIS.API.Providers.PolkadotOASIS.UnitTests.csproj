@@ -16,6 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reuse this restored test host for opt-in native checks; keep one canonical native test source. -->
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotReadOnlyNativeTests.cs" Condition="'$(IncludePolkadotReadOnlyNativeTests)' == 'true'" />
+    <None Update="submission-process-fixture.mjs" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
   </ItemGroup>
 
