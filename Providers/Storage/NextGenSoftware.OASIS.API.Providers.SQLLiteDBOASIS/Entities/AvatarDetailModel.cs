@@ -23,6 +23,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public string ProviderLinksJson { get; set; } = "{}";
         [Required]
         public string DimensionLevelIdsJson { get; set; } = "{}";
+        [Required]
+        public string CelestialParentIdsJson { get; set; } = "{}";
         public bool IsPublic { get; set; }
         public Guid VersionId { get; set; }
         public Guid PreviousVersionId { get; set; }
@@ -127,6 +129,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public AvatarDetailModel(IAvatarDetail source,Guid? plannedId=null){
             this.ProviderLinksJson=AvatarDetailProviderLinks.Encode(source);
             this.DimensionLevelIdsJson=AvatarDetailDimensionLinks.Encode(source);
+            this.CelestialParentIdsJson=AvatarDetailCelestialLinks.Encode(source);
 
             if(plannedId.HasValue) this.Id=plannedId.Value.ToString();
             else if(source.Id == Guid.Empty){
@@ -377,6 +380,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 
             AvatarDetailProviderLinks.Apply(this.ProviderLinksJson,item);
             item.DimensionLevelIds=AvatarDetailDimensionLinks.Decode(this.DimensionLevelIdsJson);
+            AvatarDetailCelestialLinks.Apply(this.CelestialParentIdsJson,item);
             return(item);
         }
     }
