@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Cosmos final-fee gap: exact scope, not a coverage-label change
+
+Current `SdkBridge/transaction-results.mjs:cosmosNativeFeeReceipt` verifies committed hash against exact signed bytes, one ante fee event, actual payer/granter, denomination amounts equal the signed fee, and execution/gas/height identity. `CosmosBlockChainOASIS.Preparation.cs` retains this as AnteDeductionOnly. It does not measure post-handler refunds or tips as final net charges. The immutable `ForReviewedStandardSdkChain` profile establishes an exact-chain maximum-fee assumption, NOT refund/final-fee evidence.
+
+The official [Cosmos BaseApp documentation](https://github.com/cosmos/cosmos-sdk-docs/blob/main/docs/learn/advanced/00-baseapp.md) describes extensible post-handlers, including tips and unused-gas refunds. Therefore neither a signed fee declaration, the word Cosmos, nor an upper-bound review alone establishes final net charges. Do not relabel the existing reader NetFinal or fabricate zero-refund evidence. Required implementation: an explicitly reviewed chain/app-version fee policy plus original-transaction evidence for all fee debits/refunds/tips and charged failures, including payer/granter identities and upgrade/review validity. Existing local wasmd test acceptance does not certify every Cosmos-based application's fee model.
+
+Added actual Cosmos provider-reader/shared startup-check regressions for both plain limits and reviewed maximum profile. These must reject paid-route readiness while reader remains ante-only, without provider activation or RPC/signing. These guards do NOT close the final-fee feature gap.
+
 ## Wallet history versus billable fee — Sui storage rebates
 
 Do not floor individual historical wallet movements to zero. The retained Sui ID-bound escrow burn has original `netUnits=-282576`MIST: its wallet history must preserve a **+282576MIST credit** to the owner, while mint/lock/unlock retain their exact negative gas debits. Only the separate billing valuation nets fees/rebates within the same operation and floors that operation's charge at zero. A historical credit is neither a fabricated outgoing transfer nor an authorization to pay a subscription credit beyond that operation.

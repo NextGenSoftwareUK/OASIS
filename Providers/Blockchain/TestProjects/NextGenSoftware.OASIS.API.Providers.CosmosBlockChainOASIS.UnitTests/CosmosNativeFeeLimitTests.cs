@@ -7,6 +7,22 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosNativeFeeLimitTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task RealCosmosReaderCannotDeclareFinalFeesFromMaximumReviewAlone(bool reviewed)
+    {
+        var map=new Dictionary<string,string>{{"stake","100"}};
+        var limits=reviewed?CosmosNativeFeeLimits.ForReviewedStandardSdkChain(map,"reviewed-chain"):new CosmosNativeFeeLimits(map);
+        using var provider=CosmosBlockChainOASIS.CreateWithNativeFeeLimits(limits,rpcEndpoint:"http://127.0.0.1:1",chainId:"reviewed-chain");
+        var reader=(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)provider;
+        Assert.AreEqual("CosmosBlockChainOASIS",reader.NativeFeeProvider);
+        Assert.AreEqual("reviewed-chain",reader.NativeFeeChainId);
+        Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeFeeCoverage.AnteDeductionOnly,reader.DeclaredFeeCoverage);
+        var readiness=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.StorageAdmissionRecoveryReadiness(
+            new[]{("CosmosBlockChainOASIS","reviewed-chain")},new[]{reader});
+        var failure=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>readiness.StartAsync(CancellationToken.None));
+        StringAssert.Contains(failure.Message,"NetFinal");Assert.IsFalse(provider.IsProviderActivated);
+    }
     [TestMethod]
     public void StandardSdkFeeReviewIsExplicitImmutableAndBoundToExactChain()
     {
