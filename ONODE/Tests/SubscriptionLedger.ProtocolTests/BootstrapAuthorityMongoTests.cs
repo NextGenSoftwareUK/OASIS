@@ -120,4 +120,32 @@ public sealed class BootstrapAuthorityMongoTests : IAsyncLifetime
             Builders<BootstrapAuthorityRecord>.Update.Set(x=>x.Role,role.HasValue?(AvatarType?)role.Value:null));
         await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.ReadAsync(_id,2));
     }
+
+    [Fact] public async Task TrustedProvisioningInsertsOnlyOnceWithoutReplacingExistingAuthority()
+    {
+        await _records.DeleteOneAsync(x=>x.Id==_id.ToString("D"));
+        await _authority.ProvisionVerifiedAsync(Record());
+        Assert.Equal(123,(await _authority.ReadAsync(_id,2)).Karma);
+        var overwrite=Record();overwrite.Karma=999;overwrite.Role=AvatarType.Wizard;
+        var error=await Assert.ThrowsAsync<MongoWriteException>(()=>_authority.ProvisionVerifiedAsync(overwrite));
+        Assert.Equal(ServerErrorCategory.DuplicateKey,error.WriteError.Category);
+        var unchanged=await _authority.ReadAsync(_id,2);
+        Assert.Equal(123,unchanged.Karma);Assert.Equal(AvatarType.User,unchanged.Role);
+    }
+
+    [Fact] public async Task ProvisioningCannotReenableAnUnfinishedMutation()
+    {
+        await _authority.InvalidateAsync(_id,1);
+        var error=await Assert.ThrowsAsync<MongoWriteException>(()=>_authority.ProvisionVerifiedAsync(Record()));
+        Assert.Equal(ServerErrorCategory.DuplicateKey,error.WriteError.Category);
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.ReadAsync(_id,2));
+        Assert.Equal(2,(await _records.Find(x=>x.Id==_id.ToString("D")).SingleAsync()).Revision);
+    }
+
+    [Theory][InlineData(0)][InlineData(2)] public async Task ProvisioningRequiresInitialRevision(long revision)
+    {
+        await _records.DeleteOneAsync(x=>x.Id==_id.ToString("D"));
+        await Assert.ThrowsAnyAsync<ArgumentException>(()=>_authority.ProvisionVerifiedAsync(Record(revision)));
+        Assert.Equal(0,await _records.CountDocumentsAsync(x=>x.Id==_id.ToString("D")));
+    }
 }

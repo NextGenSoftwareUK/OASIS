@@ -17,7 +17,7 @@ Mutation protocol:
 3. Publish the independently verified resulting projection against the exact unavailable revision. Token/karma versions must not decrease.
 4. Crash, uncertain result or publication conflict leaves the record unavailable. Recovery must inspect the original operation, not replay an uncertain mutation or automatically re-enable authority.
 
-No upsert or implicit provisioning exists. First trusted provisioning/reviewed reconciliation needs an explicit implementation. Expiry is not a substitute for immediate invalidation. No watcher/change stream/eventual background mirror alone can satisfy revocation correctness.
+No upsert or implicit provisioning exists. `ProvisionVerifiedAsync` is an explicit trusted-server insert-only operation: canonical ID, fresh verified/ready shape and revision exactly1 are mandatory. Mongo's unique `_id` prevents overwriting either an existing ready record or an unavailable mutation record. This repository method does not verify canonical source data itself and must not be exposed as a client DTO/HTTP provisioning endpoint. Trusted creation wiring and reviewed uncertain-operation reconciliation remain required. Expiry is not a substitute for immediate invalidation. No watcher/change stream/eventual background mirror alone can satisfy revocation correctness.
 
 Publication additionally requires an increased karma version for a changed karma value and an increased token version for changed enabled status. Equal versions may only preserve those values. A version is not merely a nondecreasing decorative counter.
 
@@ -34,7 +34,7 @@ Further trace: `KarmaManager.cs` persists ordinary Add/Remove/Reset totals throu
 Remaining gates:
 
 - Trace every canonical security/delete/karma mutation and establish one shared invalidation/publication owner, including sync/async and cross-service callers.
-- Explicit trusted first provisioning and crash reconciliation, without unbounded lease renewal from stale source data.
+- Wire explicit trusted first provisioning and crash reconciliation, without unbounded lease renewal from stale source data.
 - Token issuance/version validation and endpoint compatibility without pre-reservation native hydration.
 - Real retained Mongo concurrency/restart/majority tests for invalidation/publication; wrong revision, duplicate publication, out-of-order version, outage and crash tests.
 - Wire WEB4 JWT and quota consumers to the same validated record; other hosts must not bypass the authority.
@@ -42,6 +42,8 @@ Remaining gates:
 - All release/pin/hosted gates remain required. Nothing here enables sponsored spending or Railway configuration.
 
 ## Evidence
+
+2026-10-17 explicit insert-only provisioning added and verified using retained real Mongo: success readback, duplicate-key/no overwrite of role/karma, refusal to re-enable pending invalidation, initial revision0/2 refused with no insert. First96-case run95pass1fail caught revision0 throwing a shape-state error before initial-revision argument validation (report SHA256 `DC094109B58CC5B8BEE5ABF1B7BF375A18879643F8373AEB63BEF5A7022E20EC`); validation ordered explicitly; rerun **96/96passed25s/0skip/full runnerexit0**, SHA256 `9EA193E906CEFC0305B242272A4376BE27C78A05130EAC2C615A68EE50749108`. Initial diagnostic WEB4 build overlapped testhost16424 and failed MSB3027/MSB3021 locked DLL, not a source compilation error; host subsequently absent, no process killed. Serial retry build0errors4warnings. Future producer builds must be serial with the protocol runner too: its testhost may load the main API assembly. Same retained environment/no restore/download/native spend/deploy; owned Mongo stopped/log65437bytes; free C84,726,177,792bytes. Provisioning caller verification/writer/JWT/HTTP integration and release gates remain OPEN.
 
 2026-10-17 authorization compatibility trace: custom `Helpers/AuthorizeAttribute.cs` casts request Avatar to concrete Avatar and checks AvatarType; `Middleware/OASISAuthHandler.cs` additionally requires IAvatar; `Controllers/OASISControllerBase.cs` exposes Avatar/AvatarId via request Items. A small authority record must not be installed as a fabricated complete Avatar. Added required version-protected role and tested actual Mongo missing/null and unknown numeric persisted roles, same-version role-change rejection, successful versioned role change and old-token rejection. Retained authority/ledger suite **92/92passed25s/0skip/full runnerexit0**, SHA256 `49F476EAA0431C8D6CB64569A3FC26CB8071FE4FEB1D86200FB7E768CB758A25`; pure validation **13/13passed83ms**, SHA256 `24AA5F473038B87B950B8B64EFFF4606FB3F87310180F232E807E4D158252CE7`; WEB4 diagnostic build0errors255warnings. Same environment, no download/restore/native operation/deployment; owned Mongo stopped/log65298bytes; free C84,796,207,104bytes. Required next integration remains minimal authenticated identity vs post-reservation full-avatar hydration, canonical writers, trusted provisioning and token issuance. No host enablement/release claim.
 
