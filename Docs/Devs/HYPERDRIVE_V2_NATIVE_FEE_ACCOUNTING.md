@@ -2,6 +2,8 @@
 
 ## Explicit registration-only boot for admitted hosts
 
+Admitted boot additionally validates actual registration completion across the same six lists as RegisterProvidersInAllLists: every requested type must resolve to exactly one inactive IOASISStorageProvider, and an empty requested inventory is invalid. This is necessary because the older helper checks a result wrapper for null but can ignore its error/missing Result. No provider activation, forced re-registration or alternate boot is attempted to repair failure. Ordinary/legacy helper behavior remains unchanged and is a documented gap, not accepted admitted readiness.
+
 Source trace found two independent pre-reservation paths: ordinary `BootOASISAsync(...,false)` still looks up/creates the system avatar, and Hot registration may activate providers. Do not describe that existing boolean as passive boot.
 
 New `OASISBootLoader.BootOASISForAdmittedStorageAsync` (DNA/path overloads) requires a fresh inactive host, exact V2 mode, Warm registration and preconfigured JWT signing material. It uses the existing boot/registration implementation but skips default activation, system-avatar read/create and JWT file provisioning. Hot/Cold/legacy/missing-key/already-activated/already-booted states are rejected, not downgraded. Ordinary boot overloads retain existing behavior. Registry/provider constructors are still the existing implementations; zero-I/O constructor claims for every provider are not established by the LocalFile sentinel test.
