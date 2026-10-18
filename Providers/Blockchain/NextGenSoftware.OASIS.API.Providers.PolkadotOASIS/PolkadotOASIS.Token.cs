@@ -459,7 +459,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
         {
-            return GetBalanceAsync(request).Result;
+            return GetBalanceAsync(request).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
@@ -479,24 +479,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return result;
                 }
 
-                // Get Polkadot account balance
-                var accountResponse = await _httpClient.GetAsync($"/accounts/{request.WalletAddress}");
-                if (accountResponse.IsSuccessStatusCode)
-                {
-                    var accountContent = await accountResponse.Content.ReadAsStringAsync();
-                    var accountData = JsonSerializer.Deserialize<JsonElement>(accountContent);
-                    var balanceInPlanck = accountData.GetProperty("data").GetProperty("free").GetInt64();
-                    var balanceInDOT = balanceInPlanck / 10000000000.0; // Convert from planck to DOT
-                    result.Result = balanceInDOT;
-                    result.IsError = false;
-                    result.Message = "Balance retrieved successfully";
-                }
-                else
-                {
-                    result.Result = 0.0;
-                    result.IsError = false;
-                    result.Message = "Account not found or has zero balance";
-                }
+                var address = request.WalletAddress;
+                result.Result = await ReadNativeBalanceAsync(address);
+                result.Message = "Native free balance read from finalized Polkadot runtime storage.";
             }
             catch (Exception ex)
             {
