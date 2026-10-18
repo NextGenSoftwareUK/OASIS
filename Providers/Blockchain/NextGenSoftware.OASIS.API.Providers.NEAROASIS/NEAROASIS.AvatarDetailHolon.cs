@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 
@@ -20,9 +22,27 @@ public partial class NEAROASIS
         int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int version = 0)
     {
         var result = await LoadHolonRecordAsync(id);
-        if (!result.IsError && result.Result != null && loadChildren)
+        return await ProjectLoadedHolonAsync(result, loadChildren, recursive, maxChildDepth, continueOnError,
+            loadChildrenRecursiveDepth);
+    }
+
+    private async Task<OASISResult<IHolon>> ProjectLoadedHolonAsync(OASISResult<IHolon> result,
+        bool loadChildren, bool recursive, int maxChildDepth, bool continueOnError, bool childrenFromProvider)
+    {
+        if (!result.IsError && result.Result != null)
         {
-            try { result.Result.Children = await LoadChildTreeAsync(id, HolonType.All, recursive, maxChildDepth, 0); }
+            try
+            {
+                IEnumerable<IHolon> records = Array.Empty<IHolon>();
+                if (loadChildren && childrenFromProvider)
+                {
+                    var all = await LoadAllHolonRecordsAsync();
+                    if (all.IsError) throw all.Exception ?? new InvalidOperationException(all.Message);
+                    records = all.Result;
+                }
+                result.Result = HolonGraphProjection.Create(records, loadChildren, recursive, maxChildDepth, 0,
+                    childrenFromProvider, item => OasisJson.Deserialize<Holon>(OasisJson.Serialize(item)))(result.Result);
+            }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading child holons from NEAR: {ex.Message}", ex);
@@ -36,10 +56,11 @@ public partial class NEAROASIS
         int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) =>
         LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-    public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true,
+    public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true,
         bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
         bool loadChildrenFromProvider = false, int version = 0) =>
-        LoadHolonByProviderKeyAsync(providerKey, version);
+        await ProjectLoadedHolonAsync(await LoadHolonByProviderKeyAsync(providerKey, version), loadChildren,
+            recursive, maxChildDepth, continueOnError, loadChildrenFromProvider);
 
     public async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, int version = 0)
     {
@@ -135,8 +156,21 @@ public partial class NEAROASIS
         bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0)
     {
         var all = await LoadAllHolonRecordsAsync();
+        var records = all.Result?.ToList() ?? new List<IHolon>();
         if (!all.IsError && holonType != HolonType.All)
             all.Result = all.Result?.Where(holon => holon.HolonType == holonType).ToList();
+        if (!all.IsError)
+        {
+            try
+            {
+                // Keep the full record set for descendants: filtering selects roots, not child types.
+                var project = HolonGraphProjection.Create(records, loadChildren, recursive, maxChildDepth,
+                    loadChildrenRecursiveDepthInt, loadChildrenRecursiveDepth,
+                    item => OasisJson.Deserialize<Holon>(OasisJson.Serialize(item)));
+                all.Result = all.Result.Select(project).ToList();
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref all, $"Error projecting NEAR holon graph: {ex.Message}", ex); }
+        }
         return all;
     }
 

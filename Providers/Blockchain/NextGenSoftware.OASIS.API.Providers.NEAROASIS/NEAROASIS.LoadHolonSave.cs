@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 
@@ -38,15 +40,12 @@ public partial class NEAROASIS
     {
         var all = await LoadAllHolonRecordsAsync();
         if (all.IsError) throw all.Exception ?? new InvalidOperationException(all.Message);
-        var direct = all.Result.Where(item => item.ParentHolonId == parentId &&
+        var records = all.Result.ToList();
+        var direct = records.Where(item => item.ParentHolonId == parentId &&
             (type == HolonType.All || item.HolonType == type)).ToList();
-        var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
-        if (recursive && !reachedDepth)
-        {
-            foreach (var child in direct)
-                child.Children = await LoadChildTreeAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1);
-        }
-        return direct;
+        var project = HolonGraphProjection.Create(records, recursive, true, maxChildDepth, checked(depth + 1), true,
+            item => OasisJson.Deserialize<Holon>(OasisJson.Serialize(item)));
+        return direct.Select(project).ToList();
     }
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid parentId,

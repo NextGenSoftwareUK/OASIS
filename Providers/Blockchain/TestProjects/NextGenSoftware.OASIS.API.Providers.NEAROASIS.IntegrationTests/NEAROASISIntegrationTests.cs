@@ -161,6 +161,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                 Id = Guid.NewGuid(), Name = $"child-{marker}", CreatedByAvatarId = owner,
                 MetaData = new System.Collections.Generic.Dictionary<string, object> { ["runtime"] = marker }
             };
+            var grandchild = new Holon { Id = Guid.NewGuid(), Name = $"grandchild-{marker}" };
+            child.Children.Add(grandchild);
             parent.Children.Add(child);
             var saved = await _provider.SaveHolonAsync(parent, saveChildren: true, recursive: true);
             Assert.IsFalse(saved.IsError, saved.Message);
@@ -169,8 +171,30 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse(loadedParent.IsError, loadedParent.Message);
             Assert.IsNotNull(loadedParent.Result, loadedParent.Message);
             Assert.IsTrue(loadedParent.Result.Children.Any(item => item.Id == child.Id));
+            var byKey = await _provider.LoadHolonAsync(parent.Id.ToString("D"), loadChildren: true,
+                recursive: true, loadChildrenFromProvider: true);
+            Assert.IsFalse(byKey.IsError, byKey.Message);
+            Assert.AreEqual(child.Id, byKey.Result.Children.Single().Id);
+            Assert.AreEqual(grandchild.Id, byKey.Result.Children.Single().Children.Single().Id);
+            var shallow = await _provider.LoadHolonAsync(parent.Id.ToString("D"), loadChildren: true,
+                recursive: false, loadChildrenFromProvider: true);
+            Assert.IsFalse(shallow.IsError, shallow.Message);
+            Assert.AreEqual(child.Id, shallow.Result.Children.Single().Id);
+            Assert.AreEqual(0, shallow.Result.Children.Single().Children.Count());
+            var limited = await _provider.LoadHolonAsync(parent.Id.ToString("D"), loadChildren: true,
+                maxChildDepth: 1, loadChildrenFromProvider: true);
+            Assert.IsFalse(limited.IsError, limited.Message);
+            Assert.AreEqual(0, limited.Result.Children.Single().Children.Count());
+            var withoutChildren = await _provider.LoadHolonAsync(parent.Id.ToString("D"), loadChildren: false,
+                loadChildrenFromProvider: true);
+            Assert.IsFalse(withoutChildren.IsError, withoutChildren.Message);
+            Assert.AreEqual(0, withoutChildren.Result.Children.Count());
+            var listed = await _provider.LoadAllHolonsAsync(HolonType.All, loadChildren: true);
+            Assert.IsFalse(listed.IsError, listed.Message);
+            Assert.AreEqual(child.Id, listed.Result.Single(item => item.Id == parent.Id).Children.Single().Id);
             var children = await _provider.LoadHolonsForParentAsync(parent.Id, HolonType.All);
             Assert.IsTrue(children.Result.Any(item => item.Id == child.Id));
+            Assert.AreEqual(grandchild.Id, children.Result.Single(item => item.Id == child.Id).Children.Single().Id);
             var metadata = await _provider.LoadHolonsByMetaDataAsync("runtime", marker, HolonType.All);
             Assert.IsTrue(metadata.Result.Any(item => item.Id == child.Id));
             var search = await _provider.SearchAsync(new SearchParams
