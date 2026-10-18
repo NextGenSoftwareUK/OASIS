@@ -156,6 +156,8 @@ public partial class AWSOASISIntegrationTests
         Assert.IsFalse(loaded.IsError,loaded.Message);
         Assert.AreEqual(item.Id,loaded.Result.Inventory.Single().Id);
         Assert.AreEqual(item.Name,loaded.Result.Inventory.Single().Name);
+        Assert.AreEqual(detail.Id.ToString(),detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.AWSOASIS]);
+        Assert.AreEqual(detail.Id.ToString(),loaded.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.AWSOASIS]);
         Assert.AreEqual(321,loaded.Result.XP); Assert.AreEqual(29L,loaded.Result.Karma);
         Assert.IsNotNull(loaded.Result.Stats); Assert.IsNotNull(loaded.Result.Skills);
     }

@@ -124,7 +124,13 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             catch(Exception cause) {throw new DynamoDBMutationReconciliationException(table,key,cause);}
         }
         private Task<PutItemResponse> PutItemAsync(PutItemRequest request)
-            => ObserveMutationAsync(()=>_client.PutItemAsync(request),request.TableName,request.Item["id"].S);
+            => ObserveMutationAsync(async()=>
+            {
+                var response=await _client.PutItemAsync(request);
+                if(response?.HttpStatusCode!=System.Net.HttpStatusCode.OK)
+                    throw new System.IO.InvalidDataException("DynamoDB save lacks an authoritative native acknowledgement.");
+                return response;
+            },request.TableName,request.Item["id"].S);
         private Task<UpdateItemResponse> UpdateItemAsync(UpdateItemRequest request)
             => ObserveMutationAsync(()=>_client.UpdateItemAsync(request),request.TableName,request.Key["id"].S);
         private Task<DeleteItemResponse> DeleteItemAsync(string table,Dictionary<string,AttributeValue> key)
@@ -462,6 +468,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 var source=d;
                 d=Des<AvatarDetail>(Ser(source))!;
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
+                d.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
+                d.ProviderUniqueStorageKey[StorageProviderType]=d.Id.ToString();
                 await PutItemAsync(new PutItemRequest
                 {
                     TableName = "OasisAvatarDetails",
@@ -470,10 +478,13 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["id"] = new AttributeValue { S = d.Id.ToString() },
                         ["username"] = new AttributeValue { S = d.Username ?? "" },
                         ["email"] = new AttributeValue { S = d.Email ?? "" },
+                        ["is_deleted"] = new AttributeValue {BOOL=d.IsDeleted},
                         ["data_json"] = new AttributeValue { S = Ser(d) }
                     })
                 });
                 source.Id=d.Id;
+                source.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
+                source.ProviderUniqueStorageKey[StorageProviderType]=d.Id.ToString();
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
