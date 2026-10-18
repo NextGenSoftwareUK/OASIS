@@ -94,6 +94,9 @@ public partial class Neo4jOASIS
         var holon = OasisJson.DeserializeStored<Holon>(snapshot);
         if (holon == null || holon.Id != ReadNativeIdentity(node))
             throw new InvalidDataException("Neo4j holon snapshot identity differs from its index.");
+        ValidateNativeLookupProjection(node,"Name",holon.Name);
+        ValidateNativeLookupProjection(node,"Description",holon.Description);
+        ValidateNativeLookupProjection(node,"HolonType",holon.HolonType.ToString());
         return holon;
     }
 
