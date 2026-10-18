@@ -32,6 +32,18 @@ public sealed class DirectMongoAvatarDetailContractTests
                     .Contains(Nullable.GetUnderlyingType(property.PropertyType)??property.PropertyType)).ToArray();
             Assert.True(scalarProperties.Length>=19,"Do not silently shrink the profile-field contract.");
             for(var revision=1;revision<=2;revision++){
+                foreach(var field in IndependentAvatarCollections.Fields)
+                    IndependentAvatarCollections.Assign(detail,field,IndependentAvatarCollections.Create(field,revision));
+                void VerifyCollections(object actual,bool native){
+                    foreach(var field in IndependentAvatarCollections.Fields){
+                        var slot=IndependentAvatarCollections.Slot(field);
+                        var expected=((System.Collections.IList)slot.GetValue(detail)!)[0]!;
+                        var items=(System.Collections.IList)(native?typeof(StoredDetail).GetProperty(field)!.GetValue(actual):slot.GetValue(actual))!;
+                        Assert.Single(items.Cast<object>());
+                        foreach(var property in slot.PropertyType.GetGenericArguments()[0].GetProperties())
+                            Assert.Equal(IndependentAvatarCollections.Scalar(property,expected),IndependentAvatarCollections.Scalar(property,items[0]!));
+                    }
+                }
                 var skills=new IndependentAvatarSkills();var skillValue=revision*100;
                 var skillProperties=typeof(IAvatarSkills).GetProperties();Assert.Equal(16,skillProperties.Length);
                 foreach(var property in skillProperties)property.SetValue(skills,skillValue++);
@@ -74,6 +86,7 @@ public sealed class DirectMongoAvatarDetailContractTests
                 Assert.False(saved.IsError,saved.Message);Assert.NotNull(saved.Result);
                 var raw=await collection.Find(filter).SingleAsync();Assert.Equal(detail.Description,raw.Description);
                 VerifyStructured(raw,true);VerifyStructured(saved.Result,false);
+                VerifyCollections(raw,true);VerifyCollections(saved.Result,false);
                 foreach(var property in skillProperties){
                     Assert.Equal(property.GetValue(skills),property.GetValue(raw.Skills));
                     Assert.Equal(property.GetValue(skills),property.GetValue(saved.Result.Skills));
@@ -93,6 +106,7 @@ public sealed class DirectMongoAvatarDetailContractTests
                         Assert.False(loaded.IsError,loaded.Message);Assert.NotNull(loaded.Result);
                         Assert.Equal(id,loaded.Result.Id);Assert.Equal(detail.Description,loaded.Result.Description);
                         VerifyStructured(loaded.Result,false);
+                        VerifyCollections(loaded.Result,false);
                         foreach(var property in scalarProperties)Assert.Equal(property.GetValue(detail),property.GetValue(loaded.Result));
                         foreach(var property in skillProperties)Assert.Equal(property.GetValue(skills),property.GetValue(loaded.Result.Skills));
                     }

@@ -141,6 +141,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
             Assert.AreEqual(stored.Description,roundtrip.Description);Assert.AreEqual(stored.Model3D,roundtrip.Model3D);
         }
 
+        [DataTestMethod]
+        [DataRow("Spells")][DataRow("GeneKeys")][DataRow("Gifts")][DataRow("Achievements")][DataRow("KarmaAkashicRecords")]
+        public void ProfileCollectionsAcceptIndependentItemsAndDetach(string field)
+        {
+            var entry=IndependentAvatarCollections.Create(field,1);var slot=IndependentAvatarCollections.Slot(field);
+            var source=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=Guid.NewGuid()};
+            IndependentAvatarCollections.Assign(source,field,entry);
+            var stored=DataHelper.ConvertOASISAvatarDetailToMongoEntity(source);
+            var nativeList=(System.Collections.IList)typeof(MongoAvatarDetail).GetProperty(field)!.GetValue(stored)!;
+            var loaded=DataHelper.ConvertMongoEntityToOASISAvatarDetail(new OASISResult<MongoAvatarDetail>(stored));
+            Assert.IsFalse(loaded.IsError);Assert.IsNotNull(loaded.Result);
+            var readList=(System.Collections.IList)slot.GetValue(loaded.Result)!;
+            Assert.AreEqual(1,nativeList.Count);Assert.AreEqual(1,readList.Count);
+            Assert.AreNotSame(entry,nativeList[0]);Assert.AreNotSame(nativeList[0],readList[0]);
+            foreach(var property in slot.PropertyType.GetGenericArguments()[0].GetProperties()){
+                Assert.AreEqual(IndependentAvatarCollections.Scalar(property,entry),IndependentAvatarCollections.Scalar(property,nativeList[0]!));
+                Assert.AreEqual(IndependentAvatarCollections.Scalar(property,entry),IndependentAvatarCollections.Scalar(property,readList[0]!));
+                if(property.PropertyType.IsGenericType){Assert.AreNotSame(property.GetValue(entry),property.GetValue(nativeList[0]));Assert.AreNotSame(property.GetValue(nativeList[0]),property.GetValue(readList[0]));}
+            }
+        }
+
         [TestMethod]
         public void NativeCodeGenesis_WithoutGenerator_DoesNotAcknowledgeSuccessOrActivateStorage()
         {
