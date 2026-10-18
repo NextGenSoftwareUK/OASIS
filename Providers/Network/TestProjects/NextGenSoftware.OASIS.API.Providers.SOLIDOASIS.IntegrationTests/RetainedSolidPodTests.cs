@@ -23,7 +23,7 @@ public class RetainedSolidPodTests
         try{
             using var client=new HttpClient{Timeout=TimeSpan.FromSeconds(10)};
             using var provider=new SOLIDOASIS(root!,"",key);
-            var avatarId=Guid.NewGuid();var detailId=Guid.NewGuid();var holonId=Guid.NewGuid();
+            var avatarId=Guid.NewGuid();var detailId=avatarId;var holonId=Guid.NewGuid();
             var resources=new[]{new Uri(new Uri(root!),$"oasis/avatars/{avatarId}.ttl"),new Uri(new Uri(root!),$"oasis/avatar-details/{detailId}.ttl"),new Uri(new Uri(root!),$"oasis/holons/{holonId}.ttl")};
             // Retain intended identities BEFORE any setup/write. Durable key remains outside this journal.
             await File.WriteAllTextAsync(journal,JsonSerializer.Serialize(new{root,synchronous,resources=resources.Select(uri=>uri.AbsoluteUri).ToArray(),state="before-native-setup"}));
@@ -50,8 +50,20 @@ public class RetainedSolidPodTests
             var holons=synchronous?provider.LoadAllHolons(loadChildren:false):await provider.LoadAllHolonsAsync(loadChildren:false);Assert.False(holons.IsError,holons.Message);Assert.Equal(holonId,Assert.Single(holons.Result).Id);
             var byEmail=await provider.LoadAvatarByEmailAsync(" NATIVE-CANARY@EXAMPLE.INVALID ");Assert.False(byEmail.IsError,byEmail.Message);Assert.Equal(avatarId,byEmail.Result.Id);
             var byName=await provider.LoadAvatarDetailByUsernameAsync(" NATIVE-PRIVATE-CANARY ");Assert.False(byName.IsError,byName.Message);Assert.Equal(detailId,byName.Result.Id);
-            // Exact confirmed fixture-resource cleanup uses native HTTP; does NOT certify provider delete APIs.
-            foreach(var uri in resources){using var deleted=await client.DeleteAsync(uri);Assert.True(deleted.IsSuccessStatusCode);using var absent=await client.GetAsync(uri);Assert.Equal(HttpStatusCode.NotFound,absent.StatusCode);}
+            var soft=synchronous?provider.DeleteAvatar(avatarId):await provider.DeleteAvatarAsync(avatarId);
+            Assert.False(soft.IsError,soft.Exception?.ToString());Assert.True(soft.Result);Assert.True(soft.IsDeleted);
+            var deletedAvatar=await provider.LoadAvatarAsync(avatarId);Assert.False(deletedAvatar.IsError,deletedAvatar.Message);
+            var deletedDetail=await provider.LoadAvatarDetailAsync(detailId);Assert.False(deletedDetail.IsError,deletedDetail.Message);
+            Assert.False(deletedAvatar.Result.IsActive);Assert.False(deletedDetail.Result.IsActive);
+            Assert.NotEqual(DateTime.MinValue,deletedAvatar.Result.DeletedDate);
+            Assert.Equal(deletedAvatar.Result.DeletedDate,deletedDetail.Result.DeletedDate);
+            Assert.Equal(avatar.Password,deletedAvatar.Result.Password);Assert.Equal(detail.Description,deletedDetail.Result.Description);
+            var removed=synchronous?provider.DeleteAvatar(avatarId,false):await provider.DeleteAvatarAsync(avatarId,false);
+            Assert.False(removed.IsError,removed.Exception?.ToString());Assert.True(removed.Result);Assert.True(removed.IsDeleted);
+            var removedHolon=synchronous?provider.DeleteHolon(holonId.ToString()):await provider.DeleteHolonAsync(holonId.ToString());
+            Assert.False(removedHolon.IsError,removedHolon.Exception?.ToString());Assert.Equal(holonId,removedHolon.Result.Id);Assert.True(removedHolon.IsDeleted);
+            // Provider deletes must be independently visible as absent; never raw-delete on failed assertions.
+            foreach(var uri in resources){using var absent=await client.GetAsync(uri);Assert.Equal(HttpStatusCode.NotFound,absent.StatusCode);}
             var empty=await provider.LoadAllAvatarsAsync();Assert.False(empty.IsError);Assert.Empty(empty.Result);
             File.Delete(journal);
         }finally{CryptographicOperations.ZeroMemory(key);}
