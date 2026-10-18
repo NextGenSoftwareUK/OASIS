@@ -71,7 +71,7 @@ public class SolanaCredentialSelectorTests
             var result=sync ? provider.LoadAllAvatarDetails(3):await provider.LoadAllAvatarDetailsAsync(3);
             Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);
             Assert.AreEqual(89L,result.Result.Single().XP);Assert.AreEqual(3,result.Result.Single().Version);
-            Assert.AreEqual("owned-signature-"+id,result.Result.Single().ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+            Assert.AreEqual("owned-detail-signature-"+id,result.Result.Single().ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
         }
         else
         {
@@ -167,7 +167,7 @@ public class SolanaCredentialSelectorTests
         Assert.AreEqual(scenario=="valid",result.Result);
         if(scenario=="wrong-kind") Assert.AreSame(wrongKind,result.Exception);
         if(scenario=="unknown") Assert.AreSame(unknown,result.Exception);
-        Assert.AreEqual(scenario=="blank" ? 0:scenario=="valid" ? 2:1,repository.Reads);
+        Assert.AreEqual(scenario=="blank" ? 0:scenario=="wrong-kind" ? 1:scenario=="valid" ? 3:2,repository.Reads);
         Assert.AreEqual(scenario is "blank" or "wrong-kind" ? 0:1,repository.Deletes);
     }
 
@@ -201,7 +201,7 @@ public class SolanaCredentialSelectorTests
         if(scenario=="lookup-failure") Assert.AreSame(cause,result.Exception);
         if(scenario=="unknown") Assert.AreSame(unknown,result.Exception);
         Assert.AreEqual(scenario is "valid" or "unknown" ? 1:0,repository.Deletes);
-        Assert.AreEqual(scenario=="valid" ? 3:scenario=="unknown" ? 2:1,repository.Reads);
+        Assert.AreEqual(scenario=="valid" ? 4:scenario=="unknown" ? 3:1,repository.Reads);
     }
 
     [DataTestMethod]
@@ -216,8 +216,47 @@ public class SolanaCredentialSelectorTests
         Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsSaved);Assert.IsFalse(result.IsDeleted);Assert.AreEqual(0,result.DeletedCount);
         Assert.IsInstanceOfType(result.Exception,typeof(SolanaTransactionReconciliationException));
         Assert.AreEqual("owned-avatar-tombstone",((SolanaTransactionReconciliationException)result.Exception).OriginalTransactionId);
-        Assert.AreEqual(1,repository.Deletes);Assert.AreEqual(2,repository.Reads);
+        Assert.AreEqual(1,repository.Deletes);Assert.AreEqual(3,repository.Reads);
         Assert.IsFalse(source.IsDeleted);Assert.AreEqual(4,source.Version);Assert.AreEqual(DateTime.MinValue,source.DeletedDate);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,"valid")] [DataRow(true,"valid")]
+    [DataRow(false,"avatar-failure")] [DataRow(true,"avatar-failure")]
+    [DataRow(false,"detail-readback")] [DataRow(true,"detail-readback")]
+    [DataRow(false,"preflight")] [DataRow(true,"preflight")]
+    public async Task AvatarPairDeletionPreflightsBothAndRetainsPartialReceipts(bool sync,string scenario)
+    {
+        var id=Guid.NewGuid();var repository=new RecordsRepository {AllowDelete=true};
+        var avatar=new SolanaAvatarDto {Id=id,AvatarId=id,Version=3};repository.Records.Add(avatar);
+        var detail=new SolanaAvatarDetailDto {Id=id,Version=8,XP=91};repository.Details.Add(detail);
+        var cause=new IOException("owned pair failure");
+        if(scenario=="preflight") repository.DetailCause=cause;
+        var unknown=new SolanaTransactionReconciliationException("owned-uncertain-avatar",cause);
+        if(scenario=="avatar-failure") repository.DeleteCause=unknown;
+        if(scenario=="detail-readback") repository.DeleteReadScenario="detail-failure";
+        var provider=new ActiveProvider(repository);
+        var result=sync ? provider.DeleteAvatar("owned-avatar-signature"):await provider.DeleteAvatarAsync("owned-avatar-signature");
+        Assert.AreEqual(scenario!="valid",result.IsError);Assert.AreEqual(scenario=="valid",result.Result);
+        if(scenario=="preflight"){Assert.AreSame(cause,result.Exception);Assert.AreEqual(0,repository.Deletes);}
+        else if(scenario=="avatar-failure")
+        {
+            Assert.IsInstanceOfType(result.Exception,typeof(SolanaPartialMutationException));
+            CollectionAssert.AreEqual(new[] {"owned-detail-tombstone"},((SolanaPartialMutationException)result.Exception).CommittedSignatures.ToArray());
+            Assert.AreSame(unknown,result.Exception.InnerException);Assert.AreEqual(2,repository.Deletes);
+        }
+        else if(scenario=="detail-readback")
+        {
+            Assert.AreEqual("owned-detail-tombstone",((SolanaTransactionReconciliationException)result.Exception).OriginalTransactionId);
+            Assert.AreEqual(1,repository.Deletes);
+        }
+        else
+        {
+            Assert.IsTrue(result.IsDeleted);Assert.AreEqual(2,repository.Deletes);
+            CollectionAssert.AreEqual(new[] {"owned-detail-signature-"+id,"owned-avatar-signature"},repository.TombstoneSources);
+        }
+        Assert.AreEqual(3,avatar.Version);Assert.AreEqual(8,detail.Version);Assert.AreEqual(91L,detail.XP);
+        Assert.IsFalse(avatar.IsDeleted);Assert.IsFalse(detail.IsDeleted);
     }
 
     private sealed class ActiveProvider:SolanaOASIS
@@ -236,6 +275,7 @@ public class SolanaCredentialSelectorTests
         public List<SolanaHolonDto> Holons=new();public List<int> Versions=new();
         public bool AllowDelete,DeleteAccepted=true;public int Deletes;public Exception? DeleteCause;
         public string DeleteReadScenario="valid";
+        public Exception? DetailCause;public List<string> TombstoneSources=new();
         public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>(int version=0) where T:SolanaBaseDto,new()
         {
             Reads++;LastVersion=version;Versions.Add(version);if(Cause!=null) throw Cause;
@@ -243,14 +283,24 @@ public class SolanaCredentialSelectorTests
                 return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Holons.Where(row=>version==0 || row.Version==version)
                     .Select(row=>((T)(SolanaBaseDto)row,"owned-signature-"+row.Id)).ToList());
             if(typeof(T)==typeof(SolanaAvatarDetailDto))
+            {
+                if(DetailCause!=null) throw DetailCause;
                 return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Details.Where(row=>version==0 || row.Version==version)
-                    .Select(row=>((T)(SolanaBaseDto)row,"owned-signature-"+row.Id)).ToList());
+                    .Select(row=>((T)(SolanaBaseDto)row,"owned-detail-signature-"+row.Id)).ToList());
+            }
             return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Records.Where(row=>version==0 || row.Version==version).Select(row=>
                 ((T)(SolanaBaseDto)Newtonsoft.Json.JsonConvert.DeserializeObject<SolanaAvatarDto>(Newtonsoft.Json.JsonConvert.SerializeObject(row))!,"owned-signature-"+row.Id)).ToList());
         }
         public Task<T> GetAsync<T>(string reference) where T:SolanaBaseDto,new()
         {
             Reads++;if(Cause!=null) throw Cause;
+            if(reference=="owned-detail-tombstone")
+            {
+                if(DeleteReadScenario=="detail-failure") throw new IOException("owned detail readback failure");
+                var source=Details.Single();
+                return Task.FromResult((T)(SolanaBaseDto)new SolanaAvatarDetailDto {Id=source.Id,Version=source.Version+1,
+                    PreviousVersionId=source.Id,IsDeleted=true,DeletedDate=new DateTime(2026,10,18,20,0,0,DateTimeKind.Utc),XP=source.XP});
+            }
             if(reference=="owned-avatar-tombstone")
             {
                 if(DeleteReadScenario=="failure") throw new IOException("owned avatar tombstone read failure");
@@ -275,7 +325,9 @@ public class SolanaCredentialSelectorTests
         public Task<string> CreateTombstoneAsync(string reference)
         {
             if(!AllowDelete) throw new InvalidOperationException("Unexpected write");
-            Deletes++;if(DeleteCause!=null) throw DeleteCause;
+            Deletes++;TombstoneSources.Add(reference);
+            if(reference.StartsWith("owned-detail-signature-",StringComparison.Ordinal)) return Task.FromResult("owned-detail-tombstone");
+            if(DeleteCause!=null) throw DeleteCause;
             if(!DeleteAccepted) throw new InvalidOperationException("Owned tombstone rejection");
             return Task.FromResult("owned-avatar-tombstone");
         }
