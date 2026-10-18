@@ -51,12 +51,12 @@ public class CosmosPreparedNativeLedgerTests
             var executor=new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6"});
             async Task<UsageExecutionHandle> Begin(string suffix,decimal maximum){
                 var handle=await executor.BeginAsync("test-only",user,key+suffix,new string('a',64),"POST /independent-local-test",
-                    new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=0.04m,MaximumNativeFeeCostUsd=maximum},token);
+                    new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=0.08m,MaximumNativeFeeCostUsd=maximum},token);
                 var time=DateTime.UtcNow.AddSeconds(-1);
                 return handle.WithNativePrices(new[]{new NativeFeePriceQuote(Guid.Parse(handle.OperationId),"CosmosBlockChainOASIS",chain,"stake","local-test-stake",0,
                     0.000001m,"synthetic-local-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5))});
             }
-            var execution=await Begin("-accepted",0.04m);var rejected=await Begin("-zero-budget",0m);
+            var execution=await Begin("-accepted",0.08m);var rejected=await Begin("-zero-budget",0m);
             await JsonSerializer.SerializeAsync(file,new{database,key,chain,contract,sender,storageScope,assetSymbol,operationId=execution.OperationId,rejectedOperationId=rejected.OperationId,
                 preservedOriginalJournalSha256=oldHash,recovery="Reconcile only these original outbox attempts; never replay unknown submission or alter replication-pending.json."},cancellationToken:token);
             file.Flush(true);
@@ -83,16 +83,30 @@ public class CosmosPreparedNativeLedgerTests
                     Symbol=assetSymbol,Title="Prepared native acceptance",Amount=1.25m}),execution,"asset-mint",sender,token);
                 Assert.IsFalse(minted.IsError,minted.Message);
                 var balance=await provider.GetCustomTokenBalanceAsync(assetSymbol,sender);Assert.IsFalse(balance.IsError,balance.Message);Assert.AreEqual(1.25m,balance.Result);
+                var locked=await provider.ExecutePreparedStorageAsync(()=>provider.LockTokenAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.LockWeb3TokenRequest{
+                    TokenAddress=assetSymbol}),execution,"asset-lock",sender,token);Assert.IsFalse(locked.IsError,locked.Message);
+                var lockedState=await provider.GetCustomTokenAsync(assetSymbol);Assert.IsFalse(lockedState.IsError,lockedState.Message);Assert.IsTrue(lockedState.Result.GetProperty("locked").GetBoolean());
+                var unlocked=await provider.ExecutePreparedStorageAsync(()=>provider.UnlockTokenAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.UnlockWeb3TokenRequest{
+                    TokenAddress=assetSymbol}),execution,"asset-unlock",sender,token);Assert.IsFalse(unlocked.IsError,unlocked.Message);
+                lockedState=await provider.GetCustomTokenAsync(assetSymbol);Assert.IsFalse(lockedState.IsError,lockedState.Message);Assert.IsFalse(lockedState.Result.GetProperty("locked").GetBoolean());
                 var burned=await provider.ExecutePreparedStorageAsync(()=>provider.BurnTokenAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.BurnWeb3TokenRequest{
                     TokenAddress=assetSymbol,Amount=1.25m,OwnerPublicKey=identity.GetProperty("publicKey").GetString()!,OwnerPrivateKey="",OwnerSeedPhrase=""}),execution,"asset-burn",sender,token);
                 Assert.IsFalse(burned.IsError,burned.Message);
                 balance=await provider.GetCustomTokenBalanceAsync(assetSymbol,sender);Assert.IsFalse(balance.IsError,balance.Message);Assert.AreEqual(0m,balance.Result);
                 var asset=await provider.GetCustomTokenAsync(assetSymbol);Assert.IsFalse(asset.IsError,asset.Message);Assert.AreEqual("0",asset.Result.GetProperty("supply").GetString());
+                var nft=await provider.ExecutePreparedStorageAsync(()=>provider.MintNFTAsync(new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.MintWeb3NFTRequest{
+                    Title=assetSymbol+"NFT",Symbol="PREP",NumberToMint=1,NFTStandardType=NextGenSoftware.OASIS.API.Core.Enums.NFTStandardType.OASISCosmWasm}),execution,"nft-mint",sender,token);
+                Assert.IsFalse(nft.IsError,nft.Message);var address=nft.Result.Web3NFT.NFTTokenAddress;
+                var loaded=await provider.LoadOnChainNFTDataAsync(address);Assert.IsFalse(loaded.IsError,loaded.Message);
+                Assert.AreEqual(assetSymbol+"NFT",loaded.Result.Title);Assert.AreEqual(sender,loaded.Result.SendToAddressAfterMinting);
+                var nftBurn=await provider.ExecutePreparedStorageAsync(()=>provider.BurnNFTAsync(new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.BurnWeb3NFTRequest{
+                    NFTTokenAddress=address,OwnerPublicKey=identity.GetProperty("publicKey").GetString()!,OwnerPrivateKey="",OwnerSeedPhrase=""}),execution,"nft-burn",sender,token);
+                Assert.IsFalse(nftBurn.IsError,nftBurn.Message);loaded=await provider.LoadOnChainNFTDataAsync(address);Assert.IsTrue(loaded.IsError);Assert.IsNull(loaded.Result);
             }
             var stored=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,token);
-            Assert.AreEqual(storageScope?4:2,stored.ProviderAttempts.Count);
+            Assert.AreEqual(storageScope?8:2,stored.ProviderAttempts.Count);
             Assert.AreEqual(stored.ProviderAttempts.Sum(attempt=>NativeFeeMaximumAccounting.ValueUsd(attempt.NativePreparation.FeeMaximums,attempt.NativePreparation.PriceQuotes)),stored.NativeFeeExposureUsd);
-            Assert.IsTrue(stored.NativeFeeExposureUsd>0m&&stored.NativeFeeExposureUsd<=0.02m);
+            Assert.IsTrue(stored.NativeFeeExposureUsd>0m&&stored.NativeFeeExposureUsd<=0.08m);
             foreach(var attempt in stored.ProviderAttempts){
                 var maximum=attempt.NativePreparation.FeeMaximums.Single();Assert.AreEqual("stake",maximum.Denomination);
                 Assert.AreEqual(NativeFeeMaximumCoverage.AllFees,maximum.Coverage);Assert.IsNull(attempt.AcknowledgedAtUtc);
