@@ -100,12 +100,25 @@ public partial class SOLIDOASIS
         try{
             RequirePrivateStorage();
             var state=await ReadPrivateRecordStateAsync<IHolon>(id);
-            if(state.ETag==null||state.ETag.IsWeak)throw new InvalidDataException("A strong resource ETag is required for conditional SOLID deletion.");
-            var resource=_privateRecords.Resource<IHolon>(id);
+            await DeletePrivateResourceAsync(_privateRecords.Resource<IHolon>(id),state.ETag);
+            result.Result=state.Record;result.IsDeleted=true;
+        }catch(Exception error){
+            OASISErrorHandling.HandleError(ref result,"SOLID conditional holon deletion failed.",error);
+            if(error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
+        }
+        return result;
+    }
+    private static void RequireStrongDeleteTag(System.Net.Http.Headers.EntityTagHeaderValue tag)
+    {
+        if(tag==null||tag.IsWeak)throw new InvalidDataException("A strong resource ETag is required for conditional SOLID deletion.");
+    }
+    private async Task DeletePrivateResourceAsync(Uri resource,System.Net.Http.Headers.EntityTagHeaderValue tag)
+    {
+            RequireStrongDeleteTag(tag);
             bool acknowledged=false;
             try{
                 using var request=new HttpRequestMessage(HttpMethod.Delete,resource);
-                request.Headers.IfMatch.Add(state.ETag);
+                request.Headers.IfMatch.Add(tag);
                 using var response=await _httpClient.SendAsync(request);
                 if((int)response.StatusCode>=500||(int)response.StatusCode==408)
                     throw new SolidRecordReconciliationException(resource,false,new HttpRequestException("Uncertain SOLID DELETE status: "+(int)response.StatusCode));
@@ -113,13 +126,34 @@ public partial class SOLIDOASIS
                 using var verification=await _httpClient.GetAsync(resource);
                 if(verification.StatusCode!=System.Net.HttpStatusCode.NotFound)
                     throw new InvalidDataException("SOLID deletion has not been independently confirmed absent.");
-                result.Result=state.Record;
             }catch(SolidRecordReconciliationException){throw;}
             catch(HttpRequestException error)when(!acknowledged&&error.StatusCode.HasValue){throw;}
             catch(Exception error){throw new SolidRecordReconciliationException(resource,acknowledged,error);}
+    }
+    private async Task<OASISResult<bool>> DeletePrivateAvatarPermanentlyAsync(Guid id)
+    {
+        var result=new OASISResult<bool>();var acknowledged=new List<string>();
+        try{
+            RequirePrivateStorage();
+            var avatar=await ReadPrivateRecordStateAsync<IAvatar>(id);
+            RequireStrongDeleteTag(avatar.ETag);
+            (IAvatarDetail Record,System.Net.Http.Headers.EntityTagHeaderValue ETag)? detail=null;
+            try{detail=await ReadPrivateRecordStateAsync<IAvatarDetail>(id);}
+            // The established provider contract permits an avatar without a detail record.
+            catch(HttpRequestException error)when(error.StatusCode==System.Net.HttpStatusCode.NotFound){}
+            if(detail.HasValue)RequireStrongDeleteTag(detail.Value.ETag);
+            // Preflight both resources before any mutation; two LDP resources are not an atomic transaction.
+            if(detail.HasValue){
+                var resource=_privateRecords.Resource<IAvatarDetail>(id);
+                await DeletePrivateResourceAsync(resource,detail.Value.ETag);acknowledged.Add(resource.AbsoluteUri);
+            }
+            var avatarResource=_privateRecords.Resource<IAvatar>(id);
+            await DeletePrivateResourceAsync(avatarResource,avatar.ETag);acknowledged.Add(avatarResource.AbsoluteUri);
+            result.Result=true;result.IsDeleted=true;
         }catch(Exception error){
-            OASISErrorHandling.HandleError(ref result,"SOLID conditional holon deletion failed.",error);
-            if(error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
+            var cause=acknowledged.Count>0?new KeyValuePartialMutationException(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SOLIDOASIS,acknowledged,error):error;
+            OASISErrorHandling.HandleError(ref result,"SOLID avatar permanent deletion failed.",cause);
+            if(acknowledged.Count==0&&error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
         }
         return result;
     }
