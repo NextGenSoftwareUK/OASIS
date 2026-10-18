@@ -19,6 +19,28 @@ Operator dependencies are in [Pending user actions](#pending-user-actions). Reus
 
 ## Evidence journal — newest first
 
+2026-10-18 **shared stored-version overflow fixed before mutation, with terminal V2 behavior.** Found unchecked previous.Version+1 could roll an exhausted counter negative and write an archive/current record. One fix in KeyValueStorageProviderBase computes checked nextVersion BEFORE any history Put, then stamps it. Exhaustion raises terminal InvalidDataException with original OverflowException, reusing V2's existing terminal-state policy; plain OverflowException alone was proven to permit failover and a fresh record elsewhere. No duplicate provider-specific arithmetic, new fallback, schema/long-counter migration or silent rollover. Version-control defaults and roots-only explicit-version semantics remain unchanged. Legacy failover policy was NOT expanded/certified.
+
+Focused final14/14pass384ms/0skip:12avatar/detail/holon×sync/async×history-on/off cases prove int.MaxValue−1→int.MaxValue succeeds, next update makes ZERO backend Put attempts, current/history/caller bytes remain unchanged, and no false success/result is published. Two real V2-engine controlled-store cases prove no fallback provider writes/record creation. Full shared suite344/344pass2s/0skip includes those14, not an additional independent total. Original12unchecked regressions fail before fix; two routed regressions fail after numeric-only fix and before terminal classification. An interim eight failed assertions assumed avatar.Name was freely stored; corrected the TEST to use persisted metadata, not product display-name behavior.
+
+| Evidence | SHA256 |
+|---|---|
+| Original12 failing boundary cases | `216CE87B365F2F73B33EE004A109AD717EC742B3D6C68E4CE7DDDC61EF6E0C27` |
+| Two failing V2 terminal cases | `141291D8E0DDC22DD0E605DEA8742409A2C8B88178D45E9ED81B41E385DA7AED` |
+| Final14 focused passes | `3A7FB2CD57E32ADD3BF0B28AE39B164E6F573800E0EDA5D0D6E9DA98FD88B9C1` |
+| Final344 shared passes | `7D46AEA6A3D04E0D81A95B4BE62C700C041123B7EEF6547B1BF15C94F789C103` |
+
+These are shared/controlled V2 proofs, not native consensus, every storage option or hosted certification. Zero write attempts does NOT imply every real provider read is free: paid prerequisite reads still require existing admission. No native operation/funding/fee policy enabled. Final serial runner exited0: Cosmos240/240(2m26s), Sui155/155(2m28s), Hedera137/137(3m34s), TRON432/432(6s), all0failed/0skipped. Fixed reports in TestResults/SubscriptionUsageCurrent:
+
+| Final report | SHA256 |
+|---|---|
+| cosmos-full-owned-current.trx | `E78C272B84BB7A6584492611CE87ED3D6BD44577C4BBADD475879A9F66167C44` |
+| sui-full-owned-current.trx | `E15868815934B900760665E720FA1D6DCFE98ABAF8FAB920E424FC20F2D1572C` |
+| hedera-full-owned-current.trx | `1E11DD9DD99FE653289D16FC24696B21D25826418D668ED3A9DA7C7A13E50AF5` |
+| tron-prepared-storage-owned-current.trx | `DEBE0BD9C5A82CA186A8E08821AC528C02B34421DFA8D1E6FCD8234959748650` |
+
+Four provider producer/unit-consumer DLLs match final Shared SHA256 `7BCCDA7F378ABC79C5F1E5A5F8472FB21B3E0E4FB09BA4F8655D44A761685D5D`. All seven API diagnostic builds pass0errors, but only WEB4/7/8/9/10 outputs match that Shared binary. Reused junction-based WEB5 output has `8BAB727ADF2E6BA3463E9186872D0B7F9C628D9FFFAC66C77A8216D8C477B745`; WEB6 has `1243028E328E9AEE8E5BF82338742A11CD6BDD3D3192F828026591E05CC569C4`. Therefore WEB5/6 are build diagnostics ONLY, NOT consumer acceptance of this fix. Do not manually overwrite DLLs or claim clean seven-host delivery; exact-source dependency/publish gates remain OPEN. Same retained environment; no restore/download/install/clone. Owned test Mongo listener27029 absent after runner; unrelated mongod process preserved. Native uncertain originals remain untouched and goal/release gates OPEN.
+
 2026-10-18 **actual retained TRON fee bytecode inspected; complete fee qualification still OPEN.** Extended the SAME offline inspector with `-FeeRules`: selected fee methods plus Manager transaction/block/expiry ordering from five actual retained classes, not an assumed release JAR. One temporary class at a time,146862bytes processed cumulatively/largest100501bytes; all removed. No FullNode execution, chain startup, download, installation, JAR copy or ledger change. Existing JDK/Python/lease/fixed diagnostic folder reused.114341byte compact report `fee-bytecode-inspection-current.json` SHA256 `B6DB0D891A0EED5D13C4F8CF804E6EF073615BEA37009CE085CEB8AE35563693` repeats identically; default identity report97C27377… remains identical. Retains feeModelReviewed=false; these are component findings, not a complete model certificate.
 
 | Actual retained class | SHA256 | Selected methods |
