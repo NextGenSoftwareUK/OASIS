@@ -69,7 +69,10 @@ public sealed class MongoBootstrapAuthority
         if (!verified.Ready) throw new ArgumentException("Published authority must be ready.", nameof(verified));
         var result = await _records.ReplaceOneAsync(
             x => x.Id == verified.Id && x.Revision == verified.Revision && !x.Ready
-                && x.TokenVersion <= verified.TokenVersion && x.KarmaVersion <= verified.KarmaVersion,
+                && (x.TokenVersion < verified.TokenVersion
+                    || (x.TokenVersion == verified.TokenVersion && x.Enabled == verified.Enabled))
+                && (x.KarmaVersion < verified.KarmaVersion
+                    || (x.KarmaVersion == verified.KarmaVersion && x.Karma == verified.Karma)),
             verified, cancellationToken: token);
         if (result.ModifiedCount != 1)
             throw new InvalidOperationException("Bootstrap publication conflicted; authority remains unavailable.");

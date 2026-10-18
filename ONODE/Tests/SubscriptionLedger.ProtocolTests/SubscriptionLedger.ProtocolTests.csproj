@@ -13,6 +13,7 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/BootstrapAuthority.cs" Link="Production/BootstrapAuthority.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionLedgerMetrics.cs" Link="Production/SubscriptionLedgerMetrics.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Migration.cs" Link="Production/MongoSubscriptionUsageRepository.Migration.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageOpeningBalanceManifest.cs" Link="Production/UsageOpeningBalanceManifest.cs" />
