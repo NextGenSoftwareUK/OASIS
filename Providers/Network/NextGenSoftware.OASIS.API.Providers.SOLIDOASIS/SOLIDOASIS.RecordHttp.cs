@@ -16,8 +16,10 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
 
-public sealed class SolidRecordReconciliationException : IOException
+public sealed class SolidRecordReconciliationException : IOException,INativeMutationReconciliationRequired
 {
+    public NextGenSoftware.OASIS.API.Core.Enums.ProviderType ProviderType=>NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SOLIDOASIS;
+    public string OriginalTransactionId=>string.Empty;
     public Uri Resource {get;}
     public bool WriteAcknowledged {get;}
     public SolidRecordReconciliationException(Uri resource,bool acknowledged,Exception cause)

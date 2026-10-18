@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-18 SOLID graph-write work reused shared planner/key-partial exception and SAME controlled HTTP fixture, existing caches/projects; bounded no-restore/no-reference builds/tests.92SOLID/408sharedunit tests terminal. No download/install/service/container start/clone/new environment/native ledger/public writes. Previous policy denial not bypassed. Free86724448256bytes after SOLID verification observed; compact fixed-path reports/reusable outputs retained. No file deletion/broad cache removal.
+
 2026-10-18 SOLID metadata/parent query integration reuses existing matcher/graph projector, cached assets/binaries, controlled HTTP fixtures. Bounded no-restore/no-reference builds;78unit cases terminal. No download/install/clone/server/runtime start/new environment/public writes; previous denied container creation not retried through another path. Free86731915264early→86729478144after observed, no reclaim attribution. Fixed compact evidence and reusable outputs retained; no filesystem cleanup/removal.
 
 Final Solid native-preparation free space86734508032bytes after existing integration build/test discovery (~418MB below87152447488pre-stage observation, including336257823byte image and reusable integration output/cache, not exact filesystem attribution). Two native cases discovered, ZERO executed. No server/pod/key/journal created by runner; only compact/source/build evidence retained.

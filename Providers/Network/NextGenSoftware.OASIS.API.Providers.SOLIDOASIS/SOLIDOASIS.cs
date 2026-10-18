@@ -282,36 +282,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-            => await SavePrivateRecordAsync(holon);
+            => await SaveOnePrivateGraphAsync(holon,saveChildren,recursive,maxChildDepth);
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                if (holons == null || !holons.Any()) { OASISErrorHandling.HandleError(ref result, "Holons cannot be null or empty"); return result; }
-                foreach (var holon in holons)
-                {
-                    var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!saveResult.IsError && saveResult.Result != null)
-                        saved.Add(saveResult.Result);
-                    else if (!continueOnError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, saveResult.Message);
-                        return result;
-                    }
-                }
-                result.Result = saved;
-                result.Message = $"Saved {saved.Count} holons to SOLID pod";
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving holons: {ex.Message}", ex); }
-            return result;
-        }
+            => await SavePrivateGraphAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
