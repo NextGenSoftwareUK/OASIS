@@ -12,6 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public override string CollectionName { get; } = "avatarDetailItems";
         protected override Type EntityType => typeof(AvatarDetail);
+        protected override IAvatarDetail ProjectInput(IAvatarDetail entity) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<AvatarDetail>(entity);
         public override Guid GenerateId(IAvatarDetail entity) => Guid.NewGuid();
         public override PartitionKey? ResolvePartitionKey(string entityId) => new PartitionKey(entityId);
     }

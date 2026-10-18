@@ -70,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             ArgumentNullException.ThrowIfNull(entity);
             var originalId=entity.Id;
-            var snapshot=(T)OasisJson.Deserialize(OasisJson.Serialize(entity),EntityType);
+            var snapshot=ProjectInput(entity);
             if(snapshot.Id==Guid.Empty) snapshot.Id=GenerateId(entity);
             if(snapshot.Id==Guid.Empty) throw new InvalidDataException("Cosmos generated an empty identity.");
             snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
@@ -91,8 +91,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             ArgumentNullException.ThrowIfNull(expected);ArgumentNullException.ThrowIfNull(replacement);
             if(expected.Id==Guid.Empty || expected.Id!=replacement.Id)throw new ArgumentException("Conditional Cosmos replacement requires matching nonempty identities.");
-            var original=(T)OasisJson.Deserialize(OasisJson.Serialize(expected),EntityType);
-            var staged=(T)OasisJson.Deserialize(OasisJson.Serialize(replacement),EntityType);
+            var original=ProjectInput(expected);
+            var staged=ProjectInput(replacement);
             var key=staged.Id.ToString();
             staged.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
             staged.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
@@ -106,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             ArgumentNullException.ThrowIfNull(entity);
             var originalId=entity.Id;
             if(originalId==Guid.Empty) throw new ArgumentException("A nonempty Cosmos identity is required for replacement.",nameof(entity));
-            var snapshot=(T)OasisJson.Deserialize(OasisJson.Serialize(entity),EntityType);
+            var snapshot=ProjectInput(entity);
             var key=originalId.ToString();
             snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
@@ -139,6 +139,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public abstract string CollectionName { get; }
         protected abstract Type EntityType { get; }
+        // Trusted caller objects project into canonical DTOs; stored JSON still uses EntityType and the restricted binder.
+        protected abstract T ProjectInput(T entity);
         public virtual Guid GenerateId(T entity) => Guid.NewGuid();
         public virtual PartitionKey? ResolvePartitionKey(string entityId) => null;
 

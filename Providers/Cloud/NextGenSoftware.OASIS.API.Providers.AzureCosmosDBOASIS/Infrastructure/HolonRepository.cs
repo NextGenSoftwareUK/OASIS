@@ -12,6 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public override string CollectionName { get; } = "holonItems";
         protected override Type EntityType => typeof(Holon);
+        protected override IHolon ProjectInput(IHolon entity) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Holon>(entity);
         public override Guid GenerateId(IHolon entity) => Guid.NewGuid();
         public override PartitionKey? ResolvePartitionKey(string entityId) => new PartitionKey(entityId.Split(':')[0]);
     }
