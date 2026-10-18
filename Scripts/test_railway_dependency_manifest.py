@@ -1,10 +1,50 @@
 """Controlled preflight boundary tests; actual checkout checks run separately."""
 import subprocess
+import json
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from validate_railway_dependency_manifest import checkout_failures
+from validate_railway_dependency_manifest import checkout_failures, restored_project_failures
+
+
+class RestoreProvenanceTests(unittest.TestCase):
+    def setUp(self):
+        self.project = Path(__file__).absolute().parent / "fixture" / "Api.csproj"
+
+    def check(self, value):
+        with patch.object(Path, "read_text", return_value=json.dumps(value)):
+            return restored_project_failures(self.project)
+
+    def test_exact_logical_root_is_accepted(self):
+        self.assertEqual([], self.check({"project": {"restore": {"projectPath": str(self.project)}}}))
+
+    def test_other_checkout_is_rejected_even_if_junction_resolves_to_same_file(self):
+        other = self.project.parent.parent / "other" / "Api.csproj"
+        with patch.object(Path, "resolve", return_value=self.project):
+            failures = self.check({"project": {"restore": {"projectPath": str(other)}}})
+        self.assertIn("cached restore belongs to", failures[0])
+
+    def test_normalized_logical_path_is_accepted(self):
+        path = str(self.project.parent / "unused" / ".." / self.project.name)
+        self.assertEqual([], self.check({"project": {"restore": {"projectPath": path}}}))
+
+    def test_missing_root_is_rejected(self):
+        self.assertIn("cannot verify", self.check({})[0])
+
+    def test_relative_root_is_rejected(self):
+        self.assertIn("absolute path", self.check({"project": {"restore": {"projectPath": "Api.csproj"}}})[0])
+
+    def test_non_string_root_is_rejected(self):
+        self.assertIn("cannot verify", self.check({"project": {"restore": {"projectPath": []}}})[0])
+
+    def test_missing_assets_are_rejected(self):
+        with patch.object(Path, "read_text", side_effect=FileNotFoundError("missing assets")):
+            self.assertIn("cannot verify", restored_project_failures(self.project)[0])
+
+    def test_malformed_assets_are_rejected(self):
+        with patch.object(Path, "read_text", return_value="not json"):
+            self.assertIn("cannot verify", restored_project_failures(self.project)[0])
 
 
 class CheckoutPreflightTests(unittest.TestCase):
