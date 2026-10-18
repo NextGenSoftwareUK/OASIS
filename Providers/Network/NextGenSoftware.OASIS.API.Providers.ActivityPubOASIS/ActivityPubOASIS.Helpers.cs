@@ -230,7 +230,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         public void Dispose()
         {
-            _httpClient?.Dispose();
+            if (_disposed) return;
+            _disposed = true;
+            _isActivated = false;
+            IsProviderActivated = false;
+            _httpClient.Dispose();
+            GC.SuppressFinalize(this);
         }
 
 

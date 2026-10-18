@@ -28,6 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
             try
             {
+                ObjectDisposedException.ThrowIf(_disposed, this);
                 if (_isActivated)
                 {
                     response.Result = true;
@@ -36,10 +37,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 }
 
                 // Test connection to ActivityPub instance
-                var testResponse = await _httpClient.GetAsync("/api/v1/instance");
+                using var testResponse = await _httpClient.GetAsync("/api/v1/instance");
                 if (testResponse.IsSuccessStatusCode)
                 {
                     _isActivated = true;
+                    IsProviderActivated = true;
                     response.Result = true;
                     response.Message = "ActivityPub provider activated successfully";
                 }
@@ -69,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             try
             {
                 _isActivated = false;
-                _httpClient?.Dispose();
+                IsProviderActivated = false;
                 response.Result = true;
                 response.Message = "ActivityPub provider deactivated successfully";
             }
