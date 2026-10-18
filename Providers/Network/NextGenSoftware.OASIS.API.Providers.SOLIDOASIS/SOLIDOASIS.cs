@@ -184,10 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                     result.Message = "Avatar soft-deleted in SOLID pod";
                     return result;
                 }
-                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/avatars/{id}.ttl");
-                result.Result = response.IsSuccessStatusCode;
-                result.IsError = !result.Result;
-                result.Message = result.Result ? "Avatar deleted from SOLID pod" : $"SOLID LDP error: {response.StatusCode}";
+                return await DeletePrivateAvatarPermanentlyAsync(id);
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {ex.Message}", ex); }
             return result;
