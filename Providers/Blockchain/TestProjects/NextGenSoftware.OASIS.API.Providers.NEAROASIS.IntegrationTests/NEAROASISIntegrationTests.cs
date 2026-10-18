@@ -449,6 +449,47 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual(0,(await _provider.SearchAsync(query)).Result.NumberOfResults);
         }
 
+        [TestMethod]
+        public async Task Storage_NearbyUsesMicrodegreesAndRejectsMalformedStoredCoordinates()
+        {
+            var marker=Guid.NewGuid().ToString("N");
+            var avatar=new Avatar{Id=Guid.NewGuid(),Username=$"nearby-{marker}",
+                MetaData=new Dictionary<string,object>{{"Latitude",0d},{"Longitude",0d}}};
+            var holon=new Holon{Id=Guid.NewGuid(),Name=$"nearby-{marker}",
+                MetaData=new Dictionary<string,object>{{"Latitude",0d},{"Longitude",0d}}};
+            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            var avatars=_provider.GetAvatarsNearMe(0,0,0);
+            Assert.IsFalse(avatars.IsError,avatars.Message);
+            Assert.IsTrue(avatars.Result.Any(item=>item.Id==avatar.Id));
+            var holons=_provider.GetHolonsNearMe(0,0,0,HolonType.All);
+            Assert.IsFalse(holons.IsError,holons.Message);
+            Assert.IsTrue(holons.Result.Any(item=>item.Id==holon.Id));
+            Assert.IsFalse(_provider.GetAvatarsNearMe(1000000,0,1).Result.Any(item=>item.Id==avatar.Id));
+            Assert.IsFalse(_provider.GetHolonsNearMe(1000000,0,1,HolonType.All).Result.Any(item=>item.Id==holon.Id));
+            var corruptionAcknowledged=false;
+            try
+            {
+                holon.MetaData["Longitude"]="not-a-coordinate";
+                var corrupted=await _provider.SaveHolonAsync(holon);
+                Assert.IsFalse(corrupted.IsError,corrupted.Message);
+                corruptionAcknowledged=true;
+                var malformed=_provider.GetHolonsNearMe(0,0,1,HolonType.All);
+                Assert.IsTrue(malformed.IsError);
+                Assert.IsInstanceOfType<System.IO.InvalidDataException>(malformed.Exception);
+                Assert.IsNull(malformed.Result);
+            }
+            finally
+            {
+                if(corruptionAcknowledged)
+                {
+                    holon.MetaData["Longitude"]=0d;
+                    var repaired=await _provider.SaveHolonAsync(holon);
+                    Assert.IsFalse(repaired.IsError,repaired.Message);
+                }
+            }
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
