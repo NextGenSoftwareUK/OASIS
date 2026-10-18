@@ -1,5 +1,9 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Configured-route recovery readiness — 2026-10-17
+
+Native storage admission configuration now registers a startup check requiring exactly one registered final-fee reader for every configured provider/exact chain. Missing/mismatched/duplicate/AnteDeductionOnly reader prevents host readiness; no provider activation, signer resolution or fee lookup by checker. Unconfigured mode remains disabled/unchanged, ordinary-only configuration needs no native reader. Actual readers must still be registered by the host using reviewed provider configuration; no automatic provider creation or change to existing recovery/settlement ownership. In particular Cosmos's current ante-only reader is deliberately insufficient for enabling these paid routes. Core4e61bcd…/281tests passing; evidence hashes and failed-before cases in release journal. No deployment/env/spending change.
+
 ## Hedera first current prepared testnet read acceptance — 2026-10-17
 
 Actual public missing-holon read1/1passed6s now verifies1signed query payment durably admitted before transport and recovered against original indexed hash/payer/node/payment. **Actual0.12264562testHBAR debit =0.12147334query payment +0.00117228network fee**, below0.13147334signed/admitted maximum and0.20aggregate budget. Configured100000gas can make even missing-record reads materially expensive; do not treat them as free or quote these testnet amounts as fiat/production tariffs. Synthetic1USD/HBAR exists only for test accounting. One actual receipt persisted, no hosted settlement/logical-success inference; no storage mutation. Full raw original evidence/report hash in release journal.
