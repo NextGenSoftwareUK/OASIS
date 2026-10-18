@@ -1,10 +1,11 @@
-param([switch]$CheckLedger)
+param([switch]$CheckLedger,[switch]$ExportForPreparedRead)
 $ErrorActionPreference = 'Stop'
 # One current-user DPAPI-protected identity, outside source control. Never print the key.
 $taskRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $bridgeRoot = Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge'
 $fixtureRoot = Join-Path $env:LOCALAPPDATA 'OASIS/ReusableProviderTests/Hedera'
 $fixturePath = Join-Path $fixtureRoot 'testnet-identity.dpapi'
+if($ExportForPreparedRead -and (!$CheckLedger -or !(Test-Path -LiteralPath $fixturePath))){throw 'Prepared read requires the existing protected identity and explicit ledger check; no key creation.'}
 Add-Type -AssemblyName System.Security
 if (Test-Path -LiteralPath $fixturePath) {
     $encrypted = [IO.File]::ReadAllBytes($fixturePath)
@@ -58,6 +59,11 @@ if ($CheckLedger) {
             $ledgerState = 'Account not indexed (404); funding/account creation unverified'
         } else { throw }
     }
+}
+if($ExportForPreparedRead){
+    if($accountId -ne '0.0.10993779' -or $identity.evmAddress -ine '0x3ab524fab17a975d871cb7f7f0f91f507a7dfa33'){throw 'Reviewed prepared-read test identity differs.'}
+    $env:OASIS_HEDERA_PREPARED_READ_PRIVATE_KEY=$identity.privateKey
+    $env:OASIS_HEDERA_PREPARED_READ_ACCOUNT_ID=$accountId
 }
 [pscustomobject]@{ Network = 'testnet'; EvmAddress = $identity.evmAddress; CredentialFile = $fixturePath;
     AccountId = $accountId; BalanceTinybars = $balanceTinybars; LedgerState = $ledgerState; Funded = 'Consensus not verified' }

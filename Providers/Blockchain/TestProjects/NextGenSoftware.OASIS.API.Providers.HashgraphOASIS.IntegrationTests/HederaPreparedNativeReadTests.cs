@@ -1,0 +1,85 @@
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
+
+namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
+
+[TestClass,DoNotParallelize,TestCategory("FundedTestnet")]
+public class HederaPreparedNativeReadTests
+{
+    private sealed class Authority(string user):HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token){
+            var body=await request.Content!.ReadAsStringAsync(token);object response;
+            if(request.RequestUri!.AbsolutePath.EndsWith("authorize")){
+                var input=JsonSerializer.Deserialize<UsageAuthorizationRequest>(body)!;
+                response=new SubscriptionAuthorizationResult{Allowed=true,StatusCode=200,Status="authorized",UserId=user,OperationId=input.OperationId,ExpiresAtUtc=DateTime.UtcNow.AddMinutes(5)};
+            }else if(request.RequestUri.AbsolutePath.EndsWith("start")){
+                var input=JsonSerializer.Deserialize<UsageStartRequest>(body)!;response=new UsageStartResult{Started=true,Status="executing",OperationId=input.OperationId};
+            }else throw new InvalidOperationException("This native-read fixture never delivers hosted settlement.");
+            return new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=new StringContent(JsonSerializer.Serialize(response),Encoding.UTF8,"application/json")};
+        }
+    }
+    [TestMethod]
+    public async Task RetainedTestnetReadPreparesEveryPaymentBeforeTransportAndRecoversActualFees()
+    {
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        Assert.AreEqual("0.0.10993779",Environment.GetEnvironmentVariable("OASIS_HEDERA_PREPARED_READ_ACCOUNT_ID"));
+        var key=Environment.GetEnvironmentVariable("OASIS_HEDERA_PREPARED_READ_PRIVATE_KEY");Assert.IsFalse(string.IsNullOrWhiteSpace(key));
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        while(root!=null&&!File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/inspect-reusable-hedera-store.mjs")))root=root.Parent;
+        Assert.IsNotNull(root);var statePath=Path.Combine(root!.FullName,"TestResults/HederaRuntime/deployment-store.json");
+        var stateHash=SHA256.HashData(File.ReadAllBytes(statePath));
+        using var state=JsonDocument.Parse(File.ReadAllText(statePath));Assert.AreEqual("0.0.11017885",state.RootElement.GetProperty("contractId").GetString());Assert.IsTrue(state.RootElement.GetProperty("verified").GetBoolean());Assert.IsFalse(state.RootElement.TryGetProperty("pending",out _));
+        const string database="usage_hedera_native_read";var mongo=new MongoClient(connection);
+        using(var names=await mongo.ListDatabaseNamesAsync())Assert.IsFalse((await names.ToListAsync()).Contains(database));
+        var journal=Path.Combine(root.FullName,"TestResults/HederaRuntime/prepared-read-pending.json");Assert.IsFalse(File.Exists(journal));
+        using var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.Read);
+        using var deadline=new CancellationTokenSource(TimeSpan.FromMinutes(3));var token=deadline.Token;var complete=false;
+        var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(token);string? operationId=null;
+        var provider=new HashgraphOASIS("https://testnet.mirrornode.hedera.com","testnet","296",storageConfiguration:new(){
+            ContractId="0.0.11017885",OperatorAccountId="0.0.10993779",SigningKeyType="der",SigningKeyResolver=()=>key!,
+            EncryptionKeyResolver=()=>SHA256.HashData(Encoding.UTF8.GetBytes("oasis-hedera-testnet-storage-fixture-v1")),GasLimit=100000,MaxFeeTinybars=1000000,
+            QueryPreparation=new(){AuthorizedNodeAccountIds=Enumerable.Range(3,7).Select(number=>"0.0."+number).ToArray(),MaxPaymentTinybars=1000000,MaxTransactionFeeTinybars=1000000,MaximumRequestsPerInvocation=6}});
+        try{
+            var user=Guid.NewGuid().ToString("D");using var transport=new HttpClient(new Authority(user));
+            var execution=await new Web4UsageExecution(new Web4SubscriptionAuthorizationClient(transport,"https://controlled-authority.invalid","WEB6","test-only"),store,new(){Service="WEB6"})
+                .BeginAsync("test-only",user,"retained-native-read",new string('a',64),"GET /native-read-fixture",new(){MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=.1m,MaximumNativeFeeCostUsd=.1m,MaximumProviderAttempts=6},token);
+            operationId=execution.OperationId;var time=DateTime.UtcNow.AddSeconds(-1);
+            execution=execution.WithNativePrices(new[]{new NativeFeePriceQuote(Guid.Parse(operationId),"HashgraphOASIS","testnet","tinybar","hedera-hashgraph",8,1m,
+                "synthetic-testnet-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5))});
+            var holonId=Guid.NewGuid();await JsonSerializer.SerializeAsync(file,new{database,operationId,holonId,contractId="0.0.11017885",payer="0.0.10993779",maximumTestHbar=.1m,
+                recovery="Read original query payments only; never retry an uncertain paid read or remove this fence without reconciliation."},cancellationToken:token);file.Flush(true);
+            var read=await provider.ExecutePreparedStorageAsync(()=>provider.LoadHolonAsync(holonId,loadChildren:false),execution,"native-read","0.0.10993779",token);
+            Assert.IsNull(read.Result);Assert.IsTrue(!read.IsError||read.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,read.Message);
+            var operation=await store.GetAsync(operationId,token);Assert.IsTrue(operation.ProviderAttempts.Count>0&&operation.ProviderAttempts.Count<=6);
+            decimal maximum=0;var originals=new List<object>();
+            foreach(var attempt in operation.ProviderAttempts){
+                Assert.AreEqual("hedera-query-payment-v1",attempt.NativePreparation.SigningAuthority.Scheme);Assert.IsNull(attempt.AcknowledgedAtUtc);
+                maximum+=NativeFeeMaximumAccounting.ValueUsd(attempt.NativePreparation.FeeMaximums,attempt.NativePreparation.PriceQuotes);
+                NextGenSoftware.OASIS.Common.OASISResult<JsonElement>? fee=null;var until=DateTime.UtcNow.AddSeconds(40);
+                while(DateTime.UtcNow<until){fee=await provider.GetPreparedNativeFeeReceiptAsync(attempt,token);if(!fee.IsError)break;await Task.Delay(2000,token);}
+                Assert.IsNotNull(fee);Assert.IsFalse(fee.IsError,fee.Message);Assert.IsTrue(fee.Result.GetProperty("success").GetBoolean());
+                Assert.IsTrue(System.Numerics.BigInteger.Parse(fee.Result.GetProperty("netUnits").GetString()!,CultureInfo.InvariantCulture)>0);
+                originals.Add(new{attempt,actualFee=fee.Result});
+            }
+            Assert.IsTrue(maximum>0&&maximum<=.1m);Assert.AreEqual(maximum,operation.NativeFeeExposureUsd);
+            var owner=new PreparedNativeUsageRecoveryResolver(store,new[]{(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)provider});
+            Assert.IsNull(await owner.ResolveAsync(operation,token));var measured=await store.GetAsync(operationId,token);Assert.AreEqual(operation.ProviderAttempts.Count,measured.Receipts.Count);Assert.IsNull(measured.Settlement);
+            Console.WriteLine(JsonSerializer.Serialize(new{originals,measured.Receipts,maximumTestHbar=.1m,measured.NativeFeeExposureUsd,hostedSettlementVerified=false,storageMutations=0}));
+            CollectionAssert.AreEqual(stateHash,SHA256.HashData(File.ReadAllBytes(statePath)));complete=true;
+        }catch(Exception error){
+            Console.WriteLine("Native read failed; original journal retained: "+error.Message);
+            if(operationId!=null)try{using var evidenceDeadline=new CancellationTokenSource(TimeSpan.FromSeconds(5));Console.WriteLine(JsonSerializer.Serialize(new{retainedOriginal=await store.GetAsync(operationId,evidenceDeadline.Token)}));}
+                catch(Exception lookupFailure){Console.WriteLine("Retained evidence lookup failed; inspect original journal: "+lookupFailure.GetType().Name);}
+            throw;
+        }finally{
+            await provider.DeActivateProviderAsync();if(complete){await mongo.DropDatabaseAsync(database,token);file.Dispose();File.Delete(journal);}
+        }
+    }
+}
