@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Mixed native/AI outcome and middleware ownership — WEB6 0689a28
+
+Mixed recovery requires both an original native fee receipt AND a separately recorded valid logical API outcome. Provider-job success alone must not turn an interrupted/failed workflow into success. WEB6 snapshots that outcome before async lookup and preserves succeeded/failed/cancelled with actual provider fees. Missing/invalid outcome stays unresolved with no AI lookup. Fully receipted mixed operations are not claimed by the AI resolver: shared RecordedUsageRecoveryResolver owns that state, avoiding duplicate-owner rejection. Receipt correlation includes provider plus client request ID. Existing AI-only job recovery semantics are unchanged.
+
+Real ASP.NET UseMiddleware binding exposed another issue: an InvokeAsync Web6UsagePricing argument was resolved by DI BEFORE route guards, so checking native routes inside the method could not prevent unavailable AI pricing from breaking native/ordinary requests. Both pricing-snapshot and provider-usage middleware now resolve AI pricing only AFTER their actual route/measurement guards. No fake pricing source, fallback catalogue or unmetered AI execution was introduced. Native exact route and ordinary catalogue GET traverse actual middleware with a deliberately throwing AI-pricing factory and resolve it zero times; actual completion attempts resolve it and reject before endpoint execution.
+
+Existing reusable WEB6 recovery console suite passes **69 assertions** with actual middleware binding and controlled provider HTTP responses, including frozen logical outcome under callback mutation and native/AI cost preservation. First added outcome regression failed against prior code; second actual-DI test failed before lazy resolution fix. WEB6/API and recovery project build0errors34/4warnings; no live provider operation or hosted acceptance in these controlled checks. Commit `0689a2803e044425e40744d515af5ec8b43cfefb`, same existing feature branch/checkouts/environment, no download/install/native transaction/production configuration.
+
 ## WEB5/WEB6 explicit admission wiring
 
 WEB5 `50838732e569b961656c90c4931e8bcc30705aee` and WEB6 `4445855724d06dca80767b5e9b43f799b33294ea` add shared exact storage policy selection before ledger registration, non-owning registered reader composition, prepared storage middleware AFTER ledger middleware, and passive admitted boot. WEB5 admitted startup errors are fatal rather than swallowed by its ordinary boot error logger; lost admitted boot returns503 before request-time ordinary boot. No automatic routes, networks, tariffs or env settings enabled.
