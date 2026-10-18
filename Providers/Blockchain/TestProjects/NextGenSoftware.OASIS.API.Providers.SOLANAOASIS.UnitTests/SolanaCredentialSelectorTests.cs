@@ -31,17 +31,21 @@ public class SolanaCredentialSelectorTests
             2=>sync ? storage.LoadAvatarByRefreshToken(value,version):await storage.LoadAvatarByRefreshTokenAsync(value,version),
             3=>sync ? storage.LoadAvatarByPublicKey(value,version):await storage.LoadAvatarByPublicKeyAsync(value,version),
             _=>sync ? storage.LoadAvatarByPrivateKey(value,version):await storage.LoadAvatarByPrivateKeyAsync(value,version)};
-        foreach(var input in new[] {(" ",0),(key,-1),(key,1)})
+        foreach(var input in new[] {(" ",0),(key,-1)})
         {
             var invalid=await Read(input.Item1,input.Item2);Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalid.ErrorCode);Assert.IsNull(invalid.Result);
-            if(input.Item2==1) Assert.IsInstanceOfType(invalid.Exception,typeof(NotSupportedException));
-            else Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentException));
+            Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentException));
         }
         Assert.AreEqual(0,repository.Reads);
         var first=Create("first");repository.Records.Add(first.GetSolanaAvatarDto());
         var loaded=await Read(key);Assert.IsFalse(loaded.IsError,loaded.Message);Assert.IsTrue(loaded.IsLoaded);Assert.AreEqual(first.Id,loaded.Result.Id);
         Assert.AreEqual(first.ResetTokenExpires,loaded.Result.ResetTokenExpires);Assert.AreEqual(first.RefreshToken,loaded.Result.RefreshToken);
         Assert.AreEqual(first.ProviderWallets[ProviderType.SolanaOASIS][0].Id,loaded.Result.ProviderWallets[ProviderType.SolanaOASIS][0].Id);
+        repository.Records[0].Version=2;
+        var historical=await Read(key,2);
+        Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(2,historical.Result.Version);
+        Assert.AreEqual(2,repository.LastVersion);
+        Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await Read(key,1)).ErrorCode);
         Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await Read(key+"missing")).ErrorCode);
         repository.Records.Add(Create("duplicate").GetSolanaAvatarDto());
         var duplicate=await Read(key);Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,duplicate.ErrorCode);Assert.IsNull(duplicate.Result);
@@ -50,6 +54,33 @@ public class SolanaCredentialSelectorTests
         var failed=await Read(key);Assert.IsTrue(failed.IsError);Assert.AreSame(cause,failed.Exception);Assert.IsNull(failed.Result);
         repository.Cause=null;repository.Records[0].ProviderWalletsJson="{invalid";
         var corrupt=await Read(key);Assert.IsTrue(corrupt.IsError);Assert.IsInstanceOfType(corrupt.Exception,typeof(System.IO.InvalidDataException));Assert.IsNull(corrupt.Result);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)]
+    [DataRow(false,true)] [DataRow(true,true)]
+    public async Task HistoricalCollectionsForwardVersionAndKeepTypedSignatures(bool sync,bool detail)
+    {
+        var id=Guid.NewGuid();
+        var repository=new RecordsRepository();
+        repository.Records.Add(new SolanaAvatarDto {Id=id,Version=3,UserName="historical-avatar"});
+        repository.Details.Add(new SolanaAvatarDetailDto {Id=id,Version=3,Username="historical-detail",XP=89});
+        var provider=new ActiveProvider(repository);
+        if(detail)
+        {
+            var result=sync ? provider.LoadAllAvatarDetails(3):await provider.LoadAllAvatarDetailsAsync(3);
+            Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);
+            Assert.AreEqual(89L,result.Result.Single().XP);Assert.AreEqual(3,result.Result.Single().Version);
+            Assert.AreEqual("owned-signature-"+id,result.Result.Single().ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+        }
+        else
+        {
+            var result=sync ? provider.LoadAllAvatars(3):await provider.LoadAllAvatarsAsync(3);
+            Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);
+            Assert.AreEqual("historical-avatar",result.Result.Single().Username);Assert.AreEqual(3,result.Result.Single().Version);
+            Assert.AreEqual("owned-signature-"+id,result.Result.Single().ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+        }
+        Assert.AreEqual(3,repository.LastVersion);Assert.AreEqual(1,repository.Reads);
     }
 
     private sealed class ActiveProvider:SolanaOASIS
@@ -63,11 +94,15 @@ public class SolanaCredentialSelectorTests
     }
     private sealed class RecordsRepository:ISolanaRepository
     {
-        public List<SolanaAvatarDto> Records=new();public int Reads;public Exception? Cause;
+        public List<SolanaAvatarDto> Records=new();public int Reads;public int LastVersion;public Exception? Cause;
+        public List<SolanaAvatarDetailDto> Details=new();
         public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>(int version=0) where T:SolanaBaseDto,new()
         {
-            Reads++;if(Cause!=null) throw Cause;
-            return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Records.Select(row=>
+            Reads++;LastVersion=version;if(Cause!=null) throw Cause;
+            if(typeof(T)==typeof(SolanaAvatarDetailDto))
+                return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Details.Where(row=>version==0 || row.Version==version)
+                    .Select(row=>((T)(SolanaBaseDto)row,"owned-signature-"+row.Id)).ToList());
+            return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Records.Where(row=>version==0 || row.Version==version).Select(row=>
                 ((T)(SolanaBaseDto)Newtonsoft.Json.JsonConvert.DeserializeObject<SolanaAvatarDto>(Newtonsoft.Json.JsonConvert.SerializeObject(row))!,"owned-signature-"+row.Id)).ToList());
         }
         public Task<T> GetAsync<T>(string reference) where T:SolanaBaseDto,new()=>throw new InvalidOperationException("Unexpected point read");
