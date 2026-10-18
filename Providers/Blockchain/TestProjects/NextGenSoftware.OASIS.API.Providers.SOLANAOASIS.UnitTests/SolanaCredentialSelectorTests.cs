@@ -144,6 +144,33 @@ public class SolanaCredentialSelectorTests
         var failed=await Read(selector,2);Assert.AreSame(cause,failed.Exception);Assert.IsNull(failed.Result);
     }
 
+    [DataTestMethod]
+    [DataRow(false,"valid")] [DataRow(true,"valid")]
+    [DataRow(false,"blank")] [DataRow(true,"blank")]
+    [DataRow(false,"wrong-kind")] [DataRow(true,"wrong-kind")]
+    [DataRow(false,"unknown")] [DataRow(true,"unknown")]
+    [DataRow(false,"rejected")] [DataRow(true,"rejected")]
+    public async Task AvatarSignatureDeleteRequiresTypedReadBeforeMutation(bool sync,string scenario)
+    {
+        var id=Guid.NewGuid();
+        var repository=new RecordsRepository {AllowDelete=true};
+        repository.Records.Add(new SolanaAvatarDto {Id=id,AvatarId=id,Version=2});
+        var wrongKind=new InvalidOperationException("Solana storage record kind does not match the requested type.");
+        var unknown=new SolanaTransactionReconciliationException("owned-delete-signature",new IOException("owned lost reply"));
+        if(scenario=="wrong-kind") repository.Cause=wrongKind;
+        if(scenario=="unknown") repository.DeleteCause=unknown;
+        repository.DeleteAccepted=scenario!="rejected";
+        var provider=new ActiveProvider(repository);
+        var key=scenario=="blank" ? " ":"owned-avatar-signature";
+        var result=sync ? provider.DeleteAvatar(key):await provider.DeleteAvatarAsync(key);
+        Assert.AreEqual(scenario!="valid",result.IsError);
+        Assert.AreEqual(scenario=="valid",result.Result);
+        if(scenario=="wrong-kind") Assert.AreSame(wrongKind,result.Exception);
+        if(scenario=="unknown") Assert.AreSame(unknown,result.Exception);
+        Assert.AreEqual(scenario=="blank" ? 0:1,repository.Reads);
+        Assert.AreEqual(scenario is "blank" or "wrong-kind" ? 0:1,repository.Deletes);
+    }
+
     private sealed class ActiveProvider:SolanaOASIS
     {
         public ActiveProvider(ISolanaRepository repository):this(new Account(),repository) {}
@@ -158,6 +185,7 @@ public class SolanaCredentialSelectorTests
         public List<SolanaAvatarDto> Records=new();public int Reads;public int LastVersion;public Exception? Cause;
         public List<SolanaAvatarDetailDto> Details=new();
         public List<SolanaHolonDto> Holons=new();public List<int> Versions=new();
+        public bool AllowDelete,DeleteAccepted=true;public int Deletes;public Exception? DeleteCause;
         public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>(int version=0) where T:SolanaBaseDto,new()
         {
             Reads++;LastVersion=version;Versions.Add(version);if(Cause!=null) throw Cause;
@@ -178,7 +206,12 @@ public class SolanaCredentialSelectorTests
         }
         public Task<string> CreateAsync<T>(T entity) where T:SolanaBaseDto,new()=>throw new InvalidOperationException("Unexpected write");
         public Task<string> UpdateAsync<T>(T entity) where T:SolanaBaseDto,new()=>throw new InvalidOperationException("Unexpected write");
-        public Task<bool> DeleteAsync(string reference)=>throw new InvalidOperationException("Unexpected write");
+        public Task<bool> DeleteAsync(string reference)
+        {
+            if(!AllowDelete) throw new InvalidOperationException("Unexpected write");
+            Deletes++;if(DeleteCause!=null) throw DeleteCause;
+            return Task.FromResult(DeleteAccepted);
+        }
         public Task<string> CreateTombstoneAsync(string reference)=>throw new InvalidOperationException("Unexpected write");
     }
 }
