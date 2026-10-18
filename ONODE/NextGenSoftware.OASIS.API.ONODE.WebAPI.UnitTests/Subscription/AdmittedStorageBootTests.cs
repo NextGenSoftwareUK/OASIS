@@ -26,6 +26,7 @@ public class AdmittedStorageBootTests
     [InlineData("Warm",false,true,true)]
     [InlineData("Warm",true,false,true)]
     [InlineData("Active",true,true,true)]
+    [InlineData("Missing",true,true,true)]
     public async Task ExplicitAdmissionBootNeverActivatesOrTouchesSystemAccount(string mode,bool v2,bool key,bool denied)
     {
         var managerField=typeof(ProviderManager).GetField("_instance",BindingFlags.Static|BindingFlags.NonPublic)!;
@@ -37,9 +38,9 @@ public class AdmittedStorageBootTests
         dna.OASIS.Logging=new LoggingSettings{LogToConsole=false,LogToFile=false};dna.OASIS.ErrorHandling=new ErrorHandlingSettings();
         dna.OASIS.Security=new SecuritySettings{SecretKey=key?new string('t',64):null};
         dna.OASIS.OASISHyperDriveConfig=new(){EnabledProviders=new(){"LocalFileOASIS"},AutoFailoverProviders=new(){"LocalFileOASIS"},AutoReplicationProviders=new(){"LocalFileOASIS"},LoadBalancingProviders=new(){"LocalFileOASIS"}};
-        dna.OASIS.StorageProviders=new StorageProviderSettings{OASISProviderBootType=mode=="Active"?"Warm":mode,
+        dna.OASIS.StorageProviders=new StorageProviderSettings{OASISProviderBootType=mode is "Active" or "Missing"?"Warm":mode,
             AutoFailOverProviders="LocalFileOASIS",AutoReplicationProviders="LocalFileOASIS",AutoLoadBalanceProviders="LocalFileOASIS",
-            AutoFailOverProvidersForAvatarLogin="LocalFileOASIS",AutoFailOverProvidersForCheckIfEmailAlreadyInUse="LocalFileOASIS",
+            AutoFailOverProvidersForAvatarLogin=mode=="Missing"?"MongoDBOASIS":"LocalFileOASIS",AutoFailOverProvidersForCheckIfEmailAlreadyInUse="LocalFileOASIS",
             AutoFailOverProvidersForCheckIfUsernameAlreadyInUse="LocalFileOASIS",AutoFailOverProvidersForCheckIfOASISSystemAccountExists="LocalFileOASIS",
             AutoFailOverLocalProviders="LocalFileOASIS"};
         var provider=new NoIoProvider{IsProviderActivated=mode=="Active"};var manager=new ProviderManager(null,dna);manager.RegisterProvider(provider);

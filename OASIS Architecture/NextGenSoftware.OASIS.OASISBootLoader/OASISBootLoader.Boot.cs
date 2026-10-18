@@ -49,6 +49,7 @@ using NextGenSoftware.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 //using NextGenSoftware.OASIS.API.Providers.ElrondOASIS;
@@ -116,6 +117,27 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         public static Task<OASISResult<bool>> BootOASISAsync(OASISDNA OASISDNA, bool activateDefaultStorageProvider = true)
             => BootOASISAsync(OASISDNA, activateDefaultStorageProvider, registrationOnly: false);
+
+        private static OASISResult<bool> ValidateAdmittedRegistrations()
+        {
+            var manager = ProviderManager.Instance;
+            // Match the same six lists used by RegisterProvidersInAllLists. Registration errors
+            // must not be hidden merely because RegisterProvider returned a non-null result wrapper.
+            var requested = new[] { manager.GetProviderAutoFailOverList(), manager.GetProviderAutoFailOverListForAvatarLogin(),
+                manager.GetProviderAutoFailOverListForCheckIfEmailAlreadyInUse(), manager.GetProviderAutoFailOverListForCheckIfUsernameAlreadyInUse(),
+                manager.GetProviderAutoLoadBalanceList(), manager.GetProvidersThatAreAutoReplicating() }
+                .SelectMany(list => list).Select(type => type.Value).Distinct().ToArray();
+            if (requested.Length == 0)
+                return new OASISResult<bool> { IsError = true, Result = false, Message = "Admitted boot requires explicit passive provider registrations." };
+            var registered = manager.GetAllRegisteredProviders();
+            foreach (var type in requested)
+            {
+                var matches = registered.Where(provider => provider.ProviderType?.Value == type).ToArray();
+                if (matches.Length != 1 || matches[0] is not IOASISStorageProvider || matches[0].IsProviderActivated)
+                    return new OASISResult<bool> { IsError = true, Result = false, Message = $"Admitted passive registration is missing, ambiguous, invalid or activated for {type}." };
+            }
+            return new OASISResult<bool>(true);
+        }
 
         private static async Task<OASISResult<bool>> BootOASISAsync(OASISDNA OASISDNA, bool activateDefaultStorageProvider, bool registrationOnly)
         {
@@ -230,6 +252,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             //LoggingManager.Log($"REGISTERING PROVIDERS...", LogType.Info, true, false, false, 1, true);
                             LoggingManager.BeginLogAction($"REGISTERING PROVIDERS...", LogType.Info);
                             result = RegisterProvidersInAllLists();
+                            if (registrationOnly && result.Result && !result.IsError)
+                                result = ValidateAdmittedRegistrations();
                             LoggingManager.EndLogAction($"DONE", LogType.Info);
                             //LoggingManager.Log($"DONE", LogType.Info, false, false, false, 0);
 
