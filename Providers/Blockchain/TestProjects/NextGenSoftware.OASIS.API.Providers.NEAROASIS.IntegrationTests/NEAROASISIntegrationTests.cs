@@ -392,6 +392,36 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsNull((await _provider.LoadAvatarAsync(avatar.Id,1)).Result);
         }
 
+        [TestMethod]
+        public async Task Storage_BatchSaveHonorsCurrentDepthAndPublishesOnlySelectedNodes()
+        {
+            var root=new Holon{Name=$"depth-{Guid.NewGuid():N}"};
+            var child=new Holon{Name="selected-child"};
+            var grandchild=new Holon{Name="unselected-grandchild"};
+            root.Children.Add(child);child.Children.Add(grandchild);
+            var atDepth=await _provider.SaveHolonsAsync(new[]{root},maxChildDepth:2,curentChildDepth:1);
+            Assert.IsFalse(atDepth.IsError,atDepth.Message);
+            Assert.AreNotEqual(Guid.Empty,root.Id);
+            Assert.AreEqual(Guid.Empty,child.Id);
+            Assert.AreEqual(Guid.Empty,child.ParentHolonId);
+            Assert.AreEqual(0,(await _provider.LoadHolonAsync(root.Id)).Result.Children.Count());
+            var fromRoot=_provider.SaveHolons(new[]{root},maxChildDepth:2,curentChildDepth:0);
+            Assert.IsFalse(fromRoot.IsError,fromRoot.Message);
+            Assert.AreNotEqual(Guid.Empty,child.Id);
+            Assert.AreEqual(root.Id,child.ParentHolonId);
+            Assert.AreEqual(Guid.Empty,grandchild.Id);
+            Assert.AreEqual(Guid.Empty,grandchild.ParentHolonId);
+            var loaded=await _provider.LoadHolonAsync(root.Id);
+            Assert.IsFalse(loaded.IsError,loaded.Message);
+            Assert.AreEqual(child.Id,loaded.Result.Children.Single().Id);
+            Assert.AreEqual(0,loaded.Result.Children.Single().Children.Count());
+            var defaults=await _provider.SaveHolonAsync(root);
+            Assert.IsFalse(defaults.IsError,defaults.Message);
+            Assert.AreNotEqual(Guid.Empty,grandchild.Id);
+            Assert.AreEqual(child.Id,grandchild.ParentHolonId);
+            Assert.AreEqual(grandchild.Id,(await _provider.LoadHolonAsync(root.Id)).Result.Children.Single().Children.Single().Id);
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
