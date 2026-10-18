@@ -10,6 +10,7 @@ import { readOriginalOutcome, readOriginalNativeFee, validateOutcomeRange } from
 import { prepareAssetOperation, verifyAssetPreparation, validateAssetRequest } from './asset-operation.mjs';
 import { readOriginalAssetOutcome, validateAssetOutcomeRequest } from './asset-outcome.mjs';
 import { readWalletHistory, validateHistoryRequest } from './wallet-history.mjs';
+import { generateKeyPair, validateGenerationRequest } from './key-generation.mjs';
 
 // Metadata/preparation transport is read-only. Only explicitly owned submission gains a one-shot capability.
 let api;
@@ -18,7 +19,8 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
-  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (request.operation === 'generateKeyPair') validateGenerationRequest(request);
   if (request.operation === 'walletHistory') validateHistoryRequest(request);
   if (request.operation === 'assetOutcome') validateAssetOutcomeRequest(request);
   if (request.operation === 'originalOutcome') validateOutcomeRange(request);
@@ -39,7 +41,7 @@ try {
   if (api.genesisHash.toHex().toLowerCase() !== request.genesisHash.toLowerCase())
     throw new Error('Polkadot SDK genesis hash differs from the activated network.');
   let decimals;
-  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome'].includes(request.operation)) {
+  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair'].includes(request.operation)) {
   stage = 'native precision query';
   const properties = await api.rpc.system.properties();
   if (properties.tokenDecimals.isNone || properties.tokenDecimals.unwrap().length !== 1)
@@ -48,7 +50,10 @@ try {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
   }
-  if (request.operation === 'walletHistory') {
+  if (request.operation === 'generateKeyPair') {
+    stage = 'sr25519 key generation';
+    process.stdout.write(JSON.stringify({ ok: true, result: await generateKeyPair(api) }));
+  } else if (request.operation === 'walletHistory') {
     stage = 'finalized wallet history';
     process.stdout.write(JSON.stringify({ ok: true, result: await readWalletHistory(api, request, decimals) }));
   } else if (request.operation === 'assetOutcome') {

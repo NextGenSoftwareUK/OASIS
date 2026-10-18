@@ -1,5 +1,11 @@
 # Railway dependency pins for WEB4-WEB10
 
+## Required vendored IPFS source in the Docker context (2026-10-18)
+
+WEB4 dev deployment `3d266d4e-01a1-4071-81ed-25b736b41dd4` at parent `1e472f974` FAILED with CS0234/CS0246 (`Ipfs.Http`/`IpfsClient` missing), as did earlier batches. This is not a passing deployment or an indefinitely queued build. The IPFS provider's production ProjectReference targets `External Libs/net-ipfs-http-client-master/src/IpfsHttpClient.csproj`; the old `.dockerignore` excluded the entire `External Libs` tree, so restore could skip the missing project and compilation failed later. Local builds had the source and did not reproduce that context omission.
+
+The context now includes ONLY that existing vendored client's source subtree (not its bin/obj or other external trees). All seven Dockerfiles invoke shared `Docker/verify-vendored-provider-sources.sh` immediately after COPY, before private clones/restore, so a missing client project/type/FileSystem API fails explicitly and early. Do not restore a different/shadowed NuGet client as a fallback. The retained client and IPFS provider build using cached dependencies; guard positive and missing-source checks pass. No new SDK/download/clone/local Docker image was created. Corrected Railway builds and hosted responses still need terminal verification; local compilation/guard checks are not image/deployment certification. Keep this input guard when refactoring build contexts.
+
 ## Subscription protocol update (2026-09-22)
 
 WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
