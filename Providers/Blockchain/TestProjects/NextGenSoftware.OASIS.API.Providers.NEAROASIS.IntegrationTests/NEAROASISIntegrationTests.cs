@@ -238,6 +238,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse(string.IsNullOrWhiteSpace(sent.Result.TransactionResult));
             var status = await _provider.GetTransactionStatusAsync(sent.Result.TransactionResult);
             Assert.IsFalse(status.IsError, status.Message);
+            Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,status.Result);
         }
 
         [TestMethod]
@@ -488,6 +489,14 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                     Assert.IsFalse(repaired.IsError,repaired.Message);
                 }
             }
+        }
+
+        [TestMethod]
+        public async Task OfficialSdk_FinalizedFailedOriginalIsFailedNotCompleted()
+        {
+            var result=await _provider.GetTransactionStatusAsync(Required("NEAROASIS_FAILED_STATUS_TRANSACTIONID"));
+            Assert.IsFalse(result.IsError,result.Message);
+            Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Failed,result.Result);
         }
 
         [TestCleanup]

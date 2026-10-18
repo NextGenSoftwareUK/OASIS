@@ -97,9 +97,13 @@ public partial class NEAROASIS
         {
             cancellationToken.ThrowIfCancellationRequested();
             var status = await _sdk.GetTransactionStatusAsync(transactionHash);
-            result.Result = status is "FINAL" or "EXECUTED" or "EXECUTED_OPTIMISTIC"
-                ? BridgeTransactionStatus.Completed
-                : BridgeTransactionStatus.Pending;
+            result.Result = status switch
+            {
+                "Completed"=>BridgeTransactionStatus.Completed,
+                "Failed"=>BridgeTransactionStatus.Failed,
+                "Pending"=>BridgeTransactionStatus.Pending,
+                _=>throw new System.IO.InvalidDataException("Unknown classified NEAR transaction outcome.")
+            };
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error reading NEAR transaction status: {ex.Message}", ex); }
         return result;
