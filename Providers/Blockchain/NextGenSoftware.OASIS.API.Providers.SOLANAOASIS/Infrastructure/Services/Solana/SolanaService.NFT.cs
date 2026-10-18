@@ -41,6 +41,7 @@ public sealed partial class SolanaService
 
     public async Task<OASISResult<MintNftResult>> MintNftAsync(MintWeb3NFTRequest mintNftRequest)
     {
+        string acknowledgedMint=null;
         try
         {
             string verifyTransaction = null;
@@ -85,6 +86,7 @@ public sealed partial class SolanaService
                     return HandleError<MintNftResult>(createNftResult.Reason);
                 }
 
+                acknowledgedMint=createNftResult.Result;
                 if (!string.IsNullOrEmpty(mintNftRequest.CollectionPublicKey))
                 {
                     if (mintNftRequest.WaitTillNFTVerified == true)
@@ -100,7 +102,7 @@ public sealed partial class SolanaService
                                 : null);
 
                         if (error != null)
-                            return HandleError<MintNftResult>($"NFT minted (mint: {mintAccount.PublicKey.Key}) but collection verification failed: {error}");
+                            throw new InvalidOperationException($"NFT minted (mint: {mintAccount.PublicKey.Key}) but collection verification failed: {error}");
 
                         verifyTransaction = txSig;
                     }
@@ -115,6 +117,7 @@ public sealed partial class SolanaService
                         }
                         catch (Exception ex)
                         {
+                            if(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(ex)) throw;
                             verifyWarning = $"NFT minted successfully but collection verification failed (no retries requested): {ex.Message}. " +
                                             $"You can retry verification manually for mint: {mintAccount.PublicKey.Key}";
                         }
@@ -146,6 +149,7 @@ public sealed partial class SolanaService
                     }
                     catch (Exception freezeEx)
                     {
+                        if(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(freezeEx)) throw;
                         OASISErrorHandling.HandleWarning(ref result,
                             $"NFT minted successfully but metadata freeze failed (non-fatal): {freezeEx.Message}. " +
                             $"Run freeze-metadata.mjs manually for mint: {mintAccount.PublicKey.Key}");
@@ -161,7 +165,9 @@ public sealed partial class SolanaService
         }
         catch (Exception ex)
         {
-            return HandleError<MintNftResult>(ex.Message);
+            var evidence=!string.IsNullOrWhiteSpace(acknowledgedMint)
+                ? new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaTransactionReconciliationException(acknowledgedMint,ex):ex;
+            return HandleError<MintNftResult>(evidence.Message,evidence);
         }
     }
 
@@ -190,6 +196,7 @@ public sealed partial class SolanaService
             }
             catch (Exception ex)
             {
+                if(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(ex)) throw;
                 lastError = $"Attempt {attempt}: {ex.Message}";
                 var remaining = deadline - DateTime.UtcNow;
                 if (remaining > interval)
@@ -245,11 +252,11 @@ public sealed partial class SolanaService
             .AddInstruction(verifyInstruction)
             .Build(oasisAccount);
 
-        Console.WriteLine($"[DEBUG] SetAndVerify instructionData bytes: [{string.Join(",", instructionData)}] accountCount: {accounts.Count}");
-
         // Simulate first so we can surface the actual program error logs if it fails
         var simResult = await rpcClient.SimulateTransactionAsync(txBytes);
-        if (simResult?.Result?.Value?.Error != null)
+        if(simResult==null || !simResult.WasSuccessful || simResult.Result?.Value==null)
+            throw new InvalidOperationException("SetAndVerifyCollection simulation result is unavailable; no transaction submitted.");
+        if (simResult.Result.Value.Error != null)
         {
             string logs = simResult.Result.Value.Logs != null
                 ? string.Join(" | ", simResult.Result.Value.Logs)
@@ -257,12 +264,8 @@ public sealed partial class SolanaService
             throw new Exception($"SetAndVerifyCollection simulation failed [ix={string.Join(",", instructionData)} accounts={accounts.Count}]: {simResult.Result.Value.Error} — logs: {logs}");
         }
 
-        RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
-
-        if (!sendResult.WasSuccessful)
-            throw new Exception($"SetAndVerifyCollection failed: {sendResult.Reason}");
-
-        return sendResult.Result;
+        return await new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaRepository(
+            oasisAccount,rpcClient).SubmitSignedTransactionAsync(txBytes);
     }
 
     // DISABLED — see comment at call site in MintNftAsync for explanation.
@@ -303,10 +306,8 @@ public sealed partial class SolanaService
             .AddInstruction(freezeInstruction)
             .Build(oasisAccount);
 
-        RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
-
-        if (!sendResult.WasSuccessful)
-            throw new Exception($"FreezeMetadata failed for mint {nftMintAddress}: {sendResult.Reason}");
+        await new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaRepository(
+            oasisAccount,rpcClient).SubmitSignedTransactionAsync(txBytes);
     }
 
     // PDA derivation — seeds: ["metadata", programId, mintPubkey]

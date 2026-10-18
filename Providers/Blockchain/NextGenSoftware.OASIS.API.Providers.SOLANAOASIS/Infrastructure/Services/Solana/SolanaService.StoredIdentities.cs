@@ -42,10 +42,10 @@ public sealed partial class SolanaService
         return result;
     }
 
-    private OASISResult<T> HandleError<T>(string message)
+    private OASISResult<T> HandleError<T>(string message,Exception cause=null)
     {
         var result=new OASISResult<T>();
-        OASISErrorHandling.HandleError(ref result,message);
+        OASISErrorHandling.HandleError(ref result,message,cause);
         return result;
     }
 }
