@@ -16,10 +16,13 @@ public class SolidAvatarDeleteTests
             HttpResponseMessage Reply(HttpStatusCode status,string body="")=>new(status){Content=new StringContent(body,System.Text.Encoding.UTF8,"text/turtle")};
             if(request.RequestUri==Root)return Task.FromResult(Reply(HttpStatusCode.OK));
             using var codec=new SolidPrivateRecordCodec(Root,Key);
+            if(request.RequestUri==codec.Resource<IAvatarDetail>(Id))return Task.FromResult(Reply(HttpStatusCode.NotFound));
             Assert.Equal(codec.Resource<IAvatar>(Id),request.RequestUri);
             if(request.Method==HttpMethod.Delete){Deletes++;return Task.FromResult(Reply(HttpStatusCode.NoContent));}
             if(request.Method==HttpMethod.Put){Writes++;return Task.FromResult(Reply(HttpStatusCode.Forbidden));}
-            return Task.FromResult(FailRead?Reply(HttpStatusCode.ServiceUnavailable):Reply(HttpStatusCode.OK,codec.Encode<IAvatar>(new Avatar{Id=Id,Username="test"})));
+            var response=FailRead?Reply(HttpStatusCode.ServiceUnavailable):Reply(HttpStatusCode.OK,codec.Encode<IAvatar>(new Avatar{Id=Id,Username="test"}));
+            response.Headers.ETag=new System.Net.Http.Headers.EntityTagHeaderValue("\"avatar\"");
+            return Task.FromResult(response);
         }
     }
     [Theory][InlineData(true,false)][InlineData(false,false)][InlineData(true,true)][InlineData(false,true)]

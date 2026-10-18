@@ -162,33 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                if (softDelete)
-                {
-                    var loadResult = await LoadAvatarAsync(id);
-                    if (loadResult.IsError)
-                        return NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(loadResult);
-                    if (loadResult.Result == null)
-                        throw new System.IO.InvalidDataException("SOLID avatar read returned no record; refusing deletion.");
-                    loadResult.Result.DeletedDate = DateTime.UtcNow;
-                    var saved = await SaveAvatarAsync(loadResult.Result);
-                    if (saved.IsError)
-                        return NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(saved);
-                    if (saved.Result == null)
-                        throw new System.IO.InvalidDataException("SOLID soft-delete save returned no confirmed record.");
-                    result.Result = true;
-                    result.Message = "Avatar soft-deleted in SOLID pod";
-                    return result;
-                }
-                return await DeletePrivateAvatarPermanentlyAsync(id);
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {ex.Message}", ex); }
-            return result;
-        }
+            => await DeletePrivateAvatarAsync(id,softDelete);
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
 

@@ -130,7 +130,7 @@ public partial class SOLIDOASIS
             catch(HttpRequestException error)when(!acknowledged&&error.StatusCode.HasValue){throw;}
             catch(Exception error){throw new SolidRecordReconciliationException(resource,acknowledged,error);}
     }
-    private async Task<OASISResult<bool>> DeletePrivateAvatarPermanentlyAsync(Guid id)
+    private async Task<OASISResult<bool>> DeletePrivateAvatarAsync(Guid id,bool softDelete)
     {
         var result=new OASISResult<bool>();var acknowledged=new List<string>();
         try{
@@ -143,6 +143,20 @@ public partial class SOLIDOASIS
             catch(HttpRequestException error)when(error.StatusCode==System.Net.HttpStatusCode.NotFound){}
             if(detail.HasValue)RequireStrongDeleteTag(detail.Value.ETag);
             // Preflight both resources before any mutation; two LDP resources are not an atomic transaction.
+            if(softDelete){
+                var deletedAt=DateTime.UtcNow;
+                avatar.Record.IsActive=false;avatar.Record.DeletedDate=deletedAt;
+                var saved=await SavePrivateRecordAsync(avatar.Record,avatar.ETag);
+                if(saved.IsError)throw saved.Exception??new InvalidDataException(saved.Message);
+                acknowledged.Add(_privateRecords.Resource<IAvatar>(id).AbsoluteUri);
+                if(detail.HasValue){
+                    detail.Value.Record.IsActive=false;detail.Value.Record.DeletedDate=deletedAt;
+                    var savedDetail=await SavePrivateRecordAsync(detail.Value.Record,detail.Value.ETag);
+                    if(savedDetail.IsError)throw savedDetail.Exception??new InvalidDataException(savedDetail.Message);
+                    acknowledged.Add(_privateRecords.Resource<IAvatarDetail>(id).AbsoluteUri);
+                }
+                result.Result=true;result.IsDeleted=true;return result;
+            }
             if(detail.HasValue){
                 var resource=_privateRecords.Resource<IAvatarDetail>(id);
                 await DeletePrivateResourceAsync(resource,detail.Value.ETag);acknowledged.Add(resource.AbsoluteUri);
@@ -152,7 +166,7 @@ public partial class SOLIDOASIS
             result.Result=true;result.IsDeleted=true;
         }catch(Exception error){
             var cause=acknowledged.Count>0?new KeyValuePartialMutationException(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SOLIDOASIS,acknowledged,error):error;
-            OASISErrorHandling.HandleError(ref result,"SOLID avatar permanent deletion failed.",cause);
+            OASISErrorHandling.HandleError(ref result,"SOLID avatar deletion failed.",cause);
             if(acknowledged.Count==0&&error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
         }
         return result;
@@ -208,7 +222,7 @@ public partial class SOLIDOASIS
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private collection read failed.",error);}
         return result;
     }
-    private async Task<OASISResult<T>> SavePrivateRecordAsync<T>(T source) where T:class,IHolonBase
+    private async Task<OASISResult<T>> SavePrivateRecordAsync<T>(T source,System.Net.Http.Headers.EntityTagHeaderValue expectedTag=null) where T:class,IHolonBase
     {
         var result=new OASISResult<T>();
         try{
@@ -219,7 +233,9 @@ public partial class SOLIDOASIS
             using var content=new StringContent(_privateRecords.Encode(staged),Encoding.UTF8,"text/turtle");
             bool acknowledged=false;
             try{
-                using var response=await _httpClient.PutAsync(resource,content);
+                using var request=new HttpRequestMessage(HttpMethod.Put,resource){Content=content};
+                if(expectedTag!=null){RequireStrongDeleteTag(expectedTag);request.Headers.IfMatch.Add(expectedTag);}
+                using var response=await _httpClient.SendAsync(request);
                 if(!response.IsSuccessStatusCode){
                     if((int)response.StatusCode>=500||(int)response.StatusCode==408)
                         throw new SolidRecordReconciliationException(resource,false,new HttpRequestException("Uncertain SOLID PUT status: "+(int)response.StatusCode));

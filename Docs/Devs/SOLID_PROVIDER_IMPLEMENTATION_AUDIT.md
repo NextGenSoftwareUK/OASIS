@@ -2,6 +2,14 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Conditional avatar/detail soft deletion (2026-10-18)
+
+Soft and hard deletion now share avatar/optional-detail preflight. Soft delete requires both present records' strong ETags before mutation, sets IsActive=false and the SAME UTC DeletedDate on avatar/detail, then uses existing encrypted save+complete canonical readback with If-Match. No second serializer/crypto/write verification path. Full success sets IsDeleted; first write failure preserves native cause, later failure wraps independently verified avatar URI in shared partial-mutation marker. No hard-delete fallback, rollback or automatic replay. Regular SaveAvatar/SaveAvatarDetail remain unconditional; conditional header currently applies to soft-delete internal writes only.
+
+Four new controlled cases check actual If-Match headers, sync/async pair deactivation, same timestamp, retained password/description, first-write rejection with neither changed, and second-write rejection with confirmed avatar mutation/cause. Existing failure fixtures updated with actual optional-detail404 and strong tags to continue testing save403 rather than fail prematurely. No before-change red run captured for these four cases. Full151/151 passed199ms/zero skipped, report SHA256 2054FF37D666C6000D21DBC15B4CACE4D6E528A2ADBA8BAF97AF30902243CF8B; cached bounded provider build passed2warnings. Same reusable environment/reports/no restore/install/runtime launch.
+
+Still NOT atomic across avatar/detail: subsequent concurrent edits/recreation and newly created detail after preflight absence require durable coordination/reconciliation. General save concurrency, history, paging, OIDC/DPoP/native pod and full-provider/release gates remain OPEN. Previous soft-delete pair-gap statements are superseded by this scoped implementation, not by a claim of complete lifecycle certification.
+
 ## Permanent avatar/detail deletion (2026-10-18)
 
 Permanent GUID deletion now follows the existing shared-provider avatar+optional-detail contract. It reads/decrypts both canonical resources and requires strong ETags for all present records BEFORE mutation. Only an actual detail GET404 means optional absence; other detail errors stop deletion. Deletes detail then avatar through the SAME conditional DELETE/readback helper used for holons. Success requires each requested resource independently confirmed404; sets Result and IsDeleted only on complete success. A later failure returns existing shared KeyValuePartialMutationException containing independently confirmed deleted resource URIs and original cause (including uncertain native mutation marker). No fake transaction, rollback, replay, or claim of cross-resource atomicity.

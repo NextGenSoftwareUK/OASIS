@@ -12,11 +12,13 @@ public class SolidRecordHttpTests
     {
         public readonly Dictionary<string,string> Records=new();public int Writes;public string Failure="";
         public int RejectWrite;public int UncertainWrite;public int Reads;
+        public bool RequireConditionalWrites;
         public TaskCompletionSource<bool>? ReadGate;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             if(request.RequestUri!.AbsoluteUri==Root.AbsoluteUri.TrimEnd('/')+"/")return Reply(HttpStatusCode.OK,"{}");
             if(request.Method==HttpMethod.Put){
+                if(RequireConditionalWrites)Assert.Equal("\"stored-revision\"",Assert.Single(request.Headers.IfMatch).ToString());
                 Writes++;if(Failure=="transport"||Writes==UncertainWrite)throw new HttpRequestException("controlled uncertain PUT");
                 if(Writes==RejectWrite)return Reply(HttpStatusCode.Forbidden,"");
                 if(Failure=="reject")return Reply(HttpStatusCode.Forbidden,"");
@@ -38,7 +40,9 @@ public class SolidRecordHttpTests
                 var id=Guid.Parse(Path.GetFileNameWithoutExtension(request.RequestUri.AbsolutePath));
                 using var codec=new SolidPrivateRecordCodec(Root,Key());stored=codec.Encode<IHolon>(new Holon{Id=id,Name="different acknowledged payload"});
             }
-            return Reply(HttpStatusCode.OK,stored);
+            var response=Reply(HttpStatusCode.OK,stored);
+            response.Headers.ETag=new System.Net.Http.Headers.EntityTagHeaderValue("\"stored-revision\"");
+            return response;
         }
         private static HttpResponseMessage Reply(HttpStatusCode code,string body)=>new(code){Content=new StringContent(body,System.Text.Encoding.UTF8,"text/turtle")};
     }
