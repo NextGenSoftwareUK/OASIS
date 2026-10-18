@@ -2,6 +2,8 @@
 
 ## Configured-route recovery readiness — 2026-10-17
 
+Positive native composition verified: actual Kestrel fixture registers REAL Sui reader/exact chain, runs readiness on app.StartAsync and asserts no provider activation/quote fetch at startup; subsequent actual native writes/fees/recovery/delivery tests pass (full5/5native1m12s). Fixture uses explicit DI and controlled auth/synthetic pricing/authority, not deployed configuration or real market quotes. Actual hosted reader registration/bootstrap/pricing remain separate gates. Full report hash and marker in release journal.
+
 Native storage admission configuration now registers a startup check requiring exactly one registered final-fee reader for every configured provider/exact chain. Missing/mismatched/duplicate/AnteDeductionOnly reader prevents host readiness; no provider activation, signer resolution or fee lookup by checker. Unconfigured mode remains disabled/unchanged, ordinary-only configuration needs no native reader. Actual readers must still be registered by the host using reviewed provider configuration; no automatic provider creation or change to existing recovery/settlement ownership. In particular Cosmos's current ante-only reader is deliberately insufficient for enabling these paid routes. Core4e61bcd…/281tests passing; evidence hashes and failed-before cases in release journal. No deployment/env/spending change.
 
 ## Hedera first current prepared testnet read acceptance — 2026-10-17

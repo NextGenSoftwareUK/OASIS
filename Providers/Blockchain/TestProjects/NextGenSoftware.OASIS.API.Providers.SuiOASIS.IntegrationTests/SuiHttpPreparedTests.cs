@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core;
@@ -91,6 +92,9 @@ public class SuiHttpPreparedTests
         var builder=WebApplication.CreateBuilder();builder.Logging.ClearProviders();builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddSingleton<IUsageOutboxStore>(store);builder.Services.AddSingleton<IUsageReservationAuthority>(authority);builder.Services.AddSingleton(options);
         builder.Services.AddSingleton<Web4UsageExecution>();builder.Services.AddSingleton<IPreparedStorageAdmissionFactory>(factory);
+        builder.Services.AddSingleton<IPreparedNativeFeeEvidenceReader>(provider);
+        builder.Services.AddSingleton<IHostedService>(services=>new StorageAdmissionRecoveryReadiness(
+            new[]{(Provider:"SuiOASIS",Chain:settings.GetProperty("chainId").GetString()!)},services.GetServices<IPreparedNativeFeeEvidenceReader>()));
         await using var app=builder.Build();string? operationId=null;var endpoints=0;var complete=false;
         app.Use(async(context,next)=>{if(context.Request.Headers.Authorization=="Bearer local-http-test-only")context.User=new ClaimsPrincipal(new ClaimsIdentity(new[]{new Claim(ClaimTypes.NameIdentifier,user)},"controlled-test-auth"));await next(context);});
         app.UseMiddleware<Web4UsageLedgerMiddleware>();app.UseMiddleware<PreparedStorageAdmissionMiddleware>();
@@ -110,6 +114,10 @@ public class SuiHttpPreparedTests
         });
         try{
             await app.StartAsync(token);var url=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
+            Assert.IsNotNull(app.Services.GetServices<IHostedService>().OfType<StorageAdmissionRecoveryReadiness>().Single());
+            Assert.AreSame(provider,app.Services.GetRequiredService<IPreparedNativeFeeEvidenceReader>());
+            Assert.IsFalse(provider.IsProviderActivated);Assert.AreEqual(0,prices.Calls);
+            Console.WriteLine("REAL_NATIVE_READER_STARTUP_VERIFIED without activation, quote fetch or native operation.");
             using var client=new HttpClient{BaseAddress=new Uri(url),Timeout=TimeSpan.FromMinutes(3)};
             using(var denied=await client.PostAsync("/native-storage",new StringContent("{}"),token))Assert.AreEqual(HttpStatusCode.Unauthorized,denied.StatusCode);
             Assert.AreEqual(0,endpoints);Assert.AreEqual(0,prices.Calls);Assert.IsFalse(provider.IsProviderActivated);
