@@ -12,6 +12,8 @@ Make sure you check out the Overview and Benefits Of Building On The WEB 4 OASIS
 
 ## Current verification and limitations
 
+Trusted caller objects are projected into canonical Avatar/AvatarDetail/Holon DTOs before repository create, upsert, replacement and conditional replacement. Application subclasses need not be allowed by the stored JSON binder; persisted records still use restricted decoding. Repository subclasses implement the typed ProjectInput hook with the shared OasisJson.Project helper. Native subclass tests cover direct and recursive saves, not arbitrary proxy/explicit-interface implementations or extra application-specific fields.
+
 Uses Microsoft.Azure.Cosmos SDK, canonical OASIS serialization and shared holon graph planning/projection. Native evidence uses the retained local Cosmos DB emulator, not a hosted Azure account; scoped tests do not certify full-provider or hosted-release completion.
 
 Historical versions are currently rejected: this provider stores current records only. Profile/detail mutations span separate containers and are not a single atomic transaction; partial/uncertain mutations require inspection before replay. History, concurrency/ETag, recovery, full interface-option and hosted/release verification remain open. Current evidence and gates: `Docs/Devs/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
