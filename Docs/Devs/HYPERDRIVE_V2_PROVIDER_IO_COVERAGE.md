@@ -5389,3 +5389,7 @@ Cosmos1/1pass7s, TRON1/1pass9s/0skip/full runners exit0. These are actual offici
 
 Cosmos3known committed native ante-fee receipts (3939/3443/3443stake units) match SDK indexed byte/hash evidence and C#public reader, with exact chain/payer/gas/coin assertions and fresh inspection identity. Not independent consensus/state-proof validation or final net refund coverage; still AnteDeductionOnly. Pending5key/280transaction absence scan is not proof of non-submission. Both original fences remain byte-identical and native mutation/replication gates remain OPEN. No public fees, new ledger/env/download, priced user charge, hosted acceptance, merge or deploy. Production algorithm quality/every-interface coverage is not inferred from the strategy-path matrix.
 
+# 2026-10-18 Neo4j historical holon progress
+
+Opt-in graph writes now atomically archive replaced holons alongside current snapshots and graph edges using existing shared version invariants. Guid/provider-key single-root historical reads support exact numbered versions; children retain independent current versions. Hard-delete removes that root's history, not descendants. Native 71/71 and unit 76/76 passed; matching producer/consumer DLL SHA256 134EFD904800B689B008C277FA4528B2C68C9D30074C37D0E63C89D7792B4AEF. Full report hashes and remaining gates are in HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md. All/parent/metadata/search/export historical surfaces, soft-delete history and concurrency/recovery remain incomplete. No full-provider certification or merge.
+

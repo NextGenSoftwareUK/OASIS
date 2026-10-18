@@ -44,6 +44,7 @@ public partial class Neo4jOASIS
                 }
                 if(changed.Count!=1 || changed[0]["affected"].As<int>()!=1)
                     throw new InvalidDataException("Neo4j holon deletion acknowledgement is invalid.");
+                await(await transaction.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon',RecordId:$id}) DETACH DELETE v",new{id=snapshot.Id.ToString()})).ConsumeAsync();
                 await transaction.CommitAsync();
             }
             result.Result=snapshot;result.IsSaved=true;result.IsDeleted=true;result.DeletedCount=1;
