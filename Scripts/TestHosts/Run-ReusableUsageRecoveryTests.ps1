@@ -1,7 +1,8 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead)
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect)
 $ErrorActionPreference='Stop'
 if($HederaNativeRead -and (!$HederaPreparedOwners -or $HederaFull -or $PSBoundParameters.Count -ne 2)){throw 'Native Hedera read requires its exclusive owned environment mode.'}
+if($HederaReadInspect -and (!$HederaPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Read-only Hedera inspection requires its exclusive owned environment mode.'}
 if($TronNative -and (!$TronPreparedStorage -or $TronFull)){throw 'Independent TRON native verification requires its exclusive existing-owner mode.'}
 if($CosmosRouting -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Independent Cosmos routing requires its exclusive existing-owner mode.'}
 if($CosmosReconcile -and !$CosmosNative){throw 'Reviewed reconciliation requires explicit native Cosmos mode.'}
@@ -193,13 +194,13 @@ try{
     }elseif($HederaPreparedOwners){
         $env:OASIS_HEDERA_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs'
         $hederaProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests.csproj'
-        if($HederaNativeRead){$hederaProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests.csproj'}
-        $hederaArgs=if($HederaNativeRead){@('--filter','FullyQualifiedName~RetainedTestnetReadPreparesEveryPaymentBeforeTransportAndRecoversActualFees','--logger','trx;LogFileName=hedera-native-prepared-read-current.trx')}elseif($HederaFull){@('--logger','trx;LogFileName=hedera-full-owned-current.trx')}else{@('--filter','FullyQualifiedName~SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations','--logger','trx;LogFileName=hedera-real-signed-owner-mongo-current.trx')}
+        if($HederaNativeRead -or $HederaReadInspect){$hederaProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests.csproj'}
+        $hederaArgs=if($HederaReadInspect){@('--filter','FullyQualifiedName~InspectRetainedFailedReadLedgerWithoutSigningOrMutation','--logger','trx;LogFileName=hedera-read-ledger-inspection-current.trx')}elseif($HederaNativeRead){@('--filter','FullyQualifiedName~RetainedTestnetReadPreparesEveryPaymentBeforeTransportAndRecoversActualFees','--logger','trx;LogFileName=hedera-native-prepared-read-current.trx')}elseif($HederaFull){@('--logger','trx;LogFileName=hedera-full-owned-current.trx')}else{@('--filter','FullyQualifiedName~SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations','--logger','trx;LogFileName=hedera-real-signed-owner-mongo-current.trx')}
         $hederaStarted=[DateTime]::UtcNow
         & dotnet test $hederaProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false @hederaArgs --results-directory $work -v:q
         if($LASTEXITCODE -ne 0){throw 'Hedera owned regression failed.'}
-        if($HederaNativeRead){
-            $report=Get-Item -LiteralPath (Join-Path $work 'hedera-native-prepared-read-current.trx')
+        if($HederaNativeRead -or $HederaReadInspect){
+            $report=Get-Item -LiteralPath (Join-Path $work $(if($HederaReadInspect){'hedera-read-ledger-inspection-current.trx'}else{'hedera-native-prepared-read-current.trx'}))
             if($report.LastWriteTimeUtc -lt $hederaStarted){throw 'Native read report is stale.'}
             [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
             $counts=$evidence.TestRun.ResultSummary.Counters

@@ -11,6 +11,48 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass,DoNotParallelize,TestCategory("FundedTestnet")]
 public class HederaPreparedNativeReadTests
 {
+    [TestMethod,TestCategory("ReadOnlyReconciliation")]
+    public async Task InspectRetainedFailedReadLedgerWithoutSigningOrMutation()
+    {
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        while(root!=null&&!File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/inspect-reusable-hedera-store.mjs")))root=root.Parent;
+        Assert.IsNotNull(root);
+        var journal=Path.Combine(root!.FullName,"TestResults/HederaRuntime/prepared-read-pending.json");
+        var failed=Path.Combine(root.FullName,"TestResults/SubscriptionUsageCurrent/hedera-native-prepared-read-current.trx");
+        string Hash(string file)=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(file)));
+        const string journalHash="0BC4E16A8A7256708615F7C113F952664B475FC05294CCBDF8F87581ED58628F";
+        Assert.AreEqual(journalHash,Hash(journal));Assert.AreEqual("2B49D7F5196A1153E9A1181503D4E755B58994010BEFE5987B45C5A7225FF81A",Hash(failed));
+        using var intent=JsonDocument.Parse(File.ReadAllBytes(journal));
+        var operationId=intent.RootElement.GetProperty("operationId").GetString()!;
+        Assert.AreEqual("3cabee73-6a12-f4e6-8dfa-8c443136ff47",operationId);
+        Assert.AreEqual("usage_hedera_native_read",intent.RootElement.GetProperty("database").GetString());
+        var report=System.Xml.Linq.XDocument.Load(failed);
+        var text=report.Descendants().Single(row=>row.Name.LocalName=="UnitTestResult").Descendants().Single(row=>row.Name.LocalName=="StdOut").Value;
+        using var retained=JsonDocument.Parse(text.Split('\n').Single(row=>row.StartsWith("{\"retainedOriginal\":",StringComparison.Ordinal)));
+        var historical=retained.RootElement.GetProperty("retainedOriginal");
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var store=new MongoUsageOutboxStore(connection,"usage_hedera_native_read");
+        var live=await store.GetAsync(operationId,deadline.Token);Assert.IsNotNull(live);
+        var snapshot=JsonSerializer.SerializeToElement(live);
+        foreach(var field in new[]{"Id","UserId","Service","Fingerprint","Endpoint","State","ExecutionOwner"})
+            Assert.AreEqual(historical.GetProperty(field).GetString(),snapshot.GetProperty(field).GetString(),field);
+        Assert.AreEqual(operationId,live.Id);Assert.AreEqual("executing",live.State);
+        foreach(var field in new[]{"ProviderAttempts","Receipts","AdministrativeActions"}){
+            Assert.AreEqual(0,historical.GetProperty(field).GetArrayLength());Assert.AreEqual(0,snapshot.GetProperty(field).GetArrayLength());
+        }
+        foreach(var field in new[]{"NativeFeeExposureUsd","NativePreparationBytes","EvidenceRevision"})
+            Assert.AreEqual(historical.GetProperty(field).GetDecimal(),snapshot.GetProperty(field).GetDecimal(),field);
+        Assert.AreEqual(0m,live.NativeFeeExposureUsd);Assert.AreEqual(0,live.NativePreparationBytes);
+        foreach(var field in new[]{"Settlement","ObservedOutcome","SettledAtUtc"})Assert.AreEqual(JsonValueKind.Null,snapshot.GetProperty(field).ValueKind,field);
+        Assert.AreEqual(journalHash,Hash(journal));
+        var evidence=new{originalJournalSha256=journalHash,failedReportSha256=Hash(failed),liveRecord=live,
+            readOnly=true,signingKeyLoaded=false,paidSdkQueries=0,journalRemoved=false,databaseRemoved=false,mutationAuthorized=false};
+        var output=Path.Combine(root.FullName,"TestResults/HederaRuntime/prepared-read-ledger-inspection.json");
+        using(var file=new FileStream(output,FileMode.Create,FileAccess.Write,FileShare.None)){await JsonSerializer.SerializeAsync(file,evidence,cancellationToken:deadline.Token);file.Flush(true);}
+        Console.WriteLine("Retained failed Hedera read ledger matches original snapshot;0attempts/receipts/exposure; no signing, mutation or journal deletion. Evidence SHA256="+Hash(output));
+    }
     private sealed class Authority(string user):HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token){

@@ -2,6 +2,8 @@
 
 ## Hedera failed-read pre-execution investigation — 2026-10-17
 
+Live original Mongo record now independently compared to failed-run snapshot via exclusive readonly inspection:1/1passed263ms, exact hashes/identity/owner/fingerprint/state checked;0attempts/receipts/exposure/preparation bytes/admin actions and no outcome/settlement. Full live evidence retained with hash in release journal, journal/database unchanged. No key loaded or SDK query executed. Combine this with reviewed mandatory acknowledgement path and public indexed observations for an exact pre-execution decision; no generic zero-attempt auto-clear policy was added.
+
 Public mirror account query for the failed run's00:06:30–00:07:00UTC2026-10-18 window returned0transactions/no continuation, with a later globally indexed consensus timestamp1792285603.356938795. Balance still indexed0.69513926testHBAR at its older snapshot. Neither absence nor old balance alone proves a paid request was impossible. Specific storage invocation source path requires durable paid-query acknowledgement before selected ANSWER_ONLY transport; combine that invariant with exact live original outbox evidence before reviewing pre-execution recovery. Journal/database remain protected, no archive/clear/retry in this investigation. This is public read-only evidence, not funded SDK/native acceptance or a spend grant.
 
 ## Explicit owner replacement invariant — 2026-10-17
