@@ -134,6 +134,7 @@ switch(request.operation){
    result={metadata:JSON.stringify(metadata),
     creator:mode==='foreign-creator'?'foreign-creator':'fixture-owner',owner:{AddressOwner:mode==='short-recipient'?'0x'+'ab'.padStart(64,'0'):'fixture-owner'}};
   }
+  else if(request.tokenId==='canonical-owner')result={metadata:'{}',creator:'fixture-owner',owner:{AddressOwner:'0x'+'ab'.padStart(64,'0')}};
   else if(request.tokenId.startsWith('ownership-'))result={metadata:'{}',creator:'fixture-owner',
    owner:{AddressOwner:'0x'+(request.tokenId==='ownership-matching'?'ab':'cd').repeat(32)}};
   else {process.stdout.write(JSON.stringify({ok:false,error:'forced separate NFT readback failure'}));process.exitCode=1;}
