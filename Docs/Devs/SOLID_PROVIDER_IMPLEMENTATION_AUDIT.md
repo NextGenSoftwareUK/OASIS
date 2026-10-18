@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Avatar soft-delete failure propagation (2026-10-18)
+
+GUID soft deletion previously fell through into unconditional permanent DELETE when its read failed, and ignored SaveAvatar errors before reporting success. Fixed both: original read/save OASISResult error and exception copied; no permanent deletion on soft-delete failure. Missing success payload is also an explicit error. Four genuine before-change failing tests (sync/async read503 and save403), 84ms, report solid-avatar-delete-before.trx SHA256 E8EB7BF4245B49909DEB43C7BDFA56462F58816F847B9316CED32767464C989C. Final cached provider build passed (2 warnings), full131/131 unit tests passed288ms/zero skipped; current report SHA256 3C2B1792C45651E2C4EAFA65F7F4C429B1AE3873A82F6E3FF9A72A8F0B179F09. Initial compile caught missing System.IO qualification, corrected before verification.
+
+This fixes failure propagation ONLY: avatar permanent deletion/identity variants, avatar-detail consistency and concurrent conditional soft saves remain unfinished and unsafe to certify. No actual pod proof or full account deletion claim. Reused environment/no restore/install/download. Windows free space after verification 86705033216 bytes; fixed report location reused, compact before-report retained as regression evidence.
+
 ## Conditional holon deletion (2026-10-18)
 
 GUID/provider-key sync and async deletion now use the canonical encrypted resource, read/decrypt the original record, require a strong ETag and send DELETE with If-Match. Success requires a separate GET returning 404; result contains the original detached record. No guessed by-key route, unconditional deletion or automatic replay. Missing/weak ETags prevent mutation. HTTP 412 remains the original explicit HTTP error; uncertain transport/server outcomes and acknowledged-but-unconfirmed absence preserve SolidRecordReconciliationException with canonical resource and acknowledgement state. This is a single-resource operation, not child cascade or an atomic avatar/detail deletion.
