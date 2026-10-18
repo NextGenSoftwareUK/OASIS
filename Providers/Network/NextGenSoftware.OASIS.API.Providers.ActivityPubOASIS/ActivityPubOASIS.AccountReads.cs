@@ -17,6 +17,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
 public partial class ActivityPubOASIS
 {
     private sealed record MastodonPublicProfile(Guid ProjectionId,string NativeId,string LocalUsername,string Acct,string ProfileUrl,string Origin,string DisplayName);
+    private Guid MastodonProjectionId(string category,string nativeId)
+    {
+        var origin=new Uri(_instanceUrl).GetLeftPart(UriPartial.Authority);
+        var hash=SHA256.HashData(Encoding.UTF8.GetBytes("oasis-mastodon-"+category+"-v1\n"+origin+"\n"+nativeId));
+        return new Guid(hash.AsSpan(0,16));
+    }
     private Task<OASISResult<IAvatar>> ReadMastodonAccountAsync(string selector,bool nativeId,int version)
         => ReadMastodonProfileAsync<IAvatar>(selector,nativeId,version,profile=>{
             var avatar=new Avatar{Id=profile.ProjectionId,Username=profile.Acct};
@@ -61,8 +67,7 @@ public partial class ActivityPubOASIS
                 throw new InvalidDataException("Expected an absolute HTTP(S) public profile URL.");
             var origin=new Uri(_instanceUrl).GetLeftPart(UriPartial.Authority);
             // Stable projection identity is scoped to the observing instance's native ID, not a random or native GUID.
-            var hash=SHA256.HashData(Encoding.UTF8.GetBytes("oasis-mastodon-account-v1\n"+origin+"\n"+id));
-            var projectedId=new Guid(hash.AsSpan(0,16));
+            var projectedId=MastodonProjectionId("account",id);
             var displayName=account.TryGetProperty("display_name",out var display)&&display.ValueKind==JsonValueKind.String?display.GetString():null;
             result.Result=project(new MastodonPublicProfile(projectedId,id,username,acct,profileUri.AbsoluteUri,origin,displayName));result.LoadedCount=1;
         }catch(Exception error){
