@@ -8,6 +8,7 @@ import { readFinalizedReceipt, validateReceiptRequest } from './finalized-receip
 import { originalSubmission, submitOriginalPreparation } from './original-submission.mjs';
 import { readOriginalOutcome, readOriginalNativeFee, validateOutcomeRange } from './original-outcome.mjs';
 import { prepareAssetOperation, verifyAssetPreparation, validateAssetRequest } from './asset-operation.mjs';
+import { readOriginalAssetOutcome, validateAssetOutcomeRequest } from './asset-outcome.mjs';
 
 // Metadata/preparation transport is read-only. Only explicitly owned submission gains a one-shot capability.
 let api;
@@ -16,10 +17,11 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
-  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (request.operation === 'assetOutcome') validateAssetOutcomeRequest(request);
   if (request.operation === 'originalOutcome') validateOutcomeRange(request);
   if (request.operation === 'finalizedReceipt') validateReceiptRequest(request);
-  if (['persistNativePreparation', 'submitNativePreparation'].includes(request.operation) && (!process.env.OASIS_NATIVE_PREPARATION_PIPE || !process.env.OASIS_NATIVE_PREPARATION_MODULE))
+  if (['persistNativePreparation', 'submitNativePreparation', 'submitAssetPreparation'].includes(request.operation) && (!process.env.OASIS_NATIVE_PREPARATION_PIPE || !process.env.OASIS_NATIVE_PREPARATION_MODULE))
     throw new Error('Owned persistence transport is required; no preparation acknowledgement can be invented.');
   const endpoint = new URL(request.endpoint);
   if (!['http:', 'https:'].includes(endpoint.protocol) || endpoint.username || endpoint.password)
@@ -35,7 +37,7 @@ try {
   if (api.genesisHash.toHex().toLowerCase() !== request.genesisHash.toLowerCase())
     throw new Error('Polkadot SDK genesis hash differs from the activated network.');
   let decimals;
-  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation'].includes(request.operation)) {
+  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome'].includes(request.operation)) {
   stage = 'native precision query';
   const properties = await api.rpc.system.properties();
   if (properties.tokenDecimals.isNone || properties.tokenDecimals.unwrap().length !== 1)
@@ -44,7 +46,10 @@ try {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
   }
-  if (request.operation === 'prepareAssetOperation') {
+  if (request.operation === 'assetOutcome') {
+    stage = 'original asset finalized effect verification';
+    process.stdout.write(JSON.stringify({ ok: true, result: await readOriginalAssetOutcome(api, request) }));
+  } else if (request.operation === 'prepareAssetOperation') {
     stage = 'asset operation signing and fee estimation';
     process.stdout.write(JSON.stringify({ ok: true, result: await prepareAssetOperation(api, request) }));
   } else if (request.operation === 'verifyAssetPreparation') {
@@ -59,12 +64,13 @@ try {
   } else if (request.operation === 'finalizedReceipt') {
     stage = 'finalized canonical dispatch and native fee receipt';
     process.stdout.write(JSON.stringify({ ok: true, result: await readFinalizedReceipt(api, request) }));
-  } else if (request.operation === 'submitNativePreparation') {
+  } else if (['submitNativePreparation', 'submitAssetPreparation'].includes(request.operation)) {
     stage = 'verified original persistence and one-shot submission';
     const { preparationClient } = await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
     const persist = preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE);
     const result = await submitOriginalPreparation(api, request.preparation, persist,
-      originalSubmission(endpoint.href, request.preparation.signedTransactionBase64));
+      originalSubmission(endpoint.href, request.preparation.signedTransactionBase64),
+      request.operation === 'submitAssetPreparation' ? verifyAssetPreparation : verifyNativePreparation);
     process.stdout.write(JSON.stringify({ ok: true, result }));
   } else if (request.operation === 'persistNativePreparation') {
     stage = 'verified original persistence acknowledgement';

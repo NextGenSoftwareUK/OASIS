@@ -6,7 +6,7 @@ export function validateReceiptRequest(request) {
 }
 
 // An explicit block avoids pretending that a bounded scan is a complete transaction index.
-export async function readFinalizedReceipt(api, request) {
+export async function readFinalizedExtrinsicContext(api, request) {
   validateReceiptRequest(request);
   const finalizedHash = await api.rpc.chain.getFinalizedHead();
   const finalized = await api.rpc.chain.getHeader(finalizedHash);
@@ -27,6 +27,10 @@ export async function readFinalizedReceipt(api, request) {
   const events = await at.query.system.events();
   const own = events.filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.toNumber() === index)
     .map(({ event }) => event);
+  return { header, index, own };
+}
+
+export function dispatchAndFeeReceipt({ header, index, own }, request) {
   const outcomes = own.filter(event => event.section === 'system' && ['ExtrinsicSuccess', 'ExtrinsicFailed'].includes(event.method));
   if (outcomes.length !== 1) throw new Error('Exactly one terminal dispatch event is required.');
   const fees = own.filter(event => event.section === 'transactionPayment' && event.method === 'TransactionFeePaid');
@@ -46,4 +50,8 @@ export async function readFinalizedReceipt(api, request) {
     // FRAME actual_fee already includes the tip. Never add it a second time.
     feeCoverage: 'finalized-native-transaction-payment-event-tip-included'
   };
+}
+
+export async function readFinalizedReceipt(api, request) {
+  return dispatchAndFeeReceipt(await readFinalizedExtrinsicContext(api, request), request);
 }

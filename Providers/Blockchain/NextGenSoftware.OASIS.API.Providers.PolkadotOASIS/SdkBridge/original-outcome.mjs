@@ -29,7 +29,7 @@ export async function readOriginalOutcome(api, request) {
   return readVerifiedOriginalRange(api, identity, range);
 }
 
-export async function readVerifiedOriginalRange(api, identity, request, finalizedCeiling) {
+export async function readVerifiedOriginalRange(api, identity, request, finalizedCeiling, readReceipt = readFinalizedReceipt) {
   validateOutcomeRange(request);
   const { fromBlockNumber, maximumBlocks } = request;
   const originalIdentity = { transactionHash: identity.transactionHash, sender: identity.sender };
@@ -46,7 +46,7 @@ export async function readVerifiedOriginalRange(api, identity, request, finalize
     const hash = await api.rpc.chain.getBlockHash(next.toString());
     const block = await api.rpc.chain.getBlock(hash);
     if (block.block.extrinsics.some(extrinsic => extrinsic.hash.toHex() === originalIdentity.transactionHash)) {
-      const receipt = await readFinalizedReceipt(api, { blockHash: hash.toHex(), transactionHash: originalIdentity.transactionHash });
+      const receipt = await readReceipt(api, { blockHash: hash.toHex(), transactionHash: originalIdentity.transactionHash });
       if (api.createType('AccountId32', receipt.payer).toHex() !== originalIdentity.sender)
         throw new Error('Final native fee payer differs from the verified original signer.');
       return { found: true, reconciliationRequired: true, receipt };

@@ -14,11 +14,11 @@ export function originalSubmission(endpoint, signedTransactionBase64) {
   };
 }
 
-export async function submitOriginalPreparation(api, preparation, persist, submit) {
+export async function submitOriginalPreparation(api, preparation, persist, submit, verify = verifyNativePreparation) {
   if (typeof persist !== 'function' || typeof submit !== 'function') throw new Error('Owned persistence and exact-original submission capabilities are required.');
   // Freeze the whole original across asynchronous validation and persistence.
   const original = structuredClone(preparation);
-  const identity = await verifyNativePreparation(api, original);
+  const identity = await verify(api, original);
   await persist(original);
   try {
     const hash = await submit();
