@@ -2,6 +2,7 @@
   <ItemGroup>
     <PackageReference Include="dotNetRdf.Core" Version="3.5.2" />
     <PackageReference Include="AngleSharp" Version="1.5.0" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
