@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.Common;
 using Xunit;
 using Provider=NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using StoredDetail=NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
@@ -30,6 +31,10 @@ public sealed class DirectMongoAvatarDetailContractTests
                     .Contains(Nullable.GetUnderlyingType(property.PropertyType)??property.PropertyType)).ToArray();
             Assert.True(scalarProperties.Length>=19,"Do not silently shrink the profile-field contract.");
             for(var revision=1;revision<=2;revision++){
+                var skills=new IndependentAvatarSkills();var skillValue=revision*100;
+                var skillProperties=typeof(IAvatarSkills).GetProperties();Assert.Equal(16,skillProperties.Length);
+                foreach(var property in skillProperties)property.SetValue(skills,skillValue++);
+                detail.Skills=skills;
                 foreach(var property in scalarProperties){
                     var type=Nullable.GetUnderlyingType(property.PropertyType)??property.PropertyType;
                     object value=type==typeof(string)? $"revision-{revision}-{property.Name}-{id:N}":
@@ -43,6 +48,10 @@ public sealed class DirectMongoAvatarDetailContractTests
                 var saved=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);
                 Assert.False(saved.IsError,saved.Message);Assert.NotNull(saved.Result);
                 var raw=await collection.Find(filter).SingleAsync();Assert.Equal(detail.Description,raw.Description);
+                foreach(var property in skillProperties){
+                    Assert.Equal(property.GetValue(skills),property.GetValue(raw.Skills));
+                    Assert.Equal(property.GetValue(skills),property.GetValue(saved.Result.Skills));
+                }
                 foreach(var property in scalarProperties){
                     var nativeProperty=typeof(StoredDetail).GetProperty(property.Name);Assert.NotNull(nativeProperty);
                     Assert.Equal(property.GetValue(detail),nativeProperty.GetValue(raw));
@@ -58,6 +67,7 @@ public sealed class DirectMongoAvatarDetailContractTests
                         Assert.False(loaded.IsError,loaded.Message);Assert.NotNull(loaded.Result);
                         Assert.Equal(id,loaded.Result.Id);Assert.Equal(detail.Description,loaded.Result.Description);
                         foreach(var property in scalarProperties)Assert.Equal(property.GetValue(detail),property.GetValue(loaded.Result));
+                        foreach(var property in skillProperties)Assert.Equal(property.GetValue(skills),property.GetValue(loaded.Result.Skills));
                     }
                 }finally{await reader.DeActivateProviderAsync();}
             }

@@ -86,6 +86,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
         }
 
         [TestMethod]
+        public void AvatarSkillsAcceptIndependentInterfaceAndDetachBothDirections()
+        {
+            var skills=new IndependentAvatarSkills();var value=1;
+            foreach(var property in typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarSkills).GetProperties())property.SetValue(skills,value++);
+            var source=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=Guid.NewGuid(),Skills=skills};
+            var stored=DataHelper.ConvertOASISAvatarDetailToMongoEntity(source);
+            foreach(var property in typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarSkills).GetProperties())Assert.AreEqual(property.GetValue(skills),property.GetValue(stored.Skills));
+            var computers=stored.Skills.Computers;skills.Computers=999;Assert.AreEqual(computers,stored.Skills.Computers);
+            var loaded=DataHelper.ConvertMongoEntityToOASISAvatarDetail(new OASISResult<MongoAvatarDetail>(stored));
+            Assert.IsFalse(loaded.IsError);Assert.IsNotNull(loaded.Result);
+            Assert.AreNotSame(stored.Skills,loaded.Result.Skills);
+            stored.Skills.Computers=888;Assert.AreEqual(computers,loaded.Result.Skills.Computers);
+        }
+
+        [TestMethod]
         public void AvatarDetailConversionPreservesDescriptionAndModel()
         {
             var stored=new MongoAvatarDetail{HolonId=Guid.NewGuid(),Description="stored-description",Model3D="stored-model"};

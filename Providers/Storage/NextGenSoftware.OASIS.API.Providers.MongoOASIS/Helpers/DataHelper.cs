@@ -16,6 +16,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 {
     public static class DataHelper
     {
+        private static AvatarSkills CopyAvatarSkills(IAvatarSkills value) => value == null ? null : new AvatarSkills
+        {
+            Computers=value.Computers,Engineering=value.Engineering,Farming=value.Farming,
+            FireStarting=value.FireStarting,Fishing=value.Fishing,Languages=value.Languages,
+            Meditation=value.Meditation,MeleeCombat=value.MeleeCombat,Mindfulness=value.Mindfulness,
+            Negotiating=value.Negotiating,RangedCombat=value.RangedCombat,Research=value.Research,
+            Science=value.Science,SpellCasting=value.SpellCasting,Translating=value.Translating,Yoga=value.Yoga
+        };
+
         private static AvatarAttributes CopyAvatarAttributes(IAvatarAttributes value) => value == null ? null : new AvatarAttributes
         {
             Strength = value.Strength, Speed = value.Speed, Dexterity = value.Dexterity,
@@ -244,7 +253,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.XP = avatar.Result.XP;
             oasisAvatar.FavouriteColour = avatar.Result.FavouriteColour;
             oasisAvatar.STARCLIColour = avatar.Result.STARCLIColour;
-            oasisAvatar.Skills = avatar.Result.Skills;
+            oasisAvatar.Skills = CopyAvatarSkills(avatar.Result.Skills);
             //oasisAvatar.Spells = avatar.Result.Spells;
 
             if (avatar.Result.Spells != null)
@@ -606,7 +615,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             //mongoAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
             mongoAvatar.FavouriteColour = avatar.FavouriteColour;
             mongoAvatar.STARCLIColour = avatar.STARCLIColour;
-            mongoAvatar.Skills = (AvatarSkills)avatar.Skills;
+            mongoAvatar.Skills = CopyAvatarSkills(avatar.Skills);
             //mongoAvatar.Spells = avatar.Spells;
 
             if (avatar.Spells != null)
