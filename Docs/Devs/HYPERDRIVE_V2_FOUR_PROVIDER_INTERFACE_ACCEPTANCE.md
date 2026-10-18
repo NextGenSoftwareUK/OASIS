@@ -1,5 +1,7 @@
 # Four-provider interface acceptance audit
 
+2026-10-18 Hedera history bounds now map inclusive mirror block numbers to exact block timestamp intervals through configured mirror metadata, preserving nanoseconds and both pagination bounds.36controlled history cases/137unit cases pass; real testnet bounded1/1pass1s and default-unbounded1/1pass35s/25records, no storage activation/signing/paid query/native write. This closes ignored bound behavior for the fourth provider, not broader native consensus/paid storage/assets/V2/hosted acceptance. Mirror index completeness is not consensus completeness; default35s scan latency remains visible. Full hashes/source contract in release journal.
+
 2026-10-18 TRON history bounds implemented/verified: public sync/async snapshot/validation plus existing SDK verified-receipt block filtering;12controlled SDK/gRPC cases red-before/green-after, full417pass. Retained real original at solidifiedblock294 passes exact inclusion and4exclusion checks1/1pass1s, ownerbalance/fee receipt unchanged, no new transaction/fee. Candidate comes from retained confirmed account-create ID, NOT a live index; does not certify live TronGrid completeness or all public-history options. Existing unresolved journals unchanged. Cosmos/Sui/TRON now honor inclusive native history bounds; HEDERA remains unresolved. Full evidence hashes in release journal; remaining interfaces/V2/hosted gates stay OPEN.
 
 2026-10-18 Sui requested history bounds now implemented as inclusive CHECKPOINT ranges, transported as canonical u64 strings to official gRPC inclusive-start/exclusive-end query fields. Same verified collector now shared by real path and controlled stream tests, no duplicate history backend. SDK79/79 and C#10/10pass; actual retained read-only1/1pass1m1s verifies all4original fee/status records, exact-checkpoint sync/async inclusion, genesis exclusion and ulong.MaxValue future-empty behavior. No new mutation/fee; historical original report unchanged. Pruned-interval/pagination/invalid-bound handling has controlled tests, not a real pruned-node certification. Source audit below records earlier findings; Cosmos AND Sui now honor bounds, Hedera/TRON still OPEN. Remaining interfaces/HTTP/hosted gates not closed; full hashes in release journal.
@@ -46,7 +48,18 @@ The NFT interface's SetCollectionSize/SetCollectionSizeAsync have explicit defau
 
 ## Next verification work
 
-2026-10-18 history-option audit initially found Sui, Hedera and TRON ignored shared bounds. Sui and TRON are now repaired/verified above, alongside Cosmos. Hedera `HashgraphOASIS.Token.cs` STILL ignores FromBlock/ToBlock; it needs an explicit applicable mirror/block contract, not a guessed shared timestamp/height mapping. That remains OPEN and unbounded-history passes do not cover it. Current native range evidence covers selected originals/snapshots, not exhaustive native pagination/pruning/index-outage behavior or live TronGrid completeness.
+2026-10-18 history-option audit initially found Sui, Hedera and TRON ignored shared bounds. All four are now repaired with provider-specific semantics below. Current native/mirror range evidence covers selected originals/snapshots, not exhaustive native pagination/pruning/index-outage behavior, live TronGrid completeness, or consensus proof from a mirror index.
+
+## Shared history fields — provider-specific contract
+
+Both nullable fields are inclusive; omitted ends preserve each provider's documented snapshot behavior. A block/checkpoint range is not a version/time-travel snapshot.
+
+| Provider | FromBlock / ToBlock unit | Precision and verification boundary |
+|---|---|---|
+| Cosmos | Native block height | Exact safe-integer SDK heights up to9007199254740991; both index queries bounded to committed snapshot, every original height verified; larger explicit values rejected |
+| Sui | Native checkpoint | Canonical u64 strings→BigInt; inclusive API→exclusive SDK end; original checkpoints and index coverage verified; actual max-u64 end cannot overflow |
+| TRON | Solidified native receipt block number | API u64 comparisons retain precision; all candidate receipts verified before filtering, never trust index block_number; live index completeness separate |
+| Hedera | Configured Mirror REST block number | Exact block metadata→inclusive nanosecond timestamps; metadata/returned records/page bounds checked; verified indexed latest clamps upper/future-empty; mirror evidence is not consensus completeness |
 
 2026-10-17 Cosmos final-fee implementation audit: actual SDK receipt currently proves exact observed ante deduction and payer/granter binding, not final post-handler refunds/tips. Reviewed per-chain maximum profile is not final-fee proof. Actual Cosmos reader + shared readiness checker tested for both plain/reviewedmaximum configuration, remaining ante-only/unactivated. Final-fee implementation must bind reviewed chain/app-version policy and original charged/refund/tip evidence, including charged failures and upgrades. Do not replace this gap with a NetFinal flag to make startup green. Primary source and specific existing code responsibilities documented in native fee accounting. No new native transaction or configuration change for this audit.
 
