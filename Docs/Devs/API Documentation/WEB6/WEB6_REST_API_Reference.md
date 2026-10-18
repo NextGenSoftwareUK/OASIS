@@ -383,6 +383,59 @@ Run a SkillOpt epoch — the optimiser model proposes bounded edits to the skill
 
 ---
 
+## Agent Runtime
+
+### POST `/v1/agent/run`
+
+Runs a server-side agent loop inside one request. WEB6 reserves usage for up to **10 provider calls** (the endpoint's call budget); each model step settles from its measured usage, so you pay only for the steps that run.
+
+```json
+{
+  "task": "Help me plan a calmer evening routine",
+  "maxSteps": 8,
+  "agentHolonId": "<FAHRN agent holon id — optional, injects its SkillOpt skill>",
+  "taskCategory": "wellbeing",
+  "memoryHolonId": "<your Holonic Memory holon — optional, enables memory tools and curation>",
+  "curateMemory": true,
+  "clientTools": [ { "type": "function", "function": { "name": "calendar_lookup", "description": "...", "parameters": { "type": "object" } } } ]
+}
+```
+
+- `maxSteps` is 1–9 (one call is kept back for memory curation).
+- With `memoryHolonId` (must be owned by the caller), the agent gets `oasis_agent_memory_search` and `oasis_agent_memory_record`, recalled memories are injected up front, and after a completed run one curation call stores durable facts tagged `agent-curated`.
+- If the model calls one of your `clientTools`, the run returns `status: "awaiting_tool_results"` with `pendingToolCalls` and `messages`. Execute the tools, append `{ "role": "tool", "toolCallId": ..., "content": ... }` messages, and POST again with `messages` (instead of `task`).
+- `status` is `completed`, `awaiting_tool_results` or `step_budget_exhausted`. The response also includes `runId`, `finalAnswer`, `steps` (per-step provider, model, tokens and tool calls), `curatedMemories`, `providerCalls`, and token and cost totals.
+
+### POST `/v1/agent/feedback`
+
+```json
+{ "agentHolonId": "...", "runId": "...", "score": 0.9 }
+```
+
+Scores a completed run started by the same avatar. The run becomes a SkillOpt rollout for its task category; scores ≥ 0.7 count as successes when `/evolve` runs the next epoch.
+
+## Messaging Channels
+
+Chat users on Telegram, WhatsApp, Slack and Discord link their chat identity to an OASIS avatar, then talk to their agent from that app.
+
+### GET/POST `/v1/channels/webhooks/{channel}`
+
+Set this URL as the webhook in each platform's console. These routes accept no OASIS credentials. Every request is verified with the platform's own scheme before anything is parsed: the Telegram secret token, WhatsApp `X-Hub-Signature-256` (plus the GET `hub.verify_token` handshake), the Slack v0 signature with a 5-minute replay window (plus `url_verification`), and Discord Ed25519 (`PING` is answered, and commands get a deferred response followed by a follow-up). They make no AI-provider calls and are not metered. An unconfigured channel answers `503` and names the environment variables it is missing.
+
+### POST `/v1/channels/link-codes`
+
+```json
+{ "channel": "telegram", "grantId": "<WEB4 delegated usage grant id>" }
+```
+
+Returns an 8-character code valid for 15 minutes. Send `link CODE` (or `/link CODE`) from the chat app to bind that identity to your avatar. Codes are single-use and stored only as hashes. The grant (create it with `POST /api/subscription/usage/grants` on WEB4) is what will pay for agent replies on that chat.
+
+### GET `/v1/channels/bindings` · DELETE `/v1/channels/bindings/{bindingId}`
+
+List or remove your linked chat identities.
+
+> Agent replies to linked chats need the grant-backed dispatcher (delegated execution), which has not shipped yet. Until it does, linked users get an explicit "agent replies are not enabled on this server yet" reply. It is never a fabricated answer.
+
 ## Holonic BRAID Reasoning Graphs
 
 ### GET `/v1/holonic-braid/graph/{taskType}`

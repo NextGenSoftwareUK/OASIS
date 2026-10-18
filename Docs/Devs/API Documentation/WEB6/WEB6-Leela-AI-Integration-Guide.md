@@ -443,9 +443,9 @@ Start with Phase 1 (endpoint swap) this week to capture immediate savings, then 
 | Voice | Voice-memo transcription | `POST /v1/audio/transcriptions` and `/v1/audio/speech` |
 | Tools / interop | MCP client | 508 MCP tools at `/mcp`, plus A2A, ACP, ANP, LangGraph, OpenAI Agents and more |
 | Multi-tenant identity and billing | None (single-user design) | WEB4 avatars, per-avatar key vault, budgets, metered usage, DIDs / verifiable credentials |
-| Packaged chat app | Yes (`hermes` TUI) | No: WEB6 is an API |
-| Messaging channels (WhatsApp, Telegram, Slack…) | Yes | Not yet (on the WEB6 roadmap) |
-| Scheduled / unattended agent runs | Built-in cron | Not yet (on the WEB6 roadmap) |
+| Agent loop | Built-in (terminal app) | `POST /v1/agent/run`: metered server-side loop with SkillOpt skills, memory tools, caller-executed tools and automatic memory curation; `POST /v1/agent/feedback` feeds SkillOpt |
+| Messaging channels (WhatsApp, Telegram, Slack, Discord) | Yes | Signed webhooks and avatar linking are live (`/v1/channels/*`); agent replies wait on delegated execution |
+| Scheduled / unattended agent runs | Built-in cron | WEB4 delegated usage grants are live (revocable, budget-capped); the scheduler is next |
 
 ### Which to choose for Leela
 
