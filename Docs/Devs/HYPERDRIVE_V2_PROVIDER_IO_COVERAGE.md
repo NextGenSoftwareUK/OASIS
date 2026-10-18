@@ -5401,3 +5401,7 @@ All/parent/metadata loaders now apply positive versions to selected root snapsho
 
 Search now uses version-aware Avatar/Holon loaders with existing shared predicates; ExportAll replaces lossy partial-column reconstruction and silent decode skipping with canonical LoadAllHolons(loadChildren:false,version). Native71pass37s/unit76pass298ms with matched DLL BAC14BFE2A8294252B1B16A0DABF0E0CE26F89508C0B311BE545A03B68E30800. Historical search/metadata/descendants and current/historical export plus corrupt archive error proven in expanded two native history cases. Per-avatar exports remain old and incomplete; full interfaces/search options/recovery/release not certified. Exact report hashes in current release gates.
 
+# 2026-10-18 Neo4j per-avatar exports
+
+ID/username/email exports now use canonical versioned records and CreatedByAvatarId ownership, matching existing shared/SQLite behavior; removed unrestricted graph reachability, partial reconstruction and silent skips. Historical owner names/email and unrelated-record exclusion proven in expanded native cases. Lookup/export errors propagate completely; empty owner ID guards added. Native71pass37s/unit78pass320ms; three DLLs16916537E666820D0843C676DEE48883F0EF0024078F3283FF922471AFDB44B9. Exact report hashes/remaining gaps in current release gates. Not authorization/API/full-interface certification; soft-delete/history-credentials/concurrency/recovery/release remain open.
+
