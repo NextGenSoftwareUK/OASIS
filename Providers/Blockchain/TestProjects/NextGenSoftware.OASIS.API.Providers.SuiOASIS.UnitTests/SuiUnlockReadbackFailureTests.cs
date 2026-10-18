@@ -6,6 +6,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiUnlockReadbackFailureTests
 {
+    [DataTestMethod]
+    [DataRow(false,"0xab",false)] [DataRow(true,"0xab",false)]
+    [DataRow(false,"0xAB",false)] [DataRow(true,"0xAB",false)]
+    [DataRow(false,"0xac",true)] [DataRow(true,"0xac",true)]
+    public async Task TransferReadbackComparesCanonicalSuiRecipient(bool synchronous,string recipient,bool rejected)
+    {
+        await WithProcessFixture(async provider=>{
+            var request=new SendWeb3NFTRequest { TokenAddress="canonical-owner",FromWalletAddress="fixture-owner",
+                ToWalletAddress=recipient,OwnerPrivateKey="test-only-explicit",Amount=1 };
+            var result=synchronous?provider.SendNFT(request):await provider.SendNFTAsync(request);
+            Assert.AreEqual(rejected,result.IsError,result.Message);
+            Assert.AreEqual(new string('1',32),result.Result.SendNFTTransactionResult);
+            if(rejected)AssertCommittedReadbackEvidence(result.Exception);
+            else Assert.AreEqual("0x"+"ab".PadLeft(64,'0'),result.Result.Web3NFT.SendToAddressAfterMinting);
+        });
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task SendPreservesOriginalWalletIntentAcrossSignerAwait(bool changeSender)
     {

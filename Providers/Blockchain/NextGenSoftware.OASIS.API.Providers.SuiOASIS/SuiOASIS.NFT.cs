@@ -341,7 +341,7 @@ public partial class SuiOASIS
             var loaded = await LoadOnChainNFTDataAsync(tokenId);
             if (loaded.IsError || loaded.Result == null)
                 throw new SuiNativeMutationReconciliationException("NFT transfer committed as " + hash + " but readback failed; reconcile before retrying: " + loaded.Message, hash, true, loaded.Exception);
-            if (!string.Equals(loaded.Result.SendToAddressAfterMinting, recipient, StringComparison.OrdinalIgnoreCase))
+            if (!SameSuiAddress(loaded.Result.SendToAddressAfterMinting, recipient))
                 throw new SuiNativeMutationReconciliationException("NFT transfer committed as " + hash + " but current owner does not match the requested recipient; reconcile before retrying.",
                     hash, true, new InvalidDataException("Post-transfer NFT ownership differs from the requested delivery."));
             loaded.Result.SendNFTTransactionHash = hash;
