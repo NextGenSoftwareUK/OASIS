@@ -12,7 +12,6 @@ public partial class SolanaOASIS : IOASISStorageProvider
 {
     private Task<OASISResult<IEnumerable<IAvatar>>> LoadCredentialAvatarsAsync(int version)
     {
-        if(version!=0) throw new NotSupportedException("Solana credential collection history is not implemented; only version 0 is supported.");
         return LoadAllAvatarsAsync(version);
     }
     public Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string key,int version=0)
