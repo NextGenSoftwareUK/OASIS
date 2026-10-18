@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## General search integration
+
+Search sync+async now reuses StoredRecordSearch validation/matching and canonical Core SearchParams snapshot, not POST/oasis/search. Targeted encrypted avatar/holon reads, existing masks/group/metadata/owner/parent semantics, deleted exclusion/counts and shared graph projection. Snapshot before await prevents caller mutation changing in-flight query. Invalid input classified before I/O; downstream error envelope preserved.10newcontrolled cases/full116unitpass160ms; text/numeric/UTC-date masks and credential matching exclusion tested. No actual pod/network/hosted proof.
+
+This supports tested Core request DTOs; arbitrary external nested interface implementations may be rejected by restricted serializer, not silently approximated. O(n)scan with existing bounds/no pagination/history. Internal search returns private storage DTOs; credential exclusion in matcher does NOT redact response payloads or replace API authorization. Full field/mask/options/continuation/manager integration, deletion/import/export/history/pagination/native OIDC/DPoP/server/ETag/durable recovery/hosted gates remain unfinished. Current runtime startup policy gate unchanged; no alternate launch.
+
 ## Single-root graph read integration
 
 LoadHolon GUID/string sync+async now honors provider-linked children, recursion and max depth through existing shared graph projector after encrypted point read + collection read. Disabled/provider-false requests remain point-only. Key parsing centralized; negative depth fails before I/O; native point404 retains canonical RecordNotFound. Failed child read/cycle returns error without partial root success.14newcontrolled cases/full106unitpass136ms include graph-save→single-load round trip in both call modes and independent corrupt/cycle controls. Exact hashes/true-before count in release gates.

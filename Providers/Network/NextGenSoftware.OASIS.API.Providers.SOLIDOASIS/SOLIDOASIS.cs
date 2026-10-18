@@ -326,26 +326,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var result = new OASISResult<ISearchResults>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                if (searchParams == null) { OASISErrorHandling.HandleError(ref result, "SearchParams cannot be null"); return result; }
-                var body = JsonSerializer.Serialize(new { searchParams, version });
-                var content = new StringContent(body, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_podServerUrl}/oasis/search", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseSearchResults(await response.Content.ReadAsStringAsync());
-                    result.IsError = result.Result == null;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error searching SOLID pod: {ex.Message}", ex); }
-            return result;
-        }
+            => await SearchPrivateRecordsAsync(searchParams,loadChildren,recursive,maxChildDepth,version);
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
             => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;

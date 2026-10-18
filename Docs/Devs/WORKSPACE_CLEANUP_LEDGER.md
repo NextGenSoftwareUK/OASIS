@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-18 SOLID general search integration reuses shared matching/validation, Core request projection and existing controlled HTTP fixture/read gate. Bounded no-restore/no-reference build/test;116unit cases terminal. No download/install/new environment/server/clone/public/native pod request. Free86715043840bytes after observed; fixed compact reports/reusable outputs retained, no deletion/shared cache removal. Prior runtime execution-policy denial not bypassed.
+
 2026-10-18 SOLID single-root graph read integration reuses existing matcher/projector/HTTP fixture and caches. Bounded no-restore/no-reference build/test;106unit cases terminal. No install/download/clone/new environment/server/container or public/native pod requests. Free86721048576bytes after observed. Earlier runtime policy denial respected; no alternate launcher. Reusable outputs/fixed compact test reports retained, no file or cache removal.
 
 2026-10-18 SOLID graph-write work reused shared planner/key-partial exception and SAME controlled HTTP fixture, existing caches/projects; bounded no-restore/no-reference builds/tests.92SOLID/408sharedunit tests terminal. No download/install/service/container start/clone/new environment/native ledger/public writes. Previous policy denial not bypassed. Free86724448256bytes after SOLID verification observed; compact fixed-path reports/reusable outputs retained. No file deletion/broad cache removal.
