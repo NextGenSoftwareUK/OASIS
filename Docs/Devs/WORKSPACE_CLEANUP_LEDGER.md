@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 Cosmos asset-original inspection reused retained node/SDK/ledger and stopped it afterward. Four originals positively identified read-only; compact separate original-bytes/fee report retained. Pending journal/database remain protected (no cleanup/archive yet), old reports not overwritten. No mutation/replay/install/download/new environment. Free C:85,482,217,472bytes; no reclaimed-space claim.
+
 2026-10-17 Cosmos asset probe found admission bypass and FAILED; preserve `TestResults/HyperDriveCosmos/prepared-native-pending.json` (BBACD101A5342D65430138C499FFE4839E3508D4176354222C8A9F398B42BB52), failed TRX and database `usage_cosmos_live_prepared`. These are NOT disposable cleanup targets, even though observed asset balance/supply reached zero. Original old replication fence unchanged. Offline fix verification186/186passed; same SDK/bins/ownedMongo/node/ledger reused, no downloads/install/reset/new environment. wasmd exited and Mongo27029closed; free C:85,522,591,744bytes. No broad deletion/reclaimed-space claim.
 
 2026-10-17 expanded Cosmos selectors4/4passed1m19s reused existing wasmd/ledger/wallet/contract/SDK/Mongo/file directory. No installation/download/new environment/reset. Fixtures performed normal own leaf/delete/DB/journal cleanup; protected old intent unchanged. Runtime exited/Mongo27029closed. Fixed compact report retained with hash in release gates; free C:85,520,756,736bytes. No broad deletion/reclaimed-space claim. TRON expiration read locally; no TRON runtime restart.
