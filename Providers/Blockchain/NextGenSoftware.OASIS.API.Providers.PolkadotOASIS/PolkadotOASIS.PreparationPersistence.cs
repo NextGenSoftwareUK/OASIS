@@ -9,6 +9,19 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 
 public partial class PolkadotOASIS
 {
+    /// <summary>Persists and submits the exact original once under an admitted execution.
+    /// Returns pool acceptance ONLY, never completed transfer success. Read finalized evidence before settlement.
+    /// Repeating this call is not a recovery mechanism; reconcile the retained original instead.</summary>
+    public async Task<JsonElement> SubmitNativeTokenTransferPreparationAsync(JsonElement preparation,
+        UsageExecutionHandle execution,string clientRequestId,string expectedSender,CancellationToken token=default)
+    {
+        token.ThrowIfCancellationRequested();
+        var original=preparation.Clone();
+        using var server=CreateNativePreparationServer(execution,clientRequestId,expectedSender,original.GetProperty("transactionHash").GetString());
+        return await InvokePolkadotSdkAsync(new{operation="submitNativePreparation",endpoint=_rpcEndpoint,
+            genesisHash=ReportedGenesisHash,preparation=original},token,server);
+    }
+
     /// <summary>Persist verified original preparation under an existing admitted execution. NEVER broadcasts.</summary>
     public async Task<JsonElement> PersistNativeTokenTransferPreparationAsync(JsonElement preparation,
         UsageExecutionHandle execution,string clientRequestId,string expectedSender,CancellationToken token=default)
