@@ -726,7 +726,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
         private static bool MetaMatches(IHolon holon, string key, string value)
-            => holon.MetaData != null && holon.MetaData.TryGetValue(key, out var v) && string.Equals(v?.ToString(), value, StringComparison.Ordinal);
+            => holon.MetaData != null && holon.MetaData.TryGetValue(key, out var v) && string.Equals(StoredRecordSearch.MetadataValueText(v), value, StringComparison.Ordinal);
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {

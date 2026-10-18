@@ -113,12 +113,15 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public static bool MatchesTextIds(IHolonBase record,string query)
             => MatchesTextIdentifiers(record,query,searchIds:true,searchProviderKeys:false);
 
+        public static string MetadataValueText(object value)
+            => value==null ? null:Convert.ToString(value,CultureInfo.InvariantCulture);
+
         public static bool MatchesMetadata(IDictionary<string,object> metadata,IDictionary<string,string> filter,MetaKeyValuePairMatchMode mode)
         {
             if(mode!=MetaKeyValuePairMatchMode.All && mode!=MetaKeyValuePairMatchMode.Any) throw new ArgumentOutOfRangeException(nameof(mode));
             if(filter==null || filter.Count==0) return true;
             bool Has(KeyValuePair<string,string> pair)=>metadata!=null && metadata.TryGetValue(pair.Key,out var value)
-                && value!=null && string.Equals(Convert.ToString(value,CultureInfo.InvariantCulture),pair.Value,StringComparison.Ordinal);
+                && value!=null && string.Equals(MetadataValueText(value),pair.Value,StringComparison.Ordinal);
             return mode==MetaKeyValuePairMatchMode.All ? filter.All(Has):filter.Any(Has);
         }
 
