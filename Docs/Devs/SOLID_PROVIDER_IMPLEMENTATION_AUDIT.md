@@ -2,6 +2,16 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Native verification prerequisite: operator action
+
+One official CSS7.1.8 image now retained in existing root WSL Podman: amd64 manifest digest125727897fde6e2225239a0748bf47d8fa559cac065d5694dc10f6428799e9f2, local image58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a,336257823bytes unpacked. Downloaded once after existing-cache inventory; do not pull/clone/reinstall per run.
+
+Execution policy blocked container creation/start, so no oasis-solid service exists and NO real-pod tests have executed. Operator must permit/start the single retained service using that image, container name oasis-solid, existing root WSL Podman, loopback port13000 mapped to3000, retained volume oasis-solid-data→/data, memory768MiB/2CPU bounds. CSS arguments: `-c @css:config/file-root.json -f /data -b http://127.0.0.1:13000/ -p 3000 -l warn`. No alternate assistant launch path attempted. File-root mode permits anonymous access: ONLY loopback synthetic fixtures, not production/private-pod auth proof.
+
+After operator setup, `Scripts/TestHosts/Run-ReusableSolidPodTests.ps1` verifies exact running image and existing test assets, builds current cached producer/consumer, provisions/reuses one DPAPI test key and runs exactly2 RetainedSolidPodTests cases with zero skipped requirement/fresh-report guard. Runner never starts/stops/removes/downloads runtime; operator owns service. Native fixture creates/reuses its/native-fixture/containers, journals intended resource IDs before mutation, checks absence before record writes, verifies actual encrypted HTTP records/collections/lookups, and raw-HTTP deletes only its confirmed generated records then verifies404. Raw cleanup does NOT certify provider delete methods. Failure leaves original journal+protected key intact; no automatic replay/reset/cleanup of uncertain operations. This code compiles; live behavior and cleanup/recovery remain unproven until service available.
+
+Existing integration project restored once using retained caches; native tests compiled but NOT run. Legacy skipped/public-pod tests untouched/not counted. No native success report exists from this stage. Current full-provider/native-auth/history/pagination/graph/query/import/export/recovery/hosted gates remain open.
+
 ## Private identity and GUID lookup integration
 
 Avatar/detail username+email sync/async lookups now reuse native encrypted LDP collections and match locally (trim+OrdinalIgnoreCase), with no private query value in HTTP URI. Missing identity maps to canonical RecordNotFound; duplicate identities error, no arbitrary first match. Blank values reject before I/O and upstream errors preserve cause/details. Avatar/holon provider-key reads parse nonempty GUID and access canonical encrypted resource directly instead of/by-key URLs.13newcontrolled tests/full67unitpass247ms;9true initial regressions. Exact hashes in release gates.
