@@ -24,7 +24,10 @@ public partial class Neo4jNativeAvatarTests
         {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
             var marker=Guid.NewGuid().ToString("N");
+            var owner=new Avatar{Id=Guid.NewGuid(),Username=$"export-old-{marker}",Email=$"old-{marker}@example.invalid"};
+            Assert.IsFalse((await provider.SaveAvatarAsync(owner)).IsError);
             var root=new Holon{Id=Guid.NewGuid(),Name=$"root-v1-{marker}"};
+            root.CreatedByAvatarId=owner.Id;
             root.MetaData["history-marker"]=marker;
             var child=new Holon{Id=Guid.NewGuid(),Name=$"child-v1-{marker}"};
             var grandchild=new Holon{Id=Guid.NewGuid(),Name=$"grandchild-v1-{marker}"};
@@ -43,6 +46,8 @@ public partial class Neo4jNativeAvatarTests
             root.Name=$"root-v3-{marker}";
             Assert.IsFalse((await provider.SaveHolonAsync(root,saveChildren:false)).IsError);
             Assert.AreEqual(3,root.Version);Assert.AreEqual(2,child.Version);Assert.AreEqual(2,grandchild.Version);
+            owner.Username=$"export-new-{marker}";owner.Email=$"new-{marker}@example.invalid";
+            Assert.IsFalse((await provider.SaveAvatarAsync(owner)).IsError);
             var old=synchronous?provider.LoadHolon(root.Id,version:1):await provider.LoadHolonAsync(root.Id,version:1);
             Assert.IsFalse(old.IsError,old.Message);
             Assert.AreEqual($"root-v1-{marker}",old.Result.Name);Assert.AreEqual(rootVersionId,old.Result.VersionId);
@@ -77,6 +82,14 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(marker,exported.Result.Single(h=>h.Id==root.Id).MetaData["history-marker"]);
             var currentExport=await provider.ExportAllAsync();
             Assert.IsFalse(currentExport.IsError,currentExport.Message);Assert.AreEqual(3,currentExport.Result.Single(h=>h.Id==root.Id).Version);
+            var owned=synchronous?provider.ExportAllDataForAvatarById(owner.Id,1):await provider.ExportAllDataForAvatarByIdAsync(owner.Id,1);
+            Assert.IsFalse(owned.IsError,owned.Message);Assert.AreEqual(root.Id,owned.Result.Single().Id);Assert.AreEqual(1,owned.Result.Single().Version);
+            var byUsername=synchronous?provider.ExportAllDataForAvatarByUsername($"export-old-{marker}",1):await provider.ExportAllDataForAvatarByUsernameAsync($"export-old-{marker}",1);
+            Assert.IsFalse(byUsername.IsError,byUsername.Message);Assert.AreEqual(root.Id,byUsername.Result.Single().Id);
+            var byEmail=synchronous?provider.ExportAllDataForAvatarByEmail($"old-{marker}@example.invalid",1):await provider.ExportAllDataForAvatarByEmailAsync($"old-{marker}@example.invalid",1);
+            Assert.IsFalse(byEmail.IsError,byEmail.Message);Assert.AreEqual(root.Id,byEmail.Result.Single().Id);
+            var absentOwner=await provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid(),1);
+            Assert.IsFalse(absentOwner.IsError,absentOwner.Message);Assert.AreEqual(0,absentOwner.Result.Count());
             Assert.IsTrue((await provider.LoadHolonAsync(root.Id,version:99)).IsError);
             Assert.IsTrue((await provider.LoadHolonAsync(root.Id,version:-1)).IsError);
             Assert.AreEqual(2L,(await(await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon',RecordId:$id}) RETURN count(v) AS count",new{id=root.Id.ToString()})).SingleAsync())["count"].As<long>());
@@ -89,6 +102,9 @@ public partial class Neo4jNativeAvatarTests
                 Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,invalid.ErrorCode);
                 var invalidExport=await provider.ExportAllAsync(1);
                 Assert.IsTrue(invalidExport.IsError);Assert.IsNull(invalidExport.Result);
+                var invalidOwned=await provider.ExportAllDataForAvatarByIdAsync(owner.Id,1);
+                Assert.IsTrue(invalidOwned.IsError);Assert.IsNull(invalidOwned.Result);
+                Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,invalidOwned.ErrorCode);
             }
             finally
             {
@@ -99,6 +115,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(0L,(await(await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon',RecordId:$id}) RETURN count(v) AS count",new{id=root.Id.ToString()})).SingleAsync())["count"].As<long>());
             Assert.IsFalse((await provider.DeleteHolonAsync(child.Id)).IsError);
             Assert.IsFalse((await provider.DeleteHolonAsync(grandchild.Id)).IsError);
+            Assert.IsFalse((await provider.DeleteAvatarAsync(owner.Id,false)).IsError);
             Assert.AreEqual(0L,(await(await inspection.RunAsync("MATCH (a) WHERE a:Holon OR a:OasisRecordVersion RETURN count(a) AS count")).SingleAsync())["count"].As<long>());
         }
         finally{await provider.DeActivateProviderAsync();}

@@ -79,73 +79,13 @@ public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                // REAL Neo4j implementation for exporting all data for avatar by ID
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                using (var session = _driver.AsyncSession())
-                {
-                    // Query all holons related to the avatar (directly or through relationships)
-                    var query = @"
-                        MATCH (a:Avatar {Id: $avatarId})
-                        OPTIONAL MATCH (a)-[*]-(h:Holon)
-                        WITH COLLECT(DISTINCT h) as holons
-                        UNWIND holons as holon
-                        WHERE holon IS NOT NULL
-                        RETURN holon.Id as Id, holon.Name as Name, holon.Description as Description,
-                               holon.HolonType as HolonType, holon.CreatedDate as CreatedDate,
-                               holon.ModifiedDate as ModifiedDate, holon.ProviderKey as ProviderKey,
-                               holon.ParentHolonId as ParentHolonId";
-
-                    var result = await session.RunAsync(query, new { avatarId = avatarId.ToString() });
-                    var records = await result.ToListAsync();
-                    var holons = new List<IHolon>();
-
-                    foreach (var record in records)
-                    {
-                        try
-                        {
-                            var holon = new Holon
-                            {
-                                Id = Guid.Parse(record["Id"].As<string>()),
-                                Name = record["Name"].As<string>(),
-                                Description = record["Description"].As<string>(),
-                                HolonType = Enum.Parse<HolonType>(record["HolonType"].As<string>()),
-                                CreatedDate = record["CreatedDate"].As<DateTime>(),
-                                ModifiedDate = record["ModifiedDate"].As<DateTime>(),
-                                ProviderUniqueStorageKey = new Dictionary<ProviderType, string> { { Core.Enums.ProviderType.Neo4jOASIS, record["ProviderKey"].As<string>() } }
-                            };
-                            
-                            if (record["ParentHolonId"] != null)
-                            {
-                                holon.ParentHolonId = Guid.Parse(record["ParentHolonId"].As<string>());
-                            }
-                            
-                            holons.Add(holon);
-                        }
-                        catch
-                        {
-                            // Skip invalid records
-                            continue;
-                        }
-                    }
-
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = $"Exported {holons.Count} holons for avatar {avatarId} from Neo4j successfully";
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error exporting all data for avatar by ID from Neo4j: {ex.Message}");
-            }
+            if(avatarId==Guid.Empty)return new OASISResult<IEnumerable<IHolon>>{IsError=true,
+                Exception=new ArgumentException("A nonempty avatar ID is required.",nameof(avatarId)),
+                ErrorCode="HYPERDRIVE_PAYLOAD_INVALID",Message="A nonempty avatar ID is required."};
+            var response=await ExportAllAsync(version);
+            if(response.IsError)return response;
+            var owned=response.Result.Where(h=>h.CreatedByAvatarId==avatarId).ToList();
+            response.Result=owned;response.LoadedCount=owned.Count;
             return response;
         }
 
@@ -170,15 +110,11 @@ public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
                 var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
                 if (avatarResult.IsError || avatarResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Avatar with username {avatarUsername} not found");
-                    return response;
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 }
 
                 // Then export all data using the avatar ID
-                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
-                response.Result = exportResult.Result;
-                response.IsError = exportResult.IsError;
-                response.Message = exportResult.Message;
+                return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }
             catch (Exception ex)
             {
@@ -209,15 +145,11 @@ public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
                 if (avatarResult.IsError || avatarResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Avatar with email {avatarEmailAddress} not found");
-                    return response;
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 }
 
                 // Then export all data using the avatar ID
-                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
-                response.Result = exportResult.Result;
-                response.IsError = exportResult.IsError;
-                response.Message = exportResult.Message;
+                return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }
             catch (Exception ex)
             {

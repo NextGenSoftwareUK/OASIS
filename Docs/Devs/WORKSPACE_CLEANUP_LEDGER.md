@@ -1452,3 +1452,7 @@ Same fixed outputs and retained pinned oasis-neo4j container/volume/caches used 
 
 Reused same pinned container/volume/SDK/cache/fixed output for71native37s/76unit298ms. Native runner44281 terminal0; container independently exited. No install/download/restore/reset/new environment/public gas. Prior native report preserved once neo4j-native-before-search-export.trx, obsolete two-expectation unit failure preserved neo4j-unit-search-obsolete-expectations.trx, current compact reports retained. Test-owned acknowledged corruption restored and scoped records hard-deleted normally; uncertain journals/source/credentials/unrelated files untouched. Free90229673984→90228555776bytes observed; no reclaim claim.
 
+# 2026-10-18 Neo4j owned export verification
+
+Native71pass37s/unit78pass320ms reused SAME pinned container/volume/caches/fixed outputs. Runner6582 terminal0, container independently exited. Previous native report preserved once neo4j-native-before-owned-export.trx; current compact reports retained. Scoped acknowledged owned Avatar/Holon/history fixture cleanup and acknowledged corruption restoration only; no unrelated/source/credential/uncertain-journal deletion. No install/download/restore/new environment/reset/public gas. Free90243371008→90242859008bytes observed, no reclaim claim.
+
