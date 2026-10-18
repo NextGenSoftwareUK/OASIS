@@ -13,6 +13,30 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
 
 public partial class SOLIDOASIS
 {
+    private async Task<OASISResult<IHolon>> LoadPrivateHolonGraphAsync(Guid id,bool children,bool recursive,int maxDepth,bool childrenFromProvider,int version)
+    {
+        var result=new OASISResult<IHolon>();
+        try{
+            if(maxDepth<0)throw new ArgumentOutOfRangeException(nameof(maxDepth));
+            var root=await LoadPrivateRecordAsync<IHolon>(id,version);
+            if(root.IsError||!children||!childrenFromProvider)return root;
+            // Root selection owns its requested version; children retain independent current versions.
+            var loaded=await LoadPrivateRecordsAsync<IHolon>(0);
+            if(loaded.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(loaded);
+            var project=HolonGraphProjection.Create(loaded.Result,true,recursive,maxDepth,0,true,
+                record=>StoredRecordJson.DeserializeStored<IHolon>(StoredRecordJson.Serialize(record)));
+            root.Result=project(root.Result);return root;
+        }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID single holon graph read failed.",error);}
+        return result;
+    }
+    private async Task<OASISResult<IHolon>> LoadPrivateHolonGraphByKeyAsync(string key,bool children,bool recursive,int maxDepth,bool childrenFromProvider,int version)
+    {
+        var result=new OASISResult<IHolon>();
+        try{return await LoadPrivateHolonGraphAsync(ParsePrivateRecordKey(key),children,recursive,maxDepth,childrenFromProvider,version);}
+        catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID single holon key read failed.",error);}
+        return result;
+    }
+
     private async Task<OASISResult<IEnumerable<IHolon>>> QueryPrivateHolonsAsync(HolonType type,Func<IHolon,bool> filter,
         bool loadChildren,bool recursive,int maxDepth,int initialDepth,bool childrenFromProvider,int version)
     {
