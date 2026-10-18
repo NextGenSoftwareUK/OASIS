@@ -56,6 +56,8 @@
   <ItemGroup>
     <None Update="README.md" Pack="true" PackagePath="/" />
     <None Include="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\bridge.mjs" />
+    <None Include="SdkBridge\native-transfer.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\native-transfer.mjs" />
+    <None Include="SdkBridge\read-only-provider.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\read-only-provider.mjs" />
     <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package.json" />
     <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package-lock.json" />
   </ItemGroup>

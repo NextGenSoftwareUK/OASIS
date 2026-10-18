@@ -7,6 +7,57 @@ public class PolkadotReadOnlyNativeTests
 {
     private const string Genesis="0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3";
 
+    [DataTestMethod][DataRow(false)][DataRow(true)][TestCategory("ReadOnlyNative")]
+    public async Task PreparationRejectsSignerOrPublicKeyMismatchWithoutBroadcast(bool mismatchPublicKey)
+    {
+        Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_POLKADOT_READONLY_NATIVE"));
+        using var provider=new PolkadotOASIS("https://rpc.polkadot.io",Genesis);
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        const string sender="0x189dac29296d31814dc8c56cf3d36a0543372bba7538fa322a4aebfebc39e056";
+        const string other="0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
+        var request=new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest
+        {
+            FromWalletAddress=mismatchPublicKey?sender:other, ToWalletAddress=other, Amount=1,
+            OwnerPublicKey=mismatchPublicKey?other:null, OwnerPrivateKey="0x"+string.Concat(Enumerable.Repeat("01",32))
+        };
+        var result=await provider.PrepareNativeTokenTransferAsync(request);
+        Assert.IsTrue(result.IsError);
+        StringAssert.Contains(result.Message,"Explicit signer does not match");
+        Assert.IsFalse(result.Message.Contains(request.OwnerPrivateKey));
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)][TestCategory("ReadOnlyNative")]
+    public async Task NativeTransferPreparationSignsAndEstimatesButCannotBroadcast(bool withMemo)
+    {
+        Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_POLKADOT_READONLY_NATIVE"));
+        using var provider=new PolkadotOASIS("https://rpc.polkadot.io",Genesis);
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        // Public deterministic TEST-ONLY seed. Never fund this identity; every transport operation is read-only.
+        var request=new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest
+        {
+            FromWalletAddress="0x189dac29296d31814dc8c56cf3d36a0543372bba7538fa322a4aebfebc39e056",
+            ToWalletAddress="0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+            Amount=1.0000000001m,OwnerPrivateKey="0x"+string.Concat(Enumerable.Repeat("01",32)),
+            MemoText=withMemo?"OASIS preparation only 🌳":null
+        };
+        var result=await provider.PrepareNativeTokenTransferAsync(request);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());
+        var prepared=result.Result;
+        Assert.IsFalse(prepared.GetProperty("submitted").GetBoolean());
+        Assert.AreEqual(Genesis,prepared.GetProperty("genesisHash").GetString());
+        Assert.AreEqual("10000000001",prepared.GetProperty("units").GetString());
+        Assert.AreEqual(10,prepared.GetProperty("decimals").GetInt32());
+        Assert.AreEqual(request.FromWalletAddress,prepared.GetProperty("sender").GetString());
+        Assert.AreEqual(request.ToWalletAddress,prepared.GetProperty("recipient").GetString());
+        Assert.IsTrue(System.Numerics.BigInteger.Parse(prepared.GetProperty("partialFeeUnits").GetString()!)>0);
+        Assert.AreEqual("estimate-only-not-final-or-capped",prepared.GetProperty("feeCoverage").GetString());
+        Assert.IsTrue(Convert.FromBase64String(prepared.GetProperty("signedTransactionBase64").GetString()!).Length>64);
+        Assert.IsTrue(Convert.FromBase64String(prepared.GetProperty("signDocBase64").GetString()!).Length>64);
+        Assert.AreEqual(66,prepared.GetProperty("transactionHash").GetString()!.Length);
+        Assert.IsFalse(prepared.GetRawText().Contains(request.OwnerPrivateKey));
+        StringAssert.Contains(result.Message,"not submitted");
+    }
+
     [DataTestMethod]
     [DataRow(false, false)][DataRow(true, false)][DataRow(false, true)][DataRow(true, true)]
     [TestCategory("ReadOnlyNative")]
