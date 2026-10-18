@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Native deletion fixture expanded; not executed (2026-10-18)
+
+Existing retained-pod sync/async fixture now uses matching avatar/detail IDs and exercises provider soft-delete, reload of both inactive records with same nonzero timestamp and retained private payload, provider permanent avatar/detail deletion, provider holon-key deletion, and independent raw GET404 checks for every owned resource. Removed raw DELETE cleanup: failed provider deletion must leave the original ownership journal/key intact, not conceal failure by deleting via another route. Journal still captures all intended resources before setup/writes; no replay/reset or unrelated cleanup.
+
+Existing integration project compiled successfully with cached dependencies,4warnings/0errors. Reuse-only runner rechecked authoritative container state: podman reported no such object oasis-solid, then guard failed BEFORE key setup/build/native writes. ZERO native cases executed, no native success TRX, no live server proof. Earlier execution-policy startup restriction unchanged; explicit user permission requested asynchronously before any new launch attempt. No downloaded image/environment duplication. Free Windows space86698213376bytes. Unit159pass evidence unchanged from previous section, not rerun or relabelled native evidence.
+
 ## Nearby network operations (2026-10-18)
 
 Both existing IOASISNETProvider methods already use encrypted collection reads, not custom remote proximity endpoints. Fixed locale-dependent coordinate parsing: metadata Latitude/Longitude are invariant decimal degrees, not current-culture or thousands-separated text. Missing/invalid/nonfinite/out-of-range record coordinates are excluded as unlocated; input coordinates retain the existing microdegree integer convention and must lie within +/-90000000 latitude, +/-180000000 longitude; radius nonnegative, including zero. Invalid request fails before storage reads. Shared local coordinate helpers serve both methods; existing Haversine calculation clamps floating-point roundoff to [0,1]. Holon query is flat, avoiding unrelated graph descendants. Upstream native read errors now copy original OASISResult envelope/cause instead of replacing them with a message-only error.
