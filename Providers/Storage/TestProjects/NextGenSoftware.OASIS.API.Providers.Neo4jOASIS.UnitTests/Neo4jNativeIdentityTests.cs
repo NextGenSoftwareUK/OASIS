@@ -63,6 +63,7 @@ public class Neo4jNativeIdentityTests
     public void ValidNativeGuidIdentityStillMatchesCanonicalRecord(string kind)
     {
         var id=Guid.NewGuid();var values=new Dictionary<string,object> {{"Id",id.ToString().ToUpperInvariant()}};
+        if(kind=="holon")values["HolonType"]=new Holon().HolonType.ToString();
         Assert.AreEqual(id,((IHolonBase)Read(kind,id,values)).Id);
     }
 }
