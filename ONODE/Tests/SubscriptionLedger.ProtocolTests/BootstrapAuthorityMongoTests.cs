@@ -1,5 +1,6 @@
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 using Xunit;
 
@@ -19,7 +20,7 @@ public sealed class BootstrapAuthorityMongoTests : IAsyncLifetime
         public override DateTimeOffset GetUtcNow() => Now;
     }
     private BootstrapAuthorityRecord Record(long revision=1) => new()
-    { Id=_id.ToString("D"),Revision=revision,Ready=true,Enabled=true,TokenVersion=2,
+    { Id=_id.ToString("D"),Revision=revision,Ready=true,Enabled=true,Role=AvatarType.User,TokenVersion=2,
         KarmaVersion=3,Karma=123,VerifiedUntilUtc=_now.AddMinutes(1) };
 
     public async Task InitializeAsync()
@@ -100,5 +101,23 @@ public sealed class BootstrapAuthorityMongoTests : IAsyncLifetime
         _expireOnRead=true;
         await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.ReadAsync(_id,2));
         Assert.Equal(_now.AddMinutes(1),_clock.GetUtcNow().UtcDateTime);
+    }
+
+    [Fact] public async Task RoleChangeRequiresNewTokenVersionAndRevokesOldTokens()
+    {
+        await _authority.InvalidateAsync(_id,1);
+        var next=Record(2);next.Role=AvatarType.Wizard;
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.PublishAsync(next));
+        next.TokenVersion=3;
+        await _authority.PublishAsync(next);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>_authority.ReadAsync(_id,2));
+        Assert.Equal(AvatarType.Wizard,(await _authority.ReadAsync(_id,3)).Role);
+    }
+
+    [Theory][InlineData(null)][InlineData(999)] public async Task MissingOrUnknownPersistedRoleCannotAuthenticate(int? role)
+    {
+        await _records.UpdateOneAsync(x=>x.Id==_id.ToString("D"),
+            Builders<BootstrapAuthorityRecord>.Update.Set(x=>x.Role,role.HasValue?(AvatarType?)role.Value:null));
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.ReadAsync(_id,2));
     }
 }

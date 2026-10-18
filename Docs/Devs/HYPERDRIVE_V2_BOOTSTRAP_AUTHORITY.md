@@ -6,7 +6,7 @@ Owner approved the recommended Mongo-only private bootstrap authority. JWT ident
 
 ## Current implementation — foundation, NOT enabled
 
-`ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/BootstrapAuthority.cs` defines a small record and Mongo repository using primary reads, majority read concern and majority acknowledged writes. Fields: canonical avatar ID, revision, ready/enabled status, token version, karma version/value and UTC verification expiry. No email, username, password, refresh tokens, wallet keys or full avatar payload.
+`ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/BootstrapAuthority.cs` defines a small record and Mongo repository using primary reads, majority read concern and majority acknowledged writes. Fields: canonical avatar ID, revision, ready/enabled status, required User/Wizard/System role, token version, karma version/value and UTC verification expiry. No email, username, password, refresh tokens, wallet keys or full avatar payload.
 
 Validation requires exact identity/token version, positive revision/karma version, fresh UTC expiry, ready state and enabled status. Missing/invalid/expired/updating records fail closed; disabled/revoked identities are unauthorized. Negative karma remains representable; quota conversion must retain existing nonnegative/int-max normalization.
 
@@ -20,6 +20,8 @@ Mutation protocol:
 No upsert or implicit provisioning exists. First trusted provisioning/reviewed reconciliation needs an explicit implementation. Expiry is not a substitute for immediate invalidation. No watcher/change stream/eventual background mirror alone can satisfy revocation correctness.
 
 Publication additionally requires an increased karma version for a changed karma value and an increased token version for changed enabled status. Equal versions may only preserve those values. A version is not merely a nondecreasing decorative counter.
+
+Role is also security state: changes require a higher token version, rejecting old tokens. The record uses nullable existing Core AvatarType and validates that it is defined; **Wizard is enum zero**, so a nonnullable default would dangerously treat a missing persisted role as Wizard. Missing and unknown roles are rejected. This does not trust caller-supplied/JWT role claims or enable privileged endpoints before writer integration.
 
 ## Source findings and required integration
 
@@ -40,6 +42,8 @@ Remaining gates:
 - All release/pin/hosted gates remain required. Nothing here enables sponsored spending or Railway configuration.
 
 ## Evidence
+
+2026-10-17 authorization compatibility trace: custom `Helpers/AuthorizeAttribute.cs` casts request Avatar to concrete Avatar and checks AvatarType; `Middleware/OASISAuthHandler.cs` additionally requires IAvatar; `Controllers/OASISControllerBase.cs` exposes Avatar/AvatarId via request Items. A small authority record must not be installed as a fabricated complete Avatar. Added required version-protected role and tested actual Mongo missing/null and unknown numeric persisted roles, same-version role-change rejection, successful versioned role change and old-token rejection. Retained authority/ledger suite **92/92passed25s/0skip/full runnerexit0**, SHA256 `49F476EAA0431C8D6CB64569A3FC26CB8071FE4FEB1D86200FB7E768CB758A25`; pure validation **13/13passed83ms**, SHA256 `24AA5F473038B87B950B8B64EFFF4606FB3F87310180F232E807E4D158252CE7`; WEB4 diagnostic build0errors255warnings. Same environment, no download/restore/native operation/deployment; owned Mongo stopped/log65298bytes; free C84,796,207,104bytes. Required next integration remains minimal authenticated identity vs post-reservation full-avatar hydration, canonical writers, trusted provisioning and token issuance. No host enablement/release claim.
 
 2026-10-17 response-time expiry: repository now owns an injected TimeProvider (system UTC by default); ReadAsync no longer accepts a caller timestamp and checks expiry AFTER the actual Mongo response/cancellation. PublishAsync likewise obtains its validation time internally. Real Mongo CommandSucceededEvent advances the test clock at find completion to exactly the record expiry, proving refusal instead of admission using a pre-query timestamp. Existing retained authority/ledger suite **89/89passed24s/0skip/full runnerexit0**, `authority-ledger-current.trx` SHA256 `8F1C4430EEFF6EA15315FFE5A546DEDAC094A1725679F1E6C04C5F769D08FAA0`; WEB4 build0errors255warnings; pure validation **11/11passed112ms**, report SHA256 `5B1F04D491F274DD3DFF66855A93367BA178F17142D9DCB9D44D5A3348110A87`. Same environment/no restore/download/native spend; owned Mongo terminal/stopped; free C84,817,526,784bytes. Still not host/writer integration or release certification.
 

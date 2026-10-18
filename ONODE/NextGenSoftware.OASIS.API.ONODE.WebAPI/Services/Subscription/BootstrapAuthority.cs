@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
@@ -12,6 +13,8 @@ public sealed class BootstrapAuthorityRecord
     public long Revision { get; set; }
     public bool Ready { get; set; }
     public bool Enabled { get; set; }
+    // Nullable deliberately: AvatarType's zero/default value is Wizard, not an unprivileged role.
+    public AvatarType? Role { get; set; }
     public long TokenVersion { get; set; }
     public long KarmaVersion { get; set; }
     public long Karma { get; set; }
@@ -74,7 +77,7 @@ public sealed class MongoBootstrapAuthority
         var result = await _records.ReplaceOneAsync(
             x => x.Id == verified.Id && x.Revision == verified.Revision && !x.Ready
                 && (x.TokenVersion < verified.TokenVersion
-                    || (x.TokenVersion == verified.TokenVersion && x.Enabled == verified.Enabled))
+                    || (x.TokenVersion == verified.TokenVersion && x.Enabled == verified.Enabled && x.Role == verified.Role))
                 && (x.KarmaVersion < verified.KarmaVersion
                     || (x.KarmaVersion == verified.KarmaVersion && x.Karma == verified.Karma)),
             verified, cancellationToken: token);
@@ -98,6 +101,7 @@ public sealed class MongoBootstrapAuthority
     {
         if (utcNow.Kind != DateTimeKind.Utc) throw new ArgumentException("An explicit UTC time is required.", nameof(utcNow));
         if (record.Revision < 1 || record.TokenVersion < 0 || record.KarmaVersion < 1
+            || !record.Role.HasValue || !Enum.IsDefined(typeof(AvatarType), record.Role.Value)
             || record.VerifiedUntilUtc.Kind != DateTimeKind.Utc || record.VerifiedUntilUtc <= utcNow)
             throw new InvalidOperationException("Bootstrap authority is invalid or expired.");
     }
