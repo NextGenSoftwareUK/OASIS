@@ -11,6 +11,44 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public class LocalFileLatestVersionTests
 {
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task NewProfilesPublishTheirOwnProviderKeyBeforePersistence(bool synchronous)
+    {
+        var root = Path.GetFullPath(Path.Combine("TestResults", "HyperDriveLocalVersion"));
+        Directory.CreateDirectory(root);
+        using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var provider = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
+        var id = Guid.Parse("08b20ee7-3e63-401a-b23a-3ad0428218f8");
+        var avatar = new Avatar { Id = id, Username = "provider-key-fixture", Email = "provider-key@example.invalid" };
+        var detail = new AvatarDetail { Id = id, Username = avatar.Username, Email = avatar.Email };
+        try
+        {
+            var saved = synchronous ? provider.SaveAvatar(avatar) : await provider.SaveAvatarAsync(avatar);
+            saved.IsError.Should().BeFalse(saved.Message);
+            saved.Result.ProviderUniqueStorageKey.Should().ContainKey(ProviderType.LocalFileOASIS).WhoseValue.Should().Be(id.ToString());
+            var savedDetail = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
+            savedDetail.IsError.Should().BeFalse(savedDetail.Message);
+            savedDetail.Result.ProviderUniqueStorageKey.Should().ContainKey(ProviderType.LocalFileOASIS).WhoseValue.Should().Be(id.ToString());
+            foreach (var read in new[] { provider.LoadAvatarByProviderKey(id.ToString()), await provider.LoadAvatarByProviderKeyAsync(id.ToString()) })
+            {
+                read.IsError.Should().BeFalse(read.Message);
+                read.Result?.Id.Should().Be(id);
+            }
+            foreach (var read in new[] { provider.LoadAvatarDetail(id), await provider.LoadAvatarDetailAsync(id) })
+            {
+                read.IsError.Should().BeFalse(read.Message);
+                read.Result?.Id.Should().Be(id);
+                read.Result!.ProviderUniqueStorageKey.Should().ContainKey(ProviderType.LocalFileOASIS).WhoseValue.Should().Be(id.ToString());
+            }
+        }
+        finally
+        {
+            await provider.DeleteAvatarAsync(id, softDelete: false);
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
     private sealed class FailedReadLocalFile : LocalFileOASIS
     {
         public FailedReadLocalFile(string path) : base(storageDirectory: path) { }
