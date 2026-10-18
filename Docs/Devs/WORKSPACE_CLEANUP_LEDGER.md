@@ -1460,3 +1460,7 @@ Native71pass37s/unit78pass320ms reused SAME pinned container/volume/caches/fixed
 
 Reused same retained pinned container/volume/dependencies/fixed outputs:73native36s/78unit326ms, runner97236 terminal0 and independently exited. Prior71native report retained once neo4j-native-before-soft-delete-history.trx; compact current reports retained. Owned acknowledged fixture records/history removed by normal scoped hard deletion, no uncertain replay/unrelated deletion. No downloads/restores/installations/new environment/reset/public gas. Free90240765952→90240053248bytes observed, no reclaim claim. Source/credentials/protected journals intact.
 
+# 2026-10-18 Neo4j history delete race verification
+
+Native77pass37s/unit78pass322ms in same retained pinned container/volume/caches/fixed outputs. Runner80897 terminal0, container independently exited. Previous73native report preserved once neo4j-native-before-history-delete-race.trx; compact current evidence retained. Only acknowledged owned test fixtures cleaned after original-state/archive assertions; competing edit was test-owned, no replay/reset/unrelated deletion. Free90237911040→90204180480bytes observed, no attribution/reclaim claim. No downloads/restores/installations/new environment/public gas. Protected source/credentials/uncertain journals intact.
+

@@ -5409,3 +5409,7 @@ ID/username/email exports now use canonical versioned records and CreatedByAvata
 
 Opt-in paired profile/detail soft deletion now stamps/archives in the same native transaction as both tombstones using existing shared helpers and snapshot comparisons. Identical committed-tombstone repetition does not advance versions. Native73pass36s (two added history-enabled sync/async cases) proves pre-delete history, current v2, preserved XP/inventory, no duplicate archives, conflict/hard-delete cleanup; unit78pass326ms. DLL EB17DC788DCFFCFE449DECD738105E2A48FAA9DF24C99B74EEAF9CD9135CC27A. Ordinary-delete and forced history-enabled paired failure/concurrency need further proof; complete interfaces/recovery/hosted release remain uncertified. Exact hashes in release gates.
 
+# 2026-10-18 Neo4j history-enabled delete race proof
+
+Four additional native data rows prove ordinary history-enabled paired hard/soft deletion and actual detail-lock concurrent-edit rejection. Rejected soft-delete rolls back profile/detail archival, preserves original versions/live profile and independently committed XP999, leaves zero archives. Native77pass37s/unit78pass322ms, matched DLL AA9300825045FD1C63E7B9FAA02DC48BC78638134B48570C51DF3A545EACD68F. Existing implementation required no production change. Does not certify arbitrary unknown outcomes/concurrent creation/all interfaces; exact hashes and remaining gates in release journal.
+
