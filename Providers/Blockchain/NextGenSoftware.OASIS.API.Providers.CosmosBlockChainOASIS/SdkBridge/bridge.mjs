@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { captureCosmosDirectSigning, verifyCosmosPreparedIdentity } from './transaction-results.mjs';
 import { cosmosIndexedTransactionStatus } from './transaction-results.mjs';
 import { snapshotCosmosFeeLimits } from './transaction-results.mjs';
+import { snapshotCosmosReviewedHeight } from './transaction-results.mjs';
 
 async function readInput() {
   const chunks = [];
@@ -24,6 +25,7 @@ async function walletFor(input) {
 
 async function execute(input, persistPreparedSubmission) {
   const feeLimits=snapshotCosmosFeeLimits(input.maximumFeeUnitsByDenomination);
+  snapshotCosmosReviewedHeight(input.reviewedMaximumHeight);
   if (input.operation === 'instantiate' && (!Number.isSafeInteger(input.codeId) || input.codeId <= 0))
     throw new Error('Positive SDK-safe exact Cosmos code ID required');
   if (input.operation === 'verifyNativePreparation') return verifyCosmosPreparedIdentity(input.preparation);
@@ -51,7 +53,7 @@ async function execute(input, persistPreparedSubmission) {
       throw new Error(`Cosmos chain mismatch: expected ${input.chainId}, received ${chainId}`);
     const sender = wallet ? (await wallet.getAccounts())[0].address : null;
     if (isSigned) guardCosmosSigningClient(client, persistPreparedSubmission
-      ? evidence => persistPreparedSubmission(Object.freeze({ ...originalSigning(evidence), chainId, sender })) : undefined,feeLimits);
+      ? evidence => persistPreparedSubmission(Object.freeze({ ...originalSigning(evidence), chainId, sender })) : undefined,feeLimits,input.reviewedMaximumHeight);
     switch (input.operation) {
       case "nativeFeeReceipt": {
         const hash = input.transactionHash;
@@ -99,7 +101,7 @@ async function execute(input, persistPreparedSubmission) {
         const message = input.operation === "put" ? { put: { key: input.key, value: input.value } }
           : input.operation === "delete" ? { delete: { key: input.key } } : input.message;
         const result = await client.execute(sender, input.targetContractAddress ?? input.contractAddress,
-          message, "auto", input.memo ?? "", input.funds ?? []);
+          message, input.fee ?? "auto", input.memo ?? "", input.funds ?? []);
         verifiedContractExecution(result);
         return { transactionHash: result.transactionHash, height: result.height };
       }

@@ -3,7 +3,7 @@ import { fromBech32 } from '@cosmjs/encoding';
 import { decodeTxRaw } from '@cosmjs/proto-signing';
 import { createHash } from 'node:crypto';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { SignDoc, TxRaw, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { SignDoc, TxRaw, AuthInfo, TxBody } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { fromBase64 } from '@cosmjs/encoding';
 import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
 import { rawSecp256k1PubkeyToRawAddress } from '@cosmjs/amino';
@@ -44,6 +44,7 @@ export function verifyCosmosPreparedIdentity(evidence) {
   const feePayer=auth.fee.granter||auth.fee.payer||evidence.sender;
   if(!fromBech32(feePayer,90).data.length)throw new Error('Original signed Cosmos fee payer is invalid');
   return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,feePayer,
+    hasSignedTip:auth.tip!==undefined,timeoutHeight:TxBody.decode(raw.bodyBytes).timeoutHeight.toString(),
     declaredFeeAndTip:declaredCosmosFeeTotals(auth)};
 }
 
@@ -142,14 +143,28 @@ function verifyDeclaredCosmosFee(bytes,limits) {
   }
 }
 
-export function guardCosmosSigningClient(client, persistPreparedSubmission, maximumFeeUnitsByDenomination) {
+export function snapshotCosmosReviewedHeight(value) {
+  if(value===undefined)return undefined;
+  if(typeof value!=='string'||!(/^[1-9][0-9]{0,18}$/).test(value)||BigInt(value)>9223372036854775807n)
+    throw new Error('Canonical bounded positive reviewed Cosmos height required');
+  return BigInt(value);
+}
+
+export function guardCosmosSigningClient(client, persistPreparedSubmission, maximumFeeUnitsByDenomination, reviewedMaximumHeight) {
   if (persistPreparedSubmission !== undefined && typeof persistPreparedSubmission !== 'function')
     throw new TypeError('Prepared Cosmos submission persistence must be an awaited callback');
   const limits=snapshotCosmosFeeLimits(maximumFeeUnitsByDenomination);
+  const reviewedHeight=snapshotCosmosReviewedHeight(reviewedMaximumHeight);
   const broadcast = client.broadcastTx.bind(client);
   client.broadcastTx = async (bytes, ...args) => {
     if (!(bytes instanceof Uint8Array)) throw new Error('Cosmos broadcast requires exact signed transaction bytes');
     const signedBytes = Uint8Array.from(bytes);
+    if(reviewedHeight!==undefined){
+      const raw=TxRaw.decode(signedBytes),body=TxBody.decode(raw.bodyBytes),auth=AuthInfo.decode(raw.authInfoBytes);
+      if(!Buffer.from(TxBody.encode(body).finish()).equals(raw.bodyBytes)||body.timeoutHeight<=0n||body.timeoutHeight>reviewedHeight)
+        throw new Error('Original signed timeout height must stay within the reviewed Cosmos deployment interval');
+      if(auth.tip!==undefined)throw new Error('Signed tips are unsupported by the reviewed no-post-handler Cosmos fee model');
+    }
     if(limits!==undefined)verifyDeclaredCosmosFee(signedBytes,limits);
     const hash = createHash('sha256').update(signedBytes).digest('hex').toUpperCase();
     // Persistence failure is pre-submission: no broadcast or native-outcome claim.
@@ -170,7 +185,15 @@ export function guardCosmosSigningClient(client, persistPreparedSubmission, maxi
     return receipt;
   };
   const submit = client.signAndBroadcast.bind(client);
-  client.signAndBroadcast = async (...args) => verifiedBankTransfer(await submit(...args));
+  client.signAndBroadcast = async (...args) => {
+    if(reviewedHeight!==undefined){
+      const timeout=args[4]??reviewedHeight;
+      if(typeof timeout!=='bigint'||timeout<=0n||timeout>reviewedHeight)
+        throw new Error('Caller timeout height cannot escape the reviewed Cosmos deployment interval');
+      args[4]=timeout;
+    }
+    return verifiedBankTransfer(await submit(...args));
+  };
   return client;
 }
 

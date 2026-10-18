@@ -1,13 +1,19 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
 /// <summary>Observation from a trusted deployment inspector, NOT RPC-reported code attestation or request JSON.
 /// Hash comparison cannot establish that an untrusted observer actually inspected the deployed binary.</summary>
 public sealed record CosmosDeploymentObservation(string ChainId, string GenesisSha256, string BinarySha256,
-    string ApplicationVersion, string ApplicationCommit, string SdkVersion, long CommittedHeight, DateTimeOffset ObservedAtUtc);
+    string ApplicationVersion, string ApplicationCommit, string SdkVersion, long CommittedHeight, DateTimeOffset ObservedAtUtc)
+{
+    public string RpcEndpointSha256 { get; init; }
+}
 
 /// <summary>Immutable, expiring review of one exact deployment/height interval. This guard alone neither
 /// upgrades fee coverage nor proves a receipt, a refund, tip, charge or permission to spend.</summary>
@@ -27,6 +33,7 @@ public sealed class CosmosFeeModelReview
     public DateTimeOffset ReviewedAtUtc { get; }
     public DateTimeOffset ExpiresAtUtc { get; }
     public TimeSpan MaximumObservationAge { get; }
+    public string EvidenceBasis { get; }
 
     private static bool CanonicalHash(string value) => value?.Length == 64 && value.All(c => c is >= '0' and <= '9' or >= 'A' and <= 'F');
     private static bool Identifier(string value, int maximum) => !string.IsNullOrWhiteSpace(value) && value.Length <= maximum && !value.Any(c => char.IsWhiteSpace(c) || char.IsControl(c));
@@ -53,6 +60,16 @@ public sealed class CosmosFeeModelReview
         ReviewId = reviewId; ChainId = chainId; GenesisSha256 = genesisSha256; BinarySha256 = binarySha256;
         FirstHeight = firstHeight; LastHeight = lastHeight; ReviewedAtUtc = reviewedAtUtc; ExpiresAtUtc = expiresAtUtc;
         MaximumObservationAge = maximumObservationAge;
+        EvidenceBasis = "wasmd0703-fixed:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new {
+            ReviewId, ChainId, GenesisSha256, BinarySha256, FirstHeight, LastHeight, ReviewedAtUtc, ExpiresAtUtc, MaximumObservationAge,
+            WasmdVersion, WasmdCommit, SdkVersion }))));
+    }
+
+    public void ValidateCurrentReview()
+    {
+        var now = _time.GetUtcNow();
+        if (now < ReviewedAtUtc || now >= ExpiresAtUtc)
+            throw new InvalidDataException("Cosmos fee-model review is expired or not yet valid.");
     }
 
     /// <summary>Validate AFTER the inspector returns; sample time internally so pre-query timestamps cannot
