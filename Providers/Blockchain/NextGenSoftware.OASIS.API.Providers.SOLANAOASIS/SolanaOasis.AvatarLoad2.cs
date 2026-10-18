@@ -188,161 +188,46 @@ public partial class SolanaOASIS
         return DeleteAvatarAsync(id, softDelete).Result;
     }
 
-    public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-    {
-        var result = new OASISResult<bool>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Delete avatar from Solana program
-            // Real Solana implementation: Load avatar first to get provider key, then delete
-            var avatarResult = await LoadAvatarAsync(id, 0);
-            if (avatarResult.IsError || avatarResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Avatar not found for deletion: {avatarResult.Message}");
-                return result;
-            }
-
-            if (avatarResult.Result.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
-                avatarResult.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS, out var providerKey))
-            {
-                var deleteSuccess = await _solanaRepository.DeleteAsync(providerKey);
-                if (deleteSuccess)
-                {
-                    result.Result = true;
-                    result.IsError = false;
-                    result.Message = "Avatar deleted successfully from Solana";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to delete avatar from Solana repository");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar does not have a Solana provider key (transaction hash)");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+    public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        => DeleteSelectedAvatarAsync(()=>LoadAvatarAsync(id),softDelete);
 
     public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
     {
         return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
     }
 
-    public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-    {
-        var result = new OASISResult<bool>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Load avatar by email first
-            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
-            if (avatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
-                return result;
-            }
-
-            if (avatarResult.Result != null)
-            {
-                // Delete avatar by ID
-                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = deleteResult.Result;
-                result.IsError = false;
-                result.Message = "Avatar deleted successfully by email from Solana";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+    public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        => DeleteSelectedAvatarAsync(()=>LoadAvatarByEmailAsync(avatarEmail),softDelete);
 
     public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
     {
         return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
     }
 
-    public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+    public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        => DeleteSelectedAvatarAsync(()=>LoadAvatarByUsernameAsync(avatarUsername),softDelete);
+
+    private async Task<OASISResult<bool>> DeleteSelectedAvatarAsync(Func<Task<OASISResult<IAvatar>>> load,bool softDelete)
     {
         var result = new OASISResult<bool>();
         try
         {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Load avatar by username first
-            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            var avatarResult = await load();
             if (avatarResult.IsError)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                OASISErrorHandling.HandleError(ref result,avatarResult.Message,avatarResult.Exception);
+                result.ErrorCode=avatarResult.ErrorCode;
                 return result;
             }
-
-            if (avatarResult.Result != null)
-            {
-                // Delete avatar by ID
-                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = deleteResult.Result;
-                result.IsError = false;
-                result.Message = "Avatar deleted successfully by username from Solana";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
-            }
+            if(avatarResult.Result?.ProviderUniqueStorageKey==null
+                || !avatarResult.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,out var signature)
+                || string.IsNullOrWhiteSpace(signature))
+                throw new InvalidOperationException("Authenticated avatar has no Solana storage signature for deletion.");
+            return await DeleteAvatarAsync(signature,softDelete);
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Solana: {ex.Message}", ex);
+            OASISErrorHandling.HandleError(ref result, $"Error deleting selected Solana avatar: {ex.Message}", ex);
         }
         return result;
     }
