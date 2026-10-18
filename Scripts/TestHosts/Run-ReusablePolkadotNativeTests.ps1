@@ -1,18 +1,20 @@
-param([switch]$CheckOnly)
+param([switch]$CheckOnly, [ValidateSet('Native','AssetSdk')][string]$Suite = 'Native')
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $sdk = Join-Path $repo 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge'
 $evidence = Join-Path $repo 'TestResults/PolkadotCurrent'
 $journal = Join-Path $evidence 'local-native-pending.json'
 $bootstrap = Join-Path $evidence 'local-bootstrap-pending.json'
+$assetBootstrap = Join-Path $evidence 'local-asset-bootstrap-pending.json'
+$assetMutation = Join-Path $evidence 'local-asset-mutation-pending.json'
 if (!(Test-Path -LiteralPath $evidence -PathType Container)) { throw 'Use the existing fixed evidence directory; no new environment is created.' }
 if (!(Test-Path -LiteralPath (Join-Path $sdk 'node_modules/@polkadot/api/package.json'))) { throw 'Reuse the retained pinned SDK installation; this runner never installs dependencies.' }
 $lease = [IO.FileStream]::new((Join-Path $evidence 'local-native-environment.lock'), [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
-$names = @('OASIS_POLKADOT_LOCAL_NATIVE','OASIS_POLKADOT_LOCAL_NATIVE_JOURNAL','OASIS_POLKADOT_LOCAL_BOOTSTRAP_JOURNAL','OASIS_POLKADOT_SDK_BRIDGE')
+$names = @('OASIS_POLKADOT_LOCAL_NATIVE','OASIS_POLKADOT_LOCAL_NATIVE_JOURNAL','OASIS_POLKADOT_LOCAL_BOOTSTRAP_JOURNAL','OASIS_POLKADOT_SDK_BRIDGE','OASIS_POLKADOT_LOCAL_ASSET_JOURNAL','OASIS_POLKADOT_LOCAL_ASSET_MUTATION_JOURNAL')
 $prior = @{}
 foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name) }
 try {
-    foreach ($pending in @($journal, $bootstrap)) {
+    foreach ($pending in @($journal, $bootstrap, $assetBootstrap, $assetMutation)) {
         if (Test-Path -LiteralPath $pending) { throw "Pending original exists: $pending. Reconcile it read-only; never replay or delete it to rerun." }
     }
     $rpc = 'http://127.0.0.1:19944'
@@ -25,8 +27,20 @@ try {
     $env:OASIS_POLKADOT_LOCAL_NATIVE_JOURNAL = $journal
     $env:OASIS_POLKADOT_LOCAL_BOOTSTRAP_JOURNAL = $bootstrap
     $env:OASIS_POLKADOT_SDK_BRIDGE = Join-Path $sdk 'bridge.mjs'
+    $env:OASIS_POLKADOT_LOCAL_ASSET_JOURNAL = $assetBootstrap
+    $env:OASIS_POLKADOT_LOCAL_ASSET_MUTATION_JOURNAL = $assetMutation
     Push-Location $sdk
-    try { & node bootstrap-local-native.mjs; if ($LASTEXITCODE -ne 0) { throw 'Bootstrap failed; retain/reconcile any pending original.' } }
+    try {
+        & node bootstrap-local-native.mjs; if ($LASTEXITCODE -ne 0) { throw 'Bootstrap failed; retain/reconcile any pending original.' }
+        if ($Suite -eq 'AssetSdk') {
+            foreach ($script in @('bootstrap-local-asset.mjs','test-local-asset-preparation.mjs','test-local-asset-execution.mjs')) {
+                & node $script
+                if ($LASTEXITCODE -ne 0) { throw 'Asset SDK checks failed; retain/reconcile pending original, never replay.' }
+            }
+            if (Test-Path -LiteralPath $assetMutation) { throw 'Pending asset original remains; preserve it.' }
+            return
+        }
+    }
     finally { Pop-Location }
     Push-Location $repo
     try {
