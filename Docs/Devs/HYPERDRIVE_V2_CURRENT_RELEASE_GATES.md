@@ -19,6 +19,17 @@ Operator dependencies are in [Pending user actions](#pending-user-actions). Reus
 
 ## Evidence journal — newest first
 
+2026-10-18 **invalid-version change: final four-provider regressions complete.** Same serial runner80623 terminated exit0. Cosmos240/240(2m26s), Sui155/155(2m27s), Hedera137/137(3m08s), TRON432/432(5s), all0failed/0skipped. All four unit-consumer Shared DLL hashes match producer `81A8F8FAB659C1E8185A85F05FA86CBD08583BF845D294EE0D32FCA1EE97D272`. These are official-SDK controlled/owned-Mongo regression suites, NOT fresh native consensus, all interface/options or hosted acceptance. Shared361includes17new groups; totals are not additional independent native operations.
+
+| Fixed final report in SubscriptionUsageCurrent | SHA256 |
+|---|---|
+| cosmos-full-owned-current.trx | `140E18E059BA0578909588C350031FFF9281B40278B7EEB21F711AF6EFC58793` |
+| sui-full-owned-current.trx | `40F3A1858B5A76CDBF410EFC65FC3640356255F2780F5D6C7E962FC3FDF5F446` |
+| hedera-full-owned-current.trx | `677828E8F06729824F28823E54E3FF1EDE58DB148950DA2955CEB518A7D4CDC1` |
+| tron-prepared-storage-owned-current.trx | `0D1AB725FC796C4BC7A8E65BA21E3BBE53E1D64755DD68D4921F584299910765` |
+
+Owned Mongo listener27029 absent after terminal runner; log5432342bytes below8MiB cap. Free C83855552512bytes observed. No new runtime/download/restore/clone/native mutation/fee, no source/credentials/native journal removal. Five coherent-root WEB4/7/8/9/10 compile diagnostics pass0errors/runner91693exit0; all five Shared DLLs match81A8F8FA… producer above. WEB5/6 intentionally excluded pending cached graph repair, not manually overwritten. Dirty shared source/known missing and wrong-pin dependencies mean these are NOT immutable pinned-source publishes. Hosted/native gates remain OPEN.
+
 2026-10-18 **retained TRON VM fee-settlement bytecode reviewed offline.** Added mutually exclusive -VMFeeRules mode to SAME bounded inspector: EnergyProcessor, TransactionTrace, VMActuator and ReceiptCapsule from actual JAR5567a4ea…; Version plus four classes total68216bytes, one temporary class at a time/all removed.178371byte fixed report vm-fee-bytecode-inspection-current.json SHA256 `385D1E56FE4E23A1B5D48F3EE8166B7052A63ABB1A9FF8ACF4EC7E5FF4C959FE` repeats identically. Existing identity97C27377…/feeB6DB0D89… modes remain byte-identical; PowerShell parse/bash syntax pass. No JVM class execution, node start, signing, native fee, download or new environment. An initial ad-hoc read-only class-list command failed from shell argument expansion (missing JAR path); not counted as inspection evidence. The existing file-based leased tool succeeded without copying the JAR/runtime.
 
 | Actual retained VM class | SHA256 | Selected methods |
