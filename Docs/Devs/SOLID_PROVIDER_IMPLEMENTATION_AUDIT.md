@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Single-root graph read integration
+
+LoadHolon GUID/string sync+async now honors provider-linked children, recursion and max depth through existing shared graph projector after encrypted point read + collection read. Disabled/provider-false requests remain point-only. Key parsing centralized; negative depth fails before I/O; native point404 retains canonical RecordNotFound. Failed child read/cycle returns error without partial root success.14newcontrolled cases/full106unitpass136ms include graph-save→single-load round trip in both call modes and independent corrupt/cycle controls. Exact hashes/true-before count in release gates.
+
+Point read and collection reads are not an atomic snapshot. Explicit history still unsupported; root-requested version separated from current independently-versioned descendants by design, not historical verification. General continueOnError and manager/provider child flags, pagination/version/deletes/import/export/general search, native pod/auth/ETag/durable recovery/hosted remain unfinished. Runtime startup policy gate still unchanged; no native pass claimed.
+
 ## Selected graph write integration
 
 Single and batch holon saves now reuse shared HolonGraphWritePlan. Whole selected graph preflight/snapshot before I/O; depth/recursion/initial-depth and parent identities staged; each encrypted record PUT/readback uses existing native path; only verified node IDs/parent/key acknowledged onto caller sources. Selected writes preserve canonical Holon contract fields, not arbitrary extra subclass-only properties. IsSaved only after whole selected graph succeeds. Later failure retains acknowledged resource URIs in KeyValuePartialMutationException; no fake rollback/atomicity. Unknown first HTTP write now implements existing reconciliation marker, with resource URI separate from empty chain transaction ID.

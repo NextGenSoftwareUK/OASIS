@@ -11,7 +11,7 @@ public class SolidRecordHttpTests
     internal sealed class Transport : HttpMessageHandler
     {
         public readonly Dictionary<string,string> Records=new();public int Writes;public string Failure="";
-        public int RejectWrite;public int UncertainWrite;
+        public int RejectWrite;public int UncertainWrite;public int Reads;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             if(request.RequestUri!.AbsoluteUri==Root.AbsoluteUri.TrimEnd('/')+"/")return Reply(HttpStatusCode.OK,"{}");
@@ -24,7 +24,13 @@ public class SolidRecordHttpTests
                 Records[request.RequestUri.AbsoluteUri]=rdf;return Reply(HttpStatusCode.Created,"");
             }
             Assert.Equal(HttpMethod.Get,request.Method);
+            Reads++;
             if(Failure=="read")return Reply(HttpStatusCode.ServiceUnavailable,"");
+            if(request.RequestUri.AbsolutePath.EndsWith('/')){
+                var members=Records.Keys.Where(key=>key.StartsWith(request.RequestUri.AbsoluteUri,StringComparison.Ordinal)).ToArray();
+                var body="@prefix ldp: <http://www.w3.org/ns/ldp#> . <> a ldp:BasicContainer"+(members.Length==0?" .":"; ldp:contains "+string.Join(",",members.Select(uri=>"<"+uri+">"))+" .");
+                return Reply(HttpStatusCode.OK,body);
+            }
             if(!Records.TryGetValue(request.RequestUri.AbsoluteUri,out var stored))return Reply(HttpStatusCode.NotFound,"");
             if(Failure=="different"){
                 var id=Guid.Parse(Path.GetFileNameWithoutExtension(request.RequestUri.AbsolutePath));
