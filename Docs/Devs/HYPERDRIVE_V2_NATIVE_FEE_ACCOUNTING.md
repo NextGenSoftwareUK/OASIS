@@ -1,5 +1,15 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Explicit registration-only boot for admitted hosts
+
+Source trace found two independent pre-reservation paths: ordinary `BootOASISAsync(...,false)` still looks up/creates the system avatar, and Hot registration may activate providers. Do not describe that existing boolean as passive boot.
+
+New `OASISBootLoader.BootOASISForAdmittedStorageAsync` (DNA/path overloads) requires a fresh inactive host, exact V2 mode, Warm registration and preconfigured JWT signing material. It uses the existing boot/registration implementation but skips default activation, system-avatar read/create and JWT file provisioning. Hot/Cold/legacy/missing-key/already-activated/already-booted states are rejected, not downgraded. Ordinary boot overloads retain existing behavior. Registry/provider constructors are still the existing implementations; zero-I/O constructor claims for every provider are not established by the LocalFile sentinel test.
+
+WEB4 and WEB7–WEB10 select this mode only when explicit prepared storage admission configuration is present; errors prevent startup. WEB9/10 previously had no explicit boot at that point, so only their configured admitted mode now boots. WEB4 rejects an enabled ONET HyperDrive sync host with this mode because that hosted service otherwise activates the default provider outside admission. Periodic/sync work needs a separate authorized fee owner before combination is allowed. No Railway/DNA value is changed by this patch.
+
+This closes these boot-time paths only. JWT/karma hydration, other hosted/background paths, trusted bootstrap writer integration and complete hosted acceptance remain open; paid routes must NOT be enabled solely because passive boot passes.
+
 ## Registered provider reader composition — Core db4cccc
 
 `RegisteredNativeFeeReader` is a non-owning view of exactly one existing registered provider: same provider instance receives recovery calls; no new provider/activation/key lookup/disposal. Exact provider type, reported reader provider/chain/coverage and bounded registry inventory checked; missing/duplicate/mismatched readers fail startup. Metadata drift after startup also refuses lookup. Core configuration accepts an explicit lazy registry snapshot callback; previous four-argument overload remains for binary/source compatibility and manual reader registration. Mixing manual and registry readers cannot create two recovery owners: existing readiness rejects duplicates. Absent admission configuration never inspects the registry.
