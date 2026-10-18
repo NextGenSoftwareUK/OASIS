@@ -11,7 +11,7 @@ trap 'podman unmount "$name" >/dev/null' EXIT
 [[ "$mount_path" == /var/lib/containers/storage/overlay/*/merged ]] || exit 5
 jar_path="$mount_path/tron/FullNode/FullNode.jar"
 [[ -f "$jar_path" && "$(realpath "$jar_path")" == "$jar_path" ]] || exit 6
-[[ $# -eq 0 || ( $# -eq 1 && "$1" == --fee-rules ) ]] || exit 8
+[[ $# -eq 0 || ( $# -eq 1 && ( "$1" == --fee-rules || "$1" == --vm-fee-rules ) ) ]] || exit 8
 python3 - "$jar_path" "${1:-identity}" <<'PY'
 import hashlib, json, pathlib, sys, zipfile
 path = pathlib.Path(sys.argv[1])
@@ -42,10 +42,13 @@ with zipfile.ZipFile(path) as archive:
                       'versionClassSha256': hashlib.sha256(version_data).hexdigest(),
                       'versionClassBase64': __import__('base64').b64encode(version_data).decode('ascii'),
                       'nodeStarted': False, 'extractedFiles': 0, 'feeModelReviewed': False}
-    if sys.argv[2] == '--fee-rules':
+    if sys.argv[2] in {'--fee-rules', '--vm-fee-rules'}:
         entries = ['org/tron/core/db/BandwidthProcessor.class', 'org/tron/core/db/Manager.class',
                    'org/tron/core/actuator/TransferActuator.class', 'org/tron/core/actuator/CreateAccountActuator.class',
                    'org/tron/core/db/ResourceProcessor.class']
+        if sys.argv[2] == '--vm-fee-rules':
+            entries = ['org/tron/core/db/EnergyProcessor.class', 'org/tron/core/db/TransactionTrace.class',
+                       'org/tron/core/actuator/VMActuator.class', 'org/tron/core/capsule/ReceiptCapsule.class']
         result['feeClassMaterials'] = []
         for name in entries:
             info = archive.getinfo(name)
