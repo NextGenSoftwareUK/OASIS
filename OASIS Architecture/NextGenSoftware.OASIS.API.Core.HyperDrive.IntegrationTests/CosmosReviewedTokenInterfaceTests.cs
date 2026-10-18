@@ -27,7 +27,7 @@ public sealed class CosmosReviewedTokenInterfaceTests(Xunit.Abstractions.ITestOu
 
     private async Task RunAssetInterfacesAsync(bool synchronous,bool nft)
     {
-        var family=nft?"nft":"token";var expectedCount=nft?5:6;
+        var family=nft?"nft":"token";var expectedCount=nft?7:6;
         var root=Environment.GetEnvironmentVariable("OASIS_HYPERDRIVE_TEST_ROOT")!;
         var journal=Path.Combine(root,$"reviewed-{family}-pending.json");Assert.False(File.Exists(journal));
         const string oldHash="9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81";
@@ -61,9 +61,11 @@ public sealed class CosmosReviewedTokenInterfaceTests(Xunit.Abstractions.ITestOu
         try{
             await JsonSerializer.SerializeAsync(file,new{operationId=execution.OperationId,family,symbol,synchronous,primary,secondary,primaryBefore,secondaryBefore,review=deployment.Review,
                 database="usage_cosmos_independent_routing",developmentIdentity="known-byte07-local-only",recovery="Inspect original signed asset attempts, exact native asset state and fees; never replay an uncertain operation."},cancellationToken:token);file.Flush(true);
-            async Task<string> Owned(string stage,string sender,Func<Task<OASISResult<ITransactionResponse>>> action){
-                var value=await provider.ExecutePreparedStorageAsync(action,execution,stage,sender,token);Assert.False(value.IsError,value.Message);Assert.NotNull(value.Result);return value.Result.TransactionResult;
+            async Task<T> OwnedResult<T>(string stage,string sender,Func<Task<OASISResult<T>>> action){
+                var value=await provider.ExecutePreparedStorageAsync(action,execution,stage,sender,token);Assert.False(value.IsError,value.Message);Assert.NotNull(value.Result);return value.Result;
             }
+            async Task<string> Owned(string stage,string sender,Func<Task<OASISResult<ITransactionResponse>>> action)
+                => (await OwnedResult(stage,sender,action)).TransactionResult;
             async Task AssertState(decimal owner,decimal recipient,string units){
                 var first=await provider.GetCustomTokenBalanceAsync(symbol,primary);var second=await provider.GetCustomTokenBalanceAsync(symbol,secondary);
                 Assert.False(first.IsError,first.Message);Assert.False(second.IsError,second.Message);Assert.Equal(owner,first.Result);Assert.Equal(recipient,second.Result);
@@ -74,8 +76,8 @@ public sealed class CosmosReviewedTokenInterfaceTests(Xunit.Abstractions.ITestOu
             if(nft){
                 IOASISNFTProvider nftApi=provider;
                 async Task<IWeb3NFTTransactionResponse> OwnedNft(string stage,string sender,Func<Task<OASISResult<IWeb3NFTTransactionResponse>>> action){
-                    var value=await provider.ExecutePreparedStorageAsync(action,execution,stage,sender,token);Assert.False(value.IsError,value.Message);Assert.NotNull(value.Result);
-                    hashes.Add(value.Result.TransactionResult);return value.Result;
+                    var value=await OwnedResult(stage,sender,action);
+                    hashes.Add(value.TransactionResult);return value;
                 }
                 async Task AssertNftOwner(string owner,bool locked){
                     var read=synchronous?nftApi.LoadOnChainNFTData(nftAddress):await nftApi.LoadOnChainNFTDataAsync(nftAddress);
@@ -92,6 +94,20 @@ public sealed class CosmosReviewedTokenInterfaceTests(Xunit.Abstractions.ITestOu
                 var sendNft=new SendWeb3NFTRequest{TokenAddress=nftAddress,TokenId=nftAddress.Split('#')[1],FromWalletAddress=primary,ToWalletAddress=secondary,Amount=1};
                 var delivered=await OwnedNft("send",primary,()=>synchronous?Task.FromResult(nftApi.SendNFT(sendNft)):nftApi.SendNFTAsync(sendNft));
                 Assert.Equal(delivered.TransactionResult,delivered.SendNFTTransactionResult);Assert.Equal(secondary,delivered.Web3NFT.SendToAddressAfterMinting);await AssertNftOwner(secondary,false);
+                var tokenId=nftAddress.Split('#')[1];
+                var custody=await OwnedResult("withdraw-custody",secondary,()=>nftApi.WithdrawNFTAsync(nftAddress,tokenId,secondary,developmentKey));
+                Assert.True(custody.IsSuccessful);Assert.Equal(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,custody.Status);
+                hashes.Add(custody.TransactionId);await AssertNftOwner(primary,false);
+                var beforeRejection=await store.GetAsync(execution.OperationId,token);
+                var rejected=await provider.ExecutePreparedStorageAsync(()=>nftApi.DepositNFTAsync(nftAddress,tokenId,secondary,delivered.TransactionResult),execution,"reject-unrelated-custody",primary,token);
+                Assert.True(rejected.IsError);Assert.Null(rejected.Result);
+                Assert.False(Core.Helpers.NativeMutationReconciliation.IsRequired(rejected.Exception));
+                Assert.Contains("custody",rejected.Message,StringComparison.OrdinalIgnoreCase);
+                Assert.Equal(beforeRejection.ProviderAttempts.Count,(await store.GetAsync(execution.OperationId,token)).ProviderAttempts.Count);
+                await AssertNftOwner(primary,false);
+                var released=await OwnedResult("release-custody",primary,()=>nftApi.DepositNFTAsync(nftAddress,tokenId,secondary,custody.TransactionId));
+                Assert.True(released.IsSuccessful);Assert.Equal(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,released.Status);
+                hashes.Add(released.TransactionId);await AssertNftOwner(secondary,false);
                 var burnNft=new BurnWeb3NFTRequest{NFTTokenAddress=nftAddress,OwnerPrivateKey=developmentKey,OwnerPublicKey=secondaryKey.GetProperty("publicKey").GetString()!,OwnerSeedPhrase=""};
                 await OwnedNft("burn",secondary,()=>synchronous?Task.FromResult(nftApi.BurnNFT(burnNft)):nftApi.BurnNFTAsync(burnNft));
                 var absent=await nftApi.LoadOnChainNFTDataAsync(nftAddress);Assert.True(absent.IsError);Assert.Null(absent.Result);Assert.Contains("not found",absent.Message,StringComparison.OrdinalIgnoreCase);
@@ -130,7 +146,7 @@ public sealed class CosmosReviewedTokenInterfaceTests(Xunit.Abstractions.ITestOu
             }
             var primaryAfter=await Balance(primary,recoveryToken);var secondaryAfter=await Balance(secondary,recoveryToken);
             Assert.Equal(fees[primary],primaryBefore-primaryAfter);Assert.Equal(fees[secondary],secondaryBefore-secondaryAfter);Assert.Equal(oldHash,OldHash());
-            var report=JsonSerializer.Serialize(new{operation,family,symbol,nftAddress,synchronous,hashes,primary,secondary,primaryBefore,secondaryBefore,primaryAfter,secondaryAfter,fees,finalSupply=nft?null:"0",nftBurned=nft,logicalOutcomeResolved=false,hostedAcceptance=false});
+            var report=JsonSerializer.Serialize(new{operation,family,symbol,nftAddress,synchronous,hashes,primary,secondary,primaryBefore,secondaryBefore,primaryAfter,secondaryAfter,fees,finalSupply=nft?null:"0",nftBurned=nft,unrelatedCustodyProofRejected=nft,logicalOutcomeResolved=false,hostedAcceptance=false});
             await File.WriteAllTextAsync(Path.Combine(root,$"reviewed-{family}-{(synchronous?"sync":"async")}-current.json"),report,recoveryToken);output.WriteLine(report);complete=true;
         }finally{
             developmentKey=string.Empty;
