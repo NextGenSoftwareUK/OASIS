@@ -21,25 +21,30 @@ public partial class NEAROASIS
 {
     public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long x, long y, int radius)
     {
-        var result = LoadAllAvatarsAsync().GetAwaiter().GetResult();
-        if (result.IsError) return result;
-        var latitude = x / 1_000_000d;
-        var longitude = y / 1_000_000d;
-        result.Result = result.Result.Where(avatar => avatar.MetaData != null &&
-            avatar.MetaData.TryGetValue("Latitude", out var lat) && avatar.MetaData.TryGetValue("Longitude", out var lon) &&
-            GeoHelper.CalculateDistance(latitude, longitude, Convert.ToDouble(lat), Convert.ToDouble(lon)) <= radius).ToList();
+        var result = new OASISResult<IEnumerable<IAvatar>>();
+        try
+        {
+            var query = new StoredRecordLocationQuery(x,y,radius);
+            result = LoadAllAvatarsAsync().GetAwaiter().GetResult();
+            if (result.IsError) return result;
+            result.Result = query.Select(result.Result);
+        }
+        catch(Exception ex){result.Result=null;OASISErrorHandling.HandleError(ref result,$"Error querying nearby NEAR avatars: {ex.Message}",ex);}
         return result;
     }
 
     public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long x, long y, int radius, HolonType holonType)
     {
-        var result = LoadAllHolonsAsync(holonType).GetAwaiter().GetResult();
-        if (result.IsError) return result;
-        var latitude = x / 1_000_000d;
-        var longitude = y / 1_000_000d;
-        result.Result = result.Result.Where(holon => holon.MetaData != null &&
-            holon.MetaData.TryGetValue("Latitude", out var lat) && holon.MetaData.TryGetValue("Longitude", out var lon) &&
-            GeoHelper.CalculateDistance(latitude, longitude, Convert.ToDouble(lat), Convert.ToDouble(lon)) <= radius).ToList();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            var query = new StoredRecordLocationQuery(x,y,radius);
+            if (!Enum.IsDefined(typeof(HolonType),holonType)) throw new ArgumentOutOfRangeException(nameof(holonType));
+            result = LoadAllHolonsAsync(holonType,loadChildren:false).GetAwaiter().GetResult();
+            if (result.IsError) return result;
+            result.Result = query.Select(result.Result);
+        }
+        catch(Exception ex){result.Result=null;OASISErrorHandling.HandleError(ref result,$"Error querying nearby NEAR holons: {ex.Message}",ex);}
         return result;
     }
 
