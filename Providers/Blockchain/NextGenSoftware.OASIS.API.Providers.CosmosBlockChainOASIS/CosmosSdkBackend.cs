@@ -102,7 +102,10 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     internal Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
         => InvokeCoreAsync(operation, args, cancellationToken, null);
     internal Task<JsonElement> InvokePreparedAsync(string operation, object args, PreparedSubmissionServer server, CancellationToken token)
-        => InvokeCoreAsync(operation, args, token, server ?? throw new ArgumentNullException(nameof(server)));
+    {
+        if(_storagePreparation.HasCurrent)throw new InvalidOperationException("An explicit Cosmos preparation owner cannot replace the current operation owner.");
+        return InvokeCoreAsync(operation, args, token, server ?? throw new ArgumentNullException(nameof(server)));
+    }
     private async Task<JsonElement> InvokeCoreAsync(string operation, object args, CancellationToken cancellationToken, PreparedSubmissionServer preparationServer)
     {
         var suppliedToken=cancellationToken;var scopeToken=_storagePreparation.CurrentToken;
