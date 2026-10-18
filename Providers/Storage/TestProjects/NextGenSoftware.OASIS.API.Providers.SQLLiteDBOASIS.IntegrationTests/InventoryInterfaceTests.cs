@@ -42,6 +42,10 @@ public partial class SQLLiteDBOASISIntegrationTests
     [InlineData(true,"null")] [InlineData(false,"null")]
     [InlineData(true,"[")] [InlineData(false,"[")]
     [InlineData(true,"[]")] [InlineData(false,"[]")]
+    [InlineData(true,"{\"Quantity\":99}")] [InlineData(false,"{\"Quantity\":99}")]
+    [InlineData(true,"{\"quantity\":99}")] [InlineData(false,"{\"quantity\":99}")]
+    [InlineData(true,"{\"MetaData\":{\"fake\":true}}")] [InlineData(false,"{\"MetaData\":{\"fake\":true}}")]
+    [InlineData(true,"{\"Children\":[]}")] [InlineData(false,"{\"Children\":[]}")]
     public async Task CorruptInventoryExtensionDoesNotReturnPartialSuccess(bool synchronous,string corrupt)
     {
         using var provider=new SQLLiteDBOASIS(TestConnectionString);
