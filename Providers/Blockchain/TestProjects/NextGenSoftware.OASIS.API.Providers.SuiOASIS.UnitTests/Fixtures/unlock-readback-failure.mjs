@@ -2,6 +2,7 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
+ case 'balance':result={balance:request.walletAddress.slice('balance-units:'.length)};break;
  case 'tokenMint':
  case 'tokenBurn':
   if(request.privateKey!=='test-only-explicit'||request.amountUnits!=='1230000000'

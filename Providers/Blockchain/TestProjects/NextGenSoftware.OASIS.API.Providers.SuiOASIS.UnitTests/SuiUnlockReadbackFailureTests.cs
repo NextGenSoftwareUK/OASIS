@@ -7,6 +7,38 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiUnlockReadbackFailureTests
 {
     [DataTestMethod]
+    [DataRow("-1",0)] [DataRow("-1",1)] [DataRow("-1",2)]
+    [DataRow("1.5",0)] [DataRow("1.5",1)] [DataRow("1.5",2)]
+    [DataRow("+1",0)] [DataRow("+1",1)] [DataRow("+1",2)]
+    [DataRow("01",0)] [DataRow("01",1)] [DataRow("01",2)]
+    [DataRow("18446744073709551616",0)] [DataRow("18446744073709551616",1)] [DataRow("18446744073709551616",2)]
+    [DataRow(" 1",0)] [DataRow(" 1",1)] [DataRow(" 1",2)]
+    [DataRow("1,000",0)] [DataRow("1,000",1)] [DataRow("1,000",2)]
+    [DataRow("",0)] [DataRow("",1)] [DataRow("",2)]
+    public async Task NativeBalanceRejectsNonCanonicalUnsignedUnits(string units,int surface)
+    {
+        await WithProcessFixture(async provider=>{
+            var request=new Core.Objects.Wallet.Requests.GetWeb3WalletBalanceRequest {WalletAddress="balance-units:"+units};
+            if(surface==0){var result=await provider.GetAccountBalanceAsync(request.WalletAddress);Assert.IsTrue(result.IsError);}
+            else {var result=surface==1?provider.GetBalance(request):await provider.GetBalanceAsync(request);Assert.IsTrue(result.IsError);}
+        });
+    }
+
+    [DataTestMethod]
+    [DataRow("0",0)] [DataRow("0",1)] [DataRow("0",2)]
+    [DataRow("1",0)] [DataRow("1",1)] [DataRow("1",2)]
+    [DataRow("18446744073709551615",0)] [DataRow("18446744073709551615",1)] [DataRow("18446744073709551615",2)]
+    public async Task NativeBalancePreservesCanonicalUnitsThroughEachPublicSurface(string units,int surface)
+    {
+        await WithProcessFixture(async provider=>{
+            var expected=decimal.Parse(units,System.Globalization.CultureInfo.InvariantCulture)/1000000000m;
+            var request=new Core.Objects.Wallet.Requests.GetWeb3WalletBalanceRequest {WalletAddress="balance-units:"+units};
+            if(surface==0){var result=await provider.GetAccountBalanceAsync(request.WalletAddress);Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(expected,result.Result);}
+            else {var result=surface==1?provider.GetBalance(request):await provider.GetBalanceAsync(request);Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual((double)expected,result.Result);}
+        });
+    }
+
+    [DataTestMethod]
     [DataRow(false,"0xab",false)] [DataRow(true,"0xab",false)]
     [DataRow(false,"0xAB",false)] [DataRow(true,"0xAB",false)]
     [DataRow(false,"0xac",true)] [DataRow(true,"0xac",true)]
