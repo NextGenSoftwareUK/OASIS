@@ -48,6 +48,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     Directory.CreateDirectory(_avatarFolderPath);
 
                 var avatarFilePath = Path.Combine(_avatarFolderPath, $"{Avatar.Id}.json");
+                Avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                Avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] = Avatar.Id.ToString();
                 var jsonContent = JsonConvert.SerializeObject(Avatar, Formatting.Indented);
                 await File.WriteAllTextAsync(avatarFilePath, jsonContent);
 
@@ -94,6 +96,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     Directory.CreateDirectory(_avatarDetailFolderPath);
 
                 var avatarDetailFilePath = Path.Combine(_avatarDetailFolderPath, $"{Avatar.Id}.json");
+                Avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                Avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] = Avatar.Id.ToString();
                 var jsonContent = JsonConvert.SerializeObject(Avatar, Formatting.Indented);
                 await File.WriteAllTextAsync(avatarDetailFilePath, jsonContent);
 
