@@ -1,5 +1,9 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## New profile-outage incident — unresolved post-resume replication
+
+Operation `366bd44d-a0f6-ba07-b9f4-b79f5f1d2bbe`, journal SHA256 `CE9E54E7E52BC2F8C734A37E4FB84E081D3AC686739C8FE8798EF37C26CE6A48`, is fenced after local leaf deletion/native replica failure. Read-only inspection finds five original successful native writes, observed ante fees4915+3995+3990+7724+4937=**25561localteststake**, no sixth persisted native preparation. Native avatar/detail/leaf remain; local leaf is absent. This is NOT permission to replay/delete, a final-net-fee determination or settlement. Exact source of post-resume replica failure remains unknown; current tests only prove the observed partial state. Report SHA256 `459CC45F30A22A8647CD93FAA85EDCD028103527D49F58EDAB8B1C3E1A8A422D`, read-only inspection1/1pass3s TRX `12991615A3676E12AD17C80838C7EBFDFEFA1E944F086644B23C0795410F13AE`. Preserve original ledger/intent; use `RoutingInspect` only until reviewed reconciliation. Earlier healthy matrix below remains historical scoped evidence, not a pass for this new combined scenario.
+
 ## Expanded real Cosmos routing acceptance — observed ante expenditure only
 
 Four actual provider-order/sync-async cases pass5m41s, forty prepared original transactions and408routedreads. Total observed ante deductions across those40originals: **170913localteststake**. This uses the existing synthetic .000001USD/stake test quote, NOT a market quote or production tariff. Receipt signatures/transaction hashes match persisted originals; no final-net-fee or hosted billing readiness claim. Same retained DB now keeps compact completed signed-attempt evidence rather than dropping it between cases. Current TRX SHA256 `173136C1C65CBA94A872AED287CE3C06F7EF286A213EBC6F0A780740A1C75A22`. See current release gates for exact selectors/strategies and original incident limitations.
