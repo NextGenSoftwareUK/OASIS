@@ -72,7 +72,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(request);
-                var records = await InvokeSdkAsync("history", new { walletAddress = request.WalletAddress });
+                var walletAddress=request.WalletAddress;var from=request.FromBlock;var to=request.ToBlock;
+                if(from.HasValue&&to.HasValue&&from>to)throw new ArgumentOutOfRangeException(nameof(request),"Sui history checkpoint range is reversed.");
+                // Protocol checkpoints are u64; strings preserve their full precision through JSON/JS.
+                var records = await InvokeSdkAsync("history", new { walletAddress,
+                    fromBlock=from?.ToString(System.Globalization.CultureInfo.InvariantCulture),toBlock=to?.ToString(System.Globalization.CultureInfo.InvariantCulture) });
                 var transactions = new List<IWalletTransaction>();
                 foreach (var record in records.EnumerateArray())
                 {

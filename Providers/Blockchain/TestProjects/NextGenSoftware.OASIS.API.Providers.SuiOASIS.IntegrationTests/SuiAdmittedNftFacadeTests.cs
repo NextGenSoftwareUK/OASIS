@@ -22,12 +22,15 @@ public class SuiAdmittedNftFacadeTests
     public async Task AdmittedCSharpIdBoundTokenFacadeUsesEncryptedWalletAndOriginalReceipts()
         =>await RunNativeFacade(true,idBound:true);
     [TestMethod]
+    public async Task RetainedCSharpHistoryUsesCheckpointBoundsWithoutNativeMutation()
+        =>await RunNativeFacade(true,idBound:true,retainedOnly:true);
+    [TestMethod]
     public async Task AdmittedCSharpNftBatchReturnsDistinctObjectsAndCleansEachOwner()
         =>await RunNativeFacade(false,2);
     [TestMethod]
     public async Task AdmittedCSharpOffChainNftKeepsMetadataOutOfNativeObject()
         =>await RunNativeFacade(false,1,true);
-    private async Task RunNativeFacade(bool token,int nftCount=1,bool offChain=false,bool idBound=false)
+    private async Task RunNativeFacade(bool token,int nftCount=1,bool offChain=false,bool idBound=false,bool retainedOnly=false)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -61,7 +64,9 @@ public class SuiAdmittedNftFacadeTests
         var depositId=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(depositGuid.ToString("N")))).ToLowerInvariant();
         var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
         Task<JsonElement> ReadSdk(string action,object? args=null)=>(Task<JsonElement>)sdk.Invoke(owner,new object[]{action,args!,CancellationToken.None})!;
-        if(idBound&&File.Exists(reportPath)){
+        if(retainedOnly)Assert.IsTrue(idBound,"Read-only history requires the retained escrow fixture.");
+        // A missing retained report must fail at read, never fall through into native mutation.
+        if(idBound&&(retainedOnly||File.Exists(reportPath))){
             using var prior=JsonDocument.Parse(File.ReadAllText(reportPath));Assert.IsTrue(prior.RootElement.GetProperty("burned").GetBoolean());
             Assert.AreEqual(settings.GetProperty("coinType").GetString(),prior.RootElement.GetProperty("assetId").GetString());
             var saved=await ReadSdk("tokenEscrowGet",new{depositId,escrowObjectId=settings.GetProperty("escrowObjectId").GetString()});
@@ -89,6 +94,12 @@ public class SuiAdmittedNftFacadeTests
                 Assert.AreEqual(digest,fee.Result.GetProperty("transactionHash").GetString());
                 Assert.AreEqual(original.GetProperty("payer").GetString(),fee.Result.GetProperty("payer").GetString());
                 Assert.AreEqual(original.GetProperty("netUnits").GetString(),fee.Result.GetProperty("netUnits").GetString());
+                var checkpoint=ulong.Parse(fee.Result.GetProperty("checkpoint").GetString()!,System.Globalization.CultureInfo.InvariantCulture);
+                var boundedRequest=new GetWeb3TransactionsRequest{WalletAddress=ownerIdentity.Result.WalletAddressLegacy,FromBlock=checkpoint,ToBlock=checkpoint};
+                foreach(var bounded in new[]{owner.GetTransactions(boundedRequest),await owner.GetTransactionsAsync(boundedRequest)}){
+                    Assert.IsFalse(bounded.IsError,bounded.Message);
+                    Assert.AreEqual(1,bounded.Result.Count(row=>row.NativeTransactionId==digest&&row.AmountUnit.EndsWith("::sui::SUI:base-unit",StringComparison.Ordinal)));
+                }
                 var status=await owner.GetTransactionStatusAsync(digest);Assert.IsFalse(status.IsError,status.Message);
                 Assert.AreEqual(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,status.Result);
                 foreach(var history in new[]{asyncHistory.Result,syncHistory.Result}){
@@ -106,7 +117,12 @@ public class SuiAdmittedNftFacadeTests
                         Assert.AreEqual(Core.Enums.TransactionType.Credit,gas.TransactionType);}
                 }
             }
-            Console.WriteLine("Retained CSharp escrow state/all4original native fee receipts/status and both sync/async wallet history rechecked read-only; no signed mutation.");return;
+            var genesisHistory=await owner.GetTransactionsAsync(new GetWeb3TransactionsRequest{WalletAddress=ownerIdentity.Result.WalletAddressLegacy,FromBlock=0,ToBlock=0});
+            Assert.IsFalse(genesisHistory.IsError,genesisHistory.Message);
+            Assert.IsFalse(genesisHistory.Result.Any(row=>originals.Any(original=>original.GetProperty("ProviderRequestId").GetString()==row.NativeTransactionId)));
+            var futureHistory=await owner.GetTransactionsAsync(new GetWeb3TransactionsRequest{WalletAddress=ownerIdentity.Result.WalletAddressLegacy,FromBlock=ulong.MaxValue});
+            Assert.IsFalse(futureHistory.IsError,futureHistory.Message);Assert.AreEqual(0,futureHistory.Result.Count);
+            Console.WriteLine("Retained CSharp escrow state/all4original native fee receipts/status; sync/async full and exact-checkpoint history, genesis exclusion and u64 future-empty bounds verified read-only; no signed mutation.");return;
         }
         var database=idBound?"usage_sui_csharp_escrow_live":token?"usage_sui_csharp_token_live":"usage_sui_csharp_nft_live";var mongo=new MongoDB.Driver.MongoClient(connection);
         using(var names=await mongo.ListDatabaseNamesAsync())CollectionAssert.DoesNotContain(await MongoDB.Driver.IAsyncCursorExtensions.ToListAsync(names),database);
