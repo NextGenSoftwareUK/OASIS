@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Nearby network operations (2026-10-18)
+
+Both existing IOASISNETProvider methods already use encrypted collection reads, not custom remote proximity endpoints. Fixed locale-dependent coordinate parsing: metadata Latitude/Longitude are invariant decimal degrees, not current-culture or thousands-separated text. Missing/invalid/nonfinite/out-of-range record coordinates are excluded as unlocated; input coordinates retain the existing microdegree integer convention and must lie within +/-90000000 latitude, +/-180000000 longitude; radius nonnegative, including zero. Invalid request fails before storage reads. Shared local coordinate helpers serve both methods; existing Haversine calculation clamps floating-point roundoff to [0,1]. Holon query is flat, avoiding unrelated graph descendants. Upstream native read errors now copy original OASISResult envelope/cause instead of replacing them with a message-only error.
+
+Eight new controlled cases: avatar+holon near/far decimal strings under fr-FR; four invalid request/no-read cases; both native503 causes retained. Full159/159 passed270ms/zero skipped, current TRX SHA25651E47035EE14EDD2CDF4A81554AE854C20E491E6D3384D3643EADF8BEDB9FFCE. No before-change red run captured. Cached bounded provider build passed2warnings; environment/caches reused, no installs/downloads/native launches. Free Windows space86698946560bytes. This is O(n) local filtering over bounded current encrypted collection, NOT a native spatial index/public location discovery or live-pod proof. Privacy/API authorization, actual pod/OIDC/DPoP, history/paging/recovery/concurrency and all-provider release gates remain OPEN.
+
 ## Conditional avatar/detail soft deletion (2026-10-18)
 
 Soft and hard deletion now share avatar/optional-detail preflight. Soft delete requires both present records' strong ETags before mutation, sets IsActive=false and the SAME UTC DeletedDate on avatar/detail, then uses existing encrypted save+complete canonical readback with If-Match. No second serializer/crypto/write verification path. Full success sets IsDeleted; first write failure preserves native cause, later failure wraps independently verified avatar URI in shared partial-mutation marker. No hard-delete fallback, rollback or automatic replay. Regular SaveAvatar/SaveAvatarDetail remain unconditional; conditional header currently applies to soft-delete internal writes only.
