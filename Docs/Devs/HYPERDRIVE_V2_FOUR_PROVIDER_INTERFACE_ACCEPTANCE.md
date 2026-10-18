@@ -28,7 +28,7 @@ The NFT interface's SetCollectionSize/SetCollectionSizeAsync have explicit defau
 | Provider | Current stronger evidence | Still unproven |
 |---|---|---|
 | Sui | Retained real V2 storage replication/selection/outage; prepared native HTTP/storage; latest four C# native asset cases with26originals; ID-bound escrow state and all4original fee receipts re-read | Exhaustive storage selectors/options/nearby/history/bridge/sync overload acceptance on current source, every V2 policy under native faults, production auth/prices/settlement/hosted routes. Retained escrow refresh is read-only, not a new lock/unlock execution |
-| Cosmos | Four real leaf V2 primary/replica sync/async cases,120matching-record strategy reads and owned-node outage fallback; signed originals/actual ante deductions | Original retained unknown intent reconciliation; broader storage/asset/interface/native-fault matrix; ante-only fee evidence is not net-final settlement; hosted acceptance |
+| Cosmos | Four real profile/detail/leaf V2 primary/replica sync/async cases;40signed originals/422routed reads including14real stopped-node profile failovers; actual ante deductions | Older9B5A1511… unknown intent reconciliation; remaining storage/asset/interface/options matrix; ante-only fee evidence is not net-final settlement; hosted acceptance |
 | Hedera | Actual official SDK construction/signatures/pre-transport admission and safe cost rejection over controlled transport; historical retained deployed runtime and fee receipt verified | Failed native read remains fenced; funded consensus storage/assets/V2 matrix, calibrated all-operation budgets and hosted billing. Controlled tests do not close these gates |
 | TRON | Actual SDK/signatures and scoped historical native evidence | Both uncertain originals remain fenced; actual current native interface/V2 matrix, aggregate all-fee bound (Energy feeLimit alone is insufficient), recovery/hosted acceptance |
 
@@ -44,7 +44,7 @@ The NFT interface's SetCollectionSize/SetCollectionSizeAsync have explicit defau
 
 2026-10-17 follow-up: Sui healthy V2 native acceptance now includes24profile/detail Id/username/email sync/async routed reads across native/file replicas, with exact selected-provider counters. This narrows the selector gap only; provider-key/metadata/versions/options and exhaustive direct/interface parity remain separate obligations. Final1/1pass2m40s; current release journal retains report hash.
 
-1. Expand storage acceptance beyond current leaf/selected selector cases using the same retained ledgers and shared base, not provider-local duplicate implementations.
+1. Expand remaining storage options/interfaces beyond current profile/detail/leaf and selected selector cases using the same retained ledgers and shared base, not provider-local duplicate implementations.
 2. Verify each blockchain/NFT method family through real interfaces; retain exact source revision and native originals, and distinguish historic/current, sync wrappers/native operations and controlled/consensus evidence.
 3. Resolve fenced originals through original-only inspection, never by replacement transactions, deleting journals or resetting ledgers. Successful unrelated Sui tests cannot close Cosmos/Hedera/TRON gates.
 4. Complete native fee profiles/readers and host bootstrap/registration before enabling paid routes. Missing CoinGecko credentials and pending operator/design choices remain explicit dependencies.

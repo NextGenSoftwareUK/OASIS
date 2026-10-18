@@ -166,15 +166,9 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 if(!nativePrimary&&synchronous){
                     Assert.False(manager.SetAndReplaceAutoFailOverListForProviders(providers.Select(type=>new EnumValue<ProviderType>(type))).IsError);
                     manager.IsAutoFailOverEnabled=true;
-                    async Task ControlNode(string script){
-                        var start=new ProcessStartInfo("wsl.exe"){UseShellExecute=false,CreateNoWindow=true};
-                        foreach(var argument in new[]{"-d","Ubuntu","-u","root","--","bash","/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/"+script})start.ArgumentList.Add(argument);
-                        using var process=Process.Start(start)!;
-                        await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));Assert.Equal(0,process.ExitCode);
-                    }
                     var nativeBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests;
                     var localBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests;
-                    await ControlNode("stop-owned-cosmos-test-node.sh");
+                    await ControlNodeAsync("stop-owned-cosmos-test-node.sh");
                     Exception? outageFailure=null;
                     try{
                         void CheckFailover(){
@@ -201,18 +195,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                         Assert.Equal(localBefore+14,manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests);
                     }catch(Exception failure){outageFailure=failure;}
                     try{
-                        await ControlNode("resume-owned-cosmos-test-node.sh");
-                        using var http=new HttpClient{Timeout=TimeSpan.FromSeconds(2)};
-                        var readyDeadline=DateTime.UtcNow.AddSeconds(30);var ready=false;
-                        while(DateTime.UtcNow<readyDeadline){
-                            try{
-                                using var response=JsonDocument.Parse(await http.GetStringAsync(rpc+"/status",token));
-                                Assert.Equal(chain,response.RootElement.GetProperty("result").GetProperty("node_info").GetProperty("network").GetString());
-                                if(!response.RootElement.GetProperty("result").GetProperty("sync_info").GetProperty("catching_up").GetBoolean()){ready=true;break;}
-                            }catch(HttpRequestException){}catch(TaskCanceledException)when(!token.IsCancellationRequested){}
-                            await Task.Delay(200,token);
-                        }
-                        Assert.True(ready,"Retained Cosmos node must be ready before prepared cleanup.");
+                        await ResumeNodeAsync(rpc,chain,token);
                     }catch(Exception restoreFailure){if(outageFailure!=null)throw new AggregateException(outageFailure,restoreFailure);throw;}
                     finally{manager.IsAutoFailOverEnabled=false;}
                     if(outageFailure!=null)ExceptionDispatchInfo.Capture(outageFailure).Throw();
@@ -250,6 +233,36 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
             else Console.WriteLine("Preserved independent routing journal/outbox: "+journal);
             await local.DeActivateProviderAsync();
         }
+    }
+
+    internal static async Task ControlNodeAsync(string script)
+    {
+        Assert.Contains(script,new[]{"stop-owned-cosmos-test-node.sh","resume-owned-cosmos-test-node.sh"});
+        var start=new ProcessStartInfo("wsl.exe"){UseShellExecute=false,CreateNoWindow=true};
+        foreach(var argument in new[]{"-d","Ubuntu","-u","root","--","bash","/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/"+script})start.ArgumentList.Add(argument);
+        using var process=Process.Start(start)!;
+        await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));Assert.Equal(0,process.ExitCode);
+    }
+
+    internal static async Task ResumeNodeAsync(string rpc,string chain,CancellationToken token)
+    {
+        await ControlNodeAsync("resume-owned-cosmos-test-node.sh");
+        using var http=new HttpClient{Timeout=TimeSpan.FromSeconds(2)};
+        var readyDeadline=DateTime.UtcNow.AddSeconds(30);var ready=false;long? firstObservedHeight=null;
+        while(DateTime.UtcNow<readyDeadline){
+            try{
+                using var response=JsonDocument.Parse(await http.GetStringAsync(rpc+"/status",token));
+                Assert.Equal(chain,response.RootElement.GetProperty("result").GetProperty("node_info").GetProperty("network").GetString());
+                var sync=response.RootElement.GetProperty("result").GetProperty("sync_info");
+                var height=long.Parse(sync.GetProperty("latest_block_height").GetString()!,System.Globalization.CultureInfo.InvariantCulture);
+                firstObservedHeight??=height;
+                // SDK0.54 simulation can have an empty check-state block time after restart even while
+                // RPC status and committed-state reads work. Observe a NEW committed block before signing.
+                if(!sync.GetProperty("catching_up").GetBoolean()&&height>firstObservedHeight.Value){ready=true;break;}
+            }catch(HttpRequestException){}catch(TaskCanceledException)when(!token.IsCancellationRequested){}
+            await Task.Delay(200,token);
+        }
+        Assert.True(ready,"Retained Cosmos node must commit a fresh block after resume before simulation/prepared cleanup.");
     }
 
     internal sealed class TestAuthority(string user):HttpMessageHandler
