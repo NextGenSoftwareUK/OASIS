@@ -2,6 +2,8 @@
 
 ## Hedera query ceiling correction — 2026-10-17
 
+Additional actual-SDK loopback contract-query test proves quote rejection precedes paid answer/admission, and accepted payment is durably admitted before transport with the configured signed fee cap. Controlled raw quote11173581 becomes12290939tinybar after SDK buffering; low1000000cap produces no paid answer, sufficient12290939cap produces exactly one. Full SDK162/162passed/0skip; current report hash in release journal. This explains the class of pre-payment rejection, but does not independently reconcile the failed live original or authorize replay.
+
 Prepared payment construction now uses the explicit signed transaction-fee ceiling through the real SDK, replacing its hardcoded 1 HBAR ceiling. Maximum exposure still includes query payment plus signed transaction-fee ceiling; unused node candidates are not admitted. Selected-request durable admission precedes transport; ordinary SDK query behavior is unchanged.
 
 The retained testnet read failed with zero recorded attempts and remains fenced (operation `3cabee73-6a12-f4e6-8dfa-8c443136ff47`, database `usage_hedera_native_read`). Subsequent COST_ANSWER-only quote was **0.12290939 test HBAR**, including the SDK buffer, versus fixture payment cap 0.01 and aggregate cap 0.1. This is a time-specific quote, not an actual charged fee or tariff. SDK160/unit135/non-funded297 passing cases do not prove successful paid-read/settlement acceptance. Do not raise budgets and replay until exact pre-execution reconciliation. Preserve the journal/database and protected identity. Full hashes and open gates are in the release-gates evidence journal.

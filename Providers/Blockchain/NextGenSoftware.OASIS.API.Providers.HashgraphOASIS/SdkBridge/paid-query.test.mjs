@@ -184,6 +184,39 @@ for(const [name,Query,configure,service,method] of [
   });
 }
 
+for(const cap of ['1000000','12290939'])test(`contract query cost gate and explicit signed fee ceiling: ${cap}`,{timeout:10000},async()=>{
+  const server=new grpc.Server();let costs=0,answers=0,admissions=0;
+  const key=PrivateKey.generateED25519();
+  server.addService({contractCallLocalMethod:{path:'/proto.SmartContractService/contractCallLocalMethod',requestStream:false,responseStream:false,
+    requestSerialize:value=>Buffer.from(proto.Query.encode(value).finish()),requestDeserialize:bytes=>proto.Query.decode(bytes),
+    responseSerialize:value=>Buffer.from(proto.Response.encode(value).finish()),responseDeserialize:bytes=>proto.Response.decode(bytes)}},
+    {contractCallLocalMethod:(call,callback)=>{
+      const query=call.request.contractCallLocal,header=query.header;
+      assert.equal(query.gas.toString(),'100000');
+      if(header.responseType===proto.ResponseType.COST_ANSWER)costs++;
+      else{
+        assert.equal(header.responseType,proto.ResponseType.ANSWER_ONLY);assert.equal(admissions,1);answers++;
+        const payment=Transaction.fromBytes(proto.Transaction.encode(header.payment).finish());
+        assert.equal(key.publicKey.verifyTransaction(payment),true);
+        const body=proto.TransactionBody.decode(proto.SignedTransaction.decode(header.payment.signedTransactionBytes).bodyBytes);
+        assert.equal(body.transactionFee.toString(),'1000000');
+      }
+      callback(null,{contractCallLocal:{header:{nodeTransactionPrecheckCode:proto.ResponseCodeEnum.OK,responseType:header.responseType,cost:11173581},
+        functionResult:{contractID:query.contractID,contractCallResult:new Uint8Array(),gasUsed:1,bloom:new Uint8Array()}}});
+    }});
+  const port=await new Promise((resolve,reject)=>server.bindAsync('127.0.0.1:0',grpc.ServerCredentials.createInsecure(),(error,port)=>error?reject(error):resolve(port)));
+  const client=Client.forNetwork({['127.0.0.1:'+port]:'0.0.3'});client.setOperator('0.0.1001',key);
+  try{
+    const query=new PreparedContractCallQuery({network:'controlled-loopback',payer:'0.0.1001',publicKey:key.publicKey.toStringDer(),nodes:['0.0.3'],
+      maxPaymentTinybars:cap,maxTransactionFeeTinybars:'1000000',persistenceTimeoutMs:1000,persist:async evidence=>{
+        assert.equal(answers,0);assert.equal(evidence.queryPaymentTinybars,'12290939');admissions++;
+      }}).setContractId('0.0.2001').setGas(100000).setMaxQueryPayment(Hbar.fromTinybars(cap));
+    if(cap==='1000000')await assert.rejects(query.execute(client),error=>error.name==='MaxQueryPaymentExceededError'&&error.queryCost.toTinybars().toString()==='12290939');
+    else await query.execute(client);
+    assert.equal(costs,1);assert.equal(answers,cap==='1000000'?0:1);assert.equal(admissions,answers);
+  }finally{client.close();server.forceShutdown();}
+});
+
 for(const cap of ['123','135'])test(`actual file-read bridge enforces explicit ${cap} cap against SDK-buffered payment over loopback gRPC`,{timeout:10000},async()=>{
   const server=new grpc.Server();let admitted=0,answers=0;
   server.addService({getFileContent:{path:'/proto.FileService/getFileContent',requestStream:false,responseStream:false,
