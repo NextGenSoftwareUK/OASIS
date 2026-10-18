@@ -287,6 +287,27 @@ public sealed class SuiRealProviderRoutingTests
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
             (await sui.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
             (await local.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
+            // Verify actual routed selector dispatch against both persisted replicas,
+            // not just direct Id reads or the shared base's controlled-backend suite.
+            foreach(var providerType in new[]{ProviderType.LocalFileOASIS,ProviderType.SuiOASIS})
+                foreach(var selector in new[]{"","ByUsername","ByEmail"}){
+                    var selectorRequestsBefore=manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests;
+                    StorageOperationRequest IdentityRequest(string family)=>new(){Operation=family+selector,PreferredProvider=providerType,
+                        AvatarId=avatar.Id,Username=avatar.Username,Email=avatar.Email};
+                    var profileRequest=IdentityRequest("LoadAvatar");
+                    foreach(var read in new[]{router.RouteRequest<IAvatar>(profileRequest),await router.RouteRequestAsync<IAvatar>(profileRequest)}){
+                        read.IsError.Should().BeFalse(read.Message);read.Result.Id.Should().Be(avatar.Id);
+                        read.Result.Username.Should().Be(avatar.Username);read.Result.Email.Should().Be(avatar.Email);
+                    }
+                    var detailRequest=IdentityRequest("LoadAvatarDetail");
+                    foreach(var read in new[]{router.RouteRequest<IAvatarDetail>(detailRequest),await router.RouteRequestAsync<IAvatarDetail>(detailRequest)}){
+                        read.IsError.Should().BeFalse(read.Message);read.Result.Id.Should().Be(detail.Id);
+                        read.Result.Username.Should().Be(detail.Username);read.Result.Email.Should().Be(detail.Email);
+                    }
+                    manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests.Should().Be(selectorRequestsBefore+4,
+                        "both sync/async profile and detail selectors must execute on the explicitly selected real provider");
+                }
+            Console.WriteLine("Verified24 routed profile/detail Id/username/email selector reads against both real replicas.");
             async Task AssertAvatarLists(bool present)
             {
                 foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
