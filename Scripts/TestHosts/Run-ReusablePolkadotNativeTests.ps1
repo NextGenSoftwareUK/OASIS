@@ -1,4 +1,4 @@
-param([switch]$CheckOnly, [ValidateSet('Native','AssetSdk','AssetApi','AssetTransfer')][string]$Suite = 'Native')
+param([switch]$CheckOnly, [ValidateSet('Native','AssetSdk','AssetApi','AssetTransfer','History')][string]$Suite = 'Native')
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $sdk = Join-Path $repo 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge'
@@ -35,7 +35,9 @@ try {
     $env:OASIS_POLKADOT_LOCAL_ASSET_TRANSFER_JOURNAL = $assetTransfer
     Push-Location $sdk
     try {
-        & node bootstrap-local-native.mjs; if ($LASTEXITCODE -ne 0) { throw 'Bootstrap failed; retain/reconcile any pending original.' }
+        if ($Suite -ne 'History') {
+            & node bootstrap-local-native.mjs; if ($LASTEXITCODE -ne 0) { throw 'Bootstrap failed; retain/reconcile any pending original.' }
+        }
         if ($Suite -in @('AssetSdk','AssetApi','AssetTransfer')) {
             $scripts = @('bootstrap-local-asset.mjs','test-local-asset-preparation.mjs')
             if ($Suite -eq 'AssetSdk') { $scripts += 'test-local-asset-execution.mjs' }
@@ -52,13 +54,14 @@ try {
     try {
         & dotnet build 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj' --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false --verbosity quiet
         if ($LASTEXITCODE -ne 0) { throw 'Current cached provider build failed; no dependency restore attempted.' }
-        $testClass = switch ($Suite) { 'AssetApi' { 'PolkadotLocalAssetTests' } 'AssetTransfer' { 'PolkadotLocalAssetTransferTests' } default { 'PolkadotLocalNativeTests' } }
-        $reportName = switch ($Suite) { 'AssetApi' { 'polkadot-local-asset-api-current.trx' } 'AssetTransfer' { 'polkadot-local-asset-transfer-current.trx' } default { 'polkadot-local-native-current.trx' } }
+        $testClass = switch ($Suite) { 'History' { 'PolkadotLocalHistoryTests' } 'AssetApi' { 'PolkadotLocalAssetTests' } 'AssetTransfer' { 'PolkadotLocalAssetTransferTests' } default { 'PolkadotLocalNativeTests' } }
+        $reportName = switch ($Suite) { 'History' { 'polkadot-local-history-current.trx' } 'AssetApi' { 'polkadot-local-asset-api-current.trx' } 'AssetTransfer' { 'polkadot-local-asset-transfer-current.trx' } default { 'polkadot-local-native-current.trx' } }
         & dotnet test 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests.csproj' --no-restore /p:BuildProjectReferences=false /p:IncludePolkadotLocalNativeTests=true /m:2 /nr:false /p:UseSharedCompilation=false --filter "FullyQualifiedName~$testClass" --logger "trx;LogFileName=$reportName" --results-directory $evidence --verbosity quiet
         if ($LASTEXITCODE -ne 0) { throw 'Native tests failed; retain/reconcile pending originals before any rerun.' }
         [xml]$report = Get-Content -LiteralPath (Join-Path $evidence $reportName)
         $counters = $report.TestRun.ResultSummary.Counters
-        if ($counters.total -ne '2' -or $counters.passed -ne '2' -or $counters.failed -ne '0' -or $counters.notExecuted -ne '0') { throw 'Expected exactly two executed passing native rows; no skip-based certification.' }
+        $expectedRows = if ($Suite -eq 'History') { '4' } else { '2' }
+        if ($counters.total -ne $expectedRows -or $counters.passed -ne $expectedRows -or $counters.failed -ne '0' -or $counters.notExecuted -ne '0') { throw 'Expected all selected native rows executed and passing; no skip-based certification.' }
         if (Test-Path -LiteralPath $journal) { throw 'Pending native original remains; preserve it.' }
         if (Test-Path -LiteralPath $assetApi) { throw 'Pending asset API original remains; preserve it.' }
         if (Test-Path -LiteralPath $assetTransfer) { throw 'Pending asset transfer original remains; preserve it.' }

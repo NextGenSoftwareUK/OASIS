@@ -9,6 +9,7 @@ import { originalSubmission, submitOriginalPreparation } from './original-submis
 import { readOriginalOutcome, readOriginalNativeFee, validateOutcomeRange } from './original-outcome.mjs';
 import { prepareAssetOperation, verifyAssetPreparation, validateAssetRequest } from './asset-operation.mjs';
 import { readOriginalAssetOutcome, validateAssetOutcomeRequest } from './asset-outcome.mjs';
+import { readWalletHistory, validateHistoryRequest } from './wallet-history.mjs';
 
 // Metadata/preparation transport is read-only. Only explicitly owned submission gains a one-shot capability.
 let api;
@@ -17,7 +18,8 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
-  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (request.operation === 'walletHistory') validateHistoryRequest(request);
   if (request.operation === 'assetOutcome') validateAssetOutcomeRequest(request);
   if (request.operation === 'originalOutcome') validateOutcomeRange(request);
   if (request.operation === 'finalizedReceipt') validateReceiptRequest(request);
@@ -46,7 +48,10 @@ try {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
   }
-  if (request.operation === 'assetOutcome') {
+  if (request.operation === 'walletHistory') {
+    stage = 'finalized wallet history';
+    process.stdout.write(JSON.stringify({ ok: true, result: await readWalletHistory(api, request, decimals) }));
+  } else if (request.operation === 'assetOutcome') {
     stage = 'original asset finalized effect verification';
     process.stdout.write(JSON.stringify({ ok: true, result: await readOriginalAssetOutcome(api, request) }));
   } else if (request.operation === 'prepareAssetOperation') {

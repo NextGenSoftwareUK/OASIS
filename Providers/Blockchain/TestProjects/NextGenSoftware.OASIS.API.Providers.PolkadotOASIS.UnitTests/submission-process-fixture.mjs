@@ -31,6 +31,21 @@ if (request.operation === 'prepareTransfer' || request.operation === 'prepareAss
   } else emit({ transactionHash: mode === 'fee-wrong-hash' ? 'wrong' : originalHash,
     finalized: mode !== 'fee-unfinalized', dispatchSucceeded: mode !== 'fee-failed-dispatch', payer: 'sender',
     feeCoverage: 'finalized-native-transaction-payment-event-tip-included', actualFeeUnits: mode === 'fee-invalid-units' ? '-1' : '12' });
+} else if (request.operation === 'walletHistory') {
+  const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
+  if (mode === 'rpc-error') { process.stdout.write(JSON.stringify({ ok: false, error: 'controlled archive failure' })); process.exitCode = 1; }
+  else {
+    const wallet = '0x' + 'c'.repeat(64), other = '0x' + 'd'.repeat(64);
+    const row = { transactionHash: originalHash, blockHash: chain, blockNumber: mode === 'wrong-block' ? '3' : '1',
+      extrinsicIndex: 1, eventIndex: 2, from: other, to: wallet, signer: other, rawAmount: mode === 'bad-amount' ? '-1' : '18446744073709551616',
+      decimals: 12, token: null, amountUnit: 'native-base-unit', effect: 'balances.Transfer', amountKind: mode === 'bad-classification' ? 'unknown' : 'applied-event',
+      operation: 'balances.transferKeepAlive', timestampMilliseconds: '1700000000000', dispatchSucceeded: mode !== 'failed', dispatchError: mode === 'failed' ? 'ModuleError' : null };
+    if (mode === 'generic') Object.assign(row, { from: wallet, to: '', signer: wallet, rawAmount: null, decimals: null,
+      amountUnit: null, effect: null, amountKind: 'not-interpreted', eventIndex: null });
+    emit({ address: mode === 'wrong-wallet' ? '0x' + 'e'.repeat(64) : wallet, genesisHash: mode === 'wrong-network' ? originalHash : chain,
+      finalized: true, fromBlock: '1', toBlock: mode === 'wrong-range' ? '2' : '1', finalizedSnapshotBlock: '2',
+      rows: mode === 'two-events' ? [row, { ...row, eventIndex: 3 }] : [row] });
+  }
 } else if (request.operation === 'originalOutcome' || request.operation === 'assetOutcome') {
   if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wait-for-cancellation') {
     await waitForOwnedCancellation('1'); // Actual finality read entry, not a timing guess.

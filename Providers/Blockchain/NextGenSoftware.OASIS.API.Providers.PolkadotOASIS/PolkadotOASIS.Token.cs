@@ -287,78 +287,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
         {
-            return GetTransactionsAsync(request).Result;
+            return Task.Run(() => GetTransactionsAsync(request)).GetAwaiter().GetResult();
         }
 
-        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
-        {
-            var result = new OASISResult<IList<IWalletTransaction>>();
-            try
-            {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "WalletAddress is required");
-                    return result;
-                }
-
-                // Get Polkadot transactions for the address
-                var transactionsResponse = await _httpClient.GetAsync($"/accounts/{request.WalletAddress}/transactions");
-                var transactions = new List<IWalletTransaction>();
-
-                if (transactionsResponse.IsSuccessStatusCode)
-                {
-                    var transactionsContent = await transactionsResponse.Content.ReadAsStringAsync();
-                    var transactionsData = JsonSerializer.Deserialize<JsonElement>(transactionsContent);
-
-                    if (transactionsData.TryGetProperty("data", out var dataProp) && dataProp.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var tx in dataProp.EnumerateArray())
-                        {
-                            // Extract transaction hash for deterministic GUID
-                            var txHash = tx.TryGetProperty("extrinsicHash", out var hashProp) ? hashProp.GetString() : null;
-                            Guid txGuid;
-                            if (!string.IsNullOrWhiteSpace(txHash))
-                            {
-                                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                                var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txHash));
-                                txGuid = new Guid(hashBytes.Take(16).ToArray());
-                            }
-                            else
-                            {
-                                // Fallback: use deterministic GUID from transaction data
-                                var txData = $"{request.WalletAddress}:{tx.GetRawText()}";
-                                txGuid = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txData}");
-                            }
-                            
-                            var walletTx = new WalletTransaction
-                            {
-                                TransactionId = txGuid,
-                                FromWalletAddress = tx.TryGetProperty("from", out var from) ? from.GetString() : string.Empty,
-                                ToWalletAddress = tx.TryGetProperty("to", out var to) ? to.GetString() : string.Empty,
-                                Amount = tx.TryGetProperty("value", out var value) ? value.GetInt64() / 10000000000.0 : 0.0,
-                                Description = txHash != null ? $"Polkadot transaction: {txHash}" : "Polkadot transaction"
-                            };
-                            transactions.Add(walletTx);
-                        }
-                    }
-                }
-
-                result.Result = transactions;
-                result.IsError = false;
-                result.Message = $"Retrieved {transactions.Count} Polkadot transactions";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting transactions: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+            => ReadWalletHistoryAsync(request);
 
     }
 }

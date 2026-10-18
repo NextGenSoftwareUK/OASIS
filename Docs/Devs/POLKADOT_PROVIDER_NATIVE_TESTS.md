@@ -34,11 +34,14 @@ From `C:\Source\OASIS`:
 ./Scripts/TestHosts/Run-ReusablePolkadotNativeTests.ps1
 ./Scripts/TestHosts/Run-ReusablePolkadotNativeTests.ps1 -Suite AssetApi
 ./Scripts/TestHosts/Run-ReusablePolkadotNativeTests.ps1 -Suite AssetTransfer
+./Scripts/TestHosts/Run-ReusablePolkadotNativeTests.ps1 -Suite History
 ```
 
 `AssetApi` reuses the same retained asset424242, runtime/ledger/SDK/host and exclusive lease. It runs ordinary sync/async C# mint and burn (two rows/four operations), with exact finalized events and independently observed balance/supply deltas. Default-wallet retrieval is a test adapter and the owner is fsync'd file durability, not hosted/Mongo/authorization/billing proof. Pending `local-asset-api-pending.json` fences ALL suites; preserve and reconcile it before rerunning. Fixed completed records preserve each confirmed original. See [asset implementation/fee limits](POLKADOT_ASSET_IMPLEMENTATION.md).
 
 `AssetTransfer` uses the SAME resources and the existing02/03accounts. Two rows/four operations exercise ordinary sync/async asset transfers in both directions, including the non-admin03holder; exact opposite balance deltas and unchanged supply must match finalized Transferred events. It requires one fixed `local-asset-transfer-pending.json` journal, included in every suite's pending fence, and preserves four confirmed completion records. No new wallet/asset/funding/reset per run. Shared read-only preparation check derives excessive amounts from observed balances, not original seed balances. This is local runtime + fsync-owner proof, not hosted Mongo/authorization/asset-cost certification.
+
+`History` holds the same exclusive lease/pending fences but SKIPS bootstrap and never signs/submits. It reads the retained completion records and proves ordinary sync+async history for native/asset transfer, mint and burn (four rows/eight history calls), plus a retained native fee receipt. It needs the existing ledger/data, not a fresh fixture. See [history semantics/evidence/limits](POLKADOT_WALLET_HISTORY.md).
 
 The runner takes an exclusive fixed lease, rejects pending originals, checks chain/properties, reuses completed bootstrap funding, builds without restore and requires exactly2passing/0skipped native rows. Bootstrap first-ever funding signs using the public local-dev Alice account, independently verifies original bytes, writes/flushes a create-only pending record BEFORE broadcasting once, and only reconciles it into a completed record after finalized success. A repeat uses the completed record; no automatic top-up/resubmission. A depleted test balance requires review, not resetting the ledger.
 

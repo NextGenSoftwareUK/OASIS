@@ -110,14 +110,19 @@ public partial class PolkadotOASIS
 
     private static double ParseNativeBalance(JsonElement result)
     {
-        var unitsText = result.GetProperty("units").GetString();
+        if (!IsGenesisHash(result.GetProperty("blockHash").GetString()))
+            throw new InvalidDataException("Polkadot finalized block identity is invalid.");
+        return UnitsToDisplay(result.GetProperty("units").GetString(), result.GetProperty("decimals").GetInt32());
+    }
+
+    private static double UnitsToDisplay(string unitsText, int decimals)
+    {
         if (string.IsNullOrEmpty(unitsText) || (unitsText.Length > 1 && unitsText[0] == '0')
             || !BigInteger.TryParse(unitsText, NumberStyles.None, CultureInfo.InvariantCulture, out var units)
             || units < 0 || units >= (BigInteger.One << 128))
             throw new InvalidDataException("Polkadot balance is not a canonical u128 value.");
-        var decimals = result.GetProperty("decimals").GetInt32();
-        if (decimals < 0 || decimals > 38 || !IsGenesisHash(result.GetProperty("blockHash").GetString()))
-            throw new InvalidDataException("Polkadot balance precision or finalized block identity is invalid.");
+        if (decimals < 0 || decimals > 38)
+            throw new InvalidDataException("Polkadot balance precision is invalid.");
         // The existing wallet interface returns double, so display precision is necessarily approximate.
         // Preserve exact native units through SDK decoding; do not truncate via Int64 or assume DOT precision.
         return (double)units / Math.Pow(10, decimals);
