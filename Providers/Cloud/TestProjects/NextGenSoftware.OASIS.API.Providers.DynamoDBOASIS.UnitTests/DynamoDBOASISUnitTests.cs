@@ -206,8 +206,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
             detail.Inventory.Add(item);
             var flags=System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic;
             var json=(string)typeof(DynamoDBOASIS).GetMethod("Ser",flags)!.Invoke(null,new object[] {detail})!;
-            var loaded=(NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail)typeof(DynamoDBOASIS).GetMethod("Des",flags)!
-                .MakeGenericMethod(typeof(NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail)).Invoke(null,new object[] {json})!;
+            var loaded=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeStored<NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail>(json);
             Assert.AreEqual(item.Id,loaded.Inventory.Single().Id);
             Assert.AreEqual(item.Name,loaded.Inventory.Single().Name);
             Assert.AreEqual(321,loaded.XP); Assert.AreEqual(29L,loaded.Karma);

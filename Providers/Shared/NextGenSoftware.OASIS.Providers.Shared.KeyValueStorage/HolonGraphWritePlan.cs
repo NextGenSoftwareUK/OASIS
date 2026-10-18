@@ -26,7 +26,7 @@ public static class HolonGraphWritePlan
             if(!identities.Add(id)) throw new ArgumentException("Selected graph has duplicate identities.");
             if(parent.HasValue && source.ParentHolonId!=Guid.Empty && source.ParentHolonId!=parent.Value)
                 throw new ArgumentException("Selected child has a conflicting parent identity.");
-            var snapshot=OasisJson.Deserialize<Holon>(OasisJson.Serialize(source));
+            var snapshot=OasisJson.Project<Holon>(source);
             snapshot.Id=id;snapshot.ParentHolonId=parent ?? source.ParentHolonId;
             nodes.Add(new PlannedHolonWrite(source,snapshot));
             if(children && (depth==0 || current<depth) && (recursive || current==initialDepth))
