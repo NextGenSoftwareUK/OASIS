@@ -167,7 +167,7 @@ try{
         $expectedCosmos=if($CosmosReviewedToken -or $CosmosReviewedNFT){2}elseif($CosmosRoutingInspect -or $CosmosReviewedFees -or $CosmosRoutingFeeRecovery -or $CosmosReviewedBank){1}elseif($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){240}else{3}
         if([int]$cosmosCounts.total -ne $expectedCosmos -or [int]$cosmosCounts.passed -ne $expectedCosmos -or [int]$cosmosCounts.notExecuted -ne 0){throw 'All selected Cosmos cases must actually execute and pass without skips.'}
         if($CosmosReviewedToken -or $CosmosReviewedNFT){
-            $assetCount=if($CosmosReviewedNFT){5}else{6}
+            $assetCount=if($CosmosReviewedNFT){7}else{6}
             $tokenCombinations=[Collections.Generic.HashSet[bool]]::new()
             foreach($case in $cosmosEvidence.TestRun.Results.UnitTestResult){
                 $line=([string]$case.Output.StdOut -split "`n"|Where-Object{$_.Trim().StartsWith('{"operation"')}|Select-Object -First 1)
@@ -175,7 +175,7 @@ try{
                 $caseData=$line.Trim()|ConvertFrom-Json
                 if(!$tokenCombinations.Add([bool]$caseData.synchronous)){throw 'Duplicate asset interface mode cannot replace sync/async coverage.'}
                 if(@($caseData.hashes).Count -ne $assetCount -or @($caseData.operation.ProviderAttempts).Count -ne $assetCount -or @($caseData.operation.Receipts).Count -ne $assetCount -or
-                    (!$CosmosReviewedNFT -and $caseData.finalSupply -ne '0') -or ($CosmosReviewedNFT -and ($caseData.family -ne 'nft' -or !$caseData.nftBurned))){
+                    (!$CosmosReviewedNFT -and $caseData.finalSupply -ne '0') -or ($CosmosReviewedNFT -and ($caseData.family -ne 'nft' -or !$caseData.nftBurned -or !$caseData.unrelatedCustodyProofRejected))){
                     throw 'Expected original asset transactions, durable receipts and verified final asset state per mode.'
                 }
             }
