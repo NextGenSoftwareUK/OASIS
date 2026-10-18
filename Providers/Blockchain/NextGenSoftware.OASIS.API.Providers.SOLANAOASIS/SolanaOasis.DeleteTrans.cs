@@ -440,11 +440,23 @@ public partial class SolanaOASIS
         OASISResult<IWeb3NFTTransactionResponse> result = new();
         try
         {
+            var snapshot=new SendWeb3NFTRequest
+            {
+                FromNFTTokenAddress=transaction.FromNFTTokenAddress,FromWalletAddress=transaction.FromWalletAddress,
+                ToWalletAddress=transaction.ToWalletAddress,TokenAddress=transaction.TokenAddress,TokenId=transaction.TokenId,
+                Amount=transaction.Amount,MemoText=transaction.MemoText,OwnerPrivateKey=transaction.OwnerPrivateKey,
+                OwnerPublicKey=transaction.OwnerPublicKey,OwnerSeedPhrase=transaction.OwnerSeedPhrase
+            };
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
+            }
             OASISResult<SendTransactionResult> solanaNftTransactionResult =
-                await _solanaService.SendNftAsync(transaction as SendWeb3NFTRequest);
+                await _solanaService.SendNftAsync(snapshot);
 
             if (solanaNftTransactionResult.IsError ||
-                string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
+                string.IsNullOrEmpty(solanaNftTransactionResult.Result?.TransactionHash))
             {
                 OASISErrorHandling.HandleError(ref result,
                     solanaNftTransactionResult.Message,
