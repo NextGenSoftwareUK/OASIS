@@ -8,6 +8,7 @@ using Xunit;
 using Provider=NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using StoredDetail=NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
@@ -35,6 +36,30 @@ public sealed class DirectMongoAvatarDetailContractTests
                 var skillProperties=typeof(IAvatarSkills).GetProperties();Assert.Equal(16,skillProperties.Length);
                 foreach(var property in skillProperties)property.SetValue(skills,skillValue++);
                 detail.Skills=skills;
+                detail.Stats=new IndependentAvatarStats();detail.SuperPowers=new IndependentAvatarPowers();
+                detail.Aura=new IndependentAvatarAura();detail.HumanDesign=new IndependentHumanDesign();
+                var structuredFields=new[]{"Stats","SuperPowers","Aura","HumanDesign"};
+                foreach(var field in structuredFields){
+                    var slot=typeof(IAvatarDetail).GetProperty(field)!;var number=revision*100;
+                    foreach(var property in slot.PropertyType.GetProperties()){
+                        object value=property.PropertyType==typeof(int)?number++:property.PropertyType==typeof(string)?"human-type-"+revision:
+                            new AvatarStat{Current=number++,Max=number+100};
+                        property.SetValue(slot.GetValue(detail),value);
+                    }
+                }
+                void VerifyStructured(object actual,bool native){
+                    foreach(var field in structuredFields){
+                        var slot=typeof(IAvatarDetail).GetProperty(field)!;var expected=slot.GetValue(detail);
+                        var restored=native?typeof(StoredDetail).GetProperty(field)!.GetValue(actual):slot.GetValue(actual);
+                        Assert.NotNull(restored);
+                        foreach(var property in slot.PropertyType.GetProperties()){
+                            if(property.GetValue(expected) is AvatarStat stat){
+                                var found=(AvatarStat)property.GetValue(restored)!;Assert.NotNull(found);
+                                Assert.Equal(stat.Current,found.Current);Assert.Equal(stat.Max,found.Max);
+                            }else Assert.Equal(property.GetValue(expected),property.GetValue(restored));
+                        }
+                    }
+                }
                 foreach(var property in scalarProperties){
                     var type=Nullable.GetUnderlyingType(property.PropertyType)??property.PropertyType;
                     object value=type==typeof(string)? $"revision-{revision}-{property.Name}-{id:N}":
@@ -48,6 +73,7 @@ public sealed class DirectMongoAvatarDetailContractTests
                 var saved=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);
                 Assert.False(saved.IsError,saved.Message);Assert.NotNull(saved.Result);
                 var raw=await collection.Find(filter).SingleAsync();Assert.Equal(detail.Description,raw.Description);
+                VerifyStructured(raw,true);VerifyStructured(saved.Result,false);
                 foreach(var property in skillProperties){
                     Assert.Equal(property.GetValue(skills),property.GetValue(raw.Skills));
                     Assert.Equal(property.GetValue(skills),property.GetValue(saved.Result.Skills));
@@ -66,6 +92,7 @@ public sealed class DirectMongoAvatarDetailContractTests
                         reader.LoadAvatarDetailByEmail(detail.Email),await reader.LoadAvatarDetailByEmailAsync(detail.Email)}){
                         Assert.False(loaded.IsError,loaded.Message);Assert.NotNull(loaded.Result);
                         Assert.Equal(id,loaded.Result.Id);Assert.Equal(detail.Description,loaded.Result.Description);
+                        VerifyStructured(loaded.Result,false);
                         foreach(var property in scalarProperties)Assert.Equal(property.GetValue(detail),property.GetValue(loaded.Result));
                         foreach(var property in skillProperties)Assert.Equal(property.GetValue(skills),property.GetValue(loaded.Result.Skills));
                     }
