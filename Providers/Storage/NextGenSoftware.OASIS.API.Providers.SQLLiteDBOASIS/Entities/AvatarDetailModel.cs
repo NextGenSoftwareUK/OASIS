@@ -22,6 +22,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public bool IsPublic { get; set; }
         public Guid VersionId { get; set; }
         public Guid PreviousVersionId { get; set; }
+        public Guid ParentHolonId { get; set; }
+        public Guid ParentHolonId2 { get; set; }
+        public Guid ParentHolonId3 { get; set; }
         public string CustomHolonType { get; set; }
 
         public string Name { get; set; }
@@ -158,6 +161,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             this.IsPublic=source.IsPublic;
             this.VersionId=source.VersionId;
             this.PreviousVersionId=source.PreviousVersionId;
+            this.ParentHolonId=source.ParentHolonId;
+            this.ParentHolonId2=source.ParentHolonId2;
+            this.ParentHolonId3=source.ParentHolonId3;
             this.CustomHolonType=source.CustomHolonType;
             this.IsChanged = source.IsChanged;
             this.IsNewHolon = source.IsNewHolon;
@@ -270,6 +276,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             item.IsPublic=this.IsPublic;
             item.VersionId=this.VersionId;
             item.PreviousVersionId=this.PreviousVersionId;
+            item.ParentHolonId=this.ParentHolonId;
+            item.ParentHolonId2=this.ParentHolonId2;
+            item.ParentHolonId3=this.ParentHolonId3;
             item.CustomHolonType=this.CustomHolonType;
             item.IsChanged = this.IsChanged;
             item.IsNewHolon = this.IsNewHolon;
