@@ -493,189 +493,44 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return SaveAvatarDetailAsync(avatarDetail).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        private static OASISResult<bool> RejectGenericAccountDeletion()
         {
-            var response = new OASISResult<bool>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Delete avatar from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/{id}";
-                
-                var httpResponse = await _httpClient.DeleteAsync(apiUrl);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = true;
-                    response.Message = "Avatar deleted from ActivityPub instance successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from ActivityPub: {ex.Message}");
-            }
-
-            return response;
+            const string message="Generic OASIS avatar deletion is not remote account deletion or profile-image deletion. This adapter has no private avatar record to soft-delete; no remote request was sent.";
+            var result=new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result,message,new NotSupportedException(message));return result;
         }
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => Task.FromResult(RejectGenericAccountDeletion());
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
             return DeleteAvatarAsync(id, softDelete).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            var response = new OASISResult<bool>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Delete avatar by provider key from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/{providerKey}";
-                
-                var httpResponse = await _httpClient.DeleteAsync(apiUrl);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = true;
-                    response.Message = "Avatar deleted from ActivityPub instance successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar by provider key from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by provider key from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+            => Task.FromResult(RejectGenericAccountDeletion());
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
             return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-        {
-            var response = new OASISResult<bool>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Delete avatar by email from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/search?q={avatarEmail}";
-                
-                var httpResponse = await _httpClient.DeleteAsync(apiUrl);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = true;
-                    response.Message = "Avatar deleted from ActivityPub instance successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar by email from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by email from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+            => Task.FromResult(RejectGenericAccountDeletion());
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
             return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            var response = new OASISResult<bool>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Delete avatar by username from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/lookup?acct={avatarUsername}";
-                
-                var httpResponse = await _httpClient.DeleteAsync(apiUrl);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = true;
-                    response.Message = "Avatar deleted from ActivityPub instance successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar by username from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by username from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+            => Task.FromResult(RejectGenericAccountDeletion());
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
             return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
-
-        // Additional methods would be implemented here following the same pattern...
-        // For brevity, I'll implement the key methods and mark others as "not yet implemented"
-
 
     }
 }
