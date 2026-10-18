@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 expanded Sui V2 selector fixture used same retained node/ledger/deployment and file directory for initial and final strengthened-source runs; no install/download/copy/reset. Each successful fixture performed normal owned-record cleanup and removed its intent; original failed provider journals elsewhere remain protected. Final node stopped, Sui pending markers absent. Fixed compact TRX retained/final hash recorded in release journal. Free C:85,519,294,464bytes; no broad deletion or disk-reclamation claim.
+
 2026-10-17 Sui original escrow receipt refresh1/1passed3s reused retained runtime/ledger/deployment/SDK and fixed outputs. No new mutations/accounts/install/download/environment; compact TRX overwritten and hash documented. Owned node and Mongo stopped, Sui pending markers absent. Retained historical receipts/deployment preserved. Free C:85,697,470,464bytes; no material deletion/reclaimed-space claim.
 
 2026-10-17 Sui native assets4/4passed using the retained local node/ledger/wallet/deployment/SDK and existing owned Mongo environment. No installs/downloads/clones/new account/reset. Success fixtures burned their owned test assets/restored token supply, dropped their own DBs and removed own completed journals; compact original receipt JSON/TRX retained. Runner stopped owned node/Mongo; no Sui pending markers. Protected deployment hash unchanged. Free C:85,776,650,240bytes after run; no broad cleanup or reclaimed-space claim.

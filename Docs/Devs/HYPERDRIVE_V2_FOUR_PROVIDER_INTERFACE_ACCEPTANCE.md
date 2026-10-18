@@ -34,6 +34,8 @@ The NFT interface's SetCollectionSize/SetCollectionSizeAsync have explicit defau
 
 ## Next verification work
 
+2026-10-17 follow-up: Sui healthy V2 native acceptance now includes24profile/detail Id/username/email sync/async routed reads across native/file replicas, with exact selected-provider counters. This narrows the selector gap only; provider-key/metadata/versions/options and exhaustive direct/interface parity remain separate obligations. Final1/1pass2m40s; current release journal retains report hash.
+
 1. Expand storage acceptance beyond current leaf/selected selector cases using the same retained ledgers and shared base, not provider-local duplicate implementations.
 2. Verify each blockchain/NFT method family through real interfaces; retain exact source revision and native originals, and distinguish historic/current, sync wrappers/native operations and controlled/consensus evidence.
 3. Resolve fenced originals through original-only inspection, never by replacement transactions, deleting journals or resetting ledgers. Successful unrelated Sui tests cannot close Cosmos/Hedera/TRON gates.
