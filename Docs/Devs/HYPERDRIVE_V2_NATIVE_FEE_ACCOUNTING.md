@@ -1,5 +1,9 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Budget exhaustion is not a provider outage — 2026-10-17
+
+Two new controlled SDK/pipe/Mongo sync/async V2 tests explicitly permit an alternate ordinary provider and enable native-first failover. After native activation query allowance is exhausted, original budget cause remains terminal and alternate activation/read/write counts remainzero. Existing query original/exposure remain, no storage mutation/settlement. Full137offline passes; no production change necessary. This protects operation-wide budget ownership, not native outage/failover certification. Paid real-testnet fixture remains fenced separately; hashes in release journal.
+
 ## Hedera activation is paid and data-dependent — 2026-10-17
 
 Real routed read demonstrated that activation is NOT just account/owner/alias verification: shared PrivateKeyValueBackend.VerifyReadOnlyAsync also enumerates the private namespace, and Hedera list queries revision/page/revision, then decrypts existing record identities. Even empty-store activation plus one missing-root read needs at least7payments; populated stores add pages/record reads. Do not declare activation free or reuse a one-read budget for it; do not remove integrity validation to reduce a test bill.
