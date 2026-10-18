@@ -299,19 +299,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
-        // Native operations own their SDK lease. Encrypted storage has its own activation gate.
-        // Mutation callers still validate explicit signing authority before entering this owner.
-        private Task<T> ExecuteRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation)
-            => ExecuteNativeRuntimeAsync(operation, default, requiresStorageActivation: true);
-
+        // Native operations own their SDK lease independently from encrypted storage activation.
+        // Mutation callers and the SDK retain their existing signing-authority checks.
         private async Task<T> ExecuteNativeRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation,
-            CancellationToken token = default, bool requiresStorageActivation = false)
+            CancellationToken token = default)
         {
             await _runtimeLifecycle.WaitAsync(token);
             try
             {
-                if (requiresStorageActivation && (!IsProviderActivated || _nativeTransfers == null))
-                    throw new InvalidOperationException("The configured TRON storage-dependent SDK runtime is no longer active.");
                 EnsureNativeRuntime();
                 return await operation(_nativeTransfers);
             }

@@ -228,7 +228,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         private async Task<OASISResult<IWeb3NFTTransactionResponse>> ExecuteOwnedNftEscrowAsync(Guid avatarId, string nftAddress, bool unlock)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (avatarId == Guid.Empty) throw new ArgumentException("An avatar ID is required for NFT depositor signing.");
@@ -237,21 +237,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new InvalidOperationException("A separate EscrowContractAddress with NFT escrow support must be configured.");
                 var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId,
                     Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
-                if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
+                if (wallet.Result == null || wallet.Result.AvatarId != avatarId || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
                     throw new InvalidOperationException("Could not resolve the avatar's TRON depositor signing wallet.");
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var hash = await ExecuteRuntimeAsync(client => client.ExecuteNftEscrowAsync(wallet.Result.WalletAddress,
+                var hash = await ExecuteNativeRuntimeAsync(client => client.ExecuteNftEscrowAsync(wallet.Result.WalletAddress,
                     _escrowContractAddress, nftAddress, wallet.Result.PrivateKey, unlock));
-                result.Result.TransactionResult = hash;
+                result.Result = new Web3NFTTransactionResponse {TransactionResult=hash};
                 result.Message = "Depositor-owned NFT escrow operation confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
@@ -326,17 +318,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new ArgumentException("Receipt-bound NFT release requires source-chain proof validation; this native custody operation cannot ignore a supplied receipt.");
                 if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
                     throw new InvalidOperationException("BridgePoolWalletAddress must identify the NFT custody wallet separately from token contracts.");
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var hash = await ExecuteRuntimeAsync(async client =>
+                var hash = await ExecuteNativeRuntimeAsync(async client =>
                 {
                     if (_nativeSigningKeyResolver == null)
                         throw new InvalidOperationException("NFT custody signing credentials are not configured.");
