@@ -132,12 +132,13 @@ try{
         $suiStarted=[DateTime]::UtcNow
         & dotnet test $suiProject --no-build --no-restore --filter $suiFilter --logger $suiReport --results-directory (Join-Path $taskRoot 'TestResults/SuiCurrent') -v:q
         if($LASTEXITCODE -ne 0){throw 'Sui native verification failed; retain original ownership journals.'}
-        if($SuiPreparedLedger -and !$SuiCSharpNft -and !$SuiCSharpEscrow){
-            $report=Get-Item -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/sui-prepared-ledger-current.trx')
+        if($SuiPreparedLedger -or $SuiPreparedInspect){
+            $report=Get-Item -LiteralPath (Join-Path $taskRoot ('TestResults/SuiCurrent/'+($suiReport -replace '^trx;LogFileName=','')))
             if($report.LastWriteTimeUtc -lt $suiStarted){throw 'Sui prepared report is stale.'}
             [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
             $counts=$evidence.TestRun.ResultSummary.Counters
-            if([int]$counts.total -ne 5 -or [int]$counts.passed -ne 5 -or [int]$counts.notExecuted -ne 0){throw 'All5 Sui native prepared/HTTP cases must execute and pass.'}
+            $expectedSui=if($SuiCSharpAssets){4}elseif($SuiCSharpNft -or $SuiCSharpEscrow -or $SuiPreparedInspect){1}else{5}
+            if(!$counts -or [int]$counts.total -ne $expectedSui -or [int]$counts.executed -ne $expectedSui -or [int]$counts.passed -ne $expectedSui -or [int]$counts.notExecuted -ne 0){throw "All $expectedSui selected Sui native cases must execute and pass."}
         }
     }elseif($MongoV2){
         $routingProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
