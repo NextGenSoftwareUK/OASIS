@@ -2,6 +2,7 @@ import { ApiPromise } from '@polkadot/api';
 import { readFileSync } from 'node:fs';
 import { prepareNativeTransfer, validateTransferRequest } from './native-transfer.mjs';
 import { ReadOnlyHttpProvider } from './read-only-provider.mjs';
+import { verifyNativePreparation } from './verify-preparation.mjs';
 
 // Network operations are read-only. Preparation can sign but NEVER submits an extrinsic.
 let api;
@@ -10,7 +11,7 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
-  if (!['balance', 'prepareTransfer'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (!['balance', 'prepareTransfer', 'verifyNativePreparation'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
   const endpoint = new URL(request.endpoint);
   if (!['http:', 'https:'].includes(endpoint.protocol) || endpoint.username || endpoint.password)
     throw new Error('An HTTP RPC endpoint without embedded credentials is required.');
@@ -23,14 +24,20 @@ try {
   stage = 'network verification';
   if (api.genesisHash.toHex().toLowerCase() !== request.genesisHash.toLowerCase())
     throw new Error('Polkadot SDK genesis hash differs from the activated network.');
+  let decimals;
+  if (request.operation !== 'verifyNativePreparation') {
   stage = 'native precision query';
   const properties = await api.rpc.system.properties();
   if (properties.tokenDecimals.isNone || properties.tokenDecimals.unwrap().length !== 1)
     throw new Error('Exactly one authoritative native-token precision is required.');
-  const decimals = properties.tokenDecimals.unwrap()[0].toNumber();
+  decimals = properties.tokenDecimals.unwrap()[0].toNumber();
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
-  if (request.operation === 'prepareTransfer') {
+  }
+  if (request.operation === 'verifyNativePreparation') {
+    stage = 'original signed identity verification';
+    process.stdout.write(JSON.stringify({ ok: true, result: await verifyNativePreparation(api, request.preparation) }));
+  } else if (request.operation === 'prepareTransfer') {
     stage = 'native transfer signing and fee estimation';
     const result = await prepareNativeTransfer(api, request, decimals);
     process.stdout.write(JSON.stringify({ ok: true, result }));

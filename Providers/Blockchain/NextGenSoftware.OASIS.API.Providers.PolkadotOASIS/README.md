@@ -24,6 +24,12 @@ This is an implementation stage, not completion of `SendToken`: the old unsigned
 
 The bridge directly pins `@polkadot/util-crypto`14.0.3 (already present in the retained SDK installation); lock promotion was performed offline without downloads. Publish includes the companion native-transfer/read-only-provider modules. Use the same installation; do not create another per-run SDK environment.
 
+### Independent signed-byte verification
+
+`VerifyNativeTokenTransferPreparationAsync(JsonElement)` independently checks the original signed bytes using the official SDK, without any private key. New preparation protocol `oasis.polkadot.native-transfer.preparation.v2` includes `chainId` and a canonical UTF8 JSON signing-document envelope (`oasis.polkadot.signing-document.v1`) in `signDocBase64`. Unlike the earlier ephemeral v1 raw-payload output, it retains the SDK signing context needed by an independent verifier. Old formats are explicitly rejected rather than guessed or silently reinterpreted; no stored-data migration/replay was performed.
+
+The verifier enforces bounded canonical base64/JSON, current runtime version/signed extensions, configured genesis, canonical signed v4 SCALE encoding, original hash/sender, sr25519 signature (including the over256byte hashed-payload case) and byte-identical reconstruction of signed extensions. It decodes and restricts the call to native keep-alive transfer, optionally the exact atomic memo pair; recipient/units/memo come from decoded signed bytes. Returned fee coverage is identity-only: an altered estimate cannot authorize a fee or become a receipt. Historical metadata verification, mortality/nonce validity at future submission, funds sufficiency, finalized dispatch outcomes and actual fees remain separate OPEN gates. Windows child-process streams now explicitly use strict UTF8; native Unicode memo roundtrip exposed the prior OEM-code-page decoding defect.
+
 ## Installation
 
 ```sh

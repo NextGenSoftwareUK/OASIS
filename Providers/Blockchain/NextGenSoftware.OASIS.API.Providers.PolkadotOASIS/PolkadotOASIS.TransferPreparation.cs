@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
@@ -9,6 +10,29 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 
 public partial class PolkadotOASIS
 {
+    /// <summary>Independently verifies original signed bytes and decoded native call. No signing, submission or fee permission.</summary>
+    public async Task<OASISResult<JsonElement>> VerifyNativeTokenTransferPreparationAsync(JsonElement preparation)
+    {
+        var result = new OASISResult<JsonElement>();
+        try
+        {
+            if (!_isActivated) throw new InvalidOperationException("Activate the verified network before checking original preparation.");
+            var original = preparation.Clone();
+            var identity = await InvokePolkadotSdkAsync(new { operation = "verifyNativePreparation", endpoint = _rpcEndpoint,
+                genesisHash = ReportedGenesisHash, preparation = original });
+            if (identity.ValueKind != JsonValueKind.Object || !identity.TryGetProperty("verified", out var verified)
+                || verified.ValueKind != JsonValueKind.True
+                || identity.GetProperty("transactionHash").GetString() != original.GetProperty("transactionHash").GetString()
+                || identity.GetProperty("sender").GetString() != original.GetProperty("sender").GetString()
+                || identity.GetProperty("chainId").GetString() != ReportedGenesisHash)
+                throw new InvalidDataException("SDK verification did not bind the exact original transaction, sender and configured chain.");
+            result.Result = identity;
+            result.Message = "Original signed native transfer verified; no submission or fee authorization.";
+        }
+        catch (Exception failure) { OASISErrorHandling.HandleError(ref result, failure.Message, failure); }
+        return result;
+    }
+
     /// <summary>Creates verified signed SCALE bytes and a runtime fee estimate. NEVER broadcasts,
     /// reserves funds or claims finality. Keep signed bytes in the durable execution owner before any later submission.</summary>
     public async Task<OASISResult<JsonElement>> PrepareNativeTokenTransferAsync(ISendWeb3TokenRequest request)
