@@ -100,6 +100,36 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
             stored.Skills.Computers=888;Assert.AreEqual(computers,loaded.Result.Skills.Computers);
         }
 
+        [DataTestMethod]
+        [DataRow("Stats")][DataRow("SuperPowers")][DataRow("Aura")][DataRow("HumanDesign")]
+        public void StructuredProfileAcceptsIndependentInterfaceAndDetaches(string field)
+        {
+            object independent=field switch{"Stats"=>new IndependentAvatarStats(),"SuperPowers"=>new IndependentAvatarPowers(),"Aura"=>new IndependentAvatarAura(),_=>new IndependentHumanDesign()};
+            var slot=typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail).GetProperty(field)!;
+            var properties=slot.PropertyType.GetProperties();var number=10;
+            foreach(var property in properties){
+                object value=property.PropertyType==typeof(int)?number++:property.PropertyType==typeof(string)?"independent-human-type":new AvatarStat{Current=number++,Max=number+100};
+                property.SetValue(independent,value);
+            }
+            var source=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=Guid.NewGuid()};slot.SetValue(source,independent);
+            var stored=DataHelper.ConvertOASISAvatarDetailToMongoEntity(source);
+            var native=typeof(MongoAvatarDetail).GetProperty(field)!.GetValue(stored)!;
+            var loaded=DataHelper.ConvertMongoEntityToOASISAvatarDetail(new OASISResult<MongoAvatarDetail>(stored));
+            Assert.IsFalse(loaded.IsError);Assert.IsNotNull(loaded.Result);var read=slot.GetValue(loaded.Result)!;
+            Assert.AreNotSame(independent,native);Assert.AreNotSame(native,read);
+            foreach(var property in properties){
+                if(property.GetValue(independent) is AvatarStat original){
+                    var saved=(AvatarStat)property.GetValue(native)!;var restored=(AvatarStat)property.GetValue(read)!;
+                    Assert.AreEqual(original.Current,saved.Current);Assert.AreEqual(original.Max,saved.Max);
+                    Assert.AreEqual(original.Current,restored.Current);Assert.AreEqual(original.Max,restored.Max);
+                    Assert.AreNotSame(original,saved);Assert.AreNotSame(saved,restored);
+                }else{
+                    Assert.AreEqual(property.GetValue(independent),property.GetValue(native));
+                    Assert.AreEqual(property.GetValue(independent),property.GetValue(read));
+                }
+            }
+        }
+
         [TestMethod]
         public void AvatarDetailConversionPreservesDescriptionAndModel()
         {
