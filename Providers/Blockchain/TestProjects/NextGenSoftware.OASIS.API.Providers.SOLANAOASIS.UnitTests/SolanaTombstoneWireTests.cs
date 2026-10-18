@@ -1,0 +1,82 @@
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
+using Solnet.Rpc;
+using Solnet.Wallet;
+using Solnet.Wallet.Utilities;
+
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
+
+[TestClass]
+public class SolanaTombstoneWireTests
+{
+    [DataTestMethod]
+    [DataRow("avatar")] [DataRow("detail")] [DataRow("holon")]
+    public async Task SignedEncryptedTombstonePreservesRecordAndStampsUtcAudit(string kind)
+    {
+        var owner=new Account();var key=RandomNumberGenerator.GetBytes(32);
+        var rpc=DispatchProxy.Create<IRpcClient,TombstoneProxy>();var proxy=(TombstoneProxy)(object)rpc;
+        proxy.Writer=owner.PublicKey.Key;
+        var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone());
+        SolanaBaseDto source=kind switch {"avatar"=>new SolanaAvatarDto {Email="private@example.invalid"},"detail"=>new SolanaAvatarDetailDto {XP=93},_=>new SolanaHolonDto {Name="private holon"}};
+        source.Id=Guid.NewGuid();source.Version=6;
+        proxy.Memo=(string)typeof(SolanaRepository).GetMethod("EncodeEntity",BindingFlags.NonPublic|BindingFlags.Instance)!
+            .MakeGenericMethod(source.GetType()).Invoke(repository,new object[] {source})!;
+        var before=DateTime.UtcNow;
+        var signature=await repository.CreateTombstoneAsync("original");
+        var after=DateTime.UtcNow;
+        Assert.AreEqual(proxy.Signature,signature);Assert.AreEqual(1,proxy.Sends);Assert.AreEqual(1,proxy.StatusReads);
+        Assert.IsTrue(owner.Verify(proxy.Signed!.AsSpan(65).ToArray(),proxy.Signed.AsSpan(1,64).ToArray()));
+        var tx=Solnet.Rpc.Models.Transaction.Deserialize(proxy.Signed!);
+        Assert.AreEqual(2,tx.Instructions.Count);
+        var envelope=tx.Instructions[1].Data;
+        StringAssert.StartsWith(Encoding.UTF8.GetString(envelope),"oasis-aes256gcm-gzip-v2:");
+        Assert.IsFalse(Encoding.UTF8.GetString(envelope).Contains("private"));
+        var payload=(string)typeof(SolanaRepository).GetMethod("DecodeEntity",BindingFlags.NonPublic|BindingFlags.Instance)!
+            .Invoke(repository,new object[] {envelope})!;
+        var reopened=JsonConvert.DeserializeObject(payload,source.GetType()) as SolanaBaseDto;
+        Assert.IsNotNull(reopened);Assert.AreEqual(source.Id,reopened.Id);Assert.AreEqual(7,reopened.Version);
+        Assert.AreEqual(source.Id,reopened.PreviousVersionId);Assert.IsTrue(reopened.IsDeleted);
+        Assert.AreEqual(DateTimeKind.Utc,reopened.DeletedDate.Kind);
+        Assert.IsTrue(reopened.DeletedDate>=before && reopened.DeletedDate<=after);
+        Assert.AreEqual(source.RecordKind,reopened.RecordKind);
+        if(source is SolanaAvatarDto avatar) Assert.AreEqual(avatar.Email,((SolanaAvatarDto)reopened).Email);
+        if(source is SolanaAvatarDetailDto detail) Assert.AreEqual(detail.XP,((SolanaAvatarDetailDto)reopened).XP);
+        if(source is SolanaHolonDto holon) Assert.AreEqual(holon.Name,((SolanaHolonDto)reopened).Name);
+        Assert.AreEqual(6,source.Version);Assert.IsFalse(source.IsDeleted);Assert.AreEqual(DateTime.MinValue,source.DeletedDate);
+        CryptographicOperations.ZeroMemory(key);
+    }
+
+    public class TombstoneProxy:DispatchProxy
+    {
+        public string Writer="",Memo="",Signature="";public byte[]? Signed;public int Sends,StatusReads;
+        protected override object? Invoke(MethodInfo? method,object?[]? args)
+        {
+            var resultType=method!.ReturnType.GetGenericArguments()[0];var valueType=resultType.GetGenericArguments()[0];
+            string json;
+            switch(method.Name)
+            {
+                case "GetTransactionAsync":
+                    Assert.AreEqual("original",args![0]);
+                    json=JsonConvert.SerializeObject(new {Meta=new {},Transaction=new {Signatures=new[] {"original"},Message=new {
+                        AccountKeys=new[] {Writer,"MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"},
+                        Instructions=new[] {new {ProgramIdIndex=1,Data=Encoders.Base58.EncodeData(Encoding.UTF8.GetBytes(Memo))}}}}});break;
+                case "GetLatestBlockHashAsync":
+                    json=JsonConvert.SerializeObject(new {Value=new {Blockhash=Encoders.Base58.EncodeData(new byte[32])}});break;
+                case "SendTransactionAsync":
+                    Sends++;Signed=(byte[])args![0]!;Signature=Encoders.Base58.EncodeData(Signed.AsSpan(1,64).ToArray());
+                    json=JsonConvert.SerializeObject(Signature);break;
+                case "GetSignatureStatusesAsync":
+                    StatusReads++;json=JsonConvert.SerializeObject(new {Value=new[] {new {confirmationStatus="finalized"}}});break;
+                default:throw new InvalidOperationException("Unexpected RPC "+method.Name);
+            }
+            var response=Activator.CreateInstance(resultType,new HttpResponseMessage(System.Net.HttpStatusCode.OK),JsonConvert.DeserializeObject(json,valueType));
+            resultType.GetProperty("WasRequestSuccessfullyHandled")!.SetValue(response,true);
+            return typeof(Task).GetMethod("FromResult")!.MakeGenericMethod(resultType).Invoke(null,new[] {response});
+        }
+    }
+}
