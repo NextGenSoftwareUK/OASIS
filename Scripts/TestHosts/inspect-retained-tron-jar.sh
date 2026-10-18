@@ -11,7 +11,8 @@ trap 'podman unmount "$name" >/dev/null' EXIT
 [[ "$mount_path" == /var/lib/containers/storage/overlay/*/merged ]] || exit 5
 jar_path="$mount_path/tron/FullNode/FullNode.jar"
 [[ -f "$jar_path" && "$(realpath "$jar_path")" == "$jar_path" ]] || exit 6
-python3 - "$jar_path" <<'PY'
+[[ $# -eq 0 || ( $# -eq 1 && "$1" == --fee-rules ) ]] || exit 8
+python3 - "$jar_path" "${1:-identity}" <<'PY'
 import hashlib, json, pathlib, sys, zipfile
 path = pathlib.Path(sys.argv[1])
 with path.open('rb') as stream:
@@ -36,10 +37,23 @@ with zipfile.ZipFile(path) as archive:
     if version_info.file_size > 65536:
         raise ValueError('Unexpected Version class size')
     version_data = archive.read(version_info)
-    print(json.dumps({'jarSha256': digest, 'jarBytes': path.stat().st_size,
+    result = {'jarSha256': digest, 'jarBytes': path.stat().st_size,
                       'manifest': fields, 'versionMetadataEntries': candidates,
                       'versionClassSha256': hashlib.sha256(version_data).hexdigest(),
                       'versionClassBase64': __import__('base64').b64encode(version_data).decode('ascii'),
-                      'nodeStarted': False, 'extractedFiles': 0, 'feeModelReviewed': False}))
+                      'nodeStarted': False, 'extractedFiles': 0, 'feeModelReviewed': False}
+    if sys.argv[2] == '--fee-rules':
+        entries = ['org/tron/core/db/BandwidthProcessor.class', 'org/tron/core/db/Manager.class',
+                   'org/tron/core/actuator/TransferActuator.class', 'org/tron/core/actuator/CreateAccountActuator.class',
+                   'org/tron/core/db/ResourceProcessor.class']
+        result['feeClassMaterials'] = []
+        for name in entries:
+            info = archive.getinfo(name)
+            if info.file_size > 262144:
+                raise ValueError('Fee class exceeds reviewed diagnostic bound')
+            data = archive.read(info)
+            result['feeClassMaterials'].append({'entry': name, 'sha256': hashlib.sha256(data).hexdigest(),
+                                               'base64': __import__('base64').b64encode(data).decode('ascii')})
+    print(json.dumps(result))
 PY
 [[ "$(podman inspect "$name" --format '{{.State.Status}}')" == exited ]] || exit 7
