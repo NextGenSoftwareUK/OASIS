@@ -27,7 +27,9 @@ public partial class SolanaOASIS
         try
         {
             if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonempty avatar selector is required.");
-            if(version!=0) throw new NotSupportedException("Historical Solana export is not implemented.");
+            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+            // Username/email resolve the current identity. Version applies to exported roots,
+            // not to the avatar's independent revision or provider-linked descendants.
             var avatar=email ? await LoadAvatarByEmailAsync(selector):await LoadAvatarByUsernameAsync(selector);
             if(avatar.IsError)
             {
