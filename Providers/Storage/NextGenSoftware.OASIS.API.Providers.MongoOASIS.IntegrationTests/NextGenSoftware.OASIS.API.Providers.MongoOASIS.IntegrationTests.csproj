@@ -13,6 +13,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\TestProjects\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests\IndependentAvatarSkills.cs" Link="Fixtures\IndependentAvatarSkills.cs" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\NextGenSoftware.OASIS.HyperDrive.Synchronization.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Contracts\NextGenSoftware.OASIS.Contracts.csproj" />
