@@ -114,7 +114,7 @@ try{
         if($cosmosReport.LastWriteTimeUtc -lt $cosmosStarted){throw 'Cosmos report is stale.'}
         [xml]$cosmosEvidence=Get-Content -LiteralPath $cosmosReport.FullName
         $cosmosCounts=$cosmosEvidence.TestRun.ResultSummary.Counters
-        $expectedCosmos=if($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){187}else{3}
+        $expectedCosmos=if($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){189}else{3}
         if([int]$cosmosCounts.total -ne $expectedCosmos -or [int]$cosmosCounts.passed -ne $expectedCosmos -or [int]$cosmosCounts.notExecuted -ne 0){throw 'All selected Cosmos cases must actually execute and pass without skips.'}
         if($CosmosRouting){
             foreach($case in $cosmosEvidence.TestRun.Results.UnitTestResult){
