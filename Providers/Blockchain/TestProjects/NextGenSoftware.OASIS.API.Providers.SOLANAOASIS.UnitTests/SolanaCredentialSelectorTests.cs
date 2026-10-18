@@ -171,6 +171,39 @@ public class SolanaCredentialSelectorTests
         Assert.AreEqual(scenario is "blank" or "wrong-kind" ? 0:1,repository.Deletes);
     }
 
+    public static IEnumerable<object[]> DeleteSelectorCases()
+    {
+        foreach(var sync in new[] {false,true})
+        foreach(var kind in new[] {"id","email","username"})
+        foreach(var scenario in new[] {"valid","missing","lookup-failure","unknown"})
+            yield return new object[] {sync,kind,scenario};
+    }
+
+    [DataTestMethod]
+    [DynamicData(nameof(DeleteSelectorCases),DynamicDataSourceType.Method)]
+    public async Task DeleteSelectorsShareTypedMutationAndPreserveFailures(bool sync,string kind,string scenario)
+    {
+        var id=Guid.NewGuid();var repository=new RecordsRepository {AllowDelete=true};
+        if(scenario!="missing") repository.Records.Add(new SolanaAvatarDto {Id=id,AvatarId=id,UserName="owner",Email="owner@example.invalid"});
+        var cause=new IOException("owned lookup failure");
+        var unknown=new SolanaTransactionReconciliationException("owned-delete-signature",cause);
+        if(scenario=="lookup-failure") repository.Cause=cause;
+        if(scenario=="unknown") repository.DeleteCause=unknown;
+        var provider=new ActiveProvider(repository);
+        var result=kind switch
+        {
+            "id"=>sync ? provider.DeleteAvatar(id):await provider.DeleteAvatarAsync(id),
+            "email"=>sync ? provider.DeleteAvatarByEmail("owner@example.invalid"):await provider.DeleteAvatarByEmailAsync("owner@example.invalid"),
+            _=>sync ? provider.DeleteAvatarByUsername("owner"):await provider.DeleteAvatarByUsernameAsync("owner")
+        };
+        Assert.AreEqual(scenario!="valid",result.IsError);Assert.AreEqual(scenario=="valid",result.Result);
+        if(scenario=="missing") Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,result.ErrorCode);
+        if(scenario=="lookup-failure") Assert.AreSame(cause,result.Exception);
+        if(scenario=="unknown") Assert.AreSame(unknown,result.Exception);
+        Assert.AreEqual(scenario is "valid" or "unknown" ? 1:0,repository.Deletes);
+        Assert.AreEqual(scenario is "valid" or "unknown" ? 2:1,repository.Reads);
+    }
+
     private sealed class ActiveProvider:SolanaOASIS
     {
         public ActiveProvider(ISolanaRepository repository):this(new Account(),repository) {}
@@ -201,7 +234,7 @@ public class SolanaCredentialSelectorTests
         public Task<T> GetAsync<T>(string reference) where T:SolanaBaseDto,new()
         {
             Reads++;if(Cause!=null) throw Cause;
-            Assert.AreEqual("owned-avatar-signature",reference);
+            Assert.IsTrue(reference=="owned-avatar-signature" || reference=="owned-signature-"+Records.Single().Id);
             return Task.FromResult((T)(SolanaBaseDto)Records.Single());
         }
         public Task<string> CreateAsync<T>(T entity) where T:SolanaBaseDto,new()=>throw new InvalidOperationException("Unexpected write");
