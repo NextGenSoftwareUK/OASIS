@@ -1,13 +1,13 @@
-param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate','EscrowDeploy','EscrowLock')][string]$Mode = 'Verify')
+param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','VersionedRouting','VersionedRoutingRecovery','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate','EscrowDeploy','EscrowLock')][string]$Mode = 'Verify')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveCosmos'
-$integrationModes=@('IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy','EscrowLock')
+$integrationModes=@('IndependentRouting','VersionedRouting','VersionedRoutingRecovery','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy','EscrowLock')
 if ($Mode -eq 'Verify' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json'))) {
     throw 'Existing Cosmos replication intent requires reconciliation; refusing replay.'
 }
 if($Mode -eq 'EscrowDeploy' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'escrow-deployment-current.json'))){throw 'Escrow already deployed; reuse its descriptor, never upload another copy.'}
-if($Mode -in @('IndependentPrepared','IndependentRouting','ReviewedFees','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy','EscrowLock')){
+if($Mode -in @('IndependentPrepared','IndependentRouting','VersionedRouting','ReviewedFees','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy','EscrowLock')){
     if((Get-FileHash -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json') -Algorithm SHA256).Hash -ne '9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81'){throw 'Original intent changed; re-review isolation before native testing.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'prepared-native-pending.json')){throw 'Independent original-attempt journal requires reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'independent-routing-pending.json')){throw 'Independent routing original requires reconciliation; no rerun allowed.'}
@@ -51,7 +51,7 @@ try {
         $containerStarted = $true
     }
     # The existing local development key stays in process memory and is never printed or persisted.
-    if($Mode -notin @('RoutingInspect','RoutingFeeRecovery','EscrowInspect','EscrowEstimate')){
+    if($Mode -notin @('RoutingInspect','RoutingFeeRecovery','VersionedRoutingRecovery','EscrowInspect','EscrowEstimate')){
         $signingKey = ((& wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd keys export owner --keyring-backend test --unarmored-hex --unsafe --yes 2>$null) -join "`n").Trim()
         if ($LASTEXITCODE -ne 0 -or $signingKey -notmatch '^[0-9a-fA-F]{64}$') { throw 'Existing local Cosmos signing key unavailable.' }
     }
@@ -145,6 +145,9 @@ try {
     }elseif($Mode -eq 'ReviewedBank'){
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosReviewedBank
         if($LASTEXITCODE -ne 0){throw 'Actual bank interface verification failed; preserve original transfers and journal.'}
+    }elseif($Mode -eq 'VersionedRoutingRecovery'){
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosRoutingFeeRecovery -CosmosRoutingVersions
+        if($LASTEXITCODE -ne 0){throw 'Original-only versioned Cosmos recovery failed; preserve original journal and outbox.'}
     }elseif($Mode -eq 'RoutingFeeRecovery'){
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosRoutingFeeRecovery
         if($LASTEXITCODE -ne 0){throw 'Original-only Cosmos fee recovery failed; preserve original journal and outbox.'}
@@ -160,6 +163,9 @@ try {
     }elseif($Mode -eq 'RoutingInspect'){
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosRoutingInspect
         if($LASTEXITCODE -ne 0){throw 'Read-only routing original inspection failed; preserve journals and ledger.'}
+    }elseif($Mode -eq 'VersionedRouting'){
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosRouting -CosmosRoutingVersions
+        if($LASTEXITCODE -ne 0){throw 'Native versioned routing failed; preserve its original journal.'}
     }elseif($Mode -eq 'IndependentRouting'){
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosRouting
         if($LASTEXITCODE -ne 0){throw 'Independent native routing failed; preserve its original journal.'}

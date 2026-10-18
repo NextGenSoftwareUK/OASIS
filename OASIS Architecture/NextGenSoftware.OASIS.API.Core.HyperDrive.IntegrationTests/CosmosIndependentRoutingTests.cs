@@ -22,7 +22,14 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
 {
     [Theory]
     [InlineData(false,false)] [InlineData(false,true)] [InlineData(true,false)] [InlineData(true,true)]
-    public async Task IndependentLeafReplicatesThroughRealCosmosWithPreparedOriginals(bool nativePrimary,bool synchronous)
+    public Task IndependentLeafReplicatesThroughRealCosmosWithPreparedOriginals(bool nativePrimary,bool synchronous)
+        => RunRoutingAsync(nativePrimary,synchronous,false);
+
+    [Theory][InlineData(false)][InlineData(true)]
+    public Task VersionedRecordsReplicateAndRetainHistoricalValues(bool synchronous)
+        => RunRoutingAsync(true,synchronous,true);
+
+    private async Task RunRoutingAsync(bool nativePrimary,bool synchronous,bool versioned)
     {
         string Required(string name)=>Environment.GetEnvironmentVariable(name)??throw new InvalidOperationException(name+" required.");
         var root=Required("OASIS_HYPERDRIVE_TEST_ROOT");
@@ -34,6 +41,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
         var avatarId=Guid.NewGuid();Assert.NotEqual(old.RootElement.GetProperty("avatarId").GetGuid(),avatarId);
         var avatar=new Avatar{Id=avatarId,Username="cosmos-independent-"+avatarId.ToString("N"),Email=avatarId.ToString("N")+"@example.invalid"};
         avatar.MetaData=new(){{"Latitude",0d},{"Longitude",179.999999d}};
+        if(versioned)avatar.MetaData["version-proof"]="original";
         var detail=new AvatarDetail{Id=avatarId,Username=avatar.Username,Email=avatar.Email};
         var journal=Path.Combine(root,"independent-routing-pending.json");Assert.False(File.Exists(journal));
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -46,6 +54,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
         const string keyLabel="oasis-cosmos-local-storage-fixture-v1";
         var deployment=await CosmosReviewedFinalFeeTests.CreateReviewedProviderAsync(id,token);
         using var cosmos=deployment.Provider;var review=deployment.Review;
+        cosmos.IsVersionControlEnabled=versioned;
         var feeReader=new RegisteredNativeFeeReader(ProviderType.CosmosBlockChainOASIS,chain,new IOASISProvider[]{cosmos});
         await new StorageAdmissionRecoveryReadiness(new[]{("CosmosBlockChainOASIS",chain)},new[]{feeReader}).StartAsync(token);
         var backend=typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(cosmos)!;
@@ -67,13 +76,16 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
             var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(token);
             var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new TestAuthority(user));
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.invalid","WEB6","test-only-key");
+            // 21 originals * 50000stake maximum * synthetic .000001USD =1.05USD.
+            // This NEW isolated scenario reserves1.25; original journals/budgets are untouched.
+            var maximumNativeUsd=versioned?1.25m:0.75m;
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6"}).BeginAsync("test-only",user,id.ToString("D"),new string('a',64),
-                "POST /independent-native-routing",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=0.75m,MaximumNativeFeeCostUsd=0.75m,MaximumProviderAttempts=128},token);
+                "POST /independent-native-routing",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=maximumNativeUsd,MaximumNativeFeeCostUsd=maximumNativeUsd,MaximumProviderAttempts=128},token);
             var time=DateTime.UtcNow.AddSeconds(-1);
             execution=execution.WithNativePrices(new[]{new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"CosmosBlockChainOASIS",chain,"stake","local-test-stake",0,0.000001m,
                 "synthetic-local-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(10))});
             await JsonSerializer.SerializeAsync(file,new{holonId=id,avatarId,avatar.Username,avatar.Email,chain,contract=Required("OASIS_COSMOS_TEST_CONTRACT"),nativePrimary,synchronous,
-                encryptionKeyLabel=keyLabel,database,operationId=execution.OperationId,review,walletBefore=walletBefore.ToString(System.Globalization.CultureInfo.InvariantCulture),preservedOriginalJournalSha256=oldHash,
+                encryptionKeyLabel=keyLabel,database,operationId=execution.OperationId,review,versioned,maximumNativeUsd,walletBefore=walletBefore.ToString(System.Globalization.CultureInfo.InvariantCulture),preservedOriginalJournalSha256=oldHash,
                 recovery="Inspect exact new profile/detail/leaf and original attempts; never replay unknown routing or alter replication-pending.json."},cancellationToken:token);file.Flush(true);
             var policy=new PreparedStorageExecution(execution,"independent",new Dictionary<ProviderType,string>{{ProviderType.CosmosBlockChainOASIS,sender}},new[]{ProviderType.LocalFileOASIS});
             var nonNativeReads=0;var outageProfileReadCount=0;
@@ -93,6 +105,42 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
                 Assert.Equal(holon.Name,(await cosmos.LoadHolonAsync(id,loadChildren:false)).Result?.Name);
                 Assert.Equal(holon.Name,(await local.LoadHolonAsync(id,loadChildren:false)).Result?.Name);
+                if(versioned){
+                    var originalName=holon.Name;var originalXp=detail.XP;
+                    avatar.MetaData["version-proof"]="updated";detail.XP=73;holon.Name+="-updated";
+                    var avatarUpdate=new StorageOperationRequest{Operation="SaveAvatar",Payload=avatar,PreferredProvider=preferred};
+                    var updatedAvatar=synchronous?router.RouteRequest<IAvatar>(avatarUpdate):await router.RouteRequestAsync<IAvatar>(avatarUpdate);
+                    Assert.False(updatedAvatar.IsError,updatedAvatar.Message);Assert.False(updatedAvatar.IsWarning,updatedAvatar.Message);
+                    Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
+                    var detailUpdate=new StorageOperationRequest{Operation="SaveAvatarDetail",Payload=detail,PreferredProvider=preferred};
+                    var updatedDetail=synchronous?router.RouteRequest<IAvatarDetail>(detailUpdate):await router.RouteRequestAsync<IAvatarDetail>(detailUpdate);
+                    Assert.False(updatedDetail.IsError,updatedDetail.Message);Assert.False(updatedDetail.IsWarning,updatedDetail.Message);
+                    Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
+                    var holonUpdate=new StorageOperationRequest{Operation="SaveHolon",Payload=holon,SaveChildren=false,PreferredProvider=preferred};
+                    var updatedHolon=synchronous?router.RouteRequest<IHolon>(holonUpdate):await router.RouteRequestAsync<IHolon>(holonUpdate);
+                    Assert.False(updatedHolon.IsError,updatedHolon.Message);Assert.False(updatedHolon.IsWarning,updatedHolon.Message);
+                    Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
+                    // LocalFile is a current-state replica, not a certified archival provider.
+                    foreach(IOASISStorageProvider storage in new IOASISStorageProvider[]{cosmos}){
+                        foreach(var historical in new[]{storage.LoadAvatar(avatarId,1),await storage.LoadAvatarAsync(avatarId,1)}){
+                            Assert.False(historical.IsError,historical.Message);Assert.Equal(1,historical.Result.Version);
+                            Assert.Equal("original",historical.Result.MetaData["version-proof"].ToString());
+                        }
+                        foreach(var historical in new[]{storage.LoadAvatarDetail(avatarId,1),await storage.LoadAvatarDetailAsync(avatarId,1)}){
+                            Assert.False(historical.IsError,historical.Message);Assert.Equal(1,historical.Result.Version);Assert.Equal(originalXp,historical.Result.XP);
+                        }
+                        foreach(var historical in new[]{storage.LoadHolon(id,loadChildren:false,version:1),await storage.LoadHolonAsync(id,loadChildren:false,version:1)}){
+                            Assert.False(historical.IsError,historical.Message);Assert.Equal(1,historical.Result.Version);Assert.Equal(originalName,historical.Result.Name);
+                        }
+                    }
+                    foreach(IOASISStorageProvider storage in new IOASISStorageProvider[]{cosmos,local}){
+                        Assert.Equal(2,(await storage.LoadAvatarAsync(avatarId)).Result.Version);
+                        Assert.Equal("updated",(await storage.LoadAvatarAsync(avatarId)).Result.MetaData["version-proof"].ToString());
+                        Assert.Equal(2,(await storage.LoadAvatarDetailAsync(avatarId)).Result.Version);
+                        Assert.Equal(73,(await storage.LoadAvatarDetailAsync(avatarId)).Result.XP);
+                        Assert.Equal(2,(await storage.LoadHolonAsync(id,loadChildren:false)).Result.Version);
+                    }
+                }
                 NativeNearbyAcceptance.Verify((IOASISNETProvider)cosmos,avatarId,id,true);
                 NativeNearbyAcceptance.RejectInvalidInputs((IOASISNETProvider)cosmos);
                 var providers=new[]{ProviderType.LocalFileOASIS,ProviderType.CosmosBlockChainOASIS};
@@ -165,7 +213,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                         Assert.Equal(ProviderType.LocalFileOASIS,Assert.Single(manager.LastProviderSelectionDiagnostic.Candidates).Provider);
                     }
                     Assert.Equal(excluded,manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests);
-                    Assert.Equal(5,(await store.GetAsync(execution.OperationId,token)).ProviderAttempts.Count(attempt=>attempt.Provider=="CosmosBlockChainOASIS"));
+                    Assert.Equal(versioned?13:5,(await store.GetAsync(execution.OperationId,token)).ProviderAttempts.Count(attempt=>attempt.Provider=="CosmosBlockChainOASIS"));
                 }finally{
                     dna.OASIS.SubscriptionConfig.PlanType="Gold";manager.IsAutoLoadBalanceEnabled=false;manager.IsAutoReplicationEnabled=true;
                 }
@@ -217,6 +265,11 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 Assert.False(deletedProfile.IsError,deletedProfile.Message);Assert.False(deletedProfile.IsWarning,deletedProfile.Message);Assert.True(deletedProfile.Result);
                 Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
                 await ReadProfiles(true);
+                if(versioned)foreach(IOASISStorageProvider storage in new IOASISStorageProvider[]{cosmos}){
+                    Assert.Null((await storage.LoadAvatarAsync(avatarId,1)).Result);
+                    Assert.Null((await storage.LoadAvatarDetailAsync(avatarId,1)).Result);
+                    Assert.Null((await storage.LoadHolonAsync(id,loadChildren:false,version:1)).Result);
+                }
                 NativeNearbyAcceptance.Verify((IOASISNETProvider)cosmos,avatarId,id,false);
                 return true;
             });
@@ -226,11 +279,17 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
             var recoveryToken=recoveryDeadline.Token;
             var operation=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,recoveryToken);
             var native=operation.ProviderAttempts.Where(attempt=>attempt.Provider=="CosmosBlockChainOASIS").ToArray();
-            Assert.Equal(10,native.Length);Assert.Equal(5+nonNativeReads,operation.ProviderAttempts.Count(attempt=>attempt.Provider=="LocalFileOASIS"));
+            var expectedOriginals=versioned?21:10;
+            Assert.Equal(expectedOriginals,native.Length);Assert.Equal((versioned?8:5)+nonNativeReads,operation.ProviderAttempts.Count(attempt=>attempt.Provider=="LocalFileOASIS"));
             Assert.Equal(native.Sum(attempt=>NativeFeeMaximumAccounting.ValueUsd(attempt.NativePreparation.FeeMaximums,attempt.NativePreparation.PriceQuotes)),operation.NativeFeeExposureUsd);
             var resolver=new PreparedNativeUsageRecoveryResolver(store,new[]{feeReader});Assert.True(resolver.CanResolve(operation));
-            Assert.Null(await resolver.ResolveAsync(operation,recoveryToken));
-            operation=await store.GetAsync(execution.OperationId,recoveryToken);Assert.Equal(10,operation.Receipts.Count);
+            // Recovery deliberately bounds each pass to16 originals. Drive enough
+            // read-only passes, never raise the global bound or replay mutations.
+            for(var pass=0;pass<(expectedOriginals+15)/16;pass++){
+                Assert.True(resolver.CanResolve(operation));Assert.Null(await resolver.ResolveAsync(operation,recoveryToken));
+                operation=await store.GetAsync(execution.OperationId,recoveryToken);
+                Assert.Equal(Math.Min((pass+1)*16,expectedOriginals),operation.Receipts.Count);
+            }
             var originals=new List<object>();
             var netUnits=BigInteger.Zero;
             foreach(var attempt in native){
@@ -245,7 +304,8 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 originals.Add(new{attempt,receipt});
             }
             Assert.Equal(netUnits,walletBefore-await Balance(recoveryToken));Assert.False(resolver.CanResolve(operation));Assert.Null(operation.ObservedOutcome);
-            output.WriteLine(JsonSerializer.Serialize(new{nativePrimary,synchronous,holonId=id,avatarId,operation.NativeFeeExposureUsd,originals,netFinalNativeReceiptCount=10,walletDebit=netUnits.ToString(),review,
+            output.WriteLine(JsonSerializer.Serialize(new{nativePrimary,synchronous,versioned,holonId=id,avatarId,operation.NativeFeeExposureUsd,originals,netFinalNativeReceiptCount=expectedOriginals,walletDebit=netUnits.ToString(),review,
+                historicalReadCount=versioned?6:0,currentVersionReadCount=versioned?10:0,historicalAbsenceReadCount=versioned?3:0,
                 nearbyNativeReadCount=18,nearbyInvalidInputCount=4,profileMatchingReadCount=28,profileAbsenceReadCount=28,outageProfileReadCount,selectorReadCount=16,strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
             Assert.Equal(oldHash,Hash(oldPath));Assert.Null(operation.Settlement);complete=true;
         }catch(Exception){
