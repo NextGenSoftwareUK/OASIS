@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; not release certification.
 
+## Generic avatar deletion is not remote account deletion (2026-10-18)
+
+Removed invented DELETE/accounts/{GUID-or-key}, DELETE/accounts/search?q=email and DELETE/accounts/lookup?acct=username operations. They ignored softDelete and could treat arbitrary200 as completed deletion. All four generic DeleteAvatar routes sync+async, soft+hard now share explicit protocol-inapplicable OASISResult/NotSupportedException BEFORE any HTTP. No remote account/private-avatar record is removed and IsDeleted remains false. This is NOT a temporary implementation placeholder or completed remote account-management capability: adapter has no private avatar storage to delete, and generic identifiers/softDelete do not supply a reviewed remote account deletion contract. Do not substitute Mastodon's [DELETE/profile/avatar](https://docs.joinmastodon.org/methods/profile/) which deletes a profile image, not an OASIS avatar/account. Any future explicit account-management API needs relevant consent/ownership/OAuth/confirmation/reconciliation semantics.
+
+16genuine before-fix failures37ms (four selectors x sync/async x soft/hard), before report activitypub-account-delete-before.trx SHA256AAF95002FC036790D1EB1C37D50527D0682627260B6EDE2BE31F27F9681D07E8. Full69/69 passed147ms/zero skipped, unit TRX SHA2563900410916E2BB3224F97C0F0151B45DDE6672BB68E9C2B87065738986FF8A9E. Cached bounded build2warnings/noerrors. No live deletion/token/public mutation/install or new environment; prior live-read evidence not relabelled. Removed stale generated-code comments, not claiming comment removal implements functionality. Other private-read/status/delete/search/network mappings and relevant social capabilities remain unfinished; full-provider/release gates OPEN.
+
 ## Holon save/import publication boundary (2026-10-18)
 
 Generic SaveHolon/SaveHolons/Import sync+async now use the SAME explicit private-record storage rejection as avatar saves, BEFORE activation, enumeration, serialization or HTTP. Generic record storage is not authorization to publish a public status. Removed obsolete ConvertHolonToActivityPub serializer and its lossy string-interpolated Note fallback; source recoverable in Git. Original batch loop could swallow item failures and report a successful empty batch/import; unsupported operation now retains NotSupportedException instead. No hidden storage backend, fake social publication or claim to implement generic private persistence on Mastodon. Bootloader storage exclusion remains.
