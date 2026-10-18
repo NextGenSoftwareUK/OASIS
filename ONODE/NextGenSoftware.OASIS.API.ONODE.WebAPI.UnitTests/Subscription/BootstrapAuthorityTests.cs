@@ -1,11 +1,12 @@
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 public class BootstrapAuthorityTests
 {
     private static readonly Guid Avatar = Guid.Parse("42282c29-55b7-4196-b1ac-095052227684");
     private static readonly DateTime Now = new(2026,10,18,2,0,0,DateTimeKind.Utc);
     private static BootstrapAuthorityRecord Valid() => new()
-    { Id=Avatar.ToString("D"),Revision=2,Ready=true,Enabled=true,TokenVersion=3,KarmaVersion=4,
+    { Id=Avatar.ToString("D"),Revision=2,Ready=true,Enabled=true,Role=AvatarType.User,TokenVersion=3,KarmaVersion=4,
         Karma=123,VerifiedUntilUtc=Now.AddMinutes(1) };
 
     [Fact] public void ExactFreshReadyIdentityIsAccepted() => MongoBootstrapAuthority.Validate(Valid(),Avatar,3,Now);
@@ -24,4 +25,6 @@ public class BootstrapAuthorityTests
     { var r=Valid();r.KarmaVersion=0;Assert.Throws<InvalidOperationException>(()=>MongoBootstrapAuthority.Validate(r,Avatar,3,Now)); }
     [Fact] public void LocalClockIsNotSilentlyConverted()
         => Assert.Throws<ArgumentException>(()=>MongoBootstrapAuthority.Validate(Valid(),Avatar,3,DateTime.SpecifyKind(Now,DateTimeKind.Unspecified)));
+    [Theory][InlineData(null)][InlineData(999)] public void MissingOrUnknownRoleIsNotDefaultWizard(int? role)
+    { var r=Valid();r.Role=role.HasValue?(AvatarType?)role.Value:null;Assert.Throws<InvalidOperationException>(()=>MongoBootstrapAuthority.Validate(r,Avatar,3,Now)); }
 }
