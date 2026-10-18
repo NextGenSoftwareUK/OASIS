@@ -9,8 +9,10 @@ using Solnet.Wallet;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
-public sealed partial class SolanaService(Account oasisAccount, IRpcClient rpcClient) : ISolanaService
+public sealed partial class SolanaService(Account oasisAccount, IRpcClient rpcClient,
+    NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.ISolanaRepository storageRepository) : ISolanaService
 {
+    public SolanaService(Account owner,IRpcClient client):this(owner,client,null) { }
     private const uint SellerFeeBasisPoints = 500;
     private const byte CreatorShare = 100;
     private const string Solana = "Solana";

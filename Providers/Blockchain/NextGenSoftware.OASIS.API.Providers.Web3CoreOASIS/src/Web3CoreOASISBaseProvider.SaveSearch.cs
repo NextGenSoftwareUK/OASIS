@@ -49,255 +49,156 @@ using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+
 public partial class Web3CoreOASISBaseProvider
 {
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
-    {
-        ArgumentNullException.ThrowIfNull(avatar);
+        => SaveAvatarAsync(avatar).GetAwaiter().GetResult();
 
-        OASISResult<IAvatar> result = new();
-
-        try
-        {
-            Task<OASISResult<IAvatar>> saveAvatarTask = SaveAvatarAsync(avatar);
-            saveAvatarTask.Wait();
-
-            if (saveAvatarTask.IsCompletedSuccessfully)
-                result = saveAvatarTask.Result;
-            else
-                OASISErrorHandling.HandleError(ref result, saveAvatarTask.Exception?.Message ?? string.Empty, saveAvatarTask.Exception ?? new());
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-        }
-
-        return result;
-    }
-
-    public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-    {
-        ArgumentNullException.ThrowIfNull(avatar);
-
-        OASISResult<IAvatar> result = new();
-        string errorMessage = "Error in SaveAvatarAsync method in Web3CoreOASIS while saving avatar. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            string avatarInfo = Newtonsoft.Json.JsonConvert.SerializeObject(avatar);
-            int avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
-            string avatarId = avatar.AvatarId.ToString();
-
-            await _web3CoreOASIS.CreateAvatarAsync(
-                (uint)avatarEntityId, Encoding.UTF8.GetBytes(avatarId), Encoding.UTF8.GetBytes(avatarInfo));
-
-            result.Result = avatar;
-            result.IsError = false;
-            result.IsSaved = true;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
-        return result;
-    }
+    public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        => SavePrivateProfileAsync<IAvatar>(avatar,"avatar",row=>OasisJson.Deserialize<Avatar>(OasisJson.Serialize(row)),
+            (id,key,payload)=>SavePrivateProfileSnapshotAsync("avatar",id,key,payload));
 
     public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
+        => SaveAvatarDetailAsync(avatarDetail).GetAwaiter().GetResult();
+
+    public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        => SavePrivateProfileAsync<IAvatarDetail>(avatarDetail,"detail",row=>OasisJson.Deserialize<AvatarDetail>(OasisJson.Serialize(row)),
+            (id,key,payload)=>SavePrivateProfileSnapshotAsync("detail",id,key,payload));
+
+    private async Task<TransactionReceipt> SavePrivateProfileSnapshotAsync(string kind,uint id,byte[] external,byte[] payload)
     {
-        ArgumentNullException.ThrowIfNull(avatarDetail);
+        var previous=kind=="avatar" ? await _web3CoreOASIS.GetAvatarByIdAsync(id):await _web3CoreOASIS.GetAvatarDetailByIdAsync(id);
+        var present=!IsPrivateRecordAbsent(previous);
+        if(present)
+        {
+            var incoming=new EntityOASIS {EntityId=id,ExternalId=external,Info=payload};
+            IHolonBase desired=kind=="avatar" ? DecodePrivateEntity<Avatar>(kind,incoming):DecodePrivateEntity<AvatarDetail>(kind,incoming);
+            IHolonBase stored=kind=="avatar" ? DecodePrivateRecord<Avatar>(kind,desired.Id,previous):DecodePrivateRecord<AvatarDetail>(kind,desired.Id,previous);
+            if(!stored.IsActive) throw new StorageLifecycleConflictException("Normal Web3Core saves cannot overwrite a committed inactive profile; use an explicit lifecycle operation.");
+        }
+        return await _web3CoreOASIS.UpsertCheckedAsync(kind,id,external,present,Sha3Keccack.Current.CalculateHash(previous.Info),payload);
+    }
 
-        OASISResult<IAvatarDetail> result = new();
-
+    private async Task<OASISResult<T>> SavePrivateProfileAsync<T>(T source,string kind,Func<T,T> clone,
+        Func<uint,byte[],byte[],Task<TransactionReceipt>> submit) where T:class,IHolonBase
+    {
+        var result=new OASISResult<T>();
+        Guid acknowledged=Guid.Empty;string transaction=null;
         try
         {
-            Task<OASISResult<IAvatarDetail>> saveAvatarDetailTask = SaveAvatarDetailAsync(avatarDetail);
-            saveAvatarDetailTask.Wait();
-
-            if (saveAvatarDetailTask.IsCompletedSuccessfully)
-                result = saveAvatarDetailTask.Result;
-            else
-                OASISErrorHandling.HandleError(ref result, saveAvatarDetailTask.Exception?.Message ?? string.Empty, saveAvatarDetailTask.Exception ?? new());
+            ArgumentNullException.ThrowIfNull(source);
+            var originalId=source.Id;
+            var snapshot=clone(source);
+            snapshot.Id=originalId==Guid.Empty ? Guid.NewGuid():originalId;
+            snapshot.IsNewHolon=false;
+            snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+            snapshot.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();
+            var payload=Encoding.UTF8.GetBytes(EncodePrivateRecord(kind,snapshot));
+            if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            var receipt=await submit((uint)HashUtility.GetNumericHash(snapshot.Id.ToString()),PrivateExternalId(snapshot.Id),payload);
+            acknowledged=snapshot.Id;transaction=receipt.TransactionHash;
+            if(source.Id!=originalId) throw new InvalidOperationException("Caller profile identity changed during acknowledged Web3Core write.");
+            source.Id=snapshot.Id;
+            source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+            source.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();source.IsNewHolon=false;
+            result.Result=source;result.IsSaved=true;
         }
-        catch (Exception ex)
+        catch(Exception cause)
         {
-            OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            var error=acknowledged==Guid.Empty ? cause:new Web3PartialMutationException(new[] {acknowledged},new[] {transaction},cause);
+            OASISErrorHandling.HandleError(ref result,error.Message,error);
+            if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
         }
-
         return result;
     }
 
-    public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+    public override OASISResult<IHolon> SaveHolon(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+        =>SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
+
+    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
     {
-        ArgumentNullException.ThrowIfNull(avatarDetail);
-
-        OASISResult<IAvatarDetail> result = new();
-        string errorMessage = "Error in SaveAvatarDetailAsync method in Web3CoreOASIS while saving and avatar detail. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            string avatarDetailInfo = Newtonsoft.Json.JsonConvert.SerializeObject(avatarDetail);
-            int avatarDetailEntityId = HashUtility.GetNumericHash(avatarDetail.Id.ToString());
-            string avatarDetailId = avatarDetail.Id.ToString();
-
-            await _web3CoreOASIS.CreateAvatarAsync(
-                (uint)avatarDetailEntityId, Encoding.UTF8.GetBytes(avatarDetailId), Encoding.UTF8.GetBytes(avatarDetailInfo));
-
-            result.Result = avatarDetail;
-            result.IsError = false;
-            result.IsSaved = true;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
+        var batch=await SaveHolonsAsync(new[] {holon},saveChildren,recursive,maxChildDepth,0,continueOnError,saveChildrenOnProvider);
+        var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(batch);
+        if(!batch.IsError) result.Result=holon;
         return result;
     }
 
-    public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,int curentChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+        =>SaveHolonsAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
+
+    public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,int curentChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
     {
-        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-    }
-
-    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        ArgumentNullException.ThrowIfNull(holon);
-
-        OASISResult<IHolon> result = new();
-        string errorMessage = "Error in SaveHolonAsync method in Web3CoreOASIS while saving holon. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        var acknowledged=new List<IHolon>();var transactions=new List<string>();
         try
         {
-            string holonInfo = Newtonsoft.Json.JsonConvert.SerializeObject(holon);
-            int holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
-            string holonId = holon.Id.ToString();
-
-            await _web3CoreOASIS.CreateAvatarAsync(
-                (uint)holonEntityId, Encoding.UTF8.GetBytes(holonId), Encoding.UTF8.GetBytes(holonInfo));
-
-            result.Result = holon;
-            result.IsError = false;
-            result.IsSaved = true;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
-        return result;
-    }
-
-    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
-    }
-
-    public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        ArgumentNullException.ThrowIfNull(holons);
-
-        OASISResult<IEnumerable<IHolon>> result = new();
-        string errorMessage = "Error in SaveHolonsAsync method in Web3CoreOASIS while saving holons. Reason: ";
-
-        try
-        {
-            foreach (IHolon holon in holons)
+            var plan=PlanWeb3Graph(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
+            // Freeze and encrypt the entire selected graph before any native write.
+            var writes=plan.Nodes.Select(node=>
             {
-                OASISResult<IHolon> saveHolonResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (saveHolonResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, saveHolonResult.DetailedMessage));
-
-                    if (!continueOnError) break;
-                }
+                node.Snapshot.IsNewHolon=false;
+                node.Snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+                node.Snapshot.ProviderUniqueStorageKey[ProviderType.Value]=node.Snapshot.Id.ToString();
+                return (Node:node,Ciphertext:EncodePrivateRecord("holon",node.Snapshot));
+            }).ToList();
+            if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            foreach(var write in writes)
+            {
+                var node=write.Node;
+                var receipt=await _web3CoreOASIS.UpsertHolonAsync((uint)HashUtility.GetNumericHash(node.Snapshot.Id.ToString()),PrivateExternalId(node.Snapshot.Id),Encoding.UTF8.GetBytes(write.Ciphertext));
+                acknowledged.Add(node.Snapshot);transactions.Add(receipt.TransactionHash);
+                if(node.Source.Id!=node.OriginalId || node.Source.ParentHolonId!=node.OriginalParent)
+                    throw new InvalidOperationException("Caller graph identity changed during acknowledged Web3Core write.");
+                node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                node.Source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+                node.Source.ProviderUniqueStorageKey[ProviderType.Value]=node.Snapshot.Id.ToString();node.Source.IsNewHolon=false;
             }
-
-            result.Result = holons;
-            result.IsError = false;
-            result.IsSaved = true;
+            result.Result=plan.Roots;result.IsSaved=true;
         }
-        catch (RpcResponseException ex)
+        catch(Exception cause)
         {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+            var error=acknowledged.Count>0 ? new Web3PartialMutationException(acknowledged.Select(row=>row.Id),transactions,cause):cause;
+            result.Result=acknowledged;result.IsSaved=false;OASISErrorHandling.HandleError(ref result,error.Message,error);
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
         return result;
     }
 
     public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+        return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).GetAwaiter().GetResult();
     }
 
-    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        var result = new OASISResult<ISearchResults>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
+        var search=searchParams;
+        var children=loadChildren;
+        var maxDepth=maxChildDepth;
+        var result=new OASISResult<ISearchResults>();
+        try {
+            StoredRecordSearch.Validate(search,version,maxDepth);
+            var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
+            var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+            var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+            var avatars=new List<IAvatar>();var holons=new List<IHolon>();
+            if(wantsAvatars) {
+                var loaded=await LoadAllAvatarsAsync(version);
+                if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,ISearchResults>(loaded);
+                avatars=loaded.Result.ToList();
             }
-
-            if (searchParams == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Search parameters cannot be null");
-                return result;
+            if(wantsHolons || search.ParentId!=Guid.Empty) {
+                var loaded=await LoadAllHolonsAsync(HolonType.All,children,recursive,maxDepth,0,continueOnError,true,version);
+                if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(loaded);
+                holons=loaded.Result.ToList();
             }
-
-            // Web3Core is a blockchain provider, not a storage provider
-            // Return empty search results as blockchain providers don't support full-text search
-            result.Result = new SearchResults
-            {
-                SearchResultAvatars = new List<IAvatar>(),
-                SearchResultHolons = new List<IHolon>()
-            };
-            result.IsError = false;
-            result.Message = "Web3Core blockchain provider does not support search. Use blockchain explorers or indexers for on-chain data queries.";
+            var found=new SearchResults();
+            found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,search,holons)));
+            if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,search,holons)));
+            found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+            result.Result=found;result.IsLoaded=true;
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error performing search: {ex.Message}", ex);
-        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
     }
 

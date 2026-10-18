@@ -8,7 +8,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
     [Table("RefreshTokens")]
     public class RefreshTokenModel {
 
-        [Required, Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [Required, Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int StorageId { get; set; }
         public int Id { get; set; }
         
         public string AvatarId { get; set; }

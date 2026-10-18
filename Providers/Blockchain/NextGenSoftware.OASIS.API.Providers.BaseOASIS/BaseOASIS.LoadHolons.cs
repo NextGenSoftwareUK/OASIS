@@ -55,7 +55,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 
-public sealed partial class BaseOASIS
+public sealed partial class BaseOASIS_Legacy
 {
     public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
     {

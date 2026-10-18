@@ -24,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         private readonly string databaseName;
         private readonly List<string> collectionNames;
         private CosmosDbClientFactory dbClientFactory;
+        private readonly System.Threading.SemaphoreSlim lifecycleGate=new(1,1);
         private IAvatarRepository avatarRepository;
         private IAvatarDetailRepository avatarDetailRepository;
         private IHolonRepository holonRepository;
@@ -37,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             this.serviceEndpoint = serviceEndpoint;
             this.authKey = authKey;
             this.databaseName = databaseName;
-            this.collectionNames = collectionNames;
+            this.collectionNames = collectionNames?.ToList();
         }
 
     }

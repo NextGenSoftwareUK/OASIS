@@ -31,34 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override OASISResult<bool> ActivateProvider()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                // Initialize HttpClient
-                _httpClient = new HttpClient();
-                _httpClient.BaseAddress = new Uri("https://api.pinata.cloud");
-                _httpClient.DefaultRequestHeaders.Accept.Clear();
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                // Get configuration from OASIS DNA
-                var pinataConfig = _OASISDNA?.OASIS?.StorageProviders?.PinataOASIS;
-                if (pinataConfig != null)
-                {
-                    // Parse connection string for API credentials
-                    ParseConnectionString(pinataConfig.ConnectionString);
-                }
-
-                result.Result = true;
-                IsProviderActivated = true;
-                result.Message = "PinataOASIS Provider activated successfully";
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error occurred in PinataOASIS Provider in ActivateProvider Method. Reason: {e}");
-            }
-
-            return result;
+            return ActivateProviderAsync().GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -67,19 +40,30 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
             try
             {
-                // Initialize HttpClient
+                IsProviderActivated = false;
+                _httpClient?.Dispose();
                 _httpClient = new HttpClient();
-                _httpClient.BaseAddress = new Uri("https://api.pinata.cloud");
-                _httpClient.DefaultRequestHeaders.Accept.Clear();
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                _httpClient.Timeout = TimeSpan.FromSeconds(15);
 
                 // Get configuration from OASIS DNA
                 var pinataConfig = _OASISDNA?.OASIS?.StorageProviders?.PinataOASIS;
-                if (pinataConfig != null)
-                {
-                    // Parse connection string for API credentials
+                if (pinataConfig != null && string.IsNullOrWhiteSpace(_jwt) && string.IsNullOrWhiteSpace(_apiKey))
                     ParseConnectionString(pinataConfig.ConnectionString);
-                }
+
+                if (string.IsNullOrWhiteSpace(_jwt) &&
+                    (string.IsNullOrWhiteSpace(_apiKey) || string.IsNullOrWhiteSpace(_secretKey)))
+                    throw new InvalidOperationException("Pinata credentials are missing. Configure a JWT or API key and secret.");
+
+                _httpClient.BaseAddress = new Uri(_apiUrl);
+                _httpClient.DefaultRequestHeaders.Accept.Clear();
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                SetAuthenticationHeaders();
+
+                using var response = await _httpClient.GetAsync("/data/testAuthentication");
+                if (!response.IsSuccessStatusCode)
+                    throw new InvalidOperationException($"Pinata authentication failed with HTTP {(int)response.StatusCode} ({response.StatusCode}).");
+
+                _pinataService = new PinataService(_apiKey, _secretKey, _jwt, _apiUrl, _gatewayUrl);
 
                 result.Result = true;
                 IsProviderActivated = true;
@@ -87,6 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             }
             catch (Exception e)
             {
+                IsProviderActivated = false;
                 OASISErrorHandling.HandleError(ref result, $"Error occurred in PinataOASIS Provider in ActivateProviderAsync Method. Reason: {e}");
             }
 
@@ -140,12 +125,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
             // Parse connection string format: "https://api.pinata.cloud?apiKey=xxx&secretKey=yyy&jwt=zzz&gateway=aaa"
             var uri = new Uri(connectionString);
+            _apiUrl = uri.GetLeftPart(UriPartial.Authority).TrimEnd('/');
             var query = ParseQueryString(uri.Query);
             
             _apiKey = query.ContainsKey("apiKey") ? query["apiKey"] : null;
             _secretKey = query.ContainsKey("secretKey") ? query["secretKey"] : null;
             _jwt = query.ContainsKey("jwt") ? query["jwt"] : null;
-            _gatewayUrl = query.ContainsKey("gateway") ? query["gateway"] : "https://gateway.pinata.cloud";
+            _gatewayUrl = query.ContainsKey("gateway") ? query["gateway"].TrimEnd('/') : "https://gateway.pinata.cloud";
         }
 
         private Dictionary<string, string> ParseQueryString(string queryString)

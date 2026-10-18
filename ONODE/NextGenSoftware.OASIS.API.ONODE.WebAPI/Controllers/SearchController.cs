@@ -38,6 +38,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (_SearchManager == null)
                 {
+                    if(AdmittedStorageManagerAcquisition.TryCreate(
+                        ()=>OASISBootLoader.OASISBootLoader.OASISDNA,
+                        ()=>ProviderManager.Instance.CurrentStorageProvider,
+                        (provider,dna)=>new SearchManager(provider,dna),out SearchManager admitted))
+                    {
+                        _SearchManager=admitted;
+                        return _SearchManager;
+                    }
                     OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
                     if (result.IsError)

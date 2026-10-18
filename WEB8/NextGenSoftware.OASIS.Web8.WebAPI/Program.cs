@@ -105,8 +105,10 @@ builder.Services.AddRateLimiter(options =>
 });
 
 bool subscriptionUsageEnabled = string.Equals(builder.Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
+var storageUsagePolicy=builder.Services.AddConfiguredStorageAdmission(builder.Configuration,subscriptionUsageEnabled,NextGenSoftware.OASIS.Web8.WebAPI.Middleware.SubscriptionPolicy.Resolve,
+    ()=>NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetAllRegisteredProviders());
 if (subscriptionUsageEnabled)
-    builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB8", NextGenSoftware.OASIS.Web8.WebAPI.Middleware.SubscriptionPolicy.Resolve);
+    builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB8", storageUsagePolicy);
 
 var app = builder.Build();
 
@@ -152,7 +154,10 @@ app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.ApiKeyMiddleware>();
 if (subscriptionUsageEnabled)
+{
     app.UseMiddleware<Web4UsageLedgerMiddleware>();
+    app.UseConfiguredStorageAdmission();
+}
 
 app.MapControllers();
 app.MapGraphQL();
@@ -161,7 +166,9 @@ app.MapGrpcService<ProtocolBridgeGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 var dnaPath = OASISBootLoader.OASISDNAPath ?? Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
-var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
+var admittedBoot=builder.Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null;
+var bootResult = admittedBoot?await OASISBootLoader.BootOASISForAdmittedStorageAsync(dnaPath):await OASISBootLoader.BootOASISAsync(dnaPath);
+if(admittedBoot&&(bootResult.IsError||!bootResult.Result))throw new InvalidOperationException(bootResult.Message);
 if (bootResult.IsError)
     OASISErrorHandling.HandleError($"Warning: WEB8 OASIS boot failed: {bootResult.Message}");
 

@@ -1,0 +1,8 @@
+{
+  "name": "oasis-near-sdk-bridge",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "near-api-js": "7.3.1"
+  }
+}

@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     /// <summary>Every mutating protocol call authenticates the service independently of the avatar JWT.</summary>
     public static class SubscriptionServiceIdentity
     {
-        public static bool IsService(string service) => service is "WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10";
+        public static bool IsService(string service) => service is "WEB4" or "WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10";
 
         public static string RequireSubscriber(HttpContext context, string requestedUserId = null)
         {
@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         {
             var serviceHeaders = context.Request.Headers["X-OASIS-Service"];
             var keyHeaders = context.Request.Headers["X-OASIS-Service-Key"];
-            if (serviceHeaders.Count != 1 || keyHeaders.Count != 1 || !IsService(serviceHeaders[0]))
+            if (serviceHeaders.Count != 1 || keyHeaders.Count != 1 || !IsService(serviceHeaders[0]) || serviceHeaders[0] == "WEB4")
                 throw new UnauthorizedAccessException("A valid consuming-service identity is required.");
             string service = serviceHeaders[0];
             if (expectedService != null && service != expectedService)

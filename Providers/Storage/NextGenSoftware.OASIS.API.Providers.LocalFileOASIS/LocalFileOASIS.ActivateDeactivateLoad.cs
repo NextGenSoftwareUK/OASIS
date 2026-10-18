@@ -23,14 +23,32 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
     {
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            IsProviderActivated = true;
-            return new OASISResult<bool>(true);
+            return await Task.Run(ActivateProvider);
         }
 
         public override OASISResult<bool> ActivateProvider()
         {
-            IsProviderActivated = true;
-            return new OASISResult<bool>(true);
+            var result = new OASISResult<bool>();
+            string probePath = Path.Combine(_basePath, $".oasis-write-probe-{Guid.NewGuid():N}");
+
+            try
+            {
+                Directory.CreateDirectory(_avatarFolderPath);
+                Directory.CreateDirectory(_avatarDetailFolderPath);
+                Directory.CreateDirectory(_holonDirectory);
+                File.WriteAllText(probePath, "ok");
+                File.Delete(probePath);
+                IsProviderActivated = true;
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                IsProviderActivated = false;
+                OASISErrorHandling.HandleError(ref result,
+                    $"LocalFileOASIS cannot read and write its storage directory '{_basePath}': {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
@@ -393,11 +411,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                             
                             if (avatar != null && avatar.ProviderUniqueStorageKey != null && 
                                 avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.LocalFileOASIS) &&
-                                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] == providerKey)
+                                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] == providerKey &&
+                                (version == 0 || avatar.Version == version))
                             {
                                 result.Result = avatar;
                                 result.IsError = false;
@@ -406,6 +425,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             // Continue searching other files
@@ -449,9 +469,9 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 if (File.Exists(avatarFilePath))
                 {
                     var jsonContent = await File.ReadAllTextAsync(avatarFilePath);
-                    var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                    var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                     
-                    if (avatar != null && avatar.Version == version)
+                    if (avatar != null && (version == 0 || avatar.Version == version))
                     {
                         result.Result = avatar;
                         result.IsError = false;
@@ -508,11 +528,11 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                             
                             if (avatar != null && avatar.Email != null && 
                                 avatar.Email.Equals(avatarEmail, StringComparison.OrdinalIgnoreCase) &&
-                                avatar.Version == version)
+                                (version == 0 || avatar.Version == version))
                             {
                                 result.Result = avatar;
                                 result.IsError = false;
@@ -521,6 +541,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             // Continue searching other files
@@ -569,11 +590,11 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                             
                             if (avatar != null && avatar.Username != null && 
                                 avatar.Username.Equals(avatarUsername, StringComparison.OrdinalIgnoreCase) &&
-                                avatar.Version == version)
+                                (version == 0 || avatar.Version == version))
                             {
                                 result.Result = avatar;
                                 result.IsError = false;
@@ -582,6 +603,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             // Continue searching other files

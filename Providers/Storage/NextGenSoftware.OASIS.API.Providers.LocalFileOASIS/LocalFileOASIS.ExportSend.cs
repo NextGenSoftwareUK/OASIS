@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 {
@@ -53,15 +54,16 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         
                         result.Result = loadResult.Result;
                         result.IsError = false;
-                        result.IsSaved = true;
+                        result.IsDeleted = true;
+                        result.DeletedCount = 1;
                         result.Message = "Holon deleted successfully";
                     }
                     else
                     {
-                        // File exists but couldn't load it, delete anyway
-                        File.Delete(holonFilePath);
-                        result.IsError = false;
-                        result.Message = "Holon file deleted (but could not be loaded)";
+                        // A failed read is not authority to destroy an unreadable record.
+                        result.IsError = true;
+                        result.Exception = loadResult.Exception;
+                        result.Message = $"Holon was not deleted because it could not be loaded: {loadResult.Message}";
                     }
                 }
                 else
@@ -176,21 +178,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     }
                 }
 
-                // Load avatar
-                var avatarResult = await LoadAvatarAsync(avatarId, version);
-                var allData = new List<IHolon>();
-
-                if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    allData.Add(avatarResult.Result as IHolon);
-                }
-
-                // Load all holons for this avatar (as parent)
-                var holonsResult = await LoadHolonsForParentAsync(avatarId, HolonType.All, true, true, 10, 0, true, false, version);
-                if (!holonsResult.IsError && holonsResult.Result != null)
-                {
-                    allData.AddRange(holonsResult.Result);
-                }
+                // This contract exports IHolon records owned by the avatar, not IAvatar identities.
+                var holonsResult = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, true, false, version);
+                if (holonsResult.IsError) return holonsResult;
+                if (holonsResult.Result == null)
+                    throw new InvalidOperationException("Holon export returned no collection.");
+                var allData = holonsResult.Result.Where(holon => holon.CreatedByAvatarId == avatarId).ToList();
 
                 result.Result = allData;
                 result.IsError = false;
@@ -263,19 +256,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     }
                 }
 
-                // Load all avatars and holons
-                var avatarsResult = await LoadAllAvatarsAsync(version);
+                // Avatars implement IAvatar, not IHolon; identity export is a separate contract.
                 var holonsResult = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, true, false, version);
-
-                var allData = new List<IHolon>();
-                if (!avatarsResult.IsError && avatarsResult.Result != null)
-                {
-                    allData.AddRange(avatarsResult.Result.Cast<IHolon>());
-                }
-                if (!holonsResult.IsError && holonsResult.Result != null)
-                {
-                    allData.AddRange(holonsResult.Result);
-                }
+                if (holonsResult.IsError) return holonsResult;
+                if (holonsResult.Result == null)
+                    throw new InvalidOperationException("Holon export returned no collection.");
+                var allData = holonsResult.Result.ToList();
 
                 result.Result = allData;
                 result.IsError = false;
@@ -325,8 +311,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 {
                     foreach (var searchGroup in searchParams.SearchGroups)
                     {
+                        var text = searchGroup as ISearchTextGroup;
+                        if (text != null && string.IsNullOrWhiteSpace(text.SearchQuery))
+                            throw new ArgumentException("Text search requires a nonempty query.");
+                        bool ContainsQuery(string value) => value != null && value.Contains(text.SearchQuery.Trim(), StringComparison.OrdinalIgnoreCase);
                         // Search holons if requested
-                        if (searchGroup.SearchHolons && searchGroup.HolonSearchParams != null)
+                        if (searchGroup.SearchHolons && (searchGroup.HolonSearchParams != null || text != null))
                         {
                             var holonsToSearch = new List<IHolon>();
 
@@ -343,10 +333,10 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                     continueOnError, 
                                     false, 
                                     version);
-                                if (!parentHolonsResult.IsError && parentHolonsResult.Result != null)
-                                {
-                                    holonsToSearch.AddRange(parentHolonsResult.Result);
-                                }
+                                if (parentHolonsResult.IsError)
+                                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, ISearchResults>(parentHolonsResult);
+                                if (parentHolonsResult.Result == null) throw new InvalidOperationException("Parent search returned no holon collection.");
+                                holonsToSearch.AddRange(parentHolonsResult.Result);
                             }
                             else
                             {
@@ -360,16 +350,17 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                     continueOnError, 
                                     false, 
                                     version);
-                                if (!allHolonsResult.IsError && allHolonsResult.Result != null)
-                                {
-                                    holonsToSearch.AddRange(allHolonsResult.Result);
-                                }
+                                if (allHolonsResult.IsError)
+                                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, ISearchResults>(allHolonsResult);
+                                if (allHolonsResult.Result == null) throw new InvalidOperationException("Search returned no holon collection.");
+                                holonsToSearch.AddRange(allHolonsResult.Result);
                             }
 
                             // Filter holons based on search criteria
                             foreach (var holon in holonsToSearch)
                             {
-                                bool matches = true;
+                                bool matches = text == null || ContainsQuery(holon.Name) || ContainsQuery(holon.Description)
+                                    || (text.SearchIds && ContainsQuery(holon.Id.ToString()));
 
                                 // Filter by avatar ID if specified
                                 if (searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId != Guid.Empty)
@@ -388,21 +379,21 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         }
 
                         // Search avatars if requested
-                        if (searchGroup.SearchAvatars && searchGroup.AvatarSearchParams != null)
+                        if (searchGroup.SearchAvatars && (searchGroup.AvatarSearchParams != null || text != null))
                         {
                             var avatarsToSearch = new List<IAvatar>();
                             
                             // Load all avatars
                             var allAvatarsResult = await LoadAllAvatarsAsync(version);
-                            if (!allAvatarsResult.IsError && allAvatarsResult.Result != null)
-                            {
-                                avatarsToSearch.AddRange(allAvatarsResult.Result);
-                            }
+                            if (allAvatarsResult.IsError)
+                                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>, ISearchResults>(allAvatarsResult);
+                            if (allAvatarsResult.Result == null) throw new InvalidOperationException("Search returned no avatar collection.");
+                            avatarsToSearch.AddRange(allAvatarsResult.Result);
 
                             // Filter avatars based on search criteria
                             foreach (var avatar in avatarsToSearch)
                             {
-                                bool matches = true;
+                                bool matches = StoredRecordSearch.MatchesSelectedFields(avatar,true,searchGroup);
 
                                 // Filter by avatar ID if specified
                                 if (searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId != Guid.Empty)

@@ -56,10 +56,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         private KeyManager _keyManager;
         private WalletManager _walletManager;
         private string _contractAddress;
-        private string _network;
-        private string _abi;
-        private HttpClient _httpClient;
-        private string _apiBaseUrl;
 
         private KeyManager KeyManager
         {

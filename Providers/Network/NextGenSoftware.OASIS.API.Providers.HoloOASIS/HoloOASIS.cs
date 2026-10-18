@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
     {
         private const string HOLO_NETWORK_URI = "https://holo.host";
         public const string OASIS_HAPP_ID = "oasis";
-        private const string OASIS_HAPP_PATH = "OASIS_hAPP\\oasis.happ";
+        private static string OASIS_HAPP_PATH => Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "OASIS_hAPP", "oasis.happ"));
         private const string OASIS_HAPP_ROLE_NAME = "oasis";
         private const string ZOME_LOAD_AVATAR_BY_ID_FUNCTION = "get_avatar_by_id";
         private const string ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION = "get_avatar_by_username";
@@ -54,6 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         private const string ZOME_LOAD_ALL_AVATARS_FUNCTION = "get_all_avatars";
         private const string ZOME_LOAD_ALL_AVATARS_DETAILS_FUNCTION = "get_all_avatar_details";
         private const string ZOME_DELETE_AVATAR_BY_ID_FUNCTION = "delete_avatar_by_id";
+        private const string ZOME_DELETE_AVATAR_FUNCTION = "delete_entry_avatar";
         private const string ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION = "delete_avatar_by_username";
         private const string ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION = "delete_avatar_by_email";
         private const string ZOME_LOAD_HOLON_BY_ID_FUNCTION = "get_holon_by_id";
@@ -67,6 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         private const string ZOME_LOAD_ALL_HOLONS_FUNCTION = "get_all_holons";
         private const string ZOME_SAVE_ALL_HOLONS_FUNCTION = "save_all_holons";
         private const string ZOME_DELETE_HOLON_BY_ID_FUNCTION = "delete_holon_by_id";
+        private const string ZOME_DELETE_HOLON_FUNCTION = "delete_entry_holon";
         private const string ZOME_DELETE_HOLON_BY_PROVIDER_KEY_FUNCTION = "delete_holon_by_provider_key";
         private const string ZOME_DELETE_HOLON_BY_CUSTOM_KEY_FUNCTION = "delete_holon_by_custom_key";
         private const string ZOME_DELETE_HOLON_BY_META_DATA_FUNCTION = "delete_holon_by_meta_data";

@@ -58,26 +58,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await _genericRepository.LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_BY_ID_FUNCTION, version, new Dictionary<string, string>()
-            {
-                ["loadChildren"] = loadChildren.ToString(),
-                ["recursive"] = recursive.ToString(),
-                ["maxChildDepth"] = maxChildDepth.ToString(),
-                ["continueOnError"] = continueOnError.ToString(),
-                ["loadChildrenFromProvider"] = loadChildrenFromProvider.ToString()
-            });
+            return await _genericRepository.LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_BY_ID_FUNCTION, version);
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return _genericRepository.Load<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_BY_ID_FUNCTION, version, new Dictionary<string, string>()
-            {
-                ["loadChildren"] = loadChildren.ToString(),
-                ["recursive"] = recursive.ToString(),
-                ["maxChildDepth"] = maxChildDepth.ToString(),
-                ["continueOnError"] = continueOnError.ToString(),
-                ["loadChildrenFromProvider"] = loadChildrenFromProvider.ToString()
-            });
+            return _genericRepository.Load<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_BY_ID_FUNCTION, version);
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -357,7 +343,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            return await _genericRepository.DeleteAsync(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_DELETE_HOLON_BY_ID_FUNCTION);
+            OASISResult<IHolon> holon = await LoadHolonAsync(id);
+            if (holon.IsError || holon.Result?.ProviderUniqueStorageKey == null ||
+                !holon.Result.ProviderUniqueStorageKey.TryGetValue(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.HoloOASIS, out string actionHash) ||
+                string.IsNullOrWhiteSpace(actionHash))
+                return holon;
+
+            return await _genericRepository.DeleteAsync(HcObjectTypeEnum.Holon, "actionHash", actionHash, ZOME_DELETE_HOLON_FUNCTION);
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)

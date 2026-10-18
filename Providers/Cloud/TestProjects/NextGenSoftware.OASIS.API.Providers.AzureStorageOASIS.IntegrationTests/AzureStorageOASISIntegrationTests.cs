@@ -3,36 +3,42 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS;
+using Azure.Storage.Blobs;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests
 {
     /// <summary>
     /// Exercises the real CRUD surface against a live backend.
     ///
-    /// Connection details come from AZURESTORAGEOASIS_&lt;PARAM&gt; environment variables. When the
-    /// backend is not reachable the provider fails to activate and every test is
-    /// inconclusive rather than failed - so an unconfigured machine reports "skipped"
-    /// instead of red.
+    /// Uses the retained owned Azurite runner. Missing setup is a failure, never a skipped success.
     /// </summary>
     [TestClass]
-    public class AzureStorageOASISIntegrationTests
+    [DoNotParallelize]
+    public partial class AzureStorageOASISIntegrationTests
     {
         private AzureStorageOASIS _provider = null!;
         private bool _live;
+        private BlobServiceClient _service=null!;
+        private bool _ownsContainers;
+        private readonly string[] _containers={"oasis-crud-holons","oasis-crud-avatars","oasis-crud-details"};
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
-            _provider = AzureStorageOASISTestFactory.Create();
-            try { _live = !_provider.ActivateProvider().IsError && _provider.IsProviderActivated; }
-            catch { _live = false; }
+            Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_AZURE_NATIVE_TEST"),"Use the owned reusable Azure runner.");
+            _service=new BlobServiceClient("UseDevelopmentStorage=true");
+            foreach(var name in _containers)
+                Assert.IsFalse((await _service.GetBlobContainerClient(name).ExistsAsync()).Value,"Refusing pre-existing fixture container.");
+            _ownsContainers=true;
+            _provider=new AzureStorageOASIS("UseDevelopmentStorage=true",_containers[0],_containers[1],_containers[2]);
+            var activated=await _provider.ActivateProviderAsync();
+            Assert.IsFalse(activated.IsError,activated.Message);_live=_provider.IsProviderActivated;
         }
 
         private void RequireLive()
         {
             if (!_live)
-                Assert.Inconclusive(
-                    "No live AzureStorageOASIS backend configured - set the AZURESTORAGEOASIS_* environment variables to run this.");
+                Assert.Fail("Owned Azure provider did not activate.");
         }
 
         [TestMethod]
@@ -127,10 +133,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests
         }
 
         [TestCleanup]
-        public void Cleanup()
+        public async Task Cleanup()
         {
-            if (_provider != null && _provider.IsProviderActivated)
-                _provider.DeActivateProvider();
+            try {if (_provider != null) await _provider.DeActivateProviderAsync();}
+            finally
+            {
+                if(_ownsContainers)
+                    foreach(var name in _containers) await _service.GetBlobContainerClient(name).DeleteIfExistsAsync();
+            }
         }
     }
 }

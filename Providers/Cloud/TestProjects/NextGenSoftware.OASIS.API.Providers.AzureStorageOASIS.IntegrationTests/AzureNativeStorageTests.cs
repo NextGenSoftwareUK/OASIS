@@ -1,0 +1,293 @@
+using Azure.Storage.Blobs;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests;
+
+[TestClass]
+[DoNotParallelize]
+public class AzureNativeStorageTests
+{
+    [TestMethod]
+    public async Task OfficialBlobSdkPreservesProfileDetailAndHolon()
+    {
+        Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_AZURE_NATIVE_TEST"),"Use the owned reusable runner.");
+        const string connection="UseDevelopmentStorage=true";
+        var names=new[] {"oasis-native-holons","oasis-native-avatars","oasis-native-details"};
+        var service=new BlobServiceClient(connection);
+        foreach(var name in names) Assert.IsFalse((await service.GetBlobContainerClient(name).ExistsAsync()).Value,"Refusing existing fixture container.");
+        var provider=NextGenSoftware.OASIS.OASISBootLoader.CloudProviderFactory.CreateAzureStorage(new NextGenSoftware.OASIS.API.DNA.AzureStorageOASISProviderSettings
+            {ConnectionString=connection,HolonContainer=names[0],AvatarContainer=names[1],AvatarDetailContainer=names[2]},null!);
+        try {
+            var active=await provider.ActivateProviderAsync();
+            Assert.IsFalse(active.IsError,active.Message);Assert.IsTrue(provider.IsProviderActivated);
+            var id=Guid.NewGuid();
+            var avatar=new Avatar {Id=id,Username="owned-native",Email="owned@example.invalid",FirstName="Actual",LastName="Profile",Description="full profile"};
+            Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+            var loaded=await provider.LoadAvatarAsync(id);
+            Assert.IsFalse(loaded.IsError,loaded.Message);Assert.AreEqual("Actual",loaded.Result.FirstName);Assert.AreEqual("full profile",loaded.Result.Description);
+            Assert.AreEqual(id,(await provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
+            Assert.AreEqual(1,(await provider.LoadAllAvatarsAsync()).Result.Count());
+            avatar.Username="updated-native";
+            Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarByUsernameAsync("owned-native")).ErrorCode);
+            Assert.AreEqual(id,(await provider.LoadAvatarByUsernameAsync("UPDATED-NATIVE")).Result.Id);
+            Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=Guid.NewGuid(),Username=avatar.Username,Email=avatar.Email})).IsError);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarByEmailAsync(avatar.Email)).ErrorCode);
+            var detail=new AvatarDetail {Id=id,Username=avatar.Username,Email=avatar.Email,XP=321,Karma=29};
+            detail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="owned seed"});
+            var saved=await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(saved.IsError,saved.Message);
+            var read=await provider.LoadAvatarDetailAsync(id);Assert.IsFalse(read.IsError,read.Message);
+            Assert.AreEqual(321,read.Result.XP);Assert.AreEqual(29L,read.Result.Karma);
+            Assert.AreEqual(detail.Inventory[0].Id,read.Result.Inventory.Single().Id);
+            Assert.AreEqual(id,(await provider.LoadAvatarDetailByEmailAsync("OWNED@example.invalid")).Result.Id);
+            Assert.AreEqual(1,(await provider.LoadAllAvatarDetailsAsync()).Result.Count());
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=Guid.NewGuid(),Username=detail.Username,Email=detail.Email})).IsError);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarDetailByUsernameAsync(detail.Username)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarDetailAsync(Guid.NewGuid())).ErrorCode);
+            var holon=new Holon {Id=Guid.NewGuid(),Name="owned root",Description="stored description",ParentHolonId=Guid.NewGuid(),CreatedByAvatarId=id};
+            var written=await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(written.IsError,written.Message);
+            var stored=await provider.LoadHolonAsync(holon.Id,loadChildren:false);Assert.IsFalse(stored.IsError,stored.Message);
+            Assert.AreEqual(holon.Id,stored.Result.Id);Assert.AreEqual(holon.ParentHolonId,stored.Result.ParentHolonId);Assert.AreEqual(holon.Name,stored.Result.Name);
+            await VerifyV2Async(provider,holon);
+            var absentContainer=new AzureStorageOASIS(connection,"oasis-native-absent",names[1],names[2]);
+            var operational=await absentContainer.LoadHolonAsync(Guid.NewGuid(),loadChildren:false);
+            Assert.IsTrue(operational.IsError);Assert.IsInstanceOfType(operational.Exception,typeof(Azure.RequestFailedException));
+            Assert.AreNotEqual(OASISResultErrorCodes.RecordNotFound,operational.ErrorCode);
+            var deletable=new Avatar {Id=Guid.NewGuid(),Username="owned-delete",Email="delete@example.invalid",FirstName="Preserved"};
+            Assert.IsFalse((await provider.SaveAvatarAsync(deletable)).IsError);
+            var deleted=await provider.DeleteAvatarByUsernameAsync(deletable.Username,softDelete:true);
+            Assert.IsFalse(deleted.IsError,deleted.Message);
+            var retainedBlob=service.GetBlobContainerClient(names[1]).GetBlobClient(deletable.Id.ToString());
+            Assert.IsTrue((await retainedBlob.ExistsAsync()).Value);
+            var retained=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Avatar>((await retainedBlob.DownloadContentAsync()).Value.Content.ToString());
+            Assert.AreEqual("Preserved",retained.FirstName);Assert.IsTrue(retained.IsDeleted);Assert.IsFalse(retained.IsActive);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(deletable.Id)).ErrorCode);
+            Assert.IsFalse((await provider.DeleteAvatarAsync(deletable.Id,softDelete:false)).IsError);
+            Assert.IsFalse((await retainedBlob.ExistsAsync()).Value);
+            var importedRows=new[] {new Holon {Id=Guid.NewGuid(),Name="owned-import-one"},new Holon {Id=Guid.NewGuid(),Name="owned-import-two"}};
+            var imported=await provider.ImportAsync(importedRows);
+            Assert.IsFalse(imported.IsError,imported.Message);Assert.IsTrue(imported.Result);Assert.IsTrue(imported.IsSaved);
+            foreach(var row in importedRows) Assert.AreEqual(row.Name,(await provider.LoadHolonAsync(row.Id,loadChildren:false)).Result.Name);
+            var child=new Holon {Id=Guid.NewGuid(),ParentHolonId=holon.Id,Name="owned child"};
+            var grandchild=new Holon {Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="owned grandchild"};
+            Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
+            Assert.IsFalse((await provider.SaveHolonAsync(grandchild,saveChildren:false)).IsError);
+            var children=await provider.LoadHolonsForParentAsync(holon.Id,loadChildrenFromProvider:true);
+            Assert.IsFalse(children.IsError,children.Message);
+            Assert.AreEqual(child.Id,children.Result.Single().Id);Assert.AreEqual(grandchild.Id,children.Result.Single().Children.Single().Id);
+            var byKey=provider.LoadHolonsForParent(holon.Id.ToString(),loadChildren:false);
+            Assert.IsFalse(byKey.IsError,byKey.Message);Assert.AreEqual(child.Id,byKey.Result.Single().Id);Assert.AreEqual(0,byKey.Result.Single().Children.Count);
+            Assert.IsInstanceOfType(provider.LoadAllHolons(version:1).Exception,typeof(NotSupportedException));
+            var root=await provider.LoadHolonAsync(holon.Id,loadChildrenFromProvider:true);
+            Assert.IsFalse(root.IsError,root.Message);Assert.AreEqual(grandchild.Id,root.Result.Children.Single().Children.Single().Id);
+            var shallow=provider.LoadHolon(holon.Id.ToString(),recursive:false,loadChildrenFromProvider:true);
+            Assert.IsFalse(shallow.IsError,shallow.Message);Assert.AreEqual(child.Id,shallow.Result.Children.Single().Id);
+            Assert.AreEqual(0,shallow.Result.Children.Single().Children.Count);
+            var bounded=await provider.LoadHolonAsync(holon.Id,maxChildDepth:1,loadChildrenFromProvider:true);
+            Assert.AreEqual(0,bounded.Result.Children.Single().Children.Count);
+            var disabled=await provider.LoadHolonAsync(holon.Id,loadChildren:false,loadChildrenFromProvider:true);
+            Assert.AreEqual(0,disabled.Result.Children.Count);
+            child.MetaData=new Dictionary<string,object> {{"owned-kind","seed"},{"amount",1.5m}};
+            Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
+            var metadata=await provider.LoadHolonsByMetaDataAsync("owned-kind","seed",loadChildrenFromProvider:true);
+            Assert.IsFalse(metadata.IsError,metadata.Message);Assert.AreEqual(child.Id,metadata.Result.Single().Id);
+            Assert.AreEqual(grandchild.Id,metadata.Result.Single().Children.Single().Id);
+            var all=provider.LoadHolonsByMetaData(new Dictionary<string,string> {{"owned-kind","seed"},{"amount","1.5"}},Core.Enums.MetaKeyValuePairMatchMode.All);
+            Assert.IsFalse(all.IsError,all.Message);Assert.AreEqual(child.Id,all.Result.Single().Id);
+            var any=await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string> {{"owned-kind","missing"},{"amount","1.5"}},Core.Enums.MetaKeyValuePairMatchMode.Any);
+            Assert.IsFalse(any.IsError,any.Message);Assert.AreEqual(child.Id,any.Result.Single().Id);
+            Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync((string)null!,"seed")).IsError);
+            var searched=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+                SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string> {{"owned-kind","seed"}}});
+            Assert.IsFalse(searched.IsError,searched.Message);Assert.AreEqual(1,searched.Result.NumberOfResults);
+            Assert.AreEqual(child.Id,searched.Result.SearchResultHolons.Single().Id);
+            Assert.AreEqual(grandchild.Id,searched.Result.SearchResultHolons.Single().Children.Single().Id);
+            var text=provider.Search(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+                SearchOnlyForCurrentAvatar=false,SearchGroups=new() {new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {SearchQuery="owned grandchild",SearchHolons=true}}});
+            Assert.IsFalse(text.IsError,text.Message);Assert.AreEqual(grandchild.Id,text.Result.SearchResultHolons.Single().Id);
+            Assert.IsInstanceOfType((await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false},version:1)).Exception,typeof(NotSupportedException));
+            var exportOwner=new Avatar {Id=Guid.NewGuid(),Username="owned-export",Email="export@example.invalid"};
+            Assert.IsFalse((await provider.SaveAvatarAsync(exportOwner)).IsError);
+            var exportRoot=new Holon {Id=Guid.NewGuid(),CreatedByAvatarId=exportOwner.Id,Name="owned export root"};
+            var exportChild=new Holon {Id=Guid.NewGuid(),ParentHolonId=exportRoot.Id,Name="owned export child"};
+            Assert.IsFalse((await provider.SaveHolonAsync(exportRoot,saveChildren:false)).IsError);
+            Assert.IsFalse((await provider.SaveHolonAsync(exportChild,saveChildren:false)).IsError);
+            var exported=await provider.ExportAllDataForAvatarByUsernameAsync("OWNED-EXPORT");
+            Assert.IsFalse(exported.IsError,exported.Message);Assert.AreEqual(exportRoot.Id,exported.Result.Single().Id);
+            Assert.AreEqual(exportChild.Id,exported.Result.Single().Children.Single().Id);
+            Assert.IsTrue(provider.ExportAllDataForAvatarById(Guid.Empty).IsError);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email)).ErrorCode);
+        }
+        finally {
+            await provider.DeActivateProviderAsync();
+            foreach(var name in names) await service.GetBlobContainerClient(name).DeleteIfExistsAsync();
+        }
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
+    private static async Task VerifyV2Async(AzureStorageOASIS azure,Holon native)
+    {
+        var directory=Path.GetFullPath("TestResults/AzureRoutingFiles");
+        if(Directory.Exists(directory) && Directory.EnumerateFiles(directory,"*",SearchOption.AllDirectories).Any())
+            Assert.Fail("Owned Azure routing fixture contains prior files; refusing overwrite.");
+        var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:directory);
+        var credentialId=Guid.NewGuid();var walletId=Guid.NewGuid();var credential="owned-policy-"+credentialId;
+        var credentialOperations=new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken","LoadAvatarByPublicKey","LoadAvatarByPrivateKey"};
+        Core.StorageOperationRequest CredentialRequest(string operation)=>new() {Operation=operation,VerificationToken=credential,ResetToken=credential,
+            RefreshToken=credential,PublicKey=credential,PrivateKey=credential};
+        Assert.IsFalse((await local.ActivateProviderAsync()).IsError);
+        try {
+            Assert.IsFalse((await local.SaveHolonAsync(new Holon {Id=native.Id,Name="distinct-local"},saveChildren:false)).IsError);
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,
+                StorageProviders=new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings(),
+                SubscriptionConfig=new NextGenSoftware.OASIS.API.DNA.SubscriptionConfig {PlanType="Gold"}}};
+            var manager=new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna) {
+                IsAutoLoadBalanceEnabled=true,IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false};
+            manager.RegisterProvider(azure);manager.RegisterProvider(local);
+            var providers=new[] {new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AzureStorageOASIS),
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.LocalFileOASIS)};
+            Assert.IsFalse(manager.SetAndReplaceAutoLoadBalanceListForProviders(providers).IsError);
+            var router=new NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            var counts=new Dictionary<string,int>();
+            for(int i=0;i<6;i++) {
+                var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="LoadHolon",HolonId=native.Id};
+                var read=i%2==0 ? router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,Core.Enums.LoadBalancingStrategy.RoundRobin)
+                    :await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,Core.Enums.LoadBalancingStrategy.RoundRobin);
+                Assert.IsFalse(read.IsError,read.Message);counts[read.Result.Name]=counts.GetValueOrDefault(read.Result.Name)+1;
+            }
+            Assert.AreEqual(3,counts[native.Name]);Assert.AreEqual(3,counts["distinct-local"]);
+            foreach(var strategy in Enum.GetValues<Core.Enums.LoadBalancingStrategy>())
+            foreach(var asynchronous in new[] {false,true}) {
+                var azureBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.AzureStorageOASIS).TotalRequests;
+                var localBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="LoadHolon",HolonId=native.Id};
+                var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,strategy)
+                    :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,strategy);
+                Assert.IsFalse(read.IsError,read.Message);
+                var decision=manager.LastProviderSelectionDiagnostic;
+                Assert.AreEqual(strategy,decision.RequestedStrategy);Assert.AreEqual(2,decision.Candidates.Count);
+                Assert.IsTrue(decision.SelectedProvider==Core.Enums.ProviderType.AzureStorageOASIS || decision.SelectedProvider==Core.Enums.ProviderType.LocalFileOASIS);
+                var choseAzure=decision.SelectedProvider==Core.Enums.ProviderType.AzureStorageOASIS;
+                Assert.AreEqual(choseAzure ? native.Name:"distinct-local",read.Result.Name);
+                Assert.AreEqual(azureBefore+(choseAzure ? 1:0),manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.AzureStorageOASIS).TotalRequests);
+                Assert.AreEqual(localBefore+(choseAzure ? 0:1),manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+            }
+            manager.IsAutoLoadBalanceEnabled=false;manager.IsAutoReplicationEnabled=true;
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(providers).IsError);
+            foreach(var primary in providers)
+            foreach(var asynchronous in new[] {false,true}) {
+                var value=new Holon {Id=native.Id,Name="replicated-"+primary.Value+"-"+asynchronous};
+                var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveHolon",Payload=value,SaveChildren=false,PreferredProvider=primary.Value};
+                var saved=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request)
+                    :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request);
+                Assert.IsFalse(saved.IsError,saved.Message);Assert.IsFalse(saved.IsWarning,saved.Message);
+                Assert.AreEqual(value.Name,(await azure.LoadHolonAsync(native.Id,loadChildren:false)).Result.Name);
+                Assert.AreEqual(value.Name,(await local.LoadHolonAsync(native.Id,loadChildren:false)).Result.Name);
+            }
+            foreach(var primary in providers)
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var profile=new Avatar {Id=credentialId,Username="owned-policy-"+credentialId,IsActive=true,
+                    AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User),
+                    VerificationToken=credential,ResetToken=credential,RefreshTokens=new() {new RefreshToken {Token=credential}},
+                    ProviderWallets=new() {{Core.Enums.ProviderType.SolanaOASIS,new() {new ProviderWallet {Id=walletId,PublicKey=credential,PrivateKey=credential}}}}};
+                var request=new Core.StorageOperationRequest {Operation="SaveAvatar",Payload=profile,PreferredProvider=primary.Value};
+                var saved=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatar>(request):router.RouteRequest<Core.Interfaces.IAvatar>(request);
+                Assert.IsFalse(saved.IsError,saved.Message);Assert.IsFalse(saved.IsWarning,saved.Message);
+                var detailRequest=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",Payload=new AvatarDetail {Id=credentialId,IsActive=true},PreferredProvider=primary.Value};
+                var detail=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatarDetail>(detailRequest):router.RouteRequest<Core.Interfaces.IAvatarDetail>(detailRequest);
+                Assert.IsFalse(detail.IsError,detail.Message);Assert.IsFalse(detail.IsWarning,detail.Message);
+                // Disable replication while reading so exact provider reads cannot be repaired by an alternate store.
+                manager.IsAutoReplicationEnabled=false;
+                foreach(var store in providers)
+                foreach(var operation in credentialOperations)
+                {
+                    var readRequest=CredentialRequest(operation);readRequest.PreferredProvider=store.Value;
+                    var read=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatar>(readRequest):router.RouteRequest<Core.Interfaces.IAvatar>(readRequest);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(credentialId,read.Result.Id);
+                    Assert.AreEqual(walletId,read.Result.ProviderWallets[Core.Enums.ProviderType.SolanaOASIS].Single().Id);
+                }
+                manager.IsAutoReplicationEnabled=true;
+            }
+            manager.IsAutoReplicationEnabled=false;manager.IsAutoLoadBalanceEnabled=true;
+            foreach(var operation in credentialOperations)
+            {
+                var before=providers.Select(type=>manager.PerformanceMonitor.GetMetrics(type.Value).TotalRequests).ToArray();
+                for(var index=0;index<2;index++)
+                {
+                    var request=CredentialRequest(operation);
+                    var read=index==0 ? router.RouteRequest<Core.Interfaces.IAvatar>(request,Core.Enums.LoadBalancingStrategy.RoundRobin)
+                        :await router.RouteRequestAsync<Core.Interfaces.IAvatar>(request,Core.Enums.LoadBalancingStrategy.RoundRobin);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(credentialId,read.Result.Id);
+                }
+                for(var index=0;index<2;index++) Assert.AreEqual(before[index]+1,manager.PerformanceMonitor.GetMetrics(providers[index].Value).TotalRequests);
+            }
+            manager.IsAutoLoadBalanceEnabled=false;
+            manager.IsAutoReplicationEnabled=false;manager.IsAutoFailOverEnabled=true;
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
+            var missingId=Guid.NewGuid();
+            try {
+                Assert.IsFalse((await local.SaveHolonAsync(new Holon {Id=missingId,Name="must-not-return-stale"},saveChildren:false)).IsError);
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                foreach(var asynchronous in new[] {false,true}) {
+                    var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {
+                        Operation="LoadHolon",HolonId=missingId,PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS};
+                    var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request)
+                        :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request);
+                    Assert.IsNull(read.Result);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,read.ErrorCode);
+                }
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await azure.LoadAvatarAsync(missingId)).ErrorCode);
+            }
+            finally {await local.DeleteHolonAsync(missingId);}
+            var activated=manager.SetAndActivateCurrentStorageProvider(azure);
+            Assert.IsFalse(activated.IsError,activated.Message);
+            var field=typeof(AzureStorageOASIS).GetField("_serviceClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var healthy=field.GetValue(azure);
+            var options=new Azure.Storage.Blobs.BlobClientOptions();
+            options.Retry.MaxRetries=0;options.Retry.NetworkTimeout=TimeSpan.FromSeconds(2);
+            try {
+                field.SetValue(azure,new BlobServiceClient(new Uri("http://127.0.0.1:10003/devstoreaccount1"),options));
+                foreach(var operation in credentialOperations)
+                foreach(var asynchronous in new[] {false,true})
+                {
+                    // Independent contexts require a real SDK attempt for each selector, not an open circuit.
+                    var failover=new Core.Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true};failover.RegisterProvider(azure);failover.RegisterProvider(local);
+                    Assert.IsFalse(failover.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
+                    var fallback=new Core.Managers.OASISHyperDrive.OASISHyperDrive(failover);var request=CredentialRequest(operation);
+                    request.PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS;
+                    var read=asynchronous ? await fallback.RouteRequestAsync<Core.Interfaces.IAvatar>(request):fallback.RouteRequest<Core.Interfaces.IAvatar>(request);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(credentialId,read.Result.Id);
+                    foreach(var provider in providers) Assert.AreEqual(1L,failover.PerformanceMonitor.GetMetrics(provider.Value).TotalRequests);
+                }
+                foreach(var asynchronous in new[] {false,true}) {
+                    var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                    var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {
+                        Operation="LoadHolon",HolonId=native.Id,PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS};
+                    var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request)
+                        :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(native.Id,read.Result.Id);
+                    Assert.AreEqual((await local.LoadHolonAsync(native.Id,loadChildren:false)).Result.Name,read.Result.Name);
+                    Assert.AreEqual(Core.Enums.ProviderType.LocalFileOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
+                    Assert.AreEqual(before+1,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                }
+                var failedId=Guid.NewGuid();
+                var secondaryBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                var failed=await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(
+                    new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveHolon",Payload=new Holon {Id=failedId,Name="must-not-replay"},
+                        SaveChildren=false,PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS});
+                Assert.IsTrue(failed.IsError);
+                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
+                Assert.AreEqual(secondaryBefore,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                Assert.IsNull((await local.LoadHolonAsync(failedId,loadChildren:false)).Result);
+            }
+            finally {field.SetValue(azure,healthy);}
+        }
+        finally {await azure.DeleteAvatarAsync(credentialId,false);await local.DeleteAvatarAsync(credentialId,false);
+            await local.DeleteHolonAsync(native.Id);await local.DeActivateProviderAsync();}
+    }
+}

@@ -1,0 +1,58 @@
+using System;
+using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
+
+public partial class ActivityPubOASIS
+{
+    private async Task<OASISResult<IHolon>> ReadMastodonStatusAsync(string key,bool children,bool providerChildren,int depth,int version)
+    {
+        var result=new OASISResult<IHolon>();
+        try{
+            ObjectDisposedException.ThrowIf(_disposed,this);
+            if(string.IsNullOrWhiteSpace(key))throw new ArgumentException("A native status ID is required.",nameof(key));
+            if(depth<0)throw new ArgumentOutOfRangeException(nameof(depth));
+            if(version!=0)throw new NotSupportedException("Native status edit history is not an OASIS holon version.");
+            if(children&&providerChildren)throw new NotSupportedException("Native reply-context hierarchy requires verified graph projection; no incomplete child result returned.");
+            var selected=key.Trim();
+            if(!_isActivated){var activated=await ActivateProviderAsync();if(activated.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(activated);}
+            using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(selected));response.EnsureSuccessStatusCode();
+            using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync());var status=document.RootElement;
+            string Required(JsonElement node,string name,bool allowEmpty=false){
+                if(node.ValueKind!=JsonValueKind.Object||!node.TryGetProperty(name,out var field)||field.ValueKind!=JsonValueKind.String||(!allowEmpty&&string.IsNullOrWhiteSpace(field.GetString())))
+                    throw new InvalidDataException("Missing native status field: "+name);
+                return field.GetString();
+            }
+            var id=Required(status,"id");if(id!=selected)throw new InvalidDataException("Native status identity differs from requested ID.");
+            var uri=Required(status,"uri");
+            if(!Uri.TryCreate(uri,UriKind.Absolute,out var objectUri)||(objectUri.Scheme!=Uri.UriSchemeHttps&&!(objectUri.Scheme==Uri.UriSchemeHttp&&objectUri.IsLoopback)))throw new InvalidDataException("Invalid native status URI.");
+            var content=Required(status,"content",true);var created=Required(status,"created_at");
+            if(!DateTimeOffset.TryParse(created,CultureInfo.InvariantCulture,DateTimeStyles.None,out var timestamp))throw new InvalidDataException("Invalid native status timestamp.");
+            if(!status.TryGetProperty("account",out var account))throw new InvalidDataException("Missing native status author.");
+            var authorId=Required(account,"id");var authorAcct=Required(account,"acct");
+            var holon=new Holon{Id=MastodonProjectionId("status",id),Name="Mastodon status "+id,CreatedDate=timestamp.UtcDateTime};
+            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS]=id;
+            holon.MetaData["MastodonObjectUri"]=objectUri.AbsoluteUri;holon.MetaData["MastodonContentHtml"]=content;
+            holon.MetaData["MastodonAuthorId"]=authorId;holon.MetaData["MastodonAuthorAcct"]=authorAcct;
+            if(status.TryGetProperty("in_reply_to_id",out var reply)&&reply.ValueKind!=JsonValueKind.Null){
+                if(reply.ValueKind!=JsonValueKind.String||string.IsNullOrWhiteSpace(reply.GetString()))throw new InvalidDataException("Invalid native reply ID.");
+                holon.ParentHolonId=MastodonProjectionId("status",reply.GetString());
+            }
+            if(status.TryGetProperty("visibility",out var visibility)&&visibility.ValueKind==JsonValueKind.String)holon.MetaData["MastodonVisibility"]=visibility.GetString();
+            result.Result=holon;result.LoadedCount=1;
+        }catch(Exception error){
+            OASISErrorHandling.HandleError(ref result,"Mastodon native status read failed.",error);
+            if(error is HttpRequestException http&&http.StatusCode==HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
+        }
+        return result;
+    }
+}

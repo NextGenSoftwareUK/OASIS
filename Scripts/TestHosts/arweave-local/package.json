@@ -1,0 +1,7 @@
+{
+  "name": "oasis-arweave-local-runtime",
+  "private": true,
+  "dependencies": {
+    "arlocal": "1.1.66"
+  }
+}

@@ -35,7 +35,7 @@ using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 {
-    public partial class PolkadotOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public partial class PolkadotOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
@@ -43,6 +43,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         private readonly string _privateKey;
         private readonly string _contractAddress;
         private bool _isActivated;
+        private bool _isDisposed;
+        private int _rpcRequestId;
+        private readonly SemaphoreSlim _lifecycleGate = new(1,1);
+        public string ReportedChainName { get; private set; }
+        public string ReportedGenesisHash { get; private set; }
         private WalletManager _walletManager;
 
         public WalletManager WalletManager
@@ -75,12 +80,14 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
+            if(string.IsNullOrWhiteSpace(chainId))throw new ArgumentException("A configured chain name or genesis hash is required.",nameof(chainId));
             _privateKey = privateKey;
             _httpClient = new HttpClient
             {
                 BaseAddress = new Uri(_rpcEndpoint)
             };
         }
+
 
 
     }

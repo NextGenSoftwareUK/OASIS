@@ -45,19 +45,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
          if (configResult.IsError && configResult.Response != null)
              return configResult.Response;
 
+         try
+         {
          // For updates (non-empty ID), verify the caller owns the existing holon or is a Wizard
          if (request.Holon?.Id != null && request.Holon.Id != Guid.Empty && Avatar?.AvatarType?.Value != AvatarType.Wizard)
          {
              var existing = await HolonManager.LoadHolonAsync(request.Holon.Id);
-             if (existing != null && !existing.IsError && existing.Result != null
-                 && existing.Result.CreatedByAvatarId != AvatarId)
-                 return TestDataHelper.CreateErrorResponse<IHolon>("Forbidden. You do not have permission to update this holon.", null, System.Net.HttpStatusCode.Forbidden);
+             var ownership=HolonWriteOwnership.Validate(existing,request.Holon.Id,AvatarId);
+             if(ownership.IsError)
+                 return TestDataHelper.CreateErrorResponse<IHolon>(ownership.Message,ownership.Exception,
+                     ownership.ErrorCode=="OWNERSHIP_FORBIDDEN" ? System.Net.HttpStatusCode.Forbidden : System.Net.HttpStatusCode.ServiceUnavailable);
          }
 
          OASISResult<IHolon> response = await HolonManager.SaveHolonAsync(request.Holon, AvatarId, request.SaveChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError);
-         ResetOASISSettings(request, configResult);
-
          return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+         }
+         finally
+         {
+             ResetOASISSettings(request, configResult);
+         }
 
          //OASISResult<Holon> response = new OASISResult<Holon>();
          //OASISResult<IHolon> result = await HolonManager.SaveHolonAsync(request.Holon);

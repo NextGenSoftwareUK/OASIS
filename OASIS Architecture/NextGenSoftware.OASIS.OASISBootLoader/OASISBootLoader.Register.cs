@@ -152,10 +152,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         case ProviderType.SEEDSOASIS:
                             {
                                 var seedsProvider = new SEEDSOASIS(new TelosOASIS(
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey));
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.RpcEndpoint ?? OASISDNA.OASIS.StorageProviders.TelosOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.AccountName,
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.ChainId,
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.AccountPrivateKey));
                                 seedsProvider.OnStorageProviderError += SEEDSOASIS_StorageProviderError;
                                 result.Result = seedsProvider;
                             }
@@ -235,7 +235,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString,
                                     OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainPrivateKey,
                                     OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ContractAddress);
+                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ContractAddress)
+                                {
+                                    TokenEscrowContractAddress = OASISDNA.OASIS.StorageProviders.EthereumOASIS.TokenEscrowContractAddress
+                                };
                                 ethereumProvider.OnStorageProviderError += EthereumOASIS_StorageProviderError;
                                 result.Result = ethereumProvider;
                             }
@@ -243,11 +246,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.ArbitrumOASIS:
                             {
-                                ArbitrumOASIS ArbitrumOASIS = new(
-                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ChainPrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ContractAddress);
+                                var ArbitrumOASIS = EvmProviderFactory.CreateArbitrum(
+                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS,OASISDNA.OASIS.HyperDriveMode,overrideConnectionString);
                                 ArbitrumOASIS.OnStorageProviderError += ArbitrumOASIS_StorageProviderError;
                                 result.Result = ArbitrumOASIS;
                             }
@@ -264,10 +264,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             break;
                         case ProviderType.PolygonOASIS:
                             {
-                                PolygonOASIS PolygonOASIS = new(
-                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ChainPrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ContractAddress);
+                                var PolygonOASIS = EvmProviderFactory.CreatePolygon(
+                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS,overrideConnectionString);
                                 PolygonOASIS.OnStorageProviderError += PolygonOASIS_StorageProviderError;
                                 result.Result = PolygonOASIS;
                             }
@@ -291,6 +289,12 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.AWSOASIS:
+                            result.Result = CloudProviderFactory.CreateAws(OASISDNA.OASIS.StorageProviders.AWSOASIS,overrideConnectionString);
+                            break;
+                        case ProviderType.AzureStorageOASIS:
+                            result.Result = CloudProviderFactory.CreateAzureStorage(OASISDNA.OASIS.StorageProviders.AzureStorageOASIS,overrideConnectionString);
+                            break;
                         case ProviderType.AzureCosmosDBOASIS:
                             {
                                 AzureCosmosDBOASIS azureCosmosDBOASIS = new AzureCosmosDBOASIS(
@@ -303,16 +307,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 result.Result = azureCosmosDBOASIS;
                             }
                             break;
-
-                        case ProviderType.BitcoinOASIS:
-                        {
-                            var bitcoinProvider = new BitcoinOASIS(
-                                OASISDNA.OASIS.StorageProviders.BitcoinOASIS.RpcEndpoint ?? "https://blockstream.info/api",
-                                OASISDNA.OASIS.StorageProviders.BitcoinOASIS.Network ?? "mainnet");
-                            bitcoinProvider.OnStorageProviderError += BitcoinOASIS_StorageProviderError;
-                            result.Result = bitcoinProvider;
-                        }
-                        break;
 
                         //case ProviderType.CardanoOASIS:
                         //    {
@@ -396,11 +390,24 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.TRONOASIS:
                         {
-                            //TODO: Fix TRONOASIS build errors
                              var tronProvider = new TRONOASIS(
                                  OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint ?? "https://api.trongrid.io",
                                  OASISDNA.OASIS.StorageProviders.TRONOASIS.Network ?? "mainnet",
-                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428");
+                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428",
+                                 fullNodeGrpcEndpoint: OASISDNA.OASIS.StorageProviders.TRONOASIS.FullNodeGrpcEndpoint,
+                                 solidityNodeGrpcEndpoint: OASISDNA.OASIS.StorageProviders.TRONOASIS.SolidityNodeGrpcEndpoint,
+                                 genesisBlockId: OASISDNA.OASIS.StorageProviders.TRONOASIS.GenesisBlockId,
+                                 signingKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.SigningKeyEnvironmentVariable,
+                                 apiKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.ApiKeyEnvironmentVariable,
+                                 escrowContractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.EscrowContractAddress,
+                                 contractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.ContractAddress,
+                                 bridgePoolWalletAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.BridgePoolWalletAddress,
+                                 storageContractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageContractAddress,
+                                 storageOwnerAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageOwnerAddress,
+                                 storageSigningKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageSigningKeyEnvironmentVariable,
+                                 storageEncryptionKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageEncryptionKeyEnvironmentVariable,
+                                 contractFeeLimitSun: OASISDNA.OASIS.StorageProviders.TRONOASIS.ContractFeeLimitSun,
+                                 idBoundEscrow: TronEscrowConfiguration.Create(OASISDNA.OASIS.StorageProviders.TRONOASIS.IdBoundTokenEscrow));
                                 tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
                                 result.Result = tronProvider;
                                 break;
@@ -408,10 +415,43 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.HashgraphOASIS:
                         {
+                            var settings = OASISDNA.OASIS.StorageProviders.HashgraphOASIS;
+                            var signingKeyEnvironmentVariable = settings.StorageSigningKeyEnvironmentVariable;
+                            var encryptionKeyEnvironmentVariable = settings.StorageEncryptionKeyEnvironmentVariable;
+                            var storage = new HederaStorageConfiguration {
+                                ContractId = settings.StorageContractId,
+                                OperatorAccountId = settings.StorageOperatorAccountId,
+                                SigningKeyType = settings.StorageSigningKeyType,
+                                GasLimit = settings.StorageGasLimit,
+                                MaxFeeTinybars = settings.StorageMaxFeeTinybars,
+                                QueryPreparation = HederaQueryPreparationConfiguration.Create(settings.StorageQueryPreparation),
+                                SigningKeyResolver = () => Environment.GetEnvironmentVariable(signingKeyEnvironmentVariable),
+                                EncryptionKeyResolver = () => {
+                                    var encoded = Environment.GetEnvironmentVariable(encryptionKeyEnvironmentVariable);
+                                    if (string.IsNullOrWhiteSpace(encoded))
+                                        throw new InvalidOperationException("Hedera storage encryption key environment variable is missing.");
+                                    try { return Convert.FromBase64String(encoded); }
+                                    catch (FormatException) {
+                                        throw new InvalidOperationException("Hedera storage encryption key must be a base64-encoded 32-byte key.");
+                                    }
+                                }
+                            };
                             var hashgraphProvider = new HashgraphOASIS(
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.RpcEndpoint ?? "https://mainnet-public.mirrornode.hedera.com",
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.Network ?? "mainnet",
-                                OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ChainId ?? "295");
+                                OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ChainId ?? "295",
+                                consensusNodes: settings.ConsensusNodes, storageConfiguration: storage,
+                                bridgePoolAccountId: settings.BridgePoolAccountId,
+                                rawTransferAccountId: settings.RawTransferAccountId,
+                                rawTransferSigningKey: () => string.IsNullOrWhiteSpace(settings.RawTransferSigningKeyEnvironmentVariable)
+                                    ? null : Environment.GetEnvironmentVariable(settings.RawTransferSigningKeyEnvironmentVariable),
+                                bridgePoolSigningKey: () => string.IsNullOrWhiteSpace(settings.BridgePoolSigningKeyEnvironmentVariable)
+                                    ? null : Environment.GetEnvironmentVariable(settings.BridgePoolSigningKeyEnvironmentVariable),
+                                nftEscrowContractId: settings.NftEscrowContractId,
+                                nftEscrowRuntimeCodeHash: settings.NftEscrowRuntimeCodeHash,
+                                nftEscrowGasLimit: settings.NftEscrowGasLimit,
+                                nftEscrowMaxFeeTinybars: settings.NftEscrowMaxFeeTinybars,
+                                tokenEscrowConfiguration: HederaEscrowConfiguration.Create(settings));
                             hashgraphProvider.OnStorageProviderError += HashgraphOASIS_StorageProviderError;
                             result.Result = hashgraphProvider;
                         }
@@ -430,10 +470,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.CosmosBlockChainOASIS:
                         {
-                            var cosmosProvider = new CosmosBlockChainOASIS(
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.RpcEndpoint ?? "https://cosmos-rpc.polkachu.com",
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.Network ?? "cosmos",
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ChainId ?? "cosmoshub-4");
+                            var cosmosProvider = CosmosProviderConfiguration.Create(OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS);
                             cosmosProvider.OnStorageProviderError += CosmosBlockChainOASIS_StorageProviderError;
                             result.Result = cosmosProvider;
                         }
@@ -444,7 +481,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             var nearProvider = new NEAROASIS(
                                 OASISDNA.OASIS.StorageProviders.NEAROASIS.RpcEndpoint ?? "https://rpc.mainnet.near.org",
                                 OASISDNA.OASIS.StorageProviders.NEAROASIS.Network ?? "mainnet",
-                                OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId ?? "mainnet");
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId ?? "mainnet",
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.ContractAddress ?? "oasis.near",
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.AccountId ?? "",
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.PrivateKey ?? "");
                             nearProvider.OnStorageProviderError += NEAROASIS_StorageProviderError;
                             result.Result = nearProvider;
                             break;
@@ -468,27 +508,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.SuiOASIS:
                         {
-                            var suiProvider = new SuiOASIS(
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.RpcEndpoint ?? "https://fullnode.mainnet.sui.io:443",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.Network ?? "mainnet",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.ChainId ?? "",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.ContractAddress ?? "");
+                            var suiProvider = SuiProviderConfiguration.Create(OASISDNA.OASIS.StorageProviders.SuiOASIS);
                             suiProvider.OnStorageProviderError += SuiOASIS_StorageProviderError;
                             result.Result = suiProvider;
                         }
                         break;
-
-                        case ProviderType.MoralisOASIS:
-                        {
-                            // TODO: Fix MoralisOASIS build errors
-                            // var moralisProvider = new MoralisOASIS(
-                            //     OASISDNA.OASIS.StorageProviders.MoralisOASIS.ApiKey ?? "",
-                            //     OASISDNA.OASIS.StorageProviders.MoralisOASIS.RpcEndpoint ?? "https://speedy-nodes-nyc.moralis.io",
-                            //     OASISDNA.OASIS.StorageProviders.MoralisOASIS.Network ?? "mainnet");
-                            // moralisProvider.OnStorageProviderError += MoralisOASIS_StorageProviderError;
-                            // result.Result = moralisProvider;
-                            break;
-                        }
 
                         //case ProviderType.TelosOASIS:
                         //    {
@@ -501,29 +525,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        case ProviderType.ActivityPubOASIS:
-                            {
-                                var baseUrl = OASISDNA.OASIS.StorageProviders.ActivityPubOASIS?.BaseUrl ?? "https://mastodon.social";
-                                // Remove /api/v1 if present since ActivityPubOASIS constructor expects instance URL
-                                if (baseUrl.EndsWith("/api/v1"))
-                                    baseUrl = baseUrl.Replace("/api/v1", "");
-                                var activityPubProvider = new ActivityPubOASIS(baseUrl, "");
-                                activityPubProvider.OnStorageProviderError += ActivityPubOASIS_StorageProviderError;
-                                result.Result = activityPubProvider;
-                            }
-                            break;
-
                         case ProviderType.GoogleCloudOASIS:
                             {
-                                GoogleCloudOASIS googleCloudOASIS = new GoogleCloudOASIS(
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.ProjectId,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.BucketName,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.CredentialsPath,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.FirestoreDatabaseId,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.BigQueryDatasetId,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.EnableStorage,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.EnableFirestore,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.EnableBigQuery);
+                                var googleCloudOASIS = CloudProviderFactory.CreateGoogle(OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS);
                                 result.Result = googleCloudOASIS;
                             }
                             break;
@@ -537,7 +541,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In OASISBootLoader In Method RegisterProviderInternal. Reason: {e}");
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In OASISBootLoader In Method RegisterProviderInternal. Reason: {e}", e);
             }
 
             return result;

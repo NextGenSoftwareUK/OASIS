@@ -36,7 +36,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -45,7 +46,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var avatarResult = await _avatarRepository.LoadAvatarByUsernameAsync(username);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}", avatarResult.Exception);
+                    result.ErrorCode = avatarResult.ErrorCode;
                     return result;
                 }
 
@@ -61,10 +63,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     avatar.ProviderWallets = providerWallets;
 
                     // Save updated avatar
-                    var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
+                    var saveResult = await StoreLocalWalletsAsync(avatar.Id, providerWallets);
                     if (saveResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Error saving local wallets: {saveResult.Message}", saveResult.Exception);
+                        result.ErrorCode = saveResult.ErrorCode;
                         return result;
                     }
 
@@ -99,7 +102,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -108,7 +112,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var avatarResult = await _avatarRepository.LoadAvatarByEmailAsync(email);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}", avatarResult.Exception);
+                    result.ErrorCode = avatarResult.ErrorCode;
                     return result;
                 }
 
@@ -124,10 +129,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     avatar.ProviderWallets = providerWallets;
 
                     // Save updated avatar
-                    var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
+                    var saveResult = await StoreLocalWalletsAsync(avatar.Id, providerWallets);
                     if (saveResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Error saving local wallets: {saveResult.Message}", saveResult.Exception);
+                        result.ErrorCode = saveResult.ErrorCode;
                         return result;
                     }
 
@@ -169,26 +175,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
 
-                var importedCount = 0;
-                foreach (var holon in holons)
+                if (holons == null) throw new ArgumentNullException(nameof(holons));
+                var entries = holons.ToList();
+                var saveResult = await _holonRepository.SaveHolonsAsync(entries);
+                if (saveResult.IsError)
                 {
-                    var saveResult = await _holonRepository.SaveHolonAsync(holon);
-                    if (saveResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
-                        return result;
-                    }
-                    importedCount++;
+                    OASISErrorHandling.HandleError(ref result, $"Error importing holons: {saveResult.Message}", saveResult.Exception);
+                    result.ErrorCode = saveResult.ErrorCode;
+                    return result;
                 }
 
                 result.Result = true;
                 result.IsError = false;
-                result.Message = $"Successfully imported {importedCount} holons to SQLite";
+                result.Message = $"Successfully imported {entries.Count} holons to SQLite";
             }
             catch (Exception ex)
             {
@@ -212,13 +217,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId
-                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var allHolons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                if (allHolons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading export data: {allHolons.Message}", allHolons.Exception);
+                    result.ErrorCode = allHolons.ErrorCode;
+                    return result;
+                }
                 var filtered = allHolons.Result?.Where(h => h.CreatedByAvatarId == avatarId) ?? Enumerable.Empty<IHolon>();
                 result.Result = filtered;
                 result.IsError = false;
@@ -246,14 +258,29 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId (using CreatedByAvatar property)
-                var allHolons = await _holonRepository.LoadAllHolonsAsync();
-                var filtered = allHolons.Result?.Where(h => h.CreatedByAvatar != null && string.Equals(h.CreatedByAvatar.Username, avatarUsername, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<IHolon>();
+                var allHolons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                if (allHolons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading export data: {allHolons.Message}", allHolons.Exception);
+                    result.ErrorCode = allHolons.ErrorCode;
+                    return result;
+                }
+                var owner = await _avatarRepository.LoadAvatarByUsernameAsync(avatarUsername);
+                if (owner.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error resolving export owner: {owner.Message}", owner.Exception);
+                    result.ErrorCode = owner.ErrorCode;
+                    return result;
+                }
+                var filtered = owner.Result == null ? Enumerable.Empty<IHolon>()
+                    : allHolons.Result?.Where(h => h.CreatedByAvatarId == owner.Result.Id) ?? Enumerable.Empty<IHolon>();
                 result.Result = filtered;
                 result.IsError = false;
                 result.Message = $"Successfully exported {result.Result.Count()} holons for avatar {avatarUsername} from SQLite";
@@ -280,14 +307,29 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId (using CreatedByAvatar property)
-                var allHolons = await _holonRepository.LoadAllHolonsAsync();
-                var filtered = allHolons.Result?.Where(h => h.CreatedByAvatar != null && string.Equals(h.CreatedByAvatar.Email, avatarEmailAddress, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<IHolon>();
+                var allHolons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                if (allHolons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading export data: {allHolons.Message}", allHolons.Exception);
+                    result.ErrorCode = allHolons.ErrorCode;
+                    return result;
+                }
+                var owner = await _avatarRepository.LoadAvatarByEmailAsync(avatarEmailAddress);
+                if (owner.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error resolving export owner: {owner.Message}", owner.Exception);
+                    result.ErrorCode = owner.ErrorCode;
+                    return result;
+                }
+                var filtered = owner.Result == null ? Enumerable.Empty<IHolon>()
+                    : allHolons.Result?.Where(h => h.CreatedByAvatarId == owner.Result.Id) ?? Enumerable.Empty<IHolon>();
                 result.Result = filtered;
                 result.IsError = false;
                 result.Message = $"Successfully exported {result.Result.Count()} holons for avatar {avatarEmailAddress} from SQLite";
@@ -314,13 +356,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
 
                 // Export all holons via current repository API
-                var holons = await _holonRepository.LoadAllHolonsAsync();
+                var holons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                if (holons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading export data: {holons.Message}", holons.Exception);
+                    result.ErrorCode = holons.ErrorCode;
+                    return result;
+                }
                 result.Result = holons.Result;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from SQLite";
@@ -372,29 +421,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
 
                 // Load holons by metadata from SQLite - using LoadAllHolons and filter
-                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var allHolons = await _holonRepository.LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,version);
                 var holons = new OASISResult<IEnumerable<IHolon>>();
                 if (allHolons.IsError)
                 {
-                    holons.IsError = true;
-                    holons.Message = allHolons.Message;
+                    return allHolons;
                 }
                 else
                 {
                     var filtered = allHolons.Result?.Where(h => h.MetaData != null && h.MetaData.ContainsKey(metaKey) && h.MetaData[metaKey]?.ToString() == metaValue) ?? Enumerable.Empty<IHolon>();
                     holons.Result = filtered;
                     holons.IsError = false;
-                }
-                if (holons.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {holons.Message}");
-                    return result;
                 }
 
                 result.Result = holons.Result;
@@ -423,18 +467,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
 
                 // Load holons by multiple metadata pairs from SQLite - using LoadAllHolons and filter
-                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var allHolons = await _holonRepository.LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,version);
                 var holons = new OASISResult<IEnumerable<IHolon>>();
                 if (allHolons.IsError)
                 {
-                    holons.IsError = true;
-                    holons.Message = allHolons.Message;
+                    return allHolons;
                 }
                 else
                 {
@@ -453,11 +497,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }) ?? Enumerable.Empty<IHolon>();
                     holons.Result = filtered;
                     holons.IsError = false;
-                }
-                if (holons.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs: {holons.Message}");
-                    return result;
                 }
 
                 result.Result = holons.Result;

@@ -62,6 +62,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // Configuration-backed services are registered before the request pipeline is built, so the
             // middleware cannot be responsible for loading DNA needed by dependency injection.
             var dnaLoadResult = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.LoadDNA();
+            if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null){
+                if(dnaLoadResult.IsError||dnaLoadResult.Result==null)throw new InvalidOperationException(dnaLoadResult.Message);
+                if(dnaLoadResult.Result.OASIS?.ONET?.EnableHyperDriveSyncHost==true)
+                    throw new InvalidOperationException("Admitted storage cannot start unreserved ONET sync provider activation; disable the sync host until it has its own authorized fee owner.");
+                var passiveBoot=OASISBootLoader.OASISBootLoader.BootOASISForAdmittedStorageAsync(dnaLoadResult.Result).GetAwaiter().GetResult();
+                if(passiveBoot.IsError||!passiveBoot.Result)throw new InvalidOperationException(passiveBoot.Message);
+            }
             if (dnaLoadResult == null || dnaLoadResult.IsError || dnaLoadResult.Result == null)
                 throw new InvalidOperationException(
                     $"OASIS DNA must load before service registration. {dnaLoadResult?.Message ?? "No load result was returned."}");
@@ -408,7 +415,14 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Subscription.IPaidOverageStatementStore>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.IPaidOverageGateway, Services.Subscription.StripePaidOverageGateway>();
             services.AddSingleton<Services.Subscription.PaidOverageBillingService>();
+            Services.Subscription.LocalUsageAuthorityRegistration.AddLocalUsageAuthority(services,
+                (avatarId, token) => Controllers.SubscriptionController.GetCurrentKarmaAsync(avatarId.ToString("D"), token));
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
+            var storageUsagePolicy=NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.AddConfiguredStorageAdmission(
+                services,Configuration,subscriptionUsageEnabled,_=>null,
+                ()=>NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetAllRegisteredProviders());
+            if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null)
+                NextGenSoftware.OASIS.API.Core.Services.Subscriptions.LocalWeb4UsageLedgerRegistration.AddLocalWeb4UsageLedger(services,Configuration,storageUsagePolicy);
             if (subscriptionUsageEnabled)
             {
                 services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
@@ -645,6 +659,12 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<JwtMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null)
+            {
+                app.UseMiddleware<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.Web4UsageLedgerMiddleware>();
+                NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.UseConfiguredStorageAdmission(app);
+            }
 
             app.UseEndpoints(endpoints =>
             {

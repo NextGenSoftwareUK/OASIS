@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-Verifies sync/async V2 storage-operation parity and executable test coverage.
+Statically inventories sync/async V2 switch labels and declared provider-boundary test operations.
+This does not run tests, prove branch execution or establish full provider/option coverage.
 #>
 [CmdletBinding()]
 param()
@@ -29,4 +30,4 @@ if ($untested.Count) {
     throw "V2 storage operations have no executable provider-boundary contract: $($untested -join ', ')"
 }
 
-Write-Host "HyperDrive V2 storage-operation contracts verified: $($handlerOperations.Count) operations have sync/async parity and executable coverage."
+Write-Host "HyperDrive V2 static operation inventory: $($handlerOperations.Count) operations have paired switch labels and declared provider-boundary test cases. Runtime execution and complete option/provider coverage require separate evidence."
