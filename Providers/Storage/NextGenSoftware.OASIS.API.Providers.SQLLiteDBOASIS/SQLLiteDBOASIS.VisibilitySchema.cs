@@ -23,6 +23,7 @@ public partial class SQLLiteDBOASIS
                 {"CustomHolonType","TEXT NULL"}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"AvatarDetail",
             new Dictionary<string,string> {{"ActiveQuestId","TEXT NULL"},{"ActiveObjectiveId","TEXT NULL"},
+                {"ProviderLinksJson","TEXT NOT NULL DEFAULT '{}'"},
                 {"ParentHolonId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
                 {"ParentHolonId2","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
                 {"ParentHolonId3","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"}}).ConfigureAwait(false);
