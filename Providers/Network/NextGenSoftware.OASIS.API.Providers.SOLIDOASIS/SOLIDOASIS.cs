@@ -112,65 +112,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatars/by-key/{Uri.EscapeDataString(providerKey)}.ttl");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToAvatar(await response.Content.ReadAsStringAsync());
-                    result.IsError = result.Result == null;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {ex.Message}", ex); }
-            return result;
-        }
+            => await LoadPrivateRecordByKeyAsync<IAvatar>(providerKey,version);
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatars/by-email/{Uri.EscapeDataString(avatarEmail)}.ttl");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToAvatar(await response.Content.ReadAsStringAsync());
-                    result.IsError = result.Result == null;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {ex.Message}", ex); }
-            return result;
-        }
+            => await FindPrivateRecordAsync<IAvatar>(avatarEmail,record=>record.Email,version);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatars/by-username/{Uri.EscapeDataString(avatarUsername)}.ttl");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToAvatar(await response.Content.ReadAsStringAsync());
-                    result.IsError = result.Result == null;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {ex.Message}", ex); }
-            return result;
-        }
+            => await FindPrivateRecordAsync<IAvatar>(avatarUsername,record=>record.Username,version);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
 
@@ -180,44 +132,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatar-details/by-email/{Uri.EscapeDataString(avatarEmail)}.ttl");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToAvatarDetail(await response.Content.ReadAsStringAsync());
-                    result.IsError = result.Result == null;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email: {ex.Message}", ex); }
-            return result;
-        }
+            => await FindPrivateRecordAsync<IAvatarDetail>(avatarEmail,record=>record.Email,version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatar-details/by-username/{Uri.EscapeDataString(avatarUsername)}.ttl");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToAvatarDetail(await response.Content.ReadAsStringAsync());
-                    result.IsError = result.Result == null;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username: {ex.Message}", ex); }
-            return result;
-        }
+            => await FindPrivateRecordAsync<IAvatarDetail>(avatarUsername,record=>record.Username,version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
 
@@ -326,23 +246,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/by-key/{Uri.EscapeDataString(providerKey)}.ttl");
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = ParseRDFToHolon(await response.Content.ReadAsStringAsync());
-                    result.IsError = result.Result == null;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {ex.Message}", ex); }
-            return result;
-        }
+            => await LoadPrivateRecordByKeyAsync<IHolon>(providerKey,version);
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;

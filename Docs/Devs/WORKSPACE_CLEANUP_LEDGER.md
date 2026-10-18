@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-18 SOLID identity/GUID lookup integration reused cached provider/unit projects/RDF/shared encryption. Bounded no-restore/no-reference builds/test;67unit cases terminal. No downloads/installs/server/pod/clone/environment/public writes. Free87154659328bytes after observed, no reclaim attribution. Fixed compact evidence paths retained; no filesystem deletion/shared cache removal.
+
 2026-10-18 SOLID LDP collection integration reused existing cached projects/RDF/shared crypto; bounded builds/tests no restore/download/install/runtime/server/clone/environment. Full54unit cases terminal; controlled HTTP handler only, no external pod/credentials/public writes. Free87157149696bytes observed during verification, not reclaim attribution. Fixed compact report paths and reusable outputs retained; no filesystem removal/broad cache cleanup.
 
 2026-10-18 SOLID encrypted single-record HTTP integration/Core LevelManager race fix reused existing projects/assets/cache. Bounded cached builds, no restore/install/download/server/new environment/ledger/worktree.42SOLID and281focusedCore cases terminal; controlled HTTP handlers only, no pod/account/public writes. No broad deletion. Free87160770560bytes after observed. Existing unrelated subscription work, reusable outputs/compact reports retained; Core staged only LevelManager before parent pin update.

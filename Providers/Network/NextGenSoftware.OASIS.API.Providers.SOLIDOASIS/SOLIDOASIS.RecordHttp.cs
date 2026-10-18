@@ -28,6 +28,31 @@ public sealed class SolidRecordReconciliationException : IOException
 public partial class SOLIDOASIS
 {
     private readonly SolidPrivateRecordCodec _privateRecords;
+    private async Task<OASISResult<T>> LoadPrivateRecordByKeyAsync<T>(string key,int version) where T:class,IHolonBase
+    {
+        if(Guid.TryParse(key,out var id)&&id!=Guid.Empty)return await LoadPrivateRecordAsync<T>(id,version);
+        var invalid=new OASISResult<T>();
+        OASISErrorHandling.HandleError(ref invalid,"SOLID provider key must be a nonempty record GUID.",new ArgumentException("Invalid provider key.",nameof(key)));
+        return invalid;
+    }
+    private async Task<OASISResult<T>> FindPrivateRecordAsync<T>(string query,Func<T,string> selector,int version) where T:class,IHolonBase
+    {
+        var result=new OASISResult<T>();
+        try{
+            if(string.IsNullOrWhiteSpace(query))throw new ArgumentException("A nonblank private identity lookup is required.",nameof(query));
+            var selected=query.Trim();
+            var records=await LoadPrivateRecordsAsync<T>(version);
+            if(records.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,T>(records);
+            var matches=records.Result.Where(record=>string.Equals(selector(record)?.Trim(),selected,StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
+            if(matches.Length==0){
+                OASISErrorHandling.HandleError(ref result,"No matching private record.",new KeyNotFoundException("Private identity not found."));
+                result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;
+            }
+            if(matches.Length!=1)throw new InvalidDataException("Multiple private records match the identity; refusing arbitrary selection.");
+            result.Result=matches[0];
+        }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private identity lookup failed.",error);}
+        return result;
+    }
     private void RequirePrivateStorage()
     {
         ObjectDisposedException.ThrowIf(_disposed,this);
