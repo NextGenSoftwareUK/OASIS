@@ -34,6 +34,7 @@ public partial class Neo4jOASIS
                 if (rows.Count != 1) throw new InvalidDataException("Neo4j avatar save did not acknowledge exactly one record.");
                 acknowledged = ReadAvatarNode(rows[0]["a"].As<Neo4j.Driver.INode>());
                 if (acknowledged.Id != staged.Id) throw new InvalidDataException("Neo4j avatar save acknowledged another identity.");
+                RequireAcknowledgedRecord(staged,acknowledged);
                 await transaction.CommitAsync();
             }
             source.Id = acknowledged.Id;

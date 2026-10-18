@@ -160,6 +160,7 @@ public partial class Neo4jOASIS
                 acknowledged = records.Select(row => ReadHolonNode(row["h"].As<Neo4j.Driver.INode>())).ToDictionary(record => record.Id);
                 if (acknowledged.Count != staged.Count || ids.Any(id => !acknowledged.ContainsKey(id)))
                     throw new InvalidDataException("Neo4j holon batch acknowledgement differs from submitted identities.");
+                foreach(var record in staged)RequireAcknowledgedRecord(record,acknowledged[record.Id]);
                 if (edges.Count != 0)
                 {
                     // Selected child parent identity and native incoming edge move in the same transaction.
