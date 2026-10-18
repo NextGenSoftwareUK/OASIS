@@ -1,5 +1,9 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Hedera failed-read pre-execution investigation — 2026-10-17
+
+Public mirror account query for the failed run's00:06:30–00:07:00UTC2026-10-18 window returned0transactions/no continuation, with a later globally indexed consensus timestamp1792285603.356938795. Balance still indexed0.69513926testHBAR at its older snapshot. Neither absence nor old balance alone proves a paid request was impossible. Specific storage invocation source path requires durable paid-query acknowledgement before selected ANSWER_ONLY transport; combine that invariant with exact live original outbox evidence before reviewing pre-execution recovery. Journal/database remain protected, no archive/clear/retry in this investigation. This is public read-only evidence, not funded SDK/native acceptance or a spend grant.
+
 ## Explicit owner replacement invariant — 2026-10-17
 
 Cosmos now mirrors Sui's rejection of an explicit prepared server when a shared ambient operation owner is already active. A caller cannot silently substitute another execution/budget through InvokePreparedAsync. Existing scoped calls use their current gate; ordinary unscoped explicit calls retain their intended path. One regression red-before and187full offline cases green-after; exact hashes in release journal. This is pre-launch rejection evidence, not new native/hosted acceptance. Hedera/TRON separate storage and explicit asset paths still need endpoint-specific ownership verification; storage admission must not be advertised as automatic coverage for every asset route.
