@@ -13,12 +13,13 @@ export function signingDocument(signingPayload) {
   return Buffer.from(JSON.stringify({ protocol: 'oasis.polkadot.signing-document.v1', signingPayload }), 'utf8').toString('base64');
 }
 
-export async function verifyNativePreparation(api, preparation) {
+// Cryptographic identity only. Call-family verifiers below/alongside this MUST authorize decoded intent.
+export async function verifySignedPreparation(api, preparation, expectedProtocol) {
   if (!preparation || typeof preparation !== 'object') throw new Error('Original preparation is required.');
   const genesis = api.genesisHash.toHex();
   if (preparation.chainId !== genesis || (preparation.genesisHash != null && preparation.genesisHash !== genesis))
     throw new Error('Prepared chain identity differs from the verified network.');
-  if (preparation.protocol != null && preparation.protocol !== 'oasis.polkadot.native-transfer.preparation.v2')
+  if (preparation.protocol != null && preparation.protocol !== expectedProtocol)
     throw new Error('Unsupported preparation protocol; no legacy format guessing.');
   const bytes = canonicalBase64(preparation.signedTransactionBase64);
   const documentBytes = canonicalBase64(preparation.signDocBase64);
@@ -53,6 +54,11 @@ export async function verifyNativePreparation(api, preparation) {
   const reconstructed = api.tx(decoded.method).addSignature(sender, signature, payload);
   if (!Buffer.from(reconstructed.toU8a()).equals(bytes))
     throw new Error('Signed extrinsic extensions do not match the verified signing document.');
+  return { decoded, payload, genesis, sender };
+}
+
+export async function verifyNativePreparation(api, preparation) {
+  const { decoded, payload, genesis, sender } = await verifySignedPreparation(api, preparation, 'oasis.polkadot.native-transfer.preparation.v2');
   let transfer = decoded.method, memo = null;
   if (transfer.section === 'utility' && transfer.method === 'batchAll') {
     const calls = transfer.args[0];
