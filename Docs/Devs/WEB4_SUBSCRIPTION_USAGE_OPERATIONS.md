@@ -137,6 +137,8 @@ Invariants:
 
 Denial codes: `GRANT_NOT_FOUND`, `GRANT_SCOPE_MISMATCH`, `GRANT_REVOKED`, `GRANT_EXPIRED`, `GRANT_ENDPOINT_NOT_ALLOWED` (403); `GRANT_OPERATION_CAP_EXCEEDED`, `GRANT_BUDGET_EXCEEDED` (402); `GRANT_LIMIT_REACHED` (409).
 
+Consumers admit through `Web4UsageExecution.BeginDelegatedAsync` (Core), which verifies that WEB4 bound the reservation to the expected grant owner and then runs the normal outbox claim, `usage/start` and settlement. WEB6 uses it for scheduled agent runs (`/v1/schedules`, grant endpoint `SCHEDULE /v1/schedules run`); see `WEB6/docs/SUBSCRIPTION_USAGE_PROTOCOL.md` § Delegated (unattended) execution.
+
 Coverage: `ONODE/Tests/SubscriptionLedger.ProtocolTests/DelegatedGrantLedgerTests.cs` runs against a disposable replica set (`SUBSCRIPTION_TEST_MONGODB_URI`).
 
 ## Operator actions
