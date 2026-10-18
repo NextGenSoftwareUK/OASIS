@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Registered provider reader composition — Core db4cccc
+
+`RegisteredNativeFeeReader` is a non-owning view of exactly one existing registered provider: same provider instance receives recovery calls; no new provider/activation/key lookup/disposal. Exact provider type, reported reader provider/chain/coverage and bounded registry inventory checked; missing/duplicate/mismatched readers fail startup. Metadata drift after startup also refuses lookup. Core configuration accepts an explicit lazy registry snapshot callback; previous four-argument overload remains for binary/source compatibility and manual reader registration. Mixing manual and registry readers cannot create two recovery owners: existing readiness rejects duplicates. Absent admission configuration never inspects the registry.
+
+WEB4 and WEB7–WEB10 now pass ProviderManager.GetAllRegisteredProviders (thread-safe non-activating snapshot). A host must already have passively registered the correct provider before hosted-service resolution; the adapter must NOT invoke BootLoader/GetAndActivate to repair an empty registry. Existing boot activation ordering, bootstrap identity/karma and production configuration remain separate gates before paid routes can be enabled. WEB5/WEB6 are not wired by this change.
+
+Actual Sui Kestrel HTTP/native write/delete/original-fee recovery/restarted-delivery fixture now uses this reader view for readiness and recovery:5/5pass1m14s, TRX SHA256 `B30600D201E9B946B4D70A9FC5041F81FCFE97E7C7894C7C59BDC4D65FD397CC`. Controlled HTTP auth/authority/syntheticprice remain, not production JWT/market/Railway proof. Core registration subset31/31pass119ms SHA `EA87B64BBE1C381AC627B35238962AB5CCC3C9CE8F5D48A8172A537038809797`; final rebuilt full289/289pass35s/0skip/runnerexit0 SHA `50708705DB55D6C092E0BA79313AED6444D81A2A1C6BC7BE91D93CAA12FFDF96`. Initial test-only xUnit async assertion compile error fixed before successful execution. No production funding/fee tariff change.
+
 ## Cosmos final-fee gap: exact scope, not a coverage-label change
 
 Current `SdkBridge/transaction-results.mjs:cosmosNativeFeeReceipt` verifies committed hash against exact signed bytes, one ante fee event, actual payer/granter, denomination amounts equal the signed fee, and execution/gas/height identity. `CosmosBlockChainOASIS.Preparation.cs` retains this as AnteDeductionOnly. It does not measure post-handler refunds or tips as final net charges. The immutable `ForReviewedStandardSdkChain` profile establishes an exact-chain maximum-fee assumption, NOT refund/final-fee evidence.

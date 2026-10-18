@@ -105,7 +105,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 bool subscriptionUsageEnabled = string.Equals(builder.Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
-var storageUsagePolicy=builder.Services.AddConfiguredStorageAdmission(builder.Configuration,subscriptionUsageEnabled,NextGenSoftware.OASIS.Web8.WebAPI.Middleware.SubscriptionPolicy.Resolve);
+var storageUsagePolicy=builder.Services.AddConfiguredStorageAdmission(builder.Configuration,subscriptionUsageEnabled,NextGenSoftware.OASIS.Web8.WebAPI.Middleware.SubscriptionPolicy.Resolve,
+    ()=>NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetAllRegisteredProviders());
 if (subscriptionUsageEnabled)
     builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB8", storageUsagePolicy);
 

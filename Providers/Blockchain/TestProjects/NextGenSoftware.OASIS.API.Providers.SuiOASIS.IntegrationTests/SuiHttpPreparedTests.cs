@@ -92,7 +92,8 @@ public class SuiHttpPreparedTests
         var builder=WebApplication.CreateBuilder();builder.Logging.ClearProviders();builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddSingleton<IUsageOutboxStore>(store);builder.Services.AddSingleton<IUsageReservationAuthority>(authority);builder.Services.AddSingleton(options);
         builder.Services.AddSingleton<Web4UsageExecution>();builder.Services.AddSingleton<IPreparedStorageAdmissionFactory>(factory);
-        builder.Services.AddSingleton<IPreparedNativeFeeEvidenceReader>(provider);
+        var registeredReader=new RegisteredNativeFeeReader(Core.Enums.ProviderType.SuiOASIS,settings.GetProperty("chainId").GetString()!,new[]{provider});
+        builder.Services.AddSingleton<IPreparedNativeFeeEvidenceReader>(registeredReader);
         builder.Services.AddSingleton<IHostedService>(services=>new StorageAdmissionRecoveryReadiness(
             new[]{(Provider:"SuiOASIS",Chain:settings.GetProperty("chainId").GetString()!)},services.GetServices<IPreparedNativeFeeEvidenceReader>()));
         await using var app=builder.Build();string? operationId=null;var endpoints=0;var complete=false;
@@ -109,13 +110,13 @@ public class SuiHttpPreparedTests
             var read=await provider.LoadHolonAsync(holon.Id,loadChildren:false);Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(holon.Name,read.Result.Name);
             var removed=await router.RouteRequestAsync<IHolon>(new StorageOperationRequest{Operation="DeleteHolon",HolonId=holon.Id,SoftDelete=false,PreferredProvider=ProviderType.SuiOASIS});Assert.IsFalse(removed.IsError,removed.Message);
             var original=await store.GetAsync(operationId,token);Assert.AreEqual(2,original.ProviderAttempts.Count);
-            var resolver=new PreparedNativeUsageRecoveryResolver(store,new[]{(IPreparedNativeFeeEvidenceReader)provider});Assert.IsNull(await resolver.ResolveAsync(original,token));
+            var resolver=new PreparedNativeUsageRecoveryResolver(store,new[]{(IPreparedNativeFeeEvidenceReader)registeredReader});Assert.IsNull(await resolver.ResolveAsync(original,token));
             await context.Response.WriteAsync("native execution complete",token);
         });
         try{
             await app.StartAsync(token);var url=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
             Assert.IsNotNull(app.Services.GetServices<IHostedService>().OfType<StorageAdmissionRecoveryReadiness>().Single());
-            Assert.AreSame(provider,app.Services.GetRequiredService<IPreparedNativeFeeEvidenceReader>());
+            Assert.AreSame(registeredReader,app.Services.GetRequiredService<IPreparedNativeFeeEvidenceReader>());
             Assert.IsFalse(provider.IsProviderActivated);Assert.AreEqual(0,prices.Calls);
             Console.WriteLine("REAL_NATIVE_READER_STARTUP_VERIFIED without activation, quote fetch or native operation.");
             using var client=new HttpClient{BaseAddress=new Uri(url),Timeout=TimeSpan.FromMinutes(3)};
