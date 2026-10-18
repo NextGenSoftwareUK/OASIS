@@ -64,6 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         }
 
         public InventoryItem GetInventoryItem(){
+            ValidateExtendedValue(this.ExtendedValueJson);
             InventoryItem item = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<InventoryItem>(this.ExtendedValueJson)
                 ?? throw new System.IO.InvalidDataException("Stored inventory extension must be a JSON object.");
             item.Id = this.ItemId;
@@ -92,6 +93,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             item.LastUsedOn = this.LastUsedOn;
             item.HolonType = this.HolonType;
             return item;
+        }
+
+        private static void ValidateExtendedValue(string json)
+        {
+            Newtonsoft.Json.Linq.JObject value;
+            try { value=Newtonsoft.Json.Linq.JObject.Parse(json); }
+            catch(Newtonsoft.Json.JsonReaderException cause)
+            { throw new System.IO.InvalidDataException("Stored inventory extension must be a JSON object.",cause); }
+            foreach(var property in value.Properties()){
+                var name=property.Name;
+                if(System.Array.Exists(RelationalColumnNames,column=>string.Equals(column,name,System.StringComparison.OrdinalIgnoreCase))
+                    || string.Equals(name,"Properties",System.StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(name,"MetaData",System.StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(name,"$type",System.StringComparison.OrdinalIgnoreCase))
+                    throw new System.IO.InvalidDataException("Stored inventory extension contains a field owned by another storage contract: "+name);
+                var member=typeof(InventoryItem).GetProperty(name,System.Reflection.BindingFlags.Instance
+                    | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.IgnoreCase);
+                if(member!=null && NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.IsNavigationMember(member.PropertyType))
+                    throw new System.IO.InvalidDataException("Stored inventory extension contains navigation: "+name);
+            }
         }
         
     }
