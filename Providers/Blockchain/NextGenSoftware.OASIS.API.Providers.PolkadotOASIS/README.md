@@ -4,6 +4,8 @@ Polkadot adapter under implementation. RPC connectivity is verified; storage, si
 
 ## Current implementation and verification limits
 
+2026-10-18 ordinary native sync/async transfers now have real local Substrate ledger proof, including Unicode memo and exact recipient/sender/actual-fee deltas. Two native rows pass and the reusable runner repeats against the same runtime/ledger/funding. This uses a real flushed-file execution owner, not production Mongo/hosted quota/billing; local development finality is not public consensus/network certification. [Operator guide](../../../Docs/Devs/POLKADOT_PROVIDER_NATIVE_TESTS.md) contains pinned resources, commands, pending-outcome fences and remaining gates. Other advertised provider interfaces remain unfinished.
+
 ### Explicit original submission and receipt evidence
 
 `ReadOriginalNativeOutcomeAsync(preparation, fromBlockNumber, maximumBlocks, token)` now independently verifies the retained original, then scans an explicit caller-selected finalized range (1–128blocks/call, default16). It returns either the exact original's receipt with canonical AccountId32 fee-payer binding, or an unknown result with `nextBlockNumber`, snapshot height and inspected count. Resume that cursor read-only; absence through a snapshot is not rejection/expiry/no-fees/replay permission. Caller range/original are captured before awaits. This is a resumable range reader, not a full-history index or automatic settlement worker; callers must retain the original and cursor. Current-runtime verification still cannot independently verify historical signing metadata after a runtime upgrade. RPC archive/pruning errors remain errors, not missing-transaction results.
