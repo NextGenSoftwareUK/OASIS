@@ -388,10 +388,16 @@ public sealed partial class TronNativeTransferClient
         return true;
     }
 
-    public async Task<System.Collections.Generic.IReadOnlyList<Core.Interfaces.Wallet.Responses.IWalletTransaction>> ReadWalletTransactionsAsync(
+    public Task<System.Collections.Generic.IReadOnlyList<Core.Interfaces.Wallet.Responses.IWalletTransaction>> ReadWalletTransactionsAsync(
         string ownerAddress, System.Collections.Generic.IEnumerable<string> transactionIds, CancellationToken cancellationToken = default)
+        =>ReadWalletTransactionsAsync(ownerAddress,transactionIds,null,null,cancellationToken);
+
+    public async Task<System.Collections.Generic.IReadOnlyList<Core.Interfaces.Wallet.Responses.IWalletTransaction>> ReadWalletTransactionsAsync(
+        string ownerAddress,System.Collections.Generic.IEnumerable<string> transactionIds,ulong? fromBlock,ulong? toBlock,CancellationToken cancellationToken=default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if(fromBlock.HasValue&&toBlock.HasValue&&fromBlock>toBlock)
+            throw new ArgumentOutOfRangeException(nameof(fromBlock),"TRON history block range is reversed.");
         var owner = _wallet.ParseAddress(ownerAddress);
         await VerifyNetworkAsync(cancellationToken);
         var items = new System.Collections.Generic.List<Core.Interfaces.Wallet.Responses.IWalletTransaction>();
@@ -403,7 +409,11 @@ public sealed partial class TronNativeTransferClient
             if (!ValidateTransactionIdentity(transaction, id.Value)) throw new InvalidOperationException("Indexed transaction is not available from the solidified node.");
             var receipt = await _wallet.GetSolidityProtocol().GetTransactionInfoByIdAsync(id, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
             ValidateSolidifiedReceiptIdentity(receipt, id.Value);
-            items.Add(MapWalletTransaction(transaction, receipt, owner));
+            var row=MapWalletTransaction(transaction,receipt,owner);
+            // The index supplies candidate IDs only. Its block_number is NOT authoritative;
+            // filter only after exact transaction, solidified receipt and wallet verification.
+            var block=(ulong)receipt.BlockNumber;
+            if((!fromBlock.HasValue||block>=fromBlock.Value)&&(!toBlock.HasValue||block<=toBlock.Value))items.Add(row);
         }
         return items;
     }
