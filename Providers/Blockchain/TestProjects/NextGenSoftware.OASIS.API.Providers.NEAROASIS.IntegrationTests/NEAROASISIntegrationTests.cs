@@ -281,14 +281,15 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
         public async Task OfficialContract_PerformsNftLifecycle()
         {
             var marker = Guid.NewGuid().ToString("N");
+            var title=$"NEAR NFT Café 🌳 東京 {marker}";
             var minted = await _provider.MintNFTAsync(new MintWeb3NFTRequest
             {
-                Title = $"NEAR NFT {marker}", Symbol = "OASIS", JSONMetaData = $"{{\"marker\":\"{marker}\"}}",
+                Title = title, Symbol = "OASIS", JSONMetaData = $"{{\"marker\":\"{marker}\"}}",
                 MetaData = new System.Collections.Generic.Dictionary<string, string> { ["marker"] = marker }
             });
             Assert.IsFalse(minted.IsError, minted.Message);
             var tokenId = minted.Result.Web3NFT.NFTTokenAddress;
-            Assert.AreEqual($"NEAR NFT {marker}", (await _provider.LoadOnChainNFTDataAsync(tokenId)).Result.Title);
+            Assert.AreEqual(title, (await _provider.LoadOnChainNFTDataAsync(tokenId)).Result.Title);
             var locked = await _provider.LockNFTAsync(new LockWeb3NFTRequest { NFTTokenAddress = tokenId });
             Assert.IsFalse(locked.IsError, locked.Message);
             Assert.AreEqual("True", locked.Result.Web3NFT.MetaData["near:locked"]);
