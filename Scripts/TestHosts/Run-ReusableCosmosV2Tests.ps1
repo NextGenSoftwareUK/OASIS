@@ -1,19 +1,20 @@
-param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate','EscrowDeploy')][string]$Mode = 'Verify')
+param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate','EscrowDeploy','EscrowLock')][string]$Mode = 'Verify')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveCosmos'
-$integrationModes=@('IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy')
+$integrationModes=@('IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy','EscrowLock')
 if ($Mode -eq 'Verify' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json'))) {
     throw 'Existing Cosmos replication intent requires reconciliation; refusing replay.'
 }
 if($Mode -eq 'EscrowDeploy' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'escrow-deployment-current.json'))){throw 'Escrow already deployed; reuse its descriptor, never upload another copy.'}
-if($Mode -in @('IndependentPrepared','IndependentRouting','ReviewedFees','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy')){
+if($Mode -in @('IndependentPrepared','IndependentRouting','ReviewedFees','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy','EscrowLock')){
     if((Get-FileHash -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json') -Algorithm SHA256).Hash -ne '9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81'){throw 'Original intent changed; re-review isolation before native testing.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'prepared-native-pending.json')){throw 'Independent original-attempt journal requires reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'independent-routing-pending.json')){throw 'Independent routing original requires reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'routing-cleanup-pending.json')){throw 'Original routing cleanup requires reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'reviewed-final-fee-pending.json')){throw 'Original reviewed-fee attempts require reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'reviewed-bank-pending.json')){throw 'Original reviewed bank transfers require reconciliation; no rerun allowed.'}
+    if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'reviewed-escrow-pending.json')){throw 'Original escrow attempt requires inspection; never replay.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'reviewed-token-pending.json')){throw 'Original reviewed token operations require reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'reviewed-nft-pending.json')){throw 'Original reviewed NFT operations require reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'escrow-deployment-pending.jsonl')){throw 'Original escrow deployment requires reconciliation; never reupload.'}
@@ -132,6 +133,9 @@ try {
         Write-Output $escrowEvidenceJson
         if($Mode -eq 'EscrowEstimate' -and ($estimateExit -ne 0 -or !$evidence.uploadEstimate.ok)){throw 'Read-only upload simulation failed; no deployment authorized.'}
         if($Mode -eq 'EscrowInspect' -and !$evidence.verifiedProtocol){throw 'Retained contract does not establish escrow protocol1; inspect evidence before any escrow mutation.'}
+    }elseif($Mode -eq 'EscrowLock'){
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosReviewedFees -CosmosReviewScenario LockEscrow
+        if($LASTEXITCODE -ne 0){throw 'Actual escrow lock/release requires inspection; preserve originals.'}
     }elseif($Mode -eq 'ReviewedNFT'){
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosReviewedNFT
         if($LASTEXITCODE -ne 0){throw 'Actual NFT interface verification failed; preserve originals and ownership journal.'}
