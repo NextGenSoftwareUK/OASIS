@@ -9,6 +9,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 [TestClass]
 public class CosmosAcknowledgedWriteTests
 {
+    [DataTestMethod][DataRow("payload")][DataRow("missing")][DataRow("id")][DataRow("malformed")]
+    public async Task ReplacementRequiresCanonicalAcknowledgementFromSdk(string mode)
+    {
+        var entity=new Avatar{Id=Guid.NewGuid(),FirstName="submitted",ProviderUniqueStorageKey=null!};
+        var document=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(entity));
+        document["id"]=entity.Id.ToString();
+        if(mode=="payload")document["FirstName"]="changed";
+        if(mode=="id")document["id"]=Guid.NewGuid().ToString();
+        var body=mode=="missing"?"":mode=="malformed"?"not-json":document.ToString();
+        var response=new ResponseMessage(System.Net.HttpStatusCode.OK){Content=new MemoryStream(System.Text.Encoding.UTF8.GetBytes(body))};
+        var container=new Mock<Container>();
+        container.Setup(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(new CosmosDbClient(container.Object));
+        var failure=await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(()=>new AvatarRepository(factory.Object).UpdateAsync(entity));
+        Assert.IsTrue(failure.Acknowledged);Assert.AreEqual(entity.Id.ToString(),failure.DocumentId);
+        Assert.IsInstanceOfType<InvalidDataException>(failure.InnerException);Assert.IsNull(entity.ProviderUniqueStorageKey);
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task EquivalentAcknowledgementIgnoresOnlyCosmosSystemProperties(bool create)
     {
@@ -70,7 +88,7 @@ public class CosmosAcknowledgedWriteTests
             :new CosmosException("owned404",System.Net.HttpStatusCode.NotFound,1002,"owned",0);
         var client=new Mock<ICosmosDbClient>();
         client.Setup(c=>c.ReplaceDocumentAsync(id.ToString(),It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()))
-            .Returns((string _,object value,PartitionKey? __,CancellationToken ___)=> {sent=value;entity.FirstName="changed";return Task.FromException(cause);});
+            .Returns((string _,object value,PartitionKey? __,CancellationToken ___)=> {sent=value;entity.FirstName="changed";return Task.FromException<string>(cause);});
         var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
         var repository=new AvatarRepository(factory.Object);
         Exception failed=uncertain ? await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(()=>repository.UpdateAsync(entity))
