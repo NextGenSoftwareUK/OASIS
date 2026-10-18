@@ -240,7 +240,7 @@ try{
     }elseif($MongoProjection -or $MongoTransactions -or $MongoGraphReconcile){
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION=$env:SUBSCRIPTION_TEST_MONGODB_URI
         $mongoProject=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj'
-        $mongoFilter=if($MongoGraphReconcile){'FullyQualifiedName~ReconcileAcknowledgedRootOnlyFixture'}elseif($MongoTransactions){'Category!=ExternalPrimaryTermination&Category!=OwnedFixtureReconciliation&FullyQualifiedName!~AcknowledgedOperationRemainsIdempotentAcrossPrimaryElection'}else{'FullyQualifiedName~HostedMongoProjectionContractTests'}
+        $mongoFilter=if($MongoGraphReconcile){'FullyQualifiedName~ReconcileAcknowledgedRootOnlyFixture'}elseif($MongoTransactions){'Category!=ExternalPrimaryTermination&Category!=OwnedFixtureReconciliation&FullyQualifiedName!~AcknowledgedOperationRemainsIdempotentAcrossPrimaryElection'}else{'FullyQualifiedName~HostedMongoProjectionContractTests|FullyQualifiedName~DirectMongoAvatarDetailContractTests'}
         $mongoReport=if($MongoGraphReconcile){'trx;LogFileName=mongo-graph-reconciliation-current.trx'}elseif($MongoTransactions){'trx;LogFileName=mongo-single-node-transactions-current.trx'}else{'trx;LogFileName=mongo-projection-current.trx'}
         $mongoStarted=[DateTime]::UtcNow
         & dotnet test $mongoProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter $mongoFilter --logger $mongoReport --results-directory $work -v:q -clp:ErrorsOnly
@@ -249,7 +249,7 @@ try{
         if($mongoFile.LastWriteTimeUtc -lt $mongoStarted){throw 'Mongo native report is stale.'}
         [xml]$mongoEvidence=Get-Content -LiteralPath $mongoFile.FullName -Raw
         $mongoCounts=$mongoEvidence.TestRun.ResultSummary.Counters
-        $expectedMongo=if($MongoTransactions){46}else{1}
+        $expectedMongo=if($MongoTransactions){48}elseif($MongoGraphReconcile){1}else{3}
         if([int]$mongoCounts.total -ne $expectedMongo -or [int]$mongoCounts.passed -ne $expectedMongo -or [int]$mongoCounts.notExecuted -ne 0){throw 'Expected complete selected Mongo native suite without skips.'}
     }elseif($TronPreparedStorage){
         $tronProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj'
