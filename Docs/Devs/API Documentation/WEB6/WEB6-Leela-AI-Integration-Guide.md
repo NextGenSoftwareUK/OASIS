@@ -426,6 +426,39 @@ Start with Phase 1 (endpoint swap) this week to capture immediate savings, then 
 
 ---
 
+## WEB6 and Hermes Agent
+
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research, MIT) is a self-improving agent runtime: a terminal app plus a messaging gateway with its own memory, skills and tool loop. WEB6 sits one layer lower: it is the model gateway, memory, reasoning and billing infrastructure that agents run on. You can use either, or both.
+
+### Capability comparison
+
+| Capability | Hermes Agent | WEB6 |
+|---|---|---|
+| Self-improving skills | Writes skills after tasks and refines them in use | **SkillOpt**: per-agent, per-task-category skill documents evolved by scored epochs (`/v1/reasoning-network/agents/{id}/skills/{category}/evolve`) |
+| Memory | One agent's local store (SQLite + FTS5, Honcho user model) | **Holonic Memory**: Session → User → Group → … → Earth hierarchy, membrane propagation rules, semantic search, TTL retention, plus Mem0 / Zep / Letta / LangMem / Graphiti / Qdrant / Weaviate adapters |
+| Reasoning reuse | — | **Holonic BRAID**: shared reasoning graphs reused across sessions and users |
+| Multi-agent | Isolated parallel subagents | **FAHRN**: Serial / Parallel / Debate / Voting / Decomposed dispatch, cost/quality/karma scoring, loop detection, budget guard |
+| Models | A handful of providers, selected manually | 98 integrated providers, cost/latency/quality routing, failover, semantic caching |
+| Code execution | Local, Docker, SSH, Modal, Daytona, Singularity, Vercel Sandbox | `POST /v1/code/execute` on E2B, Modal, Daytona or Judge0 |
+| Voice | Voice-memo transcription | `POST /v1/audio/transcriptions` and `/v1/audio/speech` |
+| Tools / interop | MCP client | 508 MCP tools at `/mcp`, plus A2A, ACP, ANP, LangGraph, OpenAI Agents and more |
+| Multi-tenant identity and billing | None (single-user design) | WEB4 avatars, per-avatar key vault, budgets, metered usage, DIDs / verifiable credentials |
+| Packaged chat app | Yes (`hermes` TUI) | No: WEB6 is an API |
+| Messaging channels (WhatsApp, Telegram, Slack…) | Yes | Not yet (on the WEB6 roadmap) |
+| Scheduled / unattended agent runs | Built-in cron | Not yet (on the WEB6 roadmap) |
+
+### Which to choose for Leela
+
+- **WEB6 directly** is the stronger fit for a multi-user therapy product: client data stays in a per-avatar model with retention policies and consent-gated propagation, and the cost savings above apply to every call.
+- **Hermes on top of WEB6** suits you if you want Hermes's chat channels or its agent-loop UX. Point Hermes at WEB6 for models and tools:
+  - **Models:** configure WEB6 as Hermes's custom OpenAI-compatible endpoint: base URL `https://api.web6.oasisomniverse.one/v1`, API key = your OASIS bearer token. Every Hermes call then gets WEB6 routing, BRAID and caching.
+  - **Tools and documents:** add `https://api.web6.oasisomniverse.one/mcp` as an MCP server in Hermes (with the same bearer). Hermes can then search Leela's Holonic Memory corpus.
+  - **Per-client data:** keep sensitive session memory in WEB6 holons, not in Hermes's local SQLite store, so it stays under per-avatar retention rules.
+
+> Hermes's custom-endpoint and MCP settings have not yet been verified end-to-end against WEB6 authentication. Test in a non-production environment first.
+
+---
+
 ## Monitoring Costs with Prometheus + Grafana
 
 WEB6 exposes a Prometheus metrics endpoint at `GET /metrics`. Scrape it to build real-time cost dashboards in Grafana.
