@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Neo4j.Driver;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 {
@@ -40,8 +41,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             try
             {
                 // REAL Neo4j implementation for loading holons for parent by ID
-                if (maxChildDepth < 0 || curentChildDepth < 0 || !Enum.IsDefined(typeof(HolonType), type))
+                if (version < 0 || maxChildDepth < 0 || curentChildDepth < 0 || !Enum.IsDefined(typeof(HolonType), type))
                     throw new ArgumentException("Defined holon type and nonnegative read depths are required.");
+                if(version>0)return await ReadHistoricalHolonQueryAsync(version,h=>h.ParentHolonId==id && (type==HolonType.All || h.HolonType==type),
+                    loadChildren && recursive && (maxChildDepth==0 || curentChildDepth+1<maxChildDepth),true,maxChildDepth,curentChildDepth+1,continueOnError);
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
@@ -90,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             // First load the parent holon to get its ID
-            var parentResult = await LoadHolonAsync(providerKey, false, false, 0, continueOnError, loadChildrenFromProvider, version);
+            var parentResult = await LoadHolonAsync(providerKey, false, false, 0, continueOnError, loadChildrenFromProvider, 0);
             if (parentResult.IsError || parentResult.Result == null)
             {
                 return new OASISResult<IEnumerable<IHolon>>
@@ -128,8 +131,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             try
             {
                 // REAL Neo4j implementation for loading holons by metadata pairs
-                if (maxChildDepth < 0 || curentChildDepth < 0)
+                if (version < 0 || maxChildDepth < 0 || curentChildDepth < 0)
                     throw new ArgumentException("Nonnegative read depths are required.");
+                if(version>0)
+                {
+                    MetadataLookupQuery(metaKeyValuePairs,metaKeyValuePairMatchMode,type);
+                    return await ReadHistoricalHolonQueryAsync(version,h=>(type==HolonType.All || h.HolonType==type) && StoredRecordSearch.MatchesMetadata(h.MetaData,metaKeyValuePairs,metaKeyValuePairMatchMode),
+                        loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError);
+                }
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
@@ -182,8 +191,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             try
             {
                 // REAL Neo4j implementation for loading all holons
-                if (maxChildDepth < 0 || curentChildDepth < 0 || !Enum.IsDefined(typeof(HolonType), type))
+                if (version < 0 || maxChildDepth < 0 || curentChildDepth < 0 || !Enum.IsDefined(typeof(HolonType), type))
                     throw new ArgumentException("Defined holon type and nonnegative read depths are required.");
+                if(version>0)return await ReadHistoricalHolonQueryAsync(version,h=>type==HolonType.All || h.HolonType==type,
+                    loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError);
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");

@@ -5393,3 +5393,7 @@ Cosmos3known committed native ante-fee receipts (3939/3443/3443stake units) matc
 
 Opt-in graph writes now atomically archive replaced holons alongside current snapshots and graph edges using existing shared version invariants. Guid/provider-key single-root historical reads support exact numbered versions; children retain independent current versions. Hard-delete removes that root's history, not descendants. Native 71/71 and unit 76/76 passed; matching producer/consumer DLL SHA256 134EFD904800B689B008C277FA4528B2C68C9D30074C37D0E63C89D7792B4AEF. Full report hashes and remaining gates are in HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md. All/parent/metadata/search/export historical surfaces, soft-delete history and concurrency/recovery remain incomplete. No full-provider certification or merge.
 
+# 2026-10-18 Neo4j historical list queries
+
+All/parent/metadata loaders now apply positive versions to selected root snapshots and historical predicates, then load independently current descendants. Shared native archive reader and shared metadata matcher reused; parent key resolves current parent identity independently of child version. Expanded native history cases pass within71/71 suite36s; unit76/76pass319ms, matching DLL EBF49BB2C006E1F63D17038B8FF6E886EDC4702C394FFD6BA6379A44021F17FE. Exact hashes/limitations in current release gates. Search/export/credentials, soft-delete, concurrency/recovery and full-interface/release gates remain open; scan/N+1 history lookup performance not certified.
+

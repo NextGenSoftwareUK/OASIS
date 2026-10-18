@@ -22,6 +22,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
             var marker=Guid.NewGuid().ToString("N");
             var root=new Holon{Id=Guid.NewGuid(),Name=$"root-v1-{marker}"};
+            root.MetaData["history-marker"]=marker;
             var child=new Holon{Id=Guid.NewGuid(),Name=$"child-v1-{marker}"};
             var grandchild=new Holon{Id=Guid.NewGuid(),Name=$"grandchild-v1-{marker}"};
             root.Children.Add(child);child.Children.Add(grandchild);
@@ -34,6 +35,7 @@ public partial class Neo4jNativeAvatarTests
             grandchild.Name=$"grandchild-v2-{marker}";
             Assert.IsFalse((await provider.SaveHolonAsync(grandchild,saveChildren:false)).IsError);
             root.Name=$"root-v2-{marker}";
+            root.MetaData["history-marker"]="changed";
             Assert.IsFalse((await provider.SaveHolonAsync(root,saveChildren:false)).IsError);
             root.Name=$"root-v3-{marker}";
             Assert.IsFalse((await provider.SaveHolonAsync(root,saveChildren:false)).IsError);
@@ -49,6 +51,19 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse(byKey.IsError,byKey.Message);Assert.AreEqual($"root-v1-{marker}",byKey.Result.Name);
             Assert.AreEqual(0,byKey.Result.Children.Count());
             Assert.AreEqual(3,(await provider.LoadHolonAsync(root.Id)).Result.Version);
+            var all=synchronous?provider.LoadAllHolons(loadChildren:false,version:1):await provider.LoadAllHolonsAsync(loadChildren:false,version:1);
+            Assert.IsFalse(all.IsError,all.Message);Assert.AreEqual(3,all.Result.Count());
+            Assert.AreEqual($"root-v1-{marker}",all.Result.Single(h=>h.Id==root.Id).Name);
+            var metadata=synchronous?provider.LoadHolonsByMetaData("history-marker",marker,version:1):await provider.LoadHolonsByMetaDataAsync("history-marker",marker,version:1);
+            Assert.IsFalse(metadata.IsError,metadata.Message);Assert.AreEqual(root.Id,metadata.Result.Single().Id);
+            Assert.AreEqual(2,metadata.Result.Single().Children.Single().Version);
+            var children=synchronous?provider.LoadHolonsForParent(root.Id,version:1):await provider.LoadHolonsForParentAsync(root.Id,version:1);
+            Assert.IsFalse(children.IsError,children.Message);Assert.AreEqual(1,children.Result.Single().Version);
+            Assert.AreEqual(2,children.Result.Single().Children.Single().Version);
+            var keyedChildren=await provider.LoadHolonsForParentAsync(root.Id.ToString(),version:2);
+            Assert.IsFalse(keyedChildren.IsError,keyedChildren.Message);Assert.AreEqual(2,keyedChildren.Result.Single().Version);
+            var absent=await provider.LoadAllHolonsAsync(version:99);
+            Assert.IsFalse(absent.IsError,absent.Message);Assert.AreEqual(0,absent.Result.Count());
             Assert.IsTrue((await provider.LoadHolonAsync(root.Id,version:99)).IsError);
             Assert.IsTrue((await provider.LoadHolonAsync(root.Id,version:-1)).IsError);
             Assert.AreEqual(2L,(await(await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon',RecordId:$id}) RETURN count(v) AS count",new{id=root.Id.ToString()})).SingleAsync())["count"].As<long>());
