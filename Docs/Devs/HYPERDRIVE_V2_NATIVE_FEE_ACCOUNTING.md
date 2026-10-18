@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## WEB5/WEB6 explicit admission wiring
+
+WEB5 `50838732e569b961656c90c4931e8bcc30705aee` and WEB6 `4445855724d06dca80767b5e9b43f799b33294ea` add shared exact storage policy selection before ledger registration, non-owning registered reader composition, prepared storage middleware AFTER ledger middleware, and passive admitted boot. WEB5 admitted startup errors are fatal rather than swallowed by its ordinary boot error logger; lost admitted boot returns503 before request-time ordinary boot. No automatic routes, networks, tariffs or env settings enabled.
+
+WEB6 exact native routes bypass AI-only ProviderUsageScope/catalogue access. Native-only operations never go to the AI job recovery resolver, even once all native fees are recorded. Mixed native+AI recovery remains supported: AI resolver waits for the native owner's receipt, then queries only original supported AI job IDs and preserves the native receipt/cost. Unmeasured native attempts are not reinterpreted as AI jobs. Existing shared worker owns resolver composition; no parallel native settlement implementation added.
+
+Both hosts compile against current task Core/BootLoader, using existing source checkouts via junctions (no copies); WEB6 recovery/direct-adapter console suite57assertions passed, including8new boundary assertions. This is controlled component evidence, NOT hosted/native WEB5/6 full authentication/fee/settlement acceptance. Bootstrap writer/JWT/karma integration, background work and all provider final-fee/native acceptance gates remain mandatory before enabling routes or merging. Bases are existing Development commits5992a8f/1311856, newer than historical task pins; their already-merged history is included in the new exact pins, not silently cherry-picked away.
+
 ## Explicit registration-only boot for admitted hosts
 
 Admitted boot additionally validates actual registration completion across the same six lists as RegisterProvidersInAllLists: every requested type must resolve to exactly one inactive IOASISStorageProvider, and an empty requested inventory is invalid. This is necessary because the older helper checks a result wrapper for null but can ignore its error/missing Result. No provider activation, forced re-registration or alternate boot is attempted to repair failure. Ordinary/legacy helper behavior remains unchanged and is a documented gap, not accepted admitted readiness.
