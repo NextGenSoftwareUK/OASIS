@@ -42,15 +42,15 @@ public partial class NEAROASIS
 
     public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().GetAwaiter().GetResult();
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) => LoadAvatarRecordAsync(id);
+    public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) => LoadAvatarRecordAsync(id, version);
     public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
     {
         if (Guid.TryParse(providerKey, out var id))
-            return await LoadAvatarRecordAsync(id);
+            return await LoadAvatarRecordAsync(id, version);
 
-        var all = await LoadAllAvatarRecordsAsync();
+        var all = await LoadAllAvatarRecordsAsync(version);
         if (all.IsError) return new OASISResult<IAvatar>(null) { IsError = true, Message = all.Message, Exception = all.Exception };
         var avatar = all.Result?.FirstOrDefault(item =>
             item.ProviderUniqueStorageKey != null &&
@@ -67,7 +67,7 @@ public partial class NEAROASIS
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
     {
-        var all = await LoadAllAvatarRecordsAsync();
+        var all = await LoadAllAvatarRecordsAsync(version);
         if (all.IsError) return new OASISResult<IAvatar>(null) { IsError = true, Message = all.Message, Exception = all.Exception };
         var avatar = all.Result?.FirstOrDefault(item => string.Equals(item.Email, avatarEmail, StringComparison.OrdinalIgnoreCase));
         return new OASISResult<IAvatar>(avatar) { Message = avatar == null ? $"Avatar email '{avatarEmail}' was not found on NEAR." : "Avatar loaded from NEAR contract storage." };
@@ -78,7 +78,7 @@ public partial class NEAROASIS
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
     {
-        var all = await LoadAllAvatarRecordsAsync();
+        var all = await LoadAllAvatarRecordsAsync(version);
         if (all.IsError) return new OASISResult<IAvatar>(null) { IsError = true, Message = all.Message, Exception = all.Exception };
         var avatar = all.Result?.FirstOrDefault(item => string.Equals(item.Username, avatarUsername, StringComparison.OrdinalIgnoreCase));
         return new OASISResult<IAvatar>(avatar) { Message = avatar == null ? $"Avatar username '{avatarUsername}' was not found on NEAR." : "Avatar loaded from NEAR contract storage." };
@@ -91,6 +91,6 @@ public partial class NEAROASIS
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).GetAwaiter().GetResult();
     public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true) => DeleteAvatarRecordAsync(id, softDelete);
     public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).GetAwaiter().GetResult();
-    public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0) => LoadAllAvatarRecordsAsync();
+    public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0) => LoadAllAvatarRecordsAsync(version);
     public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).GetAwaiter().GetResult();
 }

@@ -340,6 +340,58 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual(recipient, (await _provider.LoadOnChainNFTDataAsync(tokenId)).Result.SendToAddressAfterMinting);
         }
 
+        [TestMethod]
+        public async Task Storage_VersionsRootsSelectorsAndIndependentChildren()
+        {
+            _provider.IsVersionControlEnabled = true;
+            var marker = Guid.NewGuid().ToString("N");
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = $"v1-{marker}", Email = $"v1-{marker}@near.test" };
+            var oldUsername = avatar.Username;
+            var oldEmail = avatar.Email;
+            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.AreEqual(1, avatar.Version);
+            avatar.Username = $"v2-{marker}"; avatar.Email = $"v2-{marker}@near.test";
+            var updated = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(updated.IsError, updated.Message);
+            Assert.AreEqual(2, avatar.Version);
+            Assert.AreEqual(oldUsername, (await _provider.LoadAvatarAsync(avatar.Id, 1)).Result.Username);
+            Assert.AreEqual(oldEmail, _provider.LoadAvatarByProviderKey(avatar.Id.ToString("D"), 1).Result.Email);
+            Assert.AreEqual(avatar.Id, (await _provider.LoadAvatarByUsernameAsync(oldUsername, 1)).Result.Id);
+            Assert.AreEqual(avatar.Id, (await _provider.LoadAvatarByEmailAsync(oldEmail, 1)).Result.Id);
+            Assert.IsTrue((await _provider.LoadAllAvatarsAsync(1)).Result.Any(item => item.Id == avatar.Id));
+
+            var detail = new AvatarDetail { Id = avatar.Id, Username = oldUsername, Email = oldEmail, Karma = 12 };
+            Assert.IsFalse((await _provider.SaveAvatarDetailAsync(detail)).IsError);
+            detail.Username = avatar.Username; detail.Email = avatar.Email; detail.Karma = 34;
+            Assert.IsFalse((await _provider.SaveAvatarDetailAsync(detail)).IsError);
+            Assert.AreEqual(12L, (await _provider.LoadAvatarDetailAsync(detail.Id, 1)).Result.Karma);
+            Assert.AreEqual(12L, (await _provider.LoadAvatarDetailByUsernameAsync(oldUsername, 1)).Result.Karma);
+            Assert.AreEqual(12L, _provider.LoadAvatarDetailByEmail(oldEmail, 1).Result.Karma);
+
+            var root = new Holon { Id = Guid.NewGuid(), Name = $"root-v1-{marker}" };
+            var child = new Holon { Id = Guid.NewGuid(), Name = $"child-v1-{marker}" };
+            root.Children.Add(child);
+            Assert.IsFalse((await _provider.SaveHolonAsync(root, saveChildren:true)).IsError);
+            child.Name = $"child-v2-{marker}";
+            Assert.IsFalse((await _provider.SaveHolonAsync(child)).IsError);
+            root.Name = $"root-v2-{marker}";
+            Assert.IsFalse((await _provider.SaveHolonAsync(root, saveChildren:false)).IsError);
+            var historical = await _provider.LoadHolonAsync(root.Id, version:1);
+            Assert.IsFalse(historical.IsError, historical.Message);
+            Assert.AreEqual($"root-v1-{marker}", historical.Result.Name);
+            Assert.AreEqual(child.Name, historical.Result.Children.Single().Name);
+            Assert.AreEqual(2, historical.Result.Children.Single().Version);
+            Assert.AreEqual($"root-v1-{marker}", _provider.LoadHolonByProviderKey(root.Id.ToString("D"), 1).Result.Name);
+            Assert.AreEqual(1, (await _provider.LoadAllHolonsAsync(HolonType.All, version:1)).Result.Single(item=>item.Id==root.Id).Version);
+            Assert.IsNull((await _provider.LoadHolonAsync(root.Id,version:99)).Result);
+            Assert.IsTrue((await _provider.LoadHolonAsync(root.Id,version:-1)).IsError);
+            Assert.IsTrue((await _provider.LoadAllAvatarsAsync(-1)).IsError);
+            Assert.IsFalse((await _provider.DeleteHolonByIdAsync(root.Id,false)).IsError);
+            Assert.IsNull((await _provider.LoadHolonAsync(root.Id,version:1)).Result);
+            Assert.IsFalse((await _provider.DeleteAvatarAsync(avatar.Id,false)).IsError);
+            Assert.IsNull((await _provider.LoadAvatarAsync(avatar.Id,1)).Result);
+        }
+
         [TestCleanup]
         public void Cleanup()
         {

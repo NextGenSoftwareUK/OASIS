@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 public partial class NEAROASIS
 {
     public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) =>
-        LoadAvatarDetailRecordAsync(id);
+        LoadAvatarDetailRecordAsync(id, version);
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) =>
         LoadAvatarDetailAsync(id, version).GetAwaiter().GetResult();
@@ -21,7 +21,7 @@ public partial class NEAROASIS
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true,
         int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int version = 0)
     {
-        var result = await LoadHolonRecordAsync(id);
+        var result = await LoadHolonRecordAsync(id, version);
         return await ProjectLoadedHolonAsync(result, loadChildren, recursive, maxChildDepth, continueOnError,
             loadChildrenRecursiveDepth);
     }
@@ -65,9 +65,9 @@ public partial class NEAROASIS
     public async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, int version = 0)
     {
         if (Guid.TryParse(providerKey, out var id))
-            return await LoadHolonRecordAsync(id);
+            return await LoadHolonRecordAsync(id, version);
 
-        var all = await LoadAllHolonRecordsAsync();
+        var all = await LoadAllHolonRecordsAsync(version);
         if (all.IsError) return new OASISResult<IHolon>(null) { IsError = true, Message = all.Message, Exception = all.Exception };
         var holon = all.Result?.FirstOrDefault(item =>
             item.ProviderUniqueStorageKey != null &&
@@ -119,6 +119,7 @@ public partial class NEAROASIS
         try
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
+            await DeleteStoredVersionsAsync($"holon:{id:D}");
             await _sdk.DeleteAsync($"holon:{id:D}");
             result.Result = true;
             result.Message = "Holon removed from NEAR contract storage.";
@@ -155,8 +156,14 @@ public partial class NEAROASIS
         bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0,
         bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0)
     {
-        var all = await LoadAllHolonRecordsAsync();
+        var all = await LoadAllHolonRecordsAsync(version);
         var records = all.Result?.ToList() ?? new List<IHolon>();
+        if (!all.IsError && version > 0 && loadChildren && loadChildrenRecursiveDepth)
+        {
+            var current = await LoadAllHolonRecordsAsync();
+            if (current.IsError) return current;
+            records = current.Result.ToList();
+        }
         if (!all.IsError && holonType != HolonType.All)
             all.Result = all.Result?.Where(holon => holon.HolonType == holonType).ToList();
         if (!all.IsError)
