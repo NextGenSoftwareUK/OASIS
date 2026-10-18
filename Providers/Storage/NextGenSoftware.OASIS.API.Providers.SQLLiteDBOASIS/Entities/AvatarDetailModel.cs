@@ -147,6 +147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             this.Address=source.Address;
             this.Town=source.Town;
             this.County=source.County;
+            this.Country=source.Country;
             this.Postcode=source.Postcode;
             this.Mobile=source.Mobile;
             this.Landline=source.Landline;
@@ -267,6 +268,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             item.Address=this.Address;
             item.Town=this.Town;
             item.County=this.County;
+            item.Country=this.Country;
             item.Postcode=this.Postcode;
             item.Mobile=this.Mobile;
             item.Landline=this.Landline;
