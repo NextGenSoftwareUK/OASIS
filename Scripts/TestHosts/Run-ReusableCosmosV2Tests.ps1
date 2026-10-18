@@ -1,12 +1,13 @@
-param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate')][string]$Mode = 'Verify')
+param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate','EscrowDeploy')][string]$Mode = 'Verify')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveCosmos'
-$integrationModes=@('IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT')
+$integrationModes=@('IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy')
 if ($Mode -eq 'Verify' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json'))) {
     throw 'Existing Cosmos replication intent requires reconciliation; refusing replay.'
 }
-if($Mode -in @('IndependentPrepared','IndependentRouting','ReviewedFees','ReviewedBank','ReviewedToken','ReviewedNFT')){
+if($Mode -eq 'EscrowDeploy' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'escrow-deployment-current.json'))){throw 'Escrow already deployed; reuse its descriptor, never upload another copy.'}
+if($Mode -in @('IndependentPrepared','IndependentRouting','ReviewedFees','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy')){
     if((Get-FileHash -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json') -Algorithm SHA256).Hash -ne '9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81'){throw 'Original intent changed; re-review isolation before native testing.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'prepared-native-pending.json')){throw 'Independent original-attempt journal requires reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'independent-routing-pending.json')){throw 'Independent routing original requires reconciliation; no rerun allowed.'}
@@ -15,6 +16,7 @@ if($Mode -in @('IndependentPrepared','IndependentRouting','ReviewedFees','Review
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'reviewed-bank-pending.json')){throw 'Original reviewed bank transfers require reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'reviewed-token-pending.json')){throw 'Original reviewed token operations require reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'reviewed-nft-pending.json')){throw 'Original reviewed NFT operations require reconciliation; no rerun allowed.'}
+    if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'escrow-deployment-pending.jsonl')){throw 'Original escrow deployment requires reconciliation; never reupload.'}
 }
 if($Mode -in @('IndependentPrepared','IndependentReconcile') -or $Mode -in $integrationModes){
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'prepared-native-cleanup-pending.json')){throw 'An original cleanup is pending; inspect without replay.'}
@@ -85,20 +87,34 @@ try {
         & node (Join-Path $PSScriptRoot 'inspect-cosmos-pending-transactions.mjs')
         if ($LASTEXITCODE -ne 0) { throw 'Read-only Cosmos native transaction inspection failed; pending intent preserved.' }
     }
-    if($Mode -in @('EscrowInspect','EscrowEstimate')){
+    if($Mode -eq 'EscrowDeploy'){
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosReviewedFees -CosmosReviewScenario DeployEscrow
+        if($LASTEXITCODE -ne 0){throw 'Original escrow deployment requires inspection; preserve all signed originals and journal.'}
+    }elseif($Mode -in @('EscrowInspect','EscrowEstimate')){
         $escrowFence=Join-Path $fixtureRoot 'replication-pending.json'
         $escrowFenceHash=(Get-FileHash -LiteralPath $escrowFence -Algorithm SHA256).Hash
         if($escrowFenceHash -ne '9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81'){throw 'Original Cosmos fence changed; inspect before continuing.'}
-        $probeRequest=@{operation='query';rpcEndpoint='http://127.0.0.1:26657';chainId='oasis-cosmos-local';contractAddress=$contracts[0];
-            message=@{asset=@{message=@{token_escrow_protocol=@{}}}}} | ConvertTo-Json -Depth 8 -Compress
+        $probeContract=$contracts[0];$probeCode=1;$escrowDescriptor=Join-Path $fixtureRoot 'escrow-deployment-current.json'
+        if($Mode -eq 'EscrowInspect' -and (Test-Path -LiteralPath $escrowDescriptor)){
+            $retainedEscrow=[IO.File]::ReadAllText($escrowDescriptor) | ConvertFrom-Json
+            if($retainedEscrow.chain -ne 'oasis-cosmos-local' -or $retainedEscrow.codeSha256 -ne 'fcae1521a4564ae4548ad25bae886e432ad1049ece035b3f70ae3a4e961e014c' -or !$retainedEscrow.immutable -or $retainedEscrow.protocol -ne 1){throw 'Retained escrow descriptor requires review; no fallback to old contract.'}
+            $probeContract=$retainedEscrow.contractAddress;$probeCode=$retainedEscrow.codeId
+            $probeRequest=@{operation='tokenEscrowInfo';rpcEndpoint='http://127.0.0.1:26657';chainId='oasis-cosmos-local';targetContractAddress=$probeContract;codeSha256=$retainedEscrow.codeSha256} | ConvertTo-Json -Compress
+        }else{
+            $probeRequest=@{operation='query';rpcEndpoint='http://127.0.0.1:26657';chainId='oasis-cosmos-local';contractAddress=$probeContract;
+                message=@{asset=@{message=@{token_escrow_protocol=@{}}}}} | ConvertTo-Json -Depth 8 -Compress
+        }
         $probeRaw=$probeRequest | & node (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/SdkBridge/bridge.mjs')
         $probeExit=$LASTEXITCODE
         $probe=($probeRaw -join "`n") | ConvertFrom-Json
-        $codeRaw=& wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd query wasm code-info 1 --node http://127.0.0.1:26657 --output json
+        $codeRaw=& wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd query wasm code-info $probeCode --node http://127.0.0.1:26657 --output json
         if($LASTEXITCODE -ne 0){throw 'Existing public contract code metadata query failed.'}
-        $evidence=@{chain='oasis-cosmos-local';contract=$contracts[0];sdkQuery=$probe;codeInfo=(($codeRaw -join "`n") | ConvertFrom-Json);
+        $inventoryRaw=& wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd query wasm list-code --node http://127.0.0.1:26657 --output json
+        if($LASTEXITCODE -ne 0){throw 'Existing public code inventory query failed.'}
+        $verifiedProtocol=($probeExit -eq 0 -and $probe.ok -eq $true -and ($probe.result -eq 1 -or ($probe.result.protocol -eq 1 -and $probe.result.codeId -eq $probeCode -and $probe.result.immutable)))
+        $evidence=@{chain='oasis-cosmos-local';contract=$probeContract;retainedDefaultContract=$contracts[0];sdkQuery=$probe;codeInfo=(($codeRaw -join "`n") | ConvertFrom-Json);codeInventory=(($inventoryRaw -join "`n") | ConvertFrom-Json);
             container=$containerId;image=$image;checkedAtUtc=[DateTime]::UtcNow.ToString('O');originalFenceSha256=$escrowFenceHash;
-            signingKeyExported=$false;nativeSubmissions=0;verifiedProtocol=($probeExit -eq 0 -and $probe.ok -eq $true -and $probe.result -eq 1)}
+            signingKeyExported=$false;nativeSubmissions=0;verifiedProtocol=$verifiedProtocol}
         if($Mode -eq 'EscrowEstimate'){
             $wasmPath='\\wsl.localhost\Ubuntu\var\tmp\oasis-cosmos-contract-target\wasm32-unknown-unknown\release\oasis_cosmos_storage.wasm'
             $wasmHash='fcae1521a4564ae4548ad25bae886e432ad1049ece035b3f70ae3a4e961e014c'
