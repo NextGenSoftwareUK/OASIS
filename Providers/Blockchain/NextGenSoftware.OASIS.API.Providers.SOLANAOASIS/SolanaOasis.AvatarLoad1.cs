@@ -102,15 +102,25 @@ public partial class SolanaOASIS
         var result = new OASISResult<IAvatar>();
         try
         {
+            if(string.IsNullOrWhiteSpace(providerKey)) throw new ArgumentException("A Solana storage signature is required.",nameof(providerKey));
+            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
+            }
             var solanaAvatarDto = await _solanaRepository.GetAsync<SolanaAvatarDto>(providerKey);
-
+            if(version!=0 && solanaAvatarDto.Version!=version)
+                throw new KeyNotFoundException("Solana signature does not reference the requested avatar version.");
+            var avatar=solanaAvatarDto.GetAvatar();
+            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=providerKey;
+            result.Result=avatar;
             result.IsLoaded = true;
             result.IsError = false;
-            result.Result = solanaAvatarDto.GetAvatar();
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, e.Message);
+            OASISErrorHandling.HandleError(ref result, e.Message,e);
         }
 
         return result;
