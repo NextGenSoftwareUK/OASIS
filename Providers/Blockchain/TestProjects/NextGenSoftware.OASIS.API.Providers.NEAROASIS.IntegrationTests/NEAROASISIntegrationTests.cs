@@ -45,6 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                 FirstName = "Test",
                 LastName = "User"
             };
+            avatar.Id = Guid.Empty;
 
             // Act
             var result = await _provider.SaveAvatarAsync(avatar);
@@ -53,6 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsNotNull(result);
             Assert.IsFalse(result.IsError, result.Message);
             Assert.IsNotNull(result.Result);
+            Assert.AreNotEqual(Guid.Empty,avatar.Id);
             var loaded = await _provider.LoadAvatarAsync(avatar.Id);
             Assert.IsFalse(loaded.IsError, loaded.Message);
             Assert.IsNotNull(loaded.Result);

@@ -15,6 +15,24 @@ public partial class NEAROASIS
 {
     public bool IsVersionControlEnabled { get; set; }
 
+    private static T PrepareRecordSnapshot<T>(IHolonBase source) where T : class, IHolonBase
+    {
+        var snapshot = OasisJson.Project<T>(source);
+        if (snapshot.Id == Guid.Empty) snapshot.Id = Guid.NewGuid();
+        snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+        snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.NEAROASIS] = snapshot.Id.ToString("D");
+        return snapshot;
+    }
+
+    private static void PublishRecordStamp(IHolonBase source, IHolonBase stored)
+    {
+        source.Id = stored.Id;
+        source.ProviderUniqueStorageKey = stored.ProviderUniqueStorageKey;
+        source.Version = stored.Version;
+        source.VersionId = stored.VersionId;
+        source.PreviousVersionId = stored.PreviousVersionId;
+    }
+
     private static string HistoryPrefix(string key) => $"history:{key}:";
     private async Task<T> ReadStoredVersionAsync<T>(string key, Guid id, int version) where T : class, IHolonBase
     {
@@ -94,12 +112,11 @@ public partial class NEAROASIS
         try
         {
             if (avatar == null) throw new ArgumentNullException(nameof(avatar));
-            if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
+            var snapshot = PrepareRecordSnapshot<Avatar>(avatar);
             if (!await EnsureSdkActiveAsync(result)) return result;
-            avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.NEAROASIS] = avatar.Id.ToString("D");
-            await StampStoredVersionAsync($"avatar:{avatar.Id:D}", avatar);
-            var tx = await _sdk.PutAsync($"avatar:{avatar.Id:D}", OasisJson.Serialize(avatar));
+            await StampStoredVersionAsync($"avatar:{snapshot.Id:D}", snapshot);
+            var tx = await _sdk.PutAsync($"avatar:{snapshot.Id:D}", OasisJson.Serialize(snapshot));
+            PublishRecordStamp(avatar,snapshot);
             result.Result = avatar;
             result.Message = $"Avatar saved to NEAR contract storage in transaction {tx}.";
         }
@@ -172,12 +189,11 @@ public partial class NEAROASIS
         try
         {
             if (holon == null) throw new ArgumentNullException(nameof(holon));
-            if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
+            var snapshot = PrepareRecordSnapshot<Holon>(holon);
             if (!await EnsureSdkActiveAsync(result)) return result;
-            holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.NEAROASIS] = holon.Id.ToString("D");
-            await StampStoredVersionAsync($"holon:{holon.Id:D}", holon);
-            var tx = await _sdk.PutAsync($"holon:{holon.Id:D}", OasisJson.Serialize(holon));
+            await StampStoredVersionAsync($"holon:{snapshot.Id:D}", snapshot);
+            var tx = await _sdk.PutAsync($"holon:{snapshot.Id:D}", OasisJson.Serialize(snapshot));
+            PublishRecordStamp(holon,snapshot);
             result.Result = holon;
             result.Message = $"Holon saved to NEAR contract storage in transaction {tx}.";
         }
@@ -242,12 +258,11 @@ public partial class NEAROASIS
         try
         {
             if (detail == null) throw new ArgumentNullException(nameof(detail));
-            if (detail.Id == Guid.Empty) detail.Id = Guid.NewGuid();
+            var snapshot = PrepareRecordSnapshot<AvatarDetail>(detail);
             if (!await EnsureSdkActiveAsync(result)) return result;
-            detail.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-            detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.NEAROASIS] = detail.Id.ToString("D");
-            await StampStoredVersionAsync($"avatar-detail:{detail.Id:D}", detail);
-            var tx = await _sdk.PutAsync($"avatar-detail:{detail.Id:D}", OasisJson.Serialize(detail));
+            await StampStoredVersionAsync($"avatar-detail:{snapshot.Id:D}", snapshot);
+            var tx = await _sdk.PutAsync($"avatar-detail:{snapshot.Id:D}", OasisJson.Serialize(snapshot));
+            PublishRecordStamp(detail,snapshot);
             result.Result = detail;
             result.Message = $"Avatar detail saved to NEAR contract storage in transaction {tx}.";
         }

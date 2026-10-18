@@ -57,12 +57,8 @@ public partial class NEAROASIS
                 continue;
             }
             // Publish only identities/stamps whose current-record write was acknowledged.
-            node.Source.Id = node.Snapshot.Id;
+            PublishRecordStamp(node.Source,node.Snapshot);
             node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
-            node.Source.ProviderUniqueStorageKey = node.Snapshot.ProviderUniqueStorageKey;
-            node.Source.Version = node.Snapshot.Version;
-            node.Source.VersionId = node.Snapshot.VersionId;
-            node.Source.PreviousVersionId = node.Snapshot.PreviousVersionId;
             acknowledged.Add(node.Source);
         }
         result.Result = plan.Roots.Where(acknowledged.Contains).ToList();
