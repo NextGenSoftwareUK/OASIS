@@ -12,6 +12,7 @@ public class SolidRecordHttpTests
     {
         public readonly Dictionary<string,string> Records=new();public int Writes;public string Failure="";
         public int RejectWrite;public int UncertainWrite;public int Reads;
+        public TaskCompletionSource<bool>? ReadGate;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             if(request.RequestUri!.AbsoluteUri==Root.AbsoluteUri.TrimEnd('/')+"/")return Reply(HttpStatusCode.OK,"{}");
@@ -25,6 +26,7 @@ public class SolidRecordHttpTests
             }
             Assert.Equal(HttpMethod.Get,request.Method);
             Reads++;
+            if(ReadGate!=null)await ReadGate.Task.WaitAsync(token);
             if(Failure=="read")return Reply(HttpStatusCode.ServiceUnavailable,"");
             if(request.RequestUri.AbsolutePath.EndsWith('/')){
                 var members=Records.Keys.Where(key=>key.StartsWith(request.RequestUri.AbsoluteUri,StringComparison.Ordinal)).ToArray();
