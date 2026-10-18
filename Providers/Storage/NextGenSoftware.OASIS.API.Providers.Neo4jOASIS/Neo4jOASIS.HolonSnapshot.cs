@@ -112,37 +112,20 @@ public partial class Neo4jOASIS
             if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
             if (maximumDepth < 0 || initialDepth < 0) throw new ArgumentOutOfRangeException(nameof(maximumDepth));
             var roots = holons.ToList();
-            var sources = new List<IHolon>();
-            var staged = new List<Holon>();
-            var rootIds = new List<Guid>();
-            var edges = new List<Dictionary<string, object>>();
-            var references = new HashSet<IHolon>(ReferenceEqualityComparer.Instance);
-            var ids = new HashSet<Guid>();
-            Guid Visit(IHolon source, int depth, Guid? parent)
+            if (roots.Count == 0) { result.Result = Array.Empty<IHolon>(); return result; }
+            var plan = HolonGraphWritePlan.Create(roots, children, recursive, maximumDepth, initialDepth);
+            var rootSources = new HashSet<IHolon>(plan.Roots, ReferenceEqualityComparer.Instance);
+            var sources = plan.Nodes.Select(node => node.Source).ToList();
+            var staged = plan.Nodes.Select(node => node.Snapshot).ToList();
+            var ids = new HashSet<Guid>(staged.Select(record => record.Id));
+            var rootIds = plan.Nodes.Where(node => rootSources.Contains(node.Source)).Select(node => node.Snapshot.Id).ToList();
+            var edges = plan.Nodes.Where(node => !rootSources.Contains(node.Source)).Select(node =>
+                new Dictionary<string, object> { ["parent"] = node.Snapshot.ParentHolonId.ToString(), ["child"] = node.Snapshot.Id.ToString() }).ToList();
+            foreach (var record in staged)
             {
-                ArgumentNullException.ThrowIfNull(source);
-                if (!references.Add(source)) throw new ArgumentException("Neo4j selected graph contains a repeated node or cycle.");
-                var record = OasisJson.Deserialize<Holon>(OasisJson.Serialize(source));
-                if (record == null) throw new InvalidDataException("Neo4j holon snapshot is null.");
-                if (record.Id == Guid.Empty) record.Id = Guid.NewGuid();
-                if (!ids.Add(record.Id)) throw new ArgumentException("Neo4j holon batch contains duplicate identities.");
-                if (parent.HasValue)
-                {
-                    if (record.ParentHolonId != Guid.Empty && record.ParentHolonId != parent.Value)
-                        throw new ArgumentException("Neo4j selected child has a conflicting parent identity.");
-                    record.ParentHolonId = parent.Value;
-                    edges.Add(new Dictionary<string, object> { ["parent"] = parent.Value.ToString(), ["child"] = record.Id.ToString() });
-                }
                 record.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = record.Id.ToString();
                 record.IsNewHolon = false;
-                sources.Add(source);
-                staged.Add(record);
-                if (children && (maximumDepth == 0 || depth < maximumDepth) && (recursive || depth == initialDepth))
-                    foreach (var child in source.Children ?? Enumerable.Empty<IHolon>()) Visit(child, depth + 1, record.Id);
-                return record.Id;
             }
-            foreach (var root in roots) rootIds.Add(Visit(root, initialDepth, null));
-            if (staged.Count == 0) { result.Result = Array.Empty<IHolon>(); return result; }
             var rows = staged.Select(record => new Dictionary<string, object> {
                 ["id"] = record.Id.ToString(), ["name"] = record.Name, ["description"] = record.Description,
                 ["type"] = record.HolonType.ToString(), ["snapshot"] = OasisJson.Serialize(record),
