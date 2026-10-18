@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {verifyCosmosPreparedIdentity} from '../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/SdkBridge/transaction-results.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const file=path.join(root,'TestResults/HyperDriveCosmos/reviewed-final-fee-current.json');
+const file=path.join(root,'TestResults/HyperDriveCosmos/reviewed-fee-evidence-945C7A5777E6D662BF14CD31BA83B19FF0CDB8871893074027055F4160DC2693.json');
 const digest=value=>createHash('sha256').update(value).digest('hex').toUpperCase();
 const bytes=fs.readFileSync(file);
 const originalHash='945C7A5777E6D662BF14CD31BA83B19FF0CDB8871893074027055F4160DC2693';
