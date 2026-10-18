@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-18 SOLID LDP collection integration reused existing cached projects/RDF/shared crypto; bounded builds/tests no restore/download/install/runtime/server/clone/environment. Full54unit cases terminal; controlled HTTP handler only, no external pod/credentials/public writes. Free87157149696bytes observed during verification, not reclaim attribution. Fixed compact report paths and reusable outputs retained; no filesystem removal/broad cache cleanup.
+
 2026-10-18 SOLID encrypted single-record HTTP integration/Core LevelManager race fix reused existing projects/assets/cache. Bounded cached builds, no restore/install/download/server/new environment/ledger/worktree.42SOLID and281focusedCore cases terminal; controlled HTTP handlers only, no pod/account/public writes. No broad deletion. Free87160770560bytes after observed. Existing unrelated subscription work, reusable outputs/compact reports retained; Core staged only LevelManager before parent pin update.
 
 2026-10-18 SOLID canonical encrypted RDF component reuses existing Core/shared AESGCM/dotNetRDF binaries/packages; added existing shared ProjectReference and refreshed same provider/unit asset graphs only. No new package version/download/runtime/server/clone/environment. Bounded cached builds, no-reference compilation, full30unit tests terminal. No pod/service or network test; free87163793408bytes after observed. Reusable outputs/compact evidence retained, no shared-cache removal/broad deletion.

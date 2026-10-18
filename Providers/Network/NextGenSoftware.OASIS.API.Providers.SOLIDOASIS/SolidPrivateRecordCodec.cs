@@ -40,6 +40,7 @@ public sealed class SolidPrivateRecordCodec : IDisposable
         if(id==Guid.Empty)throw new ArgumentException("A nonempty record identity is required.",nameof(id));
         return new Uri(_root,$"oasis/{Kind<T>()}/{id:D}.ttl");
     }
+    public Uri Container<T>() where T:class,IHolonBase=>new Uri(_root,$"oasis/{Kind<T>()}/");
     private static string AssociatedData<T>(Uri resource) where T:class,IHolonBase
         =>"oasis-solid-private-record-v1/"+Kind<T>()+"/"+resource.AbsoluteUri;
 

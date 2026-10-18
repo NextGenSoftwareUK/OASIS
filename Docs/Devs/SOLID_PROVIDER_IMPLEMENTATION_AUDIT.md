@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Nonpaged LDP collection integration
+
+All-avatar/detail/holon collection reads now follow native LDP contains URIs and decrypt each canonical member. Uses requested container as RDF base, checks container type, prevalidates every URI against exact owned category/GUID namespace, deduplicates, bounds10000records and returns no partial success after any member failure. Holon type filter is local after decryption. Twelve new controlled tests/full54unitpass99ms; six sync/async×3positive cases, unsafe member guards, pagination rejection, empty and corrupt member behavior. No actual Solid pod/server/authentication proof. Exact before/final evidence in release gates.
+
+Paging and explicit history are rejected, not silently truncated. Need verified native pagination before supporting large/paged containers; current bound is explicit error, not a maximum success size. Lookups, metadata/parent queries, graph/children/continueOnError options, import/export, versions, conditional writes/ack/recovery, key/DNA lifecycle and real-pod auth remain unfinished. Earlier collection-format incompatibility is fixed ONLY for these all-record methods, not all collection/query routes. [Native LDP containment specification](https://www.w3.org/TR/ldp/).
+
 ## Single-record HTTP integration
 
 SaveAvatar/SaveAvatarDetail/SaveHolon and GUID Load counterparts now use encrypted canonical RDF, with externally supplied key. Both sync+async facades verified through controlled HTTP transport. Full-body detached snapshot before await, PUT plus GET/decrypt/canonical equivalence, publish newly assigned caller ID only after success. Rejected4xx errors are known rejections; transport/408/5xx or readback failure retains original URI in typed reconciliation exception. No blind retry, rollback or durable recovery claim. Current-only reads reject nonzero version rather than ignoring it. HTTP resources disposed and Turtle content type checked.
