@@ -42,12 +42,12 @@ public partial class AzureCosmosDBOASIS
                 if(detailSnapshot!=null) {detailSnapshot.IsActive=false;detailSnapshot.DeletedDate=date;detailSnapshot.DeletedByAvatarId=actor;}
                 if(avatar.IsActive || avatar.DeletedDate==default)
                 {
-                    if(await avatarRepository.UpsertAsync(snapshot)==null) throw new CosmosMutationReconciliationException(id.ToString(),new System.IO.InvalidDataException("Cosmos avatar tombstone lacks acknowledged record."));
+                    if(await avatarRepository.ReplaceIfUnchangedAsync(avatar,snapshot)==null) throw new CosmosMutationReconciliationException(id.ToString(),new System.IO.InvalidDataException("Cosmos avatar tombstone lacks acknowledged record."));
                     acknowledged.Add("avatarItems");
                 }
                 if(detailSnapshot!=null && (detail.IsActive || detail.DeletedDate!=date || detail.DeletedByAvatarId!=actor))
                 {
-                    if(await avatarDetailRepository.UpsertAsync(detailSnapshot)==null) throw new CosmosMutationReconciliationException(id.ToString(),new System.IO.InvalidDataException("Cosmos detail tombstone lacks acknowledged record."));
+                    if(await avatarDetailRepository.ReplaceIfUnchangedAsync(detail,detailSnapshot)==null) throw new CosmosMutationReconciliationException(id.ToString(),new System.IO.InvalidDataException("Cosmos detail tombstone lacks acknowledged record."));
                     acknowledged.Add("avatarDetailItems");
                 }
             }
@@ -63,6 +63,8 @@ public partial class AzureCosmosDBOASIS
         {
             var error=acknowledged.Count>0 ? new CosmosAvatarLifecycleException(id,acknowledged,cause):cause;
             OASISErrorHandling.HandleError(ref result,error.Message,error);
+            if(cause is StorageLifecycleConflictException || cause is Microsoft.Azure.Cosmos.CosmosException conflict && conflict.StatusCode==System.Net.HttpStatusCode.PreconditionFailed)
+                result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
         }
         return result;
     }

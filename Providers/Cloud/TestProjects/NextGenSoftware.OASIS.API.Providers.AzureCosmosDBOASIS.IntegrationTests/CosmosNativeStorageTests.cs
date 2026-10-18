@@ -12,6 +12,51 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
 public class CosmosNativeStorageTests
 {
     public TestContext TestContext {get;set;}=null!;
+    [TestMethod][TestCategory("Reconciliation")]
+    public async Task ReconcileReviewedOwnedRoutingFixtureWithoutReplayingMutations()
+    {
+        Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_COSMOSDB_NATIVE"));
+        var reviewed=Environment.GetEnvironmentVariable("OASIS_COSMOS_ROUTING_FIXTURE_SHA256");
+        Assert.IsTrue(reviewed?.Length==64,"A reviewed exact file hash is required, never infer ownership from filename alone.");
+        var path=Path.Combine(AppContext.BaseDirectory,"TestResults","CosmosDBRouting","cosmos-routing.db");
+        Assert.IsFalse(File.Exists(path+"-wal"));Assert.IsFalse(File.Exists(path+"-shm"));
+        string Hash(){using var file=File.OpenRead(path);return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(file));}
+        Assert.AreEqual(reviewed,Hash());
+        var identities=new Dictionary<string,List<Guid>>();
+        var expected=new Dictionary<string,long>{{"Avatar",2},{"AvatarDetail",2},{"AvatarAttributes",2},{"AvatarAura",2},{"AvatarChakras",14},
+            {"AvatarHumanDesign",2},{"AvatarInventory",1},{"AvatarSkills",2},{"AvatarStats",2},{"AvatarSuperPowers",2},{"Crystal",2},{"Holon",2}};
+        using(var sqlite=new Microsoft.Data.Sqlite.SqliteConnection(new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder{DataSource=path,Mode=Microsoft.Data.Sqlite.SqliteOpenMode.ReadOnly,Pooling=false}.ToString()))
+        {
+            await sqlite.OpenAsync();var names=new List<string>();
+            using(var tables=sqlite.CreateCommand())
+            {
+                tables.CommandText="SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+                using var reader=await tables.ExecuteReaderAsync();while(await reader.ReadAsync())names.Add(reader.GetString(0));
+            }
+            foreach(var name in names)
+            {
+                using var count=sqlite.CreateCommand();count.CommandText="SELECT COUNT(*) FROM \""+name.Replace("\"","\"\"")+"\"";
+                Assert.AreEqual(expected.GetValueOrDefault(name),Convert.ToInt64(await count.ExecuteScalarAsync()),"Unexpected reviewed-fixture row count.");
+            }
+            foreach(var table in new[]{"Avatar","AvatarDetail","Holon"})
+            {
+                var ids=new List<Guid>();using var command=sqlite.CreateCommand();command.CommandText="SELECT Id FROM \""+table+"\"";
+                using var reader=await command.ExecuteReaderAsync();while(await reader.ReadAsync())ids.Add(Guid.Parse(reader.GetString(0)));
+                identities.Add(table,ids);TestContext.WriteLine("Reviewed {0} identities: {1}",table,string.Join(",",ids));
+            }
+        }
+        using(var client=new CosmosClient("https://127.0.0.1:8081",EmulatorKey,new CosmosClientOptions{ConnectionMode=ConnectionMode.Gateway,
+            HttpClientFactory=()=>new HttpClient(new HttpClientHandler{ServerCertificateCustomValidationCallback=HttpClientHandler.DangerousAcceptAnyServerCertificateValidator})}))
+            foreach(var pair in new[]{("Avatar","avatarItems"),("AvatarDetail","avatarDetailItems"),("Holon","holonItems")})
+            {
+                var native=new Infrastructure.CosmosDbClient(client.GetContainer("oasis-cosmos-native",pair.Item2));
+                foreach(var id in identities[pair.Item1])Assert.IsNull(await native.ReadDocumentAsync(id.ToString(),new PartitionKey(id.ToString())),"Original native fixture is not closed; do not remove secondary evidence.");
+            }
+        Assert.AreEqual(reviewed,Hash(),"Fixture changed during read-only reconciliation.");
+        Assert.IsFalse(File.Exists(path+"-wal"));Assert.IsFalse(File.Exists(path+"-shm"));
+        File.Delete(path);TestContext.WriteLine("Removed only reviewed closed disposable SQLite fixture; no native mutations submitted.");
+    }
+
     [TestMethod][TestCategory("Inspection")]
     public async Task InspectRetainedFixtureWithoutMutation()
     {
@@ -29,10 +74,12 @@ public class CosmosNativeStorageTests
                 long count=0;while(query.HasMoreResults)count+=(await query.ReadNextAsync()).Single();
                 TestContext.WriteLine("Retained fixture container={0}; records={1}; partition={2}",container.Id,count,container.PartitionKeyPath);
             }
-        var sqlitePath=Path.Combine(AppContext.BaseDirectory,"TestResults","CosmosDBRouting","delete-backup.db");
+        foreach(var file in new[]{"delete-backup.db","cosmos-routing.db"})
+        {
+        var sqlitePath=Path.Combine(AppContext.BaseDirectory,"TestResults","CosmosDBRouting",file);
         if(File.Exists(sqlitePath))
         {
-            using(var stream=File.OpenRead(sqlitePath))TestContext.WriteLine("Retained SQLite bytes={0}; SHA256={1}",stream.Length,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stream)));
+            using(var stream=File.OpenRead(sqlitePath))TestContext.WriteLine("Retained SQLite file={0}; bytes={1}; SHA256={2}",file,stream.Length,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stream)));
             using var sqlite=new Microsoft.Data.Sqlite.SqliteConnection(new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder{DataSource=sqlitePath,Mode=Microsoft.Data.Sqlite.SqliteOpenMode.ReadOnly,Pooling=false}.ToString());
             await sqlite.OpenAsync();
             var names=new List<string>();
@@ -47,6 +94,7 @@ public class CosmosNativeStorageTests
                 var rows=Convert.ToInt64(await count.ExecuteScalarAsync());
                 if(rows>0)TestContext.WriteLine("Retained SQLite table={0}; records={1}",name,rows);
             }
+        }
         }
         // Diagnostic evidence only. No create/delete/replace, keys or record payloads emitted.
     }
@@ -286,6 +334,7 @@ public class CosmosNativeStorageTests
         public Task<string> CreateDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>failed.CreateDocumentAsync(doc,key,token);
         public Task<string> UpsertDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>failed.UpsertDocumentAsync(doc,key,token);
         public Task<string> ReplaceDocumentAsync(string id,object doc,PartitionKey? key,CancellationToken token=default)=>failed.ReplaceDocumentAsync(id,doc,key,token);
+        public Task<string> ReplaceUnchangedDocumentAsync(string id,object expected,object doc,PartitionKey? key,CancellationToken token=default)=>failed.ReplaceUnchangedDocumentAsync(id,expected,doc,key,token);
         public Task DeleteDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)=>failed.DeleteDocumentAsync(id,key,token);
     }
 
@@ -300,6 +349,8 @@ public class CosmosNativeStorageTests
         public Task<string> UpsertDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.UpsertDocumentAsync(doc,key,t),token);
         public Task<string> ReplaceDocumentAsync(string id,object doc,PartitionKey? key,CancellationToken token=default)
             =>Bound(t=>inner.ReplaceDocumentAsync(id,doc,key,t),token);
+        public Task<string> ReplaceUnchangedDocumentAsync(string id,object expected,object doc,PartitionKey? key,CancellationToken token=default)
+            =>Bound(t=>inner.ReplaceUnchangedDocumentAsync(id,expected,doc,key,t),token);
         public async Task DeleteDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)
             =>await Bound(async t=>{await inner.DeleteDocumentAsync(id,key,t);return true;},token);
     }
@@ -383,7 +434,8 @@ public class CosmosNativeStorageTests
                 Assert.IsTrue(deleted.IsError);Assert.IsFalse(deleted.Result);
                 var evidence=deleted.Exception as CosmosAvatarLifecycleException;Assert.IsNotNull(evidence);
                 Assert.AreEqual(avatarId,evidence.AvatarId);CollectionAssert.AreEqual(new[] {"avatarItems"},evidence.AcknowledgedContainers.ToArray());
-                Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence.InnerException));
+                Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence.InnerException),"Conditional replacement failed during its read, before native detail mutation dispatch.");
+                Assert.IsNotNull(evidence.InnerException);
                 Assert.IsFalse((await healthyAvatar.GetByIdAsync(avatarId.ToString())).IsActive);
                 Assert.IsTrue((await healthyDetail.GetByIdAsync(avatarId.ToString())).IsActive);
                 Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
