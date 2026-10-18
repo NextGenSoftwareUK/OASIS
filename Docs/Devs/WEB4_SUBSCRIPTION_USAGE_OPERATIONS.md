@@ -117,6 +117,28 @@ The example is one entry, not a complete all-service manifest. Select valid test
 
 These external checks must be marked NOT RUN when credentials, approved fixtures, receipt lookup or fault-control access are unavailable. A structurally registered endpoint is not proof that every provider adapter has a recovery contract.
 
+## Delegated usage grants (unattended runs)
+
+Scheduled agent runs and inbound channel messages (WhatsApp, Telegram and similar) have no live avatar bearer. They reserve usage through a **delegated grant** that the avatar issues in advance. A grant can only narrow what the avatar's own subscription allows; it never widens it.
+
+| Route | Caller | Purpose |
+|---|---|---|
+| `POST /api/subscription/usage/grants` | Avatar bearer | Create a grant: `ConsumingService` (WEB5–WEB10, never WEB4), `Scope`, explicit `Endpoints` (1–32, no wildcards), `MonthlyBudgetUsd`, `MaxOperationCostUsd` (≤ budget), `ExpiresAtUtc` (≤ 366 days). At most 100 active grants per avatar. |
+| `GET /api/subscription/usage/grants` | Avatar bearer | List the avatar's grants with the current month's reserved and settled spend. |
+| `POST /api/subscription/usage/grants/{grantId}/revoke` | Avatar bearer (issuer only) | Stop new reservations immediately. Operations already executing still settle. |
+| `POST /api/subscription/usage/authorize-delegated` | Service identity only | Same body as `usage/authorize` plus `GrantId`. WEB4 resolves the avatar from the grant. `usage/start` and `usage/settle` are unchanged. |
+
+Invariants:
+
+- A grant reservation passes **every** normal subscription check (plan, karma, daily and monthly limits, overage cap), plus the grant's service, endpoint allow-list, per-operation cap, monthly budget, expiry and revocation.
+- Grant budget movements (`subscription_usage_grant_buckets`, one document per grant per month) commit in the **same Mongo transaction** as the usage operation: reserve on authorize, reserved → settled on settle, release on unstarted expiry. `recovery-required` operations keep their reservation, matching the avatar ledger.
+- `usage/authorize` rejects a `GrantId`; grants are accepted only on the delegated route. Replaying an operation id with a different grant is an `OPERATION_ID_CONFLICT`.
+- Grant creation and revocation write `grant-created` / `grant-revoked` entries to `subscription_usage_audit`.
+
+Denial codes: `GRANT_NOT_FOUND`, `GRANT_SCOPE_MISMATCH`, `GRANT_REVOKED`, `GRANT_EXPIRED`, `GRANT_ENDPOINT_NOT_ALLOWED` (403); `GRANT_OPERATION_CAP_EXCEEDED`, `GRANT_BUDGET_EXCEEDED` (402); `GRANT_LIMIT_REACHED` (409).
+
+Coverage: `ONODE/Tests/SubscriptionLedger.ProtocolTests/DelegatedGrantLedgerTests.cs` runs against a disposable replica set (`SUBSCRIPTION_TEST_MONGODB_URI`).
+
 ## Operator actions
 
 **Settlement pending:** find operation ID in the consumer outbox and WEB4 event projection. If the immutable settlement exists, restore authority connectivity/service credentials and let the delivery worker retry. Do not regenerate the settlement from a new provider call. A changed-payload conflict requires inspecting the original receipt/settlement before any correction.
