@@ -17,6 +17,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 {
     public static class DataHelper
     {
+        internal static InventoryItem CopyInventoryItem(IInventoryItem value)
+            => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<InventoryItem>(value);
         private static EnumValue<T> CopyEnum<T>(EnumValue<T> value)=>value==null?null:new EnumValue<T>(value.Value);
         private static Crystal CopyCrystal(Crystal value)=>value==null?null:new Crystal{
             Name=CopyEnum(value.Name),Type=CopyEnum(value.Type),Description=value.Description,
@@ -345,35 +347,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             {
                 foreach (var item in avatar.Result.Inventory)
                 {
-                    var inv = item;
-                    var copy = new InventoryItem
-                    {
-                        PublishedSTARNETHolon = inv.PublishedSTARNETHolon == null ? null : (byte[])inv.PublishedSTARNETHolon.Clone(),
-                        Name = inv.Name,
-                        Description = inv.Description,
-                        Quantity = inv.Quantity,
-                        Stack = inv.Stack,
-                        Id = inv.Id,
-                        Image2D = inv.Image2D == null ? null : (byte[])inv.Image2D.Clone(),
-                        Image2DURI = inv.Image2DURI,
-                        Object3D = inv.Object3D == null ? null : (byte[])inv.Object3D.Clone(),
-                        Object3DURI = inv.Object3DURI,
-                        GameSource = inv.GameSource,
-                        ItemType = inv.ItemType,
-                        NftId = inv.NftId,
-                        GeoNFTId = inv.GeoNFTId,
-                        Rarity = inv.Rarity,
-                        MaxQuantity = inv.MaxQuantity,
-                        Weight = inv.Weight,
-                        IsUsable = inv.IsUsable,
-                        IsTradeable = inv.IsTradeable,
-                        AcquiredOn = inv.AcquiredOn,
-                        LastUsedOn = inv.LastUsedOn,
-                        Properties = inv.Properties == null ? null : new Dictionary<string, object>(inv.Properties)
-                    };
-                    if (inv.MetaData != null && inv.MetaData.Count > 0)
-                        copy.MetaData = new Dictionary<string, object>(inv.MetaData);
-                    oasisAvatar.Inventory.Add(copy);
+                    oasisAvatar.Inventory.Add(CopyInventoryItem(item));
                 }
             }
 
@@ -707,35 +681,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             {
                 foreach (var item in avatar.Inventory)
                 {
-                    var inv = item;
-                    var mongoInv = new InventoryItem
-                    {
-                        PublishedSTARNETHolon = inv.PublishedSTARNETHolon == null ? null : (byte[])inv.PublishedSTARNETHolon.Clone(),
-                        Name = inv.Name,
-                        Description = inv.Description,
-                        Quantity = inv.Quantity,
-                        Stack = inv.Stack,
-                        Id = inv.Id,
-                        Image2D = inv.Image2D == null ? null : (byte[])inv.Image2D.Clone(),
-                        Image2DURI = inv.Image2DURI,
-                        Object3D = inv.Object3D == null ? null : (byte[])inv.Object3D.Clone(),
-                        Object3DURI = inv.Object3DURI,
-                        GameSource = inv.GameSource,
-                        ItemType = inv.ItemType,
-                        NftId = inv.NftId,
-                        GeoNFTId = inv.GeoNFTId,
-                        Rarity = inv.Rarity,
-                        MaxQuantity = inv.MaxQuantity,
-                        Weight = inv.Weight,
-                        IsUsable = inv.IsUsable,
-                        IsTradeable = inv.IsTradeable,
-                        AcquiredOn = inv.AcquiredOn,
-                        LastUsedOn = inv.LastUsedOn,
-                        Properties = inv.Properties == null ? null : new Dictionary<string, object>(inv.Properties)
-                    };
-                    if (inv.MetaData != null && inv.MetaData.Count > 0)
-                        mongoInv.MetaData = new Dictionary<string, object>(inv.MetaData);
-                    mongoAvatar.Inventory.Add(mongoInv);
+                    mongoAvatar.Inventory.Add(CopyInventoryItem(item));
                 }
             }
 

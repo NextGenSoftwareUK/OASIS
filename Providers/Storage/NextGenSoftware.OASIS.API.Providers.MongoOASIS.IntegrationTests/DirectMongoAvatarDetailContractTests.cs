@@ -40,10 +40,25 @@ public sealed class DirectMongoAvatarDetailContractTests
                     Rarity="rarity-"+revision,MaxQuantity=revision*10,Weight=revision*1.25f,IsUsable=revision==1,IsTradeable=revision==2,
                     AcquiredOn=new DateTime(2020+revision,1,2,3,4,5,DateTimeKind.Utc),LastUsedOn=new DateTime(2020+revision,2,3,4,5,6,DateTimeKind.Utc),
                     Properties=new System.Collections.Generic.Dictionary<string,object>{{"revision","value-"+revision}}};
+                inventory.Version=revision+10;inventory.VersionId=Guid.NewGuid();inventory.PreviousVersionId=Guid.NewGuid();
+                inventory.CreatedByAvatarId=Guid.NewGuid();inventory.ModifiedByAvatarId=Guid.NewGuid();inventory.DeletedByAvatarId=Guid.NewGuid();
+                inventory.CreatedDate=new DateTime(2020+revision,3,4,5,6,7,DateTimeKind.Utc);
+                inventory.ModifiedDate=new DateTime(2020+revision,4,5,6,7,8,DateTimeKind.Utc);
+                inventory.DeletedDate=new DateTime(2020+revision,5,6,7,8,9,DateTimeKind.Utc);
+                inventory.CustomHolonType="custom-item-"+revision;inventory.IsPublic=revision==1;
+                inventory.ParentHolonId=Guid.NewGuid();inventory.ParentHolonId2=Guid.NewGuid();inventory.ParentHolonId3=Guid.NewGuid();
+                inventory.ProviderUniqueStorageKey=new(){{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS,"inventory-key-"+revision}};
+                inventory.Children.Add(new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),Name="not-an-owned-navigation-value"});
                 detail.Inventory=new System.Collections.Generic.List<IInventoryItem>{inventory};
                 void VerifyInventory(System.Collections.Generic.IEnumerable<IInventoryItem> values){
                     var actual=Assert.Single(values);Assert.Equal(inventory.Id,actual.Id);Assert.Equal(inventory.Name,actual.Name);
                     Assert.Equal(inventory.Description,actual.Description);
+                    foreach(var name in new[]{"Version","VersionId","PreviousVersionId","CreatedByAvatarId","ModifiedByAvatarId","DeletedByAvatarId",
+                        "CreatedDate","ModifiedDate","DeletedDate","CustomHolonType","IsPublic","ParentHolonId","ParentHolonId2","ParentHolonId3"}){
+                        var inherited=typeof(InventoryItem).GetProperty(name)!;
+                        Assert.Equal(inherited.GetValue(inventory),inherited.GetValue(actual));
+                    }
+                    Assert.Equal("inventory-key-"+revision,actual.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS]);
                     foreach(var property in typeof(IInventoryItem).GetProperties()){
                         var expected=property.GetValue(inventory);var restored=property.GetValue(actual);
                         if(expected is byte[] bytes)Assert.Equal(bytes,(byte[])restored!);
@@ -112,8 +127,13 @@ public sealed class DirectMongoAvatarDetailContractTests
                 }
                 detail.Description="revision-description-"+revision;
                 var saved=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);
-                Assert.False(saved.IsError,saved.Message);Assert.NotNull(saved.Result);
+                Assert.False(saved.IsError,saved.Message+" "+saved.Exception);Assert.NotNull(saved.Result);
                 var raw=await collection.Find(filter).SingleAsync();Assert.Equal(detail.Description,raw.Description);
+                var bson=await collection.Database.GetCollection<MongoDB.Bson.BsonDocument>("AvatarDetail")
+                    .Find(new MongoDB.Bson.BsonDocument("_id",MongoDB.Bson.ObjectId.Parse(raw.Id))).SingleAsync();
+                var owned=bson["Inventory"].AsBsonArray[0].AsBsonDocument;
+                foreach(var navigation in new[]{"CreatedByAvatar","ModifiedByAvatar","DeletedByAvatar","ParentHolon","Children"})
+                    Assert.False(owned.Contains(navigation),"Owned inventory must not embed "+navigation);
                 VerifyStructured(raw,true);VerifyStructured(saved.Result,false);
                 VerifyCollections(raw,true);VerifyCollections(saved.Result,false);
                 VerifyChakras(raw.Chakras);VerifyChakras(saved.Result.Chakras);
