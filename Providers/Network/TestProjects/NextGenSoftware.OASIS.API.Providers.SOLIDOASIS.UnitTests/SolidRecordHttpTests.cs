@@ -8,14 +8,16 @@ public class SolidRecordHttpTests
 {
     private static readonly Uri Root=new("https://pod.invalid/private/");
     private static byte[] Key()=>Enumerable.Range(1,32).Select(x=>(byte)x).ToArray();
-    private sealed class Transport : HttpMessageHandler
+    internal sealed class Transport : HttpMessageHandler
     {
         public readonly Dictionary<string,string> Records=new();public int Writes;public string Failure="";
+        public int RejectWrite;public int UncertainWrite;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             if(request.RequestUri!.AbsoluteUri==Root.AbsoluteUri.TrimEnd('/')+"/")return Reply(HttpStatusCode.OK,"{}");
             if(request.Method==HttpMethod.Put){
-                Writes++;if(Failure=="transport")throw new HttpRequestException("controlled uncertain PUT");
+                Writes++;if(Failure=="transport"||Writes==UncertainWrite)throw new HttpRequestException("controlled uncertain PUT");
+                if(Writes==RejectWrite)return Reply(HttpStatusCode.Forbidden,"");
                 if(Failure=="reject")return Reply(HttpStatusCode.Forbidden,"");
                 if(Failure=="500")return Reply(HttpStatusCode.InternalServerError,"");
                 var rdf=await request.Content!.ReadAsStringAsync(token);Assert.DoesNotContain("private-canary",rdf);

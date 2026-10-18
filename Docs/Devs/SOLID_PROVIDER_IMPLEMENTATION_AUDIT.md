@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Selected graph write integration
+
+Single and batch holon saves now reuse shared HolonGraphWritePlan. Whole selected graph preflight/snapshot before I/O; depth/recursion/initial-depth and parent identities staged; each encrypted record PUT/readback uses existing native path; only verified node IDs/parent/key acknowledged onto caller sources. Selected writes preserve canonical Holon contract fields, not arbitrary extra subclass-only properties. IsSaved only after whole selected graph succeeds. Later failure retains acknowledged resource URIs in KeyValuePartialMutationException; no fake rollback/atomicity. Unknown first HTTP write now implements existing reconciliation marker, with resource URI separate from empty chain transaction ID.
+
+14newcontrolled cases/full92unitpass113ms,12genuine before failures; shared408unitpass1s. No actual pod, concurrent native writes, durable recovery or V2 routing proof. Graph stops at first failure instead of silently skipping and claiming success, even when continueOnError=true. Full continuation option/manager orchestration/saveChildrenOnProvider semantics remain gates. Single-root LoadHolon child projection, versions/pagination/delete/import/export/general search, native authentication/server and ETag/uncertain journal/hosted remain unfinished. This does not complete relevant provider interfaces or shrink all-provider scope.
+
 ## Metadata and parent-query integration
 
 Metadata single/pair All/Any and parent GUID/string queries now select decrypted native collection records locally, reusing shared StoredRecordSearch and HolonGraphProjection rather than guessed Solid search endpoints. All-holon reads share the projector. Captures metadata dictionary before awaiting; rejects invalid mode/blank key/type/depth before HTTP. Supports provider-linked child projection and initial-depth limit through existing shared semantics. Root metadata filters do not suppress nonmatching child records.11newcontrolled cases/full78unitpass229ms; exact true red/green hashes in release gates.
