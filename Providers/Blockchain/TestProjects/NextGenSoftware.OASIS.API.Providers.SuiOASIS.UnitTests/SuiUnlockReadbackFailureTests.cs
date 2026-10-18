@@ -7,6 +7,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiUnlockReadbackFailureTests
 {
     [DataTestMethod]
+    [DataRow(false,false)] [DataRow(false,true)] [DataRow(true,false)] [DataRow(true,true)]
+    public async Task NftPreMutationReadFailurePreservesOriginalDiagnostic(bool burn,bool synchronous)
+    {
+        await WithProcessFixture(async provider=>{
+            var original=await provider.LoadOnChainNFTDataAsync("fixture-read-failure");
+            Assert.IsTrue(original.IsError);Assert.IsNotNull(original.Exception);
+            var result=burn
+                ? (synchronous?provider.BurnNFT(new BurnWeb3NFTRequest{NFTTokenAddress="fixture-read-failure",OwnerSeedPhrase="",OwnerPublicKey="",OwnerPrivateKey=""})
+                    :await provider.BurnNFTAsync(new BurnWeb3NFTRequest{NFTTokenAddress="fixture-read-failure",OwnerSeedPhrase="",OwnerPublicKey="",OwnerPrivateKey=""}))
+                : (synchronous?provider.LockNFT(new LockWeb3NFTRequest{NFTTokenAddress="fixture-read-failure"})
+                    :await provider.LockNFTAsync(new LockWeb3NFTRequest{NFTTokenAddress="fixture-read-failure"}));
+            Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
+            Assert.AreEqual(original.Exception.GetType(),result.Exception?.GetType(),"Do not replace the provider read exception with a generic exception.");
+            Assert.AreEqual(original.Message,result.Message);
+            Assert.AreEqual(original.ErrorCode,result.ErrorCode);
+            Assert.AreEqual(original.DetailedMessage,result.DetailedMessage);
+        });
+    }
+
+    [DataTestMethod]
     [DataRow("-1",0)] [DataRow("-1",1)] [DataRow("-1",2)]
     [DataRow("1.5",0)] [DataRow("1.5",1)] [DataRow("1.5",2)]
     [DataRow("+1",0)] [DataRow("+1",1)] [DataRow("+1",2)]
