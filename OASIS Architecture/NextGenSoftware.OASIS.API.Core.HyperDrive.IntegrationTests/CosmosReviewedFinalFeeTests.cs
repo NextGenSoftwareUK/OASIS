@@ -94,7 +94,7 @@ public sealed class CosmosReviewedFinalFeeTests(Xunit.Abstractions.ITestOutputHe
             var evidence=new List<PreparedNativeFeeEvidence>();
             foreach(var attempt in operation.ProviderAttempts){
                 var fee=await reader.ReadPreparedNativeFeeEvidenceAsync(attempt,token);Assert.False(fee.IsError,fee.Message);
-                Assert.Equal(NativeFeeCoverage.NetFinal,fee.Result.Coverage);Assert.Equal(review.EvidenceBasis,fee.Result.Basis);evidence.Add(fee.Result);
+                Assert.Equal(NativeFeeCoverage.NetFinal,fee.Result.Coverage);Assert.Equal(review.EvidenceBasis,fee.Result.Basis);Assert.NotNull(fee.Result.Audit);evidence.Add(fee.Result);
             }
             Assert.Equal(2,evidence.Count(item=>item.NativeExecutionSucceeded));Assert.Equal(1,evidence.Count(item=>!item.NativeExecutionSucceeded));
             Assert.Contains(evidence,item=>item.ProviderRequestId==failure.OriginalTransactionId&&!item.NativeExecutionSucceeded);
@@ -103,6 +103,17 @@ public sealed class CosmosReviewedFinalFeeTests(Xunit.Abstractions.ITestOutputHe
             var resolver=new PreparedNativeUsageRecoveryResolver(store,new[]{reader});Assert.True(resolver.CanResolve(operation));
             Assert.Null(await resolver.ResolveAsync(operation,token));
             var recovered=await store.GetAsync(execution.OperationId,token);Assert.Equal(3,recovered.Receipts.Count);Assert.Null(recovered.ObservedOutcome);Assert.Null(recovered.Settlement);
+            var reloaded=await new MongoUsageOutboxStore(connection,"usage_cosmos_independent_routing").GetAsync(execution.OperationId,token);
+            foreach(var receipt in reloaded.Receipts){
+                Assert.NotNull(receipt.NativeFeeAudit);receipt.NativeFeeAudit.Validate(receipt.Provider,receipt.ProviderRequestId,"oasis-cosmos-local");
+                using var audit=JsonDocument.Parse(receipt.NativeFeeAudit.PayloadJson);
+                Assert.Equal(review.EvidenceBasis,audit.RootElement.GetProperty("Review").GetProperty("EvidenceBasis").GetString());
+                Assert.Equal(BinaryHash,audit.RootElement.GetProperty("Deployment").GetProperty("BinarySha256").GetString());
+                Assert.Equal(GenesisHash,audit.RootElement.GetProperty("Deployment").GetProperty("GenesisSha256").GetString());
+                Assert.InRange(audit.RootElement.GetProperty("ReceiptHeight").GetInt64(),review.FirstHeight,review.LastHeight);
+            }
+            Assert.False(resolver.CanResolve(reloaded));Assert.Null(await resolver.ResolveAsync(reloaded,token));
+            Assert.Equal(3,(await store.GetAsync(execution.OperationId,token)).Receipts.Count);
             Assert.Equal(oldHash,Hash(Path.Combine(root,"replication-pending.json")));
             var report=JsonSerializer.Serialize(new{review,initialObservation=observed,operation=recovered,originalFees=evidence,
                 observedWalletDebit=net.ToString(),chargedFailedOriginal=failure.OriginalTransactionId,chargedFailureDebit="10000",logicalOutcomeResolved=false,hostedAcceptance=false});
