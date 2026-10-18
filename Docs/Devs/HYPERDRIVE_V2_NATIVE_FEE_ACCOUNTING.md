@@ -1,5 +1,20 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Failed Cosmos profile fixture: original payments verified, not settled
+
+Exact operation `537d7453-bfa6-12e7-8cb8-e3af7c758df5` in retained `usage_cosmos_independent_routing` has five confirmed original native writes. Read-only signature/hash/payer/ante receipt inspection plus exact native avatar/detail/leaf reads passed; the logical test failed later at LocalFile provider-key readback. Native success must NOT turn that logical failure into success.
+
+| Original transaction | Observed ante fee (local test stake) |
+|---|---:|
+| A8E2EB1BD9138A64D887312090CB82A2D559114352049F5508BD77BDC59F70DF | 4898 |
+| 3EB6C0ADEFFFD5D014E123C65E87B8F97DFEF387E878AB31134863D0700E84A4 | 3995 |
+| 639EC5DAC2A9016A2C59502EFB915E51ED76E8C7E6D96D9A94D6E7E1C45254E9 | 3990 |
+| 6F7CD6BFC7BBA6A385DB87AB89305ACC7A2BC59D14388226D7446C9E4E9C83F7 | 7707 |
+| B75C445DAA6F80C3994EFCEEAC2262FB92A8620E08CB8E03A739E6CA1D5ABF5C | 4937 |
+| Total | 25527 |
+
+These are AnteDeductionOnly, not proved final net fees. No market price, actual USD bill, settlement, logical-outcome recovery or replay authorization follows from this table. Original journal SHA256 `F901B2959830F84882BBC338992EF734612D7009BBF318E36F178E279CE98BC1` and older Cosmos journal remain fenced; ledger unchanged. Strong read-only inspection report SHA256 `74390E9C3591B4F49CF8B86507BA68CD2EE75087DA459028AA4E929ECD6B0524`, TRX SHA256 `28ACFD77AA72AE25020A6A27DA3BC303AD7C34E7DEC96DE2EF5478881AA2729F`. Reproduce with existing retained environment only: `Scripts/TestHosts/Run-ReusableCosmosV2Tests.ps1 -Mode RoutingInspect`. No signing key is loaded in that mode.
+
 ## Mixed native/AI outcome and middleware ownership — WEB6 0689a28
 
 Mixed recovery requires both an original native fee receipt AND a separately recorded valid logical API outcome. Provider-job success alone must not turn an interrupted/failed workflow into success. WEB6 snapshots that outcome before async lookup and preserves succeeded/failed/cancelled with actual provider fees. Missing/invalid outcome stays unresolved with no AI lookup. Fully receipted mixed operations are not claimed by the AI resolver: shared RecordedUsageRecoveryResolver owns that state, avoiding duplicate-owner rejection. Receipt correlation includes provider plus client request ID. Existing AI-only job recovery semantics are unchanged.
