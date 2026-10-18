@@ -61,6 +61,7 @@
     <None Include="SdkBridge\asset-operation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\asset-operation.mjs" />
     <None Include="SdkBridge\asset-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\asset-outcome.mjs" />
     <None Include="SdkBridge\wallet-history.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\wallet-history.mjs" />
+    <None Include="SdkBridge\key-generation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\key-generation.mjs" />
     <None Include="SdkBridge\read-only-provider.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\read-only-provider.mjs" />
     <None Include="SdkBridge\verify-preparation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\verify-preparation.mjs" />
     <None Include="SdkBridge\finalized-receipt.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\finalized-receipt.mjs" />
