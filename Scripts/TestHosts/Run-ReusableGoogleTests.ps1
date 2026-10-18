@@ -30,7 +30,7 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $started){throw 'Google native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 75 -or [int]$counts.passed -ne 75 -or [int]$counts.notExecuted -ne 0) {throw 'Expected all 75 native tests including avatar export ownership, no skips.'}
+    if([int]$counts.total -ne 79 -or [int]$counts.passed -ne 79 -or [int]$counts.notExecuted -ne 0) {throw 'Expected all 79 native tests including delete acknowledgement validation, no skips.'}
 }
 finally {
     $env:FIRESTORE_EMULATOR_HOST=$previous
