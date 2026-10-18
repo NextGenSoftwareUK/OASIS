@@ -56,10 +56,15 @@ public class TronPermissionRpcTests
     [InlineData("token-burn-provider")]
     [InlineData("escrow-lock-provider")]
     [InlineData("escrow-lock-provider-await")]
+    [InlineData("deploy-await-replace")] [InlineData("deploy-await-clear")]
     [InlineData("contradictory-broadcast")]
     public async Task RotatedContractSignerAndConfirmedDeploymentReadbackPreserveOneSubmission(string mode)
     {
         var mutateWhileWaiting=mode=="escrow-lock-provider-await";
+        var mutateDeployment=mode.StartsWith("deploy-await-",StringComparison.Ordinal);
+        var creationBytecode=new byte[]{0x60,0x00};
+        var originalBytecode=(byte[])creationBytecode.Clone();
+        var constructedBytecode=ByteString.Empty;
         if(mutateWhileWaiting)mode="escrow-lock-provider";
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
         var key=new string('0',63)+"1";var ownerKey=mode is "nft-burn-provider" or "token-burn-provider" ? key : new string('0',63)+"2";
@@ -72,6 +77,7 @@ public class TronPermissionRpcTests
         var escrowLock = mode is "escrow-lock" or "escrow-lock-provider";
         var submitted=new System.Collections.Generic.List<ByteString>();
         TransactionExtention Construct(IMessage request,Transaction.Types.Contract.Types.ContractType type){
+            if(request is CreateSmartContract deployment)constructedBytecode=deployment.NewContract.Bytecode;
             if(mutateWhileWaiting&&request is TriggerSmartContract call)Assert.Equal(ByteString.CopyFrom(contractBytes),call.ContractAddress);
             constructions++;var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var tx=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
             if(escrowLock&&constructions==2){Assert.Equal(1,broadcasts);Assert.Equal(1,receiptReads);}
@@ -83,6 +89,7 @@ public class TronPermissionRpcTests
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>{
                 Assert.Equal(ByteString.CopyFrom(expectedOwner),request.Address);
+                if(mutateDeployment)Array.Fill(creationBytecode,mode=="deploy-await-clear"?(byte)0:(byte)255);
                 authority=new Account{Address=request.Address,OwnerPermission=new Permission{Id=0,Threshold=1}};authority.OwnerPermission.Keys.Add(new Key{Address=ByteString.CopyFrom(signerBytes),Weight=1});return Task.FromResult(authority);
             })
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"TriggerConstantContract",TriggerSmartContract.Parser,TransactionExtention.Parser),(TriggerSmartContract request,ServerCallContext context)=>{
@@ -179,9 +186,10 @@ public class TronPermissionRpcTests
                 });
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),result);
             }
-            else if(mode=="deploy"){
-                var result=await runtime.NativeTransfers.DeployBytecodeAsync(owner,new byte[]{0x60,0x00},key,deadline.Token);
+            else if(mode=="deploy"||mutateDeployment){
+                var result=await runtime.NativeTransfers.DeployBytecodeAsync(owner,creationBytecode,key,deadline.Token);
                 Assert.Equal(contract,result.ContractAddress);Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),result.TransactionId);
+                Assert.Equal(originalBytecode,constructedBytecode.ToByteArray());
             }else{
                 var error=await Assert.ThrowsAsync<TronCommittedReadbackException>(()=>runtime.NativeTransfers.DeployBytecodeAsync(owner,new byte[]{0x60,0x00},key,deadline.Token));
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),error.OriginalTransactionId);Assert.True(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
