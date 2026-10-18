@@ -17,7 +17,20 @@ public sealed class CosmosReviewedFinalFeeTests(Xunit.Abstractions.ITestOutputHe
 {
     private const string BinaryHash="FFDBE57FFE7CCA974AC9BF6A9E800B11B7C037FBC7650BFAF185A828D18217A4";
     private const string GenesisHash="56584C2F943A7FFE6FB8A135FE5F6BA17144484F75949B16AFEE3F096EF3D03C";
-    private static async Task<CosmosDeploymentObservation> InspectAsync(Uri endpoint,CancellationToken token)
+    internal static async Task<(CosmosBlockChainOASIS Provider,CosmosFeeModelReview Review,CosmosDeploymentObservation Observation)> CreateReviewedProviderAsync(Guid id,CancellationToken token)
+    {
+        var endpoint=new Uri("http://127.0.0.1:26657/");var observed=await InspectAsync(endpoint,token);
+        Assert.Equal(BinaryHash,observed.BinarySha256);Assert.Equal(GenesisHash,observed.GenesisSha256);
+        var now=DateTimeOffset.UtcNow;
+        var review=CosmosFeeModelReview.ForWasmd0703("retained-local-"+id.ToString("N"),"oasis-cosmos-local",GenesisHash,BinaryHash,
+            observed.CommittedHeight,observed.CommittedHeight+128,now.AddSeconds(-1),now.AddHours(1),TimeSpan.FromSeconds(30));
+        var provider=await CosmosBlockChainOASIS.CreateWithReviewedFinalFeesAsync(
+            CosmosNativeFeeLimits.ForReviewedStandardSdkChain(new Dictionary<string,string>{{"stake","50000"}},"oasis-cosmos-local"),review,InspectAsync,
+            endpoint.AbsoluteUri,"oasis-cosmos-local",Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_KEY")!,Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_CONTRACT")!,
+            storageEncryptionKeyResolver:()=>SHA256.HashData(Encoding.UTF8.GetBytes("oasis-cosmos-local-storage-fixture-v1")),token:token);
+        return(provider,review,observed);
+    }
+    internal static async Task<CosmosDeploymentObservation> InspectAsync(Uri endpoint,CancellationToken token)
     {
         Assert.Equal("http://127.0.0.1:26657/",endpoint.AbsoluteUri);
         var start=new ProcessStartInfo("wsl.exe"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
@@ -48,15 +61,8 @@ public sealed class CosmosReviewedFinalFeeTests(Xunit.Abstractions.ITestOutputHe
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(240));var token=deadline.Token;
-        var endpoint=new Uri("http://127.0.0.1:26657/");var observed=await InspectAsync(endpoint,token);
-        Assert.Equal(BinaryHash,observed.BinarySha256);Assert.Equal(GenesisHash,observed.GenesisSha256);
-        var now=DateTimeOffset.UtcNow;var id=Guid.NewGuid();
-        var review=CosmosFeeModelReview.ForWasmd0703("retained-local-"+id.ToString("N"),"oasis-cosmos-local",GenesisHash,BinaryHash,
-            observed.CommittedHeight,observed.CommittedHeight+128,now.AddSeconds(-1),now.AddHours(1),TimeSpan.FromSeconds(30));
-        using var cosmos=await CosmosBlockChainOASIS.CreateWithReviewedFinalFeesAsync(
-            CosmosNativeFeeLimits.ForReviewedStandardSdkChain(new Dictionary<string,string>{{"stake","50000"}},"oasis-cosmos-local"),review,InspectAsync,
-            endpoint.AbsoluteUri,"oasis-cosmos-local",Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_KEY")!,Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_CONTRACT")!,
-            storageEncryptionKeyResolver:()=>SHA256.HashData(Encoding.UTF8.GetBytes("oasis-cosmos-local-storage-fixture-v1")),token:token);
+        var id=Guid.NewGuid();var deployment=await CreateReviewedProviderAsync(id,token);
+        using var cosmos=deployment.Provider;var review=deployment.Review;var observed=deployment.Observation;
         Assert.False(cosmos.IsProviderActivated);
         var reader=new RegisteredNativeFeeReader(ProviderType.CosmosBlockChainOASIS,"oasis-cosmos-local",new IOASISProvider[]{cosmos});
         await new StorageAdmissionRecoveryReadiness(new[]{("CosmosBlockChainOASIS","oasis-cosmos-local")},new[]{reader}).StartAsync(token);
@@ -111,6 +117,10 @@ public sealed class CosmosReviewedFinalFeeTests(Xunit.Abstractions.ITestOutputHe
                 Assert.Equal(BinaryHash,audit.RootElement.GetProperty("Deployment").GetProperty("BinarySha256").GetString());
                 Assert.Equal(GenesisHash,audit.RootElement.GetProperty("Deployment").GetProperty("GenesisSha256").GetString());
                 Assert.InRange(audit.RootElement.GetProperty("ReceiptHeight").GetInt64(),review.FirstHeight,review.LastHeight);
+                var expectedSuccess=receipt.ProviderRequestId!=failure.OriginalTransactionId;
+                Assert.Equal(expectedSuccess,audit.RootElement.GetProperty("NativeExecutionSucceeded").GetBoolean());
+                var nativeCode=audit.RootElement.GetProperty("NativeExecutionCode").GetUInt32();
+                if(expectedSuccess)Assert.Equal(0u,nativeCode);else Assert.NotEqual(0u,nativeCode);
             }
             Assert.False(resolver.CanResolve(reloaded));Assert.Null(await resolver.ResolveAsync(reloaded,token));
             Assert.Equal(3,(await store.GetAsync(execution.OperationId,token)).Receipts.Count);

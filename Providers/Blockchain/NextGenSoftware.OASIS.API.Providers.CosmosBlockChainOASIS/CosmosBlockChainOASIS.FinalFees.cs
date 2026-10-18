@@ -28,9 +28,9 @@ public partial class CosmosBlockChainOASIS
             Review.ValidateObservation(observed,originalHeight??observed.CommittedHeight);
             return observed;
         }
-        internal NativeFeeAuditSnapshot CaptureAudit(CosmosDeploymentObservation observation,string original,long receiptHeight)
-            =>NativeFeeAuditSnapshot.Capture("cosmos.wasmd0703.fee-review.v1","CosmosBlockChainOASIS",Review.ChainId,original,
-                JsonSerializer.Serialize(new{Review,Deployment=observation,ReceiptHeight=receiptHeight}));
+        internal NativeFeeAuditSnapshot CaptureAudit(CosmosDeploymentObservation observation,string original,long receiptHeight,bool executionSucceeded,uint executionCode)
+            =>NativeFeeAuditSnapshot.Capture("cosmos.wasmd0703.fee-review.v2","CosmosBlockChainOASIS",Review.ChainId,original,
+                JsonSerializer.Serialize(new{Review,Deployment=observation,ReceiptHeight=receiptHeight,NativeExecutionSucceeded=executionSucceeded,NativeExecutionCode=executionCode}));
     }
 
     /// <summary>Server composition only. The inspector must actually inspect this endpoint's deployed binary/genesis;
@@ -50,7 +50,7 @@ public partial class CosmosBlockChainOASIS
         var observed=await deployment.ValidateAsync(null,token);
         // Validate the bounded audit encoding before this provider can sign anything. Cosmos hashes are64hex
         // characters; the maximal height width avoids a later audit overflow at a height-digit boundary.
-        deployment.CaptureAudit(observed with{CommittedHeight=long.MaxValue,ObservedAtUtc=DateTimeOffset.MaxValue},new string('0',64),long.MaxValue);
+        deployment.CaptureAudit(observed with{CommittedHeight=long.MaxValue,ObservedAtUtc=DateTimeOffset.MaxValue},new string('0',64),long.MaxValue,false,uint.MaxValue);
         var sdk=new CosmosSdkBackend(rpcEndpoint,chainId,privateKey,contractAddress,addressPrefix,gasPrice,null,null,limits,
             cancellation=>deployment.ValidateAsync(null,cancellation),review.LastHeight);
         try{return new CosmosBlockChainOASIS(sdk,privateKey,contractAddress,nativeDenom,nativeDecimals,storageEncryptionKeyResolver,tokenEscrow,deployment);}

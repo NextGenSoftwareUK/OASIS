@@ -28,7 +28,8 @@ public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Inte
                 if(!verified.Identity.TryGetProperty("hasSignedTip",out var tip)||tip.ValueKind!=JsonValueKind.False)
                     throw new InvalidDataException("The reviewed no-post-handler Cosmos fee model requires independently verified absence of a signed tip.");
                 var observation=await _reviewedDeployment.ValidateAsync(fee.Result.GetProperty("height").GetInt64(),token);
-                audit=_reviewedDeployment.CaptureAudit(observation,fee.Result.GetProperty("transactionHash").GetString(),fee.Result.GetProperty("height").GetInt64());
+                audit=_reviewedDeployment.CaptureAudit(observation,fee.Result.GetProperty("transactionHash").GetString(),fee.Result.GetProperty("height").GetInt64(),
+                    fee.Result.GetProperty("success").GetBoolean(),fee.Result.GetProperty("executionCode").GetUInt32());
                 basis=_reviewedDeployment.Review.EvidenceBasis;
             }
             var components=new System.Collections.Generic.List<NativeFeeComponent>();

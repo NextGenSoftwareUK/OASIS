@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Numerics;
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
@@ -37,19 +38,21 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(connection,Required("SUBSCRIPTION_TEST_MONGODB_URI"));
         const string database="usage_cosmos_independent_routing";
-        var mongo=new MongoClient(connection);using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(180));var token=deadline.Token;
+        var mongo=new MongoClient(connection);using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(240));var token=deadline.Token;
         // Keep compact original-attempt evidence across cases; never discard a previous incident's ledger.
         var rpc=Required("OASIS_COSMOS_TEST_RPC");Assert.Equal("http://127.0.0.1:26657",rpc);
         var chain=Required("OASIS_COSMOS_TEST_CHAIN");Assert.Equal("oasis-cosmos-local",chain);
         const string keyLabel="oasis-cosmos-local-storage-fixture-v1";
-        using var cosmos=CosmosBlockChainOASIS.CreateWithNativeFeeLimits(CosmosNativeFeeLimits.ForReviewedStandardSdkChain(new Dictionary<string,string>{{"stake","50000"}},chain),
-            rpcEndpoint:rpc,chainId:chain,privateKey:Required("OASIS_COSMOS_TEST_KEY"),contractAddress:Required("OASIS_COSMOS_TEST_CONTRACT"),
-            addressPrefix:"wasm",gasPrice:"0.025stake",nativeDenom:"stake",nativeDecimals:0,
-            storageEncryptionKeyResolver:()=>System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(keyLabel)));
+        var deployment=await CosmosReviewedFinalFeeTests.CreateReviewedProviderAsync(id,token);
+        using var cosmos=deployment.Provider;var review=deployment.Review;
+        var feeReader=new RegisteredNativeFeeReader(ProviderType.CosmosBlockChainOASIS,chain,new IOASISProvider[]{cosmos});
+        await new StorageAdmissionRecoveryReadiness(new[]{("CosmosBlockChainOASIS",chain)},new[]{feeReader}).StartAsync(token);
         var backend=typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(cosmos)!;
         var invoke=backend.GetType().GetMethod("InvokeAsync",BindingFlags.Instance|BindingFlags.NonPublic)!;
         var identity=await (Task<JsonElement>)invoke.Invoke(backend,new object[]{"restoreKey",new{},token})!;
         var sender=identity.GetProperty("address").GetString()!;
+        async Task<BigInteger> Balance(CancellationToken balanceToken)=>BigInteger.Parse((await (Task<JsonElement>)invoke.Invoke(backend,new object[]{"balance",new{walletAddress=sender,denom="stake"},balanceToken})!).GetProperty("amount").GetString()!,System.Globalization.CultureInfo.InvariantCulture);
+        var walletBefore=await Balance(token);
         var local=new LocalFileOASIS(storageDirectory:Path.Combine(root,"files"));
         var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings()}};
         dna.OASIS.SubscriptionConfig.PlanType="Gold";
@@ -69,7 +72,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
             execution=execution.WithNativePrices(new[]{new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"CosmosBlockChainOASIS",chain,"stake","local-test-stake",0,0.000001m,
                 "synthetic-local-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5))});
             await JsonSerializer.SerializeAsync(file,new{holonId=id,avatarId,avatar.Username,avatar.Email,chain,contract=Required("OASIS_COSMOS_TEST_CONTRACT"),nativePrimary,synchronous,
-                encryptionKeyLabel=keyLabel,database,operationId=execution.OperationId,preservedOriginalJournalSha256=oldHash,
+                encryptionKeyLabel=keyLabel,database,operationId=execution.OperationId,review,walletBefore=walletBefore.ToString(System.Globalization.CultureInfo.InvariantCulture),preservedOriginalJournalSha256=oldHash,
                 recovery="Inspect exact new profile/detail/leaf and original attempts; never replay unknown routing or alter replication-pending.json."},cancellationToken:token);file.Flush(true);
             var policy=new PreparedStorageExecution(execution,"independent",new Dictionary<ProviderType,string>{{ProviderType.CosmosBlockChainOASIS,sender}},new[]{ProviderType.LocalFileOASIS});
             var nonNativeReads=0;var outageProfileReadCount=0;
@@ -212,17 +215,32 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
                 await ReadProfiles(true);return true;
             });
-            var operation=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,token);
+            // Recovery gets its own bounded lifetime after execution; an expired scenario
+            // token must not prevent accounting for transactions already submitted.
+            using var recoveryDeadline=new CancellationTokenSource(TimeSpan.FromSeconds(180));
+            var recoveryToken=recoveryDeadline.Token;
+            var operation=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,recoveryToken);
             var native=operation.ProviderAttempts.Where(attempt=>attempt.Provider=="CosmosBlockChainOASIS").ToArray();
             Assert.Equal(10,native.Length);Assert.Equal(5+nonNativeReads,operation.ProviderAttempts.Count(attempt=>attempt.Provider=="LocalFileOASIS"));
             Assert.Equal(native.Sum(attempt=>NativeFeeMaximumAccounting.ValueUsd(attempt.NativePreparation.FeeMaximums,attempt.NativePreparation.PriceQuotes)),operation.NativeFeeExposureUsd);
+            var resolver=new PreparedNativeUsageRecoveryResolver(store,new[]{feeReader});Assert.True(resolver.CanResolve(operation));
+            Assert.Null(await resolver.ResolveAsync(operation,recoveryToken));
+            operation=await store.GetAsync(execution.OperationId,recoveryToken);Assert.Equal(10,operation.Receipts.Count);
             var originals=new List<object>();
+            var netUnits=BigInteger.Zero;
             foreach(var attempt in native){
-                Assert.Null(attempt.AcknowledgedAtUtc);var fee=await cosmos.GetPreparedNativeFeeReceiptAsync(attempt,token);Assert.False(fee.IsError,fee.Message);
-                Assert.Equal(attempt.ProviderRequestId,fee.Result.GetProperty("transactionHash").GetString());
-                originals.Add(new{attempt,anteFeeReceipt=fee.Result});
+                Assert.Null(attempt.AcknowledgedAtUtc);
+                var receipt=Assert.Single(operation.Receipts.Where(receipt=>receipt.ProviderRequestId==attempt.ProviderRequestId));
+                Assert.NotNull(receipt.NativeFeeAudit);receipt.NativeFeeAudit.Validate(attempt.Provider,attempt.ProviderRequestId,chain);
+                Assert.Equal(review.EvidenceBasis,receipt.CostSource);
+                using var audit=JsonDocument.Parse(receipt.NativeFeeAudit.PayloadJson);
+                Assert.True(audit.RootElement.GetProperty("NativeExecutionSucceeded").GetBoolean());Assert.Equal(0,audit.RootElement.GetProperty("NativeExecutionCode").GetInt32());
+                Assert.InRange(audit.RootElement.GetProperty("ReceiptHeight").GetInt64(),review.FirstHeight,review.LastHeight);
+                foreach(var value in receipt.NativeFeeValuations){Assert.Equal("stake",value.Denomination);netUnits+=BigInteger.Parse(value.NativeNetUnits,System.Globalization.CultureInfo.InvariantCulture);}
+                originals.Add(new{attempt,receipt});
             }
-            output.WriteLine(JsonSerializer.Serialize(new{nativePrimary,synchronous,holonId=id,avatarId,operation.NativeFeeExposureUsd,originals,
+            Assert.Equal(netUnits,walletBefore-await Balance(recoveryToken));Assert.False(resolver.CanResolve(operation));Assert.Null(operation.ObservedOutcome);
+            output.WriteLine(JsonSerializer.Serialize(new{nativePrimary,synchronous,holonId=id,avatarId,operation.NativeFeeExposureUsd,originals,netFinalNativeReceiptCount=10,walletDebit=netUnits.ToString(),review,
                 profileMatchingReadCount=28,profileAbsenceReadCount=28,outageProfileReadCount,selectorReadCount=16,strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
             Assert.Equal(oldHash,Hash(oldPath));Assert.Null(operation.Settlement);complete=true;
         }catch(Exception){
@@ -270,7 +288,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token){
             var body=await request.Content!.ReadAsStringAsync(token);object result;
             if(request.RequestUri!.AbsolutePath.EndsWith("authorize")){var input=JsonSerializer.Deserialize<UsageAuthorizationRequest>(body)!;
-                result=new SubscriptionAuthorizationResult{Allowed=true,StatusCode=200,UserId=user,OperationId=input.OperationId,Status="authorized",ExpiresAtUtc=DateTime.UtcNow.AddMinutes(3)};
+                result=new SubscriptionAuthorizationResult{Allowed=true,StatusCode=200,UserId=user,OperationId=input.OperationId,Status="authorized",ExpiresAtUtc=DateTime.UtcNow.AddMinutes(5)};
             }else if(request.RequestUri.AbsolutePath.EndsWith("start")){var input=JsonSerializer.Deserialize<UsageStartRequest>(body)!;result=new UsageStartResult{Started=true,OperationId=input.OperationId,Status="executing"};}
             else throw new InvalidOperationException("Unexpected test-authority request.");
             return new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=new StringContent(JsonSerializer.Serialize(result))};

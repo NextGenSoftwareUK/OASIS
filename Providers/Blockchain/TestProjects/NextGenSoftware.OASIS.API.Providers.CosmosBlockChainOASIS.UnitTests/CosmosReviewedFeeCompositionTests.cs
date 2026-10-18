@@ -39,6 +39,26 @@ public sealed class CosmosReviewedFeeCompositionTests
     }
 
     [DataTestMethod]
+    [DataRow(true,0u)] [DataRow(false,5u)]
+    public async Task ReviewAuditRetainsOriginalExecutionOutcome(bool succeeded,uint code)
+    {
+        var clock=new Clock();var review=Review(clock);var endpoint=new Uri("http://127.0.0.1:1");
+        using var provider=await CosmosBlockChainOASIS.CreateWithReviewedFinalFeesAsync(Limits(),review,
+            (uri,token)=>Task.FromResult(Observe(uri,clock)),endpoint.AbsoluteUri,"controlled-chain");
+        var deployment=typeof(CosmosBlockChainOASIS).GetField("_reviewedDeployment",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(provider)!;
+        var original=new string('D',64);
+        var audit=(NativeFeeAuditSnapshot)deployment.GetType().GetMethod("CaptureAudit",BindingFlags.NonPublic|BindingFlags.Instance)!
+            .Invoke(deployment,new object[]{Observe(endpoint,clock),original,42L,succeeded,code})!;
+        audit.Validate("CosmosBlockChainOASIS",original,"controlled-chain");
+        using var payload=JsonDocument.Parse(audit.PayloadJson);
+        Assert.AreEqual(succeeded,payload.RootElement.GetProperty("NativeExecutionSucceeded").GetBoolean());
+        Assert.AreEqual(code,payload.RootElement.GetProperty("NativeExecutionCode").GetUInt32());
+        Assert.AreEqual(review.EvidenceBasis,payload.RootElement.GetProperty("Review").GetProperty("EvidenceBasis").GetString());
+        Assert.AreEqual(42L,payload.RootElement.GetProperty("ReceiptHeight").GetInt64());
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
+    [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task FactoryRejectsMissingOrSubstitutedEndpointBinding(bool missing)
     {
