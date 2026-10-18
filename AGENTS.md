@@ -33,6 +33,7 @@ For a **new chat**, paste: goal + â€œsee `Docs/Devs/STAR_CLI_SessionHandoff.md`â
 
 ## Conventions (this repo)
 
+- Integrate coherent, verified batches into `Development` regularly; do not wait for the entire provider programme to finish or allow long-lived task branches to diverge. Fetch and inspect current shared branch/submodule state first, preserve concurrent contributors' changes, and push only the scoped batch with its verification evidence and documented remaining gaps. Incomplete or unverified changes must not be swept into a deployment merely to synchronize branches. Never force-push shared branches.
 - Reuse the existing task worktree and one reusable provider-test environment. Do not create repeated fresh worktrees, runtime installs or per-run database copies.
 - Cache pinned runtime executables once; retain compact test reports, but remove disposable test databases and generated outputs after owned processes stop. Validate exact cleanup paths before removal. Never delete source, credentials, user databases or unrelated environments.
 - Bound .NET build/test workers with `/m:2 /nr:false /p:UseSharedCompilation=false` unless a measured requirement warrants more. Avoid retaining dozens of idle MSBuild nodes and inflating the Windows pagefile. Shut down owned idle build servers only after confirming no active build/test operation.
