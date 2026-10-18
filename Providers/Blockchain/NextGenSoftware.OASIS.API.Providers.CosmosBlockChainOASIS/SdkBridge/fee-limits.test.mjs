@@ -3,15 +3,15 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {DirectSecp256k1Wallet} from '@cosmjs/proto-signing';
 import {SigningCosmWasmClient} from '@cosmjs/cosmwasm';
-import {AuthInfo,SignDoc,TxRaw} from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import {AuthInfo,SignDoc,TxRaw,TxBody} from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import {guardCosmosSigningClient,withCosmosNativeEvidence,CosmosNativeMutationReconciliationError,verifyCosmosPreparedIdentity,snapshotCosmosFeeLimits} from './transaction-results.mjs';
 import {invoke} from './bridge.mjs';
 
-async function signedFee(amount,tip=[]){
+async function signedFee(amount,tip=[],timeoutHeight=0n){
  const wallet=await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'wasm');const [{address}]=await wallet.getAccounts();
  const client=await SigningCosmWasmClient.offline(wallet);
  const initial=await client.sign(address,[{typeUrl:'/cosmos.bank.v1beta1.MsgSend',value:{fromAddress:address,toAddress:address,amount:[{denom:'stake',amount:'1'}]}}],
-  {amount:[],gas:'100000'},'',{accountNumber:7,sequence:3,chainId:'controlled-chain'});
+  {amount:[],gas:'100000'},'',{accountNumber:7,sequence:3,chainId:'controlled-chain'},timeoutHeight);
  const auth=AuthInfo.decode(initial.authInfoBytes);auth.fee=amount===null?undefined:{...auth.fee,amount};
  if(tip.length)auth.tip={amount:tip,tipper:address};
  const doc=SignDoc.fromPartial({bodyBytes:initial.bodyBytes,authInfoBytes:AuthInfo.encode(auth).finish(),chainId:'controlled-chain',accountNumber:7n});
@@ -19,10 +19,54 @@ async function signedFee(amount,tip=[]){
  const bytes=TxRaw.encode({bodyBytes:signed.signed.bodyBytes,authInfoBytes:signed.signed.authInfoBytes,signatures:[Buffer.from(signed.signature.signature,'base64')]}).finish();
  return {bytes,evidence:{transactionHash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),sender:address,chainId:'controlled-chain',signedTransactionBase64:Buffer.from(bytes).toString('base64'),signDocBase64:Buffer.from(SignDoc.encode(signed.signed).finish()).toString('base64')}};
 }
-function guarded(limits,prepared=true){
+function guarded(limits,prepared=true,reviewedHeight){
  const counts={persist:0,broadcast:0};const client={async broadcastTx(bytes){counts.broadcast++;return {transactionHash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),height:42,code:0};},async signAndBroadcast(){throw new Error('Unused');}};
- guardCosmosSigningClient(client,prepared?async()=>{counts.persist++;}:undefined,limits);return {client,counts};
+ guardCosmosSigningClient(client,prepared?async()=>{counts.persist++;}:undefined,limits,reviewedHeight);return {client,counts};
 }
+
+test('reviewed height rejects malformed configuration before wallet or RPC creation',async()=>{
+ for(const value of [null,0,100n,'','0','01','-1','1.5','9223372036854775808'])
+  await assert.rejects(invoke({operation:'put',reviewedMaximumHeight:value}),/reviewed Cosmos height/);
+});
+
+test('reviewed signing refuses unsigned-height and signed-tip escapes before preparation or broadcast',async()=>{
+ for(const prepared of [false,true]){
+  for(const [height,tip] of [[0n,[]],[101n,[]],[100n,[{denom:'stake',amount:'1'}]]]){
+   const {bytes}=await signedFee([{denom:'stake',amount:'1'}],tip,height);
+   const {client,counts}=guarded({stake:'2'},prepared,'100');
+   await assert.rejects(client.broadcastTx(bytes),/timeout height|Signed tips/);
+   assert.deepEqual(counts,{persist:0,broadcast:0});
+  }
+  for(const height of [99n,100n]){
+   const {client,counts}=guarded({stake:'2'},prepared,'100');
+   await client.broadcastTx((await signedFee([{denom:'stake',amount:'1'}],[],height)).bytes);
+   assert.deepEqual(counts,{persist:prepared?1:0,broadcast:1});
+  }
+ }
+});
+
+test('actual SDK signing inserts reviewed timeout and rejects caller attempts to widen it',async()=>{
+ const wallet=await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'wasm');const [{address}]=await wallet.getAccounts();
+ const client=await SigningCosmWasmClient.offline(wallet);
+ client.getSequence=async()=>({accountNumber:7,sequence:3});client.getChainId=async()=>'controlled-chain';
+ let broadcasts=0;
+ client.broadcastTx=async bytes=>{
+  assert.equal(TxBody.decode(TxRaw.decode(bytes).bodyBytes).timeoutHeight,100n);broadcasts++;
+  return{transactionHash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),height:42,code:0};
+ };
+ guardCosmosSigningClient(client,undefined,{stake:'2'},'100');
+ await client.signAndBroadcast(address,[],{amount:[{denom:'stake',amount:'1'}],gas:'1'},'');
+ for(const height of [0n,101n,100])await assert.rejects(client.signAndBroadcast(address,[],{amount:[],gas:'1'},'',height),/Caller timeout/);
+ assert.equal(broadcasts,1);
+});
+
+test('signed identity exposes tip presence and timeout from verified bytes, not caller claims',async()=>{
+ for(const tip of [[],[{denom:'stake',amount:'1'}]]){
+  const {evidence}=await signedFee([{denom:'stake',amount:'1'}],tip,100n);
+  const identity=verifyCosmosPreparedIdentity({...evidence,hasSignedTip:false,timeoutHeight:'0'});
+  assert.equal(identity.hasSignedTip,tip.length!==0);assert.equal(identity.timeoutHeight,'100');
+ }
+});
 
 test('explicit Cosmos fee maps reject malformed config before operation or wallet creation',async()=>{
  for(const limits of [null,[],{}, {stake:'0'},{stake:'01'},{stake:'-1'},{stake:1},{stake:'1.0'},{'bad denom':'1'},Object.fromEntries(Array.from({length:33},(_,i)=>['coin'+i,'1']))]){

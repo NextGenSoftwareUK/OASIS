@@ -17,6 +17,8 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     private bool _disposed;
     private readonly IReadOnlyDictionary<string,string> _maximumFeeUnitsByDenomination;
     private readonly OwnedPreparationScope _storagePreparation = new();
+    private readonly Func<CancellationToken,Task> _deploymentGuard;
+    private readonly long? _reviewedMaximumHeight;
     internal string ChainId => _chainId;
     internal bool HasReviewedStandardSdkFeeModel {get;}
 
@@ -26,7 +28,15 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
 
     internal CosmosSdkBackend(string rpcEndpoint,string chainId,string privateKey,string contractAddress,
         string addressPrefix,string gasPrice,string nodeExecutable,string bridgePath,CosmosNativeFeeLimits nativeFeeLimits)
+        :this(rpcEndpoint,chainId,privateKey,contractAddress,addressPrefix,gasPrice,nodeExecutable,bridgePath,nativeFeeLimits,null,null) { }
+
+    internal CosmosSdkBackend(string rpcEndpoint,string chainId,string privateKey,string contractAddress,
+        string addressPrefix,string gasPrice,string nodeExecutable,string bridgePath,CosmosNativeFeeLimits nativeFeeLimits,
+        Func<CancellationToken,Task> deploymentGuard,long? reviewedMaximumHeight)
     {
+        if((deploymentGuard==null)!=(!reviewedMaximumHeight.HasValue)||reviewedMaximumHeight<=0)
+            throw new ArgumentException("Reviewed height and deployment guard must be configured together.");
+        _deploymentGuard=deploymentGuard;_reviewedMaximumHeight=reviewedMaximumHeight;
         _maximumFeeUnitsByDenomination=nativeFeeLimits?.MaximumFeeUnitsByDenomination;
         if (string.IsNullOrWhiteSpace(rpcEndpoint) || !Uri.TryCreate(rpcEndpoint, UriKind.Absolute, out var uri)
             || (uri.Scheme != "http" && uri.Scheme != "https")) throw new ArgumentException("HTTP(S) Cosmos RPC endpoint is required.", nameof(rpcEndpoint));
@@ -115,6 +125,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
         var isMutation = operation is "put" or "delete" or "execute" or "transfer" or "upload" or "instantiate";
+        if(isMutation&&_deploymentGuard!=null)await _deploymentGuard(cancellationToken);
         if (preparationServer != null && !isMutation) throw new ArgumentException("Preparation gate is only valid for a native mutation.");
         // Public asset/contract/transfer facades share this invocation boundary.
         // An ambient owner must cover them too, not just IKeyValueBackend put/delete.
@@ -130,11 +141,13 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             ["addressPrefix"] = _addressPrefix, ["gasPrice"] = _gasPrice
         };
         if(_maximumFeeUnitsByDenomination!=null)request["maximumFeeUnitsByDenomination"]=_maximumFeeUnitsByDenomination;
+        if(_reviewedMaximumHeight.HasValue)request["reviewedMaximumHeight"]=_reviewedMaximumHeight.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (args != null)
             foreach (var property in args.GetType().GetProperties())
             {
                 if (property.Name == "operation") throw new ArgumentException("SDK arguments cannot override the authoritative operation.");
                 if(property.Name=="maximumFeeUnitsByDenomination")throw new ArgumentException("SDK arguments cannot replace configured Cosmos fee ceilings.");
+                if(property.Name=="reviewedMaximumHeight")throw new ArgumentException("SDK arguments cannot replace the server-reviewed Cosmos height bound.");
                 if(property.Name is "rpcEndpoint" or "chainId" or "addressPrefix")
                     throw new ArgumentException("SDK arguments cannot override the configured Cosmos network identity.");
                 request[property.Name] = property.GetValue(args);
