@@ -57,8 +57,8 @@ public partial class OracleDBOASIS
 
 public sealed class OracleLifecycleReconciliationException:Exception,INativeMutationReconciliationRequired
 {
-    public Guid AvatarId{get;}
+    public Guid RecordId{get;}
     public string OriginalTransactionId=>string.Empty;
     public OracleLifecycleReconciliationException(Guid id,Exception cause)
-        :base("Oracle lifecycle outcome requires reconciliation before replay.",cause)=>AvatarId=id;
+        :base("Oracle lifecycle outcome requires reconciliation before replay.",cause)=>RecordId=id;
 }
