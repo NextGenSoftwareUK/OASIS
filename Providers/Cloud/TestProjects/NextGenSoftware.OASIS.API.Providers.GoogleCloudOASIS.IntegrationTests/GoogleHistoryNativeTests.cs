@@ -16,6 +16,7 @@ public class GoogleHistoryNativeTests
     private sealed class NativeCommitBoundary(Google.Cloud.Firestore.V1.FirestoreClient inner,string mode):Google.Cloud.Firestore.V1.FirestoreClient
     {
         public int Attempts,CompetitorCommits;
+        public Grpc.Core.RpcException? NativeFailure;
         public readonly IOException Lost=new("Owned native commit acknowledgement withheld after actual success.");
         public override Google.Cloud.Firestore.V1.FirestoreSettings Settings=>inner.Settings;
         public override BatchGetDocumentsStream BatchGetDocuments(Google.Cloud.Firestore.V1.BatchGetDocumentsRequest request,Google.Api.Gax.Grpc.CallSettings callSettings=null)
@@ -23,12 +24,15 @@ public class GoogleHistoryNativeTests
         public override async Task<Google.Cloud.Firestore.V1.CommitResponse> CommitAsync(Google.Cloud.Firestore.V1.CommitRequest request,Google.Api.Gax.Grpc.CallSettings callSettings=null)
         {
             Attempts++;Assert.AreEqual(1,request.Writes.Count);
-            Assert.IsNotNull(request.Writes.Single().CurrentDocument.UpdateTime);
-            if(mode=="conflict"){
+            if(mode=="create-race")Assert.IsFalse(request.Writes.Single().CurrentDocument.Exists);
+            else Assert.IsNotNull(request.Writes.Single().CurrentDocument.UpdateTime);
+            if(mode is "conflict" or "create-race"){
                 // Deterministic real service interleaving: an independent writer wins the observed revision.
                 await inner.CommitAsync(request.Clone(),callSettings);CompetitorCommits++;
             }
-            var actual=await inner.CommitAsync(request,callSettings);
+            Google.Cloud.Firestore.V1.CommitResponse actual;
+            try{actual=await inner.CommitAsync(request,callSettings);}
+            catch(Grpc.Core.RpcException cause){NativeFailure=cause;throw;}
             if(mode=="lost")throw Lost;
             if(mode=="invalid"){
                 var invalid=new Google.Cloud.Firestore.V1.CommitResponse{CommitTime=new()};
@@ -55,6 +59,7 @@ public class GoogleHistoryNativeTests
     [DataRow(0,"conflict")][DataRow(1,"conflict")][DataRow(2,"conflict")]
     [DataRow(0,"lost")][DataRow(1,"lost")][DataRow(2,"lost")]
     [DataRow(0,"invalid")][DataRow(1,"invalid")][DataRow(2,"invalid")]
+    [DataRow(0,"create-race")][DataRow(1,"create-race")][DataRow(2,"create-race")]
     public async Task ActualConditionalCommitPreservesHistoryAndSeparatesRejectionFromUnknown(int kind,string mode)
     {
         var work=Admit();var id=Guid.NewGuid();var collection=kind==0?"avatars":kind==1?"avatarDetails":"holons";
@@ -74,8 +79,9 @@ public class GoogleHistoryNativeTests
             void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result,bool initial){
                 if(initial){Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);return;}
                 Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
-                if(mode=="conflict"){
+                if(mode is "conflict" or "create-race"){
                     Assert.IsInstanceOfType<Grpc.Core.RpcException>(result.Exception);
+                    Assert.AreEqual(mode=="create-race"?Grpc.Core.StatusCode.AlreadyExists:Grpc.Core.StatusCode.FailedPrecondition,((Grpc.Core.RpcException)result.Exception).StatusCode);
                     Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
                 }else{
                     Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
@@ -84,15 +90,16 @@ public class GoogleHistoryNativeTests
                 var policy=typeof(NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive).GetMethod("ShouldFailOver",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(T));
                 Assert.AreEqual(false,policy.Invoke(null,new object?[]{null,result}));
             }
-            await Save(true);var version=row.VersionId;Assert.AreEqual(1,row.Version);
+            if(mode!="create-race")await Save(true);
+            var baseline=mode=="create-race"?0:1;var version=row.VersionId;Assert.AreEqual(baseline,row.Version);
             row.MetaData["owned_history_native"]="second";var boundary=new NativeCommitBoundary(healthy.Client,mode);
             field.SetValue(provider,FirestoreDb.Create("oasis-google-native",boundary));await Save(false);
-            Assert.AreEqual(1,boundary.Attempts);Assert.AreEqual(mode=="conflict"?1:0,boundary.CompetitorCommits);
-            Assert.AreEqual(1,row.Version);Assert.AreEqual(version,row.VersionId);
+            Assert.AreEqual(1,boundary.Attempts);Assert.AreEqual(mode is "conflict" or "create-race"?1:0,boundary.CompetitorCommits);
+            Assert.AreEqual(baseline,row.Version);Assert.AreEqual(version,row.VersionId);
             var actual=await reference.GetSnapshotAsync();Assert.IsTrue(actual.Exists);
-            var document=JObject.Parse(actual.GetValue<string>("data_json"));Assert.AreEqual(2,document["Version"]!.Value<int>());
-            var archive=(JArray)document[EmbeddedRecordHistory.PropertyName]!["records"]!;Assert.AreEqual(1,archive.Count);
-            Assert.AreEqual("first",archive[0]!["MetaData"]!["owned_history_native"]!.Value<string>());
+            var document=JObject.Parse(actual.GetValue<string>("data_json"));Assert.AreEqual(baseline+1,document["Version"]!.Value<int>());
+            var archive=(JArray)document[EmbeddedRecordHistory.PropertyName]!["records"]!;Assert.AreEqual(baseline,archive.Count);
+            if(baseline>0)Assert.AreEqual("first",archive[0]!["MetaData"]!["owned_history_native"]!.Value<string>());
             Assert.AreEqual("second",document["MetaData"]!["owned_history_native"]!.Value<string>());
             await reference.DeleteAsync(Precondition.LastUpdated(actual.UpdateTime!.Value));
             Assert.IsFalse((await reference.GetSnapshotAsync()).Exists);File.Delete(journal);
@@ -131,6 +138,32 @@ public class GoogleHistoryNativeTests
             var historicalDetail=await provider.LoadAvatarDetailAsync(id,1);Assert.IsFalse(historicalDetail.IsError,historicalDetail.Exception?.ToString());Assert.AreEqual(123L,historicalDetail.Result.XP);Assert.IsFalse(historicalDetail.Result.IsDeleted);
             var hard=await provider.DeleteAvatarAsync(id,false);Assert.IsFalse(hard.IsError,hard.Exception?.ToString());Assert.IsTrue(hard.IsDeleted);
             Assert.IsFalse((await profile.GetSnapshotAsync()).Exists);Assert.IsFalse((await detail.GetSnapshotAsync()).Exists);File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
+
+    [TestMethod]
+    public async Task OversizedNativeWritePreservesCommittedHistoryWithoutTrimming()
+    {
+        var work=Admit();var id=Guid.NewGuid();var healthy=Database();var verifier=Database();
+        var provider=new GoogleCloudOASIS("oasis-google-native",enableStorage:false,enableFirestore:true,enableBigQuery:false){IsProviderActivated=true,IsVersionControlEnabled=true};
+        var field=typeof(GoogleCloudOASIS).GetField("_firestoreDb",BindingFlags.Instance|BindingFlags.NonPublic)!;field.SetValue(provider,healthy);
+        var reference=verifier.Collection("holons").Document(id.ToString());var journal=Path.Combine(work,"history-native-capacity.pending.json");
+        try{
+            Assert.IsFalse((await reference.GetSnapshotAsync()).Exists);Journal(journal,id,"holons");
+            var row=new Holon{Id=id,IsActive=true,Name="first"};
+            var first=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(first.IsError,first.Message);
+            row.Name="second";var second=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(second.IsError,second.Message);
+            var before=await reference.GetSnapshotAsync();var canonical=before.GetValue<string>("data_json");var version=row.VersionId;
+            var boundary=new NativeCommitBoundary(healthy.Client,"capacity");field.SetValue(provider,FirestoreDb.Create("oasis-google-native",boundary));
+            row.Name=new string('x',1_100_000);
+            var failed=await provider.SaveHolonAsync(row,saveChildren:false);
+            Assert.IsTrue(failed.IsError);Assert.IsFalse(failed.IsSaved);Assert.AreEqual(1,boundary.Attempts);Assert.IsNotNull(boundary.NativeFailure);
+            Assert.AreEqual(Grpc.Core.StatusCode.InvalidArgument,boundary.NativeFailure.StatusCode);
+            Assert.AreEqual(2,row.Version);Assert.AreEqual(version,row.VersionId);
+            var actual=await reference.GetSnapshotAsync();Assert.IsTrue(actual.Exists);Assert.AreEqual(before.UpdateTime,actual.UpdateTime);
+            Assert.IsTrue(string.Equals(canonical,actual.GetValue<string>("data_json"),StringComparison.Ordinal),"Native rejection must preserve the entire original including its archive; never trim or overwrite.");
+            var stored=JObject.Parse(actual.GetValue<string>("data_json"));Assert.AreEqual(1,((JArray)stored[EmbeddedRecordHistory.PropertyName]!["records"]!).Count);
+            await reference.DeleteAsync(Precondition.LastUpdated(actual.UpdateTime!.Value));Assert.IsFalse((await reference.GetSnapshotAsync()).Exists);File.Delete(journal);
         }finally{await provider.DeActivateProviderAsync();}
     }
 
