@@ -24,8 +24,11 @@ public partial class NEAROASIS
         return snapshot;
     }
 
-    private static void PublishRecordStamp(IHolonBase source, IHolonBase stored)
+    private static void PublishRecordStamp(IHolonBase source, IHolonBase stored,Guid originalId,string transactionId)
     {
+        if(source.Id!=originalId)
+            throw new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,transactionId,
+                new InvalidOperationException("Caller identity changed after the NEAR record snapshot; acknowledged storage must be reconciled without publishing to the changed caller."));
         source.Id = stored.Id;
         source.ProviderUniqueStorageKey = stored.ProviderUniqueStorageKey;
         source.Version = stored.Version;
@@ -112,11 +115,12 @@ public partial class NEAROASIS
         try
         {
             if (avatar == null) throw new ArgumentNullException(nameof(avatar));
+            var originalId=avatar.Id;
             var snapshot = PrepareRecordSnapshot<Avatar>(avatar);
             if (!await EnsureSdkActiveAsync(result)) return result;
             await StampStoredVersionAsync($"avatar:{snapshot.Id:D}", snapshot);
             var tx = await _sdk.PutAsync($"avatar:{snapshot.Id:D}", OasisJson.Serialize(snapshot));
-            PublishRecordStamp(avatar,snapshot);
+            PublishRecordStamp(avatar,snapshot,originalId,tx);
             result.Result = avatar;
             result.Message = $"Avatar saved to NEAR contract storage in transaction {tx}.";
         }
@@ -183,17 +187,19 @@ public partial class NEAROASIS
         return result;
     }
 
-    private async Task<OASISResult<IHolon>> SaveHolonRecordAsync(IHolon holon)
+    private async Task<OASISResult<IHolon>> SaveHolonRecordAsync(IHolon holon,Action<string> recordAcknowledgement=null)
     {
         var result = new OASISResult<IHolon>();
         try
         {
             if (holon == null) throw new ArgumentNullException(nameof(holon));
+            var originalId=holon.Id;
             var snapshot = PrepareRecordSnapshot<Holon>(holon);
             if (!await EnsureSdkActiveAsync(result)) return result;
             await StampStoredVersionAsync($"holon:{snapshot.Id:D}", snapshot);
             var tx = await _sdk.PutAsync($"holon:{snapshot.Id:D}", OasisJson.Serialize(snapshot));
-            PublishRecordStamp(holon,snapshot);
+            recordAcknowledgement?.Invoke(tx);
+            PublishRecordStamp(holon,snapshot,originalId,tx);
             result.Result = holon;
             result.Message = $"Holon saved to NEAR contract storage in transaction {tx}.";
         }
@@ -258,11 +264,12 @@ public partial class NEAROASIS
         try
         {
             if (detail == null) throw new ArgumentNullException(nameof(detail));
+            var originalId=detail.Id;
             var snapshot = PrepareRecordSnapshot<AvatarDetail>(detail);
             if (!await EnsureSdkActiveAsync(result)) return result;
             await StampStoredVersionAsync($"avatar-detail:{snapshot.Id:D}", snapshot);
             var tx = await _sdk.PutAsync($"avatar-detail:{snapshot.Id:D}", OasisJson.Serialize(snapshot));
-            PublishRecordStamp(detail,snapshot);
+            PublishRecordStamp(detail,snapshot,originalId,tx);
             result.Result = detail;
             result.Message = $"Avatar detail saved to NEAR contract storage in transaction {tx}.";
         }
