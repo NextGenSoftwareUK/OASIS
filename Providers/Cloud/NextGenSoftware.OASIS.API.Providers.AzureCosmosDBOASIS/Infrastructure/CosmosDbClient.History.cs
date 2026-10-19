@@ -54,8 +54,14 @@ public partial class CosmosDbClient
             else if(mode!=RecordWriteMode.Upsert)
                 throw new CosmosException("Cosmos replacement target does not exist.",HttpStatusCode.NotFound,0,null,0);
         }
-        if(expectedPayload!=null && (previous==null ||
-            !StoredRecordPayloadEquality.Equivalent(expectedPayload,CosmosEmbeddedHistory.CanonicalPayload(previous))))
+        var previousPayload=previous==null ? null:CosmosEmbeddedHistory.CanonicalPayload(previous);
+        // TypeNameHandling.Auto emits root $type for this object-typed argument, but not
+        // for the same record written through its concrete type. Match that observed
+        // root representation only; stored/nested discriminators and all domain fields remain strict.
+        if(expectedPayload!=null && previousPayload!=null && previousPayload.Property("$type")==null)
+            expectedPayload.Remove("$type");
+        if(expectedPayload!=null && (previousPayload==null ||
+            !StoredRecordPayloadEquality.Equivalent(expectedPayload,previousPayload)))
             throw new Core.Helpers.StorageLifecycleConflictException("Cosmos record changed before conditional replacement.");
 
         var retainsHistory=forceHistory || _retainRecordHistory || previous?[CosmosEmbeddedHistory.PropertyName]!=null;

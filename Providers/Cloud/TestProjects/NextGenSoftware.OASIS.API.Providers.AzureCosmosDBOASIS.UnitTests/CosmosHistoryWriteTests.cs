@@ -13,12 +13,35 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 [TestClass]
 public class CosmosHistoryWriteTests
 {
+    [DataTestMethod]
+    [DataRow("stored-type")] [DataRow("metadata")] [DataRow("domain")]
+    public async Task ConditionalComparisonRetainsStoredTypeMetadataAndDomainConflicts(string changed)
+    {
+        var source=new Holon{Id=Guid.NewGuid(),Name="owned",MetaData=new Dictionary<string,object>{{"tag","owned"}}};
+        var prior=await CosmosEmbeddedHistory.StageAsync(source,null!,Decode);prior["_etag"]="observed";
+        var expected=await CosmosEmbeddedHistory.ReadAsync(source.Id,prior,0,Decode);
+        var proposed=OasisJson.Project<Holon>(expected);proposed.Name="replacement";
+        if(changed=="stored-type")prior["$type"]="foreign.Type, Foreign";
+        else if(changed=="metadata")((JObject)prior["MetaData"]!)["tag"]="changed";
+        else prior["Name"]="changed";
+        var container=new Mock<Container>(MockBehavior.Strict);
+        container.Setup(c=>c.ReadItemStreamAsync(source.Id.ToString(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResponseMessage(HttpStatusCode.OK){Content=Bytes(prior.ToString())});
+        var client=new CosmosDbClient(container.Object);
+        await Assert.ThrowsExceptionAsync<NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException>(
+            ()=>client.ReplaceUnchangedDocumentAsync(source.Id.ToString(),expected,proposed,new PartitionKey(source.Id.ToString())));
+        container.Verify(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()),Times.Never());
+    }
+
     [DataTestMethod][DataRow("upsert")][DataRow("replace")][DataRow("conditional")]
     public async Task OrdinaryWritersRetainStoredArchiveEvenWithHistoryOptionDisabled(string operation)
     {
         var source=new Holon{Id=Guid.NewGuid(),Name="original"};
         var prior=await CosmosEmbeddedHistory.StageAsync(source,null!,Decode);prior["_etag"]="observed";
         var expected=await CosmosEmbeddedHistory.ReadAsync(source.Id,prior,0,Decode);
+        var expectedJson=JObject.Parse(OasisJson.Serialize(expected));var persistedJson=CosmosEmbeddedHistory.CanonicalPayload(prior);
+        var differences=expectedJson.Properties().Where(p=>!persistedJson.TryGetValue(p.Name,out var value)||!StoredRecordPayloadEquality.Equivalent(p.Value,value)).Select(p=>p.Name);
+        Assert.IsTrue(StoredRecordPayloadEquality.Equivalent(expectedJson,persistedJson),"Roundtrip changed fields: "+string.Join(",",differences));
         var proposed=OasisJson.Project<Holon>(expected);proposed.Name="replacement";
         var container=new Mock<Container>();var writes=0;
         container.Setup(c=>c.ReadItemStreamAsync(source.Id.ToString(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
