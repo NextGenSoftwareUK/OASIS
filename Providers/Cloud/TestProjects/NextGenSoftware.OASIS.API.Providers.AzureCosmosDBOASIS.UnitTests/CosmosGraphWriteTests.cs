@@ -56,4 +56,24 @@ public class CosmosGraphWriteTests
         Assert.AreEqual(rows[0].Id,partial.AcknowledgedRecordIds.Single());Assert.AreSame(cause,partial.InnerException);
         Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(partial));
     }
+
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task ChangedBatchCallerIdentityIsNotPublishedOrWrittenAgain(bool synchronous,bool later)
+    {
+        var first=new Holon();var second=new Holon();var replacement=Guid.NewGuid();var calls=0;
+        var repository=new Mock<IHolonRepository>();
+        repository.Setup(r=>r.UpsertAsync(It.IsAny<IHolon>())).Returns(async(IHolon row)=>{
+            calls++;await Task.Yield();(later?second:first).Id=replacement;return row;
+        });
+        var provider=Provider(repository.Object);
+        var result=synchronous ? provider.SaveHolons(new[]{first,second}):await provider.SaveHolonsAsync(new[]{first,second});
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,calls);
+        Assert.AreEqual(replacement,(later?second:first).Id);
+        var partial=result.Exception as CosmosPartialMutationException;Assert.IsNotNull(partial);
+        Assert.AreEqual(1,partial.AcknowledgedRecordIds.Count);
+        Assert.AreNotEqual(replacement,partial.AcknowledgedRecordIds.Single());
+        Assert.AreNotEqual(Guid.Empty,partial.AcknowledgedRecordIds.Single());
+        if(later)Assert.AreEqual(first.Id,partial.AcknowledgedRecordIds.Single());
+    }
 }
