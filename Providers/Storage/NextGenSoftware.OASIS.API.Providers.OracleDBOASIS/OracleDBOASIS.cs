@@ -462,69 +462,19 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsyncLegacy(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var holons = new List<IHolon>();
-                string sql = holonType == HolonType.All
-                    ? "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0"
-                    : "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND HOLON_TYPE=:HolonType";
-                await using var conn = new OracleConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = CreateCommand(sql, conn);
-                if (holonType != HolonType.All) cmd.Parameters.Add("HolonType", OracleDbType.Int32).Value = (int)holonType;
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    var holon = Deserialize<Holon>(reader.GetString(0));
-                    if (holon != null) holons.Add(holon);
-                }
-                result.Result = holons; result.IsError = false; result.Message = $"OracleDBOASIS: Loaded {holons.Count} holon(s).";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading all holons: {ex.Message}"); }
-            return result;
-        }
+            => await LoadAllHolonsAsync(holonType,loadChildren,recursive,maxChildDepth,0,continueOnError,loadChildrenFromProvider,version);
 
         public OASISResult<IEnumerable<IHolon>> LoadAllHolonsLegacy(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
             => LoadAllHolonsAsyncLegacy(holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
 
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsyncLegacy(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var holons = new List<IHolon>();
-                string sql = holonType == HolonType.All
-                    ? "SELECT DATA_JSON FROM OASIS_HOLONS WHERE PARENT_HOLON_ID=:ParentId AND IS_DELETED=0"
-                    : "SELECT DATA_JSON FROM OASIS_HOLONS WHERE PARENT_HOLON_ID=:ParentId AND IS_DELETED=0 AND HOLON_TYPE=:HolonType";
-                await using var conn = new OracleConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = CreateCommand(sql, conn);
-                cmd.Parameters.Add("ParentId", OracleDbType.Raw).Value = GuidToRaw(id);
-                if (holonType != HolonType.All) cmd.Parameters.Add("HolonType", OracleDbType.Int32).Value = (int)holonType;
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    var holon = Deserialize<Holon>(reader.GetString(0));
-                    if (holon != null) holons.Add(holon);
-                }
-                result.Result = holons; result.IsError = false; result.Message = $"OracleDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
-            return result;
-        }
+            => await LoadHolonsForParentAsync(id,holonType,loadChildren,recursive,maxChildDepth,0,continueOnError,loadChildrenFromProvider,version);
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsForParentLegacy(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
             => LoadHolonsForParentAsyncLegacy(id, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
 
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsyncLegacy(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
-        {
-            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonsForParentAsyncLegacy(id, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider);
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
-            return result;
-        }
+            => await LoadHolonsForParentAsync(providerKey,holonType,loadChildren,recursive,maxChildDepth,0,continueOnError,loadChildrenFromProvider,version);
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsForParentLegacy(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
             => LoadHolonsForParentAsyncLegacy(providerKey, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;

@@ -138,6 +138,16 @@ public sealed class OracleNativeAcceptanceTests
                 }
                 var noChildren=await provider.LoadHolonAsync(id,loadChildren:false,loadChildrenFromProvider:true,version:1);Assert.AreEqual(0,noChildren.Result.Children.Count);
                 var historicalParents=await provider.LoadHolonsForParentAsync(oldHolon.Result.ParentHolonId,loadChildrenFromProvider:true,version:1);Assert.IsFalse(historicalParents.IsError,historicalParents.Exception?.ToString());Assert.AreEqual(5,historicalParents.Result.Single(row=>row.Id==id).Children.Single().Version);
+                foreach(var synchronous in new[]{false,true}){
+                    var legacyAll=synchronous?provider.LoadAllHolonsLegacy(version:1,loadChildrenFromProvider:true):await provider.LoadAllHolonsAsyncLegacy(version:1,loadChildrenFromProvider:true);
+                    var legacyParent=synchronous?provider.LoadHolonsForParentLegacy(oldHolon.Result.ParentHolonId,version:1,loadChildrenFromProvider:true):await provider.LoadHolonsForParentAsyncLegacy(oldHolon.Result.ParentHolonId,version:1,loadChildrenFromProvider:true);
+                    var legacyKey=synchronous?provider.LoadHolonsForParentLegacy(oldHolon.Result.ParentHolonId.ToString(),version:1,loadChildrenFromProvider:true):await provider.LoadHolonsForParentAsyncLegacy(oldHolon.Result.ParentHolonId.ToString(),version:1,loadChildrenFromProvider:true);
+                    foreach(var legacy in new[]{legacyAll,legacyParent,legacyKey}){
+                        Assert.IsFalse(legacy.IsError,legacy.Exception?.ToString());var root=legacy.Result.Single(row=>row.Id==id);Assert.AreEqual(1,root.Version);Assert.AreEqual(name,root.Name);Assert.AreEqual(5,root.Children.Single().Version);
+                    }
+                    var clipped=synchronous?provider.LoadAllHolonsLegacy(loadChildren:false,version:1,loadChildrenFromProvider:true):await provider.LoadAllHolonsAsyncLegacy(loadChildren:false,version:1,loadChildrenFromProvider:true);
+                    Assert.IsFalse(clipped.IsError,clipped.Exception?.ToString());Assert.AreEqual(0,clipped.Result.Single(row=>row.Id==id).Children.Count);
+                }
                 foreach(var currentRoots in new[]{await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true),await provider.LoadHolonsForParentAsync(holon.ParentHolonId,loadChildrenFromProvider:true),await provider.LoadHolonsByMetaDataAsync("owned.fixture",avatar.Username,loadChildrenFromProvider:true),await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string>{{"owned.fixture",avatar.Username}},NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,loadChildrenFromProvider:true)}){
                     Assert.IsFalse(currentRoots.IsError,currentRoots.Exception?.ToString());Assert.AreEqual(3,currentRoots.Result.Single(row=>row.Id==id).Version);Assert.AreEqual(5,currentRoots.Result.Single(row=>row.Id==id).Children.Single().Version);
                 }
