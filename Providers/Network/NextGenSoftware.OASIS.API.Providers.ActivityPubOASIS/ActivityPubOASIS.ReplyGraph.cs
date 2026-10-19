@@ -6,12 +6,35 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
 
 public partial class ActivityPubOASIS
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ReadMastodonChildrenAsync(string key,
+        Core.Enums.HolonType type,bool loadChildren,bool recursive,int maxDepth,int currentDepth,bool providerChildren,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            ObjectDisposedException.ThrowIf(_disposed,this);
+            if(maxDepth<0||currentDepth<0)throw new ArgumentOutOfRangeException(nameof(maxDepth));
+            if(!Enum.IsDefined(type))throw new ArgumentOutOfRangeException(nameof(type));
+            var nativeDepth=1;
+            if(loadChildren&&providerChildren&&(maxDepth==0||currentDepth<maxDepth))
+                nativeDepth=!recursive?2:maxDepth==0?0:(int)Math.Min(int.MaxValue,(long)maxDepth-currentDepth+1);
+            var parent=await ReadMastodonStatusAsync(key,true,true,nativeDepth,version,true);
+            if(parent.IsError)return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(parent);
+            if(parent.Result==null)throw new InvalidDataException("Native parent status read returned no record.");
+            var selected=parent.Result.Children.Where(child=>type==Core.Enums.HolonType.All||child.HolonType==type).ToArray();
+            result.Result=selected;result.LoadedCount=selected.Length;
+        }
+        catch(Exception error){OASISErrorHandling.HandleError(ref result,"Native Mastodon parent reply read failed.",error);}
+        return result;
+    }
+
     private async Task<IHolon> ReadMastodonReplyGraphAsync(Holon root,bool recursive,int depth)
     {
         var key=root.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS];

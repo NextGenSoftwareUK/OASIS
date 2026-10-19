@@ -31,6 +31,12 @@ public class PublicMastodonAccountTests
             Assert.Equal(native.GetProperty("uri").GetString(),child.MetaData["MastodonObjectUri"]?.ToString());
             Assert.Equal(native.GetProperty("content").GetString(),child.MetaData["MastodonContentHtml"]?.ToString());
         }
+        var direct=synchronous?provider.LoadHolonsForParent(id,loadChildren:false)
+            :await provider.LoadHolonsForParentAsync(id,loadChildren:false).WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.False(direct.IsError,direct.Exception?.ToString());
+        Assert.Equal(descendants.Select(status=>status.GetProperty("id").GetString()).OrderBy(value=>value),
+            direct.Result.Select(status=>status.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]).OrderBy(value=>value));
+        Assert.All(direct.Result,status=>{Assert.Equal(result.Result.Id,status.ParentHolonId);Assert.Empty(status.Children);});
     }
 
     [Theory][InlineData(false)][InlineData(true)]
