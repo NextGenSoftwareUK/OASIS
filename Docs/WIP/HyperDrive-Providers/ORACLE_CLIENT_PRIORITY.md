@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Forwarded key maps are bound to intent — LOCAL ONLY, 2026-10-19
+
+Fingerprint audit found whole current/previous provider-key maps excluded even though Oracle overwrites only its own CURRENT key and forwards the rest. Local ConditionalHolonPlan now hashes foreign current keys and entire previous-version key map; only current authority key is removed from a detached intent copy and empty resulting current-key map normalized away. Version/audit/server-owned revision exclusions otherwise unchanged. Prototype fingerprint format2(not released) distinguishes this new rule; no deployed receipt migration claim. This binds actual forwarded input rather than silently accepting different persisted mappings under one operation ID.
+
+Three shared cases prove own Oracle key publication leaves hash unchanged, foreign current-key change alters it and previous-key change alters it. Two additional actual native concurrent cases change ONLY forwarded foreign current/previous key maps under SAME operation/actor/conditions; require original native-SID contention, then COSMIC_OPERATION_ID_REUSED/one commit/original winner retained. Foreign Mongo key values are opaque synthetic metadata strings; NO Mongo operation or cross-provider transfer is certified by these cases. Input sources remain unchanged by fingerprint projection.
+
+Full61/61native pass26s/zero skips =60acceptance+1diagnostic SHA256 `307BBE7F5C44375ACBC6FA101316A30A7C9DBB1CBF5FD8151CC35110062C8077`;476/476Shared pass2s SHA256 `DA9C43E8E1B205DAB886A9FA7065D9D7A2D43535040DDAC243D83E07EE20924F`. Fixed oracle-native-current.trx/shared-conditional-key-intent.trx; cached builds0errors2/7/2warnings; prior141Oracle units not rerun. Exact known fixture/receipt cleanup+independent absence, journals0/container stopped/no download/install/new runtime/reset. Feature remains local/uncommitted/unadvertised. Remaining review includes null/empty provider-metadata normalization after acknowledgement, foreign revision-observation policy, upper-layer actor authorization, Core dependency/immutable/API/V2 gates; not all intent/security or all-provider completion.
+
 ## Admission, actor binding and authoritative creation audit — LOCAL ONLY, 2026-10-19
 
 Fourteen new sync/async unit cases use invalid connection configuration and require OWN pre-I/O admission causes: wrong authority, missing/extra selected conditions, delete-create precondition, selected cycle, conflicting child parent and null request. Exception messages/parameter names distinguish these from the SDK's invalid-connection ArgumentException. No caller revision/version or reconciliation marker published. Existing pre-cancel case remains.
