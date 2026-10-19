@@ -23,8 +23,9 @@ for service, path in PROGRAMS.items():
     source = tree.read(path)
     if 'builder.Configuration["SUBSCRIPTION_USAGE_ENABLED"]' not in source:
         errors.append(f"{service}: missing SUBSCRIPTION_USAGE_ENABLED configuration gate")
-    registration = rf"if \(subscriptionUsageEnabled\)\s*builder\.Services\.AddWeb4UsageLedger\(builder\.Configuration, \"{service}\""
-    middleware = r"if \(subscriptionUsageEnabled\)\s*app\.UseMiddleware<Web4UsageLedgerMiddleware>\(\);"
+    # The guarded statement may be the bare body of the if or the first statement of its braced block.
+    registration = rf"if \(subscriptionUsageEnabled\)\s*\{{?\s*(//[^\n]*\n\s*)*builder\.Services\.AddWeb4UsageLedger\(builder\.Configuration, \"{service}\""
+    middleware = r"if \(subscriptionUsageEnabled\)\s*\{?\s*(//[^\n]*\n\s*)*app\.UseMiddleware<Web4UsageLedgerMiddleware>\(\);"
     if not re.search(registration, source):
         errors.append(f"{service}: ledger registration is not guarded")
     if not re.search(middleware, source):
