@@ -18,7 +18,7 @@ public partial class NEAROASIS
         var saved = await SaveHolonForestAsync(new[] { holon }, saveChildren, recursive, maxChildDepth, depth, continueOnError);
         return new OASISResult<IHolon>(saved.Result?.FirstOrDefault())
         {
-            IsError = saved.IsError, IsSaved = saved.IsSaved, Message = saved.Message, Exception = saved.Exception
+            IsError = saved.IsError, IsSaved = saved.IsSaved, ErrorCode=saved.ErrorCode, Message = saved.Message, Exception = saved.Exception
         };
     }
 
@@ -55,7 +55,8 @@ public partial class NEAROASIS
             {
                 blocked.Add(node.Snapshot.Id);
                 OASISErrorHandling.HandleError(ref result, saved.Message, saved.Exception);
-                if (!continueOnError) break;
+                result.ErrorCode=saved.ErrorCode;
+                if (!continueOnError||NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(saved.Exception)) break;
                 continue;
             }
             // Publish only identities/stamps whose current-record write was acknowledged.
