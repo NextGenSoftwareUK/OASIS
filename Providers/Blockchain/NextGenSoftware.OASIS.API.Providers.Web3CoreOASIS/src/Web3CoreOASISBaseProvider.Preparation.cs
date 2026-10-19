@@ -54,7 +54,7 @@ public partial class Web3CoreOASISBaseProvider : NextGenSoftware.OASIS.API.Core.
         if(!string.Equals(expectedSender,_web3CoreOASIS.SigningAddress,StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Admitted sender differs from configured EVM signing account.");
         var chain=_expectedChainId.Value.ToString(CultureInfo.InvariantCulture);var sequence=0;
         var sdk=_web3CoreOASIS;
-        return sdk.WithNativePreparationAsync(operation,async evidence=>
+        return sdk.WithCancellableNativePreparationAsync(operation,async evidence=>
         {
             token.ThrowIfCancellationRequested();
             var persist=execution.NativePreparationPersistence(ProviderType.Value.ToString(),null,
@@ -69,6 +69,6 @@ public partial class Web3CoreOASISBaseProvider : NextGenSoftware.OASIS.API.Core.
                     return Task.CompletedTask;
                 });
             await persist(evidence,token);
-        });
+        },token);
     }
 }
