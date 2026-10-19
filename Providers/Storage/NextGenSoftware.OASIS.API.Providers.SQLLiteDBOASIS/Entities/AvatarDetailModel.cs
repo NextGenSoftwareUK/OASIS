@@ -203,8 +203,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             this.Attributes=source.Attributes==null ? null:new AvatarAttributesModel(source.Attributes) {AvatarId=this.Id};
             this.SuperPowers=source.SuperPowers==null ? null:new AvatarSuperPowersModel(source.SuperPowers) {AvatarId=this.Id};
 
-            foreach(AvatarGift gift in source.Gifts){
-                this.Gifts.Add(new AvatarGiftModel(gift));
+            foreach(var gift in source.Gifts ?? new List<IAvatarGift>()){
+                this.Gifts.Add(AvatarGiftModel.ForAvatar(gift,this.Id,this.Gifts.Count));
             }
 
             foreach(var heartRate in source.HeartRateData ?? new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IHeartRateEntry>()){

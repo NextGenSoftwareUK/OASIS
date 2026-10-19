@@ -39,6 +39,9 @@ public partial class SQLLiteDBOASIS
                 {"ExtendedValueJson","TEXT NOT NULL DEFAULT '{}'"}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"HeartRateEntry",
             new Dictionary<string,string> {{"SequenceIndex","INTEGER NOT NULL DEFAULT 0"}}).ConfigureAwait(false);
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"AvatarGifts",
+            new Dictionary<string,string> {{"SequenceIndex","INTEGER NOT NULL DEFAULT 0"}}).ConfigureAwait(false);
+        await EnsureOptionalGiftChakraAsync(connection,transaction.GetDbTransaction()).ConfigureAwait(false);
         await transaction.CommitAsync().ConfigureAwait(false);
     }
 

@@ -23,10 +23,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             _dbContext = dbContext;
         }
 
-        // Load the two independent collections without a cartesian inventory ×
-        // heart-rate join. One-to-one components are centrally AutoIncluded.
+        // Load independent collections without a cartesian inventory × heart-rate × gift join.
+        // One-to-one components are centrally AutoIncluded.
         private IQueryable<AvatarDetailModel> DetailState() => _dbContext.AvatarDetails.AsSplitQuery()
-            .Include(a=>a.InventoryItems).Include(a=>a.HeartRates);
+            .Include(a=>a.InventoryItems).Include(a=>a.HeartRates).Include(a=>a.Gifts);
 
         private IAvatarDetail MapUniqueAvatarDetail(List<AvatarDetailModel> rows)
         {
@@ -352,6 +352,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.CelestialParentIdsJson = AvatarDetailCelestialLinks.Encode(avatarDetailEntity);
                     SetComponents(existing, avatarDetailEntity);
                     SetHeartRates(existing, avatarDetailEntity);
+                    SetStandaloneGifts(existing,avatarDetailEntity);
                     existing.Model3D = avatarDetailEntity.Model3D;
                     existing.Portrait = avatarDetailEntity.Portrait;
                     existing.UmaJson = avatarDetailEntity.UmaJson;
@@ -458,6 +459,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.CelestialParentIdsJson = AvatarDetailCelestialLinks.Encode(AvatarDetailEntity);
                     SetComponents(existing, AvatarDetailEntity);
                     SetHeartRates(existing, AvatarDetailEntity);
+                    SetStandaloneGifts(existing,AvatarDetailEntity);
                     existing.Model3D = AvatarDetailEntity.Model3D;
                     existing.Portrait = AvatarDetailEntity.Portrait;
                     existing.UmaJson = AvatarDetailEntity.UmaJson;
@@ -565,6 +567,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             else _dbContext.Entry(existing.Stats).CurrentValues.SetValues(incoming);
         }
 
+        private void SetStandaloneGifts(AvatarDetailModel existing,IAvatarDetail source)
+        {
+            var incoming=(source.Gifts??new List<IAvatarGift>()).Select((gift,index)=>AvatarGiftModel.ForAvatar(gift,existing.Id,index)).ToList();
+            var previous=existing.Gifts.Where(gift=>gift.AvatarChakraId==null).ToList();
+            _dbContext.RemoveRange(previous);
+            foreach(var gift in previous)existing.Gifts.Remove(gift);
+            existing.Gifts.AddRange(incoming);
+        }
+
         private void SetHeartRates(AvatarDetailModel existing,IAvatarDetail source)
         {
             // Stage the complete replacement before mutating tracked rows.
@@ -621,6 +632,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 MetaData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,object>>(avatarDetailEntity.MetaDataJson)
                     ?? throw new System.IO.InvalidDataException("Stored avatar detail metadata must be a JSON object."),
                 Stats = avatarDetailEntity.Stats?.GetAvatarStats(),
+                Gifts = avatarDetailEntity.Gifts.Where(gift=>gift.AvatarChakraId==null).OrderBy(gift=>gift.SequenceIndex).ThenBy(gift=>gift.Id)
+                    .Select(gift=>(IAvatarGift)gift.GetAvatarGift()).ToList(),
                 CreatedByAvatarId = Guid.Parse(avatarDetailEntity.CreatedByAvatarId),
                 CreatedDate = avatarDetailEntity.CreatedDate,
                 CreatedProviderType = avatarDetailEntity.CreatedProviderType.HasValue
