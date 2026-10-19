@@ -10,6 +10,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
 public class MongoMetadataDateTests
 {
     [DataTestMethod]
+    [DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public void BsonUuidMetadataRetainsIdentityForStandardAndExistingCSharpLegacy(bool nested,bool legacy)
+    {
+        _=new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS("mongodb://127.0.0.1:27028/?serverSelectionTimeoutMS=100","owned-uuid-unit");
+        var identity=Guid.Parse("00112233-4455-6677-8899-aabbccddeeff");
+        var representation=legacy?GuidRepresentation.CSharpLegacy:GuidRepresentation.Standard;
+        var values=new BsonDocument("identity",new BsonBinaryData(identity,representation));
+        var document=nested?new BsonDocument("nested",values):values;
+        using var reader=new BsonDocumentReader(document);
+        var result=new MetaDataDictionarySerializer().Deserialize(BsonDeserializationContext.CreateRoot(reader),
+            new BsonDeserializationArgs{NominalType=typeof(Dictionary<string,object>)});
+        var metadata=nested?(Dictionary<string,object>)result["nested"]:result;
+        Assert.AreEqual(identity.ToString(),metadata["identity"]);
+    }
+    [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public void BsonDatesRetainUtcTypeWithoutInferringNumbersOrStrings(bool nested)
     {

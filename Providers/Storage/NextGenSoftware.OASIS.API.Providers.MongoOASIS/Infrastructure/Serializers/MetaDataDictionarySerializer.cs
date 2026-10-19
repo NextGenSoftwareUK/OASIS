@@ -123,10 +123,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
             var binaryData = reader.ReadBinaryData();
             var subType = binaryData.SubType;
             var bytes = binaryData.Bytes;
-            if (subType == BsonBinarySubType.UuidLegacy || subType == BsonBinarySubType.UuidStandard)
+            if (subType == BsonBinarySubType.UuidStandard)
+                return binaryData.ToGuid(GuidRepresentation.Standard).ToString();
+            if (subType == BsonBinarySubType.UuidLegacy)
             {
+                // Retain this provider's existing C# legacy byte-order contract; subtype 3 does not identify other legacy encodings.
                 if (bytes != null && bytes.Length == 16)
-                    return new Guid(bytes).ToString();
+                    return binaryData.ToGuid(GuidRepresentation.CSharpLegacy).ToString();
                 return bytes ?? Array.Empty<byte>();
             }
             return bytes ?? Array.Empty<byte>();

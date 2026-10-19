@@ -168,6 +168,13 @@ public sealed class DirectMongoAvatarDetailContractTests
                     Assert.Equal(property.GetValue(detail),property.GetValue(saved.Result));
                 }
                 // Independent provider instance proves this is persisted state, not a caller cache.
+                var metadataIdentity=Guid.Parse("00112233-4455-6677-8899-aabbccddeeff");
+                var nativeCollection=collection.Database.GetCollection<MongoDB.Bson.BsonDocument>("AvatarDetail");
+                var uuidUpdate=await nativeCollection.UpdateOneAsync(new MongoDB.Bson.BsonDocument("_id",MongoDB.Bson.ObjectId.Parse(raw.Id)),
+                    new MongoDB.Bson.BsonDocument("$set",new MongoDB.Bson.BsonDocument{
+                        {"MetaData.standardUuid",new MongoDB.Bson.BsonBinaryData(metadataIdentity,MongoDB.Bson.GuidRepresentation.Standard)},
+                        {"MetaData.legacyUuid",new MongoDB.Bson.BsonBinaryData(metadataIdentity,MongoDB.Bson.GuidRepresentation.CSharpLegacy)}}));
+                Assert.True(uuidUpdate.IsAcknowledged);Assert.Equal(1,uuidUpdate.MatchedCount);
                 var reader=new Provider(connection,database);
                 try{
                     var ready=await reader.ActivateProviderAsync();Assert.False(ready.IsError,ready.Message);
@@ -175,6 +182,8 @@ public sealed class DirectMongoAvatarDetailContractTests
                         reader.LoadAvatarDetailByUsername(detail.Username),await reader.LoadAvatarDetailByUsernameAsync(detail.Username),
                         reader.LoadAvatarDetailByEmail(detail.Email),await reader.LoadAvatarDetailByEmailAsync(detail.Email)}){
                         Assert.False(loaded.IsError,loaded.Message);Assert.NotNull(loaded.Result);
+                        Assert.Equal(metadataIdentity.ToString(),loaded.Result.MetaData["standardUuid"]);
+                        Assert.Equal(metadataIdentity.ToString(),loaded.Result.MetaData["legacyUuid"]);
                         Assert.Equal(id,loaded.Result.Id);Assert.Equal(detail.Description,loaded.Result.Description);
                         VerifyStructured(loaded.Result,false);
                         VerifyCollections(loaded.Result,false);
