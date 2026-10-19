@@ -48,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public RootstockOASISProviderSettings RootstockOASIS { get; set; }
         public PolygonOASISProviderSettings PolygonOASIS { get; set; }
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
+        public OracleDBOASISSettings OracleDBOASIS { get; set; }
         public IPFSOASISSettings IPFSOASIS { get; set; }
         public Neo4jOASISSettings Neo4jOASIS { get; set; }
         public SolanaOASISSettings SolanaOASIS { get; set; }
@@ -115,6 +116,10 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class ProviderSettingsBase
     {
         public string ConnectionString { get; set; }
+    }
+
+    public class OracleDBOASISSettings : ProviderSettingsBase
+    {
     }
 
     public class PinataOASISSettings : ProviderSettingsBase
