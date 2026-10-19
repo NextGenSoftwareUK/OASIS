@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS
     ///   "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=myhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=myservice)));User Id=myuser;Password=mypassword;"
     /// For Oracle Autonomous Database use the wallet-based connection string from the OCI console.
     /// </summary>
-    public class OracleDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class OracleDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _connectionString;
 
@@ -232,7 +232,8 @@ WHEN NOT MATCHED THEN
             if(!await reader.ReadAsync())return null;
             var json=reader.GetString(0);
             if(await reader.ReadAsync())throw new System.IO.InvalidDataException("Oracle identity selector matched multiple records.");
-            return Deserialize<T>(json);
+            var record=Deserialize<T>(json);
+            return record is IHolonBase holon && holon.IsDeleted ? null : record;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -302,24 +303,7 @@ WHEN NOT MATCHED THEN
 
         private async Task<OASISResult<bool>> DeleteAvatarByColumnAsync(string column, OracleDbType type, object value, bool softDelete, string label)
         {
-            var result = new OASISResult<bool>();
-            try
-            {
-                await using var conn = new OracleConnection(_connectionString);
-                await conn.OpenAsync();
-                string sql = softDelete
-                    ? $"UPDATE OASIS_AVATARS SET IS_DELETED=1, MODIFIED_DATE=SYSTIMESTAMP WHERE {column}=:val"
-                    : $"DELETE FROM OASIS_AVATARS WHERE {column}=:val";
-                await using var cmd = CreateCommand(sql, conn);
-                cmd.Parameters.Add("val", type).Value = value;
-                int rows = await cmd.ExecuteNonQueryAsync();
-                result.Result = rows > 0; result.IsError = !result.Result;
-                result.Message = result.Result
-                    ? $"OracleDBOASIS: Avatar '{label}' {(softDelete ? "soft" : "hard")}-deleted."
-                    : $"OracleDBOASIS: No avatar found with {column}='{label}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error deleting avatar '{label}': {ex.Message}"); }
-            return result;
+            return await DeleteAvatarPairAsync(column,type,value,softDelete);
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -430,7 +414,7 @@ WHEN NOT MATCHED THEN INSERT (ID,USERNAME,EMAIL,DATA_JSON) VALUES (:Id,:Username
                 while (await reader.ReadAsync())
                 {
                     var detail = Deserialize<AvatarDetail>(reader.GetString(0));
-                    if (detail != null) details.Add(detail);
+                    if (!detail.IsDeleted) details.Add(detail);
                 }
                 result.Result = details; result.IsError = false; result.Message = $"OracleDBOASIS: Loaded {details.Count} avatar detail(s).";
             }
