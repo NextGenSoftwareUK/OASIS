@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 Oracle duplicate identity native regression reused same runtime/container/volume/secret and fixed OracleCurrent. Four original rows retained after expected test failure, explicit original-ID/name/email readback and8selector rejection proof, then exact-CLOB conditional cleanup/independent absence; no original write replay. Fresh2/2native+38/38units pass; journals0, container cleanlySTOPPED. No downloads/installs/duplicates/reset or bulk deletion. Same volume/runtime retained, free72641396736bytes. Evidence hashes/root cause in ORACLE_CLIENT_PRIORITY.md; new runner reconciliation flag is specific to original identity journal, not a general bypass.
+
 2026-10-19 Oracle update acceptance REUSED same pinned image/container/volume/secret; no setup/download/reset. Fixed runner stopped-container port inspection to configured bindings and exact volume validation. Actual same-container stop/start and native async+sync matched-row updates pass, followed by exact-CLOB conditional fixture cleanup/independent absence and clean stop. Pending journals0, final containerEXITED; scoped TRX SHA2564BFD6D6F412917ABBF0C8007D5AEB276AC74A4F6A1382AF29F8FA4277E8EE9BA. Database volume retained, no cleanup of user/shared data or disk-reclaim claim. Runtime allocation unchanged; observed Windows free72646410240bytes during shutdown.
 
 2026-10-19 Oracle first approved setup: ONE official pinned Lite image882727776compressed bytes,1787986520expanded bytes, same WSL root Podman; ONE oasis-oracle-free container/ONE oasis-oracle-data volume/ONE Podman secret. Final data4.0G, writable layer5.75MB; exact locations/digest/limits/loopback11521/lifecycle in ENVIRONMENT_INVENTORY.md. No standalone archive or duplicate runtime. Original failed native fixture journal preserved through read-only reconciliation, then three EXACT RAW-ID+observed-CLOB conditional deletes/independent absence; originals never re-saved. Fresh native acceptance and38units pass. Existing schema/volume/secret retained, container cleanly STOPPED, no pending journal. Windows free79089102848before→72648433664after; observed whole-system delta6440669184bytes, not an exact attribution/reclaim claim. Do not delete retained database/keys per run. Reuse-only runner added, no download/create/reset branch.
@@ -1571,7 +1573,7 @@ Known producers to consult before rerunning:
 
 - `Scripts/validate_edge_unity_package.ps1` creates the validation project. Do not blindly recreate its disposable project copy: prefer the existing suitable Unity project, and review necessity before any duplicate allocation.
 - `OASIS Omniverse/OGEngineClient/Scripts/publish_and_deploy_star_api.ps1` produces native Edge builds/publish outputs. Do not run merely to regenerate deleted artifacts; deployment is a separate authorized action.
-- `Docs/Devs/THREE_GAME_EDGE_RELEASE_ARTIFACT_MAP.md` documents native build/deployment ownership.
+- `Docs/WIP/Edge and Games/THREE_GAME_EDGE_RELEASE_ARTIFACT_MAP.md` documents native build/deployment ownership.
 
 ## Re-run and monitor
 

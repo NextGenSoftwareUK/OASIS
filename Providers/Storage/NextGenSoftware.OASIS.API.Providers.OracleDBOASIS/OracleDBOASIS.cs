@@ -217,16 +217,22 @@ WHEN NOT MATCHED THEN
 
         // ─── Avatar loading ───────────────────────────────────────────────────────
 
-        private async Task<Avatar?> LoadAvatarByColumnAsync(string column, OracleDbType type, object value)
+        private Task<Avatar?> LoadAvatarByColumnAsync(string column, OracleDbType type, object value)
+            => LoadIdentityByColumnAsync<Avatar>("OASIS_AVATARS",column,type,value,true);
+
+        private async Task<T?> LoadIdentityByColumnAsync<T>(string table,string column,OracleDbType type,object value,bool excludeDeleted) where T:class
         {
-            string sql = $"SELECT DATA_JSON FROM OASIS_AVATARS WHERE {column}=:val AND IS_DELETED=0 AND ROWNUM=1";
+            // Table/column are internal constants, never caller-supplied SQL identifiers.
+            string sql = $"SELECT DATA_JSON FROM {table} WHERE {column}=:val" + (excludeDeleted?" AND IS_DELETED=0":"") + " AND ROWNUM<=2";
             await using var conn = new OracleConnection(_connectionString);
             await conn.OpenAsync();
             await using var cmd = CreateCommand(sql, conn);
             cmd.Parameters.Add("val", type).Value = value;
-            var scalar = await cmd.ExecuteScalarAsync();
-            if (scalar == null || scalar == DBNull.Value) return null;
-            return Deserialize<Avatar>(scalar.ToString()!);
+            await using var reader=await cmd.ExecuteReaderAsync();
+            if(!await reader.ReadAsync())return null;
+            var json=reader.GetString(0);
+            if(await reader.ReadAsync())throw new System.IO.InvalidDataException("Oracle identity selector matched multiple records.");
+            return Deserialize<T>(json);
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -363,17 +369,8 @@ WHEN NOT MATCHED THEN INSERT (ID,USERNAME,EMAIL,DATA_JSON) VALUES (:Id,:Username
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
 
-        private async Task<AvatarDetail?> LoadAvatarDetailByColumnAsync(string column, OracleDbType type, object value)
-        {
-            string sql = $"SELECT DATA_JSON FROM OASIS_AVATAR_DETAILS WHERE {column}=:val AND ROWNUM=1";
-            await using var conn = new OracleConnection(_connectionString);
-            await conn.OpenAsync();
-            await using var cmd = CreateCommand(sql, conn);
-            cmd.Parameters.Add("val", type).Value = value;
-            var scalar = await cmd.ExecuteScalarAsync();
-            if (scalar == null || scalar == DBNull.Value) return null;
-            return Deserialize<AvatarDetail>(scalar.ToString()!);
-        }
+        private Task<AvatarDetail?> LoadAvatarDetailByColumnAsync(string column, OracleDbType type, object value)
+            => LoadIdentityByColumnAsync<AvatarDetail>("OASIS_AVATAR_DETAILS",column,type,value,false);
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
