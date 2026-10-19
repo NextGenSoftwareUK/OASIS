@@ -1,5 +1,13 @@
 # MongoDB metadata UUID identity preservation
 
+## Cyclic complex metadata write protection — 2026-10-19
+
+Complex metadata JSON encoding used ReferenceHandler.IgnoreCycles, silently replacing cyclic references with null while reporting serialization success. Removed that lossy option; cyclic or over-depth structures now fail through existing BsonSerializationException/cause handling. Acyclic complex metadata remains JSON text, not an arbitrary typed object round-trip. Root dictionaries/arrays and other unsupported arbitrary object graphs are not certified merely by this fix.
+
+Red-before test1failed/1passed (cycle falsely accepted, acyclic retained), SHA256 `4CAAD9DA3528A69F598B2257F8752E5A9E98D15DC0C92D88D875A93D955A84DF`. Rebuilt producer0errors/18warnings; complete68/68unit pass421ms/zero skips, SHA256 `FBD6C9C0D134CBA9012B04854A423A5B1A8152365011EDF4AC77F9D630736D3B`. Same retained native projection3/3pass1s: existing sync/async public detail update cases attempt a cyclic metadata save, require error/not saved/attached cause and independently compare the entire native BSON document before/after for exact equality. Normal profile/inventory/UUID selector checks still pass. Native SHA256 `2D12C6097E129A87B507606A332C66632106896CB8E45B158187160E59710AE3`.
+
+Same cached SDK, runtime, replica/data/lease/report directories; no install/download/new environment or volume reset. Existing exact owned fixture cleanup retained. Manifest/gitlinks and whitespace checks pass; Development fetched0/0 before scoped integration. No full-provider/V2 certification claim.
+
 2026-10-19. Scoped serializer fix, not full provider or HyperDrive V2 certification.
 
 The metadata binary decoder used `new Guid(bytes)` for both BSON UUID-standard (subtype4) and UUID-legacy (subtype3). Standard UUIDs use network byte order; .NET's legacy GUID constructor changes the first three components. For example, `00112233-4455-6677-8899-aabbccddeeff` did not retain its identity.

@@ -9,6 +9,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
 [TestClass]
 public class MongoMetadataDateTests
 {
+    public sealed class ComplexMetadataNode
+    {
+        public string Name{get;set;}="owned";
+        public ComplexMetadataNode? Child{get;set;}
+    }
+    [TestMethod]
+    public void CyclicComplexMetadataCannotBeSavedAsTruncatedJson()
+    {
+        var node=new ComplexMetadataNode();node.Child=node;
+        var document=new BsonDocument();using var writer=new BsonDocumentWriter(document);
+        var error=Assert.ThrowsException<BsonSerializationException>(()=>new MetaDataDictionarySerializer().Serialize(
+            BsonSerializationContext.CreateRoot(writer),new BsonSerializationArgs{NominalType=typeof(Dictionary<string,object>)},
+            new Dictionary<string,object>{{"complex",node}}));
+        Assert.IsNotNull(error.InnerException);
+    }
+    [TestMethod]
+    public void AcyclicComplexMetadataRetainsExistingJsonTextContract()
+    {
+        var node=new ComplexMetadataNode{Child=new ComplexMetadataNode{Name="child"}};
+        var document=new BsonDocument();using var writer=new BsonDocumentWriter(document);
+        new MetaDataDictionarySerializer().Serialize(BsonSerializationContext.CreateRoot(writer),
+            new BsonSerializationArgs{NominalType=typeof(Dictionary<string,object>)},new Dictionary<string,object>{{"complex",node}});
+        using var json=System.Text.Json.JsonDocument.Parse(document["complex"].AsString);
+        Assert.AreEqual("owned",json.RootElement.GetProperty("Name").GetString());
+        Assert.AreEqual("child",json.RootElement.GetProperty("Child").GetProperty("Name").GetString());
+    }
     [DataTestMethod]
     [DataRow(0,false)][DataRow(1,false)][DataRow(2,false)][DataRow(3,false)][DataRow(4,false)]
     [DataRow(0,true)][DataRow(1,true)][DataRow(2,true)][DataRow(3,true)][DataRow(4,true)]
