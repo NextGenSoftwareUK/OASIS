@@ -93,6 +93,8 @@ try{
         & (Join-Path $PSScriptRoot 'Run-ReusableEthereumTests.ps1')
         $proof=Join-Path $taskRoot 'TestResults/Web3CoreCurrent/web3-native-current.trx'
         if(!(Get-Content -LiteralPath $proof -Raw).Contains('WEB3_REAL_OUTBOX_VERIFIED')){throw 'Real Web3 outbox verification did not execute.'}
+        $ethereumProof=Join-Path $taskRoot 'TestResults/EthereumCurrent/ethereum-native-current.trx'
+        if(([regex]::Matches((Get-Content -LiteralPath $ethereumProof -Raw),'ETHEREUM_REAL_OUTBOX_VERIFIED')).Count -ne 3){throw 'All three real Ethereum outbox cases must execute.'}
     }elseif($AuthorityLedger){
         $ledgerProject=Join-Path $taskRoot 'ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj'
         $ledgerStarted=[DateTime]::UtcNow

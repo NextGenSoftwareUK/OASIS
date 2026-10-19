@@ -2,7 +2,6 @@
 param([Parameter(Mandatory)][switch]$ReviewedSyntheticFixture,[switch]$CosmosOffline,[switch]$InspectOnly)
 $ErrorActionPreference='Stop'
 if(!$ReviewedSyntheticFixture){throw 'Review the failed synthetic fixture and retain compact failure evidence before cleanup.'}
-if($InspectOnly -and !$CosmosOffline){throw 'InspectOnly is supported only for the exact Cosmos offline fixture.'}
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent'
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),'OpenOrCreate','ReadWrite','None')
@@ -62,6 +61,31 @@ try {
     $cursor=$client.GetDatabase($database).ListCollectionNames();$names=@()
     try {while($cursor.MoveNext([Threading.CancellationToken]::None)){$names+=@($cursor.Current)}} finally {$cursor.Dispose()}
     if(@($names | Where-Object {$_ -ne 'subscription_usage_outbox_v1'}).Count){throw 'Unknown collection; preserve database.'}
+    & {
+        $command=[MongoDB.Driver.BsonDocumentCommand[MongoDB.Bson.BsonDocument]]::new([MongoDB.Bson.BsonDocument]::Parse('{"find":"subscription_usage_outbox_v1","filter":{},"projection":{"State":1,"Policy":1,"Endpoint":1,"ProviderAttempts.Provider":1,"ProviderAttempts.ClientRequestId":1,"ProviderAttempts.ProviderRequestId":1,"ProviderAttempts.NativePreparation.ChainId":1,"ProviderAttempts.NativePreparation.Sender":1},"batchSize":1000}'))
+        $reply=$client.GetDatabase($database).RunCommand[MongoDB.Bson.BsonDocument]($command,$null,[Threading.CancellationToken]::None)
+        if($reply['cursor']['id'].ToInt64() -ne 0){throw 'Inspection exceeds bounded batch; preserve database.'}
+        $records=$reply['cursor']['firstBatch'].AsBsonArray
+        foreach($record in $records){
+            if($record['State'].AsString -ne 'executing' -or
+                $record['Endpoint'].AsString -notin @('local native storage fixture','local prepared replication fixture','local prepared selection fixture') -or
+                $record['Policy']['PricingCatalogueVersion'].AsString -ne 'local-test' -or
+                $record['Policy']['EstimatedCostUsd'].ToDecimal() -ne 0 -or
+                $record['Policy']['FixedCostUsd'].ToDecimal() -ne 0){throw 'Unrecognized synthetic policy/state; preserve database.'}
+            foreach($attempt in $record['ProviderAttempts'].AsBsonArray){
+                if($attempt['Provider'].AsString -notin @('PolygonOASIS','SQLLiteDBOASIS')){throw 'Unrecognized provider; preserve database.'}
+                if($attempt.Contains('NativePreparation') -and !$attempt['NativePreparation'].IsBsonNull){
+                    if($attempt['NativePreparation']['ChainId'].AsString -ne '31337' -or
+                        $attempt['NativePreparation']['Sender'].AsString.ToLowerInvariant() -ne '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'){throw 'Not the local synthetic signer/chain; preserve database.'}
+                }
+            }
+        }
+        $evidence=$records.ToString()
+        $evidencePath=Join-Path $work 'web3-synthetic-reviewed-metadata.json'
+        [IO.File]::WriteAllText($evidencePath,$evidence,[Text.UTF8Encoding]::new($false))
+        Write-Output ('Reviewed synthetic records: '+$records.Count+'; metadata SHA256: '+(Get-FileHash -LiteralPath $evidencePath -Algorithm SHA256).Hash)
+    }
+    if($InspectOnly){return}
     if($names.Count){$client.DropDatabase($database,[Threading.CancellationToken]::None);Write-Output "Removed reviewed synthetic database: $database"}
     $path=[IO.Path]::GetFullPath((Join-Path $dll 'TestResults/Web3CoreRouting/routing.db'))
     $expected=Join-Path $taskRoot 'Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests\bin\Debug\net10.0\TestResults\Web3CoreRouting\routing.db'

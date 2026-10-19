@@ -59,6 +59,7 @@
 
   <ItemGroup>
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\Web3SignedPreparation.cs" Link="Shared\Web3SignedPreparation.cs" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmStoragePreparation.cs" Link="Shared\EvmStoragePreparation.cs" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmWalletHistory.cs" Link="Shared\EvmWalletHistory.cs" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmTokenEscrow.cs" Link="Shared\EvmTokenEscrow.cs" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmWalletBalance.cs" Link="Shared\EvmWalletBalance.cs" />
