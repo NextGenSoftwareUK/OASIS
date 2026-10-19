@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             SoftDeleteStoredAvatarAsync(Guid id,AvatarTombstone supplied = null)
         {
             if(supplied != null && supplied.AvatarId != id) throw new ArgumentException("Tombstone identity mismatch.");
+            var createHistory=IsVersionControlEnabled;
             var key=HashUtility.GetNumericHash(id.ToString());
             var block=new Nethereum.RPC.Eth.DTOs.BlockParameter(await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync());
             var row=(await _nextGenSoftwareOasisService.GetAvatarByIdQueryAsync(key,block)).ReturnValue1;
@@ -22,6 +23,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 throw new StorageLifecycleConflictException("Ethereum avatar was already soft deleted.");
             AvatarDetail detail=null;
             string detailInfo=null;
+            string detailIdentity=null;
+            System.Numerics.BigInteger detailEntityId=0;
             if(await _nextGenSoftwareOasisService.GetAvatarDetailsCountQueryAsync(block) > 0)
             {
                 var detailRow=(await _nextGenSoftwareOasisService.GetAvatarDetailByIdQueryAsync(key,block)).ReturnValue1;
@@ -29,6 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 {
                     detail=DeserializePrivateStorage<AvatarDetail>("avatar-detail",detailRow.EntityId,detailRow.Info,id);
                     detailInfo=detailRow.Info;
+                    detailIdentity=detailRow.AvatarId;detailEntityId=detailRow.EntityId;
                 }
             }
             var tombstone=supplied ?? new AvatarTombstone(id,DateTime.UtcNow,avatar.DeletedByAvatarId);
@@ -45,12 +49,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             avatar.DeletedDate=tombstone.DeletedAtUtc; avatar.DeletedByAvatarId=tombstone.DeletedByAvatarId; avatar.IsActive=false;
             var request=new ContractDefinition.UpdateAvatarPairByIdentityFunction { EntityId=key,AvatarId=id.ToString(),
                 ExpectedAvatarHash=Nethereum.Util.Sha3Keccack.Current.CalculateHash(Encoding.UTF8.GetBytes(row.Info)),
-                AvatarInfo=SerializePrivateStorage("avatar",avatar),ExpectedDetailHash=new byte[32],DetailInfo=string.Empty };
+                AvatarInfo=(await StageStorageHistoryAsync("avatar",avatar,row.EntityId,row.AvatarId,row.Info,createHistory)).Ciphertext,ExpectedDetailHash=new byte[32],DetailInfo=string.Empty };
             if(detail != null)
             {
                 detail.DeletedDate=tombstone.DeletedAtUtc; detail.DeletedByAvatarId=tombstone.DeletedByAvatarId; detail.IsActive=false;
                 request.ExpectedDetailHash=Nethereum.Util.Sha3Keccack.Current.CalculateHash(Encoding.UTF8.GetBytes(detailInfo));
-                request.DetailInfo=SerializePrivateStorage("avatar-detail",detail);
+                request.DetailInfo=(await StageStorageHistoryAsync("avatar-detail",detail,detailEntityId,detailIdentity,detailInfo,createHistory)).Ciphertext;
             }
             var receipt=await SubmitStorageRequestAsync(request);
             return (receipt,tombstone,false);
