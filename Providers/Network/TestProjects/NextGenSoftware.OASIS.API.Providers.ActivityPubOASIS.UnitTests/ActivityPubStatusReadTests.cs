@@ -5,6 +5,26 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.UnitTests;
 
 public class ActivityPubStatusReadTests
 {
+    [Fact]
+    public async Task LegacyNativeParserAndPointReadHaveOneIdentityAndProjection()
+    {
+        var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
+        var point=await provider.LoadHolonAsync("123");Assert.False(point.IsError);
+        using var json=System.Text.Json.JsonDocument.Parse(transport.Body);
+        var parser=typeof(ActivityPubOASIS).GetMethod("ParseActivityPubToHolon",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance,null,new[]{typeof(System.Text.Json.JsonElement)},null)!;
+        var parsed=(NextGenSoftware.OASIS.API.Core.Interfaces.IHolon)parser.Invoke(provider,new object[]{json.RootElement})!;
+        Assert.Equal(point.Result.Id,parsed.Id);Assert.Equal(point.Result.ParentHolonId,parsed.ParentHolonId);
+        Assert.Equal(point.Result.CreatedDate,parsed.CreatedDate);Assert.Equal("123",parsed.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
+        Assert.Equal(point.Result.MetaData["MastodonContentHtml"],parsed.MetaData["MastodonContentHtml"]);
+    }
+    [Theory][InlineData("{}")][InlineData("{\"id\":\"123\",\"content\":\"bad\"}")]
+    public void LegacyNativeParserCannotFabricateMissingFieldsOrSwallowError(string body)
+    {
+        using var provider=new ActivityPubOASIS("https://mastodon.invalid","");using var json=System.Text.Json.JsonDocument.Parse(body);
+        var parser=typeof(ActivityPubOASIS).GetMethod("ParseActivityPubToHolon",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance,null,new[]{typeof(System.Text.Json.JsonElement)},null)!;
+        var error=Assert.Throws<System.Reflection.TargetInvocationException>(()=>parser.Invoke(provider,new object[]{json.RootElement}));
+        Assert.IsType<InvalidDataException>(error.InnerException);
+    }
     private sealed class Transport : HttpMessageHandler
     {
         public int Calls;public string Body="""{"id":"123","uri":"https://remote.invalid/users/alice/statuses/123","content":"<p>Hello</p>","created_at":"2026-01-02T03:04:05Z","account":{"id":"42","acct":"alice"},"in_reply_to_id":"122","visibility":"public","MetaData":{"secret":"ignore"}}""";
