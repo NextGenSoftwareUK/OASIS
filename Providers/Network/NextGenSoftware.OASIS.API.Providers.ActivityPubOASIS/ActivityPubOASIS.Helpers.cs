@@ -155,55 +155,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
 
         // Holon methods
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Query ActivityPub for holons by parent ID
-                var queryUrl = $"/api/v1/accounts/{id}/statuses";
-                
-                var httpResponse = await _httpClient.GetAsync(queryUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var statuses = JsonSerializer.Deserialize<JsonElement[]>(content);
-                    
-                    var holons = new List<IHolon>();
-                    foreach (var status in statuses)
-                    {
-                        var holon = ParseActivityPubToHolon(status);
-                        if (holon != null)
-                        {
-                            holons.Add(holon);
-                        }
-                    }
-                    
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = "Holons loaded from ActivityPub successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons from ActivityPub: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons from ActivityPub: {ex.Message}");
-            }
-            return response;
+            OASISErrorHandling.HandleError(ref response,"Use the native Mastodon status key for reply lookups; projection GUIDs are not native account or status IDs.",
+                new NotSupportedException("An OASIS projection GUID has no reversible Mastodon native identity."));
+            return Task.FromResult(response);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -212,21 +169,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            // First load the parent holon to get its ID
-            var parentResult = await LoadHolonAsync(providerKey, false, false, 0, continueOnError, loadChildrenFromProvider, version);
-            if (parentResult.IsError || parentResult.Result == null)
-            {
-                return new OASISResult<IEnumerable<IHolon>>
-                {
-                    IsError = true,
-                    Message = $"Failed to load parent holon by provider key: {parentResult.Message}"
-                };
-            }
-
-            // Then load children using the parent ID
-            return await LoadHolonsForParentAsync(parentResult.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-        }
+            => await ReadMastodonChildrenAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
