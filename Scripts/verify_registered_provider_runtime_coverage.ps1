@@ -4,7 +4,7 @@ param()
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $registrationPath = Join-Path $repoRoot 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs'
-$coveragePath = Join-Path $repoRoot 'Docs/Devs/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md'
+$coveragePath = Join-Path $repoRoot 'Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md'
 
 $registration = Get-Content -LiteralPath $registrationPath
 $coverage = Get-Content -LiteralPath $coveragePath

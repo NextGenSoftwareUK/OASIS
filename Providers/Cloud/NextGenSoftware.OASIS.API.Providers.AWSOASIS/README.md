@@ -6,7 +6,7 @@ Connects OASIS to DynamoDB through the official AWSSDK.DynamoDBv2 client. AWSOAS
 
 The retained DynamoDB Local runner is `Scripts/run_aws_provider_evidence.ps1`; it reuses the installed runtime, shared dependency cache and fixed output directories. Local native tests do not certify hosted AWS credentials, costs, scale or all provider interfaces/options. The runner uses a test-owned in-memory database; it is not a durable production recovery journal.
 
-Save operations require an authoritative SDK HTTP 200 acknowledgement before publishing caller IDs/provider keys. Missing/invalid responses retain mutation-reconciliation evidence; do not blindly retry them. Avatar-detail records persist the provider-specific storage key and deletion projection, like profile/holon records. Historical versions are still unsupported; additional interface, concurrency, recovery and hosted-release gates remain open. Current evidence and limitations are recorded in `Docs/Devs/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
+Save operations require an authoritative SDK HTTP 200 acknowledgement before publishing caller IDs/provider keys. Missing/invalid responses retain mutation-reconciliation evidence; do not blindly retry them. Avatar-detail records persist the provider-specific storage key and deletion projection, like profile/holon records. Historical versions are still unsupported; additional interface, concurrency, recovery and hosted-release gates remain open. Current evidence and limitations are recorded in `Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
 
 ## Installation
 

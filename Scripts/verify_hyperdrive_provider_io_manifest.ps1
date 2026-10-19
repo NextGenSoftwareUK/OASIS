@@ -10,7 +10,7 @@ review the generated disposition before committing it.
 [CmdletBinding()]
 param(
     [switch]$UpdateManifest,
-    [string]$ManifestPath = 'Docs/Devs/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv'
+    [string]$ManifestPath = 'Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv'
 )
 
 $ErrorActionPreference = 'Stop'

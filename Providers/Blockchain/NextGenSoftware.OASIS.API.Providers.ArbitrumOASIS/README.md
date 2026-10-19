@@ -8,4 +8,4 @@ The existing `ArbitrumOASIS_Web3Core` wrapper now has actual local-EVM coverage 
 
 `ArbitrumOASIS_Web3Core` is a separate implementation requiring an explicitly configured compatible Web3Core contract. Its inherited functionality does not certify the legacy ABI, the default provider path, or any hosted Arbitrum deployment. Do not silently switch ABI/contract implementations after a failure.
 
-Legacy unit fixtures now use loopback instead of public mainnet RPC. Identity-only test success is not native storage/policy/recovery proof. See `Docs/Devs/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md` in the parent repository for the current evidence and remaining gates.
+Legacy unit fixtures now use loopback instead of public mainnet RPC. Identity-only test success is not native storage/policy/recovery proof. See `Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md` in the parent repository for the current evidence and remaining gates.
