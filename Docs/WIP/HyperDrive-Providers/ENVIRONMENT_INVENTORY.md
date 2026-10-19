@@ -6,6 +6,8 @@ Windows figures below are logical file bytes from bounded recursive enumeration;
 
 ## Windows retained resources
 
+Additional read-only shared SDK backfill2026-10-19: C:/Program Files/dotnet measured4,960,797,829logical file bytes; C:/Program Files/Microsoft/jdk-21.0.12.101-hotspot342,880,907bytes; C:/Program Files/nodejs105,853,313bytes. Existing installed SDKs, reused not newly installed by this batch; retain, do not attribute all machine SDK storage to this task. Enumeration of C:/Users/david/.android/avd returned no files, not evidence that all Android SDK/emulator locations are accounted for. Bound recursive file measurement can omit inaccessible files; VHDX/allocated/shared-layer ownership still needs separate reconciliation. No cleanup or download in this backfill.
+
 | Exact location | Measured logical bytes | Purpose / retention |
 | --- | ---: | --- |
 | C:/Users/david/.cache/oasis-runtimes | 240321671 | Parent total; shared provider runtimes |
