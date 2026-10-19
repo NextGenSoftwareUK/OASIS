@@ -168,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             var child = new Holon
             {
                 Id = Guid.NewGuid(), Name = $"child-{marker}", CreatedByAvatarId = owner,
-                MetaData = new System.Collections.Generic.Dictionary<string, object> { ["runtime"] = marker }
+                MetaData = new System.Collections.Generic.Dictionary<string, object> { ["runtime"] = marker,["canonical:enabled"]=true,["canonical:amount"]=1.5m }
             };
             var grandchild = new Holon { Id = Guid.NewGuid(), Name = $"grandchild-{marker}" };
             child.Children.Add(grandchild);
@@ -206,6 +206,19 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual(grandchild.Id, children.Result.Single(item => item.Id == child.Id).Children.Single().Id);
             var metadata = await _provider.LoadHolonsByMetaDataAsync("runtime", marker, HolonType.All);
             Assert.IsTrue(metadata.Result.Any(item => item.Id == child.Id));
+            var previousCulture=System.Globalization.CultureInfo.CurrentCulture;
+            try {
+                System.Globalization.CultureInfo.CurrentCulture=System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+                var canonical=await _provider.LoadHolonsByMetaDataAsync(new() {{"runtime",marker},{"canonical:enabled","True"},{"canonical:amount","1.5"}},MetaKeyValuePairMatchMode.All,HolonType.All);
+                Assert.IsFalse(canonical.IsError,canonical.Message);Assert.AreEqual(child.Id,canonical.Result.Single().Id);
+                var numeric=_provider.LoadHolonsByMetaData("canonical:amount","1.5",HolonType.All);
+                Assert.IsFalse(numeric.IsError,numeric.Message);Assert.IsTrue(numeric.Result.Any(row=>row.Id==child.Id));
+                var any=await _provider.LoadHolonsByMetaDataAsync(new() {{"absent","absent"},{"canonical:enabled","True"}},MetaKeyValuePairMatchMode.Any,HolonType.All);
+                Assert.IsFalse(any.IsError,any.Message);Assert.IsTrue(any.Result.Any(row=>row.Id==child.Id));
+                var wrongCase=await _provider.LoadHolonsByMetaDataAsync("canonical:enabled","true",HolonType.All);
+                Assert.IsFalse(wrongCase.IsError,wrongCase.Message);Assert.IsFalse(wrongCase.Result.Any(row=>row.Id==child.Id));
+            }
+            finally {System.Globalization.CultureInfo.CurrentCulture=previousCulture;}
             var search = await _provider.SearchAsync(new SearchParams
             {
                 SearchOnlyForCurrentAvatar = false,

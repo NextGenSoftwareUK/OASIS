@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+NEAR metadata2026-10-19: replaces provider-local ToString comparison with existing shared invariant matcher; no new backend/index/crypto path. Public single/sync/async and multi All/Any queries preserve True/False case, fix fr-FR numeric parity and reject invalid modes/blank keys before SDK reads.152controlled/19actual retained-chain cases pass/0skips; encrypted native positive and negative queries exercised. NEAR_PUBLIC_CONDITIONAL_SAVE.md records exact hashes, qualified before-fix evidence and still-open full-provider/hosted/fees/V2 gates. Same pinned environment stopped/receipt retention restored5, no downloads/reset.
+
 NEAR2026-10-19 shared-interface alignment: collection current-depth/version roles and provider-child defaults fixed at their existing override boundary, no alternate API/fallback. Six before-fix groups fail; final148controlled/19actual retained-node cases pass/0skips. Root historical selection1/currentdescendant2 and parent child1 proven through IOASISStorageProvider, not only concrete named calls. NEAR_PUBLIC_CONDITIONAL_SAVE.md records exact hashes/source compatibility/launcher limitations/cost and remaining gates. Same retained chain/SDK/runtime; no download/reset/contract upgrade, node stopped and temporary retention restored5. Whole-provider/fullV2/hosted certification remains open.
 
 ## Azure Blob public history acceptance — 2026-10-19
