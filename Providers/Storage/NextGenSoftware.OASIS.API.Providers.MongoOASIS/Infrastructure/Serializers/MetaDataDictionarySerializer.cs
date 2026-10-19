@@ -277,7 +277,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
         {
             try
             {
-                var options = new JsonSerializerOptions { ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles, MaxDepth = 32 };
+                var options = new JsonSerializerOptions { MaxDepth = 32 };
                 var json = JsonSerializer.Serialize(value, options);
                 writer.WriteString(json);
             }
