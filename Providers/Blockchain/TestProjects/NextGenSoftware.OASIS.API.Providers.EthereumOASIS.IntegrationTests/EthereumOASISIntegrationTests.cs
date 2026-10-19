@@ -104,7 +104,7 @@ public partial class EthereumOASISIntegrationTests
         Assert.AreEqual(1,inventory.Count); Assert.IsInstanceOfType<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(inventory[0]);
         Assert.AreEqual(item.Id,inventory[0].Id); Assert.AreEqual(5,inventory[0].Quantity); Assert.AreEqual("Our World",inventory[0].GameSource);
         var history = synchronous ? provider.LoadAllAvatarDetails(1) : await provider.LoadAllAvatarDetailsAsync(1);
-        Assert.IsTrue(history.IsError); Assert.IsNull(history.Result); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        Assert.IsFalse(history.IsError,history.Message);Assert.IsTrue(history.IsLoaded);Assert.AreEqual(0,history.Result.Count());
         var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
         await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(
             NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(second.Id.ToString()),second.Id.ToString(),"plaintext corruption");
@@ -131,7 +131,7 @@ public partial class EthereumOASISIntegrationTests
         Assert.AreEqual(first.Email,loaded.Result.Single(row=>row.Id == first.Id).Email);
         Assert.AreEqual(second.Username,loaded.Result.Single(row=>row.Id == second.Id).Username);
         var history = synchronous ? provider.LoadAllAvatars(1) : await provider.LoadAllAvatarsAsync(1);
-        Assert.IsTrue(history.IsError); Assert.IsNull(history.Result); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        Assert.IsFalse(history.IsError,history.Message);Assert.IsTrue(history.IsLoaded);Assert.AreEqual(0,history.Result.Count());
         var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
         await service.CreateAvatarRequestAndWaitForReceiptAsync(
             NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(second.Id.ToString()),second.Id.ToString(),"plaintext corruption");
@@ -205,7 +205,7 @@ public partial class EthereumOASISIntegrationTests
             var offset = await Read(max:1,current:1,native:native); Assert.IsFalse(offset.IsError,offset.Message); Assert.IsTrue(offset.Result.All(row=>row.Children.Count==0));
         }
         var filtered = await Read(type:HolonType.Avatar); Assert.IsFalse(filtered.IsError,filtered.Message); Assert.AreEqual(0,filtered.Result.Count());
-        var history = await Read(version:1); Assert.IsTrue(history.IsError); Assert.IsNull(history.Result);
+        var history = await Read(version:1);Assert.IsFalse(history.IsError,history.Message);Assert.IsTrue(history.IsLoaded);Assert.AreEqual(0,history.Result.Count());
         var invalid = await Read(max:-1); Assert.IsTrue(invalid.IsError); Assert.IsNull(invalid.Result);
         // A provider-linked cycle must be rejected, not silently truncated.
         root.ParentHolonId=grandchild.Id;
@@ -252,7 +252,7 @@ public partial class EthereumOASISIntegrationTests
             Assert.IsFalse(found.Error); Assert.IsTrue(found.Loaded); Assert.AreEqual(id,found.Id);
             var absent=await Query("not-present",byEmail); Assert.IsTrue(absent.Error); Assert.IsNull(absent.Id); Assert.IsFalse(absent.Loaded);
             var blank=await Query(" ",byEmail); Assert.IsTrue(blank.Error); Assert.IsInstanceOfType(blank.Cause,typeof(ArgumentException));
-            var history=await Query(byEmail?email:username,byEmail,1); Assert.IsTrue(history.Error); Assert.IsInstanceOfType(history.Cause,typeof(NotSupportedException));
+            var history=await Query(byEmail?email:username,byEmail,1); Assert.IsTrue(history.Error); Assert.IsInstanceOfType(history.Cause,typeof(KeyNotFoundException));
         }
         if(details)
         {
@@ -393,7 +393,7 @@ public partial class EthereumOASISIntegrationTests
         }
         Assert.IsTrue((await provider.LoadHolonAsync(key,version:1)).IsError);
         Assert.IsTrue((await provider.LoadAvatarByProviderKeyVersionAsync(key,1)).IsError);
-        Assert.IsTrue((await provider.LoadAllAvatarsByVersionAsync(1)).IsError);
+        var historicalAvatars=await provider.LoadAllAvatarsByVersionAsync(1);Assert.IsFalse(historicalAvatars.IsError,historicalAvatars.Message);Assert.AreEqual(0,historicalAvatars.Result.Count());
         await provider.DeActivateProviderAsync();
     }
 
@@ -422,7 +422,7 @@ public partial class EthereumOASISIntegrationTests
             Assert.AreEqual(child.Id,loaded.Result.Single().Id); Assert.AreEqual(grandchild.Id,loaded.Result.Single().Children.Single().Id);
             var flat=await Read(byKey,children:false); Assert.IsFalse(flat.IsError,flat.Message); Assert.AreEqual(0,flat.Result.Single().Children.Count);
             var filtered=await Read(byKey,type:HolonType.Avatar); Assert.IsFalse(filtered.IsError,filtered.Message); Assert.AreEqual(0,filtered.Result.Count());
-            var history=await Read(byKey,version:1); Assert.IsTrue(history.IsError); Assert.IsNull(history.Result); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+            var history=await Read(byKey,version:1);Assert.IsFalse(history.IsError,history.Message);Assert.IsTrue(history.IsLoaded);Assert.AreEqual(0,history.Result.Count());
         }
         var malformed=await provider.LoadHolonsForParentAsync("not-a-guid"); Assert.IsTrue(malformed.IsError); Assert.IsInstanceOfType(malformed.Exception,typeof(ArgumentException));
         var absent=await provider.LoadHolonsForParentAsync(Guid.NewGuid()); Assert.IsFalse(absent.IsError,absent.Message); Assert.AreEqual(0,absent.Result.Count());
@@ -454,7 +454,7 @@ public partial class EthereumOASISIntegrationTests
             var direct=await Read(recursive:false,native:native); Assert.IsFalse(direct.IsError,direct.Message); Assert.AreEqual(0,direct.Result.Children.Single().Children.Count);
             var depth=await Read(max:1,native:native); Assert.IsFalse(depth.IsError,depth.Message); Assert.AreEqual(0,depth.Result.Children.Single().Children.Count);
         }
-        var versioned=await Read(version:1); Assert.IsTrue(versioned.IsError); Assert.IsNull(versioned.Result); Assert.IsInstanceOfType(versioned.Exception,typeof(NotSupportedException));
+        var versioned=await Read(version:1); Assert.IsTrue(versioned.IsError); Assert.IsNull(versioned.Result); Assert.IsInstanceOfType(versioned.Exception,typeof(KeyNotFoundException));
         var invalid=await Read(max:-1); Assert.IsTrue(invalid.IsError); Assert.IsNull(invalid.Result); Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentOutOfRangeException));
         // Provider-linked children must be loaded even when absent in the root's embedded payload.
         root.Children.Clear(); Assert.IsFalse((await provider.SaveHolonAsync(root,saveChildren:false)).IsError);
@@ -485,7 +485,7 @@ public partial class EthereumOASISIntegrationTests
         var any=await Read(query,MetaKeyValuePairMatchMode.Any); Assert.IsFalse(any.IsError,any.Message); Assert.AreEqual(2,any.Result.Count());
         var boolean=await Read(new Dictionary<string,string> { ["Enabled"]="True" }); Assert.IsFalse(boolean.IsError,boolean.Message); Assert.AreEqual(first.Id,boolean.Result.Single().Id);
         var absent=await Read(new Dictionary<string,string> { ["region"]="park" }); Assert.IsFalse(absent.IsError,absent.Message); Assert.AreEqual(0,absent.Result.Count());
-        var history=await Read(query,version:1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        var history=await Read(query,version:1);Assert.IsFalse(history.IsError,history.Message);Assert.AreEqual(0,history.Result.Count());
         var empty=await Read(new Dictionary<string,string>()); Assert.IsTrue(empty.IsError); Assert.IsInstanceOfType(empty.Exception,typeof(ArgumentException));
         var invalid=await Read(query,(MetaKeyValuePairMatchMode)99); Assert.IsTrue(invalid.IsError); Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentOutOfRangeException));
         var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
@@ -513,7 +513,7 @@ public partial class EthereumOASISIntegrationTests
         Assert.IsFalse(children.IsError,children.Message); Assert.IsTrue(children.IsLoaded); Assert.AreEqual(child.Id,children.Result.Single().Id);
         var missing=await provider.LoadHolonByCustomKeyAsync("absent-custom-key"); Assert.IsTrue(missing.IsError); Assert.IsInstanceOfType(missing.Exception,typeof(KeyNotFoundException));
         var blank=await provider.LoadHolonsForParentByCustomKeyAsync(" "); Assert.IsTrue(blank.IsError); Assert.IsInstanceOfType(blank.Exception,typeof(ArgumentException));
-        var history=await provider.LoadHolonByCustomKeyAsync(customKey,version:1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        var history=await provider.LoadHolonByCustomKeyAsync(customKey,version:1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(KeyNotFoundException));
         Assert.IsFalse((await provider.SaveHolonAsync(new CoreHolon { Id=Guid.NewGuid(),MetaData=new Dictionary<string,object> { ["CustomKey"]=customKey } },saveChildren:false)).IsError);
         var duplicate=synchronous ? provider.LoadHolonByCustomKey(customKey) : await provider.LoadHolonByCustomKeyAsync(customKey);
         Assert.IsTrue(duplicate.IsError); Assert.IsNull(duplicate.Result); Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,duplicate.ErrorCode);
@@ -553,7 +553,7 @@ public partial class EthereumOASISIntegrationTests
         var parent=Query(); parent.ParentId=root.Id; Assert.AreEqual(child.Id,(await Run(parent)).Result.SearchResultHolons.Single().Id);
         var metadata=Query(); metadata.FilterByMetaData=new Dictionary<string,string> { ["Region"]="park" };
         Assert.AreEqual(root.Id,(await Run(metadata)).Result.SearchResultHolons.Single().Id);
-        var history=await Run(Query(text),1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        var history=await Run(Query(text),1);Assert.IsFalse(history.IsError,history.Message);Assert.IsTrue(history.IsLoaded);Assert.AreEqual(0,history.Result.NumberOfResults);
         var invalid=await Run(Query(new SearchTextGroup { SearchQuery=" " })); Assert.IsTrue(invalid.IsError); Assert.IsNull(invalid.Result);
         var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
         await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(child.Id.ToString()),child.Id.ToString(),"corrupt payload");
