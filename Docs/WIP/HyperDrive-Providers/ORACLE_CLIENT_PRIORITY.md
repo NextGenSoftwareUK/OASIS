@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Configuration/registration batch — 2026-10-19
+
+Evidence: TestResults/OracleCurrent/oracle-registration.trx SHA256 `B6D39E63243CA13849A30147485D2DE9943CDB77A9CA913301C6C4AEB7B04245`. Documentation inventory now covers30registered entries; this scanner is not runtime certification. Free disk after bounded builds/tests:79,189,598,208bytes. No disposable database or runtime was created.
+
+Added the missing StorageProviders.OracleDBOASIS DNA section (ConnectionString), production OracleProviderFactory and OracleDBOASIS BootLoader switch/project reference. Explicit connection override takes precedence and can operate without a DNA section; missing/blank settings or an explicitly blank override fail rather than selecting a default account. Construction does not activate, connect, create schema or change hosted DNA/provider lists. Existing activation-time DDL is still an open review gate: this wiring is not approval to provision a client database.
+
+DNA, actual BootLoader and Oracle unit projects build with cached dependencies, bounded workers and zero errors (1617/2/3 warnings respectively). Full Oracle suite25/25pass288ms/zero skips: six new configuration cases execute the linked production factory, including whole StorageProviderSettings JSON roundtrip, override precedence/admission and unactivated construction. These are configuration/unit proofs, not execution of the complete BootLoader registration lifecycle, database/native SQL or hosted acceptance. No install, restore, download, new service, account or paid action. Oracle Database/Autonomous versus OCI Object Storage client requirements remain to be confirmed; the latter is not implemented by this SQL provider.
+
 ## SDK/pre-dispatch correctness batch
 
 2026-10-19: three public point-save methods now validate null and prepare detached concrete snapshots with the EXISTING Core StoredRecordJson.Project owner. Generated identity/Oracle storage keys remain on that detached proposal until ExecuteNonQueryAsync returns; only then does one publication helper update caller identity/key and return IsSaved. Original caller dictionaries/other-provider keys are untouched on pre-dispatch rejection. Null error catches no longer dereference the null avatar/holon again. AvatarDetail now retains its Oracle key in the proposed canonical object as well as publishing it after success. Existing Oracle persistence serializer/SQL/history semantics have NOT been declared fully corrected by this change.
