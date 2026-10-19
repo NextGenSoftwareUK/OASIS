@@ -118,12 +118,16 @@ public sealed class OracleNativeAcceptanceTests
             var keyDelete=await provider.DeleteAvatarAsync(id.ToString(),false);Assert.IsFalse(keyDelete.IsError,keyDelete.Exception?.ToString());Assert.IsTrue(keyDelete.Result);
             Assert.IsNull(await Read(verifier,"OASIS_AVATARS",id));
             Assert.IsNull(await Read(verifier,"OASIS_AVATAR_DETAILS",id));
-            foreach(var table in new[]{"OASIS_HOLONS"}){
-                var actual=await Read(verifier,table,id);Assert.IsNotNull(actual);
-                await using var delete=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};
-                delete.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();delete.Parameters.Add("Expected",OracleDbType.Clob).Value=actual;
-                Assert.AreEqual(1,await delete.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,table,id));
-            }
+            var holonDelete=await provider.DeleteHolonAsync(id);Assert.IsFalse(holonDelete.IsError,holonDelete.Exception?.ToString());
+            Assert.IsTrue(holonDelete.Result.IsDeleted);Assert.IsFalse(holonDelete.Result.IsActive);
+            var tombstone=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>((await Read(verifier,"OASIS_HOLONS",id))!);
+            Assert.IsTrue(tombstone.IsDeleted);Assert.IsFalse(tombstone.IsActive);Assert.AreEqual(holonDelete.Result.DeletedDate,tombstone.DeletedDate);
+            Assert.AreEqual(holon.ParentHolonId,tombstone.ParentHolonId);Assert.IsNull((await provider.LoadHolonAsync(id)).Result);
+            var repeatHolon=provider.DeleteHolonWithSoftDelete(id.ToString(),true);Assert.IsFalse(repeatHolon.IsError,repeatHolon.Exception?.ToString());Assert.IsTrue(repeatHolon.Result);
+            var repeatedHolon=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>((await Read(verifier,"OASIS_HOLONS",id))!);
+            Assert.AreEqual(tombstone.DeletedDate,repeatedHolon.DeletedDate);
+            var hardHolon=await provider.DeleteHolonWithSoftDeleteAsync(id.ToString(),false);Assert.IsFalse(hardHolon.IsError,hardHolon.Exception?.ToString());Assert.IsTrue(hardHolon.Result);
+            Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));
             File.Delete(journal);
         }finally{await provider.DeActivateProviderAsync();Assert.IsFalse(provider.IsProviderActivated);}
     }

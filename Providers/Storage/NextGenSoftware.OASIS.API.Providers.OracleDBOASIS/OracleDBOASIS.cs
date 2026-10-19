@@ -592,24 +592,8 @@ WHEN NOT MATCHED THEN
 
         public async Task<OASISResult<bool>> DeleteHolonWithSoftDeleteAsync(Guid id, bool softDelete = true)
         {
-            var result = new OASISResult<bool>();
-            try
-            {
-                await using var conn = new OracleConnection(_connectionString);
-                await conn.OpenAsync();
-                string sql = softDelete
-                    ? "UPDATE OASIS_HOLONS SET IS_DELETED=1, MODIFIED_DATE=SYSTIMESTAMP WHERE ID=:Id"
-                    : "DELETE FROM OASIS_HOLONS WHERE ID=:Id";
-                await using var cmd = CreateCommand(sql, conn);
-                cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(id);
-                int rows = await cmd.ExecuteNonQueryAsync();
-                result.Result = rows > 0; result.IsError = !result.Result;
-                result.Message = result.Result
-                    ? $"OracleDBOASIS: Holon '{id}' {(softDelete ? "soft" : "hard")}-deleted."
-                    : $"OracleDBOASIS: No holon found with ID '{id}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error deleting holon '{id}': {ex.Message}"); }
-            return result;
+            var deleted=await DeleteHolonRecordAsync(id,softDelete);
+            return new OASISResult<bool>{Result=!deleted.IsError&&deleted.Result!=null,IsError=deleted.IsError,Exception=deleted.Exception,Message=deleted.Message,ErrorCode=deleted.ErrorCode};
         }
 
         public OASISResult<bool> DeleteHolonWithSoftDelete(Guid id, bool softDelete = true) => DeleteHolonWithSoftDeleteAsync(id, softDelete).Result;
@@ -784,21 +768,7 @@ WHEN NOT MATCHED THEN
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var loaded = await LoadHolonAsync(id);
-                if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Holon {id} not found."); return result; }
-                const string sql = "UPDATE OASIS_HOLONS SET IS_DELETED=1, MODIFIED_DATE=SYSTIMESTAMP WHERE ID=:Id";
-                await using var conn = new OracleConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = CreateCommand(sql, conn);
-                cmd.Parameters.Add(":Id", OracleDbType.Raw).Value = GuidToRaw(id);
-                await cmd.ExecuteNonQueryAsync();
-                result.Result = loaded.Result; result.IsError = false;
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
+            return await DeleteHolonRecordAsync(id,true);
         }
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
