@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 removed only obsolete SOURCE helpers MetadataPath/RawToGuid and4private SQL-builder reflection tests (public native behavior coverage retained). Cached builds/unit118pass, fixed oracle-canonical-cleanup.trx; no runtime start/install/download/new environment/generated-output deletion/reset/reclaim. Railway pins validator passes; no hosted deployment claim. Hash/scope in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 canonical Oracle metadata matching fix reused same image/container/volume/secret/SDK/cache/fixed reports.31native (30acceptance+1diagnostic)/122units pass; journaled canonical fixture reconciled then public hard-delete/native absence, journals0/container stopped. No download/install/new environment/reset/broad cleanup/reclaim. Whole-machine Windows free71,431,872,512bytes; not exact attribution. Hashes/payload-transfer performance tradeoff and remaining gates in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 Oracle metadata scalar read-only diagnostic reused existing runtime/SDK/cache/container and fixed report.30native pass includes29acceptance+1diagnostic proving an OPEN metadata mismatch, not completion. Diagnostic binds JSON in SELECT FROM DUAL, no durable fixture; regular acknowledged fixtures cleaned by existing owners, journals0/container stopped. No install/download/new environment/reset/broad deletion/reclaim. Hash/next implementation requirement in ORACLE_CLIENT_PRIORITY.md.
