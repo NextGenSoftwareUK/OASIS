@@ -393,6 +393,12 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 ArgumentNullException.ThrowIfNull(holon);
+                if(maxChildDepth<0)throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                if(saveChildren){
+                    var graph=await WriteHolonGraphAsync(new[]{holon},true,recursive,maxChildDepth,0,continueOnError,saveChildrenOnProvider);
+                    var projected=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(graph);
+                    if(!graph.IsError)projected.Result=holon;return projected;
+                }
                 var source=holon;
                 holon=Core.Serialization.StoredRecordJson.Project<Holon>(source);
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
@@ -413,16 +419,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
 
         public async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var holon in holons)
-            {
-                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (r.IsError) errors.Add(r.Message); else saved.Add(r.Result!);
-            }
-            result.Result = saved; result.IsError = errors.Count > 0;
-            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"OracleDBOASIS: {saved.Count} holon(s) saved.";
-            return result;
+            return await WriteHolonGraphAsync(holons,saveChildren,recursive,maxChildDepth,0,continueOnError,saveChildrenOnProvider);
         }
 
         public OASISResult<IEnumerable<IHolon>> SaveHolonsLegacy(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -650,7 +647,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            try { var r = await SaveHolonsAsync(holons); result.IsError = r.IsError; result.Result = !r.IsError; result.Message = r.Message; }
+            try { var r = await SaveHolonsAsync(holons); result.IsError = r.IsError; result.Result = !r.IsError; result.Message = r.Message;result.Exception=r.Exception;result.ErrorCode=r.ErrorCode; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
@@ -730,20 +727,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>();
-            try
-            {
-                foreach (var holon in holons)
-                {
-                    var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError && r.Result != null) saved.Add(r.Result);
-                    else if (!continueOnError) { result.IsError = true; result.Message = r.Message; return result; }
-                }
-                result.Result = saved; result.IsError = false;
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
+            return await WriteHolonGraphAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,saveChildrenOnProvider);
         }
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
 

@@ -20,12 +20,12 @@ public sealed class OracleNativeAcceptanceTests
     }
     private sealed class LostCommitProvider(string connection):OracleDBOASIS(connection)
     {
-        public bool LoseNextCommit;public int CommitCalls;
+        public bool LoseNextCommit;public int CommitCalls;public int LoseCommitNumber;
         public readonly IOException Lost=new("owned response withheld after actual Oracle SDK commit");
         protected override async Task CommitLifecycleTransactionAsync(OracleTransaction transaction)
         {
             CommitCalls++;await base.CommitLifecycleTransactionAsync(transaction);
-            if(LoseNextCommit){LoseNextCommit=false;throw Lost;}
+            if(LoseNextCommit||CommitCalls==LoseCommitNumber){LoseNextCommit=false;throw Lost;}
         }
     }
     [TestMethod]
@@ -360,6 +360,53 @@ public sealed class OracleNativeAcceptanceTests
             Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
         }
         static void Corruption<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);if(result.Result is bool deleted)Assert.IsFalse(deleted);else Assert.IsNull(result.Result);Assert.IsInstanceOfType<InvalidDataException>(result.Exception);}
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task BatchAndImportStopAfterUncertainSecondCommit(bool import)
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,$"batch-uncertain-{import}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var rows=Enumerable.Range(0,3).Select(index=>new Holon{Id=Guid.NewGuid(),Name="owned batch boundary "+index}).ToArray();
+        var provider=new LostCommitProvider(connection){IsVersionControlEnabled=true,LoseCommitNumber=2};
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();
+            foreach(var row in rows)Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+                await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids=rows.Select(row=>row.Id).ToArray(),import,state="before-native-batch-uncertainty"}));file.Flush(true);
+            }
+            Exception cause;
+            if(import){var result=await provider.ImportAsync(rows);Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);cause=result.Exception;}
+            else{var result=await provider.SaveHolonsAsync(rows,saveChildren:false,curentChildDepth:0,continueOnError:true);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,result.Result.Count());cause=result.Exception;}
+            Assert.IsInstanceOfType<OraclePartialMutationException>(cause);CollectionAssert.AreEqual(new[]{rows[0].Id},((OraclePartialMutationException)cause).AcknowledgedRecordIds.ToArray());
+            Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(cause));Assert.AreSame(provider.Lost,cause.InnerException!.InnerException);
+            Assert.AreEqual(2,provider.CommitCalls);Assert.AreEqual(1,rows[0].Version);Assert.AreEqual(0,rows[1].Version);Assert.AreEqual(0,rows[2].Version);Assert.IsNull(await Read(verifier,"OASIS_HOLONS",rows[2].Id));
+            foreach(var row in rows.Take(2)){
+                var actual=await Read(verifier,"OASIS_HOLONS",row.Id);Assert.IsNotNull(actual);using(var document=JsonDocument.Parse(actual)){Assert.AreEqual(row.Id,document.RootElement.GetProperty("Id").GetGuid());Assert.AreEqual(row.Name,document.RootElement.GetProperty("Name").GetString());Assert.AreEqual(1,document.RootElement.GetProperty("Version").GetInt32());}
+                await using var delete=new OracleCommand("DELETE FROM OASIS_HOLONS WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};
+                delete.Parameters.Add("Id",OracleDbType.Raw).Value=row.Id.ToByteArray();delete.Parameters.Add("Expected",OracleDbType.Clob).Value=actual;
+                Assert.AreEqual(1,await delete.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));
+            }
+            File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
+
+    [TestMethod]
+    public async Task SharedGraphPlanPersistsThreeLevelsAndPublishesParentIds()
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,"graph-three-level.pending.json");Assert.IsFalse(File.Exists(journal));
+        var root=new Holon{Id=Guid.NewGuid(),Name="owned graph root"};var child=new Holon{Id=Guid.NewGuid(),Name="owned graph child"};var leaf=new Holon{Id=Guid.NewGuid(),Name="owned graph leaf"};root.Children.Add(child);child.Children.Add(leaf);
+        var rows=new[]{root,child,leaf};var provider=new OracleDBOASIS(connection){IsVersionControlEnabled=true};
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();foreach(var row in rows)Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids=rows.Select(row=>row.Id).ToArray(),state="before-native-three-level-graph"}));file.Flush(true);}
+            var saved=await provider.SaveHolonAsync(root);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);Assert.AreSame(root,saved.Result);Assert.AreEqual(root.Id,child.ParentHolonId);Assert.AreEqual(child.Id,leaf.ParentHolonId);
+            foreach(var row in rows){Assert.AreEqual(1,row.Version);var actual=await Read(verifier,"OASIS_HOLONS",row.Id);Assert.IsNotNull(actual);using var document=JsonDocument.Parse(actual);Assert.AreEqual(row.ParentHolonId,document.RootElement.GetProperty("ParentHolonId").GetGuid());}
+            var deep=await provider.LoadHolonAsync(root.Id,loadChildrenFromProvider:true);Assert.IsFalse(deep.IsError,deep.Exception?.ToString());Assert.AreEqual(leaf.Id,deep.Result.Children.Single().Children.Single().Id);
+            var shallow=await provider.LoadHolonAsync(root.Id,maxChildDepth:1,loadChildrenFromProvider:true);Assert.AreEqual(0,shallow.Result.Children.Single().Children.Count);
+            foreach(var row in rows.Reverse()){var deleted=await provider.DeleteHolonWithSoftDeleteAsync(row.Id,false);Assert.IsFalse(deleted.IsError,deleted.Exception?.ToString());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));}File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
     }
 
     [TestMethod][TestCategory("Reconciliation")]
