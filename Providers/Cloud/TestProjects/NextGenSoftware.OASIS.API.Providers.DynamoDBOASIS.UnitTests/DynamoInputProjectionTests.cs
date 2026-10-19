@@ -23,7 +23,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
         {
             public PutItemRequest? Submitted;
             public List<PutItemRequest> Requests=new();
-            public CaptureClient():base(new BasicAWSCredentials("owned","owned"),new AmazonDynamoDBConfig{ServiceURL="http://127.0.0.1:18001",AuthenticationRegion="us-east-1",UseHttp=true}) { }
+            public CaptureClient():base(new BasicAWSCredentials("owned","owned"),new AmazonDynamoDBConfig{ServiceURL="http://127.0.0.1:18001",AuthenticationRegion="us-east-1",UseHttp=true,MaxErrorRetry=0}) { }
+            public override Task<GetItemResponse> GetItemAsync(GetItemRequest request,CancellationToken cancellationToken=default)
+                =>Task.FromResult(new GetItemResponse{HttpStatusCode=HttpStatusCode.OK,Item=new()});
             public override Task<PutItemResponse> PutItemAsync(PutItemRequest request,CancellationToken cancellationToken=default)
             {Submitted=request;Requests.Add(request);return Task.FromResult(new PutItemResponse{HttpStatusCode=HttpStatusCode.OK});}
         }
@@ -35,6 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
             var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
             var original=(AmazonDynamoDBClient)field.GetValue(provider)!;
             using var client=new CaptureClient();field.SetValue(provider,client);
+            provider.IsVersionControlEnabled=true;
             var avatar=new ConsumerModels.AvatarInput{Username="consumer-avatar"};
             var detail=new ConsumerModels.DetailInput{Username="consumer-detail",XP=321};
             var holon=new ConsumerModels.HolonInput{Name="consumer-holon"};
@@ -51,6 +54,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
                 else Assert.AreEqual("consumer-holon",OasisJson.DeserializeStored<Holon>(json).Name);
                 if(kind==3)
                 {
+                    Assert.AreEqual(1,holon.Version);Assert.AreNotEqual(Guid.Empty,holon.VersionId);
+                    Assert.AreEqual(1,holon.Children.Single().Version);Assert.AreNotEqual(Guid.Empty,holon.Children.Single().VersionId);
                     Assert.AreEqual(2,client.Requests.Count);
                     var child=OasisJson.DeserializeStored<Holon>(client.Requests.Single(r=>r.Item["id"].S!=holon.Id.ToString()).Item["data_json"].S);
                     Assert.AreEqual(holon.Id,child.ParentHolonId);Assert.AreEqual("consumer-child",child.Name);

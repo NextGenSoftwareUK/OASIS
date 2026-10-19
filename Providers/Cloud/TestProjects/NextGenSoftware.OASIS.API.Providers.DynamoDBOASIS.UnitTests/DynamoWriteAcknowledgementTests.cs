@@ -13,10 +13,12 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 public class DynamoWriteAcknowledgementTests
 {
     private sealed class MissingAcknowledgement(bool missing,bool success=false):AmazonDynamoDBClient(new BasicAWSCredentials("owned","owned"),
-        new AmazonDynamoDBConfig{ServiceURL="http://127.0.0.1:18001",AuthenticationRegion="us-east-1",UseHttp=true})
+        new AmazonDynamoDBConfig{ServiceURL="http://127.0.0.1:18001",AuthenticationRegion="us-east-1",UseHttp=true,MaxErrorRetry=0})
     {
         public int Calls;
         public PutItemRequest? Submitted;
+        public override Task<GetItemResponse> GetItemAsync(GetItemRequest request,CancellationToken cancellationToken=default)
+            =>Task.FromResult(new GetItemResponse{HttpStatusCode=HttpStatusCode.OK,Item=new()});
         public override Task<PutItemResponse> PutItemAsync(PutItemRequest request,CancellationToken cancellationToken=default)
         {Calls++;Submitted=request;return Task.FromResult(missing?null!:new PutItemResponse{HttpStatusCode=success?HttpStatusCode.OK:HttpStatusCode.Accepted});}
     }
@@ -50,7 +52,11 @@ public class DynamoWriteAcknowledgementTests
         var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
         var original=(AmazonDynamoDBClient)field.GetValue(provider)!;
         using var fault=new MissingAcknowledgement(missing);field.SetValue(provider,fault);
-        var avatar=new Avatar();var detail=new AvatarDetail();var holon=new Holon();
+        provider.IsVersionControlEnabled=true;
+        var versionId=Guid.NewGuid();var previousVersionId=Guid.NewGuid();
+        var avatar=new Avatar{Version=7,VersionId=versionId,PreviousVersionId=previousVersionId};
+        var detail=new AvatarDetail{Version=7,VersionId=versionId,PreviousVersionId=previousVersionId};
+        var holon=new Holon{Version=7,VersionId=versionId,PreviousVersionId=previousVersionId};
         try
         {
             Exception error;bool failed,saved;
@@ -60,6 +66,9 @@ public class DynamoWriteAcknowledgementTests
             Assert.IsTrue(failed);Assert.IsFalse(saved);Assert.AreEqual(1,fault.Calls);
             Assert.IsTrue(NativeMutationReconciliation.IsRequired(error));Assert.IsInstanceOfType<InvalidDataException>(error.InnerException);
             Assert.AreEqual(Guid.Empty,avatar.Id);Assert.AreEqual(Guid.Empty,detail.Id);Assert.AreEqual(Guid.Empty,holon.Id);
+            foreach(var row in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase[]{avatar,detail,holon}){
+                Assert.AreEqual(7,row.Version);Assert.AreEqual(versionId,row.VersionId);Assert.AreEqual(previousVersionId,row.PreviousVersionId);
+            }
         }
         finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
     }

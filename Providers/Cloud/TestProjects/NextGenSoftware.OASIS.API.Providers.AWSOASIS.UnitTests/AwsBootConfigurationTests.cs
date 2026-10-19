@@ -12,6 +12,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests;
 [DoNotParallelize]
 public sealed class AwsBootConfigurationTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void HistoryOptionRoundTripsThroughDnaAndProductionFactory(bool enabled)
+    {
+        var settings=new AWSOASISProviderSettings{Region="us-east-1",AccessKey="owned",SecretKey="owned",ServiceUrl="http://127.0.0.1:1",IsVersionControlEnabled=enabled};
+        var restored=JsonConvert.DeserializeObject<AWSOASISProviderSettings>(JsonConvert.SerializeObject(settings))!;
+        var provider=CloudProviderFactory.CreateAws(restored,null!);using var client=Client(provider);
+        Assert.AreEqual(enabled,provider.IsVersionControlEnabled);Assert.AreEqual(0,client.Config.MaxErrorRetry);
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
     [DataTestMethod]
     [DataRow("Amazon.SecurityToken.AmazonSecurityTokenServiceClient, AWSSDK.SecurityToken")]
     [DataRow("Amazon.SSO.AmazonSSOClient, AWSSDK.SSO")]

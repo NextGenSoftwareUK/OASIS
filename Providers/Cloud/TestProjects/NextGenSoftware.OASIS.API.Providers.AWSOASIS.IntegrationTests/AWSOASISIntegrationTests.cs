@@ -97,13 +97,18 @@ public partial class AWSOASISIntegrationTests
                 }
                 var attemptedId=Guid.NewGuid();
                 var secondaryBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
-                var failedWrite=await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(
+                var preReadFailover=await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(
                     new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveHolon",SaveChildren=false,
-                        Payload=new Holon {Id=attemptedId,Name="must-not-replay"},PreferredProvider=Core.Enums.ProviderType.AWSOASIS});
-                Assert.IsTrue(failedWrite.IsError);
-                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failedWrite.Exception));
-                Assert.AreEqual(secondaryBefore,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
-                Assert.IsNull((await local.LoadHolonAsync(attemptedId,loadChildren:false)).Result);
+                        Payload=new Holon {Id=attemptedId,Name="safe-pre-read-failover"},PreferredProvider=Core.Enums.ProviderType.AWSOASIS});
+                // The authoritative pre-read failed BEFORE PutItem dispatch. This is safe first execution,
+                // not replay of an unknown mutation; post-commit loss remains fenced by separate native cases.
+                try{
+                    Assert.IsFalse(preReadFailover.IsError,preReadFailover.Message);Assert.IsTrue(preReadFailover.IsSaved);
+                    Assert.AreEqual(secondaryBefore+1,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                    Assert.AreEqual(attemptedId,(await local.LoadHolonAsync(attemptedId,loadChildren:false)).Result.Id);
+                    var native=await ((Amazon.DynamoDBv2.AmazonDynamoDBClient)healthy!).GetItemAsync(new Amazon.DynamoDBv2.Model.GetItemRequest{TableName="OasisHolons",Key=Key(attemptedId),ConsistentRead=true});
+                    Assert.AreEqual(0,native.Item.Count,"Failed pre-read must not dispatch a DynamoDB mutation.");
+                }finally{await local.DeleteHolonAsync(attemptedId);}
             }
             finally {field.SetValue(_provider,healthy);}
             // Healthy primary absence is authoritative; a distinct stale secondary is not a failover target.
@@ -255,7 +260,7 @@ public partial class AWSOASISIntegrationTests
         Assert.AreEqual(0,nonRecursive.Result.Children.Single().Children.Count);
         var noChildren=await _provider.LoadHolonAsync(children[0].Id,loadChildren:false,loadChildrenFromProvider:true);
         Assert.AreEqual(0,noChildren.Result.Children.Count);
-        Assert.IsInstanceOfType(_provider.LoadHolon(children[0].Id,version:1).Exception,typeof(NotSupportedException));
+        Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,_provider.LoadHolon(children[0].Id,version:1).ErrorCode);
         children[0].MetaData=new Dictionary<string,object> {{"owned-marker",marker},{"amount",1.5m}};
         Assert.IsFalse((await _provider.SaveHolonAsync(children[0],saveChildren:false)).IsError);
         var metadata=await _provider.LoadHolonsByMetaDataAsync("owned-marker",marker,loadChildrenFromProvider:true);
@@ -263,21 +268,21 @@ public partial class AWSOASISIntegrationTests
         Assert.AreEqual(children[0].Id,metadata.Result.Single().Id);
         Assert.AreEqual(grandchild.Id,metadata.Result.Single().Children.Single().Id);
         var invalid=_provider.LoadHolonsByMetaData("owned-marker",marker,version:1);
-        Assert.IsTrue(invalid.IsError);Assert.IsInstanceOfType(invalid.Exception,typeof(NotSupportedException));
+        Assert.IsFalse(invalid.IsError,invalid.Message);Assert.IsFalse(invalid.Result.Any(row=>row.Id==children[0].Id));
         var filtered=await _provider.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string> {{"owned-marker",marker}}});
         Assert.IsFalse(filtered.IsError,filtered.Message);
         Assert.AreEqual(children[0].Id,filtered.Result.SearchResultHolons.Single().Id);
         Assert.AreEqual(1,filtered.Result.NumberOfResults);
         Assert.AreEqual(grandchild.Id,filtered.Result.SearchResultHolons.Single().Children.Single().Id);
         var badSearch=await _provider.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false},version:1);
-        Assert.IsTrue(badSearch.IsError);Assert.IsInstanceOfType(badSearch.Exception,typeof(NotSupportedException));
+        Assert.IsFalse(badSearch.IsError,badSearch.Message);Assert.IsFalse(badSearch.Result.SearchResultHolons.Any(row=>row.Id==children[0].Id));
         var owner=Guid.NewGuid();children[0].CreatedByAvatarId=owner;
         Assert.IsFalse((await _provider.SaveHolonAsync(children[0],saveChildren:false)).IsError);
         var owned=await _provider.ExportAllDataForAvatarByIdAsync(owner);
         Assert.IsFalse(owned.IsError,owned.Message);
         Assert.AreEqual(children[0].Id,owned.Result.Single().Id);
         Assert.AreEqual(grandchild.Id,owned.Result.Single().Children.Single().Id);
-        Assert.IsInstanceOfType(_provider.ExportAll(version:1).Exception,typeof(NotSupportedException));
+        var historicalExport=_provider.ExportAll(version:1);Assert.IsFalse(historicalExport.IsError,historicalExport.Message);Assert.IsFalse(historicalExport.Result.Any(row=>row.Id==children[0].Id));
         Assert.IsTrue(_provider.ExportAllDataForAvatarById(Guid.Empty).IsError);
         var importedRows=new[] {new Holon {Id=Guid.NewGuid(),Name="owned-import-one"},new Holon {Id=Guid.NewGuid(),Name="owned-import-two"}};
         var imported=await _provider.ImportAsync(importedRows);
@@ -287,6 +292,6 @@ public partial class AWSOASISIntegrationTests
         Assert.IsFalse(truncated.IsError,truncated.Message);
         Assert.IsTrue(truncated.Result.All(row=>row.Children.Count==0));
         Assert.IsTrue((await _provider.LoadAllHolonsAsync(maxChildDepth:-1)).IsError);
-        Assert.IsInstanceOfType(_provider.LoadHolonsForParent(parent,version:1).Exception,typeof(NotSupportedException));
+        var historicalParents=_provider.LoadHolonsForParent(parent,version:1);Assert.IsFalse(historicalParents.IsError,historicalParents.Message);Assert.AreEqual(0,historicalParents.Result.Count());
     }
 }
