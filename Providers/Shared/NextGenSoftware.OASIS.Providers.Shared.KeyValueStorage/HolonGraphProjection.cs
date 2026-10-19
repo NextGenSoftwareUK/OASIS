@@ -9,9 +9,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 public static class HolonGraphProjection
 {
     public static Func<IHolon,IHolon> Create(IEnumerable<IHolon> records,bool loadChildren,bool recursive,
-        int maxChildDepth,int initialDepth,bool childrenFromProvider,Func<IHolon,IHolon> clone)
+        int maxChildDepth,int initialDepth,bool childrenFromProvider,Func<IHolon,IHolon> clone,bool rootsAreChildren=false)
     {
         if(maxChildDepth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+        // Parent lookups have already traversed one edge to produce their result roots.
+        // Nonrecursive parent lookup returns those immediate children without grandchildren.
+        if(rootsAreChildren) {initialDepth=checked(initialDepth+1);loadChildren=loadChildren && recursive;}
         var children=records.ToLookup(row=>row.ParentHolonId);
         IHolon Project(IHolon source,int depth,HashSet<Guid> path)
         {
