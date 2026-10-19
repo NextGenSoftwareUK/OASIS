@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Oracle.ManagedDataAccess.Client;
 using NextGenSoftware.OASIS.API.Core;
@@ -36,12 +35,6 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS
     public class OracleDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _connectionString;
-
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
 
         public OracleDBOASIS(string connectionString)
         {
@@ -124,9 +117,11 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 result.Result = true;
                 result.IsError = false;
                 result.Message = "OracleDBOASIS activated — tables created/verified.";
+                IsProviderActivated = true;
             }
             catch (Exception ex)
             {
+                IsProviderActivated = false;
                 result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error activating provider — {ex.Message}");
             }
@@ -135,8 +130,11 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-            => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "OracleDBOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "OracleDBOASIS deactivated." });
+        }
 
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
@@ -152,8 +150,21 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=stored.Id.ToString();
         }
 
-        private static string Serialize(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private static T? Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        private static string Serialize(object obj) => Core.Serialization.StoredRecordJson.Serialize(obj);
+        private static string MetadataPath(string key)
+        {
+            ArgumentNullException.ThrowIfNull(key);
+            // JSON member quoting and SQL literal quoting are separate boundaries.
+            var member = Newtonsoft.Json.JsonConvert.SerializeObject(key);
+            return "'$.MetaData." + member.Replace("'", "''") + "'";
+        }
+        private static T Deserialize<T>(string json)
+        {
+            var record = Core.Serialization.StoredRecordJson.DeserializeStored<T>(json);
+            if (record is null)
+                throw new System.IO.InvalidDataException("Oracle stored record JSON must contain a record, not null.");
+            return record;
+        }
 
         // Oracle stores GUIDs as RAW(16); convert to/from byte arrays.
         private static byte[] GuidToRaw(Guid id) => id.ToByteArray();
@@ -644,7 +655,7 @@ WHEN NOT MATCHED THEN
                     .FirstOrDefault()?.SearchQuery;
                 string sql = string.IsNullOrEmpty(query)
                     ? "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0"
-                    : "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND (JSON_VALUE(DATA_JSON,'$.name') LIKE :Q OR JSON_VALUE(DATA_JSON,'$.description') LIKE :Q)";
+                    : "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND (JSON_VALUE(DATA_JSON,'$.Name') LIKE :Q OR JSON_VALUE(DATA_JSON,'$.Description') LIKE :Q)";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = CreateCommand(sql, conn);
@@ -707,13 +718,8 @@ WHEN NOT MATCHED THEN
             var result = new OASISResult<IAvatar>();
             try
             {
-                const string sql = "SELECT DataJson FROM OASISAvatars WHERE Email=:Email AND IsDeleted=0";
-                await using var conn = new OracleConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = CreateCommand(sql, conn);
-                cmd.Parameters.Add(":Email", OracleDbType.Varchar2).Value = avatarEmail;
-                var json = (string?)await cmd.ExecuteScalarAsync();
-                if (json != null) result.Result = Deserialize<Avatar>(json);
+                var avatar = await LoadAvatarByColumnAsync("EMAIL", OracleDbType.Varchar2, avatarEmail);
+                if (avatar != null) result.Result = avatar;
                 else OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar with email '{avatarEmail}' not found.");
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
@@ -727,15 +733,15 @@ WHEN NOT MATCHED THEN
             try
             {
                 string joiner = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? " OR " : " AND ";
-                var conditions = metaKeyValuePairs.Keys.Select((k, i) => $"JSON_VALUE(DATA_JSON,'$.metaData.{k}')=:v{i}").ToList();
+                var conditions = metaKeyValuePairs.Keys.Select((k, i) => $"JSON_VALUE(DATA_JSON,{MetadataPath(k)})=:v{i}").ToList();
                 string sql = $"SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND ({string.Join(joiner, conditions)})";
-                if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
+                if (type != HolonType.All) sql += " AND HOLON_TYPE=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = CreateCommand(sql, conn);
                 int idx = 0;
                 foreach (var v in metaKeyValuePairs.Values) cmd.Parameters.Add($":v{idx++}", OracleDbType.Varchar2).Value = v;
-                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
+                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Int32).Value = (int)type;
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
@@ -769,12 +775,12 @@ WHEN NOT MATCHED THEN
             try
             {
                 string sql = "SELECT DATA_JSON FROM OASIS_HOLONS WHERE PARENT_HOLON_ID=:ParentId AND IS_DELETED=0";
-                if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
+                if (type != HolonType.All) sql += " AND HOLON_TYPE=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add(":ParentId", OracleDbType.Raw).Value = GuidToRaw(id);
-                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
+                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Int32).Value = (int)type;
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
@@ -791,11 +797,11 @@ WHEN NOT MATCHED THEN
             try
             {
                 string sql = "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0";
-                if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
+                if (type != HolonType.All) sql += " AND HOLON_TYPE=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = CreateCommand(sql, conn);
-                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
+                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Int32).Value = (int)type;
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
@@ -856,13 +862,13 @@ WHEN NOT MATCHED THEN
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                string sql = $"SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND JSON_VALUE(DATA_JSON,'$.metaData.{metaKey}')=:MetaValue";
-                if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
+                string sql = $"SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND JSON_VALUE(DATA_JSON,{MetadataPath(metaKey)})=:MetaValue";
+                if (type != HolonType.All) sql += " AND HOLON_TYPE=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add(":MetaValue", OracleDbType.Varchar2).Value = metaValue;
-                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
+                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Int32).Value = (int)type;
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
@@ -881,7 +887,7 @@ WHEN NOT MATCHED THEN
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                const string sql = "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND JSON_VALUE(DATA_JSON,'$.avatarId')=:AvatarId";
+                const string sql = "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND JSON_VALUE(DATA_JSON,'$.CreatedByAvatarId')=:AvatarId";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = CreateCommand(sql, conn);
