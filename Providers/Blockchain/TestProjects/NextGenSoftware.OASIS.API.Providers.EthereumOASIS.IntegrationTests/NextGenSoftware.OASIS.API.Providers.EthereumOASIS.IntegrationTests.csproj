@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\EthereumProviderFactory.cs" Link="Production\EthereumProviderFactory.cs" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />

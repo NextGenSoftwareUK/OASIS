@@ -197,6 +197,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class EthereumOASISProviderSettings : ProviderSettingsBase
     {
+        public bool IsVersionControlEnabled { get; set; }
         public string ChainPrivateKey { get; set; }
         public long ChainId { get; set; }
         public string ContractAddress { get; set; }
