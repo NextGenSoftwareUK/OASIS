@@ -335,6 +335,8 @@ public sealed class OracleNativeAcceptanceTests
             Check(await provider.LoadAvatarByEmailAsync(email));Check(provider.LoadAvatarByEmail(email));
             Check(await provider.LoadAvatarDetailByUsernameAsync(name));Check(provider.LoadAvatarDetailByUsername(name));
             Check(await provider.LoadAvatarDetailByEmailAsync(email));Check(provider.LoadAvatarDetailByEmail(email));
+            Check(await provider.ExportAllDataForAvatarByUsernameAsync(name));Check(provider.ExportAllDataForAvatarByUsername(name));
+            Check(await provider.ExportAllDataForAvatarByEmailAsync(email));Check(provider.ExportAllDataForAvatarByEmail(email));
             foreach(var id in ids)foreach(var table in new[]{"OASIS_AVATARS","OASIS_AVATAR_DETAILS"}){
                 var actual=await Read(verifier,table,id);Assert.IsNotNull(actual);
                 await using var delete=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};
