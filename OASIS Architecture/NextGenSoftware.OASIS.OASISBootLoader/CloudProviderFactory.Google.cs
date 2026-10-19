@@ -10,6 +10,7 @@ internal static partial class CloudProviderFactory
     {
         if(settings==null) throw new ArgumentNullException(nameof(settings));
         return new GoogleCloudOASIS(settings.ProjectId,settings.BucketName,settings.CredentialsPath,
-            settings.FirestoreDatabaseId,settings.BigQueryDatasetId,settings.EnableStorage,settings.EnableFirestore,settings.EnableBigQuery);
+            settings.FirestoreDatabaseId,settings.BigQueryDatasetId,settings.EnableStorage,settings.EnableFirestore,settings.EnableBigQuery)
+            {IsVersionControlEnabled=settings.IsVersionControlEnabled};
     }
 }

@@ -14,7 +14,7 @@ public class GoogleSaveAcknowledgementTests
     [DataRow(0,false)] [DataRow(0,true)]
     [DataRow(1,false)] [DataRow(1,true)]
     [DataRow(2,false)] [DataRow(2,true)]
-    public async Task FailedNativeSaveDoesNotPublishGeneratedIdentity(int kind,bool synchronous)
+    public async Task FailedNativePreReadDoesNotSubmitOrPublishGeneratedIdentity(int kind,bool synchronous)
     {
         var detail=kind==1;var holon=kind==2;
         Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
@@ -51,11 +51,8 @@ public class GoogleSaveAcknowledgementTests
                 var result=synchronous ? provider.SaveAvatar(profile):await provider.SaveAvatarAsync(profile);
                 cause=result.Exception;failed=result.IsError;
             }
-            Assert.IsTrue(failed);Assert.IsTrue(NativeMutationReconciliation.IsRequired(cause));
-            Assert.IsInstanceOfType(cause,typeof(GoogleFirestoreMutationReconciliationException));
-            var path=((GoogleFirestoreMutationReconciliationException)cause).DocumentPath;
-            Assert.IsTrue(path.Contains(holon ? "/documents/holons/":detail ? "/documents/avatarDetails/":"/documents/avatars/",StringComparison.Ordinal),path);
-            Assert.IsTrue(Guid.TryParse(path.Split('/').Last(),out var attempted));Assert.AreNotEqual(Guid.Empty,attempted);
+            Assert.IsTrue(failed);Assert.IsFalse(NativeMutationReconciliation.IsRequired(cause),"The authoritative pre-read failed before mutation dispatch.");
+            Assert.IsInstanceOfType<Grpc.Core.RpcException>(cause);
             Assert.AreEqual(Guid.Empty,profile.Id,"Unacknowledged identity must remain reconciliation evidence, not caller state.");
             Assert.AreEqual(Guid.Empty,value.Id);
             Assert.AreEqual(Guid.Empty,entity.Id);

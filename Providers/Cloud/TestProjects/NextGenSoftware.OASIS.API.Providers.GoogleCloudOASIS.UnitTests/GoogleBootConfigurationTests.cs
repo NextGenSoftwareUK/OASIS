@@ -9,6 +9,15 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests;
 [TestClass]
 public sealed class GoogleBootConfigurationTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void HistoryOptionRoundTripsThroughDnaAndProductionFactoryWithoutActivation(bool enabled)
+    {
+        var settings=new GoogleCloudOASISProviderSettings{ProjectId="owned-history-config",EnableStorage=false,EnableFirestore=true,EnableBigQuery=false,IsVersionControlEnabled=enabled};
+        var restored=JsonConvert.DeserializeObject<GoogleCloudOASISProviderSettings>(JsonConvert.SerializeObject(settings))!;
+        var provider=CloudProviderFactory.CreateGoogle(restored);
+        Assert.AreEqual(enabled,provider.IsVersionControlEnabled);Assert.IsFalse(provider.IsProviderActivated);
+        Assert.IsNull(typeof(GoogleCloudOASIS).GetField("_firestoreDb",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(provider));
+    }
     [TestMethod]
     public void ProductionFactoryPreservesServiceSettingsWithoutSdkActivation()
     {

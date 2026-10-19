@@ -389,44 +389,52 @@ public class GoogleNativeDetailTests
 
     private sealed class InterruptAfterFirstWriteProvider : GoogleCloudOASIS
     {
-        private readonly FirestoreDb _unreachable;
+        private readonly FirestoreDb _loseReply;
         public int Writes;
-        public InterruptAfterFirstWriteProvider(FirestoreDb unreachable):base(projectId:"oasis-google-native",enableStorage:false,enableFirestore:true,enableBigQuery:false)
-            =>_unreachable=unreachable;
+        public InterruptAfterFirstWriteProvider(FirestoreDb loseReply):base(projectId:"oasis-google-native",enableStorage:false,enableFirestore:true,enableBigQuery:false)
+            =>_loseReply=loseReply;
         public override async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SaveHolonAsync(NextGenSoftware.OASIS.API.Core.Interfaces.IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
         {
             Writes++;
             var result=await base.SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
             if(Writes==1 && !result.IsError)
-                typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(this,_unreachable);
+                typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(this,_loseReply);
             return result;
         }
     }
 
     private static async Task VerifyNativePartialBatchAsync(FirestoreDb healthy)
     {
-        var settings=Google.Api.Gax.Grpc.CallSettingsExtensions.WithRetry(
-            Google.Api.Gax.Grpc.CallSettings.FromExpiration(Google.Api.Gax.Expiration.FromTimeout(TimeSpan.FromSeconds(2))),
-            Google.Api.Gax.Grpc.RetrySettings.FromConstantBackoff(1,TimeSpan.Zero,_=>false));
-        var client=new Google.Cloud.Firestore.V1.FirestoreClientBuilder {Endpoint="127.0.0.1:18083",ChannelCredentials=Grpc.Core.ChannelCredentials.Insecure,
-            Settings=new Google.Cloud.Firestore.V1.FirestoreSettings {CommitSettings=settings}}.Build();
+        var client=new GoogleNativeFirestore.CommittedReplyLossClient(GoogleNativeFirestore.Database().Client);
         var provider=new InterruptAfterFirstWriteProvider(FirestoreDb.Create("oasis-google-native",client));
         var rows=Enumerable.Range(0,3).Select(_=>new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned partial"}).ToArray();
+        var work=Environment.GetEnvironmentVariable("OASIS_FIRESTORE_HISTORY_WORK")??throw new InvalidOperationException("Durable native runner required.");
+        var journal=Path.Combine(work,"history-native-partial.pending.json");
         try
         {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            foreach(var row in rows)Assert.IsFalse((await healthy.Collection("holons").Document(row.Id.ToString()).GetSnapshotAsync()).Exists);
+            using(var intent=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+                intent.Write(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new{collection="holons",ids=rows.Select(row=>row.Id).ToArray(),state="before-partial-batch"}));intent.Flush(true);
+            }
             var result=await provider.SaveHolonsAsync(rows,saveChildren:false,continueOnError:true);
             Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(2,provider.Writes);
             var partial=result.Exception as GoogleFirestorePartialMutationException;
             Assert.IsNotNull(partial);CollectionAssert.AreEqual(new[] {rows[0].Id},partial.AcknowledgedRecordIds.ToArray());
             Assert.IsInstanceOfType(partial.InnerException,typeof(GoogleFirestoreMutationReconciliationException));
-            Assert.IsInstanceOfType(partial.InnerException.InnerException,typeof(Grpc.Core.RpcException));
+            Assert.AreSame(client.Lost,partial.InnerException.InnerException);Assert.AreEqual(1,client.Commits);
             Assert.IsTrue((await healthy.Collection("holons").Document(rows[0].Id.ToString()).GetSnapshotAsync()).Exists);
+            Assert.IsTrue((await healthy.Collection("holons").Document(rows[1].Id.ToString()).GetSnapshotAsync()).Exists,"Inspect actual committed original; never replay it.");
             Assert.IsFalse((await healthy.Collection("holons").Document(rows[2].Id.ToString()).GetSnapshotAsync()).Exists);
+            foreach(var row in rows.Take(2)){
+                var reference=healthy.Collection("holons").Document(row.Id.ToString());var observed=await reference.GetSnapshotAsync();
+                Assert.AreEqual(row.Id.ToString(),observed.GetValue<string>("id"));
+                await reference.DeleteAsync(Precondition.LastUpdated(observed.UpdateTime!.Value));Assert.IsFalse((await reference.GetSnapshotAsync()).Exists);
+            }
+            File.Delete(journal);
         }
         finally
         {
-            foreach(var row in rows) await healthy.Collection("holons").Document(row.Id.ToString()).DeleteAsync();
             await provider.DeActivateProviderAsync();
         }
     }
@@ -585,9 +593,14 @@ public class GoogleNativeDetailTests
                 var failed=await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(
                     new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveAvatarDetail",PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS,
                         Payload=new AvatarDetail {Id=failedId,IsActive=true,Karma=888}});
-                Assert.IsTrue(failed.IsError);
-                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
-                Assert.AreEqual(secondaryBefore,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                Assert.IsFalse(failed.IsError,failed.Exception?.ToString());
+                Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
+                Assert.AreEqual(secondaryBefore+1,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                var recovered=await local.LoadAvatarDetailAsync(failedId);Assert.IsFalse(recovered.IsError,recovered.Message);
+                Assert.AreEqual(888L,recovered.Result.Karma);
+                Assert.IsFalse((await ((FirestoreDb)healthy!).Collection("avatarDetails").Document(failedId.ToString()).GetSnapshotAsync()).Exists,
+                    "Failed authoritative pre-read must not have dispatched a primary mutation.");
+                Assert.IsFalse((await local.DeleteAvatarDetailAsync(failedId,softDelete:false)).IsError);
                 Assert.IsNull((await local.LoadAvatarDetailAsync(failedId)).Result);
             }
             finally {field.SetValue(google,healthy);}
