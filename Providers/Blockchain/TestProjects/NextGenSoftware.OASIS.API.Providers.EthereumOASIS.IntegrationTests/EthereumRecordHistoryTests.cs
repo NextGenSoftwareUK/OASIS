@@ -7,12 +7,25 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 
 [TestClass,DoNotParallelize]
 public class EthereumRecordHistoryTests
 {
+    [TestMethod]
+    public async Task NegativeGuidProfileVersionsRejectBeforeNativeAccess()
+    {
+        var provider=new EthereumOASIS("http://127.0.0.1:1",new string('1',64),31337,"0x0000000000000000000000000000000000000001");
+        void Invalid<T>(OASISResult<T> result){Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentOutOfRangeException));}
+        foreach(var version in new[]{-1,int.MinValue}){
+            Invalid(provider.LoadAvatar(Guid.NewGuid(),version));Invalid(await provider.LoadAvatarAsync(Guid.NewGuid(),version));
+            Invalid(provider.LoadAvatarDetail(Guid.NewGuid(),version));Invalid(await provider.LoadAvatarDetailAsync(Guid.NewGuid(),version));
+        }
+        Assert.IsFalse(provider.IsProviderActivated);Assert.IsNull(provider.Web3Client);
+    }
+
     [DataTestMethod]
     [DataRow("avatar")][DataRow("avatar-detail")][DataRow("holon")]
     public async Task DetachedHistoryPreservesArchiveAndEmbeddedChildren(string kind)
@@ -39,6 +52,10 @@ public class EthereumRecordHistoryTests
         Assert.IsFalse(source.ProviderUniqueStorageKey.ContainsKey(API.Core.Enums.ProviderType.EthereumOASIS));
         source.Description="second-marker";
         var second=await Stage(id,source.Id.ToString(),first.Ciphertext,false);
+        var reader=typeof(EthereumOASIS).GetMethod("ReadPrivateStorageVersion",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(T));
+        T Read(string value,int version)=>(T)reader.Invoke(null,new object?[]{kind,id,value,source.Id,version})!;
+        Assert.AreEqual(2,Read(second.Ciphertext,0).Version);Assert.AreEqual(1,Read(second.Ciphertext,1).Version);Assert.IsNull(Read(second.Ciphertext,99));
+        var negative=Assert.ThrowsException<TargetInvocationException>(()=>Read(second.Ciphertext,-1));Assert.IsInstanceOfType(negative.InnerException,typeof(ArgumentOutOfRangeException));
         Assert.AreEqual(2,second.Record.Version);Assert.AreEqual(first.Record.VersionId,second.Record.PreviousVersionId);
         Assert.AreEqual(0,source.Version);
         using var codec=new EncryptedRecordCodec(key,compress:true);
@@ -52,6 +69,7 @@ public class EthereumRecordHistoryTests
         await Assert.ThrowsExceptionAsync<InvalidDataException>(async()=>{await Stage(id,Guid.NewGuid().ToString(),first.Ciphertext,true);});
         document[EmbeddedRecordHistory.PropertyName]!["schema"]=99;
         var malformed=codec.Encrypt(context,document.ToString(Newtonsoft.Json.Formatting.None));
+        var refused=Assert.ThrowsException<TargetInvocationException>(()=>Read(malformed,0));Assert.IsInstanceOfType(refused.InnerException,typeof(InvalidDataException));
         await Assert.ThrowsExceptionAsync<InvalidDataException>(async()=>{await Stage(id,source.Id.ToString(),malformed,false);});
         var legacy=await Stage(0,null!,null!,false);Assert.AreEqual(0,legacy.Record.Version);
     }

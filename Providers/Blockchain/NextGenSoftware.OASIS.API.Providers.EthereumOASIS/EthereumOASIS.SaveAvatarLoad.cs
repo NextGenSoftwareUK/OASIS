@@ -119,6 +119,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var avatarDetailEntityId = HashUtility.GetNumericHash(id.ToString());
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 var avatarDetailDto = _nextGenSoftwareOasisService.GetAvatarDetailByIdQueryAsync(avatarDetailEntityId).Result;
 
                 if (avatarDetailDto == null)
@@ -127,7 +128,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarDetailEntityResult = DeserializePrivateStorage<AvatarDetail>("avatar-detail",avatarDetailDto.ReturnValue1.EntityId,avatarDetailDto.ReturnValue1.Info,id);
+                var avatarDetailEntityResult = ReadPrivateStorageVersion<AvatarDetail>("avatar-detail",avatarDetailDto.ReturnValue1.EntityId,avatarDetailDto.ReturnValue1.Info,id,version);
+                if(avatarDetailEntityResult==null){result.ErrorCode=OASISResultErrorCodes.RecordNotFound;throw new System.Collections.Generic.KeyNotFoundException("Ethereum detail version not found.");}
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarDetailEntityResult;
@@ -168,6 +170,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var avatarDetailEntityId = HashUtility.GetNumericHash(id.ToString());
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 var avatarDetailDto = await _nextGenSoftwareOasisService.GetAvatarDetailByIdQueryAsync(avatarDetailEntityId);
 
                 if (avatarDetailDto == null)
@@ -176,7 +179,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarDetailEntityResult = DeserializePrivateStorage<AvatarDetail>("avatar-detail",avatarDetailDto.ReturnValue1.EntityId,avatarDetailDto.ReturnValue1.Info,id);
+                var avatarDetailEntityResult = ReadPrivateStorageVersion<AvatarDetail>("avatar-detail",avatarDetailDto.ReturnValue1.EntityId,avatarDetailDto.ReturnValue1.Info,id,version);
+                if(avatarDetailEntityResult==null){result.ErrorCode=OASISResultErrorCodes.RecordNotFound;throw new System.Collections.Generic.KeyNotFoundException("Ethereum detail version not found.");}
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarDetailEntityResult;
