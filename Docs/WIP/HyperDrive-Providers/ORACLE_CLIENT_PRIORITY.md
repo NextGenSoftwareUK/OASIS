@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Mixed multi-root conditional transactions — LOCAL ONLY, 2026-10-19
+
+Two native sync/async cases combine a create-only new root with an update to an independently seeded existing root. Wrong existing revision returns exactly that root's CosmicConcurrencyConflict; new root independently absent, original existing CLOB byte-identical and failed-operation receipt absent. Valid current revision commits both roots together (versions1/2); original receipt replay preserves requested root order, versions and updated payload. Original source objects remain unpublished. Actual native current CLOB versions checked, then known synthetic roots hard-deleted with native absence and exact receipt cleanup/independent absence before journal removal.
+
+This adds real synchronous ExecuteConditionalHolonWrite coverage as well as async; both converge on same transaction owner. It does NOT imply synchronous cancellation support (sync interface has no token), arbitrary root-list/actor authorization or full hosted routing.
+
+Full55/55native pass22s/zero skips =54acceptance+1diagnostic SHA256 `E40265272976C72B88F6CB508164916C9D781D6B58DF37DB217C7A60106B0F1A`, fixed oracle-native-current.trx. Cached producer/integration0errors2/7warnings; prior127Oracle units/473Shared not rerun. Same runtime stopped/journals0/no install/download/new environment/reset. Implementation stays local/uncommitted/unadvertised pending remaining delete-option/authority/contract publication/immutable dependency/API/V2 gates. No production change required for this tested batch behavior.
+
 ## Conditional selected-graph options — LOCAL ONLY, 2026-10-19
 
 Four native three-level cases cover saveChildren=false(root only), recursive=false(root+direct child), maxChildDepth1(root+child) and full recursive(root+child+leaf). Preconditions cover exactly selected nodes. Actual SDK save and original-operation receipt replay return exact selected topology/version1; independent CLOBs prove parent IDs and selected presence/excluded absence. All original source node versions/revisions remain untouched because conditional provider returns detached acknowledgement for manager publication. Selected known fixtures hard-deleted with native absence; exact receipt cleanup+independent absence before journal removal. No production change needed for these tested options.
