@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Concurrent native claims/create conflicts — LOCAL ONLY, 2026-10-19
+
+Three added actual SDK cases hold first conditional operation after graph+receipt writes but BEFORE native commit, capture real SID, start contender and require V$SESSION to report that contender blocked on the original transaction. Same operation/identical request returns same VersionId; same operation/changed Name (same actor/conditions) returns COSMIC_OPERATION_ID_REUSED; different operation/create-only same identity returns typed CosmicConcurrencyException. Every case has exactly ONE graph commit, independently current version1/original payload, no losing-operation receipt. Original callers remain detached. Exact operationID+hash receipt cleanup followed by independent absence; graph hard-delete/native absence before journal removal.
+
+Local implementation now classifies native create-only ORA1 row races as concurrency conflicts: after uniqueness resolves, reads original winner in same transaction and includes actual revision/version; does not retry INSERT/overwrite it. Native race acceptance checks exception type and preserved winner, not every conflict-detail field. Source-audit correction; no pre-fix native failure claim. Missing-row reads cannot lock absence; native uniqueness owns that race. Existing-row precondition checks remain under row locks.
+
+Full38/38native pass17s/zero skips =37acceptance+1diagnostic SHA256 `2530766134C9ECAAA3927E9C93EBCDD1F4E5B4EE91FE089710FCE27D99A12B77`, fixed oracle-native-current.trx. Cached producer/integration0errors2/7warnings; prior126units/466Shared unchanged/not rerun. Same runtime/container/volume/secret stopped/journals0/no downloads/install/new environment/reset. Source still local/uncommitted and interface unadvertised pending cancellation/receipt-integrity/revision-vs-ordinary-write/mixed graph options/authority/Core dependency/immutable and full API/V2 gates. This is scoped native concurrency proof, not all providers or arbitrary cross-process/wire failure certification.
+
 ## Native conditional rollback and lost commit return — LOCAL ONLY, 2026-10-19
 
 Two new actual SDK gates: owned BEFORE INSERT trigger targets ONLY second graph fixture node and raisesORA20002; public conditional call errors, native commit seam never entered, independent root/child/operation-receipt queries all absent and caller versions remain0. This proves first staged node and receipt claim rollback together. Trigger absence checked before creation; original IDs/operation/trigger journal precedes creation. Owned trigger dropped after successful verification, journal cleared; no reset/repair.
