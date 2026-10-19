@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Metadata typed-selection integrity — 2026-10-19
+
+Both metadata latest-query overloads now reuse existing ValidateSelectedHolon before projecting returned records; type-index mismatch no longer bypasses canonical type validation. Extended existing corrupted-type native fixture with a unique metadata value and sync/async single-key/dictionary-All lookups. All four fail with InvalidDataException/no result; original CLOB unchanged until exact fixture cleanup. Historical metadata path unchanged. Source-audit correction, no pre-fix native reproduction claimed.
+
+Full29/29native pass14s/zero skips SHA256 `19180DD870FC83215EF21EDBFC088D95865EB9AF4E53570A3103610B28B15221`;114/114units pass623ms SHA256 `61B105420782EFDF7764C198EA3E77F7B44FFF74FE08090CDBACEAB558FF3103`. Fixed oracle-native-current.trx/oracle-metadata-type.trx; cached builds0errors2/7/3warnings. Same environment stopped/journals0/no downloads/install/new runtime/reset. Remaining query gates include absent/corrupt index completeness, deletion projection, empty/invalid metadata match modes and non-string/large metadata semantics; not all queries certified. Full interface/security/encryption/hosted/API/V2 remain OPEN.
+
 ## Parent/type query integrity — 2026-10-19
 
 Latest parent and all-holons typed queries trusted indexed parent/type without checking returned canonical fields. A single ValidateSelectedHolon helper now rejects contradictions in these two query owners before projection. Historical selection stays canonical and unchanged. Two actual SDK cases conditionally corrupt native ParentHolonId/HolonType while preserving original JSON; sync/async queries reject with InvalidDataException/no result and leave exact original CLOB unchanged. Known fixtures removed only after checks using ID+exact-CLOB conditional cleanup and absence. Source-audit correction, no pre-fix native reproduction claimed.
