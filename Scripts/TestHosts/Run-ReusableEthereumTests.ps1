@@ -3,7 +3,9 @@ $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/EthereumCurrent'
 $historyPending=Join-Path $taskRoot 'TestResults/Web3CoreCurrent/history-response-loss.pending.json'
+$ethereumPending=Join-Path $work 'ethereum-accepted-loss.pending.json'
 if(Test-Path -LiteralPath $historyPending){throw 'Pending original history fault requires reconciliation; never restart/reset the local chain.'}
+if(Test-Path -LiteralPath $ethereumPending){throw 'Pending original Ethereum fault requires reconciliation; never restart/reset the local chain.'}
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
@@ -73,7 +75,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 204 -or [int]$counts.passed -ne 204 -or [int]$counts.notExecuted -ne 0){throw 'Expected204passing cases including public profile history faults/capability admission, no skips.'}
+    if([int]$counts.total -ne 207 -or [int]$counts.passed -ne 207 -or [int]$counts.notExecuted -ne 0){throw 'Expected207passing cases including three actual accepted-response-loss cases, no skips.'}
     & $node (Join-Path $PSScriptRoot 'verify-web3core-pages.cjs')
     if($LASTEXITCODE){throw 'Web3Core native page verification failed.'}
     $web3Started=[DateTime]::UtcNow
@@ -92,7 +94,7 @@ try {
 } finally {
     foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}
     if($owned -and !$owned.HasExited){
-        if(Test-Path -LiteralPath $historyPending){Write-Warning "Original history fault evidence remains; keep owned local node PID $($owned.Id) live for reconciliation. Do not restart/reset."}
+        if((Test-Path -LiteralPath $historyPending) -or (Test-Path -LiteralPath $ethereumPending)){Write-Warning "Original native fault evidence remains; keep owned local node PID $($owned.Id) live for reconciliation. Do not restart/reset."}
         else{Stop-Process -Id $owned.Id; $owned.WaitForExit(5000) | Out-Null}
     }
     $lease.Dispose()

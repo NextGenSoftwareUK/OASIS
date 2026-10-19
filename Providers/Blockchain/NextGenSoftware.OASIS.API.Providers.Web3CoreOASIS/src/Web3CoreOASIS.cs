@@ -131,7 +131,7 @@ public sealed class Web3CoreOASIS
         var signed=await _web3.TransactionManager.SignTransactionAsync(input);
         var bytes=signed.HexToByteArray();
         if(bytes.Length==0) throw new InvalidOperationException("EVM signer returned empty signed transaction.");
-        var hash="0x"+Convert.ToHexString(Nethereum.Util.Sha3Keccack.Current.CalculateHash(bytes)).ToLowerInvariant();
+        var hash=Web3SignedPreparation.Hash(bytes);
         Web3SignedPreparation.Verify(bytes,hash,_chainId ?? throw new InvalidOperationException("Signed EVM mutations require an explicit chain identity."),input.From,_contractAddress,input.Data.HexToByteArray(),input.Value?.Value??System.Numerics.BigInteger.Zero);
         if(persist!=null)
             await persist(System.Text.Json.JsonSerializer.SerializeToElement(new {
