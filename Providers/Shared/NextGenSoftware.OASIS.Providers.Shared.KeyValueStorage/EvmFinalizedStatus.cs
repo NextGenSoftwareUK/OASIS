@@ -24,6 +24,7 @@ public static class EvmFinalizedStatus
         ArgumentNullException.ThrowIfNull(finalized);ArgumentNullException.ThrowIfNull(canonical);
         cancellationToken.ThrowIfCancellationRequested();
         var observed=await receipt(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         if(observed==null)return BridgeTransactionStatus.Pending;
         if(!string.Equals(observed.TransactionHash,transactionHash,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Receipt transaction identity mismatch.");
         ValidateHash(observed.BlockHash);
@@ -31,10 +32,12 @@ public static class EvmFinalizedStatus
             (observed.ExecutionStatus!=BigInteger.Zero&&observed.ExecutionStatus!=BigInteger.One))
             throw new InvalidDataException("Receipt must contain a nonnegative block and explicit execution status0or1.");
         var checkpoint=await finalized(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         if(checkpoint==null||checkpoint.Number==null||checkpoint.Number<0)throw new InvalidDataException("Explicit finalized block is required.");
         ValidateHash(checkpoint.Hash);
         if(observed.BlockNumber>checkpoint.Number)return BridgeTransactionStatus.Pending;
         var block=await canonical(observed.BlockNumber.Value,cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         if(block==null||block.Number!=observed.BlockNumber)throw new InvalidDataException("Canonical receipt block is missing or has the wrong height.");
         ValidateHash(block.Hash);
         if(!string.Equals(block.Hash,observed.BlockHash,StringComparison.OrdinalIgnoreCase))
