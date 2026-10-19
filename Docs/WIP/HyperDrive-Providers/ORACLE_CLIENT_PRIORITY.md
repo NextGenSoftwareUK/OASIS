@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Conditional selected-graph options — LOCAL ONLY, 2026-10-19
+
+Four native three-level cases cover saveChildren=false(root only), recursive=false(root+direct child), maxChildDepth1(root+child) and full recursive(root+child+leaf). Preconditions cover exactly selected nodes. Actual SDK save and original-operation receipt replay return exact selected topology/version1; independent CLOBs prove parent IDs and selected presence/excluded absence. All original source node versions/revisions remain untouched because conditional provider returns detached acknowledgement for manager publication. Selected known fixtures hard-deleted with native absence; exact receipt cleanup+independent absence before journal removal. No production change needed for these tested options.
+
+Full53/53native pass22s/zero skips =52acceptance+1diagnostic SHA256 `94AB53AB596F8BCBCEEFD8AD45E63DE59C6055D51625B917DAF7313792D31CDA`, fixed oracle-native-current.trx. Cached producer/integration0errors2/7warnings; prior127Oracle units/473Shared not rerun. Same environment stopped/journals0/no download/install/new runtime/reset. Source still local/uncommitted/unadvertised; multi-root/delete-option edge cases, authority/actor policy, immutable Core contract publication and full API/V2 remain open.
+
+Concurrent Development c092d1151 deploys walking-karma regression and advances Core gitlink/manifest to2f694dedd7f3357b3c9654b4b6d97b6b9578e955. Read-only inspection confirms conditional interface/CosmicConcurrency/tracking paths still not tracked in that Core revision, so it does NOT publish this feature contract. Dependency validator passes seven Dockerfiles/gitlinks. Current producer/native-consumer Core DLLs both SHA256 `14722B2AA3460DC987EE85B1FD0ABA1F91F03A45707374BF94610BC36283E0A9`, superseding earlierDCBFB... observations for those copies; other unit copies/clean source/deployment parity not inferred. Walking changes preserved/not certified by this provider batch.
+
 ## Large Unicode conditional receipt replay — LOCAL ONLY, 2026-10-19
 
 Expanded existing two-node atomic receipt case with32769BMPtree characters plus supplementary-plane tree/seedling emoji in original Description. First acknowledgement exact, independent native receipt CLOB length>32767characters and checksum/context/graph/revision-bound decoding preserves text. Later update replaces Description with compact payload; original operation replay still returns original Unicode. After soft/hard graph deletion, original receipt replay again returns exact Unicode WITHOUT recreating records. This is bounded CLOB/Unicode acceptance, NOT maximum receipt capacity/retention/performance proof.
