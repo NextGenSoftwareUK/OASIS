@@ -1,5 +1,15 @@
 # EVM record history: current gap and reuse map
 
+## Ethereum detached encrypted staging — 2026-10-19
+
+Added StageStorageHistoryAsync for concrete Avatar/AvatarDetail/Holon; not yet called by public saves. It freezes a canonical detached proposal, validates observed numeric/full identity before decrypting, validates any prior complete archive even when new-history creation is disabled, extends existing archives when disabled, and returns staged DTO/ciphertext without caller publication or persistence. Existing persisted encryption-key/codec/context owners remain unchanged. No new submission path, native read or retry exists in this helper.
+
+Ethereum deliberately stores embedded children. Added an explicit canonical-encoder overload to shared EmbeddedRecordHistory so its proposal/current/archive serialization preserves that provider-owned representation without copying the archive algorithm. The existing three-argument overload/signature remains intact and delegates to its prior canonical serializer. The archive/version owner and read validation remain shared.
+
+Rebuilt producers/consumers:3/3 Ethereum controlled staging cases pass188ms;431/431 shared tests pass;120/120 Web3Core controlled tests pass728ms, zero skips. Ethereum controlled TRX SHA256 `AC03F2415914AD16D33BF6E0302FD5517B3EBFCFE9918AB50F59C964D4252BB6`; shared `5233B34E49CCC2F5FD8FE9303F18492719430D671CF2588F5667E4BACB31B88E`. Tests cover1→2, linkage, unchanged caller version/key, ciphertext marker exclusion, exact archived/missing versions, actual embedded child preservation, foreign native identity, corrupt archive refusal and disabled legacy staging. Initial controlled run2pass/1fail had an incorrect child assertion for AvatarDetail (which also implements IHolon but had no fixture children); corrected to require preservation on records that actually contain children, not manufacture children on every IHolon.
+
+This is crypto/canonical-codec evidence only, NOT native persistence/history acceptance. Public save/lifecycle integration, native conditional staging/response-loss/acknowledgement tests, capability admission for old deployments, DNA binding, historical public reads and hosted/V2 gates remain open. No runtime start, download, install or duplicate environment for this batch; fixed reports reused.
+
 ## Ethereum checked-write prerequisite — local work in progress
 
 Added explicit CreateAvatarChecked/CreateAvatarDetailChecked/CreateHolonChecked Solidity entry points and shared typed Nethereum parameter bindings. Each checks full external identity, exact prior ciphertext Keccak hash and explicit expected presence inside the same native transaction, then calls the existing row-upsert owner. Absent records require a zero expected hash. Storage-owner authorization is unchanged. The existing protocol3 ordinary-write ABI remains intact; provider public saves have NOT switched to these entry points and history reads remain unsupported. No capability fallback, automatic deployment or hosted configuration change was added.
