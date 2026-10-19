@@ -222,19 +222,21 @@ public partial class SOLIDOASIS
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private collection read failed.",error);}
         return result;
     }
-    private async Task<OASISResult<T>> SavePrivateRecordAsync<T>(T source,System.Net.Http.Headers.EntityTagHeaderValue expectedTag=null) where T:class,IHolonBase
+    private async Task<OASISResult<T>> SavePrivateRecordAsync<T>(T source,System.Net.Http.Headers.EntityTagHeaderValue expectedTag=null,bool createOnly=false) where T:class,IHolonBase
     {
         var result=new OASISResult<T>();
         try{
             RequirePrivateStorage();ArgumentNullException.ThrowIfNull(source);
             var staged=StoredRecordJson.DeserializeStored<T>(StoredRecordJson.Serialize(source));
-            if(staged.Id==Guid.Empty)staged.Id=Guid.NewGuid();
+            if(staged.Id==Guid.Empty){staged.Id=Guid.NewGuid();createOnly=true;}
+            if(createOnly&&expectedTag!=null)throw new ArgumentException("Create-only SOLID writes cannot also replace an expected revision.");
             var resource=_privateRecords.Resource<T>(staged.Id);
             using var content=new StringContent(_privateRecords.Encode(staged),Encoding.UTF8,"text/turtle");
             bool acknowledged=false;
             try{
                 using var request=new HttpRequestMessage(HttpMethod.Put,resource){Content=content};
                 if(expectedTag!=null){RequireStrongDeleteTag(expectedTag);request.Headers.IfMatch.Add(expectedTag);}
+                if(createOnly)request.Headers.IfNoneMatch.Add(System.Net.Http.Headers.EntityTagHeaderValue.Any);
                 using var response=await _httpClient.SendAsync(request);
                 if(!response.IsSuccessStatusCode){
                     if((int)response.StatusCode>=500||(int)response.StatusCode==408)

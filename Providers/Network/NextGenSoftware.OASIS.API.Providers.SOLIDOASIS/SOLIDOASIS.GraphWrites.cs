@@ -26,13 +26,14 @@ public partial class SOLIDOASIS
         try{
             RequirePrivateStorage();
             var plan=HolonGraphWritePlan.Create(sources,children,recursive,depth,initialDepth);
+            var newRecords=plan.Nodes.Where(node=>node.Source.Id==Guid.Empty).Select(node=>node.Snapshot.Id).ToHashSet();
             foreach(var node in plan.Nodes){
                 node.Snapshot.ProviderUniqueStorageKey??=new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>();
                 node.Snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.SOLIDOASIS]=node.Snapshot.Id.ToString();
                 node.Snapshot.IsNewHolon=false;
             }
             foreach(var node in plan.Nodes){
-                var saved=await SavePrivateRecordAsync<IHolon>(node.Snapshot);
+                var saved=await SavePrivateRecordAsync<IHolon>(node.Snapshot,createOnly:newRecords.Contains(node.Snapshot.Id));
                 if(saved.IsError){
                     if(acknowledged.Count==0)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(saved);
                     throw saved.Exception??new IOException("SOLID graph member write failed without an exception.");

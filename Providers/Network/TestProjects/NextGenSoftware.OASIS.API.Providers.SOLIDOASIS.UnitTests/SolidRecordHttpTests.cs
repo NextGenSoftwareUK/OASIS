@@ -13,15 +13,18 @@ public class SolidRecordHttpTests
         public readonly Dictionary<string,string> Records=new();public int Writes;public string Failure="";
         public int RejectWrite;public int UncertainWrite;public int Reads;
         public bool RequireConditionalWrites;
+        public bool RequireCreateOnly;
         public TaskCompletionSource<bool>? ReadGate;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             if(request.RequestUri!.AbsoluteUri==Root.AbsoluteUri.TrimEnd('/')+"/")return Reply(HttpStatusCode.OK,"{}");
             if(request.Method==HttpMethod.Put){
+                if(RequireCreateOnly){Assert.Equal("*",Assert.Single(request.Headers.IfNoneMatch).ToString());Assert.Empty(request.Headers.IfMatch);}
                 if(RequireConditionalWrites)Assert.Equal("\"stored-revision\"",Assert.Single(request.Headers.IfMatch).ToString());
                 Writes++;if(Failure=="transport"||Writes==UncertainWrite)throw new HttpRequestException("controlled uncertain PUT");
                 if(Writes==RejectWrite)return Reply(HttpStatusCode.Forbidden,"");
                 if(Failure=="reject")return Reply(HttpStatusCode.Forbidden,"");
+                if(Failure=="collision")return Reply(HttpStatusCode.PreconditionFailed,"");
                 if(Failure=="500")return Reply(HttpStatusCode.InternalServerError,"");
                 var rdf=await request.Content!.ReadAsStringAsync(token);Assert.DoesNotContain("private-canary",rdf);
                 Records[request.RequestUri.AbsoluteUri]=rdf;return Reply(HttpStatusCode.Created,"");
@@ -50,7 +53,7 @@ public class SolidRecordHttpTests
     [Theory][InlineData(0,false)][InlineData(0,true)][InlineData(1,false)][InlineData(1,true)][InlineData(2,false)][InlineData(2,true)]
     public async Task FullCanonicalRecordSurvivesEncryptedHttpWriteAndRead(int kind,bool synchronous)
     {
-        var transport=new Transport();using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport);
+        var transport=new Transport{RequireCreateOnly=true};using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport);
         Assert.False((await provider.ActivateProviderAsync()).IsError);
         if(kind==0){
             IAvatar record=new Avatar{Email="private-canary@example.invalid",Password="private-canary",Username="private-canary"};
@@ -88,5 +91,17 @@ public class SolidRecordHttpTests
         Assert.False((await provider.ActivateProviderAsync()).IsError);
         var result=await provider.SaveAvatarAsync(new Avatar{Username="private-canary"});
         Assert.True(result.IsError);Assert.Equal(0,transport.Writes);
+    }
+
+    [Theory][InlineData(0)][InlineData(1)][InlineData(2)]
+    public async Task NewRecordCollisionIsDefiniteAndDoesNotPublishIdentityOrReplay(int kind)
+    {
+        var transport=new Transport{RequireCreateOnly=true,Failure="collision"};
+        using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport);
+        Assert.False((await provider.ActivateProviderAsync()).IsError);
+        if(kind==0){var record=new Avatar();var result=await provider.SaveAvatarAsync(record);Assert.True(result.IsError);Assert.Equal(Guid.Empty,record.Id);Assert.IsType<HttpRequestException>(result.Exception);}
+        else if(kind==1){var record=new AvatarDetail();var result=await provider.SaveAvatarDetailAsync(record);Assert.True(result.IsError);Assert.Equal(Guid.Empty,record.Id);Assert.IsType<HttpRequestException>(result.Exception);}
+        else {var record=new Holon();var result=await provider.SaveHolonAsync(record,saveChildren:false);Assert.True(result.IsError);Assert.Equal(Guid.Empty,record.Id);Assert.IsType<HttpRequestException>(result.Exception);}
+        Assert.Equal(1,transport.Writes);Assert.Equal(0,transport.Reads);Assert.Empty(transport.Records);
     }
 }
