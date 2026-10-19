@@ -67,6 +67,18 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     throw new ArgumentException("New key generation does not recover or replace an existing wallet address.");
                 var generated = await InvokePolkadotSdkAsync(new { operation = "generateKeyPair", endpoint = _rpcEndpoint,
                     genesisHash = ReportedGenesisHash }).ConfigureAwait(false);
+                result.Result = ParseSdkGeneratedWallet(generated);
+                result.Message = "New SDK sr25519 seed/public key and authoritative-network SS58 address generated; no wallet stored, funded or submitted.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        private IKeyPairAndWallet ParseSdkGeneratedWallet(JsonElement generated)
+        {
                 var seed = generated.GetProperty("privateKey").GetString();
                 var publicKey = generated.GetProperty("publicKey").GetString();
                 var address = generated.GetProperty("address").GetString();
@@ -78,15 +90,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     || address == null || address.Length < 35 || address.Length > 50
                     || !System.Text.RegularExpressions.Regex.IsMatch(address, "^[1-9A-HJ-NP-Za-km-z]+$"))
                     throw new System.IO.InvalidDataException("SDK key generation response is invalid; key values withheld.");
-                result.Result = new KeyHelper.KeyPairAndWallet { PrivateKey = seed, PublicKey = publicKey,
+                return new KeyHelper.KeyPairAndWallet { PrivateKey = seed, PublicKey = publicKey,
                     WalletAddressLegacy = address, WalletAddressSegwitP2SH = null };
-                result.Message = "New SDK sr25519 seed/public key and authoritative-network SS58 address generated; no wallet stored, funded or submitted.";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
-            }
-            return result;
         }
 
 
@@ -108,38 +113,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return result;
                 }
 
-                // Call Polkadot RPC API to get account balance
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "balances_accountBalance",
-                    @params = new object[] { accountAddress }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var balanceStr = resultElement.GetString();
-                    if (ulong.TryParse(balanceStr, out var balance))
-                    {
-                        // Polkadot amounts are in Planck (1 DOT = 10^10 Planck)
-                        result.Result = balance / 10_000_000_000m;
-                        result.IsError = false;
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse balance");
-                    }
-                }
-                else
-                {
-                    result.Result = 0m;
-                    result.IsError = false;
-                }
+                var balance = await InvokePolkadotSdkAsync(new { operation = "balance", endpoint = _rpcEndpoint,
+                    genesisHash = ReportedGenesisHash, address = accountAddress }, token).ConfigureAwait(false);
+                result.Result = ParseNativeDecimalBalance(balance);
             }
             catch (Exception ex)
             {
@@ -159,27 +135,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return result;
                 }
 
-                // Generate Polkadot SR25519 key pair (Substrate uses SR25519)
-                var privateKeyBytes = new byte[32];
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(privateKeyBytes);
-                }
-
-                // Generate SR25519 key pair for Polkadot/Substrate
-                // Polkadot uses SR25519 (Schnorr signatures over Ristretto25519) for key generation
-                var privateKey = Convert.ToBase64String(privateKeyBytes);
-                
-                // Derive public key from private key using SR25519 (simplified - in production use proper SR25519 library like Substrate.NetApi)
-                using var sha512 = System.Security.Cryptography.SHA512.Create();
-                var hash = sha512.ComputeHash(privateKeyBytes);
-                var publicKeyBytes = new byte[32];
-                Array.Copy(hash, 0, publicKeyBytes, 0, 32);
-                var publicKey = Convert.ToBase64String(publicKeyBytes);
-
-                result.Result = (publicKey, privateKey, string.Empty);
+                var generated = await InvokePolkadotSdkAsync(new { operation = "createAccount", endpoint = _rpcEndpoint,
+                    genesisHash = ReportedGenesisHash }, token).ConfigureAwait(false);
+                var wallet = ParseSdkGeneratedWallet(generated);
+                var phrase = generated.GetProperty("seedPhrase").GetString();
+                if (string.IsNullOrWhiteSpace(phrase) || phrase.Split(' ').Length != 24)
+                    throw new System.IO.InvalidDataException("SDK mnemonic response is invalid; values withheld.");
+                result.Result = (wallet.PublicKey, wallet.PrivateKey, phrase);
                 result.IsError = false;
-                result.Message = "Polkadot account key pair created successfully. Seed phrase not applicable for Polkadot.";
+                result.Message = "SDK sr25519 account material created; not stored, funded or submitted.";
             }
             catch (Exception ex)
             {
@@ -205,68 +169,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return result;
                 }
 
-                // Real Polkadot implementation: Derive SR25519 key pair from seed phrase
-                // Polkadot uses SR25519 (Schnorr signatures over Ristretto25519) for key derivation
-                // Convert seed phrase to seed bytes
-                byte[] seedBytes;
-                
-                // Check if seedPhrase is a mnemonic (BIP39) or a raw seed
-                // If it's a mnemonic, it will typically have spaces and be 12-24 words
-                if (seedPhrase.Contains(' ') && seedPhrase.Split(' ').Length >= 12)
-                {
-                    // BIP39 mnemonic - derive seed from mnemonic
-                    // In production, use a proper BIP39 library like NBitcoin or BouncyCastle
-                    // For now, use PBKDF2 to derive seed from mnemonic (simplified approach)
-                    var mnemonicBytes = System.Text.Encoding.UTF8.GetBytes(seedPhrase);
-                    using (var pbkdf2 = new System.Security.Cryptography.Rfc2898DeriveBytes(mnemonicBytes, System.Text.Encoding.UTF8.GetBytes("mnemonic"), 2048, System.Security.Cryptography.HashAlgorithmName.SHA512))
-                    {
-                        seedBytes = pbkdf2.GetBytes(32);
-                    }
-                }
-                else
-                {
-                    // Treat as raw seed - convert to bytes
-                    // If it's hex, decode it; otherwise use UTF8
-                    if (seedPhrase.StartsWith("0x") || (seedPhrase.Length == 64 && System.Text.RegularExpressions.Regex.IsMatch(seedPhrase, "^[0-9a-fA-F]+$")))
-                    {
-                        // Hex seed
-                        seedBytes = Convert.FromHexString(seedPhrase.Replace("0x", ""));
-                        if (seedBytes.Length != 32)
-                        {
-                            // Pad or truncate to 32 bytes
-                            var temp = new byte[32];
-                            Array.Copy(seedBytes, 0, temp, 0, Math.Min(seedBytes.Length, 32));
-                            seedBytes = temp;
-                        }
-                    }
-                    else
-                    {
-                        // UTF8 seed phrase - hash to get 32 bytes
-                        using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                        {
-                            var hash = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(seedPhrase));
-                            seedBytes = hash; // SHA256 produces 32 bytes
-                        }
-                    }
-                }
-
-                // Derive private key from seed (SR25519 uses 32-byte seeds)
-                var privateKeyBytes = new byte[32];
-                Array.Copy(seedBytes, 0, privateKeyBytes, 0, Math.Min(seedBytes.Length, 32));
-                var privateKey = Convert.ToBase64String(privateKeyBytes);
-
-                // Derive public key from private key using SR25519
-                // SR25519 public key derivation: publicKey = privateKey * G (where G is the generator point)
-                // Simplified implementation using SHA512 (in production, use proper SR25519 library like Substrate.NetApi)
-                using var sha512 = System.Security.Cryptography.SHA512.Create();
-                var pubKeyHash = sha512.ComputeHash(privateKeyBytes);
-                var publicKeyBytes = new byte[32];
-                Array.Copy(pubKeyHash, 0, publicKeyBytes, 0, 32);
-                var publicKey = Convert.ToBase64String(publicKeyBytes);
-
-                result.Result = (publicKey, privateKey);
+                var restored = await InvokePolkadotSdkAsync(new { operation = "restoreAccount", endpoint = _rpcEndpoint,
+                    genesisHash = ReportedGenesisHash, recoveryMaterial = seedPhrase }, token).ConfigureAwait(false);
+                var wallet = ParseSdkGeneratedWallet(restored);
+                result.Result = (wallet.PublicKey, wallet.PrivateKey);
                 result.IsError = false;
-                result.Message = "Polkadot account restored successfully from seed phrase";
+                result.Message = "SDK sr25519 identity restored from explicit material; no stored wallet replaced.";
             }
             catch (Exception ex)
             {
