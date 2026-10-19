@@ -378,18 +378,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                 if (string.IsNullOrEmpty(outputFolder))
                     return false;
 
+                if (celestialBody == null && string.IsNullOrEmpty(nativeSource))
+                    return false;
+
                 string folder = System.IO.Path.Combine(outputFolder, "SOLID");
-                if (!System.IO.Directory.Exists(folder))
-                    System.IO.Directory.CreateDirectory(folder);
 
                 if (!string.IsNullOrEmpty(nativeSource))
                 {
+                    ValidateGeneratedTurtle(nativeSource);
+                    System.IO.Directory.CreateDirectory(folder);
                     System.IO.File.WriteAllText(System.IO.Path.Combine(folder, "app.ttl"), nativeSource);
                     return true;
                 }
-
-                if (celestialBody == null)
-                    return true;
 
                 var sb = new StringBuilder();
                 sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
@@ -440,7 +440,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                     }
                 }
 
-                System.IO.File.WriteAllText(System.IO.Path.Combine(folder, "app.ttl"), sb.ToString());
+                var generated = sb.ToString();
+                ValidateGeneratedTurtle(generated);
+                System.IO.Directory.CreateDirectory(folder);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(folder, "app.ttl"), generated);
                 return true;
             }
             catch
@@ -453,6 +456,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         #region RDF helpers
 
+        private void ValidateGeneratedTurtle(string source)
+        {
+            using var graph = new VDS.RDF.Graph { BaseUri = new Uri(_podServerUrl + "/") };
+            using var input = new System.IO.StringReader(source);
+            new VDS.RDF.Parsing.TurtleParser().Load(graph, input);
+            if (graph.IsEmpty) throw new ArgumentException("SOLID native source must contain RDF statements.", nameof(source));
+        }
 
         private static string EscapeTtlString(string value)
             => value?.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r") ?? "";
