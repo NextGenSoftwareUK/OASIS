@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Indexed identity/canonical consistency — 2026-10-19
+
+Source audit found latest username/email reads trusted the SQL index even when canonical record had a different username/email. Existing single LoadIdentityByColumnAsync owner now compares selected canonical identity to requested selector: latest mismatch throws InvalidDataException; historical collection scans still skip nonmatching historical identities normally. No repair/fallback/alternate selector added. GUID/native-key validation remains existing behavior. This catches returned contradictory identity rows, not every missing/corrupt index entry or all denormalized fields.
+
+Four new actual SDK cases cover avatar/detail × username/email: save known fixture, conditionally alter ONLY native identity index under exact ID/CLOB, require sync/async lookups fail with no avatar/detail and InvalidDataException, independently prove original JSON unchanged, then exact index+ID+CLOB conditional cleanup and absence. Source-audit correction; no before-fix native failure reproduction claimed. Full27/27native pass13s/zero skips SHA256 `92C63654D5C9F145E155ED7EA7954818CB4507D6443BA195245C09EA2BD4285B`; full114/114units pass677ms SHA256 `5C2B54ED5BF30109825C22FFE19A75DB11E8DFF53F42B767DD8F4A9B5C5C62E5`. Fixed reports oracle-native-current.trx/oracle-indexed-identity.trx; cached producer/integration/unit builds0errors2/7/3warnings. Same retained container stopped/journals0; no install/download/new environment/reset. Parent/type/deletion-index completeness, authorization/privacy/encryption/hosted/transport/crash/full V2 remain OPEN.
+
 ## Bounded Unicode CLOB/history lifecycle — 2026-10-19
 
 New actual SDK case writes three distinct Unicode Description values (32,769–32,771 BMP characters plus supplementary emoji/suffix), independently parses native CLOB after each commit and checks public current reads exactly match without truncation. These exceed the32Kcharacter boundary; not a maximum-size/capacity claim. Versions1/2/3 survive disabling history before third update. Public soft-delete then commits version4 with3archived records, retains exact Unicode content, hides current tombstone, still exposes live historical versions1–3; public hard-delete finally proves native absence.

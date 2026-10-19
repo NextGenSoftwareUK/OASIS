@@ -9,6 +9,31 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public sealed class OracleNativeAcceptanceTests
 {
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)]
+    public async Task IndexedIdentityCannotReturnDifferentCanonicalIdentity(int kind)
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,$"indexed-identity-{kind}.pending.json");Assert.IsFalse(File.Exists(journal));var id=Guid.NewGuid();var name="owned-index-"+id.ToString("N");
+        var table=kind<2?"OASIS_AVATARS":"OASIS_AVATAR_DETAILS";var column=kind%2==0?"USERNAME":"EMAIL";var indexed=name+"-wrong@example.invalid";
+        var provider=new OracleDBOASIS(connection);
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();Assert.IsNull(await Read(verifier,table,id));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,table,column,indexed,state="before-indexed-identity-fixture"}));file.Flush(true);}
+            if(kind<2){var saved=await provider.SaveAvatarAsync(new Avatar{Id=id,Username=name,Email=name+"@example.invalid"});Assert.IsFalse(saved.IsError,saved.Exception?.ToString());}
+            else{var saved=await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=id,Username=name,Email=name+"@example.invalid"});Assert.IsFalse(saved.IsError,saved.Exception?.ToString());}
+            var original=await Read(verifier,table,id);Assert.IsNotNull(original);
+            await using(var corrupt=new OracleCommand($"UPDATE {table} SET {column}=:Indexed WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Original)=0",verifier){BindByName=true}){
+                corrupt.Parameters.Add("Indexed",OracleDbType.Varchar2).Value=indexed;corrupt.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();corrupt.Parameters.Add("Original",OracleDbType.Clob).Value=original;Assert.AreEqual(1,await corrupt.ExecuteNonQueryAsync());
+            }
+            foreach(var sync in new[]{false,true}){
+                if(kind<2){var loaded=kind==0?(sync?provider.LoadAvatarByUsername(indexed):await provider.LoadAvatarByUsernameAsync(indexed)):(sync?provider.LoadAvatarByEmail(indexed):await provider.LoadAvatarByEmailAsync(indexed));Assert.IsTrue(loaded.IsError);Assert.IsNull(loaded.Result);Assert.IsInstanceOfType<InvalidDataException>(loaded.Exception);}
+                else{var loaded=kind==2?(sync?provider.LoadAvatarDetailByUsername(indexed):await provider.LoadAvatarDetailByUsernameAsync(indexed)):(sync?provider.LoadAvatarDetailByEmail(indexed):await provider.LoadAvatarDetailByEmailAsync(indexed));Assert.IsTrue(loaded.IsError);Assert.IsNull(loaded.Result);Assert.IsInstanceOfType<InvalidDataException>(loaded.Exception);}
+            }
+            Assert.AreEqual(original,await Read(verifier,table,id));
+            await using var cleanup=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND {column}=:Indexed AND DBMS_LOB.COMPARE(DATA_JSON,:Original)=0",verifier){BindByName=true};
+            cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();cleanup.Parameters.Add("Indexed",OracleDbType.Varchar2).Value=indexed;cleanup.Parameters.Add("Original",OracleDbType.Clob).Value=original;Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,table,id));File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
     [TestMethod]
     public async Task UnicodeClobHistorySurvivesUpdatesDisablementAndLifecycle()
     {

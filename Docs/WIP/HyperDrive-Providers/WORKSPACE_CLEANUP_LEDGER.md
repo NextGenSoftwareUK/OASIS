@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 indexed-identity consistency correction reused same Oracle SDK/cache/container/data volume/secret/fixed reports. Four intentionally corrupted synthetic index fixtures remained unchanged until exact index+ID+CLOB conditional cleanup and absence;27native/114units pass, journals0/container stopped. No install/download/new environment/reset/broad deletion/reclaim. Hashes/scope in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 bounded Unicode CLOB native test reused same Oracle runtime/container/volume/secret/cache/fixed reports.23native pass12s; original synthetic holon history/tombstone removed through public acknowledged hard-delete with independent absence before journal removal. No pending journals, container stopped; no install/download/new environment/reset/broad cleanup/reclaim. Payload/scope/hash in ORACLE_CLIENT_PRIORITY.md; not maximum capacity proof.
 
 2026-10-19 Oracle credential native matrix reused same runtime/container/volume/secret/cached builds/fixed reports. Expanded existing fixtures prove current reset/refresh rotation and all three token ambiguity selectors;22native pass12s. Exact original conditional cleanup, journals0/container stopped. No new downloads/install/environment/reset/broad deletion/reclaim. Evidence hash and authority-scope limitations in ORACLE_CLIENT_PRIORITY.md.
