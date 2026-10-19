@@ -302,7 +302,6 @@ contract NextGenSoftwareOASIS {
     function GetAvatarById(uint256 entityId) public view returns (Avatar memory)
     {
         Avatar memory avatar;
-        require(totalAvatarsCount > 0);
         for (uint256 i = 0; i < totalAvatarsCount; i++) {
             if (avatars[i].EntityId == entityId) {
                 return avatars[i];
@@ -314,7 +313,6 @@ contract NextGenSoftwareOASIS {
     function GetAvatarDetailById(uint256 entityId) public view returns (AvatarDetail memory)
     {
         AvatarDetail memory avatarDetail;
-        require(totalAvatarDetailsCount > 0);
         for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
             if (avatarDetails[i].EntityId == entityId) {
                 return avatarDetails[i];
@@ -326,7 +324,6 @@ contract NextGenSoftwareOASIS {
     function GetHolonById(uint256 entityId) public view returns (Holon memory)
     {
         Holon memory holon;
-        require(totalHolonsCount > 0);
         for (uint256 i = 0; i < totalHolonsCount; i++) {
             if (holons[i].EntityId == entityId) {
                 return holons[i];

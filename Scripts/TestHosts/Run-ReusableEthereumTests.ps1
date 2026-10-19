@@ -73,7 +73,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 195 -or [int]$counts.passed -ne 195 -or [int]$counts.notExecuted -ne 0){throw 'Expected195passing cases including three native checked-storage kinds, no skips.'}
+    if([int]$counts.total -ne 198 -or [int]$counts.passed -ne 198 -or [int]$counts.notExecuted -ne 0){throw 'Expected198passing cases including three native checked-history kinds, no skips.'}
     & $node (Join-Path $PSScriptRoot 'verify-web3core-pages.cjs')
     if($LASTEXITCODE){throw 'Web3Core native page verification failed.'}
     $web3Started=[DateTime]::UtcNow
