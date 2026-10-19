@@ -447,7 +447,7 @@ POST {WEB4}/api/subscription/usage/grants
 ```
 
 - `cronExpression` is standard five-field cron (minute hour day-of-month month day-of-week). `timeZone` is an IANA id (default `UTC`); daylight-saving changes follow it, and a local time skipped by spring-forward runs at the end of the gap.
-- `delivery.kind` is `webhook` (public HTTPS only; loopback, private and link-local targets are refused, redirects are not followed) or `none` (run history only). `channel` returns `CHANNEL_DELIVERY_UNAVAILABLE` until the channel layer can send unprompted messages.
+- `delivery.kind` is `webhook` (public HTTPS only; loopback, private and link-local targets are refused, redirects are not followed) `channel` (posts the result into one of the owner's linked chats; `delivery.channelBindingId` comes from `GET /v1/channels/bindings`, and another avatar's binding is refused when the schedule is saved and again at delivery), or `none` (run history only).
 - At most 50 schedules per avatar. Returns `201` with the schedule, including `status` and `nextRunAtUtc`.
 
 ### GET `/v1/schedules` · GET `/v1/schedules/{id}`
@@ -488,7 +488,7 @@ Returns an 8-character code valid for 15 minutes. Send `link CODE` (or `/link CO
 
 List or remove your linked chat identities.
 
-> Agent replies to linked chats need a grant-backed dispatcher. Delegated execution itself has shipped (it runs scheduled agent runs), but no dispatcher uses it yet. Until one does, linked users get an explicit "agent replies are not enabled on this server yet" reply. It is never a fabricated answer.
+**Agent replies.** When the WEB4 usage protocol is enabled (`SUBSCRIPTION_USAGE_ENABLED=true`), each text message from a linked chat runs the avatar's agent unattended under the binding's delegated grant, reserved and settled exactly like `POST /v1/agent/run`. The grant must allow-list the endpoint `CHANNEL /v1/channels message`. A platform redelivering the same message maps to the same WEB4 operation, so it never runs or bills twice. A revoked, expired or exhausted grant is explained in the chat. Voice notes are refused with an explicit message. Without the usage protocol, linked chats get an explicit "agent replies are not enabled" reply, never a fabricated answer.
 
 ## Holonic BRAID Reasoning Graphs
 
