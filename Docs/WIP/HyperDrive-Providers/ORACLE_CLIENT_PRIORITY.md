@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## One reusable Oracle DML command owner — local, 2026-10-19
+
+Extracted existing insert/update SQL/projection binding into private CreateCanonicalWriteCommand, consumed by the ordinary canonical writer. It retains type/table admission, insert-only creation, named parameters, RAW16 IDs, CLOB JSON and canonical index values; caller still owns transaction/dispatch/commit. Factory disposes partially built command on binding failure. This prepares the same command owner for atomic graph transactions rather than copying SQL. No conditional transaction/interface/receipt store implemented by this refactor.
+
+Six new real Oracle SDK command tests cover avatar/detail/holon × create/update with connection remaining closed, named bindings/RAW ID/CLOB payload. Combined local full126/126units pass787ms/zero skips SHA256 `7A3D9C98EFE85ECB8B593861C81B2F861043363B52EE1DA5E53E09D505ACEDEB`;32/32native (31acceptance+1diagnostic) pass16s SHA256 `30F135E7D4A894FF567108F45E761CF28606284C5CBAB3CC819F410D57D744CA`. Fixed oracle-command-owner.trx/oracle-native-current.trx; cached builds0errors2/7/3warnings. These runs include local revision prerequisite, NOT immutable deployed baseline. Source/refactor/tests remain local pending coherent atomic integration/dependency gates; no claim all126tests belong to pushed code. Same runtime stopped/journals0/no download/install/new environment/reset. Progress documentation alone pushed.
+
 ## Exact acknowledgement receipt codec — local, 2026-10-19
 
 Added local UNCOMMITTED Shared ConditionalHolonReceipt using existing StoredRecordJson and HolonGraphWritePlan. Writes detached exact acknowledged roots/flat records/explicit child links; refuses invented empty acknowledgement IDs. Reads validate format, matching native/embedded IDs, duplicate/missing links, selected graph validity and unreachable nodes. Replay reconstructs only stored acknowledgement, never re-reads a newer provider record. Provider must still bind this payload atomically to fingerprint+native graph writes; this codec does NOT do persistence or claim Oracle support.
