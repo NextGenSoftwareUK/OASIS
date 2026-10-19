@@ -10,6 +10,40 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class CallerPublicationTests
 {
+    private sealed class IdentityChangingBackend : IKeyValueBackend
+    {
+        public readonly InMemoryBackend Store = new();
+        public Action AfterWrite;
+        public Task<string> GetAsync(string key,System.Threading.CancellationToken ct=default)=>Store.GetAsync(key,ct);
+        public async Task PutAsync(string key,string value,System.Threading.CancellationToken ct=default)
+        { await Store.PutAsync(key,value,ct); await Task.Yield(); AfterWrite?.Invoke(); }
+        public Task DeleteAsync(string key,System.Threading.CancellationToken ct=default)=>Store.DeleteAsync(key,ct);
+        public Task<System.Collections.Generic.IReadOnlyList<string>> ListKeysAsync(string prefix,System.Threading.CancellationToken ct=default)=>Store.ListKeysAsync(prefix,ct);
+        public Task VerifyAsync(System.Threading.CancellationToken ct=default)=>Store.VerifyAsync(ct);
+    }
+
+    [DataTestMethod]
+    [DataRow(0,false)] [DataRow(1,false)] [DataRow(2,false)]
+    [DataRow(0,true)] [DataRow(1,true)] [DataRow(2,true)]
+    public async Task ChangedCallerIdentityIsNotOverwrittenAfterAcknowledgedWrite(int kind,bool synchronous)
+    {
+        IHolonBase source=kind==0 ? new Avatar():kind==1 ? new AvatarDetail {Id=Guid.NewGuid()}:new Holon();
+        var original=source.Id;var replacement=Guid.NewGuid();
+        var backend=new IdentityChangingBackend {AfterWrite=()=>source.Id=replacement};
+        var provider=new TestProvider(backend);Exception failure;
+        if(kind==0) {var result=synchronous ? provider.SaveAvatar((IAvatar)source):await provider.SaveAvatarAsync((IAvatar)source);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+        else if(kind==1) {var result=synchronous ? provider.SaveAvatarDetail((IAvatarDetail)source):await provider.SaveAvatarDetailAsync((IAvatarDetail)source);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+        else {var result=synchronous ? provider.SaveHolon((IHolon)source):await provider.SaveHolonAsync((IHolon)source);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+        Assert.AreEqual(replacement,source.Id);
+        Assert.IsInstanceOfType(failure,typeof(KeyValuePartialMutationException));
+        var marker=(KeyValuePartialMutationException)failure;
+        CollectionAssert.AreEquivalent(backend.Store.Items.Keys.ToArray(),marker.AcknowledgedKeys.ToArray());
+        Assert.AreEqual(1,backend.Store.PutCalls);
+        var stored=OasisJson.Deserialize<IHolonBase>(backend.Store.Items.Single().Value);
+        Assert.AreNotEqual(replacement,stored.Id);
+        if(original!=Guid.Empty) Assert.AreEqual(original,stored.Id);
+    }
+
     [DataTestMethod]
     [DataRow(false,0)] [DataRow(true,0)] [DataRow(false,1)] [DataRow(true,1)] [DataRow(false,2)] [DataRow(true,2)]
     public async Task SaveRejectsMiskeyedPreviousRecordBeforeArchiveOrMutation(bool synchronous,int kind)
