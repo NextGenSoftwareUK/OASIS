@@ -39,7 +39,7 @@ public partial class GoogleCloudOASIS
         return update;
     }
 
-    // One conditional writer for ordinary saves; native acceptance is required before publishing this batch.
+    // One conditional writer; callers publish state only after native acknowledgement.
     private static async Task<T> WriteFirestoreRecordAsync<T>(DocumentReference reference,Dictionary<string,object> proposal,bool createHistory) where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(reference);ArgumentNullException.ThrowIfNull(proposal);
@@ -84,7 +84,7 @@ public partial class GoogleCloudOASIS
             return committed;
         }
         // Requires production single-attempt Commit settings. No native mutation retry or merge here.
-        catch(Grpc.Core.RpcException cause) when(cause.StatusCode is Grpc.Core.StatusCode.AlreadyExists or Grpc.Core.StatusCode.FailedPrecondition or Grpc.Core.StatusCode.NotFound){throw;}
+        catch(Grpc.Core.RpcException cause) when(cause.StatusCode is Grpc.Core.StatusCode.AlreadyExists or Grpc.Core.StatusCode.FailedPrecondition or Grpc.Core.StatusCode.NotFound or Grpc.Core.StatusCode.InvalidArgument){throw;}
         catch(Exception cause){throw new GoogleFirestoreMutationReconciliationException(reference.Path,cause);}
     }
 
