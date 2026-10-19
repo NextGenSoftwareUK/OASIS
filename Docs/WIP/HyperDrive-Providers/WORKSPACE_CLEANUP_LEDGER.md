@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 first local atomic Oracle graph/receipt native test reused same runtime/container/volume/secret/cache. Added retained local OASIS_WRITE_RECEIPTS table, not another DB/environment.33native/466Shared pass; synthetic original graph hard-deleted with native absence, committed receipts exact-ID+hash cleanup; journal0/container stopped. Volume4,111,988KiB allocated/freeWindows71,207,342,080bytes; no install/download/reset/broad deletion/reclaim. Implementation source uncommitted pending fault/concurrency/Core gates; evidence/scope/receipt cleanup limits in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 local Oracle canonical command-owner extraction reuses existing SDK/cache/container/volume/secret/fixed reports.126units/32native pass; no separate SQL implementation/environment. Existing acknowledged fixture cleanup/journals0/container stopped. No install/download/new runtime/reset/broad deletion/reclaim. Combined local source not immutable deployed parity; source kept for atomic integration, evidence in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 shared exact acknowledgement receipt codec local implementation reuses canonical codec/graph validator/cache/fixed report,466Shared tests pass including5new cases. Two additional SOURCE files (not environment clones/install outputs), kept uncommitted pending atomic integration. No runtime start/download/install/new environment/reset/deletion/reclaim. Exact hash/scope in ORACLE_CLIENT_PRIORITY.md.
