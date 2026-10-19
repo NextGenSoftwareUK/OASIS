@@ -9,6 +9,51 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public sealed class OracleNativeAcceptanceTests
 {
+    private sealed class DispatchObserverProvider(string connection,Action<OracleCommand> observe):OracleDBOASIS(connection)
+    {
+        protected override Task<int> ExecuteCanonicalWriteAsync(OracleCommand command)
+        {observe(command);return base.ExecuteCanonicalWriteAsync(command);}
+    }
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)]
+    public async Task GeneratedIdentityRemainsPrivateUntilAcknowledgedAndMatchesNativeRecord(int kind)
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,$"generated-identity-{kind}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var name="owned-generated-"+Guid.NewGuid().ToString("N");
+        var avatar=new Avatar{Username=name,Email=name+"@example.invalid"};var detail=new AvatarDetail{Username=name,Email=avatar.Email};
+        var root=new Holon{Name=name};var child=new Holon{Name=name+"-child"};if(kind==3)root.Children.Add(child);
+        NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase[] sources=kind==0?new[]{avatar}:kind==1?new[]{detail}:kind==2?new[]{root}:new[]{root,child};
+        var table=kind==0?"OASIS_AVATARS":kind==1?"OASIS_AVATAR_DETAILS":"OASIS_HOLONS";var dispatched=new List<Guid>();
+        var provider=new DispatchObserverProvider(connection,command=>{
+            var index=dispatched.Count;Assert.IsTrue(index<sources.Length);Assert.AreEqual(Guid.Empty,sources[index].Id);Assert.AreEqual(0,sources[index].Version);
+            Assert.IsFalse(sources[index].ProviderUniqueStorageKey?.ContainsKey(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OracleDBOASIS)==true);
+            var id=new Guid((byte[])command.Parameters["Id"].Value);Assert.AreNotEqual(Guid.Empty,id);Assert.IsFalse(dispatched.Contains(id));dispatched.Add(id);
+            // Persist generated original identities before dispatch; a failed assertion/run must not orphan unknown writes.
+            using var file=new FileStream(journal,FileMode.Append,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough);
+            var bytes=JsonSerializer.SerializeToUtf8Bytes(new{ids=dispatched.ToArray(),table,kind,name,state="before-generated-native-dispatch"});file.Write(bytes);file.WriteByte((byte)'\n');file.Flush(true);
+        }){IsVersionControlEnabled=true};
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            if(kind==0){var result=await provider.SaveAvatarAsync(avatar);Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);Assert.AreSame(avatar,result.Result);}
+            else if(kind==1){var result=await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);Assert.AreSame(detail,result.Result);}
+            else{var result=await provider.SaveHolonAsync(root,saveChildren:kind==3);Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);Assert.AreSame(root,result.Result);}
+            Assert.AreEqual(sources.Length,dispatched.Count);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();var originals=new List<string>();
+            for(var i=0;i<sources.Length;i++){
+                var source=sources[i];Assert.AreEqual(dispatched[i],source.Id);Assert.AreEqual(1,source.Version);Assert.AreNotEqual(Guid.Empty,source.VersionId);
+                Assert.AreEqual(source.Id.ToString(),source.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OracleDBOASIS]);
+                var raw=await Read(verifier,table,source.Id);Assert.IsNotNull(raw);originals.Add(raw);using var parsed=JsonDocument.Parse(raw);
+                Assert.AreEqual(source.Id,parsed.RootElement.GetProperty("Id").GetGuid());Assert.AreEqual(source.VersionId,parsed.RootElement.GetProperty("VersionId").GetGuid());Assert.AreEqual(1,parsed.RootElement.GetProperty("Version").GetInt32());
+                if(kind==3&&i==1){Assert.AreEqual(root.Id,child.ParentHolonId);Assert.AreEqual(root.Id,parsed.RootElement.GetProperty("ParentHolonId").GetGuid());}
+            }
+            // Only acknowledged, independently read original snapshots can be removed.
+            for(var i=sources.Length-1;i>=0;i--){
+                await using var cleanup=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Original)=0",verifier){BindByName=true};
+                cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=dispatched[i].ToByteArray();cleanup.Parameters.Add("Original",OracleDbType.Clob).Value=originals[i];
+                Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,table,dispatched[i]));
+            }
+            File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
     private sealed class CreateRaceProvider(string connection):OracleDBOASIS(connection)
     {
         public Func<Task>? BeforeWrite;public int WriteCalls;

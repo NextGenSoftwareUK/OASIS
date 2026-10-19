@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Generated-identity native acceptance — 2026-10-19
+
+Four new actual SDK cases cover generated avatar, avatar-detail, point holon and parent/child graph IDs. Before each actual ExecuteNonQueryAsync, test observer proves selected caller ID/version/provider key still unpublished, records the generated RAW ID in a flushed append-only journal, then calls the original SDK operation. After normal acknowledgement, result identity is the original caller, nonempty ID/version ID/version1/provider key match independent native CLOB reads; generated child ParentHolonId matches generated root both in caller and Oracle. No production fix needed for these tested paths.
+
+Generated fixture journals use newline-separated cumulative JSON entries in generated-identity-N.pending.json: append+flush before each dispatch, never truncate earlier generated IDs. On interruption preserve journal and reconcile ORIGINAL recorded IDs/native snapshots; do not rerun writes/reset environment. All committed originals are independently read before reverse exact-ID/exact-CLOB conditional cleanup; absence proven before removing journal. No crash-recovery procedure is certified merely by this fixture mechanism.
+
+Final full22/22native pass12s/zero skips, oracle-native-current.trx SHA256 `042016A28DB52E1D8BB9BCA1671E1F943937D2A641E37CEA51D8D994E7FB8AFA`; cached producer/integration builds0errors2/7warnings. Existing110unit evidence unchanged, not rerun here. First22case run passed too; subsequent rerun validated append-only journal improvement, not an unexplained service retry. Same image/container/volume/secret reused, stopped on terminal success, no pending journals or new installation/download/reset. Whole-interface/native transport/crash/caller-concurrency/security/encryption/capacity/hosted wallet/IAM/fee/full V2 gates still open; generated-ID success no longer wholly untested.
+
 ## Compatibility read helpers converge on canonical owner — 2026-10-19
 
 Source audit found LoadAllHolonsAsyncLegacy and GUID/string LoadHolonsForParentAsyncLegacy retained duplicate SQL that ignored version/graph options and bypassed canonical ID/history validation. Kept public signatures but removed duplicate SQL: all three now delegate directly to the existing canonical read owner, mapping their older parameter order with initial depth0. Synchronous aliases remain thin wrappers. This concerns Oracle provider helper names, NOT legacy HyperDrive implementation (whose gaps remain documentation-only).
