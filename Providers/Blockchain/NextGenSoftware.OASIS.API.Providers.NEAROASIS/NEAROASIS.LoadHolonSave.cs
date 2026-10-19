@@ -41,6 +41,7 @@ public partial class NEAROASIS
         }
         var blocked = new HashSet<Guid>();
         var acknowledged = new HashSet<IHolon>(ReferenceEqualityComparer.Instance);
+        var originalIds=plan.Nodes.ToDictionary(node=>node.Source,node=>node.Source.Id,ReferenceEqualityComparer.Instance);
         foreach (var node in plan.Nodes)
         {
             if (blocked.Contains(node.Snapshot.ParentHolonId))
@@ -48,7 +49,8 @@ public partial class NEAROASIS
                 blocked.Add(node.Snapshot.Id);
                 continue;
             }
-            var saved = await SaveHolonRecordAsync(node.Snapshot);
+            string receipt=null;
+            var saved = await SaveHolonRecordAsync(node.Snapshot,id=>receipt=id);
             if (saved.IsError)
             {
                 blocked.Add(node.Snapshot.Id);
@@ -57,7 +59,8 @@ public partial class NEAROASIS
                 continue;
             }
             // Publish only identities/stamps whose current-record write was acknowledged.
-            PublishRecordStamp(node.Source,node.Snapshot);
+            try {PublishRecordStamp(node.Source,node.Snapshot,originalIds[node.Source],receipt);}
+            catch(Exception cause){OASISErrorHandling.HandleError(ref result,"Acknowledged NEAR graph write cannot publish caller identity.",cause);break;}
             node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
             acknowledged.Add(node.Source);
         }
