@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 local Oracle precommit receipt/ack validation reused same retained runtime/container/data/secret/SDK/cache/fixed reports.49native/473Shared pass, checksum-valid invalid field fixtures preserved until exact cleanup/native absence, journals0/container stopped. No download/install/new environment/reset/broad deletion/reclaim. Hashes/local-only scope in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 local receipt operation/intent binding verified with SAME retained Oracle environment/cache/fixed reports.45native/468Shared pass; same-ID wrong-context receipts preserved until exact conditional cleanup+independent absence, original graphs public-hard-deleted/native absence, journals0/container stopped. Local receiptformat3not released, no install/download/new runtime/reset/broad deletion/reclaim. Hashes/remaining gates in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 local conditional receipt integrity/binding reused same SDK/cache/runtime/container/volume/secret/fixed reports.43native/468Shared pass. Corrupted original receipts preserved unchanged until exact operationID+hash+CLOB cleanup and independent absence; original graphs public-hard-deleted/native absence, journals0/container stopped. No install/download/new environment/reset/broad deletion/reclaim. Unshipped prototype receiptformat2, scope/hash/open same-ID substitution gate in ORACLE_CLIENT_PRIORITY.md.

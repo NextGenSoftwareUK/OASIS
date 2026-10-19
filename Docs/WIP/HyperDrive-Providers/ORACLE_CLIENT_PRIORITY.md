@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Precommit acknowledgement validation — LOCAL ONLY, 2026-10-19
+
+Atomic owner now decodes/validates the exact bound receipt BEFORE receipt UPDATE/native commit, retains that detached validated acknowledgement and returns it only after commit. Invalid acknowledgement cannot first become a committed success and only then fail postcommit decoding. Bound shared read requires positive logical version/nonempty VersionId, nonempty provider revision distinct from logical VersionId and prior expected revision, create-only version1/empty previous version, and tombstone for deletes. Oracle wrapper additionally requires Oracle storage key equal acknowledged GUID; that Oracle-specific rule is NOT imposed on generic provider keys.
+
+Five new shared cases construct checksum-valid/context-valid acknowledgements with zero version, empty logical ID, empty provider revision, aliased logical/provider revision or invalid create previous-version link; all rejected. Expanded native corruption matrix adds zero version/empty provider revision/empty logical VersionId/wrong Oracle key in otherwise checksum/context/graph-valid receipts. Each replay fails with no extra commit, independent original record remains exact, receipt remains corrupted until exact conditional fixture cleanup/independent absence. Existing graph/replay/delete/concurrency/cancellation/fault cases still pass; no pre-fix execution claim.
+
+Full49/49native pass21s/zero skips =48acceptance+1diagnostic SHA256 `A730DD01703B676A03A3C5A0B6C14C8807CAE52C4741CD77E9DBE15FCAC5E326`;473/473Shared pass1s SHA256 `D94F06F8EDB96679A3D4E7B75E932F6E14D280CE13A7365CB7C2C9647856C1FE`. Fixed oracle-native-current.trx/shared-receipt-acknowledgement.trx, cached builds0errors2/7/2warnings; prior127Oracle units unchanged/not rerun. Same environment stopped/journals0/no downloads/install/new runtime/reset. Source still local/uncommitted/unadvertised pending Unicode/size/graph options/authority/Core dependency/immutable/API/V2 gates. Not all revision arithmetic/history/authorization/corruption forms or arbitrary postcommit cancellation certified.
+
 ## Receipt operation/intent binding — LOCAL ONLY, 2026-10-19
 
 Local receipt prototype now format3: checksum covers operation ID and logical intent fingerprint as well as graph payload. ConditionalHolonPlan captures original OperationId; Oracle writes bound receipts and bound reads require BOTH original operation and fingerprint before accepting selected IDs/topology. Standalone unbound codec remains available for structural tests but is never accepted as a bound Oracle acknowledgement. Supersedes unshipped local format2; no released migration/compatibility claim.
