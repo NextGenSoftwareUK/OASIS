@@ -36,57 +36,6 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             return LoadHolonAsync(username, password, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
         }
 
-        public async Task<OASISResult<IHolon>> LoadHolonByEmailAsync(string email, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Load holon from Firestore by email
-                var docRef = _firestoreDb.Collection("holons").WhereEqualTo("email", email).Limit(1);
-                var snapshot = await docRef.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var doc = snapshot.Documents.First();
-                    var holonData = doc.ConvertTo<Dictionary<string, object>>();
-                    var holon = DecodeHolon(holonData,doc.Id);
-                    
-                    result.Result = holon;
-                    result.IsError = false;
-                    result.Message = "Holon loaded successfully from Google Cloud Firestore by email with full property mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore by email");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Google Cloud by email: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public OASISResult<IHolon> LoadHolonByEmail(string email, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolonByEmailAsync(email, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
@@ -151,63 +100,6 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
             => DeleteCanonicalHolonAsync(providerKey).GetAwaiter().GetResult();
 
-        public async Task<OASISResult<bool>> DeleteHolonAsync(string username, bool softDelete)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                var query = _firestoreDb.Collection("holons").WhereEqualTo("username", username);
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var doc = snapshot.Documents.First();
-                    var docRef = doc.Reference;
-                    
-                    if (true) // Soft delete by default (OASIS standard)
-                    {
-                        // Soft delete - mark as deleted
-                        await docRef.UpdateAsync("IsDeleted", true);
-                        await docRef.UpdateAsync("DeletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
-                        await docRef.UpdateAsync("DeletedByAvatarId", AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty);
-                    }
-                    else
-                    {
-                        // Hard delete - remove document
-                        await docRef.DeleteAsync();
-                    }
-                    
-                    result.Result = true;
-                    result.IsError = false;
-                    result.Message = $"Holon {(softDelete ? "soft" : "hard")} deleted successfully from Google Cloud Firestore by username";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore by username");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Google Cloud by username: {ex.Message}", ex);
-            }
-            return result;
-        }
 
     }
 }
