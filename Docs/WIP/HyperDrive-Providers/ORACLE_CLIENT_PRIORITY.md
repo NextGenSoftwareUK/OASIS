@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Delete identity integrity before mutation — 2026-10-19
+
+The paired-avatar lifecycle owner validated native GUID but still trusted a contradictory username/email index when selecting an avatar for deletion. Extracted the existing read identity comparison into ONE CanonicalIdentityMatches helper, now reused by reads and locked delete admission. Latest delete selector mismatch throws InvalidDataException BEFORE any mutation dispatch; no repair/retry/alternate selector. GUID deletion unaffected. Source-audit correction, no pre-fix native reproduction claimed.
+
+Expanded native corrupted-index fixtures exercise username/email × soft/hard × sync/async (8calls): all error/false with InvalidDataException and NO uncertain-write marker, independent canonical CLOB stays byte-identical after every attempt. Existing exact index+ID+CLOB conditional cleanup removes fixture only afterward. These two fixtures contain avatar only; paired-detail unaffected-by-this-admission not separately seeded in this batch. Full27/27native pass14s/zero skips SHA256 `341E6E254513D365FB82B239FCC11C751B08E7E07BE97B79004A908E5916B474`;114/114units pass560ms SHA256 `B6BCAE772F4374D8AB9D6E5F00F93F7891E9F0B2FF7E0A3DB51FE9A199EDD2E8`. Fixed reports oracle-native-current.trx/oracle-delete-identity.trx, cached builds0errors2/7/3warnings. Same runtime stopped/journals0/no install/download/new environment/reset. Broader index completeness/security/privacy/hosted/transport/crash/concurrency/full V2 remain OPEN.
+
 ## Indexed identity/canonical consistency — 2026-10-19
 
 Source audit found latest username/email reads trusted the SQL index even when canonical record had a different username/email. Existing single LoadIdentityByColumnAsync owner now compares selected canonical identity to requested selector: latest mismatch throws InvalidDataException; historical collection scans still skip nonmatching historical identities normally. No repair/fallback/alternate selector added. GUID/native-key validation remains existing behavior. This catches returned contradictory identity rows, not every missing/corrupt index entry or all denormalized fields.

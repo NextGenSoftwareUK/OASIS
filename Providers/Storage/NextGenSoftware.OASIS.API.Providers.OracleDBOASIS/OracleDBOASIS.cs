@@ -206,6 +206,12 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
         private Task<Avatar?> LoadAvatarByColumnAsync(string column, OracleDbType type, object value,int version)
             => LoadIdentityByColumnAsync<Avatar>("OASIS_AVATARS",column,type,value,true,version);
 
+        private static bool CanonicalIdentityMatches(IHolonBase record,string column,object value)
+        {
+            var identity=record is IAvatar avatar?(column=="USERNAME"?avatar.Username:avatar.Email):record is IAvatarDetail detail?(column=="USERNAME"?detail.Username:detail.Email):null;
+            return string.Equals(identity,(string)value,StringComparison.Ordinal);
+        }
+
         private async Task<T?> LoadIdentityByColumnAsync<T>(string table,string column,OracleDbType type,object value,bool excludeDeleted,int version) where T:class,IHolonBase
         {
             if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
@@ -222,8 +228,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 var id=new Guid((byte[])reader.GetValue(0));var record=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version);
                 if(record==null||record.IsDeleted)continue;
                 if(column!="ID"){
-                    var identity=record is IAvatar avatar?(column=="USERNAME"?avatar.Username:avatar.Email):record is IAvatarDetail detail?(column=="USERNAME"?detail.Username:detail.Email):null;
-                    if(!string.Equals(identity,(string)value,StringComparison.Ordinal)){
+                    if(!CanonicalIdentityMatches(record,column,value)){
                         if(historicalIdentity)continue;
                         throw new System.IO.InvalidDataException("Oracle indexed identity differs from its canonical record.");
                     }
