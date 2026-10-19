@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Actual row-lock/history concurrency — 2026-10-19
+
+New native acceptance holds first update at the existing ExecuteCanonicalWriteAsync seam AFTER SELECT FOR UPDATE/staging, captures its real Oracle SID using the same transaction, then starts second update from a separate caller snapshot. An independent SDK query must observe V$SESSION BLOCKING_SESSION equal to that SID and event `enq: TX - row lock contention` before release. Both tasks incomplete/caller versions still1while blocked. This is actual native lock evidence, not timing-only inference; bounded100ms readiness polling only observes original sessions, never retries a write.
+
+After release, both actual SDK commits acknowledge: first caller2/second3, PreviousVersionId chain seed→first→second, independent current CLOB has second payload and exact archives seed1/first2. Known fixture journal precedes seed and remains on failure; wait/release bounded, no resubmission. Public acknowledged hard-delete and native absence clear original journal. Existing implementation needed no production change. This proves serialized last-writer-wins with history, NOT stale-caller CAS rejection, arbitrary graph atomicity or atomic caller setters.
+
+Full32/32native pass15s/zero skips =31acceptance+1retained SQL diagnostic, SHA256 `C0C35BD0E708E56A3B89856EFC5937C02394C12AEE5BF547F27C72571973DB1F` in fixed oracle-native-current.trx. Cached producer/integration builds0errors2/7warnings;118unit prior evidence unchanged/not rerun. Test session-view query uses local authorized SYSTEM rights, NOT least-privilege application requirements. Same environment stopped/journals0/no download/install/new runtime/reset. Actual transport/crash/hosted wallet/IAM/security/encryption/full interface/API/V2 remain OPEN.
+
 ## Canonical query cleanup and deployment pin check — 2026-10-19
 
 Removed now-unused private MetadataPath SQL quoting builder and unused RawToGuid helper after canonical metadata matching replaced their last production callers. Removed four reflection-only tests for the deleted private SQL builder, NOT public metadata behavior; native quoted/dotted/apostrophe-key checks remain in canonical acceptance. Unit count intentionally122→118, no claim of additional coverage. Cached producer/unit builds0errors2/3warnings,118/118units pass526ms/zero skips SHA256 `BDED8FBDDFA1D289F332D9A5A6AA5F58503A6CA5797B65EE3843A18317DE0305` in oracle-canonical-cleanup.trx. No native rerun for dead-code-only cleanup; previous31case native evidence applies to preceding implementation, not a fresh rebuilt native artifact certification.
