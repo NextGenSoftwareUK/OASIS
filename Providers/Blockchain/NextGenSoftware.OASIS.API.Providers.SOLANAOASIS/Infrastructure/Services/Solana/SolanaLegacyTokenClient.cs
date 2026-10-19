@@ -92,13 +92,44 @@ internal sealed class SolanaLegacyTokenClient(Solnet.Rpc.IRpcClient _rpcClient)
         return await SubmitTokenInstructionsAsync(signer,instructions,memo);
     }
 
-    internal async Task<string> SubmitTokenInstructionsAsync(Account signer,System.Collections.Generic.IEnumerable<Solnet.Rpc.Models.TransactionInstruction> instructions,string memo)
+    /// <summary>
+    /// Creates a new legacy SPL mint owned by <paramref name="authority"/> (mint authority, no freeze authority),
+    /// optionally minting <paramref name="initialSupply"/> to the authority's associated token account, all in one transaction.
+    /// </summary>
+    internal async Task<(string Signature,PublicKey Mint,ulong RawSupply)> CreateLegacyMintAsync(Account authority,int decimals,decimal initialSupply,string memo)
+    {
+        if(decimals<0 || decimals>255) throw new ArgumentOutOfRangeException(nameof(decimals),"SPL decimals must fit in one byte.");
+        if(initialSupply<0) throw new ArgumentOutOfRangeException(nameof(initialSupply),"Initial supply cannot be negative.");
+        var rent=await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize,Commitment.Finalized);
+        if(!rent.WasSuccessful || rent.Result==0) throw new InvalidOperationException("Solana rent exemption for a mint account could not be read.");
+        var mint=new Account();
+        var instructions=new System.Collections.Generic.List<Solnet.Rpc.Models.TransactionInstruction>
+        {
+            SystemProgram.CreateAccount(authority.PublicKey,mint.PublicKey,rent.Result,(ulong)TokenProgram.MintAccountDataSize,TokenProgram.ProgramIdKey),
+            TokenProgram.InitializeMint(mint.PublicKey,decimals,authority.PublicKey,null)
+        };
+        ulong raw=0;
+        if(initialSupply>0)
+        {
+            raw=SplRawAmount(initialSupply,decimals);
+            var destination=AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(authority.PublicKey,mint.PublicKey);
+            instructions.Add(AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(authority.PublicKey,authority.PublicKey,mint.PublicKey));
+            instructions.Add(TokenProgram.MintToChecked(mint.PublicKey,destination,authority.PublicKey,raw,decimals));
+        }
+        var signature=await SubmitInstructionsAsync(authority,new[]{authority,mint},instructions,memo);
+        return (signature,mint.PublicKey,raw);
+    }
+
+    internal Task<string> SubmitTokenInstructionsAsync(Account signer,System.Collections.Generic.IEnumerable<Solnet.Rpc.Models.TransactionInstruction> instructions,string memo)
+        => SubmitInstructionsAsync(signer,new[]{signer},instructions,memo);
+
+    private async Task<string> SubmitInstructionsAsync(Account feePayer,System.Collections.Generic.IList<Account> signers,System.Collections.Generic.IEnumerable<Solnet.Rpc.Models.TransactionInstruction> instructions,string memo)
     {
         var block=await _rpcClient.GetLatestBlockHashAsync();
         if(!block.WasSuccessful || string.IsNullOrWhiteSpace(block.Result?.Value?.Blockhash)) throw new InvalidOperationException("Solana writable blockhash was unavailable.");
-        var builder=new TransactionBuilder().SetRecentBlockHash(block.Result.Value.Blockhash).SetFeePayer(signer.PublicKey);
+        var builder=new TransactionBuilder().SetRecentBlockHash(block.Result.Value.Blockhash).SetFeePayer(feePayer.PublicKey);
         foreach(var instruction in instructions) builder.AddInstruction(instruction);
         if(!string.IsNullOrEmpty(memo)) builder.AddInstruction(MemoProgram.NewMemoV2(memo));
-        return await new SolanaRepository(signer,_rpcClient).SubmitSignedTransactionAsync(builder.Build(signer));
+        return await new SolanaRepository(feePayer,_rpcClient).SubmitSignedTransactionAsync(builder.Build(signers));
     }
 }
