@@ -21,6 +21,7 @@
     <None Include="Fixtures\nft-followup.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\status-observation.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\record-publication.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\storage-snapshot.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

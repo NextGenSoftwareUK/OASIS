@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync, realpathSync } from "node:fs";
+import { readFileSync, realpathSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +10,8 @@ import { prepareFailedStatusFixture } from "./failed-status-fixture.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = process.env.OASIS_REPO_ROOT_WSL ?? resolve(here, "../../..");
+if(existsSync(resolve(repoRoot,'TestResults/NearRuntime/near-checked-sdk.pending.json')))
+  throw new Error('Original C# checked-write evidence remains; reconcile on the same node before rerunning.');
 const toWindows = path => path.replace(/^\/mnt\/([a-z])/i, (_, drive) => `${drive.toUpperCase()}:`).replaceAll("/", "\\");
 const rpcAddr=process.env.OASIS_NEAR_REUSABLE_RPC_URL;
 const expectedChain=process.env.OASIS_NEAR_REUSABLE_CHAIN_ID;

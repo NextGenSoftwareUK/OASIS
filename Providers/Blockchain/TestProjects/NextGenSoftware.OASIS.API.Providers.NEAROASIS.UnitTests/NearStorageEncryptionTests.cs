@@ -10,6 +10,25 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class NearStorageEncryptionTests
 {
+    [DataTestMethod][DataRow("present")][DataRow("absent")][DataRow("wrong-context")][DataRow("invalid-shape")]
+    public async Task SnapshotRetainsExactObservedCiphertextAndUsesExistingContextCodec(string mode)
+    {
+        const string key="holon:11111111-1111-1111-1111-111111111111",plaintext="{\"private-fixture\":\"test-only\"}";
+        var service=Activator.CreateInstance(Service,new object[]{"http://127.0.0.1:1","localnet","contract.local","sender.local","unused","node",Path.Combine(AppContext.BaseDirectory,"Fixtures","storage-snapshot.mjs")})!;
+        string encrypted;using(var codec=Open())encrypted=codec.Encrypt(Context(service,mode=="wrong-context"?"holon:other":key),plaintext);
+        var variable="OASIS_NEAR_SNAPSHOT_FIXTURE_RESPONSE";var previous=Environment.GetEnvironmentVariable(variable);
+        try{
+            Environment.SetEnvironmentVariable(variable,mode=="absent"?"null":mode=="invalid-shape"?"{}":System.Text.Json.JsonSerializer.Serialize(encrypted));
+            var task=(Task)Service.GetMethod("ReadSnapshotAsync")!.Invoke(service,new object[]{key})!;
+            if(mode=="wrong-context"){await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(async()=>await task);return;}
+            if(mode=="invalid-shape"){await Assert.ThrowsExceptionAsync<InvalidDataException>(async()=>await task);return;}
+            await task;var snapshot=task.GetType().GetProperty("Result")!.GetValue(task)!;var type=snapshot.GetType();
+            Assert.AreSame(service,type.GetProperty("Owner")!.GetValue(snapshot));Assert.AreEqual(key,type.GetProperty("Key")!.GetValue(snapshot));
+            Assert.AreEqual(mode=="absent"?null:encrypted,type.GetProperty("Ciphertext")!.GetValue(snapshot));
+            Assert.AreEqual(mode=="absent"?null:plaintext,type.GetProperty("Plaintext")!.GetValue(snapshot));
+            Assert.IsFalse(snapshot.ToString()!.Contains(plaintext));Assert.IsFalse(snapshot.ToString()!.Contains(encrypted));
+        }finally{Environment.SetEnvironmentVariable(variable,previous);}
+    }
     private const string Setting="OASIS_NEAR_STORAGE_ENCRYPTION_KEY";
     private string _previous;
     private byte[] _key;
@@ -46,7 +65,7 @@ public class NearStorageEncryptionTests
     }
 
     [DataTestMethod]
-    [DataRow("GetAsync")][DataRow("EntriesAsync")][DataRow("PutAsync")][DataRow("DeleteAsync")]
+    [DataRow("GetAsync")][DataRow("ReadSnapshotAsync")][DataRow("EntriesAsync")][DataRow("PutAsync")][DataRow("DeleteAsync")]
     public async Task MissingStorageKeyFailsBeforeSdkProcessStarts(string method)
     {
         Environment.SetEnvironmentVariable(Setting,null);
