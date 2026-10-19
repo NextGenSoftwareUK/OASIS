@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 {
@@ -25,11 +25,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
     /// </summary>
     public class OASISMethodFieldTypeInterceptor : TypeInterceptor
     {
-        public override void OnBeforeRegisterDependencies(ITypeDiscoveryContext discoveryContext, DefinitionBase definition)
+        public override void OnBeforeRegisterDependencies(ITypeDiscoveryContext discoveryContext, TypeSystemConfiguration definition)
         {
             // Model interfaces are inferred as GraphQL interfaces, not objects.
             // Remove their persistence methods before argument types are discovered.
-            if (definition is InterfaceTypeDefinition interfaceType &&
+            if (definition is InterfaceTypeConfiguration interfaceType &&
                 interfaceType.RuntimeType != null && IsOASISAssembly(interfaceType.RuntimeType.Assembly))
             {
                 foreach (var field in interfaceType.Fields.Where(f => f.Member is MethodInfo || f.ResolverMember is MethodInfo).ToList())
@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
                 return;
             }
 
-            if (definition is not ObjectTypeDefinition objectTypeDefinition)
+            if (definition is not ObjectTypeConfiguration objectTypeDefinition)
                 return;
 
             var runtimeType = objectTypeDefinition.RuntimeType;
@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             if (!IsOASISAssembly(runtimeType.Assembly))
                 return;
 
-            List<ObjectFieldDefinition> methodFields = objectTypeDefinition.Fields
+            List<ObjectFieldConfiguration> methodFields = objectTypeDefinition.Fields
                 .Where(field => field.Member is MethodInfo || field.ResolverMember is MethodInfo ||
                     field.Member is PropertyInfo property && property.PropertyType == typeof(NextGenSoftware.OASIS.API.Core.Holons.GlobalHolonData))
                 .ToList();
