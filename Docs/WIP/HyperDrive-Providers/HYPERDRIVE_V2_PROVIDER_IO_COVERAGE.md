@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+NEAR2026-10-19 shared-interface alignment: collection current-depth/version roles and provider-child defaults fixed at their existing override boundary, no alternate API/fallback. Six before-fix groups fail; final148controlled/19actual retained-node cases pass/0skips. Root historical selection1/currentdescendant2 and parent child1 proven through IOASISStorageProvider, not only concrete named calls. NEAR_PUBLIC_CONDITIONAL_SAVE.md records exact hashes/source compatibility/launcher limitations/cost and remaining gates. Same retained chain/SDK/runtime; no download/reset/contract upgrade, node stopped and temporary retention restored5. Whole-provider/fullV2/hosted certification remains open.
+
 ## Azure Blob public history acceptance — 2026-10-19
 
 This supersedes the earlier **unintegrated helper** status below for the tested source batch, not for whole-provider/V2 certification. Public holon/avatar/avatar-detail saves now use the shared embedded-history format and one official Blob SDK conditional write; current and historical direct reads, collections, profile/detail selectors, token selectors, metadata/search and owner export consume that format. Historical root filtering uses independently current provider-linked children. Graph saves publish acknowledged versions onto original selected nodes. Soft avatar/detail deletion archives the previous record; hard deletion removes the same blob/archive. There is no cross-blob transaction: existing partial-lifecycle evidence remains required.

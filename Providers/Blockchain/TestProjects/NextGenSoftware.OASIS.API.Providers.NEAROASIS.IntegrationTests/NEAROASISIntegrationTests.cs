@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
@@ -175,7 +176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             var saved = await _provider.SaveHolonAsync(parent, saveChildren: true, recursive: true);
             Assert.IsFalse(saved.IsError, saved.Message);
 
-            var loadedParent = await _provider.LoadHolonAsync(parent.Id, loadChildren: true, recursive: true);
+            var loadedParent = await _provider.LoadHolonAsync(parent.Id, loadChildren: true, recursive: true,loadChildrenFromProvider:true);
             Assert.IsFalse(loadedParent.IsError, loadedParent.Message);
             Assert.IsNotNull(loadedParent.Result, loadedParent.Message);
             Assert.IsTrue(loadedParent.Result.Children.Any(item => item.Id == child.Id));
@@ -197,10 +198,10 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                 loadChildrenFromProvider: true);
             Assert.IsFalse(withoutChildren.IsError, withoutChildren.Message);
             Assert.AreEqual(0, withoutChildren.Result.Children.Count());
-            var listed = await _provider.LoadAllHolonsAsync(HolonType.All, loadChildren: true);
+            var listed = await _provider.LoadAllHolonsAsync(HolonType.All, loadChildren: true,loadChildrenFromProvider:true);
             Assert.IsFalse(listed.IsError, listed.Message);
             Assert.AreEqual(child.Id, listed.Result.Single(item => item.Id == parent.Id).Children.Single().Id);
-            var children = await _provider.LoadHolonsForParentAsync(parent.Id, HolonType.All);
+            var children = await _provider.LoadHolonsForParentAsync(parent.Id, HolonType.All,loadChildrenFromProvider:true);
             Assert.IsTrue(children.Result.Any(item => item.Id == child.Id));
             Assert.AreEqual(grandchild.Id, children.Result.Single(item => item.Id == child.Id).Children.Single().Id);
             var metadata = await _provider.LoadHolonsByMetaDataAsync("runtime", marker, HolonType.All);
@@ -416,13 +417,22 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse((await _provider.SaveHolonAsync(child)).IsError);
             root.Name = $"root-v2-{marker}";
             Assert.IsFalse((await _provider.SaveHolonAsync(root, saveChildren:false)).IsError);
-            var historical = await _provider.LoadHolonAsync(root.Id, version:1);
+            var historical = await _provider.LoadHolonAsync(root.Id, loadChildrenFromProvider:true,version:1);
             Assert.IsFalse(historical.IsError, historical.Message);
             Assert.AreEqual($"root-v1-{marker}", historical.Result.Name);
             Assert.AreEqual(child.Name, historical.Result.Children.Single().Name);
             Assert.AreEqual(2, historical.Result.Children.Single().Version);
             Assert.AreEqual($"root-v1-{marker}", _provider.LoadHolonByProviderKey(root.Id.ToString("D"), 1).Result.Name);
             Assert.AreEqual(1, (await _provider.LoadAllHolonsAsync(HolonType.All, version:1)).Result.Single(item=>item.Id==root.Id).Version);
+            IOASISStorageProvider storage=_provider;
+            var viaInterface=await storage.LoadAllHolonsAsync(HolonType.All,curentChildDepth:0,loadChildrenFromProvider:true,version:1);
+            Assert.IsFalse(viaInterface.IsError,viaInterface.Message);
+            var selected=viaInterface.Result.Single(item=>item.Id==root.Id);
+            Assert.AreEqual(1,selected.Version);Assert.AreEqual(2,selected.Children.Single().Version);
+            var syncInterface=storage.LoadAllHolons(HolonType.All,curentChildDepth:0,loadChildrenFromProvider:true,version:1);
+            Assert.IsFalse(syncInterface.IsError,syncInterface.Message);Assert.AreEqual(1,syncInterface.Result.Single(item=>item.Id==root.Id).Version);
+            var parentInterface=await storage.LoadHolonsForParentAsync(root.Id,HolonType.All,curentChildDepth:0,version:1);
+            Assert.IsFalse(parentInterface.IsError,parentInterface.Message);Assert.AreEqual(1,parentInterface.Result.Single(item=>item.Id==child.Id).Version);
             Assert.IsNull((await _provider.LoadHolonAsync(root.Id,version:99)).Result);
             Assert.IsTrue((await _provider.LoadHolonAsync(root.Id,version:-1)).IsError);
             Assert.IsTrue((await _provider.LoadAllAvatarsAsync(-1)).IsError);
@@ -451,7 +461,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual(root.Id,child.ParentHolonId);
             Assert.AreEqual(Guid.Empty,grandchild.Id);
             Assert.AreEqual(Guid.Empty,grandchild.ParentHolonId);
-            var loaded=await _provider.LoadHolonAsync(root.Id);
+            var loaded=await _provider.LoadHolonAsync(root.Id,loadChildrenFromProvider:true);
             Assert.IsFalse(loaded.IsError,loaded.Message);
             Assert.AreEqual(child.Id,loaded.Result.Children.Single().Id);
             Assert.AreEqual(0,loaded.Result.Children.Single().Children.Count());
@@ -459,7 +469,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse(defaults.IsError,defaults.Message);
             Assert.AreNotEqual(Guid.Empty,grandchild.Id);
             Assert.AreEqual(child.Id,grandchild.ParentHolonId);
-            Assert.AreEqual(grandchild.Id,(await _provider.LoadHolonAsync(root.Id)).Result.Children.Single().Children.Single().Id);
+            Assert.AreEqual(grandchild.Id,(await _provider.LoadHolonAsync(root.Id,loadChildrenFromProvider:true)).Result.Children.Single().Children.Single().Id);
         }
 
         [TestMethod]

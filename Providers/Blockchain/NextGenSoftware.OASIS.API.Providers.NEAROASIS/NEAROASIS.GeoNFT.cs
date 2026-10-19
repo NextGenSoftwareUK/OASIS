@@ -149,26 +149,26 @@ public partial class NEAROASIS
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string key, string value,
         HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
-        int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true,
-        int loadChildrenRecursiveDepthInt = 0)
+        int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
+        int version = 0)
     {
-        var all = await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, version,
-            continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt);
+        var all = await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth,
+            continueOnError, loadChildrenFromProvider, version);
         if (!all.IsError) all.Result = all.Result.Where(holon => MetaMatches(holon, key, value)).ToList();
         return all;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string key, string value,
         HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
-        int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true,
-        int loadChildrenRecursiveDepthInt = 0) =>
-        LoadHolonsByMetaDataAsync(key, value, holonType, loadChildren, recursive, maxChildDepth, version,
-            continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt).GetAwaiter().GetResult();
+        int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
+        int version = 0) =>
+        LoadHolonsByMetaDataAsync(key, value, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth,
+            continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(
         Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode, HolonType holonType,
-        bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0,
-        bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0)
+        bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+        bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IEnumerable<IHolon>>();
         if (metaData == null || metaData.Count == 0)
@@ -176,8 +176,8 @@ public partial class NEAROASIS
             OASISErrorHandling.HandleError(ref result, "At least one metadata key/value pair is required.");
             return result;
         }
-        var all = await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, version,
-            continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt);
+        var all = await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth,
+            continueOnError, loadChildrenFromProvider, version);
         if (all.IsError) return all;
         bool Matches(IHolon holon) => matchMode == MetaKeyValuePairMatchMode.Any
             ? metaData.Any(pair => MetaMatches(holon, pair.Key, pair.Value))
@@ -188,8 +188,8 @@ public partial class NEAROASIS
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaData,
         MetaKeyValuePairMatchMode matchMode, HolonType holonType, bool loadChildren = true,
-        bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true,
-        bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0) =>
+        bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
+        bool loadChildrenFromProvider = false, int version = 0) =>
         LoadHolonsByMetaDataAsync(metaData, matchMode, holonType, loadChildren, recursive, maxChildDepth,
-            version, continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt).GetAwaiter().GetResult();
+            curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 }

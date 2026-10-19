@@ -71,7 +71,7 @@ public class NearRecordPublicationTests
             try{if(pending!=null&&!pending.IsCompleted){await File.WriteAllTextAsync(Path.Combine(root,"release"),"release cleanup");await pending.WaitAsync(TimeSpan.FromSeconds(20));}}
             finally{
                 foreach(var name in names)Environment.SetEnvironmentVariable(name,previous[name]);
-                if(pending==null||pending.IsCompleted){foreach(var name in new[]{"ready.json","release","writes.ndjson"}){var path=Path.Combine(root,name);if(File.Exists(path))File.Delete(path);}if(!Directory.EnumerateFileSystemEntries(root).Any())Directory.Delete(root);}
+                if(pending==null||pending.IsCompleted){foreach(var name in new[]{"ready.pending","ready.json","release","writes.ndjson"}){var path=Path.Combine(root,name);if(File.Exists(path))File.Delete(path);}if(!Directory.EnumerateFileSystemEntries(root).Any())Directory.Delete(root);}
             }
         }
     }

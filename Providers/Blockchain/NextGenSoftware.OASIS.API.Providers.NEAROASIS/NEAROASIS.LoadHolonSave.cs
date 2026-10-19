@@ -71,8 +71,14 @@ public partial class NEAROASIS
         return result;
     }
 
-    private async Task<List<IHolon>> LoadChildTreeAsync(Guid parentId, HolonType type, bool recursive,
-        int maxChildDepth, int depth, int version = 0)
+    private static void ValidateCollectionOptions(int version,int maxChildDepth,int curentChildDepth)
+    {
+        if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+        if(maxChildDepth<0 || curentChildDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+    }
+
+    private async Task<List<IHolon>> LoadChildTreeAsync(Guid parentId, HolonType type, bool loadChildren,bool recursive,
+        int maxChildDepth, int depth,bool loadChildrenFromProvider, int version = 0)
     {
         var all = await LoadAllHolonRecordsAsync();
         if (all.IsError) throw all.Exception ?? new InvalidOperationException(all.Message);
@@ -85,21 +91,22 @@ public partial class NEAROASIS
         }
         var direct = roots.Result.Where(item => item.ParentHolonId == parentId &&
             (type == HolonType.All || item.HolonType == type)).ToList();
-        var project = HolonGraphProjection.Create(records, recursive, true, maxChildDepth, checked(depth + 1), true,
-            item => OasisJson.Deserialize<Holon>(OasisJson.Serialize(item)));
+        var project = HolonGraphProjection.Create(records, loadChildren, recursive, maxChildDepth, depth, loadChildrenFromProvider,
+            item => OasisJson.Deserialize<Holon>(OasisJson.Serialize(item)),rootsAreChildren:true);
         return direct.Select(project).ToList();
     }
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid parentId,
         HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
-        int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true,
-        int loadChildrenRecursiveDepthInt = 0)
+        int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
+        int version = 0)
     {
         var result = new OASISResult<IEnumerable<IHolon>>();
         try
         {
-            result.Result = await LoadChildTreeAsync(parentId, holonType, loadChildren && recursive,
-                maxChildDepth, loadChildrenRecursiveDepthInt, version);
+            ValidateCollectionOptions(version,maxChildDepth,curentChildDepth);
+            result.Result = await LoadChildTreeAsync(parentId, holonType, loadChildren,recursive,
+                maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
             result.Message = "Child holons loaded from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading NEAR child holons: {ex.Message}", ex); }
@@ -107,29 +114,31 @@ public partial class NEAROASIS
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid parentId, HolonType holonType,
-        bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0,
-        bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0) =>
-        LoadHolonsForParentAsync(parentId, holonType, loadChildren, recursive, maxChildDepth, version,
-            continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt).GetAwaiter().GetResult();
+        bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+        bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) =>
+        LoadHolonsForParentAsync(parentId, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth,
+            continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string parentProviderKey,
         HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
-        int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true,
-        int loadChildrenRecursiveDepthInt = 0)
+        int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
+        int version = 0)
     {
+        try { ValidateCollectionOptions(version,maxChildDepth,curentChildDepth); }
+        catch(Exception cause) { var invalid=new OASISResult<IEnumerable<IHolon>>();OASISErrorHandling.HandleError(ref invalid,cause.Message,cause);return invalid; }
         var parent = await LoadHolonByProviderKeyAsync(parentProviderKey);
         if (parent.IsError || parent.Result == null)
             return new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()) { IsError = parent.IsError, Message = parent.Message, Exception = parent.Exception };
         return await LoadHolonsForParentAsync(parent.Result.Id, holonType, loadChildren, recursive, maxChildDepth,
-            version, continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt);
+            curentChildDepth, continueOnError, loadChildrenFromProvider, version);
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string parentProviderKey,
         HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
-        int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true,
-        int loadChildrenRecursiveDepthInt = 0) =>
+        int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
+        int version = 0) =>
         LoadHolonsForParentAsync(parentProviderKey, holonType, loadChildren, recursive, maxChildDepth,
-            version, continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt).GetAwaiter().GetResult();
+            curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
         bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
