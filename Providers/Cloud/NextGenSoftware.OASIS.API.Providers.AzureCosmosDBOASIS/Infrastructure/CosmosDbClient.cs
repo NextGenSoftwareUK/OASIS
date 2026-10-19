@@ -67,12 +67,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public string ReadDocumentByField(string fieldName, string fieldValue, int version = 0)
         {
+            if(version < 0) throw new ArgumentOutOfRangeException(nameof(version));
             if(string.IsNullOrWhiteSpace(fieldName) || !Regex.IsMatch(fieldName,@"\A[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*\z"))
                 throw new ArgumentException("A valid Cosmos property path is required.",nameof(fieldName));
             var query = new QueryDefinition($"SELECT * FROM c WHERE c.{fieldName} = @value")
                 .WithParameter("@value", fieldValue);
             if (version > 0)
-                query = new QueryDefinition($"SELECT * FROM c WHERE c.{fieldName} = @value AND c.version = @version")
+                query = new QueryDefinition($"SELECT * FROM c WHERE c.{fieldName} = @value AND c.Version = @version")
                     .WithParameter("@value", fieldValue)
                     .WithParameter("@version", version);
 
