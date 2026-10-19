@@ -25,7 +25,8 @@ public partial class NEAROASIS
             var matches = new SearchResults();
             var avatarsResult = await LoadAllAvatarRecordsAsync(version);
             if (avatarsResult.IsError) throw avatarsResult.Exception ?? new InvalidOperationException(avatarsResult.Message);
-            var holonsResult = await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,version,continueOnError,true);
+            var holonsResult = await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,
+                continueOnError:continueOnError,loadChildrenFromProvider:true,version:version);
             if (holonsResult.IsError) throw holonsResult.Exception ?? new InvalidOperationException(holonsResult.Message);
             var avatars = avatarsResult.Result.ToList();
             var holons = holonsResult.Result.ToList();
