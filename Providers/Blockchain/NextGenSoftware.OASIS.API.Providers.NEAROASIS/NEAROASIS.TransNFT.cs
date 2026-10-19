@@ -53,18 +53,34 @@ public partial class NEAROASIS
     public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        string acknowledged=null;
         try
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
+            if(request==null)throw new ArgumentNullException(nameof(request));
+            var tokenId=string.IsNullOrWhiteSpace(request.TokenId)?request.NFTTokenAddress:request.TokenId;
+            if (string.IsNullOrWhiteSpace(tokenId))
                 throw new ArgumentException("NFT token id is required.");
+            if(!string.IsNullOrWhiteSpace(request.TokenId)&&!string.IsNullOrWhiteSpace(request.NFTTokenAddress)&&request.TokenId!=request.NFTTokenAddress)
+                throw new ArgumentException("Conflicting NEAR native NFT token identities.");
+            var privateKey=request.OwnerPrivateKey;var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
+            ValidateNftSigningInputs(seed);
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var existing = await LoadOnChainNFTDataAsync(request.NFTTokenAddress);
+            var existing = await LoadOnChainNFTDataAsync(tokenId);
             if (existing.IsError) throw existing.Exception ?? new InvalidOperationException(existing.Message);
-            var tx = await _sdk.CallAsync("nft_burn", new { token_id = request.NFTTokenAddress });
+            if(existing.Result==null)throw new System.Collections.Generic.KeyNotFoundException("Native NFT does not exist; no burn dispatched.");
+            var signer=await ResolveNftSignerAsync(existing.Result.SendToAddressAfterMinting,privateKey,publicKey);
+            var tx = await _sdk.CallAsync("nft_burn", new { token_id = tokenId },signerAccountId:signer.Account,signerPrivateKey:signer.Key);
+            acknowledged=tx;
+            var absent=await LoadOnChainNFTDataAsync(tokenId);
+            if(absent.IsError)throw absent.Exception??new InvalidOperationException(absent.Message);
+            if(absent.Result!=null)throw new System.IO.InvalidDataException("Native NFT remains after acknowledged burn.");
             result.Result = new Web3NFTTransactionResponse { TransactionResult = tx, Web3NFT = existing.Result };
             result.Message = "NFT burned by the deployed NEAR contract.";
         }
-        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error burning NEAR NFT: {ex.Message}", ex); }
+        catch (Exception ex) {
+            if(!string.IsNullOrWhiteSpace(acknowledged))ex=new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,acknowledged,ex);
+            OASISErrorHandling.HandleError(ref result, $"Error burning NEAR NFT: {ex.Message}", ex);
+        }
         return result;
     }
 
