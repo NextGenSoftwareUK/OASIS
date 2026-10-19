@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 local conditional admission/actor/audit correction reused same Oracle SDK/cache/container/data/secret/fixed reports.141units/59native pass; source-only creation audit fix, known fixtures/receipts cleaned with independent absence, journals0/container stopped. No download/install/new runtime/reset/broad deletion/reclaim. Core untracked contract preserved/not staged; feature source local. Hashes/scope/remaining persistence-field review in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 conditional root-only soft/hard delete scope verified using same Oracle SDK/cache/container/volume/secret/fixed report.57native pass; excluded original child unchanged until explicit acknowledged fixture cleanup, root/child/receipt independently absent before journal removal, journals0/container stopped. No install/download/new environment/reset/broad deletion/reclaim. Hash/non-cascade/orphan caveats in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 mixed create+update multi-root sync/async conditional acceptance reused same Oracle SDK/cache/container/volume/secret/fixed report.55native pass; rejected batch unchanged/no receipt, known accepted roots+receipt cleanup independently absent, journals0/container stopped. No download/install/new environment/reset/broad deletion/reclaim. Exact hash/scope/local-only gates in ORACLE_CLIENT_PRIORITY.md.
