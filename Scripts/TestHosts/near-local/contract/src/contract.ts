@@ -39,6 +39,25 @@ export class OasisStorage {
     return this.records.toArray().filter(([key]) => key.startsWith(prefix));
   }
 
+  @view({})
+  entries_page({ prefix = "", offset = 0, limit = 16 }: { prefix?: string; offset?: number; limit?: number }): object {
+    if (typeof prefix !== "string" || !Number.isSafeInteger(offset) || offset < 0 ||
+        !Number.isSafeInteger(limit) || limit < 1 || limit > 64) throw new Error("Invalid record page parameters");
+    const total = this.records.length;
+    if (offset > total) throw new Error("Record page offset exceeds collection length");
+    const count = Math.min(limit, total - offset);
+    const rows: Array<[string, string]> = [];
+    // keys(start,limit) is bounded SDK vector access; never materialize the full map.
+    for (const key of this.records.keys({ start: offset, limit: count })) {
+      if (key.startsWith(prefix)) {
+        const value = this.records.get(key);
+        if (value === null) throw new Error("Record collection is inconsistent");
+        rows.push([key, value]);
+      }
+    }
+    return { total, next_offset: offset + count < total ? offset + count : null, rows };
+  }
+
   @call({})
   nft_mint({ token_id, owner_id, metadata_json }: { token_id: string; owner_id: string; metadata_json: string }): void {
     this.requireContractOwner();

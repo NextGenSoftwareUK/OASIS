@@ -63,12 +63,12 @@ public partial class NEAROASIS
             if(!string.IsNullOrWhiteSpace(request.TokenId)&&!string.IsNullOrWhiteSpace(request.NFTTokenAddress)&&request.TokenId!=request.NFTTokenAddress)
                 throw new ArgumentException("Conflicting NEAR native NFT token identities.");
             var privateKey=request.OwnerPrivateKey;var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
-            ValidateNftSigningInputs(seed);
+            ValidateNearSigningInputs(seed);
             if (!await EnsureSdkActiveAsync(result)) return result;
             var existing = await LoadOnChainNFTDataAsync(tokenId);
             if (existing.IsError) throw existing.Exception ?? new InvalidOperationException(existing.Message);
             if(existing.Result==null)throw new System.Collections.Generic.KeyNotFoundException("Native NFT does not exist; no burn dispatched.");
-            var signer=await ResolveNftSignerAsync(existing.Result.SendToAddressAfterMinting,privateKey,publicKey);
+            var signer=await ResolveNearSignerAsync(existing.Result.SendToAddressAfterMinting,privateKey,publicKey);
             var tx = await _sdk.CallAsync("nft_burn", new { token_id = tokenId },signerAccountId:signer.Account,signerPrivateKey:signer.Key);
             acknowledged=tx;
             var absent=await LoadOnChainNFTDataAsync(tokenId);

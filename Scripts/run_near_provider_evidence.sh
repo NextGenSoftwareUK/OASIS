@@ -30,6 +30,7 @@ cp -a "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/package.json" \
   "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/package-lock.json" \
   "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/run-evidence.mjs" \
   "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/retained-worker.mjs" \
+  "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/failed-status-fixture.mjs" \
   "${build_root}/"
 mkdir -p "${build_root}/contract/src"
 cp "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/contract/src/contract.ts" "${build_root}/contract/src/contract.ts"

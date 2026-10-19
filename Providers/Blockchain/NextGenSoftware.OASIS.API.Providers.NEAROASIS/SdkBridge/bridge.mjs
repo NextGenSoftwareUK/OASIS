@@ -1,4 +1,5 @@
 import { Account, JsonRpcProvider, KeyPair, actions, teraToGas } from "near-api-js";
+import { collectEntries } from "./entries-page.mjs";
 
 async function readInput() {
   const chunks = [];
@@ -37,7 +38,7 @@ async function execute(input) {
     case "get":
       return await provider.callFunction({ contractId: input.contractId, method: "get", args: { key: input.key } });
     case "entries":
-      return await provider.callFunction({ contractId: input.contractId, method: "entries", args: { prefix: input.prefix ?? "" } });
+      return await collectEntries(provider,input.contractId,input.prefix??"");
     case "balance": {
       const accountId = input.targetAccountId ?? input.accountId;
       if (!accountId) throw new Error("targetAccountId is required");
