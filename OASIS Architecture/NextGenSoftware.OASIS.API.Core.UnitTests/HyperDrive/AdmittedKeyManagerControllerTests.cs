@@ -27,7 +27,9 @@ public class AdmittedKeyManagerControllerTests
         while(root!=null&&!File.Exists(Path.Combine(root.FullName,"Docker/oasis-dependency-versions.env")))root=root.Parent;
         Assert.NotNull(root);
         var project=Path.Combine(root!.FullName,"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI");
-        var artifact=Path.Combine(project,"bin/Debug/net10.0/NextGenSoftware.OASIS.API.ONODE.WebAPI.dll");
+        var configuration=typeof(AdmittedKeyManagerControllerTests).Assembly.GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration;
+        Assert.Contains(configuration,new[]{"Debug","Release"});
+        var artifact=Path.Combine(project,"bin",configuration!,"net10.0","NextGenSoftware.OASIS.API.ONODE.WebAPI.dll");
         Assert.True(File.Exists(artifact),"Build the retained WEB4 artifact first.");
         var name=controller switch {"keys"=>"KeysController","eosio"=>"EOSIOController",_=>"HolochainController"};
         Assert.True(File.GetLastWriteTimeUtc(artifact)>=File.GetLastWriteTimeUtc(Path.Combine(project,"Controllers",name+".cs")),"Controller artifact is stale.");
