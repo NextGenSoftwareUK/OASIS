@@ -9,8 +9,20 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class NearRecordPublicationTests
 {
+    private sealed class FixtureScheduleAbortedException:Exception {}
+    [TestMethod]
+    public async Task AbortedBeforeCallerMutationPreservesOriginalFailureThroughCleanup()
+        =>await Assert.ThrowsExceptionAsync<FixtureScheduleAbortedException>(()=>RunPublicationSchedule(3,true,true));
+    [TestMethod]
+    public async Task BoundedGeneratedAndExistingGraphPublicationSchedules()
+    {
+        for(var schedule=0;schedule<12;schedule++)await PublicSaveRetainsControlledAcknowledgementAndChangedCaller(3,schedule%2==0);
+    }
     [DataTestMethod][DataRow(0,false)][DataRow(1,false)][DataRow(2,false)][DataRow(3,false)][DataRow(0,true)][DataRow(1,true)][DataRow(2,true)][DataRow(3,true)]
     public async Task PublicSaveRetainsControlledAcknowledgementAndChangedCaller(int kind,bool generated)
+        =>await RunPublicationSchedule(kind,generated,false);
+
+    private async Task RunPublicationSchedule(int kind,bool generated,bool abortBeforeMutation)
     {
         var root=Path.Combine(AppContext.BaseDirectory,"TestResults","NearPublication");
         Directory.CreateDirectory(root);
@@ -27,20 +39,27 @@ public class NearRecordPublicationTests
             IHolonBase source=kind==0?new Avatar():kind==1?new AvatarDetail():new Holon();
             var child=new Holon();if(kind==3)((IHolon)source).Children.Add(child);
             source.Id=generated?Guid.Empty:Guid.NewGuid();var original=source.Id;source.Version=7;
-            async Task<Exception> Save(){
-                if(kind==0){var result=await provider.SaveAvatarAsync((IAvatar)source);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);return result.Exception;}
-                if(kind==1){var result=await provider.SaveAvatarDetailAsync((IAvatarDetail)source);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);return result.Exception;}
-                var graph=await provider.SaveHolonAsync((IHolon)source,saveChildren:kind==3);Assert.IsTrue(graph.IsError);Assert.IsFalse(graph.IsSaved);Assert.IsNull(graph.Result);return graph.Exception;
+            async Task<(bool IsError,bool IsSaved,IHolonBase? Result,Exception? Cause)> Save(){
+                if(kind==0){var result=await provider.SaveAvatarAsync((IAvatar)source);return(result.IsError,result.IsSaved,result.Result,result.Exception);}
+                if(kind==1){var result=await provider.SaveAvatarDetailAsync((IAvatarDetail)source);return(result.IsError,result.IsSaved,result.Result,result.Exception);}
+                var graph=await provider.SaveHolonAsync((IHolon)source,saveChildren:kind==3);return(graph.IsError,graph.IsSaved,graph.Result,graph.Exception);
             }
             var save=Save();pending=save;
             var ready=Path.Combine(root,"ready.json");var deadline=DateTime.UtcNow.AddSeconds(10);
             while(!File.Exists(ready)){if(save.IsCompleted){await save;Assert.Fail("Save ended before controlled acknowledgement");}if(DateTime.UtcNow>deadline)Assert.Fail("Controlled fixture never reached write");await Task.Delay(10);}
             using var signal=System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(ready));
             var key=signal.RootElement.GetProperty("key").GetString()!;
+            Assert.AreEqual(original,source.Id,"Caller must still be unpublished while the fixture holds its acknowledgement.");
+            Assert.IsFalse(File.Exists(Path.Combine(root,"release")),"No earlier release may satisfy the current acknowledgement.");
+            Assert.AreEqual(1,File.ReadAllLines(Path.Combine(root,"writes.ndjson")).Length);
             if(!generated)StringAssert.EndsWith(key,original.ToString("D"));
+            if(abortBeforeMutation)throw new FixtureScheduleAbortedException();
             var changed=Guid.NewGuid();source.Id=changed;
             await File.WriteAllTextAsync(Path.Combine(root,"release"),"release controlled acknowledgement");
-            var cause=await save.WaitAsync(TimeSpan.FromSeconds(10));
+            var saved=await save.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.IsTrue(saved.IsError);Assert.IsFalse(saved.IsSaved);
+            Assert.IsNull(saved.Result,$"Unexpected partial root: result={saved.Result?.Id}, caller={source.Id}, cause={saved.Cause?.GetType().Name}; writes={File.ReadAllLines(Path.Combine(root,"writes.ndjson")).Length}");
+            var cause=saved.Cause;
             Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(cause));
             CollectionAssert.Contains(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.OriginalTransactionIds(cause).ToArray(),"controlled-record-acknowledgement");
             Assert.AreEqual(changed,source.Id);Assert.AreEqual(7,source.Version);Assert.IsFalse(source.ProviderUniqueStorageKey.ContainsKey(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.NEAROASIS));
