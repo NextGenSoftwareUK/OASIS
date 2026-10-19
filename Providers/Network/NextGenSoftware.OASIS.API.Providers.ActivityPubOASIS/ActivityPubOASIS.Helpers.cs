@@ -422,43 +422,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         /// Parse ActivityPub status to Holon object
         /// </summary>
         private Holon ParseActivityPubToHolon(JsonElement status)
-        {
-            try
-            {
-                var statusId = status.TryGetProperty("id", out var id) ? id.GetString() : "";
-                var holon = new Holon
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{statusId ?? "unknown"}"),
-                    Name = status.TryGetProperty("content", out var content) ? content.GetString() : "ActivityPub Status",
-                    Description = status.TryGetProperty("spoiler_text", out var spoiler) ? spoiler.GetString() : "",
-                    HolonType = HolonType.Holon,
-                    CreatedDate = status.TryGetProperty("created_at", out var createdAt) ? DateTime.Parse(createdAt.GetString()) : DateTime.UtcNow,
-                    ModifiedDate = status.TryGetProperty("updated_at", out var updatedAt) ? DateTime.Parse(updatedAt.GetString()) : DateTime.UtcNow,
-                    Version = 1,
-                    IsActive = true
-                };
-
-                // Add metadata from ActivityPub status
-                if (status.TryGetProperty("id", out var idProp))
-                {
-                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_id"] = idProp.GetString() };
-                }
-                if (status.TryGetProperty("url", out var url))
-                {
-                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_url"] = url.GetString() };
-                }
-                if (status.TryGetProperty("visibility", out var visibility))
-                {
-                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_visibility"] = visibility.GetString() };
-                }
-
-                return holon;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+            => ProjectMastodonStatus(status);
 
         /// <summary>
         /// Creates a deterministic GUID from input string using SHA-256 hash
