@@ -10,6 +10,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 internal static class Web3SignedPreparation
 {
+    internal static string Hash(byte[] signed)
+    {
+        if(signed==null || signed.Length==0)throw new InvalidDataException("Signed EVM bytes are required.");
+        return "0x"+Convert.ToHexString(Nethereum.Util.Sha3Keccack.Current.CalculateHash(signed)).ToLowerInvariant();
+    }
     internal static void Verify(byte[] signed,string hash,BigInteger chain,string sender,string contract,byte[] data,BigInteger? expectedValue=null)
     {
         if(signed==null || signed.Length==0 || chain<=0) throw new InvalidDataException("Original signed EVM bytes and positive chain identity required.");
@@ -17,7 +22,7 @@ internal static class Web3SignedPreparation
         if(!CryptographicOperations.FixedTimeEquals(transaction.GetRLPEncoded(),signed)
             || !TransactionVerificationAndRecovery.VerifyTransaction(transaction))
             throw new InvalidDataException("EVM preparation is not a canonical valid signed transaction.");
-        var actualHash="0x"+Convert.ToHexString(Nethereum.Util.Sha3Keccack.Current.CalculateHash(signed)).ToLowerInvariant();
+        var actualHash=Hash(signed);
         if(!string.Equals(hash,actualHash,StringComparison.OrdinalIgnoreCase)
             || !string.Equals(sender,TransactionVerificationAndRecovery.GetSenderAddress(transaction),StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("Signed EVM preparation hash or recovered signer differs from expected identity.");

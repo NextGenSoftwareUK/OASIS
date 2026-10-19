@@ -5,9 +5,32 @@ using NextGenSoftware.OASIS.OASISBootLoader;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 
-[TestClass]
+[TestClass,DoNotParallelize]
 public class EthereumConfigurationTests
 {
+    [TestMethod]
+    public async Task PendingFaultJournalRejectsBeforeAllocatingNativeFixture()
+    {
+        var folder=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../../TestResults/EthereumCurrent/admission-guard"));
+        Directory.CreateDirectory(folder);
+        var journal=Path.Combine(folder,"ethereum-accepted-loss.pending.json");
+        var prior=Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON");
+        var owned=false;
+        try {
+            using(var stream=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None)){
+                var bytes=System.Text.Encoding.UTF8.GetBytes("owned admission guard");stream.Write(bytes);stream.Flush(true);owned=true;
+            }
+            Environment.SetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON",Path.Combine(folder,"unused-fixture.json"));
+            var refused=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>new EthereumOASISIntegrationTests().AcceptedStorageResponseLossRetainsOriginalSignedHashAndArchive("avatar"));
+            StringAssert.Contains(refused.Message,"Reconcile the original Ethereum fault");
+            Assert.AreEqual("owned admission guard",await File.ReadAllTextAsync(journal));
+        }finally{
+            Environment.SetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON",prior);
+            if(owned)File.Delete(journal);
+            if(Directory.GetFileSystemEntries(folder).Length==0)Directory.Delete(folder);
+        }
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public void DnaHistoryRoundtripAndFactoryBindingDoNotActivate(bool enabled)
     {

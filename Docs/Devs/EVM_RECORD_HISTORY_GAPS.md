@@ -1,5 +1,27 @@
 # EVM record history: current gap and reuse map
 
+## Ethereum accepted-send response loss — signed identity retained
+
+SubmitStorageRequestAsync now uses the retained Nethereum7 sign-only contract handler, which preserves its existing SDK gas-estimation/fee-pricing behavior. It reads an explicit pending nonce under the provider's storage-send semaphore, signs once, derives the transaction hash BEFORE dispatch, verifies canonical signature/recovered signer/chain/contract/calldata/zero native value with the existing shared Web3SignedPreparation code, sends the raw transaction once, checks the returned identity, and enters the existing overridable receipt owner. The shared signed-byte hash function now owns the identical Keccak calculation for Ethereum and Web3Core. No alternate storage path, HTTP retry or native replay was introduced.
+
+A derived hash identifies original signed bytes; it does NOT prove dispatch, acceptance or mining. EthereumStorageReceiptReconciliationException retains that identity if the send response is lost. Preparation failures before a hash is derived remain explicitly unknown/null, not fabricated identifiers. The instance semaphore covers this provider's storage sends/receipt observation, not all wallet/NFT operations, other provider instances or distributed signer concurrency.
+
+Three actual native cases reuse the existing accepted-write proxy source. Each seeds history1, persists an owned fixed pending journal and signed intent before proxy forwarding, forwards one real signed history update, receives actual native acceptance, then returns HTTP503 instead of the hash. The public save returns error/not-saved/null, exact prepared/native accepted hash, unchanged caller version/linkage/key, and exactly one sendRawTransaction. Independent healthy receipt/readback proves successful original version2 and retained version1. Exact fixture deletion/native absence precedes journal removal; no unknown original is removed in finally. Runner startup refuses either pending Ethereum or Web3Core journal, and failed unresolved runs keep the SAME owned node alive. Controlled admission also proves a preexisting pending journal is unchanged and rejected before allocating another native fixture; its tiny owned synthetic guard is removed afterward.
+
+Fresh local verification suite207/207pass57seconds, zero skips (SHA256 `CE1DC4EA5A923393D9B024603F429B7DAFC1F3FE2EFEA53DF0E4650782249077`); this suite contains the three new real response-loss cases as well as existing native and controlled regressions, not a claim that every case independently performs live I/O. Paging59checks and Web3Core5/5native85seconds pass. Rebuilt focused Ethereum controlled21/21pass365ms (SHA256 `D8455C672FB026AED7DA2E228F790E96D0210C2FFDFCC56D47DE34F4C5D76816`); Web3Core controlled120/120pass633ms (`CE4AA43CA16044E830CC600AAD320F4AF0E176CFA4689804278C967B026EEDFE`). Web3Core native hash `4B1D674B40AF8B1AAB04C24504E1B3F29C9BCA0168F24C2CD7C81F8569FC487B`. Production executable behavior did not change after the native run; final test-only pending admission guard was rebuilt and independently executed.
+
+**Fee warning: a client-side error does not make an accepted transaction free.** These are actual LOCAL chain31337 receipts, not public ETH expenditure or production forecasts:
+
+| Original update | Gas used | Effective price (wei) | Actual fee (wei) |
+| --- | ---: | ---: | ---: |
+| Avatar | 267441 | 2701907122 | 722600742614802 |
+| AvatarDetail | 671063 | 2525637885 | 1694862136021755 |
+| Holon | 284518 | 2408144120 | 685160348734160 |
+
+Compact TRX stdout retains ETHEREUM_ACCEPTED_RESPONSE_LOSS_VERIFIED records with original native hashes/IDs/fees and verified fixture absence. No public funds, subscription charge, sponsorship policy, automatic fee credit or fee-recovery certification follows from this local proof.
+
+The pending journal in this test is test-owned evidence; production crash-safe signed preparation and usage-ledger integration are NOT implemented merely by retaining an in-process exception hash. Additional cancellation/cross-instance nonce, ambiguous-preparation, gas-growth, durable recovery, hosted/API and all-provider V2 gates remain open. Reused installed SDKs/compiler/ilspy/runtime/cache and fixed report directories; no installation, upgrade, download or duplicate environment. Reports/artifacts directly in EthereumCurrent total2304221bytes and Web3CoreCurrent347957bytes at inspection. Free81,934,524,416before/81,697,792,000after the runner; whole disk delta is not attributed to these small reports. Original fault journals absent and owned18545/18546listeners closed; preserve unrelated ledgers/keys/drafts.
+
 ## Ethereum DNA/registration binding — local acceptance in progress
 
 Added bool `OASIS.StorageProviders.EthereumOASIS.IsVersionControlEnabled` to the existing settings type, defaultfalse when omitted. This controls starting history on previously unversioned records; existing archives continue even when false. No Railway JSON or hosted setting was changed and no public-chain deployment/spending was enabled.
