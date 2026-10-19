@@ -76,6 +76,12 @@ User approved ONE reusable Oracle test runtime. Inspected root AND rootless stor
 
 ## Cleanup / remaining inventory work
 
+### SOLID startup-binding verification — 2026-10-19
+
+Same root-Podman oasis-solid image58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a, configured127.0.0.1:13000, retained oasis-solid-data volume. Volume /var/lib/containers/storage/volumes/oasis-solid-data/_data measured364KiB allocated (du -sk). No account/Pod/client/runtime/image/volume recreation; existing protected synthetic identity reused. Owned resume completed6native cases then stopped; SIGTERM exceeded30seconds and Podman used SIGKILL, state exited137, journals0. Final-source rerun restart command was policy-rejected BEFORE launch; approval pending, do not bypass. No clean-shutdown/durability claim.
+
+Fixed existing output locations measured logical bytes: Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests/bin49,347,324bytes/191files; corresponding SOLIDOASIS.IntegrationTests/bin49,179,848bytes/191files; TestResults/SolidCurrent401,687bytes/12files. All relative to C:/Source/OASIS. The report folder includes protected credentials/original evidence and is NOT disposable. Reuse these same compiled output directories; future bin removal requires no active build/test process and can be regenerated from retained source/dependencies. Do not count these logical DLL copies as separate installed environments or add nested totals twice. Windows free70,747,381,760bytes is whole-machine observation, not attributed usage/reclaim. Test-project reference graphs refreshed solely from C:/Users/david/.nuget/packages as explicit offline source; no installation/download/duplicate environment.
+
 ### Existing-resource backfill — 2026-10-19 follow-up
 
 User explicitly requires this inventory for ALL previously downloaded/setup resources, not only Oracle or future installations. Read-only inspection below reused the existing environments; no installation, download, restart, deletion or reclaim occurred. All six root Podman containers were stopped at inspection. Configured bindings below are not evidence of running listeners. Cosmos has existing wildcard bindings: review and restrict before any future start; this inventory did not alter them.
