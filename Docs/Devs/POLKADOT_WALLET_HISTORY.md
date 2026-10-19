@@ -40,6 +40,16 @@ Timestamps come from actual historical `Timestamp.Now` storage, never local curr
 
 ## Reuse and run
 
+### Exact finalized transaction status
+
+`GetTransactionStatusAsync(transactionHash, blockHash, cancellationToken)` uses the same pinned SDK and canonical finalized extrinsic/event reader. This is the efficient choice when the original receipt supplies a block hash. Exact top-level `system.ExtrinsicSuccess` maps to Completed and `system.ExtrinsicFailed` to Failed; native fee events are not required for this general status lookup. Nested batch/contract success, cross-chain completion and billing settlement are separate facts.
+
+The original `GetTransactionStatusAsync(transactionHash, cancellationToken)` signature remains available. Standard Substrate RPC does not provide a transaction-hash index: it searches backward through one frozen finalized ancestry, checking block/hash/height linkage, under the existing45second process deadline/caller cancellation. Older public-chain transactions may require an explicit block to finish within that bound. There is no silently truncated successful lookback or invented REST index.
+
+Malformed identity, missing/ambiguous transaction, noncanonical/unfinalized block, unavailable archival data, missing terminal event, cancellation or timeout yields `IsError=true`, preserving the exception and an unresolved Pending value. Callers MUST check IsError: Pending here is not proof of pool acceptance. Even complete finalized-snapshot absence does not prove rejection/expiry or authorize resubmission. No false NotFound or Completed is returned just because an RPC response contains a result property.
+
+The History suite now reads both status modes for the retained existing native/asset-transfer/mint/burn originals in addition to its history/fee assertions. It requires no new signing, funding or fixture ledger. Controlled SDK tests cover finalized failure and malformed/missing/pruned/orphan outcomes; the native run proves successful finalized lookup, not a new real failed-dispatch transaction or full hosted/public-chain certification.
+
 Resume the SAME runtime/ledger using the [existing operator guide](POLKADOT_PROVIDER_NATIVE_TESTS.md), then:
 
 ```powershell
