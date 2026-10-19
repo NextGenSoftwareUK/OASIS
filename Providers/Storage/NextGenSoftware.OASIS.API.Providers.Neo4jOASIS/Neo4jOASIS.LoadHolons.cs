@@ -94,12 +94,16 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         {
             // First load the parent holon to get its ID
             var parentResult = await LoadHolonAsync(providerKey, false, false, 0, continueOnError, loadChildrenFromProvider, 0);
-            if (parentResult.IsError || parentResult.Result == null)
+            if (parentResult.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon, IEnumerable<IHolon>>(parentResult);
+            if (parentResult.Result == null)
             {
+                var cause = new System.IO.InvalidDataException("Successful Neo4j parent lookup returned no canonical parent.");
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsError = true,
-                    Message = $"Failed to load parent holon by provider key: {parentResult.Message}"
+                    Exception = cause,
+                    Message = cause.Message
                 };
             }
 

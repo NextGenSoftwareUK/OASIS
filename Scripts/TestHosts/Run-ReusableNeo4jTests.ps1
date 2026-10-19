@@ -44,7 +44,7 @@ try {
     if($report.LastWriteTimeUtc -lt $testStarted){throw 'Native Neo4j report is stale.'}
     [xml]$evidence=Get-Content -LiteralPath $report.FullName
     $counts=$evidence.SelectSingleNode("//*[local-name()='Counters']")
-    $expectedCount=if($ReconcileTimeoutFixtures){1}else{121}
+    $expectedCount=if($ReconcileTimeoutFixtures){1}else{123}
     if(!$counts -or [int]$counts.total -ne $expectedCount -or [int]$counts.passed -ne $expectedCount -or [int]$counts.notExecuted -ne 0){throw 'Exact fresh native case count, including timeout classification, with no skips required.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
