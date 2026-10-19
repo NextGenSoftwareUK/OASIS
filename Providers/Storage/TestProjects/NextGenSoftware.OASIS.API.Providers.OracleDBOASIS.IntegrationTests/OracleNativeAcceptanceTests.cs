@@ -9,6 +9,50 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public sealed class OracleNativeAcceptanceTests
 {
+    private sealed class HeldUpdateProvider(string connection):OracleDBOASIS(connection)
+    {
+        public readonly TaskCompletionSource<int> Locked=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public readonly TaskCompletionSource<bool> Release=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _writes;
+        protected override async Task<int> ExecuteCanonicalWriteAsync(OracleCommand command)
+        {
+            if(Interlocked.Increment(ref _writes)==1){
+                await using var identity=new OracleCommand("SELECT SYS_CONTEXT('USERENV','SID') FROM DUAL",command.Connection){Transaction=command.Transaction};
+                Locked.TrySetResult(int.Parse((await identity.ExecuteScalarAsync())!.ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+                await Release.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            }
+            return await base.ExecuteCanonicalWriteAsync(command);
+        }
+    }
+    [TestMethod]
+    public async Task NativeRowLockSerializesUpdatesWithoutLosingHistory()
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,"row-lock-history.pending.json");Assert.IsFalse(File.Exists(journal));var id=Guid.NewGuid();var seed=new Holon{Id=id,Name="owned-row-lock-seed"};
+        var provider=new HeldUpdateProvider(connection){IsVersionControlEnabled=true};var setup=new OracleDBOASIS(connection){IsVersionControlEnabled=true};
+        Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>>? firstTask=null,secondTask=null;
+        try{
+            Assert.IsFalse((await setup.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,state="before-native-row-lock-history"}));file.Flush(true);}
+            var seeded=await setup.SaveHolonAsync(seed,saveChildren:false);Assert.IsFalse(seeded.IsError,seeded.Exception?.ToString());
+            var first=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(seed);var second=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(seed);first.Name="owned-first-update";second.Name="owned-second-update";
+            firstTask=provider.SaveHolonAsync(first,saveChildren:false);var blocker=await provider.Locked.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            secondTask=provider.SaveHolonAsync(second,saveChildren:false);var deadline=DateTime.UtcNow.AddSeconds(15);var blocked=false;
+            do{
+                await using var query=new OracleCommand("SELECT COUNT(*) FROM V$SESSION WHERE BLOCKING_SESSION=:Blocker AND EVENT='enq: TX - row lock contention'",verifier){BindByName=true};query.Parameters.Add("Blocker",OracleDbType.Int32).Value=blocker;
+                blocked=Convert.ToInt32(await query.ExecuteScalarAsync(),System.Globalization.CultureInfo.InvariantCulture)>0;
+                if(!blocked)await Task.Delay(100);
+            }while(!blocked&&DateTime.UtcNow<deadline);
+            Assert.IsTrue(blocked,"Actual Oracle session must report waiting on this original writer's row lock.");Assert.IsFalse(firstTask.IsCompleted);Assert.IsFalse(secondTask.IsCompleted);Assert.AreEqual(1,first.Version);Assert.AreEqual(1,second.Version);
+            provider.Release.TrySetResult(true);var results=await Task.WhenAll(firstTask,secondTask).WaitAsync(TimeSpan.FromSeconds(30));foreach(var result in results){Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);}
+            Assert.AreEqual(2,first.Version);Assert.AreEqual(3,second.Version);Assert.AreEqual(seed.VersionId,first.PreviousVersionId);Assert.AreEqual(first.VersionId,second.PreviousVersionId);
+            var raw=await Read(verifier,"OASIS_HOLONS",id);Assert.IsNotNull(raw);using(var stored=JsonDocument.Parse(raw)){Assert.AreEqual("owned-second-update",stored.RootElement.GetProperty("Name").GetString());var archive=stored.RootElement.GetProperty("_oasis_record_history").GetProperty("records");Assert.AreEqual(2,archive.GetArrayLength());Assert.AreEqual("owned-row-lock-seed",archive[0].GetProperty("Name").GetString());Assert.AreEqual("owned-first-update",archive[1].GetProperty("Name").GetString());}
+            var removed=await setup.DeleteHolonWithSoftDeleteAsync(id,false);Assert.IsFalse(removed.IsError,removed.Exception?.ToString());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));File.Delete(journal);
+        }finally{
+            provider.Release.TrySetResult(true);if(firstTask!=null&&secondTask!=null)await Task.WhenAll(firstTask,secondTask).WaitAsync(TimeSpan.FromSeconds(30));else if(firstTask!=null)await firstTask.WaitAsync(TimeSpan.FromSeconds(30));
+            await provider.DeActivateProviderAsync();await setup.DeActivateProviderAsync();
+        }
+    }
     [TestMethod]
     public async Task CanonicalMetadataMatchesBooleanNumberAndLongTextAcrossVersions()
     {
