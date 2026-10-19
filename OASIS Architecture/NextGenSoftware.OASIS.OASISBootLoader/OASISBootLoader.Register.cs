@@ -102,6 +102,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.OracleDBOASIS:
+                            {
+                                result.Result = OracleProviderFactory.Create(
+                                    OASISDNA.OASIS.StorageProviders.OracleDBOASIS, overrideConnectionString);
+                            }
+                            break;
+
                         case ProviderType.MongoDBOASIS:
                             {
                                 MongoDBOASIS mongoOASIS =
