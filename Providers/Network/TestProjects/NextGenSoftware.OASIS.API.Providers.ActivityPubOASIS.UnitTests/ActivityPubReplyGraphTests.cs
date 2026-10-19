@@ -10,9 +10,10 @@ public class ActivityPubReplyGraphTests
         created_at="2026-01-02T03:04:05Z",account=new{id="42",acct="alice"},in_reply_to_id=parent,replies_count=replies};
     private sealed class Transport(string mode="valid"):HttpMessageHandler
     {
-        public int ContextReads;
+        public int ContextReads,Calls;
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
+            Calls++;
             var path=request.RequestUri!.AbsolutePath;
             if(path=="/api/v2/instance")return Task.FromResult(Reply(ActivityPubInstanceContractTests.InstanceJson));
             if(path=="/api/v1/statuses/123")return Task.FromResult(Reply(JsonSerializer.Serialize(Status("123",null,mode=="truncated"?3:2))));
@@ -57,5 +58,55 @@ public class ActivityPubReplyGraphTests
         var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
         var result=await provider.LoadHolonAsync("123",loadChildren:false,loadChildrenFromProvider:true);
         Assert.False(result.IsError,result.Exception?.ToString());Assert.Empty(result.Result.Children);Assert.Equal(0,transport.ContextReads);
+    }
+
+    [Theory]
+    [InlineData(false,true,true,true,0,0,true)]
+    [InlineData(true,true,true,true,0,0,true)]
+    [InlineData(false,false,true,true,0,0,false)]
+    [InlineData(false,true,false,true,0,0,false)]
+    [InlineData(false,true,true,true,1,0,true)]
+    [InlineData(false,true,true,true,1,1,false)]
+    [InlineData(false,true,true,false,0,0,true)]
+    public async Task NativeParentKeyReturnsDirectRepliesWithRequestedChildDepth(bool sync,bool children,bool providerChildren,bool recursive,int depth,int initialDepth,bool grandchild)
+    {
+        var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
+        var result=sync?provider.LoadHolonsForParent("123",loadChildren:children,recursive:recursive,maxChildDepth:depth,curentChildDepth:initialDepth,loadChildrenFromProvider:providerChildren)
+            :await provider.LoadHolonsForParentAsync("123",loadChildren:children,recursive:recursive,maxChildDepth:depth,curentChildDepth:initialDepth,loadChildrenFromProvider:providerChildren);
+        Assert.False(result.IsError,result.Exception?.ToString());Assert.Equal(2,result.Result.Count());Assert.Equal(2,result.LoadedCount);Assert.Equal(1,transport.ContextReads);
+        var first=Assert.Single(result.Result.Where(child=>child.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]=="124"));
+        if(grandchild)Assert.Equal("126",Assert.Single(first.Children).ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);else Assert.Empty(first.Children);
+    }
+
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task ProjectionGuidCannotBeSentAsNativeAccountId(bool sync)
+    {
+        var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
+        var result=sync?provider.LoadHolonsForParent(Guid.NewGuid()):await provider.LoadHolonsForParentAsync(Guid.NewGuid());
+        Assert.True(result.IsError);Assert.IsType<NotSupportedException>(result.Exception);Assert.Equal(0,transport.Calls);
+    }
+
+    [Theory][InlineData(-1,0,0)][InlineData(0,-1,0)][InlineData(0,0,1)]
+    public async Task InvalidParentOptionsFailBeforeActivation(int depth,int initialDepth,int version)
+    {
+        var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
+        var result=await provider.LoadHolonsForParentAsync("123",maxChildDepth:depth,curentChildDepth:initialDepth,version:version);
+        Assert.True(result.IsError);Assert.Equal(0,transport.Calls);
+    }
+
+    [Fact]
+    public async Task ParentLookupPreservesNativeContextFailure()
+    {
+        var transport=new Transport("http");using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
+        var result=await provider.LoadHolonsForParentAsync("123");
+        Assert.True(result.IsError);Assert.Null(result.Result);Assert.Equal(HttpStatusCode.ServiceUnavailable,Assert.IsType<HttpRequestException>(result.Exception).StatusCode);
+    }
+
+    [Fact]
+    public async Task ParentTypeFilterUsesExplicitStatusProjectionType()
+    {
+        var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
+        var result=await provider.LoadHolonsForParentAsync("123",HolonType.Avatar);
+        Assert.False(result.IsError,result.Exception?.ToString());Assert.Empty(result.Result);
     }
 }
