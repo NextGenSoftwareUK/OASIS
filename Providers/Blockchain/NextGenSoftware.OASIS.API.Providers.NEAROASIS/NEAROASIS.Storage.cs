@@ -67,12 +67,18 @@ public partial class NEAROASIS
         });
     }
 
-    private async Task StampStoredVersionAsync<T>(string key, T entity) where T : class, IHolonBase
+    private async Task<string> WriteObservedRecordAsync<T>(string key,T entity,bool history) where T:class,IHolonBase
     {
-        var previous = await ReadStoredVersionAsync<T>(key, entity.Id, 0);
-        await StoredRecordVersions.StampAsync(entity.Id, entity, previous, IsVersionControlEnabled
-            ? async stored => { await _sdk.PutAsync($"{HistoryPrefix(key)}{stored.Version:D10}", OasisJson.Serialize(stored)); }
-            : null);
+        var observed=await _sdk.ReadSnapshotAsync(key);
+        var archive=await StageObservedRecordVersionAsync(entity,observed,history);
+        return await _sdk.PutRecordCheckedAsync(observed,OasisJson.Serialize(entity),archive?.Key,archive?.Value);
+    }
+
+    private static void HandleRecordSaveError<T>(ref OASISResult<T> result,string message,Exception cause)
+    {
+        OASISErrorHandling.HandleError(ref result,message,cause);
+        if(cause is NearRecordWriteRejectedException rejected&&rejected.IsRecordConflict)
+            result.ErrorCode=NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode;
     }
 
     private async Task DeleteStoredVersionsAsync(string key)
@@ -134,15 +140,16 @@ public partial class NEAROASIS
         {
             if (avatar == null) throw new ArgumentNullException(nameof(avatar));
             var originalId=avatar.Id;
+            var history=IsVersionControlEnabled;
             var snapshot = PrepareRecordSnapshot<Avatar>(avatar);
             if (!await EnsureSdkActiveAsync(result)) return result;
-            await StampStoredVersionAsync($"avatar:{snapshot.Id:D}", snapshot);
-            var tx = await _sdk.PutAsync($"avatar:{snapshot.Id:D}", OasisJson.Serialize(snapshot));
+            var tx=await WriteObservedRecordAsync($"avatar:{snapshot.Id:D}",snapshot,history);
             PublishRecordStamp(avatar,snapshot,originalId,tx);
             result.Result = avatar;
+            result.IsSaved=true;
             result.Message = $"Avatar saved to NEAR contract storage in transaction {tx}.";
         }
-        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving avatar to NEAR: {ex.Message}", ex); }
+        catch (Exception ex) { HandleRecordSaveError(ref result, $"Error saving avatar to NEAR: {ex.Message}", ex); }
         return result;
     }
 
@@ -161,7 +168,7 @@ public partial class NEAROASIS
                     throw new InvalidOperationException("The stored NEAR avatar could not be materialized as an Avatar record.");
                 avatar.DeletedDate = DateTime.UtcNow;
                 var saved = await SaveAvatarRecordAsync(loaded.Result);
-                if (saved.IsError) return new OASISResult<bool>(false) { IsError = true, Message = saved.Message, Exception = saved.Exception };
+                if (saved.IsError) return new OASISResult<bool>(false) { IsError = true, ErrorCode=saved.ErrorCode, Message = saved.Message, Exception = saved.Exception };
             }
             else
             {
@@ -212,16 +219,17 @@ public partial class NEAROASIS
         {
             if (holon == null) throw new ArgumentNullException(nameof(holon));
             var originalId=holon.Id;
+            var history=IsVersionControlEnabled;
             var snapshot = PrepareRecordSnapshot<Holon>(holon);
             if (!await EnsureSdkActiveAsync(result)) return result;
-            await StampStoredVersionAsync($"holon:{snapshot.Id:D}", snapshot);
-            var tx = await _sdk.PutAsync($"holon:{snapshot.Id:D}", OasisJson.Serialize(snapshot));
+            var tx=await WriteObservedRecordAsync($"holon:{snapshot.Id:D}",snapshot,history);
             recordAcknowledgement?.Invoke(tx);
             PublishRecordStamp(holon,snapshot,originalId,tx);
             result.Result = holon;
+            result.IsSaved=true;
             result.Message = $"Holon saved to NEAR contract storage in transaction {tx}.";
         }
-        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving holon to NEAR: {ex.Message}", ex); }
+        catch (Exception ex) { HandleRecordSaveError(ref result, $"Error saving holon to NEAR: {ex.Message}", ex); }
         return result;
     }
 
@@ -283,15 +291,16 @@ public partial class NEAROASIS
         {
             if (detail == null) throw new ArgumentNullException(nameof(detail));
             var originalId=detail.Id;
+            var history=IsVersionControlEnabled;
             var snapshot = PrepareRecordSnapshot<AvatarDetail>(detail);
             if (!await EnsureSdkActiveAsync(result)) return result;
-            await StampStoredVersionAsync($"avatar-detail:{snapshot.Id:D}", snapshot);
-            var tx = await _sdk.PutAsync($"avatar-detail:{snapshot.Id:D}", OasisJson.Serialize(snapshot));
+            var tx=await WriteObservedRecordAsync($"avatar-detail:{snapshot.Id:D}",snapshot,history);
             PublishRecordStamp(detail,snapshot,originalId,tx);
             result.Result = detail;
+            result.IsSaved=true;
             result.Message = $"Avatar detail saved to NEAR contract storage in transaction {tx}.";
         }
-        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to NEAR: {ex.Message}", ex); }
+        catch (Exception ex) { HandleRecordSaveError(ref result, $"Error saving avatar detail to NEAR: {ex.Message}", ex); }
         return result;
     }
 
