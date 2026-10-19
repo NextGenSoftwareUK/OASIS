@@ -1,0 +1,47 @@
+param([switch]$ReconcileOriginal)
+$ErrorActionPreference='Stop'
+$root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$work=Join-Path $root 'TestResults/OracleCurrent'
+if(!(Test-Path -LiteralPath $work)){throw 'Retained Oracle work directory required; do not recreate an environment.'}
+$lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+$previousConnection=$env:ORACLEDBOASIS_CONNECTIONSTRING;$previousWork=$env:OASIS_ORACLE_TEST_WORK;$previousResume=$env:OASIS_ORACLE_RESUME_CANONICAL
+$startedHere=$false;$passed=$false
+try{
+    $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
+    if($ReconcileOriginal){if($pending.Count -ne 1 -or $pending[0].Name -ne 'canonical-records.pending.json'){throw 'Exactly the original canonical journal required.'}}
+    elseif($pending.Count){throw 'Reconcile original Oracle fixture before another write.'}
+    $image=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.Image}}' oasis-oracle-free).Trim()
+    if($LASTEXITCODE -ne 0 -or $image -ne '358b32468eddc329751c28007a535cbc661f1090ab5d8a9f02267cf44ef1e3b9'){throw 'Approved retained Oracle image/container required; no pull/create.'}
+    $port=(& wsl -d Ubuntu -u root -- podman port oasis-oracle-free 1521/tcp).Trim()
+    if($LASTEXITCODE -ne 0 -or $port -ne '127.0.0.1:11521'){throw 'Expected loopback Oracle port mapping required.'}
+    $state=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Status}}' oasis-oracle-free).Trim()
+    if($state -eq 'exited'){
+        & wsl -d Ubuntu -u root -- podman start oasis-oracle-free
+        if($LASTEXITCODE -ne 0){throw 'Retained Oracle start failed.'};$startedHere=$true
+    }elseif($state -ne 'running'){throw 'Unexpected retained Oracle lifecycle state; inspect without resetting.'}
+    $deadline=[DateTime]::UtcNow.AddSeconds(50)
+    do{
+        $health=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Health.Status}}' oasis-oracle-free).Trim()
+        if($LASTEXITCODE -ne 0){throw 'Oracle health inspection failed.'}
+        if($health -eq 'healthy'){break}
+        if($health -ne 'starting'){throw 'Retained Oracle is not healthy; preserve it for inspection.'}
+        Start-Sleep -Milliseconds 500
+    }while([DateTime]::UtcNow -lt $deadline)
+    if($health -ne 'healthy'){throw 'Retained Oracle readiness timeout; no restart/reset.'}
+    foreach($project in @('Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj','Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj')){
+        & dotnet build (Join-Path $root $project) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        if($LASTEXITCODE -ne 0){throw 'Cached Oracle build failed.'}
+    }
+    $secret=(& wsl -d Ubuntu -u root -- podman secret inspect --showsecret oasis-oracle-pwd | ConvertFrom-Json)[0].SecretData
+    if([string]::IsNullOrWhiteSpace($secret)){throw 'Retained secret unavailable.'}
+    $env:ORACLEDBOASIS_CONNECTIONSTRING="User Id=SYSTEM;Password=$secret;Data Source=127.0.0.1:11521/FREEPDB1;Connection Timeout=10;Pooling=false"
+    $env:OASIS_ORACLE_TEST_WORK=$work;$env:OASIS_ORACLE_RESUME_CANONICAL=if($ReconcileOriginal){'1'}else{$null}
+    $report=if($ReconcileOriginal){'oracle-native-reconciliation-current.trx'}else{'oracle-native-current.trx'}
+    & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter 'FullyQualifiedName~OracleNativeAcceptanceTests' --logger "trx;LogFileName=$report" --results-directory $work /m:2 /nr:false
+    if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
+    $passed=$true
+}finally{
+    $env:ORACLEDBOASIS_CONNECTIONSTRING=$previousConnection;$env:OASIS_ORACLE_TEST_WORK=$previousWork;$env:OASIS_ORACLE_RESUME_CANONICAL=$previousResume;$secret=$null
+    if($startedHere -and $passed){& wsl -d Ubuntu -u root -- podman stop --time 30 oasis-oracle-free}
+    $lease.Dispose()
+}
