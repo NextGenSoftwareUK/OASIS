@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronizatio
             "ContributingTowardsAGoodCauseFunder" => 500,
             "ContributingTowardsAGoodCauseSpeaker" => 350,
             "ContributingTowardsAGoodCausePeacefulProtesterActivist" => 350,
-            "Other" => 210, "SpendingTimeInNature" => 11, "VisitingNewNatureLocation" => 333,
+            "Other" => 210, "SpendingTimeInNature" => 11, "VisitingNewNatureLocation" => 333, "Walking100Steps" => 10,
             _ => 0
         };
 

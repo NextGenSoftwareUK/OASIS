@@ -881,6 +881,10 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
+    - name: Prepare WEB4 controller artifact for coverage
+      working-directory: OASIS
+      run: dotnet build "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false -v:minimal
+
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
     
