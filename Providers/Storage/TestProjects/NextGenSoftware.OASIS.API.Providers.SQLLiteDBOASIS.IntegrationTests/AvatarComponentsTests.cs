@@ -26,8 +26,8 @@ public partial class SQLLiteDBOASISIntegrationTests
         Attributes=DistinctValues<AvatarAttributes>(offset+10),Aura=DistinctValues<AvatarAura>(offset+30),
         Skills=DistinctValues<AvatarSkills>(offset+50),SuperPowers=DistinctValues<AvatarSuperPowers>(offset+80),
         HumanDesign=new HumanDesign {Type="owned-type-"+offset},
-        Stats=new AvatarStats {HP=new AvatarStat {Current=offset+4},Mana=new AvatarStat {Current=offset+5},
-            Stamina=new AvatarStat {Current=offset+6},Energy=new AvatarStat {Current=offset+7}}
+        Stats=new AvatarStats {HP=new AvatarStat {Current=offset+4,Max=offset+104},Mana=new AvatarStat {Current=offset+5,Max=offset+205},
+            Stamina=new AvatarStat {Current=offset+6,Max=offset+306},Energy=new AvatarStat {Current=offset+7,Max=offset+407}}
     };
 
     private static void AssertComponents(IAvatarDetail actual,IAvatarDetail expected)
@@ -111,6 +111,8 @@ public partial class SQLLiteDBOASISIntegrationTests
             {
                 detail.Stats.HP.Current=phase+21;detail.Stats.Mana.Current=phase+31;
                 detail.Stats.Stamina.Current=phase+41;detail.Stats.Energy.Current=phase+51;
+                detail.Stats.HP.Max=phase*100+121;detail.Stats.Mana.Max=phase*100+231;
+                detail.Stats.Stamina.Max=phase*100+341;detail.Stats.Energy.Max=phase*100+451;
             }
             var saved=synchronous ? provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);
             saved.IsError.Should().BeFalse(saved.Message);
