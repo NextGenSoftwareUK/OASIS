@@ -11,6 +11,16 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class EvmFinalizedStatusTests
 {
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)]
+    public async Task CancellationDuringObservationCannotReturnPendingOrDispatchNextRpc(int stage)
+    {
+        using var source=new CancellationTokenSource();var finalityReads=0;var canonicalReads=0;
+        await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>EvmFinalizedStatus.ObserveAsync(Tx,
+            _=>{if(stage<2)source.Cancel();return Task.FromResult<EvmFinalizedStatus.Receipt>(stage==0?null:new(Tx,Hash,5,1));},
+            _=>{finalityReads++;if(stage==2)source.Cancel();return Task.FromResult(new EvmFinalizedStatus.Block(Hash,stage==2?4:5));},
+            (_,_)=>{canonicalReads++;source.Cancel();return Task.FromResult(new EvmFinalizedStatus.Block(Hash,5));},source.Token));
+        Assert.AreEqual(stage<2?0:1,finalityReads);Assert.AreEqual(stage==3?1:0,canonicalReads);
+    }
     private const string Tx="0x1111111111111111111111111111111111111111111111111111111111111111";
     private const string Hash="0x2222222222222222222222222222222222222222222222222222222222222222";
     private static Task<BridgeTransactionStatus> Observe(EvmFinalizedStatus.Receipt receipt,EvmFinalizedStatus.Block finalized,EvmFinalizedStatus.Block canonical)

@@ -1,5 +1,13 @@
 # EVM finalized transaction status — implementation in progress
 
+## Cancellation after completed callbacks — 2026-10-19
+
+Shared observer now rechecks cancellation immediately after each receipt/finalized/canonical callback. Previously a callback that returned after cancellation could lead to successful Pending or another RPC dispatch. Four deterministic cases cover missing/present receipt, unfinalized checkpoint and canonical response; before fix3failed/1passed, SHA256 `DE5BEB6D18799C8B6AB4DB376C5893D6BE0E1B90E68FD1EB666C56152DA4CFE2`. No duplicate provider implementation: Ethereum/Arbitrum/shared EVM adapter used by Polygon retain the shared owner. This does NOT abort an already-running borrowed HTTP request or change chain settlement policy.
+
+Current shared producer0errors/2warnings; complete431/431shared tests pass1s/zero skips, SHA256 `17E354A225DECBE812E9C7287983130B1ABD5383F80A9DF9DD9FED56A433F424`. Rebuilt all affected provider/consumer projects via same native runner; controlled SDK suite115/115pass1s, SHA256 `6E24E9932D5AAA0C84080656CA05B0E1468432055444B216278C07EA6CB0258D`. Same retained Hardhat/Solidity/Node environment: Ethereum192/192native pass55s (hash `EA852AC565F24EA77CD16FBEFA19D007F8A7481C758463DD6C9EC9E2D2EB4BE0`), independent page59checks pass, Web3Core4/4native pass84s (hash `FCC52A1DCA4AC24F842D7EBB22A069C94CC588E80FC3D83378848CF187B4AA90`). Runner terminal0 and18545/18546listeners absent afterward. Native tests are regression evidence, not native reproduction of each controlled cancellation schedule.
+
+No download/install/clone/new environment; same caches and fixed evidence directories. Local development chain31337/test gas only, no public funds. Free bytes before82,609,815,552/after82,435,444,736; reusable producer/consumer outputs retained and no unrelated deletion/reclaim attribution. Manifest/gitlink and whitespace checks pass; fetched Development0/0 before scoped integration. Other Solana/Firestore staged changes must remain excluded. Full provider/all-provider V2 certification remains open.
+
 Updated2026-10-19. Scoped native/controlled verification now passes as recorded below. Not whole-provider, L1 bridge-settlement, hosted or all-provider V2 certification. Earlier pending/failure entries below are historical.
 
 ## Current scoped outcome
