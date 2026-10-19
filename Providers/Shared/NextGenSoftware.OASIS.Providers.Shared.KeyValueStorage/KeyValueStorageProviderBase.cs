@@ -209,8 +209,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         private async Task DeleteAcknowledgedAsync(string key,List<string> acknowledged)
         {await Backend.DeleteAsync(key);acknowledged.Add(key);}
 
-        private void PublishSavedMetadata(IHolonBase source,IHolonBase saved)
+        private void PublishSavedMetadata(IHolonBase source,IHolonBase saved,Guid originalId)
         {
+            if(source.Id!=originalId)
+                throw new InvalidOperationException("Caller identity changed during the acknowledged save; saved metadata was not published.");
             source.Id=saved.Id;source.Version=saved.Version;source.VersionId=saved.VersionId;source.PreviousVersionId=saved.PreviousVersionId;
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             source.ProviderUniqueStorageKey[StorageType]=saved.ProviderUniqueStorageKey[StorageType];
@@ -218,7 +220,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            var source=avatar;var acknowledged=new List<string>();
+            var source=avatar;var originalId=source?.Id ?? Guid.Empty;var acknowledged=new List<string>();
             try
             {
                 if (avatar == null) return Fail<IAvatar>("Avatar is required.");
@@ -249,7 +251,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if (previous != null && !string.IsNullOrWhiteSpace(previous.Email) && !string.Equals(previous.Email, avatar.Email, StringComparison.OrdinalIgnoreCase))
                     await Backend.DeleteAsync(EmailKey(previous.Email));
 
-                PublishSavedMetadata(source,avatar);
+                PublishSavedMetadata(source,avatar,originalId);
                 return new OASISResult<IAvatar>(source) { IsSaved = true, Message = $"Avatar {avatar.Id} saved to {Name}." };
             }
             catch (Exception ex) { return Fail<IAvatar>($"Error saving avatar: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
@@ -405,7 +407,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            var source=avatarDetail;var acknowledged=new List<string>();
+            var source=avatarDetail;var originalId=source?.Id ?? Guid.Empty;var acknowledged=new List<string>();
             try
             {
                 if (avatarDetail == null) return Fail<IAvatarDetail>("Avatar detail is required.");
@@ -415,7 +417,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 avatarDetail.ProviderUniqueStorageKey[StorageType] = avatarDetail.Id.ToString();
                 await StampVersionAsync(AvatarDetailKey(avatarDetail.Id), avatarDetail, await ReadAsync<IAvatarDetail>(AvatarDetailKey(avatarDetail.Id)),acknowledged);
                 await PutAcknowledgedAsync(AvatarDetailKey(avatarDetail.Id), OasisJson.Serialize(avatarDetail),acknowledged);
-                PublishSavedMetadata(source,avatarDetail);
+                PublishSavedMetadata(source,avatarDetail,originalId);
                 return new OASISResult<IAvatarDetail>(source) { IsSaved = true, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
             }
             catch (Exception ex) { return Fail<IAvatarDetail>($"Error saving avatar detail: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
@@ -515,7 +517,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private async Task<OASISResult<IHolon>> SaveHolonInternalAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int depth, bool continueOnError,Guid? parent=null)
         {
-            var source=holon;var acknowledged=new List<string>();
+            var source=holon;var originalId=source?.Id ?? Guid.Empty;var acknowledged=new List<string>();
             try
             {
                 if (holon == null) return Fail<IHolon>("Holon is required.");
@@ -534,7 +536,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if (previous != null && previous.ParentHolonId != Guid.Empty && previous.ParentHolonId != holon.ParentHolonId)
                     await Backend.DeleteAsync(ParentKey(previous.ParentHolonId, holon.Id));
 
-                PublishSavedMetadata(source,holon);source.ParentHolonId=holon.ParentHolonId;
+                PublishSavedMetadata(source,holon,originalId);source.ParentHolonId=holon.ParentHolonId;
                 var result = new OASISResult<IHolon>(source) { IsSaved = true, Message = $"Holon {holon.Id} saved to {Name}." };
                 var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
                 if (saveChildren && source.Children != null && (depth == 0 || recursive) && !reachedDepth)

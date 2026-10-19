@@ -1,7 +1,11 @@
-param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','VersionedRouting','VersionedRoutingRecovery','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate','EscrowDeploy','EscrowLock')][string]$Mode = 'Verify')
+param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','VersionedRouting','VersionedRoutingRecovery','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate','EscrowDeploy','EscrowLock')][string]$Mode = 'Verify',
+    [string]$EvidenceRoot)
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
-$fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveCosmos'
+$fixtureRoot = if($EvidenceRoot){[IO.Path]::GetFullPath($EvidenceRoot)}else{Join-Path $taskRoot 'TestResults/HyperDriveCosmos'}
+if(!(Test-Path -LiteralPath $fixtureRoot -PathType Container)){
+    throw 'Existing Cosmos evidence directory required; supply -EvidenceRoot for the retained directory. No replacement will be created.'
+}
 $integrationModes=@('IndependentRouting','VersionedRouting','VersionedRoutingRecovery','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy','EscrowLock')
 if ($Mode -eq 'Verify' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json'))) {
     throw 'Existing Cosmos replication intent requires reconciliation; refusing replay.'
