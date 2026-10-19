@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Exact acknowledgement receipt codec — local, 2026-10-19
+
+Added local UNCOMMITTED Shared ConditionalHolonReceipt using existing StoredRecordJson and HolonGraphWritePlan. Writes detached exact acknowledged roots/flat records/explicit child links; refuses invented empty acknowledgement IDs. Reads validate format, matching native/embedded IDs, duplicate/missing links, selected graph validity and unreachable nodes. Replay reconstructs only stored acknowledgement, never re-reads a newer provider record. Provider must still bind this payload atomically to fingerprint+native graph writes; this codec does NOT do persistence or claim Oracle support.
+
+Five new cases prove exact root/child version retention after original mutation, replay detachment, empty-ID rejection, dangling reference, mismatched embedded identity and unreachable node rejection (roundtrip case includes multiple assertions). Full466/466Shared pass1s/zero skips SHA256 `55650581845D01650051447E8E24E750DAB8135477DF5EC7149E682E9B3F3FE5`, fixed shared-conditional-receipt.trx. Cached producer/consumer0errors2warnings each; no runtime start/download/install/new environment/reset. Four shared plan/receipt SOURCE files and Oracle revision prerequisite stay local until atomic integration/dependency/native gates pass. Existing SQLite receipt code inspected, not modified in concurrent work; adapter consolidation not yet achieved. Receipt strict unknown-field policy, corruption/cycle/depth/size/native storage and privacy/retention gates remain open.
+
 ## Ordinary-write revision prerequisite — local, 2026-10-19
 
 Local UNCOMMITTED Oracle staging now assigns a fresh independent CosmicConcurrency Oracle provider revision on detached holon proposals for every canonical save/soft-delete staging, including history-disabled writes. Without this, an ordinary intervening write could remain invisible to later conditional CAS. Acknowledged publication copies the committed provider revision only after the existing caller-state guard; no revision published before ACK. No conditional interface advertised; atomic graph/receipt remains unfinished. This depends on the current uncommitted Core contract and must not ship independently of dependency gates.
