@@ -6,7 +6,7 @@ The previous version claimed that every provider was 100% complete after searchi
 
 The authoritative provider evidence is maintained in:
 
-- `Docs/Devs/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md`
+- `Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md`
 - the executable integration-test projects referenced by that document
 - the checked-in provider/runtime runner scripts under `Scripts/`
 

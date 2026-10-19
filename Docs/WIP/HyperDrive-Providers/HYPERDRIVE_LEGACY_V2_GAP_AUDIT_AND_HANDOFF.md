@@ -4,12 +4,12 @@
 **Repository/branch inspected:** `C:\Source\OASIS`, `Development`  
 **Purpose:** Record the original gap audit and the verified implementation that closed it.
 
-**Implementation status (2026-10-07):** Completed on `codex/hyperdrive-v2-gaps`. The checked-in coverage and evidence record is `Docs/Devs/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md`.
+**Implementation status (2026-10-07):** Completed on `codex/hyperdrive-v2-gaps`. The checked-in coverage and evidence record is `Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md`.
 
 **Exhaustive WEB4 follow-up (2026-10-07):** Work continues on
 `codex/hyperdrive-dual-mode-route-matrix`. The HTTP action inventory is now a checked-in,
 executable manifest rather than an estimate: 691 controller actions are classified in
-`Docs/Devs/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv` and guarded by
+`Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv` and guarded by
 `Scripts/verify_web4_hyperdrive_route_manifest.ps1`. Behavioral proof remains intentionally
 layered at the shared manager/router boundary because hundreds of thin controller overloads
 delegate to the same operations; route existence is not represented as storage-behavior proof.
@@ -23,7 +23,7 @@ mode isolation.
 
 Use this prompt in a new agent/session:
 
-> Continue the HyperDrive Legacy/V2 work using `Docs/Devs/HYPERDRIVE_LEGACY_V2_GAP_AUDIT_AND_HANDOFF.md` as the source handoff. Read `AGENTS.md` and `Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md` first. Verify every finding against the current Development branch, repair the configuration-authority and routing-coverage gaps at their root cause, add executable unit/integration tests, verify the authenticated WEB4 development HyperDrive endpoints, and document evidence. Do not change WEB5 version-aware `STARNETHolonId` load semantics and do not introduce fallback/shim paths.
+> Continue the HyperDrive Legacy/V2 work using `Docs/WIP/HyperDrive-Providers/HYPERDRIVE_LEGACY_V2_GAP_AUDIT_AND_HANDOFF.md` as the source handoff. Read `AGENTS.md` and `Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md` first. Verify every finding against the current Development branch, repair the configuration-authority and routing-coverage gaps at their root cause, add executable unit/integration tests, verify the authenticated WEB4 development HyperDrive endpoints, and document evidence. Do not change WEB5 version-aware `STARNETHolonId` load semantics and do not introduce fallback/shim paths.
 
 ## Executive conclusion
 
