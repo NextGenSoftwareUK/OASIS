@@ -12,8 +12,10 @@ try{
     elseif($pending.Count){throw 'Reconcile original Oracle fixture before another write.'}
     $image=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.Image}}' oasis-oracle-free).Trim()
     if($LASTEXITCODE -ne 0 -or $image -ne '358b32468eddc329751c28007a535cbc661f1090ab5d8a9f02267cf44ef1e3b9'){throw 'Approved retained Oracle image/container required; no pull/create.'}
-    $port=(& wsl -d Ubuntu -u root -- podman port oasis-oracle-free 1521/tcp).Trim()
-    if($LASTEXITCODE -ne 0 -or $port -ne '127.0.0.1:11521'){throw 'Expected loopback Oracle port mapping required.'}
+    $bindings=& wsl -d Ubuntu -u root -- podman inspect --format '{{json .HostConfig.PortBindings}}' oasis-oracle-free | ConvertFrom-Json
+    if($LASTEXITCODE -ne 0 -or @($bindings.'1521/tcp').Count -ne 1 -or $bindings.'1521/tcp'[0].HostIp -ne '127.0.0.1' -or $bindings.'1521/tcp'[0].HostPort -ne '11521'){throw 'Expected configured loopback Oracle port mapping required.'}
+    $mounts=@(& wsl -d Ubuntu -u root -- podman inspect --format '{{json .Mounts}}' oasis-oracle-free | ConvertFrom-Json)
+    if($LASTEXITCODE -ne 0 -or $mounts.Count -ne 1 -or $mounts[0].Type -ne 'volume' -or $mounts[0].Name -ne 'oasis-oracle-data' -or $mounts[0].Destination -ne '/opt/oracle/oradata'){throw 'Exact retained Oracle data volume required; no replacement.'}
     $state=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Status}}' oasis-oracle-free).Trim()
     if($state -eq 'exited'){
         & wsl -d Ubuntu -u root -- podman start oasis-oracle-free
