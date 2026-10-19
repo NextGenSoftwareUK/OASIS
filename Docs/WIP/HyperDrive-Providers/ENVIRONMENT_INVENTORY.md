@@ -66,6 +66,31 @@ User approved ONE reusable Oracle test runtime. Inspected root AND rootless stor
 
 ## Cleanup / remaining inventory work
 
+### Existing-resource backfill — 2026-10-19 follow-up
+
+User explicitly requires this inventory for ALL previously downloaded/setup resources, not only Oracle or future installations. Read-only inspection below reused the existing environments; no installation, download, restart, deletion or reclaim occurred. All six root Podman containers were stopped at inspection. Configured bindings below are not evidence of running listeners. Cosmos has existing wildcard bindings: review and restrict before any future start; this inventory did not alter them.
+
+| Existing container | Configured host bindings | Persisted data owner |
+| --- | --- | --- |
+| oasis-cosmos | 0.0.0.0:1234,8080,8081 | No mounts; writable container layer must be preserved/reviewed, not assumed disposable |
+| oasis-wasmd | 127.0.0.1:26657 | No mounts; writable container layer may hold original chain state |
+| oasis-tron-tre | 127.0.0.1:50051,50052,9090 | No mounts; preserve original writable layer until reconciliation |
+| oasis-neo4j | 127.0.0.1:17687 → 7687 | Root volume db5b0ed7dfe7b115c845cf7efe40afd8d4d8b4b594147bb03ba74a5c34af4d4b → /data; volume 3a3e642a2f6d8224bec840b2bcb4805bb6eb8d7bebb6ead17bc84baa2c5d1909 → /logs |
+| oasis-solid | 127.0.0.1:13000 | Root named volume oasis-solid-data → /data |
+| oasis-oracle-free | 127.0.0.1:11521 → 1521 | Root named volume oasis-oracle-data → /opt/oracle/oradata |
+
+Named/anonymous volumes above live under `/var/lib/containers/storage/volumes/<name>/_data`. This resolves the previously unknown Neo4j anonymous-volume ownership; neither volume was removed. Image identities/digests remain in the earlier tables. Reuse these exact containers rather than create replacements. Preserve credentials outside this report; never publish full container environment/configuration dumps containing secrets.
+
+Additional measured Windows logical file bytes (parent/child totals elsewhere are non-additive):
+
+| Exact location | Bytes / files | Retention and regeneration |
+| --- | ---: | --- |
+| C:/Source/OASIS/Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/bin | 45,434,122 / 198 | Reusable compiled test output; rebuild from project and retained dependencies after confirming no test/build process uses it |
+| C:/Source/OASIS/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests/bin | 51,279,951 / 206 | Reusable compiled test output; same process/source verification before future cleanup |
+| C:/Source/OASIS/TestResults/OracleCurrent | 1,537,223 / 24 | Compact current evidence/lease and possible reconciliation journals; NOT blanket disposable or equivalent to bin output |
+
+`C:/Users/david/AppData/Local/Android/Sdk` was absent; `.android/avd` had zero enumerated files. This does NOT establish absence of Android SDKs elsewhere. Windows free at this follow-up: 71,658,201,088 bytes, a whole-machine observation, not provider allocation attribution. Remaining unknown locations/allocated VHDX footprint and repository-wide build-output ownership still need backfill; do not claim complete disk reconciliation.
+
 No automatic removal from this document. First resolve absolute targets, process/mount owners, source/uncommitted files, credentials, original ledgers, pending mutation journals and evidence. Disposable acknowledged synthetic fixtures must be reconciled and removed through their existing conditional cleanup owner; unknown outcomes are protected. Compact reports remain. Removing Linux data does not necessarily shrink the Windows VHDX; compaction requires separately authorized WSL shutdown.
 
 Still to backfill: installed .NET/JDK/Node SDKs and Android SDK/AVD ownership, all provider test data directories and bound ports, exact container volume/mount mappings/digests, repository bin/obj outputs, temporary downloads, product-managed caches and VHDX allocated footprint. Existing cleanup ledger remains the historical source for previous downloads/removals; do not reinterpret shared/user installations as task-owned.

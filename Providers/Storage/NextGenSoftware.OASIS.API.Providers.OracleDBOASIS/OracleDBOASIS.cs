@@ -143,12 +143,15 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
         private static OracleCommand CreateCommand(string sql, OracleConnection connection)
             => new OracleCommand(sql, connection) { BindByName = true };
 
-        private static void PublishSavedIdentity(IHolonBase source,IHolonBase stored)
+        private static void PublishSavedIdentity(IHolonBase source,IHolonBase stored,Action? validate=null)
         {
+            try{
+            validate?.Invoke();
             source.Id=stored.Id;
             source.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=stored.Id.ToString();
             source.Version=stored.Version;source.VersionId=stored.VersionId;source.PreviousVersionId=stored.PreviousVersionId;
+            }catch(Exception cause){throw new OracleLifecycleReconciliationException(stored.Id,cause);}
         }
 
         private static string Serialize(object obj) => Core.Serialization.StoredRecordJson.Serialize(obj);
@@ -180,14 +183,15 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             {
                 ArgumentNullException.ThrowIfNull(avatar);
                 var source=avatar;
-                avatar=Core.Serialization.StoredRecordJson.Project<Avatar>(source);
+                var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Avatar>.Capture(source);
+                avatar=publication.Proposal;
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null)
                     avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS] = avatar.Id.ToString();
 
                 var stored=await WriteCanonicalRecordAsync((Avatar)avatar,"OASIS_AVATARS");
-                PublishSavedIdentity(source,stored);
+                PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
                 result.Result = source; result.IsSaved=true; result.IsError = false;
                 result.Message = $"OracleDBOASIS: Avatar '{avatar.Username}' saved.";
             }
@@ -309,12 +313,13 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             {
                 ArgumentNullException.ThrowIfNull(avatarDetail);
                 var source=avatarDetail;
-                avatarDetail=Core.Serialization.StoredRecordJson.Project<AvatarDetail>(source);
+                var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<AvatarDetail>.Capture(source);
+                avatarDetail=publication.Proposal;
                 if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
                 avatarDetail.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
                 avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=avatarDetail.Id.ToString();
                 var stored=await WriteCanonicalRecordAsync((AvatarDetail)avatarDetail,"OASIS_AVATAR_DETAILS");
-                PublishSavedIdentity(source,stored);
+                PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "OracleDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar detail: {ex.Message}"); }
@@ -400,14 +405,15 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     if(!graph.IsError)projected.Result=holon;return projected;
                 }
                 var source=holon;
-                holon=Core.Serialization.StoredRecordJson.Project<Holon>(source);
+                var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(source);
+                holon=publication.Proposal;
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null)
                     holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS] = holon.Id.ToString();
 
                 var stored=await WriteCanonicalRecordAsync((Holon)holon,"OASIS_HOLONS");
-                PublishSavedIdentity(source,stored);
+                PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"OracleDBOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving holon: {ex.Message}"); }

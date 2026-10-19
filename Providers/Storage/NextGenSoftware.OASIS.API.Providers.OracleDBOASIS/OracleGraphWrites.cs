@@ -16,6 +16,8 @@ public partial class OracleDBOASIS
         var result=new OASISResult<IEnumerable<IHolon>>();var saved=new List<IHolon>();var failures=new List<Exception>();
         try{
             var plan=HolonGraphWritePlan.Create(roots,children,recursive,maxDepth,initialDepth);var failedParents=new HashSet<Guid>();
+            var publications=new Dictionary<IHolon,StoredRecordPublicationSnapshot<Core.Holons.Holon>>(ReferenceEqualityComparer.Instance);
+            foreach(var node in plan.Nodes)publications.Add(node.Source,StoredRecordPublicationSnapshot<Core.Holons.Holon>.Capture(node.Source));
             foreach(var node in plan.Nodes){
                 if(failedParents.Contains(node.Snapshot.ParentHolonId)){
                     failedParents.Add(node.Snapshot.Id);failures.Add(new InvalidOperationException("Oracle descendant skipped because its parent failed."));continue;
@@ -25,7 +27,8 @@ public partial class OracleDBOASIS
                     var cause=written.Exception??new InvalidOperationException(written.Message);failures.Add(cause);failedParents.Add(node.Snapshot.Id);
                     if(!continueOnError||NativeMutationReconciliation.IsRequired(cause))break;
                 }else{
-                    PublishSavedIdentity(node.Source,written.Result);node.Source.ParentHolonId=written.Result.ParentHolonId;saved.Add(node.Source);
+                    try{PublishSavedIdentity(node.Source,written.Result,publications[node.Source].ValidateUnchanged);node.Source.ParentHolonId=written.Result.ParentHolonId;saved.Add(node.Source);}
+                    catch(Exception cause){failures.Add(cause);break;}
                 }
             }
             result.Result=failures.Count==0?plan.Roots:saved;result.IsSaved=failures.Count==0;

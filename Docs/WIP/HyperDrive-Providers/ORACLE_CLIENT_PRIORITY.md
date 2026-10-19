@@ -1,5 +1,15 @@
 # Oracle client readiness — top priority
 
+## Caller-state publication guard — 2026-10-19
+
+Added reusable Shared.KeyValueStorage `StoredRecordPublicationSnapshot<T>` using the EXISTING Core canonical projection/codec and shared payload equality. It binds the original caller contract before I/O, provides a detached proposal, and detects observed canonical edits before publishing acknowledged identity/version metadata. Oracle avatar/detail/holon and original graph-node publication now use it. Failed post-commit validation preserves the committed record ID in the existing reconciliation marker; it is NOT permission to replay a write. Graph processing stops before further children after this outcome. Only Oracle consumes this new helper so far; no untested cross-provider rollout.
+
+Four actual Oracle SDK acceptance cases edit the caller after real CommitAsync: avatar ID, detail owned-inventory quantity, point holon name and graph root name. Each retains the caller edit, reports error/no saved result with original committed ID, and independent native CLOB readback proves the original snapshot committed. Graph child remains absent. Original-specific journals precede writes; exact conditional cleanup occurs only after readback, journals cleared, same retained container stopped. Managed after-commit hook tests this boundary; NOT arbitrary real-thread scheduling or wire-level loss.
+
+Authoritative current reports in TestResults/OracleCurrent: `oracle-native-current.trx`18/18 pass, zero skips, SHA256 `C9CDBEC386FC5E89A5C7573B3F929DC4E7C473488C97EBB0D1F70D918BB09F1C`; `oracle-publication.trx`104/104 pass SHA256 `C8A70FB5133DC6971AEB4C8C114E0BBE66E1A47B1805C5B2EF518FD40593EFEE`; `shared-publication.trx`446/446 pass SHA256 `7B19C17E5EEF7186BFE0296F106DB4389F6DD1664D964342213F3AFA73A88A4F`. Shared six new cases cover detached proposal, ID/version/name edits, inventory and metadata-order equivalence. Runner exact native gate18. Cached builds succeeded; no install/download/new environment. This was source-audit correction, not a claimed before-test reproduction.
+
+LIMIT: validation is NOT an atomic lock against unsynchronized setters between check and publication. Canonical snapshots exclude navigation, so graph topology changes remain OPEN. Full concurrency, immutable clean-source parity, hosted API/IAM/encryption/capacity/fees and whole V2 certification remain OPEN; these counts are scoped acceptance, not provider completion. Existing dirty Core source is not certified by the retained binary identity.
+
 ## Native graph option/definite-failure matrix — 2026-10-19
 
 Six additional actual-SQL cases, no production change: saveChildren=false writes root only; recursive=false writes direct child not grandchild; maxChildDepth1clips grandchild; initialDepth1/maxDepth1batch writes root only. Independent SDK reads prove selected records persisted and excluded nodes absent; excluded caller versions/provider keys/parent IDs remain untouched. Known selected fixtures removed through public hard-delete owners with independent absence.

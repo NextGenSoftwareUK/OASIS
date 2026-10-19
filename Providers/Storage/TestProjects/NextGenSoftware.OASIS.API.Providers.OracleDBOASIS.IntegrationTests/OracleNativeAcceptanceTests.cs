@@ -21,10 +21,12 @@ public sealed class OracleNativeAcceptanceTests
     private sealed class LostCommitProvider(string connection):OracleDBOASIS(connection)
     {
         public bool LoseNextCommit;public int CommitCalls;public int LoseCommitNumber;
+        public Action? AfterCommit;
         public readonly IOException Lost=new("owned response withheld after actual Oracle SDK commit");
         protected override async Task CommitLifecycleTransactionAsync(OracleTransaction transaction)
         {
             CommitCalls++;await base.CommitLifecycleTransactionAsync(transaction);
+            if(AfterCommit!=null){var callback=AfterCommit;AfterCommit=null;callback();}
             if(LoseNextCommit||CommitCalls==LoseCommitNumber){LoseNextCommit=false;throw Lost;}
         }
     }
@@ -450,6 +452,39 @@ public sealed class OracleNativeAcceptanceTests
             await using var cleanup=new OracleCommand("DELETE FROM OASIS_HOLONS WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=bad.Id.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=rejectedOriginal;
             Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",bad.Id));File.Delete(journal);
         }finally{await provider.DeActivateProviderAsync();}
+    }
+
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)]
+    public async Task AcknowledgedSaveCannotOverwriteChangedCallerContract(int kind)
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,$"caller-publication-{kind}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var id=Guid.NewGuid();var childId=Guid.NewGuid();var editedId=Guid.NewGuid();var name="owned publication "+id.ToString("N");
+        var table=kind==0?"OASIS_AVATARS":kind==1?"OASIS_AVATAR_DETAILS":"OASIS_HOLONS";
+        NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase caller=kind==0?new Avatar{Id=id,Username=id.ToString("N"),Email=id.ToString("N")+"@example.invalid"}:kind==1?new AvatarDetail{Id=id,Username=id.ToString("N"),Email=id.ToString("N")+"@example.invalid"}:new Holon{Id=id,Name=name};
+        if(caller is AvatarDetail detail)detail.Inventory.Add(new InventoryItem{Id=Guid.NewGuid(),Quantity=1});
+        if(kind==3)((Holon)caller).Children.Add(new Holon{Id=childId,Name="owned unattempted child"});
+        var keys=caller.ProviderUniqueStorageKey;var provider=new LostCommitProvider(connection){IsVersionControlEnabled=true};
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();Assert.IsNull(await Read(verifier,table,id));Assert.IsNull(await Read(verifier,"OASIS_HOLONS",childId));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,childId,editedId,table,kind,state="before-native-caller-publication"}));file.Flush(true);}
+            provider.AfterCommit=()=>{if(kind==0)caller.Id=editedId;else if(caller is AvatarDetail d)d.Inventory[0].Quantity=2;else caller.Name=name+" edited";};
+            Exception cause;
+            if(caller is Avatar avatar){var saved=await provider.SaveAvatarAsync(avatar);Check(saved);cause=saved.Exception;}
+            else if(caller is AvatarDetail d){var saved=await provider.SaveAvatarDetailAsync(d);Check(saved);cause=saved.Exception;}
+            else{var saved=await provider.SaveHolonAsync((Holon)caller,saveChildren:kind==3);Check(saved);cause=saved.Exception;}
+            Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(cause);Assert.AreEqual(id,((OracleLifecycleReconciliationException)cause).RecordId);Assert.IsInstanceOfType<InvalidOperationException>(cause.InnerException);Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(cause));
+            Assert.AreEqual(1,provider.CommitCalls);Assert.AreEqual(kind==0?editedId:id,caller.Id);Assert.AreEqual(0,caller.Version);Assert.AreEqual(Guid.Empty,caller.VersionId);Assert.AreSame(keys,caller.ProviderUniqueStorageKey);Assert.AreEqual(0,keys.Count);
+            if(caller is AvatarDetail changed)Assert.AreEqual(2,changed.Inventory[0].Quantity);else if(kind>=2)Assert.AreEqual(name+" edited",caller.Name);
+            var actual=await Read(verifier,table,id);Assert.IsNotNull(actual);using(var document=JsonDocument.Parse(actual)){
+                Assert.AreEqual(id,document.RootElement.GetProperty("Id").GetGuid());Assert.AreEqual(1,document.RootElement.GetProperty("Version").GetInt32());
+                if(kind==1)Assert.AreEqual(1,document.RootElement.GetProperty("Inventory")[0].GetProperty("Quantity").GetInt32());else if(kind>=2)Assert.AreEqual(name,document.RootElement.GetProperty("Name").GetString());
+            }
+            Assert.IsNull(await Read(verifier,"OASIS_HOLONS",childId));
+            await using var cleanup=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=actual;
+            Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,table,id));File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+        static void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);}
     }
 
     [TestMethod][TestCategory("Reconciliation")]
