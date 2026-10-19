@@ -14,10 +14,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
     public partial class EthereumOASIS
     {
         private readonly System.Threading.SemaphoreSlim _storageMutationGate=new(1,1);
+        private readonly NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OwnedNativePreparationScope _storagePreparation=new();
         private async Task<TransactionReceipt> SubmitStorageRequestAsync<TFunction>(TFunction request)
             where TFunction : FunctionMessage, new()
         {
-            await _storageMutationGate.WaitAsync();
+            await _storageMutationGate.WaitAsync(_storagePreparation.CurrentToken);
             string transactionId=null;
             try
             {
@@ -30,7 +31,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var signed=await web3.Eth.GetContractTransactionHandler<TFunction>().SignTransactionAsync(contract,request);
                 var bytes=signed.HexToByteArray();transactionId=Web3SignedPreparation.Hash(bytes);
                 Web3SignedPreparation.Verify(bytes,transactionId,chain,sender,contract,data,System.Numerics.BigInteger.Zero);
-                var returnedHash=await web3.Eth.Transactions.SendRawTransaction.SendRequestAsync(signed.EnsureHexPrefix());
+                var submission=await _storagePreparation.PrepareCurrentAsync(()=>System.Text.Json.JsonSerializer.SerializeToElement(new {
+                    transactionHash=transactionId,chainId=chain.ToString(System.Globalization.CultureInfo.InvariantCulture),sender,
+                    signedTransactionBase64=Convert.ToBase64String(bytes),contract,calldata="0x"+Convert.ToHexString(data).ToLowerInvariant()}));
+                var returnedHash=await submission.SubmitAsync(()=>web3.Eth.Transactions.SendRawTransaction.SendRequestAsync(signed.EnsureHexPrefix()));
                 if(!string.Equals(transactionId,returnedHash,StringComparison.OrdinalIgnoreCase))
                     throw new InvalidOperationException("Ethereum submission identity differs from original signed transaction.");
                 var receipt=await PollStorageReceiptAsync(transactionId);
