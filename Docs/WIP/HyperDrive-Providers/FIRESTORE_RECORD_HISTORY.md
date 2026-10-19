@@ -1,5 +1,21 @@
 # Firestore record history — integration in progress
 
+## Caller identity publication — 2026-10-19, local batch
+
+Integration review follow-up: ready scoped batch now includes shared helper plus generic-KV/Google/Dynamo consumers together; AWS delegates to Dynamo, not another implementation. Google125unit/19history/79native and latest518shared pass; AWS/Dynamo104unit/23facadeunit/130native/19history plus original-only cleanup1 pass (DYNAMODB_RECORD_HISTORY.md). Provider-local native gates pass; clean hosted overall CI remains NOT GREEN because separate coverage prerequisites/native Sui/TRON environment gates are being handled explicitly. Incremental Development publication is not master/release/all-provider certification. Azure Cosmos consumer/type-comparison changes remain LOCAL pending native configuration approval. Earlier held-local notes below are historical checkpoints, superseded only when scoped commit/push succeeds.
+
+Two sync/async regressions reproduced batch saves overwriting a caller ID changed during backend I/O. Shared `StoredRecordPublication.EnsureIdentityUnchanged` now serves generic KV and Firestore publication. Batch snapshots all original IDs before first await, checks before each write and after its acknowledgement, preserves replacement caller IDs and retains acknowledged IDs in existing GoogleFirestorePartialMutationException. Two additional cases prove a later changed node is rejected before its own write. No replay/rollback or general mutable-object thread-safety guarantee; payload/version/graph changes need separate review.
+
+**125 Google units / 510 shared / 19 native history / 79 native regression passed, zero skips.** Same retained official emulator/checkpoint export/restart/readback/conditional cleanup, runner53321 terminal0, ports18080–83closed/pending0. No new SDK/runtime/download/install/environment; retained export preserved. Windows free67,999,502,336bytes whole-machine observation, not attributed allocation/reclaim. Hosted IAM/GCS/BigQuery/full interfaces/V2 and clean committed-source proof remain open. Batch LOCAL pending separate NEAR publication repair e2fbf4368 hosted build; do not include concurrent Hedera/Core/graph edits.
+
+Fixed report SHA256 (GoogleCurrent except shared in SharedCurrent):
+
+- google-caller-identity-before.trx (two original failures): EA979AF4D677C0A920BBF676E0AE22484DD85840CBE624B7D0C6E23A51BA6AA7.
+- google-unit-publication-current.trx: 0FEA934453D4C9DFF895F332FDD1822AFD19DD4D424724EB404822AADAD6B266.
+- shared-publication-current.trx: 591E23CFC0245D6CD5FE29DAE0EA44335CA34A219EC53FB982B75CC509BB6105.
+- google-history-native-current.trx: 6C565BBE80212539F5DA9BF0F9E37073073075B52A811826F79D04F041D70CE9.
+- google-native-current.trx: FD29D2061F5910DBA2A0E27D1BDEF97070E8F769943AF663148CB20526F88379.
+
 ## Definite InvalidArgument rejection — 2026-10-19
 
 The single-attempt canonical writer now preserves a native RpcException InvalidArgument directly instead of falsely wrapping it as an unknown commit. This is distinct from existing AlreadyExists/FailedPrecondition/NotFound lifecycle conflicts: public error handling does NOT label invalid arguments as revision conflicts. Other ambiguous failures/missing acknowledgements retain reconciliation fencing; no retry, trimming, alternate serializer/backend, data deletion or new routing/fee policy. [Firestore Commit](https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/commit) applies its writes atomically; [gRPC status semantics](https://grpc.io/docs/guides/status-codes/) distinguish application invalid arguments from deadlines that can occur after an operation completed. Native proof below checks actual preserved state rather than inferring it from error text.
