@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
         }
 
-        private static (List<IHolon> Roots,List<(IHolon Record,string Payload)> Nodes) PlanStoredGraph(
+        private static (List<IHolon> Roots,List<(IHolon Source,Guid OriginalId,Guid OriginalParent,Core.Holons.Holon Record)> Nodes) PlanStoredGraph(
             IEnumerable<IHolon> roots,bool saveChildren,bool recursive,int maxDepth,int initialDepth)
         {
             ArgumentNullException.ThrowIfNull(roots);
@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var seenNativeKeys=new HashSet<int>();
             var seenReferences=new HashSet<IHolon>(ReferenceEqualityComparer.Instance);
             var nodes=new List<IHolon>();
-            var assignments=new List<(IHolon Source,Guid Id,Guid Parent)>();
+            var assignments=new List<(IHolon Source,Guid OriginalId,Guid OriginalParent)>();
             var settings=new JsonSerializerSettings { ContractResolver=new StoredNodeResolver() };
             IHolon Visit(IHolon source,int depth,Guid? parent)
             {
@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var copy=JsonConvert.DeserializeObject<Core.Holons.Holon>(JsonConvert.SerializeObject(source,settings),new StoredHolonConverter());
                 copy.Id=id;
                 copy.ParentHolonId=parent ?? source.ParentHolonId;
-                assignments.Add((source,id,copy.ParentHolonId));
+                assignments.Add((source,source.Id,source.ParentHolonId));
                 copy.Children=new List<IHolon>();
                 nodes.Add(copy);
                 if(saveChildren && (maxDepth == 0 || depth < maxDepth) && (recursive || depth == initialDepth))
@@ -62,14 +62,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             var selectedRoots=sourceRoots.Select(root=>Visit(root,initialDepth,null)).ToList();
             // Materialize every encrypted payload before the first native transaction.
-            var payloads=nodes.AsEnumerable().Reverse().ToDictionary(node=>node.Id,node=>SerializePrivateStorage("holon",node));
-            var encoded=nodes.Select(node=>(Record:node,Payload:payloads[node.Id])).ToList();
-            // Publish allocated identities only after validation AND encoding succeed.
-            foreach(var assignment in assignments)
-            {
-                assignment.Source.Id=assignment.Id;
-                assignment.Source.ParentHolonId=assignment.Parent;
-            }
+            foreach(var node in nodes.AsEnumerable().Reverse()) _=SerializePrivateStorage("holon",node);
+            var encoded=nodes.Select((node,index)=>(assignments[index].Source,assignments[index].OriginalId,assignments[index].OriginalParent,Record:(Core.Holons.Holon)node)).ToList();
             return (selectedRoots,encoded);
         }
 
