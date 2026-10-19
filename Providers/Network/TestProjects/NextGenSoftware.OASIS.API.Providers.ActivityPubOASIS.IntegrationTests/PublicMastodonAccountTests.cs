@@ -7,6 +7,33 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests;
 public class PublicMastodonAccountTests
 {
     [Theory][InlineData(false)][InlineData(true)]
+    public async Task PublicReplyGraphMatchesIndependentNativeContext(bool synchronous)
+    {
+        Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));
+        const string instance="https://mastodon.social";const string id="117015608750780726";
+        using var client=new HttpClient{Timeout=TimeSpan.FromSeconds(15)};
+        using var nativeResponse=await client.GetAsync(instance+"/api/v1/statuses/"+id+"/context");nativeResponse.EnsureSuccessStatusCode();
+        using var context=JsonDocument.Parse(await nativeResponse.Content.ReadAsStringAsync());
+        var descendants=context.RootElement.GetProperty("descendants").EnumerateArray().ToArray();
+        Assert.NotEmpty(descendants);
+        // Retained public fixture is a small direct-reply thread; fail if its scope changes.
+        Assert.All(descendants,status=>Assert.Equal(id,status.GetProperty("in_reply_to_id").GetString()));
+        using var provider=new ActivityPubOASIS(instance,"");
+        var result=synchronous?provider.LoadHolon(id,loadChildrenFromProvider:true)
+            :await provider.LoadHolonAsync(id,loadChildrenFromProvider:true).WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.False(result.IsError,result.Exception?.ToString());
+        Assert.Equal(descendants.Select(status=>status.GetProperty("id").GetString()).OrderBy(value=>value),
+            result.Result.Children.Select(status=>status.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]).OrderBy(value=>value));
+        foreach(var child in result.Result.Children)
+        {
+            Assert.Equal(result.Result.Id,child.ParentHolonId);Assert.Empty(child.Children);
+            var native=descendants.Single(status=>status.GetProperty("id").GetString()==child.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
+            Assert.Equal(native.GetProperty("uri").GetString(),child.MetaData["MastodonObjectUri"]?.ToString());
+            Assert.Equal(native.GetProperty("content").GetString(),child.MetaData["MastodonContentHtml"]?.ToString());
+        }
+    }
+
+    [Theory][InlineData(false)][InlineData(true)]
     public async Task PublicStatusMatchesIndependentNativeResponse(bool synchronous)
     {
         Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));
