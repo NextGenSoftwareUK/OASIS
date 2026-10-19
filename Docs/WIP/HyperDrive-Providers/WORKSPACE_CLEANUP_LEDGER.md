@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 read-only wider release inventory audit: registered-provider documentation inventory30passes, WEB4route/manager manifest completeness gates fail on current unreviewed additions. No CSV regeneration/build/native runtime start/install/download/new environment/deletion. Core tracking/transfer/save-plan files confirmed untracked concurrent source; preserved, not staged. Current release gates records exact review categories and no binary/source parity claim.
+
 2026-10-19 Oracle native row-lock concurrency acceptance reused same container/volume/secret/SDK/cache/fixed reports. Actual V$SESSION blocker observation then acknowledged updates2/3/archive validation;32native (31acceptance+1diagnostic) pass15s. Original fixture public hard-delete/native absence before journal removal, journals0/container stopped. No download/install/new environment/reset/broad deletion/reclaim. Hash/rights and concurrency limitations in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 removed only obsolete SOURCE helpers MetadataPath/RawToGuid and4private SQL-builder reflection tests (public native behavior coverage retained). Cached builds/unit118pass, fixed oracle-canonical-cleanup.trx; no runtime start/install/download/new environment/generated-output deletion/reset/reclaim. Railway pins validator passes; no hosted deployment claim. Hash/scope in ORACLE_CLIENT_PRIORITY.md.
