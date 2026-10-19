@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 conditional parent-projection integrity fix verified with SAME retained Oracle container/image/volume/secret/cache/fixed runner. 65 native/141 unit pass; controlled corrupt-parent fixtures restored only by exact ID/known parent after independent original-CLOB readback, then public hard-delete and independent row/receipt absence. Journals 0, container stopped, terminal 0. No download/install/new environment/reset/broad deletion or reclaim claim. Exact scope/hashes/local-only integration gates in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 metadata intent-boundary unit verification reused existing Shared project binaries/dependencies and fixed OracleCurrent report directory: 487 pass, zero skips. No runtime/service start, install, download, new environment or deletion. Windows free 71,004,672,000 bytes observed; exact report hash and local-only feature limitations in ORACLE_CLIENT_PRIORITY.md. Retrospective environment-inventory scope update also retained in the central inventory.
 
 2026-10-19 retrospective inventory scope reaffirmed: ENVIRONMENT_INVENTORY.md explicitly covers previously downloaded/setup environments and artifacts as well as new ones, with a coverage summary and outstanding backfill. Existing inventory read in place; no download, installation, restart, deletion or disk-reclaim claim. This documentation update does not mean the whole-machine inventory is complete.
