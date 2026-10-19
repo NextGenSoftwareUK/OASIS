@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Security.Cryptography;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
@@ -149,13 +150,21 @@ internal sealed class NearSdkService
         return response.RootElement.Clone();
     }
 
-    public async Task<string> GetTransactionStatusAsync(string transactionHash, string signerAccountId = null)
+    public async Task<string> GetTransactionStatusAsync(string transactionHash, string signerAccountId = null,
+        CancellationToken cancellationToken = default)
     {
-        using var response = await InvokeAsync("transactionStatus", new
+        if(string.IsNullOrWhiteSpace(transactionHash))throw new ArgumentException("A transaction hash is required.",nameof(transactionHash));
+        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(30));
+        JsonDocument response;
+        try{response = await InvokeAsync("transactionStatus", new
         {
             transactionHash,
             signerAccountId = signerAccountId ?? _accountId
-        });
+        },deadline.Token);}
+        catch(OperationCanceledException ex) when(!cancellationToken.IsCancellationRequested)
+        {throw new TimeoutException("NEAR transaction-status observation exceeded30seconds; outcome remains unknown.",ex);}
+        using var ownedResponse=response;
         var outcome=response.RootElement.GetProperty("outcome");
         if(outcome.GetProperty("transaction_outcome").GetProperty("id").GetString()!=transactionHash)
             throw new InvalidDataException("NEAR status outcome does not match the requested transaction.");
@@ -184,8 +193,9 @@ internal sealed class NearSdkService
             throw new InvalidOperationException("NEAR accountId and privateKey are required for storage writes.");
     }
 
-    private async Task<JsonDocument> InvokeAsync(string operation, object args = null)
+    private async Task<JsonDocument> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var request = new Dictionary<string, object>
         {
             ["operation"] = operation,
@@ -217,7 +227,15 @@ internal sealed class NearSdkService
         process.StandardInput.Close();
         var stdoutTask = process.StandardOutput.ReadToEndAsync();
         var stderrTask = process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
+        try{await process.WaitForExitAsync(cancellationToken);}
+        catch(OperationCanceledException)
+        {
+            // Only status observations supply cancellation. Never cancel/replay a submitted mutation.
+            if(!process.HasExited)process.Kill(entireProcessTree:true);
+            await process.WaitForExitAsync();
+            await Task.WhenAll(stdoutTask,stderrTask);
+            throw;
+        }
         var stdout = await stdoutTask;
         var stderr = await stderrTask;
         if (string.IsNullOrWhiteSpace(stdout))

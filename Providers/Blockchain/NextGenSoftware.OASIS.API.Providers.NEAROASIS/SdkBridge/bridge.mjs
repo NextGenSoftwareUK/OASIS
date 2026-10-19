@@ -73,7 +73,9 @@ async function execute(input) {
       const outcome = await provider.viewTransactionStatus({
         txHash: input.transactionHash,
         accountId: input.signerAccountId ?? input.accountId,
-        waitUntil: "FINAL",
+        // Observation must report current state, not block waiting for finality.
+        // All submission paths continue to require FINAL.
+        waitUntil: "NONE",
       });
       return { outcome };
     }
