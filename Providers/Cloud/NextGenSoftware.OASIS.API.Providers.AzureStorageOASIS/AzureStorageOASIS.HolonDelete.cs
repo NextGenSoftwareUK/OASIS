@@ -22,7 +22,7 @@ public partial class AzureStorageOASIS
             var blob=_serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(key);
             var snapshot=(await blob.DownloadContentAsync()).Value;
             if(string.IsNullOrWhiteSpace(snapshot.Details.ETag.ToString())) throw new InvalidDataException("Azure holon snapshot has no ETag.");
-            var record=Deserialise<Holon>(snapshot.Content.ToString()) ?? throw new InvalidDataException("Azure holon record is null.");
+            var record=await ReadBlobHistoryAsync<Holon>(snapshot.Content.ToString(),0) ?? throw new InvalidDataException("Azure holon record is null.");
             if(record.Id==Guid.Empty || HolonKey(record)!=key || expectedId.HasValue && record.Id!=expectedId.Value)
                 throw new InvalidDataException("Azure holon identity/native key does not match the requested record.");
             record.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();

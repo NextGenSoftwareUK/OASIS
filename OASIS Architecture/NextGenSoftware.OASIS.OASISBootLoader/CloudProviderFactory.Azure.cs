@@ -13,6 +13,7 @@ internal static partial class CloudProviderFactory
         if(string.IsNullOrWhiteSpace(connection) || string.IsNullOrWhiteSpace(settings.HolonContainer)
             || string.IsNullOrWhiteSpace(settings.AvatarContainer) || string.IsNullOrWhiteSpace(settings.AvatarDetailContainer))
             throw new ArgumentException("Azure Blob Storage requires an explicit connection and three named containers.",nameof(settings));
-        return new AzureStorageOASIS(connection,settings.HolonContainer,settings.AvatarContainer,settings.AvatarDetailContainer);
+        return new AzureStorageOASIS(connection,settings.HolonContainer,settings.AvatarContainer,settings.AvatarDetailContainer)
+            {IsVersionControlEnabled=settings.IsVersionControlEnabled};
     }
 }

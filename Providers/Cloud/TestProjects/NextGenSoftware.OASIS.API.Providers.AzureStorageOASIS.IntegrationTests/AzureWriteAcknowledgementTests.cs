@@ -43,12 +43,17 @@ public partial class AzureStorageOASISIntegrationTests
             =>Lose(await _healthy.UploadAsync(content,overwrite,cancellationToken));
         public override async Task<Response<BlobContentInfo>> UploadAsync(BinaryData content,bool overwrite=false,CancellationToken cancellationToken=default)
             =>Lose(await _healthy.UploadAsync(content,overwrite,cancellationToken));
+        public override Task<Response<BlobDownloadResult>> DownloadContentAsync(CancellationToken cancellationToken=default)
+            =>_healthy.DownloadContentAsync(cancellationToken);
+        public override async Task<Response<BlobContentInfo>> UploadAsync(BinaryData content,BlobUploadOptions options,CancellationToken cancellationToken=default)
+            =>Lose(await _healthy.UploadAsync(content,options,cancellationToken));
     }
 
     [DataTestMethod]
     [DataRow(0,false)] [DataRow(0,true)] [DataRow(1,false)] [DataRow(1,true)] [DataRow(2,false)] [DataRow(2,true)]
     public async Task RealCommittedUploadWithLostAcknowledgementDoesNotPublishCallerIdentity(int kind,bool synchronous)
     {
+        _provider.IsVersionControlEnabled=true;
         var healthy=(BlobServiceClient)ServiceField.GetValue(_provider)!;
         var fault=new LostUploadService {Healthy=healthy};
         var profile=new Avatar {Username="owned-upload-profile",IsActive=true};
@@ -82,7 +87,10 @@ public partial class AzureStorageOASISIntegrationTests
             var json=(await healthy.GetBlobContainerClient(fault.Container).GetBlobClient(fault.Blob).DownloadContentAsync()).Value.Content.ToString();
             var persisted=kind==0 ? OasisJson.Deserialize<Avatar>(json).Id:kind==1 ? OasisJson.Deserialize<AvatarDetail>(json).Id:OasisJson.Deserialize<Holon>(json).Id;
             Assert.AreEqual(attempted,persisted);
+            Assert.AreEqual(1,OasisJson.DeserializeStored<Holon>(json).Version);
             Assert.AreEqual(Guid.Empty,profile.Id);Assert.AreEqual(Guid.Empty,detail.Id);Assert.AreEqual(Guid.Empty,holon.Id);
+            Assert.AreEqual(0,profile.Version);Assert.AreEqual(0,detail.Version);Assert.AreEqual(0,holon.Version);
+            Assert.AreEqual(Guid.Empty,profile.VersionId);Assert.AreEqual(Guid.Empty,detail.VersionId);Assert.AreEqual(Guid.Empty,holon.VersionId);
             Assert.IsFalse(profile.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.AzureStorageOASIS));
             Assert.IsFalse(detail.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.AzureStorageOASIS));
             Assert.IsFalse(holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.AzureStorageOASIS));
