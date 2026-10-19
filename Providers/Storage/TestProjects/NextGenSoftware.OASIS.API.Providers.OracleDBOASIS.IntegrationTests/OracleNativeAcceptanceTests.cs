@@ -93,7 +93,7 @@ public sealed class OracleNativeAcceptanceTests
             childId=intent.RootElement.GetProperty("childId").GetGuid();
             Assert.AreEqual("owned-oracle-"+id.ToString("N"),name);
         }
-        var avatar=new Avatar{Id=id,Username=name,Email=name+"@example.invalid",VerificationToken=name+"-original-token"};
+        var avatar=new Avatar{Id=id,Username=name,Email=name+"@example.invalid",VerificationToken=name+"-original-token",ResetToken=name+"-original-reset",RefreshTokens=new(){new RefreshToken{Token=name+"-original-refresh",Expires=DateTime.UtcNow.AddDays(1)}}};
         var detail=new AvatarDetail{Id=id,Username=name,Email=avatar.Email,Karma=321,XP=456};
         detail.Inventory.Add(new InventoryItem{Id=Guid.NewGuid(),Name="owned oak seed",Quantity=7,GameSource="Our World"});
         var holon=new Holon{Id=id,Name=name,ParentHolonId=Guid.NewGuid(),CreatedByAvatarId=id,
@@ -138,6 +138,7 @@ public sealed class OracleNativeAcceptanceTests
                     var oldName=avatar.Username;var oldEmail=avatar.Email;
                     avatar.Username=name+(synchronous?"-sync":"-async");avatar.Email=avatar.Username+"@example.invalid";
                     avatar.VerificationToken=avatar.Username+"-current-token";
+                    avatar.ResetToken=avatar.Username+"-current-reset";avatar.RefreshTokens=new(){new RefreshToken{Token=avatar.Username+"-current-refresh",Expires=DateTime.UtcNow.AddDays(1)}};
                     detail.Username=avatar.Username;detail.Email=avatar.Email;detail.Karma+=11;detail.XP+=17;detail.Inventory[0].Quantity+=2;
                     holon.Name=avatar.Username;holon.ParentHolonId=Guid.NewGuid();holon.CreatedByAvatarId=Guid.NewGuid();holon.MetaData["owned.fixture"]=avatar.Username;
                     var updateAvatar=synchronous?provider.SaveAvatar(avatar):await provider.SaveAvatarAsync(avatar);
@@ -218,6 +219,13 @@ public sealed class OracleNativeAcceptanceTests
                 var historicalCredential=await provider.LoadAvatarByVerificationTokenAsync(name+"-original-token",1);Assert.IsTrue(historicalCredential.IsError);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(historicalCredential.Exception);
                 Assert.IsNull((await provider.LoadAvatarByVerificationTokenAsync(name+"-original-token")).Result);
                 var currentCredential=await provider.LoadAvatarByVerificationTokenAsync(avatar.VerificationToken);Assert.IsFalse(currentCredential.IsError,currentCredential.Exception?.ToString());Assert.AreEqual(id,currentCredential.Result.Id);Assert.AreEqual(3,currentCredential.Result.Version);
+                foreach(var synchronous in new[]{false,true}){
+                    foreach(var current in new[]{synchronous?provider.LoadAvatarByResetToken(avatar.ResetToken):await provider.LoadAvatarByResetTokenAsync(avatar.ResetToken),synchronous?provider.LoadAvatarByRefreshToken(avatar.RefreshTokens.Single().Token):await provider.LoadAvatarByRefreshTokenAsync(avatar.RefreshTokens.Single().Token)}){
+                        Assert.IsFalse(current.IsError,current.Exception?.ToString());Assert.AreEqual(id,current.Result.Id);Assert.AreEqual(3,current.Result.Version);
+                    }
+                    foreach(var old in new[]{synchronous?provider.LoadAvatarByResetToken(name+"-original-reset"):await provider.LoadAvatarByResetTokenAsync(name+"-original-reset"),synchronous?provider.LoadAvatarByRefreshToken(name+"-original-refresh"):await provider.LoadAvatarByRefreshTokenAsync(name+"-original-refresh")}){Assert.IsTrue(old.IsError);Assert.IsNull(old.Result);}
+                    foreach(var historical in new[]{synchronous?provider.LoadAvatarByResetToken(name+"-original-reset",1):await provider.LoadAvatarByResetTokenAsync(name+"-original-reset",1),synchronous?provider.LoadAvatarByRefreshToken(name+"-original-refresh",1):await provider.LoadAvatarByRefreshTokenAsync(name+"-original-refresh",1)}){Assert.IsTrue(historical.IsError);Assert.IsNull(historical.Result);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(historical.Exception);}
+                }
                 Assert.IsNull((await provider.LoadAvatarAsync(id,99)).Result);Assert.IsNull((await provider.LoadAvatarDetailAsync(id,99)).Result);Assert.IsNull((await provider.LoadHolonAsync(id,version:99)).Result);
             }
             if(!resume){
@@ -323,7 +331,7 @@ public sealed class OracleNativeAcceptanceTests
                     await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids,name,state="before-native-duplicate-identities"}));file.Flush(true);
                 }
                 foreach(var id in ids){
-                    var avatar=await provider.SaveAvatarAsync(new Avatar{Id=id,Username=name,Email=email});Assert.IsFalse(avatar.IsError,avatar.Exception?.ToString());
+                    var avatar=await provider.SaveAvatarAsync(new Avatar{Id=id,Username=name,Email=email,VerificationToken=name+"-verify",ResetToken=name+"-reset",RefreshTokens=new(){new RefreshToken{Token=name+"-refresh",Expires=DateTime.UtcNow.AddDays(1)}}});Assert.IsFalse(avatar.IsError,avatar.Exception?.ToString());
                     var detail=await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=id,Username=name,Email=email});Assert.IsFalse(detail.IsError,detail.Exception?.ToString());
                 }
             }
@@ -337,6 +345,9 @@ public sealed class OracleNativeAcceptanceTests
             Check(await provider.LoadAvatarDetailByEmailAsync(email));Check(provider.LoadAvatarDetailByEmail(email));
             Check(await provider.ExportAllDataForAvatarByUsernameAsync(name));Check(provider.ExportAllDataForAvatarByUsername(name));
             Check(await provider.ExportAllDataForAvatarByEmailAsync(email));Check(provider.ExportAllDataForAvatarByEmail(email));
+            foreach(var credentials in new[]{await provider.LoadAvatarByVerificationTokenAsync(name+"-verify"),provider.LoadAvatarByVerificationToken(name+"-verify"),await provider.LoadAvatarByResetTokenAsync(name+"-reset"),provider.LoadAvatarByResetToken(name+"-reset"),await provider.LoadAvatarByRefreshTokenAsync(name+"-refresh"),provider.LoadAvatarByRefreshToken(name+"-refresh")}){
+                Assert.IsTrue(credentials.IsError);Assert.IsNull(credentials.Result);Assert.IsFalse(credentials.IsLoaded);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,credentials.ErrorCode);
+            }
             foreach(var id in ids)foreach(var table in new[]{"OASIS_AVATARS","OASIS_AVATAR_DETAILS"}){
                 var actual=await Read(verifier,table,id);Assert.IsNotNull(actual);
                 await using var delete=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};
