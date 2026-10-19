@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Identity export errors preserved — 2026-10-19
+
+Username/email export wrappers previously replaced ANY failed avatar lookup with a generic not-found message and lost Exception/ErrorCode. Now propagate the original error result fields; only an error-free null result is classified as missing. No alternate lookup/retry/first-match behavior added. Four new sync/async negative-version assertions reproduce prior lost exceptions before source fix:26selected cases22pass4fail, oracle-export-errors-before.trx SHA256 `88F51C64364F65F1ABA2426179F28F84C365D034FCC0009D4F7FB8EE95199008`. After producer then consumer rebuild, full114/114units pass643ms/zero skips, oracle-export-errors.trx SHA256 `AE4ED9E65A647444894248E5E58986F890853EA13E70D22DD0B6868D8D9E81BA`.
+
+Expanded real duplicate-identity acceptance case checks all four username/email sync/async export wrappers retain InvalidDataException rather than hide ambiguity as not-found. Full22/22native pass12s/zero skips SHA256 `7271D386841EFF32BCCC4538FA39FC04B0F69871D17053093418BCA46B873A75`. Same actual SDK/native duplicate fixtures and exact conditional cleanup, no pending journals, same container stopped. Cached producer/integration/unit0errors2/7/3warnings; no download/new runtime/reset. ErrorCode assignment verified by code review; no separately injected nonempty-code test claimed. Full security/hosted/all interfaces/V2 gates remain open.
+
 ## Generated-identity native acceptance — 2026-10-19
 
 Four new actual SDK cases cover generated avatar, avatar-detail, point holon and parent/child graph IDs. Before each actual ExecuteNonQueryAsync, test observer proves selected caller ID/version/provider key still unpublished, records the generated RAW ID in a flushed append-only journal, then calls the original SDK operation. After normal acknowledgement, result identity is the original caller, nonempty ID/version ID/version1/provider key match independent native CLOB reads; generated child ParentHolonId matches generated root both in caller and Oracle. No production fix needed for these tested paths.
