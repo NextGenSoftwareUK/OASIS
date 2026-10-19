@@ -7,6 +7,25 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests;
 public class PublicMastodonAccountTests
 {
     [Theory][InlineData(false)][InlineData(true)]
+    public async Task PublicTimelinePageMatchesIndependentNativeCursor(bool synchronous)
+    {
+        Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));
+        // Explicit public-preview fixture; mastodon.social requires authentication for this endpoint.
+        const string instance="https://hachyderm.io";
+        using var client=new HttpClient{Timeout=TimeSpan.FromSeconds(15)};
+        using var initial=await client.GetAsync(instance+"/api/v1/timelines/public?limit=1&local=true");initial.EnsureSuccessStatusCode();
+        using var first=JsonDocument.Parse(await initial.Content.ReadAsStringAsync());
+        Assert.NotEqual(0,first.RootElement.GetArrayLength());var cursor=first.RootElement[0].GetProperty("id").GetString()!;
+        using var response=await client.GetAsync(instance+"/api/v1/timelines/public?limit=2&local=true&max_id="+cursor);response.EnsureSuccessStatusCode();
+        using var native=JsonDocument.Parse(await response.Content.ReadAsStringAsync());var rows=native.RootElement.EnumerateArray().ToArray();Assert.NotEmpty(rows);
+        using var provider=new ActivityPubOASIS(instance,"");
+        var result=synchronous?provider.LoadPublicTimelinePage(cursor,2,true):await provider.LoadPublicTimelinePageAsync(cursor,2,true).WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.False(result.IsError,result.Exception?.ToString());
+        Assert.Equal(rows.Select(row=>row.GetProperty("id").GetString()),result.Result.Statuses.Select(row=>row.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]));
+        Assert.Equal(rows[^1].GetProperty("id").GetString(),result.Result.OlderThanId);
+        for(var index=0;index<rows.Length;index++)Assert.Equal(rows[index].GetProperty("uri").GetString(),result.Result.Statuses[index].MetaData["MastodonObjectUri"]);
+    }
+    [Theory][InlineData(false)][InlineData(true)]
     public async Task PublicReplyGraphMatchesIndependentNativeContext(bool synchronous)
     {
         Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));
