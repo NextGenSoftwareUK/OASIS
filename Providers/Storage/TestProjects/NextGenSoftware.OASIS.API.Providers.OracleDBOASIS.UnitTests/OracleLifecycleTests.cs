@@ -5,6 +5,15 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 [TestClass]
 public sealed class OracleLifecycleTests
 {
+    [TestMethod]
+    public void LifecycleUncertaintyUsesExistingCoreReplayFenceWithoutInventedTransactionId()
+    {
+        var id=Guid.NewGuid();var original=new IOException("owned lost native response");
+        var error=new OracleLifecycleReconciliationException(id,original);
+        Assert.AreSame(original,error.InnerException);Assert.AreEqual(id,error.AvatarId);
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+        Assert.AreEqual(0,NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.OriginalTransactionIds(error).Count);
+    }
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
