@@ -24,6 +24,8 @@ public partial class EthereumOASIS
         // Freeze the entire caller-owned graph before the first native await.
         var snapshot=OasisJson.DeserializeStored<T>(SerializeCanonicalEmbeddedRecord(proposed).ToString(Newtonsoft.Json.Formatting.None));
         if(!IsProviderActivated || _nextGenSoftwareOasisService==null)throw new InvalidOperationException("Ethereum provider is not activated.");
+        var capability=await _nextGenSoftwareOasisService.ContractHandler.QueryAsync<Contracts.CheckedStorageProtocolVersionFunction,BigInteger>(new Contracts.CheckedStorageProtocolVersionFunction());
+        if(capability!=1)throw new InvalidOperationException("Ethereum checked storage protocol1 is required; configure an explicitly deployed compatible contract.");
         var key=new BigInteger(HashUtility.GetNumericHash(snapshot.Id.ToString()));
         var observed=await ReadHistorySnapshotAsync(kind,key);
         var present=observed.EntityId!=0 || !string.IsNullOrEmpty(observed.Identity) || !string.IsNullOrEmpty(observed.Info);

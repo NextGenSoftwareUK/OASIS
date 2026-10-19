@@ -581,12 +581,17 @@ public partial class EthereumOASISIntegrationTests
         idGroup.SearchIds=true;
         var ids=await Run(idGroup); Assert.IsFalse(ids.IsError,ids.Message); Assert.AreEqual(row.Id,ids.Result.SearchResultHolons.Single().Id);
         var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        var originalAvatarInfo=(await service.GetAvatarByIdQueryAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(avatar.Id.ToString()))).ReturnValue1.Info;
         await service.CreateAvatarRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(avatar.Id.ToString()),avatar.Id.ToString(),"corrupt avatar");
         var holons=await Run(new SearchTextGroup { SearchQuery="targeted",SearchHolons=true,HolonType=HolonType.All });
         Assert.IsFalse(holons.IsError,holons.Message); Assert.AreEqual(row.Id,holons.Result.SearchResultHolons.Single().Id);
         var avatars=await Run(new SearchTextGroup { SearchQuery="targeted",SearchAvatars=true,HolonType=HolonType.All });
         Assert.IsTrue(avatars.IsError); Assert.IsNull(avatars.Result); Assert.IsNotNull(avatars.Exception);
-        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        var refused=await provider.SaveAvatarAsync(avatar);
+        Assert.IsTrue(refused.IsError);Assert.IsNull(refused.Result);Assert.IsFalse(refused.IsSaved);
+        Assert.AreEqual("corrupt avatar",(await service.GetAvatarByIdQueryAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(avatar.Id.ToString()))).ReturnValue1.Info);
+        // Explicit test-fixture repair, not a production save fallback over corrupt history.
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(avatar.Id.ToString()),avatar.Id.ToString(),originalAvatarInfo);
         await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(row.Id.ToString()),row.Id.ToString(),"corrupt holon");
         var isolated=await Run(new SearchTextGroup { SearchQuery="targeted",SearchAvatars=true,HolonType=HolonType.All });
         Assert.IsFalse(isolated.IsError,isolated.Message); Assert.AreEqual(avatar.Id,isolated.Result.SearchResultAvatars.Single().Id);
