@@ -5,6 +5,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { KeyPair } from "near-workspaces";
 import { createRetainedWorker } from "./retained-worker.mjs";
+import { JsonRpcProvider } from "near-api-js";
+import { prepareFailedStatusFixture } from "./failed-status-fixture.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = process.env.OASIS_REPO_ROOT_WSL ?? resolve(here, "../../..");
@@ -54,6 +56,9 @@ try {
   const failedOriginal=JSON.parse(readFileSync("/var/tmp/oasis-near-evidence/failed-status-original.json","utf8"));
   if(failedOriginal.chain!==networkId || typeof failedOriginal.hash!=="string")
     throw new Error("Retained original failed-status evidence is invalid; no replacement/submission attempted.");
+  // Preserve the historical original above; its status is tested separately as unavailable.
+  // The failed-outcome gate needs a live run-scoped negative receipt before node pruning.
+  const currentFailed=await prepareFailedStatusFixture(new JsonRpcProvider({url:rpcAddr}),contractId,key.toString(),"/var/tmp/oasis-near-evidence");
 
   // WSL does not propagate arbitrary environment variables to Windows executables.
   // Pass owned test credentials through stdin, never a command line or plaintext file.
@@ -64,7 +69,7 @@ try {
     NEAROASIS_CONTRACTADDRESS: contract.accountId,
     NEAROASIS_ACCOUNTID: contract.accountId,
     NEAROASIS_PRIVATEKEY: key.toString(),
-    NEAROASIS_FAILED_STATUS_TRANSACTIONID: failedOriginal.hash,
+    NEAROASIS_FAILED_STATUS_TRANSACTIONID: currentFailed.hash,
     OASIS_NEAR_NODE: "C:\\Program Files\\nodejs\\node.exe",
     OASIS_NEAR_SDK_BRIDGE: toWindows(resolve(repoRoot, "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/bridge.mjs")),
   };
