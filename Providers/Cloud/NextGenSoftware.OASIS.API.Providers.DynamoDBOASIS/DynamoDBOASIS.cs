@@ -45,6 +45,12 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private bool _clientDisposed;
         protected virtual ProviderType StorageProviderType => Core.Enums.ProviderType.DynamoDBOASIS;
 
+        private static void ValidateAcknowledgedCaller(IHolonBase source,Guid originalId,Guid acknowledgedId)
+        {
+            try{NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublication.EnsureIdentityUnchanged(source,originalId);}
+            catch(Exception cause){throw new DynamoDBPartialMutationException(new[]{acknowledgedId},cause);}
+        }
+
         public DynamoDBOASIS(string accessKey, string secretKey, string region, string? serviceUrl = null)
             :this(accessKey,secretKey,region,serviceUrl,null,false)
         { }
@@ -244,7 +250,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(avatar);
-                var source=avatar;
+                var source=avatar;var originalId=source.Id;
                 avatar=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Avatar>(source);
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
@@ -261,6 +267,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["data_json"] = new AttributeValue { S = Ser(avatar) }
                     })
                 },IsVersionControlEnabled);
+                ValidateAcknowledgedCaller(source,originalId,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=avatar.Id;
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
@@ -466,7 +473,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(d);
-                var source=d;
+                var source=d;var originalId=source.Id;
                 d=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<AvatarDetail>(source);
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 d.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
@@ -483,6 +490,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["data_json"] = new AttributeValue { S = Ser(d) }
                     })
                 },IsVersionControlEnabled);
+                ValidateAcknowledgedCaller(source,originalId,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=d.Id;
                 source.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
@@ -562,7 +570,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     if(!graph.IsError) converted.Result=holon;
                     return converted;
                 }
-                var source=holon;
+                var source=holon;var originalId=source.Id;
                 holon=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Holon>(source);
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
@@ -579,6 +587,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["data_json"] = new AttributeValue { S = Ser(holon) }
                     }
                 },IsVersionControlEnabled);
+                ValidateAcknowledgedCaller(source,originalId,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=holon.Id;
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
@@ -598,7 +607,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try {
                 var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
                 var failedParents=new HashSet<Guid>();
-                foreach(var node in plan.Nodes) {
+                var publications=plan.Nodes.Select(node=>(Node:node,OriginalId:node.Source.Id)).ToArray();
+                foreach(var publication in publications) {
+                    var node=publication.Node;
+                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublication.EnsureIdentityUnchanged(node.Source,publication.OriginalId);
                     if(failedParents.Contains(node.Snapshot.ParentHolonId)) {
                         failedParents.Add(node.Snapshot.Id);failures.Add(new InvalidOperationException("Descendant skipped because its parent failed."));continue;
                     }
@@ -611,7 +623,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         if(!continueOnError || NativeMutationReconciliation.IsRequired(written.Exception)) break;
                     }
                     else {
-                        saved.Add(written.Result);node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                        saved.Add(written.Result);
+                        NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublication.EnsureIdentityUnchanged(node.Source,publication.OriginalId);
+                        node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                         node.Source.Version=written.Result.Version;node.Source.VersionId=written.Result.VersionId;node.Source.PreviousVersionId=written.Result.PreviousVersionId;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                         node.Source.ProviderUniqueStorageKey[StorageProviderType]=node.Snapshot.Id.ToString();

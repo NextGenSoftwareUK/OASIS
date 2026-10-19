@@ -45,7 +45,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             try {
                 var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
                 var failedParents=new HashSet<Guid>();
-                foreach(var node in plan.Nodes) {
+                var publications=plan.Nodes.Select(node=>(Node:node,OriginalId:node.Source.Id)).ToArray();
+                foreach(var publication in publications) {
+                    var node=publication.Node;
+                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublication.EnsureIdentityUnchanged(node.Source,publication.OriginalId);
                     if(failedParents.Contains(node.Snapshot.ParentHolonId)) {
                         failedParents.Add(node.Snapshot.Id);
                         failures.Add(new InvalidOperationException("Firestore descendant skipped because its parent failed."));
@@ -61,6 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     }
                     else {
                         saved.Add(written.Result);
+                        NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublication.EnsureIdentityUnchanged(node.Source,publication.OriginalId);
                         node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                         node.Source.Version=written.Result.Version;node.Source.VersionId=written.Result.VersionId;node.Source.PreviousVersionId=written.Result.PreviousVersionId;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();

@@ -173,6 +173,50 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             }
         }
 
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task BatchAcknowledgementDoesNotOverwriteChangedCallerIdentity(bool synchronous)
+        {
+            var source=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+            var replacement=System.Guid.NewGuid();
+            var provider=new IdentityChangingBatchProvider(()=>source.Id=replacement);
+            var result=synchronous ? provider.SaveHolons(new[]{source}):await provider.SaveHolonsAsync(new[]{source});
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);
+            Assert.AreEqual(replacement,source.Id);
+            Assert.AreEqual(1,provider.Writes);
+            var partial=(GoogleFirestorePartialMutationException)result.Exception;
+            Assert.AreEqual(1,partial.AcknowledgedRecordIds.Count);
+            Assert.AreNotEqual(replacement,partial.AcknowledgedRecordIds[0]);
+            Assert.AreNotEqual(System.Guid.Empty,partial.AcknowledgedRecordIds[0]);
+        }
+
+        private sealed class IdentityChangingBatchProvider(System.Action change):GoogleCloudOASIS(enableStorage:false,enableFirestore:false,enableBigQuery:false)
+        {
+            public int Writes;
+            public override async Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+            {
+                Writes++;await Task.Yield();change();
+                return new NextGenSoftware.OASIS.Common.OASISResult<IHolon>(holon){IsSaved=true};
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task BatchChecksCapturedLaterIdentityBeforeNextWrite(bool synchronous)
+        {
+            var first=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+            var later=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+            var replacement=System.Guid.NewGuid();
+            var provider=new IdentityChangingBatchProvider(()=>later.Id=replacement);
+            var result=synchronous ? provider.SaveHolons(new[]{first,later}):await provider.SaveHolonsAsync(new[]{first,later});
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);
+            Assert.AreEqual(1,provider.Writes,"Changed later identity must be rejected before its backend write.");
+            Assert.AreNotEqual(System.Guid.Empty,first.Id);Assert.AreEqual(replacement,later.Id);
+            var partial=(GoogleFirestorePartialMutationException)result.Exception;
+            Assert.AreEqual(1,partial.AcknowledgedRecordIds.Count);
+            Assert.AreEqual(first.Id,partial.AcknowledgedRecordIds[0]);
+        }
+
         [TestMethod]
         public async Task ExportsValidateScopeAndPreserveStorageErrors()
         {

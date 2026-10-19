@@ -211,8 +211,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private void PublishSavedMetadata(IHolonBase source,IHolonBase saved,Guid originalId)
         {
-            if(source.Id!=originalId)
-                throw new InvalidOperationException("Caller identity changed during the acknowledged save; saved metadata was not published.");
+            StoredRecordPublication.EnsureIdentityUnchanged(source,originalId);
             source.Id=saved.Id;source.Version=saved.Version;source.VersionId=saved.VersionId;source.PreviousVersionId=saved.PreviousVersionId;
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             source.ProviderUniqueStorageKey[StorageType]=saved.ProviderUniqueStorageKey[StorageType];
