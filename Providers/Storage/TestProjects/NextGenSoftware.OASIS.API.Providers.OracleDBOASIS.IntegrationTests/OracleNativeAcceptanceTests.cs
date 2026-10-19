@@ -9,6 +9,19 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public sealed class OracleNativeAcceptanceTests
 {
+    // Diagnostic evidence of an OPEN query-semantics gap, not provider acceptance.
+    [TestMethod]
+    public async Task NativeMetadataScalarDefaultsDifferFromCanonicalMatcher()
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;
+        await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();
+        await using var command=new OracleCommand("SELECT JSON_VALUE(:Document,'$.flag'),JSON_VALUE(:Document,'$.large') FROM DUAL",verifier){BindByName=true};
+        command.Parameters.Add("Document",OracleDbType.Clob).Value=JsonSerializer.Serialize(new{flag=true,large=new string('x',6000)});
+        await using var reader=await command.ExecuteReaderAsync();Assert.IsTrue(await reader.ReadAsync());
+        Assert.AreEqual("true",reader.GetString(0));Assert.IsTrue(reader.IsDBNull(1));
+        Assert.AreEqual("True",NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MetadataValueText(true));
+        Assert.IsTrue(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(new Dictionary<string,object>{{"large",new string('x',6000)}},new Dictionary<string,string>{{"large",new string('x',6000)}},NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All));
+    }
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task HolonIndexSelectionCannotContradictCanonicalParentOrType(bool parent)
     {
