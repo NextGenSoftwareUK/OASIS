@@ -586,24 +586,8 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 ValidateGraphRead(maxChildDepth,curentChildDepth,version,type);
                 if(metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.All&&metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.Any)throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
                 if(metaKeyValuePairs==null||metaKeyValuePairs.Count==0)return await LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
-                if(version>0){
-                    var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
-                    result.Result=await ProjectHolonRootsAsync(selected.Where(row=>(type==HolonType.All||row.HolonType==type)&&NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(row.MetaData,metaKeyValuePairs,metaKeyValuePairMatchMode)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);return result;
-                }
-                string joiner = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? " OR " : " AND ";
-                var conditions = metaKeyValuePairs.Keys.Select((k, i) => $"JSON_VALUE(DATA_JSON,{MetadataPath(k)})=:v{i}").ToList();
-                string sql = $"SELECT ID,DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND ({string.Join(joiner, conditions)})";
-                if (type != HolonType.All) sql += " AND HOLON_TYPE=:HType";
-                await using var conn = new OracleConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = CreateCommand(sql, conn);
-                int idx = 0;
-                foreach (var v in metaKeyValuePairs.Values) cmd.Parameters.Add($":v{idx++}", OracleDbType.Varchar2).Value = v;
-                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Int32).Value = (int)type;
-                var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = await ReadRecordVersionAsync<Holon>(new Guid((byte[])reader.GetValue(0)),reader.GetString(1),0); if (h != null&&!h.IsDeleted) {ValidateSelectedHolon(h,type);holons.Add(h);} }
-                result.Result = await ProjectHolonRootsAsync(holons,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider); result.IsError = false;
+                var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
+                result.Result=await ProjectHolonRootsAsync(selected.Where(row=>(type==HolonType.All||row.HolonType==type)&&NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(row.MetaData,metaKeyValuePairs,metaKeyValuePairMatchMode)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -704,21 +688,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 ValidateGraphRead(maxChildDepth,curentChildDepth,version,type);
-                if(version>0){
-                    var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
-                    result.Result=await ProjectHolonRootsAsync(selected.Where(row=>(type==HolonType.All||row.HolonType==type)&&NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(row.MetaData,new Dictionary<string,string>{{metaKey,metaValue}},MetaKeyValuePairMatchMode.All)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);return result;
-                }
-                string sql = $"SELECT ID,DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND JSON_VALUE(DATA_JSON,{MetadataPath(metaKey)})=:MetaValue";
-                if (type != HolonType.All) sql += " AND HOLON_TYPE=:HType";
-                await using var conn = new OracleConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = CreateCommand(sql, conn);
-                cmd.Parameters.Add(":MetaValue", OracleDbType.Varchar2).Value = metaValue;
-                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Int32).Value = (int)type;
-                var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = await ReadRecordVersionAsync<Holon>(new Guid((byte[])reader.GetValue(0)),reader.GetString(1),0); if (h != null&&!h.IsDeleted) {ValidateSelectedHolon(h,type);holons.Add(h);} }
-                result.Result = await ProjectHolonRootsAsync(holons,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider); result.IsError = false;
+                return await LoadHolonsByMetaDataAsync(new Dictionary<string,string>{{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;

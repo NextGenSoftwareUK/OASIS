@@ -9,6 +9,32 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public sealed class OracleNativeAcceptanceTests
 {
+    [TestMethod]
+    public async Task CanonicalMetadataMatchesBooleanNumberAndLongTextAcrossVersions()
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,"canonical-metadata.pending.json");Assert.IsFalse(File.Exists(journal));var id=Guid.NewGuid();var large=new string('x',6000);
+        var row=new Holon{Id=id,Name="owned-canonical-metadata",MetaData=new(){["flag"]=true,["number"]=42,["large"]=large}};
+        var provider=new OracleDBOASIS(connection){IsVersionControlEnabled=true};
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,state="before-canonical-metadata-fixture"}));file.Flush(true);}
+            var first=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(first.IsError,first.Exception?.ToString());row.Name+="-current";var second=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(second.IsError,second.Exception?.ToString());
+            foreach(var version in new[]{0,1})foreach(var sync in new[]{false,true}){
+                foreach(var pair in new Dictionary<string,string>{{"flag","True"},{"number","42"},{"large",large}}){
+                    var found=sync?provider.LoadHolonsByMetaData(pair.Key,pair.Value,loadChildren:false,version:version):await provider.LoadHolonsByMetaDataAsync(pair.Key,pair.Value,loadChildren:false,version:version);
+                    Assert.IsFalse(found.IsError,found.Exception?.ToString());Assert.AreEqual(version==0?2:1,found.Result.Single(r=>r.Id==id).Version);
+                }
+                foreach(var mode in new[]{NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.Any}){
+                    var filter=new Dictionary<string,string>{{"flag","True"},{"large",large}};
+                    var found=sync?provider.LoadHolonsByMetaData(filter,mode,loadChildren:false,version:version):await provider.LoadHolonsByMetaDataAsync(filter,mode,loadChildren:false,version:version);
+                    Assert.IsFalse(found.IsError,found.Exception?.ToString());Assert.IsTrue(found.Result.Any(r=>r.Id==id));
+                }
+                var missing=await provider.LoadHolonsByMetaDataAsync("absent","",loadChildren:false,version:version);Assert.IsFalse(missing.IsError,missing.Exception?.ToString());Assert.IsFalse(missing.Result.Any(r=>r.Id==id));
+            }
+            var removed=await provider.DeleteHolonWithSoftDeleteAsync(id,false);Assert.IsFalse(removed.IsError,removed.Exception?.ToString());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
     // Diagnostic evidence of an OPEN query-semantics gap, not provider acceptance.
     [TestMethod]
     public async Task NativeMetadataScalarDefaultsDifferFromCanonicalMatcher()
