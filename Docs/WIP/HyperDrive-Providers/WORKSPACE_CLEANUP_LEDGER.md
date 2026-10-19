@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 Oracle credential native matrix reused same runtime/container/volume/secret/cached builds/fixed reports. Expanded existing fixtures prove current reset/refresh rotation and all three token ambiguity selectors;22native pass12s. Exact original conditional cleanup, journals0/container stopped. No new downloads/install/environment/reset/broad deletion/reclaim. Evidence hash and authority-scope limitations in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 Oracle export error correction reused retained runtime/container/volume/secret/fixed reports and cached builds. Four before-fix unit failures retained; final114units/22native pass. Duplicate native fixtures cleaned only by original conditional owner after readback, journals0/container stopped. No install/download/new environment/reset/broad cleanup/reclaim. Exact hashes/scope in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 generated Oracle ID acceptance reused same pinned container/volume/secret and cached builds. Four new native cases journal generated IDs BEFORE dispatch (append-only cumulative JSONL), verify actual persisted ID/version/parent linkage then exact conditional cleanup and absence. Full22native pass12s; same retained container stopped/journals0. Second successful run validates journal append improvement. No download/install/new environment/reset/broad deletion/reclaim. Hash/scope/open gates in ORACLE_CLIENT_PRIORITY.md; fixed report path reused, not accumulating per-run directories.

@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Native credential-selector acceptance — 2026-10-19
+
+Inspected OracleCredentialReads and existing OASISStorageProviderBase/IOASISStorageProvider selector: Oracle already delegates latest-version selection to shared collection/projection logic, including duplicate-match rejection. No second credential selector implementation added. Extended existing actual native canonical fixture with reset/refresh tokens through two rotations (history retained, final version3). Sync/async current reset/refresh resolve correct avatar/version3, original tokens return error/no avatar, explicit version1 rejects before credential authority lookup. Existing verification-token rotation check remains.
+
+Duplicate native fixture now persists identical verification/reset/refresh selectors on two distinct avatars. All six sync/async token calls reject with AmbiguousIdentity/no avatar/IsLoadedfalse rather than selecting first match. Existing native cleanup reconciles all originals and conditionally removes exact snapshots. Full22/22native pass12s/zero skips SHA256 `F4155341D9818941FB92A213EB0508CD2FB2B3420DB46B4110F3D377EB67F0CF` (fixed oracle-native-current.trx). Producer/integration cached builds0errors2/7warnings; unit114 prior evidence unchanged/not rerun. Same container stopped, pending journals0, no download/install/new environment/reset. This tests storage lookup, NOT token expiry/revocation/auth-manager enforcement or hosted authentication; wallet-key selectors/security/encryption/full interface/V2 remain unproven.
+
 ## Identity export errors preserved — 2026-10-19
 
 Username/email export wrappers previously replaced ANY failed avatar lookup with a generic not-found message and lost Exception/ErrorCode. Now propagate the original error result fields; only an error-free null result is classified as missing. No alternate lookup/retry/first-match behavior added. Four new sync/async negative-version assertions reproduce prior lost exceptions before source fix:26selected cases22pass4fail, oracle-export-errors-before.trx SHA256 `88F51C64364F65F1ABA2426179F28F84C365D034FCC0009D4F7FB8EE95199008`. After producer then consumer rebuild, full114/114units pass643ms/zero skips, oracle-export-errors.trx SHA256 `AE4ED9E65A647444894248E5E58986F890853EA13E70D22DD0B6868D8D9E81BA`.
