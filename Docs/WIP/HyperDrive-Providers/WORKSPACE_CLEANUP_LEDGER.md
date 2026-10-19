@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 bounded large Unicode receipt acceptance reused SAME Oracle SDK/cache/container/volume/secret/fixed report.49native pass26s; existing atomic fixture expanded (not new environment). All four committed original receipts exact-ID+hash cleanup now independently absent before journal removal; original graph native absence verified after deletion/replay. Journals0/container stopped/no install/download/reset/broad deletion/reclaim. Windows free71,332,929,536bytes observed; exact scope/hash in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 local Oracle precommit receipt/ack validation reused same retained runtime/container/data/secret/SDK/cache/fixed reports.49native/473Shared pass, checksum-valid invalid field fixtures preserved until exact cleanup/native absence, journals0/container stopped. No download/install/new environment/reset/broad deletion/reclaim. Hashes/local-only scope in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 local receipt operation/intent binding verified with SAME retained Oracle environment/cache/fixed reports.45native/468Shared pass; same-ID wrong-context receipts preserved until exact conditional cleanup+independent absence, original graphs public-hard-deleted/native absence, journals0/container stopped. Local receiptformat3not released, no install/download/new runtime/reset/broad deletion/reclaim. Hashes/remaining gates in ORACLE_CLIENT_PRIORITY.md.

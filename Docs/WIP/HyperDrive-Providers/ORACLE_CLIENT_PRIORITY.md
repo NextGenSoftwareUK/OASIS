@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Large Unicode conditional receipt replay — LOCAL ONLY, 2026-10-19
+
+Expanded existing two-node atomic receipt case with32769BMPtree characters plus supplementary-plane tree/seedling emoji in original Description. First acknowledgement exact, independent native receipt CLOB length>32767characters and checksum/context/graph/revision-bound decoding preserves text. Later update replaces Description with compact payload; original operation replay still returns original Unicode. After soft/hard graph deletion, original receipt replay again returns exact Unicode WITHOUT recreating records. This is bounded CLOB/Unicode acceptance, NOT maximum receipt capacity/retention/performance proof.
+
+Cleanup tightened: each of four known committed receipt exact operationID+hash deletes now followed by independent native absence before journal removal, closing the earlier cleanup-proof limitation. Native graph absence remains checked after hard deletion and replay. No production change required for this tested path.
+
+Full49/49native pass26s/zero skips =48acceptance+1diagnostic SHA256 `B637153E7A5CD5C0D3A44E68B57B01F2ADF7A7296522ED5DF2AA8AD4F24497AA`, fixed oracle-native-current.trx. Cached producer/integration0errors2/7warnings; prior127Oracle units/473Shared not rerun. Same runtime stopped/journals0/no download/install/new environment/reset. Windows free71,332,929,536bytes observed, not allocation/reclaim attribution. Source remains local/uncommitted/unadvertised pending graph option/authority/Core dependency/immutable artifact/API/V2 gates; no all-provider completeness claim.
+
 ## Precommit acknowledgement validation — LOCAL ONLY, 2026-10-19
 
 Atomic owner now decodes/validates the exact bound receipt BEFORE receipt UPDATE/native commit, retains that detached validated acknowledgement and returns it only after commit. Invalid acknowledgement cannot first become a committed success and only then fail postcommit decoding. Bound shared read requires positive logical version/nonempty VersionId, nonempty provider revision distinct from logical VersionId and prior expected revision, create-only version1/empty previous version, and tombstone for deletes. Oracle wrapper additionally requires Oracle storage key equal acknowledged GUID; that Oracle-specific rule is NOT imposed on generic provider keys.
