@@ -230,6 +230,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsTrue(generated.Result.PublicKey.StartsWith("ed25519:"));
             Assert.IsTrue(generated.Result.PrivateKey.StartsWith("ed25519:"));
             Assert.AreEqual(64, generated.Result.WalletAddressLegacy.Length);
+            Assert.IsNull(generated.Result.WalletAddressSegwitP2SH);
 
             var balance = await _provider.GetBalanceAsync(new GetWeb3WalletBalanceRequest
                 { WalletAddress = Required("NEAROASIS_ACCOUNTID") });
@@ -284,10 +285,18 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                 ToWalletAddress = recipient, Amount = 1m
             })).IsError);
             Assert.IsFalse((await _provider.UnlockTokenAsync(new UnlockWeb3TokenRequest { TokenAddress = symbol })).IsError);
+            var holderBurn=await _provider.BurnTokenAsync(new BurnWeb3TokenRequest{TokenAddress=symbol,Amount=1.25m,
+                OwnerPrivateKey=independent.Result.PrivateKey,OwnerPublicKey=independent.Result.PublicKey,OwnerSeedPhrase=""});
+            Assert.IsFalse(holderBurn.IsError,holderBurn.Message);
+            Assert.AreEqual(6.75m,(await _provider.GetCustomTokenBalanceAsync(symbol,recipient)).Result);
             Assert.IsFalse((await _provider.BurnTokenAsync(new BurnWeb3TokenRequest
                 { Amount = 0.25m, TokenAddress = symbol, OwnerPublicKey = "", OwnerPrivateKey = "", OwnerSeedPhrase = "" })).IsError);
             Assert.AreEqual(91.75m, (await _provider.GetCustomTokenBalanceAsync(symbol, Required("NEAROASIS_ACCOUNTID"))).Result);
-            Assert.AreEqual(8m, (await _provider.GetCustomTokenBalanceAsync(symbol, recipient)).Result);
+            Assert.AreEqual(6.75m, (await _provider.GetCustomTokenBalanceAsync(symbol, recipient)).Result);
+            var namedBurn=await _provider.BurnTokenAsync(new BurnWeb3TokenRequest{TokenAddress=symbol,Amount=0.25m,
+                OwnerPrivateKey=Required("NEAROASIS_PRIVATEKEY"),OwnerPublicKey="",OwnerSeedPhrase=""},Required("NEAROASIS_ACCOUNTID"));
+            Assert.IsFalse(namedBurn.IsError,namedBurn.Message);
+            Assert.AreEqual(91.5m,(await _provider.GetCustomTokenBalanceAsync(symbol,Required("NEAROASIS_ACCOUNTID"))).Result);
         }
 
         [TestMethod]

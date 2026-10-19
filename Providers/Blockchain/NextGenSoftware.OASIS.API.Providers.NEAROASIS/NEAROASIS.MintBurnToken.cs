@@ -66,21 +66,61 @@ public partial class NEAROASIS
     public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request) =>
         BurnTokenAsync(request).GetAwaiter().GetResult();
 
-    public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+    public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        => BurnTokenCoreAsync(request,null,false);
+
+    /// <summary>Explicit account scope for NEAR named accounts; public keys are not account addresses.</summary>
+    public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request,string ownerAccountId)
+        => BurnTokenCoreAsync(request,ownerAccountId,true);
+
+    public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request,string ownerAccountId)
+        => BurnTokenAsync(request,ownerAccountId).GetAwaiter().GetResult();
+
+    private async Task<OASISResult<ITransactionResponse>> BurnTokenCoreAsync(IBurnWeb3TokenRequest request,string ownerAccountId,bool explicitAccount)
     {
         var result = new OASISResult<ITransactionResponse>();
+        string acknowledged=null;
         try
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
-                throw new ArgumentException("Token address is required.");
+            ArgumentNullException.ThrowIfNull(request);
+            var symbol=request.TokenAddress;var privateKey=request.OwnerPrivateKey;var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
             var amount = ToTokenUnits(request.Amount);
+            if(string.IsNullOrWhiteSpace(symbol))throw new ArgumentException("Token address is required.");
+            if(explicitAccount&&string.IsNullOrWhiteSpace(ownerAccountId))throw new ArgumentException("An explicit NEAR account scope must be nonblank.");
+            ValidateNearSigningInputs(seed);
+            NearKeyPair knownKey=null;
+            if(!explicitAccount&&!string.IsNullOrWhiteSpace(privateKey))
+            {
+                knownKey=await _sdk.DerivePublicKeyAsync(privateKey);
+                ownerAccountId=knownKey.ImplicitAccountId;
+            }
+            ownerAccountId??=_accountId;
+            var signer=await ResolveNearSignerAsync(ownerAccountId,privateKey,publicKey,knownKey);
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var tx = await _sdk.CallAsync("token_burn", new { symbol = request.TokenAddress, amount });
+            var before=await ReadCustomTokenUnitsAsync(symbol,signer.Account);
+            var quantity=BigInteger.Parse(amount,CultureInfo.InvariantCulture);
+            if(before<quantity)throw new ArgumentException("Burn amount exceeds the selected holder's balance.");
+            var tx = await _sdk.CallAsync("token_burn", new { symbol, amount },signerAccountId:signer.Account,signerPrivateKey:signer.Key);
+            acknowledged=tx;
+            var after=await ReadCustomTokenUnitsAsync(symbol,signer.Account);
+            if(after!=before-quantity)throw new System.IO.InvalidDataException("Native token balance after burn differs from the expected exact decrement.");
             result.Result = new TransactionResponse { TransactionResult = tx };
             result.Message = "Token burned by the deployed NEAR contract.";
         }
-        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error burning NEAR token: {ex.Message}", ex); }
+        catch (Exception ex) {
+            if(!string.IsNullOrWhiteSpace(acknowledged))ex=new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,acknowledged,ex);
+            OASISErrorHandling.HandleError(ref result, $"Error burning NEAR token: {ex.Message}", ex);
+        }
         return result;
+    }
+
+    private async Task<BigInteger> ReadCustomTokenUnitsAsync(string symbol,string owner)
+    {
+        var value=await _sdk.ViewAsync("token_balance",new{symbol,account_id=owner});
+        if(value.ValueKind!=System.Text.Json.JsonValueKind.String
+            ||!BigInteger.TryParse(value.GetString(),NumberStyles.None,CultureInfo.InvariantCulture,out var units)||units.Sign<0)
+            throw new System.IO.InvalidDataException("Native custom-token balance is not an unsigned integer string.");
+        return units;
     }
 
     public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request) =>
@@ -116,8 +156,7 @@ public partial class NEAROASIS
         try
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var value = await _sdk.ViewAsync("token_balance", new { symbol, account_id = accountId });
-            var units = BigInteger.Parse(value.GetString(), CultureInfo.InvariantCulture);
+            var units = await ReadCustomTokenUnitsAsync(symbol,accountId);
             result.Result = (decimal)units / CustomTokenScale;
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error reading NEAR token balance: {ex.Message}", ex); }
@@ -197,10 +236,8 @@ public partial class NEAROASIS
         try
         {
             var nearKey = await _sdk.GenerateKeyPairAsync();
-            var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-            keyPair.PublicKey = nearKey.PublicKey;
-            keyPair.PrivateKey = nearKey.PrivateKey;
-            keyPair.WalletAddressLegacy = nearKey.ImplicitAccountId;
+            var keyPair = new KeyHelper.KeyPairAndWallet{PublicKey=nearKey.PublicKey,PrivateKey=nearKey.PrivateKey,
+                WalletAddressLegacy=nearKey.ImplicitAccountId,WalletAddressSegwitP2SH=null};
             result.Result = keyPair;
             result.Message = "Ed25519 NEAR key pair generated by near-api-js.";
         }
