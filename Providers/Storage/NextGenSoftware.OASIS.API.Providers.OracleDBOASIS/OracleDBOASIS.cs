@@ -673,24 +673,13 @@ WHEN NOT MATCHED THEN
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            var result = new OASISResult<bool>();
-            try
+            if(!Guid.TryParse(providerKey,out var id))
             {
-                await using var conn = new OracleConnection(_connectionString);
-                await conn.OpenAsync();
-                string sql = softDelete
-                    ? "UPDATE OASISAVATARS SET ISDELETED=1 WHERE USERNAME=:Key OR EMAIL=:Key"
-                    : "DELETE FROM OASISAVATARS WHERE USERNAME=:Key OR EMAIL=:Key";
-                await using var cmd = CreateCommand(sql, conn);
-                cmd.Parameters.Add(":Key", OracleDbType.Varchar2).Value = providerKey;
-                int rows = await cmd.ExecuteNonQueryAsync();
-                result.Result = rows > 0;
-                result.Message = result.Result
-                    ? $"OracleDBOASIS: Avatar '{providerKey}' {(softDelete ? "soft" : "hard")}-deleted."
-                    : $"OracleDBOASIS: No avatar found matching '{providerKey}'.";
+                var result=new OASISResult<bool>();
+                var error=new FormatException("Oracle avatar storage key must be a GUID.");
+                result.Exception=error;OASISErrorHandling.HandleError(ref result,error.Message);return result;
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error deleting avatar '{providerKey}': {ex.Message}"); }
-            return result;
+            return await DeleteAvatarAsync(id,softDelete);
         }
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
 
