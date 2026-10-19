@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
 
             modelBuilder.Entity<AvatarDetailModel>()
                 .HasMany(avatar => avatar.Gifts)
-                .WithOne()
+                .WithOne(gift=>gift.AvatarDetail)
                 .HasForeignKey(ob => ob.AvatarId);
 
             modelBuilder.Entity<AvatarDetailModel>()
@@ -146,7 +146,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             modelBuilder.Entity<AvatarChakraModel>()
                 .HasMany(ac => ac.GiftsUnlocked)
                 .WithOne()
-                .HasForeignKey(ob => ob.AvatarChakraId);
+                .HasForeignKey(ob => ob.AvatarChakraId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<AvatarDetailModel>()
                 .HasOne<AvatarStatsModel>(avatar => avatar.Stats)

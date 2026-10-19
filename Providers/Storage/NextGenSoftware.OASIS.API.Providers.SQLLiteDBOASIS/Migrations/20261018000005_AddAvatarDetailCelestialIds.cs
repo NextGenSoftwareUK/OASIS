@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations;
 
 [DbContext(typeof(DataContext))]
 [Migration("20261018000005_AddAvatarDetailCelestialIds")]
-public sealed class AddAvatarDetailCelestialIds:Migration
+public sealed partial class AddAvatarDetailCelestialIds:Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
         => migrationBuilder.AddColumn<string>(name:"CelestialParentIdsJson",table:"AvatarDetail",type:"TEXT",nullable:false,defaultValue:"{}");
