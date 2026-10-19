@@ -251,7 +251,11 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
         public async Task OfficialContract_PerformsCustomTokenLifecycle()
         {
             var symbol = $"NEAR-{Guid.NewGuid():N}";
-            var recipient = (await _provider.GenerateKeyPairAsync()).Result.WalletAddressLegacy;
+            var independent = await _provider.GenerateKeyPairAsync();
+            Assert.IsFalse(independent.IsError,independent.Message);
+            var recipient = independent.Result.WalletAddressLegacy;
+            var funded=await _provider.SendTokenAsync(new SendWeb3TokenRequest{ToWalletAddress=recipient,Amount=0.1m});
+            Assert.IsFalse(funded.IsError,funded.Message);
             var minted = await _provider.MintTokenAsync(new MintWeb3TokenRequest
                 { Symbol = symbol, Title = "NEAR runtime token", Amount = 100m });
             Assert.IsFalse(minted.IsError, minted.Message);
@@ -264,6 +268,15 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse(sent.IsError, sent.Message);
             Assert.AreEqual(90m, (await _provider.GetCustomTokenBalanceAsync(symbol, Required("NEAROASIS_ACCOUNTID"))).Result);
             Assert.AreEqual(10m, (await _provider.GetCustomTokenBalanceAsync(symbol, recipient)).Result);
+            var independentSend=await _provider.SendTokenAsync(new SendWeb3TokenRequest
+            {
+                FromTokenAddress=symbol,FromWalletAddress=recipient,OwnerPrivateKey=independent.Result.PrivateKey,
+                ToWalletAddress=Required("NEAROASIS_ACCOUNTID"),Amount=2m
+            });
+            Assert.IsFalse(independentSend.IsError,independentSend.Message);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(independentSend.Result.TransactionResult));
+            Assert.AreEqual(92m,(await _provider.GetCustomTokenBalanceAsync(symbol,Required("NEAROASIS_ACCOUNTID"))).Result);
+            Assert.AreEqual(8m,(await _provider.GetCustomTokenBalanceAsync(symbol,recipient)).Result);
             Assert.IsFalse((await _provider.LockTokenAsync(new LockWeb3TokenRequest { TokenAddress = symbol })).IsError);
             Assert.IsTrue((await _provider.SendTokenAsync(new SendWeb3TokenRequest
             {
@@ -273,8 +286,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse((await _provider.UnlockTokenAsync(new UnlockWeb3TokenRequest { TokenAddress = symbol })).IsError);
             Assert.IsFalse((await _provider.BurnTokenAsync(new BurnWeb3TokenRequest
                 { Amount = 0.25m, TokenAddress = symbol, OwnerPublicKey = "", OwnerPrivateKey = "", OwnerSeedPhrase = "" })).IsError);
-            Assert.AreEqual(89.75m, (await _provider.GetCustomTokenBalanceAsync(symbol, Required("NEAROASIS_ACCOUNTID"))).Result);
-            Assert.AreEqual(10m, (await _provider.GetCustomTokenBalanceAsync(symbol, recipient)).Result);
+            Assert.AreEqual(91.75m, (await _provider.GetCustomTokenBalanceAsync(symbol, Required("NEAROASIS_ACCOUNTID"))).Result);
+            Assert.AreEqual(8m, (await _provider.GetCustomTokenBalanceAsync(symbol, recipient)).Result);
         }
 
         [TestMethod]

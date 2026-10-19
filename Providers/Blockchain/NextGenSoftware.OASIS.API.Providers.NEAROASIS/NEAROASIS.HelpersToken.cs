@@ -97,30 +97,34 @@ public partial class NEAROASIS
         {
             if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress) || request.Amount <= 0)
                 throw new ArgumentException("Destination account and a positive amount are required.");
+            // Freeze all used caller fields before activation or any SDK await.
+            var destination=request.ToWalletAddress;var source=request.FromWalletAddress;
+            var tokenAddress=request.FromTokenAddress;var ownerKey=request.OwnerPrivateKey;var amount=request.Amount;
+            var native=string.IsNullOrWhiteSpace(tokenAddress)||string.Equals(tokenAddress,"NEAR",StringComparison.OrdinalIgnoreCase);
+            var units=native?NearNativeAmount.ToYocto(amount):ToTokenUnits(amount);
+            var signer=string.IsNullOrWhiteSpace(source)?null:source;
+            var signerKey=string.IsNullOrWhiteSpace(ownerKey)?null:ownerKey;
+            if(signer!=null&&!string.Equals(signer,_accountId,StringComparison.Ordinal)&&signerKey==null)
+                throw new ArgumentException("An explicit independent NEAR sender requires its own signing key; the service key cannot substitute for it.");
             if (!await EnsureSdkActiveAsync(result)) return result;
             string tx;
-            if (string.IsNullOrWhiteSpace(request.FromTokenAddress) ||
-                string.Equals(request.FromTokenAddress, "NEAR", StringComparison.OrdinalIgnoreCase))
+            if (native)
             {
-                var yocto = NearNativeAmount.ToYocto(request.Amount);
-                tx = await _sdk.TransferAsync(request.ToWalletAddress, yocto,
-                    string.IsNullOrWhiteSpace(request.FromWalletAddress) ? null : request.FromWalletAddress,
-                    string.IsNullOrWhiteSpace(request.OwnerPrivateKey) ? null : request.OwnerPrivateKey);
+                tx = await _sdk.TransferAsync(destination, units,signer,signerKey);
             }
             else
             {
                 tx = await _sdk.CallAsync("token_transfer", new
                 {
-                    symbol = request.FromTokenAddress,
-                    from_id = string.IsNullOrWhiteSpace(request.FromWalletAddress) ? _accountId : request.FromWalletAddress,
-                    receiver_id = request.ToWalletAddress,
-                    amount = ToTokenUnits(request.Amount)
-                });
+                    symbol = tokenAddress,
+                    from_id = signer??_accountId,
+                    receiver_id = destination,
+                    amount = units
+                },signerAccountId:signer,signerPrivateKey:signerKey);
             }
             await RecordWalletTransactionAsync(tx,
-                string.IsNullOrWhiteSpace(request.FromWalletAddress) ? _accountId : request.FromWalletAddress,
-                request.ToWalletAddress, request.Amount,
-                string.IsNullOrWhiteSpace(request.FromTokenAddress) ? "Native NEAR transfer" : $"NEAR token transfer {request.FromTokenAddress}");
+                signer??_accountId,destination,amount,
+                native ? "Native NEAR transfer" : $"NEAR token transfer {tokenAddress}");
             result.Result = new TransactionResponse { TransactionResult = tx };
             result.Message = "Token transferred through the official NEAR SDK.";
         }

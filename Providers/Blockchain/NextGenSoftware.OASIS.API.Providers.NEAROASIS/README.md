@@ -72,6 +72,14 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 ## Troubleshooting
 
+### Independent custom-token senders (2026-10-18)
+
+Custom-contract token sends now forward the supplied `FromWalletAddress` and `OwnerPrivateKey` to the official SDK, like native NEAR sends. Previously the custom branch ignored the owner key and used the service signer, causing contract rejection for independent holders. An explicit independent sender without its key now fails before activation rather than substituting the service key. Default service-owner sends remain supported. Used request fields are frozen before SDK awaits, and exact native/custom units validated before activation.
+
+Current retained native suite17/17 passes153seconds, including an actual funded independent holder returning2custom units after receiving10; balance reads prove issuer92/holder8 and later issuer burn91.75/holder8. Funding and all fees use LOCAL sandbox testNEAR only, not public-chain money. Focused unit39/39 passes1second; legacy default-mainnet template class is excluded, so this is not a complete old unit-project claim. Same SDK7.3.1/runtime2.6.2/ledger/contract retained, node gracefully stopped after verification. Exact hashes and remaining gates are in `Docs/Devs/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
+
+These custom-token methods target the existing OASIS fixture contract, not generic NEP141 interoperability. General signer authorization, burn/NFT signer coverage, escrow semantics, fee accounting and durable original-transaction recovery remain separate open gates. No API production fee or full-provider certification is implied.
+
 - Restore/assembly mismatch: pin a coherent set of package versions and inspect the dependency graph.
 - Configuration or authentication error: inspect the owning component's result diagnostics and service requirements without exposing secrets.
 - Native loading failure: verify OS/architecture and required native artifacts rather than suppressing the error.
