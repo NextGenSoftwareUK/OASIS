@@ -12,6 +12,7 @@ This folder contains this workstream's transient reports, audits, evidence inven
 - [Native fees, rebates and recovery](HYPERDRIVE_V2_NATIVE_FEE_ACCOUNTING.md)
 - [Encryption comparison](OASIS_ENCRYPTION_ARCHITECTURE_COMPARISON.md)
 - [Environment reuse and cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
+- [Measured existing environment/runtime inventory](ENVIRONMENT_INVENTORY.md)
 
 Other files hold provider-specific histories, retained-runtime evidence and generated API manifests. Reports contain chronological entries; use their latest scoped evidence and outstanding gates, not older claims or the presence of a test project, to assess readiness. Oracle was promoted to top client priority on2026-10-19. No provider is certified100% across all interfaces, hosted deployment and HyperDrive V2 guarantees.
 

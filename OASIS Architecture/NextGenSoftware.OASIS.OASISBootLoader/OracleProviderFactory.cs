@@ -12,6 +12,6 @@ internal static class OracleProviderFactory
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new ArgumentException("OracleDBOASIS requires an explicit connection string.", nameof(settings));
 
-        return new OracleDBOASIS(connectionString);
+        return new OracleDBOASIS(connectionString) { IsVersionControlEnabled=settings?.IsVersionControlEnabled??false };
     }
 }

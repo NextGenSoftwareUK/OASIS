@@ -2,7 +2,13 @@
 
 WEB4 OASIS API Oracle Database OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integrate into the OASIS.
 
-Oracle Database is the world's most widely used enterprise RDBMS, trusted by Fortune 500 companies and available as Oracle Autonomous Database in the cloud. This provider stores OASIS holons and avatars using Oracle.ManagedDataAccess.Core with indexed lookup columns and full JSON serialisation via CLOB, compatible with Oracle Database 12c+ and Oracle Autonomous Database. Fully integrated with the OASIS HOT-Swappable Provider Architecture — switch to or from Oracle at runtime with zero code changes.
+This provider uses the real Oracle.ManagedDataAccess.Core client with indexed lookup columns and canonical JSON records in CLOBs. It targets Oracle Database, including applicable OCI-hosted database services; it does not implement OCI Object Storage. Hosted service, wallet/IAM and full interface acceptance must be verified separately.
+
+## Configuration and verification
+
+Configure `OASIS.StorageProviders.OracleDBOASIS.ConnectionString` through the host's secure configuration. `IsVersionControlEnabled` defaults to false; enabling it creates version archives. Existing archives are preserved when creation is disabled. Historical profile reads do not authorize historical credentials: verification/reset/refresh token selectors require version zero.
+
+Activation currently initializes/verifies SQL tables and indexes. Use only a database/schema where that provisioning is explicitly authorized. Real SQL tests reuse one retained local Oracle Free instance; they do not certify hosted Autonomous Database or every provider/HyperDrive interface. Current scoped evidence and remaining gates are tracked in [the working verification report](../../../Docs/WIP/HyperDrive-Providers/ORACLE_CLIENT_PRIORITY.md).
 
 Initial Release targeting OASIS API v2.0.0: \
 https://api.oasisweb4.one

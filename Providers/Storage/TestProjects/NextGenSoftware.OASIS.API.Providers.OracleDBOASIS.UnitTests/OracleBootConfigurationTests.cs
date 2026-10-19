@@ -9,17 +9,18 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 [TestClass]
 public sealed class OracleBootConfigurationTests
 {
-    [TestMethod]
-    public void DnaRoundTripConstructsUnactivatedProviderWithoutDatabaseAccess()
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void DnaRoundTripConstructsUnactivatedProviderWithoutDatabaseAccess(bool enabled)
     {
         var settings = new StorageProviderSettings
         {
-            OracleDBOASIS = new OracleDBOASISSettings { ConnectionString = "Data Source=owned-not-connected;User Id=owned" }
+            OracleDBOASIS = new OracleDBOASISSettings { ConnectionString = "Data Source=owned-not-connected;User Id=owned",IsVersionControlEnabled=enabled }
         };
         var restored = JsonConvert.DeserializeObject<StorageProviderSettings>(JsonConvert.SerializeObject(settings))!;
         var provider = OracleProviderFactory.Create(restored.OracleDBOASIS);
         Assert.AreEqual(settings.OracleDBOASIS.ConnectionString, ConnectionString(provider));
         Assert.IsFalse(provider.IsProviderActivated);
+        Assert.AreEqual(enabled,provider.IsVersionControlEnabled);
     }
 
     [TestMethod]

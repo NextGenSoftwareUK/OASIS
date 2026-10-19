@@ -120,6 +120,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class OracleDBOASISSettings : ProviderSettingsBase
     {
+        public bool IsVersionControlEnabled { get; set; }
     }
 
     public class PinataOASISSettings : ProviderSettingsBase
