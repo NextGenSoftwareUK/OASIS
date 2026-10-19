@@ -9,9 +9,88 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests;
 
-/// <summary>Real retained CSS pod, synthetic data, anonymous loopback transport only—not OIDC proof.</summary>
+/// <summary>Retained CSS server: anonymous encrypted storage and native private DPoP client-credentials tests.</summary>
 public class RetainedSolidPodTests
 {
+    [Fact]
+    public async Task PrivateDpopPodDeniesAnonymousAndSupportsEncryptedProviderCrud()
+    {
+        var work=Path.GetDirectoryName(Environment.GetEnvironmentVariable("OASIS_SOLID_NATIVE_KEY_PATH"))!;
+        var secret=ProtectedData.Unprotect(await File.ReadAllBytesAsync(Path.Combine(work,"private-local-client.dpapi")),null,DataProtectionScope.CurrentUser);
+        var key=ProtectedData.Unprotect(await File.ReadAllBytesAsync(Environment.GetEnvironmentVariable("OASIS_SOLID_NATIVE_KEY_PATH")!),null,DataProtectionScope.CurrentUser);
+        try{
+            using var credentials=JsonDocument.Parse(secret);
+            var root=new Uri("http://localhost:13000/oasis-auth-local/");
+            var id=credentials.RootElement.GetProperty("id").GetString()!;
+            var password=credentials.RootElement.GetProperty("secret").GetString()!;
+            using var anonymous=new HttpClient{Timeout=TimeSpan.FromSeconds(10)};
+            SolidDpopClientCredentialsHandler Handler()=>new(root,new Uri("http://localhost:13000/.oidc/token"),id,password);
+            using var client=new HttpClient(Handler()){Timeout=TimeSpan.FromSeconds(20)};
+            // CSS deliberately publishes the new Pod root by default. Configure only this owned
+            // synthetic Pod with an owner-only inheritable ACL before testing private storage.
+            var podBytes=ProtectedData.Unprotect(await File.ReadAllBytesAsync(Path.Combine(work,"private-local-pod.dpapi")),null,DataProtectionScope.CurrentUser);
+            string webId;
+            try{using var pod=JsonDocument.Parse(podBytes);webId=pod.RootElement.GetProperty("webId").GetString()!;}
+            finally{CryptographicOperations.ZeroMemory(podBytes);}
+            Assert.StartsWith(root.AbsoluteUri,webId);
+            var aclUri=new Uri(root,".acl");
+            using var acl=await client.GetAsync(aclUri);Assert.True(acl.IsSuccessStatusCode,$"Authenticated ACL read status {(int)acl.StatusCode}; challenge {string.Join(";",acl.Headers.WwwAuthenticate)}: {await acl.Content.ReadAsStringAsync()}");
+            var original=await acl.Content.ReadAsStringAsync();
+            var expected=$"@prefix acl: <http://www.w3.org/ns/auth/acl#>. <#owner> a acl:Authorization; acl:agent <{webId}>; acl:accessTo <{root.AbsoluteUri}>; acl:default <{root.AbsoluteUri}>; acl:mode acl:Read, acl:Write, acl:Control.";
+            if(original!=expected){
+                var aclJournal=Path.Combine(work,"private-acl-pending.json");
+                await WriteJournalAsync(aclJournal,new{resource=aclUri.AbsoluteUri,original,expected});
+                using var updateAcl=new HttpRequestMessage(HttpMethod.Put,aclUri){Content=new StringContent(expected,Encoding.UTF8,"text/turtle")};
+                Assert.NotNull(acl.Headers.ETag);updateAcl.Headers.IfMatch.Add(acl.Headers.ETag!);
+                using var changed=await client.SendAsync(updateAcl);Assert.True(changed.IsSuccessStatusCode,$"Private ACL update: {(int)changed.StatusCode}");
+                using var verified=await client.GetAsync(aclUri);Assert.True(verified.IsSuccessStatusCode);Assert.Equal(expected,await verified.Content.ReadAsStringAsync());
+                File.Delete(aclJournal);
+            }
+            using var denied=await anonymous.GetAsync(root);
+            Assert.Contains(denied.StatusCode,new[]{HttpStatusCode.Unauthorized,HttpStatusCode.Forbidden});
+            var journal=Path.Combine(work,"private-native-pending.json");
+            Assert.False(File.Exists(journal),"Reconcile original private fixture before further writes.");
+            var holon=new Holon{Id=Guid.NewGuid(),Name="private-dpop-canary",Version=1};
+            var resource=new Uri(root,$"oasis/holons/{holon.Id}.ttl");
+            await WriteJournalAsync(journal,new{root=root.AbsoluteUri,resource=resource.AbsoluteUri,state="before-private-native-write"});
+            await EnsureContainersAsync(client,root.AbsoluteUri);
+            using var provider=new SOLIDOASIS(root.AbsoluteUri,"",key,Handler());
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            var saved=await provider.SaveHolonAsync(holon,saveChildren:false);
+            Assert.False(saved.IsError,saved.Exception?.ToString());
+            using var actual=await client.GetAsync(resource);Assert.True(actual.IsSuccessStatusCode);
+            var rdf=await actual.Content.ReadAsStringAsync();Assert.Contains("oasis-aes256gcm-v1:",rdf);Assert.DoesNotContain(holon.Name,rdf);
+            using var hidden=await anonymous.GetAsync(resource);Assert.Contains(hidden.StatusCode,new[]{HttpStatusCode.Unauthorized,HttpStatusCode.Forbidden});
+            var loaded=await provider.LoadHolonAsync(holon.Id,loadChildren:false);Assert.False(loaded.IsError,loaded.Exception?.ToString());Assert.Equal(holon.Name,loaded.Result.Name);
+            holon.Name="private-dpop-updated";
+            var updated=await provider.SaveHolonAsync(holon,saveChildren:false);Assert.False(updated.IsError,updated.Exception?.ToString());
+            var read=await provider.LoadHolonAsync(holon.Id,loadChildren:false);Assert.False(read.IsError,read.Exception?.ToString());Assert.Equal(holon.Name,read.Result.Name);
+            var deleted=await provider.DeleteHolonAsync(holon.Id);Assert.False(deleted.IsError,deleted.Exception?.ToString());
+            using var absent=await client.GetAsync(resource);Assert.Equal(HttpStatusCode.NotFound,absent.StatusCode);
+            File.Delete(journal);
+        }finally{CryptographicOperations.ZeroMemory(secret);CryptographicOperations.ZeroMemory(key);}
+    }
+
+    private sealed class NoResourceDispatch:HttpMessageHandler
+    {
+        public int Calls;
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
+        {Calls++;throw new InvalidOperationException("Invalid issuer credentials must not dispatch any Pod request.");}
+    }
+
+    [Fact]
+    public async Task RealIssuerRejectsInvalidClientCredentialsBeforeAnyPodDispatch()
+    {
+        var root=Environment.GetEnvironmentVariable("OASIS_SOLID_NATIVE_ROOT");
+        Assert.Equal("http://localhost:13000/native-fixture/",root);
+        var resources=new NoResourceDispatch();
+        using var client=new HttpClient(new SolidDpopClientCredentialsHandler(new Uri(root!),new Uri("http://localhost:13000/.oidc/token"),
+            "nonexistent-owned-test-client","intentionally-invalid-test-secret",resources)){Timeout=TimeSpan.FromSeconds(10)};
+        var error=await Assert.ThrowsAsync<HttpRequestException>(()=>client.GetAsync(root));
+        Assert.Contains(error.StatusCode,new HttpStatusCode?[]{HttpStatusCode.BadRequest,HttpStatusCode.Unauthorized});
+        Assert.Equal(0,resources.Calls);
+    }
+
     private static async Task WriteJournalAsync(string path,object intent)
     {
         // Create-only and flush-to-disk before any native mutation; a pending original is never overwritten.
@@ -35,7 +114,7 @@ public class RetainedSolidPodTests
     public async Task NativeGraphQueriesImportAndExport(bool synchronous)
     {
         var root=Environment.GetEnvironmentVariable("OASIS_SOLID_NATIVE_ROOT")!;
-        Assert.Equal("http://127.0.0.1:13000/native-fixture/",root);
+        Assert.Equal("http://localhost:13000/native-fixture/",root);
         var journal=Environment.GetEnvironmentVariable("OASIS_SOLID_NATIVE_JOURNAL")!;
         Assert.False(File.Exists(journal),"Preserve and reconcile the original native fixture before further writes.");
         var key=ProtectedData.Unprotect(await File.ReadAllBytesAsync(Environment.GetEnvironmentVariable("OASIS_SOLID_NATIVE_KEY_PATH")!),null,DataProtectionScope.CurrentUser);
@@ -94,7 +173,7 @@ public class RetainedSolidPodTests
     public async Task EncryptedNativePodRecordsCollectionsAndLookups(bool synchronous)
     {
         var root=Environment.GetEnvironmentVariable("OASIS_SOLID_NATIVE_ROOT");
-        Assert.Equal("http://127.0.0.1:13000/native-fixture/",root);
+        Assert.Equal("http://localhost:13000/native-fixture/",root);
         var keyPath=Environment.GetEnvironmentVariable("OASIS_SOLID_NATIVE_KEY_PATH")!;
         var journal=Environment.GetEnvironmentVariable("OASIS_SOLID_NATIVE_JOURNAL")!;
         Assert.False(File.Exists(journal),"Original pending pod fixture requires reconciliation; never replay it.");

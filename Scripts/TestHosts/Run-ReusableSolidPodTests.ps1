@@ -11,6 +11,12 @@ $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenO
 try {
 $journal=Join-Path $work 'native-pending.json'
 if(Test-Path -LiteralPath $journal){throw 'Pending original Solid fixture requires reconciliation; never replay/reset.'}
+foreach($pendingName in @('private-native-pending.json','private-acl-pending.json')){
+    if(Test-Path -LiteralPath (Join-Path $work $pendingName)){throw 'Pending private Solid original requires reconciliation; never replay/reset.'}
+}
+foreach($requiredName in @('private-local-client.dpapi','private-local-pod.dpapi')){
+    if(!(Test-Path -LiteralPath (Join-Path $work $requiredName))){throw 'Provision the retained synthetic identity once with Initialize-ReusableSolidIdentity.ps1 before running private authentication tests.'}
+}
 $project=Join-Path $taskRoot 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.csproj'
 if(!(Test-Path -LiteralPath (Join-Path (Split-Path $project) 'obj/project.assets.json'))){throw 'Restore this existing test project once using bounded workers; no per-run restore.'}
 foreach($build in @((Join-Path $taskRoot 'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj'),$project)){
@@ -34,7 +40,7 @@ if(!(Test-Path -LiteralPath $keyPath)){
 $names=@('OASIS_SOLID_NATIVE_ROOT','OASIS_SOLID_NATIVE_KEY_PATH','OASIS_SOLID_NATIVE_JOURNAL');$prior=@{}
 foreach($name in $names){$prior[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try{
-    $env:OASIS_SOLID_NATIVE_ROOT='http://127.0.0.1:13000/native-fixture/'
+    $env:OASIS_SOLID_NATIVE_ROOT='http://localhost:13000/native-fixture/'
     $env:OASIS_SOLID_NATIVE_KEY_PATH=$keyPath;$env:OASIS_SOLID_NATIVE_JOURNAL=$journal
     $started=[DateTime]::UtcNow
     & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~RetainedSolidPodTests' --logger 'trx;LogFileName=solid-native-current.trx' --results-directory $work -v:q
@@ -42,8 +48,8 @@ try{
     $report=Get-Item -LiteralPath (Join-Path $work 'solid-native-current.trx')
     [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
     $counts=$evidence.TestRun.ResultSummary.Counters
-    if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0 -or (Test-Path -LiteralPath $journal)){
-        throw 'Four fresh successful native cases and cleared original fixture journal are required.'
+    if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 6 -or [int]$counts.passed -ne 6 -or [int]$counts.notExecuted -ne 0 -or (Test-Path -LiteralPath $journal) -or (Test-Path -LiteralPath (Join-Path $work 'private-native-pending.json'))){
+        throw 'Six fresh successful native cases and cleared original fixture journals are required.'
     }
 }finally{foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$prior[$name],'Process')}}
 # Container belongs to its operator, not this reuse-only runner: do not stop/remove/reset it.
