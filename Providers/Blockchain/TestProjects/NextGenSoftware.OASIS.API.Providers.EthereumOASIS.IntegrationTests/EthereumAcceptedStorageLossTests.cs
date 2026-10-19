@@ -98,7 +98,8 @@ public partial class EthereumOASISIntegrationTests
                 var deleted=await service.ContractHandler.SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteAvatarDetailByIdentityFunction{EntityId=numeric,Identity=id.ToString()});
                 Assert.AreEqual(BigInteger.One,deleted.Status.Value);Assert.AreEqual(BigInteger.Zero,(await service.GetAvatarDetailByIdQueryAsync(numeric)).ReturnValue1.EntityId);
             }else{var deleted=await healthy.DeleteHolonAsync(id);Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsTrue(deleted.IsDeleted);Assert.AreEqual(BigInteger.Zero,(await service.GetHolonByIdQueryAsync(numeric)).ReturnValue1.EntityId);}
-            File.Delete(journal); // Only after original receipt/archive reconciliation and exact native absence.
+            if(Environment.GetEnvironmentVariable("OASIS_WEB3_PREPARED_OUTBOX_REQUIRED")=="1")await VerifyEthereumPreparedOutboxAsync(healthy,address,kind,Persist);
+            File.Delete(journal); // Only after original receipt/archive reconciliation and exact fixture/outbox verification.
             Console.WriteLine(JsonSerializer.Serialize(new{proof="ETHEREUM_ACCEPTED_RESPONSE_LOSS_VERIFIED",kind,id,transactionHash=accepted,
                 gasUsed=receipt.GasUsed.Value.ToString(),gasPriceWei=receipt.EffectiveGasPrice?.Value.ToString(),
                 feeWei=receipt.EffectiveGasPrice==null?null:(receipt.GasUsed.Value*receipt.EffectiveGasPrice.Value).ToString(),fixtureAbsent=true}));

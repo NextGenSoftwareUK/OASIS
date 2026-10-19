@@ -52,23 +52,8 @@ public partial class Web3CoreOASISBaseProvider : NextGenSoftware.OASIS.API.Core.
         if(string.IsNullOrWhiteSpace(clientRequestId) || clientRequestId.Length>110) throw new ArgumentException("Bounded storage correlation required.",nameof(clientRequestId));
         if(_web3CoreOASIS==null || !_expectedChainId.HasValue || _expectedChainId.Value<=0) throw new InvalidOperationException("Activated EVM provider with explicit chain identity required.");
         if(!string.Equals(expectedSender,_web3CoreOASIS.SigningAddress,StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Admitted sender differs from configured EVM signing account.");
-        var chain=_expectedChainId.Value.ToString(CultureInfo.InvariantCulture);var sequence=0;
         var sdk=_web3CoreOASIS;
-        return sdk.WithCancellableNativePreparationAsync(operation,async evidence=>
-        {
-            token.ThrowIfCancellationRequested();
-            var persist=execution.NativePreparationPersistence(ProviderType.Value.ToString(),null,
-                clientRequestId+".storage."+Interlocked.Increment(ref sequence),chain,sdk.SigningAddress,(original,cancellation)=>
-                {
-                    cancellation.ThrowIfCancellationRequested();
-                    var encoded=original.GetProperty("signedTransactionBase64").GetString();var bytes=Convert.FromBase64String(encoded);
-                    if(Convert.ToBase64String(bytes)!=encoded || !string.Equals(original.GetProperty("contract").GetString(),_contractAddress,StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidDataException("Original EVM preparation contract or signed encoding differs.");
-                    Web3SignedPreparation.Verify(bytes,original.GetProperty("transactionHash").GetString(),_expectedChainId.Value,sdk.SigningAddress,
-                        _contractAddress,original.GetProperty("calldata").GetString().HexToByteArray());
-                    return Task.CompletedTask;
-                });
-            await persist(evidence,token);
-        },token);
+        var persist=EvmStoragePreparation.Bind(execution,ProviderType.Value.ToString(),clientRequestId,_expectedChainId.Value,sdk.SigningAddress,_contractAddress);
+        return sdk.WithCancellableNativePreparationAsync(operation,evidence=>persist(evidence,token),token);
     }
 }
