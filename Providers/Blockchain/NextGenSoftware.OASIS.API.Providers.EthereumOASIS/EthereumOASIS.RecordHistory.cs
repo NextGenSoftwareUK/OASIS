@@ -29,12 +29,7 @@ public partial class EthereumOASIS
         var absent=observedEntityId==0 && string.IsNullOrEmpty(observedIdentity) && string.IsNullOrEmpty(observedCiphertext);
         if(!absent){
             if(observedEntityId!=entityId || observedIdentity!=proposed.Id.ToString())throw new InvalidDataException("Ethereum observed history identity mismatch.");
-            prior=JObject.Parse(codec.Decrypt(PrivateStorageContext(kind,entityId),observedCiphertext));
-            var stored=OasisJson.DeserializeStored<T>(prior.ToString(Formatting.None));
-            if(stored==null || stored.Id!=proposed.Id)throw new InvalidDataException("Ethereum prior payload identity mismatch.");
-            if(prior["id"]!=null && prior["id"].Value<string>()!=stored.Id.ToString())throw new InvalidDataException("Ethereum history item identity mismatch.");
-            prior["id"]=stored.Id.ToString();
-            await RecordHistory.ReadAsync(stored.Id,prior,0,OasisJson.DeserializeStored<T>);
+            prior=DecryptStorageDocument<T>(kind,entityId,observedCiphertext,proposed.Id).Document;
         }
         var detached=OasisJson.DeserializeStored<T>(SerializeCanonicalEmbeddedRecord(proposed).ToString(Formatting.None));
         var document=createHistory || prior?.Property(EmbeddedRecordHistory.PropertyName)!=null

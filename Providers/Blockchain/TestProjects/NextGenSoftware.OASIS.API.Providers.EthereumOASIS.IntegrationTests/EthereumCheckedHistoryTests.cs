@@ -85,6 +85,14 @@ public partial class EthereumOASISIntegrationTests
                 Assert.IsFalse(avatar.IsActive);Assert.IsFalse(detail.IsActive);Assert.AreEqual(avatar.DeletedDate,detail.DeletedDate);
                 Assert.IsTrue((await history.ReadAsync(source.Id,avatarDocument,1,OasisJson.DeserializeStored<Avatar>)).IsActive);
                 Assert.IsTrue((await history.ReadAsync(source.Id,detailDocument,1,OasisJson.DeserializeStored<AvatarDetail>)).IsActive);
+                foreach(var historical in new[]{provider.LoadAvatar(source.Id,1),await provider.LoadAvatarAsync(source.Id,1)}){
+                    Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(1,historical.Result.Version);Assert.IsTrue(historical.Result.IsActive);
+                }
+                foreach(var historical in new[]{provider.LoadAvatarDetail(source.Id,1),await provider.LoadAvatarDetailAsync(source.Id,1)}){
+                    Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(1,historical.Result.Version);Assert.IsTrue(historical.Result.IsActive);
+                }
+                var missingAvatar=await provider.LoadAvatarAsync(source.Id,99);Assert.IsTrue(missingAvatar.IsError);Assert.IsNull(missingAvatar.Result);Assert.IsFalse(missingAvatar.IsLoaded);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missingAvatar.ErrorCode);
+                var missingDetail=provider.LoadAvatarDetail(source.Id,99);Assert.IsTrue(missingDetail.IsError);Assert.IsNull(missingDetail.Result);Assert.IsFalse(missingDetail.IsLoaded);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missingDetail.ErrorCode);
                 var hard=await provider.DeleteAvatarAsync(source.Id,softDelete:false);Assert.IsFalse(hard.IsError,hard.Message);Assert.IsTrue(hard.Result);
                 Assert.AreEqual(BigInteger.Zero,(await service.GetAvatarByIdQueryAsync(id)).ReturnValue1.EntityId);
                 Assert.AreEqual(BigInteger.Zero,(await service.GetAvatarDetailByIdQueryAsync(id)).ReturnValue1.EntityId);
