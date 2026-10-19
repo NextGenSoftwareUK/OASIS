@@ -26,6 +26,11 @@ public partial class OracleDBOASIS
     // One existing canonical history format; native SQL owner must lock or CAS the original.
     private async Task<string> StageRecordHistoryAsync<T>(T proposed,string? original) where T:class,IHolonBase
     {
+        // Native optimistic revisions advance on ALL holon writes, independently of logical history.
+        if(proposed is IHolon){
+            proposed=Core.Serialization.StoredRecordJson.Project<T>(proposed);
+            Core.Holons.CosmicConcurrency.SetProviderRevisionId((IHolon)proposed,Core.Enums.ProviderType.OracleDBOASIS,Guid.NewGuid());
+        }
         JObject? previous=null;
         if(original!=null){
             var stored=Deserialize<T>(original!);
