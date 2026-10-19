@@ -1,5 +1,15 @@
 # Oracle client readiness — top priority
 
+## Conditional parent projection integrity — LOCAL ONLY, 2026-10-19
+
+Source review found conditional row admission compared native HOLON_TYPE/IS_DELETED with canonical data but omitted PARENT_HOLON_ID. A save could overwrite that inconsistent projection and a delete could remove it without detecting the integrity failure. The local transaction owner now selects/compares the parent column under the same FOR UPDATE lock, before any graph writes. Null native parent means Guid.Empty, matching canonical SQL writer semantics. No alternate reader, fallback or repair-on-write path was added.
+
+Three new native cases cover Save/SoftDelete/HardDelete. Each journals original synthetic identity/operation/corrupt parent before writes, seeds through the real provider, deliberately changes only the native parent column, then requires InvalidDataException/no acknowledgement/no reconciliation marker/no operation receipt and byte-identical original canonical CLOB. Only after independent original payload readback does exact-ID+known-parent conditional SQL restore the test corruption; public hard-delete and independent row/receipt absence precede journal removal. This is a source-audit correction verified after the fix, not a recorded pre-fix failing test. Real wire/crash/hosted security and general corruption recovery are not proven by this controlled fixture.
+
+Same retained Oracle container/image/data/secret/cache and fixed runner; normal expected count updated from 62 to 65 (64 acceptance + existing SQL mismatch diagnostic). Producer/integration builds: 0 errors, 2/7 warnings. Native 65/65 pass, zero skips, 29 seconds; terminal exit 0, pending journals 0, container exited after owned clean stop. `TestResults/OracleCurrent/oracle-native-current.trx` SHA256 `F68595B0C5880C3EE658ECB7ABA149498F9D6E4CB09849292C711A0303E7B4C6`. Oracle unit build 0 errors/3 warnings, 141/141 pass, zero skips, 906 ms; `oracle-conditional-admission.trx` SHA256 `D5D6E31DFAC204E0B89DC55F8188CD3408E2CCDFBA149F46AD799ADA8139CF20`. Last shared result remains 487/487, not rerun in this batch.
+
+No install/download/new runtime/reset. Conditional source and Core contract remain local/unpublished, interface not advertised; documentation publication is not deployment. Coherent immutable dependency integration, complete conditional interface conformance, hosted Oracle Cloud security and wider V2/all-provider gates remain open.
+
 ## Latest controlled metadata boundary evidence — 2026-10-19
 
 487/487 shared unit tests pass, zero skips; two new authority-metadata/order regressions are detailed in the dated entry at the end of this report. Production code did not change in this batch. Conditional support remains local/unadvertised and not certified end to end.
