@@ -32,7 +32,7 @@ public partial class Web3CoreOASISBaseProvider
                 result.Result=root;result.IsLoaded=true;
                 return result;
             }
-            result=await ReadPrivateGuidAsync<IHolon>(id,version,index=>_web3CoreOASIS.GetHolonByIdAsync(index),row=>DecodePrivateEntity<Holon>("holon",row));
+            result=await ReadPrivateGuidAsync<IHolon>(id,version,index=>_web3CoreOASIS.GetHolonByIdAsync(index),row=>DecodePrivateEntity<Holon>("holon",row,version));
             if(result.IsError) return result;
             var project=HolonGraphProjection.Create(new[] {result.Result},children,recursive,depth,0,false,
                 row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
@@ -48,11 +48,10 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             if(owner==Guid.Empty) throw new ArgumentException("A nonempty export avatar identity is required.",nameof(owner));
-            var loaded=await LoadAllHolonsAsync(loadChildren:false,version:version);
+            var loaded=await ReadPrivateHolonsAsync(HolonType.All,true,true,0,0,true,version);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
-            var project=HolonGraphProjection.Create(records,true,true,0,0,true,row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
-            result.Result=records.Where(row=>row.CreatedByAvatarId==owner || row.ParentHolonId==owner).Select(project).ToArray();result.IsLoaded=true;
+            result.Result=records.Where(row=>row.CreatedByAvatarId==owner || row.ParentHolonId==owner).ToArray();result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -86,7 +85,7 @@ public partial class Web3CoreOASISBaseProvider
         {
             if(pairs==null || pairs.Count==0 || pairs.Keys.Any(string.IsNullOrWhiteSpace)) throw new ArgumentException("Nonempty metadata pairs and keys are required.");
             var search=new Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string>(pairs),MetaKeyValuePairMatchMode=mode};
-            StoredRecordSearch.Validate(search,version,depth);
+            StoredRecordSearch.Validate(search,version,depth,supportsHistory:true);
             var loaded=await ReadPrivateHolonsAsync(type,children,recursive,depth,initialDepth,fromProvider,version);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();loaded.Result=records.Where(row=>StoredRecordSearch.Matches(row,false,search,records)).ToArray();return loaded;
@@ -125,12 +124,13 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core identity is required.",nameof(id));
-            if(version!=0) throw new NotSupportedException("Web3Core historical storage reads are not implemented.");
+            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
             var entity=await load((uint)Core.Utilities.HashUtility.GetNumericHash(id.ToString()));
             if(IsPrivateRecordAbsent(entity))
             {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core record not found.";return result;}
             var record=decode(entity);
+            if(record==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core version not found.";return result;}
             if(record.Id!=id) throw new System.IO.InvalidDataException("Web3Core payload differs from requested full GUID.");
             if(!record.IsActive) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core record not active.";return result;}
             result.Result=record;result.IsLoaded=true;
@@ -144,10 +144,10 @@ public partial class Web3CoreOASISBaseProvider
         var result=new OASISResult<IEnumerable<T>>();
         try
         {
-            if(version!=0) throw new NotSupportedException("Web3Core historical storage reads are not implemented.");
+            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
             var entities=await _web3CoreOASIS.ReadCollectionAsync(kind);
-            result.Result=entities.Select(decode).Where(row=>row.IsActive).ToArray();result.IsLoaded=true;
+            result.Result=entities.Select(decode).Where(row=>row!=null&&row.IsActive).ToArray();result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -159,10 +159,13 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
-            var loaded=await ReadPrivateCollectionAsync<IHolon>("holon",row=>DecodePrivateEntity<Holon>("holon",row),version);
-            if(loaded.IsError) return loaded;
-            var records=loaded.Result.ToList();
-            var project=HolonGraphProjection.Create(records,children,recursive,depth,initialDepth,fromProvider,
+            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            if(_web3CoreOASIS==null)throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            // One pinned collection supplies historical roots and independently current descendants.
+            var entities=await _web3CoreOASIS.ReadCollectionAsync("holon");
+            var current=entities.Select(row=>DecodePrivateEntity<Holon>("holon",row)).Where(row=>row.IsActive).Cast<IHolon>().ToList();
+            var records=version==0?current:entities.Select(row=>DecodePrivateEntity<Holon>("holon",row,version)).Where(row=>row!=null&&row.IsActive).Cast<IHolon>().ToList();
+            var project=HolonGraphProjection.Create(fromProvider?current:records,children,recursive,depth,initialDepth,fromProvider,
                 row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
             result.Result=records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToArray();result.IsLoaded=true;
         }

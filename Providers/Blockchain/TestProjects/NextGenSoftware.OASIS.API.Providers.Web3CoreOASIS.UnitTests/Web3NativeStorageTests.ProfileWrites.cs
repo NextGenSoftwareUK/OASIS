@@ -11,9 +11,12 @@ public partial class Web3NativeStorageTests
 {
     private static async Task VerifyProfileAcknowledgementAsync(PolygonOASIS.PolygonOASIS provider,Web3CoreOASIS native)
     {
+        var originalOption=provider.IsVersionControlEnabled;provider.IsVersionControlEnabled=true;
+        try{
         var generated=new Avatar {IsActive=true,IsNewHolon=true,Username="generated profile fixture"};
         var saved=await provider.SaveAvatarAsync(generated);
         Assert.IsFalse(saved.IsError,saved.Message);Assert.AreNotEqual(Guid.Empty,generated.Id);Assert.IsTrue(saved.IsSaved);
+        Assert.AreEqual(1,generated.Version);
         Assert.AreEqual(generated.Id,(await provider.LoadAvatarAsync(generated.Id)).Result.Id);
         Assert.AreEqual(generated.Id.ToString(),generated.ProviderUniqueStorageKey[Core.Enums.ProviderType.PolygonOASIS]);
         Assert.IsFalse((await provider.DeleteAvatarAsync(generated.Id,softDelete:false)).IsError);
@@ -29,6 +32,7 @@ public partial class Web3NativeStorageTests
             var failed=await provider.SaveAvatarDetailAsync(pending);
             Assert.IsTrue(failed.IsError);Assert.IsNotNull(failed.Exception);Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
             Assert.AreEqual(Guid.Empty,pending.Id);Assert.IsTrue(pending.IsNewHolon);
+            Assert.AreEqual(0,pending.Version);Assert.AreEqual(Guid.Empty,pending.VersionId);
             Assert.IsFalse(pending.ProviderUniqueStorageKey?.ContainsKey(Core.Enums.ProviderType.PolygonOASIS)==true);
         }
         finally {field.SetValue(provider,healthy);}
@@ -37,12 +41,13 @@ public partial class Web3NativeStorageTests
         var source=new AvatarDetail {Id=originalId,IsActive=true,IsNewHolon=true,XP=642};
         var acknowledged=new TaskCompletionSource<TransactionReceipt>(TaskCreationOptions.RunContinuationsAsynchronously);
         var release=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        Func<uint,byte[],byte[],Task<TransactionReceipt>> submit=async (id,key,payload)=>
+        Func<uint,byte[],byte[],Task<(TransactionReceipt Receipt,IHolonBase Record)>> submit=async (id,key,payload)=>
         {
-            var receipt=await native.UpsertAvatarDetailAsync(id,key,payload);
-            acknowledged.SetResult(receipt);
+            var preparation=typeof(Web3CoreOASISBaseProvider).GetMethod("SavePrivateProfileSnapshotAsync",flags)!;
+            var committed=await (Task<(TransactionReceipt Receipt,IHolonBase Record)>)preparation.Invoke(provider,new object[]{"detail",id,key,payload})!;
+            acknowledged.SetResult(committed.Receipt);
             await release.Task;
-            return receipt;
+            return committed;
         };
         var method=typeof(Web3CoreOASISBaseProvider).GetMethod("SavePrivateProfileAsync",flags)!.MakeGenericMethod(typeof(IAvatarDetail));
         Func<IAvatarDetail,IAvatarDetail> clone=row=>OasisJson.Deserialize<AvatarDetail>(OasisJson.Serialize(row));
@@ -62,8 +67,14 @@ public partial class Web3NativeStorageTests
         Assert.IsNotNull(evidence);CollectionAssert.AreEqual(new[] {originalId},evidence.AcknowledgedRecordIds.ToArray());
         CollectionAssert.AreEqual(new[] {receipt.TransactionHash},evidence.AcknowledgedTransactionIds.ToArray());
         Assert.AreEqual(changedId,source.Id);Assert.IsTrue(source.IsNewHolon);
+        Assert.AreEqual(0,source.Version);Assert.AreEqual(Guid.Empty,source.VersionId);Assert.AreEqual(Guid.Empty,source.PreviousVersionId);
         Assert.IsFalse(source.ProviderUniqueStorageKey?.ContainsKey(Core.Enums.ProviderType.PolygonOASIS)==true);
         var stored=await provider.LoadAvatarDetailAsync(originalId);Assert.IsFalse(stored.IsError,stored.Message);Assert.AreEqual(642L,stored.Result.XP);
+        Assert.AreEqual(1,stored.Result.Version);Assert.AreNotEqual(Guid.Empty,stored.Result.VersionId);
         Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarDetailAsync(changedId)).ErrorCode);
+        var numeric=(uint)Core.Utilities.HashUtility.GetNumericHash(originalId.ToString());
+        Assert.IsTrue(await native.DeleteAvatarDetailAsync(numeric));
+        Assert.IsTrue(Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(await native.GetAvatarDetailByIdAsync(numeric)));
+        }finally{provider.IsVersionControlEnabled=originalOption;}
     }
 }

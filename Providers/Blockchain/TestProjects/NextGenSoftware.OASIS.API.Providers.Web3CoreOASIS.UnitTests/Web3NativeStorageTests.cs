@@ -189,6 +189,8 @@ public partial class Web3NativeStorageTests
             Assert.AreEqual(exactPatch.DeletedAtUtc,replicaAvatar.DeletedDate);Assert.AreEqual(exactPatch.DeletedAtUtc,replicaDetail.DeletedDate);
             Assert.AreEqual(exactPatch.DeletedByAvatarId,replicaAvatar.DeletedByAvatarId);Assert.AreEqual(exactPatch.DeletedByAvatarId,replicaDetail.DeletedByAvatarId);
             Assert.IsFalse(replicaAvatar.IsActive);Assert.IsFalse(replicaDetail.IsActive);Assert.AreEqual(731L,replicaDetail.XP);Assert.AreEqual(193L,replicaDetail.Karma);
+            await VerifyRecordHistoryAsync(provider,native);
+            await VerifyHistoryResponseLossAsync(provider);
             var beforeCycle=await native.GetHolonsCountAsync();
             await VerifyProfileAcknowledgementAsync(provider,native);
             await VerifyPreparationScopeAsync(provider,native);
@@ -216,12 +218,16 @@ public partial class Web3NativeStorageTests
             var second=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="collision rejected"};
             var third=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="must not run"};
             await native.CreateHolonAsync((uint)Core.Utilities.HashUtility.GetNumericHash(second.Id.ToString()),System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("owned conflicting identity")),new byte[] {1});
+            var beforePartialNonce=(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(native.SigningAddress)).Value;
             var partial=await provider.SaveHolonsAsync(new[] {first,second,third},saveChildren:false,continueOnError:true);
             Assert.IsTrue(partial.IsError);Assert.IsFalse(partial.IsSaved);
             var evidence=partial.Exception as Web3PartialMutationException;Assert.IsNotNull(evidence);
             CollectionAssert.AreEqual(new[] {first.Id},evidence.AcknowledgedRecordIds.ToArray());
             Assert.AreEqual(1,evidence.AcknowledgedTransactionIds.Count);Assert.AreEqual(66,evidence.AcknowledgedTransactionIds.Single().Length);
-            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence.InnerException));
+            Assert.IsInstanceOfType(evidence.InnerException,typeof(System.IO.InvalidDataException));
+            Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence.InnerException));
+            Assert.AreEqual(beforePartialNonce+1,(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(native.SigningAddress)).Value,
+                "Only the first acknowledged write may broadcast; corrupt prior state fails before the second submission.");
             Assert.AreEqual("first acknowledged",(await provider.LoadHolonAsync(first.Id,loadChildren:false)).Result.Name);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(third.Id)).ErrorCode);
         }
