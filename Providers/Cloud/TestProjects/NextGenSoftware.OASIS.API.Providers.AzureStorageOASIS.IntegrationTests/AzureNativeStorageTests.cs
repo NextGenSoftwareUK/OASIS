@@ -80,7 +80,7 @@ public class AzureNativeStorageTests
             Assert.AreEqual(child.Id,children.Result.Single().Id);Assert.AreEqual(grandchild.Id,children.Result.Single().Children.Single().Id);
             var byKey=provider.LoadHolonsForParent(holon.Id.ToString(),loadChildren:false);
             Assert.IsFalse(byKey.IsError,byKey.Message);Assert.AreEqual(child.Id,byKey.Result.Single().Id);Assert.AreEqual(0,byKey.Result.Single().Children.Count);
-            Assert.IsInstanceOfType(provider.LoadAllHolons(version:1).Exception,typeof(NotSupportedException));
+            Assert.IsFalse(provider.LoadAllHolons(version:1).IsError);
             var root=await provider.LoadHolonAsync(holon.Id,loadChildrenFromProvider:true);
             Assert.IsFalse(root.IsError,root.Message);Assert.AreEqual(grandchild.Id,root.Result.Children.Single().Children.Single().Id);
             var shallow=provider.LoadHolon(holon.Id.ToString(),recursive:false,loadChildrenFromProvider:true);
@@ -108,7 +108,7 @@ public class AzureNativeStorageTests
             var text=provider.Search(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
                 SearchOnlyForCurrentAvatar=false,SearchGroups=new() {new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {SearchQuery="owned grandchild",SearchHolons=true}}});
             Assert.IsFalse(text.IsError,text.Message);Assert.AreEqual(grandchild.Id,text.Result.SearchResultHolons.Single().Id);
-            Assert.IsInstanceOfType((await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false},version:1)).Exception,typeof(NotSupportedException));
+            Assert.IsFalse((await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false},version:1)).IsError);
             var exportOwner=new Avatar {Id=Guid.NewGuid(),Username="owned-export",Email="export@example.invalid"};
             Assert.IsFalse((await provider.SaveAvatarAsync(exportOwner)).IsError);
             var exportRoot=new Holon {Id=Guid.NewGuid(),CreatedByAvatarId=exportOwner.Id,Name="owned export root"};
@@ -278,12 +278,15 @@ public class AzureNativeStorageTests
                 var failedId=Guid.NewGuid();
                 var secondaryBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
                 var failed=await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(
-                    new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveHolon",Payload=new Holon {Id=failedId,Name="must-not-replay"},
+                    new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveHolon",Payload=new Holon {Id=failedId,Name="owned-safe-preread-failover"},
                         SaveChildren=false,PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS});
-                Assert.IsTrue(failed.IsError);
-                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
-                Assert.AreEqual(secondaryBefore,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
-                Assert.IsNull((await local.LoadHolonAsync(failedId,loadChildren:false)).Result);
+                // Conditional saves now read before any upload. A connection failure at
+                // that read is safe failover, unlike an upload whose outcome is unknown.
+                Assert.IsFalse(failed.IsError,failed.Message);Assert.IsTrue(failed.IsSaved);
+                Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
+                Assert.AreEqual(secondaryBefore+1,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                Assert.AreEqual("owned-safe-preread-failover",(await local.LoadHolonAsync(failedId,loadChildren:false)).Result.Name);
+                Assert.IsFalse((await local.DeleteHolonAsync(failedId)).IsError);
             }
             finally {field.SetValue(azure,healthy);}
         }

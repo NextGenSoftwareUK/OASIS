@@ -13,10 +13,11 @@ public sealed class AzureBootConfigurationTests
     [TestMethod]
     public void ProductionFactoryUsesSeparateDnaContainersAndConnectionOverride()
     {
-        var settings=new AzureStorageOASISProviderSettings{ConnectionString="invalid-not-used",HolonContainer="owned-holons",AvatarContainer="owned-avatars",AvatarDetailContainer="owned-details"};
+        var settings=new AzureStorageOASISProviderSettings{ConnectionString="invalid-not-used",HolonContainer="owned-holons",AvatarContainer="owned-avatars",AvatarDetailContainer="owned-details",IsVersionControlEnabled=true};
         var restored=JsonConvert.DeserializeObject<AzureStorageOASISProviderSettings>(JsonConvert.SerializeObject(settings))!;
         var provider=CloudProviderFactory.CreateAzureStorage(restored,"UseDevelopmentStorage=true");
         Assert.IsFalse(provider.IsProviderActivated);
+        Assert.IsTrue(provider.IsVersionControlEnabled);
         object Field(string name)=>typeof(AzureStorageOASIS).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(provider)!;
         Assert.AreEqual(settings.HolonContainer,Field("_holonContainer"));Assert.AreEqual(settings.AvatarContainer,Field("_avatarContainer"));Assert.AreEqual(settings.AvatarDetailContainer,Field("_detailContainer"));
         Assert.AreEqual("127.0.0.1",((BlobServiceClient)Field("_serviceClient")).Uri.Host);

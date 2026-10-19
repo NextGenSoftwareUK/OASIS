@@ -52,9 +52,8 @@ public partial class AzureStorageOASISIntegrationTests
                 {
                     var missing=synchronous ? router.RouteRequest<IAvatar>(TokenRequest(operation)):await router.RouteRequestAsync<IAvatar>(TokenRequest(operation));
                     Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,missing.ErrorCode);Assert.IsNull(missing.Result);
-                    var invalid=synchronous ? router.RouteRequest<IAvatar>(TokenRequest(operation,1)):await router.RouteRequestAsync<IAvatar>(TokenRequest(operation,1));
-                    Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalid.ErrorCode);Assert.IsNull(invalid.Result);
-                    Assert.IsInstanceOfType(invalid.Exception,typeof(NotSupportedException));
+                    var invalid=synchronous ? router.RouteRequest<IAvatar>(TokenRequest(operation,-1)):await router.RouteRequestAsync<IAvatar>(TokenRequest(operation,-1));
+                    Assert.AreEqual("HYPERDRIVE_VERSION_INVALID",invalid.ErrorCode);Assert.IsNull(invalid.Result);
                 }
                 Assert.AreEqual(secondaryBefore,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             }

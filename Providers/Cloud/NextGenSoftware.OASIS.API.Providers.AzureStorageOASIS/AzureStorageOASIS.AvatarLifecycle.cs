@@ -48,7 +48,7 @@ public partial class AzureStorageOASIS : IAvatarTombstoneStorageProvider
             var profileBlob=_serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(id.ToString());
             var profileRead=(await profileBlob.DownloadContentAsync()).Value;
             if(string.IsNullOrWhiteSpace(profileRead.Details.ETag.ToString())) throw new InvalidDataException("Azure avatar read lacks an ETag.");
-            var profile=Deserialise<Avatar>(profileRead.Content.ToString()) ?? throw new InvalidDataException("Azure avatar is null.");
+            var profile=await ReadBlobHistoryAsync<Avatar>(profileRead.Content.ToString(),0) ?? throw new InvalidDataException("Azure avatar is null.");
             if(profile.Id!=id) throw new InvalidDataException("Azure avatar identity differs from blob key.");
             if(supplied!=null && profile.IsDeleted && (profile.DeletedDate!=supplied.DeletedAtUtc || profile.DeletedByAvatarId!=supplied.DeletedByAvatarId))
                 throw new StorageLifecycleConflictException("Azure avatar has a conflicting committed tombstone.");
@@ -58,7 +58,7 @@ public partial class AzureStorageOASIS : IAvatarTombstoneStorageProvider
             catch(RequestFailedException cause) when(cause.Status==404 && cause.ErrorCode=="BlobNotFound") { }
             if(detailRead!=null && string.IsNullOrWhiteSpace(detailRead.Details.ETag.ToString())) throw new InvalidDataException("Azure detail read lacks an ETag.");
             if(supplied!=null && detailRead==null) throw new StorageLifecycleConflictException("Committed tombstone requires an existing Azure detail.");
-            var detail=detailRead==null ? null:Deserialise<AvatarDetail>(detailRead.Content.ToString());
+            var detail=detailRead==null ? null:await ReadBlobHistoryAsync<AvatarDetail>(detailRead.Content.ToString(),0);
             if(detailRead!=null && (detail==null || detail.Id!=id)) throw new InvalidDataException("Azure detail identity differs from blob key.");
             AvatarTombstone tombstone=null;
             if(softDelete)
@@ -73,8 +73,8 @@ public partial class AzureStorageOASIS : IAvatarTombstoneStorageProvider
             }
             // Materialize both payloads before the first mutation. ETags guard each
             // blob; this is deliberately NOT represented as a cross-blob transaction.
-            var profilePayload=softDelete ? BinaryData.FromString(Serialise(profile)):null;
-            var detailPayload=softDelete && detail!=null ? BinaryData.FromString(Serialise(detail)):null;
+            var profilePayload=softDelete ? BinaryData.FromString((await StageBlobHistoryAsync(profile,profileRead.Content.ToString(),IsVersionControlEnabled)).ToString(Newtonsoft.Json.Formatting.None)):null;
+            var detailPayload=softDelete && detail!=null ? BinaryData.FromString((await StageBlobHistoryAsync(detail,detailRead.Content.ToString(),IsVersionControlEnabled)).ToString(Newtonsoft.Json.Formatting.None)):null;
             if(softDelete)
             {
                 await WriteLifecycleBlobAsync(profileBlob,profileRead.Details.ETag,profilePayload);

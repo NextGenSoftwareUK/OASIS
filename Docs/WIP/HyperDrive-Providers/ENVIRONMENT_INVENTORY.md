@@ -1,5 +1,37 @@
 # Reusable environments and disk inventory
 
+2026-10-19 Azure public-history final94native/40units acceptance reuses SAME Azurite3.37.0 installation, Node, loopbackports10000/10003, fixed AzureCurrent and existing .NET/NuGet/test projects. Final runner0/no matching owned Azurite process/listeners/routingfiles. AzureCurrent502,883logicalbytes/7files (includes two compact failed native reports); unitbin46,972,358bytes/202files, nativebin88,167,091bytes/237files. Do not add nested totals to earlier parent inventories. Windows free70,323,032,064bytes, whole-machine only; no attribution or broad reclaim claim. No install/download/new environment. Removed only exact independently verified disposable638,976byte SQLite and1910byte LocalFile failed fixtures, with hashes/identity checks/report retention in cleanup ledger. Existing bins retained for reuse; in-memory emulator data is not durable restart evidence.
+
+Azure candidate terminal checkpoint2026-10-19: runner exit0,80native pass/0skip; owned Node39464 absent, ports10000/10003closed. AzureCurrent final190,579logicalbytes/5files (supersedes during-run size only). Existing in-memory runtime was stopped by its owner; this is not restart durability proof. Three acknowledged history fixtures exact-ETag-deleted after independent validation/native absence. No new runtime/download/install or broad output removal; retain the same fixed binaries for continued public-integration work.
+
+2026-10-19 Azure history candidate work reused the SAME retained Azurite3.37.0 Node runtime and TestResults/AzureCurrent runner/ports. Unit and native project.assets.json were missing; refreshed only from existing C:/Users/david/.nuget/packages using an explicit offline source. No downloads/install/new environment. Fixed unit bin46,963,046logicalbytes/202files; native bin88,762,519bytes/238files. Reuse these existing project outputs, not new per-run directories. AzureCurrent measured59,952bytes/4files DURING live native testing (not final report size); compact reports/log/lease are evidence, not a deletion target during execution. Windows free70,476,255,232bytes is whole-machine observation, not allocation attribution or reclaimed space. Native runtime lifecycle/outcome is recorded separately after terminal confirmation.
+
+## Retrospective backfill checkpoint — 2026-10-19
+
+The requirement covers **all existing setups and downloads**, not just Oracle. This inventory is being extended in place; it is not yet complete machine-wide accounting. No services were started or resources downloaded/deleted for this checkpoint.
+
+Read-only Windows enumeration measured these additional existing locations (logical bytes, not physical allocation):
+
+| Exact location | Logical bytes / files | Classification and retention |
+| --- | ---: | --- |
+| C:/Source/android-service-runtime | 34,743,355 / 1,332 | Existing Git source checkout, not an Android SDK/emulator installation. Preserve source and uncommitted work. |
+| C:/Users/david/.cache/pkg | 9,520,416 / 8 | Shared package cache; package ownership/version/use not yet reconciled. Do not remove or attribute to this task without review. |
+| C:/Source/OASIS/Providers/Cloud | 710,814,303 / 3,248 | Includes source and generated output; not a deletion target. |
+| C:/Source/OASIS/Providers/Storage | 904,961,599 / 6,027 | Includes source and generated output; not a deletion target. |
+| C:/Source/OASIS/Providers/Network | 602,180,248 / 4,147 | Includes source and generated output; not a deletion target. |
+
+Within those provider parents, existing generated-output totals were measured separately:
+
+| Parent | Nested bin directories: bytes / files | Nested obj directories: bytes / files |
+| --- | ---: | ---: |
+| Providers/Cloud | 682,690,908 / 2,394 | 26,117,733 / 514 |
+| Providers/Storage | 820,695,044 / 3,598 | 75,992,334 / 1,490 |
+| Providers/Network | 545,411,703 / 2,596 | 47,920,163 / 1,043 |
+
+Outputs are already included in parent totals and overlap individual project measurements below: **do not add these tables together**. Build artifacts are not independent runtime installations. Reuse current outputs; before cleanup resolve exact project directories, verify no build/test process uses them, and preserve required evidence/dependencies. Regenerate through the existing project and retained dependency cache, not a replacement environment. No blanket parent deletion is authorized by this measurement.
+
+Windows free space: 70,645,809,152 bytes, a whole-machine observation, not reclaimed space or allocation attribution. Outstanding retrospective work includes other provider families, additional source/worktree artifacts, alternate Android installs and actual VHDX allocation. Unknown ownership and sizes remain explicitly unverified.
+
 ## Scope: existing resources as well as future setups
 
 The user's requirement explicitly applies retrospectively to every environment, runtime, SDK, download cache and generated build/test directory used by this provider programme, not only Oracle. This file is the central inventory; do not create separate duplicate inventories per run. The cleanup ledger records changes and removals.

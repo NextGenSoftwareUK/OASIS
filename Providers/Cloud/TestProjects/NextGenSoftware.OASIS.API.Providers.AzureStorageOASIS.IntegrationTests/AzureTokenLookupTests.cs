@@ -32,7 +32,7 @@ public partial class AzureStorageOASISIntegrationTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await Read(kind,token+"missing")).ErrorCode);
             var invalid=await Read(kind," ");Assert.IsTrue(invalid.IsError);Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentException));
             Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalid.ErrorCode);
-            var version=await Read(kind,token,1);Assert.IsTrue(version.IsError);Assert.IsInstanceOfType(version.Exception,typeof(NotSupportedException));
+            var version=await Read(kind,token,-1);Assert.IsTrue(version.IsError);Assert.IsInstanceOfType(version.Exception,typeof(ArgumentOutOfRangeException));
             Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",version.ErrorCode);
         }
         Assert.IsFalse((await _provider.SaveAvatarAsync(duplicate)).IsError);

@@ -61,7 +61,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.UnitTests
         public async System.Threading.Tasks.Task DetailValidationFailsBeforeNetwork()
         {
             Assert.IsInstanceOfType((await _provider.LoadAvatarDetailAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
-            Assert.IsInstanceOfType((await _provider.LoadAllAvatarDetailsAsync(version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await _provider.LoadAllAvatarDetailsAsync(version:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
+            Assert.IsInstanceOfType((await _provider.LoadHolonsForParentAsync("owned-invalid-version",version:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
             Assert.IsInstanceOfType((await _provider.LoadAvatarDetailByUsernameAsync(" ")).Exception,typeof(System.ArgumentException));
             Assert.ThrowsException<System.ArgumentException>(()=>new AzureStorageOASIS("UseDevelopmentStorage=true",avatarDetailContainer:"oasis-avatars"));
         }
