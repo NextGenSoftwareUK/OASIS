@@ -22,7 +22,6 @@ public class DynamoVersionTests
     }
 
     [DataTestMethod]
-    [DataRow(false,1)] [DataRow(true,1)]
     [DataRow(false,-1)] [DataRow(true,-1)]
     public async Task ExplicitAvatarVersionsNeverSilentlyReadLatest(bool synchronous,int version)
     {

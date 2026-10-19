@@ -58,7 +58,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 throw new ArgumentException("Session credentials require access key, secret key and session token.");
             AWSCredentials? creds=useDefaultCredentials ? null:string.IsNullOrEmpty(sessionToken)
                 ? new BasicAWSCredentials(accessKey,secretKey):new SessionAWSCredentials(accessKey,secretKey,sessionToken);
-            var config = new AmazonDynamoDBConfig();
+            // A retry after a lost write acknowledgement must not masquerade as a known CAS conflict.
+            var config = new AmazonDynamoDBConfig { MaxErrorRetry=0 };
             if (string.IsNullOrWhiteSpace(serviceUrl))
                 config.RegionEndpoint = RegionEndpoint.GetBySystemName(region);
             else
@@ -77,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         private static string Ser(object o) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(o);
 
-        private static T ReadStoredIdentity<T>(Dictionary<string,AttributeValue> item,Guid requested) where T:class,IHolonBase
+        private static T ReadCanonicalIdentity<T>(Dictionary<string,AttributeValue> item,Guid requested) where T:class,IHolonBase
         {
             if(requested==Guid.Empty || !item.TryGetValue("id",out var key) || key.S!=requested.ToString()
                 || !item.TryGetValue("data_json",out var json) || string.IsNullOrWhiteSpace(json.S))
@@ -101,11 +102,14 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             return record;
         }
 
-        private static T ReadStoredIdentity<T>(Dictionary<string,AttributeValue> item) where T:class,IHolonBase
+        private static T ReadStoredIdentity<T>(Dictionary<string,AttributeValue> item,Guid requested,int version=0) where T:class,IHolonBase
+            => ReadStoredVersion<T>(item,requested,version);
+
+        private static T ReadStoredIdentity<T>(Dictionary<string,AttributeValue> item,int version=0) where T:class,IHolonBase
         {
             if(!item.TryGetValue("id",out var key) || !Guid.TryParse(key.S,out var id))
                 throw new System.IO.InvalidDataException("DynamoDB native record identity is invalid.");
-            return ReadStoredIdentity<T>(item,id);
+            return ReadStoredIdentity<T>(item,id,version);
         }
 
         private static string CanonicalIdentityValue(IHolonBase record,string field)
@@ -122,14 +126,6 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             catch(ConditionalCheckFailedException) {throw;}
             catch(Exception cause) {throw new DynamoDBMutationReconciliationException(table,key,cause);}
         }
-        private Task<PutItemResponse> PutItemAsync(PutItemRequest request)
-            => ObserveMutationAsync(async()=>
-            {
-                var response=await _client.PutItemAsync(request);
-                if(response?.HttpStatusCode!=System.Net.HttpStatusCode.OK)
-                    throw new System.IO.InvalidDataException("DynamoDB save lacks an authoritative native acknowledgement.");
-                return response;
-            },request.TableName,request.Item["id"].S);
         private Task<UpdateItemResponse> UpdateItemAsync(UpdateItemRequest request)
             => ObserveMutationAsync(()=>_client.UpdateItemAsync(request),request.TableName,request.Key["id"].S);
         private Task<DeleteItemResponse> DeleteItemAsync(string table,Dictionary<string,AttributeValue> key)
@@ -249,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[StorageProviderType] = avatar.Id.ToString();
-                await PutItemAsync(new PutItemRequest
+                var committed=await WriteRecordAsync<Avatar>(new PutItemRequest
                 {
                     TableName = "OasisAvatars",
                     Item = WithOptionalIdentityIndexes(new Dictionary<string, AttributeValue>
@@ -260,7 +256,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["is_deleted"] = new AttributeValue { BOOL = avatar.IsDeleted },
                         ["data_json"] = new AttributeValue { S = Ser(avatar) }
                     })
-                });
+                },IsVersionControlEnabled);
+                source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=avatar.Id;
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 source.ProviderUniqueStorageKey[StorageProviderType]=avatar.Id.ToString();
@@ -282,8 +279,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 ValidateRecordVersion(version);
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatars",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
                 if (resp.Item == null || !resp.Item.Any()) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
-                var avatar = ReadStoredIdentity<Avatar>(resp.Item,id);
-                if(avatar.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
+                var avatar = ReadStoredIdentity<Avatar>(resp.Item,id,version);
+                if(avatar==null||avatar.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
                 result.Result = avatar; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
@@ -292,19 +289,19 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
 
-        private async Task<Avatar?> ReadAvatarSelectorAsync(string keyName, string keyValue)
-            => await ReadUniqueAvatarAsync(request => _client.ScanAsync(request), keyName, keyValue);
+        private async Task<Avatar?> ReadAvatarSelectorAsync(string keyName, string keyValue,int version=0)
+            => await ReadUniqueAvatarAsync(request => _client.ScanAsync(request), keyName, keyValue,version);
 
-        private static async Task<Avatar?> ReadUniqueAvatarAsync(Func<ScanRequest, Task<ScanResponse>> read, string keyName, string keyValue)
-            => await ReadUniqueIdentityAsync<Avatar>(read,"OasisAvatars",keyName,keyValue);
+        private static async Task<Avatar?> ReadUniqueAvatarAsync(Func<ScanRequest, Task<ScanResponse>> read, string keyName, string keyValue,int version=0)
+            => await ReadUniqueIdentityAsync<Avatar>(read,"OasisAvatars",keyName,keyValue,version);
 
-        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read, string tableName, string keyName, string keyValue) where T:class,IHolonBase
+        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read, string tableName, string keyName, string keyValue,int version=0) where T:class,IHolonBase
         {
             if(string.IsNullOrWhiteSpace(keyValue)) throw new ArgumentException("Avatar selector must not be blank.",nameof(keyValue));
-            return await ReadUniqueIdentityAsync<T>(read,tableName,record=>string.Equals(CanonicalIdentityValue(record,keyName),keyValue,StringComparison.Ordinal));
+            return await ReadUniqueIdentityAsync<T>(read,tableName,record=>string.Equals(CanonicalIdentityValue(record,keyName),keyValue,StringComparison.Ordinal),version);
         }
 
-        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read,string tableName,Func<T,bool> matches) where T:class,IHolonBase
+        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read,string tableName,Func<T,bool> matches,int version=0) where T:class,IHolonBase
         {
             var request = new ScanRequest
             {
@@ -317,8 +314,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 var response = await read(request);
                 foreach(var item in response.Items)
                 {
-                    var avatar=ReadStoredIdentity<T>(item);
-                    if(avatar.IsDeleted) continue;
+                    var avatar=ReadStoredIdentity<T>(item,version);
+                    if(avatar==null||avatar.IsDeleted) continue;
                     if(!matches(avatar)) continue;
                     if(match!=null) throw new StorageIdentityAmbiguousException();
                     match=avatar;
@@ -331,7 +328,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { ValidateRecordVersion(version); var a = await ReadAvatarSelectorAsync("username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for username '{username}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
+            try { ValidateRecordVersion(version); var a = await ReadAvatarSelectorAsync("username", username,version); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for username '{username}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
             catch (StorageIdentityAmbiguousException ex) { result.Exception=ex; OASISErrorHandling.HandleError(ref result,ex.Message); result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -342,7 +339,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { ValidateRecordVersion(version); var a = await ReadAvatarSelectorAsync("email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for email '{email}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
+            try { ValidateRecordVersion(version); var a = await ReadAvatarSelectorAsync("email", email,version); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for email '{email}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
             catch (StorageIdentityAmbiguousException ex) { result.Exception=ex; OASISErrorHandling.HandleError(ref result,ex.Message); result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -357,6 +354,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             {
                 ValidateRecordVersion(version);
                 if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonempty avatar credential selector is required.",nameof(selector));
+                if(version!=0)throw new NotSupportedException("Credential/token authentication requires current authoritative records, never historical versions.");
                 var avatar=await ReadUniqueIdentityAsync<Avatar>(request=>_client.ScanAsync(request),"OasisAvatars",matches);
                 if(avatar==null)
                 {
@@ -421,7 +419,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     items.AddRange(scanResp.Items);
                 } while (scanResp.LastEvaluatedKey?.Any() == true);
 
-                var avatars = items.Select(i => ReadStoredIdentity<Avatar>(i)).Where(row=>!row.IsDeleted).Cast<IAvatar>().ToList();
+                var avatars = items.Select(i => ReadStoredIdentity<Avatar>(i,version)).Where(row=>row!=null&&!row.IsDeleted).Cast<IAvatar>().ToList();
                 result.Result = avatars; result.IsLoaded=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
@@ -469,7 +467,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 d.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
                 d.ProviderUniqueStorageKey[StorageProviderType]=d.Id.ToString();
-                await PutItemAsync(new PutItemRequest
+                var committed=await WriteRecordAsync<AvatarDetail>(new PutItemRequest
                 {
                     TableName = "OasisAvatarDetails",
                     Item = WithOptionalIdentityIndexes(new Dictionary<string, AttributeValue>
@@ -480,7 +478,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["is_deleted"] = new AttributeValue {BOOL=d.IsDeleted},
                         ["data_json"] = new AttributeValue { S = Ser(d) }
                     })
-                });
+                },IsVersionControlEnabled);
+                source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=d.Id;
                 source.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
                 source.ProviderUniqueStorageKey[StorageProviderType]=d.Id.ToString();
@@ -500,7 +499,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 ValidateRecordVersion(version);
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatarDetails",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
                 if (resp.Item == null || !resp.Item.Any()) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
-                var d = ReadStoredIdentity<AvatarDetail>(resp.Item,id);
+                var d = ReadStoredIdentity<AvatarDetail>(resp.Item,id,version);
+                if(d==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
                 result.Result = d; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
@@ -509,15 +509,15 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
 
-        private async Task<AvatarDetail?> ReadDetailSelectorAsync(string keyName, string keyValue)
-            => await ReadUniqueIdentityAsync<AvatarDetail>(request=>_client.ScanAsync(request),"OasisAvatarDetails",keyName,keyValue);
+        private async Task<AvatarDetail?> ReadDetailSelectorAsync(string keyName, string keyValue,int version=0)
+            => await ReadUniqueIdentityAsync<AvatarDetail>(request=>_client.ScanAsync(request),"OasisAvatarDetails",keyName,keyValue,version);
 
         private async Task<OASISResult<IAvatarDetail>> LoadSelectedDetailAsync(string key,string value,int version)
         {
             var result=new OASISResult<IAvatarDetail>();
             try {
                 ValidateRecordVersion(version);
-                var detail=await ReadDetailSelectorAsync(key,value);
+                var detail=await ReadDetailSelectorAsync(key,value,version);
                 if(detail==null) {OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: No matching detail.");result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
                 result.Result=detail;result.IsLoaded=true;
             }
@@ -535,7 +535,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { ValidateRecordVersion(version); ScanResponse? sr = null; var items = new List<Dictionary<string, AttributeValue>>(); do { var req = new ScanRequest { TableName = "OasisAvatarDetails", ConsistentRead=true }; if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey; sr = await _client.ScanAsync(req); items.AddRange(sr.Items); } while (sr.LastEvaluatedKey?.Any() == true); var details = items.Select(i => ReadStoredIdentity<AvatarDetail>(i)).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsLoaded=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {details.Count} detail(s)."; }
+            try { ValidateRecordVersion(version); ScanResponse? sr = null; var items = new List<Dictionary<string, AttributeValue>>(); do { var req = new ScanRequest { TableName = "OasisAvatarDetails", ConsistentRead=true }; if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey; sr = await _client.ScanAsync(req); items.AddRange(sr.Items); } while (sr.LastEvaluatedKey?.Any() == true); var details = items.Select(i => ReadStoredIdentity<AvatarDetail>(i,version)).Where(row=>row!=null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsLoaded=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {details.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -563,7 +563,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[StorageProviderType] = holon.Id.ToString();
-                await PutItemAsync(new PutItemRequest
+                var committed=await WriteRecordAsync<Holon>(new PutItemRequest
                 {
                     TableName = "OasisHolons",
                     Item = new Dictionary<string, AttributeValue>
@@ -574,7 +574,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["is_deleted"] = new AttributeValue { BOOL = holon.IsDeleted },
                         ["data_json"] = new AttributeValue { S = Ser(holon) }
                     }
-                });
+                },IsVersionControlEnabled);
+                source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=holon.Id;
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 source.ProviderUniqueStorageKey[StorageProviderType]=holon.Id.ToString();
@@ -607,6 +608,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     }
                     else {
                         saved.Add(written.Result);node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                        node.Source.Version=written.Result.Version;node.Source.VersionId=written.Result.VersionId;node.Source.PreviousVersionId=written.Result.PreviousVersionId;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                         node.Source.ProviderUniqueStorageKey[StorageProviderType]=node.Snapshot.Id.ToString();
                     }
@@ -637,8 +639,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if(id==Guid.Empty) throw new ArgumentException("A nonempty holon identity is required.",nameof(id));
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisHolons",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
                 if (resp.Item == null || !resp.Item.Any()) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No holon for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
-                var holon = ReadStoredIdentity<Holon>(resp.Item,id);
-                if(holon.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
+                var holon = ReadStoredIdentity<Holon>(resp.Item,id,version);
+                if(holon==null||holon.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
                 var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():new List<IHolon> {holon};
                 result.Result = CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider)(holon);
                 result.IsLoaded=true;
@@ -651,7 +653,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string pk, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { if (Guid.TryParse(pk, out Guid id)) return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version); var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, $"DynamoDBOASIS: Invalid GUID '{pk}'."); return r; }
         public override OASISResult<IHolon> LoadHolon(string pk, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonAsync(pk, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        private async Task<List<IHolon>> ScanHolonsAsync()
+        private async Task<List<IHolon>> ScanHolonsAsync(int version=0)
         {
             var items = new List<Dictionary<string, AttributeValue>>();
             ScanResponse? sr = null;
@@ -662,7 +664,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 sr = await _client.ScanAsync(req);
                 items.AddRange(sr.Items);
             } while (sr.LastEvaluatedKey?.Any() == true);
-            return items.Select(i => ReadStoredIdentity<Holon>(i)).Where(row=>!row.IsDeleted).Cast<IHolon>().ToList();
+            return items.Select(i => ReadStoredIdentity<Holon>(i,version)).Where(row=>row!=null&&!row.IsDeleted).Cast<IHolon>().ToList();
         }
 
         private static async Task<List<Dictionary<string,AttributeValue>>> ReadQueryItemsAsync(Func<QueryRequest,Task<QueryResponse>> query,QueryRequest request)
@@ -683,8 +685,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ValidateGraphRead(maxChildDepth,curentChildDepth,version,type);
-                var records=await ScanHolonsAsync();
-                var project=CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
+                var records=await ScanHolonsAsync(version);
+                var childPool=loadChildren&&loadChildrenFromProvider&&version>0?await ScanHolonsAsync():records;
+                var project=CreateGraphProjection(childPool,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
                 result.Result = records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();
                 result.IsLoaded=true;
             }
@@ -700,7 +703,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ValidateGraphRead(maxChildDepth,curentChildDepth,version,type);
-                var holons=(await ScanHolonsAsync())
+                var holons=(await ScanHolonsAsync(version))
                     .Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).ToList();
                 var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():holons;
                 var project=CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
@@ -713,7 +716,6 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private static void ValidateRecordVersion(int version)
         {
             if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
-            if(version!=0) throw new NotSupportedException("DynamoDB records currently retain only the latest version (0); historical reads are not implemented.");
         }
 
         private static void ValidateGraphRead(int maxDepth,int initialDepth,int version,HolonType? type=null)
@@ -771,7 +773,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         {
             var result = new OASISResult<ISearchResults>();
             try {
-                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
                 var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
                 var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
                 var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);

@@ -16,13 +16,16 @@ public partial class AWSOASISIntegrationTests
         public int Attempts;
         public string RejectedKey="";
         public RejectFirstGraphWriteClient():base(new BasicAWSCredentials("fakeMyKeyId","fakeSecretAccessKey"),
-            new AmazonDynamoDBConfig {ServiceURL="http://127.0.0.1:18000",AuthenticationRegion="us-east-1",UseHttp=true}) { }
+            new AmazonDynamoDBConfig {ServiceURL="http://127.0.0.1:18000",AuthenticationRegion="us-east-1",UseHttp=true,MaxErrorRetry=0}) { }
+        public override Task<GetItemResponse> GetItemAsync(GetItemRequest request,CancellationToken cancellationToken=default)
+            => Healthy.GetItemAsync(request,cancellationToken);
         public override Task<PutItemResponse> PutItemAsync(PutItemRequest request,CancellationToken cancellationToken=default)
         {
             if(Attempts++==0)
             {
                 RejectedKey=request.Item["id"].S;
                 request.ConditionExpression="attribute_exists(id)"; // Actual server rejection for this absent synthetic key.
+                request.ExpressionAttributeNames.Clear(); // Replaced predicate must not retain now-unused canonical aliases.
             }
             return Healthy.PutItemAsync(request,cancellationToken);
         }

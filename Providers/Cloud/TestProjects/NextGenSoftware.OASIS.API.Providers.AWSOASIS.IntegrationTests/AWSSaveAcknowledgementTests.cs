@@ -18,7 +18,9 @@ public partial class AWSOASISIntegrationTests
         public int FailOnCommit=1;
         public bool MissingResponse;
         public LostPutAcknowledgementClient():base(new BasicAWSCredentials("fakeMyKeyId","fakeSecretAccessKey"),
-            new AmazonDynamoDBConfig {ServiceURL="http://127.0.0.1:18000",AuthenticationRegion="us-east-1",UseHttp=true}) { }
+            new AmazonDynamoDBConfig {ServiceURL="http://127.0.0.1:18000",AuthenticationRegion="us-east-1",UseHttp=true,MaxErrorRetry=0}) { }
+        public override Task<GetItemResponse> GetItemAsync(GetItemRequest request,CancellationToken cancellationToken=default)
+            => Healthy.GetItemAsync(request,cancellationToken);
         public override async Task<PutItemResponse> PutItemAsync(PutItemRequest request,CancellationToken cancellationToken=default)
         {
             var response=await Healthy.PutItemAsync(request,cancellationToken);

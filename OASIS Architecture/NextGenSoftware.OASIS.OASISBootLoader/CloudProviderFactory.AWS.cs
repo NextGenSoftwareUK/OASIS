@@ -19,6 +19,6 @@ internal static partial class CloudProviderFactory
         else if(string.IsNullOrWhiteSpace(settings.AccessKey) || string.IsNullOrWhiteSpace(settings.SecretKey))
             throw new ArgumentException("AWS DynamoDB requires explicit signing credentials unless SDK default credentials are opted in.",nameof(settings));
         return new AWSOASIS(settings.Region,settings.AccessKey,settings.SecretKey,overrideConnectionString??settings.ServiceUrl,
-            settings.SessionToken,settings.UseDefaultCredentials);
+            settings.SessionToken,settings.UseDefaultCredentials) {IsVersionControlEnabled=settings.IsVersionControlEnabled};
     }
 }

@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
+using Newtonsoft.Json.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS;
 
@@ -72,7 +73,8 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
                 if(supplied!=null) profile.DeletedByAvatarId=supplied.DeletedByAvatarId;
                 tombstone=new AvatarTombstone(id,date,profile.DeletedByAvatarId);
             }
-            var writes=new List<TransactWriteItem> {LifecycleWrite("OasisAvatars",id,profileJson,softDelete ? Ser(profile):null)};
+            var updatedProfile=softDelete ? await StageRecordAsync(profile,JObject.Parse(profileJson)):null;
+            var writes=new List<TransactWriteItem> {LifecycleWrite("OasisAvatars",id,profileJson,updatedProfile?.ToString(Newtonsoft.Json.Formatting.None))};
             if(detailItem.Count==0)
                 writes.Add(new TransactWriteItem {ConditionCheck=new ConditionCheck {TableName="OasisAvatarDetails",Key=LifecycleKey(id),ConditionExpression="attribute_not_exists(id)"}});
             else
@@ -85,7 +87,8 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
                         throw new StorageLifecycleConflictException("Avatar/detail committed tombstones conflict.");
                     detail.IsActive=false;detail.DeletedDate=tombstone.DeletedAtUtc;detail.DeletedByAvatarId=tombstone.DeletedByAvatarId;
                 }
-                writes.Add(LifecycleWrite("OasisAvatarDetails",id,detailJson,softDelete ? Ser(detail):null));
+                var updatedDetail=softDelete ? await StageRecordAsync(detail,JObject.Parse(detailJson)):null;
+                writes.Add(LifecycleWrite("OasisAvatarDetails",id,detailJson,updatedDetail?.ToString(Newtonsoft.Json.Formatting.None)));
             }
             dispatched=true;
             var response=await _client.TransactWriteItemsAsync(new TransactWriteItemsRequest {TransactItems=writes,ClientRequestToken=Guid.NewGuid().ToString("N")});
