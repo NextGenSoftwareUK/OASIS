@@ -45,6 +45,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
 
         // ─────────────────────────────────────────────────────────────────────────
+        // Create Token
+        // ─────────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Issues a brand-new fungible token on a provider that supports token issuance (currently Solana SPL).
+        /// The avatar wallet named in AuthorityWalletAddress becomes the token's mint authority and pays the fees.
+        /// Providers without issuance support return OASIS_TOKEN_ISSUER_CAPABILITY_REQUIRED and submit nothing.
+        /// </summary>
+        [Authorize]
+        [HttpPost("create-token")]
+        [ProducesResponseType(typeof(OASISResult<ICreateTokenResponse>), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(OASISResult<ICreateTokenResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<ICreateTokenResponse>> CreateToken([FromBody] CreateWeb4TokenRequest request)
+        {
+            if (request?.CreatedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+            {
+                Response.StatusCode = StatusCodes.Status403Forbidden;
+                return new OASISResult<ICreateTokenResponse> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
+                    Message = "Forbidden. You can only create tokens for your own avatar." };
+            }
+            return await WalletManager.CreateTokenAsync(request);
+        }
+
+
+        // ─────────────────────────────────────────────────────────────────────────
         // Burn Token
         // ─────────────────────────────────────────────────────────────────────────
 
