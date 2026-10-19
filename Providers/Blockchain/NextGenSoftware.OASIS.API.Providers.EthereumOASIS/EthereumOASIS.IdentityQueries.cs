@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!Guid.TryParseExact(providerKey,"D",out var id) || id == Guid.Empty)
                     throw new ArgumentException("Ethereum provider key must be a nonempty D-format record GUID.",nameof(providerKey));
-                if (version != 0) throw new NotSupportedException("Ethereum provider-key history is not implemented; only current version 0 is supported.");
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 var result = await load(id);
                 if (!result.IsError && result.Result != null)
                 {
@@ -60,6 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 OASISErrorHandling.HandleError(ref result,$"Ethereum stored identity lookup failed: {error.Message}",error);
                 if (error is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
+                if (error is KeyNotFoundException) result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
             }
             return result;
         }

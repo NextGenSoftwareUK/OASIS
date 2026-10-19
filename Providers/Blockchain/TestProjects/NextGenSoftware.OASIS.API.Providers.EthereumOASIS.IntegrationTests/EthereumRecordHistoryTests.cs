@@ -15,13 +15,22 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 public class EthereumRecordHistoryTests
 {
     [TestMethod]
-    public async Task NegativeGuidProfileVersionsRejectBeforeNativeAccess()
+    public async Task NegativeHistoricalVersionsRejectBeforeNativeAccess()
     {
         var provider=new EthereumOASIS("http://127.0.0.1:1",new string('1',64),31337,"0x0000000000000000000000000000000000000001");
         void Invalid<T>(OASISResult<T> result){Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentOutOfRangeException));}
         foreach(var version in new[]{-1,int.MinValue}){
             Invalid(provider.LoadAvatar(Guid.NewGuid(),version));Invalid(await provider.LoadAvatarAsync(Guid.NewGuid(),version));
             Invalid(provider.LoadAvatarDetail(Guid.NewGuid(),version));Invalid(await provider.LoadAvatarDetailAsync(Guid.NewGuid(),version));
+            Invalid(provider.LoadAllAvatars(version));Invalid(await provider.LoadAllAvatarsAsync(version));
+            Invalid(provider.LoadAllAvatarDetails(version));Invalid(await provider.LoadAllAvatarDetailsAsync(version));
+            Invalid(provider.LoadAllHolons(version:version));Invalid(await provider.LoadAllHolonsAsync(version:version));
+            Invalid(provider.LoadHolon(Guid.NewGuid(),version:version));Invalid(await provider.LoadHolonAsync(Guid.NewGuid(),version:version));
+            Invalid(provider.LoadAvatarByProviderKey(Guid.NewGuid().ToString(),version));Invalid(await provider.LoadAvatarByProviderKeyAsync(Guid.NewGuid().ToString(),version));
+            Invalid(provider.ExportAllDataForAvatarById(Guid.NewGuid(),version));Invalid(await provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid(),version));
+            Invalid(provider.ExportAllDataForAvatarByUsername("negative-owner",version));Invalid(await provider.ExportAllDataForAvatarByUsernameAsync("negative-owner",version));
+            Invalid(provider.ExportAllDataForAvatarByEmail("negative@example.invalid",version));Invalid(await provider.ExportAllDataForAvatarByEmailAsync("negative@example.invalid",version));
+            Invalid(await provider.SearchAsync(new Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false},version:version));
         }
         Assert.IsFalse(provider.IsProviderActivated);Assert.IsNull(provider.Web3Client);
     }

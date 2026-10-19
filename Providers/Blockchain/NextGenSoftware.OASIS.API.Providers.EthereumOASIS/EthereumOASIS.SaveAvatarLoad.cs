@@ -76,8 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                if (version != 0)
-                    throw new NotSupportedException("Ethereum collection history is not implemented; only current version 0 is supported.");
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 if (!IsProviderActivated)
                 {
                     var activation = await ActivateProviderAsync();
@@ -96,10 +95,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                             new ContractDefinition.GetAvatarAtFunction { Index=index },block)).ReturnValue1;
                     if (row == null || !Guid.TryParseExact(row.AvatarId,"D",out var id))
                         throw new InvalidDataException("Ethereum avatar has an invalid public GUID.");
-                    var detail = DeserializePrivateStorage<Avatar>("avatar",row.EntityId,row.Info,id);
-                    if (detail == null || !identities.Add(detail.Id))
+                    if (!identities.Add(id))
                         throw new InvalidDataException("Ethereum avatar collection contains a missing or duplicate identity.");
-                    details.Add(detail);
+                    var detail = ReadPrivateStorageVersion<Avatar>("avatar",row.EntityId,row.Info,id,version);
+                    if(detail!=null)details.Add(detail);
                 }
                 result.Result = details;
                 result.IsLoaded = true;
