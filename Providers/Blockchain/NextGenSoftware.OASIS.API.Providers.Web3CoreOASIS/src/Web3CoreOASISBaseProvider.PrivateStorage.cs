@@ -3,6 +3,7 @@ using System.IO;
 using System.Globalization;
 using System.Text;
 using System.Security.Cryptography;
+using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -36,24 +37,42 @@ public partial class Web3CoreOASISBaseProvider
 
     internal T DecodePrivateRecord<T>(string kind,Guid id,EntityOASIS entity) where T:class,IHolonBase
     {
-        if(entity==null || entity.EntityId!=(uint)HashUtility.GetNumericHash(id.ToString())
-            || entity.ExternalId==null || !CryptographicOperations.FixedTimeEquals(entity.ExternalId,PrivateExternalId(id)))
-            throw new InvalidDataException("Web3Core storage identity differs from requested record.");
+        ValidatePrivateRecordIdentity(id,entity);
         var record=DecodePrivateEntity<T>(kind,entity);
         if(record==null || record.Id!=id) throw new InvalidDataException("Web3Core private payload identity differs from requested record.");
         return record;
     }
 
-    internal T DecodePrivateEntity<T>(string kind,EntityOASIS entity) where T:class,IHolonBase
+    private static void ValidatePrivateRecordIdentity(Guid id,EntityOASIS entity)
+    {
+        if(entity==null || entity.EntityId!=(uint)HashUtility.GetNumericHash(id.ToString())
+            || entity.ExternalId==null || !CryptographicOperations.FixedTimeEquals(entity.ExternalId,PrivateExternalId(id)))
+            throw new InvalidDataException("Web3Core storage identity differs from requested record.");
+    }
+
+    internal T DecodePrivateEntity<T>(string kind,EntityOASIS entity,int version=0) where T:class,IHolonBase
+    {
+        if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+        var decoded=DecryptPrivateDocument<T>(kind,entity);
+        return version==0?decoded.Record:PrivateHistory.ReadAsync(decoded.Record.Id,decoded.Document,version,OasisJson.Deserialize<T>).GetAwaiter().GetResult();
+    }
+
+    private (T Record,Newtonsoft.Json.Linq.JObject Document) DecryptPrivateDocument<T>(string kind,EntityOASIS entity) where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(entity);
         var context=PrivateContext(kind,entity.EntityId,entity.ExternalId);
         using var codec=OpenPrivateCodec();
-        var record=OasisJson.Deserialize<T>(codec.Decrypt(context,Encoding.UTF8.GetString(entity.Info)));
+        var json=codec.Decrypt(context,Encoding.UTF8.GetString(entity.Info));
+        var record=OasisJson.Deserialize<T>(json);
         if(record==null || record.Id==Guid.Empty || entity.EntityId!=(uint)HashUtility.GetNumericHash(record.Id.ToString())
             || !CryptographicOperations.FixedTimeEquals(entity.ExternalId,PrivateExternalId(record.Id)))
             throw new InvalidDataException("Enumerated Web3Core payload identity differs from its storage identity.");
-        return record;
+        var document=Newtonsoft.Json.Linq.JObject.Parse(json);
+        if(document["id"]!=null && document["id"].Value<string>()!=record.Id.ToString())
+            throw new InvalidDataException("Web3Core embedded history identity differs from payload.");
+        document["id"]=record.Id.ToString();
+        record=PrivateHistory.ReadAsync(record.Id,document,0,OasisJson.Deserialize<T>).GetAwaiter().GetResult();
+        return (record,document);
     }
 
     internal static byte[] PrivateExternalId(Guid id)=>SHA256.HashData(Encoding.UTF8.GetBytes(id.ToString("D")));

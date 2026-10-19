@@ -57,7 +57,7 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        => await ReadPrivateGuidAsync<IAvatarDetail>(id,version,index=>_web3CoreOASIS.GetAvatarDetailByIdAsync(index),row=>DecodePrivateEntity<AvatarDetail>("detail",row));
+        => await ReadPrivateGuidAsync<IAvatarDetail>(id,version,index=>_web3CoreOASIS.GetAvatarDetailByIdAsync(index),row=>DecodePrivateEntity<AvatarDetail>("detail",row,version));
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         => await ReadPrivateSelectorAsync<IAvatarDetail>(avatarEmail,row=>row.Email,()=>LoadAllAvatarDetailsAsync(version));

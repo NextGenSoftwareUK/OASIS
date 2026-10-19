@@ -79,16 +79,16 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-        => ReadPrivateCollectionAsync<IAvatarDetail>("detail",row=>DecodePrivateEntity<AvatarDetail>("detail",row),version).GetAwaiter().GetResult();
+        => ReadPrivateCollectionAsync<IAvatarDetail>("detail",row=>DecodePrivateEntity<AvatarDetail>("detail",row,version),version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        => await ReadPrivateCollectionAsync<IAvatarDetail>("detail",row=>DecodePrivateEntity<AvatarDetail>("detail",row),version);
+        => await ReadPrivateCollectionAsync<IAvatarDetail>("detail",row=>DecodePrivateEntity<AvatarDetail>("detail",row,version),version);
 
     public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
-        => ReadPrivateCollectionAsync<IAvatar>("avatar",row=>DecodePrivateEntity<Avatar>("avatar",row),version).GetAwaiter().GetResult();
+        => ReadPrivateCollectionAsync<IAvatar>("avatar",row=>DecodePrivateEntity<Avatar>("avatar",row,version),version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        => await ReadPrivateCollectionAsync<IAvatar>("avatar",row=>DecodePrivateEntity<Avatar>("avatar",row),version);
+        => await ReadPrivateCollectionAsync<IAvatar>("avatar",row=>DecodePrivateEntity<Avatar>("avatar",row,version),version);
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         => await ReadPrivateHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
@@ -97,7 +97,7 @@ public partial class Web3CoreOASISBaseProvider
         => ReadPrivateHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        => await ReadPrivateGuidAsync<IAvatar>(id,version,index=>_web3CoreOASIS.GetAvatarByIdAsync(index),row=>DecodePrivateEntity<Avatar>("avatar",row));
+        => await ReadPrivateGuidAsync<IAvatar>(id,version,index=>_web3CoreOASIS.GetAvatarByIdAsync(index),row=>DecodePrivateEntity<Avatar>("avatar",row,version));
 
     public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
     {

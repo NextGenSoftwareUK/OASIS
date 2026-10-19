@@ -2,6 +2,8 @@
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/EthereumCurrent'
+$historyPending=Join-Path $taskRoot 'TestResults/Web3CoreCurrent/history-response-loss.pending.json'
+if(Test-Path -LiteralPath $historyPending){throw 'Pending original history fault requires reconciliation; never restart/reset the local chain.'}
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
@@ -85,10 +87,13 @@ try {
     if($web3Report.LastWriteTimeUtc -lt $web3Started){throw 'Web3Core native report is stale.'}
     [xml]$web3Trx=Get-Content -LiteralPath $web3Report.FullName
     $web3Counts=$web3Trx.TestRun.ResultSummary.Counters
-    if([int]$web3Counts.total -ne 4 -or [int]$web3Counts.passed -ne 4 -or [int]$web3Counts.notExecuted -ne 0){throw 'Expected four native Web3Core scenarios, no skips.'}
+    if([int]$web3Counts.total -ne 5 -or [int]$web3Counts.passed -ne 5 -or [int]$web3Counts.notExecuted -ne 0){throw 'Expected five native Web3Core scenarios including V2 Arbitrum history, no skips.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}
-    if($owned -and !$owned.HasExited){Stop-Process -Id $owned.Id; $owned.WaitForExit(5000) | Out-Null}
+    if($owned -and !$owned.HasExited){
+        if(Test-Path -LiteralPath $historyPending){Write-Warning "Original history fault evidence remains; keep owned local node PID $($owned.Id) live for reconciliation. Do not restart/reset."}
+        else{Stop-Process -Id $owned.Id; $owned.WaitForExit(5000) | Out-Null}
+    }
     $lease.Dispose()
 }

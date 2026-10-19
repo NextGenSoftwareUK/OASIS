@@ -30,6 +30,7 @@ public partial class Web3CoreOASISBaseProvider : IAvatarTombstoneStorageProvider
         {
             if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core avatar identity is required.",nameof(id));
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            var createHistory=IsVersionControlEnabled;
             var pair=await _web3CoreOASIS.ReadAvatarPairAsync((uint)HashUtility.GetNumericHash(id.ToString()));
             if(IsPrivateRecordAbsent(pair.Avatar)) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core avatar not found.";return result;}
             var avatar=DecodePrivateRecord<Avatar>("avatar",id,pair.Avatar);
@@ -51,8 +52,8 @@ public partial class Web3CoreOASISBaseProvider : IAvatarTombstoneStorageProvider
                 var date=patch.DeletedAtUtc;
                 var actor=patch.DeletedByAvatarId;
                 avatar.IsActive=false;avatar.DeletedDate=date;avatar.DeletedByAvatarId=actor;
-                request.AvatarInfo=Encoding.UTF8.GetBytes(EncodePrivateRecord("avatar",avatar));
-                if(detail!=null) {detail.IsActive=false;detail.DeletedDate=date;detail.DeletedByAvatarId=actor;request.DetailInfo=Encoding.UTF8.GetBytes(EncodePrivateRecord("detail",detail));}
+                request.AvatarInfo=(await StagePrivateHistoryAsync("avatar",avatar,pair.Avatar,createHistory)).Info;
+                if(detail!=null) {detail.IsActive=false;detail.DeletedDate=date;detail.DeletedByAvatarId=actor;request.DetailInfo=(await StagePrivateHistoryAsync("detail",detail,pair.Detail,createHistory)).Info;}
             }
             await _web3CoreOASIS.ApplyAvatarLifecycleAsync(request);
             result.Result=true;result.IsSaved=true;

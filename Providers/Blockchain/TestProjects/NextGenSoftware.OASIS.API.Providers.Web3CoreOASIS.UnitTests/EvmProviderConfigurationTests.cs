@@ -12,6 +12,22 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 [TestClass]
 public sealed class EvmProviderConfigurationTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void HistoryOptionRoundtripsAndBindsOnlyThroughExistingV2Factories(bool enabled)
+    {
+        Assert.IsFalse(JsonConvert.DeserializeObject<ArbitrumOASISProviderSettings>("{}")!.IsVersionControlEnabled);
+        Assert.IsFalse(JsonConvert.DeserializeObject<PolygonOASISProviderSettings>("{}")!.IsVersionControlEnabled);
+        var arbitrum=JsonConvert.DeserializeObject<ArbitrumOASISProviderSettings>(JsonConvert.SerializeObject(new ArbitrumOASISProviderSettings{
+            IsVersionControlEnabled=enabled,ConnectionString="http://127.0.0.1:1",ChainId=421614,
+            ChainPrivateKey="0x"+new string('1',64),ContractAddress="0x"+new string('2',40)}))!;
+        var polygon=JsonConvert.DeserializeObject<PolygonOASISProviderSettings>(JsonConvert.SerializeObject(new PolygonOASISProviderSettings{
+            IsVersionControlEnabled=enabled,ConnectionString="http://127.0.0.1:1",ChainId=80002,
+            ChainPrivateKey="0x"+new string('1',64),ContractAddress="0x"+new string('2',40)}))!;
+        var a=(Web3CoreOASISBaseProvider)EvmProviderFactory.CreateArbitrum(arbitrum,HyperDriveModes.V2,null!);
+        var p=EvmProviderFactory.CreatePolygon(polygon,null!);
+        Assert.AreEqual(enabled,a.IsVersionControlEnabled);Assert.AreEqual(enabled,p.IsVersionControlEnabled);
+        Assert.IsFalse(a.IsProviderActivated);Assert.IsFalse(p.IsProviderActivated);
+    }
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public void ArbitrumFactoryHonorsModeAndExplicitDnaConfigurationWithoutActivation(bool v2)

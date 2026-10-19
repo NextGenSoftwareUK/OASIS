@@ -19,7 +19,7 @@ internal static class EvmProviderFactory
             // Existing ContractAddress must identify a compatible Web3Core deployment;
             // normal activation verifies native protocol. Never retry a legacy layout.
             return new ArbitrumOASIS_Web3Core(endpoint,settings.ChainPrivateKey,settings.ContractAddress,settings.ChainId)
-            {TokenEscrowContractAddress=settings.TokenEscrowContractAddress};
+            {TokenEscrowContractAddress=settings.TokenEscrowContractAddress,IsVersionControlEnabled=settings.IsVersionControlEnabled};
         }
         return new ArbitrumOASIS(endpoint,settings.ChainPrivateKey,settings.ChainId,settings.ContractAddress);
     }
@@ -28,6 +28,6 @@ internal static class EvmProviderFactory
     {
         if(settings==null) throw new ArgumentNullException(nameof(settings));
         return new PolygonOASIS(overrideConnectionString??settings.ConnectionString,settings.ChainPrivateKey,settings.ContractAddress,settings.ChainId)
-        {TokenEscrowContractAddress=settings.TokenEscrowContractAddress};
+        {TokenEscrowContractAddress=settings.TokenEscrowContractAddress,IsVersionControlEnabled=settings.IsVersionControlEnabled};
     }
 }
