@@ -1,18 +1,39 @@
-param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token','Assets','Escrow','CSharpEscrow','InspectPrepared','ArchivePrepared','ArchiveReplication','ArchiveWalletSearch','CSharpNFT','CSharpAssets','History','Balance')][string]$Mode = 'Healthy')
+param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token','Assets','Escrow','CSharpEscrow','InspectPrepared','ArchivePrepared','ArchiveReplication','ArchiveWalletSearch','CSharpNFT','CSharpAssets','History','Balance')][string]$Mode = 'Healthy',[string]$EvidenceRoot,[string]$ProviderEvidenceRoot)
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
-$fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveSui'
+$fixtureRoot = if($EvidenceRoot){[IO.Path]::GetFullPath($EvidenceRoot)}else{Join-Path $taskRoot 'TestResults/HyperDriveSui'}
+$defaultProviderRoot=Join-Path $taskRoot 'TestResults/SuiCurrent'
+$providerEvidenceRoot=if($ProviderEvidenceRoot){[IO.Path]::GetFullPath($ProviderEvidenceRoot)}else{$defaultProviderRoot}
+foreach($existingRoot in @($fixtureRoot,$providerEvidenceRoot)){
+    if(!(Test-Path -LiteralPath $existingRoot -PathType Container)){throw 'Existing retained Sui evidence directory required; no replacement will be created.'}
+}
+if($providerEvidenceRoot -ne $defaultProviderRoot -and $Mode -ne 'Balance'){
+    throw 'Nondefault provider evidence selection is currently verified only for read-only Balance; child mutation runners require explicit path review first.'
+}
 $deploymentPath = '\\wsl.localhost\Ubuntu\var\tmp\oasis-sui\deployment.json'
-if(Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/prepared-http-native-pending.jsonl')){throw 'Pending HTTP native Sui ownership requires original reconciliation; do not replay.'}
+$fullnodeConfig='\\wsl.localhost\Ubuntu\var\tmp\oasis-sui\network\fullnode.yaml'
+$rpcBindings=@(Get-Content -LiteralPath $fullnodeConfig | Where-Object {$_ -match '^json-rpc-address:'})
+if($rpcBindings.Count -ne 1 -or $rpcBindings[0] -cne 'json-rpc-address: "127.0.0.1:9000"'){
+    throw 'Reviewed retained Sui fullnode config must bind RPC to loopback BEFORE startup.'
+}
+$startPath=(Join-Path $PSScriptRoot 'start-sui-test-network.sh').Replace('\','/')
+$startLines=@(& wsl -d Ubuntu -u root -- wslpath -a $startPath)
+if($LASTEXITCODE -ne 0 -or $startLines.Count -ne 1){throw 'Current Sui launcher path could not be resolved.'}
+$linuxStartScript=$startLines[0].Trim()
+$stopPath=(Join-Path $PSScriptRoot 'stop-owned-sui-test-node.sh').Replace('\','/')
+$stopLines=@(& wsl -d Ubuntu -u root -- wslpath -a $stopPath)
+if($LASTEXITCODE -ne 0 -or $stopLines.Count -ne 1){throw 'Current Sui stop-helper path could not be resolved.'}
+$linuxStopScript=$stopLines[0].Trim()
+if(Test-Path -LiteralPath (Join-Path $providerEvidenceRoot 'prepared-http-native-pending.jsonl')){throw 'Pending HTTP native Sui ownership requires original reconciliation; do not replay.'}
 if (!(Test-Path -LiteralPath $deploymentPath)) { throw 'Retained protected Sui deployment is unavailable; no copy or new wallet created.' }
 if ($Mode -notin @('ArchiveReplication','ArchiveWalletSearch') -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'encrypted-replication-pending.json'))) { throw 'Pending Sui ownership intent requires reconciliation before another run.' }
-if ($Mode -notin @('InspectPrepared','ArchivePrepared') -and (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/prepared-live-pending.json'))) { throw 'Pending prepared Sui ownership requires reconciliation before another run.' }
-if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-pending.jsonl')) { throw 'Pending NFT ownership requires reconciliation before another run.' }
-if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-pending.jsonl')) { throw 'Pending token ownership requires reconciliation before another run.' }
-if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/csharp-nft-live-pending.jsonl')) { throw 'Pending CSharp NFT ownership requires original-attempt reconciliation before another run.' }
-if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/csharp-token-live-pending.jsonl')) { throw 'Pending CSharp token ownership requires original-attempt reconciliation before another run.' }
-if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/escrow-live-pending.jsonl')) { throw 'Pending escrow ownership requires original-attempt reconciliation; do not republish or replay.' }
-if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/csharp-escrow-live-pending.jsonl')) { throw 'Pending CSharp escrow requires original-attempt reconciliation; do not replay.' }
+if ($Mode -notin @('InspectPrepared','ArchivePrepared') -and (Test-Path -LiteralPath (Join-Path $providerEvidenceRoot 'prepared-live-pending.json'))) { throw 'Pending prepared Sui ownership requires reconciliation before another run.' }
+if (Test-Path -LiteralPath (Join-Path $providerEvidenceRoot 'nft-live-pending.jsonl')) { throw 'Pending NFT ownership requires reconciliation before another run.' }
+if (Test-Path -LiteralPath (Join-Path $providerEvidenceRoot 'token-live-pending.jsonl')) { throw 'Pending token ownership requires reconciliation before another run.' }
+if (Test-Path -LiteralPath (Join-Path $providerEvidenceRoot 'csharp-nft-live-pending.jsonl')) { throw 'Pending CSharp NFT ownership requires original-attempt reconciliation before another run.' }
+if (Test-Path -LiteralPath (Join-Path $providerEvidenceRoot 'csharp-token-live-pending.jsonl')) { throw 'Pending CSharp token ownership requires original-attempt reconciliation before another run.' }
+if (Test-Path -LiteralPath (Join-Path $providerEvidenceRoot 'escrow-live-pending.jsonl')) { throw 'Pending escrow ownership requires original-attempt reconciliation; do not republish or replay.' }
+if (Test-Path -LiteralPath (Join-Path $providerEvidenceRoot 'csharp-escrow-live-pending.jsonl')) { throw 'Pending CSharp escrow requires original-attempt reconciliation; do not replay.' }
 & wsl -d Ubuntu -u root -- test -f /var/tmp/oasis-sui/network/network.yaml
 if ($LASTEXITCODE -ne 0) { throw 'Existing Sui ledger configuration missing; refusing genesis creation.' }
 & wsl -d Ubuntu -u root -- pgrep -x sui *> $null
@@ -32,7 +53,7 @@ $ownedPid = $null
 $launcher = $null
 try {
     # Hidden launcher, retained executable/ledger, fixed compact startup logs.
-    $launcher = Start-Process -FilePath 'wsl.exe' -ArgumentList @('-d','Ubuntu','-u','root','--','bash','/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/start-sui-test-network.sh','--reuse-only') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixtureRoot 'node-current.stdout.log') -RedirectStandardError (Join-Path $fixtureRoot 'node-current.stderr.log')
+    $launcher = Start-Process -FilePath 'wsl.exe' -ArgumentList @('-d','Ubuntu','-u','root','--','bash',$linuxStartScript,'--reuse-only') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixtureRoot 'node-current.stdout.log') -RedirectStandardError (Join-Path $fixtureRoot 'node-current.stderr.log')
     $deadline = [DateTime]::UtcNow.AddSeconds(30)
     while ([DateTime]::UtcNow -lt $deadline) {
         $found = @(& wsl -d Ubuntu -u root -- pgrep -x sui 2>$null)
@@ -61,46 +82,52 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Retained Sui SDK chain verification failed.' }
     $probe = ($probeOutput -join "`n") | ConvertFrom-Json
     if (!$probe.ok -or $probe.result.chainIdentifier -ne $settings.chainId) { throw 'Retained Sui SDK does not match protected deployment chain.' }
+    $sockets=@(& wsl -d Ubuntu -u root -- ss -H -ltnp)
+    if($LASTEXITCODE -ne 0){throw 'Cannot verify retained Sui RPC socket ownership.'}
+    $rpcSockets=@($sockets | Where-Object {$_ -match ':9000\s'})
+    if($rpcSockets.Count -ne 1 -or $rpcSockets[0] -notmatch '\s127\.0\.0\.1:9000\s' -or $rpcSockets[0] -notmatch "pid=$ownedPid,"){
+        throw 'Sui RPC must be one loopback-only socket owned by the verified runtime PID.'
+    }
     $settings = $null
     $env:OASIS_SUI_TEST_RPC = 'http://127.0.0.1:9000'
     $env:OASIS_SUI_TEST_DEPLOYMENT = $deploymentPath
     $env:OASIS_SUI_TEST_OWNED_PID = $ownedPid
-    $env:OASIS_SUI_TEST_STOP_SCRIPT = '/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-sui-test-node.sh'
+    $env:OASIS_SUI_TEST_STOP_SCRIPT = $linuxStopScript
     $env:OASIS_HYPERDRIVE_TEST_ROOT = $fixtureRoot
     if($Mode -eq 'Escrow'){
-        $env:OASIS_SUI_TEST_ESCROW_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/escrow-live-pending.jsonl'
-        $env:OASIS_SUI_TEST_ESCROW_CACHE=Join-Path $taskRoot 'TestResults/SuiCurrent/sui-escrow-deployment.json'
-        & node --test --test-reporter=tap (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/token-escrow-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $taskRoot 'TestResults/SuiCurrent/escrow-live-current.tap')
+        $env:OASIS_SUI_TEST_ESCROW_JOURNAL=Join-Path $providerEvidenceRoot 'escrow-live-pending.jsonl'
+        $env:OASIS_SUI_TEST_ESCROW_CACHE=Join-Path $providerEvidenceRoot 'sui-escrow-deployment.json'
+        & node --test --test-reporter=tap (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/token-escrow-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $providerEvidenceRoot 'escrow-live-current.tap')
         if($LASTEXITCODE -ne 0){throw 'Real escrow acceptance failed; preserve signed ownership and never republish/replay.'}
     }elseif($Mode -eq 'Assets'){
         $env:OASIS_SUI_TEST_FAUCET='http://127.0.0.1:9123'
-        $env:OASIS_SUI_TEST_TOKEN_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-pending.jsonl'
-        $env:OASIS_SUI_TEST_NFT_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-pending.jsonl'
+        $env:OASIS_SUI_TEST_TOKEN_JOURNAL=Join-Path $providerEvidenceRoot 'token-live-pending.jsonl'
+        $env:OASIS_SUI_TEST_NFT_JOURNAL=Join-Path $providerEvidenceRoot 'nft-live-pending.jsonl'
         $bridgeRoot=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge'
-        & node --test --test-concurrency=1 --test-reporter=tap (Join-Path $bridgeRoot 'nft-runtime.test.mjs') (Join-Path $bridgeRoot 'token-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $taskRoot 'TestResults/SuiCurrent/assets-live-current.tap')
+        & node --test --test-concurrency=1 --test-reporter=tap (Join-Path $bridgeRoot 'nft-runtime.test.mjs') (Join-Path $bridgeRoot 'token-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $providerEvidenceRoot 'assets-live-current.tap')
         if($LASTEXITCODE -ne 0){throw 'Real asset fixtures failed; preserve ownership journals and do not replay.'}
     }elseif($Mode -eq 'Token'){
         $env:OASIS_SUI_TEST_FAUCET='http://127.0.0.1:9123'
-        $env:OASIS_SUI_TEST_TOKEN_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-pending.jsonl'
-        & node --test --test-reporter=tap (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/token-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-current.tap')
+        $env:OASIS_SUI_TEST_TOKEN_JOURNAL=Join-Path $providerEvidenceRoot 'token-live-pending.jsonl'
+        & node --test --test-reporter=tap (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/token-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $providerEvidenceRoot 'token-live-current.tap')
         if($LASTEXITCODE -ne 0){throw 'Real token fixture failed; preserve prior balances and any pending journal.'}
     }elseif($Mode -eq 'NFT'){
         $env:OASIS_SUI_TEST_FAUCET='http://127.0.0.1:9123'
-        $env:OASIS_SUI_TEST_NFT_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-pending.jsonl'
-        & node --test --test-reporter=tap (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/nft-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-current.tap')
+        $env:OASIS_SUI_TEST_NFT_JOURNAL=Join-Path $providerEvidenceRoot 'nft-live-pending.jsonl'
+        & node --test --test-reporter=tap (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/nft-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $providerEvidenceRoot 'nft-live-current.tap')
         if($LASTEXITCODE -ne 0){throw 'Real NFT fixture failed; retain any pending journal and inspect original outcomes.'}
     }elseif($Mode -eq 'Balance'){
         $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
         $started=[DateTime]::UtcNow
-        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~RetainedNativeBalanceSurfacesAgreeWithExactSdkUnitsWithoutMutation' --logger 'trx;LogFileName=sui-native-balance-current.trx' --results-directory (Join-Path $taskRoot 'TestResults/SuiCurrent') -v:q
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~RetainedNativeBalanceSurfacesAgreeWithExactSdkUnitsWithoutMutation' --logger 'trx;LogFileName=sui-native-balance-current.trx' --results-directory (Join-Path $providerEvidenceRoot '.') -v:q
         if($LASTEXITCODE -ne 0){throw 'Read-only Sui balance verification failed.'}
-        $report=Get-Item -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/sui-native-balance-current.trx')
+        $report=Get-Item -LiteralPath (Join-Path $providerEvidenceRoot 'sui-native-balance-current.trx')
         if($report.LastWriteTimeUtc -lt $started){throw 'Sui balance report is stale.'}
         [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$evidence.TestRun.ResultSummary.Counters
         if([int]$counts.total -ne 2 -or [int]$counts.passed -ne 2 -or [int]$counts.notExecuted -ne 0){throw 'Both retained native balance cases must execute and pass.'}
     }elseif($Mode -eq 'Fee'){
-        $reportPath=Join-Path $taskRoot 'TestResults/SuiCurrent/sui-prepared-ledger-current.trx'
+        $reportPath=Join-Path $providerEvidenceRoot 'sui-prepared-ledger-current.trx'
         [xml]$report=[IO.File]::ReadAllText($reportPath)
         if($report.SelectSingleNode("//*[local-name()='ResultSummary']").outcome -ne 'Completed'){throw 'Prepared evidence run is not completed.'}
         $output=$report.SelectSingleNode("//*[local-name()='UnitTestResult'][@outcome='Passed']//*[local-name()='StdOut']")
@@ -108,19 +135,19 @@ try {
         if(!$match.Success){throw 'No retained original prepared digest; do not create another transaction.'}
         $env:OASIS_SUI_SUCCESSFUL_FEE_RECEIPT=$match.Groups[1].Value
         $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
-        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~ExistingOriginalFeeReceiptBindsActualPayerAndExactComponents' --logger 'trx;LogFileName=sui-original-fee-current.trx' --results-directory (Join-Path $taskRoot 'TestResults/SuiCurrent') -v:q
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~ExistingOriginalFeeReceiptBindsActualPayerAndExactComponents' --logger 'trx;LogFileName=sui-original-fee-current.trx' --results-directory (Join-Path $providerEvidenceRoot '.') -v:q
         if($LASTEXITCODE -ne 0){throw 'Original Sui fee verification failed; no transaction was created.'}
     }elseif($Mode -in @('InspectPrepared','ArchivePrepared')){
         $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedInspect -ArchiveSuiPrepared:($Mode -eq 'ArchivePrepared')
     }elseif($Mode -eq 'History'){
         $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
-        $env:OASIS_SUI_TEST_ESCROW_CACHE=Join-Path $taskRoot 'TestResults/SuiCurrent/sui-escrow-deployment.json'
+        $env:OASIS_SUI_TEST_ESCROW_CACHE=Join-Path $providerEvidenceRoot 'sui-escrow-deployment.json'
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedLedger -SuiCSharpHistory
         if($LASTEXITCODE -ne 0){throw 'Retained read-only history verification failed; no native replay allowed.'}
     }elseif($Mode -in @('Prepared','CSharpNFT','CSharpAssets','CSharpEscrow')){
         $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
-        $env:OASIS_SUI_TEST_ESCROW_CACHE=Join-Path $taskRoot 'TestResults/SuiCurrent/sui-escrow-deployment.json'
+        $env:OASIS_SUI_TEST_ESCROW_CACHE=Join-Path $providerEvidenceRoot 'sui-escrow-deployment.json'
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedLedger -SuiCSharpNft:($Mode -in @('CSharpNFT','CSharpAssets')) -SuiCSharpAssets:($Mode -eq 'CSharpAssets') -SuiCSharpEscrow:($Mode -eq 'CSharpEscrow')
     }else{
         $method = if ($Mode -eq 'ArchiveReplication') {'ArchiveExactSearchValidationFixtureAfterReadback'} elseif ($Mode -eq 'ArchiveWalletSearch') {'ArchiveExactWalletSearchFixtureAfterReadback'} elseif ($Mode -eq 'Healthy') { 'V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads' } else { 'V2FailsOverToRealStoreAfterSuiFailure' }
@@ -148,7 +175,7 @@ try {
     if ($ownedPid) {
         & wsl -d Ubuntu -u root -- test -e "/proc/$ownedPid/exe"
         if ($LASTEXITCODE -eq 0) {
-            & wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-sui-test-node.sh $ownedPid
+            & wsl -d Ubuntu -u root -- bash $linuxStopScript $ownedPid
             if ($LASTEXITCODE -ne 0) { throw 'Owned Sui runtime did not stop; inspect before another run.' }
         }
     }
