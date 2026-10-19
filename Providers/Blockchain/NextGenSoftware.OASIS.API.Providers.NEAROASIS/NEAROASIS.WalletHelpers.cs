@@ -92,11 +92,12 @@ public partial class NEAROASIS
     public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash,
         CancellationToken cancellationToken = default)
     {
-        var result = new OASISResult<BridgeTransactionStatus>();
+        // Completed is enum zero: an unavailable observation must never default to success.
+        var result = new OASISResult<BridgeTransactionStatus> { Result = BridgeTransactionStatus.Pending };
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var status = await _sdk.GetTransactionStatusAsync(transactionHash);
+            var status = await _sdk.GetTransactionStatusAsync(transactionHash, cancellationToken: cancellationToken);
             result.Result = status switch
             {
                 "Completed"=>BridgeTransactionStatus.Completed,
