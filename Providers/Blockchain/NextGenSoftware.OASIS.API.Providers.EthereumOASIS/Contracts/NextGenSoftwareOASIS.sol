@@ -53,6 +53,56 @@ contract NextGenSoftwareOASIS {
         return totalAvatarsCount;
     }
 
+    // History staging must bind to the exact ciphertext observed by its caller.
+    // Presence is explicit: an absent record is not an empty existing payload.
+    function CreateAvatarChecked(uint256 entityId, string memory identity, bool expectedPresent,
+        bytes32 expectedInfoHash, string memory info) public onlyStorageOwner returns (uint256) {
+        bool present;
+        for (uint256 i = 0; i < totalAvatarsCount; i++) {
+            if (avatars[i].EntityId == entityId) {
+                require(keccak256(bytes(avatars[i].AvatarId)) == keccak256(bytes(identity)), "OASIS identity collision");
+                require(keccak256(bytes(avatars[i].Info)) == expectedInfoHash, "OASIS record changed");
+                present = true;
+                break;
+            }
+        }
+        require(present == expectedPresent, "OASIS presence changed");
+        require(present || expectedInfoHash == bytes32(0), "OASIS absent hash required");
+        return CreateAvatar(entityId, identity, info);
+    }
+
+    function CreateAvatarDetailChecked(uint256 entityId, string memory identity, bool expectedPresent,
+        bytes32 expectedInfoHash, string memory info) public onlyStorageOwner returns (uint256) {
+        bool present;
+        for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
+            if (avatarDetails[i].EntityId == entityId) {
+                require(keccak256(bytes(avatarDetails[i].AvatarId)) == keccak256(bytes(identity)), "OASIS identity collision");
+                require(keccak256(bytes(avatarDetails[i].Info)) == expectedInfoHash, "OASIS record changed");
+                present = true;
+                break;
+            }
+        }
+        require(present == expectedPresent, "OASIS presence changed");
+        require(present || expectedInfoHash == bytes32(0), "OASIS absent hash required");
+        return CreateAvatarDetail(entityId, identity, info);
+    }
+
+    function CreateHolonChecked(uint256 entityId, string memory identity, bool expectedPresent,
+        bytes32 expectedInfoHash, string memory info) public onlyStorageOwner returns (uint256) {
+        bool present;
+        for (uint256 i = 0; i < totalHolonsCount; i++) {
+            if (holons[i].EntityId == entityId) {
+                require(keccak256(bytes(holons[i].HolonId)) == keccak256(bytes(identity)), "OASIS identity collision");
+                require(keccak256(bytes(holons[i].Info)) == expectedInfoHash, "OASIS record changed");
+                present = true;
+                break;
+            }
+        }
+        require(present == expectedPresent, "OASIS presence changed");
+        require(present || expectedInfoHash == bytes32(0), "OASIS absent hash required");
+        return CreateHolon(entityId, identity, info);
+    }
+
     function CreateHolon(
         uint256 entityId,
         string memory holonId,
