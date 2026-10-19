@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Provider-key delete routing — 2026-10-19
+
+Existing string provider-key overload incorrectly used USERNAME OR EMAIL against nonexistent OASISAVATARS/ISDELETED names. Oracle storage key is the GUID string assigned by saves, not an identity fallback. It now parses the GUID and delegates to the EXISTING ID delete owner; invalid/null/blank strings return original FormatException in OASISResult before any SDK connection, never username/email interpretation. Explicit username/email deletion APIs remain separate.
+
+Six sync/async null/blank/email-shaped-key tests genuinely failed before correction (real invalid connection ArgumentException, proving I/O admission was reached), SHA256 `EA4ABB1E0378E21EA00AFD495A30E2F21342B06A008D1C03171B68915E370968`. Full44units now pass403ms/zero skips, SHA256 `6C84F8ACF111D23B577BBFF408614CED1F7DA8B33971A8EDF5DBC3D64BC82FD5`. Expanded scoped native2/2pass3s includes invalid username-shaped key FormatException plus independent original avatar presence, then GUID-key hard deletion plus independent exact native avatar absence. Detail cleanup is still performed separately by fixture, not misrepresented as paired production deletion. Native SHA256 `BED36DCA0A0C9C6928D07E0773B2268AC4E088B11BBE51699795D6379275D8B4`.
+
+Lifecycle audit remains OPEN: existing ID/username/email owner mutates only avatar native IS_DELETED or deletes avatar row, not paired AvatarDetail/canonical DeletedDate/IsActive state; holon soft-delete likewise only updates indexed deletion state. Atomic paired deletion, canonical tombstones/history, ambiguous-delete admission/concurrency and unknown-outcome semantics need full correction/native proof, not just key routing. No complete deletion/provider/V2 claim. SAME retained environment, no download/install/reset; native fixture cleanup/journals0, containerEXITED, free72,405,954,560bytes. Shared SDK inventory backfilled separately without deletion.
+
 ## Native duplicate identity rejection — 2026-10-19
 
 Real retained database regression reproduced arbitrary successful username selection with two avatars sharing username/email: native2case run1pass/1FAIL, original TRX oracle-ambiguity-before.trx SHA256 `A853C78215FECEA2FC0713CDBDDDE67A295190D33047F4388C73797A3C6E49BA`. Original two IDs4560b54b-a972-41e3-a3a0-d8d379bdcdd9/e997cf03-63c2-4bf1-9af3-3f3c784b6a4b existed in both avatar/detail tables and were journaled before writes. No resubmission/reset/deletion to hide failure.

@@ -90,7 +90,13 @@ public sealed class OracleNativeAcceptanceTests
                     Assert.AreEqual(detail.Karma,raw.Karma);Assert.AreEqual(detail.XP,raw.XP);Assert.AreEqual(detail.Inventory[0].Quantity,raw.Inventory.Single().Quantity);
                 }
             }
-            foreach(var table in new[]{"OASIS_AVATARS","OASIS_AVATAR_DETAILS","OASIS_HOLONS"}){
+            var invalidKeyDelete=await provider.DeleteAvatarAsync(name,false);
+            Assert.IsTrue(invalidKeyDelete.IsError);Assert.IsInstanceOfType<FormatException>(invalidKeyDelete.Exception);
+            Assert.IsNotNull(await Read(verifier,"OASIS_AVATARS",id));
+            var keyDelete=await provider.DeleteAvatarAsync(id.ToString(),false);Assert.IsFalse(keyDelete.IsError,keyDelete.Exception?.ToString());Assert.IsTrue(keyDelete.Result);
+            Assert.IsNull(await Read(verifier,"OASIS_AVATARS",id));
+            // Paired detail deletion is still an explicit implementation gap; do not pretend this owner handles it.
+            foreach(var table in new[]{"OASIS_AVATAR_DETAILS","OASIS_HOLONS"}){
                 var actual=await Read(verifier,table,id);Assert.IsNotNull(actual);
                 await using var delete=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};
                 delete.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();delete.Parameters.Add("Expected",OracleDbType.Clob).Value=actual;
