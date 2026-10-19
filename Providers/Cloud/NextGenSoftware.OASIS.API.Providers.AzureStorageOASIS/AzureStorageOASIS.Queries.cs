@@ -63,7 +63,7 @@ public partial class AzureStorageOASIS
     {
         var result=new OASISResult<ISearchResults>();
         try {
-            StoredRecordSearch.Validate(search,version,maxDepth);
+            StoredRecordSearch.Validate(search,version,maxDepth,supportsHistory:true);
             var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
             var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
             var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
@@ -95,7 +95,7 @@ public partial class AzureStorageOASIS
         try {
             if(pairs==null || pairs.Count==0 || pairs.Keys.Any(string.IsNullOrWhiteSpace)) throw new ArgumentException("Nonempty metadata pairs and keys are required.");
             var search=new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string>(pairs),MetaKeyValuePairMatchMode=mode};
-            StoredRecordSearch.Validate(search,version,maxDepth);
+            StoredRecordSearch.Validate(search,version,maxDepth,supportsHistory:true);
             var loaded=await LoadAllHolonsAsync(type,children,recursive,maxDepth,initialDepth,continueOnError,fromProvider,version);
             if(loaded.IsError) return loaded;
             result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);

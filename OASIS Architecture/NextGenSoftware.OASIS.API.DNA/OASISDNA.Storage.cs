@@ -95,6 +95,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class AzureStorageOASISProviderSettings : ProviderSettingsBase
     {
+        public bool IsVersionControlEnabled { get; set; }
         public string HolonContainer { get; set; } = "oasis-holons";
         public string AvatarContainer { get; set; } = "oasis-avatars";
         public string AvatarDetailContainer { get; set; } = "oasis-avatar-details";

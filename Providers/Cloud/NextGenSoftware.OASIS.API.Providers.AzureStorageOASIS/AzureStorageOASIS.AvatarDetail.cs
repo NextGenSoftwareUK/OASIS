@@ -17,7 +17,7 @@ public partial class AzureStorageOASIS
     private static async Task<T> ObserveBlobMutationAsync<T>(Func<Task<T>> operation,Azure.Storage.Blobs.BlobClient blob)
     {
         try {return await operation();}
-        catch(RequestFailedException cause) when(cause.Status==412) {throw;}
+        catch(RequestFailedException cause) when(cause.Status==412 || cause.Status==409 && cause.ErrorCode=="BlobAlreadyExists") {throw;}
         catch(Exception cause) {throw new AzureBlobMutationReconciliationException(blob.BlobContainerName,blob.Name,cause);}
     }
     private async Task<OASISResult<bool>> DeleteSelectedAvatarAsync(Task<OASISResult<IAvatar>> lookup,bool softDelete)
@@ -55,7 +55,7 @@ public partial class AzureStorageOASIS
 
     private static void ValidateDetailVersion(int version)
     {
-        if(version!=0) throw new NotSupportedException("Azure detail storage currently retains only the latest version (0).");
+        if(version<0) throw new ArgumentOutOfRangeException(nameof(version),"Version must be zero (latest) or a positive historical version.");
     }
 
     private static AvatarDetail DecodeDetail(string json,string key)
@@ -74,7 +74,11 @@ public partial class AzureStorageOASIS
             ValidateDetailVersion(version);
             if(id==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
             var key=id.ToString();
-            var detail=DecodeDetail(await ReadBlobAsync(_serviceClient.GetBlobContainerClient(_detailContainer).GetBlobClient(key)),key);
+            var json=await ReadBlobAsync(_serviceClient.GetBlobContainerClient(_detailContainer).GetBlobClient(key));
+            DecodeDetail(json,key);
+            var detail=await ReadBlobHistoryAsync<AvatarDetail>(json,version);
+            if(detail==null) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure detail version not found.";return result;}
+            detail=DecodeDetail(Serialise(detail),key);
             if(detail.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure detail is deleted.";}
             else {result.Result=detail;result.IsLoaded=true;}
         }
@@ -93,7 +97,11 @@ public partial class AzureStorageOASIS
             var details=new List<IAvatarDetail>();
             var container=_serviceClient.GetBlobContainerClient(_detailContainer);
             await foreach(var blob in container.GetBlobsAsync()) {
-                var detail=DecodeDetail(await ReadBlobAsync(container.GetBlobClient(blob.Name)),blob.Name);
+                var json=await ReadBlobAsync(container.GetBlobClient(blob.Name));
+                DecodeDetail(json,blob.Name);
+                var detail=await ReadBlobHistoryAsync<AvatarDetail>(json,version);
+                if(detail==null) continue;
+                detail=DecodeDetail(Serialise(detail),blob.Name);
                 if(!detail.IsDeleted) details.Add(detail);
             }
             result.Result=details;result.IsLoaded=true;
@@ -133,15 +141,15 @@ public partial class AzureStorageOASIS
             var key=detail.Id.ToString();
             detail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
-            var payload=BinaryData.FromString(Serialise(detail));
             var blob=_serviceClient.GetBlobContainerClient(_detailContainer).GetBlobClient(key);
-            await ObserveBlobMutationAsync(()=>blob.UploadAsync(payload,overwrite:true),blob);
+            var committed=await WriteVersionedBlobAsync(blob,(AvatarDetail)detail,IsVersionControlEnabled);
             source.Id=detail.Id;
+            PublishBlobVersion(source,committed);
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
             result.Result=source;result.IsSaved=true;
         }
-        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        catch(Exception cause) {HandleBlobSaveError(ref result,cause);}
         return result;
     }
 }

@@ -2,6 +2,10 @@ $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $runtime='C:\Users\david\.cache\oasis-runtimes\azurite-3.37.0\node_modules\azurite\dist\src\blob\main.js'
 if(!(Test-Path -LiteralPath $runtime -PathType Leaf)) {throw 'Retained Azurite3.37.0 runtime is missing. Do not silently reinstall.'}
+$routingEvidence=Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests/bin/Debug/net10.0/TestResults/AzureRoutingFiles'
+if((Test-Path -LiteralPath $routingEvidence) -and (Get-ChildItem -LiteralPath $routingEvidence -File -Recurse | Select-Object -First 1)) {
+    throw 'Original Azure routing fixture files remain. Reconcile exact originals before starting the retained emulator; never overwrite or reset them.'
+}
 if(Get-NetTCPConnection -LocalPort 10000 -State Listen -ErrorAction SilentlyContinue) {throw 'Owned Azure fixture port10000 is occupied.'}
 if(Get-NetTCPConnection -LocalPort 10003 -State Listen -ErrorAction SilentlyContinue) {throw 'Reserved Azure outage port10003 is occupied.'}
 $work=Join-Path $root 'TestResults/AzureCurrent'
@@ -33,7 +37,7 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $started){throw 'Azure native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 77 -or [int]$counts.passed -ne 77 -or [int]$counts.notExecuted -ne 0) {throw 'Expected 77 Azure tests including search visibility and SDK deadline classification, no skips.'}
+    if([int]$counts.total -ne 94 -or [int]$counts.passed -ne 94 -or [int]$counts.notExecuted -ne 0) {throw 'Expected 94 Azure tests including public history, native races and history update lost-ACK reconciliation, no skips.'}
 }
 finally {
     $env:OASIS_AZURE_NATIVE_TEST=$previous
