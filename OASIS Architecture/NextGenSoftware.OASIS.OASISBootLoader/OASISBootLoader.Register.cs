@@ -301,7 +301,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     new Uri(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.ServiceEndpoint),
                                     OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.AuthKey,
                                     OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.DBName,
-                                    ListHelper.ConvertToList(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.CollectionNames));
+                                    ListHelper.ConvertToList(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.CollectionNames))
+                                {
+                                    IsVersionControlEnabled = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.IsVersionControlEnabled
+                                };
 
                                 azureCosmosDBOASIS.OnStorageProviderError += AzureCosmosDBOASIS_StorageProviderError;
                                 result.Result = azureCosmosDBOASIS;
