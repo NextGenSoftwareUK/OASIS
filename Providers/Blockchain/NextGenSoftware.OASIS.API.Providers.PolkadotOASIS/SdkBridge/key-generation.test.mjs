@@ -2,10 +2,34 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Keyring } from '@polkadot/api';
 import { decodeAddress, encodeAddress, signatureVerify } from '@polkadot/util-crypto';
-import { generateKeyPair, validateGenerationRequest } from './key-generation.mjs';
+import { generateKeyPair, validateGenerationRequest, createAccount, restoreAccount, validateRestorationMaterial } from './key-generation.mjs';
 
 const api = prefix => ({ registry: { chainSS58: prefix }, genesisHash: { toHex: () => '0x' + 'a'.repeat(64) },
   createType: (_, address) => ({ toHex: () => '0x' + Buffer.from(decodeAddress(address)).toString('hex') }) });
+
+test('SDK BIP39 account restores the identical sr25519 identity from mnemonic and raw seed', async () => {
+  const created = await createAccount(api(42));
+  let mnemonic, raw;
+  try {
+    assert.equal(created.seedPhrase.split(' ').length, 24);
+    mnemonic = await restoreAccount(api(42), created.seedPhrase);
+    raw = await restoreAccount(api(42), created.privateKey);
+    for (const restored of [mnemonic, raw]) {
+      assert.equal(restored.publicKey, created.publicKey);
+      assert.equal(restored.address, created.address);
+      assert.ok(restored.privateKey === created.privateKey, 'Restored seed mismatch (values withheld).');
+    }
+  } finally {
+    created.privateKey = null; created.seedPhrase = null;
+    if (mnemonic) mnemonic.privateKey = null;
+    if (raw) raw.privateKey = null;
+  }
+});
+
+for (const material of [null, '', 'arbitrary text', '0x01', 'ab'.repeat(33), 'notabip39word '.repeat(12).trim()])
+  test(`invalid recovery material rejected without guessed key derivation (${typeof material}/${material?.length ?? 0})`, async () => {
+    await assert.rejects(validateRestorationMaterial(material), /required|valid BIP39/);
+  });
 for (const prefix of [0, 42, 1000, 16383]) test(`real SDK sr25519 generation, SS58 and independent signatures for format ${prefix}`, async () => {
   const generated = await generateKeyPair(api(prefix));
   let pair; const seed = Buffer.from(generated.privateKey.slice(2), 'hex');

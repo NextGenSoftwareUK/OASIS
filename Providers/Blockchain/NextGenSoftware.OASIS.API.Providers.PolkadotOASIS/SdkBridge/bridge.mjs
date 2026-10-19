@@ -10,7 +10,7 @@ import { readOriginalOutcome, readOriginalNativeFee, validateOutcomeRange } from
 import { prepareAssetOperation, verifyAssetPreparation, validateAssetRequest } from './asset-operation.mjs';
 import { readOriginalAssetOutcome, validateAssetOutcomeRequest } from './asset-outcome.mjs';
 import { readWalletHistory, validateHistoryRequest } from './wallet-history.mjs';
-import { generateKeyPair, validateGenerationRequest } from './key-generation.mjs';
+import { generateKeyPair, validateGenerationRequest, createAccount, restoreAccount, validateRestorationMaterial } from './key-generation.mjs';
 
 // Metadata/preparation transport is read-only. Only explicitly owned submission gains a one-shot capability.
 let api;
@@ -19,8 +19,9 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
-  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
-  if (request.operation === 'generateKeyPair') validateGenerationRequest(request);
+  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair', 'createAccount', 'restoreAccount'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (['generateKeyPair', 'createAccount'].includes(request.operation)) validateGenerationRequest(request);
+  if (request.operation === 'restoreAccount') await validateRestorationMaterial(request.recoveryMaterial);
   if (request.operation === 'walletHistory') validateHistoryRequest(request);
   if (request.operation === 'assetOutcome') validateAssetOutcomeRequest(request);
   if (request.operation === 'originalOutcome') validateOutcomeRange(request);
@@ -41,7 +42,7 @@ try {
   if (api.genesisHash.toHex().toLowerCase() !== request.genesisHash.toLowerCase())
     throw new Error('Polkadot SDK genesis hash differs from the activated network.');
   let decimals;
-  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair'].includes(request.operation)) {
+  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair', 'createAccount', 'restoreAccount'].includes(request.operation)) {
   stage = 'native precision query';
   const properties = await api.rpc.system.properties();
   if (properties.tokenDecimals.isNone || properties.tokenDecimals.unwrap().length !== 1)
@@ -50,7 +51,11 @@ try {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
   }
-  if (request.operation === 'generateKeyPair') {
+  if (request.operation === 'createAccount' || request.operation === 'restoreAccount') {
+    stage = 'sr25519 account material';
+    process.stdout.write(JSON.stringify({ ok: true, result: request.operation === 'createAccount'
+      ? await createAccount(api) : await restoreAccount(api, request.recoveryMaterial) }));
+  } else if (request.operation === 'generateKeyPair') {
     stage = 'sr25519 key generation';
     process.stdout.write(JSON.stringify({ ok: true, result: await generateKeyPair(api) }));
   } else if (request.operation === 'walletHistory') {
@@ -114,7 +119,7 @@ try {
   // Preserve failure stage/type/reason without echoing endpoint URLs or request content.
   const kind = error instanceof Error ? error.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 64) : 'UnknownError';
   let reason = error instanceof Error ? error.message.replace(/https?:\/\/[^\s"'<>]+/gi, '[RPC endpoint]').slice(0, 512) : 'Unknown SDK failure';
-  for (const secret of [request?.privateKey, request?.mnemonic])
+  for (const secret of [request?.privateKey, request?.mnemonic, request?.recoveryMaterial])
     if (typeof secret === 'string' && secret) reason = reason.replaceAll(secret, '[signing secret]');
   reason = reason.replace(/(?:0x)?[0-9a-f]{64,}/gi, '[binary identity]');
   process.stdout.write(JSON.stringify({ ok: false, error: `Polkadot SDK operation failed during ${stage} (${kind}): ${reason}` }));

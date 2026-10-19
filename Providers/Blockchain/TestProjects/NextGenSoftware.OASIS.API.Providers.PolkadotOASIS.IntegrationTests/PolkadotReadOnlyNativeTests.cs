@@ -15,7 +15,8 @@ public class PolkadotReadOnlyNativeTests
     {
         Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_POLKADOT_READONLY_NATIVE"));
         using var provider=new PolkadotOASIS("https://rpc.polkadot.io",Genesis);
-        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var activation = await provider.ActivateProviderAsync();
+        Assert.IsFalse(activation.IsError, activation.Exception?.ToString() ?? activation.Message);
         var generated=requestOverload
             ? (synchronous ? provider.GenerateKeyPair(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3WalletBalanceRequest())
                 : await provider.GenerateKeyPairAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3WalletBalanceRequest()))
@@ -23,6 +24,26 @@ public class PolkadotReadOnlyNativeTests
         Assert.IsFalse(generated.IsError,generated.Exception?.ToString());
         var wallet=generated.Result;
         try {
+            if (!synchronous && !requestOverload) {
+                var created = await provider.CreateAccountAsync();
+                Assert.IsFalse(created.IsError, created.Message);
+                try {
+                    var mnemonic = await provider.RestoreAccountAsync(created.Result.SeedPhrase);
+                    var seed = await provider.RestoreAccountAsync(created.Result.PrivateKey);
+                    Assert.IsFalse(mnemonic.IsError, mnemonic.Message);
+                    Assert.IsFalse(seed.IsError, seed.Message);
+                    Assert.AreEqual(created.Result.PublicKey, mnemonic.Result.PublicKey);
+                    Assert.AreEqual(created.Result.PublicKey, seed.Result.PublicKey);
+                    Assert.IsTrue(created.Result.PrivateKey == mnemonic.Result.PrivateKey
+                        && created.Result.PrivateKey == seed.Result.PrivateKey, "Recovery identity mismatch (private values withheld).");
+                    var balance = await provider.GetAccountBalanceAsync(created.Result.PublicKey);
+                    Assert.IsFalse(balance.IsError, balance.Message);
+                    Assert.AreEqual(0m, balance.Result); // New unfunded identity, real finalized storage query.
+                    var invalid = await provider.RestoreAccountAsync("not a supported recovery value");
+                    Assert.IsTrue(invalid.IsError);
+                    mnemonic.Result = default; seed.Result = default;
+                } finally { created.Result = default; }
+            }
             Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(wallet.PrivateKey,"^0x[0-9a-fA-F]{64}$"),"Seed format invalid (value withheld).");
             Assert.IsFalse(wallet.WalletAddressLegacy.StartsWith("0x",StringComparison.Ordinal));
             Assert.IsNull(wallet.WalletAddressSegwitP2SH);

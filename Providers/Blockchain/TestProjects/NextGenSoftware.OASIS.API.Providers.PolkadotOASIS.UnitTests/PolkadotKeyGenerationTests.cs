@@ -6,6 +6,31 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class PolkadotKeyGenerationTests
 {
+    [TestMethod]
+    public async Task AccountMethodsUseSdkResponseNotFakeHashDerivation()
+        => await WithFixture("accepted", async provider => {
+            var created = await provider.CreateAccountAsync();
+            var restored = await provider.RestoreAccountAsync("0x" + new string('2',64));
+            Assert.IsFalse(created.IsError, created.Message);
+            Assert.IsFalse(restored.IsError, restored.Message);
+            Assert.AreEqual("0x" + new string('3',64), created.Result.PublicKey);
+            Assert.AreEqual(created.Result.PublicKey, restored.Result.PublicKey);
+            Assert.IsTrue(created.Result.PrivateKey == restored.Result.PrivateKey, "Private material mismatch (withheld).");
+            Assert.AreEqual(24, created.Result.SeedPhrase.Split(' ').Length);
+        });
+
+    [DataTestMethod][DataRow("generation-error")][DataRow("generation-network")]
+    [DataRow("generation-crypto")][DataRow("generation-prefix")][DataRow("generation-seed")][DataRow("generation-address")]
+    public async Task AccountMethodsRejectInvalidSdkResponse(string mode)
+        => await WithFixture(mode, async provider => {
+            Assert.IsTrue((await provider.CreateAccountAsync()).IsError);
+            Assert.IsTrue((await provider.RestoreAccountAsync("0x" + new string('2',64))).IsError);
+        });
+
+    [TestMethod]
+    public async Task CreationRejectsMissingMnemonic()
+        => await WithFixture("generation-phrase", async provider => Assert.IsTrue((await provider.CreateAccountAsync()).IsError));
+
     [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
     public async Task UnactivatedGenerationFailsWithoutTransport(bool synchronous,bool requestOverload)
     {

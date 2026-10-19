@@ -7,6 +7,35 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class PolkadotNativeBalanceTests
 {
+    [DataTestMethod]
+    [DataRow("1000000000001", 12, "1.000000000001")]
+    [DataRow("18446744073709551616", 0, "18446744073709551616")]
+    [DataRow("10000000000", 38, "0.0000000000000000000000000001")]
+    [DataRow("0", 38, "0")]
+    [DataRow("79228162514264337593543950335", 0, "79228162514264337593543950335")]
+    public void DecimalBalancePreservesExactRuntimeUnits(string units, int decimals, string expected)
+    {
+        Assert.AreEqual(decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture), ParseDecimal(units, decimals));
+    }
+
+    [DataTestMethod]
+    [DataRow("1", 29)]
+    [DataRow("79228162514264337593543950336", 0)]
+    [DataRow("01", 12)]
+    [DataRow("340282366920938463463374607431768211456", 12)]
+    public void DecimalBalanceRejectsRoundingOverflowAndMalformedUnits(string units, int decimals)
+    {
+        var failure = Assert.ThrowsException<TargetInvocationException>(() => ParseDecimal(units, decimals));
+        Assert.IsInstanceOfType(failure.InnerException, typeof(InvalidDataException));
+    }
+
+    private static decimal ParseDecimal(string units, int decimals)
+    {
+        using var json = JsonDocument.Parse(JsonSerializer.Serialize(new { units, decimals, blockHash = "0x" + new string('a', 64) }));
+        return (decimal)typeof(PolkadotOASIS).GetMethod("ParseNativeDecimalBalance", BindingFlags.Static | BindingFlags.NonPublic)!
+            .Invoke(null, new object[] { json.RootElement })!;
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task MissingSdkIsAnErrorNotAnInventedZeroBalance(bool synchronous)
     {

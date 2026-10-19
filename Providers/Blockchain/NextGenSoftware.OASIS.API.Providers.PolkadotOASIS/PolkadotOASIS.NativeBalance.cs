@@ -117,14 +117,33 @@ public partial class PolkadotOASIS
 
     private static double UnitsToDisplay(string unitsText, int decimals)
     {
+        var units = ParseNativeUnits(unitsText, decimals);
+        // Existing double display contract is approximate; decimal bridge contract below is exact.
+        return (double)units / Math.Pow(10, decimals);
+    }
+
+    private static decimal ParseNativeDecimalBalance(JsonElement result)
+    {
+        if (!IsGenesisHash(result.GetProperty("blockHash").GetString()))
+            throw new InvalidDataException("Polkadot finalized block identity is invalid.");
+        var scale = result.GetProperty("decimals").GetInt32();
+        var units = ParseNativeUnits(result.GetProperty("units").GetString(), scale);
+        while (scale > 0 && units % 10 == 0) { units /= 10; scale--; }
+        if (scale > 28 || units > new BigInteger(decimal.MaxValue))
+            throw new InvalidDataException("Native balance cannot be represented exactly by the decimal contract.");
+        var mask = new BigInteger(uint.MaxValue);
+        return new decimal(unchecked((int)(uint)(units & mask)), unchecked((int)(uint)((units >> 32) & mask)),
+            unchecked((int)(uint)((units >> 64) & mask)), false, (byte)scale);
+    }
+
+    private static BigInteger ParseNativeUnits(string unitsText, int decimals)
+    {
         if (string.IsNullOrEmpty(unitsText) || (unitsText.Length > 1 && unitsText[0] == '0')
             || !BigInteger.TryParse(unitsText, NumberStyles.None, CultureInfo.InvariantCulture, out var units)
             || units < 0 || units >= (BigInteger.One << 128))
             throw new InvalidDataException("Polkadot balance is not a canonical u128 value.");
         if (decimals < 0 || decimals > 38)
             throw new InvalidDataException("Polkadot balance precision is invalid.");
-        // The existing wallet interface returns double, so display precision is necessarily approximate.
-        // Preserve exact native units through SDK decoding; do not truncate via Int64 or assume DOT precision.
-        return (double)units / Math.Pow(10, decimals);
+        return units;
     }
 }

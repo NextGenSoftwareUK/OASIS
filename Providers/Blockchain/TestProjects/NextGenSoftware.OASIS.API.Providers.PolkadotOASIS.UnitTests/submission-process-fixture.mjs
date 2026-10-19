@@ -12,12 +12,13 @@ async function waitForOwnedCancellation(signal) {
   socket.write(signal);
   await new Promise(() => {});
 }
-if (request.operation === 'generateKeyPair') {
+if (['generateKeyPair', 'createAccount', 'restoreAccount'].includes(request.operation)) {
   const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
   if (mode === 'generation-error') { process.stdout.write(JSON.stringify({ ok: false, error: 'controlled key generation failure' })); process.exitCode = 1; }
   else emit({ chainId: mode === 'generation-network' ? originalHash : chain, cryptoType: mode === 'generation-crypto' ? 'ed25519' : 'sr25519',
     ss58Format: mode === 'generation-prefix' ? 46 : 42, privateKey: mode === 'generation-seed' ? 'invalid' : '0x' + '2'.repeat(64),
-    publicKey: '0x' + '3'.repeat(64), address: mode === 'generation-address' ? '0x' + '3'.repeat(64) : '5' + 'c'.repeat(47) });
+    publicKey: '0x' + '3'.repeat(64), address: mode === 'generation-address' ? '0x' + '3'.repeat(64) : '5' + 'c'.repeat(47),
+    seedPhrase: mode === 'generation-phrase' ? '' : Array(24).fill('fixture').join(' ') });
 } else if (request.operation === 'prepareTransfer' || request.operation === 'prepareAssetOperation') {
   const asset = request.operation === 'prepareAssetOperation';
   if (asset && (request.assetId !== '424242' || request.recipient !== 'sender' || request.amount !== '1.250001'))
