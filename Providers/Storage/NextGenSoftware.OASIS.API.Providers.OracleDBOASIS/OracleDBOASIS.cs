@@ -221,9 +221,12 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             while(await reader.ReadAsync()){
                 var id=new Guid((byte[])reader.GetValue(0));var record=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version);
                 if(record==null||record.IsDeleted)continue;
-                if(historicalIdentity){
+                if(column!="ID"){
                     var identity=record is IAvatar avatar?(column=="USERNAME"?avatar.Username:avatar.Email):record is IAvatarDetail detail?(column=="USERNAME"?detail.Username:detail.Email):null;
-                    if(!string.Equals(identity,(string)value,StringComparison.Ordinal))continue;
+                    if(!string.Equals(identity,(string)value,StringComparison.Ordinal)){
+                        if(historicalIdentity)continue;
+                        throw new System.IO.InvalidDataException("Oracle indexed identity differs from its canonical record.");
+                    }
                 }
                 if(selected!=null)throw new System.IO.InvalidDataException("Oracle identity selector matched multiple records.");
                 selected=record;
