@@ -19,7 +19,8 @@ public partial class EthereumOASISIntegrationTests
     [DataRow("avatar")][DataRow("avatar-detail")][DataRow("holon")]
     public async Task NativeCheckedHistoryPersistsEncryptedArchiveWithoutPublishingCaller(string kind)
     {
-        var (provider,address)=await CreateActivatedProviderAsync();
+        var (provider,address)=await CreateActivatedProviderAsync(history:true);
+        Assert.IsTrue(provider.IsVersionControlEnabled);
         try {
             if(kind=="avatar")await VerifyNativeHistory(provider,address,kind,new Avatar {Id=Guid.NewGuid(),Username="native-private-marker"});
             else if(kind=="avatar-detail")await VerifyNativeHistory(provider,address,kind,new AvatarDetail {Id=Guid.NewGuid(),Username="native-private-marker"});

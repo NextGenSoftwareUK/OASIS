@@ -30,14 +30,15 @@ public partial class EthereumOASISIntegrationTests
     private static string PrivateKey => Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_PRIVATE_KEY") ?? DefaultPrivateKey;
     private static BigInteger ChainId => BigInteger.Parse(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_CHAIN_ID") ?? DefaultChainId.ToString());
 
-    private static async Task<(EthereumOASIS Provider, string Contract)> CreateActivatedProviderAsync()
+    private static async Task<(EthereumOASIS Provider, string Contract)> CreateActivatedProviderAsync(bool history=false)
     {
         var account = new Account(PrivateKey, ChainId);
         var web3 = new Web3(account, Host);
         var receipt = await NextGenSoftwareOASISService.DeployContractAndWaitForReceiptAsync(web3, new NextGenSoftwareOASISDeployment());
         Assert.IsFalse(receipt.HasErrors(), "The disposable EVM storage contract deployment failed.");
 
-        var provider = new EthereumOASIS(Host, PrivateKey, ChainId, receipt.ContractAddress);
+        var provider = NextGenSoftware.OASIS.OASISBootLoader.EthereumProviderFactory.Create(new EthereumOASISProviderSettings{
+            ConnectionString=Host,ChainPrivateKey=PrivateKey,ChainId=(long)ChainId,ContractAddress=receipt.ContractAddress,IsVersionControlEnabled=history},null!);
         var activation = await provider.ActivateProviderAsync();
         Assert.IsFalse(activation.IsError, activation.Message);
         Assert.IsTrue(activation.Result);
