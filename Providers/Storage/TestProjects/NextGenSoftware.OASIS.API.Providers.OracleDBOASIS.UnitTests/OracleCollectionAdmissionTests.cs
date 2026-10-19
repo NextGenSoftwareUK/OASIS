@@ -6,6 +6,14 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 [TestClass]
 public sealed class OracleCollectionAdmissionTests
 {
+    [DataTestMethod][DataRow(0,false,false)][DataRow(0,false,true)][DataRow(0,true,false)][DataRow(0,true,true)]
+    [DataRow(1,false,false)][DataRow(1,false,true)][DataRow(1,true,false)][DataRow(1,true,true)]
+    public async Task InvalidMetadataModeRejectsBeforeConnection(int version,bool synchronous,bool empty)
+    {
+        var provider=new OracleDBOASIS("UnsupportedOracleOptionForOwnedTest=true");var filter=empty?new Dictionary<string,string>():new Dictionary<string,string>{{"owned","value"}};
+        var result=synchronous?provider.LoadHolonsByMetaData(filter,(MetaKeyValuePairMatchMode)999,version:version):await provider.LoadHolonsByMetaDataAsync(filter,(MetaKeyValuePairMatchMode)999,version:version);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(result.Exception);
+    }
     [DataTestMethod]
     [DataRow(0,false)][DataRow(0,true)][DataRow(1,false)][DataRow(1,true)][DataRow(2,false)][DataRow(2,true)][DataRow(3,false)][DataRow(3,true)]
     [DataRow(4,false)][DataRow(4,true)][DataRow(5,false)][DataRow(5,true)][DataRow(6,false)][DataRow(6,true)][DataRow(7,false)][DataRow(7,true)]
