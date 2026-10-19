@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 
@@ -43,16 +44,35 @@ public partial class EthereumOASISIntegrationTests
             Persist(new{phase="seed-acknowledged",version=source.Version});
             var versionId=source.VersionId;var previous=source.PreviousVersionId;var storageKey=source.ProviderUniqueStorageKey[Core.Enums.ProviderType.EthereumOASIS];
             source.Description="accepted-second-marker";
+            OwnedNativePreparationScope Scope(EthereumOASIS provider)=>(OwnedNativePreparationScope)typeof(EthereumOASIS).GetField("_storagePreparation",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(provider)!;
+            var probe=new Web3(new Account(PrivateKey,ChainId),Host);var signer=probe.TransactionManager.Account.Address;
+            var nonceBefore=await probe.Eth.Transactions.GetTransactionCount.SendRequestAsync(signer,Nethereum.RPC.Eth.DTOs.BlockParameter.CreatePending());
+            var persistenceFailure=new IOException("Owned preparation persistence failure");
+            var blocked=await Scope(healthy).RunAsync(()=>Save(healthy),(_,_)=>Task.FromException(persistenceFailure));
+            Assert.IsTrue(blocked.Error);Assert.IsFalse(blocked.Saved);Assert.AreSame(persistenceFailure,blocked.Cause!.InnerException);Assert.AreEqual(1,source.Version);
+            using(var cancellation=new CancellationTokenSource()){
+                var canceled=await Scope(healthy).RunAsync(()=>Save(healthy),(evidence,_)=>{Persist(new{phase="cancel-before-submit",evidence});cancellation.Cancel();return Task.CompletedTask;},cancellation.Token);
+                Assert.IsTrue(canceled.Error);Assert.IsFalse(canceled.Saved);Assert.IsInstanceOfType(canceled.Cause!.InnerException,typeof(OperationCanceledException));
+            }
+            Assert.AreEqual(nonceBefore.Value,(await probe.Eth.Transactions.GetTransactionCount.SendRequestAsync(signer,Nethereum.RPC.Eth.DTOs.BlockParameter.CreatePending())).Value);
+            Assert.AreEqual(1,(await Read(0)).Version);Assert.AreEqual(1,source.Version);
             string? preparedHash=null;string accepted;
+            JsonElement providerProof=default;
             await using(var proxy=new Web3AcceptedWriteProxy(raw=>{
                 var bytes=raw.HexToByteArray();preparedHash="0x"+Convert.ToHexString(Sha3Keccack.Current.CalculateHash(bytes)).ToLowerInvariant();
+                Assert.AreEqual(preparedHash,providerProof.GetProperty("transactionHash").GetString());
+                CollectionAssert.AreEqual(raw.HexToByteArray(),Convert.FromBase64String(providerProof.GetProperty("signedTransactionBase64").GetString()!));
                 Persist(new{phase="before-fault-forward",transactionHash=preparedHash,signedTransactionBase64=Convert.ToBase64String(bytes)});
                 return Task.CompletedTask;
             })){
                 var fault=new EthereumOASIS("http://127.0.0.1:18546",PrivateKey,ChainId,address){IsVersionControlEnabled=true};
                 Assert.IsFalse((await fault.ActivateProviderAsync()).IsError);
                 try {
-                    var failed=await Save(fault);Assert.IsTrue(failed.Error);Assert.IsFalse(failed.Saved);Assert.IsNull(failed.Value);
+                    var failed=await Scope(fault).RunAsync(()=>Save(fault),(evidence,_)=>{
+                        Assert.AreEqual(0,proxy.Methods.Count(method=>method=="eth_sendRawTransaction"));
+                        providerProof=evidence.Clone();Persist(new{phase="provider-prepared-before-send",evidence});return Task.CompletedTask;
+                    });
+                    Assert.IsTrue(failed.Error);Assert.IsFalse(failed.Saved);Assert.IsNull(failed.Value);
                     Assert.IsInstanceOfType(failed.Cause,typeof(EthereumStorageReceiptReconciliationException));
                     accepted=proxy.AcceptedHashes.Single();
                     Assert.AreEqual(preparedHash,accepted);Assert.AreEqual(accepted,((EthereumStorageReceiptReconciliationException)failed.Cause!).OriginalTransactionId);

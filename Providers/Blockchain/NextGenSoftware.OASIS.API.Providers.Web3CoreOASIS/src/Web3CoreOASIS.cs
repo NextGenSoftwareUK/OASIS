@@ -17,21 +17,21 @@ public sealed class Web3CoreOASIS
     private readonly string _contractAddress;
     private readonly string _abi;
     private readonly BigInteger? _chainId;
-    private readonly AsyncLocal<Func<System.Text.Json.JsonElement,Task>> _preparation=new();
+    private readonly NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OwnedNativePreparationScope _preparation=new();
     private readonly SemaphoreSlim _mutationGate;
     private readonly string _blockchainUrl;
     internal string SigningAddress=>_web3.TransactionManager.Account.Address;
-    internal bool HasNativePreparation => _preparation.Value != null;
+    internal bool HasNativePreparation => _preparation.HasCurrent;
     internal async Task<BigInteger> ReadChainIdAsync()=> (await _web3.Eth.ChainId.SendRequestAsync()).Value;
     internal Task<TransactionReceipt> ReadOriginalReceiptAsync(string hash)=>_web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(hash);
 
-    internal async Task<T> WithNativePreparationAsync<T>(Func<Task<T>> operation,Func<System.Text.Json.JsonElement,Task> persist)
+    internal Task<T> WithNativePreparationAsync<T>(Func<Task<T>> operation,Func<System.Text.Json.JsonElement,Task> persist)
+        => WithCancellableNativePreparationAsync(operation,persist,default);
+
+    internal Task<T> WithCancellableNativePreparationAsync<T>(Func<Task<T>> operation,Func<System.Text.Json.JsonElement,Task> persist,CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(persist);
-        if(_preparation.Value!=null) throw new InvalidOperationException("Nested EVM preparation owners are not allowed.");
-        _preparation.Value=persist;
-        try {return await operation();}
-        finally {_preparation.Value=null;}
+        return _preparation.RunAsync(operation,(evidence,_)=>persist(evidence),token);
     }
 
     public Task<TransactionReceipt> ApplyAvatarLifecycleAsync(AvatarLifecycleRequest request)
@@ -120,11 +120,10 @@ public sealed class Web3CoreOASIS
 
     private async Task<TransactionReceipt> SendInputAndWaitForReceiptAsync(TransactionInput input)
     {
-        await _mutationGate.WaitAsync();
+        await _mutationGate.WaitAsync(_preparation.CurrentToken);
         try
         {
-        var persist=_preparation.Value;
-        if(persist!=null && (input.Value?.Value??BigInteger.Zero)!=BigInteger.Zero)
+        if(_preparation.HasCurrent && (input.Value?.Value??BigInteger.Zero)!=BigInteger.Zero)
             throw new InvalidOperationException("Admitted native-value recovery requires a value-aware journal contract before submission.");
         // Signing must not consume a cached nonce if preparation fails before submission.
         input.Nonce=await _web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(input.From,BlockParameter.CreatePending());
@@ -133,12 +132,11 @@ public sealed class Web3CoreOASIS
         if(bytes.Length==0) throw new InvalidOperationException("EVM signer returned empty signed transaction.");
         var hash=Web3SignedPreparation.Hash(bytes);
         Web3SignedPreparation.Verify(bytes,hash,_chainId ?? throw new InvalidOperationException("Signed EVM mutations require an explicit chain identity."),input.From,_contractAddress,input.Data.HexToByteArray(),input.Value?.Value??System.Numerics.BigInteger.Zero);
-        if(persist!=null)
-            await persist(System.Text.Json.JsonSerializer.SerializeToElement(new {
+        var submission=await _preparation.PrepareCurrentAsync(()=>System.Text.Json.JsonSerializer.SerializeToElement(new {
                 transactionHash=hash,chainId=_chainId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),sender=input.From,
                 signedTransactionBase64=Convert.ToBase64String(bytes),contract=_contractAddress,calldata=input.Data}));
         return await Web3TransactionOutcome.SubmitAndObserveAsync(
-            ()=>_web3.Eth.Transactions.SendRawTransaction.SendRequestAsync(signed),
+            ()=>submission.SubmitAsync(()=>_web3.Eth.Transactions.SendRawTransaction.SendRequestAsync(signed)),
             hash=>_web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(hash),
             TimeSpan.FromSeconds(60),TimeSpan.FromMilliseconds(100),hash);
         }
