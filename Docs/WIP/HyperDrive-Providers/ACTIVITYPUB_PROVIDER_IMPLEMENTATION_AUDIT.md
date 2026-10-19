@@ -2,6 +2,10 @@
 
 2026-10-18. Incomplete; not release certification.
 
+## Generic search contract audit — 2026-10-19, still OPEN
+
+Read current SearchAsync body against Core Objects/Search/SearchParams.cs and Interfaces/Search/ISearchParams.cs: normal SearchParams holds SearchGroups, but adapter tests whether the ROOT request implements ISearchTextGroup. The normal concrete type does not, so its real groups are never read and query remains empty. ParentId/FilterByMetaData/avatar scope fields are not translated by this method; the native response is only one statuses page. These are concrete interface gaps, not fixed by parser/transport/public timeline tests. No search completion/authorization claim or guessed fallback query was introduced. Proper native query translation, bounded/exhaustive semantics, required authenticated test authority and all supported scope/options need implementation/proof; arbitrary OASIS record search cannot silently be replaced by one public page. No signup or remote mutation undertaken here.
+
 ## Configured instance origin and redirect boundary (2026-10-19)
 
 Source review confirmed that generic-storage BootLoader exclusion is intentional; it is NOT a missing registration to enable indiscriminately. Relevant real social/network interfaces remain incomplete. This batch does not enable arbitrary avatar/holon storage or pretend Mastodon REST is universal ActivityPub C2S.

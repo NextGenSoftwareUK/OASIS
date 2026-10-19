@@ -124,6 +124,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try {return await mutation();}
             // A failed condition is explicit server evidence that this item mutation did not execute.
             catch(ConditionalCheckFailedException) {throw;}
+            // A native HTTP400 ValidationException rejects the request; it is not a lost ACK.
+            // Do not generalize this to arbitrary400s, transport failures or server errors.
+            catch(AmazonDynamoDBException cause)when(cause.StatusCode==System.Net.HttpStatusCode.BadRequest
+                &&string.Equals(cause.ErrorCode,"ValidationException",StringComparison.Ordinal)){throw;}
             catch(Exception cause) {throw new DynamoDBMutationReconciliationException(table,key,cause);}
         }
         private Task<UpdateItemResponse> UpdateItemAsync(UpdateItemRequest request)

@@ -1,6 +1,6 @@
-param([switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun)
+param([switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures)
 $ErrorActionPreference='Stop'
-if(([int]$ReconcileKnownReadFixture.IsPresent+[int]$FullAwsSuite.IsPresent+[int]$ReconcileAwsPreRead.IsPresent+[int]$CleanupKnownAwsRun.IsPresent) -gt 1){throw 'Choose one explicit runner mode.'}
+if(([int]$ReconcileKnownReadFixture.IsPresent+[int]$FullAwsSuite.IsPresent+[int]$ReconcileAwsPreRead.IsPresent+[int]$CleanupKnownAwsRun.IsPresent+[int]$ReconcileValidationFixtures.IsPresent) -gt 1){throw 'Choose one explicit runner mode.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runtime='C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\runtime'
 $work=Join-Path $root 'TestResults/DynamoHistoryCurrent'
@@ -13,7 +13,11 @@ $owned=$null;$previousEndpoint=$env:DYNAMODB_SERVICE_URL;$previousWork=$env:OASI
 $previousCleanup=$env:OASIS_AWS_CLEANUP_AUTHORITY
 try{
     $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
-    if($ReconcileKnownReadFixture){if($pending.Count -ne 1 -or $pending[0].Name -ne 'record-history-2.pending.json'){throw 'Exactly the reviewed read-fixture journal is required.'}}
+    if($ReconcileValidationFixtures){
+        $originalReport=Join-Path $work 'dynamo-history-native-current.trx'
+        if($pending.Count -ne 7 -or (Get-FileHash -LiteralPath $originalReport -Algorithm SHA256).Hash -ne '339A00426E80869F82FA8EBE1273A490BA40D94B6829791A35AA04AEABB95E53'){throw 'Exactly the reviewed validation-rejection run is required.'}
+    }
+    elseif($ReconcileKnownReadFixture){if($pending.Count -ne 1 -or $pending[0].Name -ne 'record-history-2.pending.json'){throw 'Exactly the reviewed read-fixture journal is required.'}}
     elseif($ReconcileAwsPreRead -or $CleanupKnownAwsRun){if($pending.Count -ne 1 -or $pending[0].Name -ne 'aws-full-suite.pending.json'){throw 'Exactly the known full-suite intent is required.'}}
     elseif($pending.Count){throw 'Reconcile retained native originals before another run.'}
     $project=Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.IntegrationTests.csproj'
@@ -39,6 +43,11 @@ try{
     }while([DateTime]::UtcNow -lt $deadline)
     if(!$listener){throw 'Owned runtime readiness timeout.'}
     $env:DYNAMODB_SERVICE_URL='http://127.0.0.1:18000';$env:OASIS_DYNAMO_HISTORY_WORK=$work;$started=[DateTime]::UtcNow
+    if($ReconcileValidationFixtures){
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~ReconcileKnownValidationRejectionFixtures' --logger 'trx;LogFileName=dynamo-validation-reconciliation-current.trx' --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Original validation fixtures require further reconciliation; no replay/reset.'}
+        return
+    }
     if($CleanupKnownAwsRun){
         $env:OASIS_AWS_CLEANUP_AUTHORITY='known-run-reconciled'
         & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~AWSNativeRunLifecycle.CleanupKnownReadOnlyReconciledRun' --logger 'trx;LogFileName=aws-known-run-cleanup.trx' --results-directory $work -v:q
@@ -62,11 +71,11 @@ try{
         if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Native exact cleanup incomplete; preserve remaining originals.'}
         return
     }
-    $filter=if($ReconcileKnownReadFixture){'FullyQualifiedName~ReconcileKnownHistoryReadFixture'}else{'FullyQualifiedName~DynamoHistoryNativeTests&FullyQualifiedName!~ReconcileKnownHistoryReadFixture'}
+    $filter=if($ReconcileKnownReadFixture){'FullyQualifiedName~ReconcileKnownHistoryReadFixture'}else{'FullyQualifiedName~DynamoHistoryNativeTests&FullyQualifiedName!~ReconcileKnown'}
     $reportName=if($ReconcileKnownReadFixture){'dynamo-history-reconciliation-current.trx'}else{'dynamo-history-native-current.trx'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Native history test failed; preserve journal/data for reconciliation.'}
-    $report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($ReconcileKnownReadFixture){1}else{17}
+    $report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($ReconcileKnownReadFixture){1}else{19}
     if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Fresh complete native cases and cleared original journals required.'}
 }finally{
     $env:DYNAMODB_SERVICE_URL=$previousEndpoint;$env:OASIS_DYNAMO_HISTORY_WORK=$previousWork

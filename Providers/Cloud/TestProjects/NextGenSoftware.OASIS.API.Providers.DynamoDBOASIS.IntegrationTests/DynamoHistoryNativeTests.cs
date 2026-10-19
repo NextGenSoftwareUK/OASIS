@@ -13,8 +13,28 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.IntegrationTests;
 
 [TestClass][DoNotParallelize]
-public class DynamoHistoryNativeTests
+public partial class DynamoHistoryNativeTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task NativeOversizedPutIsRejectedWithoutPublicationOrUnknownOutcome(bool aws)
+    {
+        Assert.AreEqual("http://127.0.0.1:18000",Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL"));
+        var work=Environment.GetEnvironmentVariable("OASIS_DYNAMO_HISTORY_WORK")!;var journal=Path.Combine(work,$"oversized-put-{aws}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var row=new Holon{Id=Guid.NewGuid(),Name="owned-oversized-put",Description=new string('x',450*1024),Version=9,VersionId=Guid.NewGuid()};var versionId=row.VersionId;
+        DynamoDBOASIS provider=aws?new NextGenSoftware.OASIS.API.Providers.AWSOASIS.AWSOASIS("us-east-1","ownedhistorytest","ownedhistorytest","http://127.0.0.1:18000"):new DynamoDBOASIS("ownedhistorytest","ownedhistorytest","us-east-1","http://127.0.0.1:18000");
+        provider.IsVersionControlEnabled=true;var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;var original=(AmazonDynamoDBClient)field.GetValue(provider)!;
+        using var client=new FaultClient();using var verifier=Client();field.SetValue(provider,client);
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);var key=new Dictionary<string,AttributeValue>{{"id",new(){S=row.Id.ToString()}}};
+            Assert.AreEqual(0,(await verifier.GetItemAsync(new GetItemRequest{TableName="OasisHolons",Key=key,ConsistentRead=true})).Item.Count);
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id=row.Id,table="OasisHolons",aws,state="before-oversized-sdk-put"}));file.Flush(true);}
+            var rejected=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.IsSaved);Assert.IsNull(rejected.Result);Assert.AreEqual(1,client.Writes);
+            Assert.IsInstanceOfType<AmazonDynamoDBException>(rejected.Exception);var cause=(AmazonDynamoDBException)rejected.Exception;
+            Assert.AreEqual(HttpStatusCode.BadRequest,cause.StatusCode);Assert.AreEqual("ValidationException",cause.ErrorCode);Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(cause));
+            Assert.AreEqual(9,row.Version);Assert.AreEqual(versionId,row.VersionId);Assert.AreEqual(0,row.ProviderUniqueStorageKey.Count);
+            Assert.AreEqual(0,(await verifier.GetItemAsync(new GetItemRequest{TableName="OasisHolons",Key=key,ConsistentRead=true})).Item.Count);File.Delete(journal);
+        }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
+    }
     private static AmazonDynamoDBConfig Configuration()=>new(){ServiceURL="http://127.0.0.1:18000",AuthenticationRegion="us-east-1",UseHttp=true,MaxErrorRetry=0};
     private static AmazonDynamoDBClient Client()=>new(new BasicAWSCredentials("ownedhistorytest","ownedhistorytest"),
         Configuration());
@@ -191,9 +211,10 @@ public class DynamoHistoryNativeTests
         }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
         static void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){
             Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
-            Assert.IsInstanceOfType<DynamoDBMutationReconciliationException>(result.Exception);
-            var native=result.Exception.InnerException as AmazonDynamoDBException;Assert.IsNotNull(native);
-            Assert.AreEqual("ValidationException",native.ErrorCode);
+            Assert.IsInstanceOfType<AmazonDynamoDBException>(result.Exception);
+            var native=(AmazonDynamoDBException)result.Exception;
+            Assert.AreEqual("ValidationException",native.ErrorCode);Assert.AreEqual(HttpStatusCode.BadRequest,native.StatusCode);
+            Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(native));
         }
     }
 
@@ -267,8 +288,9 @@ public class DynamoHistoryNativeTests
                 client.Mode="missing-ack";var error=await Assert.ThrowsExceptionAsync<DynamoDBMutationReconciliationException>(()=>Write(provider,row,table));Assert.IsInstanceOfType(error.InnerException,typeof(InvalidDataException));
             }else{
                 row.MetaData["padding"]=new string('x',410*1024);
-                var error=await Assert.ThrowsExceptionAsync<DynamoDBMutationReconciliationException>(()=>Write(provider,row,table));
-                Assert.IsInstanceOfType(error.InnerException,typeof(AmazonDynamoDBException));Assert.AreEqual("ValidationException",((AmazonDynamoDBException)error.InnerException!).ErrorCode);
+                var error=await Assert.ThrowsExceptionAsync<AmazonDynamoDBException>(()=>Write(provider,row,table));
+                Assert.AreEqual("ValidationException",error.ErrorCode);Assert.AreEqual(HttpStatusCode.BadRequest,error.StatusCode);
+                Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(error));
             }
             Assert.AreEqual(1,client.Writes);Assert.AreEqual(0,row.Version);
             var actual=(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item;
