@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Conditional preparation started locally — 2026-10-19 (NOT provider support)
+
+Added local UNCOMMITTED Shared ConditionalHolonPlan and five unit cases. Reuses HolonGraphWritePlan and canonical StoredRecordJson; validates selected graph/condition identity-set equality, provider authority and non-create deletion conditions, snapshots selected records and hashes canonical logical intent including actor/authority/operation/graph flags/root order/conditions. Persistence-assigned fields/provider revision metadata are excluded so acknowledged publication does not change logical intent. Guid.Empty expected revision differs from null/create-only. Content/actor changes alter hash; detached snapshot remains unchanged after caller edits. This is actual pre-I/O preparation only, not a transaction/receipt store/Oracle conditional implementation, and is not advertised on Oracle.
+
+Shared cached producer/consumer builds0errors2warnings each; full461/461shared tests pass1s/zero skips, shared-conditional-plan.trx SHA256 `1582D3AA7CB016E6AC2FBEFC64BE1CE004F966398CA276FF742102B5CA89F60D`. Five tests added here; increase from older446includes concurrent other shared work and must NOT be attributed entirely to this batch. Free Windows71,432,187,904bytes observed; no download/install/runtime start/new environment. Source kept local pending native owner integration, broader fingerprint/receipt tests and Core dependency publication. Existing SQLite fingerprint was inspected for semantics but is not replaced in concurrent uncommitted repository work; consolidate consumption before treating shared plan as integrated, do not claim all adapters reuse it already.
+
+Next: implement Oracle atomic graph+operation receipt persistence, revision-token storage and native tests from preceding contract checklist. Do not publish incomplete conditional source merely to synchronize, nor change Oracle class interface until all required atomic behavior is real. Existing source files are working implementation, not disposable test outputs.
+
 ## New conditional-write contract gap — 2026-10-19
 
 Current Core source introduces IConditionalHolonStorageProvider: atomically compare provider-specific revisions, persist SELECTED GRAPH and bind an idempotency receipt to OperationId/actor/authority/actual request content. Null expected revision=create-only; Guid.Empty is a real legacy revision, NOT absence; tokens differ from logical VersionId. Cancellation is explicit. Oracle does NOT implement this interface. Existing graph's per-node transactions and row-lock/history acceptance do NOT satisfy it. Do not advertise conditional support or emulate with a pre-read followed by ordinary saves.
