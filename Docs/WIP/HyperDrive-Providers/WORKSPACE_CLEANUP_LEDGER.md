@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 Oracle metadata empty-filter/admission correction reused same retained runtime/container/volume/secret/cache/fixed reports.122units/29native pass, existing fixture expanded with8empty-filter queries; acknowledged original cleanup/journals0/container stopped. No download/install/new environment/reset/broad deletion/reclaim. Hashes/remaining gates in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 Oracle metadata typed-selection correction reused same runtime/container/data/secret/cache/fixed reports,29native/114units pass. Existing corrupted-type fixture expanded rather than new environment; exact conditional cleanup after original readback, journals0/container stopped. No downloads/install/reset/broad deletion/reclaim. Hashes/open query gates in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 Oracle parent/type query integrity correction reused same retained environment/cache/fixed reports.29native/114units pass; intentionally corrupted native index fixtures retained exact original JSON until conditional cleanup, absence before journal removal. Journals0/container stopped, no download/install/new runtime/reset/broad deletion/reclaim. Hashes/remaining index gaps in ORACLE_CLIENT_PRIORITY.md.

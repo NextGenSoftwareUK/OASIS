@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Metadata admission and empty-filter semantics — 2026-10-19
+
+Latest dictionary metadata query constructed invalid SQL `AND ()` for empty filters, while historical shared matching treated empty/null as no filter. Invalid match modes also became implicit AND on latest and were only detected during historical row matching. Now reject unsupported mode before I/O and route empty/null filters directly to EXISTING LoadAllHolonsAsync with all depth/type/version flags preserved. No alternate storage implementation or retry. Shared MatchesMetadata already defines empty/null as match-all; this aligns latest with that contract.
+
+Eight new pre-connection unit cases cover invalid mode × latest/historical × sync/async × empty/nonempty. Existing native canonical fixture now checks empty dictionary All/Any × latest/historical × sync/async, finding original version1 or current3 correctly. Full122/122units pass588ms/zero skips SHA256 `0E0B039950A7D59FC9747A704DF4F9BE3E0CD0B6D1B446BC8AA251EEAA7A96D7`;29/29native pass14s/zero skips SHA256 `27A7216CFE3E591437763E1160E33DEFD48C1E9FAB184D91728FD8F2F01180F0`. Fixed oracle-metadata-admission.trx/oracle-native-current.trx; cached builds0errors2/7/3warnings. Source-audit correction, no before-fix execution claim. Null-filter delegation code-reviewed, not separately native-tested. Same runtime stopped/journals0, no download/install/new environment/reset. Non-string/large/null-value metadata, all index completeness/deletion projection/security/hosted/API/full V2 remain OPEN.
+
 ## Metadata typed-selection integrity — 2026-10-19
 
 Both metadata latest-query overloads now reuse existing ValidateSelectedHolon before projecting returned records; type-index mismatch no longer bypasses canonical type validation. Extended existing corrupted-type native fixture with a unique metadata value and sync/async single-key/dictionary-All lookups. All four fail with InvalidDataException/no result; original CLOB unchanged until exact fixture cleanup. Historical metadata path unchanged. Source-audit correction, no pre-fix native reproduction claimed.

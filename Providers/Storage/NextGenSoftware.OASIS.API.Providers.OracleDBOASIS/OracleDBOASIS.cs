@@ -584,6 +584,8 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 ValidateGraphRead(maxChildDepth,curentChildDepth,version,type);
+                if(metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.All&&metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.Any)throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
+                if(metaKeyValuePairs==null||metaKeyValuePairs.Count==0)return await LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
                 if(version>0){
                     var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
                     result.Result=await ProjectHolonRootsAsync(selected.Where(row=>(type==HolonType.All||row.HolonType==type)&&NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(row.MetaData,metaKeyValuePairs,metaKeyValuePairMatchMode)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);return result;
