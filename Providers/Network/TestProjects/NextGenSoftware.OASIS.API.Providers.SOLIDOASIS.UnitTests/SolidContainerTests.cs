@@ -74,6 +74,6 @@ public class SolidContainerTests
     {
         var transport=new Transport{Container="@prefix ldp: <http://www.w3.org/ns/ldp#> . <> a ldp:BasicContainer .",Next="<page2>; rel=\"prev next\""};
         using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport);Assert.False((await provider.ActivateProviderAsync()).IsError);
-        var result=await provider.LoadAllAvatarsAsync();Assert.True(result.IsError);Assert.IsType<NotSupportedException>(result.Exception);Assert.Equal(0,transport.MemberReads);
+        var result=await provider.LoadAllAvatarsAsync();Assert.True(result.IsError);Assert.IsType<InvalidDataException>(result.Exception);Assert.Equal(0,transport.MemberReads);
     }
 }

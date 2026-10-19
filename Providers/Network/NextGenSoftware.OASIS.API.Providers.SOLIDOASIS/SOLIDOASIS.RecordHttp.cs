@@ -191,20 +191,9 @@ public partial class SOLIDOASIS
             RequirePrivateStorage();
             if(version!=0)throw new NotSupportedException("Explicit SOLID collection versions require verified record history.");
             var container=_privateRecords.Container<T>();
-            using var request=new HttpRequestMessage(HttpMethod.Get,container);
-            request.Headers.Accept.ParseAdd("text/turtle");
-            using var response=await _httpClient.SendAsync(request);response.EnsureSuccessStatusCode();
-            if(!string.Equals(response.Content.Headers.ContentType?.MediaType,"text/turtle",StringComparison.OrdinalIgnoreCase))
-                throw new InvalidDataException("SOLID container response must be text/turtle.");
-            // Paging is not silently interpreted as an exhaustive collection.
-            if(response.Headers.TryGetValues("Link",out var links)&&links.Any(link=>System.Text.RegularExpressions.Regex.IsMatch(link,@"\brel\s*=\s*(?:""[^""]*\bnext\b[^""]*""|'[^']*\bnext\b[^']*'|next\b)",System.Text.RegularExpressions.RegexOptions.IgnoreCase)))
-                throw new NotSupportedException("Paged SOLID containers require verified pagination before exhaustive reads.");
-            using var graph=new Graph{BaseUri=container};
-            using var input=new StringReader(await response.Content.ReadAsStringAsync());new TurtleParser().Load(graph,input);
+            using var graph=await ReadPrivateContainerPagesAsync(container);
             var subject=graph.CreateUriNode(container);
             var rdfType=graph.CreateUriNode(new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"));
-            if(graph.Triples.Any(triple=>triple.Object is IUriNode node&&node.Uri.AbsoluteUri=="http://www.w3.org/ns/ldp#Page"))
-                throw new NotSupportedException("LDP page documents cannot be treated as exhaustive containers.");
             if(!graph.GetTriplesWithSubjectPredicate(subject,rdfType).Any(triple=>triple.Object is IUriNode node&&
                 node.Uri.AbsoluteUri is "http://www.w3.org/ns/ldp#BasicContainer" or "http://www.w3.org/ns/ldp#Container"))
                 throw new InvalidDataException("Expected native LDP container type at the requested resource.");
