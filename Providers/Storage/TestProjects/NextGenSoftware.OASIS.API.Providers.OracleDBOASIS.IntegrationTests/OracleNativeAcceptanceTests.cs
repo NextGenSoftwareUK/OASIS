@@ -264,6 +264,10 @@ public sealed class OracleNativeAcceptanceTests
                     Assert.IsFalse(old.IsError,old.Exception?.ToString());Assert.AreEqual(1,old.Result.Version);Assert.AreEqual(321L,old.Result.Karma);Assert.AreEqual(456L,old.Result.XP);Assert.AreEqual(7,old.Result.Inventory.Single().Quantity);
                 }
                 var oldHolon=await provider.LoadHolonAsync(id,loadChildren:false,version:1);Assert.IsFalse(oldHolon.IsError,oldHolon.Exception?.ToString());Assert.AreEqual(name,oldHolon.Result.Name);
+                foreach(var selectedVersion in new[]{0,1})foreach(var mode in new[]{NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.Any})foreach(var sync in new[]{false,true}){
+                    var unfiltered=sync?provider.LoadHolonsByMetaData(new Dictionary<string,string>(),mode,loadChildren:false,version:selectedVersion):await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string>(),mode,loadChildren:false,version:selectedVersion);
+                    Assert.IsFalse(unfiltered.IsError,unfiltered.Exception?.ToString());Assert.AreEqual(selectedVersion==0?3:1,unfiltered.Result.Single(row=>row.Id==id).Version);
+                }
                 foreach(var root in new[]{await provider.LoadHolonAsync(id,loadChildrenFromProvider:true,version:1),await provider.LoadHolonAsync(id,loadChildrenFromProvider:true,maxChildDepth:1,version:1)}){
                     Assert.IsFalse(root.IsError,root.Exception?.ToString());Assert.AreEqual(1,root.Result.Version);Assert.AreEqual(5,root.Result.Children.Single().Version);Assert.AreEqual(childId,root.Result.Children.Single().Id);
                 }
