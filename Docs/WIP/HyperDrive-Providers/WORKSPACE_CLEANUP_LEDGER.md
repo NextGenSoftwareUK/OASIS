@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 real Oracle conditional lock-wait cancellation reused retained runtime/container/volume/secret/cache/fixed reports.41native pass; native original SID block observed before cancel, contender receipt absent, original committed once, known original graph/receipt cleanup+independent absence, journals0/container stopped. No downloads/install/new environment/reset/broad deletion/reclaim. Exact hash/cancellation scope/local-only limitations in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 conditional ordinary-save freshness history-on/off + pre-cancel admission verified in same Oracle SDK/cache/container/volume/secret/fixed report environment.40native/127units pass; acknowledged graph/receipt cleanup and independent absence, journals0/container stopped. No downloads/install/new environment/reset/broad deletion/reclaim. Exact hashes/local-only scope and cancellation limits in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 local Oracle concurrent conditional claim/create-race tests reused same runtime/container/data/secret/cache/fixed report.38native pass with actual original SID blocker evidence; known winner graph hard-deleted/native absence, exact receipt cleanup+independent absence, journals0/container stopped. No download/install/new environment/reset/broad deletion/reclaim. Implementation source held pending remaining gates, exact hash/scope in ORACLE_CLIENT_PRIORITY.md.
