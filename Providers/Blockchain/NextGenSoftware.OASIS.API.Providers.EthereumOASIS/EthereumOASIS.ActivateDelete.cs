@@ -172,23 +172,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                var avatarInfo = SerializePrivateStorage("avatar",avatar);
-                var avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
-                var avatarId = avatar.AvatarId.ToString();
-
-                var requestTransaction = await SubmitStorageRequestAsync(new ContractDefinition.CreateAvatarFunction {
-                    EntityId=avatarEntityId,AvatarId=avatarId,Info=avatarInfo });
-
-                if (!StorageReceiptSucceeded(requestTransaction))
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
-                    return result;
-                }
-                
-                CommitEthereumStorageIdentity(avatar);
-                result.Result = avatar;
-                result.IsError = false;
-                result.IsSaved = true;
+                return await SaveProfileHistoryAsync<IAvatar,Core.Holons.Avatar>(avatar,"avatar");
             }
             catch (RpcResponseException ex)
             {   
@@ -211,23 +195,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                var avatarDetailInfo = SerializePrivateStorage("avatar-detail",avatar);
-                var avatarDetailEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
-                var avatarDetailId = avatar.Id.ToString();
-
-                var requestTransaction = SubmitStorageRequestAsync(new ContractDefinition.CreateAvatarDetailFunction {
-                    EntityId=avatarDetailEntityId,AvatarId=avatarDetailId,Info=avatarDetailInfo }).GetAwaiter().GetResult();
-
-                if (!StorageReceiptSucceeded(requestTransaction))
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
-                    return result;
-                }
-                
-                CommitEthereumStorageIdentity(avatar);
-                result.Result = avatar;
-                result.IsError = false;
-                result.IsSaved = true;
+                return SaveProfileHistoryAsync<IAvatarDetail,Core.Holons.AvatarDetail>(avatar,"avatar-detail").GetAwaiter().GetResult();
             }
             catch (RpcResponseException ex)
             {   
@@ -250,23 +218,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             string errorMessage = "Error in SaveAvatarDetailAsync method in EthereumOASIS while saving and avatar detail. Reason: ";
             try
             {
-                var avatarDetailInfo = SerializePrivateStorage("avatar-detail",avatar);
-                var avatarDetailEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
-                var avatarDetailId = avatar.Id.ToString();
-
-                var requestTransaction = await SubmitStorageRequestAsync(new ContractDefinition.CreateAvatarDetailFunction {
-                    EntityId=avatarDetailEntityId,AvatarId=avatarDetailId,Info=avatarDetailInfo });
-
-                if (!StorageReceiptSucceeded(requestTransaction))
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
-                    return result;
-                }
-                
-                CommitEthereumStorageIdentity(avatar);
-                result.Result = avatar;
-                result.IsError = false;
-                result.IsSaved = true;
+                return await SaveProfileHistoryAsync<IAvatarDetail,Core.Holons.AvatarDetail>(avatar,"avatar-detail");
             }
             catch (RpcResponseException ex)
             {
