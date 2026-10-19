@@ -34,6 +34,7 @@ cp -a "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/package.json" \
   "${build_root}/"
 mkdir -p "${build_root}/contract/src"
 cp "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/contract/src/contract.ts" "${build_root}/contract/src/contract.ts"
+cp "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/contract/src/checked-record.ts" "${build_root}/contract/src/checked-record.ts"
 
 cd "${build_root}"
 if [[ ! -e node_modules ]]; then
