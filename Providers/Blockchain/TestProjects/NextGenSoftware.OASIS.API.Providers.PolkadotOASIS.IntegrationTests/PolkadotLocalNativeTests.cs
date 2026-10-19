@@ -73,6 +73,12 @@ public class PolkadotLocalNativeTests
         var receipt = recovered.Result.GetProperty("receipt");
         Assert.IsTrue(receipt.GetProperty("finalized").GetBoolean());
         Assert.IsTrue(receipt.GetProperty("dispatchSucceeded").GetBoolean());
+        var indexedStatus = await provider.GetTransactionStatusAsync(transactionId, receipt.GetProperty("blockHash").GetString()!, deadline.Token);
+        Assert.IsFalse(indexedStatus.IsError, indexedStatus.Exception?.ToString());
+        Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,indexedStatus.Result);
+        var searchedStatus = await provider.GetTransactionStatusAsync(transactionId, deadline.Token);
+        Assert.IsFalse(searchedStatus.IsError, searchedStatus.Exception?.ToString());
+        Assert.AreEqual(indexedStatus.Result,searchedStatus.Result);
         var actualFee = BigInteger.Parse(receipt.GetProperty("actualFeeUnits").GetString()!);
         Assert.IsTrue(actualFee > 0);
         var sharedFee = await provider.ReadPreparedNativeFeeEvidenceAsync(observed.Attempt, deadline.Token);

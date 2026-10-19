@@ -9,6 +9,27 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class PolkadotBridgeTests
 {
+    [DataTestMethod][DataRow("accepted")][DataRow("status-failed")][DataRow("status-error")]
+    [DataRow("status-unfinalized")][DataRow("status-wrong-hash")][DataRow("status-wrong-block")]
+    public async Task StatusRequiresExactFinalizedSdkOutcome(string outcome)
+    {
+        var bridge = Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE");
+        var mode = Environment.GetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME");
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE", Path.Combine(AppContext.BaseDirectory,"submission-process-fixture.mjs"));
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME",outcome);
+        try {
+            using var provider = new PolkadotOASIS("http://127.0.0.1:1");
+            PolkadotAssetMutationTests.Activate(provider);
+            var result = await provider.GetTransactionStatusAsync("0x"+new string('b',64),"0x"+new string('a',64));
+            var valid = outcome is "accepted" or "status-failed";
+            Assert.AreEqual(!valid,result.IsError);
+            Assert.AreEqual(!valid ? BridgeTransactionStatus.Pending : outcome == "accepted" ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Failed, result.Result);
+        } finally {
+            Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",bridge);
+            Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME",mode);
+        }
+    }
+
     [DataTestMethod][DataRow(false,"accepted")][DataRow(true,"accepted")]
     [DataRow(false,"dispatch-failed")][DataRow(true,"dispatch-failed")]
     [DataRow(false,"read-error")][DataRow(true,"read-error")]
