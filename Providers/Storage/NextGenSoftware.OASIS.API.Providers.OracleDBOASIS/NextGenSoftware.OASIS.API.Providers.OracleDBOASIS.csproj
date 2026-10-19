@@ -14,7 +14,7 @@
     <Authors>David Ellams (NextGen World Ltd)</Authors>
     <PackageTags>OASIS API; Oracle; Database; WEB4; Provider</PackageTags>
     <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
-- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
+- Oracle SQL persistence improvements; interface and hosted verification remains ongoing.
 - Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
 - Improved error handling: explicit errors when provider returns null content; null guards throughout.
 - Updated to align with OASIS API Core v2.0.0.
@@ -56,5 +56,6 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
 </Project>
