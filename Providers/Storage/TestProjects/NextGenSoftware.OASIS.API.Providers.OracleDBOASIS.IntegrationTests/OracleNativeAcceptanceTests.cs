@@ -93,10 +93,32 @@ public sealed class OracleNativeAcceptanceTests
             var invalidKeyDelete=await provider.DeleteAvatarAsync(name,false);
             Assert.IsTrue(invalidKeyDelete.IsError);Assert.IsInstanceOfType<FormatException>(invalidKeyDelete.Exception);
             Assert.IsNotNull(await Read(verifier,"OASIS_AVATARS",id));
+            if(!resume){
+                var beforeAvatar=await Read(verifier,"OASIS_AVATARS",id);var beforeDetail=await Read(verifier,"OASIS_AVATAR_DETAILS",id);
+                var trigger="OASIS_TEST_"+id.ToString("N")[..20];
+                await using(var create=new OracleCommand($"CREATE TRIGGER {trigger} BEFORE UPDATE ON OASIS_AVATAR_DETAILS FOR EACH ROW BEGIN IF :NEW.ID=HEXTORAW('{Convert.ToHexString(id.ToByteArray())}') THEN RAISE_APPLICATION_ERROR(-20001,'owned lifecycle rollback proof'); END IF; END;",verifier))await create.ExecuteNonQueryAsync();
+                var rejected=await provider.DeleteAvatarAsync(id,true);Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.Result);
+                Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(rejected.Exception);
+                Assert.IsInstanceOfType<OracleException>(rejected.Exception.InnerException);Assert.AreEqual(20001,((OracleException)rejected.Exception.InnerException!).Number);
+                Assert.AreEqual(beforeAvatar,await Read(verifier,"OASIS_AVATARS",id),"First row update must roll back when second-row native update fails.");
+                Assert.AreEqual(beforeDetail,await Read(verifier,"OASIS_AVATAR_DETAILS",id));
+                await using(var drop=new OracleCommand($"DROP TRIGGER {trigger}",verifier))await drop.ExecuteNonQueryAsync();
+            }
+            var soft=await provider.DeleteAvatarAsync(id,true);Assert.IsFalse(soft.IsError,soft.Exception?.ToString());Assert.IsTrue(soft.Result);
+            var deletedAvatar=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Avatar>((await Read(verifier,"OASIS_AVATARS",id))!);
+            var deletedDetail=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>((await Read(verifier,"OASIS_AVATAR_DETAILS",id))!);
+            Assert.IsTrue(deletedAvatar.IsDeleted);Assert.IsFalse(deletedAvatar.IsActive);Assert.IsTrue(deletedDetail.IsDeleted);Assert.IsFalse(deletedDetail.IsActive);
+            Assert.AreEqual(deletedAvatar.DeletedDate,deletedDetail.DeletedDate);var deletedAt=deletedAvatar.DeletedDate;
+            Assert.IsNull((await provider.LoadAvatarAsync(id)).Result);Assert.IsNull((await provider.LoadAvatarDetailAsync(id)).Result);
+            Assert.IsNull((await provider.LoadAvatarDetailByUsernameAsync(deletedDetail.Username)).Result);Assert.IsNull((await provider.LoadAvatarDetailByEmailAsync(deletedDetail.Email)).Result);
+            var details=await provider.LoadAllAvatarDetailsAsync();Assert.IsFalse(details.IsError,details.Exception?.ToString());Assert.IsFalse(details.Result.Any(row=>row.Id==id));
+            var repeated=await provider.DeleteAvatarAsync(id,true);Assert.IsFalse(repeated.IsError,repeated.Exception?.ToString());
+            var repeatedDetail=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>((await Read(verifier,"OASIS_AVATAR_DETAILS",id))!);
+            Assert.AreEqual(deletedAt,repeatedDetail.DeletedDate);
             var keyDelete=await provider.DeleteAvatarAsync(id.ToString(),false);Assert.IsFalse(keyDelete.IsError,keyDelete.Exception?.ToString());Assert.IsTrue(keyDelete.Result);
             Assert.IsNull(await Read(verifier,"OASIS_AVATARS",id));
-            // Paired detail deletion is still an explicit implementation gap; do not pretend this owner handles it.
-            foreach(var table in new[]{"OASIS_AVATAR_DETAILS","OASIS_HOLONS"}){
+            Assert.IsNull(await Read(verifier,"OASIS_AVATAR_DETAILS",id));
+            foreach(var table in new[]{"OASIS_HOLONS"}){
                 var actual=await Read(verifier,table,id);Assert.IsNotNull(actual);
                 await using var delete=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};
                 delete.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();delete.Parameters.Add("Expected",OracleDbType.Clob).Value=actual;
