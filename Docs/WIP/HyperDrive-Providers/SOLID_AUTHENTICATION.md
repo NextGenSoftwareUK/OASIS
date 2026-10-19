@@ -2,6 +2,33 @@
 
 Updated2026-10-19. This is NOT complete provider/OIDC certification. Scoped positive private DPoP encrypted CRUD is now verified against the retained native CSS server as recorded below. No hosted configuration or credentials changed.
 
+## Startup binding candidate — local, final native gate pending (2026-10-19)
+
+Source audit found no SOLIDOASIS setting or BootLoader registration despite the existing real provider/DPoP implementation. Added LOCAL `StorageProviderSettings.SOLIDOASIS`, `SolidOASISProviderSettings` in `OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASISDNA.Solid.cs`, and `SolidProviderFactory.Create` plus the SOLIDOASIS register-switch case. The factory reuses the provider, canonical Pod-root validator and real DPoP handler; no replacement backend/protocol. Independent source-linked controlled tests and the existing private native fixture exercise the production factory. These source changes are not published yet; do not treat this configuration as deployed API behavior.
+
+Actual candidate DNA shape (configuration, NOT a quest/request API payload):
+
+```json
+{"OASIS":{"StorageProviders":{"SOLIDOASIS":{
+  "PodRoot":"https://pod.example/owned/",
+  "AuthenticationMode":"DpopClientCredentials",
+  "TokenEndpoint":"https://issuer.example/.oidc/token",
+  "ClientId":"public-client-identifier",
+  "StorageKeyEnvironmentVariable":"OASIS_SOLID_STORAGE_KEY",
+  "ClientSecretEnvironmentVariable":"OASIS_SOLID_CLIENT_SECRET"
+}}}}
+```
+
+The configured storage-key variable must hold base64 encoding of an externally persisted32-byte key, required in ALL modes. No generated-key/anonymous fallback. Factory clears its temporary decoded key after the existing codec clones it. Modes: DpopClientCredentials(default, explicit issuer/client/secret reference required), Bearer(explicit BearerTokenEnvironmentVariable, default OASIS_SOLID_BEARER_TOKEN), Anonymous(explicit selection, no issuer/client settings). Secret VALUES are read from process environment, not added to DNA. No Railway variables/provider lists/HyperDrive mode were changed. Invalid/missing/ambiguous settings fail before activation/I/O. Token/root security validation stays with existing owners; DPoP native signing-key allocation now occurs only after constructor configuration validation.
+
+Security review reproduced an unpublished factory candidate gap: a different-root connection override could reuse configured credentials (constructor-only test, NO actual credential transmission). Before-fix1/1failed, solid-factory-override-before.trx SHA256 `1DD3731EE282B5C2D0A61577F64DF7A090918016A2FFDDA97EF1ADEAB1EDB396`. Factory now accepts only an override equal to the normalized configured PodRoot, before reading any secrets; switching Pod scope requires explicit configuration rather than credential rebinding. Equivalent trailing-slash normalization remains accepted.
+
+Final controlled217/217pass248ms/zero skips, solid-unit-current.trx SHA256 `8263AA7FB0C9E2C07C5E7D2F3E3BA65348D8534218C4E7E10CFE8A7B464FB6FE` (12new startup cases). BootLoader builds0errors/2warnings; DNA net10/netstandard2.1 builds0errors/818 and819warnings; producer0errors/2warnings, units7warnings. Both test-project reference graphs refreshed only from EXISTING local NuGet package cache via explicit local source; no downloads/install/new environment.
+
+Intermediate native6/6pass42s/zero skips through factory valid DPoP configuration, solid-native-current.trx SHA256 `DBB5891480F4CB7C7CA1AA801A99B03D7166E169F07A73B4B369D763C379791D`; producer/consumer0errors/2 and17warnings. Reused SAME private Pod/client/account/DPAPI fixtures/key, no reprovisioning. Process-only synthetic factory secret variables restored in finally. Subsequent override/error hardening is covered by final controlled tests but final native rerun is NOT complete: the restart/readiness command was rejected by execution policy BEFORE process creation. Approval requested; do not bypass it or relabel the earlier run as final-source native proof. Read-only state confirms same container exited137; pending journals0. The completed run's owned stop exceeded30s SIGTERM grace and Podman used SIGKILL, so this is NOT a clean shutdown/durability certificate. Retained volume/identity protected; graceful runtime shutdown and restart-resumption remain explicit gaps.
+
+No source feature commit/push until this declared native gate completes. Concurrent Neo4j BootLoader registration changes are present in the same file: stage ONLY the SOLID hunk after verification, preserving the other contributor's changes. Full BootLoader process startup, bearer-native authorization, revocation/expiry/nonce interoperability, history/options/interfaces and full V2/hosted acceptance remain open.
+
 ## Authoritative retained-server finding
 
 Same root-owned `oasis-solid` container, pinned CSS image and retained volume. Discovery at loopback13000 advertises client_credentials, ES256 DPoP and token endpoint `/.oidc/token`. Read-only inspection of installed `config/file-root.json` confirms `identity/handler/no-accounts.json`, public identity access and root initialized for anonymous access. Thus previous4native passes are genuine storage tests but cannot demonstrate private account authorization.
