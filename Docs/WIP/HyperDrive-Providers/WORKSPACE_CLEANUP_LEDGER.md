@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 Oracle native row-lock concurrency acceptance reused same container/volume/secret/SDK/cache/fixed reports. Actual V$SESSION blocker observation then acknowledged updates2/3/archive validation;32native (31acceptance+1diagnostic) pass15s. Original fixture public hard-delete/native absence before journal removal, journals0/container stopped. No download/install/new environment/reset/broad deletion/reclaim. Hash/rights and concurrency limitations in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 removed only obsolete SOURCE helpers MetadataPath/RawToGuid and4private SQL-builder reflection tests (public native behavior coverage retained). Cached builds/unit118pass, fixed oracle-canonical-cleanup.trx; no runtime start/install/download/new environment/generated-output deletion/reset/reclaim. Railway pins validator passes; no hosted deployment claim. Hash/scope in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 canonical Oracle metadata matching fix reused same image/container/volume/secret/SDK/cache/fixed reports.31native (30acceptance+1diagnostic)/122units pass; journaled canonical fixture reconciled then public hard-delete/native absence, journals0/container stopped. No download/install/new environment/reset/broad cleanup/reclaim. Whole-machine Windows free71,431,872,512bytes; not exact attribution. Hashes/payload-transfer performance tradeoff and remaining gates in ORACLE_CLIENT_PRIORITY.md.
