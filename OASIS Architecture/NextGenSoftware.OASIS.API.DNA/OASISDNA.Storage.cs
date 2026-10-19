@@ -248,6 +248,8 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class AzureOASISProviderSettings
     {
+        /// <summary>Retain record versions in the same Cosmos item. Existing archives remain retained when disabled.</summary>
+        public bool IsVersionControlEnabled { get; set; }
         public string ServiceEndpoint { get; set; }
         public string AuthKey { get; set; }
         public string DBName { get; set; }
