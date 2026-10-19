@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadMastodonStatusAsync(providerKey,loadChildren,loadChildrenFromProvider,maxChildDepth,version);
+            => await ReadMastodonStatusAsync(providerKey,loadChildren,loadChildrenFromProvider,maxChildDepth,version,recursive);
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
