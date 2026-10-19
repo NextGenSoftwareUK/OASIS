@@ -10,7 +10,7 @@ boundary. Use -UpdateManifest only after reviewing additions and then commit the
 [CmdletBinding()]
 param(
     [switch]$UpdateManifest,
-    [string]$ManifestPath = 'Docs/Devs/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv'
+    [string]$ManifestPath = 'Docs/WIP/HyperDrive-Providers/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv'
 )
 
 $ErrorActionPreference = 'Stop'
