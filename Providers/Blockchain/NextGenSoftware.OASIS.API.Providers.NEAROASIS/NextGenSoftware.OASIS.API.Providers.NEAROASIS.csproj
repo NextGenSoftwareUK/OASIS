@@ -53,6 +53,7 @@
   <ItemGroup>
     <None Include="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="NearSdkBridge\bridge.mjs" />
     <None Include="SdkBridge\entries-page.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="NearSdkBridge\entries-page.mjs" />
+    <None Include="SdkBridge\checked-write.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="NearSdkBridge\checked-write.mjs" />
     <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="NearSdkBridge\package.json" />
     <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="NearSdkBridge\package-lock.json" Condition="Exists('SdkBridge\package-lock.json')" />
   </ItemGroup>

@@ -71,7 +71,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'NEAR native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 18 -or [int]$counts.passed -ne 18 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly18 passing native NEAR cases (including readonly status observation) and zero skips.'}
+    if([int]$counts.total -ne 19 -or [int]$counts.passed -ne 19 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly19 passing native NEAR cases (including checked C# writes and readonly status observation) and zero skips.'}
 }
 finally {
     foreach ($name in $environmentNames) {

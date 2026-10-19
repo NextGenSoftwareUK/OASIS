@@ -43,11 +43,29 @@ internal sealed class NearSdkService
     }
 
     public async Task<string> GetAsync(string key)
+        => (await ReadSnapshotAsync(key)).Plaintext;
+
+    internal sealed class StoredSnapshot
+    {
+        public NearSdkService Owner {get;}
+        public string Key {get;}
+        public string Ciphertext {get;}
+        public string Plaintext {get;}
+        internal StoredSnapshot(NearSdkService owner,string key,string ciphertext,string plaintext)
+        {Owner=owner;Key=key;Ciphertext=ciphertext;Plaintext=plaintext;}
+    }
+
+    // Preserve the SAME observed encrypted bytes for conditional writes and the decoded record for staging.
+    // Re-encrypting the old plaintext would produce a different nonce and cannot be used as a CAS condition.
+    public async Task<StoredSnapshot> ReadSnapshotAsync(string key)
     {
         using var codec=OpenStorageCodec();
         var context=StorageContext(key);
         using var response = await InvokeAsync("get", new { key });
-        return response.RootElement.ValueKind == JsonValueKind.Null ? null : codec.Decrypt(context,response.RootElement.GetString());
+        if(response.RootElement.ValueKind==JsonValueKind.Null)return new StoredSnapshot(this,key,null,null);
+        if(response.RootElement.ValueKind!=JsonValueKind.String)throw new InvalidDataException("Native NEAR record must be ciphertext or absent.");
+        var ciphertext=response.RootElement.GetString();
+        return new StoredSnapshot(this,key,ciphertext,codec.Decrypt(context,ciphertext));
     }
 
     public async Task<IReadOnlyList<KeyValuePair<string, string>>> EntriesAsync(string prefix)
@@ -66,6 +84,61 @@ internal sealed class NearSdkService
         EnsureWritable();
         using var response = await InvokeAsync("put", new { key, value=encrypted });
         return response.RootElement.GetProperty("transactionHash").GetString();
+    }
+
+    private Dictionary<string,object> PrepareCheckedRecordArguments(StoredSnapshot observed,string plaintext,string archiveKey,string archivePlaintext)
+    {
+        ArgumentNullException.ThrowIfNull(observed);
+        if(!ReferenceEquals(observed.Owner,this))throw new ArgumentException("Observed snapshot belongs to another NEAR service scope.");
+        var split=observed.Key?.IndexOf(':')??-1;
+        if(split<1||observed.Key.Substring(0,split) is not ("avatar" or "avatar-detail" or "holon")
+            ||!Guid.TryParseExact(observed.Key.Substring(split+1),"D",out var id)||id==Guid.Empty
+            ||observed.Key.Substring(split+1)!=id.ToString("D"))throw new ArgumentException("Canonical native record key required.");
+        if((observed.Ciphertext==null)!=(observed.Plaintext==null)||string.IsNullOrEmpty(plaintext))throw new ArgumentException("Valid observed state and proposed record required.");
+        var archive=archiveKey!=null||archivePlaintext!=null;
+        if(archive){
+            var prefix="history:"+observed.Key+":";
+            if(observed.Ciphertext==null||archiveKey==null||!archiveKey.StartsWith(prefix,StringComparison.Ordinal)||archiveKey.Length!=prefix.Length+10
+                ||!int.TryParse(archiveKey.Substring(prefix.Length),System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out var version)||version<1
+                ||string.IsNullOrEmpty(archivePlaintext))throw new ArgumentException("A positive same-record archive requires observed current ciphertext.");
+        }
+        using var codec=OpenStorageCodec();
+        var args=new Dictionary<string,object>{{"key",observed.Key},{"expected_value",observed.Ciphertext},{"value",codec.Encrypt(StorageContext(observed.Key),plaintext)}};
+        if(archive){args["archive_key"]=archiveKey;args["archive_value"]=codec.Encrypt(StorageContext(archiveKey),archivePlaintext);}
+        return args;
+    }
+
+    public async Task<string> PutRecordCheckedAsync(StoredSnapshot observed,string plaintext,string archiveKey=null,string archivePlaintext=null)
+    {
+        var args=PrepareCheckedRecordArguments(observed,plaintext,archiveKey,archivePlaintext);
+        EnsureWritable();
+        try{
+            using var response=await InvokeAsync("putRecordChecked",new{args});
+            return ReadCheckedRecordOutcome(response.RootElement);
+        }
+        catch(NearRecordAdmissionException){throw;}
+        catch(NearRecordWriteRejectedException){throw;}
+        catch(NearRecordMutationUncertainException){throw;}
+        catch(Exception cause){throw new NearRecordMutationUncertainException(null,cause);}
+    }
+
+    private static string ReadCheckedRecordOutcome(JsonElement response)
+    {
+        string hash=null;
+        try{
+            hash=response.GetProperty("transactionHash").GetString();
+            if(string.IsNullOrWhiteSpace(hash))throw new InvalidDataException("Native checked write lacks an original transaction identity.");
+            if(response.GetProperty("finalExecutionStatus").GetString()!="FINAL")throw new InvalidDataException("Native checked write is not FINAL.");
+            var status=response.GetProperty("nativeStatus");
+            if(status.ValueKind!=JsonValueKind.Object)throw new InvalidDataException("Missing native checked-write status.");
+            var success=status.TryGetProperty("SuccessValue",out var value);var failure=status.TryGetProperty("Failure",out var rejected);
+            if(success==failure)throw new InvalidDataException("Ambiguous native checked-write status.");
+            if(failure){if(rejected.ValueKind!=JsonValueKind.Object||!rejected.EnumerateObject().Any())throw new InvalidDataException("Malformed native failure.");throw new NearRecordWriteRejectedException(hash,status.GetRawText());}
+            if(value.ValueKind!=JsonValueKind.String||value.GetString()!=string.Empty)throw new InvalidDataException("Unexpected checked-write success value.");
+            return hash;
+        }
+        catch(NearRecordWriteRejectedException){throw;}
+        catch(Exception cause){throw new NearRecordMutationUncertainException(hash,cause);}
     }
 
     public async Task<string> DeleteAsync(string key)
@@ -244,6 +317,8 @@ internal sealed class NearSdkService
         if (process.ExitCode != 0 || !envelope.RootElement.TryGetProperty("ok", out var ok) || !ok.GetBoolean())
         {
             var error = envelope.RootElement.TryGetProperty("error", out var value) ? value.GetString() : stderr;
+            if(operation=="putRecordChecked"&&envelope.RootElement.TryGetProperty("checkedWritePhase",out var phase)&&phase.ValueKind==JsonValueKind.String&&phase.GetString()=="before-submission")
+                throw new NearRecordAdmissionException($"NEAR checked-write admission failed: {error}");
             throw new InvalidOperationException($"NEAR SDK operation failed: {error}");
         }
         return JsonDocument.Parse(envelope.RootElement.GetProperty("result").GetRawText());

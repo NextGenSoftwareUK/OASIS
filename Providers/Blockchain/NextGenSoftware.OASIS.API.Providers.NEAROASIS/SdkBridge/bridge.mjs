@@ -1,5 +1,6 @@
 import { Account, JsonRpcProvider, KeyPair, actions, teraToGas } from "near-api-js";
 import { collectEntries } from "./entries-page.mjs";
+import { submitCheckedRecord } from "./checked-write.mjs";
 
 async function readInput() {
   const chunks = [];
@@ -109,6 +110,9 @@ async function execute(input) {
       });
       return { transactionHash: outcome.transaction_outcome.id };
     }
+    case "putRecordChecked":
+      return await submitCheckedRecord(provider,()=>accountFor(input,provider),input,
+        args=>actions.functionCall('put_record_checked',args,teraToGas('100'),0n));
     case "delete": {
       const account = accountFor(input, provider);
       const outcome = await account.callFunctionRaw({
@@ -128,6 +132,6 @@ async function execute(input) {
 try {
   process.stdout.write(JSON.stringify({ ok: true, result: await execute(await readInput()) }));
 } catch (error) {
-  process.stdout.write(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : String(error) }));
+  process.stdout.write(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : String(error),checkedWritePhase:error?.checkedWritePhase??null }));
   process.exitCode = 1;
 }
