@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.NEAROASIS\NextGenSoftware.OASIS.API.Providers.NEAROASIS.csproj" />
     <None Include="Fixtures\utf8-response.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\nft-followup.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\status-observation.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
