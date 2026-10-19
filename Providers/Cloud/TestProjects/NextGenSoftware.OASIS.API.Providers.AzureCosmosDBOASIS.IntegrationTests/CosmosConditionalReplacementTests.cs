@@ -10,9 +10,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
 
 public partial class AzureCosmosDBOASISIntegrationTests
 {
-    [DataTestMethod][DataRow(false)][DataRow(true)]
-    public async Task NativeConditionalReplacementPreservesCompetingUpdate(bool afterRead)
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task NativeConditionalReplacementPreservesCompetingUpdate(bool afterRead,bool history)
     {
+        _provider.IsVersionControlEnabled=history;
         var handler=new BeforeReplaceHandler();
         var options=new CosmosClientOptions{ConnectionMode=ConnectionMode.Gateway,RequestTimeout=TimeSpan.FromSeconds(10),MaxRetryAttemptsOnRateLimitedRequests=0,
             HttpClientFactory=()=>new HttpClient(new HttpClientHandler{ServerCertificateCustomValidationCallback=HttpClientHandler.DangerousAcceptAnyServerCertificateValidator})};
@@ -41,8 +42,21 @@ public partial class AzureCosmosDBOASISIntegrationTests
             }
             var retained=await _provider.LoadAvatarAsync(id);
             Assert.IsFalse(retained.IsError,retained.Message);Assert.AreEqual("independently committed",retained.Result.FirstName);
+            if(history)
+            {
+                Assert.AreEqual(2,retained.Result.Version);
+                var original=await _provider.LoadAvatarAsync(id,1);
+                Assert.IsFalse(original.IsError,original.Message);Assert.AreEqual("original",original.Result.FirstName);
+                var native=new CosmosDbClient(_client.GetContainer(DatabaseName,"avatarItems"));
+                var json=Newtonsoft.Json.Linq.JObject.Parse(await native.ReadDocumentAsync(id.ToString(),new PartitionKey(id.ToString())));
+                Assert.AreEqual(1,((Newtonsoft.Json.Linq.JArray)json[CosmosEmbeddedHistory.PropertyName]!["records"]!).Count,
+                    "Rejected writer must not publish an extra archive or overwrite the winning version.");
+                Assert.AreEqual(original.Result.VersionId,retained.Result.PreviousVersionId);
+                Assert.AreEqual(1,replacement.Version);Assert.AreEqual(1,expected.Version);
+            }
             Assert.AreEqual("must not overwrite",replacement.FirstName);Assert.AreEqual("original",expected.FirstName);
             Assert.IsFalse((await _provider.DeleteAvatarAsync(id,false)).IsError);
+            if(history)Assert.IsTrue((await _provider.LoadAvatarAsync(id,1)).IsError,"Hard deletion removes this item including its archived versions.");
             verified=true;
         }
         finally{if(!verified)_ownsDatabase=false;}
