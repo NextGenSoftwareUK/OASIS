@@ -28,6 +28,7 @@ public partial class OracleDBOASIS
                 if(await reader.ReadAsync()){
                     id=new Guid((byte[])reader.GetValue(0));avatarJson=reader.GetString(1);avatar=await ReadRecordVersionAsync<Avatar>(id,avatarJson,0)??throw new InvalidDataException("Oracle locked avatar is missing its current version.");
                     if(avatar.Id!=id)throw new InvalidDataException("Oracle avatar identity projection does not match its canonical record.");
+                    if(column!="ID"&&!CanonicalIdentityMatches(avatar,column,value))throw new InvalidDataException("Oracle delete indexed identity differs from its canonical record.");
                     if(await reader.ReadAsync())throw new InvalidDataException("Oracle delete identity selector matched multiple avatars.");
                 }
             }

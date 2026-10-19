@@ -30,6 +30,11 @@ public sealed class OracleNativeAcceptanceTests
                 else{var loaded=kind==2?(sync?provider.LoadAvatarDetailByUsername(indexed):await provider.LoadAvatarDetailByUsernameAsync(indexed)):(sync?provider.LoadAvatarDetailByEmail(indexed):await provider.LoadAvatarDetailByEmailAsync(indexed));Assert.IsTrue(loaded.IsError);Assert.IsNull(loaded.Result);Assert.IsInstanceOfType<InvalidDataException>(loaded.Exception);}
             }
             Assert.AreEqual(original,await Read(verifier,table,id));
+            if(kind<2)foreach(var soft in new[]{false,true})foreach(var sync in new[]{false,true}){
+                var deleted=kind==0?(sync?provider.DeleteAvatarByUsername(indexed,soft):await provider.DeleteAvatarByUsernameAsync(indexed,soft)):(sync?provider.DeleteAvatarByEmail(indexed,soft):await provider.DeleteAvatarByEmailAsync(indexed,soft));
+                Assert.IsTrue(deleted.IsError);Assert.IsFalse(deleted.Result);Assert.IsInstanceOfType<InvalidDataException>(deleted.Exception);
+                Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(deleted.Exception));Assert.AreEqual(original,await Read(verifier,table,id));
+            }
             await using var cleanup=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND {column}=:Indexed AND DBMS_LOB.COMPARE(DATA_JSON,:Original)=0",verifier){BindByName=true};
             cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();cleanup.Parameters.Add("Indexed",OracleDbType.Varchar2).Value=indexed;cleanup.Parameters.Add("Original",OracleDbType.Clob).Value=original;Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,table,id));File.Delete(journal);
         }finally{await provider.DeActivateProviderAsync();}
