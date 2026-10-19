@@ -5,6 +5,7 @@ pragma solidity ^0.8.20;
 contract RejectSecondHolon {
     address public immutable storageOwner = msg.sender;
     uint256 public constant storageProtocolVersion = 3;
+    uint256 public constant checkedStorageProtocolVersion = 1;
     struct Holon { uint256 EntityId; string HolonId; string Info; }
     mapping(uint256 => Holon) private records;
     uint256 private writes;
@@ -14,6 +15,23 @@ contract RejectSecondHolon {
         return ++writes;
     }
     function GetHolonById(uint256 entityId) external view returns (Holon memory) { return records[entityId]; }
+    function CreateHolonChecked(uint256 entityId,string memory identity,bool expectedPresent,bytes32 expectedInfoHash,string memory info) external returns(uint256) {
+        require(msg.sender==storageOwner,"OASIS storage owner required");
+        Holon memory prior=records[entityId];
+        bool present=bytes(prior.HolonId).length!=0;
+        require(present==expectedPresent,"OASIS presence changed");
+        if(present){
+            require(keccak256(bytes(prior.HolonId))==keccak256(bytes(identity)),"OASIS identity collision");
+            require(keccak256(bytes(prior.Info))==expectedInfoHash,"OASIS record changed");
+        }else require(expectedInfoHash==bytes32(0),"OASIS absent hash required");
+        require(writes==0,"owned fixture rejects second holon");
+        records[entityId]=Holon(entityId,identity,info);return ++writes;
+    }
+}
+
+contract Protocol3WithoutCheckedStorageFixture {
+    address public immutable storageOwner=msg.sender;
+    uint256 public constant storageProtocolVersion=3;
 }
 
 contract LegacyStorageProtocolFixture {

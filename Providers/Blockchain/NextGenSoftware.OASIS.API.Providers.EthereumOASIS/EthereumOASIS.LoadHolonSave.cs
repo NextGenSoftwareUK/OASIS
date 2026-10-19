@@ -59,6 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var plan=PlanStoredGraph(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
+                var createHistory=IsVersionControlEnabled;
                 prepared=true;
                 if(!IsProviderActivated)
                 {
@@ -67,8 +68,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
                 foreach(var node in plan.Nodes)
                 {
-                    var receipt=await SubmitStorageRequestAsync(new ContractDefinition.CreateHolonFunction {
-                        EntityId=HashUtility.GetNumericHash(node.Record.Id.ToString()),HolonId=node.Record.Id.ToString(),Info=node.Payload });
+                    var staged=await UpsertStorageHistoryAsync("holon",node.Record,createHistory);
+                    var receipt=staged.Receipt;
                     if(!StorageReceiptSucceeded(receipt))
                     {
                         OASISErrorHandling.HandleError(ref result,"Ethereum graph write reverted.");
@@ -77,6 +78,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     else
                     {
                         committed.Add(receipt.TransactionHash);
+                        if(node.Source.Id!=node.OriginalId || node.Source.ParentHolonId!=node.OriginalParent)
+                            throw new InvalidOperationException("Caller graph identity changed during acknowledged Ethereum write.");
+                        node.Source.Id=node.Record.Id;node.Source.ParentHolonId=node.Record.ParentHolonId;
+                        node.Source.Version=staged.Record.Version;node.Source.VersionId=staged.Record.VersionId;node.Source.PreviousVersionId=staged.Record.PreviousVersionId;
+                        CommitEthereumStorageIdentity(node.Source);
+                        node.Record.Version=staged.Record.Version;node.Record.VersionId=staged.Record.VersionId;node.Record.PreviousVersionId=staged.Record.PreviousVersionId;
                         CommitEthereumStorageIdentity(node.Record);
                     }
                 }

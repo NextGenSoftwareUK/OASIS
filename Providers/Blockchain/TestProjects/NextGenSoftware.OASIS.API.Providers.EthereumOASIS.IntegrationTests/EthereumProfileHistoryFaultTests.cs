@@ -59,6 +59,17 @@ public partial class EthereumOASISIntegrationTests
                 await service.ContractHandler.SendRequestAndWaitForReceiptAsync(new DeleteAvatarDetailByIdentityFunction{EntityId=key,Identity=original.ToString()}):
                 await service.ContractHandler.SendRequestAndWaitForReceiptAsync(new DeleteAvatarByIdentityFunction{EntityId=key,Identity=original.ToString()});
             Assert.AreEqual(BigInteger.One,deleted.Status.Value);
+            var graphId=Guid.NewGuid();source=new Core.Holons.Holon{Id=graphId};
+            var graph=synchronous?provider.SaveHolon((IHolon)source):await provider.SaveHolonAsync((IHolon)source);
+            Assert.IsTrue(graph.IsError);Assert.IsNull(graph.Result);Assert.IsFalse(graph.IsSaved);
+            Assert.IsInstanceOfType(graph.Exception,typeof(EthereumPartialStorageMutationException));
+            Assert.AreEqual(provider.Acknowledged,((EthereumPartialStorageMutationException)graph.Exception).OriginalTransactionId);
+            Assert.AreEqual(0,source.Version);Assert.AreEqual(Guid.Empty,source.VersionId);
+            Assert.IsFalse(source.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.EthereumOASIS));
+            var nativeGraph=await reader.LoadHolonAsync(graphId,loadChildren:false);Assert.IsFalse(nativeGraph.IsError,nativeGraph.Message);Assert.AreEqual(1,nativeGraph.Result.Version);
+            Assert.AreEqual(BigInteger.Zero,(await service.GetHolonByIdQueryAsync(HashUtility.GetNumericHash(source.Id.ToString()))).ReturnValue1.EntityId);
+            var graphCleanup=await reader.DeleteHolonAsync(graphId);Assert.IsFalse(graphCleanup.IsError,graphCleanup.Message);Assert.IsTrue(graphCleanup.IsDeleted);
+            Assert.AreEqual(BigInteger.Zero,(await service.GetHolonByIdQueryAsync(HashUtility.GetNumericHash(graphId.ToString()))).ReturnValue1.EntityId);
         }finally{await provider.DeActivateProviderAsync();await reader.DeActivateProviderAsync();}
     }
 
@@ -66,7 +77,8 @@ public partial class EthereumOASISIntegrationTests
     [DataRow(false)][DataRow(true)]
     public async Task ProfileHistoryRejectsOldContractCapabilityWithoutBroadcast(bool detail)
     {
-        using var fixture=JsonDocument.Parse(await File.ReadAllTextAsync(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON")!));
+        var path=Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON"))!,"Protocol3WithoutCheckedStorageFixture.json");
+        using var fixture=JsonDocument.Parse(await File.ReadAllTextAsync(path));
         var account=new Account(PrivateKey,ChainId);var web3=new Web3(account,Host);
         var deployed=await web3.Eth.DeployContract.SendRequestAndWaitForReceiptAsync(fixture.RootElement.GetProperty("abi").GetRawText(),fixture.RootElement.GetProperty("bytecode").GetString(),account.Address,new Nethereum.Hex.HexTypes.HexBigInteger(4000000));
         var provider=new EthereumOASIS(Host,PrivateKey,ChainId,deployed.ContractAddress){IsVersionControlEnabled=true};
@@ -75,6 +87,10 @@ public partial class EthereumOASISIntegrationTests
             var before=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
             if(detail){var source=new AvatarDetail{Id=Guid.NewGuid()};var result=await provider.SaveAvatarDetailAsync(source);Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual(0,source.Version);}
             else {var source=new Avatar{Id=Guid.NewGuid()};var result=await provider.SaveAvatarAsync(source);Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual(0,source.Version);}
+            var root=new Core.Holons.Holon{Id=Guid.Empty};var child=new Core.Holons.Holon{Id=Guid.Empty};root.Children.Add(child);
+            var graph=detail?provider.SaveHolons(new[]{root}):await provider.SaveHolonsAsync(new[]{root});
+            Assert.IsTrue(graph.IsError);Assert.IsNull(graph.Result);Assert.IsFalse(graph.IsSaved);
+            Assert.AreEqual(Guid.Empty,root.Id);Assert.AreEqual(Guid.Empty,child.Id);Assert.AreEqual(Guid.Empty,child.ParentHolonId);
             var after=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
             Assert.AreEqual(before.Value,after.Value);
         }finally{await provider.DeActivateProviderAsync();}

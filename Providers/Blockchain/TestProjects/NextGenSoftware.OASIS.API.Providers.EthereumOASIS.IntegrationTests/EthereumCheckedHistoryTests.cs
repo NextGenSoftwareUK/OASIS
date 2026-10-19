@@ -45,6 +45,12 @@ public partial class EthereumOASISIntegrationTests
             var saved=await provider.SaveAvatarDetailAsync((IAvatarDetail)source);Assert.IsFalse(saved.IsError,saved.Message);Assert.AreEqual(3,source.Version);
             provider.IsVersionControlEnabled=false;
             var synced=provider.SaveAvatarDetail((IAvatarDetail)source);Assert.IsFalse(synced.IsError,synced.Message);Assert.AreEqual(4,source.Version);
+        }else{
+            provider.IsVersionControlEnabled=true;
+            var saved=await provider.SaveHolonAsync((IHolon)source);Assert.IsFalse(saved.IsError,saved.Message);Assert.AreEqual(3,source.Version);
+            provider.IsVersionControlEnabled=false;
+            var synced=provider.SaveHolon((IHolon)source);Assert.IsFalse(synced.IsError,synced.Message);Assert.AreEqual(4,source.Version);
+            Assert.AreEqual(2,((IHolon)source).Children.Single().Version);
         }
         var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
         var id=new BigInteger(HashUtility.GetNumericHash(source.Id.ToString()));
@@ -61,8 +67,28 @@ public partial class EthereumOASISIntegrationTests
             var history=new EmbeddedRecordHistory();
             var latest=await history.ReadAsync(source.Id,document,0,OasisJson.DeserializeStored<T>);
             var archived=await history.ReadAsync(source.Id,document,1,OasisJson.DeserializeStored<T>);
-            Assert.AreEqual(kind=="holon"?2:4,latest.Version);Assert.AreEqual("native-second-marker",latest.Description);Assert.AreEqual(1,archived.Version);Assert.IsNull(archived.Description);
+            Assert.AreEqual(4,latest.Version);Assert.AreEqual("native-second-marker",latest.Description);Assert.AreEqual(1,archived.Version);Assert.IsNull(archived.Description);
             if(kind=="holon"){var children=((IHolon)archived).Children;Assert.AreEqual(1,children.Count());Assert.AreEqual("native-child",children.Single().Name);}
+            else {
+                provider.IsVersionControlEnabled=true;
+                if(kind=="avatar")Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=source.Id})).IsError);
+                else Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar{Id=source.Id})).IsError);
+                provider.IsVersionControlEnabled=false;
+                var deleted=await provider.DeleteAvatarAsync(source.Id,softDelete:true);Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsTrue(deleted.Result);
+                var avatarRow=(await service.GetAvatarByIdQueryAsync(id)).ReturnValue1;
+                var detailRow=(await service.GetAvatarDetailByIdQueryAsync(id)).ReturnValue1;
+                var avatarDocument=JObject.Parse(codec.Decrypt("oasis/ethereum/storage/v1/avatar/"+id.ToString(System.Globalization.CultureInfo.InvariantCulture),avatarRow.Info));
+                var detailDocument=JObject.Parse(codec.Decrypt("oasis/ethereum/storage/v1/avatar-detail/"+id.ToString(System.Globalization.CultureInfo.InvariantCulture),detailRow.Info));
+                var avatar=await history.ReadAsync(source.Id,avatarDocument,0,OasisJson.DeserializeStored<Avatar>);
+                var detail=await history.ReadAsync(source.Id,detailDocument,0,OasisJson.DeserializeStored<AvatarDetail>);
+                Assert.AreEqual(kind=="avatar"?5:2,avatar.Version);Assert.AreEqual(kind=="avatar-detail"?5:2,detail.Version);
+                Assert.IsFalse(avatar.IsActive);Assert.IsFalse(detail.IsActive);Assert.AreEqual(avatar.DeletedDate,detail.DeletedDate);
+                Assert.IsTrue((await history.ReadAsync(source.Id,avatarDocument,1,OasisJson.DeserializeStored<Avatar>)).IsActive);
+                Assert.IsTrue((await history.ReadAsync(source.Id,detailDocument,1,OasisJson.DeserializeStored<AvatarDetail>)).IsActive);
+                var hard=await provider.DeleteAvatarAsync(source.Id,softDelete:false);Assert.IsFalse(hard.IsError,hard.Message);Assert.IsTrue(hard.Result);
+                Assert.AreEqual(BigInteger.Zero,(await service.GetAvatarByIdQueryAsync(id)).ReturnValue1.EntityId);
+                Assert.AreEqual(BigInteger.Zero,(await service.GetAvatarDetailByIdQueryAsync(id)).ReturnValue1.EntityId);
+            }
         }finally{CryptographicOperations.ZeroMemory(key);}
     }
 }

@@ -14,7 +14,7 @@ const contract = output.contracts['Fixture.sol'].RejectSecondHolon;
 const folder = path.join(root, 'TestResults/EthereumCurrent');
 fs.mkdirSync(folder,{recursive:true});
 fs.writeFileSync(path.join(folder,'reject-second-holon.json'),JSON.stringify({abi:contract.abi,bytecode:'0x'+contract.evm.bytecode.object}));
-for (const name of ['LegacyStorageProtocolFixture','UnsupportedStorageProtocolFixture','OwnedErc20Fixture']) {
+for (const name of ['LegacyStorageProtocolFixture','UnsupportedStorageProtocolFixture','OwnedErc20Fixture','Protocol3WithoutCheckedStorageFixture']) {
   const fixture = output.contracts['Fixture.sol'][name];
   fs.writeFileSync(path.join(folder,name+'.json'),JSON.stringify({abi:fixture.abi,bytecode:'0x'+fixture.evm.bytecode.object}));
 }
