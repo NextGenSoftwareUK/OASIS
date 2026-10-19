@@ -1,5 +1,13 @@
 # Reusable environments and disk inventory
 
+## Scope: existing resources as well as future setups
+
+The user's requirement explicitly applies retrospectively to every environment, runtime, SDK, download cache and generated build/test directory used by this provider programme, not only Oracle. This file is the central inventory; do not create separate duplicate inventories per run. The cleanup ledger records changes and removals.
+
+Already inventoried below: retained Oracle, Azure Cosmos emulator, TRON, Cosmos/wasmd, Neo4j and SOLID containers; Solana, Sui, NEAR and Substrate runtimes/data; DynamoDB Local, Azurite, IPFS Kubo and Firestore; shared Windows .NET/JDK/Node/NuGet caches; and sampled repository build outputs. These entries have different levels of provenance and completeness: inclusion is not certification that every version, port or byte has been reconciled.
+
+Outstanding backfill must cover all other provider evidence/runtime directories, repository-wide bin/obj and temporary downloads, actual Windows VHDX allocation, and any alternate Android locations. For each resource, record exact path, version/digest where available, measured size and measurement date, owner/purpose, data/credential dependencies, existing reuse command, and safe retirement/regeneration prerequisites. Mark missing evidence as unknown rather than guessing. Never start, reinstall or download a service merely to inventory it. Review possible duplicate copies before removal; preserve the one reusable environment and all unreconciled data.
+
 Measured 2026-10-19. This is a backfill in progress, not a claim that all machine usage is accounted for. Every subsequent setup/download must update this inventory AND the chronological WORKSPACE_CLEANUP_LEDGER.md. Do not duplicate an existing suitable runtime. Record exact version/digest, location, measured image/runtime AND data sizes, process/service/port owner, purpose, reuse/start command, retained credentials/evidence and cleanup prerequisites. Never record secret contents.
 
 Windows figures below are logical file bytes from bounded recursive enumeration; WSL `du -sh` figures are allocated approximate binary units. Podman image sizes are reported estimates and layers can be shared. Parent totals INCLUDE their children: do not add both. WSL files also occupy the Windows VHDX: do not count VHDX and Linux contents twice. Windows free disk at the first snapshot:79,090,307,072bytes. No deletion or reclaim is claimed.

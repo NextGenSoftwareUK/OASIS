@@ -1,5 +1,9 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 metadata intent-boundary unit verification reused existing Shared project binaries/dependencies and fixed OracleCurrent report directory: 487 pass, zero skips. No runtime/service start, install, download, new environment or deletion. Windows free 71,004,672,000 bytes observed; exact report hash and local-only feature limitations in ORACLE_CLIENT_PRIORITY.md. Retrospective environment-inventory scope update also retained in the central inventory.
+
+2026-10-19 retrospective inventory scope reaffirmed: ENVIRONMENT_INVENTORY.md explicitly covers previously downloaded/setup environments and artifacts as well as new ones, with a coverage summary and outstanding backfill. Existing inventory read in place; no download, installation, restart, deletion or disk-reclaim claim. This documentation update does not mean the whole-machine inventory is complete.
+
 2026-10-19 own-ack replay stability/foreign-revision binding reuses same Oracle SDK/cache/container/data/secret/fixed reports. Own null/empty tests passed before fix (existing codec reused); genuine foreign-revision red evidence retained, final62native/485Shared pass. Known fixtures/receipts cleaned with independent absence, journals0/container stopped. No downloads/install/new runtime/reset/broad deletion/reclaim; exact hashes/concurrent test-count caveat/local-only scope in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 local conditional forwarded-key intent binding reused same Oracle SDK/cache/runtime/container/volume/secret/fixed reports.61native/476Shared pass, original winner/receipt cleanup independently absent, journals0/container stopped. Synthetic foreign key strings are metadata fixtures only, not new Mongo service/setup. No download/install/new environment/reset/broad deletion/reclaim. Exact hashes/fingerprint prototype change/remaining gates in ORACLE_CLIENT_PRIORITY.md.
