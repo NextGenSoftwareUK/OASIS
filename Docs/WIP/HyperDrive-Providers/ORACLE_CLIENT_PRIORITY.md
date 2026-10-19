@@ -1,5 +1,9 @@
 # Oracle client readiness — top priority
 
+## Latest controlled metadata boundary evidence — 2026-10-19
+
+487/487 shared unit tests pass, zero skips; two new authority-metadata/order regressions are detailed in the dated entry at the end of this report. Production code did not change in this batch. Conditional support remains local/unadvertised and not certified end to end.
+
 ## Acknowledgement replay stability and foreign revisions — LOCAL ONLY, 2026-10-19
 
 Two new own-revision publication tests (initial null/empty provider metadata) ALREADY passed before source changes via existing canonical projection, so no redundant null-normalization path added. Before report conditional-null-metadata-before.trx2/2pass SHA256 `9B92CCF27886FB52FA19FE109CDC330EACE89582ED45F8352D28D300CCE1E0D0`. Native atomic Unicode fixture now starts with null ProviderMetaData and rebuilds a request from acknowledged graph (assigned local key/revision/version/audit fields) with original immutable write conditions; replay returns original VersionId. This proves tested metadata publication stability, not arbitrary malformed container compatibility.
@@ -455,3 +459,11 @@ Existing `Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS` u
 Oracle Cloud is broader than Oracle Database. The existing project has no OCI Object Storage client/package or bucket/object implementation. OCI Object Storage requires its actual service integration ([official OCI .NET SDK](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/dotnetsdk.htm)); an Oracle SQL connection is not object/file/block storage coverage. Confirm the client's intended service (Autonomous/other Oracle Database, OCI Object Storage, or both) before promising coverage or choosing a new provider architecture. Never provision paid cloud resources or request credentials in chat. Reuse retained SDK/runtime/download/test infrastructure; inspect caches before any installation.
 
 Next: audit existing Oracle implementation/required interfaces and actual OASISDNA/BootLoader registration; select retained test service or approved client test tenancy; complete real SDK operation and public API proofs, data/version/query/encryption/lifecycle semantics, then V2 routing/fees according to the global goal. Activation currently creates schema tables and must be reviewed for explicit provisioning authority and mutation admission. Do not treat the README's broad integration claim as proof.
+
+## Authority metadata intent boundary — LOCAL ONLY, 2026-10-19
+
+Reviewed the current shared conditional request planner and Oracle transaction owner. Added two controlled regressions: changing a caller-supplied metadata field under the *same* authority changes the operation fingerprint (only its assigned revision token is excluded); changing dictionary insertion order without changing values leaves intent stable and planning preserves the source metadata/revision. Both pass without a production-code change; these are added boundary evidence, not a reproduced defect or native-service proof.
+
+Cached bounded unit-project build: 0 errors, 2 warnings. Full shared unit suite: 487/487 pass, zero skips, 2 seconds. Fixed report `TestResults/OracleCurrent/shared-conditional-metadata-binding.trx`, SHA256 `35FA00D2945CE1D1E07A8811F3C1B0BEC083F1C0CDB1BE3CA197DDA5093FCBCB`. No install/download/service start or new environment. Windows free 71,004,672,000 bytes is a whole-machine observation, not attributable allocation. Last native Oracle run remains 62 tests; it was not rerun for these unit-only additions.
+
+Conditional helper/tests/Oracle transaction implementation still local and depend on unpublished Core contract changes; Oracle still does not advertise IConditionalHolonStorageProvider. Immutable dependency publication, interface/native conformance, broader failure classification, hosted Oracle Cloud security and full V2 remain open. No provider-wide completion or hosted deployment claim.
