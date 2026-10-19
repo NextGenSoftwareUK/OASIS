@@ -36,6 +36,19 @@ public partial class Web3NativeStorageTests
             var raced=(Task<Nethereum.RPC.Eth.DTOs.TransactionReceipt>)method.Invoke(native,new object[] {kind,numeric,external,first,interleavedRead})!;
             await Assert.ThrowsExceptionAsync<Web3MutationReconciliationException>(()=>raced);
             CollectionAssert.AreEqual(concurrent,(await read()).Info);
+            var prepared=new byte[]{7,8};var preparations=0;
+            await native.UpsertPreparedAsync(kind,numeric,external,observed=>{
+                preparations++;CollectionAssert.AreEqual(concurrent,observed.Info);
+                observed.Info[0]=99; // Cannot mutate the already bound native condition.
+                return Task.FromResult(prepared);
+            });
+            Assert.AreEqual(1,preparations);CollectionAssert.AreEqual(prepared,(await read()).Info);
+            var newer=new byte[]{10,11};
+            await Assert.ThrowsExceptionAsync<Web3MutationReconciliationException>(()=>native.UpsertPreparedAsync(kind,numeric,external,async observed=>{
+                await native.UpsertCheckedAsync(kind,numeric,external,true,Nethereum.Util.Sha3Keccack.Current.CalculateHash(observed.Info),newer);
+                return first;
+            }));
+            CollectionAssert.AreEqual(newer,(await read()).Info);
             // Exact synthetic fixture cleanup; these bytes are contract-only, not encrypted application data.
             if(kind=="avatar") await native.DeleteAvatarAsync(numeric);
             else if(kind=="detail") await native.DeleteAvatarDetailAsync(numeric);

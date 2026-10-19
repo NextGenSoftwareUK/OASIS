@@ -53,15 +53,35 @@ public sealed class Web3CoreOASIS
     public Task<TransactionReceipt> UpsertHolonAsync(uint id,byte[] external,byte[] info)
         =>UpsertObservedAsync("holon",id,external,info,()=>GetHolonByIdAsync(id));
 
-    private async Task<TransactionReceipt> UpsertObservedAsync(string kind,uint id,byte[] external,byte[] info,Func<Task<EntityOASIS>> read)
+    private Task<TransactionReceipt> UpsertObservedAsync(string kind,uint id,byte[] external,byte[] info,Func<Task<EntityOASIS>> read)
     {
+        ArgumentNullException.ThrowIfNull(info);
+        var frozen=(byte[])info.Clone();
+        return UpsertObservedPreparedAsync(kind,id,external,_=>Task.FromResult(frozen),read);
+    }
+
+    internal Task<TransactionReceipt> UpsertPreparedAsync(string kind,uint id,byte[] external,Func<EntityOASIS,Task<byte[]>> prepare)
+    {
+        Func<Task<EntityOASIS>> read=kind switch{
+            "avatar"=>()=>GetAvatarByIdAsync(id),"detail"=>()=>GetAvatarDetailByIdAsync(id),"holon"=>()=>GetHolonByIdAsync(id),
+            _=>throw new ArgumentException("Unknown Web3Core collection.",nameof(kind))};
+        return UpsertObservedPreparedAsync(kind,id,external,prepare,read);
+    }
+
+    private async Task<TransactionReceipt> UpsertObservedPreparedAsync(string kind,uint id,byte[] external,Func<EntityOASIS,Task<byte[]>> prepare,Func<Task<EntityOASIS>> read)
+    {
+        ArgumentNullException.ThrowIfNull(prepare);ArgumentNullException.ThrowIfNull(external);
+        var frozenExternal=(byte[])external.Clone();
         // A failed read is known to precede submission: retain its original error, not an uncertain-write marker.
         var previous=await read();
         if(previous==null || previous.Info==null || previous.ExternalId?.Length!=32)
             throw new System.IO.InvalidDataException("Malformed Web3Core pre-write snapshot.");
         var present=!Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(previous);
         var hash=Nethereum.Util.Sha3Keccack.Current.CalculateHash(previous.Info);
-        return await UpsertCheckedAsync(kind,id,external,present,hash,info);
+        // Preparation sees a detached copy of exactly the native record bound by this condition.
+        var snapshot=new EntityOASIS{EntityId=previous.EntityId,ExternalId=(byte[])previous.ExternalId.Clone(),Info=(byte[])previous.Info.Clone()};
+        var info=await prepare(snapshot)??throw new System.IO.InvalidDataException("Web3Core preparation returned no payload.");
+        return await UpsertCheckedAsync(kind,id,frozenExternal,present,hash,(byte[])info.Clone());
     }
 
     public Task<TransactionReceipt> UpsertCheckedAsync(string kind,uint id,byte[] external,bool expectedPresent,byte[] expectedHash,byte[] info)
