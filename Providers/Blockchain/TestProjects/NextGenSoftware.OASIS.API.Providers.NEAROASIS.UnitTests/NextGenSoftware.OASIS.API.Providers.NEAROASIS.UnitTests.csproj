@@ -20,6 +20,7 @@
     <None Include="Fixtures\utf8-response.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\nft-followup.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\status-observation.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\record-publication.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
