@@ -11,6 +11,11 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS;
 
 public partial class OracleDBOASIS
 {
+    private static void ValidateSelectedHolon(IHolon row,HolonType type,Guid? parent=null)
+    {
+        if((type!=HolonType.All&&row.HolonType!=type)||(parent.HasValue&&row.ParentHolonId!=parent.Value))
+            throw new System.IO.InvalidDataException("Oracle indexed holon selection differs from its canonical record.");
+    }
     private static void ValidateGraphRead(int maxDepth,int initialDepth,int version,HolonType? type=null)
     {
         if(version<0)throw new ArgumentOutOfRangeException(nameof(version));

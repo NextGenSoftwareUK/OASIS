@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 Oracle parent/type query integrity correction reused same retained environment/cache/fixed reports.29native/114units pass; intentionally corrupted native index fixtures retained exact original JSON until conditional cleanup, absence before journal removal. Journals0/container stopped, no download/install/new runtime/reset/broad deletion/reclaim. Hashes/remaining index gaps in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 Oracle delete-by-identity admission correction reused same image/container/volume/secret/SDK/cache/fixed reports.27native/114units pass, corrupted index originals unchanged after8failed delete calls until exact conditional fixture cleanup, journals0/container stopped. No install/download/new environment/reset/broad deletion/reclaim. Exact hashes/limitations in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 indexed-identity consistency correction reused same Oracle SDK/cache/container/data volume/secret/fixed reports. Four intentionally corrupted synthetic index fixtures remained unchanged until exact index+ID+CLOB conditional cleanup and absence;27native/114units pass, journals0/container stopped. No install/download/new environment/reset/broad deletion/reclaim. Hashes/scope in ORACLE_CLIENT_PRIORITY.md.
