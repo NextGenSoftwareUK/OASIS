@@ -42,6 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         private readonly string _chainId;
         private readonly string _privateKey;
         private readonly string _contractAddress;
+        private readonly string _bridgePoolAddress;
         private bool _isActivated;
         private bool _isDisposed;
         private int _rpcRequestId;
@@ -68,6 +69,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         /// <param name="chainId">Polkadot chain ID</param>
         /// <param name="privateKey">Private key for signing transactions</param>
         public PolkadotOASIS(string rpcEndpoint = "https://rpc.polkadot.io", string chainId = "polkadot", string privateKey = "")
+            : this(rpcEndpoint, chainId, privateKey, null) { }
+
+        /// <summary>Explicit pool destination; never inferred from the chain name or a fabricated address.</summary>
+        public PolkadotOASIS(string rpcEndpoint, string chainId, string privateKey, string bridgePoolAddress)
         {
             this.ProviderName = "PolkadotOASIS";
             this.ProviderDescription = "Polkadot Provider - Multi-chain interoperability protocol";
@@ -82,6 +87,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
             if(string.IsNullOrWhiteSpace(chainId))throw new ArgumentException("A configured chain name or genesis hash is required.",nameof(chainId));
             _privateKey = privateKey;
+            _bridgePoolAddress = bridgePoolAddress;
             _httpClient = new HttpClient
             {
                 BaseAddress = new Uri(_rpcEndpoint)
