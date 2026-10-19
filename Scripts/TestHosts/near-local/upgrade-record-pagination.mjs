@@ -3,9 +3,14 @@ import {readFileSync,openSync,writeFileSync,fsyncSync,closeSync,existsSync,renam
 import {createHash} from 'node:crypto';
 import {Account,JsonRpcProvider,actions} from '../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/node_modules/near-api-js/lib/index.js';
 const root='/var/tmp/oasis-near-evidence',rpc='http://127.0.0.1:3030',accountId='test.near';
-const pending=root+'/pagination-upgrade.pending.json',complete=root+'/pagination-upgrade.complete.json';
-const oldHash='6bc5b84cc31190a9c1eb89fefabf45925477cab4dfe46857cb11e6e2a9d7cb62';
-const newHash='da0eafd260e8345715f4099600526b3d4c3c9d3fc42241e6ef3b400683c8abec';
+const upgrades={
+  pagination:{oldHash:'6bc5b84cc31190a9c1eb89fefabf45925477cab4dfe46857cb11e6e2a9d7cb62',newHash:'da0eafd260e8345715f4099600526b3d4c3c9d3fc42241e6ef3b400683c8abec'},
+  'checked-record':{oldHash:'da0eafd260e8345715f4099600526b3d4c3c9d3fc42241e6ef3b400683c8abec',newHash:'638719d44b0305bded6096a68230d505e1fa6b811e404df8c12e0fd22d6fcefe'},
+};
+const selected=process.argv[2]??'pagination';
+if(!Object.hasOwn(upgrades,selected))throw new Error('Only a pinned reviewed local upgrade is permitted');
+const {oldHash,newHash}=upgrades[selected];
+const pending=root+'/'+selected+'-upgrade.pending.json',complete=root+'/'+selected+'-upgrade.complete.json';
 const sha=data=>createHash('sha256').update(data).digest('hex');
 function persist(path,value,flag){const fd=openSync(path,flag,0o600);try{writeFileSync(fd,JSON.stringify(value));fsyncSync(fd);}finally{closeSync(fd);}}
 async function query(params){const response=await fetch(rpc,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:'pagination-upgrade',method:'query',params})});if(!response.ok)throw new Error('Native query HTTP failure');const body=await response.json();if(body.error)throw new Error('Native query failed: '+JSON.stringify(body.error));return body.result;}
@@ -32,5 +37,6 @@ const after=await stateDigest();
 if(after.count!==before.count||after.sha256!==before.sha256)throw new Error('Contract data changed during code-only upgrade');
 const page=await provider.callFunction({contractId:accountId,method:'entries_page',args:{offset:0,limit:1,prefix:''}});
 if(!Number.isSafeInteger(page.total)||page.rows.length>1)throw new Error('New page ABI not independently readable');
+if(selected==='checked-record'&&await provider.callFunction({contractId:accountId,method:'record_write_protocol',args:{}})!==1)throw new Error('Checked record ABI capability differs');
 Object.assign(evidence,{state:'verified',after,recordCount:page.total});persist(pending,evidence,'w');renameSync(pending,complete);
 console.log(JSON.stringify(evidence));

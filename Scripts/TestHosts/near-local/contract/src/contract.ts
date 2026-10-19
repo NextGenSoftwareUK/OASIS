@@ -1,4 +1,5 @@
 import { NearBindgen, call, initialize, near, view, UnorderedMap } from "near-sdk-js";
+import { writeCheckedRecord, CheckedRecordWrite } from "./checked-record";
 
 @NearBindgen({ requireInit: true })
 export class OasisStorage {
@@ -21,6 +22,15 @@ export class OasisStorage {
   put({ key, value }: { key: string; value: string }): void {
     this.requireContractOwner();
     this.records.set(key, value);
+  }
+
+  @view({})
+  record_write_protocol(): number { return 1; }
+
+  @call({})
+  put_record_checked(input: CheckedRecordWrite): void {
+    this.requireContractOwner();
+    writeCheckedRecord(this.records, input);
   }
 
   @call({})
