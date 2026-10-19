@@ -139,8 +139,8 @@ public class CosmosCurrentReadTests
     public async Task CollectionsValidateVersionAndPreserveActivationFailure()
     {
         var provider=new Provider(true);
-        Assert.IsInstanceOfType((await provider.LoadAllAvatarsAsync(1)).Exception,typeof(NotSupportedException));
-        Assert.IsInstanceOfType(provider.LoadAllAvatarDetails(1).Exception,typeof(NotSupportedException));
+        Assert.IsInstanceOfType((await provider.LoadAllAvatarsAsync(-1)).Exception,typeof(ArgumentOutOfRangeException));
+        Assert.IsInstanceOfType(provider.LoadAllAvatarDetails(-1).Exception,typeof(ArgumentOutOfRangeException));
         Assert.AreEqual(0,provider.Activations);
         Assert.AreSame(provider.Cause,(await provider.LoadAllAvatarDetailsAsync()).Exception);
         Assert.AreSame(provider.Cause,provider.LoadAllAvatars().Exception);
@@ -204,7 +204,7 @@ public class CosmosCurrentReadTests
         var provider=new Provider(true);
         Assert.IsInstanceOfType((await provider.LoadAvatarAsync(Guid.Empty)).Exception,typeof(ArgumentException));
         Assert.IsInstanceOfType((await provider.LoadAvatarByProviderKeyAsync("bad-key")).Exception,typeof(ArgumentException));
-        Assert.IsInstanceOfType((await provider.LoadAvatarDetailAsync(Guid.NewGuid(),version:1)).Exception,typeof(NotSupportedException));
+        Assert.IsInstanceOfType((await provider.LoadAvatarDetailAsync(Guid.NewGuid(),version:-1)).Exception,typeof(ArgumentOutOfRangeException));
         Assert.IsInstanceOfType((await provider.LoadHolonAsync(Guid.NewGuid(),maxChildDepth:-1)).Exception,typeof(ArgumentOutOfRangeException));
         Assert.AreEqual(0,provider.Activations);
         var result=provider.LoadAvatar(Guid.NewGuid());Assert.AreSame(provider.Cause,result.Exception);Assert.AreEqual("owned-code",result.ErrorCode);

@@ -84,6 +84,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     else {
                         saved.Add(written.Result);
                         node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                        node.Source.Version=written.Result.Version;node.Source.VersionId=written.Result.VersionId;
+                        node.Source.PreviousVersionId=written.Result.PreviousVersionId;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                         node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=node.Snapshot.Id.ToString();
                     }
@@ -109,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         var maxDepth=maxChildDepth;
         var result=new OASISResult<ISearchResults>();
         try {
-            StoredRecordSearch.Validate(search,version,maxDepth);
+            StoredRecordSearch.Validate(search,version,maxDepth,supportsHistory:true);
             var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
             var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
             var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
