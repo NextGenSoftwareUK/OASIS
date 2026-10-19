@@ -26,6 +26,19 @@ public partial class OracleDBOASIS
                 var value=await select.ExecuteScalarAsync();if(value!=null&&value!=DBNull.Value)previous=value.ToString();
             }
             creating=previous==null;var json=await StageRecordHistoryAsync(proposed,previous);var staged=Deserialize<T>(json);
+            await using var command=CreateCanonicalWriteCommand(staged,json,table,creating,connection,transaction);
+            dispatched=true;if(await ExecuteCanonicalWriteAsync(command)!=1)throw new InvalidDataException("Oracle locked canonical writer did not affect exactly one record.");
+            await CommitLifecycleTransactionAsync(transaction);return staged;
+        }catch(OracleException cause)when(creating&&cause.Number==1){
+            throw new InvalidDataException("Oracle create-only record conflicted with an existing native identity.",cause);
+        }catch(Exception cause)when(dispatched){throw new OracleLifecycleReconciliationException(proposed.Id,cause);}
+    }
+
+    // SQL/projection binding has one owner; callers own connection, transaction and acknowledgement.
+    private static OracleCommand CreateCanonicalWriteCommand(IHolonBase staged,string json,string table,bool creating,OracleConnection connection,OracleTransaction transaction)
+    {
+            var expected=staged is Avatar?"OASIS_AVATARS":staged is AvatarDetail?"OASIS_AVATAR_DETAILS":staged is Holon?"OASIS_HOLONS":null;
+            if(expected==null||table!=expected)throw new ArgumentException("Canonical Oracle record type must match its table.");
             var identity=staged is IAvatar||staged is IAvatarDetail;
             var columns=identity?"ID,USERNAME,EMAIL,DATA_JSON":"ID,PARENT_HOLON_ID,HOLON_TYPE,DATA_JSON";
             var values=identity?":Id,:Username,:Email,:Json":":Id,:ParentId,:HolonType,:Json";
@@ -34,7 +47,9 @@ public partial class OracleDBOASIS
             if(table!="OASIS_AVATAR_DETAILS")updates+=",IS_DELETED=:Deleted,MODIFIED_DATE=SYSTIMESTAMP";
             // Missing-key writes are INSERT-only. A concurrent creator must never be overwritten by MERGE.
             var sql=creating?$"INSERT INTO {table} ({columns}) VALUES ({values})":$"UPDATE {table} SET {updates} WHERE ID=:Id";
-            await using var command=CreateCommand(sql,connection);command.Transaction=transaction;
+            var command=CreateCommand(sql,connection);
+            try{
+            command.Transaction=transaction;
             command.Parameters.Add("Id",OracleDbType.Raw).Value=staged.Id.ToByteArray();command.Parameters.Add("Json",OracleDbType.Clob).Value=json;
             if(identity){
                 var username=staged is IAvatar a?a.Username:((IAvatarDetail)staged).Username;
@@ -45,10 +60,7 @@ public partial class OracleDBOASIS
                 command.Parameters.Add("HolonType",OracleDbType.Int32).Value=(int)holon.HolonType;
             }
             if(table!="OASIS_AVATAR_DETAILS")command.Parameters.Add("Deleted",OracleDbType.Int32).Value=staged.IsDeleted?1:0;
-            dispatched=true;if(await ExecuteCanonicalWriteAsync(command)!=1)throw new InvalidDataException("Oracle locked canonical writer did not affect exactly one record.");
-            await CommitLifecycleTransactionAsync(transaction);return staged;
-        }catch(OracleException cause)when(creating&&cause.Number==1){
-            throw new InvalidDataException("Oracle create-only record conflicted with an existing native identity.",cause);
-        }catch(Exception cause)when(dispatched){throw new OracleLifecycleReconciliationException(proposed.Id,cause);}
+            return command;
+            }catch{command.Dispose();throw;}
     }
 }

@@ -105,6 +105,15 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
 
                     @"BEGIN
   EXECUTE IMMEDIATE 'CREATE INDEX IDX_OASIS_HLN_TYPE ON OASIS_HOLONS(HOLON_TYPE)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
+
+                    @"BEGIN
+  EXECUTE IMMEDIATE 'CREATE TABLE OASIS_WRITE_RECEIPTS (
+    OPERATION_ID RAW(16) NOT NULL PRIMARY KEY,
+    REQUEST_HASH VARCHAR2(64) NOT NULL,
+    RESULT_JSON CLOB,
+    COMMITTED_AT TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL
+  )';
 EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 };
 
@@ -151,6 +160,10 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             source.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=stored.Id.ToString();
             source.Version=stored.Version;source.VersionId=stored.VersionId;source.PreviousVersionId=stored.PreviousVersionId;
+            if(source is IHolon caller&&stored is IHolon committed){
+                var revision=CosmicConcurrency.GetProviderRevisionId(committed,Core.Enums.ProviderType.OracleDBOASIS);
+                if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(caller,Core.Enums.ProviderType.OracleDBOASIS,revision.Value);
+            }
             }catch(Exception cause){throw new OracleLifecycleReconciliationException(stored.Id,cause);}
         }
 

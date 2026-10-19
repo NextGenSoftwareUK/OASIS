@@ -8,6 +8,16 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 [TestClass]
 public sealed class OracleHistoryStageTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task OrdinaryWritesAdvanceDetachedProviderRevisionWithOrWithoutHistory(bool history)
+    {
+        var provider=new OracleDBOASIS("unused"){IsVersionControlEnabled=history};var source=new Holon{Id=Guid.NewGuid()};
+        var firstJson=await Stage(provider,source,null);var first=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>(firstJson);
+        var second=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>(await Stage(provider,source,firstJson));
+        var authority=NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OracleDBOASIS;
+        var a=CosmicConcurrency.GetProviderRevisionId(first,authority);var b=CosmicConcurrency.GetProviderRevisionId(second,authority);
+        Assert.IsTrue(a.HasValue);Assert.AreNotEqual(Guid.Empty,a.Value);Assert.IsTrue(b.HasValue);Assert.AreNotEqual(a,b);Assert.IsNull(CosmicConcurrency.GetProviderRevisionId(source,authority));
+    }
     [TestMethod]
     public async Task ExistingSharedHistorySurvivesDisablingCreationWithoutMutatingProposal()
     {
