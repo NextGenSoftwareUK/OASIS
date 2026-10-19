@@ -545,7 +545,8 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-                if (avatarResult.IsError || avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar with email '{avatarEmailAddress}' not found."); return result; }
+                if (avatarResult.IsError) { result.IsError=true;result.Exception=avatarResult.Exception;result.ErrorCode=avatarResult.ErrorCode;result.Message=avatarResult.Message;return result; }
+                if (avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar with email '{avatarEmailAddress}' not found."); return result; }
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
@@ -748,7 +749,8 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername,version);
-                if (avatarResult.IsError || avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar '{avatarUsername}' not found."); return result; }
+                if (avatarResult.IsError) { result.IsError=true;result.Exception=avatarResult.Exception;result.ErrorCode=avatarResult.ErrorCode;result.Message=avatarResult.Message;return result; }
+                if (avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar '{avatarUsername}' not found."); return result; }
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
