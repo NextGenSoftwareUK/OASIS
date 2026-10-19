@@ -9,6 +9,29 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public sealed class OracleNativeAcceptanceTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task HolonIndexSelectionCannotContradictCanonicalParentOrType(bool parent)
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,$"holon-index-{parent}.pending.json");Assert.IsFalse(File.Exists(journal));var id=Guid.NewGuid();var selectedParent=Guid.NewGuid();
+        var row=new Holon{Id=id,Name="owned-holon-index",ParentHolonId=Guid.NewGuid()};
+        var selectedType=Enum.GetValues<NextGenSoftware.OASIS.API.Core.Enums.HolonType>().First(t=>t!=row.HolonType&&t!=NextGenSoftware.OASIS.API.Core.Enums.HolonType.All);
+        var provider=new OracleDBOASIS(connection);var column=parent?"PARENT_HOLON_ID":"HOLON_TYPE";
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,parent,selectedParent,selectedType,state="before-holon-index-fixture"}));file.Flush(true);}
+            var saved=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());var original=await Read(verifier,"OASIS_HOLONS",id);Assert.IsNotNull(original);
+            await using(var corrupt=new OracleCommand($"UPDATE OASIS_HOLONS SET {column}=:Indexed WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Original)=0",verifier){BindByName=true}){
+                corrupt.Parameters.Add("Indexed",parent?OracleDbType.Raw:OracleDbType.Int32).Value=parent?(object)selectedParent.ToByteArray():(int)selectedType;
+                corrupt.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();corrupt.Parameters.Add("Original",OracleDbType.Clob).Value=original;Assert.AreEqual(1,await corrupt.ExecuteNonQueryAsync());
+            }
+            foreach(var sync in new[]{false,true}){
+                var found=parent?(sync?provider.LoadHolonsForParent(selectedParent,loadChildren:false):await provider.LoadHolonsForParentAsync(selectedParent,loadChildren:false)):(sync?provider.LoadAllHolons(selectedType,loadChildren:false):await provider.LoadAllHolonsAsync(selectedType,loadChildren:false));
+                Assert.IsTrue(found.IsError);Assert.IsNull(found.Result);Assert.IsInstanceOfType<InvalidDataException>(found.Exception);Assert.AreEqual(original,await Read(verifier,"OASIS_HOLONS",id));
+            }
+            await using var cleanup=new OracleCommand("DELETE FROM OASIS_HOLONS WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Original)=0",verifier){BindByName=true};cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();cleanup.Parameters.Add("Original",OracleDbType.Clob).Value=original;Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
     [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)]
     public async Task IndexedIdentityCannotReturnDifferentCanonicalIdentity(int kind)
     {

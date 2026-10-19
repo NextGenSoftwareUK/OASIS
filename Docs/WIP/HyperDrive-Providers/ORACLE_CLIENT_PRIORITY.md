@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Parent/type query integrity — 2026-10-19
+
+Latest parent and all-holons typed queries trusted indexed parent/type without checking returned canonical fields. A single ValidateSelectedHolon helper now rejects contradictions in these two query owners before projection. Historical selection stays canonical and unchanged. Two actual SDK cases conditionally corrupt native ParentHolonId/HolonType while preserving original JSON; sync/async queries reject with InvalidDataException/no result and leave exact original CLOB unchanged. Known fixtures removed only after checks using ID+exact-CLOB conditional cleanup and absence. Source-audit correction, no pre-fix native reproduction claimed.
+
+Full29/29native pass15s/zero skips SHA256 `F9C434C1300379F4FCC66F575DBB89D70976D79AC4F26565F60D905476BD19D2`;114/114units pass659ms SHA256 `7DE7C6C3DC3817E6DA8A5DD4C70EDC6942759028FB990EEE9B9558D4E3196B8B`. Fixed oracle-native-current.trx/oracle-holon-index.trx, cached builds0errors2/7/3warnings. Same runtime/container/volume/secret reused/stopped, journals0, no download/install/new environment/reset. Metadata type-filtered paths and all denormalized-index completeness still require review; missing/corrupt index entries can exclude rows and are not detected by checking returned records. Security/privacy/hosted/transport/crash/concurrency/all-interface/full V2 still OPEN.
+
 ## Delete identity integrity before mutation — 2026-10-19
 
 The paired-avatar lifecycle owner validated native GUID but still trusted a contradictory username/email index when selecting an avatar for deletion. Extracted the existing read identity comparison into ONE CanonicalIdentityMatches helper, now reused by reads and locked delete admission. Latest delete selector mismatch throws InvalidDataException BEFORE any mutation dispatch; no repair/retry/alternate selector. GUID deletion unaffected. Source-audit correction, no pre-fix native reproduction claimed.
