@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Native lock-wait cancellation — LOCAL ONLY, 2026-10-19
+
+New actual SDK case holds original conditional graph+receipt transaction before commit, starts different-operation contender for same record, observes exact original SID blocker through V$SESSION, then cancels contender's real CancellationToken. Contender finishes BEFORE releasing original, returns error/no saved result/no payload with cancellation cause (OperationCanceledException or Oracle1013 accepted), no reconciliation marker and no committed contender receipt. Original task remains held until explicit release; then exactly one graph commit, independent native original payload/version1 and contender receipt absence again. Known original graph hard-delete/native absence, exact original receipt delete+independent absence clear journal.
+
+Full41/41native pass21s/zero skips =40acceptance+1diagnostic SHA256 `AF160BB932421742E4957D17592A0DF9DB873CDB0FEA7C983614E762FCA5BDCD`, fixed oracle-native-current.trx. Cached producer/integration0errors2/7warnings; prior127units/466Shared unchanged/not rerun. Same environment stopped/journals0/no download/install/new runtime/reset. This proves cancellation during tested native contention, not arbitrary timing during/after commit. Full router classification/normalization of SDK1013 vs OperationCanceledException remains to verify; no complete V2 cancellation claim. Feature source still local/uncommitted/unadvertised pending receipt integrity, graph options, authority/Core dependency and full API/V2 gates.
+
 ## Ordinary-write freshness and pre-cancellation — LOCAL ONLY, 2026-10-19
 
 Two native history-on/off cases prove an ordinary canonical save advances provider revision, then another ordinary save invalidates the original conditional token. Stale conditional call returns exact expected/actual revision plus actual logical version in CosmicConcurrencyException, leaves independent original CLOB byte-identical and no operation receipt. Current-token conditional save succeeds and advances provider revision again. History-off ordinary logical version remains0 while provider revisions still change; conditional logical version then1. History-on ordinary1→2 then conditional3. Thus provider revision is genuinely independent of logical version, not a VersionId alias.
