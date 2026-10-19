@@ -41,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         private readonly bool _enableStorage;
         private readonly bool _enableFirestore;
         private readonly bool _enableBigQuery;
+        public bool IsVersionControlEnabled { get; set; } = false;
 
         public GoogleCloudOASIS(string projectId = null, string bucketName = null, string credentialsPath = null, 
                                string firestoreDatabaseId = null, string bigQueryDatasetId = null,

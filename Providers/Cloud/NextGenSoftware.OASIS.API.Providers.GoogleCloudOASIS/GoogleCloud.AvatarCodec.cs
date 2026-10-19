@@ -54,8 +54,10 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
         try
         {
             if(id==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
+            var createHistory=IsVersionControlEnabled;
             var ready=await EnsureDetailStoreAsync(0);
             if(ready.IsError) return ready;
+            RequireSingleAttemptFirestoreCommit(_firestoreDb);
             var reference=_firestoreDb.Collection("avatars").Document(id.ToString());
             var detailReference=_firestoreDb.Collection("avatarDetails").Document(id.ToString());
             paths=reference.Path+";"+detailReference.Path;
@@ -76,12 +78,12 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
                     committed=patch;
                     if(MatchesTombstone(avatar,patch) && (detail==null || MatchesTombstone(detail,patch))) return true;
                     avatar.IsActive=false;avatar.DeletedDate=patch.DeletedAtUtc;avatar.DeletedByAvatarId=patch.DeletedByAvatarId;
-                    var avatarUpdate=new Dictionary<string,object> { ["isActive"]=false,["data_json"]=OasisJson.Serialize(avatar) };
+                    var avatarUpdate=await StageFirestoreLifecycleUpdateAsync(avatar,snapshot.ToDictionary(),snapshot.Id,createHistory);
                     Dictionary<string,object> detailUpdate=null;
                     if(detail!=null)
                     {
                         detail.IsActive=false;detail.DeletedDate=patch.DeletedAtUtc;detail.DeletedByAvatarId=patch.DeletedByAvatarId;
-                        detailUpdate=new Dictionary<string,object> { ["isActive"]=false,["data_json"]=OasisJson.Serialize(detail) };
+                        detailUpdate=await StageFirestoreLifecycleUpdateAsync(detail,detailSnapshot.ToDictionary(),detailSnapshot.Id,createHistory);
                     }
                     transaction.Update(reference,avatarUpdate);
                     if(detailUpdate!=null) transaction.Update(detailReference,detailUpdate);
@@ -114,14 +116,7 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
     }
 
     private static Avatar DecodeAvatar(Dictionary<string,object> fields,string documentId)
-    {
-        if(!fields.TryGetValue("data_json",out var value) || value is not string json)
-            throw new InvalidDataException("Firestore avatar lacks canonical data_json.");
-        var avatar=OasisJson.DeserializeStored<Avatar>(json) ?? throw new InvalidDataException("Firestore avatar payload is null.");
-        if(avatar.Id==Guid.Empty || avatar.Id.ToString()!=documentId || !fields.TryGetValue("id",out var id) || !Equals(id,documentId))
-            throw new InvalidDataException("Firestore avatar identity does not match document key.");
-        return avatar;
-    }
+        => ReadFirestoreHistoryAsync<Avatar>(fields,documentId,0).GetAwaiter().GetResult();
 
     private async Task<OASISResult<IEnumerable<IAvatar>>> ReadCanonicalAvatarsAsync(int version)
     {
@@ -130,7 +125,7 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
             var ready=await EnsureDetailStoreAsync(version);
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<IAvatar>>(ready);
             var snapshot=await _firestoreDb.Collection("avatars").GetSnapshotAsync();
-            result.Result=snapshot.Documents.Select(doc=>DecodeAvatar(doc.ConvertTo<Dictionary<string,object>>(),doc.Id)).Where(row=>row.DeletedDate==DateTime.MinValue).Cast<IAvatar>().ToList();
+            result.Result=snapshot.Documents.Select(doc=>ReadFirestoreHistoryAsync<Avatar>(doc.ToDictionary(),doc.Id,version).GetAwaiter().GetResult()).Where(row=>row!=null&&row.DeletedDate==DateTime.MinValue).Cast<IAvatar>().ToList();
             result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
@@ -145,7 +140,7 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
             var ready=await EnsureDetailStoreAsync(version);
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IAvatar>(ready);
             var document=await _firestoreDb.Collection("avatars").Document(id.ToString()).GetSnapshotAsync();
-            var avatar=document.Exists ? DecodeAvatar(document.ConvertTo<Dictionary<string,object>>(),document.Id):null;
+            var avatar=document.Exists ? await ReadFirestoreHistoryAsync<Avatar>(document.ToDictionary(),document.Id,version):null;
             if(avatar==null || avatar.DeletedDate!=DateTime.MinValue) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore avatar not found.";}
             else {result.Result=avatar;result.IsLoaded=true;}
         }
@@ -156,11 +151,13 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
     private async Task<OASISResult<IAvatar>> ReadCanonicalAvatarSelectorAsync(string selector,bool email,int version)
         => await ReadCanonicalAvatarSelectorAsync(selector,row=>string.Equals(email ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase),version);
 
-    private async Task<OASISResult<IAvatar>> ReadCanonicalAvatarSelectorAsync(string selector,Func<IAvatar,bool> predicate,int version)
+    private async Task<OASISResult<IAvatar>> ReadCanonicalAvatarSelectorAsync(string selector,Func<IAvatar,bool> predicate,int version,bool credentialsLatestOnly=false)
     {
         var result=new OASISResult<IAvatar>();
         try {
             if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
+            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            if(credentialsLatestOnly && version!=0)throw new NotSupportedException("Historical credentials must not authenticate; only current version zero is permitted.");
             ValidateFirestoreVersion(version);
             var loaded=await ReadCanonicalAvatarsAsync(version);
             if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,IAvatar>(loaded);

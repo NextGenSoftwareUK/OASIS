@@ -113,6 +113,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     else {
                         saved.Add(written.Result);
                         node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                        node.Source.Version=written.Result.Version;node.Source.VersionId=written.Result.VersionId;node.Source.PreviousVersionId=written.Result.PreviousVersionId;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                         node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=node.Snapshot.Id.ToString();
                     }

@@ -54,7 +54,7 @@ public partial class GoogleCloudOASIS
             var ready=await EnsureDetailStoreAsync(version);
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IAvatarDetail>(ready);
             var document=await _firestoreDb.Collection("avatarDetails").Document(id.ToString()).GetSnapshotAsync();
-            var detail=document.Exists ? DecodeAvatarDetail(document.ConvertTo<Dictionary<string,object>>(),document.Id):null;
+            var detail=document.Exists ? await ReadFirestoreHistoryAsync<AvatarDetail>(document.ToDictionary(),document.Id,version):null;
             if(detail==null || !detail.IsActive) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore detail not found.";}
             else {result.Result=detail;result.IsLoaded=true;}
         }
@@ -69,7 +69,7 @@ public partial class GoogleCloudOASIS
             var ready=await EnsureDetailStoreAsync(version);
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<IAvatarDetail>>(ready);
             var snapshot=await _firestoreDb.Collection("avatarDetails").GetSnapshotAsync();
-            result.Result=snapshot.Documents.Select(doc=>DecodeAvatarDetail(doc.ConvertTo<Dictionary<string,object>>(),doc.Id)).Where(row=>row.IsActive).Cast<IAvatarDetail>().ToList();
+            result.Result=snapshot.Documents.Select(doc=>ReadFirestoreHistoryAsync<AvatarDetail>(doc.ToDictionary(),doc.Id,version).GetAwaiter().GetResult()).Where(row=>row!=null&&row.IsActive).Cast<IAvatarDetail>().ToList();
             result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
@@ -110,12 +110,5 @@ public partial class GoogleCloudOASIS
     }
 
     private static AvatarDetail DecodeAvatarDetail(Dictionary<string,object> fields,string documentId)
-    {
-        if(!fields.TryGetValue("data_json",out var value) || value is not string json)
-            throw new InvalidDataException("Firestore detail lacks canonical data_json; legacy manual mappings require explicit review.");
-        var detail=OasisJson.DeserializeStored<AvatarDetail>(json) ?? throw new InvalidDataException("Firestore detail payload is null.");
-        if(detail.Id==Guid.Empty || detail.Id.ToString()!=documentId || !fields.TryGetValue("id",out var id) || !Equals(id,documentId))
-            throw new InvalidDataException("Firestore detail identity does not match document key.");
-        return detail;
-    }
+        => ReadFirestoreHistoryAsync<AvatarDetail>(fields,documentId,0).GetAwaiter().GetResult();
 }

@@ -57,7 +57,9 @@ public partial class GoogleCloudOASIS
             var loaded=await LoadAllHolonsAsync(loadChildren:false,version:version);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
-            var project=HolonGraphProjection.Create(records,true,true,0,0,true,source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+            var current=version>0?await LoadAllHolonsAsync(loadChildren:false,version:0):loaded;
+            if(current.IsError)return current;
+            var project=HolonGraphProjection.Create(current.Result,true,true,0,0,true,source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
             result.Result=records.Where(row=>row.CreatedByAvatarId==owner).Select(project).ToList();
             result.IsLoaded=true;
         }
@@ -82,7 +84,8 @@ public partial class GoogleCloudOASIS
                 throw new ArgumentException("Nonempty metadata pairs and keys are required.");
             if(initialDepth<0) throw new ArgumentOutOfRangeException(nameof(initialDepth));
             var search=new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string>(pairs),MetaKeyValuePairMatchMode=mode};
-            StoredRecordSearch.Validate(search,version,depth);
+            ValidateFirestoreVersion(version);
+            StoredRecordSearch.Validate(search,version,depth,supportsHistory:true);
             var loaded=await LoadAllHolonsAsync(type,children,recursive,depth,initialDepth,continueOnError,fromProvider,version);
             if(loaded.IsError) return loaded;
             var rows=loaded.Result.ToList();
@@ -114,7 +117,9 @@ public partial class GoogleCloudOASIS
             var loaded = await LoadAllHolonsAsync(loadChildren:false,version:version);
             if(loaded.IsError) return loaded;
             var records = loaded.Result.ToList();
-            var project = HolonGraphProjection.Create(records,children,recursive,depth,initialDepth,fromProvider,
+            var current=children&&fromProvider&&version>0?await LoadAllHolonsAsync(loadChildren:false,version:0):loaded;
+            if(current.IsError)return current;
+            var project = HolonGraphProjection.Create(current.Result,children,recursive,depth,initialDepth,fromProvider,
                 source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
             result.Result = records.Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).Select(project).ToList();
             result.IsLoaded = true;
@@ -132,14 +137,14 @@ public partial class GoogleCloudOASIS
             var ready=await EnsureDetailStoreAsync(version);
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(ready);
             var document=await _firestoreDb.Collection("holons").Document(id.ToString()).GetSnapshotAsync();
-            var holon=document.Exists ? DecodeHolon(document.ConvertTo<Dictionary<string,object>>(),document.Id):null;
+            var holon=document.Exists ? await ReadFirestoreHistoryAsync<Holon>(document.ToDictionary(),document.Id,version):null;
             if(holon==null || holon.DeletedDate!=DateTime.MinValue) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore holon not found.";}
             else
             {
                 IEnumerable<IHolon> records = new[] { holon };
                 if (children && fromProvider)
                 {
-                    var loaded = await LoadAllHolonsAsync(loadChildren:false,version:version);
+                    var loaded = await LoadAllHolonsAsync(loadChildren:false,version:0);
                     if (loaded.IsError)
                         return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(loaded);
                     records = loaded.Result;
@@ -155,12 +160,5 @@ public partial class GoogleCloudOASIS
     }
 
     private static Holon DecodeHolon(Dictionary<string,object> fields,string documentId)
-    {
-        if(!fields.TryGetValue("data_json",out var value) || value is not string json)
-            throw new InvalidDataException("Firestore holon lacks canonical data_json; old mappings require explicit review.");
-        var holon=OasisJson.DeserializeStored<Holon>(json) ?? throw new InvalidDataException("Firestore holon payload is null.");
-        if(holon.Id==Guid.Empty || holon.Id.ToString()!=documentId || !fields.TryGetValue("id",out var id) || !Equals(id,documentId))
-            throw new InvalidDataException("Firestore holon identity does not match document key.");
-        return holon;
-    }
+        => ReadFirestoreHistoryAsync<Holon>(fields,documentId,0).GetAwaiter().GetResult();
 }

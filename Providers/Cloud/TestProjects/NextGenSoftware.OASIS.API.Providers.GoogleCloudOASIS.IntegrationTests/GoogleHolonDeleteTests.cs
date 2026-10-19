@@ -22,7 +22,7 @@ public class GoogleHolonDeleteTests
         if(File.Exists(path)) Assert.Fail("Retained Google routing evidence exists; refusing overwrite.");
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         const string project="oasis-google-native";
-        var db=new FirestoreDbBuilder {ProjectId=project,EmulatorDetection=Google.Api.Gax.EmulatorDetection.EmulatorOnly}.Build();
+        var db=GoogleNativeFirestore.Database(project);
         var provider=new GoogleCloudOASIS(projectId:project,enableStorage:false,enableFirestore:true,enableBigQuery:false);
         var sqlite=new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={path};Pooling=False");
         var field=typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
@@ -100,7 +100,7 @@ public class GoogleHolonDeleteTests
     {
         Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
         const string project="oasis-google-native";
-        var db=new FirestoreDbBuilder {ProjectId=project,EmulatorDetection=Google.Api.Gax.EmulatorDetection.EmulatorOnly}.Build();
+        var db=GoogleNativeFirestore.Database(project);
         var provider=new GoogleCloudOASIS(projectId:project,enableStorage:false,enableFirestore:true,enableBigQuery:false);
         var id=Guid.NewGuid();var document=db.Collection("holons").Document(id.ToString());var acknowledged=false;
         var field=typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
@@ -163,7 +163,7 @@ public class GoogleHolonDeleteTests
     {
         Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
         const string project="oasis-google-native";
-        var db=new FirestoreDbBuilder {ProjectId=project,EmulatorDetection=Google.Api.Gax.EmulatorDetection.EmulatorOnly}.Build();
+        var db=GoogleNativeFirestore.Database(project);
         var provider=new GoogleCloudOASIS(projectId:project,enableStorage:false,enableFirestore:true,enableBigQuery:false);
         var id=Guid.NewGuid();var parent=Guid.NewGuid();var document=db.Collection("holons").Document(id.ToString());
         var acknowledged=false;

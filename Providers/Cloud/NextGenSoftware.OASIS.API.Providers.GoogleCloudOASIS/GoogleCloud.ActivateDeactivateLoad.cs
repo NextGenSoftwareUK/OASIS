@@ -78,6 +78,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     {
                         ProjectId = _projectId,
                         DatabaseId = _firestoreDatabaseId,
+                        Settings = CreateFirestoreSettings(),
                         EmulatorDetection = EmulatorDetection.EmulatorOrProduction
                     };
                     if (!string.IsNullOrWhiteSpace(_credentialsPath))
@@ -213,7 +214,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     ["data_json"] = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(snapshot)
                 };
                 
-                await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(avatarData),docRef.Path);
+                var committed=await WriteFirestoreRecordAsync<Avatar>(docRef,avatarData,IsVersionControlEnabled);
+                avatar.Version=committed.Version;avatar.VersionId=committed.VersionId;avatar.PreviousVersionId=committed.PreviousVersionId;
                 avatar.Id=snapshot.Id;
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=snapshot.Id.ToString();
@@ -225,7 +227,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error saving avatar to Google Cloud: {ex.Message}", ex);
+                HandleFirestoreSaveError(ref result, $"Error saving avatar to Google Cloud: {ex.Message}", ex);
             }
             return result;
         }

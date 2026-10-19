@@ -250,6 +250,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class GoogleCloudOASISProviderSettings : ProviderSettingsBase
     {
+        public bool IsVersionControlEnabled { get; set; }
         public string ProjectId { get; set; } = "oasis-project";
         public string BucketName { get; set; } = "oasis-storage";
         public string CredentialsPath { get; set; }
