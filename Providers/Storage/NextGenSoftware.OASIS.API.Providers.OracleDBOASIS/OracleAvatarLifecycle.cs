@@ -11,6 +11,10 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS;
 
 public partial class OracleDBOASIS
 {
+    /// <summary>The single native commit boundary shared by Oracle lifecycle operations.</summary>
+    protected virtual Task CommitLifecycleTransactionAsync(OracleTransaction transaction)
+        => transaction.CommitAsync();
+
     private async Task<OASISResult<bool>> DeleteAvatarPairAsync(string column,OracleDbType type,object value,bool softDelete)
     {
         var result=new OASISResult<bool>();var dispatched=false;var id=Guid.Empty;
@@ -46,7 +50,7 @@ public partial class OracleDBOASIS
                 if(softDelete)command.Parameters.Add("Json",OracleDbType.Clob).Value=Serialize(row);
                 dispatched=true;if(await command.ExecuteNonQueryAsync()!=1)throw new InvalidDataException("Oracle locked lifecycle row changed unexpectedly.");
             }
-            await transaction.CommitAsync();result.Result=true;
+            await CommitLifecycleTransactionAsync(transaction);result.Result=true;
         }catch(Exception cause){
             result.Exception=dispatched?new OracleLifecycleReconciliationException(id,cause):cause;
             OASISErrorHandling.HandleError(ref result,"Oracle avatar lifecycle operation failed; inspect the original exception.");

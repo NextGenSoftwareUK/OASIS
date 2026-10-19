@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Lifecycle post-commit response-loss boundary — 2026-10-19
+
+Both lifecycle transaction owners now call ONE protected native commit boundary whose production implementation directly returns actual OracleTransaction.CommitAsync. No alternate database/flag/retry path. Native test subclass invokes that real production commit first, then withholds the successful return with the same owned IOException. This is real committed Oracle data plus a simulated managed-boundary response loss; it is NOT a TNS packet drop, Oracle-SDK internal ACK loss, process-crash/durable recovery or hosted network test.
+
+Actual avatar/detail soft-delete and holon soft-delete each invoke the boundary once, return IsError/no success result, retain original IOException under OracleLifecycleReconciliationException and are recognized by existing Core NativeMutationReconciliation. Independent SDK CLOB reads then prove original avatar+detail matching tombstones and holon canonical tombstone/parent identity committed. Only AFTER that explicit native reconciliation does the fixture exercise known-state repeat behavior and eventual cleanup; no blind unknown-write replay. Prior native detail-trigger rollback and other record/query/duplicate checks remain passing.
+
+Full scoped native2/2compound cases pass3s/zero skips SHA256 `0B46F7303BD9B93F09100D97BF1499C361BA42F514194E2B9D77E52625B7B321`;45/45units pass377ms SHA256 `9DEA33E3F83F65E61963F362BAF9CFA04B085E9AB9718F70FB2D6AD610ACA76B`; cached builds0errors (provider/integration2warnings each, unit3). Same runtime/container/volume/secret; no install/download/reset. Journals0/containerEXITED/free72,401,072,128bytes. Still OPEN: SDK wire-level retry/transport faults, durable original-operation recovery, full manager/API V2 orchestration, history/version/CAS/concurrency/actor authorization/hosted service coverage. Counts are compound scoped acceptance, not whole-provider certification.
+
 ## Holon lifecycle canonicalization — 2026-10-19
 
 Replaced two divergent holon deletion SQL bodies with ONE Oracle-native locked-record transaction. Both shared DeleteHolon (IHolon result) and explicit bool soft/hard routes now load exact ID FOR UPDATE, reject native/canonical ID mismatch, set IsActive=false/DeletedDate on detached canonical row, persist JSON+indexed IS_DELETED in one update, validate1affected row and publish result only after commit. Repeat soft deletion preserves original timestamp; hard deletion reaches existing tombstone by ID, not a live-only pre-read. Existing command/codec/reconciliation marker reused; marker identity renamed RecordId to describe both avatar and holon keys (no fabricated transaction receipt). No alternate store or fallback/retry.

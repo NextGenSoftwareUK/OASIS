@@ -31,7 +31,7 @@ public partial class OracleDBOASIS
             command.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();
             if(softDelete)command.Parameters.Add("Json",OracleDbType.Clob).Value=Serialize(row);
             dispatched=true;if(await command.ExecuteNonQueryAsync()!=1)throw new InvalidDataException("Oracle locked holon changed unexpectedly.");
-            await transaction.CommitAsync();result.Result=row;
+            await CommitLifecycleTransactionAsync(transaction);result.Result=row;
         }catch(Exception cause){
             result.Exception=dispatched?new OracleLifecycleReconciliationException(id,cause):cause;
             OASISErrorHandling.HandleError(ref result,"Oracle holon lifecycle operation failed; inspect the original exception.");

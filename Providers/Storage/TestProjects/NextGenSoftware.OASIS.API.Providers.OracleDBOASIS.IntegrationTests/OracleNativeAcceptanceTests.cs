@@ -9,6 +9,16 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public sealed class OracleNativeAcceptanceTests
 {
+    private sealed class LostCommitProvider(string connection):OracleDBOASIS(connection)
+    {
+        public bool LoseNextCommit;public int CommitCalls;
+        public readonly IOException Lost=new("owned response withheld after actual Oracle SDK commit");
+        protected override async Task CommitLifecycleTransactionAsync(OracleTransaction transaction)
+        {
+            CommitCalls++;await base.CommitLifecycleTransactionAsync(transaction);
+            if(LoseNextCommit){LoseNextCommit=false;throw Lost;}
+        }
+    }
     [TestMethod]
     public async Task RealSdkCanonicalRecordsSelectorsAndMetadataPaths()
     {
@@ -19,7 +29,7 @@ public sealed class OracleNativeAcceptanceTests
         var journal=Path.Combine(work,"canonical-records.pending.json");
         var resume=Environment.GetEnvironmentVariable("OASIS_ORACLE_RESUME_CANONICAL")=="1";
         Assert.AreEqual(resume,File.Exists(journal),"Resume requires the original journal; a fresh run requires absence.");
-        var provider=new OracleDBOASIS(connection);var id=Guid.NewGuid();var name="owned-oracle-"+id.ToString("N");
+        var provider=new LostCommitProvider(connection);var id=Guid.NewGuid();var name="owned-oracle-"+id.ToString("N");
         if(resume){
             using var intent=JsonDocument.Parse(await File.ReadAllTextAsync(journal));
             Assert.AreEqual("before-native-canonical-records",intent.RootElement.GetProperty("state").GetString());
@@ -104,6 +114,16 @@ public sealed class OracleNativeAcceptanceTests
                 Assert.AreEqual(beforeDetail,await Read(verifier,"OASIS_AVATAR_DETAILS",id));
                 await using(var drop=new OracleCommand($"DROP TRIGGER {trigger}",verifier))await drop.ExecuteNonQueryAsync();
             }
+            if(!resume){
+                var commits=provider.CommitCalls;provider.LoseNextCommit=true;
+                var lost=await provider.DeleteAvatarAsync(id,true);Assert.IsTrue(lost.IsError);Assert.IsFalse(lost.Result);
+                Assert.AreEqual(commits+1,provider.CommitCalls);Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(lost.Exception);Assert.AreSame(provider.Lost,lost.Exception.InnerException);
+                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(lost.Exception));
+                var committedAvatar=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Avatar>((await Read(verifier,"OASIS_AVATARS",id))!);
+                var committedDetail=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>((await Read(verifier,"OASIS_AVATAR_DETAILS",id))!);
+                Assert.IsTrue(committedAvatar.IsDeleted);Assert.IsTrue(committedDetail.IsDeleted);Assert.AreEqual(committedAvatar.DeletedDate,committedDetail.DeletedDate);
+                // Original native outcome is now independently reconciled; only then exercise repeat semantics below.
+            }
             var soft=await provider.DeleteAvatarAsync(id,true);Assert.IsFalse(soft.IsError,soft.Exception?.ToString());Assert.IsTrue(soft.Result);
             var deletedAvatar=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Avatar>((await Read(verifier,"OASIS_AVATARS",id))!);
             var deletedDetail=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>((await Read(verifier,"OASIS_AVATAR_DETAILS",id))!);
@@ -118,6 +138,14 @@ public sealed class OracleNativeAcceptanceTests
             var keyDelete=await provider.DeleteAvatarAsync(id.ToString(),false);Assert.IsFalse(keyDelete.IsError,keyDelete.Exception?.ToString());Assert.IsTrue(keyDelete.Result);
             Assert.IsNull(await Read(verifier,"OASIS_AVATARS",id));
             Assert.IsNull(await Read(verifier,"OASIS_AVATAR_DETAILS",id));
+            if(!resume){
+                var commits=provider.CommitCalls;provider.LoseNextCommit=true;
+                var lost=await provider.DeleteHolonAsync(id);Assert.IsTrue(lost.IsError);Assert.IsNull(lost.Result);Assert.AreEqual(commits+1,provider.CommitCalls);
+                Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(lost.Exception);Assert.AreSame(provider.Lost,lost.Exception.InnerException);
+                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(lost.Exception));
+                var committed=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>((await Read(verifier,"OASIS_HOLONS",id))!);
+                Assert.IsTrue(committed.IsDeleted);Assert.IsFalse(committed.IsActive);Assert.AreEqual(holon.ParentHolonId,committed.ParentHolonId);
+            }
             var holonDelete=await provider.DeleteHolonAsync(id);Assert.IsFalse(holonDelete.IsError,holonDelete.Exception?.ToString());
             Assert.IsTrue(holonDelete.Result.IsDeleted);Assert.IsFalse(holonDelete.Result.IsActive);
             var tombstone=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>((await Read(verifier,"OASIS_HOLONS",id))!);
