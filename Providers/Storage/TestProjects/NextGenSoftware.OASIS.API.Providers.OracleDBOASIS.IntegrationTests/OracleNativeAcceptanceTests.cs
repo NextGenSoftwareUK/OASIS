@@ -409,6 +409,49 @@ public sealed class OracleNativeAcceptanceTests
         }finally{await provider.DeActivateProviderAsync();}
     }
 
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)]
+    public async Task GraphSaveClippingDoesNotPersistOrPublishExcludedDescendants(int mode)
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,$"graph-clip-{mode}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var rows=Enumerable.Range(0,3).Select(index=>new Holon{Id=Guid.NewGuid(),Name="owned clipped graph "+index}).ToArray();rows[0].Children.Add(rows[1]);rows[1].Children.Add(rows[2]);
+        var selected=mode==0||mode==3?1:2;var provider=new OracleDBOASIS(connection){IsVersionControlEnabled=true};
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();foreach(var row in rows)Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids=rows.Select(row=>row.Id).ToArray(),mode,state="before-native-graph-clipping"}));file.Flush(true);}
+            if(mode==3){var saved=await provider.SaveHolonsAsync(new[]{rows[0]},maxChildDepth:1,curentChildDepth:1);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);}
+            else{var saved=await provider.SaveHolonAsync(rows[0],saveChildren:mode!=0,recursive:mode!=1,maxChildDepth:mode==2?1:0);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);}
+            for(var index=0;index<rows.Length;index++){
+                var actual=await Read(verifier,"OASIS_HOLONS",rows[index].Id);
+                if(index>=selected){Assert.IsNull(actual);Assert.AreEqual(0,rows[index].Version);Assert.AreEqual(Guid.Empty,rows[index].ParentHolonId);Assert.AreEqual(0,rows[index].ProviderUniqueStorageKey.Count);}
+                else{Assert.IsNotNull(actual);Assert.AreEqual(1,rows[index].Version);if(index>0)Assert.AreEqual(rows[index-1].Id,rows[index].ParentHolonId);}
+            }
+            foreach(var row in rows.Take(selected).Reverse()){var removed=await provider.DeleteHolonWithSoftDeleteAsync(row.Id,false);Assert.IsFalse(removed.IsError,removed.Exception?.ToString());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));}File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task DefiniteFailureSkipsDescendantsAndHonorsIndependentContinuation(bool continueOnError)
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,$"graph-definite-{continueOnError}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var bad=new Holon{Id=Guid.NewGuid(),Name="owned failing graph parent"};var child=new Holon{Id=Guid.NewGuid(),Name="owned skipped descendant"};var independent=new Holon{Id=Guid.NewGuid(),Name="owned independent root"};bad.Children.Add(child);
+        var provider=new OracleDBOASIS(connection){IsVersionControlEnabled=true};
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();foreach(var row in new[]{bad,child,independent})Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids=new[]{bad.Id,child.Id,independent.Id},continueOnError,state="before-native-definite-graph-failure"}));file.Flush(true);}
+            var initial=await provider.SaveHolonAsync(new Holon{Id=bad.Id,Name=bad.Name},saveChildren:false);Assert.IsFalse(initial.IsError,initial.Exception?.ToString());
+            var before=await Read(verifier,"OASIS_HOLONS",bad.Id);var corrupt=Newtonsoft.Json.Linq.JObject.Parse(before!);corrupt["_oasis_record_history"]!["schema"]=999;var rejectedOriginal=corrupt.ToString(Newtonsoft.Json.Formatting.None);
+            await using(var inject=new OracleCommand("UPDATE OASIS_HOLONS SET DATA_JSON=:Corrupt WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true}){inject.Parameters.Add("Corrupt",OracleDbType.Clob).Value=rejectedOriginal;inject.Parameters.Add("Id",OracleDbType.Raw).Value=bad.Id.ToByteArray();inject.Parameters.Add("Expected",OracleDbType.Clob).Value=before;Assert.AreEqual(1,await inject.ExecuteNonQueryAsync());}
+            var result=await provider.SaveHolonsAsync(new[]{bad,independent},curentChildDepth:0,continueOnError:continueOnError);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(continueOnError?1:0,result.Result.Count());
+            Assert.IsNull(await Read(verifier,"OASIS_HOLONS",child.Id));Assert.AreEqual(0,child.Version);Assert.AreEqual(Guid.Empty,child.ParentHolonId);Assert.AreEqual(0,bad.Version);Assert.AreEqual(rejectedOriginal,await Read(verifier,"OASIS_HOLONS",bad.Id));
+            if(continueOnError){Assert.IsInstanceOfType<OraclePartialMutationException>(result.Exception);CollectionAssert.AreEqual(new[]{independent.Id},((OraclePartialMutationException)result.Exception).AcknowledgedRecordIds.ToArray());Assert.AreEqual(1,independent.Version);Assert.IsNotNull(await Read(verifier,"OASIS_HOLONS",independent.Id));var removed=await provider.DeleteHolonWithSoftDeleteAsync(independent.Id,false);Assert.IsFalse(removed.IsError,removed.Exception?.ToString());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",independent.Id));}
+            else{Assert.IsInstanceOfType<InvalidDataException>(result.Exception);Assert.IsNull(await Read(verifier,"OASIS_HOLONS",independent.Id));Assert.AreEqual(0,independent.Version);}
+            await using var cleanup=new OracleCommand("DELETE FROM OASIS_HOLONS WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=bad.Id.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=rejectedOriginal;
+            Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",bad.Id));File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
+
     [TestMethod][TestCategory("Reconciliation")]
     public async Task ReconcileKnownHistoricalExportFixture()
     {
