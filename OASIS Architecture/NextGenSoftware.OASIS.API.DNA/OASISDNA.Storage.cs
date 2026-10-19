@@ -205,6 +205,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class ArbitrumOASISProviderSettings : ProviderSettingsBase
     {
+        public bool IsVersionControlEnabled { get; set; }
         public string ChainPrivateKey { get; set; }
         public long ChainId { get; set; }
         public string ContractAddress { get; set; }
@@ -213,6 +214,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class PolygonOASISProviderSettings : ProviderSettingsBase
     {
+        public bool IsVersionControlEnabled { get; set; }
         public string ChainPrivateKey { get; set; }
         public long ChainId { get; set; } = 137;
         public string ContractAddress { get; set; }

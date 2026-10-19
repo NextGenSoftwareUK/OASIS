@@ -67,22 +67,27 @@ public partial class Web3CoreOASISBaseProvider
         => SavePrivateProfileAsync<IAvatarDetail>(avatarDetail,"detail",row=>OasisJson.Deserialize<AvatarDetail>(OasisJson.Serialize(row)),
             (id,key,payload)=>SavePrivateProfileSnapshotAsync("detail",id,key,payload));
 
-    private async Task<TransactionReceipt> SavePrivateProfileSnapshotAsync(string kind,uint id,byte[] external,byte[] payload)
+    private async Task<(TransactionReceipt Receipt,IHolonBase Record)> SavePrivateProfileSnapshotAsync(string kind,uint id,byte[] external,byte[] payload)
     {
-        var previous=kind=="avatar" ? await _web3CoreOASIS.GetAvatarByIdAsync(id):await _web3CoreOASIS.GetAvatarDetailByIdAsync(id);
-        var present=!IsPrivateRecordAbsent(previous);
-        if(present)
-        {
-            var incoming=new EntityOASIS {EntityId=id,ExternalId=external,Info=payload};
-            IHolonBase desired=kind=="avatar" ? DecodePrivateEntity<Avatar>(kind,incoming):DecodePrivateEntity<AvatarDetail>(kind,incoming);
-            IHolonBase stored=kind=="avatar" ? DecodePrivateRecord<Avatar>(kind,desired.Id,previous):DecodePrivateRecord<AvatarDetail>(kind,desired.Id,previous);
-            if(!stored.IsActive) throw new StorageLifecycleConflictException("Normal Web3Core saves cannot overwrite a committed inactive profile; use an explicit lifecycle operation.");
-        }
-        return await _web3CoreOASIS.UpsertCheckedAsync(kind,id,external,present,Sha3Keccack.Current.CalculateHash(previous.Info),payload);
+        var createHistory=IsVersionControlEnabled;
+        var incoming=new EntityOASIS {EntityId=id,ExternalId=external,Info=payload};
+        IHolonBase desired=kind=="avatar" ? DecodePrivateEntity<Avatar>(kind,incoming):DecodePrivateEntity<AvatarDetail>(kind,incoming);
+        IHolonBase committed=null;
+        var receipt=await _web3CoreOASIS.UpsertPreparedAsync(kind,id,external,async previous=>{
+            if(!IsPrivateRecordAbsent(previous)){
+                IHolonBase stored=kind=="avatar" ? DecodePrivateRecord<Avatar>(kind,desired.Id,previous):DecodePrivateRecord<AvatarDetail>(kind,desired.Id,previous);
+                if(!stored.IsActive)throw new StorageLifecycleConflictException("Normal Web3Core saves cannot overwrite a committed inactive profile; use an explicit lifecycle operation.");
+            }
+            if(kind=="avatar"){
+                var staged=await StagePrivateHistoryAsync(kind,(Avatar)desired,previous,createHistory);committed=staged.Record;return staged.Info;
+            }
+            var detail=await StagePrivateHistoryAsync(kind,(AvatarDetail)desired,previous,createHistory);committed=detail.Record;return detail.Info;
+        });
+        return (receipt,committed);
     }
 
     private async Task<OASISResult<T>> SavePrivateProfileAsync<T>(T source,string kind,Func<T,T> clone,
-        Func<uint,byte[],byte[],Task<TransactionReceipt>> submit) where T:class,IHolonBase
+        Func<uint,byte[],byte[],Task<(TransactionReceipt Receipt,IHolonBase Record)>> submit) where T:class,IHolonBase
     {
         var result=new OASISResult<T>();
         Guid acknowledged=Guid.Empty;string transaction=null;
@@ -97,12 +102,13 @@ public partial class Web3CoreOASISBaseProvider
             snapshot.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();
             var payload=Encoding.UTF8.GetBytes(EncodePrivateRecord(kind,snapshot));
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            var receipt=await submit((uint)HashUtility.GetNumericHash(snapshot.Id.ToString()),PrivateExternalId(snapshot.Id),payload);
-            acknowledged=snapshot.Id;transaction=receipt.TransactionHash;
+            var committed=await submit((uint)HashUtility.GetNumericHash(snapshot.Id.ToString()),PrivateExternalId(snapshot.Id),payload);
+            acknowledged=snapshot.Id;transaction=committed.Receipt.TransactionHash;
             if(source.Id!=originalId) throw new InvalidOperationException("Caller profile identity changed during acknowledged Web3Core write.");
             source.Id=snapshot.Id;
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             source.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();source.IsNewHolon=false;
+            source.Version=committed.Record.Version;source.VersionId=committed.Record.VersionId;source.PreviousVersionId=committed.Record.PreviousVersionId;
             result.Result=source;result.IsSaved=true;
         }
         catch(Exception cause)
@@ -135,25 +141,30 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             var plan=PlanWeb3Graph(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
+            var createHistory=IsVersionControlEnabled;
             // Freeze and encrypt the entire selected graph before any native write.
             var writes=plan.Nodes.Select(node=>
             {
                 node.Snapshot.IsNewHolon=false;
                 node.Snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
                 node.Snapshot.ProviderUniqueStorageKey[ProviderType.Value]=node.Snapshot.Id.ToString();
-                return (Node:node,Ciphertext:EncodePrivateRecord("holon",node.Snapshot));
+                _=EncodePrivateRecord("holon",node.Snapshot);
+                return node;
             }).ToList();
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            foreach(var write in writes)
+            foreach(var node in writes)
             {
-                var node=write.Node;
-                var receipt=await _web3CoreOASIS.UpsertHolonAsync((uint)HashUtility.GetNumericHash(node.Snapshot.Id.ToString()),PrivateExternalId(node.Snapshot.Id),Encoding.UTF8.GetBytes(write.Ciphertext));
-                acknowledged.Add(node.Snapshot);transactions.Add(receipt.TransactionHash);
+                Holon committed=null;
+                var receipt=await _web3CoreOASIS.UpsertPreparedAsync("holon",(uint)HashUtility.GetNumericHash(node.Snapshot.Id.ToString()),PrivateExternalId(node.Snapshot.Id),async previous=>{
+                    var staged=await StagePrivateHistoryAsync("holon",node.Snapshot,previous,createHistory);committed=staged.Record;return staged.Info;
+                });
+                acknowledged.Add(committed);transactions.Add(receipt.TransactionHash);
                 if(node.Source.Id!=node.OriginalId || node.Source.ParentHolonId!=node.OriginalParent)
                     throw new InvalidOperationException("Caller graph identity changed during acknowledged Web3Core write.");
                 node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                 node.Source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
                 node.Source.ProviderUniqueStorageKey[ProviderType.Value]=node.Snapshot.Id.ToString();node.Source.IsNewHolon=false;
+                node.Source.Version=committed.Version;node.Source.VersionId=committed.VersionId;node.Source.PreviousVersionId=committed.PreviousVersionId;
             }
             result.Result=plan.Roots;result.IsSaved=true;
         }
@@ -177,7 +188,7 @@ public partial class Web3CoreOASISBaseProvider
         var maxDepth=maxChildDepth;
         var result=new OASISResult<ISearchResults>();
         try {
-            StoredRecordSearch.Validate(search,version,maxDepth);
+            StoredRecordSearch.Validate(search,version,maxDepth,supportsHistory:true);
             var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
             var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
             var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
