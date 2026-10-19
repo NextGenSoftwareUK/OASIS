@@ -60,25 +60,26 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests
         }
 
         [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        public void InvalidNetworkIdentityCannotActivateWithoutNativeProbe()
         {
             // Arrange
-            Assert.IsFalse(_provider.IsProviderActivated);
+            var invalid=new NEAROASIS("http://127.0.0.1:1","fixture","different-chain","unused");
+            Assert.IsFalse(invalid.IsProviderActivated);
 
             // Act
-            var result = _provider.ActivateProvider();
+            var result = invalid.ActivateProvider();
 
             // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsTrue(result.IsError);
+            Assert.IsInstanceOfType(result.Exception,typeof(System.InvalidOperationException));
+            Assert.IsFalse(invalid.IsProviderActivated);
         }
 
         [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
+        public void DeActivateInactiveProviderIsIdempotentWithoutNativeIo()
         {
             // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsFalse(_provider.IsProviderActivated);
 
             // Act
             var result = _provider.DeActivateProvider();

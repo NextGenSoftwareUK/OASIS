@@ -19,11 +19,11 @@ public partial class NEAROASIS
         LoadAvatarDetailAsync(id, version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true,
-        int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int version = 0)
+        int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = await LoadHolonRecordAsync(id, version);
         return await ProjectLoadedHolonAsync(result, loadChildren, recursive, maxChildDepth, continueOnError,
-            loadChildrenRecursiveDepth);
+            loadChildrenFromProvider);
     }
 
     private async Task<OASISResult<IHolon>> ProjectLoadedHolonAsync(OASISResult<IHolon> result,
@@ -153,12 +153,14 @@ public partial class NEAROASIS
         DeleteHolonByProviderKeyAsync(providerKey, softDelete).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType,
-        bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0,
-        bool continueOnError = true, bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0)
+        bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
+        bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
+        try { ValidateCollectionOptions(version,maxChildDepth,curentChildDepth); }
+        catch(Exception cause) { var invalid=new OASISResult<IEnumerable<IHolon>>();OASISErrorHandling.HandleError(ref invalid,cause.Message,cause);return invalid; }
         var all = await LoadAllHolonRecordsAsync(version);
         var records = all.Result?.ToList() ?? new List<IHolon>();
-        if (!all.IsError && version > 0 && loadChildren && loadChildrenRecursiveDepth)
+        if (!all.IsError && version > 0 && loadChildren && loadChildrenFromProvider)
         {
             var current = await LoadAllHolonRecordsAsync();
             if (current.IsError) return current;
@@ -172,7 +174,7 @@ public partial class NEAROASIS
             {
                 // Keep the full record set for descendants: filtering selects roots, not child types.
                 var project = HolonGraphProjection.Create(records, loadChildren, recursive, maxChildDepth,
-                    loadChildrenRecursiveDepthInt, loadChildrenRecursiveDepth,
+                    curentChildDepth, loadChildrenFromProvider,
                     item => OasisJson.Deserialize<Holon>(OasisJson.Serialize(item)));
                 all.Result = all.Result.Select(project).ToList();
             }
@@ -182,8 +184,8 @@ public partial class NEAROASIS
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType, bool loadChildren = true,
-        bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true,
-        bool loadChildrenRecursiveDepth = true, int loadChildrenRecursiveDepthInt = 0) =>
-        LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, version, continueOnError,
-            loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt).GetAwaiter().GetResult();
+        bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
+        bool loadChildrenFromProvider = false, int version = 0) =>
+        LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError,
+            loadChildrenFromProvider, version).GetAwaiter().GetResult();
 }
