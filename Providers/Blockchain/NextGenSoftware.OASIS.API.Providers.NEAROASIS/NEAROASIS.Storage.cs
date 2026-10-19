@@ -37,6 +37,24 @@ public partial class NEAROASIS
     }
 
     private static string HistoryPrefix(string key) => $"history:{key}:";
+
+    // Mutates only the caller's already-detached proposed snapshot. No SDK/native writes occur here.
+    private static async Task<KeyValuePair<string,string>?> StageObservedRecordVersionAsync<T>(T proposed,NearSdkService.StoredSnapshot observed,bool history) where T:class,IHolonBase
+    {
+        ArgumentNullException.ThrowIfNull(proposed);ArgumentNullException.ThrowIfNull(observed);
+        var prefix=typeof(T)==typeof(Avatar)?"avatar:":typeof(T)==typeof(AvatarDetail)?"avatar-detail:":typeof(T)==typeof(Holon)?"holon:":throw new ArgumentException("Unsupported native record kind.");
+        if(proposed.Id==Guid.Empty||observed.Key!=prefix+proposed.Id.ToString("D"))throw new InvalidOperationException("Observed record key differs from proposed record identity/kind.");
+        if((observed.Ciphertext==null)!=(observed.Plaintext==null))throw new InvalidOperationException("Observed ciphertext/plaintext presence differs.");
+        var previous=observed.Plaintext==null?null:OasisJson.DeserializeStored<T>(observed.Plaintext);
+        if(previous!=null&&(previous.Id!=proposed.Id||previous.Version<0))throw new InvalidOperationException("Observed record identity/version is invalid.");
+        KeyValuePair<string,string>? archive=null;
+        await StoredRecordVersions.StampAsync(proposed.Id,proposed,previous,history?stored=>{
+            // Version zero denotes current, not an addressable historical version. Begin history at version one.
+            if(stored.Version>0)archive=new KeyValuePair<string,string>(HistoryPrefix(observed.Key)+stored.Version.ToString("D10",System.Globalization.CultureInfo.InvariantCulture),OasisJson.Serialize(stored));
+            return Task.CompletedTask;
+        }:null);
+        return archive;
+    }
     private async Task<T> ReadStoredVersionAsync<T>(string key, Guid id, int version) where T : class, IHolonBase
     {
         if (version < 0) throw new ArgumentOutOfRangeException(nameof(version));

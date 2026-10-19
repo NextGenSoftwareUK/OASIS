@@ -1,0 +1,17 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {submitCheckedRecord} from '../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/checked-write.mjs';
+const input={networkId:'owned-local',contractId:'owned.near',args:{key:'holon:owned',expected_value:'exact-original-ciphertext',value:'new-ciphertext'}};
+function fixture({network='owned-local',protocol=1,outcome={transaction_outcome:{id:'original-receipt'},final_execution_status:'FINAL',status:{SuccessValue:''}},failure=null}={}){
+  let factories=0,calls=0;return {get factories(){return factories;},get calls(){return calls;},
+    provider:{async getNetworkId(){return network;},async callFunction(request){assert.deepEqual(request,{contractId:'owned.near',method:'record_write_protocol',args:{},blockQuery:{finality:'final'}});return protocol;}},
+    createAccount(){factories++;return {async signAndSendTransaction(request){calls++;assert.deepEqual(request,{receiverId:'owned.near',actions:[{method:'checked',args:input.args}],waitUntil:'FINAL',throwOnFailure:false});if(failure)throw failure;return outcome;}};}};
+}
+const action=args=>({method:'checked',args});
+test('explicit native identities and one SDK invocation',async()=>{const f=fixture();const result=await submitCheckedRecord(f.provider,()=>f.createAccount(),input,action);assert.equal(result.transactionHash,'original-receipt');assert.equal(result.finalExecutionStatus,'FINAL');assert.equal(f.calls,1);});
+for(const [name,options] of [['wrong network',{network:'other'}],['missing protocol',{protocol:null}],['wrong protocol',{protocol:2}]])
+  test(name+' refuses before signer allocation',async()=>{const f=fixture(options);await assert.rejects(submitCheckedRecord(f.provider,()=>f.createAccount(),input,action),e=>e.checkedWritePhase==='before-submission');assert.equal(f.calls,0);assert.equal(f.factories,0);});
+test('preflight preserves original error and declares before-submission phase',async()=>{const error=new Error('original preflight');const f=fixture();f.provider.getNetworkId=async()=>{throw error;};await assert.rejects(submitCheckedRecord(f.provider,()=>f.createAccount(),input,action),e=>e===error&&e.checkedWritePhase==='before-submission');assert.equal(f.calls,0);});
+test('native Failure retains original identity and structured status',async()=>{const status={Failure:{ActionError:{index:0,kind:{FunctionCallError:{ExecutionError:'Smart contract panicked: OASIS_RECORD_CONFLICT'}}}}};const f=fixture({outcome:{transaction_outcome:{id:'failed-original'},final_execution_status:'FINAL',status}});const r=await submitCheckedRecord(f.provider,()=>f.createAccount(),input,action);assert.equal(r.transactionHash,'failed-original');assert.deepEqual(r.nativeStatus,status);assert.equal(f.calls,1);});
+test('unavailable acknowledgement propagates original error without another SDK invocation',async()=>{const error=new Error('original response loss');const f=fixture({failure:error});await assert.rejects(submitCheckedRecord(f.provider,()=>f.createAccount(),input,action),e=>e===error);assert.equal(f.calls,1);});
+test('malformed acknowledged result does not fabricate a final receipt',async()=>{const f=fixture({outcome:{transaction_outcome:{id:'known-original'}}});const r=await submitCheckedRecord(f.provider,()=>f.createAccount(),input,action);assert.deepEqual(r,{transactionHash:'known-original',finalExecutionStatus:null,nativeStatus:null});});
