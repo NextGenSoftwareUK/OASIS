@@ -85,7 +85,13 @@ public class Web4SettlementControllerTests
     }
     private sealed class Activator(Type type,IConfiguration config,object service):IControllerActivator
     {
-        public object Create(ControllerContext context)=>System.Activator.CreateInstance(type,new object?[]{config,service,null,null})!;
+        // Bind the real public constructor by arity: configuration, the settlement service, and null for every optional dependency.
+        public object Create(ControllerContext context)
+        {
+            var ctor=type.GetConstructors().Single(c=>c.GetParameters().Length>=2);
+            var args=new object?[ctor.GetParameters().Length]; args[0]=config; args[1]=service;
+            return ctor.Invoke(args);
+        }
         public void Release(ControllerContext context,object controller){}
     }
 }
