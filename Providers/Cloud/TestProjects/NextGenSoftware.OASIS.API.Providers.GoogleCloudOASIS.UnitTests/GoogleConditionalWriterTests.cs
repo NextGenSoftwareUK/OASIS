@@ -28,12 +28,14 @@ public class GoogleConditionalWriterTests
     {
         public Document? Stored;public CommitRequest? Submitted;public int Writes,Reads;public string Mode="normal";public bool RetryCapable;
         public readonly IOException Lost=new("owned controlled response loss after simulated commit");
+        public RpcException? Rejection;
         public override FirestoreSettings Settings=>RetryCapable?FirestoreSettings.GetDefault():(FirestoreSettings)typeof(GoogleCloudOASIS).GetMethod("CreateFirestoreSettings",BindingFlags.Static|BindingFlags.NonPublic)!.Invoke(null,null)!;
         public override BatchGetDocumentsStream BatchGetDocuments(BatchGetDocumentsRequest request,CallSettings callSettings=null)
         {Reads++;return new SnapshotStream(Stored==null?new(){Missing=request.Documents.Single(),ReadTime=Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow)}:new(){Found=Stored.Clone(),ReadTime=Stored.UpdateTime});}
         public override Task<CommitResponse> CommitAsync(CommitRequest request,CallSettings callSettings=null)
         {
             Writes++;Submitted=request.Clone();
+            if(Rejection!=null)throw Rejection;
             if(Mode.StartsWith("conflict"))throw new RpcException(new Status(Mode=="conflict-exists"?StatusCode.AlreadyExists:Mode=="conflict-missing"?StatusCode.NotFound:StatusCode.FailedPrecondition,"owned controlled conflict"));
             var write=request.Writes.Single();var now=Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
             Stored=write.Update.Clone();Stored.UpdateTime=now;Stored.CreateTime=now;
@@ -46,6 +48,30 @@ public class GoogleConditionalWriterTests
         var db=FirestoreDb.Create("owned-controlled-history",client);var reference=db.Collection("holons").Document(row.Id.ToString());
         var fields=new Dictionary<string,object>{["id"]=row.Id.ToString(),["data_json"]=OasisJson.Serialize(row)};
         return (Task<Holon>)typeof(GoogleCloudOASIS).GetMethod("WriteFirestoreRecordAsync",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object[]{reference,fields,history})!;
+    }
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)]
+    public async Task PublicInvalidArgumentPreservesDefiniteRejectionWithoutFalseConflict(int kind)
+    {
+        var original=new RpcException(new Status(StatusCode.InvalidArgument,"owned invalid request"));var client=new Client{Rejection=original};
+        var provider=new GoogleCloudOASIS("owned-controlled-history",enableStorage:false,enableFirestore:true,enableBigQuery:false){IsProviderActivated=true,IsVersionControlEnabled=true};
+        typeof(GoogleCloudOASIS).GetField("_firestoreDb",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,FirestoreDb.Create("owned-controlled-history",client));
+        NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase row=kind==0?new Avatar{Id=Guid.NewGuid()}:kind==1?new AvatarDetail{Id=Guid.NewGuid()}:new Holon{Id=Guid.NewGuid()};
+        try{
+            if(kind==0)Check(await provider.SaveAvatarAsync((Avatar)row));else if(kind==1)Check(await provider.SaveAvatarDetailAsync((AvatarDetail)row));else Check(await provider.SaveHolonAsync((Holon)row,saveChildren:false));
+            Assert.AreEqual(1,client.Writes);Assert.AreEqual(0,row.Version);Assert.IsNull(client.Stored);
+        }finally{await provider.DeActivateProviderAsync();}
+        void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);Assert.AreSame(original,result.Exception);
+            Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
+            Assert.AreNotEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
+        }
+    }
+    [DataTestMethod][DataRow(StatusCode.DeadlineExceeded)][DataRow(StatusCode.Unavailable)]
+    public async Task AmbiguousRpcFailureStillRequiresOriginalOutcomeReconciliation(StatusCode code)
+    {
+        var original=new RpcException(new Status(code,"owned ambiguous transport"));var client=new Client{Rejection=original};var row=new Holon{Id=Guid.NewGuid()};
+        var failure=await Assert.ThrowsExceptionAsync<GoogleFirestoreMutationReconciliationException>(()=>Write(client,row,true));
+        Assert.AreSame(original,failure.InnerException);Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failure));Assert.AreEqual(1,client.Writes);Assert.AreEqual(0,row.Version);
     }
     [DataTestMethod]
     [DataRow(0,"conflict")][DataRow(1,"conflict")][DataRow(2,"conflict")]

@@ -159,6 +159,9 @@ public class GoogleHistoryNativeTests
             var failed=await provider.SaveHolonAsync(row,saveChildren:false);
             Assert.IsTrue(failed.IsError);Assert.IsFalse(failed.IsSaved);Assert.AreEqual(1,boundary.Attempts);Assert.IsNotNull(boundary.NativeFailure);
             Assert.AreEqual(Grpc.Core.StatusCode.InvalidArgument,boundary.NativeFailure.StatusCode);
+            Assert.AreSame(boundary.NativeFailure,failed.Exception);Assert.IsNull(failed.Result);
+            Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
+            Assert.AreNotEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,failed.ErrorCode);
             Assert.AreEqual(2,row.Version);Assert.AreEqual(version,row.VersionId);
             var actual=await reference.GetSnapshotAsync();Assert.IsTrue(actual.Exists);Assert.AreEqual(before.UpdateTime,actual.UpdateTime);
             Assert.IsTrue(string.Equals(canonical,actual.GetValue<string>("data_json"),StringComparison.Ordinal),"Native rejection must preserve the entire original including its archive; never trim or overwrite.");
