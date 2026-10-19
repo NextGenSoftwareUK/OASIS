@@ -14,7 +14,7 @@ public sealed class OracleNativeAcceptanceTests
     {
         var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
         var journal=Path.Combine(work,$"holon-index-{parent}.pending.json");Assert.IsFalse(File.Exists(journal));var id=Guid.NewGuid();var selectedParent=Guid.NewGuid();
-        var row=new Holon{Id=id,Name="owned-holon-index",ParentHolonId=Guid.NewGuid()};
+        var row=new Holon{Id=id,Name="owned-holon-index",ParentHolonId=Guid.NewGuid(),MetaData=new(){["owned-index-fixture"]=id.ToString()}};
         var selectedType=Enum.GetValues<NextGenSoftware.OASIS.API.Core.Enums.HolonType>().First(t=>t!=row.HolonType&&t!=NextGenSoftware.OASIS.API.Core.Enums.HolonType.All);
         var provider=new OracleDBOASIS(connection);var column=parent?"PARENT_HOLON_ID":"HOLON_TYPE";
         try{
@@ -28,6 +28,12 @@ public sealed class OracleNativeAcceptanceTests
             foreach(var sync in new[]{false,true}){
                 var found=parent?(sync?provider.LoadHolonsForParent(selectedParent,loadChildren:false):await provider.LoadHolonsForParentAsync(selectedParent,loadChildren:false)):(sync?provider.LoadAllHolons(selectedType,loadChildren:false):await provider.LoadAllHolonsAsync(selectedType,loadChildren:false));
                 Assert.IsTrue(found.IsError);Assert.IsNull(found.Result);Assert.IsInstanceOfType<InvalidDataException>(found.Exception);Assert.AreEqual(original,await Read(verifier,"OASIS_HOLONS",id));
+                if(!parent){
+                    var single=sync?provider.LoadHolonsByMetaData("owned-index-fixture",id.ToString(),selectedType,loadChildren:false):await provider.LoadHolonsByMetaDataAsync("owned-index-fixture",id.ToString(),selectedType,loadChildren:false);
+                    var pairs=new Dictionary<string,string>{{"owned-index-fixture",id.ToString()}};
+                    var multiple=sync?provider.LoadHolonsByMetaData(pairs,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,selectedType,loadChildren:false):await provider.LoadHolonsByMetaDataAsync(pairs,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,selectedType,loadChildren:false);
+                    foreach(var metadata in new[]{single,multiple}){Assert.IsTrue(metadata.IsError);Assert.IsNull(metadata.Result);Assert.IsInstanceOfType<InvalidDataException>(metadata.Exception);}
+                }
             }
             await using var cleanup=new OracleCommand("DELETE FROM OASIS_HOLONS WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Original)=0",verifier){BindByName=true};cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();cleanup.Parameters.Add("Original",OracleDbType.Clob).Value=original;Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));File.Delete(journal);
         }finally{await provider.DeActivateProviderAsync();}
