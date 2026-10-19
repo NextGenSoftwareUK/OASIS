@@ -31,7 +31,7 @@ public class ActivityPubStatusReadTests
         var transport=new Transport{Body=body};using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
         var result=await provider.LoadHolonAsync("123");Assert.True(result.IsError);Assert.Null(result.Result);Assert.NotNull(result.Exception);
     }
-    [Theory][InlineData(" ",0,0,false)][InlineData("123",1,0,false)][InlineData("123",0,-1,false)][InlineData("123",0,0,true)]
+    [Theory][InlineData(" ",0,0,false)][InlineData("123",1,0,false)][InlineData("123",0,-1,false)]
     public async Task InvalidOrUnverifiedOptionsCannotSilentlySucceed(string key,int version,int depth,bool children)
     {
         var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);

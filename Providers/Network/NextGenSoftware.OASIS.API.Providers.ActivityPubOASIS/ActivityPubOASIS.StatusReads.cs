@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
 
 public partial class ActivityPubOASIS
 {
-    private async Task<OASISResult<IHolon>> ReadMastodonStatusAsync(string key,bool children,bool providerChildren,int depth,int version)
+    private async Task<OASISResult<IHolon>> ReadMastodonStatusAsync(string key,bool children,bool providerChildren,int depth,int version,bool recursive)
     {
         var result=new OASISResult<IHolon>();
         try{
@@ -22,17 +22,28 @@ public partial class ActivityPubOASIS
             if(string.IsNullOrWhiteSpace(key))throw new ArgumentException("A native status ID is required.",nameof(key));
             if(depth<0)throw new ArgumentOutOfRangeException(nameof(depth));
             if(version!=0)throw new NotSupportedException("Native status edit history is not an OASIS holon version.");
-            if(children&&providerChildren)throw new NotSupportedException("Native reply-context hierarchy requires verified graph projection; no incomplete child result returned.");
             var selected=key.Trim();
             if(!_isActivated){var activated=await ActivateProviderAsync();if(activated.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(activated);}
             using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(selected));response.EnsureSuccessStatusCode();
             using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync());var status=document.RootElement;
+            var holon=ProjectMastodonStatus(status,selected);
+            result.Result=children&&providerChildren?await ReadMastodonReplyGraphAsync(holon,recursive,depth):holon;
+            result.LoadedCount=1;
+        }catch(Exception error){
+            OASISErrorHandling.HandleError(ref result,"Mastodon native status read failed.",error);
+            if(error is HttpRequestException http&&http.StatusCode==HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
+        }
+        return result;
+    }
+
+    private Holon ProjectMastodonStatus(JsonElement status,string selected=null)
+    {
             string Required(JsonElement node,string name,bool allowEmpty=false){
                 if(node.ValueKind!=JsonValueKind.Object||!node.TryGetProperty(name,out var field)||field.ValueKind!=JsonValueKind.String||(!allowEmpty&&string.IsNullOrWhiteSpace(field.GetString())))
                     throw new InvalidDataException("Missing native status field: "+name);
                 return field.GetString();
             }
-            var id=Required(status,"id");if(id!=selected)throw new InvalidDataException("Native status identity differs from requested ID.");
+            var id=Required(status,"id");if(selected!=null&&id!=selected)throw new InvalidDataException("Native status identity differs from requested ID.");
             var uri=Required(status,"uri");
             if(!Uri.TryCreate(uri,UriKind.Absolute,out var objectUri)||(objectUri.Scheme!=Uri.UriSchemeHttps&&!(objectUri.Scheme==Uri.UriSchemeHttp&&objectUri.IsLoopback)))throw new InvalidDataException("Invalid native status URI.");
             var content=Required(status,"content",true);var created=Required(status,"created_at");
@@ -48,11 +59,10 @@ public partial class ActivityPubOASIS
                 holon.ParentHolonId=MastodonProjectionId("status",reply.GetString());
             }
             if(status.TryGetProperty("visibility",out var visibility)&&visibility.ValueKind==JsonValueKind.String)holon.MetaData["MastodonVisibility"]=visibility.GetString();
-            result.Result=holon;result.LoadedCount=1;
-        }catch(Exception error){
-            OASISErrorHandling.HandleError(ref result,"Mastodon native status read failed.",error);
-            if(error is HttpRequestException http&&http.StatusCode==HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
-        }
-        return result;
+            if(status.TryGetProperty("replies_count",out var count)){
+                if(!count.TryGetInt64(out var replies)||replies<0)throw new InvalidDataException("Invalid native reply count.");
+                holon.MetaData["MastodonRepliesCount"]=replies;
+            }
+            return holon;
     }
 }
