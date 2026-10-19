@@ -447,7 +447,7 @@ You may be weighing two alternatives: a **model router** such as [OpenRouter](ht
 | Long-term memory | No | One agent's own notes | **Holonic Memory hierarchy plus Mem0, Zep, Letta, LangMem, Graphiti, Qdrant and Weaviate adapters; the agent curates durable facts automatically** |
 | Shared reasoning | No | No | **Holonic BRAID: proven reasoning plans are reused across sessions and users** |
 | Multi-agent orchestration | No | Parallel subagents | **FAHRN: serial, parallel, debate, voting and decomposed dispatch with budget guards and loop detection** |
-| WhatsApp, Telegram, Slack, Discord | No | Yes | **Yes: signed webhooks, one-time avatar linking, per-chat conversation memory, every reply billed to that client's own capped grant** |
+| WhatsApp, Telegram, Slack, Discord | No | Yes | **Yes: signed webhooks, one-time avatar linking, per-chat conversation memory, voice notes transcribed and answered, every reply billed to that client's own capped grant** |
 | Scheduled / unattended runs | No | Built-in cron, unbilled and single-user | **Cron schedules per avatar, run exactly once across servers, each under a revocable, budget-capped grant, with results to a webhook or the client's chat** |
 | Spending control | Account-level credit balance | None | **Per-user plans, daily and monthly limits, per-grant monthly and per-operation caps, reserve-then-settle accounting on every call** |
 | Tools and interop | No | MCP client | **508 MCP tools at `/mcp`, plus A2A, ACP, ANP, LangGraph, OpenAI Agents, gRPC, GraphQL and webhooks** |
@@ -479,7 +479,7 @@ You may be weighing two alternatives: a **model router** such as [OpenRouter](ht
 | Give that chat long-term memory | `PUT /v1/channels/bindings/{id}/memory` |
 | Daily check-ins | `POST /v1/schedules` with a cron expression, the task, a grant for `SCHEDULE /v1/schedules run`, and `delivery.kind = "channel"` to post into the client's chat |
 
-Voice notes sent from WhatsApp or Telegram are refused with a clear message for now. WEB6 bills transcription only when it can verify the audio's length. That currently requires PCM WAV, plus audio unit prices published in the pricing catalogue, and Telegram and WhatsApp send compressed Ogg/Opus. Text, and transcription of WAV uploads through `/v1/audio/transcriptions`, are unaffected.
+**Voice notes.** Clients can send WhatsApp or Telegram voice notes. WEB6 downloads each one, measures its exact length (verifying every Ogg page checksum), transcribes it and answers, all in one billed operation on that client's grant. The reply begins with what WEB6 heard, so a mis-hearing is obvious. Your operator turns this on once by publishing your transcription rate (an `audio_ms` unit price) in the WEB6 pricing catalogue. Until then, voice notes get a polite "please send text" reply and nothing is charged.
 
 ---
 

@@ -96,7 +96,7 @@ WEB6 passes through provider costs at **exactly** what they charge — no markup
 | Long-term memory | ❌ | One agent's local notes | ✅ Per-avatar Holonic Memory + 7 external memory adapters, auto-curated |
 | Server-side agent loop | ❌ | ✅ | ✅ `/v1/agent/run`, metered per step |
 | Self-improving skills | ❌ | ✅ | ✅ SkillOpt, trained from scored runs |
-| WhatsApp / Telegram / Slack / Discord | ❌ | ✅ | ✅ Signed webhooks, per-chat memory, per-client billing |
+| WhatsApp / Telegram / Slack / Discord | ❌ | ✅ | ✅ Signed webhooks, per-chat memory, voice notes, per-client billing |
 | Scheduled agent runs | ❌ | ✅ (unbilled, single user) | ✅ Exactly-once cron under budget-capped grants |
 | Multi-user isolation and per-user billing | ❌ | ❌ | ✅ WEB4 avatars, plans, limits, grants |
 | Data ownership | OpenRouter's servers | Your box | Your infrastructure (self-hostable ONODE) |
@@ -122,7 +122,7 @@ OpenRouter routes requests to individual models. **WEB6 coordinates multiple AI 
 
 5. **No vendor lock-in** — if a better uncensored model launches tomorrow, it can be added and set as default in minutes
 
-6. **Leela meets clients where they are** — WhatsApp, Telegram, Slack and Discord chats link to each client's avatar, remember the conversation, and are billed to that client's own capped grant
+6. **Leela meets clients where they are** — WhatsApp, Telegram, Slack and Discord chats link to each client's avatar, remember the conversation, understand voice notes, and are billed to that client's own capped grant
 
 7. **Leela checks in proactively** — scheduled runs (e.g. a daily evening check-in) post straight into the client's chat, exactly once, within budget
 
