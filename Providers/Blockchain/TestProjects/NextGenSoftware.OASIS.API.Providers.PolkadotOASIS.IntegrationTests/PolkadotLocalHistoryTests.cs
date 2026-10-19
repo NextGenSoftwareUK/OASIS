@@ -26,6 +26,12 @@ public class PolkadotLocalHistoryTests
         const string second="0x8ee504148e75c34e8f051899b3c6e4241ff18dc1c9211260b6a6a434bedb485f";
         using var provider=new PolkadotOASIS("http://127.0.0.1:19944","0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208");
         Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var explicitStatus=await provider.GetTransactionStatusAsync(transaction!,receipt.GetProperty("blockHash").GetString()!);
+        Assert.IsFalse(explicitStatus.IsError,explicitStatus.Exception?.ToString());
+        Assert.AreEqual(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,explicitStatus.Result);
+        var searchedStatus=await provider.GetTransactionStatusAsync(transaction!);
+        Assert.IsFalse(searchedStatus.IsError,searchedStatus.Exception?.ToString());
+        Assert.AreEqual(explicitStatus.Result,searchedStatus.Result);
         // Native and returning-asset cases deliberately read the recipient, not the extrinsic signer.
         var request=new GetWeb3TransactionsRequest{WalletAddress=kind=="native" ? second : first,FromBlock=height,ToBlock=height};
         var asynchronous=await provider.GetTransactionsAsync(request);

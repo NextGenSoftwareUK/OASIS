@@ -12,7 +12,13 @@ async function waitForOwnedCancellation(signal) {
   socket.write(signal);
   await new Promise(() => {});
 }
-if (['generateKeyPair', 'createAccount', 'restoreAccount'].includes(request.operation)) {
+if (request.operation === 'transactionStatus') {
+  const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
+  if (mode === 'status-error') { process.stdout.write(JSON.stringify({ok:false,error:'controlled unresolved status'})); process.exitCode=1; }
+  else emit({transactionHash:mode === 'status-wrong-hash' ? chain : request.transactionHash,
+    blockHash:mode === 'status-wrong-block' ? originalHash : chain, finalized:mode !== 'status-unfinalized',
+    status:mode === 'status-failed' ? 'Failed' : 'Completed', dispatchSucceeded:mode !== 'status-failed', blockNumber:'1',extrinsicIndex:0});
+} else if (['generateKeyPair', 'createAccount', 'restoreAccount'].includes(request.operation)) {
   const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
   if (mode === 'generation-error') { process.stdout.write(JSON.stringify({ ok: false, error: 'controlled key generation failure' })); process.exitCode = 1; }
   else emit({ chainId: mode === 'generation-network' ? originalHash : chain, cryptoType: mode === 'generation-crypto' ? 'ed25519' : 'sr25519',

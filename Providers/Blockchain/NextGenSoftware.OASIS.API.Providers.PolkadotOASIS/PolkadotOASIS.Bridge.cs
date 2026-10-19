@@ -226,52 +226,37 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return result;
         }
 
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+            => GetTransactionStatusAsync(transactionHash, null, token);
+
+        /// <summary>Read exact finalized dispatch in an explicit block, or search finalized ancestry under the process deadline.
+        /// Absence/timeouts remain errors: they do not imply rejection or authorize another submission.</summary>
+        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(
+            string transactionHash, string blockHash, CancellationToken token = default)
         {
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(transactionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                    return result;
-                }
-
-                // Query Polkadot RPC for transaction status
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "chain_getBlock",
-                    @params = new object[] { transactionHash }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    result.Result = BridgeTransactionStatus.Completed;
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = BridgeTransactionStatus.NotFound;
-                    result.IsError = true;
-                    result.Message = "Transaction not found";
-                }
+                if (!_isActivated) throw new InvalidOperationException("Polkadot provider is not activated.");
+                if (!IsGenesisHash(transactionHash) || (blockHash != null && !IsGenesisHash(blockHash)))
+                    throw new ArgumentException("Explicit valid transaction and optional block hashes are required.");
+                var observed = await InvokePolkadotSdkAsync(new { operation = "transactionStatus",
+                    endpoint = _rpcEndpoint, genesisHash = ReportedGenesisHash, transactionHash, blockHash }, token).ConfigureAwait(false);
+                var status = observed.GetProperty("status").GetString();
+                if (!observed.GetProperty("finalized").GetBoolean()
+                    || observed.GetProperty("transactionHash").GetString() != transactionHash.ToLowerInvariant()
+                    || !IsGenesisHash(observed.GetProperty("blockHash").GetString())
+                    || (blockHash != null && observed.GetProperty("blockHash").GetString() != blockHash.ToLowerInvariant())
+                    || status is not ("Completed" or "Failed")
+                    || observed.GetProperty("dispatchSucceeded").GetBoolean() != (status == "Completed"))
+                    throw new System.IO.InvalidDataException("SDK status does not prove the exact finalized transaction outcome.");
+                result.Result = status == "Completed" ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Failed;
+                result.Message = "Exact finalized top-level dispatch; not proof of every nested call, bridge release or fee settlement.";
             }
-            catch (Exception ex)
+            catch (Exception failure)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting Polkadot transaction status: {ex.Message}", ex);
-                result.Result = BridgeTransactionStatus.NotFound;
+                OASISErrorHandling.HandleError(ref result, failure.Message, failure);
+                result.Result = BridgeTransactionStatus.Pending; // unresolved, never fabricated completion/rejection.
             }
             return result;
         }
