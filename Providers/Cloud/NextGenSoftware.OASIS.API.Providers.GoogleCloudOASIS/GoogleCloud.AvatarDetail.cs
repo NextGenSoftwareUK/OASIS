@@ -64,7 +64,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 var docRef = _firestoreDb.Collection("avatarDetails").Document(snapshot.Id.ToString());
                 var avatarDetailData = EncodeAvatarDetail(snapshot);
                 
-                await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(avatarDetailData),docRef.Path);
+                var committed=await WriteFirestoreRecordAsync<AvatarDetail>(docRef,avatarDetailData,IsVersionControlEnabled);
+                avatarDetail.Version=committed.Version;avatarDetail.VersionId=committed.VersionId;avatarDetail.PreviousVersionId=committed.PreviousVersionId;
                 avatarDetail.Id=snapshot.Id;
                 avatarDetail.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
                 avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=snapshot.Id.ToString();
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to Google Cloud: {ex.Message}", ex);
+                HandleFirestoreSaveError(ref result, $"Error saving avatar detail to Google Cloud: {ex.Message}", ex);
             }
             return result;
         }
@@ -171,7 +172,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 };
                 
                 holonData["data_json"]=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(holon);
-                await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(holonData),docRef.Path);
+                var committed=await WriteFirestoreRecordAsync<Holon>(docRef,holonData,IsVersionControlEnabled);
+                source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=holon.Id;
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 source.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=holon.Id.ToString();
@@ -183,7 +185,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error saving holon to Google Cloud: {ex.Message}", ex);
+                HandleFirestoreSaveError(ref result, $"Error saving holon to Google Cloud: {ex.Message}", ex);
             }
             return result;
         }
@@ -206,10 +208,13 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 if (ready.IsError)
                     return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IHolon>>(ready);
                 var snapshot = await _firestoreDb.Collection("holons").GetSnapshotAsync();
-                var records = snapshot.Documents.Select(doc => DecodeHolon(doc.ConvertTo<Dictionary<string, object>>(), doc.Id))
-                    .Where(row => row.DeletedDate==DateTime.MinValue).Cast<IHolon>().ToList();
+                var records = snapshot.Documents.Select(doc => ReadFirestoreHistoryAsync<Holon>(doc.ToDictionary(),doc.Id,version).GetAwaiter().GetResult())
+                    .Where(row => row!=null&&row.DeletedDate==DateTime.MinValue).Cast<IHolon>().ToList();
+                var childPool=loadChildren&&loadChildrenFromProvider&&version>0
+                    ? snapshot.Documents.Select(doc=>DecodeHolon(doc.ToDictionary(),doc.Id)).Where(row=>row.DeletedDate==DateTime.MinValue).Cast<IHolon>().ToList()
+                    : records;
                 var project = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(
-                    records, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider,
+                    childPool, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider,
                     source => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Holon>(
                         NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(source)));
                 result.Result = records.Where(row => type == HolonType.All || row.HolonType == type).Select(project).ToList();
