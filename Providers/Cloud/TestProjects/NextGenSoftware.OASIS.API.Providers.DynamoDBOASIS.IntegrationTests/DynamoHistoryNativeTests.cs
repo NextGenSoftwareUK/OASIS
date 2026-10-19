@@ -151,6 +151,52 @@ public class DynamoHistoryNativeTests
         }finally{await provider.DeActivateProviderAsync();}
     }
 
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)][DataRow(4)][DataRow(5)]
+    public async Task PublicOversizedSavePreservesCommittedRecordArchiveAndCallerVersion(int variant)
+    {
+        Assert.AreEqual("http://127.0.0.1:18000",Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL"));
+        var work=Environment.GetEnvironmentVariable("OASIS_DYNAMO_HISTORY_WORK")!;
+        var journal=Path.Combine(work,$"public-capacity-{variant}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var kind=variant%3;var useAws=variant>=3;var id=Guid.NewGuid();var name="capacity-"+id.ToString("N");
+        IHolonBase row=kind==0?new Avatar{Id=id,Username=name,Email=name+"@example.invalid"}:kind==1?new AvatarDetail{Id=id,Username=name,Email=name+"@example.invalid"}:new Holon{Id=id,Name=name};
+        var table=kind==0?"OasisAvatars":kind==1?"OasisAvatarDetails":"OasisHolons";
+        DynamoDBOASIS provider=useAws
+            ? new NextGenSoftware.OASIS.API.Providers.AWSOASIS.AWSOASIS("us-east-1","ownedhistorytest","ownedhistorytest","http://127.0.0.1:18000")
+            : new DynamoDBOASIS("ownedhistorytest","ownedhistorytest","us-east-1","http://127.0.0.1:18000");
+        var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var original=(AmazonDynamoDBClient)field.GetValue(provider)!;
+        using var client=new FaultClient();using var verifier=Client();field.SetValue(provider,client);
+        var key=new Dictionary<string,AttributeValue>{{"id",new(){S=id.ToString()}}};
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            Assert.AreEqual(0,(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item.Count);
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+                await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,table,variant,state="before-native-public-capacity"}));file.Flush(true);
+            }
+            provider.IsVersionControlEnabled=true;
+            row.MetaData=new(){["owned_history_fixture"]="first"};await SavePublic(provider,row);
+            row.MetaData["owned_history_fixture"]="second";await SavePublic(provider,row);
+            Assert.AreEqual(2,row.Version);var versionId=row.VersionId;var keys=JsonSerializer.Serialize(row.ProviderUniqueStorageKey);
+            var before=(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item["data_json"].S;
+            Assert.AreEqual(1,((JArray)JObject.Parse(before)[EmbeddedRecordHistory.PropertyName]!["records"]!).Count);
+            client.Writes=0;row.MetaData["padding"]=new string('x',410*1024);
+            if(row is IAvatar avatar)Check(await provider.SaveAvatarAsync(avatar));
+            else if(row is IAvatarDetail detail)Check(await provider.SaveAvatarDetailAsync(detail));
+            else Check(await provider.SaveHolonAsync((IHolon)row,saveChildren:false));
+            Assert.AreEqual(1,client.Writes);Assert.AreEqual(2,row.Version);Assert.AreEqual(versionId,row.VersionId);
+            Assert.AreEqual(keys,JsonSerializer.Serialize(row.ProviderUniqueStorageKey));
+            var after=(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item["data_json"].S;
+            Assert.AreEqual(before,after,"Rejected oversized public save must not trim or overwrite committed data/history.");
+            await RemoveOwned(verifier,table,id,before);File.Delete(journal);
+        }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
+        static void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
+            Assert.IsInstanceOfType<DynamoDBMutationReconciliationException>(result.Exception);
+            var native=result.Exception.InnerException as AmazonDynamoDBException;Assert.IsNotNull(native);
+            Assert.AreEqual("ValidationException",native.ErrorCode);
+        }
+    }
+
     [TestMethod]
     public async Task RealAtomicAvatarSoftDeletePreservesBothArchivesAfterDisablingHistory()
     {
