@@ -175,59 +175,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
-        {
-            var result = new OASISResult<BridgeTransactionStatus>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                if (Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(transactionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                    return result;
-                }
-
-                var transactionReceipt = await Web3Client.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-
-                if (transactionReceipt == null)
-                {
-                    result.Result = BridgeTransactionStatus.NotFound;
-                    result.IsError = true;
-                    result.Message = "Transaction not found.";
-                }
-                else if (transactionReceipt.Status.Value == 1)
-                {
-                    result.Result = BridgeTransactionStatus.Completed;
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = BridgeTransactionStatus.Canceled;
-                    result.IsError = true;
-                    result.Message = "Transaction failed on chain.";
-                }
+public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        => NextGenSoftware.OASIS.Providers.Shared.Evm.EvmTransactionStatus.ReadAsync(transactionHash,async ()=>{
+            if(!IsProviderActivated){
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError)return new OASISResult<Nethereum.Web3.Web3>{IsError=true,Message=activation.Message,Exception=activation.Exception,ErrorCode=activation.ErrorCode};
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting Ethereum transaction status: {ex.Message}", ex);
-                result.Result = BridgeTransactionStatus.NotFound;
-            }
-            return result;
-        }
+            return new OASISResult<Nethereum.Web3.Web3>{Result=Web3Client};
+        },token);
 
 
 
