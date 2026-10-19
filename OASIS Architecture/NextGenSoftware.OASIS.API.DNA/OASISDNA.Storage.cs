@@ -83,6 +83,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class AWSOASISProviderSettings : ProviderSettingsBase
     {
+        public bool IsVersionControlEnabled { get; set; }
         public string Region { get; set; } = "us-east-1";
         public string AccessKey { get; set; }
         public string SecretKey { get; set; }

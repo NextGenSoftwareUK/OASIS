@@ -192,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
             };
             var task=(Task<NextGenSoftware.OASIS.API.Core.Holons.Avatar>)typeof(DynamoDBOASIS)
                 .GetMethod("ReadUniqueAvatarAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!
-                .Invoke(null,new object[] {query,"username","owned-user"})!;
+                .Invoke(null,new object[] {query,"username","owned-user",0})!;
             if(duplicate) await Assert.ThrowsExceptionAsync<NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException>(async()=>await task);
             else Assert.AreEqual(avatar.Id,(await task).Id);
             Assert.AreEqual(2,calls);
