@@ -49,14 +49,6 @@ public sealed class OracleStoredRecordTests
     private static string Write(object row)
         => (string)typeof(OracleDBOASIS).GetMethod("Serialize", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new[] { row })!;
 
-    [DataTestMethod]
-    [DataRow("simple", "'$.MetaData.\"simple\"'")]
-    [DataRow("a.b", "'$.MetaData.\"a.b\"'")]
-    [DataRow("owner's key", "'$.MetaData.\"owner''s key\"'")]
-    [DataRow("a\"b", "'$.MetaData.\"a\\\"b\"'")]
-    public void MetadataKeysRemainSingleQuotedJsonMembersAndSqlLiterals(string key, string expected)
-        => Assert.AreEqual(expected, typeof(OracleDBOASIS).GetMethod("MetadataPath", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { key }));
-
     private static T Read<T>(string json)
         => (T)typeof(OracleDBOASIS).GetMethod("Deserialize", BindingFlags.NonPublic | BindingFlags.Static)!.MakeGenericMethod(typeof(T)).Invoke(null, new object[] { json })!;
 }

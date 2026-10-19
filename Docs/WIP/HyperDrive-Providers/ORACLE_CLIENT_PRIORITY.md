@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Canonical query cleanup and deployment pin check — 2026-10-19
+
+Removed now-unused private MetadataPath SQL quoting builder and unused RawToGuid helper after canonical metadata matching replaced their last production callers. Removed four reflection-only tests for the deleted private SQL builder, NOT public metadata behavior; native quoted/dotted/apostrophe-key checks remain in canonical acceptance. Unit count intentionally122→118, no claim of additional coverage. Cached producer/unit builds0errors2/3warnings,118/118units pass526ms/zero skips SHA256 `BDED8FBDDFA1D289F332D9A5A6AA5F58503A6CA5797B65EE3843A18317DE0305` in oracle-canonical-cleanup.trx. No native rerun for dead-code-only cleanup; previous31case native evidence applies to preceding implementation, not a fresh rebuilt native artifact certification.
+
+Railway dependency manifest/seven Dockerfiles/parent gitlink validator passes current checkout. This verifies pin consistency only, not remote deployment/build/readiness or immutable clean-source parity (other concurrent source remains dirty). No runtime start/download/install/new environment/cleanup/reset. Provider remains incomplete: hosted Oracle service/wallet/IAM/application-schema rights, authorization/encryption/privacy, pagination/performance/capacity, full interface options, native wire/crash/concurrency and full V2 gates remain open.
+
 ## Canonical metadata parity implemented — 2026-10-19
 
 Supersedes the OPEN boolean/6000character mismatch below for tested values: removed both latest SQL JSON_VALUE metadata predicates. Dictionary current/history queries now share EXISTING StoredRecordSearch.MatchesMetadata over canonical records; single-key delegates to dictionary owner with All. Current holon collection reader additionally selects HOLON_TYPE/IS_DELETED and rejects contradictions before filtering, retaining corrupted-type acceptance rather than silently omitting it. Historical roots still select their own canonical version; current graph child pool unchanged. No alternate fallback/retry/unsupported-value rejection.

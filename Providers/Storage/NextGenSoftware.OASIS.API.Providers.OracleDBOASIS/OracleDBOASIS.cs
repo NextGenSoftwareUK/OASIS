@@ -155,13 +155,6 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
         }
 
         private static string Serialize(object obj) => Core.Serialization.StoredRecordJson.Serialize(obj);
-        private static string MetadataPath(string key)
-        {
-            ArgumentNullException.ThrowIfNull(key);
-            // JSON member quoting and SQL literal quoting are separate boundaries.
-            var member = Newtonsoft.Json.JsonConvert.SerializeObject(key);
-            return "'$.MetaData." + member.Replace("'", "''") + "'";
-        }
         private static T Deserialize<T>(string json)
         {
             var record = Core.Serialization.StoredRecordJson.DeserializeStored<T>(json);
@@ -172,7 +165,6 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
 
         // Oracle stores GUIDs as RAW(16); convert to/from byte arrays.
         private static byte[] GuidToRaw(Guid id) => id.ToByteArray();
-        private static Guid RawToGuid(byte[] raw) => new Guid(raw);
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
 
