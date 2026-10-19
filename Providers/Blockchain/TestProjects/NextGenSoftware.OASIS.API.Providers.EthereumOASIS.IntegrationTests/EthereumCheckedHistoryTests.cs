@@ -23,7 +23,7 @@ public partial class EthereumOASISIntegrationTests
         try {
             if(kind=="avatar")await VerifyNativeHistory(provider,address,kind,new Avatar {Id=Guid.NewGuid(),Username="native-private-marker"});
             else if(kind=="avatar-detail")await VerifyNativeHistory(provider,address,kind,new AvatarDetail {Id=Guid.NewGuid(),Username="native-private-marker"});
-            else await VerifyNativeHistory(provider,address,kind,new Core.Holons.Holon {Id=Guid.NewGuid(),Name="native-private-marker",Children=new List<IHolon>{new Core.Holons.Holon {Id=Guid.NewGuid(),Name="native-child"}}});
+            else await VerifyNativeHistory(provider,address,kind,new Core.Holons.Holon {Id=Guid.NewGuid(),CreatedByAvatarId=Guid.NewGuid(),Name="native-private-marker",MetaData=new Dictionary<string,object>{{"HistoryTag","original-root"},{"CustomKey","history-root"}},Children=new List<IHolon>{new Core.Holons.Holon {Id=Guid.NewGuid(),Name="native-child"}}});
         }finally{await provider.DeActivateProviderAsync();}
     }
 
@@ -49,6 +49,7 @@ public partial class EthereumOASISIntegrationTests
             provider.IsVersionControlEnabled=true;
             var saved=await provider.SaveHolonAsync((IHolon)source);Assert.IsFalse(saved.IsError,saved.Message);Assert.AreEqual(3,source.Version);
             provider.IsVersionControlEnabled=false;
+            source.MetaData["HistoryTag"]="current-root";
             var synced=provider.SaveHolon((IHolon)source);Assert.IsFalse(synced.IsError,synced.Message);Assert.AreEqual(4,source.Version);
             Assert.AreEqual(2,((IHolon)source).Children.Single().Version);
         }
@@ -68,7 +69,29 @@ public partial class EthereumOASISIntegrationTests
             var latest=await history.ReadAsync(source.Id,document,0,OasisJson.DeserializeStored<T>);
             var archived=await history.ReadAsync(source.Id,document,1,OasisJson.DeserializeStored<T>);
             Assert.AreEqual(4,latest.Version);Assert.AreEqual("native-second-marker",latest.Description);Assert.AreEqual(1,archived.Version);Assert.IsNull(archived.Description);
-            if(kind=="holon"){var children=((IHolon)archived).Children;Assert.AreEqual(1,children.Count());Assert.AreEqual("native-child",children.Single().Name);}
+            if(kind=="holon"){
+                var children=((IHolon)archived).Children;Assert.AreEqual(1,children.Count());Assert.AreEqual("native-child",children.Single().Name);
+                var child=((IHolon)source).Children.Single();child.Description="independent-child";
+                Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);Assert.AreEqual(3,child.Version);
+                foreach(var selected in new[]{provider.LoadHolon(source.Id,loadChildrenFromProvider:true,version:1),await provider.LoadHolonAsync(source.Id.ToString(),loadChildrenFromProvider:true,version:1)}){
+                    Assert.IsFalse(selected.IsError,selected.Message);Assert.AreEqual(1,selected.Result.Version);Assert.AreEqual(3,selected.Result.Children.Single().Version);Assert.AreEqual("independent-child",selected.Result.Children.Single().Description);
+                }
+                var embedded=await provider.LoadHolonAsync(source.Id,loadChildrenFromProvider:false,version:1);Assert.IsFalse(embedded.IsError,embedded.Message);Assert.AreEqual(0,embedded.Result.Children.Single().Version);
+                var collection=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true,version:1);Assert.IsFalse(collection.IsError,collection.Message);Assert.AreEqual(1,collection.Result.Single(row=>row.Id==source.Id).Version);Assert.AreEqual(3,collection.Result.Single(row=>row.Id==source.Id).Children.Single().Version);
+                var parent=await provider.LoadHolonsForParentAsync(source.Id.ToString(),version:1);Assert.IsFalse(parent.IsError,parent.Message);Assert.AreEqual(1,parent.Result.Single().Version);
+                var missing=await provider.LoadAllHolonsAsync(version:99);Assert.IsFalse(missing.IsError,missing.Message);Assert.AreEqual(0,missing.Result.Count());
+                var metadata=await provider.LoadHolonsByMetaDataAsync("HistoryTag","original-root",loadChildrenFromProvider:true,version:1);Assert.IsFalse(metadata.IsError,metadata.Message);Assert.AreEqual(1,metadata.Result.Single().Version);Assert.AreEqual(3,metadata.Result.Single().Children.Single().Version);
+                var custom=await provider.LoadHolonByCustomKeyAsync("history-root",version:1);Assert.IsFalse(custom.IsError,custom.Message);Assert.AreEqual(1,custom.Result.Version);
+                var latestMetadata=await provider.LoadHolonsByMetaDataAsync("HistoryTag","original-root");Assert.IsFalse(latestMetadata.IsError,latestMetadata.Message);Assert.AreEqual(0,latestMetadata.Result.Count());
+                provider.IsVersionControlEnabled=true;
+                var owner=new Avatar{Id=source.CreatedByAvatarId,Username="history-export-owner",Email="history-export@example.invalid"};Assert.IsFalse((await provider.SaveAvatarAsync(owner)).IsError);
+                provider.IsVersionControlEnabled=false;
+                foreach(var exported in new[]{await provider.ExportAllDataForAvatarByIdAsync(owner.Id,1),provider.ExportAllDataForAvatarByUsername(owner.Username,1),await provider.ExportAllDataForAvatarByEmailAsync(owner.Email,1)}){
+                    Assert.IsFalse(exported.IsError,exported.Message);Assert.IsTrue(exported.IsLoaded);Assert.AreEqual(1,exported.Result.Single().Version);Assert.AreEqual(3,exported.Result.Single().Children.Single().Version);
+                }
+                var search=new Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string>{{"HistoryTag","original-root"}},SearchGroups=new List<Core.Objects.Search.ISearchGroupBase>{new Core.Objects.Search.SearchTextGroup{SearchQuery="native-private-marker",SearchHolons=true,HolonType=Core.Enums.HolonType.All}}};
+                var searched=await provider.SearchAsync(search,version:1);Assert.IsFalse(searched.IsError,searched.Message);Assert.AreEqual(1,searched.Result.NumberOfResults);Assert.AreEqual(1,searched.Result.SearchResultHolons.Single().Version);Assert.AreEqual(3,searched.Result.SearchResultHolons.Single().Children.Single().Version);
+            }
             else {
                 provider.IsVersionControlEnabled=true;
                 if(kind=="avatar")Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=source.Id})).IsError);
@@ -93,6 +116,12 @@ public partial class EthereumOASISIntegrationTests
                 }
                 var missingAvatar=await provider.LoadAvatarAsync(source.Id,99);Assert.IsTrue(missingAvatar.IsError);Assert.IsNull(missingAvatar.Result);Assert.IsFalse(missingAvatar.IsLoaded);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missingAvatar.ErrorCode);
                 var missingDetail=provider.LoadAvatarDetail(source.Id,99);Assert.IsTrue(missingDetail.IsError);Assert.IsNull(missingDetail.Result);Assert.IsFalse(missingDetail.IsLoaded);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missingDetail.ErrorCode);
+                var avatars=await provider.LoadAllAvatarsAsync(1);Assert.IsFalse(avatars.IsError,avatars.Message);Assert.AreEqual(1,avatars.Result.Single().Version);
+                var details=provider.LoadAllAvatarDetails(1);Assert.IsFalse(details.IsError,details.Message);Assert.AreEqual(1,details.Result.Single().Version);
+                var keyed=await provider.LoadAvatarByProviderKeyAsync(source.Id.ToString(),1);Assert.IsFalse(keyed.IsError,keyed.Message);Assert.AreEqual(1,keyed.Result.Version);
+                if(kind=="avatar"){var named=await provider.LoadAvatarByUsernameAsync("native-private-marker",1);Assert.IsFalse(named.IsError,named.Message);Assert.AreEqual(1,named.Result.Version);}
+                else {var named=provider.LoadAvatarDetailByUsername("native-private-marker",1);Assert.IsFalse(named.IsError,named.Message);Assert.AreEqual(1,named.Result.Version);}
+                var absent=await provider.LoadAllAvatarsAsync(99);Assert.IsFalse(absent.IsError,absent.Message);Assert.AreEqual(0,absent.Result.Count());
                 var hard=await provider.DeleteAvatarAsync(source.Id,softDelete:false);Assert.IsFalse(hard.IsError,hard.Message);Assert.IsTrue(hard.Result);
                 Assert.AreEqual(BigInteger.Zero,(await service.GetAvatarByIdQueryAsync(id)).ReturnValue1.EntityId);
                 Assert.AreEqual(BigInteger.Zero,(await service.GetAvatarDetailByIdQueryAsync(id)).ReturnValue1.EntityId);

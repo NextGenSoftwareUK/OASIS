@@ -222,7 +222,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result=new OASISResult<IHolon>();
             try
             {
-                if(version != 0) throw new NotSupportedException("Ethereum record history is not implemented; only current version 0 is supported.");
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 if(maxChildDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
                 if(loadChildren && loadChildrenFromProvider)
                 {
@@ -245,7 +245,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     }
                     var row=(await _nextGenSoftwareOasisService.GetHolonByIdQueryAsync(HashUtility.GetNumericHash(id.ToString())))?.ReturnValue1
                         ?? throw new InvalidDataException("Ethereum native holon response was missing.");
-                    var holon=DeserializePrivateStorage<Holon>("holon",row.EntityId,row.Info,id);
+                    var holon=ReadPrivateStorageVersion<Holon>("holon",row.EntityId,row.Info,id,version);
+                    if(holon==null){result.ErrorCode=OASISResultErrorCodes.RecordNotFound;throw new KeyNotFoundException("Ethereum holon version not found.");}
                     result.Result=CreateHolonProjector(new[] {holon},loadChildren,recursive,maxChildDepth,0,false)(holon);
                 }
                 result.IsLoaded=true;
@@ -253,6 +254,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             catch(Exception cause)
             {
                 OASISErrorHandling.HandleError(ref result,$"Error loading native Ethereum holon: {cause.Message}",cause);
+                if(cause is KeyNotFoundException)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
             }
             return result;
         }
@@ -305,7 +307,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                if (version != 0) throw new NotSupportedException("Ethereum collection history is not implemented; only current version 0 is supported.");
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 if (maxChildDepth < 0 || curentChildDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth),"Child depth values must be nonnegative.");
                 if (!IsProviderActivated)
                 {
@@ -315,6 +317,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var block = new Nethereum.RPC.Eth.DTOs.BlockParameter(await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync());
                 var count = await _nextGenSoftwareOasisService.GetHolonsCountQueryAsync(block);
                 var records = new List<IHolon>();
+                var currentRecords=new List<IHolon>();
                 var identities = new HashSet<Guid>();
                 for (BigInteger index = 0; index < count; index++)
                 {
@@ -323,12 +326,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                             new ContractDefinition.GetHolonAtFunction { Index=index },block)).ReturnValue1;
                     if (row == null || !Guid.TryParseExact(row.HolonId,"D",out var id))
                         throw new InvalidDataException("Ethereum holon has an invalid public GUID.");
-                    var holon = DeserializePrivateStorage<Holon>("holon",row.EntityId,row.Info,id);
-                    if (holon == null || !identities.Add(holon.Id))
+                    if (!identities.Add(id))
                         throw new InvalidDataException("Ethereum holon collection contains a missing or duplicate identity.");
-                    records.Add(holon);
+                    var decoded=DecryptStorageDocument<Holon>("holon",row.EntityId,row.Info,id);
+                    currentRecords.Add(decoded.Record);
+                    var holon=version==0?decoded.Record:await RecordHistory.ReadAsync(id,decoded.Document,version,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeStored<Holon>);
+                    if(holon!=null)records.Add(holon);
                 }
-                var project=CreateHolonProjector(records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
+                var project=CreateHolonProjector(loadChildrenFromProvider?currentRecords:records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
                 result.Result = records.Where(row=>type == HolonType.All || row.HolonType == type).Select(project).ToList();
                 result.IsLoaded = true;
             }
