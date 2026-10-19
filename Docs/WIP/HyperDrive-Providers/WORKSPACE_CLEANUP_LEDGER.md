@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 read-only conditional contract/binary audit used existing sources and retained DLLs. Reflection/type lookup and SHA256 show producer/integration/unit current Core copies equalDCBFB9...; no new build/runtime/install/download/environment/reset/deletion. Core source remains concurrent dirty/untracked, preserved; no gitlink staged. Oracle atomic graph/receipt support explicitly incomplete; implementation/native gates recorded, no per-node emulation/false certification.
+
 2026-10-19 read-only wider release inventory audit: registered-provider documentation inventory30passes, WEB4route/manager manifest completeness gates fail on current unreviewed additions. No CSV regeneration/build/native runtime start/install/download/new environment/deletion. Core tracking/transfer/save-plan files confirmed untracked concurrent source; preserved, not staged. Current release gates records exact review categories and no binary/source parity claim.
 
 2026-10-19 Oracle native row-lock concurrency acceptance reused same container/volume/secret/SDK/cache/fixed reports. Actual V$SESSION blocker observation then acknowledged updates2/3/archive validation;32native (31acceptance+1diagnostic) pass15s. Original fixture public hard-delete/native absence before journal removal, journals0/container stopped. No download/install/new environment/reset/broad deletion/reclaim. Hash/rights and concurrency limitations in ORACLE_CLIENT_PRIORITY.md.
