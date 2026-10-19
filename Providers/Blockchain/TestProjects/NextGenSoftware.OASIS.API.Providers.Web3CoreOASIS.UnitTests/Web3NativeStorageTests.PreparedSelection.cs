@@ -112,7 +112,11 @@ public partial class Web3NativeStorageTests
                     var loaded=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(request):router.RouteRequest<IAvatarDetail>(request);
                     Assert.IsFalse(loaded.IsError,loaded.Message);Assert.AreEqual(777L,loaded.Result.XP);
                     foreach(var type in types) Assert.AreEqual(before[type]+1,manager.PerformanceMonitor.GetMetrics(type).TotalRequests);
-                    Assert.AreEqual(0,(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Count,"Read-only routing must not invent mutation attempts.");
+                    var readAttempts=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts;
+                    Assert.AreEqual(1,readAttempts.Count,"The actual non-native read invocation is accounted even when it fails before native read failover.");
+                    Assert.AreEqual("SQLLiteDBOASIS",readAttempts.Single().Provider);
+                    Assert.IsNull(readAttempts.Single().NativePreparation,"Read routing must not invent signed mutation preparation.");
+                    Assert.IsNull(readAttempts.Single().ProviderRequestId);
                 }
                 foreach(var asynchronous in new[] {false,true})
                 {
