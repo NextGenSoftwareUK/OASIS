@@ -10,6 +10,7 @@
     <Compile Include="../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/SubscriptionReconciliation/UsageReconciliationModels.cs" Link="Production/UsageReconciliationModels.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/SubscriptionReconciliation/MongoUsageReconciler.cs" Link="Production/MongoUsageReconciler.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/SubscriptionReconciliation/StripeUsageEvidenceReader.cs" Link="Production/StripeUsageEvidenceReader.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionServiceIdentity.cs" Link="Production/SubscriptionServiceIdentity.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionMongoConfiguration.cs" Link="Production/SubscriptionMongoConfiguration.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionStripeConfiguration.cs" Link="Production/SubscriptionStripeConfiguration.cs" />
   </ItemGroup>

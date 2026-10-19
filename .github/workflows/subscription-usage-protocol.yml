@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27017/?replicaSet=ledger-test
+      SUBSCRIPTION_TEST_MONGODB_URI: mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000
+      OASIS_OWNED_RECOVERY_REPLICA_URI: mongodb://127.0.0.1:27029/?directConnection=true&serverSelectionTimeoutMS=2000
     steps:
       - uses: actions/checkout@v7
         with:
@@ -34,14 +35,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker run --detach --name usage-mongo -p 27017:27017 mongo:8.0.15 --replSet ledger-test --bind_ip_all --setParameter enableTestCommands=1
+          docker run --detach --name usage-mongo -p 27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all --setParameter enableTestCommands=1
           for attempt in $(seq 1 60); do
-            if docker exec usage-mongo mongosh --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then break; fi
+            if docker exec usage-mongo mongosh --port 27029 --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then break; fi
             sleep 1
           done
-          docker exec usage-mongo mongosh --quiet --eval 'rs.initiate({_id:"ledger-test",members:[{_id:0,host:"127.0.0.1:27017"}]})'
+          docker exec usage-mongo mongosh --port 27029 --quiet --eval 'rs.initiate({_id:"oasisRecoveryRs",members:[{_id:0,host:"127.0.0.1:27029"}]})'
           for attempt in $(seq 1 60); do
-            if docker exec usage-mongo mongosh --quiet --eval 'if(!db.hello().isWritablePrimary) quit(1)' >/dev/null 2>&1; then exit 0; fi
+            if docker exec usage-mongo mongosh --port 27029 --quiet --eval 'if(!db.hello().isWritablePrimary) quit(1)' >/dev/null 2>&1; then exit 0; fi
             sleep 1
           done
           exit 1
@@ -51,6 +52,8 @@ jobs:
           python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
           python3 Scripts/validate_subscription_rollout_gate.py
           pwsh -File Scripts/validate_web6_web4_metering_cutover.ps1
+      - name: Build WEB4 for compiled-controller protocol tests
+        run: dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj -c Debug -m:1
       - name: WEB4 transactions, ownership, migration and failure injection
         run: dotnet test ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj -m:1 --logger trx --results-directory TestResults/authority
       - name: WEB4 application unit tests
