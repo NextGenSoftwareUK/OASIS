@@ -54,26 +54,34 @@ public partial class NEAROASIS
     public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        string acknowledged=null;
         try
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
             var tokenId = request.TokenId ?? request.FromNFTTokenAddress ?? request.TokenAddress;
-            if (string.IsNullOrWhiteSpace(tokenId) || string.IsNullOrWhiteSpace(request.ToWalletAddress))
+            var destination=request.ToWalletAddress;var source=request.FromWalletAddress;
+            var privateKey=request.OwnerPrivateKey;var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
+            if (string.IsNullOrWhiteSpace(tokenId) || string.IsNullOrWhiteSpace(destination))
                 throw new ArgumentException("NEAR NFT token id and destination account are required.");
+            ValidateNftSigningInputs(seed);
+            if(!string.IsNullOrWhiteSpace(source)&&source!=_accountId&&string.IsNullOrWhiteSpace(privateKey))
+                throw new ArgumentException("An independent NFT sender requires its own signing key.");
             if (!await EnsureSdkActiveAsync(result)) return result;
             var before = await LoadOnChainNFTDataAsync(tokenId);
             if (before.IsError || before.Result == null)
                 throw before.Exception ?? new InvalidOperationException(before.Message);
-            var tx = await _sdk.CallAsync("nft_transfer", new { token_id = tokenId, receiver_id = request.ToWalletAddress });
-            await RecordWalletTransactionAsync(tx, before.Result.SendToAddressAfterMinting, request.ToWalletAddress,
-                1m, $"NEAR NFT transfer {tokenId}", Core.Enums.TransactionCategory.NFTs);
+            var owner=before.Result.SendToAddressAfterMinting;
+            if(!string.IsNullOrWhiteSpace(source)&&source!=owner)throw new ArgumentException("The requested NFT sender differs from its on-chain owner.");
+            var signer=await ResolveNftSignerAsync(owner,privateKey,publicKey);
+            var tx = await _sdk.CallAsync("nft_transfer", new { token_id = tokenId, receiver_id = destination },
+                signerAccountId:signer.Account,signerPrivateKey:signer.Key);
+            acknowledged=tx;
             var loaded = await LoadOnChainNFTDataAsync(tokenId);
             if (loaded.IsError) throw loaded.Exception ?? new InvalidOperationException(loaded.Message);
-            if (loaded.Result != null)
-            {
-                loaded.Result.SendToAddressAfterMinting = request.ToWalletAddress;
-                loaded.Result.SendNFTTransactionHash = tx;
-            }
+            if(loaded.Result==null||loaded.Result.SendToAddressAfterMinting!=destination)
+                throw new System.IO.InvalidDataException("Native NFT ownership after transfer differs from the requested recipient.");
+            loaded.Result.SendNFTTransactionHash = tx;
+            await RecordWalletTransactionAsync(tx,owner,destination,1m,$"NEAR NFT transfer {tokenId}",Core.Enums.TransactionCategory.NFTs);
             result.Result = new Web3NFTTransactionResponse
             {
                 TransactionResult = tx,
@@ -82,7 +90,10 @@ public partial class NEAROASIS
             };
             result.Message = "NFT transferred by the deployed NEAR contract.";
         }
-        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error sending NEAR NFT: {ex.Message}", ex); }
+        catch (Exception ex) {
+            if(!string.IsNullOrWhiteSpace(acknowledged))ex=new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,acknowledged,ex);
+            OASISErrorHandling.HandleError(ref result, $"Error sending NEAR NFT: {ex.Message}", ex);
+        }
         return result;
     }
 
