@@ -126,8 +126,47 @@ public class GoogleHistoryNativeTests
             }
             var repeated=await provider.DeleteAvatarAsync(id,true);Assert.IsFalse(repeated.IsError,repeated.Exception?.ToString());Assert.IsTrue(repeated.IsDeleted);Assert.IsFalse(repeated.IsSaved);
             Assert.AreEqual(revisions[0],(await profile.GetSnapshotAsync()).UpdateTime!.Value);Assert.AreEqual(revisions[1],(await detail.GetSnapshotAsync()).UpdateTime!.Value);
+            Assert.IsNull((await provider.LoadAvatarAsync(id)).Result);Assert.IsNull((await provider.LoadAvatarDetailAsync(id)).Result);
+            var historicalProfile=provider.LoadAvatar(id,1);Assert.IsFalse(historicalProfile.IsError,historicalProfile.Exception?.ToString());Assert.IsTrue(historicalProfile.Result.IsActive);Assert.IsFalse(historicalProfile.Result.IsDeleted);
+            var historicalDetail=await provider.LoadAvatarDetailAsync(id,1);Assert.IsFalse(historicalDetail.IsError,historicalDetail.Exception?.ToString());Assert.AreEqual(123L,historicalDetail.Result.XP);Assert.IsFalse(historicalDetail.Result.IsDeleted);
             var hard=await provider.DeleteAvatarAsync(id,false);Assert.IsFalse(hard.IsError,hard.Exception?.ToString());Assert.IsTrue(hard.IsDeleted);
             Assert.IsFalse((await profile.GetSnapshotAsync()).Exists);Assert.IsFalse((await detail.GetSnapshotAsync()).Exists);File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
+
+    [TestMethod]
+    public async Task HistoricalRootPredicatesKeepCurrentIndependentChildren()
+    {
+        var work=Admit();var id=Guid.NewGuid();var childId=Guid.NewGuid();var oldParent=Guid.NewGuid();var newParent=Guid.NewGuid();var owner=Guid.NewGuid();
+        var db=Database();var verifier=Database();var provider=new GoogleCloudOASIS("oasis-google-native",enableStorage:false,enableFirestore:true,enableBigQuery:false){IsProviderActivated=true,IsVersionControlEnabled=true};
+        typeof(GoogleCloudOASIS).GetField("_firestoreDb",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,db);
+        var root=new Holon{Id=id,IsActive=true,Name="owned-historical-root-"+id,ParentHolonId=oldParent,CreatedByAvatarId=owner,MetaData=new(){["owned-query"]=id.ToString()}};
+        var child=new Holon{Id=childId,IsActive=true,Name="child1",ParentHolonId=id};
+        var journal=Path.Combine(work,"history-native-query.pending.json");
+        try{
+            foreach(var key in new[]{id,childId})Assert.IsFalse((await verifier.Collection("holons").Document(key.ToString()).GetSnapshotAsync()).Exists);
+            using(var stream=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+                stream.Write(JsonSerializer.SerializeToUtf8Bytes(new{collection="holons",ids=new[]{id,childId},state="before-historical-query-fixture"}));stream.Flush(true);
+            }
+            async Task Save(Holon row){var result=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);}
+            await Save(root);await Save(child);child.Name="child2";await Save(child);child.Name="child3";await Save(child);
+            var oldName=root.Name;root.Name="current-root";root.ParentHolonId=newParent;root.CreatedByAvatarId=Guid.NewGuid();root.MetaData["owned-query"]="changed";await Save(root);
+            void CheckRoot(IHolon selected){Assert.AreEqual(id,selected.Id);Assert.AreEqual(1,selected.Version);Assert.AreEqual(oldParent,selected.ParentHolonId);Assert.AreEqual(owner,selected.CreatedByAvatarId);Assert.AreEqual(3,selected.Children.Single().Version);Assert.AreEqual("child3",selected.Children.Single().Name);}
+            var point=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true,version:1);Assert.IsFalse(point.IsError,point.Exception?.ToString());CheckRoot(point.Result);
+            var listed=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true,version:1);Assert.IsFalse(listed.IsError,listed.Message);CheckRoot(listed.Result.Single(row=>row.Id==id));
+            var parent=await provider.LoadHolonsForParentAsync(oldParent,loadChildrenFromProvider:true,version:1);Assert.IsFalse(parent.IsError,parent.Message);CheckRoot(parent.Result.Single());
+            var currentParent=await provider.LoadHolonsForParentAsync(newParent,loadChildren:false,version:1);Assert.IsFalse(currentParent.IsError,currentParent.Message);Assert.IsFalse(currentParent.Result.Any(row=>row.Id==id));
+            var metadata=await provider.LoadHolonsByMetaDataAsync("owned-query",id.ToString(),loadChildrenFromProvider:true,version:1);Assert.IsFalse(metadata.IsError,metadata.Message);CheckRoot(metadata.Result.Single());
+            var search=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,FilterByMetaData=new(){{"owned-query",id.ToString()}},SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery=oldName,SearchHolons=true}}},version:1);
+            Assert.IsFalse(search.IsError,search.Exception?.ToString());CheckRoot(search.Result.SearchResultHolons.Single());
+            var owned=await provider.ExportAllDataForAvatarByIdAsync(owner,1);Assert.IsFalse(owned.IsError,owned.Message);CheckRoot(owned.Result.Single());
+            var exported=provider.ExportAll(1);Assert.IsFalse(exported.IsError,exported.Message);CheckRoot(exported.Result.Single(row=>row.Id==id));
+            var absent=await provider.LoadAllHolonsAsync(loadChildren:false,version:99);Assert.IsFalse(absent.IsError,absent.Message);Assert.IsFalse(absent.Result.Any());
+            foreach(var key in new[]{id,childId}){
+                var reference=verifier.Collection("holons").Document(key.ToString());var actual=await reference.GetSnapshotAsync();Assert.IsTrue(actual.Exists);Assert.AreEqual(key.ToString(),actual.GetValue<string>("id"));
+                await reference.DeleteAsync(Precondition.LastUpdated(actual.UpdateTime!.Value));Assert.IsFalse((await reference.GetSnapshotAsync()).Exists);
+            }
+            File.Delete(journal);
         }finally{await provider.DeActivateProviderAsync();}
     }
 
@@ -143,6 +182,9 @@ public class GoogleHistoryNativeTests
         var id=Guid.NewGuid();var collection=kind==0?"avatars":kind==1?"avatarDetails":"holons";
         IHolonBase row=kind==0?new Avatar{Id=id,IsActive=true}:kind==1?new AvatarDetail{Id=id,IsActive=true}:new Holon{Id=id,IsActive=true};
         row.MetaData=new(){["owned_history_native"]="first"};
+        var oldName="owned-history-"+id;var oldEmail=oldName+"@example.invalid";
+        if(row is IAvatar profile){profile.Username=oldName;profile.Email=oldEmail;profile.VerificationToken=oldName;}
+        if(row is IAvatarDetail identity){identity.Username=oldName;identity.Email=oldEmail;}
         var provider=new GoogleCloudOASIS(projectId:"oasis-google-native",enableStorage:false,enableFirestore:true,enableBigQuery:false){IsVersionControlEnabled=true,IsProviderActivated=true};
         var writer=Database();var verifier=Database();
         typeof(GoogleCloudOASIS).GetField("_firestoreDb",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,writer);
@@ -160,6 +202,8 @@ public class GoogleHistoryNativeTests
             }
             await Save();Assert.AreEqual(1,row.Version);var firstVersion=row.VersionId;
             provider.IsVersionControlEnabled=false;row.MetaData["owned_history_native"]="second";
+            if(row is IAvatar currentProfile){currentProfile.Username=oldName+"-changed";currentProfile.Email="changed-"+oldEmail;currentProfile.VerificationToken=oldName+"-changed";}
+            if(row is IAvatarDetail currentIdentity){currentIdentity.Username=oldName+"-changed";currentIdentity.Email="changed-"+oldEmail;}
             await Save();Assert.AreEqual(2,row.Version);Assert.AreEqual(firstVersion,row.PreviousVersionId);
             var actual=await reference.GetSnapshotAsync();Assert.IsTrue(actual.Exists);Assert.IsTrue(actual.UpdateTime.HasValue);
             var document=JObject.Parse(actual.GetValue<string>("data_json"));Assert.AreEqual(2,document["Version"]!.Value<int>());
@@ -167,6 +211,33 @@ public class GoogleHistoryNativeTests
             var archive=(JArray)document[EmbeddedRecordHistory.PropertyName]!["records"]!;Assert.AreEqual(1,archive.Count);
             Assert.AreEqual(id.ToString(),archive[0]!["Id"]!.Value<string>());Assert.AreEqual(1,archive[0]!["Version"]!.Value<int>());
             Assert.AreEqual("first",archive[0]!["MetaData"]!["owned_history_native"]!.Value<string>());
+            // Public ID/key/list pipelines must select the requested record, never substitute latest.
+            if(kind==0){
+                var historical=await provider.LoadAvatarAsync(id,1);Assert.IsFalse(historical.IsError,historical.Exception?.ToString());Assert.AreEqual(1,historical.Result.Version);
+                Assert.AreEqual("first",historical.Result.MetaData["owned_history_native"]);
+                var byKey=await provider.LoadAvatarByProviderKeyAsync(id.ToString(),1);Assert.IsFalse(byKey.IsError,byKey.Message);Assert.AreEqual(1,byKey.Result.Version);
+                var listed=await provider.LoadAllAvatarsAsync(1);Assert.IsFalse(listed.IsError,listed.Message);Assert.AreEqual(1,listed.Result.Single(value=>value.Id==id).Version);
+                var username=await provider.LoadAvatarByUsernameAsync(oldName,1);Assert.IsFalse(username.IsError,username.Message);Assert.AreEqual(id,username.Result.Id);
+                var email=provider.LoadAvatarByEmail(oldEmail,1);Assert.IsFalse(email.IsError,email.Message);Assert.AreEqual(id,email.Result.Id);
+                Assert.IsNull((await provider.LoadAvatarByUsernameAsync(oldName)).Result);
+                Assert.IsInstanceOfType<NotSupportedException>((await provider.LoadAvatarByVerificationTokenAsync(oldName,1)).Exception);
+                Assert.IsNull((await provider.LoadAvatarByVerificationTokenAsync(oldName)).Result,"An archived token must not regain current authority.");
+                Assert.IsNull((await provider.LoadAvatarAsync(id,99)).Result);
+            }else if(kind==1){
+                var historical=await provider.LoadAvatarDetailAsync(id,1);Assert.IsFalse(historical.IsError,historical.Exception?.ToString());Assert.AreEqual(1,historical.Result.Version);
+                Assert.AreEqual("first",historical.Result.MetaData["owned_history_native"]);
+                var listed=await provider.LoadAllAvatarDetailsAsync(1);Assert.IsFalse(listed.IsError,listed.Message);Assert.AreEqual(1,listed.Result.Single(value=>value.Id==id).Version);
+                var username=await provider.LoadAvatarDetailByUsernameAsync(oldName,1);Assert.IsFalse(username.IsError,username.Message);Assert.AreEqual(id,username.Result.Id);
+                var email=provider.LoadAvatarDetailByEmail(oldEmail,1);Assert.IsFalse(email.IsError,email.Message);Assert.AreEqual(id,email.Result.Id);
+                Assert.IsNull((await provider.LoadAvatarDetailByUsernameAsync(oldName)).Result);
+                Assert.IsNull((await provider.LoadAvatarDetailAsync(id,99)).Result);
+            }else{
+                var historical=await provider.LoadHolonAsync(id,loadChildren:false,version:1);Assert.IsFalse(historical.IsError,historical.Exception?.ToString());Assert.AreEqual(1,historical.Result.Version);
+                Assert.AreEqual("first",historical.Result.MetaData["owned_history_native"]);
+                var byKey=await provider.LoadHolonAsync(id.ToString(),loadChildren:false,version:1);Assert.IsFalse(byKey.IsError,byKey.Message);Assert.AreEqual(1,byKey.Result.Version);
+                var listed=await provider.LoadAllHolonsAsync(loadChildren:false,version:1);Assert.IsFalse(listed.IsError,listed.Message);Assert.AreEqual(1,listed.Result.Single(value=>value.Id==id).Version);
+                Assert.IsNull((await provider.LoadHolonAsync(id,loadChildren:false,version:99)).Result);
+            }
             var ack=await reference.DeleteAsync(Precondition.LastUpdated(actual.UpdateTime.Value));Assert.AreNotEqual(default(Timestamp),ack.UpdateTime);
             Assert.IsFalse((await reference.GetSnapshotAsync()).Exists);File.Delete(journal);
         }finally{await provider.DeActivateProviderAsync();}

@@ -32,7 +32,6 @@ public partial class GoogleCloudOASIS
     private static void ValidateFirestoreVersion(int version)
     {
         if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
-        if(version!=0) throw new NotSupportedException("Firestore canonical reads currently support latest version (0) only.");
     }
 
     private async Task<OASISResult<bool>> EnsureDetailStoreAsync(int version)
