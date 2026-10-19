@@ -9,6 +9,32 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public sealed class OracleNativeAcceptanceTests
 {
+    [TestMethod]
+    public async Task UnicodeClobHistorySurvivesUpdatesDisablementAndLifecycle()
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,"unicode-clob.pending.json");Assert.IsFalse(File.Exists(journal));var id=Guid.NewGuid();
+        var payloads=new[]{new string('界',32769)+"🌳first",new string('種',32770)+"🌱second",new string('森',32771)+"🍃third"};
+        var row=new Holon{Id=id,Name="owned-unicode-clob",Description=payloads[0]};var provider=new OracleDBOASIS(connection){IsVersionControlEnabled=true};
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,state="before-native-unicode-clob"}));file.Flush(true);}
+            for(var i=0;i<payloads.Length;i++){
+                if(i==2)provider.IsVersionControlEnabled=false;row.Description=payloads[i];
+                var saved=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);Assert.AreEqual(i+1,row.Version);
+                var raw=await Read(verifier,"OASIS_HOLONS",id);Assert.IsNotNull(raw);Assert.IsTrue(raw.Length>32767);using var parsed=JsonDocument.Parse(raw);Assert.AreEqual(payloads[i],parsed.RootElement.GetProperty("Description").GetString());
+                var current=await provider.LoadHolonAsync(id,loadChildren:false);Assert.IsFalse(current.IsError,current.Exception?.ToString());Assert.AreEqual(payloads[i],current.Result.Description);
+            }
+            for(var version=1;version<=3;version++){
+                var historical=await provider.LoadHolonAsync(id,loadChildren:false,version:version);Assert.IsFalse(historical.IsError,historical.Exception?.ToString());Assert.AreEqual(payloads[version-1],historical.Result.Description);
+            }
+            var deleted=await provider.DeleteHolonAsync(id);Assert.IsFalse(deleted.IsError,deleted.Exception?.ToString());Assert.IsTrue(deleted.Result.IsDeleted);Assert.AreEqual(4,deleted.Result.Version);
+            var tombstoneRaw=await Read(verifier,"OASIS_HOLONS",id);Assert.IsNotNull(tombstoneRaw);using(var tombstone=JsonDocument.Parse(tombstoneRaw)){Assert.AreEqual(payloads[2],tombstone.RootElement.GetProperty("Description").GetString());Assert.AreEqual(3,tombstone.RootElement.GetProperty("_oasis_record_history").GetProperty("records").GetArrayLength());}
+            Assert.IsNull((await provider.LoadHolonAsync(id,loadChildren:false)).Result);
+            for(var version=1;version<=3;version++){var historical=await provider.LoadHolonAsync(id,loadChildren:false,version:version);Assert.IsFalse(historical.IsError,historical.Exception?.ToString());Assert.AreEqual(payloads[version-1],historical.Result.Description);}
+            var removed=await provider.DeleteHolonWithSoftDeleteAsync(id,false);Assert.IsFalse(removed.IsError,removed.Exception?.ToString());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
     private sealed class DispatchObserverProvider(string connection,Action<OracleCommand> observe):OracleDBOASIS(connection)
     {
         protected override Task<int> ExecuteCanonicalWriteAsync(OracleCommand command)

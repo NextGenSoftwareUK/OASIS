@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Bounded Unicode CLOB/history lifecycle — 2026-10-19
+
+New actual SDK case writes three distinct Unicode Description values (32,769–32,771 BMP characters plus supplementary emoji/suffix), independently parses native CLOB after each commit and checks public current reads exactly match without truncation. These exceed the32Kcharacter boundary; not a maximum-size/capacity claim. Versions1/2/3 survive disabling history before third update. Public soft-delete then commits version4 with3archived records, retains exact Unicode content, hides current tombstone, still exposes live historical versions1–3; public hard-delete finally proves native absence.
+
+Full23/23native pass12s/zero skips SHA256 `76BFBAD0CF2601EB3962DC6D6CC0CA0B21D7C8F301426D6632D61EB1FA3333FE` in fixed oracle-native-current.trx. Cached producer/integration0errors2/7warnings, prior114units unchanged/not rerun. Original ID journal precedes write, cleared only after acknowledged hard-delete/native absence; same container stopped/journals0. No production change needed for this tested path; no install/download/new environment/reset. Remaining huge-CLOB limits/all record types/storage growth/retention controls/encryption/transport/crash/concurrency/hosted/API/full V2 gates OPEN.
+
 ## Native credential-selector acceptance — 2026-10-19
 
 Inspected OracleCredentialReads and existing OASISStorageProviderBase/IOASISStorageProvider selector: Oracle already delegates latest-version selection to shared collection/projection logic, including duplicate-match rejection. No second credential selector implementation added. Extended existing actual native canonical fixture with reset/refresh tokens through two rotations (history retained, final version3). Sync/async current reset/refresh resolve correct avatar/version3, original tokens return error/no avatar, explicit version1 rejects before credential authority lookup. Existing verification-token rotation check remains.
