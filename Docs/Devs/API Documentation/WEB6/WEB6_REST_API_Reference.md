@@ -383,6 +383,26 @@ Run a SkillOpt epoch — the optimiser model proposes bounded edits to the skill
 
 ---
 
+### Publishing unit prices (audio, image, video, speech)
+
+Token prices come from each model entry. Every **unit-metered** call needs a contracted price in the catalogue's `unitPrices`, or WEB6 refuses it before anything is reserved: transcription (`audio_ms`), image generation (`image`), video (`video_generation`) and speech synthesis (`utf16_character`). Publish a new catalogue version with `POST /v1/admin/config/catalogue/publish` (admin):
+
+```json
+{
+  "reason": "Enable metered voice notes",
+  "catalogue": {
+    "version": "2026-10-19-audio",
+    "models": [ "...the current models array, unchanged..." ],
+    "unitPrices": [
+      { "provider": "AssemblyAI", "model": "nano",   "unit": "audio_ms", "usdPerUnit": 0.0000000333, "maxUnitsPerCall": 600000 },
+      { "provider": "Deepgram",   "model": "nova-3", "unit": "audio_ms", "usdPerUnit": 0.0000000717, "maxUnitsPerCall": 600000 }
+    ]
+  }
+}
+```
+
+The figures above are placeholders: use the rates in your provider contracts. `maxUnitsPerCall` bounds the reservation (600000 ms = 10 minutes of audio). Completions never reserve unit exposure. An agent run, including a voice note's agent run, reserves the worst unit call for each provider call in its budget.
+
 ## Agent Runtime
 
 ### POST `/v1/agent/run`
@@ -497,7 +517,7 @@ Gives a linked chat long-term memory. The chat's agent recalls from the holon an
 
 List or remove your linked chat identities.
 
-**Agent replies.** When the WEB4 usage protocol is enabled (`SUBSCRIPTION_USAGE_ENABLED=true`), each text message from a linked chat runs the avatar's agent unattended under the binding's delegated grant, reserved and settled exactly like `POST /v1/agent/run`. The grant must allow-list the endpoint `CHANNEL /v1/channels message`. A platform redelivering the same message maps to the same WEB4 operation, so it never runs or bills twice. A revoked, expired or exhausted grant is explained in the chat. Each binding keeps its last 6 exchanges and sends them to the agent as `history`, so follow-up messages keep the thread. Voice notes are refused with an explicit message: WEB6 bills transcription only when it can verify the audio's length (PCM WAV with published audio unit prices), and chat apps send compressed Ogg/Opus. Without the usage protocol, linked chats get an explicit "agent replies are not enabled" reply, never a fabricated answer.
+**Agent replies.** When the WEB4 usage protocol is enabled (`SUBSCRIPTION_USAGE_ENABLED=true`), each text message from a linked chat runs the avatar's agent unattended under the binding's delegated grant, reserved and settled exactly like `POST /v1/agent/run`. The grant must allow-list the endpoint `CHANNEL /v1/channels message`. A platform redelivering the same message maps to the same WEB4 operation, so it never runs or bills twice. A revoked, expired or exhausted grant is explained in the chat. Each binding keeps its last 6 exchanges and sends them to the agent as `history`, so follow-up messages keep the thread. **Voice notes** (Telegram and WhatsApp) are downloaded, measured and transcribed, then answered, all under the same single WEB4 operation as the agent loop. The reply starts with what was heard (`You said: "..."`). WEB6 bills transcription by measured audio length: PCM WAV, or Ogg Opus (what chat apps send), verified page by page with CRC checks. A voice note therefore needs an `audio_ms` unit price in the active catalogue (see *Publishing unit prices*). Until one is published, voice notes get an explicit "not priced on this server yet" reply and nothing is reserved. Slack and Discord don't deliver voice audio to bots. Without the usage protocol, linked chats get an explicit "agent replies are not enabled" reply, never a fabricated answer.
 
 ## Holonic BRAID Reasoning Graphs
 
