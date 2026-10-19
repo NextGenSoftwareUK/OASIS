@@ -15,9 +15,10 @@ using System.Text.RegularExpressions;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
-    public class CosmosDbClient : ICosmosDbClient
+    public partial class CosmosDbClient : ICosmosDbClient
     {
         private readonly Container _container;
+        private readonly bool _retainRecordHistory;
 
         private static CosmosException CreateServiceException(ResponseMessage response,string message)
         {
@@ -27,8 +28,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         }
 
         public CosmosDbClient(Container container)
+            : this(container,false) { }
+
+        public CosmosDbClient(Container container,bool retainRecordHistory)
         {
             _container = container ?? throw new ArgumentNullException(nameof(container));
+            _retainRecordHistory = retainRecordHistory;
         }
 
         private static async Task<ResponseMessage> ObserveMutationAsync(Func<Task<ResponseMessage>> operation,string id)
@@ -68,8 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         public string ReadDocumentByField(string fieldName, string fieldValue, int version = 0)
         {
             if(version < 0) throw new ArgumentOutOfRangeException(nameof(version));
-            if(string.IsNullOrWhiteSpace(fieldName) || !Regex.IsMatch(fieldName,@"\A[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*\z"))
-                throw new ArgumentException("A valid Cosmos property path is required.",nameof(fieldName));
+            ValidateFieldPath(fieldName);
             var query = new QueryDefinition($"SELECT * FROM c WHERE c.{fieldName} = @value")
                 .WithParameter("@value", fieldValue);
             if (version > 0)
@@ -93,6 +97,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 }
             }
             return match;
+        }
+
+        internal static void ValidateFieldPath(string fieldName)
+        {
+            if(string.IsNullOrWhiteSpace(fieldName) || !Regex.IsMatch(fieldName,@"\A[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*\z"))
+                throw new ArgumentException("A valid Cosmos property path is required.",nameof(fieldName));
         }
 
         public List<string> ReadAllDocuments()
@@ -139,59 +149,27 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             catch(Exception cause){throw new CosmosMutationReconciliationException(id,cause,acknowledged:true);}
         }
 
-        public async Task<string> CreateDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+        private static string DocumentId(object document)
         {
-            var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
-            jsonDocument["id"] = jsonDocument["Id"]?.ToString();
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
-            var pk = partitionKey ?? PartitionKey.None;
-            cancellationToken.ThrowIfCancellationRequested();
-            using var response = await ObserveMutationAsync(()=>_container.CreateItemStreamAsync(stream, pk, null, cancellationToken),jsonDocument["id"].ToString());
-            if (!response.IsSuccessStatusCode)
-                throw CreateServiceException(response,"Create failed");
-            return await ReadAcknowledgedPayloadAsync(response,jsonDocument["id"].ToString());
+            ArgumentNullException.ThrowIfNull(document);
+            var id=JObject.Parse(OasisJson.Serialize(document))["Id"]?.ToString();
+            if(string.IsNullOrWhiteSpace(id))throw new ArgumentException("A document identity is required.",nameof(document));
+            return id;
         }
 
-        public async Task<string> UpsertDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
-        {
-            var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
-            jsonDocument["id"] = jsonDocument["Id"]?.ToString();
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
-            cancellationToken.ThrowIfCancellationRequested();
-            using var response = await ObserveMutationAsync(()=>_container.UpsertItemStreamAsync(stream, partitionKey ?? PartitionKey.None, null, cancellationToken),jsonDocument["id"].ToString());
-            if (!response.IsSuccessStatusCode)
-                throw CreateServiceException(response,"Upsert failed");
-            return await ReadAcknowledgedPayloadAsync(response,jsonDocument["id"].ToString());
-        }
+        public Task<string> CreateDocumentAsync(object document,PartitionKey? partitionKey,CancellationToken cancellationToken=default)
+            => WriteCanonicalRecordAsync(DocumentId(document),document,partitionKey??PartitionKey.None,RecordWriteMode.Create,null,false,null,cancellationToken);
 
-        public async Task<string> ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
-            =>await ReplaceDocumentCoreAsync(documentId,document,partitionKey,null,cancellationToken);
+        public Task<string> UpsertDocumentAsync(object document,PartitionKey? partitionKey,CancellationToken cancellationToken=default)
+            => WriteCanonicalRecordAsync(DocumentId(document),document,partitionKey??PartitionKey.None,RecordWriteMode.Upsert,null,false,null,cancellationToken);
 
-        public async Task<string> ReplaceUnchangedDocumentAsync(string documentId,object expected,object document,PartitionKey? partitionKey,CancellationToken cancellationToken=default)
-        {
-            ArgumentNullException.ThrowIfNull(expected);ArgumentNullException.ThrowIfNull(document);
-            var json=await ReadDocumentAsync(documentId,partitionKey,cancellationToken);
-            if(json==null)throw new Core.Helpers.StorageLifecycleConflictException("Cosmos record disappeared before conditional replacement.");
-            var current=JObject.Parse(json);
-            var etag=current["_etag"]?.Type==JTokenType.String?current["_etag"].Value<string>():null;
-            if(string.IsNullOrWhiteSpace(etag))throw new InvalidDataException("Cosmos conditional replacement requires a native ETag.");
-            foreach(var field in new[]{"id","_etag","_rid","_self","_attachments","_ts"})current.Remove(field);
-            if(!StoredRecordPayloadEquality.Equivalent(JObject.Parse(OasisJson.Serialize(expected)),current))
-                throw new Core.Helpers.StorageLifecycleConflictException("Cosmos record changed before conditional replacement.");
-            return await ReplaceDocumentCoreAsync(documentId,document,partitionKey,new ItemRequestOptions{IfMatchEtag=etag},cancellationToken);
-        }
+        public Task<string> ReplaceDocumentAsync(string documentId,object document,PartitionKey? partitionKey,CancellationToken cancellationToken=default)
+            => WriteCanonicalRecordAsync(documentId,document,partitionKey??PartitionKey.None,RecordWriteMode.Replace,null,false,null,cancellationToken);
 
-        private async Task<string> ReplaceDocumentCoreAsync(string documentId, object document, PartitionKey? partitionKey,ItemRequestOptions options,CancellationToken cancellationToken)
+        public Task<string> ReplaceUnchangedDocumentAsync(string documentId,object expected,object document,PartitionKey? partitionKey,CancellationToken cancellationToken=default)
         {
-            var pk = partitionKey ?? PartitionKey.None;
-            var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
-            jsonDocument["id"] = documentId;
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
-            cancellationToken.ThrowIfCancellationRequested();
-            using var response = await ObserveMutationAsync(()=>_container.ReplaceItemStreamAsync(stream, documentId, pk, options, cancellationToken),documentId);
-            if (!response.IsSuccessStatusCode)
-                throw CreateServiceException(response,"Replace failed");
-            return await ReadAcknowledgedPayloadAsync(response,documentId);
+            ArgumentNullException.ThrowIfNull(expected);
+            return WriteCanonicalRecordAsync(documentId,document,partitionKey??PartitionKey.None,RecordWriteMode.ConditionalReplace,expected,false,null,cancellationToken);
         }
 
         public async Task DeleteDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default)

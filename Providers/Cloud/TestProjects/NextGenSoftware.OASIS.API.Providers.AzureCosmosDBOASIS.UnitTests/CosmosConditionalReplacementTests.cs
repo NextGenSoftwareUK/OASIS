@@ -14,6 +14,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 [TestClass]
 public class CosmosConditionalReplacementTests
 {
+    [TestMethod]
+    public async Task ConditionalMissingRecordIsLifecycleConflictBeforeMutation()
+    {
+        var expected=new Avatar{Id=Guid.NewGuid()};
+        var container=new Mock<Container>();
+        container.Setup(c=>c.ReadItemStreamAsync(expected.Id.ToString(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResponseMessage(HttpStatusCode.NotFound));
+        container.Setup(c=>c.ReadContainerAsync(It.IsAny<ContainerRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(Mock.Of<ContainerResponse>());
+        await Assert.ThrowsExceptionAsync<StorageLifecycleConflictException>(()=>new CosmosDbClient(container.Object)
+            .ReplaceUnchangedDocumentAsync(expected.Id.ToString(),expected,new Avatar{Id=expected.Id},null));
+        container.Verify(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()),Times.Never());
+    }
+
     [DataTestMethod][DataRow("changed")][DataRow("no-etag")][DataRow("etag-race")][DataRow("read-failure")]
     public async Task ConditionalMutationRejectsStaleOrUnverifiableSnapshot(string mode)
     {
