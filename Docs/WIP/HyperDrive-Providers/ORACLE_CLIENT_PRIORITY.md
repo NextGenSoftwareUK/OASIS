@@ -1,5 +1,15 @@
 # Oracle client readiness — top priority
 
+## Caller cancellation classification — LOCAL ONLY, 2026-10-19
+
+Reviewed Core OASISHyperDrive.HasTerminalProviderFailure: unclassified OperationCanceledException is terminal; an opaque SDK OracleException is not the same contract. ODP.NET may return ORA-01013 for cancellation. Oracle conditional owner now translates only pre-commit ORA-01013 with the actual caller token already cancelled into OperationCanceledException carrying that token and original OracleException. It does NOT translate arbitrary ORA-01013 without token cancellation, and does NOT downgrade any failure after commit entry: those still carry original operation-ID reconciliation fencing. Existing direct OperationCanceledException remains unchanged. No generic fallback/retry or Core router edit.
+
+Tightened actual native blocked-contender case: after exact V$SESSION blocking-SID observation, cancellation must yield OperationCanceledException with the caller token (not merely either OCE or raw Oracle1013). If a native inner cause is present it must be Oracle1013. Original remains held until release, contender receipt absent, one original commit, original known fixture/receipt cleanup independently verified. Suite output does not distinguish whether this SDK run cancelled directly with OCE or exercised the native1013 translation branch; do not claim branch coverage or full routed-V2 proof from this test.
+
+Native 65/65 pass, zero skips, 30 seconds; cached producer/integration builds 0 errors/2 and 7 warnings. Fixed `TestResults/OracleCurrent/oracle-native-current.trx` SHA256 `691246D1F51A63CE7BE1DB9F94E1D1D95266C2D4A88F0F3A477BC89E30C62DC8`. Runner terminal 0, journals 0, SAME retained container stopped cleanly. Unit consumer refreshed after producer build: 0 errors/3 warnings, 141/141 pass, zero skips, 714 ms; `oracle-conditional-admission.trx` SHA256 `6BDC51FFBDE3B92DFB6ED4F935AA1FCE4180324D2A7660DBD082B2E41A79B2D3`. Earlier same-turn unit run before producer refresh is not the final artifact evidence.
+
+Core contract/helper source still untracked in its shared submodule; preserve concurrent work, do not sweep into Oracle changes. Conditional implementation/helper/tests remain local and not advertised; immutable integration and full interface/API/hosted/V2 gates remain open. No downloads/install/new environment/data reset. Existing pinned Oracle SDK/runtime/cache reused; free Windows 71,001,759,744 bytes observed mid-run is whole-machine usage, not attributable Oracle growth.
+
 ## Conditional parent projection integrity — LOCAL ONLY, 2026-10-19
 
 Source review found conditional row admission compared native HOLON_TYPE/IS_DELETED with canonical data but omitted PARENT_HOLON_ID. A save could overwrite that inconsistent projection and a delete could remove it without detecting the integrity failure. The local transaction owner now selects/compares the parent column under the same FOR UPDATE lock, before any graph writes. Null native parent means Guid.Empty, matching canonical SQL writer semantics. No alternate reader, fallback or repair-on-write path was added.
