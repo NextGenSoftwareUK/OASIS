@@ -47,8 +47,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ActivityPubOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            _instanceUrl = instanceUrl ?? throw new ArgumentNullException(nameof(instanceUrl));
+            ArgumentNullException.ThrowIfNull(instanceUrl);
+            if(!Uri.TryCreate(instanceUrl,UriKind.Absolute,out var root)
+                ||(root.Scheme!=Uri.UriSchemeHttps&&!(root.Scheme==Uri.UriSchemeHttp&&root.IsLoopback))
+                ||!string.IsNullOrEmpty(root.UserInfo)||!string.IsNullOrEmpty(root.Query)||!string.IsNullOrEmpty(root.Fragment)
+                ||root.AbsolutePath!="/")
+                throw new ArgumentException("An HTTPS instance origin (or loopback HTTP) without path, credentials, query or fragment is required.",nameof(instanceUrl));
+            _instanceUrl = root.GetLeftPart(UriPartial.Authority);
             _accessToken = accessToken;
+            // Instance identity and authentication are bound to this configured origin.
+            if(handler is HttpClientHandler httpHandler)httpHandler.AllowAutoRedirect=false;
+            if(handler is SocketsHttpHandler socketsHandler)socketsHandler.AllowAutoRedirect=false;
             _httpClient = new HttpClient(handler ?? throw new ArgumentNullException(nameof(handler)))
             {
                 BaseAddress = new Uri(_instanceUrl)

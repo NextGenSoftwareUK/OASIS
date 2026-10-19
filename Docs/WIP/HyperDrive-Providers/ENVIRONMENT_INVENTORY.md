@@ -76,6 +76,10 @@ User approved ONE reusable Oracle test runtime. Inspected root AND rootless stor
 
 ## Cleanup / remaining inventory work
 
+### ActivityPub fixed build/evidence backfill — 2026-10-19
+
+No installed service/runtime or download: constructor/security tests use bounded in-process loopback TCP listeners disposed after each case; existing live public-read fixtures require no account/token/local server. Existing fixed paths under C:/Source/OASIS measured logical bytes: Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.UnitTests/bin46,188,514bytes/189files; corresponding ActivityPubOASIS.IntegrationTests/bin45,428,627bytes/187files; TestResults/ActivityPubCurrent302,680bytes/5files. Reuse these same outputs; bins can be rebuilt from retained source/cache after confirming no owned active build/test process. Compact red/current reports are evidence, not bulk disposable cache. No per-run directory, archive, clone, SDK installation or deletion. Windows free70,706,847,744bytes whole-machine observation, not allocated/reclaimed attribution.
+
 ### SOLID startup-binding verification — 2026-10-19
 
 Same root-Podman oasis-solid image58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a, configured127.0.0.1:13000, retained oasis-solid-data volume. Volume /var/lib/containers/storage/volumes/oasis-solid-data/_data measured364KiB allocated (du -sk). No account/Pod/client/runtime/image/volume recreation; existing protected synthetic identity reused. Owned resume completed6native cases then stopped; SIGTERM exceeded30seconds and Podman used SIGKILL, state exited137, journals0. Final-source rerun restart command was policy-rejected BEFORE launch; approval pending, do not bypass. No clean-shutdown/durability claim.
