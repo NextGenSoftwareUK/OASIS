@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-19 shared exact acknowledgement receipt codec local implementation reuses canonical codec/graph validator/cache/fixed report,466Shared tests pass including5new cases. Two additional SOURCE files (not environment clones/install outputs), kept uncommitted pending atomic integration. No runtime start/download/install/new environment/reset/deletion/reclaim. Exact hash/scope in ORACLE_CLIENT_PRIORITY.md.
+
 2026-10-19 local ordinary Oracle provider-revision prerequisite reused retained SDK/cache/container/volume/secret/fixed reports.120units/32native pass, acknowledged original fixture cleanup/journals0/container stopped. No download/install/new environment/reset/broad deletion/reclaim. Production source changes kept uncommitted pending Core dependency/atomic conditional integration; existing source preserved, not cleanup artifacts. Hashes/scope in ORACLE_CLIENT_PRIORITY.md.
 
 2026-10-19 conditional preparation local implementation reuses existing Shared project/Core codec/graph plan/cache. Five new unit cases/full461shared pass; fixed shared-conditional-plan.trx. New2SOURCE files local/uncommitted pending atomic integration (not runtime copies/download artifacts; preserve). No SDK/runtime download/install/start/new environment/reset/deletion/reclaim. Windows free71,432,187,904bytes; hash/scope and remaining integration gates in ORACLE_CLIENT_PRIORITY.md.
