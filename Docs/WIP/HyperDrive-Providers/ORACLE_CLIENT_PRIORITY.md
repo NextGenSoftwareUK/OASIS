@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Conditional root-only delete scope — LOCAL ONLY, 2026-10-19
+
+Two native soft/hard cases seed root+child, then request deletion with saveChildren=false and condition ONLY on root. Exactly one conditional commit; returned version2tombstone has no selected children. Original receipt replay returns identical VersionId with no extra commit. Independent child CLOB byte-identical and child still loadable with original ParentHolonId; soft root is canonical tombstone/hidden from current reads, hard root absent. Source root/child versions remain1, not published by provider. This verifies explicit non-cascade selection, not general orphan-policy resolution: hard root-only deletion can leave an independently retained child referencing removed parent by design of selected scope.
+
+Known synthetic child/root cleanup afterward uses acknowledged public hard-delete and native absence; original receipt exact operationID+hash delete independently absent before journal removal. No production change required for these tested paths.
+
+Full57/57native pass26s/zero skips =56acceptance+1diagnostic SHA256 `76C210FA617C2FFB3CC4F821CB15F8C8E4716EEEDE7A54D32B981DB6D32C153E`, fixed oracle-native-current.trx. Cached producer/integration0errors2/7warnings; prior127Oracle units/473Shared not rerun. Same runtime stopped/journals0/no download/install/new environment/reset. Feature source remains local/uncommitted/unadvertised pending final admission/authority-policy/dependency publication/immutable/API/V2 gates; no full-provider/all-provider certification.
+
 ## Mixed multi-root conditional transactions — LOCAL ONLY, 2026-10-19
 
 Two native sync/async cases combine a create-only new root with an update to an independently seeded existing root. Wrong existing revision returns exactly that root's CosmicConcurrencyConflict; new root independently absent, original existing CLOB byte-identical and failed-operation receipt absent. Valid current revision commits both roots together (versions1/2); original receipt replay preserves requested root order, versions and updated payload. Original source objects remain unpublished. Actual native current CLOB versions checked, then known synthetic roots hard-deleted with native absence and exact receipt cleanup/independent absence before journal removal.
