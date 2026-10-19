@@ -25,6 +25,12 @@ public class CosmosNativeStorageTests
         var identities=new Dictionary<string,List<Guid>>();
         var expected=new Dictionary<string,long>{{"Avatar",2},{"AvatarDetail",2},{"AvatarAttributes",2},{"AvatarAura",2},{"AvatarChakras",14},
             {"AvatarHumanDesign",2},{"AvatarInventory",1},{"AvatarSkills",2},{"AvatarStats",2},{"AvatarSuperPowers",2},{"Crystal",2},{"Holon",2}};
+        // Exact reviewed 2026-10-18 pre-dispatch-failover fixture, not an arbitrary permissive count.
+        if(reviewed=="810D9D2D9EB7B3E7C6DA992D41A3437143B026AB2BE4B9D83C33AC3B425ED19A")
+        {
+            foreach(var table in new[]{"AvatarDetail","AvatarAttributes","AvatarAura","AvatarHumanDesign","AvatarSkills","AvatarStats","AvatarSuperPowers","Crystal"})expected[table]=3;
+            expected["AvatarChakras"]=21;
+        }
         using(var sqlite=new Microsoft.Data.Sqlite.SqliteConnection(new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder{DataSource=path,Mode=Microsoft.Data.Sqlite.SqliteOpenMode.ReadOnly,Pooling=false}.ToString()))
         {
             await sqlite.OpenAsync();var names=new List<string>();
@@ -409,9 +415,14 @@ public class CosmosNativeStorageTests
                 var failedId=Guid.NewGuid();
                 var failed=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",Payload=new AvatarDetail {Id=failedId,IsActive=true,XP=888},PreferredProvider=Core.Enums.ProviderType.AzureCosmosDBOASIS};
                 var written=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(failed):router.RouteRequest<IAvatarDetail>(failed);
-                Assert.IsTrue(written.IsError);Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(written.Exception));
-                Assert.AreEqual(before+3,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
-                Assert.IsNull((await sqlite.LoadAvatarDetailAsync(failedId)).Result);
+                // The closed endpoint now fails during the SDK's conditional-write pre-read,
+                // BEFORE any mutation dispatch. Safe fallback is expected, unlike post-ACK uncertainty.
+                Assert.IsFalse(written.IsError,written.Message);Assert.AreEqual(888L,written.Result.XP);
+                Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(written.Exception));
+                Assert.AreEqual(before+4,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+                Assert.AreEqual(888L,(await sqlite.LoadAvatarDetailAsync(failedId)).Result.XP);
+                var originalDetail=(Interfaces.IAvatarDetailRepository)originals[typeof(AzureCosmosDBOASIS).GetField("avatarDetailRepository",flags)!];
+                Assert.IsNull(await originalDetail.GetByIdAsync(failedId.ToString()),"Pre-dispatch failure must leave no primary write.");
             }
         }
         finally {foreach(var pair in originals) pair.Key.SetValue(cosmos,pair.Value);manager.IsAutoFailOverEnabled=false;}

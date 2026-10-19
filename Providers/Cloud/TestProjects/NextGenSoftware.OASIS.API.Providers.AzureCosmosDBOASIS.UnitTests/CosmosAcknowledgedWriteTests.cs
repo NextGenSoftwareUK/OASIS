@@ -20,6 +20,7 @@ public class CosmosAcknowledgedWriteTests
         var body=mode=="missing"?"":mode=="malformed"?"not-json":document.ToString();
         var response=new ResponseMessage(System.Net.HttpStatusCode.OK){Content=new MemoryStream(System.Text.Encoding.UTF8.GetBytes(body))};
         var container=new Mock<Container>();
+        CosmosSdkTestRecords.Existing(container,entity.Id);
         container.Setup(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
         var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(new CosmosDbClient(container.Object));
         var failure=await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(()=>new AvatarRepository(factory.Object).UpdateAsync(entity));

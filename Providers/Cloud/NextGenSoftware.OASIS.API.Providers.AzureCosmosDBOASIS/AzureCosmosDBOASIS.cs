@@ -28,6 +28,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         private IAvatarRepository avatarRepository;
         private IAvatarDetailRepository avatarDetailRepository;
         private IHolonRepository holonRepository;
+        /// <summary>Begin retaining numbered versions. Existing item histories remain retained even when disabled later.</summary>
+        public bool IsVersionControlEnabled { get; set; }
 
         public AzureCosmosDBOASIS(Uri serviceEndpoint, string authKey, string databaseName, List<string> collectionNames)
         {

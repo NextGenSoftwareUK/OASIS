@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.IO;
 using Newtonsoft.Json.Linq;
@@ -10,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Exceptions;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
@@ -22,17 +24,20 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             _cosmosDbClientFactory = cosmosDbClientFactory;
         }
 
-        public async Task<T> GetByIdAsync(string id)
+        public Task<T> GetByIdAsync(string id) => GetByIdAsync(id,0);
+
+        public async Task<T> GetByIdAsync(string id,int version)
         {
             try
             {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 if(!Guid.TryParse(id,out var identity) || identity==Guid.Empty)
                     throw new ArgumentException("A nonempty Cosmos OASIS GUID identity is required.",nameof(id));
                 id=identity.ToString();
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var partitionKey = ResolvePartitionKey(id);
                 var json = await cosmosDbClient.ReadDocumentAsync(id, partitionKey);
-                return json == null ? default : DeserializeEntity(json,id);
+                return json == null ? default : DeserializeEntity(json,id,version);
             }
             catch (CosmosException) { throw; }
         }
@@ -41,6 +46,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             try
             {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                CosmosDbClient.ValidateFieldPath(fieldName);
+                if(version>0)
+                {
+                    var matches=GetList(version).Where(record=> {
+                        var value=JObject.Parse(OasisJson.Serialize(record)).SelectToken(fieldName);
+                        return value?.Type==JTokenType.String && value.Value<string>()==fieldValue;
+                    }).Take(2).ToList();
+                    if(matches.Count>1)throw new StorageIdentityAmbiguousException();
+                    return matches.Count==0 ? default : matches[0];
+                }
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var json = cosmosDbClient.ReadDocumentByField(fieldName, fieldValue, version);
                 return json == null ? default : DeserializeEntity(json);
@@ -48,15 +64,21 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             catch (CosmosException) { throw; }
         }
 
-        public List<T> GetList()
+        public List<T> GetList() => GetList(0);
+
+        public List<T> GetList(int version)
         {
             try
             {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var jsonList = cosmosDbClient.ReadAllDocuments();
                 var list = new List<T>();
                 foreach (var json in jsonList)
-                    list.Add(DeserializeEntity(json));
+                {
+                    var selected=DeserializeEntity(json,version:version);
+                    if(selected!=null)list.Add(selected);
+                }
                 return list;
             }
             catch (CosmosException) { throw; }
@@ -84,6 +106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             entity.Id=snapshot.Id;
             entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=expectedId;
+            entity.Version=acknowledged.Version;entity.VersionId=acknowledged.VersionId;entity.PreviousVersionId=acknowledged.PreviousVersionId;
             return acknowledged;
         }
 
@@ -112,10 +135,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
             var client=_cosmosDbClientFactory.GetClient(CollectionName);
             var json=await client.ReplaceDocumentAsync(key,snapshot,ResolvePartitionKey(key));
-            DecodeAcknowledgedEntity(json,snapshot,key);
+            var acknowledged=DecodeAcknowledgedEntity(json,snapshot,key);
             if(entity.Id!=originalId) throw new CosmosMutationReconciliationException(key,new InvalidDataException("Caller identity changed during acknowledged Cosmos replacement."),acknowledged:true);
             entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
+            entity.Version=acknowledged.Version;entity.VersionId=acknowledged.VersionId;entity.PreviousVersionId=acknowledged.PreviousVersionId;
         }
 
         public async Task DeleteAsync(T entity)
@@ -150,6 +174,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             {
                 if(string.IsNullOrWhiteSpace(json))throw new InvalidDataException("Acknowledged Cosmos write lacks its canonical response record.");
                 var acknowledged=DeserializeEntity(json,expectedId);
+                if(JObject.Parse(json)[CosmosEmbeddedHistory.PropertyName]!=null)
+                {
+                    // SDK already checked the exact stamped document including its archive.
+                    // Compare application fields against that ACK while accepting only SDK-owned version changes.
+                    entity=ProjectInput(entity);
+                    entity.Version=acknowledged.Version;entity.VersionId=acknowledged.VersionId;entity.PreviousVersionId=acknowledged.PreviousVersionId;
+                }
                 // Compare OASIS-owned fields after canonical decoding; Cosmos system fields
                 // (id/_etag/_rid/_ts) are not part of the submitted domain payload.
                 if(!StoredRecordPayloadEquality.Equivalent(JObject.Parse(OasisJson.Serialize(entity)),JObject.Parse(OasisJson.Serialize(acknowledged))))
@@ -159,7 +190,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             catch(Exception cause) {throw new CosmosMutationReconciliationException(expectedId,cause,acknowledged:true);}
         }
 
-        private T DeserializeEntity(string json,string expectedId=null)
+        private T DeserializeEntity(string json,string expectedId=null,int version=0)
         {
             try
             {
@@ -171,6 +202,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                     throw new InvalidDataException("Cosmos document key, OASIS payload identity and requested identity must match.");
                 var entity=(T)OasisJson.Deserialize(json,EntityType);
                 if(entity==null || entity.Id!=logical) throw new InvalidDataException("Deserialized Cosmos identity differs from its document.");
+                if(version>0 || document[CosmosEmbeddedHistory.PropertyName]!=null)
+                    entity=(T)CosmosEmbeddedHistory.ReadAsync<IHolonBase>(logical,document,version,
+                        text=>(IHolonBase)OasisJson.Deserialize(text,EntityType)).GetAwaiter().GetResult();
                 return entity;
             }
             catch(JsonException cause)

@@ -20,8 +20,8 @@ public class CosmosStreamOwnershipTests
         var response=new TrackedResponse(HttpStatusCode.OK);
         if(!missing)response.Content=new FaultingReadStream(cause);
         var container=new Mock<Container>();
+        if(operation!="create")CosmosSdkTestRecords.Existing(container,id);
         container.Setup(c=>c.CreateItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
-        container.Setup(c=>c.UpsertItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
         container.Setup(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
         var client=new CosmosDbClient(container.Object);
         var failed=await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(async()=>{
@@ -44,11 +44,14 @@ public class CosmosStreamOwnershipTests
     [DataRow("read")] [DataRow("query")] [DataRow("mutation")]
     public async Task ServiceErrorsRetainActualSubstatusAndActivity(string operation)
     {
+        var id=Guid.NewGuid();
         var response=new TrackedResponse(HttpStatusCode.BadRequest);response.SetContent("{}");
         response.Headers.Set("x-ms-substatus","1002");response.Headers.Set("x-ms-activity-id","owned-activity");
         var container=new Mock<Container>();
         container.Setup(c=>c.ReadItemStreamAsync(It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
         container.Setup(c=>c.UpsertItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        container.Setup(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        if(operation=="mutation")CosmosSdkTestRecords.Existing(container,id);
         var iterator=new Mock<FeedIterator>();iterator.Setup(i=>i.HasMoreResults).Returns(true);
         iterator.Setup(i=>i.ReadNextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(response);
         container.Setup(c=>c.GetItemQueryStreamIterator(It.IsAny<QueryDefinition>(),It.IsAny<string>(),It.IsAny<QueryRequestOptions>())).Returns(iterator.Object);
@@ -56,7 +59,7 @@ public class CosmosStreamOwnershipTests
         var failure=await Assert.ThrowsExceptionAsync<CosmosException>(async()=>
         {
             if(operation=="read") await client.ReadDocumentAsync("owned",null);
-            else if(operation=="mutation") await client.UpsertDocumentAsync(new {Id=Guid.NewGuid()},null);
+            else if(operation=="mutation") await client.UpsertDocumentAsync(new {Id=id},null);
             else client.ReadAllDocuments();
         });
         Assert.AreEqual(HttpStatusCode.BadRequest,failure.StatusCode);Assert.AreEqual(1002,failure.SubStatusCode);
@@ -146,7 +149,12 @@ public class CosmosStreamOwnershipTests
     [DataRow("delete",false)] [DataRow("delete",true)]
     public async Task ItemPathsDisposeSdkResponseAndOwnedRequestStreams(string operation,bool failure)
     {
+        var document=new {Id=Guid.NewGuid()};
         var response=new TrackedResponse(failure ? HttpStatusCode.BadRequest:HttpStatusCode.OK);response.SetContent("{}");
+        if(!failure && operation is "create" or "upsert" or "replace") {
+            var acknowledged=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize((object)document));
+            acknowledged["id"]=document.Id.ToString();response.SetContent(acknowledged.ToString());
+        }
         var container=new Mock<Container>();Stream? request=null;
         container.Setup(c=>c.ReadItemStreamAsync(It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
         container.Setup(c=>c.DeleteItemStreamAsync(It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
@@ -157,7 +165,7 @@ public class CosmosStreamOwnershipTests
         container.Setup(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
             .Callback<Stream,string,PartitionKey,ItemRequestOptions,CancellationToken>((s,_,_,_,_)=>request=s).ReturnsAsync(response);
         var client=new CosmosDbClient(container.Object);
-        var document=new {Id=Guid.NewGuid()};
+        if(operation is "upsert" or "replace")CosmosSdkTestRecords.Existing(container,document.Id);
         async Task Execute()
         {
             switch(operation)
@@ -181,7 +189,8 @@ public class CosmosStreamOwnershipTests
         var id=Guid.NewGuid();var cause=new IOException("owned lost response");
         var response=new TrackedResponse(HttpStatusCode.InternalServerError);response.SetContent("{}");
         var container=new Mock<Container>();
-        container.Setup(c=>c.UpsertItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
+        CosmosSdkTestRecords.Existing(container,id);
+        container.Setup(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
             .Returns(()=>transport ? Task.FromException<ResponseMessage>(cause):Task.FromResult<ResponseMessage>(response));
         var failure=await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(()=>new CosmosDbClient(container.Object).UpsertDocumentAsync(new {Id=id},null));
         Assert.AreEqual(id.ToString(),failure.DocumentId);Assert.AreEqual(string.Empty,failure.OriginalTransactionId);
