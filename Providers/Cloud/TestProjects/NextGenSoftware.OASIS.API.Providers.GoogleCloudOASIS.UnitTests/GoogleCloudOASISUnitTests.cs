@@ -44,7 +44,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result)
             {
                 Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);
-                Assert.IsInstanceOfType(result.Exception,version<0 ? typeof(System.ArgumentOutOfRangeException):typeof(System.NotSupportedException));
+                if(version<0)Assert.IsInstanceOfType<System.ArgumentOutOfRangeException>(result.Exception);
+                else Assert.AreSame(provider.Cause,result.Exception,"Positive data versions must enter the storage pipeline.");
             }
             Check(synchronous ? provider.LoadAvatar(id,version):await provider.LoadAvatarAsync(id,version));
             Check(synchronous ? provider.LoadAvatarByProviderKey(id.ToString(),version):await provider.LoadAvatarByProviderKeyAsync(id.ToString(),version));
@@ -55,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             Check(synchronous ? provider.LoadAvatarDetailByUsername("owned",version):await provider.LoadAvatarDetailByUsernameAsync("owned",version));
             Check(synchronous ? provider.LoadAvatarDetailByEmail("owned@example.invalid",version):await provider.LoadAvatarDetailByEmailAsync("owned@example.invalid",version));
             Check(synchronous ? provider.LoadAllAvatarDetails(version):await provider.LoadAllAvatarDetailsAsync(version));
-            Assert.AreEqual(0,provider.Activations);
+            Assert.AreEqual(version<0?0:9,provider.Activations);
         }
 
         [DataTestMethod]
@@ -178,7 +179,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             var provider=new FailedActivationProvider();
             Assert.IsInstanceOfType((await provider.ExportAllDataForAvatarByIdAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
             Assert.IsInstanceOfType((await provider.ExportAllDataForAvatarByEmailAsync(" ")).Exception,typeof(System.ArgumentException));
-            Assert.IsInstanceOfType((await provider.ExportAllAsync(version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await provider.ExportAllAsync(version:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
             Assert.AreEqual(0,provider.Activations);
             var failed=await provider.ExportAllDataForAvatarByUsernameAsync("owned");
             Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
@@ -211,7 +212,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             var provider=new FailedActivationProvider();
             Assert.IsInstanceOfType((await provider.LoadAvatarAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
             Assert.IsInstanceOfType((await provider.LoadAvatarByEmailAsync(" ")).Exception,typeof(System.ArgumentException));
-            Assert.IsInstanceOfType((await provider.LoadAllAvatarsAsync(version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await provider.LoadAllAvatarsAsync(version:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
             Assert.IsInstanceOfType((await provider.SaveAvatarAsync(null!)).Exception,typeof(System.ArgumentNullException));
             Assert.AreEqual(0,provider.Activations);
             Assert.AreSame(provider.Cause,(await provider.LoadAvatarAsync(System.Guid.NewGuid())).Exception);
@@ -228,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             Assert.IsInstanceOfType((await provider.SearchAsync(null!)).Exception,typeof(System.ArgumentNullException));
             var search=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false,
                 SearchGroups=new() {new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {SearchQuery="owned",SearchHolons=true}}};
-            Assert.IsInstanceOfType((await provider.SearchAsync(search,version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await provider.SearchAsync(search,version:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
             Assert.AreEqual(0,provider.Activations);
             var failed=await provider.SearchAsync(search);
             Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
@@ -240,7 +241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             var provider=new FailedActivationProvider();
             Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync((string)null,"x")).Exception,typeof(System.ArgumentException));
             Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync(" ","x")).Exception,typeof(System.ArgumentException));
-            Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync("key","x",version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync("key","x",version:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
             Assert.AreEqual(0,provider.Activations);
             var failed=await provider.LoadHolonsByMetaDataAsync("key","x");
             Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
@@ -253,7 +254,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
             Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync("bad-key")).Exception,typeof(System.ArgumentException));
             Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync(System.Guid.NewGuid(),curentChildDepth:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
-            Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync(System.Guid.NewGuid(),version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync(System.Guid.NewGuid(),version:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
             Assert.AreEqual(0,provider.Activations);
             var failed=await provider.LoadHolonsForParentAsync(System.Guid.NewGuid().ToString());
             Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
@@ -265,7 +266,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             var provider = new FailedActivationProvider();
             Assert.IsInstanceOfType((await provider.LoadAllHolonsAsync(maxChildDepth:-1)).Exception, typeof(System.ArgumentOutOfRangeException));
             Assert.IsInstanceOfType((await provider.LoadAllHolonsAsync(curentChildDepth:-1)).Exception, typeof(System.ArgumentOutOfRangeException));
-            Assert.IsInstanceOfType((await provider.LoadAllHolonsAsync(version:1)).Exception, typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await provider.LoadAllHolonsAsync(version:-1)).Exception, typeof(System.ArgumentOutOfRangeException));
             Assert.AreEqual(0, provider.Activations);
             var failed = await provider.LoadAllHolonsAsync();
             Assert.AreSame(provider.Cause, failed.Exception);
@@ -290,7 +291,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         {
             var provider=new FailedActivationProvider();
             Assert.IsInstanceOfType((await provider.LoadHolonAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
-            Assert.IsInstanceOfType((await provider.LoadHolonAsync(System.Guid.NewGuid(),version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await provider.LoadHolonAsync(System.Guid.NewGuid(),version:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
             Assert.IsInstanceOfType((await provider.LoadHolonAsync(System.Guid.NewGuid(),maxChildDepth:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
             Assert.AreEqual(0,provider.Activations);
             var failed=await provider.LoadHolonAsync(System.Guid.NewGuid());
@@ -314,7 +315,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         {
             var provider=new FailedActivationProvider();
             Assert.IsInstanceOfType((await provider.LoadAvatarDetailAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
-            Assert.IsInstanceOfType((await provider.LoadAllAvatarDetailsAsync(version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await provider.LoadAllAvatarDetailsAsync(version:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
             Assert.AreEqual(0,provider.Activations);
             var one=await provider.LoadAvatarDetailAsync(System.Guid.NewGuid());
             var all=await provider.LoadAllAvatarDetailsAsync();
@@ -342,10 +343,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             var invalid=email ? await provider.LoadAvatarDetailByEmailAsync(" "):await provider.LoadAvatarDetailByUsernameAsync(" ");
             Assert.IsInstanceOfType(invalid.Exception,typeof(System.ArgumentException));
             var historical=email ? await provider.LoadAvatarDetailByEmailAsync("owned",version:1):await provider.LoadAvatarDetailByUsernameAsync("owned",version:1);
-            Assert.IsInstanceOfType(historical.Exception,typeof(System.NotSupportedException));Assert.AreEqual(0,provider.Activations);
+            Assert.AreSame(provider.Cause,historical.Exception);Assert.AreEqual(1,provider.Activations);
             var failed=email ? await provider.LoadAvatarDetailByEmailAsync("owned"):await provider.LoadAvatarDetailByUsernameAsync("owned");
             Assert.IsTrue(failed.IsError);Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
-            Assert.AreEqual(1,provider.Activations);
+            Assert.AreEqual(2,provider.Activations);
         }
 
         [TestMethod]
