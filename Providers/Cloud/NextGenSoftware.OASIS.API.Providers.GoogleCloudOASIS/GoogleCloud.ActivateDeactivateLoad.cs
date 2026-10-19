@@ -59,16 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     if(!string.IsNullOrWhiteSpace(_credentialsPath)) storageBuilder.CredentialsPath=_credentialsPath;
                     _storageClient = await storageBuilder.BuildAsync();
                     
-                    // Test connection by creating a test bucket if it doesn't exist
-                    try
-                    {
-                        await _storageClient.GetBucketAsync(_bucketName);
-                    }
-                    catch(Google.GoogleApiException cause) when(cause.HttpStatusCode==System.Net.HttpStatusCode.NotFound)
-                    {
-                        // Create bucket if it doesn't exist
-                        await _storageClient.CreateBucketAsync(_projectId, _bucketName);
-                    }
+                    await VerifyGoogleBucketAsync(_storageClient,_bucketName);
                 }
                 
                 // Initialize Firestore client if enabled
@@ -85,16 +76,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         firestoreBuilder.CredentialsPath = _credentialsPath;
                     _firestoreDb = firestoreBuilder.Build();
 
-                    // Client construction does not contact Firestore. Perform a real,
-                    // reversible write so an unreachable or unauthorized provider can
-                    // never be advertised to HyperDrive as active.
-                    var activationProbe = _firestoreDb.Collection("_oasis_health").Document(Guid.NewGuid().ToString("N"));
-                    await activationProbe.SetAsync(new Dictionary<string, object>
-                    {
-                        ["provider"] = "GoogleCloudOASIS",
-                        ["checkedAt"] = Timestamp.GetCurrentTimestamp()
-                    });
-                    await activationProbe.DeleteAsync();
+                    // Construction alone is not availability evidence. Perform a bounded
+                    // native read, not an unadmitted probe write/delete with orphan risk.
+                    await VerifyFirestoreAvailabilityAsync(_firestoreDb);
                 }
                 
                 // Initialize BigQuery client if enabled
