@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -143,20 +144,12 @@ public partial class NEAROASIS
         return result;
     }
 
-    private static bool MetaMatches(IHolon holon, string key, string value) =>
-        holon.MetaData != null && holon.MetaData.TryGetValue(key, out var stored) &&
-        string.Equals(stored?.ToString(), value, StringComparison.Ordinal);
-
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string key, string value,
         HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
         int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
         int version = 0)
-    {
-        var all = await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth,
-            continueOnError, loadChildrenFromProvider, version);
-        if (!all.IsError) all.Result = all.Result.Where(holon => MetaMatches(holon, key, value)).ToList();
-        return all;
-    }
+        => await LoadHolonsByMetaDataAsync(key==null?null:new Dictionary<string,string>{{key,value}},MetaKeyValuePairMatchMode.All,
+            holonType,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string key, string value,
         HolonType holonType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
@@ -171,19 +164,21 @@ public partial class NEAROASIS
         bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IEnumerable<IHolon>>();
-        if (metaData == null || metaData.Count == 0)
+        try
         {
-            OASISErrorHandling.HandleError(ref result, "At least one metadata key/value pair is required.");
-            return result;
+            if (metaData == null || metaData.Count == 0 || metaData.Keys.Any(string.IsNullOrWhiteSpace))
+                throw new ArgumentException("Nonempty metadata pairs with nonblank keys are required.");
+            var filter=new Dictionary<string,string>(metaData);
+            var query=new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=filter,MetaKeyValuePairMatchMode=matchMode};
+            StoredRecordSearch.Validate(query,version,maxChildDepth,supportsHistory:true);
+            var all = await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth,
+                continueOnError, loadChildrenFromProvider, version);
+            if (all.IsError) return all;
+            all.Result=all.Result.Where(holon=>StoredRecordSearch.MatchesMetadata(holon.MetaData,filter,matchMode)).ToList();
+            all.IsLoaded=true;
+            return all;
         }
-        var all = await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth,
-            continueOnError, loadChildrenFromProvider, version);
-        if (all.IsError) return all;
-        bool Matches(IHolon holon) => matchMode == MetaKeyValuePairMatchMode.Any
-            ? metaData.Any(pair => MetaMatches(holon, pair.Key, pair.Value))
-            : metaData.All(pair => MetaMatches(holon, pair.Key, pair.Value));
-        all.Result = all.Result.Where(Matches).ToList();
-        return all;
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);return result;}
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaData,
