@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public sealed class DirectMongoAvatarDetailContractTests
 {
+    private sealed class CyclicMetadata { public CyclicMetadata Self=>this; }
     [Theory][InlineData(false)][InlineData(true)]
     public async Task PublicDetailSaveReadAndUpdatePreserveScalarProfileFields(bool synchronous)
     {
@@ -194,6 +195,13 @@ public sealed class DirectMongoAvatarDetailContractTests
                     }
                     if(revision==2){
                         var nativeFilter=new MongoDB.Bson.BsonDocument("_id",MongoDB.Bson.ObjectId.Parse(raw.Id));
+                        var beforeRejectedSave=await nativeCollection.Find(nativeFilter).SingleAsync();
+                        detail.MetaData["owned-cycle"]=new CyclicMetadata();
+                        var failedSave=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);
+                        Assert.True(failedSave.IsError);Assert.False(failedSave.IsSaved);
+                        Assert.NotNull(failedSave.Exception);
+                        Assert.Equal(beforeRejectedSave,await nativeCollection.Find(nativeFilter).SingleAsync());
+                        detail.MetaData.Remove("owned-cycle");
                         var special=new MongoDB.Bson.BsonRegularExpression("owned-native-regex","i");
                         var update=await nativeCollection.UpdateOneAsync(nativeFilter,new MongoDB.Bson.BsonDocument("$set",
                             new MongoDB.Bson.BsonDocument("MetaData.nativeOnly",special)));
