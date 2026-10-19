@@ -57,12 +57,15 @@ public sealed class EmbeddedRecordHistory
         return result;
     }
 
-    public async Task<JObject> StageAsync<T>(T proposed,JObject previousDocument,Func<string,T> decode) where T : class,IHolonBase
+    public Task<JObject> StageAsync<T>(T proposed,JObject previousDocument,Func<string,T> decode) where T : class,IHolonBase
+        => StageAsync(proposed,previousDocument,decode,record=>OasisJson.Serialize(record));
+
+    public async Task<JObject> StageAsync<T>(T proposed,JObject previousDocument,Func<string,T> decode,Func<T,string> encode) where T : class,IHolonBase
     {
-        ArgumentNullException.ThrowIfNull(proposed); ArgumentNullException.ThrowIfNull(decode);
+        ArgumentNullException.ThrowIfNull(proposed); ArgumentNullException.ThrowIfNull(decode); ArgumentNullException.ThrowIfNull(encode);
         if (proposed.Id == Guid.Empty) throw new ArgumentException("An explicit staged identity is required.",nameof(proposed));
         // Decode a detached canonical copy; no caller Version/keys are published before native acknowledgement.
-        var next = Decode(JObject.Parse(OasisJson.Serialize(proposed)),proposed.Id,decode);
+        var next = Decode(JObject.Parse(encode(proposed)),proposed.Id,decode);
         T previous = null;
         var archive = new SortedDictionary<int,JObject>();
         if (previousDocument != null)
@@ -73,11 +76,11 @@ public sealed class EmbeddedRecordHistory
             archive = ReadArchive(previousDocument,previous,decode);
         }
         await StoredRecordVersions.StampAsync(proposed.Id,next,previous,stored => {
-            if (!archive.TryAdd(stored.Version,JObject.Parse(OasisJson.Serialize(stored))))
+            if (!archive.TryAdd(stored.Version,JObject.Parse(encode((T)stored))))
                 throw new InvalidDataException("Embedded history archive would overwrite an existing version.");
             return Task.CompletedTask;
         });
-        var document = JObject.Parse(OasisJson.Serialize((object)next));
+        var document = JObject.Parse(encode(next));
         document["id"] = next.Id.ToString();
         document[PropertyName] = new JObject { ["schema"] = 1, ["records"] = new JArray(archive.Values) };
         return document;
