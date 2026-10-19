@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## OPEN native-confirmed metadata representation gap — 2026-10-19
+
+Read-only actual Oracle SDK diagnostic NativeMetadataScalarDefaultsDifferFromCanonicalMatcher establishes that the CURRENT `JSON_VALUE` expression returns boolean text `true` versus shared StoredRecordSearch.MetadataValueText(true) `True`; a6000character bound JSON string returns SQLNULL under that same default scalar expression, while existing shared matching accepts the exact6000character filter. Thus current SQL metadata paths cannot yet be considered equivalent to historical canonical matching for all metadata. NO production fix or certification claimed by this diagnostic test. The test intentionally asserts the observed difference, not acceptable finished behavior.
+
+Next implementation requirement: one specified canonical metadata representation for current/historical matching, preserving graph/version flags and truthful index consistency. Reuse shared matcher; do not add retry/fallback or reject otherwise supported large values merely to pass tests. Current SQL predicates scan JSON (no dedicated metadata index declared here), but canonical collection matching would increase transferred/decoded payload; assess that tradeoff and validate native boolean/large-string/current/history/All/Any behavior before shipping. Existing parent/type mismatch acceptance must remain truthful, not silently rewritten to mask corrupt native fields.
+
+Full runner30/30native pass14s/zero skips is29existing acceptance cases PLUS1read-only gap diagnostic, NOT30completed provider behaviors. SHA256 `FB38665174D9D310669ED2FC814C40E3B125FF3750F029646F1865611B556EA0`, fixed oracle-native-current.trx. Cached producer/integration0errors2/7warnings; prior122unit evidence unchanged/not rerun. Same environment stopped/journals0; no download/install/new runtime/reset. No durable data created by diagnostic (SELECT FROM DUAL with bound CLOB only). Full provider/V2 remains OPEN.
+
 ## Metadata admission and empty-filter semantics — 2026-10-19
 
 Latest dictionary metadata query constructed invalid SQL `AND ()` for empty filters, while historical shared matching treated empty/null as no filter. Invalid match modes also became implicit AND on latest and were only detected during historical row matching. Now reject unsupported mode before I/O and route empty/null filters directly to EXISTING LoadAllHolonsAsync with all depth/type/version flags preserved. No alternate storage implementation or retry. Shared MatchesMetadata already defines empty/null as match-all; this aligns latest with that contract.
