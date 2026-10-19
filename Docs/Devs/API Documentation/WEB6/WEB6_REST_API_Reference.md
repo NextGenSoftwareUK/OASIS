@@ -402,6 +402,7 @@ Runs a server-side agent loop inside one request. WEB6 reserves usage for up to 
 ```
 
 - `maxSteps` is 1–9 (one call is kept back for memory curation).
+- `history` (optional, new runs only): earlier `user` / `assistant` messages of an ongoing conversation. These are placed between the system prompt and the task, up to 20 messages and 16,000 characters.
 - With `memoryHolonId` (must be owned by the caller), the agent gets `oasis_agent_memory_search` and `oasis_agent_memory_record`, recalled memories are injected up front, and after a completed run one curation call stores durable facts tagged `agent-curated`.
 - If the model calls one of your `clientTools`, the run returns `status: "awaiting_tool_results"` with `pendingToolCalls` and `messages`. Execute the tools, append `{ "role": "tool", "toolCallId": ..., "content": ... }` messages, and POST again with `messages` (instead of `task`).
 - `status` is `completed`, `awaiting_tool_results` or `step_budget_exhausted`. The response also includes `runId`, `finalAnswer`, `steps` (per-step provider, model, tokens and tool calls), `curatedMemories`, `providerCalls`, and token and cost totals.
@@ -484,11 +485,19 @@ Set this URL as the webhook in each platform's console. These routes accept no O
 
 Returns an 8-character code valid for 15 minutes. Send `link CODE` (or `/link CODE`) from the chat app to bind that identity to your avatar. Codes are single-use and stored only as hashes. The grant (create it with `POST /api/subscription/usage/grants` on WEB4) is what will pay for agent replies on that chat.
 
+### PUT `/v1/channels/bindings/{bindingId}/memory`
+
+```json
+{ "memoryHolonId": "<a Holonic Memory holon you own, or null to detach>" }
+```
+
+Gives a linked chat long-term memory. The chat's agent recalls from the holon and curates durable facts into it after each answered message. A holon you don't own is refused with `403`.
+
 ### GET `/v1/channels/bindings` · DELETE `/v1/channels/bindings/{bindingId}`
 
 List or remove your linked chat identities.
 
-**Agent replies.** When the WEB4 usage protocol is enabled (`SUBSCRIPTION_USAGE_ENABLED=true`), each text message from a linked chat runs the avatar's agent unattended under the binding's delegated grant, reserved and settled exactly like `POST /v1/agent/run`. The grant must allow-list the endpoint `CHANNEL /v1/channels message`. A platform redelivering the same message maps to the same WEB4 operation, so it never runs or bills twice. A revoked, expired or exhausted grant is explained in the chat. Voice notes are refused with an explicit message. Without the usage protocol, linked chats get an explicit "agent replies are not enabled" reply, never a fabricated answer.
+**Agent replies.** When the WEB4 usage protocol is enabled (`SUBSCRIPTION_USAGE_ENABLED=true`), each text message from a linked chat runs the avatar's agent unattended under the binding's delegated grant, reserved and settled exactly like `POST /v1/agent/run`. The grant must allow-list the endpoint `CHANNEL /v1/channels message`. A platform redelivering the same message maps to the same WEB4 operation, so it never runs or bills twice. A revoked, expired or exhausted grant is explained in the chat. Each binding keeps its last 6 exchanges and sends them to the agent as `history`, so follow-up messages keep the thread. Voice notes are refused with an explicit message: WEB6 bills transcription only when it can verify the audio's length (PCM WAV with published audio unit prices), and chat apps send compressed Ogg/Opus. Without the usage protocol, linked chats get an explicit "agent replies are not enabled" reply, never a fabricated answer.
 
 ## Holonic BRAID Reasoning Graphs
 

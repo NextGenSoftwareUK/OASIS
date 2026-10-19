@@ -81,22 +81,28 @@ WEB6 passes through provider costs at **exactly** what they charge — no markup
 
 ---
 
-## Why WEB6 Over OpenRouter?
+## Why WEB6 Over OpenRouter or Hermes Agent?
 
-| Feature | OpenRouter | WEB6 |
-|---|---|---|
-| Number of providers | 600+ | 100 (growing rapidly) |
-| Single API key | ✅ | ✅ |
-| Pick any model per request | ✅ | ✅ |
-| Uncensored models | Some | ✅ Venice + OrcaRouter (default-able) |
-| Multi-agent reasoning (FAHRN) | ❌ | ✅ |
-| Holonic BRAID coordination | ❌ | ✅ |
-| Semantic response caching | ❌ | ✅ (reduces costs over time) |
-| Avatar memory injection | ❌ | ✅ |
-| Data ownership | OpenRouter's servers | Your infrastructure |
-| Middleman markup | Yes | **None** |
-| Free local model tier | ❌ | ✅ ($0 cost) |
-| Custom system prompt + knowledge base | Manual | ✅ Built-in avatar context layer |
+| Feature | OpenRouter | Hermes Agent | WEB6 |
+|---|---|---|---|
+| What it is | Model router | Single-user agent app | **Full AI platform** |
+| Number of providers | 600+ | A handful | 100 (growing rapidly) |
+| Single API key / OpenAI-compatible | ✅ | ✅ (as a client) | ✅ |
+| Uncensored models | Some | Whatever you configure | ✅ Venice + OrcaRouter (default-able) |
+| Multi-agent reasoning (FAHRN) | ❌ | Subagents only | ✅ |
+| Shared reasoning reuse (Holonic BRAID) | ❌ | ❌ | ✅ |
+| Semantic response caching | ❌ | ❌ | ✅ (repeat queries cost $0) |
+| Document corpus / RAG storage | ❌ | ❌ | ✅ Holonic Memory |
+| Long-term memory | ❌ | One agent's local notes | ✅ Per-avatar Holonic Memory + 7 external memory adapters, auto-curated |
+| Server-side agent loop | ❌ | ✅ | ✅ `/v1/agent/run`, metered per step |
+| Self-improving skills | ❌ | ✅ | ✅ SkillOpt, trained from scored runs |
+| WhatsApp / Telegram / Slack / Discord | ❌ | ✅ | ✅ Signed webhooks, per-chat memory, per-client billing |
+| Scheduled agent runs | ❌ | ✅ (unbilled, single user) | ✅ Exactly-once cron under budget-capped grants |
+| Multi-user isolation and per-user billing | ❌ | ❌ | ✅ WEB4 avatars, plans, limits, grants |
+| Data ownership | OpenRouter's servers | Your box | Your infrastructure (self-hostable ONODE) |
+| Middleman markup | Yes | n/a | **None** |
+| Free local model tier | ❌ | ✅ | ✅ ($0 cost) |
+| 500+ MCP tools, A2A / ACP / LangGraph | ❌ | MCP client | ✅ |
 
 ### The Key Differentiator
 
@@ -115,6 +121,14 @@ OpenRouter routes requests to individual models. **WEB6 coordinates multiple AI 
 4. **You control the guardrails** — the system prompt and knowledge base define Leela's worldview; the uncensored model simply means she won't refuse to engage with it, not that she ignores it
 
 5. **No vendor lock-in** — if a better uncensored model launches tomorrow, it can be added and set as default in minutes
+
+6. **Leela meets clients where they are** — WhatsApp, Telegram, Slack and Discord chats link to each client's avatar, remember the conversation, and are billed to that client's own capped grant
+
+7. **Leela checks in proactively** — scheduled runs (e.g. a daily evening check-in) post straight into the client's chat, exactly once, within budget
+
+8. **Leela gets better with use** — clinicians rate answers, and SkillOpt evolves her skill documents from those ratings
+
+For the full side-by-side, see [WEB6-Leela-AI-Integration-Guide.md § Why WEB6 beats a model router or Hermes Agent](WEB6-Leela-AI-Integration-Guide.md#why-web6-beats-a-model-router-or-hermes-agent-for-leela).
 
 ---
 
