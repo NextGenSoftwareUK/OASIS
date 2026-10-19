@@ -112,9 +112,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                     return DeserializeDocument(reader);
             }
 
-            // Skip unknown BSON type
-            reader.SkipValue();
-            return null;
+            // Portable metadata has no lossless mapping for these native-only types.
+            // Never return success with a silently substituted null that a later save could overwrite.
+            throw new BsonSerializationException($"Mongo metadata BSON type {bsonType} has no supported lossless portable representation.");
         }
 
         /// <summary>Read BSON binary; handles both Binary (generic bytes) and UuidLegacy/UuidStandard so deserialization does not throw.</summary>

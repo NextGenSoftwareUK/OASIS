@@ -192,6 +192,19 @@ public sealed class DirectMongoAvatarDetailContractTests
                         foreach(var property in scalarProperties)Assert.Equal(property.GetValue(detail),property.GetValue(loaded.Result));
                         foreach(var property in skillProperties)Assert.Equal(property.GetValue(skills),property.GetValue(loaded.Result.Skills));
                     }
+                    if(revision==2){
+                        var nativeFilter=new MongoDB.Bson.BsonDocument("_id",MongoDB.Bson.ObjectId.Parse(raw.Id));
+                        var special=new MongoDB.Bson.BsonRegularExpression("owned-native-regex","i");
+                        var update=await nativeCollection.UpdateOneAsync(nativeFilter,new MongoDB.Bson.BsonDocument("$set",
+                            new MongoDB.Bson.BsonDocument("MetaData.nativeOnly",special)));
+                        Assert.True(update.IsAcknowledged);Assert.Equal(1,update.MatchedCount);
+                        var rejected=synchronous?reader.LoadAvatarDetail(id):await reader.LoadAvatarDetailAsync(id);
+                        Assert.True(rejected.IsError);Assert.False(rejected.IsLoaded);
+                        Assert.NotNull(rejected.Exception);
+                        Assert.Contains("RegularExpression",rejected.Exception.ToString());
+                        var unchanged=await nativeCollection.Find(nativeFilter).SingleAsync();
+                        Assert.Equal(special,unchanged["MetaData"]["nativeOnly"]);
+                    }
                 }finally{await reader.DeActivateProviderAsync();}
             }
         }finally{

@@ -10,6 +10,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
 public class MongoMetadataDateTests
 {
     [DataTestMethod]
+    [DataRow(0,false)][DataRow(1,false)][DataRow(2,false)][DataRow(3,false)][DataRow(4,false)]
+    [DataRow(0,true)][DataRow(1,true)][DataRow(2,true)][DataRow(3,true)][DataRow(4,true)]
+    public void UnsupportedNativeMetadataTypesFailInsteadOfBecomingNull(int kind,bool nested)
+    {
+        BsonValue value=kind switch{
+            0=>new BsonRegularExpression("owned","i"),1=>new BsonTimestamp(123),
+            2=>BsonMinKey.Value,3=>BsonMaxKey.Value,_=>BsonUndefined.Value};
+        var values=new BsonDocument("unsupported",value);
+        var document=nested?new BsonDocument("nested",values):values;
+        using var reader=new BsonDocumentReader(document);
+        var error=Assert.ThrowsException<BsonSerializationException>(()=>new MetaDataDictionarySerializer().Deserialize(
+            BsonDeserializationContext.CreateRoot(reader),new BsonDeserializationArgs{NominalType=typeof(Dictionary<string,object>)}));
+        StringAssert.Contains(error.Message,value.BsonType.ToString());
+    }
+    [DataTestMethod]
     [DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
     public void BsonUuidMetadataRetainsIdentityForStandardAndExistingCSharpLegacy(bool nested,bool legacy)
     {
