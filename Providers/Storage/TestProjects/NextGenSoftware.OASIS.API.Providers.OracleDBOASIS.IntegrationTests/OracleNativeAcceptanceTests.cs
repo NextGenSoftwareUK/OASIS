@@ -100,6 +100,58 @@ public sealed class OracleNativeAcceptanceTests
         }finally{await provider.DeActivateProviderAsync();Assert.IsFalse(provider.IsProviderActivated);}
     }
 
+    [TestMethod]
+    public async Task DuplicateIdentityIsRejectedInsteadOfSelectingArbitraryAvatar()
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;
+        var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,"identity-ambiguity.pending.json");
+        var resume=Environment.GetEnvironmentVariable("OASIS_ORACLE_RECONCILE_AMBIGUITY")=="1";
+        Assert.AreEqual(resume,File.Exists(journal));
+        var ids=new[]{Guid.NewGuid(),Guid.NewGuid()};var name="owned-duplicate-"+ids[0].ToString("N");
+        if(resume){
+            using var intent=JsonDocument.Parse(await File.ReadAllTextAsync(journal));
+            Assert.AreEqual("before-native-duplicate-identities",intent.RootElement.GetProperty("state").GetString());
+            ids=intent.RootElement.GetProperty("ids").EnumerateArray().Select(value=>value.GetGuid()).ToArray();
+            Assert.AreEqual(2,ids.Length);Assert.AreNotEqual(ids[0],ids[1]);name="owned-duplicate-"+ids[0].ToString("N");
+            Assert.AreEqual(name,intent.RootElement.GetProperty("name").GetString());
+        }
+        var email=name+"@example.invalid";var provider=new OracleDBOASIS(connection);
+        try{
+            var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Exception?.ToString());
+            await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();
+            if(!resume){
+                foreach(var id in ids)foreach(var table in new[]{"OASIS_AVATARS","OASIS_AVATAR_DETAILS"})Assert.IsNull(await Read(verifier,table,id));
+                using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+                    await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids,name,state="before-native-duplicate-identities"}));file.Flush(true);
+                }
+                foreach(var id in ids){
+                    var avatar=await provider.SaveAvatarAsync(new Avatar{Id=id,Username=name,Email=email});Assert.IsFalse(avatar.IsError,avatar.Exception?.ToString());
+                    var detail=await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=id,Username=name,Email=email});Assert.IsFalse(detail.IsError,detail.Exception?.ToString());
+                }
+            }
+            foreach(var id in ids){
+                var avatar=await provider.LoadAvatarAsync(id);Assert.IsFalse(avatar.IsError,avatar.Exception?.ToString());Assert.AreEqual(name,avatar.Result.Username);Assert.AreEqual(email,avatar.Result.Email);
+                var detail=await provider.LoadAvatarDetailAsync(id);Assert.IsFalse(detail.IsError,detail.Exception?.ToString());Assert.AreEqual(name,detail.Result.Username);Assert.AreEqual(email,detail.Result.Email);
+            }
+            Check(await provider.LoadAvatarByUsernameAsync(name));Check(provider.LoadAvatarByUsername(name));
+            Check(await provider.LoadAvatarByEmailAsync(email));Check(provider.LoadAvatarByEmail(email));
+            Check(await provider.LoadAvatarDetailByUsernameAsync(name));Check(provider.LoadAvatarDetailByUsername(name));
+            Check(await provider.LoadAvatarDetailByEmailAsync(email));Check(provider.LoadAvatarDetailByEmail(email));
+            foreach(var id in ids)foreach(var table in new[]{"OASIS_AVATARS","OASIS_AVATAR_DETAILS"}){
+                var actual=await Read(verifier,table,id);Assert.IsNotNull(actual);
+                await using var delete=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};
+                delete.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();delete.Parameters.Add("Expected",OracleDbType.Clob).Value=actual;
+                Assert.AreEqual(1,await delete.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,table,id));
+            }
+            File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+        static void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){
+            Assert.IsTrue(result.IsError,"Duplicate identity must not silently pick the first record.");Assert.IsNull(result.Result);
+            Assert.IsInstanceOfType<InvalidDataException>(result.Exception);
+        }
+    }
+
     private static async Task<string?> Read(OracleConnection connection,string table,Guid id)
     {
         await using var command=new OracleCommand($"SELECT DATA_JSON FROM {table} WHERE ID=:Id",connection){BindByName=true};

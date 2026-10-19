@@ -1,14 +1,17 @@
-param([switch]$ReconcileOriginal)
+param([switch]$ReconcileOriginal,[switch]$ReconcileAmbiguity)
+if($ReconcileOriginal -and $ReconcileAmbiguity){throw 'Choose one original reconciliation mode.'}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/OracleCurrent'
 if(!(Test-Path -LiteralPath $work)){throw 'Retained Oracle work directory required; do not recreate an environment.'}
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $previousConnection=$env:ORACLEDBOASIS_CONNECTIONSTRING;$previousWork=$env:OASIS_ORACLE_TEST_WORK;$previousResume=$env:OASIS_ORACLE_RESUME_CANONICAL
+$previousAmbiguity=$env:OASIS_ORACLE_RECONCILE_AMBIGUITY
 $startedHere=$false;$passed=$false
 try{
     $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
     if($ReconcileOriginal){if($pending.Count -ne 1 -or $pending[0].Name -ne 'canonical-records.pending.json'){throw 'Exactly the original canonical journal required.'}}
+    elseif($ReconcileAmbiguity){if($pending.Count -ne 1 -or $pending[0].Name -ne 'identity-ambiguity.pending.json'){throw 'Exactly the original duplicate identity journal required.'}}
     elseif($pending.Count){throw 'Reconcile original Oracle fixture before another write.'}
     $image=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.Image}}' oasis-oracle-free).Trim()
     if($LASTEXITCODE -ne 0 -or $image -ne '358b32468eddc329751c28007a535cbc661f1090ab5d8a9f02267cf44ef1e3b9'){throw 'Approved retained Oracle image/container required; no pull/create.'}
@@ -38,12 +41,15 @@ try{
     if([string]::IsNullOrWhiteSpace($secret)){throw 'Retained secret unavailable.'}
     $env:ORACLEDBOASIS_CONNECTIONSTRING="User Id=SYSTEM;Password=$secret;Data Source=127.0.0.1:11521/FREEPDB1;Connection Timeout=10;Pooling=false"
     $env:OASIS_ORACLE_TEST_WORK=$work;$env:OASIS_ORACLE_RESUME_CANONICAL=if($ReconcileOriginal){'1'}else{$null}
-    $report=if($ReconcileOriginal){'oracle-native-reconciliation-current.trx'}else{'oracle-native-current.trx'}
-    & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter 'FullyQualifiedName~OracleNativeAcceptanceTests' --logger "trx;LogFileName=$report" --results-directory $work /m:2 /nr:false
+    $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=if($ReconcileAmbiguity){'1'}else{$null}
+    $report=if($ReconcileOriginal){'oracle-native-reconciliation-current.trx'}elseif($ReconcileAmbiguity){'oracle-ambiguity-reconciliation.trx'}else{'oracle-native-current.trx'}
+    $filter=if($ReconcileOriginal){'FullyQualifiedName~RealSdkCanonicalRecordsSelectorsAndMetadataPaths'}elseif($ReconcileAmbiguity){'FullyQualifiedName~DuplicateIdentityIsRejectedInsteadOfSelectingArbitraryAvatar'}else{'FullyQualifiedName~OracleNativeAcceptanceTests'}
+    & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter $filter --logger "trx;LogFileName=$report" --results-directory $work /m:2 /nr:false
     if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
     $passed=$true
 }finally{
     $env:ORACLEDBOASIS_CONNECTIONSTRING=$previousConnection;$env:OASIS_ORACLE_TEST_WORK=$previousWork;$env:OASIS_ORACLE_RESUME_CANONICAL=$previousResume;$secret=$null
+    $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=$previousAmbiguity
     if($startedHere -and $passed){& wsl -d Ubuntu -u root -- podman stop --time 30 oasis-oracle-free}
     $lease.Dispose()
 }
