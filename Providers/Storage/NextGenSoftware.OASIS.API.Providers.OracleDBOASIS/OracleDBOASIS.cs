@@ -117,7 +117,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
 
                 foreach (string block in ddlBlocks)
                 {
-                    await using var cmd = new OracleCommand(block, conn);
+                    await using var cmd = CreateCommand(block, conn);
                     await cmd.ExecuteNonQueryAsync();
                 }
 
@@ -142,6 +142,16 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
 
         // ─── ADO helpers ──────────────────────────────────────────────────────────
 
+        private static OracleCommand CreateCommand(string sql, OracleConnection connection)
+            => new OracleCommand(sql, connection) { BindByName = true };
+
+        private static void PublishSavedIdentity(IHolonBase source,IHolonBase stored)
+        {
+            source.Id=stored.Id;
+            source.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
+            source.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=stored.Id.ToString();
+        }
+
         private static string Serialize(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private static T? Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
@@ -156,6 +166,9 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             var result = new OASISResult<IAvatar>();
             try
             {
+                ArgumentNullException.ThrowIfNull(avatar);
+                var source=avatar;
+                avatar=Core.Serialization.StoredRecordJson.Project<Avatar>(source);
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null)
                     avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
@@ -173,7 +186,7 @@ WHEN NOT MATCHED THEN
 
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(avatar.Id);
                 cmd.Parameters.Add("Username", OracleDbType.Varchar2).Value = avatar.Username ?? "";
                 cmd.Parameters.Add("Email", OracleDbType.Varchar2).Value = avatar.Email ?? "";
@@ -181,10 +194,11 @@ WHEN NOT MATCHED THEN
                 cmd.Parameters.Add("DataJson", OracleDbType.Clob).Value = Serialize(avatar);
                 await cmd.ExecuteNonQueryAsync();
 
-                result.Result = avatar; result.IsError = false;
+                PublishSavedIdentity(source,avatar);
+                result.Result = source; result.IsSaved=true; result.IsError = false;
                 result.Message = $"OracleDBOASIS: Avatar '{avatar.Username}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar '{avatar.Username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar: {ex.Message}"); }
             return result;
         }
 
@@ -197,7 +211,7 @@ WHEN NOT MATCHED THEN
             string sql = $"SELECT DATA_JSON FROM OASIS_AVATARS WHERE {column}=:val AND IS_DELETED=0 AND ROWNUM=1";
             await using var conn = new OracleConnection(_connectionString);
             await conn.OpenAsync();
-            await using var cmd = new OracleCommand(sql, conn);
+            await using var cmd = CreateCommand(sql, conn);
             cmd.Parameters.Add("val", type).Value = value;
             var scalar = await cmd.ExecuteScalarAsync();
             if (scalar == null || scalar == DBNull.Value) return null;
@@ -252,7 +266,7 @@ WHEN NOT MATCHED THEN
                 var avatars = new List<IAvatar>();
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand("SELECT DATA_JSON FROM OASIS_AVATARS WHERE IS_DELETED=0", conn);
+                await using var cmd = CreateCommand("SELECT DATA_JSON FROM OASIS_AVATARS WHERE IS_DELETED=0", conn);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
@@ -279,7 +293,7 @@ WHEN NOT MATCHED THEN
                 string sql = softDelete
                     ? $"UPDATE OASIS_AVATARS SET IS_DELETED=1, MODIFIED_DATE=SYSTIMESTAMP WHERE {column}=:val"
                     : $"DELETE FROM OASIS_AVATARS WHERE {column}=:val";
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add("val", type).Value = value;
                 int rows = await cmd.ExecuteNonQueryAsync();
                 result.Result = rows > 0; result.IsError = !result.Result;
@@ -310,7 +324,12 @@ WHEN NOT MATCHED THEN
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                ArgumentNullException.ThrowIfNull(avatarDetail);
+                var source=avatarDetail;
+                avatarDetail=Core.Serialization.StoredRecordJson.Project<AvatarDetail>(source);
                 if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
+                avatarDetail.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
+                avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=avatarDetail.Id.ToString();
                 const string sql = @"
 MERGE INTO OASIS_AVATAR_DETAILS tgt
 USING (SELECT :Id AS ID FROM DUAL) src ON (tgt.ID = src.ID)
@@ -318,13 +337,14 @@ WHEN MATCHED THEN UPDATE SET tgt.USERNAME=:Username, tgt.EMAIL=:Email, tgt.DATA_
 WHEN NOT MATCHED THEN INSERT (ID,USERNAME,EMAIL,DATA_JSON) VALUES (:Id,:Username,:Email,:DataJson)";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(avatarDetail.Id);
                 cmd.Parameters.Add("Username", OracleDbType.Varchar2).Value = avatarDetail.Username ?? "";
                 cmd.Parameters.Add("Email", OracleDbType.Varchar2).Value = avatarDetail.Email ?? "";
                 cmd.Parameters.Add("DataJson", OracleDbType.Clob).Value = Serialize(avatarDetail);
                 await cmd.ExecuteNonQueryAsync();
-                result.Result = avatarDetail; result.IsError = false; result.Message = "OracleDBOASIS: AvatarDetail saved.";
+                PublishSavedIdentity(source,avatarDetail);
+                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "OracleDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar detail: {ex.Message}"); }
             return result;
@@ -337,7 +357,7 @@ WHEN NOT MATCHED THEN INSERT (ID,USERNAME,EMAIL,DATA_JSON) VALUES (:Id,:Username
             string sql = $"SELECT DATA_JSON FROM OASIS_AVATAR_DETAILS WHERE {column}=:val AND ROWNUM=1";
             await using var conn = new OracleConnection(_connectionString);
             await conn.OpenAsync();
-            await using var cmd = new OracleCommand(sql, conn);
+            await using var cmd = CreateCommand(sql, conn);
             cmd.Parameters.Add("val", type).Value = value;
             var scalar = await cmd.ExecuteScalarAsync();
             if (scalar == null || scalar == DBNull.Value) return null;
@@ -397,7 +417,7 @@ WHEN NOT MATCHED THEN INSERT (ID,USERNAME,EMAIL,DATA_JSON) VALUES (:Id,:Username
                 var details = new List<IAvatarDetail>();
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand("SELECT DATA_JSON FROM OASIS_AVATAR_DETAILS", conn);
+                await using var cmd = CreateCommand("SELECT DATA_JSON FROM OASIS_AVATAR_DETAILS", conn);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
@@ -419,6 +439,9 @@ WHEN NOT MATCHED THEN INSERT (ID,USERNAME,EMAIL,DATA_JSON) VALUES (:Id,:Username
             var result = new OASISResult<IHolon>();
             try
             {
+                ArgumentNullException.ThrowIfNull(holon);
+                var source=holon;
+                holon=Core.Serialization.StoredRecordJson.Project<Holon>(source);
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null)
                     holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
@@ -436,7 +459,7 @@ WHEN NOT MATCHED THEN
 
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(holon.Id);
                 cmd.Parameters.Add("ParentHolonId", OracleDbType.Raw).Value =
                     holon.ParentHolonId == Guid.Empty ? (object)DBNull.Value : GuidToRaw(holon.ParentHolonId);
@@ -445,9 +468,10 @@ WHEN NOT MATCHED THEN
                 cmd.Parameters.Add("DataJson", OracleDbType.Clob).Value = Serialize(holon);
                 await cmd.ExecuteNonQueryAsync();
 
-                result.Result = holon; result.IsError = false; result.Message = $"OracleDBOASIS: Holon '{holon.Name}' saved.";
+                PublishSavedIdentity(source,holon);
+                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"OracleDBOASIS: Holon '{holon.Name}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving holon: {ex.Message}"); }
             return result;
         }
 
@@ -480,7 +504,7 @@ WHEN NOT MATCHED THEN
             {
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand("SELECT DATA_JSON FROM OASIS_HOLONS WHERE ID=:Id AND IS_DELETED=0 AND ROWNUM=1", conn);
+                await using var cmd = CreateCommand("SELECT DATA_JSON FROM OASIS_HOLONS WHERE ID=:Id AND IS_DELETED=0 AND ROWNUM=1", conn);
                 cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(id);
                 var scalar = await cmd.ExecuteScalarAsync();
                 if (scalar == null || scalar == DBNull.Value) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No holon found with ID '{id}'."); return result; }
@@ -515,7 +539,7 @@ WHEN NOT MATCHED THEN
                     : "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND HOLON_TYPE=:HolonType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 if (holonType != HolonType.All) cmd.Parameters.Add("HolonType", OracleDbType.Int32).Value = (int)holonType;
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
@@ -543,7 +567,7 @@ WHEN NOT MATCHED THEN
                     : "SELECT DATA_JSON FROM OASIS_HOLONS WHERE PARENT_HOLON_ID=:ParentId AND IS_DELETED=0 AND HOLON_TYPE=:HolonType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add("ParentId", OracleDbType.Raw).Value = GuidToRaw(id);
                 if (holonType != HolonType.All) cmd.Parameters.Add("HolonType", OracleDbType.Int32).Value = (int)holonType;
                 await using var reader = await cmd.ExecuteReaderAsync();
@@ -584,7 +608,7 @@ WHEN NOT MATCHED THEN
                 string sql = softDelete
                     ? "UPDATE OASIS_HOLONS SET IS_DELETED=1, MODIFIED_DATE=SYSTIMESTAMP WHERE ID=:Id"
                     : "DELETE FROM OASIS_HOLONS WHERE ID=:Id";
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(id);
                 int rows = await cmd.ExecuteNonQueryAsync();
                 result.Result = rows > 0; result.IsError = !result.Result;
@@ -623,7 +647,7 @@ WHEN NOT MATCHED THEN
                     : "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND (JSON_VALUE(DATA_JSON,'$.name') LIKE :Q OR JSON_VALUE(DATA_JSON,'$.description') LIKE :Q)";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 if (!string.IsNullOrEmpty(query)) cmd.Parameters.Add(":Q", OracleDbType.Varchar2).Value = $"%{query}%";
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
@@ -649,7 +673,7 @@ WHEN NOT MATCHED THEN
                 string sql = softDelete
                     ? "UPDATE OASISAVATARS SET ISDELETED=1 WHERE USERNAME=:Key OR EMAIL=:Key"
                     : "DELETE FROM OASISAVATARS WHERE USERNAME=:Key OR EMAIL=:Key";
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add(":Key", OracleDbType.Varchar2).Value = providerKey;
                 int rows = await cmd.ExecuteNonQueryAsync();
                 result.Result = rows > 0;
@@ -686,7 +710,7 @@ WHEN NOT MATCHED THEN
                 const string sql = "SELECT DataJson FROM OASISAvatars WHERE Email=:Email AND IsDeleted=0";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add(":Email", OracleDbType.Varchar2).Value = avatarEmail;
                 var json = (string?)await cmd.ExecuteScalarAsync();
                 if (json != null) result.Result = Deserialize<Avatar>(json);
@@ -708,7 +732,7 @@ WHEN NOT MATCHED THEN
                 if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 int idx = 0;
                 foreach (var v in metaKeyValuePairs.Values) cmd.Parameters.Add($":v{idx++}", OracleDbType.Varchar2).Value = v;
                 if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
@@ -748,7 +772,7 @@ WHEN NOT MATCHED THEN
                 if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add(":ParentId", OracleDbType.Raw).Value = GuidToRaw(id);
                 if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
                 var holons = new List<IHolon>();
@@ -770,7 +794,7 @@ WHEN NOT MATCHED THEN
                 if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
@@ -792,7 +816,7 @@ WHEN NOT MATCHED THEN
                 const string sql = "UPDATE OASIS_HOLONS SET IS_DELETED=1, MODIFIED_DATE=SYSTIMESTAMP WHERE ID=:Id";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add(":Id", OracleDbType.Raw).Value = GuidToRaw(id);
                 await cmd.ExecuteNonQueryAsync();
                 result.Result = loaded.Result; result.IsError = false;
@@ -836,7 +860,7 @@ WHEN NOT MATCHED THEN
                 if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add(":MetaValue", OracleDbType.Varchar2).Value = metaValue;
                 if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
                 var holons = new List<IHolon>();
@@ -860,7 +884,7 @@ WHEN NOT MATCHED THEN
                 const string sql = "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND JSON_VALUE(DATA_JSON,'$.avatarId')=:AvatarId";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new OracleCommand(sql, conn);
+                await using var cmd = CreateCommand(sql, conn);
                 cmd.Parameters.Add(":AvatarId", OracleDbType.Varchar2).Value = avatarId.ToString();
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
