@@ -65,7 +65,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Native tests failed; retain/reconcile pending originals before any rerun.' }
         [xml]$report = Get-Content -LiteralPath (Join-Path $evidence $reportName)
         $counters = $report.TestRun.ResultSummary.Counters
-        $expectedRows = if ($Suite -in @('History','PublicKeys')) { '4' } else { '2' }
+        $expectedRows = if ($Suite -in @('Native','History','PublicKeys')) { '4' } else { '2' }
         if ($counters.total -ne $expectedRows -or $counters.passed -ne $expectedRows -or $counters.failed -ne '0' -or $counters.notExecuted -ne '0') { throw 'Expected all selected native rows executed and passing; no skip-based certification.' }
         if (Test-Path -LiteralPath $journal) { throw 'Pending native original remains; preserve it.' }
         if (Test-Path -LiteralPath $assetApi) { throw 'Pending asset API original remains; preserve it.' }

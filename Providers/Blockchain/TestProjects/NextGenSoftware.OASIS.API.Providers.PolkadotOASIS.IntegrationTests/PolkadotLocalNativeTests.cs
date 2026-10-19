@@ -15,14 +15,16 @@ public class PolkadotLocalNativeTests
     private const string Sender = "0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c";
     private const string Recipient = "0x8ee504148e75c34e8f051899b3c6e4241ff18dc1c9211260b6a6a434bedb485f";
 
-    [DataTestMethod][DataRow(false)][DataRow(true)][TestCategory("LocalNative")]
-    public async Task OwnedNativeTransferFinalizesAndAccountsForExactFees(bool synchronous)
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)][TestCategory("LocalNative")]
+    public async Task OwnedNativeTransferFinalizesAndAccountsForExactFees(bool synchronous, bool bridge)
     {
         Assert.AreEqual("1", Environment.GetEnvironmentVariable("OASIS_POLKADOT_LOCAL_NATIVE"));
         var journal = Environment.GetEnvironmentVariable("OASIS_POLKADOT_LOCAL_NATIVE_JOURNAL")!;
         Assert.IsFalse(string.IsNullOrWhiteSpace(journal), "Explicit fixed journal required.");
         Assert.IsFalse(File.Exists(journal), "Pending original exists: reconcile read-only, never replay or overwrite.");
-        using var provider = new PolkadotOASIS(Endpoint, Genesis);
+        var localSeed = "0x" + string.Concat(Enumerable.Repeat("02", 32));
+        using var provider = bridge ? new PolkadotOASIS(Endpoint, Genesis, localSeed, synchronous ? Sender : Recipient)
+            : new PolkadotOASIS(Endpoint, Genesis);
         Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
         Assert.AreEqual(Genesis, provider.ReportedGenesisHash);
         var beforeSender = await Balance(provider, Sender);
@@ -40,13 +42,25 @@ public class PolkadotLocalNativeTests
             Amount = 1.000000000001m, OwnerPrivateKey = "0x" + string.Concat(Enumerable.Repeat("02", 32)),
             MemoText = synchronous ? null : "Local native transfer 🌳" }; // Public LOCAL-ONLY test seed; never fund it on public chains.
         using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-        var sent = await provider.ExecutePreparedNativeOperationAsync(() => synchronous
-            ? Task.FromResult(provider.SendToken(request)) : provider.SendTokenAsync(request),
-            execution, "local-native-transfer", Sender, deadline.Token);
-        Assert.IsFalse(sent.IsError, sent.Exception?.ToString());
+        string transactionId;
+        if (bridge) {
+            var sent = await provider.ExecutePreparedNativeOperationAsync(() => synchronous
+                ? provider.DepositAsync(request.Amount, Recipient) : provider.WithdrawAsync(request.Amount, Sender, localSeed),
+                execution, "local-native-transfer", Sender, deadline.Token);
+            Assert.IsFalse(sent.IsError, sent.Exception?.ToString());
+            Assert.IsTrue(sent.Result.IsSuccessful);
+            Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed, sent.Result.Status);
+            transactionId = sent.Result.TransactionId;
+        } else {
+            var sent = await provider.ExecutePreparedNativeOperationAsync(() => synchronous
+                ? Task.FromResult(provider.SendToken(request)) : provider.SendTokenAsync(request),
+                execution, "local-native-transfer", Sender, deadline.Token);
+            Assert.IsFalse(sent.IsError, sent.Exception?.ToString());
+            transactionId = sent.Result.TransactionResult;
+        }
         Assert.AreEqual(1, observed.Calls);
         Assert.IsNotNull(observed.Attempt);
-        Assert.AreEqual(observed.Attempt.ProviderRequestId, sent.Result.TransactionResult);
+        Assert.AreEqual(observed.Attempt.ProviderRequestId, transactionId);
         var original = JsonSerializer.SerializeToElement(new { chainId = Genesis, sender = Sender,
             transactionHash = observed.Attempt.ProviderRequestId, signedTransactionBase64 = observed.Attempt.NativePreparation.SignedTransactionBase64,
             signature = observed.Attempt.NativePreparation.Signature, signDocBase64 = observed.Attempt.NativePreparation.SignDocBase64 });
@@ -71,8 +85,9 @@ public class PolkadotLocalNativeTests
         Assert.AreEqual(transferred, await Balance(provider, Recipient) - beforeRecipient);
         Assert.AreEqual(transferred + actualFee, beforeSender - await Balance(provider, Sender));
         using var retained = JsonDocument.Parse(await File.ReadAllTextAsync(journal));
-        Assert.AreEqual(sent.Result.TransactionResult, retained.RootElement.GetProperty("ProviderRequestId").GetString());
-        var completed = journal + (synchronous ? ".sync.completed.json" : ".async.completed.json");
+        Assert.AreEqual(transactionId, retained.RootElement.GetProperty("ProviderRequestId").GetString());
+        var completed = journal + (bridge ? (synchronous ? ".bridge-deposit.completed.json" : ".bridge-withdraw.completed.json")
+            : (synchronous ? ".sync.completed.json" : ".async.completed.json"));
         using (var file = new FileStream(completed, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough))
         {
             file.Write(JsonSerializer.SerializeToUtf8Bytes(new { original, receipt, transferredUnits = transferred.ToString(), actualFeeUnits = actualFee.ToString() }));

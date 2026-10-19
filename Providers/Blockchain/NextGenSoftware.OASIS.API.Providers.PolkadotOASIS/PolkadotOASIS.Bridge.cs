@@ -183,120 +183,44 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return result;
         }
 
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+        public Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+            => ExecuteBridgeTransferAsync(amount, senderAccountAddress, _bridgePoolAddress, senderPrivateKey);
+
+        public Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+            => ExecuteBridgeTransferAsync(amount, _bridgePoolAddress, receiverAccountAddress, _privateKey);
+
+        private async Task<OASISResult<BridgeTransactionResponse>> ExecuteBridgeTransferAsync(
+            decimal amount, string sender, string recipient, string signingKey)
         {
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Convert amount to Planck
-                var planckAmount = (ulong)(amount * 10_000_000_000m);
-                var bridgePoolAddress = _contractAddress ?? "";
-                if (string.IsNullOrWhiteSpace(bridgePoolAddress))
-                {
-                    // Fallback to default Polkadot address format if not configured
-                    bridgePoolAddress = "1" + new string('0', 47);
-                }
-
-                // Create transfer transaction using Polkadot RPC
-                // Build transaction hash deterministically from transaction parameters
-                var txData = $"{senderAccountAddress}:{bridgePoolAddress}:{planckAmount}:{DateTime.UtcNow.Ticks}";
-                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                var txHashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txData));
-                var txHash = Convert.ToHexString(txHashBytes).ToLowerInvariant();
-                
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = txHash,
-                    IsSuccessful = true,
-                    Status = BridgeTransactionStatus.Pending
+                if (!_isActivated) throw new InvalidOperationException("Polkadot provider is not activated.");
+                if (string.IsNullOrWhiteSpace(_bridgePoolAddress))
+                    throw new InvalidOperationException("An explicit bridge pool address is required; no guessed destination is permitted.");
+                if (amount <= 0 || string.IsNullOrWhiteSpace(sender) || string.IsNullOrWhiteSpace(recipient)
+                    || string.IsNullOrWhiteSpace(signingKey))
+                    throw new ArgumentException("A positive amount, explicit sender/recipient and signing key are required.");
+                var transfer = await SendOwnedNativeTransferAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest {
+                    FromWalletAddress = sender, ToWalletAddress = recipient, Amount = amount, OwnerPrivateKey = signingKey
+                }).ConfigureAwait(false);
+                if (transfer.IsError) throw transfer.Exception ?? new InvalidOperationException(transfer.Message);
+                var original = transfer.Result?.TransactionResult;
+                if (!IsGenesisHash(original))
+                    throw new System.IO.InvalidDataException("Finalized native transfer returned no valid original transaction identity.");
+                result.Result = new BridgeTransactionResponse {
+                    TransactionId = original, IsSuccessful = true, Status = BridgeTransactionStatus.Completed
                 };
-                result.IsError = false;
-                result.Message = "Polkadot withdrawal transaction created (requires full transaction signing implementation)";
+                result.Message = "Native pool transfer finalized; cross-chain authorization/release and billing settlement are separate.";
             }
-            catch (Exception ex)
+            catch (Exception failure)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
-        {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
-            {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(receiverAccountAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Convert amount to Planck
-                var planckAmount = (ulong)(amount * 10_000_000_000m);
-
-                // Create transfer transaction from bridge pool to receiver
-                // Build transaction hash deterministically from transaction parameters
-                var bridgePoolAddress = _contractAddress ?? "1" + new string('0', 33);
-                var txData = $"{bridgePoolAddress}:{receiverAccountAddress}:{planckAmount}:{DateTime.UtcNow.Ticks}";
-                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                var txHashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txData));
-                var txHash = Convert.ToHexString(txHashBytes).ToLowerInvariant();
-                
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = txHash,
-                    IsSuccessful = true,
-                    Status = BridgeTransactionStatus.Pending
-                };
-                result.IsError = false;
-                result.Message = "Polkadot deposit transaction created (requires full transaction signing implementation)";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
+                OASISErrorHandling.HandleError(ref result, failure.Message, failure);
+                var uncertain = failure as INativeMutationReconciliationRequired;
+                result.Result = new BridgeTransactionResponse {
+                    TransactionId = uncertain?.OriginalTransactionId ?? string.Empty,
+                    IsSuccessful = false, ErrorMessage = failure.Message,
+                    Status = uncertain != null ? BridgeTransactionStatus.Pending : BridgeTransactionStatus.Canceled
                 };
             }
             return result;
