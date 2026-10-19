@@ -35,6 +35,17 @@ public partial class EthereumOASISIntegrationTests
         source.Description="native-second-marker";
         var second=await Save(false);Assert.AreEqual(BigInteger.One,second.Receipt.Status.Value);Assert.AreEqual(2,second.Record.Version);
         Assert.AreEqual(first.Record.VersionId,second.Record.PreviousVersionId);Assert.AreEqual(0,source.Version);Assert.AreEqual(Guid.Empty,source.VersionId);
+        if(kind=="avatar"){
+            provider.IsVersionControlEnabled=true;
+            var saved=await provider.SaveAvatarAsync((IAvatar)source);Assert.IsFalse(saved.IsError,saved.Message);Assert.AreEqual(3,source.Version);
+            provider.IsVersionControlEnabled=false;
+            var synced=provider.SaveAvatar((IAvatar)source);Assert.IsFalse(synced.IsError,synced.Message);Assert.AreEqual(4,source.Version);
+        }else if(kind=="avatar-detail"){
+            provider.IsVersionControlEnabled=true;
+            var saved=await provider.SaveAvatarDetailAsync((IAvatarDetail)source);Assert.IsFalse(saved.IsError,saved.Message);Assert.AreEqual(3,source.Version);
+            provider.IsVersionControlEnabled=false;
+            var synced=provider.SaveAvatarDetail((IAvatarDetail)source);Assert.IsFalse(synced.IsError,synced.Message);Assert.AreEqual(4,source.Version);
+        }
         var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
         var id=new BigInteger(HashUtility.GetNumericHash(source.Id.ToString()));
         var ciphertext=kind switch {
@@ -50,7 +61,7 @@ public partial class EthereumOASISIntegrationTests
             var history=new EmbeddedRecordHistory();
             var latest=await history.ReadAsync(source.Id,document,0,OasisJson.DeserializeStored<T>);
             var archived=await history.ReadAsync(source.Id,document,1,OasisJson.DeserializeStored<T>);
-            Assert.AreEqual(2,latest.Version);Assert.AreEqual("native-second-marker",latest.Description);Assert.AreEqual(1,archived.Version);Assert.IsNull(archived.Description);
+            Assert.AreEqual(kind=="holon"?2:4,latest.Version);Assert.AreEqual("native-second-marker",latest.Description);Assert.AreEqual(1,archived.Version);Assert.IsNull(archived.Description);
             if(kind=="holon"){var children=((IHolon)archived).Children;Assert.AreEqual(1,children.Count());Assert.AreEqual("native-child",children.Single().Name);}
         }finally{CryptographicOperations.ZeroMemory(key);}
     }

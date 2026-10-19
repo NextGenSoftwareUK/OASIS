@@ -8,4 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.ContractDefinition
 
     [Function("storageProtocolVersion", "uint256")]
     public sealed class StorageProtocolVersionFunction : FunctionMessage { }
+
+    [Function("checkedStorageProtocolVersion", "uint256")]
+    public sealed class CheckedStorageProtocolVersionFunction : FunctionMessage { }
 }

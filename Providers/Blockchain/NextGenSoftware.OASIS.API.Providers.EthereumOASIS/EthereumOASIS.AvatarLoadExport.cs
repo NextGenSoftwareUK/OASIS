@@ -209,24 +209,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                var avatarInfo = SerializePrivateStorage("avatar",avatar);
-                var avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
-                var avatarId = avatar.AvatarId.ToString();
-
-                var requestTransaction = SubmitStorageRequestAsync(new ContractDefinition.CreateAvatarFunction {
-                    EntityId=avatarEntityId,AvatarId=avatarId,Info=avatarInfo }).GetAwaiter().GetResult();
-
-                if (!StorageReceiptSucceeded(requestTransaction))
-                {
-                    OASISErrorHandling.HandleError(ref result, 
-                        string.Concat(errorMessage, $"Creating of Avatar (Id): {avatar.AvatarId}, failed! Transaction performing is failure!"));
-                    return result;
-                }
-                
-                CommitEthereumStorageIdentity(avatar);
-                result.Result = avatar;
-                result.IsError = false;
-                result.IsSaved = true;
+                return SaveProfileHistoryAsync<IAvatar,Core.Holons.Avatar>(avatar,"avatar").GetAwaiter().GetResult();
             }
             catch (RpcResponseException ex)
             {
