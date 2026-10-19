@@ -65,6 +65,7 @@ public partial class AzureCosmosDBOASISIntegrationTests
     private sealed class BeforeReplaceHandler:RequestHandler
     {
         public Func<Task>? BeforeReplace;
+        public Func<ResponseMessage,Task<ResponseMessage>>? AfterReplace;
         public int ReplaceCalls;
         public override async Task<ResponseMessage> SendAsync(RequestMessage request,CancellationToken cancellationToken)
         {
@@ -74,7 +75,8 @@ public partial class AzureCosmosDBOASISIntegrationTests
                 var action=Interlocked.Exchange(ref BeforeReplace,null);
                 if(action!=null)await action();
             }
-            return await base.SendAsync(request,cancellationToken);
+            var response=await base.SendAsync(request,cancellationToken);
+            return request.Method==HttpMethod.Put && AfterReplace!=null ? await AfterReplace(response) : response;
         }
     }
 }
