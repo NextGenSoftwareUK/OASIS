@@ -134,6 +134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var avatarEntityId = HashUtility.GetNumericHash(Id.ToString());
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 var avatarDto = await _nextGenSoftwareOasisService.GetAvatarByIdQueryAsync(avatarEntityId);
                 if (avatarDto == null)
                 {
@@ -142,7 +143,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarEntityResult = DeserializePrivateStorage<Avatar>("avatar",avatarDto.ReturnValue1.EntityId,avatarDto.ReturnValue1.Info,Id);
+                var avatarEntityResult = ReadPrivateStorageVersion<Avatar>("avatar",avatarDto.ReturnValue1.EntityId,avatarDto.ReturnValue1.Info,Id,version);
+                if(avatarEntityResult==null){result.ErrorCode=OASISResultErrorCodes.RecordNotFound;throw new System.Collections.Generic.KeyNotFoundException("Ethereum avatar version not found.");}
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarEntityResult;
@@ -173,6 +175,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var avatarEntityId = HashUtility.GetNumericHash(Id.ToString());
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 var avatarDto = _nextGenSoftwareOasisService.GetAvatarByIdQueryAsync(avatarEntityId).Result;
 
                 if (avatarDto == null)
@@ -182,7 +185,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarEntityResult = DeserializePrivateStorage<Avatar>("avatar",avatarDto.ReturnValue1.EntityId,avatarDto.ReturnValue1.Info,Id);
+                var avatarEntityResult = ReadPrivateStorageVersion<Avatar>("avatar",avatarDto.ReturnValue1.EntityId,avatarDto.ReturnValue1.Info,Id,version);
+                if(avatarEntityResult==null){result.ErrorCode=OASISResultErrorCodes.RecordNotFound;throw new System.Collections.Generic.KeyNotFoundException("Ethereum avatar version not found.");}
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarEntityResult;
