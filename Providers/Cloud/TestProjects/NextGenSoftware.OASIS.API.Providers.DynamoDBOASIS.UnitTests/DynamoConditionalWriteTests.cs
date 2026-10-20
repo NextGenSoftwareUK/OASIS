@@ -19,6 +19,19 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 [TestClass]
 public class DynamoConditionalWriteTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task OrdinaryBatchPublishesCommittedRevisionForNextConditionalWrite(bool synchronous) {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var first=await provider.ExecuteConditionalHolonWriteAsync(Request(new Holon{Id=Guid.NewGuid()},Guid.NewGuid()));
+        Assert.IsFalse(first.IsError,first.Exception?.ToString());var row=(Holon)first.Result.Single();
+        var old=CosmicConcurrency.GetProviderRevisionId(row,ProviderType.DynamoDBOASIS);row.Name="ordinary batch";
+        var saved=synchronous?provider.SaveHolons(new[]{row},saveChildren:false):await provider.SaveHolonsAsync(new[]{row},saveChildren:false);
+        Assert.IsFalse(saved.IsError,saved.Exception?.ToString());
+        var current=CosmicConcurrency.GetProviderRevisionId(row,ProviderType.DynamoDBOASIS);
+        Assert.IsTrue(current.HasValue);Assert.AreNotEqual(old,current,"Batch must publish committed provider revision to original caller.");
+        var next=await provider.ExecuteConditionalHolonWriteAsync(Request(row,Guid.NewGuid(),current));
+        Assert.IsFalse(next.IsError,next.Exception?.ToString());
+    }
     private sealed class Client:AmazonDynamoDBClient
     {
         public Dictionary<string,Dictionary<string,AttributeValue>> Rows=new();

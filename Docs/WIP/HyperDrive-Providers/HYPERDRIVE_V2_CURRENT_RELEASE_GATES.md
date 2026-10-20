@@ -1,5 +1,25 @@
 # HyperDrive V2 current release gates
 
+## Dynamo/AWS batch revision publication — native acceptance, 2026-10-20
+
+Both provider aliases×sync/async **4/4 native passed1s0skip**, runnerterminal0 under exclusive build lease. Ordinary two-node graph batches return nonempty caller tokens matching independently strongly-consistent native canonical records; subsequent atomic graph using exactly those caller tokens succeeds and rotates both revisions. Confirms the two controlled red-before cases and326green root fix below. Same production publication owner/shared CosmicConcurrency helper, no new persistence write or interface fork.
+
+Report TestResults/DynamoHistoryCurrent/dynamo-batch-revision-native-current.trx SHA256B1C203F125AC9143C6153E2656E289BABC7FA4677866E953FF9EDD37FA4727E0. Actual consumer CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared1C35EE624DE22877EE450BE3EFC3930B1EBE960FF7EE2C127861ED28BF7CDDD6; controlled326 remains its separately measured cohort. Hosted AWS IAM/fees, atomic replication and all-interface/full-V2 certification remain OPEN.
+
+Native-owned holons/receipt exact canonical-payload conditional DeleteItem with ALL_OLD and independent absence; journals0/listeners18000+18001zero checked after run. SAME retained pinned Java runtime/database/cache, no downloads/install/reset/newenvironment. Free C67,863,601,152bytes;123GBtarget unmet. No hosted spending/deployment. Earlier pending-native wording is superseded for these four schedules only.
+
+## Dynamo/AWS ordinary batch revision publication — controlled checkpoint, 2026-10-20
+
+Cross-provider audit found the same omission as Firestore: Dynamo SaveHolonRecord publishes provider revision to detached planned records but outer SaveHolons publication omitted the original caller token. Existing shared CosmicConcurrency get/set now publishes that committed token alongside logical versions and provider keys. AWS inherits this path; no extra native write or provider-specific crypto/retry added.
+
+Two sync/async controlled cases FAILED before fix with unchanged token; after root fix full Dynamo **326/326 passed1s0skip**, terminal0 with explicit command exit checks. Follow-on conditional write using caller's published token succeeds. Native Dynamo AND AWS alias regression remains pending; prior native suites are not relabelled as certification of this new fix.
+
+Reports TestResults/DynamoHistoryCurrent/dynamo-batch-revision-red.trx SHA25613CB8541FF7CA6D5940CCBC93DE6033D86E60CF71530B4FC2A8AA3598A816C86; green234A4EA7A4250E54B7BE1521D4925B3FD7E0D2E6A3D0749DDEF05CAAF0EA32DD. Expected-red exit1 explicitly asserted; full green checked exit0. No native runtime/download/install/reset used in this controlled batch. Source not yet committed pending native acceptance; no hosted/deployment/full-provider claim.
+
+## Task-branch batch published — 2026-10-20
+
+Exact parent c69715602e683129ea45ad0faee23665c3c08c27 pushed to origin/fix/hyperdrive-v2-providers and independently verified by ls-remote. Includes Oracle client-process proof, Firestore atomic graphs/preparation/native races/authenticated replay/ordinarybatch token fix and coordinated Mongo99e26b9db evidence batch. Referenced Core a265d7a2ce7c45f152cab3c528cdd0a595ddc5e8 is already published on its task branch; manifest/sevenDockerfiles/gitlinks validation passed immediately before publication. No Development/master push/merge, Railway deployment or all-provider completion claim. Uncommitted unrelated source/docs were not staged or published. GitHub repeated its default-branch599dependency alert report; not a new independently audited task-branch scan. Publication note recorded after push for next normal documentation commit.
+
 ## Ordinary Firestore batch revision publication — native follow-up, 2026-10-20
 
 Native sync/async ordinary root+child batch tests **2/2 passed1s0skip**, terminal0 under exclusive build lease. Each caller root AND child receives a nonempty provider revision matching independently read native canonical JSON; a subsequent atomic graph write using those exact caller tokens succeeds and rotates both. Confirms the controlled red-before/188green fix below against real official SDK/emulator, not hosted deployment or all-interface certification.
