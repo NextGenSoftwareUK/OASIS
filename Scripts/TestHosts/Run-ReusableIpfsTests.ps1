@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-param([switch]$ReconcileV2,[switch]$NetworkDiagnostic,[switch]$ReconcileNative,[switch]$ReconcileRootVersion,[switch]$InspectCredential,[switch]$InspectNamedRoles,[string]$EnvironmentPath)
+param([switch]$ReconcileV2,[switch]$NetworkDiagnostic,[switch]$ReconcileNative,[switch]$ReconcileRootVersion,[switch]$InspectCredential,[switch]$InspectNamedRoles,[switch]$InspectDeleteFault,[string]$EnvironmentPath)
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=if($EnvironmentPath){[IO.Path]::GetFullPath($EnvironmentPath)}else{Join-Path $taskRoot 'TestResults/IPFSCurrent'}
@@ -12,7 +12,7 @@ $previous=@{}
 foreach($name in @('IPFS_PATH','OASIS_IPFS_STORAGE_ENCRYPTION_KEY','OASIS_IPFS_TEST_RPC','OASIS_IPFS_TEST_DNA_PATH')){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
 try {
     $freeBefore=(Get-PSDrive C).Free
-    if(!$ReconcileV2 -and !$NetworkDiagnostic -and !$ReconcileNative -and !$ReconcileRootVersion -and !$InspectCredential -and !$InspectNamedRoles -and (Test-Path -LiteralPath (Join-Path $work 'owned-dna.json'))){
+    if(!$ReconcileV2 -and !$NetworkDiagnostic -and !$ReconcileNative -and !$ReconcileRootVersion -and !$InspectCredential -and !$InspectNamedRoles -and !$InspectDeleteFault -and (Test-Path -LiteralPath (Join-Path $work 'owned-dna.json'))){
         throw 'Original failed IPFS fixture requires read-only review before fresh native acceptance; no build/start/reset attempted.'
     }
     $binary=Join-Path $env:USERPROFILE '.cache/oasis-runtimes/kubo-0.43.1/ipfs.exe'
@@ -58,11 +58,11 @@ try {
     } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
     if(!$ready){throw "Pinned offline daemon readiness failed: $lastObservation"}
     $started=[DateTime]::UtcNow
-    $filter=if($InspectNamedRoles){'Category=IPFSNamedRoleInspection'}elseif($InspectCredential){'Category=IPFSCredentialInspection'}elseif($ReconcileRootVersion){'Category=IPFSRootVersionReconciliation'}elseif($ReconcileNative){'Category=IPFSNativeFixtureReconciliation'}elseif($NetworkDiagnostic){'Category=IPFSNetworkDiagnostic'}elseif($ReconcileV2){'Category=IPFSFixtureReconciliation'}else{'Category=NativeIPFS'}
-    $reportName=if($InspectNamedRoles){'ipfs-named-role-inspection-current.trx'}elseif($InspectCredential){'ipfs-credential-inspection-current.trx'}elseif($ReconcileRootVersion){'ipfs-root-version-reconciliation-current.trx'}elseif($ReconcileNative){'ipfs-native-reconciliation-current.trx'}elseif($NetworkDiagnostic){'ipfs-network-current.trx'}elseif($ReconcileV2){'ipfs-reconciliation-current.trx'}else{'ipfs-native-current.trx'}
+    $filter=if($InspectDeleteFault){'Category=IPFSDeleteFaultInspection'}elseif($InspectNamedRoles){'Category=IPFSNamedRoleInspection'}elseif($InspectCredential){'Category=IPFSCredentialInspection'}elseif($ReconcileRootVersion){'Category=IPFSRootVersionReconciliation'}elseif($ReconcileNative){'Category=IPFSNativeFixtureReconciliation'}elseif($NetworkDiagnostic){'Category=IPFSNetworkDiagnostic'}elseif($ReconcileV2){'Category=IPFSFixtureReconciliation'}else{'Category=NativeIPFS'}
+    $reportName=if($InspectDeleteFault){'ipfs-delete-fault-inspection-current.trx'}elseif($InspectNamedRoles){'ipfs-named-role-inspection-current.trx'}elseif($InspectCredential){'ipfs-credential-inspection-current.trx'}elseif($ReconcileRootVersion){'ipfs-root-version-reconciliation-current.trx'}elseif($ReconcileNative){'ipfs-native-reconciliation-current.trx'}elseif($NetworkDiagnostic){'ipfs-network-current.trx'}elseif($ReconcileV2){'ipfs-reconciliation-current.trx'}else{'ipfs-native-current.trx'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Native IPFS storage verification failed.'}
-    if(!$InspectCredential -and !$InspectNamedRoles){
+    if(!$InspectCredential -and !$InspectNamedRoles -and !$InspectDeleteFault){
         $collected=@(& $binary repo gc --quiet)
         if($LASTEXITCODE){throw 'Owned repository garbage collection failed; inspect retained content.'}
         Write-Output "Owned offline repository garbage-collected $($collected.Count) unpinned blocks."
@@ -71,7 +71,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($InspectCredential -or $InspectNamedRoles -or $ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion){1}else{16}
+    $expected=if($InspectCredential -or $InspectNamedRoles -or $InspectDeleteFault -or $ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion){1}else{16}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected $expected passing selected cases, no skips."}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
