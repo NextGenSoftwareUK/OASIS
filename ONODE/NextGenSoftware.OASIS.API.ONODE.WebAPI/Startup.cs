@@ -480,7 +480,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddGrpc(options => options.Interceptors.Add<Security.OASISGrpcAuthorizationInterceptor>());
 
             services.AddGraphQLServer()
-                .BindRuntimeType<object, HotChocolate.Types.AnyType>()
+                .DisableIntrospection(false)
                 .AddType(new HotChocolate.Types.AnyType("JSON"))
                 .BindRuntimeType<System.Collections.Generic.Dictionary<string, object>>("JSON")
                 .AddQueryType<Query>()

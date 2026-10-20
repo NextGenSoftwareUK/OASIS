@@ -45,6 +45,7 @@ builder.Services.AddGrpc();
 
 builder.Services
     .AddGraphQLServer()
+    .DisableIntrospection(false)
     .AddQueryType<NextGenSoftware.OASIS.Web10.WebAPI.GraphQL.Query>()
     .AddMutationType<NextGenSoftware.OASIS.Web10.WebAPI.GraphQL.Mutation>();
 
