@@ -1,3 +1,4 @@
+param([switch]$NamedRoleDiagnostic)
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $runtime='C:\Users\david\.cache\oasis-runtimes\azurite-3.37.0\node_modules\azurite\dist\src\blob\main.js'
@@ -31,13 +32,16 @@ try {
     if(!$ready) {throw 'Owned Azurite readiness timed out.'}
     $env:OASIS_AZURE_NATIVE_TEST='1'
     $started=[DateTime]::UtcNow
-    & dotnet test $project --no-build --no-restore --logger 'trx;LogFileName=azure-native-current.trx' --results-directory $work -v:q
+    $reportName=if($NamedRoleDiagnostic){'azure-named-role-before.trx'}else{'azure-native-current.trx'}
+    $selection=if($NamedRoleDiagnostic){@('--filter','FullyQualifiedName~NativeNamedRoleGraphHistoryAndRootOnlyObservation')}else{@()}
+    & dotnet test $project --no-build --no-restore @selection --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE) {throw 'Azure native test failed.'}
-    $reportFile=Get-Item -LiteralPath (Join-Path $work 'azure-native-current.trx') -ErrorAction Stop
+    $reportFile=Get-Item -LiteralPath (Join-Path $work $reportName) -ErrorAction Stop
     if($reportFile.LastWriteTimeUtc -lt $started){throw 'Azure native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 158 -or [int]$counts.passed -ne 158 -or [int]$counts.notExecuted -ne 0) {throw 'Expected158Azure tests including6search snapshot schedules and prior lifecycle/concurrency cases, no skips.'}
+    $expected=if($NamedRoleDiagnostic){2}else{160}
+    if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0) {throw "Expected$expected Azure tests, no skips."}
 }
 finally {
     $env:OASIS_AZURE_NATIVE_TEST=$previous
