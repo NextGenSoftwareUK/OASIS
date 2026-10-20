@@ -66,7 +66,7 @@ public partial class AzureStorageOASIS
 
     // The production constructor disables SDK retries: never replay an unknown Commit
     // and misreport its subsequent precondition rejection as the original outcome.
-    private static async Task<T> WriteVersionedBlobAsync<T>(BlobClient blob, T proposed, bool createHistory)
+    private static async Task<T> WriteVersionedBlobAsync<T>(BlobClient blob, T proposed, bool createHistory,Action validatePublication=null)
         where T : class, IHolonBase
     {
         ArgumentNullException.ThrowIfNull(blob);
@@ -84,12 +84,14 @@ public partial class AzureStorageOASIS
         var condition = observed == null
             ? new BlobRequestConditions { IfNoneMatch = ETag.All }
             : new BlobRequestConditions { IfMatch = observed.Details.ETag };
+        validatePublication?.Invoke();
         await ObserveBlobMutationAsync(async () =>
         {
             var response = await blob.UploadAsync(payload, new BlobUploadOptions { Conditions = condition });
             if (response.GetRawResponse().Status is < 200 or >= 300
                 || string.IsNullOrWhiteSpace(response.Value.ETag.ToString()))
                 throw new InvalidDataException("Conditional blob upload lacks an authoritative acknowledgement.");
+            validatePublication?.Invoke();
             return response;
         }, blob);
         return committed;

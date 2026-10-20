@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS;
 
@@ -136,13 +137,14 @@ public partial class AzureStorageOASIS
         try {
             ArgumentNullException.ThrowIfNull(detail);
             var source=detail;
-            detail=Deserialise<AvatarDetail>(Serialise(source))!;
+            var publication=StoredRecordPublicationSnapshot<AvatarDetail>.Capture(source);
+            detail=publication.Proposal;
             if(detail.Id==Guid.Empty) detail.Id=Guid.NewGuid();
             var key=detail.Id.ToString();
             detail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
             var blob=_serviceClient.GetBlobContainerClient(_detailContainer).GetBlobClient(key);
-            var committed=await WriteVersionedBlobAsync(blob,(AvatarDetail)detail,IsVersionControlEnabled);
+            var committed=await WriteVersionedBlobAsync(blob,(AvatarDetail)detail,IsVersionControlEnabled,publication.ValidateUnchanged);
             source.Id=detail.Id;
             PublishBlobVersion(source,committed);
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
