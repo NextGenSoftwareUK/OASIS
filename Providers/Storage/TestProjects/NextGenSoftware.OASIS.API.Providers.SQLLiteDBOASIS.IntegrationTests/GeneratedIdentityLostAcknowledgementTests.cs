@@ -6,6 +6,8 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositorie
 using NextGenSoftware.OASIS.Common;
 using Xunit;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Data.Common;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public partial class SQLLiteDBOASISIntegrationTests
 {
@@ -13,10 +15,33 @@ public partial class SQLLiteDBOASISIntegrationTests
     {
         public readonly IOException Cause=new("Owned acknowledgement loss after actual SQLite commit.");
         public int Commits;
-        public LostSaveReplyContext(string connection):base(connection) {}
-        public override int SaveChanges() {base.SaveChanges();Commits++;throw Cause;}
+        private readonly bool _explicitCommit;
+        public LostSaveReplyContext(string connection,bool explicitCommit=false):base(connection){_explicitCommit=explicitCommit;}
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        {base.OnConfiguring(options);if(_explicitCommit)options.AddInterceptors(new LostOrdinaryCommit(this));}
+        public override int SaveChanges() {var result=base.SaveChanges();if(!_explicitCommit){Commits++;throw Cause;}return result;}
         public override async Task<int> SaveChangesAsync(CancellationToken token=default)
             {await base.SaveChangesAsync(token);Commits++;throw Cause;}
+    }
+    private sealed class LostOrdinaryCommit(LostSaveReplyContext owner):DbTransactionInterceptor
+    {
+        public override void TransactionCommitted(DbTransaction transaction,TransactionEndEventData eventData)
+        {owner.Commits++;throw owner.Cause;}
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task OrdinarySaveReplyFailureBeforeCommitRollsBackAndDetachesOwnedState(bool synchronous)
+    {
+        using(var setup=new SQLLiteDBOASIS(TestConnectionString))(await setup.ActivateProviderAsync()).IsError.Should().BeFalse();
+        using var fault=new LostSaveReplyContext(TestConnectionString);
+        var source=new Holon{Name="precommit failure"};
+        var repository=new HolonRepository(fault);
+        var result=synchronous ? repository.SaveHolon(source):await repository.SaveHolonAsync(source);
+        result.IsError.Should().BeTrue();result.ErrorCode.Should().Be("SQLITE_GRAPH_WRITE_FAILED");
+        result.Exception.Should().BeSameAs(fault.Cause);source.Id.Should().BeEmpty();
+        fault.ChangeTracker.Entries<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel>().Should().BeEmpty();
+        using var native=new DataContext(TestConnectionString);native.Holons.Should().BeEmpty();
     }
 
     [Theory]
@@ -25,7 +50,7 @@ public partial class SQLLiteDBOASISIntegrationTests
     public async Task CommittedGeneratedIdentityRemainsUnpublishedAndReconciliable(bool synchronous,int kind)
     {
         using(var setup=new SQLLiteDBOASIS(TestConnectionString)) (await setup.ActivateProviderAsync()).IsError.Should().BeFalse();
-        using var fault=new LostSaveReplyContext(TestConnectionString);
+        using var fault=new LostSaveReplyContext(TestConnectionString,kind==2);
         SqliteMutationReconciliationException marker;
         if(kind==0)
         {

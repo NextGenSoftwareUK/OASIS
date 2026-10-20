@@ -15,12 +15,25 @@ public partial class SQLLiteDBOASIS
     {
         using var transaction=await _appDataContext.Database.BeginTransactionAsync().ConfigureAwait(false);
         var connection=_appDataContext.Database.GetDbConnection();
+        using (var receiptSchema = connection.CreateCommand())
+        {
+            receiptSchema.Transaction = transaction.GetDbTransaction();
+            receiptSchema.CommandText = CosmicSqliteSchema.CreateReceiptTable+"; "+CosmicSqliteSchema.CreateReplicaHeadTable+"; "+CosmicSqliteSchema.CreateOutboxTable+"; "+CosmicSqliteSchema.CreateRevisionArchive+"; "+CosmicSqliteSchema.CreateRevisionKeyIndex+"; "+CosmicSqliteSchema.CreateRevisionCollectionIndex+"; "+CosmicSqliteSchema.CreateRevisionParentIndex;
+            await receiptSchema.ExecuteNonQueryAsync().ConfigureAwait(false);
+        }
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicHolonOutbox",CosmicSqliteSchema.OutboxDeliveryColumns()).ConfigureAwait(false);
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicHolonOutbox",CosmicSqliteSchema.OutboxRecoveryColumns()).ConfigureAwait(false);
         foreach(var table in new[] {"Holon","Avatar","AvatarDetail"})
             await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),table,new Dictionary<string,string> {
                 {"IsPublic","INTEGER NOT NULL DEFAULT 0"},
                 {"VersionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
                 {"PreviousVersionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
                 {"CustomHolonType","TEXT NULL"}}).ConfigureAwait(false);
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"Holon",
+            new Dictionary<string,string> {{"ProviderRevisionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
+                {"PersistentValueJson","TEXT NOT NULL DEFAULT '{}'"}}).ConfigureAwait(false);
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"Holon",new Dictionary<string,string>{
+            {"HasCreatedProviderType","INTEGER NOT NULL DEFAULT 1"},{"HasCreatedOASISType","INTEGER NOT NULL DEFAULT 1"}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"AvatarDetail",
             new Dictionary<string,string> {{"ActiveQuestId","TEXT NULL"},{"ActiveObjectiveId","TEXT NULL"},
                 {"ProviderLinksJson","TEXT NOT NULL DEFAULT '{}'"},

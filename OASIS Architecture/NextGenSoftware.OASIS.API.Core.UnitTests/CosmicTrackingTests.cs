@@ -29,6 +29,151 @@ public class CosmicTrackingTests
     }
 
     [Theory]
+    [InlineData(false,false,true)] [InlineData(true,false,true)]
+    [InlineData(false,true,true)] [InlineData(true,true,true)]
+    [InlineData(false,true,false)] [InlineData(true,true,false)]
+    public async Task GenericV2SearchHydratesOnlySelectedRolesAndTracksValues(bool synchronous,bool missing,bool loadChildren)
+    {
+        var f=Fixture(true);var source=new Holon{Id=Guid.NewGuid(),Name="search owner"};
+        var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=source.Id,Name="search member"};
+        if(!missing)source.Children.Add(child);
+        source.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1,source.Id,
+            new[]{new HolonChildRole("Children",Array.Empty<Guid>()),new HolonChildRole("Extras",new[]{child.Id})}));
+        var payload=new Core.Objects.Search.SearchResults {SearchResultHolons=new List<IHolon>{source}};
+        f.Provider.Setup(p=>p.Search(It.IsAny<Core.Objects.Search.ISearchParams>(),loadChildren,true,1,true,0))
+            .Returns(new OASISResult<Core.Interfaces.Search.ISearchResults>(payload));
+        f.Provider.Setup(p=>p.SearchAsync(It.IsAny<Core.Objects.Search.ISearchParams>(),loadChildren,true,1,true,0))
+            .ReturnsAsync(new OASISResult<Core.Interfaces.Search.ISearchResults>(payload));
+        var result=synchronous ? f.Manager.SearchHolons<LoadedRoleOwner>("search",Guid.Empty,searchOnlyForCurrentAvatar:false,
+                loadChildren:loadChildren,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
+            :await f.Manager.SearchHolonsAsync<LoadedRoleOwner>("search",Guid.Empty,searchOnlyForCurrentAvatar:false,
+                loadChildren:loadChildren,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
+        result.IsError.Should().Be(missing && loadChildren,result.Message+result.Exception);
+        if(missing && loadChildren)
+        {
+            result.Result.Should().BeNull();result.ErrorCode.Should().Be("COSMIC_CHILD_ROLE_HYDRATION_FAILED");
+        }
+        else
+        {
+            var owner=result.Result.Should().ContainSingle().Subject;
+            owner.Extras.Count.Should().Be(loadChildren ? 1:0);
+            owner.ChildRoleManifestJson.Should().Be(source.ChildRoleManifestJson);
+            owner.HasHolonChanged().Should().BeFalse();
+            owner.Name="local search edit";owner.HasHolonChanged().Should().BeTrue();
+        }
+    }
+
+    [Theory]
+    [InlineData(false,false,0,true)] [InlineData(true,false,0,true)]
+    [InlineData(false,true,0,true)] [InlineData(true,true,0,true)]
+    [InlineData(false,false,1,true)] [InlineData(true,false,1,true)]
+    [InlineData(false,true,1,true)] [InlineData(true,true,1,true)]
+    [InlineData(false,false,0,false)] [InlineData(true,false,0,false)]
+    [InlineData(false,true,0,false)] [InlineData(true,true,0,false)]
+    [InlineData(false,false,int.MaxValue,true)] [InlineData(true,false,int.MaxValue,true)]
+    [InlineData(false,true,int.MaxValue,true)] [InlineData(true,true,int.MaxValue,true)]
+    public async Task GenericV2ParentRolesCountParentEdgeAndNonrecursiveFrontier(bool synchronous,bool byKey,int currentDepth,bool recursive)
+    {
+        var f=Fixture(true);var parentId=Guid.NewGuid();var source=new Holon{Id=Guid.NewGuid(),ParentHolonId=parentId};
+        var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=source.Id,Name="parent query descendant"};
+        var selected=currentDepth==0 && recursive;
+        if(selected)source.Children.Add(child);
+        source.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1,source.Id,
+            new[]{new HolonChildRole("Children",Array.Empty<Guid>()),new HolonChildRole("Extras",new[]{child.Id})}));
+        var rows=new IHolon[]{source};
+        f.Provider.Setup(p=>p.LoadHolonsForParent(parentId,HolonType.All,true,recursive,2,currentDepth,true,false,0))
+            .Returns(new OASISResult<IEnumerable<IHolon>>(rows));
+        f.Provider.Setup(p=>p.LoadHolonsForParentAsync(parentId,HolonType.All,true,recursive,2,currentDepth,true,false,0))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(rows));
+        f.Provider.Setup(p=>p.LoadHolonsForParent("parent-role-key",HolonType.All,true,recursive,2,currentDepth,true,false,0))
+            .Returns(new OASISResult<IEnumerable<IHolon>>(rows));
+        f.Provider.Setup(p=>p.LoadHolonsForParentAsync("parent-role-key",HolonType.All,true,recursive,2,currentDepth,true,false,0))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(rows));
+        var result=byKey
+            ? synchronous ? f.Manager.LoadHolonsForParent<LoadedRoleOwner>("parent-role-key",recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsForParentAsync<LoadedRoleOwner>("parent-role-key",recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,providerType:ProviderType.SQLLiteDBOASIS)
+            : synchronous ? f.Manager.LoadHolonsForParent<LoadedRoleOwner>(parentId,recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsForParentAsync<LoadedRoleOwner>(parentId,recursive:recursive,maxChildDepth:2,currentChildDepth:currentDepth,providerType:ProviderType.SQLLiteDBOASIS);
+        result.IsError.Should().BeFalse(result.Message+result.Exception);
+        var owner=result.Result.Should().ContainSingle().Subject;
+        owner.Children.Should().BeEmpty();owner.Extras.Count.Should().Be(selected ? 1:0);
+        owner.ChildRoleManifestJson.Should().Be(source.ChildRoleManifestJson);
+        owner.HasHolonChanged().Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(false,false,1)] [InlineData(true,false,1)]
+    [InlineData(false,true,1)] [InlineData(true,true,1)]
+    [InlineData(false,false,2)] [InlineData(true,false,2)]
+    [InlineData(false,true,2)] [InlineData(true,true,2)]
+    public async Task GenericV2MetadataRolesRespectCurrentDepthAndPreserveFrontier(bool synchronous,bool pairs,int currentDepth)
+    {
+        var f=Fixture(true);var source=new Holon{Id=Guid.NewGuid()};
+        var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=source.Id,Name="metadata child"};
+        if(currentDepth<2)source.Children.Add(child);
+        source.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1,source.Id,
+            new[]{new HolonChildRole("Children",Array.Empty<Guid>()),new HolonChildRole("Extras",new[]{child.Id})}));
+        var rows=new IHolon[]{source};var criteria=new Dictionary<string,string>{{"kind","sample"}};
+        f.Provider.Setup(p=>p.LoadHolonsByMetaData("kind","sample",HolonType.All,true,true,2,currentDepth,true,false,0))
+            .Returns(new OASISResult<IEnumerable<IHolon>>(rows));
+        f.Provider.Setup(p=>p.LoadHolonsByMetaDataAsync("kind","sample",HolonType.All,true,true,2,currentDepth,true,false,0))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(rows));
+        f.Provider.Setup(p=>p.LoadHolonsByMetaData(It.IsAny<Dictionary<string,string>>(),MetaKeyValuePairMatchMode.All,HolonType.All,true,true,2,currentDepth,true,false,0))
+            .Returns(new OASISResult<IEnumerable<IHolon>>(rows));
+        f.Provider.Setup(p=>p.LoadHolonsByMetaDataAsync(It.IsAny<Dictionary<string,string>>(),MetaKeyValuePairMatchMode.All,HolonType.All,true,true,2,currentDepth,true,false,0))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(rows));
+        var result=pairs
+            ? synchronous ? f.Manager.LoadHolonsByMetaData<LoadedRoleOwner>(criteria,MetaKeyValuePairMatchMode.All,maxChildDepth:2,currentChildDepth:currentDepth,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsByMetaDataAsync<LoadedRoleOwner>(criteria,MetaKeyValuePairMatchMode.All,maxChildDepth:2,currentChildDepth:currentDepth,providerType:ProviderType.SQLLiteDBOASIS)
+            : synchronous ? f.Manager.LoadHolonsByMetaData<LoadedRoleOwner>("kind","sample",maxChildDepth:2,currentChildDepth:currentDepth,providerType:ProviderType.SQLLiteDBOASIS)
+                :await f.Manager.LoadHolonsByMetaDataAsync<LoadedRoleOwner>("kind","sample",maxChildDepth:2,currentChildDepth:currentDepth,providerType:ProviderType.SQLLiteDBOASIS);
+        result.IsError.Should().BeFalse(result.Message+result.Exception);
+        var owner=result.Result.Should().ContainSingle().Subject;
+        owner.ChildRoleManifestJson.Should().Be(source.ChildRoleManifestJson);
+        owner.Children.Should().BeEmpty();owner.Extras.Count.Should().Be(currentDepth<2 ? 1:0);
+        owner.HasHolonChanged().Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(false, false, true)] [InlineData(true, false, true)]
+    [InlineData(false, true, true)] [InlineData(true, true, true)]
+    [InlineData(false, true, false)] [InlineData(true, true, false)]
+    public async Task GenericV2CollectionsHydrateRolesBeforeTrackingAndRejectMissingMembers(bool synchronous,bool missing,bool loadChildren)
+    {
+        var f=Fixture(true);var source=new Holon{Id=Guid.NewGuid()};
+        var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=source.Id,Name="typed collection child"};
+        if(!missing)source.Children.Add(child);
+        source.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1,source.Id,
+            new[]{new HolonChildRole("Children",Array.Empty<Guid>()),new HolonChildRole("Extras",new[]{child.Id})}));
+        var rows=new IHolon[]{source};
+        f.Provider.Setup(p=>p.LoadAllHolons(HolonType.All,loadChildren,true,1,0,true,false,0))
+            .Returns(new OASISResult<IEnumerable<IHolon>>(rows));
+        f.Provider.Setup(p=>p.LoadAllHolonsAsync(HolonType.All,loadChildren,true,1,0,true,false,0))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(rows));
+        var result=synchronous ? f.Manager.LoadAllHolons<LoadedRoleOwner>(loadChildren:loadChildren,maxChildDepth:1,cache:false,providerType:ProviderType.SQLLiteDBOASIS)
+            :await f.Manager.LoadAllHolonsAsync<LoadedRoleOwner>(loadChildren:loadChildren,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
+        result.IsError.Should().Be(missing && loadChildren,result.Message+result.Exception);
+        if(missing && loadChildren)
+        {
+            result.Result.Should().BeNull();result.IsLoaded.Should().BeFalse();
+            result.ErrorCode.Should().Be("COSMIC_CHILD_ROLE_HYDRATION_FAILED");
+        }
+        else if(!loadChildren)
+        {
+            var owner=result.Result.Should().ContainSingle().Subject;
+            owner.Extras.Should().BeEmpty();owner.ChildRoleManifestJson.Should().Be(source.ChildRoleManifestJson);
+            owner.HasHolonChanged().Should().BeFalse();
+        }
+        else
+        {
+            var owner=result.Result.Should().ContainSingle().Subject;
+            owner.Children.Should().BeEmpty();owner.Extras.Should().ContainSingle().Which.Name.Should().Be(child.Name);
+            owner.HasHolonChanged().Should().BeFalse();
+            owner.Extras[0].Name="local edit";owner.HasHolonChanged().Should().BeTrue();
+        }
+    }
+
+    [Theory]
     [InlineData(false)] [InlineData(true)]
     public void BaseMappingPreservesLogicalRevisionLineage(bool generic)
     {
