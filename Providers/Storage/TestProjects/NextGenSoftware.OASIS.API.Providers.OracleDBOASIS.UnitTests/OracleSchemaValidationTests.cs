@@ -7,6 +7,26 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 public class OracleSchemaValidationTests
 {
     [DataTestMethod]
+    [DataRow("ID","ID","ENABLED","VALIDATED","NOT DEFERRABLE","VALID",true)]
+    [DataRow("OPERATION_ID","OPERATION_ID","ENABLED","VALIDATED","NOT DEFERRABLE","VALID",true)]
+    [DataRow("ID","","ENABLED","VALIDATED","NOT DEFERRABLE","VALID",false)]
+    [DataRow("ID","ID,VERSION","ENABLED","VALIDATED","NOT DEFERRABLE","VALID",false)]
+    [DataRow("OPERATION_ID","REQUEST_HASH","ENABLED","VALIDATED","NOT DEFERRABLE","VALID",false)]
+    [DataRow("ID","ID","DISABLED","VALIDATED","NOT DEFERRABLE","VALID",false)]
+    [DataRow("ID","ID","ENABLED","NOT VALIDATED","NOT DEFERRABLE","VALID",false)]
+    [DataRow("ID","ID","ENABLED","VALIDATED","DEFERRABLE","VALID",false)]
+    [DataRow("ID","ID","ENABLED","VALIDATED","NOT DEFERRABLE","UNUSABLE",false)]
+    [DataRow("ID","ID","ENABLED","VALIDATED","NOT DEFERRABLE",null,false)]
+    public void IdentityAndReceiptPrimaryKeysMustEnforceNativeUniqueness(string key,string names,string status,string validated,string deferrable,string? indexStatus,bool accepted)
+    {
+        var method=typeof(OracleDBOASIS).GetMethod("ValidateStoragePrimaryKey",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var columns=names.Length==0?Array.Empty<string>():names.Split(',');
+        var args=new object?[]{"OASIS_TEST",key,columns,status,validated,deferrable,indexStatus};
+        if(accepted)method.Invoke(null,args);
+        else Assert.IsInstanceOfType(Assert.ThrowsException<TargetInvocationException>(()=>method.Invoke(null,args)).InnerException,typeof(InvalidDataException));
+    }
+
+    [DataTestMethod]
     [DataRow("ID","RAW","RAW",16,true)]
     [DataRow("ID","RAW","RAW",32,false)]
     [DataRow("ID","RAW","VARCHAR2",256,false)]
