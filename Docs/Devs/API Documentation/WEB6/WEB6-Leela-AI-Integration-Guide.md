@@ -433,6 +433,8 @@ Start with Phase 1 (endpoint swap) this week to capture immediate savings, then 
 
 ## Why WEB6 beats a model router or Hermes Agent for Leela
 
+For the full comparison, including prices and a worked cost example, see [WEB6 vs OpenRouter vs Hermes Agent](WEB6_vs_OpenRouter_vs_Hermes.md).
+
 You may be weighing two alternatives: a **model router** such as [OpenRouter](https://openrouter.ai), or an **agent framework** such as [Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research). Each solves one slice of Leela's problem. **WEB6 solves all of it in one platform**, and it's built for a multi-user product handling sensitive conversations, not a single developer's chatbot.
 
 | | Model router (e.g. OpenRouter) | Hermes Agent | **WEB6** |
