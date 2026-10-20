@@ -44,7 +44,7 @@ public partial class GoogleCloudOASIS
     }
 
     // One conditional writer; callers publish state only after native acknowledgement.
-    private static async Task<T> WriteFirestoreRecordAsync<T>(DocumentReference reference,Dictionary<string,object> proposal,bool createHistory,Action validateCaller) where T:class,IHolonBase
+    private static async Task<T> WriteFirestoreRecordAsync<T>(DocumentReference reference,Dictionary<string,object> proposal,bool createHistory,Action validateCaller,PlannedHolonWrite plannedHolon=null) where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(reference);ArgumentNullException.ThrowIfNull(proposal);
         ArgumentNullException.ThrowIfNull(validateCaller);validateCaller();
@@ -64,7 +64,11 @@ public partial class GoogleCloudOASIS
         var proposed=OasisJson.DeserializeStored<T>((string)fields["data_json"]);
         var snapshot=await reference.GetSnapshotAsync();
         var previous=snapshot.Exists?snapshot.ToDictionary():null;
-        if(previous!=null)await ReadFirestoreHistoryAsync<T>(previous,reference.Id,0);
+        T observedRecord=null;
+        if(previous!=null)observedRecord=await ReadFirestoreHistoryAsync<T>(previous,reference.Id,0);
+        if(collection=="holons" && proposed is Core.Holons.Holon holon)
+            holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plannedHolon??new PlannedHolonWrite(holon,holon),
+                HolonChildRoleWriteKind.SourceSave,previous!=null,(observedRecord as Core.Holons.Holon)?.ChildRoleManifestJson);
         var hasHistory=previous!=null && JObject.Parse((string)previous["data_json"]).Property(EmbeddedRecordHistory.PropertyName)!=null;
         var staged=createHistory||hasHistory
             ? await StageFirestoreHistoryAsync(proposed,previous,reference.Id)

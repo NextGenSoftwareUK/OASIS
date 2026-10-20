@@ -120,7 +120,7 @@ public class GoogleRecordHistoryTests
     private static Task<Holon> WriteBoundary(Dictionary<string,object> fields,string collection,Guid id)
     {
         var database=Google.Cloud.Firestore.FirestoreDb.Create("owned-history-boundary",new NoNativeCallsClient());
-        return (Task<Holon>)typeof(GoogleCloudOASIS).GetMethod("WriteFirestoreRecordAsync",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object[]{database.Collection(collection).Document(id.ToString()),fields,true,(Action)(()=>{})})!;
+        return (Task<Holon>)typeof(GoogleCloudOASIS).GetMethod("WriteFirestoreRecordAsync",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object?[]{database.Collection(collection).Document(id.ToString()),fields,true,(Action)(()=>{}),null})!;
     }
     [TestMethod]
     public async Task NativeWriterRejectsWrongCollectionBeforeSdkCalls()

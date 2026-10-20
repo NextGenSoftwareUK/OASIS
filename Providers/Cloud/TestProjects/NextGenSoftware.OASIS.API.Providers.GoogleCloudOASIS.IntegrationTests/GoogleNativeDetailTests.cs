@@ -393,10 +393,10 @@ public class GoogleNativeDetailTests
         public int Writes;
         public InterruptAfterFirstWriteProvider(FirestoreDb loseReply):base(projectId:"oasis-google-native",enableStorage:false,enableFirestore:true,enableBigQuery:false)
             =>_loseReply=loseReply;
-        public override async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SaveHolonAsync(NextGenSoftware.OASIS.API.Core.Interfaces.IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+        protected override async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SavePlannedHolonAsync(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite write)
         {
             Writes++;
-            var result=await base.SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+            var result=await base.SavePlannedHolonAsync(write);
             if(Writes==1 && !result.IsError)
                 typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(this,_loseReply);
             return result;

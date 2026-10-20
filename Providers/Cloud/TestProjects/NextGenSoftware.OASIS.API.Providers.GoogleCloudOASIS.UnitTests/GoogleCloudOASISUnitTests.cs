@@ -165,8 +165,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             public int Writes;
             public readonly System.Exception Cause=new GoogleFirestoreMutationReconciliationException("owned/path",new System.IO.IOException("owned lost reply"));
             public BatchProbeProvider():base(enableStorage:false,enableFirestore:false,enableBigQuery:false) {}
-            public override Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+            protected override Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> SavePlannedHolonAsync(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite write)
             {
+                var holon=write.Snapshot;
                 Writes++;
                 return Task.FromResult(Writes==1 ? new NextGenSoftware.OASIS.Common.OASISResult<IHolon> {Result=holon,IsSaved=true}
                     : new NextGenSoftware.OASIS.Common.OASISResult<IHolon> {IsError=true,Exception=Cause,Message=Cause.Message});
@@ -193,8 +194,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private sealed class IdentityChangingBatchProvider(System.Action change):GoogleCloudOASIS(enableStorage:false,enableFirestore:false,enableBigQuery:false)
         {
             public int Writes;
-            public override async Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+            protected override async Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> SavePlannedHolonAsync(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite write)
             {
+                var holon=write.Snapshot;
                 Writes++;await Task.Yield();change();
                 return new NextGenSoftware.OASIS.Common.OASISResult<IHolon>(holon){IsSaved=true};
             }
