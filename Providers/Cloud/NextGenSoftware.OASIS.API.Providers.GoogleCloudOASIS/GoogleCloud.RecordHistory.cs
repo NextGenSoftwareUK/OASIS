@@ -21,7 +21,7 @@ public partial class GoogleCloudOASIS
         NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,message,cause);
         result.SavedCount=KnownFirestoreAcknowledgements(cause).Distinct().Count();
         // A definite create/revision rejection is not provider unavailability. Keep the original SDK cause.
-        if(cause is Grpc.Core.RpcException rpc && rpc.StatusCode is Grpc.Core.StatusCode.AlreadyExists or Grpc.Core.StatusCode.FailedPrecondition or Grpc.Core.StatusCode.NotFound)
+        if(cause is Core.Helpers.StorageLifecycleConflictException || cause is Grpc.Core.RpcException rpc && rpc.StatusCode is Grpc.Core.StatusCode.AlreadyExists or Grpc.Core.StatusCode.FailedPrecondition or Grpc.Core.StatusCode.NotFound)
             result.ErrorCode=NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode;
     }
     private static IEnumerable<Guid> KnownFirestoreAcknowledgements(Exception cause)
@@ -113,6 +113,11 @@ public partial class GoogleCloudOASIS
 
     private static async Task<JObject> StageFirestoreDocumentAsync<T>(T proposed,Dictionary<string,object> previous,string id,bool createHistory) where T:class,IHolonBase
     {
+        if(previous!=null){
+            var current=await ReadFirestoreHistoryAsync<T>(previous,id,0);
+            if(current.IsDeleted&&!proposed.IsDeleted)
+                throw new Core.Helpers.StorageLifecycleConflictException("Active save cannot overwrite a committed Firestore tombstone.");
+        }
         if(proposed is IHolon holon)Core.Holons.CosmicConcurrency.SetProviderRevisionId(holon,Core.Enums.ProviderType.GoogleCloudOASIS,Guid.NewGuid());
         var hasHistory=previous!=null&&OasisJson.ParseStoredObject((string)previous["data_json"]).Property(EmbeddedRecordHistory.PropertyName)!=null;
         return createHistory||hasHistory?await StageFirestoreHistoryAsync(proposed,previous,id):OasisJson.ParseStoredObject(OasisJson.Serialize(proposed));
