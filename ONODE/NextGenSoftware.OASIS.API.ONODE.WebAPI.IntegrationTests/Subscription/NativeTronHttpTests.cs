@@ -28,6 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription;
 public partial class SubscriptionEndpointsTests
 {
     [Fact]
+    [Trait("Category", "RetainedNativeRuntime")] // Needs the retained local Sui/TRON chains; CI filters this category out.
     public async Task WalletHttpSendCommitsRealTrxWithJwtAndEncryptedAvatarWallet()
     {
         var directory=new DirectoryInfo(AppContext.BaseDirectory);

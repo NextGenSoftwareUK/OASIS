@@ -20,6 +20,7 @@ public sealed class NativeSuiMintManagerTests
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(true, true)]
+    [Trait("Category", "RetainedNativeRuntime")] // Needs the retained local Sui/TRON chains; CI filters this category out.
     public async Task DefaultThreeEntryBatchMintsExactlyThreeAndPersistsRealMetadata(bool encryptedAvatar, bool authenticatedHttp)
     {
         using var factory = authenticatedHttp ? new SubscriptionWebAppFactory() : null;

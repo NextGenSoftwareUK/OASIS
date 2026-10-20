@@ -593,7 +593,7 @@ jobs:
     
     - name: Run Integration Tests
       run: |
-        dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal --filter "Category!=RetainedNativeRuntime"
         dotnet test "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
         dotnet test "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-build --verbosity normal
 
