@@ -150,6 +150,8 @@ Done means the declared guarantees pass through the real public route and active
 
 ## Stage 7 — Per-save deltas
 
+Current prerequisite: [SQLite primary receipt integrity](SQLITE_RECEIPT_INTEGRITY.md) replaces an unbound decoded acknowledgement with a versioned operation/intent-bound envelope and the existing Shared graph codec. The original native gate exposes7 accepted-corruption cases with1 rejecting control. Final focused integrity/replay checks pass20/20 and full native1,078/1,078, zero skips, including checksum-valid semantic mismatch and historical admission. Committed delta capture/persistence is not yet implemented.
+
 Prerequisite checkpoint: [relationship membership comparison](RELATIONSHIP_DELTA_PREREQUISITE.md) now compares immutable manifests without inferring deletion from unlinking. Core1,135 passes. This is not committed Save evidence; all transaction, revision, authorization, persistence and replay acceptance below remains open.
 
 Requested 19 October 2026. Expose immutable, version-linked change sets for each acknowledged Save: added/removed/modified fields and metadata entries, nested value changes, child additions/removals/reparenting, soft/hard deletion and restoration. Distinguish a collection removal from deletion of a persisted entity. Include previous/new values where authorized, logical operation ID, actor, authoritative provider and previous/committed revision. Do not include unsaved edits made while a write is pending in that write's committed delta.

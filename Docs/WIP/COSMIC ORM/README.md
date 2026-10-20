@@ -44,6 +44,7 @@ These are working documents. Dated reports retain historical evidence; earlier c
 - [ONODE COSMIC replication startup integration](ONODE_COSMIC_REPLICATION_STARTUP.md).
 - [Durable worker provider directions](OUTBOX_PROVIDER_DIRECTIONS.md).
 - [Relationship delta comparison](RELATIONSHIP_DELTA_PREREQUISITE.md).
+- [SQLite receipt integrity prerequisite for committed deltas](SQLITE_RECEIPT_INTEGRITY.md).
 - [Shared graph traversal ownership](SHARED_GRAPH_TRAVERSAL.md).
 - [Soft-delete read contract](SOFT_DELETE_READ_CONTRACT.md).
 - [SQLite child hydration and depth boundaries](SQLITE_CHILD_HYDRATION.md).
