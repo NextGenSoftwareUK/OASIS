@@ -10,6 +10,19 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests;
 public class GoogleRecordHistoryTests
 {
     [TestMethod]
+    public async Task HistoryReadReturnsExactCurrentAndArchivedMetadata()
+    {
+        var initial=1.0000000000000000000000000001m;var later=1.0000000000000000000000000002m;
+        var row=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=initial}};
+        var first=await Stage(row,null);row.MetaData["precise"]=later;
+        var second=await Stage(row,Fields(row.Id,first));
+        var fields=Fields(row.Id,second);
+        Assert.AreEqual(initial,decimal.Parse((await Read(fields,row.Id,1)).MetaData["precise"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+        Assert.AreEqual(later,decimal.Parse((await Read(fields,row.Id,0)).MetaData["precise"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+        Assert.AreEqual(0,row.Version);
+    }
+
+    [TestMethod]
     public void CanonicalHistoryDocumentPreservesExactMetadata()
     {
         var value=1.0000000000000000000000000001m;
