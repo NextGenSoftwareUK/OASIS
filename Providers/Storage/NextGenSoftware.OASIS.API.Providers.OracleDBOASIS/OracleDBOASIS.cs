@@ -161,6 +161,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=stored.Id.ToString();
             source.Version=stored.Version;source.VersionId=stored.VersionId;source.PreviousVersionId=stored.PreviousVersionId;
             if(source is IHolon caller&&stored is IHolon committed){
+                if(source is Holon sourceHolon&&stored is Holon storedHolon)sourceHolon.ChildRoleManifestJson=storedHolon.ChildRoleManifestJson;
                 var revision=CosmicConcurrency.GetProviderRevisionId(committed,Core.Enums.ProviderType.OracleDBOASIS);
                 if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(caller,Core.Enums.ProviderType.OracleDBOASIS,revision.Value);
             }
@@ -417,17 +418,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     var projected=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(graph);
                     if(!graph.IsError)projected.Result=holon;return projected;
                 }
-                var source=holon;
-                var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(source);
-                holon=publication.Proposal;
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null)
-                    holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS] = holon.Id.ToString();
-
-                var stored=await WriteCanonicalRecordAsync((Holon)holon,"OASIS_HOLONS");
-                PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
-                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"OracleDBOASIS: Holon '{holon.Name}' saved.";
+                return await SaveHolonRecordAsync(holon,null);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving holon: {ex.Message}"); }
             return result;
