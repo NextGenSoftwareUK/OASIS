@@ -62,6 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         }
 
         [Fact]
+        [Trait("Category", "RetainedNativeRuntime")] // Needs the retained local Sui/TRON chains; CI filters this category out.
         public async Task WalletHttpSendCommitsRealSuiTransferUsingEncryptedAvatarWallet()
         {
             var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")??throw new InvalidOperationException("Real retained Sui RPC required.");
@@ -241,9 +242,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         }
 
         [Theory]
-        [InlineData("LocalFile")]
+        [Trait("Category", "RetainedNativeRuntime")] // Needs the retained local Sui/TRON chains; CI filters this category out.
         [InlineData("Sui")]
         [InlineData("TRON")]
+        public Task HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookupOnRetainedChains(string storage) =>
+            HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup(storage);
+
+        [Theory]
+        [InlineData("LocalFile")]
         public async Task HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup(string storage)
         {
             var directory = new System.IO.DirectoryInfo(AppContext.BaseDirectory);
