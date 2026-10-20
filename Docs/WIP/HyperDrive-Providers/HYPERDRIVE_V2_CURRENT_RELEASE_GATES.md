@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## AWS full suite130 / baseline1 / cleanup1 refreshed — 2026-10-20
+
+Retained DynamoDBLocal/officialAWSSDK fullAWSacceptance130/130pass46s0skips, separateemptybaseline1pass andverifiedcleanup1pass; reportA8F56C605BD8A5B198B98B7E4BC5B6214A0F8ED33AF5CE72F03B9BF443EF0DB1. ActualCoreEF337431/SharedB85D591F identityguardpassed; not laterCorehydrationepoch. Prior130greenreport+inventory+begin/cleanupTRXhash-verified/renamedinplace before fresh run. Pending0/ownedJavastopped/18000-01absent; exact cleanupinventoryretained. No SDK/runtime download,environmentcopy,table reset,hostedspend/devpush. Coverage includes controlledboundary/nativeLocalSDK/existingroutingcases, not all130hostedAWSoperations. Separate95Dynamohistoryscope/hostedIAMTLSfees/allrelevantinterfaces/coherentpublication/globalV2 stillOPEN. Exactdetails in DYNAMODB_RECORD_HISTORY.md.
+
+## Oracle priority refreshed native96 / OCI controlled52 — 2026-10-20
+
+Existing pinned OracleFree environment refreshed on actualCore026E2CD7/SharedA1EFD55C:96/96realnativepass45s0skips; pending0/task-startedcontainerEXITED. Prior FCBCB810reporthash-verified/renamedinplace, no source/assertion change. OCI officialSDK/controlled-service52/52pass12s0skips, sameCore026E but consumerShared402DE071 distinct. Full hashes and source/runtime/fee limits in ORACLE_CLIENT_PRIORITY.md. No SDK/runtime download, new environment, hosted provisioning/spend/devpush. HostedOracle/OCI/authIAMTLSfees/activationDDL/fullinterface/coherentpublication/ALLproviderV2 gates remainOPEN; not OracleCloud100% certification.
+
 ## SOLID captured roles: controlled330 green, native gate OPEN — 2026-10-20
 
 New2sync/async named Components cases reproduced graph-plan loss at encrypted private writer. Captured plan now reaches SAME observed Turtle/ETag conditional/history owner and common role resolver, with guarded source publication and no extra HTTP operation. Full330/330controlledpass1s/zero skips; tests verify encrypted stored/source roles, root-only preservation, archive, observednull authority, unchanged child ciphertext and exactPUTcount. Actual CoreB9C95292/Shared536D8D28. Exact evidence in SOLID_PROVIDER_IMPLEMENTATION_AUDIT.md. No server start/download/duplicate environment; prior execution-policy denial and OIDC cold-start issue remain unresolved, new-role native acceptance/fullinterfaces/V2/coherent publication OPEN. Not SOLID100% certification.
