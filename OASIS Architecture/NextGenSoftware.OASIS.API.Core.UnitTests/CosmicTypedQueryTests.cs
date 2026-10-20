@@ -58,6 +58,14 @@ public class CosmicTypedQueryTests
     [InlineData("0.000000000000000000000000000001", false)]
     [InlineData("9007199254740993", true)]
     [InlineData("1e-400", true)]
+    [InlineData("\"1.00000000000000000000000000000000000000001\"", false)]
+    [InlineData("\"0.000000000000000000000000000001\"", false)]
+    [InlineData("\"9007199254740993\"", true)]
+    [InlineData("\"1e-400\"", true)]
+    [InlineData("\"NaN\"", true)]
+    [InlineData("\"Infinity\"", true)]
+    [InlineData("\"+1\"", false)]
+    [InlineData("\"01\"", false)]
     public async Task TypedNumericHydrationRejectsRoundingWithoutPublishingRows(string json, bool floating)
     {
         using var document = System.Text.Json.JsonDocument.Parse(json);
@@ -78,13 +86,32 @@ public class CosmicTypedQueryTests
     [Theory]
     [InlineData("1.000000000000000000000000001")]
     [InlineData("1.00")]
+    [InlineData("\"1.000000000000000000000000001\"")]
+    [InlineData("\"1.00\"")]
     public async Task TypedDecimalHydrationAcceptsExactValues(string json)
     {
         using var document = System.Text.Json.JsonDocument.Parse(json);
         var adapter = new Adapter { Row = new Holon { Id = Guid.NewGuid(), MetaData = new() { ["Amount"] = document.RootElement.Clone() } } };
         var result = await Manager().ExecuteQueryAsync(Plan<DecimalRow>(adapter), new[] { adapter });
         Assert.False(result.IsError, result.Message + result.Exception);
-        Assert.Equal(decimal.Parse(json, System.Globalization.CultureInfo.InvariantCulture), Assert.Single(Assert.Single(result.Result.Providers).Rows).Amount);
+        Assert.Equal(decimal.Parse(document.RootElement.ValueKind == System.Text.Json.JsonValueKind.String ? document.RootElement.GetString()! : json, System.Globalization.CultureInfo.InvariantCulture), Assert.Single(Assert.Single(result.Result.Providers).Rows).Amount);
+    }
+
+    public enum NamedMode { Ready = 1 }
+    public sealed class TextAndEnumRow : Holon
+    {
+        [CustomOASISProperty] public string Amount { get; set; } = "";
+        [CustomOASISProperty] public NamedMode Mode { get; set; }
+    }
+
+    [Fact]
+    public async Task TypedLiteralTextAndNamedEnumHydrationRemainSupported()
+    {
+        var adapter = new Adapter { Row = new Holon { Id = Guid.NewGuid(), MetaData = new() { ["Amount"] = "001.00", ["Mode"] = "Ready" } } };
+        var result = await Manager().ExecuteQueryAsync(Plan<TextAndEnumRow>(adapter), new[] { adapter });
+        Assert.False(result.IsError, result.Message + result.Exception);
+        var row = Assert.Single(Assert.Single(result.Result.Providers).Rows);
+        Assert.Equal("001.00", row.Amount); Assert.Equal(NamedMode.Ready, row.Mode);
     }
 
     [Fact]
