@@ -41,6 +41,13 @@ public partial class DynamoHistoryNativeTests
     private sealed class FaultClient:AmazonDynamoDBClient
     {
         public string Mode="normal";public int Writes;public Func<Task>? BeforePut;
+        public Func<Task>? AfterScan;
+        public override async Task<ScanResponse> ScanAsync(ScanRequest request,CancellationToken cancellationToken=default)
+        {
+            var response=await base.ScanAsync(request,cancellationToken);
+            if(AfterScan!=null){var callback=AfterScan;AfterScan=null;await callback();}
+            return response;
+        }
         public bool LoseTransactionReturn;public int Transactions;public string? TransactionToken;public Func<Task>? BeforeTransaction;
         public readonly IOException Lost=new("owned response dropped after actual SDK commit");
         public FaultClient():base(new BasicAWSCredentials("ownedhistorytest","ownedhistorytest"),Configuration()){}
