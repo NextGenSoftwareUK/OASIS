@@ -29,7 +29,7 @@ Recent local commits include Core `768d2e6` (manager graph ownership) and `ccb7b
 | 5. Controlled migration | Full checkpoint/catch-up/verification/cutover workflow is not implemented; import/export alone is insufficient |
 | 6. Gas-aware placement | Authorized durable settlement, quote freshness, budgets, deadlines, finality and reconciliation remain open |
 | 7. Per-save deltas | Local comparison/preview prerequisites exist; atomically persisted, authorized committed deltas and replay semantics are incomplete |
-| 8. CQL | [Predicate compiler and typed composition/scope](CQL_EXPRESSION_CONTRACT.md) implemented and unit-tested; pure scope/capability planning is verified, security integration, native adapters and federation remain open |
+| 8. CQL | [Predicate compiler and typed composition/scope](CQL_EXPRESSION_CONTRACT.md) implemented and unit-tested; pure scope/capability planning is verified, first SQLite leaf-row native adapter verified (823/823 integration cohort); security/manager integration, broader native adapters and federation remain open |
 
 The [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) retains the original requirements and acceptance criteria. No overall percentage is asserted without a verified weighted checklist. Failover selection does not prove 100% uptime, completed migration or finalized settlement.
 
@@ -44,3 +44,5 @@ Keep coherent verified batches on the task branch. Merge and push to `Developmen
 Detailed dated checkpoints remain in the linked verification, integration and topic documents. Earlier counts, branch names and descriptions of unfinished work describe their original cohorts; use this page and the latest integration entry to interpret current acceptance. This status page is a current synthesis, not a replacement for those original records.
 
 CQL composition checkpoint: immutable `CosmicQuery<T>` with captured AND predicates and explicit current-default/named/all-eligible scope is implemented. Named-scope validation and query-wide composition limits pass five new tests; full Core 1,303/1,303 and both TFMs build. Execution planning, authorization and native execution remain open. See [CQL contract](CQL_EXPRESSION_CONTRACT.md).
+
+SQLite CQL checkpoint: parameterized native predicates with CLR-compatible admitted null/boolean semantics, fixed column identifiers, cancellation and bounded result materialization pass focused8/8 and full823/823. NativeCore4B2E/SharedCA844 epoch is separate from earlier gates. See [native scope](CQL_SQLITE_NATIVE.md); full CQL and earlier roadmap requirements remain open.

@@ -54,3 +54,5 @@ These are working documents. Dated reports retain historical evidence; earlier c
 The provider session maintains [its own working evidence](../HyperDrive-Providers/). Other WIP topics are indexed in [the parent folder](../README.md).
 
 Local reports and fixture archives are under `TestResults/CosmicMongoCurrent/`; exact paths and hashes are in the integration boundary. They are separate from this documentation commit. Provider certification, source publication and deployment remain separate gates.
+
+- [CQL SQLite native execution](CQL_SQLITE_NATIVE.md) — parameterized leaf-row adapter scope and remaining WEB4 integration.

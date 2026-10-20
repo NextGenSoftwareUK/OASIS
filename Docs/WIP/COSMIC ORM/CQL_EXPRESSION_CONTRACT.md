@@ -59,3 +59,7 @@ These declarations are admission prerequisites. Adapters must still validate exa
 - Equivalent native-provider results, injection/resource/security tests and runnable end-to-end examples.
 
 Provider scope intent is implemented; authorization enforcement, query execution and native certification remain unimplemented. Committed per-save deltas and the earlier unfinished roadmap stages remain independent required work.
+
+## Native adapter checkpoint
+
+The [SQLite native adapter](CQL_SQLITE_NATIVE.md) now has eight focused native cases passing, including independent CLR result comparison, unsupported-before-I/O checks, cancellation, injection-like text and result budgets. Full SQLite823/823 passes127s, zero skips. It is a direct provider seam, without WEB4 authorization or manager integration; complete CQL acceptance remains open.
