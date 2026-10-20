@@ -144,10 +144,34 @@ public partial class PostgreSQLOASIS
 
     private async Task<T> WriteRecordInTransactionAsync<T>(NpgsqlCommand command,string table,T proposal,Action validateCaller,PlannedHolonWrite plan=null,Action mutationStarting=null) where T:class,IHolonBase
     {
-        string previous;
-        await using(var read=new NpgsqlCommand($"SELECT data_json FROM {table} WHERE id=@id FOR UPDATE",command.Connection,command.Transaction)){
-            read.Parameters.AddWithValue("id",proposal.Id);previous=(string)await read.ExecuteScalarAsync();
+        // Keep the same profile-then-detail lock order as deletion. A stale active
+        // save must not recreate a visible half of an already deleted account.
+        if(!proposal.IsDeleted&&table=="oasis_avatar_details"){
+            var profileBody=await ReadLockedRecordAsync(command.Connection!,command.Transaction!,"oasis_avatars",proposal.Id);
+            if(profileBody!=null&&(await ReadKeyedStoredRecordAsync<Avatar>(proposal.Id,profileBody,0)).IsDeleted)
+                throw new StorageLifecycleConflictException("Active detail save conflicts with a committed avatar tombstone.");
         }
+        var previous=await ReadLockedRecordAsync(command.Connection!,command.Transaction!,table,proposal.Id);
+        if(!proposal.IsDeleted&&(table is "oasis_avatars" or "oasis_avatar_details")){
+            if(previous!=null&&(await ReadKeyedStoredRecordAsync<T>(proposal.Id,previous,0)).IsDeleted)
+                throw new StorageLifecycleConflictException("Active profile save cannot overwrite a committed tombstone.");
+            if(table=="oasis_avatars"){
+                var detailBody=await ReadLockedRecordAsync(command.Connection!,command.Transaction!,"oasis_avatar_details",proposal.Id);
+                if(detailBody!=null&&(await ReadKeyedStoredRecordAsync<AvatarDetail>(proposal.Id,detailBody,0)).IsDeleted)
+                    throw new StorageLifecycleConflictException("Active profile save conflicts with a committed detail tombstone.");
+            }
+        }
+        return await WriteObservedRecordInTransactionAsync(command,proposal,previous,validateCaller,plan,mutationStarting);
+    }
+
+    private static async Task<string?> ReadLockedRecordAsync(NpgsqlConnection connection,NpgsqlTransaction transaction,string table,Guid id)
+    {
+        await using var read=new NpgsqlCommand($"SELECT data_json FROM {table} WHERE id=@id FOR UPDATE",connection,transaction);
+        read.Parameters.AddWithValue("id",id);return (string?)await read.ExecuteScalarAsync();
+    }
+
+    private async Task<T> WriteObservedRecordInTransactionAsync<T>(NpgsqlCommand command,T proposal,string previous,Action validateCaller,PlannedHolonWrite plan=null,Action mutationStarting=null) where T:class,IHolonBase
+    {
         if(plan!=null&&proposal is Holon holon){
             var observed=previous==null?null:await ReadKeyedStoredRecordAsync<Holon>(proposal.Id,previous,0);
             holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plan,HolonChildRoleWriteKind.SourceSave,observed!=null,observed?.ChildRoleManifestJson);

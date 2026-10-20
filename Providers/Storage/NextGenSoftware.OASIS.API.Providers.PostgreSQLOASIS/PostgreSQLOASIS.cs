@@ -165,6 +165,7 @@ ON CONFLICT (id) DO UPDATE SET
             {
                 result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error saving avatar '{avatar?.Username}': {ex.Message}");
+                if(IsLifecycleConflict(ex))result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
             }
             return result;
         }
@@ -184,7 +185,7 @@ ON CONFLICT (id) DO UPDATE SET
             cmd.Parameters.AddWithValue("@val", id);
             var scalar = await cmd.ExecuteScalarAsync();
             if (scalar == null) return null;
-            return await ReadKeyedStoredRecordAsync<Avatar>(id,scalar.ToString()!,version);
+            return await ReadVisibleAvatarRecordAsync<Avatar>(id,scalar.ToString()!,version);
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -235,7 +236,7 @@ ON CONFLICT (id) DO UPDATE SET
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    var a = await ReadKeyedStoredRecordAsync<Avatar>(reader.GetGuid(0),reader.GetString(1),version);
+                    var a = await ReadVisibleAvatarRecordAsync<Avatar>(reader.GetGuid(0),reader.GetString(1),version);
                     if (a != null) avatars.Add(a);
                 }
                 result.Result = avatars; result.IsLoaded=true;result.LoadedCount=avatars.Count;result.IsError = false; result.Message = $"PostgreSQLOASIS: Loaded {avatars.Count} avatar(s).";
@@ -249,81 +250,25 @@ ON CONFLICT (id) DO UPDATE SET
         // ─── Avatar deletion ──────────────────────────────────────────────────────
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                string sql = softDelete
-                    ? "UPDATE oasis_avatars SET is_deleted=TRUE, modified_date=NOW() WHERE id=@id"
-                    : "DELETE FROM oasis_avatars WHERE id=@id";
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@id", id);
-                int rows = await cmd.ExecuteNonQueryAsync();
-                result.Result = rows > 0; result.IsError = !result.Result;
-                result.Message = result.Result
-                    ? $"PostgreSQLOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted."
-                    : $"PostgreSQLOASIS: No avatar found with ID '{id}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error deleting avatar '{id}': {ex.Message}"); }
-            return result;
-        }
+            =>await DeleteAvatarRecordAsync(id,null,null,softDelete);
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                string sql = softDelete
-                    ? "UPDATE oasis_avatars SET is_deleted=TRUE, modified_date=NOW() WHERE username=@username"
-                    : "DELETE FROM oasis_avatars WHERE username=@username";
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@username", username);
-                int rows = await cmd.ExecuteNonQueryAsync();
-                result.Result = rows > 0; result.IsError = !result.Result;
-                result.Message = result.Result
-                    ? $"PostgreSQLOASIS: Avatar '{username}' {(softDelete ? "soft" : "hard")}-deleted."
-                    : $"PostgreSQLOASIS: No avatar found with username '{username}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error deleting avatar by username '{username}': {ex.Message}"); }
-            return result;
-        }
+            =>await DeleteAvatarRecordAsync(Guid.Empty,username,false,softDelete);
 
         public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true) => DeleteAvatarByUsernameAsync(username, softDelete).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                string sql = softDelete
-                    ? "UPDATE oasis_avatars SET is_deleted=TRUE, modified_date=NOW() WHERE email=@email"
-                    : "DELETE FROM oasis_avatars WHERE email=@email";
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@email", email);
-                int rows = await cmd.ExecuteNonQueryAsync();
-                result.Result = rows > 0; result.IsError = !result.Result;
-                result.Message = result.Result
-                    ? $"PostgreSQLOASIS: Avatar with email '{email}' {(softDelete ? "soft" : "hard")}-deleted."
-                    : $"PostgreSQLOASIS: No avatar found with email '{email}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error deleting avatar by email '{email}': {ex.Message}"); }
-            return result;
-        }
+            =>await DeleteAvatarRecordAsync(Guid.Empty,email,true,softDelete);
 
         public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            if (Guid.TryParse(providerKey, out Guid id)) return await DeleteAvatarAsync(id, softDelete);
-            return await DeleteAvatarByUsernameAsync(providerKey, softDelete);
+            if (Guid.TryParse(providerKey, out Guid id)&&id!=Guid.Empty) return await DeleteAvatarAsync(id, softDelete);
+            var result=new OASISResult<bool>(false);var cause=new ArgumentException("A nonempty PostgreSQL avatar GUID key is required.",nameof(providerKey));
+            OASISErrorHandling.HandleError(ref result,cause.Message,cause);result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
@@ -360,7 +305,7 @@ ON CONFLICT (id) DO UPDATE SET
                 PublishAcknowledgedIdentity(source,avatarDetail,publication);
                 result.Result = source; result.IsSaved=true;result.SavedCount=1;result.IsError = false; result.Message = "PostgreSQLOASIS: AvatarDetail saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error saving avatar detail: {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error saving avatar detail: {ex.Message}");if(IsLifecycleConflict(ex))result.ErrorCode=StorageLifecycleConflictException.ErrorCode; }
             return result;
         }
 
@@ -378,7 +323,7 @@ ON CONFLICT (id) DO UPDATE SET
                 cmd.Parameters.AddWithValue("@id", id);
                 var scalar = await cmd.ExecuteScalarAsync();
                 if (scalar == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No avatar detail found for ID '{id}'.");result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result; }
-                result.Result = await ReadKeyedStoredRecordAsync<AvatarDetail>(id,scalar.ToString()!,version);
+                result.Result = await ReadVisibleAvatarRecordAsync<AvatarDetail>(id,scalar.ToString()!,version);
                 if(result.Result==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Requested avatar-detail version was not found.";return result;}result.IsLoaded=true;
                 result.IsError = false;
                 result.Message = $"PostgreSQLOASIS: AvatarDetail loaded for ID '{id}'.";
@@ -412,7 +357,7 @@ ON CONFLICT (id) DO UPDATE SET
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    var d = await ReadKeyedStoredRecordAsync<AvatarDetail>(reader.GetGuid(0),reader.GetString(1),version);
+                    var d = await ReadVisibleAvatarRecordAsync<AvatarDetail>(reader.GetGuid(0),reader.GetString(1),version);
                     if (d != null) details.Add(d);
                 }
                 result.Result = details; result.IsLoaded=true;result.LoadedCount=details.Count;result.IsError = false; result.Message = $"PostgreSQLOASIS: Loaded {details.Count} avatar detail(s).";
