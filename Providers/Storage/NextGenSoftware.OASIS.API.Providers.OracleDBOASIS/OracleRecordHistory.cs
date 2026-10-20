@@ -11,11 +11,12 @@ public partial class OracleDBOASIS
 {
     private static readonly EmbeddedRecordHistory RecordHistory=new();
 
-    private async Task<T?> ReadRecordVersionAsync<T>(Guid identity,string json,int version) where T:class,IHolonBase
+    private async Task<T?> ReadRecordVersionAsync<T>(Guid identity,string json,int version,int? nativeAvatarDeleted=null) where T:class,IHolonBase
     {
         if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
         var current=Deserialize<T>(json);
         if(current.Id!=identity)throw new InvalidDataException("Oracle canonical record identity differs from its native key.");
+        if(nativeAvatarDeleted.HasValue)ValidateNativeAvatarProjection(current,nativeAvatarDeleted.Value);
         var document=JObject.Parse(json);
         if(document["id"]!=null&&document["id"]!.Value<string>()!=identity.ToString())throw new InvalidDataException("Oracle embedded history identity differs from native key.");
         if(document.Property(EmbeddedRecordHistory.PropertyName)==null)return version==0||current.Version==version?current:null;
@@ -23,8 +24,14 @@ public partial class OracleDBOASIS
         return await RecordHistory.ReadAsync(identity,document,version,value=>Deserialize<T>(value));
     }
 
+    private static void ValidateNativeAvatarProjection(IHolonBase current,int deleted)
+    {
+        if(current is not Core.Holons.Avatar)throw new ArgumentException("Native avatar lifecycle projection requires a canonical Avatar.");
+        if(deleted!=(current.IsDeleted?1:0))throw new InvalidDataException("Oracle native avatar lifecycle projection differs from its canonical record.");
+    }
+
     // One existing canonical history format; native SQL owner must lock or CAS the original.
-    private async Task<string> StageRecordHistoryAsync<T>(T proposed,string? original) where T:class,IHolonBase
+    private async Task<string> StageRecordHistoryAsync<T>(T proposed,string? original,int? nativeAvatarDeleted=null) where T:class,IHolonBase
     {
         // Native optimistic revisions advance on ALL holon writes, independently of logical history.
         if(proposed is IHolon){
@@ -35,6 +42,7 @@ public partial class OracleDBOASIS
         if(original!=null){
             var stored=Deserialize<T>(original!);
             if(stored.Id!=proposed.Id)throw new InvalidDataException("Oracle stored record identity differs from proposed native key.");
+            if(nativeAvatarDeleted.HasValue)ValidateNativeAvatarProjection(stored,nativeAvatarDeleted.Value);
             if(stored.IsDeleted&&!proposed.IsDeleted)
                 throw new Core.Helpers.StorageLifecycleConflictException("Active save cannot overwrite a committed Oracle tombstone.");
             previous=JObject.Parse(original);

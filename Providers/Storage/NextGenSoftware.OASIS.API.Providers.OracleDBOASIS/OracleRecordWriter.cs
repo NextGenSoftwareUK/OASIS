@@ -25,13 +25,15 @@ public partial class OracleDBOASIS
             // check and the proposed record write belong to this SAME transaction.
             if(!proposed.IsDeleted&&typeof(T)==typeof(AvatarDetail))
                 await RejectRelatedTombstoneAsync<Avatar>(connection,transaction,"OASIS_AVATARS",proposed.Id);
-            string? previous=null;Holon? observedHolon=null;
+            string? previous=null;Holon? observedHolon=null;int? nativeAvatarDeleted=null;
             var validateHolon=typeof(T)==typeof(Holon);
-            await using(var select=CreateCommand($"SELECT DATA_JSON{(validateHolon?",HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID":"")} FROM {table} WHERE ID=:Id FOR UPDATE",connection)){
+            var validateAvatar=typeof(T)==typeof(Avatar);
+            await using(var select=CreateCommand($"SELECT DATA_JSON{(validateHolon?",HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID":validateAvatar?",IS_DELETED":"")} FROM {table} WHERE ID=:Id FOR UPDATE",connection)){
                 select.Transaction=transaction;select.Parameters.Add("Id",OracleDbType.Raw).Value=proposed.Id.ToByteArray();
                 await using var reader=await select.ExecuteReaderAsync();
                 if(await reader.ReadAsync()){
                     previous=reader.GetString(0);
+                    if(validateAvatar)nativeAvatarDeleted=reader.GetInt32(1);
                     if(validateHolon){
                         var stored=await ReadRecordVersionAsync<Holon>(proposed.Id,previous,0)??throw new InvalidDataException("Oracle locked holon is missing its current version.");
                         observedHolon=stored;
@@ -43,9 +45,9 @@ public partial class OracleDBOASIS
                 var write=plannedHolon??new PlannedHolonWrite(holon,holon);
                 holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(write,HolonChildRoleWriteKind.SourceSave,previous!=null,observedHolon?.ChildRoleManifestJson);
             }
+            creating=previous==null;var json=await StageRecordHistoryAsync(proposed,previous,nativeAvatarDeleted);var staged=Deserialize<T>(json);
             if(!proposed.IsDeleted&&typeof(T)==typeof(Avatar))
                 await RejectRelatedTombstoneAsync<AvatarDetail>(connection,transaction,"OASIS_AVATAR_DETAILS",proposed.Id);
-            creating=previous==null;var json=await StageRecordHistoryAsync(proposed,previous);var staged=Deserialize<T>(json);
             await using var command=CreateCanonicalWriteCommand(staged,json,table,creating,connection,transaction);
             dispatched=true;if(await ExecuteCanonicalWriteAsync(command)!=1)throw new InvalidDataException("Oracle locked canonical writer did not affect exactly one record.");
             await CommitLifecycleTransactionAsync(transaction);return staged;
@@ -58,11 +60,12 @@ public partial class OracleDBOASIS
     {
         if(!(typeof(T)==typeof(Avatar)&&table=="OASIS_AVATARS"||typeof(T)==typeof(AvatarDetail)&&table=="OASIS_AVATAR_DETAILS"))
             throw new ArgumentException("Related Oracle identity type must match its fixed table.");
-        await using var select=CreateCommand($"SELECT DATA_JSON FROM {table} WHERE ID=:Id FOR UPDATE",connection);
+        var validateAvatar=typeof(T)==typeof(Avatar);
+        await using var select=CreateCommand($"SELECT DATA_JSON{(validateAvatar?",IS_DELETED":"")} FROM {table} WHERE ID=:Id FOR UPDATE",connection);
         select.Transaction=transaction;select.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();
-        var original=await select.ExecuteScalarAsync();
-        if(original!=null&&original!=DBNull.Value){
-            var related=await ReadRecordVersionAsync<T>(id,original.ToString()!,0)??throw new InvalidDataException("Oracle related identity is missing its current canonical record.");
+        await using var reader=await select.ExecuteReaderAsync();
+        if(await reader.ReadAsync()){
+            var related=await ReadRecordVersionAsync<T>(id,reader.GetString(0),0,validateAvatar?reader.GetInt32(1):null)??throw new InvalidDataException("Oracle related identity is missing its current canonical record.");
             if(related.IsDeleted)throw new Core.Helpers.StorageLifecycleConflictException("Active save conflicts with a committed related Oracle identity tombstone.");
         }
     }
