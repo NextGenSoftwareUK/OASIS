@@ -140,25 +140,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     }
                 }
 
-                // Generate Stacks key pair using NBitcoin (Stacks uses Bitcoin-style keys)
+                // Stacks uses secp256k1 keys. The private key is hex with the 01 compression suffix (the form
+                // SignAndBroadcastSTXTransferAsync reads); the address is c32check of hash160(compressed public key).
                 var key = new Key();
-                var privateKey = key.GetBitcoinSecret(Network.Main).ToString();
-                var publicKey = key.PubKey.ToString();
-                var address = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main).ToString();
-
-                // Convert to Stacks address format (Stacks addresses start with SP or ST)
-                // Stacks uses a different address encoding, but for now we'll use the Bitcoin address
-                var stacksAddress = $"SP{address.Substring(1)}"; // Simplified conversion
-
                 result.Result = new KeyHelper.KeyPairAndWallet
                 {
-                    PrivateKey = privateKey,
-                    PublicKey = publicKey,
-                    WalletAddressLegacy = stacksAddress,
-                    WalletAddressSegwitP2SH = stacksAddress
+                    PrivateKey = Convert.ToHexString(key.ToBytes()).ToLowerInvariant() + "01",
+                    PublicKey = key.PubKey.ToHex(),
+                    WalletAddressLegacy = StacksC32.Address(StacksC32.MainnetSingleSig, key.PubKey.Hash.ToBytes())
                 };
                 result.IsError = false;
-                result.Message = "Key pair generated successfully for BlockStack Stacks blockchain";
+                result.Message = "Stacks key pair generated (secp256k1, c32check mainnet address).";
             }
             catch (Exception ex)
             {
