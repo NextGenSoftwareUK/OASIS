@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public partial class Neo4jNativeAvatarTests
 {
     [DataTestMethod][DataRow(false)][DataRow(true)]
-    public async Task OwnedNativeCredentialHistoryRequiresExplicitVersionAndPreservesCurrentRotation(bool synchronous)
+    public async Task OwnedNativeCredentialSelectorsRejectHistoryAndPreserveCurrentRotation(bool synchronous)
     {
         const string uri="bolt://127.0.0.1:17687";
         Assert.AreEqual(uri,Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -37,14 +37,22 @@ public partial class Neo4jNativeAvatarTests
                     synchronous?provider.LoadAvatarByPrivateKey(credential,version):await provider.LoadAvatarByPrivateKeyAsync(credential,version)};
                 foreach(var read in reads)
                 {
-                    if(found){Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(id,read.Result.Id);Assert.AreEqual(version==0?2:version,read.Result.Version);}
+                    if(version!=0)
+                    {
+                        Assert.IsTrue(read.IsError);Assert.IsNull(read.Result);
+                        Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",read.ErrorCode);
+                        Assert.IsInstanceOfType(read.Exception,typeof(ArgumentOutOfRangeException));
+                    }
+                    else if(found){Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(id,read.Result.Id);Assert.AreEqual(2,read.Result.Version);}
                     else{Assert.IsTrue(read.IsError);Assert.IsNull(read.Result);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,read.ErrorCode);}
                 }
             }
             var old="old-"+marker;var current="current-"+marker;
             Assert.IsFalse((await provider.SaveAvatarAsync(Record(old))).IsError);
             Assert.IsFalse((await provider.SaveAvatarAsync(Record(current))).IsError);
-            await Check(old,1,true);await Check(old,0,false);await Check(current,0,true);
+            await Check(old,1,false);await Check(old,0,false);await Check(current,0,true);
+            var historical=await provider.LoadAvatarAsync(id,version:1);
+            Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(old,historical.Result.VerificationToken);
             await Check(current,1,false);await Check(old,99,false);
             Assert.IsFalse((await provider.DeleteAvatarAsync(id,true)).IsError);
             // Current lookup must not recover credentials from an archived live record.
@@ -53,6 +61,7 @@ public partial class Neo4jNativeAvatarTests
             {Assert.IsTrue(read.IsError);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,read.ErrorCode);Assert.IsNull(read.Result);}
             Assert.IsFalse((await provider.DeleteAvatarAsync(id,false)).IsError);
             await Check(old,1,false);
+            Assert.IsTrue((await provider.LoadAvatarAsync(id,version:1)).IsError);
             Assert.AreEqual(0L,(await(await inspection.RunAsync("MATCH (a) WHERE a:Avatar OR a:AvatarDetail OR a:OasisRecordVersion RETURN count(a) AS count")).SingleAsync())["count"].As<long>());
         }
         finally{await provider.DeActivateProviderAsync();}
