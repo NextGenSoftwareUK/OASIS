@@ -38,7 +38,7 @@ public partial class Web3CoreOASISBaseProvider
                 HolonChildRoleWriteKind.SourceSave,prior!=null,observed?.ChildRoleManifestJson);
         }
         var document=createHistory || prior?.Property(EmbeddedRecordHistory.PropertyName)!=null
-            ?await PrivateHistory.StageAsync(detached,prior,OasisJson.Deserialize<T>):JObject.Parse(OasisJson.Serialize(detached));
+            ?await PrivateHistory.StageAsync(detached,prior,OasisJson.Deserialize<T>):OasisJson.ParseStoredObject(OasisJson.Serialize(detached));
         var staged=OasisJson.Deserialize<T>(document.ToString(Newtonsoft.Json.Formatting.None));
         var context=PrivateContext(kind,(uint)Core.Utilities.HashUtility.GetNumericHash(staged.Id.ToString()),PrivateExternalId(staged.Id));
         using var codec=OpenPrivateCodec();

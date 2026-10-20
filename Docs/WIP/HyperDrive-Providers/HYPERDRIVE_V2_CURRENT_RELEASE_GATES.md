@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Ethereum/Web3 private history exact-object boundaries — controlled green
+
+Ethereum104 non-native/Web3 selected137 controlled pass0skip1s each after3true decimal text-boundary regressions. Same shared exact parser, encryption/context/nativewriter unchanged. Reports C1DB5E2AA9ACEDFD481B7014913C1F06410AC982EC24B68521AA567E1A6AA4E7 /B24D6BC53631D87107D3C32BFB78673818F4F08B2A6EC27B2F6A4B4B3394DF21, CoreFBAE/Shared12F46. Explicit native/recovery/outbox/fault exclusions and all limits documented in EVM_RECORD_HISTORY_GAPS.md. No chaincalls/gas/node/reset/replay/download/devpush; generic record decoder/native/fullproviderV2 gates remainOPEN.
+
 ## Cosmos DB precise metadata conflict/ACK boundaries — controlled249 green
 
 Two genuine precise-decimal comparison failures fixed by same shared exact-object parser (history/conditional deletion/repository ACK). Full249/249pass0skip1s, SHA25653662821F02B03B1F4ECD73BED4E9F49D3E3F082403C0887A234F0F4EC5AF52C, CoreFBAE/Shared12F46. Initial mocksetup error and6timestamp/parser-cause test compatibility failures retained/documented in SHARED_RECORD_HISTORY.md; no broad assertion weakening. NativeCosmos unresolvedoriginal/deniedresume untouched, no native/hosted/globalV2 certification or service/download/devpush. Genericdecoder remains separatelyCore-owned.

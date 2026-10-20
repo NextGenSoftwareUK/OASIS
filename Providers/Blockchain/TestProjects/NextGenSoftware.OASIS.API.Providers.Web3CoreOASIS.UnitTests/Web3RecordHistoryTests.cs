@@ -13,6 +13,23 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class Web3RecordHistoryTests
 {
+    [TestMethod]
+    public void DecryptedHistoryDocumentPreservesExactMetadata()
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY");var key=RandomNumberGenerator.GetBytes(32);
+        try{
+            Environment.SetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY",Convert.ToBase64String(key));
+            var provider=new PolygonOASIS.PolygonOASIS("http://127.0.0.1:18545","unused","0xowned");
+            var value=1.0000000000000000000000000001m;var source=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=value}};
+            var entity=new EntityOASIS{EntityId=(uint)HashUtility.GetNumericHash(source.Id.ToString()),ExternalId=Web3CoreOASISBaseProvider.PrivateExternalId(source.Id),Info=Encoding.UTF8.GetBytes(provider.EncodePrivateRecord("holon",source))};
+            var method=typeof(Web3CoreOASISBaseProvider).GetMethod("DecryptPrivateDocument",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon));
+            var decoded=((Holon Record,JObject Document))method.Invoke(provider,new object[]{"holon",entity})!;
+            using var json=System.Text.Json.JsonDocument.Parse(decoded.Document.ToString());
+            Assert.AreEqual(value,json.RootElement.GetProperty("MetaData").GetProperty("precise").GetDecimal());
+            Assert.AreEqual(value,source.MetaData["precise"]);
+        }finally{Environment.SetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY",previous);CryptographicOperations.ZeroMemory(key);}
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task ProfilePublicationRejectsNonIdentityCallerEdits(bool detail)
     {
