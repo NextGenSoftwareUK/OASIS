@@ -767,6 +767,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             if(version<0)return InvalidVersion<IHolon>(version);
             try
             {
+                ValidateReadDepth(maxChildDepth, 0);
                 var holon = await ReadVersionAsync(HolonKey(id), await ReadAsync<IHolon>(HolonKey(id)), version);
                 if (holon == null) return Fail<IHolon>($"Holon {id} not found.", errorCode: OASISResultErrorCodes.RecordNotFound);
                 if (loadChildren)
@@ -795,6 +796,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth, int version, HashSet<Guid> ancestors = null, bool continueOnError = false, List<string> failures = null)
         {
+            ValidateReadDepth(maxChildDepth, depth);
             failures ??= new List<string>();
             var path = ancestors == null ? new HashSet<Guid>() : new HashSet<Guid>(ancestors);
             if (!path.Add(parentId)) throw new System.IO.InvalidDataException("Cyclic holon parent relationship encountered during recursive child loading.");
@@ -811,7 +813,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 children = (await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version, continueOnError, failures)).Where(child => child.ParentHolonId == parentId).ToList();
             }
             children = children.Where(child => child.DeletedDate == DateTime.MinValue).ToList();
-            var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
+            var reachedDepth = depth == int.MaxValue || (maxChildDepth > 0 && (long)depth + 1 >= maxChildDepth);
             if (recursive && !reachedDepth)
             {
                 foreach (var child in children)
@@ -849,6 +851,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             if(version<0)return InvalidVersion<IEnumerable<IHolon>>(version);
             try
             {
+                ValidateReadDepth(maxChildDepth, curentChildDepth);
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
                 var failures = new List<string>();
                 var readErrors = new List<Exception>();
@@ -866,6 +869,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 return MarkPartialRead(Ok<IEnumerable<IHolon>>(selected), failures);
             }
             catch (Exception ex) { return Fail<IEnumerable<IHolon>>($"Error loading holons: {ex.Message}", ex); }
+        }
+
+        private static void ValidateReadDepth(int maximum, int current)
+        {
+            if (maximum < 0) throw new ArgumentOutOfRangeException(nameof(maximum));
+            if (current < 0) throw new ArgumentOutOfRangeException(nameof(current));
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
