@@ -18,11 +18,13 @@ public class CosmosWriteConflictTests
     {
         var input=new AvatarDetail{Id=Guid.NewGuid(),IsActive=true};
         var cause=new CosmosException("controlled native concurrency conflict",(HttpStatusCode)status,0,"owned",0);
-        var repository=new Mock<IAvatarDetailRepository>();repository.Setup(r=>r.UpsertAsync(input)).ThrowsAsync(cause);
+        var repository=new Mock<IAvatarDetailRepository>();repository.Setup(r=>r.UpsertAsync(It.Is<IAvatarDetail>(row=>row.Id==input.Id && row.IsActive==input.IsActive)))
+            .Callback((IAvatarDetail row)=>Assert.AreNotSame(input,row)).ThrowsAsync(cause);
         var provider=new AzureCosmosDBOASIS(new Uri("https://owned.invalid"),"owned","owned",new(){"avatarDetailItems"}){IsProviderActivated=true};
         typeof(AzureCosmosDBOASIS).GetField("avatarDetailRepository",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
         var result=await provider.SaveAvatarDetailAsync(input);
         Assert.IsTrue(result.IsError);Assert.AreSame(cause,result.Exception);Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
+        repository.Verify(r=>r.UpsertAsync(It.IsAny<IAvatarDetail>()),Times.Once);
         var decision=typeof(NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive)
             .GetMethod("ShouldFailOver",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(IAvatarDetail));
         var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest{Operation="SaveAvatarDetail",Payload=input};
