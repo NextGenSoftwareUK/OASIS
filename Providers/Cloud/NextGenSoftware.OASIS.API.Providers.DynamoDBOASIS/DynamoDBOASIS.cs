@@ -606,6 +606,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         if(node.Source is Holon caller&&written.Result is Holon committed)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                         node.Source.ProviderUniqueStorageKey[StorageProviderType]=node.Snapshot.Id.ToString();
+                        var revision=CosmicConcurrency.GetProviderRevisionId(written.Result,StorageProviderType);
+                        if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(node.Source,StorageProviderType,revision.Value);
                     }
                 }
                 result.Result=failures.Count==0 ? plan.Roots:saved; result.IsSaved=failures.Count==0;

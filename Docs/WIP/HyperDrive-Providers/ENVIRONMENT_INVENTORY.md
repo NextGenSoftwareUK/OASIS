@@ -1,5 +1,7 @@
 # Reusable environments and disk inventory
 
+2026-10-20 Dynamo/AWS ordinarybatch native4/4 reused SAME retained DynamoDBLocal JAR/data/cache/ports under exclusive build lease, terminal0. No downloads/installs/reset/newenvironment. Owned holons/receipt exactpayload conditional deletion+ALL_OLD+independentabsence; after terminal journals0/listeners18000+18001zero, ownedJava stopped. Compact batch-revision red/green/native reports retained fixed paths. Free C67,863,601,152bytes;123GBtarget unmet. Exactreport/cohort in releasegates.
+
 2026-10-20 Firestore ordinarybatch revision native2/2 used SAME emulator/export/cache, terminal0 under build lease; controlled188 green separately. Exact revision owned fixture cleanup verified; after native run journals0/listeners18080-18083zero. No new download/install/runtime/reset. Fixed red/green/native compact reports retained; free C67,871,846,400bytes,123GBtarget unmet.
 
 2026-10-20 Firestore runtime-encrypted replay4/4 batch reused SAME retained emulator/export/cache under exclusive build lease, terminal0. Compact google-encrypted-replay-native-current.trx retained; no per-run environment/download/install/reset. Exact UpdateTime cleanup and absence verified; after run pendingjournals0/listeners18080-18083zero. Free C67,879,653,376bytes;123GBtarget unmet. Synthetic test key material is not deployed key custody. Scope/report hash in release gates.
