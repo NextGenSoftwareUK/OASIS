@@ -162,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            return DeleteHolonByProviderKeyAsync(providerKey).Result;
+            return DeleteHolonByProviderKeyAsync(providerKey).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<IHolon>> DeleteHolonByProviderKeyAsync(string providerKey)
@@ -170,42 +170,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Load holon by provider key first
-                var holonResult = await LoadHolonAsync(providerKey);
-                if (holonResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
-                    return result;
-                }
-
-                if (holonResult.Result != null)
-                {
-                    // Delete holon by ID
-                    var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
-                    if (deleteResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
-                        return result;
-                    }
-
-                    result.Result = holonResult.Result;
-                    result.IsError = false;
-                    result.Message = "Holon deleted successfully by provider key from Ethereum";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
-                }
+                var holonResult = await LoadHolonAsync(providerKey,loadChildren:false);
+                if (holonResult.IsError)return holonResult;
+                if (holonResult.Result == null)throw new InvalidDataException("Ethereum provider-key lookup returned no holon.");
+                // Keep native acknowledgement flags, error codes and reconciliation markers intact.
+                var deleted = await DeleteHolonAsync(holonResult.Result.Id);
+                if(!deleted.IsError&&deleted.IsDeleted)deleted.Result=holonResult.Result;
+                return deleted;
             }
             catch (Exception ex)
             {
