@@ -88,11 +88,11 @@ public partial class DynamoDBOASIS
     }
 
     public Task<OASISResult<bool>> DeleteAvatarDetailByEmailAsync(string email, bool softDelete = true)
-        => DeleteSelectedDetailAsync(LoadAvatarDetailByEmailAsync(email),softDelete,row=>string.Equals(row.Email,email,StringComparison.OrdinalIgnoreCase));
+        => DeleteSelectedDetailAsync(LoadSelectedDetailAsync("email",email,0,includeDeleted:true),softDelete,row=>string.Equals(row.Email,email,StringComparison.OrdinalIgnoreCase));
     public OASISResult<bool> DeleteAvatarDetailByEmail(string email, bool softDelete = true)
         => DeleteAvatarDetailByEmailAsync(email, softDelete).GetAwaiter().GetResult();
     public Task<OASISResult<bool>> DeleteAvatarDetailByUsernameAsync(string username, bool softDelete = true)
-        => DeleteSelectedDetailAsync(LoadAvatarDetailByUsernameAsync(username),softDelete,row=>string.Equals(row.Username,username,StringComparison.OrdinalIgnoreCase));
+        => DeleteSelectedDetailAsync(LoadSelectedDetailAsync("username",username,0,includeDeleted:true),softDelete,row=>string.Equals(row.Username,username,StringComparison.OrdinalIgnoreCase));
     public OASISResult<bool> DeleteAvatarDetailByUsername(string username, bool softDelete = true)
         => DeleteAvatarDetailByUsernameAsync(username, softDelete).GetAwaiter().GetResult();
 }

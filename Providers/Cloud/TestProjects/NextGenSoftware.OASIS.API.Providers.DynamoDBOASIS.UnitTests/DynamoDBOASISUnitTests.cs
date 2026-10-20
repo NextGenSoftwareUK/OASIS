@@ -153,17 +153,13 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
             else {await task;Assert.AreEqual(1,observations);Assert.AreEqual(0,delays);}
         }
 
-        private sealed class FailedIdentityProvider : DynamoDBOASIS
+        private sealed class FailedIdentityClient : Amazon.DynamoDBv2.AmazonDynamoDBClient
         {
             public readonly NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException Cause=new();
             public int Deletes;
-            public FailedIdentityProvider():base("owned-key","owned-secret","us-east-1") { }
-            private Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>> Failure()
-                => Task.FromResult(new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {
-                    IsError=true,Exception=Cause,ErrorCode=NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,Message="owned duplicate identity"});
-            public override Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>> LoadAvatarByUsernameAsync(string u,int version=0)=>Failure();
-            public override Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>> LoadAvatarByEmailAsync(string e,int version=0)=>Failure();
-            public override Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> DeleteAvatarAsync(Guid id,bool softDelete=true) {
+            public FailedIdentityClient():base(new Amazon.Runtime.BasicAWSCredentials("owned","owned"),new Amazon.DynamoDBv2.AmazonDynamoDBConfig{ServiceURL="http://127.0.0.1:18001",AuthenticationRegion="us-east-1",MaxErrorRetry=0}) { }
+            public override Task<Amazon.DynamoDBv2.Model.ScanResponse> ScanAsync(Amazon.DynamoDBv2.Model.ScanRequest request,CancellationToken token=default)=>throw Cause;
+            public override Task<Amazon.DynamoDBv2.Model.TransactWriteItemsResponse> TransactWriteItemsAsync(Amazon.DynamoDBv2.Model.TransactWriteItemsRequest request,CancellationToken token=default) {
                 Deletes++; throw new InvalidOperationException("Delete must not execute after lookup failure.");
             }
         }
@@ -172,13 +168,16 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
         [DataRow(false,false)] [DataRow(false,true)] [DataRow(true,false)] [DataRow(true,true)]
         public async Task SelectorDeletePreservesTerminalIdentityFailure(bool synchronous,bool email)
         {
-            var provider=new FailedIdentityProvider();
+            var provider=new DynamoDBOASIS("owned","owned","us-east-1");var field=typeof(DynamoDBOASIS).GetField("_client",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var original=(Amazon.DynamoDBv2.AmazonDynamoDBClient)field.GetValue(provider)!;using var client=new FailedIdentityClient();field.SetValue(provider,client);provider.IsProviderActivated=true;
+            try{
             var result=synchronous ? (email ? provider.DeleteAvatarByEmail("owned"):provider.DeleteAvatarByUsername("owned"))
                 : await (email ? provider.DeleteAvatarByEmailAsync("owned"):provider.DeleteAvatarByUsernameAsync("owned"));
             Assert.IsTrue(result.IsError); Assert.IsFalse(result.Result); Assert.IsFalse(result.IsSaved);
-            Assert.AreSame(provider.Cause,result.Exception); Assert.AreEqual("owned duplicate identity",result.Message);
+            Assert.AreSame(client.Cause,result.Exception); Assert.AreEqual(client.Cause.Message,result.Message);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);
-            Assert.AreEqual(0,provider.Deletes);
+            Assert.AreEqual(0,client.Deletes);
+            }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
         }
 
         [DataTestMethod]
@@ -205,8 +204,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
                 });
             };
             var task=(Task<NextGenSoftware.OASIS.API.Core.Holons.Avatar>)typeof(DynamoDBOASIS)
-                .GetMethod("ReadUniqueAvatarAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!
-                .Invoke(null,new object[] {query,"username","owned-user",0})!;
+                .GetMethods(System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)
+                .Single(method=>method.Name=="ReadUniqueIdentityAsync"&&method.GetParameters().Length==6)
+                .MakeGenericMethod(typeof(NextGenSoftware.OASIS.API.Core.Holons.Avatar))
+                .Invoke(null,new object[] {query,"OasisAvatars","username","owned-user",0,false})!;
             if(duplicate) await Assert.ThrowsExceptionAsync<NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException>(async()=>await task);
             else Assert.AreEqual(avatar.Id,(await task).Id);
             Assert.AreEqual(2,calls);

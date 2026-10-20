@@ -304,25 +304,22 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
 
-        private async Task<Avatar?> ReadAvatarSelectorAsync(string keyName, string keyValue,int version=0)
-            => await ReadUniqueAvatarAsync(request => _client.ScanAsync(request), keyName, keyValue,version);
+        private async Task<Avatar?> ReadAvatarSelectorAsync(string keyName, string keyValue,int version=0,bool includeDeleted=false)
+            => await ReadUniqueIdentityAsync<Avatar>(request=>_client.ScanAsync(request),"OasisAvatars",keyName,keyValue,version,includeDeleted);
 
-        private static async Task<Avatar?> ReadUniqueAvatarAsync(Func<ScanRequest, Task<ScanResponse>> read, string keyName, string keyValue,int version=0)
-            => await ReadUniqueIdentityAsync<Avatar>(read,"OasisAvatars",keyName,keyValue,version);
-
-        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read, string tableName, string keyName, string keyValue,int version=0) where T:class,IHolonBase
+        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read, string tableName, string keyName, string keyValue,int version=0,bool includeDeleted=false) where T:class,IHolonBase
         {
             if(string.IsNullOrWhiteSpace(keyValue)) throw new ArgumentException("Avatar selector must not be blank.",nameof(keyValue));
-            return await ReadUniqueIdentityAsync<T>(read,tableName,record=>string.Equals(CanonicalIdentityValue(record,keyName),keyValue,StringComparison.Ordinal),version);
+            return await ReadUniqueIdentityAsync<T>(read,tableName,record=>string.Equals(CanonicalIdentityValue(record,keyName),keyValue,StringComparison.Ordinal),version,includeDeleted);
         }
 
-        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read,string tableName,Func<T,bool> matches,int version=0) where T:class,IHolonBase
+        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read,string tableName,Func<T,bool> matches,int version=0,bool includeDeleted=false) where T:class,IHolonBase
         {
             T? match = null;
             await foreach(var item in ReadScanRowsAsync(read,tableName))
             {
                 var avatar=ReadStoredIdentity<T>(item,version);
-                if(avatar==null||avatar.IsDeleted)continue;
+                if(avatar==null||avatar.IsDeleted&&!includeDeleted)continue;
                 if(!matches(avatar))continue;
                 if(match!=null)throw new StorageIdentityAmbiguousException();
                 match=avatar;
@@ -330,10 +327,13 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             return match;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
+            =>LoadSelectedAvatarAsync("username",username,version);
+
+        private async Task<OASISResult<IAvatar>> LoadSelectedAvatarAsync(string keyName,string value,int version,bool includeDeleted=false)
         {
             var result = new OASISResult<IAvatar>();
-            try { ValidateRecordVersion(version); var a = await ReadAvatarSelectorAsync("username", username,version); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for username '{username}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
+            try { ValidateRecordVersion(version); var a = await ReadAvatarSelectorAsync(keyName,value,version,includeDeleted); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for {keyName} '{value}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
             catch (StorageIdentityAmbiguousException ex) { result.Exception=ex; OASISErrorHandling.HandleError(ref result,ex.Message); result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -341,14 +341,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0) => LoadAvatarByUsernameAsync(username, version).Result;
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try { ValidateRecordVersion(version); var a = await ReadAvatarSelectorAsync("email", email,version); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for email '{email}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
-            catch (StorageIdentityAmbiguousException ex) { result.Exception=ex; OASISErrorHandling.HandleError(ref result,ex.Message); result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
+            =>LoadSelectedAvatarAsync("email",email,version);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0) => LoadAvatarByEmailAsync(email, version).Result;
 
@@ -444,9 +438,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             }
             return await ApplyAvatarLifecycleAsync(selected.Result.Id,softDelete,selectedIdentity:selectedIdentity);
         }
-        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadAvatarByUsernameAsync(u),softDelete,row=>string.Equals(row.Username,u,StringComparison.OrdinalIgnoreCase));
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadSelectedAvatarAsync("username",u,0,includeDeleted:true),softDelete,row=>string.Equals(row.Username,u,StringComparison.OrdinalIgnoreCase));
         public override OASISResult<bool> DeleteAvatarByUsername(string u, bool softDelete = true) => DeleteAvatarByUsernameAsync(u, softDelete).GetAwaiter().GetResult();
-        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadAvatarByEmailAsync(e),softDelete,row=>string.Equals(row.Email,e,StringComparison.OrdinalIgnoreCase));
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadSelectedAvatarAsync("email",e,0,includeDeleted:true),softDelete,row=>string.Equals(row.Email,e,StringComparison.OrdinalIgnoreCase));
         public override OASISResult<bool> DeleteAvatarByEmail(string e, bool softDelete = true) => DeleteAvatarByEmailAsync(e, softDelete).GetAwaiter().GetResult();
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteAvatarAsync(id, softDelete); return await DeleteAvatarByUsernameAsync(pk, softDelete); }
         public override OASISResult<bool> DeleteAvatar(string pk, bool softDelete = true) => DeleteAvatarAsync(pk, softDelete).Result;
@@ -508,15 +502,15 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
 
-        private async Task<AvatarDetail?> ReadDetailSelectorAsync(string keyName, string keyValue,int version=0)
-            => await ReadUniqueIdentityAsync<AvatarDetail>(request=>_client.ScanAsync(request),"OasisAvatarDetails",keyName,keyValue,version);
+        private async Task<AvatarDetail?> ReadDetailSelectorAsync(string keyName, string keyValue,int version=0,bool includeDeleted=false)
+            => await ReadUniqueIdentityAsync<AvatarDetail>(request=>_client.ScanAsync(request),"OasisAvatarDetails",keyName,keyValue,version,includeDeleted);
 
-        private async Task<OASISResult<IAvatarDetail>> LoadSelectedDetailAsync(string key,string value,int version)
+        private async Task<OASISResult<IAvatarDetail>> LoadSelectedDetailAsync(string key,string value,int version,bool includeDeleted=false)
         {
             var result=new OASISResult<IAvatarDetail>();
             try {
                 ValidateRecordVersion(version);
-                var detail=await ReadDetailSelectorAsync(key,value,version);
+                var detail=await ReadDetailSelectorAsync(key,value,version,includeDeleted);
                 if(detail==null) {OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: No matching detail.");result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
                 result.Result=detail;result.IsLoaded=true;
             }
