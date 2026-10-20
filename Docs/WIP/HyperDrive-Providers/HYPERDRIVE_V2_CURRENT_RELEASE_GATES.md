@@ -1,5 +1,15 @@
 # HyperDrive V2 current release gates
 
+## Cosmos native61 gate recovered — 2026-10-20
+
+Userapproved EXACTsyntheticCosmosrow/SQLitefixture cleanup; reconciler1/1green604ms verifiedBOTHoriginalhashes+solepoint_self+strictallotherfields+originalETag+SQLitehash/identity before conditionaldelete/404 and closedfile removal. No mutation replay/reset/expectedhashreplacement. Fullnative **61/61green1m32s0skip**, terminal0, SAME retainedruntime/data; prior37pass24fail regression gate nowclosed for current source. This is not completeprovider/V2certification.
+
+Reports cleanup8A2CFD1A77A8833A0FA8E66BE1D4BE7DE11E1F31A59C2C95A391A424DB3CB08C; native8DE4B50282D1135EB3A4F36D3E4F26B803A5DF6F4BBA0B88F72890E1EDC59FFD. ActualCoreD490/Shared579822; earliercontrolled249Shared1C35EE is separatecohort. Priorfailedreports SHAchecked/movedinplace, fullnames/scope in COSMOSDB_RECORD_HISTORY.md. Containerexited/pending0 independentlychecked; no download/install/newenvironment/publicfee. Free C67,757,015,040bytes;123GBtargetunmet. Fullinterfaces/options/concurrency/hosted/atomicreplication/V2 remain OPEN.
+
+## Cosmos preserved native mismatch diagnosed — 2026-10-20
+
+Approved read-only inspection1/1green proves originalpoint/feedhashes/row/ETag unchanged; strictdifferenceONLYpoint_self systemmetadata absentfromfeed, NOT changedcanonicaldata/propertyorderassumption. Symmetricinspector reportE84F644C71967B255D4CD2EE1DA9D71512414866DE68245809DB9A39BD1A3B74, CoreD490/Shared579822. Containerstopped; originalSQLiteexacthash unchanged. No mutation/deletion/reset/replay. ExactreconcilerpreparedwithBOTHfullhashes+sole_selfdifference+strictremainingfields+ETag+SQLiteidentityguards. UsernowapprovedONLYverifiedrow/SQLitecleanup; executionwaitingpeerbuildlease, native61stillOPEN. Exactscope/hashes in COSMOSDB_RECORD_HISTORY.md.
+
 ## SOLID current dependency warm-server acceptance — 2026-10-20
 
 Native6/6 1m1s +controlled333/333 1s,0skip,terminal0 under buildlease on measuredCoreD490/Shared1C35EE. Same original running privateDPoP/CSSserver/keys/identity/volume reused, no sourcechange/restart/download/newenvironment. Allpendingjournals absent, operatorserver intentionally left running. Reportnative6FA98CC9CBECFED317B486E85C275D14233E261FFB3AD885A21366B72783E16E; controlled83FECFC400BBDDF1E9340FEF6ABCE89516EBD29DB70CDFFBA8B42F494BCE0052. PriorreportSHAchecked/movedinplace; exactscope/cohort in SOLID_PROVIDER_IMPLEMENTATION_AUDIT.md. Coldstart tokenabort/rootcause, completeinterfaces/OIDC/hosted/V2 remain OPEN; no retry/restart masks failures. Free C67,774,885,888bytes;123GBtargetunmet.

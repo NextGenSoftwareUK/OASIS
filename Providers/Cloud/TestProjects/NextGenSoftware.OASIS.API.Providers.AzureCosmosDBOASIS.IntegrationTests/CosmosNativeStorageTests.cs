@@ -94,6 +94,14 @@ public partial class CosmosNativeStorageTests
                         using var point=await database.GetContainer(container.Id).ReadItemStreamAsync(row["id"]!.Value<string>(),new PartitionKey(row["id"]!.Value<string>()));point.EnsureSuccessStatusCode();
                         using var pointReader=new StreamReader(point.Content);var pointBody=JObject.Parse(await pointReader.ReadToEndAsync());
                         TestContext.WriteLine("Owned point bodySHA256={0}; ETag={1}; feedPointDifferences={2}",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(pointBody.ToString(Newtonsoft.Json.Formatting.None)))),point.Headers.ETag,string.Join(",",row.Properties().Where(p=>!pointBody.TryGetValue(p.Name,out var value)||!NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPayloadEquality.Equivalent(p.Value,value)).Select(p=>p.Name)));
+                        var names=row.Properties().Select(p=>p.Name).Union(pointBody.Properties().Select(p=>p.Name),StringComparer.Ordinal).ToArray();
+                        TestContext.WriteLine("Feed-only fields={0}; point-only fields={1}; strictDeepEquals={2}",
+                            string.Join(",",names.Where(name=>pointBody.Property(name)==null)),
+                            string.Join(",",names.Where(name=>row.Property(name)==null)),JToken.DeepEquals(row,pointBody));
+                        foreach(var name in names.Where(name=>!JToken.DeepEquals(row[name],pointBody[name])))
+                            TestContext.WriteLine("Strict difference field={0}; feedType={1}; pointType={2}; semanticEquivalent={3}",
+                                name,row[name]?.Type.ToString()??"absent",pointBody[name]?.Type.ToString()??"absent",
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPayloadEquality.Equivalent(row[name],pointBody[name]));
                     }
                 }
             }
