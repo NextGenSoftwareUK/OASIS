@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Core/shared equality consolidation — Shared883 / nativeDynamo95 / nativeSQLite971 green
+
+Pairing locallyverified: parentc398a2447 pinsCore51eb67b in gitlink+manifest, strictvalidatorpasses; Core1380/focusedSQLite no-op2/full971 green, fixtureabsent. Full971reportD9D20FBC379C3DCB74099543954FCE8A084AACD2CDF277AAB25F2AA06E01711E, sameFBAE/12F46. This closes the dependency-pair hold recorded below, not genericdecoder/hosted/allproviderV2 gates. No deployment/devpush.
+
+Core canonical numeric owner now backs provider wrapper, tracking/deltas/save-publication without Core-to-Shared dependency. Shared883/883 controlled and retained realSDK Dynamo95/95 native pass0skip on matching CoreFBAE/Shared12F46. Golden finite fingerprint bytes unchanged; unbounded exponents exact. Native reportC0F2477D7B9467CF85235E557B331D9E92EB4031513BA54B6E21DD90221B2CFA; detailed hashes/runtime cleanup/limits in SHARED_RECORD_HISTORY.md. Core owner's native no-op/dependencygitlinkmanifest checkpoint remains pending before sourcepublication; generic metadata decoder separatelyOPEN. No hosted AWS/all-providerV2 claim/newruntime/download/publicspend/devpush.
+
 ## Exact DynamoDB/Firestore history text boundaries — controlled green
 
 2026-10-20: Shared879/Dynamo298/Google168 allpass0skip on CoreF2E6/Shared75B29. Two independent provider decimal failures fixed using one reusable exact object parser; strict history schema integer1 retained with4explicit numeric/text-form cases. Intermediate cloud failures1/9 retained and repaired, not excluded. Exact report hashes in SHARED_RECORD_HISTORY.md. Generic record decoding still Core-owned/open; no hosted/native cloud/full-provider/V2 completion claim. No downloads/newenvironment/devpush.
