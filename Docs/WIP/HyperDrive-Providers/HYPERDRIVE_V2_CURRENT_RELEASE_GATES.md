@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## AWS/Dynamo direct signing validation and native metadata — 2026-10-20
+
+Direct constructors now reject blank signing configuration before SDK client creation; controlled suite306/306 passed. Retained native95/95 subsequently passed with expanded exact decimal/numeric-string current+archive assertions across avatar/detail/holon in both facades. Different captured Core epochs are explicitly documented, not one paired certification. Report SHA2566F593A81476C49C7CCBC3279C641FE01DE232DFFC2538111BB3A1311F6CE9BE1; zero pending journals/listeners afterward. Same retained environment, no downloads/reset. See [AWS direct configuration audit](AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md) for hashes, cost/performance finding (scans plus unused secondary indexes), and remaining hosted/interface/recovery gates. This does not certify all AWS or V2 policy support.
+
 ## Oracle required column admission — controlled204/native96 green, distinct Core epochs
 
 Read-only checks now enforce nullability (including intentional receiptplaceholder null), NUMBER integer preservation/capacity and character count in existing queries.19newcases, total204controlledpass0skip643ms; actualunitEABCore/nativeDE42Core, bothShared9035. Native96pass0skip44s/runner0, originalschema unchanged. Do NOT treat oracle-column-properties-native-paired.trx name as equal-Core proof; explicit hashes/scopes in ORACLE_CLIENT_PRIORITY.md. No DLLcopy, schema repair/reset/download/newruntime/devpush. Pending0/containerEXITED; hosted/provisioning/otherconstraints/fullproviderV2 gates remainOPEN.

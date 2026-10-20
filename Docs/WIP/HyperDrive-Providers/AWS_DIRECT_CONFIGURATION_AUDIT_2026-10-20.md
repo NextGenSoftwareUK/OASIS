@@ -24,3 +24,11 @@ Do not replace authentication scans with eventually consistent secondary-index q
 ## Remaining proof
 
 Existing SDK session/default-chain support is not a new implementation here. Hosted IAM/STS role refresh, SSO, permissions/TLS, current native round trips and complete interfaces/unknown-outcome recovery still need their respective evidence. Earlier local native tests do not establish all AWS or all V2 policies. No merge, push or Railway deployment in this checkpoint. Free C before builds: 68,810,088,448 bytes; the requested disk-space target remains unmet.
+
+## Follow-up native evidence
+
+The same retained DynamoDB runtime was subsequently used for **95/95 native cases**, zero skipped, eight seconds, runner terminal exit zero. Six existing create/replace/history cases now additionally verify exact 28-digit decimal metadata and numeric-looking string preservation in current and archived records, across avatar/avatar-detail/holon and both DynamoDB/AWS facades. This expands assertions, not the case count. The test exercises real official SDK requests against DynamoDB Local; it is not hosted AWS/IAM or universal HyperDrive policy proof.
+
+Report: `TestResults/DynamoHistoryCurrent/dynamo-history-native-current.trx`. Previous report was SHA-verified then moved in place to `dynamo-history-pre-native-decimal.trx`, with no duplicate runtime/data environment or ledger reset. Captured Core SHA256 `03766A44A7A20F6452CDFC22D14B1749FD0B85DC32B4914F1A90468A911A521A`, Shared SHA256 `A8AAF9C149B61BBE64E0C16AAB7CDACA2B5B80E12C2C1745B032963E6A893095`; this is a later dependency epoch than the controlled306 run above. Do not present the two as one immutable artifact certification.
+
+Report SHA256 `6F593A81476C49C7CCBC3279C641FE01DE232DFFC2538111BB3A1311F6CE9BE1`. Independently checked afterward: zero pending native journals, no listeners on 18000/18001. Free C after run: 68,801,224,704 bytes. Runner stopped its owned service; no disposable fixture database copies were created. Compact old/new evidence is retained.

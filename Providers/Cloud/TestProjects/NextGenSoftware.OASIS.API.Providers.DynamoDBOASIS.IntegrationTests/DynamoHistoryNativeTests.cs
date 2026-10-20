@@ -135,7 +135,10 @@ public partial class DynamoHistoryNativeTests
         var useAws=kind>=3;kind%=3;
         var id=Guid.NewGuid();var name="history-"+id.ToString("N");
         IHolonBase row=kind==0?new Avatar{Id=id,Username=name,Email=name+"@example.invalid"}:kind==1?new AvatarDetail{Id=id,Username=name,Email=name+"@example.invalid"}:new Holon{Id=id,Name=name};
-        var owner=Guid.NewGuid();row.CreatedByAvatarId=owner;row.MetaData=new(){["owned_history_fixture"]="first"};
+        const decimal preciseMetadata=0.1234567890123456789012345678m;
+        const string numericText="0.1234567890123456789012345678";
+        var owner=Guid.NewGuid();row.CreatedByAvatarId=owner;row.MetaData=new(){["owned_history_fixture"]="first",
+            ["precise_decimal"]=preciseMetadata,["numeric_text"]=numericText};
         var child=kind==2?new Holon{Id=Guid.NewGuid(),ParentHolonId=id,CreatedByAvatarId=owner,Name="independent-current-child",Version=5}:null;
         var table=kind==0?"OasisAvatars":kind==1?"OasisAvatarDetails":"OasisHolons";
         DynamoDBOASIS provider=useAws
@@ -180,6 +183,15 @@ public partial class DynamoHistoryNativeTests
             else if(row is IHolon movedRoot)movedRoot.ParentHolonId=Guid.NewGuid();
             if(row is IAvatar rotatingCredentials)SetAdditionalCredentials(rotatingCredentials,"-new");
             await SavePublic(provider,row);Assert.AreEqual(2,row.Version);Assert.AreEqual(firstVersionId,row.PreviousVersionId);
+            foreach(var selectedVersion in new[]{0,1}){
+                IHolonBase selected;
+                if(kind==0){var loaded=await provider.LoadAvatarAsync(id,selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                else if(kind==1){var loaded=await provider.LoadAvatarDetailAsync(id,selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                else{var loaded=await provider.LoadHolonAsync(id,loadChildren:false,version:selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                Assert.AreEqual(preciseMetadata,Convert.ToDecimal(selected.MetaData["precise_decimal"],System.Globalization.CultureInfo.InvariantCulture),"Current and archived native records must retain decimal precision.");
+                Assert.IsInstanceOfType<string>(selected.MetaData["numeric_text"],"Numeric-looking strings must not become numbers.");
+                Assert.AreEqual(numericText,selected.MetaData["numeric_text"]);
+            }
             if(child!=null)await Write(provider,child,table);
             if(kind==0){
                 var selected=await provider.LoadAvatarAsync(id,1);Assert.IsFalse(selected.IsError,selected.Message);Assert.AreEqual("first",selected.Result.MetaData["owned_history_fixture"].ToString());
