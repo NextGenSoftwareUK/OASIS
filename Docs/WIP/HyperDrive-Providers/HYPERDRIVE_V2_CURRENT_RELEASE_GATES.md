@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Shared/OCI manifest-authoritative unlink reads — 2026-10-20
+
+Six genuine red-before cases showed old parent-index links resurrecting explicitly unlinked children. Same common loader now uses observed owner manifest IDs (includingempty), legacy-null keeps parent scan, nested children current independently. Final824/824Shared4s +52/52officialOCI SDK/controlled-service12s, zero skips. Exact TRX hashes `E1CA3DE545AC0136638D5EBAC4E663654AC2965F86321C8D14C3DBC424C853E9` / `386FCE8E9D40F246443D2BB48894CCFC38237F6B42A6600D190DB5B641BE2E74`; both consumerCore0181/Shared9E515F. Original11legacyfixture failures transparently retained, seed options corrected without removing assertions; selected absent-vs-transientpartial behavior separately covered. ActualSDK flow retains independent child and byte-identical encrypted objects across reads. Listenerstopped/no download/newenvironment/cloudfees. Details/limits/fees in ORACLE_CLIENT_PRIORITY.md; complete inherited-provider native/ownership/depth/largegraph/hosted/interface/ALL-provider V2 gates OPEN.
+
 ## Current Oracle/Dynamo native closure and inherited OCI follow-up — 2026-10-20
 
 Newer Oracle refresh42367:96/96native42s/zero skips, TRX SHA256 `049E2EE6CBAD06735E01A57AEF619D0E8120D4B15A59D6854484EA12E9009DFD`; Core0181/Shared725B same as OCI52. All4×6route diagnostics remain clean, including new central search-owner path. PriorC28BC report preserved in place. Shared save fix3025491dc committed5scopedpaths locally, no devpush. Pending0/containerexited; all-provider/hosted/release gates still OPEN.

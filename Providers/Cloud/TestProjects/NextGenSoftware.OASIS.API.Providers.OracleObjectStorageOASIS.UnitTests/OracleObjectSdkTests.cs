@@ -339,6 +339,11 @@ public class OracleObjectSdkTests
             Assert.AreEqual(memberBefore,OasisJson.Serialize((await provider.LoadHolonAsync(member.Id,loadChildren:false)).Result));
             var archivedOwner=(await provider.LoadHolonAsync(owner.Id,loadChildren:false,version:1)).Result;
             Assert.AreEqual(manifest,((NextGenSoftware.OASIS.API.Core.Holons.Holon)archivedOwner).ChildRoleManifestJson);
+            owner.Components.Clear();var unlinked=synchronous?provider.SaveHolon(owner):await provider.SaveHolonAsync(owner);Assert.IsFalse(unlinked.IsError,unlinked.Exception?.ToString());
+            var beforeRead=objects.OrderBy(pair=>pair.Key).ToArray();
+            var noResurrection=synchronous?provider.LoadHolon(owner.Id):await provider.LoadHolonAsync(owner.Id);Assert.IsFalse(noResurrection.IsError,noResurrection.Message);Assert.AreEqual(0,noResurrection.Result.Children.Count);
+            Assert.IsFalse((await provider.LoadHolonAsync(member.Id,loadChildren:false)).IsError,"Unlinking must not delete the independent member.");
+            CollectionAssert.AreEqual(beforeRead,objects.OrderBy(pair=>pair.Key).ToArray(),"Reads must not repair/delete encrypted objects or indexes.");
             foreach(var value in objects.Values)foreach(var marker in new[]{owner.Name,member.Name,scalar.Name,owner.Id.ToString(),member.Id.ToString()})Assert.IsFalse(value.Contains(marker,StringComparison.Ordinal));
             Assert.IsFalse((await provider.DeleteHolonAsync(member.Id)).IsError);Assert.IsFalse((await provider.DeleteHolonAsync(owner.Id)).IsError);
             Assert.IsTrue((await provider.LoadHolonAsync(member.Id,loadChildren:false)).IsError);Assert.IsTrue((await provider.LoadHolonAsync(owner.Id,loadChildren:false)).IsError);
