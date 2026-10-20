@@ -14,7 +14,7 @@ using NativeWrite=Google.Cloud.Firestore.V1.Write;
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests;
 
 [TestClass]
-public class GoogleAtomicGraphTests
+public partial class GoogleAtomicGraphTests
 {
     private sealed class Reader(BatchGetDocumentsResponse response):IAsyncStreamReader<BatchGetDocumentsResponse>
     {
