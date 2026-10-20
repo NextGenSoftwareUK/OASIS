@@ -97,6 +97,18 @@ public class AzureConditionalHistoryWriterTests
         public override BlobContainerClient GetBlobContainerClient(string name)=>new Container(onlyContainer==null||name==onlyContainer?blob:new MissingBlob(()=>MissingReads++));
     }
 
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task ExistingInactiveAvatarTombstoneDoesNotCreateAnotherRevision(bool synchronous)
+    {
+        var row=new Avatar{Id=Guid.NewGuid(),Username="owned-deleted",IsActive=false,DeletedDate=DateTime.UtcNow,Version=7};
+        var blob=new ObservedBlob{ExistingRecord=row,RecordName=row.Id.ToString()};var service=new Service(blob,"oasis-avatars");
+        var provider=new AzureStorageOASIS("UseDevelopmentStorage=true"){IsVersionControlEnabled=true};
+        typeof(AzureStorageOASIS).GetField("_serviceClient",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,service);
+        var result=synchronous?provider.DeleteAvatar(row.Id):await provider.DeleteAvatarAsync(row.Id);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.Result);Assert.IsTrue(result.IsDeleted);
+        Assert.AreEqual(0,blob.Writes,"An already applied tombstone must not create another revision.");Assert.AreEqual(0,blob.Deletes);
+    }
+
     [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
     public async Task IdentityHardDeletionCanResolveExistingAvatarTombstone(bool email,bool synchronous)
     {
