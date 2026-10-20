@@ -65,6 +65,35 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual(avatar.Id, (await _provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
             Assert.AreEqual(avatar.Id, (await _provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
             Assert.IsTrue((await _provider.LoadAllAvatarsAsync()).Result.Any(item => item.Id == avatar.Id));
+            // Distinct encrypted records must never make a username/email lookup pick an arbitrary owner.
+            var duplicate = new Avatar { Id=Guid.NewGuid(), Username=avatar.Username, Email=avatar.Email };
+            var duplicateSave=await _provider.SaveAvatarAsync(duplicate);
+            Assert.IsFalse(duplicateSave.IsError,duplicateSave.Message);
+            Assert.IsNotNull(duplicateSave.Result);
+            try
+            {
+                foreach(var ambiguous in new[] {
+                    await _provider.LoadAvatarByUsernameAsync(avatar.Username),
+                    await _provider.LoadAvatarByEmailAsync(avatar.Email) })
+                {
+                    Assert.IsTrue(ambiguous.IsError);
+                    Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,ambiguous.ErrorCode);
+                    Assert.IsNull(ambiguous.Result);
+                    Assert.IsFalse(ambiguous.IsLoaded);
+                }
+            }
+            finally
+            {
+                // Delete only this acknowledged run-owned duplicate, never by its ambiguous identity.
+                var removed=await _provider.DeleteAvatarAsync(duplicate.Id,false);
+                Assert.IsFalse(removed.IsError,removed.Message);
+                Assert.IsTrue(removed.Result);
+                var absent=await _provider.LoadAvatarAsync(duplicate.Id);
+                Assert.IsFalse(absent.IsError,absent.Message);
+                Assert.IsNull(absent.Result);
+            }
+            Assert.AreEqual(avatar.Id,(await _provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
+            Assert.AreEqual(avatar.Id,(await _provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
         }
 
         [TestMethod]
