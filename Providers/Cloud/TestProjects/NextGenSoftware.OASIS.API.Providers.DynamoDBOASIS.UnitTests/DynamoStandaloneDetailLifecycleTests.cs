@@ -17,12 +17,12 @@ public sealed class DynamoStandaloneDetailLifecycleTests
 {
     private sealed class Probe(int mode, bool soft):AmazonDynamoDBClient(new BasicAWSCredentials("owned","owned"),new AmazonDynamoDBConfig{RegionEndpoint=RegionEndpoint.USEast1,MaxErrorRetry=0})
     {
-        public int Reads, Transactions; public string? Token; public string Original = "";
+        public int Reads, Transactions; public string? Token; public string Original = "";public bool ExistingTombstone;
         public override Task<GetItemResponse> GetItemAsync(GetItemRequest request,CancellationToken cancellationToken=default)
         {
             Reads++; Assert.AreEqual("OasisAvatarDetails",request.TableName); Assert.IsTrue(request.ConsistentRead);
             var id=Guid.Parse(request.Key["id"].S);
-            Original=OasisJson.Serialize(new AvatarDetail{Id=id,IsActive=true});
+            Original=OasisJson.Serialize(new AvatarDetail{Id=id,IsActive=!ExistingTombstone,DeletedDate=ExistingTombstone?new DateTime(2026,10,20,0,0,0,DateTimeKind.Utc):DateTime.MinValue});
             return Task.FromResult(new GetItemResponse{HttpStatusCode=mode==1?HttpStatusCode.BadGateway:HttpStatusCode.OK,
                 Item=mode==2?new():new(){{"id",new AttributeValue{S=id.ToString()}},{"data_json",new AttributeValue{S=Original}}}});
         }
@@ -31,6 +31,7 @@ public sealed class DynamoStandaloneDetailLifecycleTests
             Transactions++; Token=request.ClientRequestToken; Assert.IsFalse(string.IsNullOrWhiteSpace(Token));
             Assert.AreEqual(1,request.TransactItems.Count);
             var write=request.TransactItems.Single();
+            if(ExistingTombstone){Assert.IsNotNull(write.ConditionCheck,"Matching tombstones must not create another history revision.");Assert.AreEqual(Original,write.ConditionCheck.ExpressionAttributeValues[":expected"].S);if(mode==4)throw new IOException("lost condition-only acknowledgement");return Task.FromResult(new TransactWriteItemsResponse{HttpStatusCode=HttpStatusCode.OK});}
             if(soft){ Assert.IsNotNull(write.Update); Assert.AreEqual("OasisAvatarDetails",write.Update.TableName);
                 Assert.AreEqual(Original,write.Update.ExpressionAttributeValues[":expected"].S);
                 var updated=OasisJson.DeserializeStored<AvatarDetail>(write.Update.ExpressionAttributeValues[":json"].S);
@@ -44,6 +45,14 @@ public sealed class DynamoStandaloneDetailLifecycleTests
         }
     }
     public static IEnumerable<object[]> Cases(){foreach(var soft in new[]{false,true})foreach(var mode in Enumerable.Range(0,7))yield return new object[]{soft,mode};}
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task MatchingDetailTombstoneUsesConditionOnly(bool synchronous,bool lost)
+    {
+        var provider=new DynamoDBOASIS("owned","owned","us-east-1");var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var original=(AmazonDynamoDBClient)field.GetValue(provider)!;using var probe=new Probe(lost?4:0,true){ExistingTombstone=true};field.SetValue(provider,probe);provider.IsProviderActivated=true;
+        try{var result=synchronous?provider.DeleteAvatarDetail(Guid.NewGuid()):await provider.DeleteAvatarDetailAsync(Guid.NewGuid());Assert.AreEqual(lost,result.IsError,result.Exception?.ToString());Assert.AreEqual(!lost,result.Result);Assert.AreEqual(0,result.DeletedCount);Assert.IsFalse(NativeMutationReconciliation.IsRequired(result.Exception));if(lost)Assert.IsInstanceOfType<IOException>(result.Exception);Assert.AreEqual(1,probe.Reads);Assert.AreEqual(1,probe.Transactions);}
+        finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
+    }
     [DataTestMethod][DynamicData(nameof(Cases),DynamicDataSourceType.Method)]
     public async Task StandaloneDetailUsesOriginalConditionAndTruthfulOutcome(bool soft,int mode)
     {
