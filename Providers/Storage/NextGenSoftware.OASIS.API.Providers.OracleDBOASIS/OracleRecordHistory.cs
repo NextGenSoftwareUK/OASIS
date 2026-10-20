@@ -35,6 +35,8 @@ public partial class OracleDBOASIS
         if(original!=null){
             var stored=Deserialize<T>(original!);
             if(stored.Id!=proposed.Id)throw new InvalidDataException("Oracle stored record identity differs from proposed native key.");
+            if(stored.IsDeleted&&!proposed.IsDeleted)
+                throw new Core.Helpers.StorageLifecycleConflictException("Active save cannot overwrite a committed Oracle tombstone.");
             previous=JObject.Parse(original);
         }
         if(!IsVersionControlEnabled&&previous?.Property(EmbeddedRecordHistory.PropertyName)==null)return Serialize(proposed);
