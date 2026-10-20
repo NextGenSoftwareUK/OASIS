@@ -1,5 +1,15 @@
 # HyperDrive V2 current release gates
 
+## ActivityPub native read success flags — 2026-10-20
+
+Live report SHA256 `3C179E6E78264F563E6DBC87BF102860F8824D980C43C74EFC7E8A2E0A064F1B`. Free C68,865,458,176bytes;123GBtargetunmet/no reclamation claimed.
+
+Point status and native-key parent reply readers populated Result/LoadedCount but omitted IsLoaded. Both existing result owners now publish IsLoaded=true only after complete projection. Nine strengthened sync/async status/depth/parent cases all failed on originalsource; full **171/171 controlled** passed140ms0skip afterward. Malformed status checks additionally assert no loaded flag/count; existing graph failure/no-partial-result assertions retained. No protocol changes or duplicate reader.
+
+Existing **8/8 public live read** cases passed20s0skip, against retained public Mastodon/Hachyderm fixtures; status/reply IsLoaded and counts checked against independent actual context. No OAuth token/signup/post/delete/account mutation, installed service/download/newenvironment or spending. This is native Mastodon REST-adapter read verification, NOT generic private holon storage, authenticated search/social mutation/federation, complete ActivityPub support or V2 certification. Private storage exclusion remains intentional; do not publish avatars as social posts to claim interface coverage.
+
+Evidence: unit `Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.UnitTests/TestResults/david_OASISOMEGA_2026-10-20_12_27_53_net10.0.trx` SHA256 `A41E52129F430825D9213C0C2CC4FBAB4FE9292BDBA9F002F391B8555C2F2C7E` (9red); final `david_OASISOMEGA_2026-10-20_12_28_13_net10.0.trx` SHA256 `8A5D9ECFB651F2CE2ED7A9FD33CAA0CCB6F765DB7DFA0BB8E1299243BCAAB975`. Live report in corresponding integration TestResults: `david_OASISOMEGA_2026-10-20_12_28_50_net10.0.trx`. CapturedCoreF6A4 epoch, producer/unit/integration builds0errors; fixed existing outputs/cache reused. No push/deploy.
+
 ## Solana stored DTO exact reader + nullable metadata — final controlled559/Shared887 green,2026-10-20
 
 Core API source is committed as `25a15a846c2759af64a5d20e11a73dd92857fd85`, with parent gitlink/deployment manifest paired before this facade adoption. Core owner reports full1494/Core +1003/nativeSQLite passing on the same F6A4/3C84 cohort; this session directly executed and inspected Solana559/Shared887 and the four cloud controlled suites below. No deployment or all-provider completion claim.

@@ -29,6 +29,7 @@ public partial class ActivityPubOASIS
             var holon=ProjectMastodonStatus(status,selected);
             result.Result=children&&providerChildren?await ReadMastodonReplyGraphAsync(holon,recursive,depth):holon;
             result.LoadedCount=1;
+            result.IsLoaded=true;
         }catch(Exception error){
             OASISErrorHandling.HandleError(ref result,"Mastodon native status read failed.",error);
             if(error is HttpRequestException http&&http.StatusCode==HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
