@@ -36,6 +36,34 @@ public sealed partial class HyperDriveProviderExecutionTests
         else {first.Result.Should().BeTrue();second.Result.Should().BeTrue();calls.Should().Be(2);names.Should().Equal("first","second");}
     }
 
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task UncertainImportSuccessFlagsCannotPublishOrReplay(bool synchronous)
+    {
+        var primary = CreateActiveProvider(); var calls = 0;
+        var evidence = new UnreconciledMutationException();
+        OASISResult<bool> Import(IEnumerable<IHolon> rows)
+        {
+            calls++;
+            rows.Single().Name = "unconfirmed provider value";
+            return new OASISResult<bool>(true) { IsSaved = true, Exception = evidence };
+        }
+        primary.Setup(store => store.Import(It.IsAny<IEnumerable<IHolon>>()))
+            .Returns((IEnumerable<IHolon> rows) => Import(rows));
+        primary.Setup(store => store.ImportAsync(It.IsAny<IEnumerable<IHolon>>()))
+            .Returns((IEnumerable<IHolon> rows) => Task.FromResult(Import(rows)));
+        var dna = CreateDna(HyperDriveModes.V2); dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        var providers = new ProviderManager(null, dna); providers.RegisterProvider(primary.Object);
+        var router = new OASISHyperDrive(providers); var source = new Holon { Name = "caller value" };
+        var request = new StorageOperationRequest
+        { Operation = "Import", Payload = new IHolon[] { source }, PreferredProvider = ProviderType.MongoDBOASIS };
+        var first = synchronous ? router.RouteRequest<bool>(request) : await router.RouteRequestAsync<bool>(request);
+        var replay = synchronous ? router.RouteRequest<bool>(request) : await router.RouteRequestAsync<bool>(request);
+        first.IsError.Should().BeTrue(); first.IsSaved.Should().BeFalse(); first.Exception.Should().BeSameAs(evidence);
+        replay.IsError.Should().BeTrue(); replay.Exception.Should().BeSameAs(evidence);
+        source.Id.Should().BeEmpty(); source.Name.Should().Be("caller value"); calls.Should().Be(1);
+    }
+
     [Fact]
     public async Task ExplicitImportReplicationStopsAtUnacknowledgedMutationAndRetainsCause()
     {

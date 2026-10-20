@@ -19,6 +19,8 @@ public static class ConditionalHolonReceipt
     public static string Write(IEnumerable<IHolon> acknowledgedRoots)
         =>Write(acknowledgedRoots,Guid.Empty,string.Empty);
     public static string Write(IEnumerable<IHolon> acknowledgedRoots,ConditionalHolonPlan plan)
+        =>Write(acknowledgedRoots,(IAtomicHolonWritePlan)plan);
+    public static string Write(IEnumerable<IHolon> acknowledgedRoots,IAtomicHolonWritePlan plan)
         =>Write(acknowledgedRoots,(plan??throw new ArgumentNullException(nameof(plan))).OperationId,plan.Fingerprint);
     private static string Write(IEnumerable<IHolon> acknowledgedRoots,Guid operation,string intent)
     {
@@ -61,13 +63,8 @@ public static class ConditionalHolonReceipt
     }
     public static IReadOnlyList<IHolon> Read(string json,ConditionalHolonPlan plan)
     {
-        ArgumentNullException.ThrowIfNull(plan);var roots=Read(json);
-        var context=JObject.Parse(json);
-        if(context.Value<string>("operation")!=plan.OperationId.ToString()||context.Value<string>("intent")!=plan.Fingerprint)throw new InvalidDataException("Receipt operation or intent differs from original request.");
-        if(!roots.Select(r=>r.Id).SequenceEqual(plan.RootIds))throw new InvalidDataException("Receipt roots do not match original request.");
+        var roots=ReadBoundGraph(json,plan);
         var graph=HolonGraphWritePlan.Create(roots,true,true,0,0);
-        if(!graph.Nodes.Select(n=>n.Source.Id).ToHashSet().SetEquals(plan.Nodes.Select(n=>n.Snapshot.Id)))throw new InvalidDataException("Receipt selected identities differ from original request.");
-        foreach(var node in graph.Nodes)if(!(node.Source.Children??Enumerable.Empty<IHolon>()).Select(c=>c.Id).SequenceEqual(plan.ChildIds[node.Source.Id]))throw new InvalidDataException("Receipt topology differs from original request.");
         foreach(var node in graph.Nodes){
             var row=node.Source;var revision=CosmicConcurrency.GetProviderRevisionId(row,plan.Authority);var expected=plan.ExpectedRevisions[row.Id];
             if(row.Version<1||row.VersionId==Guid.Empty||!revision.HasValue||revision.Value==Guid.Empty||revision.Value==row.VersionId||expected.HasValue&&revision.Value==expected.Value)
@@ -75,6 +72,25 @@ public static class ConditionalHolonReceipt
             if(!expected.HasValue&&(row.Version!=1||row.PreviousVersionId!=Guid.Empty))throw new InvalidDataException("Create-only receipt is not an initial acknowledgement.");
             if(plan.Operation!=ConditionalHolonOperation.Save&&!row.IsDeleted)throw new InvalidDataException("Delete receipt has no acknowledged tombstone.");
         }
+        return roots;
+    }
+    public static IReadOnlyList<IHolon> Read(string json,IAtomicHolonWritePlan plan)
+    {
+        if(plan is ConditionalHolonPlan conditional)return Read(json,conditional);
+        if(plan is not CommittedHolonReplicaPlan replica)throw new ArgumentException("Unknown atomic holon intent.",nameof(plan));
+        var roots=ReadBoundGraph(json,plan);
+        foreach(var node in HolonGraphWritePlan.Create(roots,true,true,0,0).Nodes)replica.ValidateAcknowledgedRecord(node.Source);
+        return roots;
+    }
+    private static IReadOnlyList<IHolon> ReadBoundGraph(string json,IAtomicHolonWritePlan plan)
+    {
+        ArgumentNullException.ThrowIfNull(plan);var roots=Read(json);
+        var context=JObject.Parse(json);
+        if(context.Value<string>("operation")!=plan.OperationId.ToString()||context.Value<string>("intent")!=plan.Fingerprint)throw new InvalidDataException("Receipt operation or intent differs from original request.");
+        if(!roots.Select(r=>r.Id).SequenceEqual(plan.RootIds))throw new InvalidDataException("Receipt roots do not match original request.");
+        var graph=HolonGraphWritePlan.Create(roots,true,true,0,0);
+        if(!graph.Nodes.Select(n=>n.Source.Id).ToHashSet().SetEquals(plan.Nodes.Select(n=>n.Snapshot.Id)))throw new InvalidDataException("Receipt selected identities differ from original request.");
+        foreach(var node in graph.Nodes)if(!(node.Source.Children??Enumerable.Empty<IHolon>()).Select(c=>c.Id).SequenceEqual(plan.ChildIds[node.Source.Id]))throw new InvalidDataException("Receipt topology differs from original request.");
         return roots;
     }
     // Integrity checksum, NOT a keyed signature or protection against an authorized database attacker.
