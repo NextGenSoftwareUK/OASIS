@@ -56,13 +56,22 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         private string VersionPrefix(string recordKey) => $"{KeyPrefix}version/{recordKey[KeyPrefix.Length..]}/";
         private string VersionKey(string recordKey, int version) => $"{VersionPrefix(recordKey)}{version:D10}";
 
-        private async Task StampVersionAsync(string recordKey, IHolonBase entity, IHolonBase previous,List<string> acknowledged=null)
+        private async Task StampVersionAsync(string recordKey, IHolonBase entity, IHolonBase previous,List<string> acknowledged=null,IConditionalKeyValueBackend conditionalArchive=null)
         {
             await StoredRecordVersions.StampAsync(IdFromKey(recordKey), entity, previous,
                 IsVersionControlEnabled ? async stored =>
                 {
                     var historyKey = VersionKey(recordKey, stored.Version);
-                    await Backend.PutAsync(historyKey, OasisJson.Serialize(stored));
+                    var json=OasisJson.Serialize(stored);
+                    if(conditionalArchive!=null){
+                        var observed=await conditionalArchive.ReadObservedAsync(historyKey);
+                        if(observed!=null){
+                            if(!string.Equals(observed.Value,json,StringComparison.Ordinal))
+                                throw new System.IO.InvalidDataException("Immutable record history differs from the observed canonical record.");
+                            return; // An independently observed identical archive needs no new write/acknowledgement.
+                        }
+                        await conditionalArchive.CreateOnlyAsync(historyKey,json);
+                    }else await Backend.PutAsync(historyKey,json);
                     acknowledged?.Add(historyKey);
                 } : null);
         }
@@ -128,6 +137,16 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             var record = OasisJson.DeserializeStored<T>(json);
             if (record == null) throw new System.IO.InvalidDataException("Stored record contains a null payload.");
             return record;
+        }
+
+        private async Task<(T Record,KeyValueObservation Observation)> ReadForMutationAsync<T>(string key,IConditionalKeyValueBackend conditional) where T:class
+        {
+            if(conditional==null)return(await ReadAsync<T>(key),null);
+            var observed=await conditional.ReadObservedAsync(key);
+            if(observed==null)return(null,null);
+            var record=OasisJson.DeserializeStored<T>(observed.Value)
+                ??throw new System.IO.InvalidDataException("Stored record contains a null payload.");
+            return(record,observed);
         }
 
         private async Task<Guid?> ReadIdAsync(string key)
@@ -206,6 +225,21 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             await Backend.PutAsync(key,value);acknowledged.Add(key);
         }
 
+        private static async Task<KeyValueObservation> ReadOwnedIndexAsync(IConditionalKeyValueBackend backend,string key,Guid owner)
+        {
+            var observed=await backend.ReadObservedAsync(key);
+            if(observed!=null&&(!Guid.TryParse(observed.Value,out var actual)||actual!=owner))
+                throw new System.IO.InvalidDataException("Stored index owner differs from its canonical key.");
+            return observed;
+        }
+
+        private static async Task PutObservedAcknowledgedAsync(IConditionalKeyValueBackend backend,string key,string value,KeyValueObservation observed,List<string> acknowledged)
+        {
+            if(observed==null)await backend.CreateOnlyAsync(key,value);
+            else await backend.ReplaceUnchangedAsync(key,value,observed.Revision);
+            acknowledged.Add(key);
+        }
+
         private async Task DeleteAcknowledgedAsync(string key,List<string> acknowledged)
         {await Backend.DeleteAsync(key);acknowledged.Add(key);}
 
@@ -228,27 +262,43 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[StorageType] = avatar.Id.ToString();
 
-                var previous = await ReadAsync<IAvatar>(AvatarKey(avatar.Id));
-                if (!string.IsNullOrWhiteSpace(avatar.Username))
-                {
-                    var owner = await ReadIdAsync(UsernameKey(avatar.Username));
-                    if (owner.HasValue && owner.Value != avatar.Id) return Fail<IAvatar>($"Username '{avatar.Username}' is already taken.");
+                var recordKey=AvatarKey(avatar.Id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (previous,observed)=await ReadForMutationAsync<IAvatar>(recordKey,conditional);
+                var usernameKey=string.IsNullOrWhiteSpace(avatar.Username)?null:UsernameKey(avatar.Username);
+                var emailKey=string.IsNullOrWhiteSpace(avatar.Email)?null:EmailKey(avatar.Email);
+                var nextKeys=new[]{usernameKey,emailKey}.Where(key=>key!=null).ToArray();
+                var retiredKeys=new[]{string.IsNullOrWhiteSpace(previous?.Username)?null:UsernameKey(previous.Username),
+                    string.IsNullOrWhiteSpace(previous?.Email)?null:EmailKey(previous.Email)}
+                    .Where(key=>key!=null&&!nextKeys.Contains(key,StringComparer.Ordinal)).ToArray();
+                var indexes=new Dictionary<string,KeyValueObservation>(StringComparer.Ordinal);
+                foreach(var key in nextKeys){
+                    Guid? owner;
+                    if(conditional==null)owner=await ReadIdAsync(key);
+                    else {
+                        var index=await conditional.ReadObservedAsync(key);indexes.Add(key,index);owner=null;
+                        if(index!=null){
+                            if(!Guid.TryParse(index.Value,out var identity)||identity==Guid.Empty)throw new System.IO.InvalidDataException("Stored avatar identity index is invalid.");
+                            owner=identity;
+                        }
+                    }
+                    if(owner.HasValue&&owner.Value!=avatar.Id){
+                        var message=key==usernameKey?$"Username '{avatar.Username}' is already taken.":$"Email '{avatar.Email}' is already registered.";
+                        return Fail<IAvatar>(message,conditional==null?null:new StorageLifecycleConflictException("Avatar identity is already assigned."));
+                    }
                 }
-                if (!string.IsNullOrWhiteSpace(avatar.Email))
-                {
-                    var owner = await ReadIdAsync(EmailKey(avatar.Email));
-                    if (owner.HasValue && owner.Value != avatar.Id) return Fail<IAvatar>($"Email '{avatar.Email}' is already registered.");
+                if(conditional!=null)foreach(var key in retiredKeys)indexes.Add(key,await ReadOwnedIndexAsync(conditional,key,avatar.Id));
+                await StampVersionAsync(recordKey,avatar,previous,acknowledged,conditional);
+                if(conditional==null)await PutAcknowledgedAsync(recordKey,OasisJson.Serialize(avatar),acknowledged);
+                else await PutObservedAcknowledgedAsync(conditional,recordKey,OasisJson.Serialize(avatar),observed,acknowledged);
+                foreach(var key in nextKeys){
+                    if(conditional==null)await PutAcknowledgedAsync(key,avatar.Id.ToString(),acknowledged);
+                    else await PutObservedAcknowledgedAsync(conditional,key,avatar.Id.ToString(),indexes[key],acknowledged);
                 }
-
-                await StampVersionAsync(AvatarKey(avatar.Id), avatar, previous,acknowledged);
-                await PutAcknowledgedAsync(AvatarKey(avatar.Id), OasisJson.Serialize(avatar),acknowledged);
-                if (!string.IsNullOrWhiteSpace(avatar.Username)) await PutAcknowledgedAsync(UsernameKey(avatar.Username), avatar.Id.ToString(),acknowledged);
-                if (!string.IsNullOrWhiteSpace(avatar.Email)) await PutAcknowledgedAsync(EmailKey(avatar.Email), avatar.Id.ToString(),acknowledged);
-                // Validate replacements before any writes, and retire old indexes only after the new record/indexes exist.
-                if (previous != null && !string.IsNullOrWhiteSpace(previous.Username) && !string.Equals(previous.Username, avatar.Username, StringComparison.OrdinalIgnoreCase))
-                    await Backend.DeleteAsync(UsernameKey(previous.Username));
-                if (previous != null && !string.IsNullOrWhiteSpace(previous.Email) && !string.Equals(previous.Email, avatar.Email, StringComparison.OrdinalIgnoreCase))
-                    await Backend.DeleteAsync(EmailKey(previous.Email));
+                // Normalized keys define ownership, so case/whitespace-only changes cannot retire a still-current index.
+                foreach(var key in retiredKeys){
+                    if(conditional==null)await Backend.DeleteAsync(key);
+                    else if(indexes[key]!=null){await conditional.DeleteUnchangedAsync(key,indexes[key].Revision);acknowledged.Add(key);}
+                }
 
                 PublishSavedMetadata(source,avatar,originalId);
                 return new OASISResult<IAvatar>(source) { IsSaved = true, Message = $"Avatar {avatar.Id} saved to {Name}." };
@@ -418,8 +468,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 avatarDetail=OasisJson.Deserialize<IAvatarDetail>(OasisJson.Serialize(source));
                 avatarDetail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatarDetail.ProviderUniqueStorageKey[StorageType] = avatarDetail.Id.ToString();
-                await StampVersionAsync(AvatarDetailKey(avatarDetail.Id), avatarDetail, await ReadAsync<IAvatarDetail>(AvatarDetailKey(avatarDetail.Id)),acknowledged);
-                await PutAcknowledgedAsync(AvatarDetailKey(avatarDetail.Id), OasisJson.Serialize(avatarDetail),acknowledged);
+                var key=AvatarDetailKey(avatarDetail.Id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (previous,observed)=await ReadForMutationAsync<IAvatarDetail>(key,conditional);
+                await StampVersionAsync(key,avatarDetail,previous,acknowledged,conditional);
+                if(conditional==null)await PutAcknowledgedAsync(key,OasisJson.Serialize(avatarDetail),acknowledged);
+                else await PutObservedAcknowledgedAsync(conditional,key,OasisJson.Serialize(avatarDetail),observed,acknowledged);
                 PublishSavedMetadata(source,avatarDetail,originalId);
                 return new OASISResult<IAvatarDetail>(source) { IsSaved = true, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
             }
@@ -531,13 +584,28 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 holon.ProviderUniqueStorageKey[StorageType] = holon.Id.ToString();
 
-                var previous = await ReadAsync<IHolon>(HolonKey(holon.Id));
-                await StampVersionAsync(HolonKey(holon.Id), holon, previous,acknowledged);
-                await PutAcknowledgedAsync(HolonKey(holon.Id), OasisJson.Serialize(holon),acknowledged);
-                if (holon.ParentHolonId != Guid.Empty)
-                    await PutAcknowledgedAsync(ParentKey(holon.ParentHolonId, holon.Id), holon.Id.ToString(),acknowledged);
-                if (previous != null && previous.ParentHolonId != Guid.Empty && previous.ParentHolonId != holon.ParentHolonId)
-                    await Backend.DeleteAsync(ParentKey(previous.ParentHolonId, holon.Id));
+                var recordKey=HolonKey(holon.Id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (previous,observed)=await ReadForMutationAsync<IHolon>(recordKey,conditional);
+                var nextParentKey=holon.ParentHolonId==Guid.Empty?null:ParentKey(holon.ParentHolonId,holon.Id);
+                var oldParentKey=previous!=null&&previous.ParentHolonId!=Guid.Empty&&previous.ParentHolonId!=holon.ParentHolonId?ParentKey(previous.ParentHolonId,holon.Id):null;
+                KeyValueObservation nextParent=null,oldParent=null;
+                if(conditional!=null){
+                    if(nextParentKey!=null)nextParent=await ReadOwnedIndexAsync(conditional,nextParentKey,holon.Id);
+                    if(oldParentKey!=null)oldParent=await ReadOwnedIndexAsync(conditional,oldParentKey,holon.Id);
+                }
+                await StampVersionAsync(recordKey, holon, previous,acknowledged,conditional);
+                if(conditional==null)await PutAcknowledgedAsync(recordKey,OasisJson.Serialize(holon),acknowledged);
+                else await PutObservedAcknowledgedAsync(conditional,recordKey,OasisJson.Serialize(holon),observed,acknowledged);
+                if(nextParentKey!=null){
+                    if(conditional==null)await PutAcknowledgedAsync(nextParentKey,holon.Id.ToString(),acknowledged);
+                    else await PutObservedAcknowledgedAsync(conditional,nextParentKey,holon.Id.ToString(),nextParent,acknowledged);
+                }
+                if(oldParentKey!=null){
+                    if(conditional==null)await Backend.DeleteAsync(oldParentKey);
+                    else if(oldParent!=null){
+                        await conditional.DeleteUnchangedAsync(oldParentKey,oldParent.Revision);acknowledged.Add(oldParentKey);
+                    }
+                }
 
                 PublishSavedMetadata(source,holon,originalId);source.ParentHolonId=holon.ParentHolonId;
                 var result = new OASISResult<IHolon>(source) { IsSaved = true, Message = $"Holon {holon.Id} saved to {Name}." };
