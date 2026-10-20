@@ -157,11 +157,16 @@ public sealed partial class CosmicConditionalWriteTests
     {
         const string app = "cosmic-committed-replica-original-commit";
         var settings = MongoClientSettings.FromConnectionString(uri + "&appName=" + app);
-        var commits = 0; var aborts = 0; var writes = 0;
+        var commits = 0; var aborts = 0; var writes = 0; var coordinationWrites = 0;
         settings.ClusterConfigurator = cluster => cluster.Subscribe<MongoDB.Driver.Core.Events.CommandStartedEvent>(command => {
             if (command.CommandName == "commitTransaction") System.Threading.Interlocked.Increment(ref commits);
             if (command.CommandName == "abortTransaction") System.Threading.Interlocked.Increment(ref aborts);
-            if (command.CommandName is "insert" or "update" or "delete") System.Threading.Interlocked.Increment(ref writes);
+            if (command.CommandName is "insert" or "update" or "delete")
+            {
+                if (command.Command.GetValue(command.CommandName, BsonNull.Value) == "CosmicOperationFence")
+                    System.Threading.Interlocked.Increment(ref coordinationWrites);
+                else System.Threading.Interlocked.Increment(ref writes);
+            }
         });
         var monitored = new MongoClient(settings); var fault = new Provider(uri + "&appName=" + app, databaseName);
         Assert.False((await fault.ActivateProviderAsync()).IsError);
@@ -178,6 +183,7 @@ public sealed partial class CosmicConditionalWriteTests
             var cause = Assert.IsType<MongoWriteConcernException>(evidence.InnerException);
             Assert.False(string.IsNullOrWhiteSpace(evidence.SessionId)); Assert.True(evidence.TransactionNumber > 0);
             Assert.Equal(0, aborts); Assert.True(commits >= 1); Assert.Equal(3, writes);
+            Assert.Equal(1, coordinationWrites);
             var reply = cause.WriteConcernResult.Response; Assert.True(reply.Contains("operationTime"));
             var database = new MongoClient(uri).GetDatabase(databaseName);
             var observed = await database.RunCommandAsync<BsonDocument>(new BsonDocument {
@@ -195,11 +201,12 @@ public sealed partial class CosmicConditionalWriteTests
             Assert.Equal(CosmicConcurrency.GetProviderRevisionId(exact, ProviderType.MongoDBOASIS)!.Value.ToString("D"), head["ProviderRevisionId"].AsString);
             output.WriteLine($"Replica original operation={request.OperationId:D}, source={request.SourceId}, session={evidence.SessionId}, transaction={evidence.TransactionNumber}; majority-visible graph/head/receipt proven before replay.");
             await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
-            var originalCommits = commits; var originalWrites = writes;
+            var originalCommits = commits; var originalWrites = writes; var originalCoordinationWrites = coordinationWrites;
             var replay = synchronous ? fault.ApplyCommittedHolonReplica(request) : await fault.ApplyCommittedHolonReplicaAsync(request);
             Assert.False(replay.IsError, replay.Message + replay.Exception);
             Assert.Equal(exact.VersionId, Assert.Single(replay.Result).VersionId);
             Assert.Equal(originalCommits, commits); Assert.Equal(originalWrites, writes);
+            Assert.Equal(originalCoordinationWrites, coordinationWrites);
         }
         finally
         {
