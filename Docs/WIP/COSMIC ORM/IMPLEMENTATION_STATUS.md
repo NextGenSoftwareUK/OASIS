@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Neo4j atomic committed deltas — selected acceptance verified
+
+Neo4j adopts the shared Core delta model and Shared format4 receipt in its existing native graph transaction. Locked previous snapshots and native acknowledged snapshots own capture; original replay retains its delta after physical deletion and history-policy changes. Strengthened conditional13/13, replica6/6, primary-outbox2/2 and paired Shared904/904 pass with zero skips. The original structural assertion failure was independently reconciled against native state before exact owned fixture cleanup. [Scope and evidence](NEO4J_COMMITTED_DELTAS.md). Authorized historical values, retention/operator workflow and wider enrollment remain open.
+
 ## MongoDB committed delta adoption — 20 October 2026
 
 MongoDB conditional writes now capture deltas from authoritative BSON observations and final persisted BSON bodies inside the graph transaction. Acknowledgements are constructed from that final representation, including preserved unselected frontiers. Shared receipt format4 persists and validates the original delta; legacy format3 replay reports explicit missing-delta evidence. SQLite and MongoDB advertise the new conditional-delta capability. Core validation also binds logical predecessor identity/version and membership ownership; Shared rejects wrong operation/intent before metadata construction. [Implementation, acceptance evidence and remaining scope](MONGO_COMMITTED_DELTAS.md).

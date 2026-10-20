@@ -21,7 +21,7 @@ public sealed class Neo4jConditionalReconciliationException(Guid operationId, Ex
     public string OriginalTransactionId => string.Empty; // A logical operation ID is not a native transaction ID.
 }
 
-public partial class Neo4jOASIS : IConditionalHolonStorageProvider,IAtomicHolonReplicationStorageProvider
+public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicHolonReplicationStorageProvider
 {
     private class NeoHolonTransactionState
     {
@@ -30,6 +30,10 @@ public partial class Neo4jOASIS : IConditionalHolonStorageProvider,IAtomicHolonR
 
     private sealed class NeoAtomicHolonWrite(IAtomicHolonWritePlan plan, Guid actor, CancellationToken cancellation) : NeoHolonTransactionState
     {
+        internal IReadOnlyList<IHolon> PreviousRecords { get; set; }
+        internal HolonCommittedDelta Delta { get; set; }
+        internal bool RetainDeltaValues { get; set; }
+        internal DateTime MutationUtc { get; set; }
         internal IAtomicHolonWritePlan Plan { get; } = plan;
         internal Guid Actor { get; } = actor;
         internal string Claim { get; } = Guid.NewGuid().ToString("D");
@@ -84,7 +88,14 @@ public partial class Neo4jOASIS : IConditionalHolonStorageProvider,IAtomicHolonR
             if(!receipt.Properties.TryGetValue("Fingerprint",out var intent) || intent is not string fingerprint)
                 throw new NeoConditionalReceiptException(new InvalidDataException("Receipt intent is missing."));
             if(fingerprint!=write.Plan.Fingerprint)throw new NeoConditionalIntentException();
-            try {return ConditionalHolonReceipt.Read((string)json,write.Plan).ToList();}
+            try {
+                if(write.Plan is ConditionalHolonPlan primary)
+                {
+                    var roots=ConditionalHolonReceipt.Read((string)json,primary,out var delta);
+                    write.Delta=delta;return roots.ToList();
+                }
+                return ConditionalHolonReceipt.Read((string)json,write.Plan).ToList();
+            }
             catch(Exception invalid){throw new NeoConditionalReceiptException(invalid);}
         }
         if(receipt.Properties.ContainsKey("PreparationJson")&&!receipt.Properties.ContainsKey("__cosmicClaim"))
@@ -128,7 +139,10 @@ public partial class Neo4jOASIS : IConditionalHolonStorageProvider,IAtomicHolonR
         if(conflicts.Count!=0)throw new CosmicConcurrencyException(conflicts);
         if(write.Plan is CommittedHolonReplicaPlan replica)
             return await PrepareCommittedReplicaHolonsAsync(transaction,submitted,observed,write,replica,archive).ConfigureAwait(false);
-        var prepared=new List<Holon>();var now=DateTime.UtcNow;
+        // Keep the locked authoritative before-images; never recapture caller objects.
+        write.PreviousRecords=observed.Values.Where(record=>record!=null).Cast<IHolon>().ToArray();
+        write.RetainDeltaValues=archive;
+        var prepared=new List<Holon>();var now=DateTime.UtcNow;write.MutationUtc=now;
         foreach(var item in submitted)
         {
             var previous=observed[item.Id];
@@ -151,8 +165,19 @@ public partial class Neo4jOASIS : IConditionalHolonStorageProvider,IAtomicHolonR
 
     private static async Task WriteConditionalReceiptAsync(IAsyncTransaction transaction,NeoAtomicHolonWrite write,List<IHolon> roots)
     {
-        var json=ConditionalHolonReceipt.Write(roots,write.Plan);
-        _=ConditionalHolonReceipt.Read(json,write.Plan);
+        string json;
+        if(write.Plan is ConditionalHolonPlan primary)
+        {
+            var after=HolonGraphWritePlan.Create(roots,true,true,0,0).Nodes.Select(node=>node.Source);
+            write.Delta=HolonCommittedDelta.Capture(primary.OperationId,primary.ActorId,primary.Authority,primary.Operation,
+                write.MutationUtc,write.PreviousRecords,after,write.RetainDeltaValues);
+            json=ConditionalHolonReceipt.Write(roots,primary,write.Delta);
+        }
+        else
+        {
+            json=ConditionalHolonReceipt.Write(roots,write.Plan);
+            _=ConditionalHolonReceipt.Read(json,write.Plan);
+        }
         var row=await(await transaction.RunAsync("MATCH (r:CosmicWriteReceipt {OperationId:$operation}) WHERE r.__cosmicClaim=$claim "
             +"SET r.Fingerprint=$fingerprint,r.ResultJson=$json,r.CommittedAtUtc=$now REMOVE r.__cosmicClaim RETURN count(r) AS count",
             new{operation=write.Plan.OperationId.ToString("D"),claim=write.Claim,fingerprint=write.Plan.Fingerprint,json,now=DateTime.UtcNow.ToString("O")})
@@ -171,6 +196,11 @@ public partial class Neo4jOASIS : IConditionalHolonStorageProvider,IAtomicHolonR
         result.Result=roots;result.IsSaved=write.Plan.Operation==ConditionalHolonOperation.Save;result.IsDeleted=!result.IsSaved;
         result.SavedCount=result.IsSaved ? write.Plan.Nodes.Count:0;result.DeletedCount=result.IsDeleted ? write.Plan.Nodes.Count:0;
         result.MetaData??=new Dictionary<string,string>();result.MetaData["COSMIC.OperationId"]=write.Plan.OperationId.ToString("D");
+        if(write.Plan is ConditionalHolonPlan)
+        {
+            if(write.Delta==null)result.MetaData["COSMIC.CommittedDeltaUnavailable"]="ReceiptPredatesDelta";
+            else result.MetaData[HolonCommittedDelta.ResultMetadataKey]=write.Delta.SummaryJson;
+        }
     }
 
     private static OASISResult<IEnumerable<IHolon>> ConditionalNeoFailure(OASISResult<IEnumerable<IHolon>> result,NeoAtomicHolonWrite write,Exception cause)
