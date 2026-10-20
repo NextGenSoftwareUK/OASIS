@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Oracle.ManagedDataAccess.Client;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS;
 
@@ -12,7 +13,7 @@ public partial class OracleDBOASIS
     protected virtual Task<int> ExecuteCanonicalWriteAsync(OracleCommand command)
         =>command.ExecuteNonQueryAsync();
 
-    private async Task<T> WriteCanonicalRecordAsync<T>(T proposed,string table) where T:class,IHolonBase
+    private async Task<T> WriteCanonicalRecordAsync<T>(T proposed,string table,PlannedHolonWrite? plannedHolon=null) where T:class,IHolonBase
     {
         var expected=table=="OASIS_AVATARS"?typeof(Avatar):table=="OASIS_AVATAR_DETAILS"?typeof(AvatarDetail):table=="OASIS_HOLONS"?typeof(Holon):null;
         if(expected!=typeof(T))throw new ArgumentException("Canonical Oracle record type must match its table.");
@@ -20,7 +21,7 @@ public partial class OracleDBOASIS
         try{
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync();
             await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync();
-            string? previous=null;
+            string? previous=null;Holon? observedHolon=null;
             var validateHolon=typeof(T)==typeof(Holon);
             await using(var select=CreateCommand($"SELECT DATA_JSON{(validateHolon?",HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID":"")} FROM {table} WHERE ID=:Id FOR UPDATE",connection)){
                 select.Transaction=transaction;select.Parameters.Add("Id",OracleDbType.Raw).Value=proposed.Id.ToByteArray();
@@ -29,9 +30,14 @@ public partial class OracleDBOASIS
                     previous=reader.GetString(0);
                     if(validateHolon){
                         var stored=await ReadRecordVersionAsync<Holon>(proposed.Id,previous,0)??throw new InvalidDataException("Oracle locked holon is missing its current version.");
+                        observedHolon=stored;
                         ValidateNativeHolonProjection(stored,reader.GetInt32(1),reader.GetInt32(2),reader.IsDBNull(3)?Guid.Empty:new Guid((byte[])reader.GetValue(3)));
                     }
                 }
+            }
+            if(validateHolon&&proposed is Holon holon){
+                var write=plannedHolon??new PlannedHolonWrite(holon,holon);
+                holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(write,HolonChildRoleWriteKind.SourceSave,previous!=null,observedHolon?.ChildRoleManifestJson);
             }
             creating=previous==null;var json=await StageRecordHistoryAsync(proposed,previous);var staged=Deserialize<T>(json);
             await using var command=CreateCanonicalWriteCommand(staged,json,table,creating,connection,transaction);

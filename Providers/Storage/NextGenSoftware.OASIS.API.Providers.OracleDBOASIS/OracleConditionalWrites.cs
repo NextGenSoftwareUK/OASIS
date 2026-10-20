@@ -57,6 +57,9 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
             foreach(var node in plan.Nodes){
                 cancellationToken.ThrowIfCancellationRequested();var old=previous[node.Snapshot.Id];
                 var proposal=request.Operation==ConditionalHolonOperation.Save?node.Snapshot:Core.Serialization.StoredRecordJson.Project<Holon>(old!);
+                proposal.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(node,
+                    request.Operation==ConditionalHolonOperation.Save?HolonChildRoleWriteKind.SourceSave:HolonChildRoleWriteKind.SourceDelete,
+                    old!=null,old?.ChildRoleManifestJson);
                 proposal.Version=old==null?1:checked(old.Version+1);proposal.PreviousVersionId=old?.VersionId??Guid.Empty;proposal.VersionId=Guid.NewGuid();
                 var now=DateTime.UtcNow;
                 if(old==null){proposal.CreatedDate=now;proposal.CreatedByAvatarId=request.Write.ActorId;proposal.CreatedProviderType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.OracleDBOASIS);proposal.ModifiedDate=DateTime.MinValue;proposal.ModifiedByAvatarId=Guid.Empty;}

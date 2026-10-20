@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 
@@ -13,9 +14,9 @@ public class OracleGraphCallerAdmissionTests
         private readonly Action _afterFirst;
         public int Writes {get;private set;}
         public ControlledAcknowledgement(Action afterFirst):base("NotUsed=true")=>_afterFirst=afterFirst;
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,
-            int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+        protected override async Task<OASISResult<IHolon>> SavePlannedHolonAsync(PlannedHolonWrite write)
         {
+            var holon=write.Snapshot;
             Writes++;await Task.Yield();
             holon.Version=1;holon.VersionId=Guid.NewGuid();
             if(Writes==1)_afterFirst();
