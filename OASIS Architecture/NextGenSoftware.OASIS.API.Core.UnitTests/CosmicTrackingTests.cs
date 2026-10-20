@@ -81,6 +81,58 @@ public class CosmicTrackingTests
     }
 
     [Theory]
+    [InlineData(false, false, false)] [InlineData(true, false, false)]
+    [InlineData(false, true, false)] [InlineData(true, true, false)]
+    [InlineData(false, false, true)] [InlineData(true, false, true)]
+    [InlineData(false, true, true)] [InlineData(true, true, true)]
+    public async Task V2LoadedGraphsDecryptEverySelectedNodeBeforeAcceptingTracking(bool synchronous, bool invalidChild, bool point)
+    {
+        var f = Fixture(true);
+        var settings = new EncryptionSettings { Rijndael256EncryptionEnabled = true, Rijndael256Key = new string('e',32) };
+        f.Manager.OASISDNA.OASIS.Security = new SecuritySettings { HolonDataEncryption = settings };
+        var rootCipher = Core.Helpers.PasswordEncryptionHelper.EncryptValue("{\"root-note\":\"root private\"}", settings);
+        var childCipher = invalidChild ? "{\"child-note\":\"plaintext\"}" : Core.Helpers.PasswordEncryptionHelper.EncryptValue("{\"child-note\":\"child private\"}", settings);
+        var root = new Holon { Id = Guid.NewGuid(), MetaData = new() { ["__oasis_enc__"] = rootCipher } };
+        var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, MetaData = new() { ["__oasis_enc__"] = childCipher } };
+        root.ChildRoleManifestJson = HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1, root.Id,
+            new[] { new HolonChildRole("Children", new[] { child.Id }) }));
+        child.ChildRoleManifestJson = HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1, child.Id,
+            new[] { new HolonChildRole("Children", Array.Empty<Guid>()) }));
+        f.Provider.Setup(p => p.LoadAllHolons(HolonType.All,true,true,0,0,true,false,0)).Returns(new OASISResult<IEnumerable<IHolon>>(new[] { root }));
+        f.Provider.Setup(p => p.LoadAllHolonsAsync(HolonType.All,true,true,0,0,true,false,0)).ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(new[] { root }));
+        f.Provider.Setup(p => p.LoadHolon(root.Id,true,true,1,true,false,0)).Returns(new OASISResult<IHolon>(root));
+        f.Provider.Setup(p => p.LoadHolonAsync(root.Id,true,true,1,true,false,0)).ReturnsAsync(new OASISResult<IHolon>(root));
+        f.Provider.Setup(p => p.LoadHolon(child.Id,false,false,0,true,false,0)).Returns(new OASISResult<IHolon>(child));
+        f.Provider.Setup(p => p.LoadHolonAsync(child.Id,false,false,0,true,false,0)).ReturnsAsync(new OASISResult<IHolon>(child));
+        IHolon loaded = null!;
+        if (point)
+        {
+            var result = synchronous ? f.Manager.LoadHolon(root.Id,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
+                : await f.Manager.LoadHolonAsync(root.Id,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
+            result.IsError.Should().Be(invalidChild, result.Message + result.Exception);
+            if (invalidChild) { result.Result.Should().BeNull(); result.ErrorCode.Should().Be("HOLON_METADATA_DECRYPTION_FAILED"); }
+            else loaded = result.Result;
+        }
+        else
+        {
+            var result = synchronous ? f.Manager.LoadAllHolons(cache:false,providerType:ProviderType.SQLLiteDBOASIS)
+                : await f.Manager.LoadAllHolonsAsync(providerType:ProviderType.SQLLiteDBOASIS);
+            result.IsError.Should().Be(invalidChild, result.Message + result.Exception);
+            if (invalidChild) { result.Result.Should().BeNull(); result.ErrorCode.Should().Be("HOLON_METADATA_DECRYPTION_FAILED"); }
+            else loaded = result.Result.Single();
+        }
+        if (!invalidChild)
+        {
+            loaded.MetaData["root-note"].ToString().Should().Be("root private");
+            var member = loaded.Children.Single(); member.MetaData["child-note"].ToString().Should().Be("child private");
+            loaded.HasHolonChanged().Should().BeFalse(); member.HasHolonChanged().Should().BeFalse();
+            loaded.MetaData.Should().NotContainKey("__oasis_enc__"); member.MetaData.Should().NotContainKey("__oasis_enc__");
+        }
+        root.MetaData["__oasis_enc__"].Should().Be(rootCipher); child.MetaData["__oasis_enc__"].Should().Be(childCipher);
+        root.Children.Should().BeEmpty(); root.Original.Should().BeNull(); child.Original.Should().BeNull();
+    }
+
+    [Theory]
     [InlineData(false,false,false)] [InlineData(true,false,false)]
     [InlineData(false,true,false)] [InlineData(true,true,false)]
     [InlineData(false,false,true)] [InlineData(true,false,true)]

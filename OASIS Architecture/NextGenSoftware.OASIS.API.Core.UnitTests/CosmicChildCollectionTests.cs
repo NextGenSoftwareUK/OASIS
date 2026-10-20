@@ -18,10 +18,14 @@ public class CosmicChildCollectionTests
         var result = new NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>>(
             new IHolon[] { first, new UnmappedAggregate() });
         var track = typeof(NextGenSoftware.OASIS.API.Core.Managers.HolonManager).GetMethod("TrackLoadedResult",
-            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .MakeGenericMethod(typeof(IEnumerable<IHolon>));
-        track.Invoke(null, new object[] { result });
-        result.IsError.Should().BeTrue();
+        var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
+            HyperDriveMode = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2 } };
+        var manager = new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(null, dna,
+            new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null, dna));
+        track.Invoke(manager, new object[] { result });
+        result.IsError.Should().BeTrue(); result.Result.Should().BeNull();
         if (alreadyTracked)
         {
             first.RejectChanges().IsError.Should().BeFalse();
