@@ -2,6 +2,8 @@ using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Extensions;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
@@ -22,10 +24,14 @@ public sealed class SolanaStoredPrecisionTests
         var method=typeof(SolanaRepository).GetMethod("DeserializeStoredRecord",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(source.GetType());
         var result=(SolanaBaseDto)method.Invoke(null,new object[]{OasisJson.Serialize(source)})!;
         var metadata=(Dictionary<string,object>)property.GetValue(result)!;
-        Assert.AreEqual(precise,Convert.ToDecimal(metadata["precise"],System.Globalization.CultureInfo.InvariantCulture));
-        Assert.AreEqual(1e100,Convert.ToDouble(metadata["wide"],System.Globalization.CultureInfo.InvariantCulture));
+        Assert.IsFalse(metadata["precise"] is string);Assert.IsFalse(metadata["wide"] is string);
+        Assert.AreEqual(precise,decimal.Parse(metadata["precise"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+        Assert.AreEqual(1e100,double.Parse(metadata["wide"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
         Assert.IsInstanceOfType<string>(metadata["numeric_text"]);Assert.AreEqual(numericText,metadata["numeric_text"]);
         Assert.IsInstanceOfType<string>(metadata["literal_date"]);Assert.AreEqual(literalDate,metadata["literal_date"]);
         Assert.AreEqual(source.Id,result.Id);Assert.AreEqual(7,result.Version);
+        IHolonBase domain=result switch{SolanaAvatarDto avatar=>avatar.GetAvatar(),SolanaAvatarDetailDto detail=>detail.GetAvatarDetail(),SolanaHolonDto holon=>holon.GetHolon(),_=>throw new InvalidOperationException()};
+        using var roundTrip=System.Text.Json.JsonDocument.Parse(OasisJson.Serialize(domain));
+        Assert.AreEqual(precise,roundTrip.RootElement.GetProperty("MetaData").GetProperty("precise").GetDecimal());
     }
 }
