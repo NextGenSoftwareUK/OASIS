@@ -23,6 +23,46 @@ public partial class SQLLiteDBOASISIntegrationTests
         plan.IsError.Should().BeFalse(plan.Message); return plan.Result;
     }
 
+    public sealed class InvalidMetadataRow : Holon
+    { [NextGenSoftware.OASIS.API.Core.CustomAttrbiutes.CustomOASISProperty] public int Rating { get; set; } }
+
+    private static void AssertTypedMetadataFailure<TValue>(NextGenSoftware.OASIS.Common.OASISResult<TValue> result)
+    {
+        result.IsError.Should().BeTrue(); result.IsLoaded.Should().BeFalse(); result.Result.Should().BeNull();
+        result.ErrorCode.Should().Be("COSMIC_METADATA_HYDRATION_FAILED", result.Message + result.Exception); result.Exception.Should().NotBeNull();
+    }
+
+    [Theory]
+    [InlineData(0, false)] [InlineData(0, true)] [InlineData(1, false)] [InlineData(1, true)]
+    [InlineData(2, false)] [InlineData(2, true)] [InlineData(3, false)] [InlineData(3, true)]
+    public async Task V2TypedQueriesReturnMetadataErrorsWithoutDefaultOrPartialResults(int route, bool asynchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var row = new Holon { Id = Guid.NewGuid(), Name = "conversion-error", MetaData = new() { ["Rating"] = "invalid-integer" } };
+        var saved = await provider.SaveHolonAsync(row, saveChildren: false); saved.IsError.Should().BeFalse(saved.Message);
+        var manager = CosmicManager(provider, true);
+        if (route < 2)
+        {
+            var key = saved.Result.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS];
+            var result = route == 0 ? asynchronous ? await manager.LoadHolonAsync<InvalidMetadataRow>(row.Id, loadChildren: false)
+                : manager.LoadHolon<InvalidMetadataRow>(row.Id, loadChildren: false)
+                : asynchronous ? await manager.LoadHolonAsync<InvalidMetadataRow>(key, loadChildren: false)
+                : manager.LoadHolon<InvalidMetadataRow>(key, loadChildren: false);
+            AssertTypedMetadataFailure(result);
+        }
+        else
+        {
+            var result = route == 2 ? asynchronous ? await manager.LoadAllHolonsAsync<InvalidMetadataRow>(loadChildren: false)
+                : manager.LoadAllHolons<InvalidMetadataRow>(loadChildren: false, cache: false)
+                : asynchronous ? await manager.SearchHolonsAsync<InvalidMetadataRow>("conversion-error", Guid.Empty, searchOnlyForCurrentAvatar: false, loadChildren: false, cache: false)
+                : manager.SearchHolons<InvalidMetadataRow>("conversion-error", Guid.Empty, searchOnlyForCurrentAvatar: false, loadChildren: false, cache: false);
+            AssertTypedMetadataFailure(result);
+        }
+        var native = await provider.LoadHolonAsync(row.Id, loadChildren: false);
+        native.IsError.Should().BeFalse(native.Message); native.Result.MetaData["Rating"].ToString().Should().Be("invalid-integer");
+    }
+
     [Fact]
     public async Task V2TypedLoadPreservesCanonicalIdentityAndValuesAgainstMetadataOverrides()
     {
