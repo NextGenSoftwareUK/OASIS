@@ -523,29 +523,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     }
                 }
 
-                // Generate EOSIO-specific key pair using Nethereum SDK (production-ready)
-                // EOSIO uses secp256k1 curve (same as Ethereum), so we can use Nethereum
-                var ecKey = EthECKey.GenerateKey();
-                var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
-                var publicKey = ecKey.GetPublicAddress();
-
-                // EOSIO public keys are typically in EOS format (EOS...)
-                // For now, use hex format - EosSharp SDK would convert to EOS format
-                // In production, use EosSharp SDK's key conversion utilities
-                var eosPublicKey = $"EOS{publicKey.Substring(2)}"; // EOS format prefix
-
-                // EOSIO uses secp256k1; keys generated above via Nethereum (WIF/EOS format conversion via EosSharp in production).
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
+                // Real EOSIO K1 key pair in EOSIO formats (eos-sharp): WIF private key, EOS... public key.
+                // EOSIO account names are created on chain separately; the public key identifies the wallet.
+                var eosKeyPair = EosSharp.Core.Helpers.CryptoHelper.GenerateKeyPair("sha256x2");
+                result.Result = new KeyHelper.KeyPairAndWallet
                 {
-                    keyPair.PrivateKey = privateKey; // In production, convert to WIF format using EosSharp
-                    keyPair.PublicKey = eosPublicKey;
-                    keyPair.WalletAddressLegacy = eosPublicKey; // EOS account names are separate from keys
-                }
-
-                result.Result = keyPair;
+                    PrivateKey = eosKeyPair.PrivateKey,
+                    PublicKey = eosKeyPair.PublicKey,
+                    WalletAddressLegacy = eosKeyPair.PublicKey
+                };
                 result.IsError = false;
-                result.Message = "EOSIO key pair generated successfully using Nethereum SDK (secp256k1).";
+                result.Message = "EOSIO key pair generated (eos-sharp, secp256k1 K1).";
             }
             catch (Exception ex)
             {
