@@ -37,9 +37,9 @@ public partial class PostgreSqlNativeAcceptanceTests
         using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,childId,table,marker,state="before-native-history"}));file.Flush(true);}
         string? observed=null;string? observedChild=null;var childAttempted=false;
         async Task Save(PostgreSQLOASIS owner){
-            if(kind==0){var saved=synchronous?owner.SaveAvatar((IAvatar)source):await owner.SaveAvatarAsync((IAvatar)source);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());}
-            else if(kind==1){var saved=synchronous?owner.SaveAvatarDetail((IAvatarDetail)source):await owner.SaveAvatarDetailAsync((IAvatarDetail)source);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());}
-            else{var saved=synchronous?owner.SaveHolon((IHolon)source,saveChildren:false):await owner.SaveHolonAsync((IHolon)source,saveChildren:false);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());}
+            if(kind==0){var saved=synchronous?owner.SaveAvatar((IAvatar)source):await owner.SaveAvatarAsync((IAvatar)source);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);Assert.AreEqual(1,saved.SavedCount);}
+            else if(kind==1){var saved=synchronous?owner.SaveAvatarDetail((IAvatarDetail)source):await owner.SaveAvatarDetailAsync((IAvatarDetail)source);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);Assert.AreEqual(1,saved.SavedCount);}
+            else{var saved=synchronous?owner.SaveHolon((IHolon)source,saveChildren:false):await owner.SaveHolonAsync((IHolon)source,saveChildren:false);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);Assert.AreEqual(1,saved.SavedCount);}
             var body=await Stored();Assert.IsNotNull(body);using var json=JsonDocument.Parse(body);
             Assert.AreEqual(id,json.RootElement.GetProperty("Id").GetGuid());Assert.AreEqual(marker,json.RootElement.GetProperty("MetaData").GetProperty("owned-fixture").GetString());observed=body;
         }
