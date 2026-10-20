@@ -326,6 +326,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+            =>await ReadAvatarByKeyAsync(providerKey,version);
+
+        private async Task<OASISResult<IAvatar>> ReadAvatarByKeyAsync(string providerKey,int version,bool includeDeleted=false)
         {
             var result = new OASISResult<IAvatar>();
             try
@@ -339,7 +342,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 if(avatar.Id!=requestedId) throw new InvalidDataException("Azure avatar identity does not match blob key.");
                 avatar = await ReadBlobHistoryAsync<Avatar>(json,version);
                 if(avatar==null) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure avatar version not found.";return result;}
-                if(avatar.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure avatar is deleted.";return result;}
+                if(avatar.IsDeleted&&!includeDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure avatar is deleted.";return result;}
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
                 result.Result = avatar;result.IsLoaded=true;
@@ -361,6 +364,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+            =>await ReadAvatarCollectionAsync(version);
+
+        private async Task<OASISResult<IEnumerable<IAvatar>>> ReadAvatarCollectionAsync(int version,bool includeDeleted=false)
         {
             var result = new OASISResult<IEnumerable<IAvatar>>();
             var avatars = new List<IAvatar>();
@@ -370,13 +376,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 var container = _serviceClient.GetBlobContainerClient(_avatarContainer);
                 await foreach (var item in container.GetBlobsAsync())
                 {
-                    var r = await LoadAvatarByProviderKeyAsync(item.Name, version);
+                    var r = await ReadAvatarByKeyAsync(item.Name,version,includeDeleted);
                     if(r.IsError) {
                         if(r.ErrorCode==OASISResultErrorCodes.RecordNotFound && r.Exception==null) continue;
                         return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IAvatar>>(r);
                     }
                     if(r.Result==null) throw new InvalidDataException("Azure avatar read returned no record.");
-                    if(!r.Result.IsDeleted) avatars.Add(r.Result);
+                    if(includeDeleted||!r.Result.IsDeleted) avatars.Add(r.Result);
                 }
                 result.Result = avatars;result.IsLoaded=true;
             }
@@ -440,10 +446,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         }
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-            => await DeleteSelectedAvatarAsync(LoadAvatarByEmailAsync(avatarEmail),softDelete,profile=>string.Equals(profile.Email,avatarEmail,StringComparison.OrdinalIgnoreCase));
+            => await DeleteSelectedAvatarAsync(ReadSelectedAvatarAsync(avatarEmail,true,0,includeDeleted:true),softDelete,profile=>string.Equals(profile.Email,avatarEmail,StringComparison.OrdinalIgnoreCase));
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-            => await DeleteSelectedAvatarAsync(LoadAvatarByUsernameAsync(avatarUsername),softDelete,profile=>string.Equals(profile.Username,avatarUsername,StringComparison.OrdinalIgnoreCase));
+            => await DeleteSelectedAvatarAsync(ReadSelectedAvatarAsync(avatarUsername,false,0,includeDeleted:true),softDelete,profile=>string.Equals(profile.Username,avatarUsername,StringComparison.OrdinalIgnoreCase));
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
 
         // ─── Import / Export ──────────────────────────────────────────────────────

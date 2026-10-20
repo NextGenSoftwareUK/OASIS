@@ -4,12 +4,32 @@ using Azure.Storage.Blobs.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests;
 
 public partial class AzureStorageOASISIntegrationTests
 {
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task NativeIdentityHardDeleteResolvesTombstoneWithoutExposingItPublicly(bool email,bool synchronous)
+    {
+        RequireLive();_provider.IsVersionControlEnabled=true;var id=Guid.NewGuid();
+        var source=new Avatar{Id=id,Username="owned-old-owner",Email="owned-old-owner@example.invalid",IsActive=true};
+        Assert.IsFalse((await _provider.SaveAvatarAsync(source)).IsError);
+        Assert.IsFalse((await _provider.SaveAvatarDetailAsync(new AvatarDetail{Id=id,Username=source.Username,Email=source.Email,IsActive=true,Karma=123,XP=456})).IsError);
+        var soft=await _provider.DeleteAvatarAsync(id);Assert.IsFalse(soft.IsError,soft.Exception?.ToString());
+        var hidden=await _provider.LoadAvatarAsync(id);Assert.IsTrue(hidden.IsError);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,hidden.ErrorCode);
+        var list=await _provider.LoadAllAvatarsAsync();Assert.IsFalse(list.IsError,list.Exception?.ToString());Assert.AreEqual(0,list.Result.Count());
+        var publicIdentity=email?await _provider.LoadAvatarByEmailAsync(source.Email):await _provider.LoadAvatarByUsernameAsync(source.Username);
+        Assert.IsTrue(publicIdentity.IsError);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,publicIdentity.ErrorCode);
+        var old=await _provider.LoadAvatarAsync(id,1);Assert.IsFalse(old.IsError,old.Exception?.ToString());Assert.AreEqual(source.Username,old.Result.Username);Assert.IsTrue(old.Result.IsActive);
+        var deleted=email?synchronous?_provider.DeleteAvatarByEmail(source.Email,false):await _provider.DeleteAvatarByEmailAsync(source.Email,false)
+            :synchronous?_provider.DeleteAvatarByUsername(source.Username,false):await _provider.DeleteAvatarByUsernameAsync(source.Username,false);
+        Assert.IsFalse(deleted.IsError,deleted.Exception?.ToString());Assert.IsTrue(deleted.IsDeleted);Assert.IsTrue(deleted.Result);
+        Assert.IsFalse((await ProfileBlob(id).ExistsAsync()).Value);Assert.IsFalse((await DetailBlob(id).ExistsAsync()).Value);
+    }
+
     private sealed class IdentityReassignService(BlobServiceClient healthy,BlobClient target,bool detail=false):BlobServiceClient
     {
         public BlobClient Target=>target;
