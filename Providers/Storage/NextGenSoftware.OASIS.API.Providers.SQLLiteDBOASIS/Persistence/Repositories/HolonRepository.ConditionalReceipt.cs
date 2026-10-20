@@ -20,25 +20,27 @@ public partial class HolonRepository
         => ConditionalHolonPlan.ComputeFingerprint(new JObject(document.Properties()
             .Where(property => property.Name != "digest").Select(property => new JProperty(property.Name, property.Value.DeepClone()))));
 
-    private static string WriteConditionalReceipt(IEnumerable<IHolon> roots, ConditionalHolonWriteRequest request, string fingerprint)
+    private static string WriteConditionalReceipt(IEnumerable<IHolon> roots, ConditionalHolonWriteRequest request, string fingerprint, HolonCommittedDelta delta)
     {
         var document = new JObject {
-            ["format"] = 2, ["fingerprintFormat"] = ConditionalFingerprintFormat(request),
+            ["format"] = 3, ["fingerprintFormat"] = ConditionalFingerprintFormat(request),
             ["operationId"] = request.Write.OperationId, ["actor"] = request.Write.ActorId,
             ["authority"] = request.Write.Authority.ToString(), ["operation"] = request.Operation.ToString(),
-            ["intent"] = fingerprint, ["graph"] = ConditionalHolonReceipt.Write(roots)
+            ["intent"] = fingerprint, ["graph"] = ConditionalHolonReceipt.Write(roots), ["delta"] = delta.StoredJson
         };
         document["digest"] = ReceiptDigest(document);
         return document.ToString(Formatting.None);
     }
 
     private IEnumerable<IHolon> ReadConditionalReceipt(string json, ConditionalHolonWriteRequest request,
-        PreparedGraph expectedGraph, string fingerprint)
+        PreparedGraph expectedGraph, string fingerprint,out HolonCommittedDelta delta)
     {
+        delta=null;
         try
         {
             var document = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
-            if (document.Count != 9 || document["format"]?.Type != JTokenType.Integer || document.Value<int>("format") != 2
+            var format=document["format"]?.Type==JTokenType.Integer ? document.Value<int>("format"):0;
+            if (format is not (2 or 3) || document.Count != (format==3 ? 10:9)
                 || document["fingerprintFormat"]?.Type != JTokenType.Integer || document.Value<int>("fingerprintFormat") != ConditionalFingerprintFormat(request)
                 || document["digest"]?.Type != JTokenType.String || document.Value<string>("digest") != ReceiptDigest(document)
                 || document["operationId"]?.Type != JTokenType.String || document.Value<string>("operationId") != request.Write.OperationId.ToString("D")
@@ -46,7 +48,7 @@ public partial class HolonRepository
                 || document["authority"]?.Type != JTokenType.String || document.Value<string>("authority") != request.Write.Authority.ToString()
                 || document["operation"]?.Type != JTokenType.String || document.Value<string>("operation") != request.Operation.ToString()
                 || document["intent"]?.Type != JTokenType.String || document.Value<string>("intent") != fingerprint
-                || document["graph"]?.Type != JTokenType.String)
+                || document["graph"]?.Type != JTokenType.String || format==3 && document["delta"]?.Type!=JTokenType.String)
                 throw new InvalidDataException("Receipt integrity or original operation binding is invalid.");
             // Reuse the canonical graph codec; it rejects missing/duplicate/unreachable
             // records and unsafe types before this owner validates the request binding.
@@ -75,6 +77,12 @@ public partial class HolonRepository
             if (request.Operation == ConditionalHolonOperation.Save
                 && ConditionalFingerprint(request, PrepareGraph(roots, true, true, 0)) != ConditionalFingerprint(request, expectedGraph))
                 throw new InvalidDataException("Receipt persistent values differ from the original submitted intent.");
+            if(format==3)
+            {
+                delta=HolonCommittedDelta.ReadStored(document.Value<string>("delta"));
+                delta.ValidateAcknowledgement(request.Write.OperationId,request.Write.ActorId,request.Write.Authority,
+                    request.Operation,graph.Nodes.Select(node=>node.Source),request.Write.Conditions);
+            }
             return roots;
         }
         catch (Exception cause) when (cause is JsonException or InvalidDataException or ArgumentException or InvalidCastException

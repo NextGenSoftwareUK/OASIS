@@ -4,6 +4,8 @@ Updated 19 October 2026. Implementation is local and in progress. SQLite and Mon
 
 20 October primary-receipt follow-on: new SQLite acknowledgements use an integrity-checked format2 envelope, the existing Shared graph codec, operation/context binding and exact saved-intent validation. Historical format1 receipts require explicit reconciliation before replay; the historical checkpoint below describing format1 is superseded for new writes. See [receipt contract, rollout gate and verification](SQLITE_RECEIPT_INTEGRITY.md).
 
+The subsequent [committed-delta checkpoint](COMMITTED_DELTAS.md) extends new primary envelopes to format3, persists the delta in the same transaction and returns a redacted descriptor summary on Save/replay. Valid format2 acknowledgements remain readable with explicit missing-delta evidence; format1 still requires reconciliation.
+
 ## Provider-local revisions and logical history
 
 Concurrency tokens are now separate from logical `VersionId`/`PreviousVersionId`. SQLite owns a physical `ProviderRevisionId`, exposed through `CosmicConcurrency.GetProviderRevisionId(holon, authority)` using reserved provider metadata. Ordinary copies and replication preserve logical version identity while each SQLite write issues a fresh local token. Logical version IDs cannot serve as expected concurrency tokens.

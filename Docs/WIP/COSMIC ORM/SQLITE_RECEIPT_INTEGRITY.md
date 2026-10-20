@@ -1,6 +1,8 @@
 # SQLite primary receipt integrity
 
-20 October 2026. Prerequisite for committed per-save deltas; delta capture/persistence is still open.
+20 October 2026. Initial integrity prerequisite for committed per-save deltas; capture was not part of that increment.
+
+Superseding capture checkpoint: [committed deltas](COMMITTED_DELTAS.md) adds an atomically persisted delta to new primary format3 envelopes using this same integrity/context boundary. Valid format2 receipts keep their original acknowledgement and explicitly report unavailable prior delta evidence. The counts and format2 description below retain the initial integrity checkpoint.
 
 ## Root cause and implementation
 
@@ -22,4 +24,4 @@ Initial focused gate passes17/17: eight corruption vectors plus restart/original
 
 Reports: `TestResults/SQLiteCurrent/sqlite-receipt-integrity-red.trx`, `sqlite-receipt-integrity-focused.trx`, `sqlite-receipt-integrity-final-focused.trx`, `sqlite-receipt-integrity-full.trx` and `receipt-integrity-artifacts.json`. The artifact report retains exact consumer Core/Shared/SQLite hashes and free disk space. No Core/Shared source, dependency pin or deployment change is part of this increment.
 
-This does not complete Stage7. Immutable committed deltas, atomic before/after capture, authorized values/redaction/encryption, retention and original-delta replay still require implementation over the verified receipt boundary. Existing local value/membership previews remain distinct from committed evidence.
+At this original checkpoint, committed capture/replay remained pending. The [newer delta checkpoint](COMMITTED_DELTAS.md) implements the first Core/SQLite owner over this boundary; broader provider adoption, authorized history values/decryption, retention and complete Stage7 acceptance remain open. Existing local value/membership previews remain distinct from committed evidence.
