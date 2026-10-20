@@ -51,7 +51,7 @@ public partial class Neo4jNativeAvatarTests
         parent.ProviderUniqueStorageKey[ProviderType.Neo4jOASIS]=parentKey;
         var root=new NativeRoleOwner{Id=Id(),Name="typed query owner",HolonType=HolonType.Quest};
         root.MetaData["typed-kind"]="query-owner";
-        root.Components.Add(new NativeRoleMember{Id=Id(),Name="query member"});
+        root.Components.Add(new NativeRoleMember{Id=Id(),Name="query member",HolonType=HolonType.Holon});
         parent.Children.Add(root);
         var saved=await writer.SaveHolonAsync(parent,actor,new CosmicWriteOptions(Op(),ids.ToDictionary(id=>Guid.Parse(id),id=>(Guid?)null)),providerType:ProviderType.Neo4jOASIS);
         Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);
@@ -106,6 +106,24 @@ public partial class Neo4jNativeAvatarTests
         Assert.IsFalse(afterPartial.IsError,afterPartial.Message+afterPartial.Exception);
         Assert.AreEqual(observedManifest,afterPartial.Result.ChildRoleManifestJson);
         Assert.AreEqual("query member edited",Only(afterPartial.Result.Components).Name);
+        if(route=="search")
+        {
+            var rootBeforeSearch=await Snapshot(root.Id);
+            foreach(var nativeChildren in new[]{false,true})
+            foreach(var childType in new[]{HolonType.Holon,HolonType.Quest})
+            {
+                var selected=synchronous ? reader.SearchHolons("scalar-only owner",actor,searchOnlyForCurrentAvatar:false,
+                        maxChildDepth:1,loadChildrenFromProvider:nativeChildren,childHolonType:childType,providerType:ProviderType.Neo4jOASIS)
+                    :await reader.SearchHolonsAsync("scalar-only owner",actor,searchOnlyForCurrentAvatar:false,
+                        maxChildDepth:1,loadChildrenFromProvider:nativeChildren,childHolonType:childType,providerType:ProviderType.Neo4jOASIS);
+                Assert.IsFalse(selected.IsError,selected.Message+selected.Exception);var selectedRoot=Only(selected.Result);
+                Assert.AreEqual(root.Id,selectedRoot.Id);
+                if(childType==HolonType.Quest)Empty(selectedRoot.Children);
+                else Assert.AreEqual(component.Id,Only(selectedRoot.Children).Id);
+                Assert.IsFalse(selectedRoot.HasHolonChanged());
+            }
+            Assert.AreEqual(rootBeforeSearch,await Snapshot(root.Id));Assert.AreEqual(childBefore,await Snapshot(component.Id));
+        }
         complete=true;
         }
         finally
