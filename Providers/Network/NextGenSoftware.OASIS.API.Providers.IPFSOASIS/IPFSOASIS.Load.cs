@@ -347,7 +347,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 var matches=snapshot.Where(entry=>entry.Value?.RecordKind==kind && predicate(entry.Value)).Take(2).ToList();
                 if(matches.Count>1) throw new StorageIdentityAmbiguousException();
                 if(matches.Count==0) return new OASISResult<T> {IsError=true,ErrorCount=1,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="No IPFS entity matches the requested kind and identity."};
-                result.Result=await ReadPrivateVersionAsync<T>(matches[0].Key,kind,matches[0].Value.Id,version);
+                result.Result=await ReadPrivateVersionAsync<T>(matches[0].Key,kind,matches[0].Value.Id,version,
+                    current=>ValidateCanonicalSelector(current,kind,predicate));
                 if(result.Result==null) return new OASISResult<T> {IsError=true,ErrorCount=1,
                     ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="The requested IPFS entity version was not found."};
                 result.IsLoaded=true;

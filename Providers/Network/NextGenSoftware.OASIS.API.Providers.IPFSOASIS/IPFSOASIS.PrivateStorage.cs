@@ -77,13 +77,18 @@ public partial class IPFSOASIS
         return record;
     }
 
-    private async Task<T> ReadPrivateVersionAsync<T>(string cid,string kind,Guid id,int version) where T:class,IHolonBase
-        => await TraversePrivateVersionsAsync(cid,version,async key=>
+    private async Task<T> ReadPrivateVersionAsync<T>(string cid,string kind,Guid id,int version,Action<T> validateCurrent=null) where T:class,IHolonBase
+    {
+        var first=true;
+        return await TraversePrivateVersionsAsync(cid,version,async key=>
         {
             try { _=(Ipfs.Cid)key; }
             catch(Exception cause) { throw new InvalidDataException("IPFS version chain contains an invalid CID.",cause); }
-            return await ReadPrivateRecordAsync<T>(key,kind,id);
+            var record=await ReadPrivateRecordAsync<T>(key,kind,id);
+            if(first){validateCurrent?.Invoke(record);first=false;}
+            return record;
         });
+    }
 
     private static async Task<T> TraversePrivateVersionsAsync<T>(string cid,int version,Func<string,Task<T>> read) where T:class,IHolonBase
     {
