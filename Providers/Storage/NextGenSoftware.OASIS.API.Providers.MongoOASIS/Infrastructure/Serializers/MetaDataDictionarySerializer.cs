@@ -6,6 +6,8 @@ using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Options;
 using MongoDB.Bson.Serialization.Serializers;
+using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serializers
 {
@@ -219,6 +221,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 return;
             }
 
+            if (value is JRaw raw)
+            {
+                using var document=JsonDocument.Parse(raw.ToString(Newtonsoft.Json.Formatting.None));
+                SerializeJsonElement(writer,document.RootElement);
+                return;
+            }
             if (value is Newtonsoft.Json.Linq.JObject jsonObject)
             {
                 writer.WriteStartDocument();
@@ -326,12 +334,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                         writer.WriteInt32(i32);
                     else if (je.TryGetInt64(out long i64))
                         writer.WriteInt64(i64);
-                    else if (je.TryGetDouble(out double d))
-                        writer.WriteDouble(d);
-                    else if (je.TryGetDecimal(out decimal dec))
+                    else if (je.TryGetDecimal(out decimal dec)
+                        && StoredRecordValueEquality.Equivalent(new JRaw(je.GetRawText()),new JValue(dec)))
                         writer.WriteDecimal128(dec);
+                    else if (je.TryGetDouble(out double d) && !double.IsNaN(d) && !double.IsInfinity(d)
+                        && StoredRecordValueEquality.Equivalent(new JRaw(je.GetRawText()),new JValue(d)))
+                        writer.WriteDouble(d);
                     else
-                        writer.WriteDouble(je.GetDouble());
+                        throw new BsonSerializationException("Metadata JSON number has no exact supported BSON/CLR round-trip representation.");
                     break;
                 case JsonValueKind.True:
                     writer.WriteBoolean(true);

@@ -1,5 +1,9 @@
 # COSMIC source integration boundary
 
+## MongoDB JSON numeric storage prerequisite — 20 October 2026
+
+The original binary fails 18 numeric regression cases with four controls passing. The corrected provider passes a paired **175/175 controlled and 12/12 native** cohort, zero skips; unit/native Core, Shared and MongoDB assemblies were hash-matched. Native save/load proves exact Decimal128 and retained numeric strings; rejected underflow inserts nothing and preserves an existing row byte-for-byte. No Core/Shared source change or deployment is included. [Exact artifacts, reports and remaining numeric/query limits](MONGO_AUDIT_PRECISION.md#json-numeric-storage-follow-up--20-october-2026).
+
 ## Neo4j protected preparation increment — 20 October 2026
 
 Subsequent test-only recovery increment: native **13/13** passes, zero skips, retaining all nine prior cases and adding single/batch sync/async real preparation commit with injected application acknowledgement loss. Native inspection confirms no holons exist before authorized recovery; the fresh manager recovers original ciphertext across write-key rotation and exact replay preserves revisions. This run has its own recorded native artifact cohort; it is not a process/network fault certification. See the [checkpoint evidence](NEO4J_WRITE_PREPARATION.md).
