@@ -29,6 +29,112 @@ public class CosmicQueryExecutorTests
         { Calls++; LastBudget = maximumResults; LastTargets = plan.Targets.Count; return Handler(cancellationToken); }
     }
 
+    private sealed class IndexedOnlyList<T> : IReadOnlyList<T>
+    {
+        private readonly Func<int> _count;
+        private readonly Func<int, T> _item;
+        public int EnumerationCalls; public int IndexReads;
+        public IndexedOnlyList(Func<int> count, Func<int, T> item) { _count = count; _item = item; }
+        public int Count => _count();
+        public T this[int index] { get { IndexReads++; return _item(index); } }
+        public IEnumerator<T> GetEnumerator() { EnumerationCalls++; throw new InvalidOperationException("Snapshot must use the bounded indexed contract."); }
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    [Fact]
+    public void PlannerCapturesAuthorizedTargetsByBoundedIndexWithoutEnumeration()
+    {
+        var target = new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, NameCapability);
+        var targets = new IndexedOnlyList<CosmicQueryTarget>(() => 1, _ => target);
+        var result = CosmicQueryPlanner.Plan(CosmicQuery<Holon>.Create(), target.Provider, targets);
+        Assert.False(result.IsError, result.Message); Assert.Same(target, Assert.Single(result.Result.Targets));
+        Assert.Equal(0, targets.EnumerationCalls); Assert.Equal(1, targets.IndexReads);
+    }
+
+    [Fact]
+    public void PlannerRejectsInvalidAndChangingTargetCountsWithoutEnumeration()
+    {
+        var target = new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, NameCapability);
+        foreach (var count in new[] { 65, -1 })
+        {
+            var targets = new IndexedOnlyList<CosmicQueryTarget>(() => count, _ => target);
+            var result = CosmicQueryPlanner.Plan(CosmicQuery<Holon>.Create(), target.Provider, targets);
+            Assert.Equal("CQL_PLAN_INVALID", result.ErrorCode); Assert.Equal(0, targets.IndexReads); Assert.Equal(0, targets.EnumerationCalls);
+        }
+        IndexedOnlyList<CosmicQueryTarget> changing = null!;
+        changing = new IndexedOnlyList<CosmicQueryTarget>(() => changing.IndexReads == 0 ? 1 : 2, _ => target);
+        var invalid = CosmicQueryPlanner.Plan(CosmicQuery<Holon>.Create(), target.Provider, changing);
+        Assert.Equal("CQL_PLAN_INVALID", invalid.ErrorCode); Assert.Equal(1, changing.IndexReads); Assert.Equal(0, changing.EnumerationCalls);
+    }
+
+    [Fact]
+    public async Task RegistrySnapshotUsesOnlyItsBoundedIndexedContract()
+    {
+        var adapter = new Adapter(ProviderType.SQLLiteDBOASIS);
+        var registry = new IndexedOnlyList<ICosmicQueryStorageProvider>(() => 1, _ => adapter);
+        var result = await CosmicQueryExecutor.ExecuteAsync(Plan(CosmicQuery<Holon>.Create(), adapter.QueryProviderType), registry);
+        Assert.False(result.IsError, result.Message); Assert.Equal(1, adapter.Calls);
+        Assert.Equal(0, registry.EnumerationCalls); Assert.Equal(1, registry.IndexReads);
+    }
+
+    [Fact]
+    public async Task RowSnapshotUsesOnlyItsBoundedIndexedContract()
+    {
+        var row = new Holon { Id = Guid.NewGuid(), Name = "indexed" };
+        var rows = new IndexedOnlyList<IHolon>(() => 1, _ => row);
+        var adapter = new Adapter(ProviderType.SQLLiteDBOASIS) { Handler = _ => Task.FromResult(new OASISResult<IReadOnlyList<IHolon>>(rows)) };
+        var result = await CosmicQueryExecutor.ExecuteAsync(Plan(CosmicQuery<Holon>.Create(), adapter.QueryProviderType), new[] { adapter });
+        Assert.False(result.IsError, result.Message); Assert.Equal(row.Id, Assert.Single(result.Result.Providers[0].Rows).Id);
+        Assert.Equal(0, rows.EnumerationCalls); Assert.Equal(1, rows.IndexReads);
+    }
+
+    [Fact]
+    public async Task ExcessiveAndInvalidRowCountsRejectBeforeAllocationOrTraversal()
+    {
+        var adapter = new Adapter(ProviderType.SQLLiteDBOASIS);
+        foreach (var count in new[] { int.MaxValue, -1 })
+        {
+            var rows = new IndexedOnlyList<IHolon>(() => count, _ => throw new InvalidOperationException("No row may be read."));
+            adapter.Handler = _ => Task.FromResult(new OASISResult<IReadOnlyList<IHolon>>(rows));
+            var result = await CosmicQueryExecutor.ExecuteAsync(Plan(CosmicQuery<Holon>.Create(), adapter.QueryProviderType), new[] { adapter }, maximumResults: 1);
+            Assert.Equal("CQL_PROVIDER_RESULT_INVALID", result.ErrorCode); Assert.Null(result.Result);
+            Assert.Equal(0, rows.EnumerationCalls); Assert.Equal(0, rows.IndexReads);
+        }
+    }
+
+    [Fact]
+    public async Task RegistryCountsRejectBeforeTraversalAndProviderIO()
+    {
+        var adapter = new Adapter(ProviderType.SQLLiteDBOASIS);
+        foreach (var count in new[] { 65, -1 })
+        {
+            var registry = new IndexedOnlyList<ICosmicQueryStorageProvider>(() => count, _ => adapter);
+            var result = await CosmicQueryExecutor.ExecuteAsync(Plan(CosmicQuery<Holon>.Create(), adapter.QueryProviderType), registry);
+            Assert.Equal("CQL_EXECUTION_INVALID", result.ErrorCode); Assert.Equal(0, adapter.Calls);
+            Assert.Equal(0, registry.EnumerationCalls); Assert.Equal(0, registry.IndexReads);
+        }
+    }
+
+    [Fact]
+    public async Task ChangedRowCountRejectsTheSnapshotWithoutPublishingRows()
+    {
+        IndexedOnlyList<IHolon> rows = null!;
+        rows = new IndexedOnlyList<IHolon>(() => rows.IndexReads == 0 ? 1 : 2, _ => new Holon { Id = Guid.NewGuid() });
+        var adapter = new Adapter(ProviderType.SQLLiteDBOASIS) { Handler = _ => Task.FromResult(new OASISResult<IReadOnlyList<IHolon>>(rows)) };
+        var result = await CosmicQueryExecutor.ExecuteAsync(Plan(CosmicQuery<Holon>.Create(), adapter.QueryProviderType), new[] { adapter });
+        Assert.Equal("CQL_PROVIDER_RESULT_INVALID", result.ErrorCode); Assert.Null(result.Result); Assert.Equal(1, rows.IndexReads);
+    }
+
+    [Fact]
+    public async Task CancellationDuringIndexedCopyNeverPublishesRows()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var rows = new IndexedOnlyList<IHolon>(() => 1, _ => { cancellation.Cancel(); return new Holon { Id = Guid.NewGuid() }; });
+        var adapter = new Adapter(ProviderType.SQLLiteDBOASIS) { Handler = _ => Task.FromResult(new OASISResult<IReadOnlyList<IHolon>>(rows)) };
+        var result = await CosmicQueryExecutor.ExecuteAsync(Plan(CosmicQuery<Holon>.Create(), adapter.QueryProviderType), new[] { adapter }, cancellationToken: cancellation.Token);
+        Assert.Equal("CQL_QUERY_CANCELLED", result.ErrorCode); Assert.Null(result.Result); Assert.Equal(1, rows.IndexReads);
+    }
+
     [Fact]
     public async Task EveryActualAdapterIsPreflightedBeforeAnyRead()
     {

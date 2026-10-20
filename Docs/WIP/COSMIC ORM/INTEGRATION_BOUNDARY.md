@@ -246,3 +246,18 @@ Final full Core1,353/1,353 passes13s; native focused43/43 passes10s; native full
 - `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `12EDB4019FACDA633847A049E980E68A540DB598147E1E3A83942B128D428964`
 
 Core unit and native Core copies match; final native consumer hashes match focused43. Shared is an independently captured concurrent epoch, not an all-provider certification. Core gitlink and manifest advance together. Legacy behavior, hosted data and deployment are unchanged; local commits do not establish remote publication. The full original roadmap remains active, including additional metadata types, authenticated policy/routing, other adapters, graph queries and federation.
+
+
+## Bounded CQL planning/execution snapshots — 20 October 2026
+
+Core `8b2b2c0563ff78d6c6f1b54e9e668d0f5bec1442` introduces one internal snapshot owner for authorized targets, adapter registries and returned rows. Count checks precede bounded allocation/indexing; external enumerators are not used. Changed counts reject, and cancellation is checked during indexed copying and canonical detachment. Six executor and two planner red-before cases are retained (`cql-snapshot-red.trx`, `cql-planner-snapshot-red.trx`); full final Core1,361/1,361 passes13s, zero skips.
+
+Both Core TFMs and consumers build with zero errors. Final nativeSQLite948/948 passes123s with zero skips and fixture absent. Initial executor-only Core1,359/native948 reports are distinct interim epochs; final planner integration is proven by the final reports below. No SQLite or Shared source changes are included in this checkpoint. Actual reports and copied native assemblies SHA256:
+
+- `TestResults/CosmicMongoCurrent/cql-snapshot-core-full-verified.trx`: `1BBC7725446D233D124D85945201452D7A02571711B6D3588A5C968C0BAA871E`
+- `TestResults/SQLiteCurrent/sqlite-cql-snapshot-full-verified.trx`: `986FD20F08DC51661D9A05B3E42D899470582C759AD37706465DA81CC80132C0`
+- `NextGenSoftware.OASIS.API.Core.dll`: `0DF9BB036BB775227D236A4558AB42E8469AF5F670A3BA751AA98C4C9578A929`
+- `NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll`: `8163A71612D911ABA8F064A291D5B903CFD98874EFE69FC61D8B8BA66AE7B970`
+- `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `12EDB4019FACDA633847A049E980E68A540DB598147E1E3A83942B128D428964`
+
+Core unit/native copies match. Core gitlink and manifest advance together, with no push/deployment or legacy implementation change. Entry-count bounds do not prove native scan deadlines, arbitrary getter/indexer preemption, byte-size bounds, snapshot isolation or completion of the full roadmap.
