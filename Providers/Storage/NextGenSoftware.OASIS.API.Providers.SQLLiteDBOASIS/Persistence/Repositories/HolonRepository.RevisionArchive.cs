@@ -24,9 +24,8 @@ public partial class HolonRepository
             throw new InvalidDataException("The logical version identifies multiple native revisions.");
         // A concurrent writer can archive the current observation before our archive query.
         // Only identical observations of that same physical revision may collapse.
-        if(!Newtonsoft.Json.Linq.JToken.DeepEquals(
-            Newtonsoft.Json.Linq.JToken.Parse(StoredRecordJson.Serialize<IHolon>(previous)),
-            Newtonsoft.Json.Linq.JToken.Parse(StoredRecordJson.Serialize<IHolon>(record))))
+        if(!NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPayloadEquality.Equivalent(
+            StoredRecordJson.CaptureRuntimeToken(previous), StoredRecordJson.CaptureRuntimeToken(record)))
             throw new InvalidDataException("The same native revision has different canonical content.");
     }
 
@@ -34,7 +33,7 @@ public partial class HolonRepository
     {
         if(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))!=digest)
             throw new InvalidDataException("Archived holon checksum differs from stored content.");
-        var record=StoredRecordJson.DeserializeStored<IHolon>(json);
+        var record=StoredRecordJson.DeserializeStoredHolon(json);
         if(record==null || record.Id!=id || record.Version!=version || record.VersionId.ToString("D")!=logical
             || Core.Holons.CosmicConcurrency.GetProviderRevisionId(record,Core.Enums.ProviderType.SQLLiteDBOASIS)?.ToString("D")!=native)
             throw new InvalidDataException("Archived holon identity or revision differs from its index.");
