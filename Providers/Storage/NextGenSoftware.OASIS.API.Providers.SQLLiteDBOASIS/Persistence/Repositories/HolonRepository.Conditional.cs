@@ -278,7 +278,7 @@ public partial class HolonRepository
         var receipt = JObject.Parse(json);
         if (receipt.Value<int>("format") != 1) throw new InvalidOperationException("Unsupported conditional receipt format.");
         var nodes = (JArray)receipt["nodes"];
-        var records = nodes.ToDictionary(node => node["id"].ToObject<Guid>(), node => StoredRecordJson.Deserialize<Holon>((string)node["record"]) as IHolon);
+        var records = nodes.ToDictionary(node => node["id"].ToObject<Guid>(), node => StoredRecordJson.DeserializeStoredHolon((string)node["record"]) as IHolon);
         foreach (var node in nodes)
         {
             records[node["id"].ToObject<Guid>()].Children = node["children"].Select(id => records[id.ToObject<Guid>()]).ToList();
