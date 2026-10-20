@@ -135,6 +135,8 @@ public partial class GoogleCloudOASIS : IConditionalHolonStorageProvider
             return FirestoreGraphAcknowledgement(validated,plan.Operation);
         } catch(CosmicConcurrencyException cause) {
             return FirestoreGraphFailure(CosmicConcurrencyException.Code,cause.Message,cause);
+        } catch(StorageLifecycleConflictException cause) {
+            return FirestoreGraphFailure(StorageLifecycleConflictException.ErrorCode,cause.Message,cause);
         } catch(FirestoreOperationReuseException cause) {
             return FirestoreGraphFailure("COSMIC_OPERATION_ID_REUSED",cause.Message,cause);
         } catch(Exception cause) {
@@ -193,7 +195,13 @@ public partial class GoogleCloudOASIS : IConditionalHolonStorageProvider
         return size;
     }
     private static OASISResult<IEnumerable<IHolon>> FirestoreGraphAcknowledgement(IEnumerable<IHolon> roots,ConditionalHolonOperation operation)
-        =>new(){Result=roots,IsSaved=operation==ConditionalHolonOperation.Save,IsDeleted=operation!=ConditionalHolonOperation.Save};
+    {
+        var records=roots.ToList();var graph=HolonGraphWritePlan.Create(records,true,true,0,0);
+        foreach(var node in graph.Nodes)node.Source.IsNewHolon=false;
+        return new(){Result=records,IsSaved=operation==ConditionalHolonOperation.Save,IsDeleted=operation!=ConditionalHolonOperation.Save,
+            SavedCount=operation==ConditionalHolonOperation.Save?graph.Nodes.Count:0,
+            DeletedCount=operation==ConditionalHolonOperation.Save?0:graph.Nodes.Count,HasAnyHolonsChanged=true};
+    }
     private static OASISResult<IEnumerable<IHolon>> FirestoreGraphFailure(string code,string message,Exception cause)
         =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
     private sealed class FirestoreOperationReuseException:Exception
