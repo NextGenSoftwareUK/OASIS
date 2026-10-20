@@ -1,5 +1,9 @@
 # COSMIC source integration boundary
 
+## MongoDB native CQL and shared annotated scalar members — 20 October 2026
+
+Core a6d08658cae5643f92cb6f9b930fb723d93053e7 adds metadata path compilation for trusted annotated scalar properties. The MongoDB adapter pushes supported predicates to BSON, checks actual capabilities and bounds count/query/streamed payload/deadline before publishing leaf results. Final Core **1,536/1,536**, Shared **895/895**, Mongo **188/188 controlled and 84/84 selected native**, SQLite **1,042/1,042** pass, zero skips. Core51A35ED9/Shared7D625411 match all consumers; the exact full hashes/reports and earlier native subset epochs are in the [MongoDB CQL checkpoint](CQL_MONGO_NATIVE.md). Both retained fixture states were independently majority-read reconciled before removal; no mutation replay or blind reset. The parent Core gitlink and dependency manifest are paired in this batch. No Development merge or deployment is included; full CQL and the original ORM roadmap remain unfinished.
+
 ## MongoDB JSON numeric storage prerequisite — 20 October 2026
 
 The original binary fails 18 numeric regression cases with four controls passing. The corrected provider passes a paired **175/175 controlled and 12/12 native** cohort, zero skips; unit/native Core, Shared and MongoDB assemblies were hash-matched. Native save/load proves exact Decimal128 and retained numeric strings; rejected underflow inserts nothing and preserves an existing row byte-for-byte. No Core/Shared source change or deployment is included. [Exact artifacts, reports and remaining numeric/query limits](MONGO_AUDIT_PRECISION.md#json-numeric-storage-follow-up--20-october-2026).

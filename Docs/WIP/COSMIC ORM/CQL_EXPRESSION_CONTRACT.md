@@ -1,5 +1,7 @@
 # CQL expression contract: first implementation milestone
 
+Latest shared scalar-property increment (20 October 2026): exact trusted `CustomOASISProperty` scalar members now compile to literal metadata paths without invoking getters or attribute constructors. Inherited/overridden markers are supported; unmarked, read-only, canonical-shadowing and StoreAsJsonString members remain explicit unsupported paths. The seven original positive failures now pass with five safety controls unchanged, inside complete Core 1,536/1,536. MongoDB and SQLite execute these same paths natively; [acceptance and remaining default/schema semantics](CQL_MONGO_NATIVE.md).
+
 For the current usage overview, start with [CQL getting started](CQL_GETTING_STARTED.md). The checkpoint sections below retain their original scope and evidence; later native/manager implementation supersedes earlier statements that execution is unimplemented. Complete WEB4 authorization/routing, additional adapters and the remaining CQL roadmap are still open.
 
 20 October 2026. Predicate compilation and immutable typed query composition are implemented; database query execution remains incomplete. It performs no provider I/O and does not satisfy the complete CQL roadmap.

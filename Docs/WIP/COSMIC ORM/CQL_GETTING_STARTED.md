@@ -1,15 +1,15 @@
 # CQL getting started
 
-20 October 2026. CQL is the typed query layer for COSMIC ORM. It translates supported C# expression trees into a provider-independent query representation, checks the selected providers' capabilities, then executes native queries. The first native adapter is SQLite. Full roadmap completion is not claimed.
+20 October 2026. CQL is the typed query layer for COSMIC ORM. It translates supported C# expression trees into a provider-independent query representation, checks the selected providers' capabilities, then executes native queries. SQLite and MongoDB have verified native adapters, including shared annotated scalar-property predicates. Full roadmap completion is not claimed.
 
 ## Current feature status
 
 | Area | Available now | Remaining |
 |---|---|---|
-| Expressions | Where, AND/OR/NOT, scalar comparisons, null tests, ordinal string matching, bounded scalar-array membership | Wider expression forms, field-to-field comparisons |
-| Metadata | Nested literal paths, Exists, IsNull; SQLite string/bool/int/long comparisons, membership and supported strings | Native decimal/double/Guid/date/enum metadata predicates |
+| Expressions | Where, AND/OR/NOT, scalar comparisons, null tests, ordinal string matching, bounded scalar-array membership; annotated scalar member paths | Wider expression forms, field-to-field comparisons |
+| Metadata | Nested literal paths, Exists, IsNull; SQLite/MongoDB string/bool/int/long comparisons, membership and supported strings | Native decimal/double/Guid/date/enum metadata predicates |
 | Scope | Current default, named providers, all eligible targets; capability admission before I/O | Automatic authenticated WEB4 target discovery and policy routing |
-| Native execution | Parameterized SQLite queries, cancellation checks, result and parameter budgets | MongoDB/Neo4j and other adapters, native scan deadlines |
+| Native execution | SQLite SQL and MongoDB BSON expressions, cancellation and result/query budgets; MongoDB scan deadline and streamed payload budget | Neo4j/other adapters, wider deadline/cost policy |
 | Returned entities | V2 typed leaf entities, metadata hydration/decryption, clean tracking, conditional save integration | Child loading options, relationship predicates, broader entity-kind mapping |
 | Federation | Provider-grouped results with provenance and errors | Deduplication, freshness/conflict policy, paging/order/projection/aggregates |
 
@@ -35,6 +35,26 @@ var query = built.Result;
 Captured values are frozen when Where is called. Changing minimumVersion afterwards does not change this query. Composition is immutable: another Where returns another OASISResult containing a new query and combines the predicates with AND. Check each result before using it.
 
 ## Query nested metadata
+
+Annotated scalar members also use the shared metadata path compiler:
+
+```csharp
+public class Coffee : Holon
+{
+    [NextGenSoftware.OASIS.API.Core.CustomAttrbiutes.CustomOASISProperty]
+    public int Rating { get; set; }
+}
+```
+
+Use that model in your calling method:
+
+```csharp
+var built = CosmicQuery<Coffee>.Create().Where(coffee =>
+    coffee.Rating >= 7 && coffee.Name.StartsWith("Coffee", StringComparison.Ordinal));
+if (built.IsError) throw new InvalidOperationException(built.Message);
+```
+
+Place the Coffee type in your model source and the query in your calling method. This translates Rating to its persisted metadata key without running a getter or application attribute constructor. It requires the trusted scalar persistence marker and supported provider type/operators; StoreAsJsonString and unmarked/read-only properties are not inferred. It uses metadata missing/null semantics, including case-sensitive stored keys; application constructor defaults for absent keys are not evaluated by CQL.
 
 ```csharp
 var built = CosmicQuery<Holon>.Create().Where(h =>
@@ -91,6 +111,8 @@ foreach (var group in result.Result.Providers)
 maximumResults is a total result safety budget, not pagination or Take. Exceeding it returns an error rather than publishing a truncated successful result. Results retain provider groups; there is no implicit identity deduplication or cross-provider winner selection.
 
 ## Membership and strings
+
+For MongoDB, the same planning/execution API accepts an activated MongoDB adapter and `ProviderType.MongoDBOASIS`. Its profile revalidates predicates before repository access, uses literal BSON values and binary collation, and returns clean leaf entities through HolonManager. It enforces count/query/payload budgets and a native deadline. See [MongoDB native CQL examples, exact evidence and remaining limits](CQL_MONGO_NATIVE.md) before choosing provider-specific scalar features.
 
 ```csharp
 var ids = new[] { firstId, secondId }; // Guid values
