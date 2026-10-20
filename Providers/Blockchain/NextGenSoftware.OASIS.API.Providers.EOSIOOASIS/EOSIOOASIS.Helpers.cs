@@ -8,6 +8,7 @@ using System.Reflection;
 using EOSNewYork.EOSCore;
 using Newtonsoft.Json;
 using NextGenSoftware.Logging;
+using EosSharp.Core.Providers;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -55,90 +56,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var error = errorField?.GetValue(exception);
             return error == null ? exception.ToString() : $"{exception}\nEOS API error: {JsonConvert.SerializeObject(error)}";
         }
-        /// <summary>
-        /// Decode WIF (Wallet Import Format) private key
-        /// </summary>
-        private byte[] DecodeWIF(string wif)
-        {
-            try
-            {
-                // EOSIO WIF uses base58 encoding
-                // Simplified implementation - in production use proper base58 library
-                var base58Chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-                var decoded = new List<byte>();
-                var num = new System.Numerics.BigInteger(0);
-
-                foreach (var c in wif)
-                {
-                    num = num * 58 + base58Chars.IndexOf(c);
-                }
-
-                var bytes = num.ToByteArray();
-                Array.Reverse(bytes);
-                return bytes.Skip(1).Take(32).ToArray(); // Skip version byte and checksum
-            }
-            catch
-            {
-                // Fallback: treat as hex
-                return Convert.FromHexString(wif);
-            }
-        }
-
-        /// <summary>
-        /// Encode private key to WIF format
-        /// </summary>
-        private string EncodeWIF(byte[] privateKeyBytes)
-        {
-            try
-            {
-                // EOSIO WIF uses base58 encoding
-                // Simplified implementation - in production use proper base58 library
-                var base58Chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-                var versioned = new byte[] { 0x80 }.Concat(privateKeyBytes).ToArray();
-                var num = new System.Numerics.BigInteger(versioned);
-
-                var wif = "";
-                while (num > 0)
-                {
-                    wif = base58Chars[(int)(num % 58)] + wif;
-                    num /= 58;
-                }
-
-                return wif;
-            }
-            catch
-            {
-                // Fallback: return hex
-                return Convert.ToHexString(privateKeyBytes);
-            }
-        }
-
-        /// <summary>
-        /// Derives EOSIO public key from private key using secp256k1
-        /// Note: This is a simplified implementation. In production, use proper EOSIO SDK for key derivation.
-        /// </summary>
-        private string DeriveEOSIOPublicKey(byte[] privateKeyBytes)
-        {
-            // EOSIO uses secp256k1 elliptic curve (same as Bitcoin/Ethereum)
-            // In production, use EOSIO SDK or proper ECDSA library
-            try
-            {
-                using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                {
-                    var hash = sha256.ComputeHash(privateKeyBytes);
-                    // EOSIO public keys are typically 64 characters (32 bytes hex)
-                    var publicKey = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-                    return publicKey.Length >= 64 ? publicKey.Substring(0, 64) : publicKey.PadRight(64, '0');
-                }
-            }
-            catch
-            {
-                var hash = System.Security.Cryptography.SHA256.HashData(privateKeyBytes);
-                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant().PadRight(64, '0');
-            }
-        }
-
-
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
         {
@@ -202,126 +119,57 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+        /// <summary>
+        /// Creates a real EOSIO K1 key pair (eos-sharp). EOSIO has no seed-phrase standard: the WIF private key is the
+        /// recovery secret, so it is returned as the "seed phrase" and is what <see cref="RestoreAccountAsync"/> accepts.
+        /// An on-chain EOSIO account name must still be created and linked to the public key separately.
+        /// </summary>
+        public Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
         {
             var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Generate EOS key pair
-                // EOS uses standard cryptographic key pairs (can use standard key generation)
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to generate key pair");
-                    return result;
-                }
-
-                // Generate seed phrase for EOS account
-                // EOS doesn't use seed phrases in the same way as other chains
-                // For compatibility, we'll generate a simple identifier
-                // In production, you would use proper BIP39 mnemonic generation if needed
-                // Generate deterministic seed phrase from account name and timestamp
-                var seedPhrase = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:account:{DateTime.UtcNow.Ticks}").ToString("N");
-
-                // EOS uses WIF (Wallet Import Format) for private keys and public keys in EOS format
-                // The generated keys will work for EOS, though in production you might want to convert to EOS-specific formats
-                // For now, we use standard key generation which is compatible
-
-                result.Result = (keyPair.PublicKey, keyPair.PrivateKey, seedPhrase);
-                result.IsError = false;
-                result.Message = "EOSIO key pair generated successfully.";
+                token.ThrowIfCancellationRequested();
+                var keyPair = EosSharp.Core.Helpers.CryptoHelper.GenerateKeyPair("sha256x2");
+                result.Result = (keyPair.PublicKey, keyPair.PrivateKey, keyPair.PrivateKey);
+                result.Message = "EOSIO key pair created; the WIF private key is the recovery secret.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error creating EOSIO account: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error creating EOSIO key pair: {ex.Message}", ex);
             }
-            return result;
+            return Task.FromResult(result);
         }
 
-        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+        /// <summary>
+        /// Restores an EOSIO key from its private key (WIF, or PVT_K1_ form). EOSIO has no mnemonic standard, so any
+        /// other input is rejected rather than hashed into a key.
+        /// </summary>
+        public Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
         {
             var result = new OASISResult<(string PublicKey, string PrivateKey)>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
+                token.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(seedPhrase))
                 {
-                    OASISErrorHandling.HandleError(ref result, "Seed phrase or private key is required");
-                    return result;
+                    OASISErrorHandling.HandleError(ref result, "An EOSIO private key (WIF or PVT_K1_) is required.");
+                    return Task.FromResult(result);
                 }
-
-                // EOSIO doesn't use seed phrases directly - private key is used directly
-                // If seedPhrase is actually a private key, we need to derive public key from it
-                // EOSIO uses WIF (Wallet Import Format) private keys
-                // If seedPhrase is a WIF private key, derive public key from it
-                if (seedPhrase.Length == 51 && seedPhrase.StartsWith("5"))
+                var privateKey = seedPhrase.Trim();
+                var publicKeys = new DefaultSignProvider(privateKey).GetAvailableKeys().GetAwaiter().GetResult();
+                if (publicKeys == null || publicKeys.Count() != 1)
                 {
-                    // WIF format private key - derive public key using EOSIO key derivation
-                    try
-                    {
-                        // Use EOSIO key derivation (secp256k1)
-                        var privateKeyBytes = DecodeWIF(seedPhrase);
-                        var publicKey = DeriveEOSIOPublicKey(privateKeyBytes);
-
-                        result.Result = (publicKey, seedPhrase);
-                        result.IsError = false;
-                        result.Message = "EOSIO account restored successfully from WIF private key";
-                    }
-                    catch (Exception ex)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error deriving EOSIO keys: {ex.Message}", ex);
-                    }
+                    OASISErrorHandling.HandleError(ref result, "The EOSIO private key did not yield exactly one public key.");
+                    return Task.FromResult(result);
                 }
-                else
-                {
-                    // Try to derive from mnemonic or hex private key
-                    byte[] privateKeyBytes;
-                    if (seedPhrase.Length == 64 && System.Text.RegularExpressions.Regex.IsMatch(seedPhrase, "^[0-9a-fA-F]+$"))
-                    {
-                        privateKeyBytes = Convert.FromHexString(seedPhrase);
-                    }
-                    else
-                    {
-                        // Derive from mnemonic
-                        using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                        {
-                            var mnemonicBytes = System.Text.Encoding.UTF8.GetBytes(seedPhrase);
-                            privateKeyBytes = sha256.ComputeHash(sha256.ComputeHash(mnemonicBytes));
-                        }
-                    }
-
-                    var publicKey = DeriveEOSIOPublicKey(privateKeyBytes);
-                    var wifPrivateKey = EncodeWIF(privateKeyBytes);
-
-                    result.Result = (publicKey, wifPrivateKey);
-                    result.IsError = false;
-                    result.Message = "EOSIO account restored successfully from seed phrase";
-                }
+                result.Result = (publicKeys.Single(), privateKey);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error restoring EOSIO account: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Not a valid EOSIO private key: {ex.Message}", ex);
             }
-            return result;
+            return Task.FromResult(result);
         }
 
         public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
