@@ -1,5 +1,7 @@
 # Reusable environments and disk inventory
 
+2026-10-20 final decoder verification reuse: SAME retained DynamoDBJAR/data/ports/lease native95green9s, pending0/ownedJavaabsent/18000-18001absent; SAME pinned PostgreSQL17.11 container/image/data-volume/secret reused fornative6green918ms, pending0/containerEXITED. No new runtime/archive/container/volume/install/download or database reset. Prior compact reports moved in place before reruns (dynamo-history-pre-generic-decoder.trx /postgres-native-pre-final-decoder.trx); current hashes/scope in SHARED_RECORD_HISTORY.md. NativeSQL fixtures only cleaned by exactownedID/fullJSON conditions; no retained runtime/userdata deletion or recovered-space claim.
+
 ## Approved PostgreSQL runtime — installed once, 2026-10-20
 
 Final after normal shutdown: volume48,561,735bytes; containerEXITED,15432listenerabsent, freeC61,532,278,784bytes. Image+data approximately348.6millionbytes retained; no disposable installation archive exists. Runner now checks prior-report preservation BEFORE starting service, observes the same retained container's startup health bounded30s without recreating/resetting it, and leaves a timed-out original available for inspection rather than restarting.

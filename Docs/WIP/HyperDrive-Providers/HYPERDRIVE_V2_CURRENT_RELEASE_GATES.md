@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Generic decoder repair — final consumer/native regressions green
+
+Dependency pairing locallycomplete06f3db0a7/Corebab3288, strictmanifest/gitlinksvalidatorpasses. Independently checked finalSQLite971 counters/report4B3E116C115857EB954A715BFA892EFED47E979AEF1C8BE446993BF584C2E02A. Publication remains local/no deployment; broader typednarrowing/envelopes/provider-native/interfaces/V2 gates separate.
+
+CoreBB68/SharedECDDAC final: Shared883 plus Dynamo299/Google169/AzureBlob95/CosmosDB249 controlled, retained realSDK Dynamo95 and PostgreSQL6 native allpass0skip. Original typedkarma/binder3assertions unchanged/passing; new cloud current/archive decimal readbacks pass. Exactreports/hashes/epochs/failurehistory in SHARED_RECORD_HISTORY.md. Coreowner1399/SQLite971 finalgreen and sourcepinpair separategate; no broad provider/V2 certification. This supersedes the earlier three-consumer-regression HOLD only, not other native/hosted/envelope/DTO/interface gaps. No download/newenvironment/ledgerreset/cloudpublicspend/devpush.
+
 ## Solana local graph precision — controlled555 green; generic decoder still HOLD
 
 Two root/child decimal projection failures fixed through existing canonical DTO projection (wide2controls retained). Full555/555pass0skip6s, reportB8F12193E060F2C40A88FBB798C6588CF3EEDF2CCFD401E97F9E940F476A61CB. Ten intermediate failures were obsolete archived-credential-success assertions; tests now enforce existing latest-only/no-I/O authority, no production relaxation. CoreA2EA/Shared495073: separate Shared3metadata/binder regressions remain release-blocking. No nativeSolana proof/ledger operation/reset/download/deployment; exact scope/originalreports in SHARED_RECORD_HISTORY.md.
