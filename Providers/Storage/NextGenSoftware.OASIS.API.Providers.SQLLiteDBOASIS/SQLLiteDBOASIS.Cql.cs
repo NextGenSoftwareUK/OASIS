@@ -8,8 +8,11 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS
+public partial class SQLLiteDBOASIS : ICosmicQueryStorageProvider
 {
+    Core.Enums.ProviderType ICosmicQueryStorageProvider.QueryProviderType => Core.Enums.ProviderType.SQLLiteDBOASIS;
+    CosmicQueryCapabilities ICosmicQueryStorageProvider.QueryCapabilities => CqlCapabilities;
+
     /// <summary>Exact immutable native predicate contract; it grants no caller authorization.</summary>
     public static CosmicQueryCapabilities CqlCapabilities => SqliteCqlContract.Capabilities;
 
