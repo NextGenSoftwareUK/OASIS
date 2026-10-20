@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Exact conditional fingerprint helper — Shared856 green; final-native caller gates OPEN
+
+Distinct root/child decimal intents formerly collided;2red/3controls captured. Sameowner nowusesdirecttokens+onepublic ComputeFingerprint exactnumeric normalizer, domains5/6 with no old-rounded fallback/replay. Final856/856controlled0skips SHA2567FC8F9AC90E7CEC3163B2B68B598D16EC5D121E4DC38B2BEA30C0DC7D3337BCF, CoreF2E6D954/SharedE317DC7A. Equivalent JSON/CLR numeric values/scale/order preserved; adjacent decimals/doubles differ. Earliernative954 usedintermediate75FE, notfinalE317; SQLitehelperadoption/nativeintentgatepending. Oldreceiptsmustreconcilewithoutrewrite/reset. Details/limits in SHARED_RECORD_HISTORY.md; no devpush/newruntime/download.
+
 ## Precision/ownership batch repaired — Core1370 / Shared847 / nativeSQLite952 green
 
 Full952nativepasses0skips121s, report229B638987F0B5A53E52DF9D9491E05A33F19D49282856FE5D46EF931EEBC5E3; focused6/Core1370/Shared847 allgreen, fixtureabsenceverifiedbyCoreowner. MatchingCore5C37DEB4/Shared2BABC681. FinalsourceCorea54d8776 pairedpinrequiredbeforeSharedcheckpoint, no devpush. Exactrootcauses/failurepreservation in SHARED_RECORD_HISTORY.md. Genericwire/receipt/committeddelta/conditionalfingerprint precision and whole-provider/globalV2 remainOPEN; earlier950failuresarehistoricalnotcurrentgate.

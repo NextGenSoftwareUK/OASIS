@@ -23,6 +23,12 @@ public static class StoredRecordPayloadEquality
 
     private static bool IsNumber(JToken token)=>token.Type is JTokenType.Integer or JTokenType.Float;
 
+    internal static string CanonicalNumberText(JToken token)
+    {
+        var (coefficient,exponent)=Number(token);
+        return exponent==0?coefficient:coefficient+"e"+exponent.ToString(CultureInfo.InvariantCulture);
+    }
+
     // Normalize serialized decimal coefficient/exponent, without converting large integers
     // to double, rounding through decimal, or allocating powers for large exponents.
     private static (string Coefficient,long Exponent) Number(JToken token)
