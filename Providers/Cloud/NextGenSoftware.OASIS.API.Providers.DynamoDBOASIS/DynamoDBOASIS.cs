@@ -597,12 +597,12 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>(); var failures=new List<Exception>();
             try {
-                var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
+                var sourceGuards=new Dictionary<IHolon,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Core.Holons.Holon>>(ReferenceEqualityComparer.Instance);
+                var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,
+                    source=>sourceGuards.Add(source,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Core.Holons.Holon>.Capture(source)));
                 var failedParents=new HashSet<Guid>();
-                var publications=plan.Nodes.Select(node=>(Node:node,OriginalId:node.Source.Id)).ToArray();
-                foreach(var publication in publications) {
-                    var node=publication.Node;
-                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublication.EnsureIdentityUnchanged(node.Source,publication.OriginalId);
+                foreach(var node in plan.Nodes) {
+                    var publication=sourceGuards[node.Source];publication.ValidateUnchanged();
                     if(failedParents.Contains(node.Snapshot.ParentHolonId)) {
                         failedParents.Add(node.Snapshot.Id);failures.Add(new InvalidOperationException("Descendant skipped because its parent failed."));continue;
                     }
@@ -616,7 +616,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     }
                     else {
                         saved.Add(written.Result);
-                        NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublication.EnsureIdentityUnchanged(node.Source,publication.OriginalId);
+                        publication.ValidateUnchanged();
                         node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                         node.Source.Version=written.Result.Version;node.Source.VersionId=written.Result.VersionId;node.Source.PreviousVersionId=written.Result.PreviousVersionId;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
