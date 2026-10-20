@@ -1,5 +1,15 @@
 # SOLID provider implementation audit
 
+## Captured named-role persistence — controlled gate passed, native OPEN — 2026-10-20
+
+Two new sync/async encrypted-HTTP regressions reproduced lost captured roles: graph planner retained named `Components` membership but `SavePrivateGraphAsync` passed only the flattened snapshot into `SavePrivateRecordAsync`. Before report `TestResults/SolidCurrent/solid-named-roles-before.trx`, SHA256 `73113F3156E174E94E727DE8D1C5A245719386522E1C9156CD3536F1747391B4`,2failed955ms. Controlled transport still verifies strong If-Match on root updates and complete encrypted readback; no real Pod is claimed.
+
+Fixed the SAME private conditional/encrypted/history writer to accept captured `PlannedHolonWrite` and resolve roles using shared `HolonChildRolePersistence` against its already-observed Turtle/ETag before history staging/encryption/PUT. Existing-record root-only saves preserve observed roles, including null; selected graph saves persist captured named membership. Avatar/detail generic writers remain excluded. Existing canonical caller guards precede committed role publication to snapshot/original source. No additional HTTP observation, PUT, retries, context map or alternate persistence engine. Decoding the already-observed encrypted Turtle for role ownership is local CPU work, not a new provider request or fee.
+
+Full **330/330 controlled passed**, zero skips,1s; `solid-named-roles-unit.trx`, SHA256 `900930B39B0C9B4F61BB49CFA2C8F477270463BF8DA5D8049FDE36CA75FD42F0`. New cases independently decode encrypted root+child resources, verify persisted/source named roles, root-only preservation, initial archived roles, externally staged null observation overriding stale caller membership, unchanged child ciphertext and exactly4 provider PUTs for2graphmembers+2scalarupdates. External null staging retains archive via the existing codec; it is a controlled competing write, not a real Pod concurrency proof. Whole existing328case suite retained. Source/unit builds0errors with2/9warnings. Actual copied Core `B9C95292F39EC6188A9F1236C4370E4ED18438BF155999C066E0F27301EA4FC3`, Shared `536D8D28F837F7C31C26A6DBF2322414DA3FFD68F782174FACB9A8A00ECEB2F9`.
+
+No native server start, downloads, environment copies or dependency restore. Prior SOLID retained-runtime execution-policy denial remains respected; cold-start OIDC/private DPoP and new-role native certification remain OPEN, as do full interfaces/immutable deployment/all-provider V2 gates. Free C:63,768,301,568bytes observed,123GBtarget unmet/no mass-recovery claim. Public API signatures unchanged; only private writer optional parameter extended.
+
 ## Query acknowledgement and native competing writer — 2026-10-20
 
 Follow-up one-shot cold-start/awaited OIDC-discovery diagnostic was rejected by execution policy BEFORE process creation. No container resumed and no diagnostic test ran. Do not bypass through another shell/API or describe the cold-start problem as fixed. Last known server state remains exited after verified stop; retain approved server/volume/identity and both failed reports for next authorized diagnostic.

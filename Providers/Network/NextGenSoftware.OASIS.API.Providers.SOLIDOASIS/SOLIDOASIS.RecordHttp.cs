@@ -211,7 +211,8 @@ public partial class SOLIDOASIS
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private collection read failed.",error);}
         return result;
     }
-    private async Task<OASISResult<T>> SavePrivateRecordAsync<T>(T source,System.Net.Http.Headers.EntityTagHeaderValue expectedTag=null,bool createOnly=false,string expectedTurtle=null) where T:class,IHolonBase
+    private async Task<OASISResult<T>> SavePrivateRecordAsync<T>(T source,System.Net.Http.Headers.EntityTagHeaderValue expectedTag=null,bool createOnly=false,string expectedTurtle=null,
+        PlannedHolonWrite plannedHolon=null) where T:class,IHolonBase
     {
         var result=new OASISResult<T>();
         try{
@@ -233,6 +234,13 @@ public partial class SOLIDOASIS
                 }catch(HttpRequestException missing)when(expectedTag==null&&missing.StatusCode==System.Net.HttpStatusCode.NotFound){createOnly=true;}
             }
             var resource=_privateRecords.Resource<T>(staged.Id);
+            if(typeof(T)==typeof(IHolon)&&staged is Core.Holons.Holon proposed)
+            {
+                var observed=expectedTurtle==null ? null:(Core.Holons.Holon)_privateRecords.Decode<IHolon>(expectedTurtle,staged.Id);
+                proposed.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(
+                    plannedHolon??new PlannedHolonWrite((IHolon)source,proposed),HolonChildRoleWriteKind.SourceSave,
+                    expectedTurtle!=null,observed?.ChildRoleManifestJson);
+            }
             string turtle;
             if(historyEnabled||(expectedTurtle!=null&&_privateRecords.HasHistory<T>(expectedTurtle,staged.Id))){
                 var versioned=await _privateRecords.StageVersionAsync(staged,expectedTurtle);staged=versioned.Record;turtle=versioned.Turtle;
@@ -257,6 +265,8 @@ public partial class SOLIDOASIS
                 publication.ValidateUnchanged();
                 source.Id=staged.Id;source.ProviderUniqueStorageKey=new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>(staged.ProviderUniqueStorageKey);
                 source.Version=staged.Version;source.VersionId=staged.VersionId;source.PreviousVersionId=staged.PreviousVersionId;
+                if(typeof(T)==typeof(IHolon)&&source is Core.Holons.Holon original&&staged is Core.Holons.Holon committed)
+                    original.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                 source.IsNewHolon=false;result.Result=source;result.IsSaved=true;result.SavedCount=1;
             }catch(SolidRecordReconciliationException){throw;}
             catch(HttpRequestException error)when(!acknowledged&&error.StatusCode.HasValue){throw;}

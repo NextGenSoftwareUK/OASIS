@@ -35,7 +35,7 @@ public partial class SOLIDOASIS
             }
             foreach(var node in plan.Nodes){
                 publications[node.Snapshot.Id].ValidateUnchanged();
-                var saved=await SavePrivateRecordAsync<IHolon>(node.Snapshot,createOnly:newRecords.Contains(node.Snapshot.Id));
+                var saved=await SavePrivateRecordAsync<IHolon>(node.Snapshot,createOnly:newRecords.Contains(node.Snapshot.Id),plannedHolon:node);
                 if(saved.IsError){
                     if(acknowledged.Count==0)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(saved);
                     throw saved.Exception??new IOException("SOLID graph member write failed without an exception.");
@@ -46,6 +46,7 @@ public partial class SOLIDOASIS
                 // Publishing is per verified native record, not an atomic multi-resource commit.
                 node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                 node.Source.Version=node.Snapshot.Version;node.Source.VersionId=node.Snapshot.VersionId;node.Source.PreviousVersionId=node.Snapshot.PreviousVersionId;
+                if(node.Source is Core.Holons.Holon source)source.ChildRoleManifestJson=node.Snapshot.ChildRoleManifestJson;
                 node.Source.ProviderUniqueStorageKey??=new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>();
                 node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.SOLIDOASIS]=node.Snapshot.Id.ToString();
                 node.Source.IsNewHolon=false;
