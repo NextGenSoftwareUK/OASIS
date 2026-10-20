@@ -1,5 +1,38 @@
 # Firestore record history — integration in progress
 
+## Conditional result metadata — 265 controlled / 177 native accepted, 2026-10-20
+
+Final matched **265/265controlled**, zero skipped,3s, terminal0: `google-conditional-results-matched-controlled.trx`, SHA256 `5796FEF8AC75A3D3E62950487E1E98FA4DABD387C8B5EFE141A31083C4A8388F`. Native full177 refreshed, zero skipped, outer runner terminal0:
+
+| Report under TestResults/GoogleCurrent | Passed | SHA256 |
+| --- | ---: | --- |
+| google-batch-revision-native-current.trx | 4/4 | CE504DFE5FF83A5F2D085AE65075531014D76F30E97EFC11A1F29852F6FB3296 |
+| google-encrypted-replay-native-current.trx | 4/4 | 49C2450FA4B848512741F9BA9BBC1019BF106EBD7D50D81DAA8AF2ECE7BD77F8 |
+| google-preparation-native-current.trx | 7/7 | 4FCAC06082BB2B0C398C47487CA0E442436DC2A362DDACDB121558D0D57B5672 |
+| google-conditional-native-current.trx | 4/4 | 1108535E7E56062A1864CCBE0E9173B62641420D22636752887A733B1BA18955 |
+| google-history-native-current.trx | 79/79 | E8B7C5A7CA89E323ABC2DBCC5703CBB8C42A66E3073356FE55345F1C8BCB4574 |
+| google-native-current.trx | 79/79 | 36F8E91FCAF3EDAF9EA1CBCE31216D3739903FC9060A00B7ACE13A93C359719D |
+
+Strengthened existing native atomic cases prove selected-root+child counts2 through save/update/soft/hard delete and receipt replay, zero counts on withheld acknowledgement, persisted entity flags, and attempted active overwrite of a committed tombstone rejected with exact lifecycle code before any additional commit. Independent point reads require original JSON/UpdateTime unchanged; rejected operation creates neither receipt nor fence. Earlier ten-case corrected red and invalid-test-fixture report are retained below. Counts exclude receipt/fence documents and are NOT billed SDK-operation counts; replay reports the original acknowledgement, not new writes. Added in-memory result traversal only, using existing shared graph planning; no extra native reads/writes/retries/serialization format.
+
+Actual consumers Core `7B8680F86B797D84CAE0120D167F0BFA36E72B2BC4B7E9EFB22A379DC17620CC` / Shared `DEC236672592E366BDAD49B44B98D4843E6C6193D122D409527FAE04739D160A`; both Google provider DLLs `D5129314EDD6ED59BE1508D1384A01AE299B92431F199CB99406C72396B369D3`. Prior177 reports were exactSHA moved in place to `*-pre-conditional-result-sweep.trx`. Same runtime/export/caches reused; postterminal independently journals0/ports18080–18083empty/owned emulator stopped. C free65,819,774,976bytes;123GB target unmet. No installation/download/new environment/dev merge/deployment. Hosted fees/IAM/latency, remaining relevant interfaces/options and full V2 matrices remain open; scoped passes do not imply universal provider completion.
+
+## Conditional result metadata — corrected red / 265 controlled green, 2026-10-20
+
+First ten-case run included six INVALID test graphs (same child repeated under two roots); the shared planner correctly rejected repeated nodes. That report SHA256 `65A42AF997BC6AE4D334C7122F9D8AF113491975642F0CC6203A40704F9CFCCD` is preserved in place as `google-conditional-results-invalid-alias-before.trx`, not represented as count proof. Corrected the fixture to two roots plus one uniquely selected child, without changing graph validation. Genuine corrected red **10/10failed** specifically at zero acknowledged counts or generic lifecycle error code: `google-conditional-results-red.trx`, SHA256 `ACCEF1367326B4DDFD67BDDE175E4C94E87ED86595BA3711C68C9D03E5A70EC8`.
+
+Existing conditional result assembler now materializes acknowledged roots, reuses shared HolonGraphWritePlan for selected entity counts, normalizes persisted entity state and publishes SavedCount/DeletedCount/HasAnyHolonsChanged consistently for initial ACK and receipt replay. Save counts exclude receipt/fence documents; deletion counts describe affected selected entities. Receipt replay preserves the ORIGINAL operation acknowledgement counts, not new physical writes. Explicit precommit StorageLifecycleConflict now keeps its real exception/error code rather than COSMIC_CONDITIONAL_WRITE_FAILED. No extra SDK calls, history codec, native mutation, retry or alternate provider path introduced.
+
+Full **265/265controlled passed**, zero skipped,1s, terminal0 after both bounded Google-only builds; `google-conditional-results-controlled.trx`, SHA256 `A7098A70737AE5F09F10F6AD1FA74EBF2AE30C3953B3D394534345A0B1ADAB05`. Actual Core `7B8680F86B797D84CAE0120D167F0BFA36E72B2BC4B7E9EFB22A379DC17620CC`, Shared `C95D965D46347ACC9AAC89EDF46978AA09AF25F64C3F33BA580910985D1F4EC6`, parent4302a9b83. Four existing native atomic cases are strengthened, but have NOT yet run with these changes. Full177 refresh attempt stopped BEFORE report moves/builds/runtime launch on a busy actual lease; peer's Neo producer was confirmed live. No bypass, source reset, new runtime/download/environment/dev merge/deployment. Native acceptance and commit remain pending the next bounded handoff.
+
+## Conditional result metadata/lifecycle classification — regressions written, 2026-10-20
+
+Source audit of the existing conditional acknowledgement owner shows it returns IsSaved/IsDeleted but omits SavedCount/DeletedCount/HasAnyHolonsChanged and persisted entity state. The shared graph planner is already available to count distinct acknowledged nodes, including receipt replay, instead of roots or receipt/fence documents. SQLite's existing conditional result contract is the comparison point; counts describe original acknowledged entities, not additional native writes on replay or a billing meter.
+
+Also found the shared tombstone stage correctly rejects active-over-deleted writes, but the conditional API's generic catch exposes COSMIC_CONDITIONAL_WRITE_FAILED rather than the actual StorageLifecycleConflict error code. No mutation has been dispatched in this case; it must not be described as uncertain execution.
+
+Added ten controlled regressions (six graph/replay result cases, four history/sync lifecycle-conflict cases) and strengthened the existing four native atomic graph cases for counts, unknown-ACK zero counts, replay, persisted entity flags, and rejected resurrection with unchanged native JSON/revisions/no receipt/fence/no extra commit. These changes are NOT compiled/run yet. Two attempts at the consumer-only build stopped BEFORE execution on the genuinely busy exclusive lease while the peer's native regression was live. No bypass/rebuild/copy/runtime start; production source unchanged pending genuine red evidence and safe build handoff.
+
 ## Current dependency sweep — 255 controlled / 177 native green, 2026-10-20
 
 Actual final consumers match Core `7B8680F86B797D84CAE0120D167F0BFA36E72B2BC4B7E9EFB22A379DC17620CC` / Shared `11AA9295B0FCEEF5AA3DB7B60C0227C0E5DF5E8C5B546041E9E06F8567F7D2BC`. Full controlled **255/255 passed**, zero skipped,1s, terminal0: `google-concurrent-current-controlled.trx`, SHA256 `6BBFBF0C54EB622820C2B7B93127F033C96F124FF5770515CFA8D0D5D79D6FCB`.
