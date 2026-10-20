@@ -1,5 +1,17 @@
 # Oracle client readiness — top priority
 
+## Parent selected-edge projection — 2026-10-20
+
+Oracle current and historical parent-query owners omitted shared rootsAreChildren, as in separately reproduced AWS/Google/Cosmos defects. Both owners now explicitly pass it; ordinary root/all projection defaults unchanged. Existing journaled three-level native fixture asserts maxDepth1 returns child without leaf for versions0/1 and GUIDasync/string-sync. No pre-fix Oracle native failure captured; do not label this red-before evidence.
+
+Final161controlled pass/zero skips/786ms, `TestResults/OracleCurrent/oracle-parent-depth-units.trx` SHA256 `3CC3981BAA5E5A31FFB9E79D247E3E5B09B0B0A513249A9FCD86DAAFE003B158`. Native86/86pass/zero skips/34s, `oracle-native-current.trx` SHA256 `90D201FA2D68C306FDC69B119E193A21F227F68EE9958C3CFBF9A6382A376C89`; consumer Core `1662C3EFAE3A142279DC56CBEE4ECE70E57AE34B053A78BF6E91171E49F31EA7`, Shared `34E47F3F8B1CA747122A172A1BF8F135BA88C3BD15DCF37C5312276B2346A537`. Runner terminal0/pending0/containerEXITED. Existing runtime/volume reused, prior report retained in-place, no download. Hosted Autonomous/OCI IAM/full-interface/public API/V2 and coherent dependency publication remain open.
+
+## Current retained native refresh — 2026-10-20
+
+Existing guarded Run-ReusableOracleTests.ps1 rebuilt Shared/Oracle/integration consumer without restore and ran86/86 native cases PASS, zero skips,36s. Fresh evidence `TestResults/OracleCurrent/oracle-native-current.trx`, SHA256 `9FF5E2839B8D09AC2E0722F0E560A2BA369340652F459E04E01E31ADF8E8E0D5`. Consumer Core SHA256 `1DDEC6DD5D7707E2B46A87DD4949987E028A8C7E01C836155618A0A1E6C8D926`, Shared `A9AC83BE60B8CD350A0C7E9535832ABD22B034247FFC5504332AB27E68A60A8E`; concurrent Core owner confirmed outputs stable for this run. These are actual copied DLL identities, not an inferred source release.
+
+Runner terminal0; independently checked pending journals0 and oasis-oracle-free EXITED after owned stop. Earlier report retained by in-place content-hash name before run. No installation/download/new runtime/volume/reset. This refresh exercises existing canonical selectors/metadata/history/lifecycle, concurrency and uncertainty assertions; it does not create missing hosted Autonomous TLS/wallet/IAM or live OCI Object Storage account evidence. No Oracle100%/all-provider/V2 completeness claim. No OCI_/ORACLE environment variable names were present at preflight; no credentials printed or new cloud identity provisioned.
+
 Publication blocker recovery: user confirmed both sessions waiting; exact unchanged empty lock had no git.exe and allowed exclusive open. Recoverably renamed to `.git/index.lock.stale-20261020-015843` while holding a guarded handle; actual Git index SHA256 unchanged. No source/commit/index data removed. Earlier wallet lock-blocked checkpoint below is historical; verified86native/161unit batch now enters scoped publication with unrelated changes excluded.
 
 ## Wallet credentials use current authority, not archived versions — 2026-10-19
