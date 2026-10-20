@@ -49,6 +49,18 @@ public partial class HolonRepository
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
             transaction = connection.BeginTransaction(deferred: false);
             token.ThrowIfCancellationRequested();
+            using (var prior = connection.CreateCommand())
+            {
+                prior.Transaction = transaction;
+                prior.CommandText = "SELECT EXISTS(SELECT 1 FROM CosmicWriteReceipt WHERE OperationId=$op), EXISTS(SELECT 1 FROM CosmicWritePreparation WHERE OperationId=$op)";
+                prior.Parameters.AddWithValue("$op", candidate.OperationId.ToString("D"));
+                using var reader = prior.ExecuteReader();
+                if (!reader.Read()) throw new InvalidDataException("Preparation receipt admission returned no state.");
+                if (reader.GetInt64(0) != 0 && reader.GetInt64(1) == 0)
+                    return PreparationError("COSMIC_PREPARATION_RECONCILIATION_REQUIRED",
+                        "This operation already has a write receipt but no original protected preparation. Reconcile the existing operation before another mutation.",
+                        new SqlitePreparationReconciliationException(candidate.OperationId, new InvalidDataException("Original protected preparation is unavailable.")));
+            }
             using (var insert = connection.CreateCommand())
             {
                 insert.Transaction = transaction;

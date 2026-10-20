@@ -104,6 +104,22 @@ public partial class SQLLiteDBOASISIntegrationTests
     }
 
     [Fact]
+    public async Task PreparationClaimCannotInventOriginalIntentForAnExistingReceipt()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString); (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var op = Guid.NewGuid(); var actor = Guid.NewGuid(); var root = new Core.Holons.Holon { Id = Guid.NewGuid(), Name = "pre-journal receipt" };
+        var saved = provider.ExecuteConditionalHolonWrite(ConditionalRequest(root, null, op, actor));
+        saved.IsError.Should().BeFalse(saved.Message + saved.Exception); var revision = Revision(saved.Result.Single());
+        var claim = provider.ClaimHolonWritePreparation(PreparationCandidate(op, actor, root.Id));
+        claim.IsError.Should().BeTrue(); claim.Result.Should().BeNull(); claim.ErrorCode.Should().Be("COSMIC_PREPARATION_RECONCILIATION_REQUIRED");
+        claim.Exception.Should().BeOfType<SqlitePreparationReconciliationException>().Which.OperationId.Should().Be(op);
+        using var connection = new Microsoft.Data.Sqlite.SqliteConnection(TestConnectionString); connection.Open();
+        using var command = connection.CreateCommand(); command.CommandText = "SELECT COUNT(*) FROM CosmicWritePreparation";
+        Convert.ToInt64(command.ExecuteScalar()).Should().Be(0);
+        Revision((await provider.LoadHolonAsync(root.Id, loadChildren: false)).Result).Should().Be(revision);
+    }
+
+    [Fact]
     public async Task PreparationMigrationRefusesToDropRetainedClaims()
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString); (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
