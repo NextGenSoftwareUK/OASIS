@@ -20,9 +20,8 @@ public partial class OracleDBOASIS
         await using var reader=await command.ExecuteReaderAsync();
         while(await reader.ReadAsync()){
             var id=new Guid((byte[])reader.GetValue(0));var row=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version);
-            if(validateHolon&&row is IHolon holon&&((int)holon.HolonType!=reader.GetInt32(2)||(holon.IsDeleted?1:0)!=reader.GetInt32(3)
-                ||holon.ParentHolonId!=(reader.IsDBNull(4)?Guid.Empty:new Guid((byte[])reader.GetValue(4)))))
-                throw new System.IO.InvalidDataException("Oracle native holon type/deletion/parent projection differs from its canonical record.");
+            if(validateHolon&&row is IHolon holon)
+                ValidateNativeHolonProjection(holon,reader.GetInt32(2),reader.GetInt32(3),reader.IsDBNull(4)?Guid.Empty:new Guid((byte[])reader.GetValue(4)));
             if(row!=null&&!row.IsDeleted)rows.Add(row);
         }
         return rows;

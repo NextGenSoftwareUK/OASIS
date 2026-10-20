@@ -18,7 +18,7 @@ public sealed class OracleObjectStorageOASIS : KeyValueStorageProviderBase,IDisp
 
     public OracleObjectStorageOASIS(ObjectStorageClient client,string namespaceName,string bucketName,
         Func<byte[]> storageKeyResolver,string keyPrefix="oasis/",bool ownsClient=false)
-        :this(client,new PersistedPrivateKeyValueBackend(new OracleObjectStorageBackend(client,namespaceName,bucketName,keyPrefix),storageKeyResolver),keyPrefix,ownsClient){}
+        :this(client,PersistedPrivateKeyValueBackend.Create(new OracleObjectStorageBackend(client,namespaceName,bucketName,keyPrefix),storageKeyResolver),keyPrefix,ownsClient){}
 
     private OracleObjectStorageOASIS(ObjectStorageClient client,PersistedPrivateKeyValueBackend backend,string prefix,bool ownsClient)
         :base(backend,prefix)

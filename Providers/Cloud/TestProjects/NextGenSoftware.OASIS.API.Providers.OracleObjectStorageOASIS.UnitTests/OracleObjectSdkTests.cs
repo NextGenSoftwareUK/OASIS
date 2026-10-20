@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using Oci.Common;
 using Oci.Common.Auth;
 using Oci.Common.Model;
@@ -85,8 +86,9 @@ public class OracleObjectSdkTests
     public async Task NativeSnapshotReturnsValueAndOpaqueEtagFromOneGet()
     {
         await Exchange(async backend=>{
-            var snapshot=await backend.GetWithEntityTagAsync("oasis/snapshot");Assert.IsNotNull(snapshot);
-            Assert.AreEqual("owned-value",snapshot.Value);Assert.AreEqual("\"native-etag-not-a-guid\"",snapshot.EntityTag);
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IConditionalKeyValueBackend conditional=backend;
+            var snapshot=await conditional.ReadObservedAsync("oasis/snapshot");Assert.IsNotNull(snapshot);
+            Assert.AreEqual("owned-value",snapshot.Value);Assert.AreEqual("\"native-etag-not-a-guid\"",snapshot.Revision);
         },async context=>{
             Assert.AreEqual("GET",context.Request.HttpMethod);context.Response.Headers["ETag"]="\"native-etag-not-a-guid\"";
             await Reply(context,200,"owned-value");
@@ -97,7 +99,7 @@ public class OracleObjectSdkTests
     public async Task NativeSnapshotWithoutEtagIsCorruptionNotAnUnconditionalObservation()
     {
         await Exchange(async backend=>{
-            var cause=await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>backend.GetWithEntityTagAsync("oasis/snapshot"));
+            var cause=await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>backend.ReadObservedAsync("oasis/snapshot"));
             Assert.IsFalse(NativeMutationReconciliation.IsRequired(cause));
         },context=>Reply(context,200,"owned-value"));
     }
@@ -106,7 +108,8 @@ public class OracleObjectSdkTests
     public async Task ConditionalDeleteUsesObservedEtagAndPreservesOutcomeClassification(int status)
     {
         await Exchange(async backend=>{
-            Task Delete()=>backend.DeleteUnchangedAsync("oasis/conditional-delete","\"observed-delete\"");
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IConditionalKeyValueBackend conditional=backend;
+            Task Delete()=>conditional.DeleteUnchangedAsync("oasis/conditional-delete","\"observed-delete\"");
             if(status==204)await Delete();
             else if(status==412||status==404){
                 var conflict=await Assert.ThrowsExceptionAsync<StorageLifecycleConflictException>(Delete);
@@ -127,8 +130,8 @@ public class OracleObjectSdkTests
     public async Task OnlyExplicitObjectAbsenceBecomesMissing(string code)
     {
         await Exchange(async backend=>{
-            if(code=="ObjectNotFound")Assert.IsNull(await backend.GetAsync("oasis/missing"));
-            else await Assert.ThrowsExceptionAsync<OciException>(()=>backend.GetAsync("oasis/missing"));
+            if(code=="ObjectNotFound")Assert.IsNull(await backend.ReadObservedAsync("oasis/missing"));
+            else await Assert.ThrowsExceptionAsync<OciException>(()=>backend.ReadObservedAsync("oasis/missing"));
         },context=>Reply(context,404,"{\"code\":\""+code+"\",\"message\":\"controlled\"}"));
     }
 
@@ -158,8 +161,9 @@ public class OracleObjectSdkTests
     public async Task ConditionalWritesUseNativeHeadersAndTypedKnownConflict(bool create)
     {
         await Exchange(async backend=>{
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IConditionalKeyValueBackend conditional=backend;
             var conflict=await Assert.ThrowsExceptionAsync<StorageLifecycleConflictException>(
-                ()=>create?backend.CreateOnlyAsync("oasis/conditional","owned"):backend.ReplaceUnchangedAsync("oasis/conditional","owned","observed-etag"));
+                ()=>create?conditional.CreateOnlyAsync("oasis/conditional","owned"):conditional.ReplaceUnchangedAsync("oasis/conditional","owned","observed-etag"));
             Assert.IsInstanceOfType<OciException>(conflict.Data["NativeCause"]);Assert.IsFalse(NativeMutationReconciliation.IsRequired(conflict));
         },async context=>{
             Assert.AreEqual(create?"*":null,context.Request.Headers["If-None-Match"]);
@@ -192,6 +196,7 @@ public class OracleObjectSdkTests
         using var cancellation=new CancellationTokenSource();cancellation.Cancel();
         await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>backend.PutAsync("key","value",cancellation.Token));
         await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>backend.GetAsync("key",cancellation.Token));
+        await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>backend.ReadObservedAsync("key",cancellation.Token));
         await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>backend.DeleteAsync("key",cancellation.Token));
         await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>backend.ListKeysAsync("",cancellation.Token));
         await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>backend.VerifyAsync(cancellation.Token));
@@ -203,6 +208,7 @@ public class OracleObjectSdkTests
         using var listener=new HttpListener();listener.Prefixes.Add(Endpoint);listener.Start();
         using var client=Client();using var stopped=new CancellationTokenSource();
         var objects=new System.Collections.Concurrent.ConcurrentDictionary<string,string>(StringComparer.Ordinal);
+        var conditionalCreates=0;var conditionalReplacements=0;var conditionalDeletes=0;
         var server=Task.Run(async()=>{
             while(!stopped.IsCancellationRequested) {
                 HttpListenerContext context;
@@ -219,11 +225,25 @@ public class OracleObjectSdkTests
                     StringAssert.StartsWith(path,objectPath);var key=Uri.UnescapeDataString(path[objectPath.Length..]);
                     StringAssert.Matches(key,new System.Text.RegularExpressions.Regex("^(?:oasis|isolated)/oasis/private/v1/[a-f0-9]{64}$"));
                     if(context.Request.HttpMethod=="PUT") {
+                        if(context.Request.Headers["If-None-Match"]=="*"){
+                            conditionalCreates++;if(objects.ContainsKey(key)){await Reply(context,412,"{\"code\":\"PreconditionFailed\",\"message\":\"controlled\"}");continue;}
+                        }
+                        if(context.Request.Headers["If-Match"] is string expected){
+                            conditionalReplacements++;
+                            if(!objects.TryGetValue(key,out var current)||"\""+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(current)))+"\""!=expected){await Reply(context,412,"{\"code\":\"PreconditionFailed\",\"message\":\"controlled\"}");continue;}
+                        }
                         using var reader=new StreamReader(context.Request.InputStream);objects[key]=await reader.ReadToEndAsync();await Reply(context,200,"");
                     }else if(context.Request.HttpMethod=="GET") {
                         if(objects.TryGetValue(key,out var value)){context.Response.Headers["ETag"]="\""+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)))+"\"";await Reply(context,200,value);}
                         else await Reply(context,404,"{\"code\":\"ObjectNotFound\",\"message\":\"controlled\"}");
-                    }else {Assert.AreEqual("DELETE",context.Request.HttpMethod);objects.TryRemove(key,out _);await Reply(context,204,"");}
+                    }else {
+                        Assert.AreEqual("DELETE",context.Request.HttpMethod);
+                        if(context.Request.Headers["If-Match"] is string expected){
+                            conditionalDeletes++;
+                            if(!objects.TryGetValue(key,out var current)||"\""+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(current)))+"\""!=expected){await Reply(context,412,"{\"code\":\"PreconditionFailed\",\"message\":\"controlled\"}");continue;}
+                        }
+                        objects.TryRemove(key,out _);await Reply(context,204,"");
+                    }
                 }finally{context.Response.Close();}
             }
         });
@@ -250,8 +270,25 @@ public class OracleObjectSdkTests
                 Assert.AreEqual(another.Id,(await isolated.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
                 Assert.AreEqual(avatar.Id,(await provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
             }finally{CryptographicOperations.ZeroMemory(isolatedKey);}
-            var holon=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),Name="private-holon",CreatedByAvatarId=avatar.Id,MetaData=new(){["tag"]="private-tag"}};
+            var initialCreates=conditionalCreates;var initialReplacements=conditionalReplacements;var initialDeletes=conditionalDeletes;
+            var detail=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=avatar.Id,Karma=111,XP=222};
+            var detailCreated=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(detailCreated.IsError,detailCreated.Message);
+            detail.Karma=333;detail.XP=444;
+            var detailUpdated=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(detailUpdated.IsError,detailUpdated.Message);
+            Assert.AreEqual(2,detail.Version);
+            var previousDetail=await provider.LoadAvatarDetailAsync(avatar.Id,version:1);Assert.IsFalse(previousDetail.IsError,previousDetail.Message);
+            Assert.AreEqual(111L,previousDetail.Result.Karma);Assert.AreEqual(222L,previousDetail.Result.XP);
+            var currentDetail=await provider.LoadAvatarDetailAsync(avatar.Id);Assert.IsFalse(currentDetail.IsError,currentDetail.Message);
+            Assert.AreEqual(detail.Karma,currentDetail.Result.Karma);Assert.AreEqual(detail.XP,currentDetail.Result.XP);
+            var originalParent=Guid.NewGuid();var nextParent=Guid.NewGuid();
+            var holon=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),ParentHolonId=originalParent,Name="private-holon",CreatedByAvatarId=avatar.Id,MetaData=new(){["tag"]="private-tag"}};
             var stored=synchronous?provider.SaveHolon(holon,saveChildren:false):await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(stored.IsError,stored.Message);
+            holon.Name="private-updated-holon";holon.ParentHolonId=nextParent;
+            var updatedHolon=synchronous?provider.SaveHolon(holon,saveChildren:false):await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(updatedHolon.IsError,updatedHolon.Message);
+            Assert.AreEqual(2,holon.Version);Assert.AreEqual(6,conditionalCreates-initialCreates);Assert.AreEqual(2,conditionalReplacements-initialReplacements);Assert.AreEqual(1,conditionalDeletes-initialDeletes);
+            Assert.IsFalse((await provider.LoadHolonsForParentAsync(originalParent,loadChildren:false)).Result.Any());
+            Assert.AreEqual(holon.Id,(await provider.LoadHolonsForParentAsync(nextParent,loadChildren:false)).Result.Single().Id);
+            Assert.AreEqual("private-holon",(await provider.LoadHolonAsync(holon.Id,loadChildren:false,version:1)).Result.Name);
             var selected=synchronous?provider.LoadHolonsByMetaData("tag","private-tag",loadChildren:false):await provider.LoadHolonsByMetaDataAsync("tag","private-tag",loadChildren:false);
             Assert.IsFalse(selected.IsError,selected.Message);Assert.AreEqual(holon.Id,selected.Result.Single().Id);
             Assert.IsTrue(objects.Count>0);
@@ -299,6 +336,33 @@ public class OracleObjectSdkTests
         },partial?new[]{missing,missing,write,write}:new[]{missing,missing,write});
     }
 
+    [DataTestMethod][DataRow(false,412)][DataRow(true,412)][DataRow(false,503)][DataRow(true,503)]
+    public async Task PublicHolonCreateUsesNativePreconditionAndKeepsFailedProposalPrivate(bool synchronous,int status)
+    {
+        string? observedPath=null;
+        await Exchange(async _=>{
+            using var client=Client();var key=RandomNumberGenerator.GetBytes(32);
+            try {
+                using var provider=new OracleObjectStorageOASIS(client,"ns","bucket",()=>key.ToArray());
+                var caller=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Name="private-failed-proposal",Version=9};var keys=caller.ProviderUniqueStorageKey;
+                var result=synchronous?provider.SaveHolon(caller,saveChildren:false):await provider.SaveHolonAsync(caller,saveChildren:false);
+                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
+                Assert.AreEqual(Guid.Empty,caller.Id);Assert.AreEqual(9,caller.Version);Assert.AreSame(keys,caller.ProviderUniqueStorageKey);
+                Assert.AreEqual(status==503,NativeMutationReconciliation.IsRequired(result.Exception));
+                if(status==412)Assert.IsInstanceOfType<StorageLifecycleConflictException>(result.Exception);
+                else Assert.IsInstanceOfType<OracleObjectMutationReconciliationException>(result.Exception);
+            }finally{CryptographicOperations.ZeroMemory(key);}
+        },async context=>{
+            Assert.AreEqual("GET",context.Request.HttpMethod);observedPath=context.Request.Url!.AbsolutePath;
+            await Reply(context,404,"{\"code\":\"ObjectNotFound\",\"message\":\"controlled\"}");
+        },async context=>{
+            Assert.AreEqual("PUT",context.Request.HttpMethod);Assert.AreEqual(observedPath,context.Request.Url!.AbsolutePath);
+            Assert.AreEqual("*",context.Request.Headers["If-None-Match"]);Assert.IsNull(context.Request.Headers["If-Match"]);
+            using var reader=new StreamReader(context.Request.InputStream);Assert.IsFalse((await reader.ReadToEndAsync()).Contains("private-failed-proposal",StringComparison.Ordinal));
+            await Reply(context,status,"{\"code\":\"controlled\",\"message\":\"controlled\"}");
+        });
+    }
+
     [TestMethod]
     public async Task MissingPersistedEncryptionKeyFailsBeforeAnySdkRequest()
     {
@@ -306,6 +370,81 @@ public class OracleObjectSdkTests
         using var provider=new OracleObjectStorageOASIS(client,"ns","bucket",()=>throw new InvalidOperationException("owned missing storage key"));
         var result=await provider.ActivateProviderAsync();Assert.IsTrue(result.IsError);Assert.IsFalse(provider.IsProviderActivated);
         Assert.IsInstanceOfType<InvalidOperationException>(result.Exception);
+    }
+
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)]
+    public async Task ConditionalEncryptionWrappersKeepNativeRevisionAndRejectStaleWrites(int layer)
+    {
+        string? ciphertext=null;var revision=0;
+        void Address(HttpListenerContext context){
+            var path=Uri.UnescapeDataString(context.Request.Url!.AbsolutePath);
+            if(layer>0){
+                Assert.IsFalse(path.Contains("conditional-private",StringComparison.Ordinal));
+                StringAssert.Matches(path,new System.Text.RegularExpressions.Regex("/o/oasis/private/v1/[a-f0-9]{64}$"));
+            }else StringAssert.EndsWith(path,"/o/oasis/conditional-private");
+        }
+        Func<HttpListenerContext,Task> write=async context=>{
+            Address(context);
+            Assert.AreEqual("PUT",context.Request.HttpMethod);
+            Assert.AreEqual(revision==0?"*":null,context.Request.Headers["If-None-Match"]);
+            Assert.AreEqual(revision==0?null:"\"rev-1\"",context.Request.Headers["If-Match"]);
+            using var reader=new StreamReader(context.Request.InputStream);ciphertext=await reader.ReadToEndAsync();
+            Assert.IsFalse(ciphertext.Contains("private-original",StringComparison.Ordinal));Assert.IsFalse(ciphertext.Contains("private-replacement",StringComparison.Ordinal));
+            revision++;await Reply(context,200,"");
+        };
+        Func<HttpListenerContext,Task> read=context=>{
+            Address(context);
+            Assert.AreEqual("GET",context.Request.HttpMethod);
+            if(ciphertext==null)return Reply(context,404,"{\"code\":\"ObjectNotFound\",\"message\":\"controlled\"}");
+            context.Response.Headers["ETag"]="\"rev-"+revision+"\"";return Reply(context,200,ciphertext);
+        };
+        await Exchange(async native=>{
+            var key=RandomNumberGenerator.GetBytes(32);
+            try {
+                IKeyValueBackend wrapped=layer switch {
+                    0=>EncryptedKeyValueBackend.Create(native,key),
+                    1=>PrivateKeyValueBackend.Create(native,key),
+                    _=>PersistedPrivateKeyValueBackend.Create(native,()=>key.ToArray())};
+                using var owner=(IDisposable)wrapped;var conditional=(IConditionalKeyValueBackend)wrapped;
+                await conditional.CreateOnlyAsync("oasis/conditional-private","private-original");
+                var original=await conditional.ReadObservedAsync("oasis/conditional-private");Assert.IsNotNull(original);
+                Assert.AreEqual("private-original",original.Value);Assert.AreEqual("\"rev-1\"",original.Revision);
+                await conditional.ReplaceUnchangedAsync("oasis/conditional-private","private-replacement",original.Revision);
+                await Assert.ThrowsExceptionAsync<StorageLifecycleConflictException>(()=>conditional.ReplaceUnchangedAsync("oasis/conditional-private","stale",original.Revision));
+                var current=await conditional.ReadObservedAsync("oasis/conditional-private");Assert.IsNotNull(current);
+                Assert.AreEqual("private-replacement",current.Value);Assert.AreEqual("\"rev-2\"",current.Revision);
+                await conditional.DeleteUnchangedAsync("oasis/conditional-private",current.Revision);
+                Assert.IsNull(await conditional.ReadObservedAsync("oasis/conditional-private"));
+                owner.Dispose();await Assert.ThrowsExceptionAsync<ObjectDisposedException>(()=>conditional.ReadObservedAsync("oasis/conditional-private"));
+            }finally{CryptographicOperations.ZeroMemory(key);}
+        },write,read,write,async context=>{
+            Address(context);
+            Assert.AreEqual("PUT",context.Request.HttpMethod);Assert.AreEqual("\"rev-1\"",context.Request.Headers["If-Match"]);
+            await Reply(context,412,"{\"code\":\"PreconditionFailed\",\"message\":\"controlled\"}");
+        },read,async context=>{
+            Address(context);
+            Assert.AreEqual("DELETE",context.Request.HttpMethod);Assert.AreEqual("\"rev-2\"",context.Request.Headers["If-Match"]);
+            ciphertext=null;await Reply(context,204,"");
+        },read);
+    }
+
+    [TestMethod]
+    public async Task PrivateConditionalUncertaintyRetainsNativeMarkerAndZeroesTemporaryKey()
+    {
+        await Exchange(async native=>{
+            var key=RandomNumberGenerator.GetBytes(32);byte[]? resolved=null;
+            try {
+                using var wrapped=PersistedPrivateKeyValueBackend.Create(native,()=>resolved=key.ToArray());
+                var conditional=(IConditionalKeyValueBackend)wrapped;
+                var uncertain=await Assert.ThrowsExceptionAsync<OracleObjectMutationReconciliationException>(()=>conditional.CreateOnlyAsync("private-logical-name","private-value"));
+                Assert.IsTrue(NativeMutationReconciliation.IsRequired(uncertain));
+                StringAssert.Matches(uncertain.ObjectName,new System.Text.RegularExpressions.Regex("^oasis/private/v1/[a-f0-9]{64}$"));
+                Assert.IsNotNull(resolved);Assert.IsTrue(resolved.All(value=>value==0));
+            }finally{CryptographicOperations.ZeroMemory(key);}
+        },async context=>{
+            Assert.AreEqual("PUT",context.Request.HttpMethod);Assert.AreEqual("*",context.Request.Headers["If-None-Match"]);
+            await Reply(context,503,"{\"code\":\"ServiceUnavailable\",\"message\":\"controlled\"}");
+        });
     }
 
     [DataTestMethod][DataRow(false)][DataRow(true)]

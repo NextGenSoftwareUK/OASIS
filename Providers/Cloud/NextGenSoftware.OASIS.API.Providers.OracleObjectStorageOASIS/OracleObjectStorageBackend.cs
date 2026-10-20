@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS;
 
 /// <summary>OCI's native, authenticated SDK adapter. The caller owns its client and credentials.
 /// Record/query/encryption policy belongs to the shared provider layer, not this object transport.</summary>
-public sealed class OracleObjectStorageBackend : IKeyValueBackend
+public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
 {
     private readonly ObjectStorageClient _client;
     private readonly string _namespace;
@@ -36,6 +36,12 @@ public sealed class OracleObjectStorageBackend : IKeyValueBackend
 
     public async Task<string> GetAsync(string key,CancellationToken cancellationToken=default)
         =>(await GetWithEntityTagAsync(key,cancellationToken))?.Value!;
+
+    public async Task<KeyValueObservation?> ReadObservedAsync(string key,CancellationToken cancellationToken=default)
+    {
+        var observed=await GetWithEntityTagAsync(key,cancellationToken);
+        return observed==null?null:new KeyValueObservation(observed.Value,observed.EntityTag);
+    }
 
     /// <summary>Value and opaque native ETag from the SAME GET, not a later HEAD/read.</summary>
     public async Task<OracleObjectSnapshot?> GetWithEntityTagAsync(string key,CancellationToken cancellationToken=default)

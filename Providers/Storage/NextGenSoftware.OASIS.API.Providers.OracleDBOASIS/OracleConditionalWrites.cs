@@ -45,7 +45,7 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
                 if(await reader.ReadAsync(cancellationToken)){
                     json=reader.GetString(0);stored=await ReadRecordVersionAsync<Holon>(node.Snapshot.Id,json,0)??throw new InvalidDataException("Oracle current conditional record is missing.");
                     var nativeParent=reader.IsDBNull(3)?Guid.Empty:new Guid((byte[])reader.GetValue(3));
-                    if((int)stored.HolonType!=reader.GetInt32(1)||(stored.IsDeleted?1:0)!=reader.GetInt32(2)||stored.ParentHolonId!=nativeParent)throw new InvalidDataException("Oracle conditional native projection is inconsistent.");
+                    ValidateNativeHolonProjection(stored,reader.GetInt32(1),reader.GetInt32(2),nativeParent);
                 }
                 previous.Add(node.Snapshot.Id,stored);originals.Add(node.Snapshot.Id,json);
                 var expected=conditions[node.Snapshot.Id].ExpectedRevisionId;

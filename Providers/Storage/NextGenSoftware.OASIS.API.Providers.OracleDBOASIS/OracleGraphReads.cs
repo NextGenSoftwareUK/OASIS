@@ -11,6 +11,12 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS;
 
 public partial class OracleDBOASIS
 {
+    private static void ValidateNativeHolonProjection(IHolon row,int type,int deleted,Guid parent)
+    {
+        if((int)row.HolonType!=type||(row.IsDeleted?1:0)!=deleted||row.ParentHolonId!=parent)
+            throw new System.IO.InvalidDataException("Oracle native projection is inconsistent (type/deletion/parent differs from its canonical record).");
+    }
+
     private static void ValidateSelectedHolon(IHolon row,HolonType type,Guid? parent=null)
     {
         if((type!=HolonType.All&&row.HolonType!=type)||(parent.HasValue&&row.ParentHolonId!=parent.Value))

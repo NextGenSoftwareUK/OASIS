@@ -21,9 +21,17 @@ public partial class OracleDBOASIS
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync();
             await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync();
             string? previous=null;
-            await using(var select=CreateCommand($"SELECT DATA_JSON FROM {table} WHERE ID=:Id FOR UPDATE",connection)){
+            var validateHolon=typeof(T)==typeof(Holon);
+            await using(var select=CreateCommand($"SELECT DATA_JSON{(validateHolon?",HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID":"")} FROM {table} WHERE ID=:Id FOR UPDATE",connection)){
                 select.Transaction=transaction;select.Parameters.Add("Id",OracleDbType.Raw).Value=proposed.Id.ToByteArray();
-                var value=await select.ExecuteScalarAsync();if(value!=null&&value!=DBNull.Value)previous=value.ToString();
+                await using var reader=await select.ExecuteReaderAsync();
+                if(await reader.ReadAsync()){
+                    previous=reader.GetString(0);
+                    if(validateHolon){
+                        var stored=await ReadRecordVersionAsync<Holon>(proposed.Id,previous,0)??throw new InvalidDataException("Oracle locked holon is missing its current version.");
+                        ValidateNativeHolonProjection(stored,reader.GetInt32(1),reader.GetInt32(2),reader.IsDBNull(3)?Guid.Empty:new Guid((byte[])reader.GetValue(3)));
+                    }
+                }
             }
             creating=previous==null;var json=await StageRecordHistoryAsync(proposed,previous);var staged=Deserialize<T>(json);
             await using var command=CreateCanonicalWriteCommand(staged,json,table,creating,connection,transaction);
