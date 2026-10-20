@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
@@ -50,7 +49,7 @@ public partial class SolanaOASIS
             if(source.Version<0) throw new ArgumentException("Solana record version must be nonnegative.");
             if(parent.HasValue && source.ParentHolonId!=Guid.Empty && source.ParentHolonId!=parent.Value)
                 throw new ArgumentException("Selected Solana child has a conflicting parent identity.");
-            var record=JsonConvert.DeserializeObject<SolanaHolonDto>(JsonConvert.SerializeObject(source.GetSolanaHolonDto()));
+            var record=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<SolanaHolonDto>(source.GetSolanaHolonDto());
             record.Id=id; record.ParentHolonId=parent ?? source.ParentHolonId;
             nodes.Add(new PlannedSolanaHolon(source,record,prior));
             if(saveChildren && (maxDepth==0 || depth<maxDepth) && (recursive || depth==initialDepth))
