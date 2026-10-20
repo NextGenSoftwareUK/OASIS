@@ -1,5 +1,9 @@
 # Shared canonical record-history codec
 
+### Native consumer regression update
+
+2026-10-20: retained real Oracle96/96 passed, zero skips42s, runner terminal0, pending0/container exited. Native report SHA256F22A27B5A3B5215E944F1019658E164749AF0B34858A2A9BF488062BD4250FC6. Full no-incremental producer rebuild emitted Shared0071B3E6B4E6C71AF3F1C1A2373CBC38F65D84BBB46B78E203EC70CE8CDBAB5F; sameCoreF2E6. Rebuilt unit consumer against those exact bytes:866/866pass0skips8s, `shared-oracle-receipt-paired.trx` SHA256341D1805C016DF9586CC5A1EDBF349D608307C4B6D28FAE545F9F667C224EA33. Original Oracle846B report preserved in place; details/limitations in ORACLE_CLIENT_PRIORITY.md. Not all-provider/hosted/V2 proof. Generic EmbeddedRecordHistory still uses JObject.Parse on encoded values at staging/archive/output boundaries; exact decoder callback alone cannot close that independently identified precision gap. Audit/fix remains required, no claim it is resolved by receipt decoding.
+
 ## Receipt replay and raw numeric equivalence — Shared866 verified
 
 2026-10-20: generic conditional receipt replay used `DeserializeStored<Holon>`, rounding precise metadata decimals even though the receipt contained their original exact text. Four root/child replay cases reproduced **2 failures / 2 wide-double controls passing** before the fix. Reuse Core's existing `DeserializeStoredHolon` exact metadata decoder; retain receipt identity/digest/relationship validation, recorded versions and detached replay ownership. Later mutations of the source or a replay do not change the original receipt. No receipt format rewrite, replay of native operations, or migration.
