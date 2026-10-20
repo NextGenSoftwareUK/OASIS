@@ -293,6 +293,11 @@ public class OracleObjectSdkTests
             Assert.IsFalse(selected.IsError,selected.Message);Assert.AreEqual(holon.Id,selected.Result.Single().Id);
             Assert.IsTrue(objects.Count>0);
             foreach(var value in objects.Values)foreach(var marker in new[]{avatar.Username,avatar.Email,avatar.Id.ToString(),holon.Name,"private-tag"})Assert.IsFalse(value.Contains(marker,StringComparison.Ordinal));
+            var beforeDetailDelete=conditionalDeletes;
+            var deletedDetail=synchronous?provider.DeleteAvatarDetail(avatar.Id,softDelete:false):await provider.DeleteAvatarDetailAsync(avatar.Id,softDelete:false);
+            Assert.IsFalse(deletedDetail.IsError,deletedDetail.Exception?.ToString());Assert.IsTrue(deletedDetail.IsDeleted);
+            Assert.AreEqual(2,conditionalDeletes-beforeDetailDelete,"Current detail and its observed history must both use native If-Match deletion.");
+            Assert.IsTrue((await provider.LoadAvatarDetailAsync(avatar.Id)).IsError);
             var removed=synchronous?provider.DeleteAvatar(avatar.Id,softDelete:false):await provider.DeleteAvatarAsync(avatar.Id,softDelete:false);Assert.IsFalse(removed.IsError,removed.Message);
             Assert.IsTrue((await provider.LoadAvatarAsync(avatar.Id)).IsError);
             provider.Dispose();Assert.IsFalse(provider.IsProviderActivated);

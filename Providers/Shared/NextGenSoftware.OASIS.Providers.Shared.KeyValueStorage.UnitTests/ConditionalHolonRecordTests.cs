@@ -32,7 +32,7 @@ public sealed class ConditionalHolonRecordTests
         }
         public Task DeleteUnchangedAsync(string key,string revision,CancellationToken token=default){
             token.ThrowIfCancellationRequested();if(!Rows.TryGetValue(key,out var row)||row.Revision!=revision)throw new StorageLifecycleConflictException("controlled delete conflict");
-            Rows.Remove(key);Mutations++;return Task.CompletedTask;
+            Rows.Remove(key);Mutations++;AfterMutation?.Invoke(key);return Task.CompletedTask;
         }
         public Task<string> GetAsync(string key,CancellationToken token=default)=>throw new InvalidOperationException("save must retain its native observation");
         public Task PutAsync(string key,string value,CancellationToken token=default)=>throw new InvalidOperationException("unconditional overwrite forbidden in this schedule");
@@ -176,5 +176,44 @@ public sealed class ConditionalHolonRecordTests
         var result=await new TestProvider(store).SaveAvatarAsync(caller);
         Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);
         Assert.AreEqual(id.ToString(),store.Rows[index].Value);Assert.AreEqual(2,store.Mutations);Assert.AreEqual(4,caller.Version);
+    }
+
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task DetailDeletionCannotReplaceOrRemoveChangedCurrentRecord(bool soft,bool synchronous)
+    {
+        var id=Guid.NewGuid();var key=$"oasis/avatardetail/{id:N}";var store=new Store();
+        store.Seed(key,OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,IsActive=true,Karma=12,Version=1}));
+        var winner=OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,IsActive=true,Karma=99,Version=2});
+        store.AfterRead=read=>{if(read==key){store.AfterRead=null;store.Seed(key,winner);}};
+        var provider=new TestProvider(store);var result=synchronous?provider.DeleteAvatarDetail(id,soft):await provider.DeleteAvatarDetailAsync(id,soft);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsDeleted);
+        Assert.IsInstanceOfType<StorageLifecycleConflictException>(result.Exception);Assert.AreEqual(winner,store.Rows[key].Value);Assert.AreEqual(0,store.Mutations);
+    }
+
+    [TestMethod]
+    public async Task DetailSoftDeletionArchivesOriginalNotItsMutatedProposal()
+    {
+        var id=Guid.NewGuid();var key=$"oasis/avatardetail/{id:N}";var store=new Store();
+        store.Seed(key,OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,IsActive=true,Karma=12,Version=1,VersionId=Guid.NewGuid()}));
+        var result=await new TestProvider(store){IsVersionControlEnabled=true}.DeleteAvatarDetailAsync(id,true);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsDeleted);
+        var archived=OasisJson.DeserializeStored<IAvatarDetail>(store.Rows[$"oasis/version/avatardetail/{id:N}/0000000001"].Value);
+        var current=OasisJson.DeserializeStored<IAvatarDetail>(store.Rows[key].Value);
+        Assert.IsTrue(archived.IsActive);Assert.IsFalse(archived.IsDeleted);Assert.AreEqual(1,archived.Version);
+        Assert.IsFalse(current.IsActive);Assert.IsTrue(current.IsDeleted);Assert.AreEqual(2,current.Version);Assert.AreEqual(2,store.Mutations);
+    }
+
+    [TestMethod]
+    public async Task DetailHardDeletionPreservesChangedHistoryAfterCurrentAcknowledgement()
+    {
+        var id=Guid.NewGuid();var key=$"oasis/avatardetail/{id:N}";var history=$"oasis/version/avatardetail/{id:N}/0000000001";var store=new Store();
+        store.Seed(key,OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,Version=2}));
+        var original=OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,Version=1});store.Seed(history,original);KeyValueObservation winner=null;
+        store.AfterMutation=written=>{if(written==key){store.AfterMutation=null;store.Seed(history,original);winner=store.Rows[history];}};
+        var result=await new TestProvider(store).DeleteAvatarDetailAsync(id,false);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsDeleted);
+        Assert.IsFalse(store.Rows.ContainsKey(key));Assert.AreSame(winner,store.Rows[history]);Assert.AreEqual(1,store.Mutations);
+        var partial=(KeyValuePartialMutationException)result.Exception;CollectionAssert.AreEqual(new[]{key},partial.AcknowledgedKeys.ToArray());
+        Assert.IsInstanceOfType<StorageLifecycleConflictException>(partial.InnerException);
     }
 }
