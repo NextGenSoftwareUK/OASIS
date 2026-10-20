@@ -1,7 +1,7 @@
-param([switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
+param([switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
     [switch]$CleanupVerifiedAwsRun,[ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$VerifiedReportSha256)
 $ErrorActionPreference='Stop'
-if(([int]$ReconcileKnownReadFixture.IsPresent+[int]$FullAwsSuite.IsPresent+[int]$ReconcileAwsPreRead.IsPresent+[int]$CleanupKnownAwsRun.IsPresent+[int]$ReconcileValidationFixtures.IsPresent+[int]$ReconcileReflectionFixtures.IsPresent+[int]$CleanupVerifiedAwsRun.IsPresent) -gt 1){throw 'Choose one explicit runner mode.'}
+if(([int]$ReconcileConditionalInitial.IsPresent+[int]$ConditionalGraphs.IsPresent+[int]$ReconcileKnownReadFixture.IsPresent+[int]$FullAwsSuite.IsPresent+[int]$ReconcileAwsPreRead.IsPresent+[int]$CleanupKnownAwsRun.IsPresent+[int]$ReconcileValidationFixtures.IsPresent+[int]$ReconcileReflectionFixtures.IsPresent+[int]$CleanupVerifiedAwsRun.IsPresent) -gt 1){throw 'Choose one explicit runner mode.'}
 if($CleanupVerifiedAwsRun -ne [bool]$VerifiedReportSha256){throw 'Verified cleanup requires its explicit original full-suite report SHA256, exclusively.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runtime='C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\runtime'
@@ -16,7 +16,10 @@ $owned=$null;$previousEndpoint=$env:DYNAMODB_SERVICE_URL;$previousWork=$env:OASI
 $previousCleanup=$env:OASIS_AWS_CLEANUP_AUTHORITY
 try{
     $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
-    if($ReconcileReflectionFixtures){
+    if($ReconcileConditionalInitial){
+        if($pending.Count -ne 4 -or (Get-FileHash -LiteralPath (Join-Path $work 'dynamo-conditional-native-current.trx')).Hash -ne 'C3F05D24795A1A0A0A14973110802E0A5D218837BA60EF77C475DE68A5C85EE0'){throw 'Exactly the original four conditional graph assertion fixtures required.'}
+    }
+    elseif($ReconcileReflectionFixtures){
         if($pending.Count -ne 9 -or (Get-FileHash -LiteralPath (Join-Path $work 'dynamo-history-native-current.trx')).Hash -ne '802B54BCF845A7131349072CA49E0B7AB8ABEAC0837D5345F1B55B4518478A3B'){throw 'Exactly the reviewed reflection-signature run required.'}
     }
     elseif($ReconcileValidationFixtures){
@@ -99,11 +102,11 @@ try{
         if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Native exact cleanup incomplete; preserve remaining originals.'}
         return
     }
-    $filter=if($ReconcileKnownReadFixture){'FullyQualifiedName~ReconcileKnownHistoryReadFixture'}else{'FullyQualifiedName~DynamoHistoryNativeTests&FullyQualifiedName!~ReconcileKnown'}
-    $reportName=if($ReconcileKnownReadFixture){'dynamo-history-reconciliation-current.trx'}else{'dynamo-history-native-current.trx'}
+    $filter=if($ReconcileConditionalInitial){'FullyQualifiedName~ReconcileOriginalFourInitialGraphAssertionFixtures'}elseif($ConditionalGraphs){'FullyQualifiedName~DynamoConditionalNativeTests'}elseif($ReconcileKnownReadFixture){'FullyQualifiedName~ReconcileKnownHistoryReadFixture'}else{'FullyQualifiedName~DynamoHistoryNativeTests&FullyQualifiedName!~ReconcileKnown'}
+    $reportName=if($ReconcileConditionalInitial){'dynamo-conditional-reconciliation-current.trx'}elseif($ConditionalGraphs){'dynamo-conditional-native-current.trx'}elseif($ReconcileKnownReadFixture){'dynamo-history-reconciliation-current.trx'}else{'dynamo-history-native-current.trx'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Native history test failed; preserve journal/data for reconciliation.'}
-    $report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($ReconcileKnownReadFixture){1}else{95}
+    $report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($ReconcileConditionalInitial){1}elseif($ConditionalGraphs){4}elseif($ReconcileKnownReadFixture){1}else{95}
     if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Fresh complete native cases and cleared original journals required.'}
 }finally{
     $env:DYNAMODB_SERVICE_URL=$previousEndpoint;$env:OASIS_DYNAMO_HISTORY_WORK=$previousWork

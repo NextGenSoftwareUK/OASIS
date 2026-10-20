@@ -22,6 +22,8 @@ public partial class DynamoDBOASIS
 
     private async Task<JObject> StageRecordDocumentAsync<T>(T proposed,JObject previousDocument,bool createHistory) where T:class,IHolonBase
     {
+        // Every holon mutation changes the native concurrency token, including ordinary saves.
+        if(proposed is IHolon holon)Core.Holons.CosmicConcurrency.SetProviderRevisionId(holon,StorageProviderType,Guid.NewGuid());
         if(createHistory || previousDocument?.Property(EmbeddedRecordHistory.PropertyName)!=null)
         {
             var previous=previousDocument==null?null:(JObject)previousDocument.DeepClone();
