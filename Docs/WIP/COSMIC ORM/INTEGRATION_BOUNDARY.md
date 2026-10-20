@@ -261,3 +261,24 @@ Both Core TFMs and consumers build with zero errors. Final nativeSQLite948/948 p
 - `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `12EDB4019FACDA633847A049E980E68A540DB598147E1E3A83942B128D428964`
 
 Core unit/native copies match. Core gitlink and manifest advance together, with no push/deployment or legacy implementation change. Entry-count bounds do not prove native scan deadlines, arbitrary getter/indexer preemption, byte-size bounds, snapshot isolation or completion of the full roadmap.
+
+
+## Exact numeric and byte ownership in snapshots — 20 October 2026
+
+Core `bebb4a40d04ba022e8a8d1c2403d6ec430c9dd8f` and `a54d877637baa11e7a6865a9f524f18635bd3a9b` replace local text-reader snapshot round trips with canonical token capture/projection for tracking, save staging and rollback. Public CaptureRuntimeToken and validated CaptureInputToken preserve numeric values while excluding navigation and rejecting persistent input cycles/delegates. Byte-array tokens are explicitly detached, including private-baseline restoration. JsonElement strings/bools/null/containers preserve structural kinds, and encryption payload serialization uses the same canonical owner so raw numeric tokens remain numbers.
+
+The provider session owns companion shared graph snapshot/publication changes. Exact input is captured once before root type-metadata removal and concrete projection; live getters are not reread for a separate snapshot. Shared source is checkpointed by that session after this paired Core pin. No SQLite production source changes are included here.
+
+Failure history is retained: five decimal cases red; two valid compiled byte ownership cases red (the first compile failure/zero-match report is non-acceptance); initial fullCore1,366 had30publication failures from the remaining SavePlan text parse; native decimal2 initially failed from the Shared graph parse; first fullSQLite950 had948pass/2encryption-publication failures from raw quoted strings. Original encryption and precision assertions were preserved.
+
+Final fullCore1,370/1,370 passes9s, Shared847/847 passes on matching dependencies, focused native6/6 passes2s, and fullSQLite952/952 passes121s, zero skips. Both Core TFMs, SQLite producer and consumers build with zero errors. The owned fixture is absent after teardown. Actual report and native consumer SHA256:
+
+- `TestResults/CosmicMongoCurrent/exact-json-values-core-full.trx`: `696F51D35213AA41AA2210CADEC175383F246D55B4CFA9C6C89DC6474A6FEE72`
+- `TestResults/SQLiteCurrent/sqlite-exact-json-values-focused.trx`: `D5466F24EE5B9B05CC1F1833D93DB7E4C74AD4FB224BB75582D8003F2A675E68`
+- `TestResults/SQLiteCurrent/sqlite-exact-json-values-full.trx`: `229B638987F0B5A53E52DF9D9491E05A33F19D49282856FE5D46EF931EEBC5E3`
+- `TestResults/SharedCurrent/shared-graph-precision-structural-final.trx`: `2036050BD9F65F01D06A20673774E40215D4036015F6121C32B1D6264B7F49FC`
+- `NextGenSoftware.OASIS.API.Core.dll`: `5C37DEB4B19A81B9F04E0EAE702E1A5CEB426951573CED7BE735459283046E04`
+- `NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll`: `2BABC68169835AD5A3B785849B853A354B8669C4D8E55736B3DD8EAC845C5DF1`
+- `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `12DA6DBDBE6FEF6A4B62D466981BF4ED9F069F06338584636155F890FFB54C54`
+
+Core unit/native/Shared-test Core copies match; Shared-test/native Shared copies match. The native provider was rebuilt against these dependencies. This is selected local runtime/native acceptance, not all-provider wire precision or deployment readiness. Generic external text/ciphertext/receipt readers and decimal-safe conditional fingerprints remain explicit open gates. Shared fingerprint follow-on belongs to the provider session; receipt replay belongs to the COSMIC ORM session. No dev push/deployment or new legacy Hyperdrive implementation is included. All original roadmap requirements, especially atomic authorized committed deltas and original receipt replay, remain active.
