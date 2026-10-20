@@ -13,6 +13,8 @@ if(Test-Path -LiteralPath $retainedRouting){throw 'Retained original Web3 routin
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
+$nativeChecksStarted=$false
+$nativeChecksVerified=$false
 $names=@('LOCAL_CHAIN_ID','ETHEREUMOASIS_TEST_RPC','ETHEREUMOASIS_TEST_PRIVATE_KEY','ETHEREUMOASIS_TEST_CHAIN_ID','ETHEREUMOASIS_TEST_FIXTURE_JSON','OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY','OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY','WEB3CORE_NATIVE_FIXTURE')
 $previous=@{}
 foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
@@ -73,6 +75,7 @@ try {
     $started=[DateTime]::UtcNow
     $env:OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY=$env:OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY
     $env:WEB3CORE_NATIVE_FIXTURE=Join-Path $taskRoot 'TestResults/Web3CoreCurrent/web3-storage.json'
+    $nativeChecksStarted=$true
     & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~EthereumOASISIntegrationTests|FullyQualifiedName~EthereumParentDepthControlledTests' --logger 'trx;LogFileName=ethereum-native-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Actual local Ethereum verification failed.'}
     $report=Get-Item -LiteralPath (Join-Path $work 'ethereum-native-current.trx')
@@ -94,11 +97,12 @@ try {
     [xml]$web3Trx=Get-Content -LiteralPath $web3Report.FullName
     $web3Counts=$web3Trx.TestRun.ResultSummary.Counters
     if([int]$web3Counts.total -ne 5 -or [int]$web3Counts.passed -ne 5 -or [int]$web3Counts.notExecuted -ne 0){throw 'Expected five native Web3Core scenarios including V2 Arbitrum history, no skips.'}
+    $nativeChecksVerified=$true
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}
     if($owned -and !$owned.HasExited){
-        if((Test-Path -LiteralPath $historyPending) -or (Test-Path -LiteralPath $ethereumPending) -or (Test-Path -LiteralPath $keyDeletePending)){Write-Warning "Original native fault evidence remains; keep owned local node PID $($owned.Id) live for reconciliation. Do not restart/reset."}
+        if(($nativeChecksStarted -and !$nativeChecksVerified) -or (Test-Path -LiteralPath $retainedRouting) -or (Test-Path -LiteralPath $historyPending) -or (Test-Path -LiteralPath $ethereumPending) -or (Test-Path -LiteralPath $keyDeletePending)){Write-Warning "Native acceptance incomplete or original fault evidence remains; keep owned local node PID $($owned.Id) live for reconciliation. Do not restart/reset. This ephemeral node is the original receipt/state authority."}
         else{Stop-Process -Id $owned.Id; $owned.WaitForExit(5000) | Out-Null}
     }
     $lease.Dispose()
