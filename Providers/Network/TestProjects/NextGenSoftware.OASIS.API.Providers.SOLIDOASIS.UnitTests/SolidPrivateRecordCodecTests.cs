@@ -6,6 +6,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests;
 
 public class SolidPrivateRecordCodecTests
 {
+    [Theory][InlineData(0)][InlineData(1)][InlineData(2)]
+    public async Task EncryptedCurrentAndArchivedMetadataRemainExact(int kind)
+    {
+        using var codec=new SolidPrivateRecordCodec(Root,Key());
+        const decimal precise=0.1234567890123456789012345678m;
+        const string literalDate="2026-10-20T10:11:12.1234567+02:00";
+        IHolonBase source=kind==0?new Avatar{Id=Guid.NewGuid()}:kind==1?new AvatarDetail{Id=Guid.NewGuid()}:new Holon{Id=Guid.NewGuid()};
+        source.MetaData=new(){["precise"]=precise,["literal_date"]=literalDate};
+        async Task Check<T>(T row) where T:class,IHolonBase{
+            var first=await codec.StageVersionAsync(row);
+            var second=await codec.StageVersionAsync(row,first.Turtle);
+            foreach(var version in new[]{0,1}){
+                var loaded=await codec.DecodeVersionAsync<T>(second.Turtle,row.Id,version);
+                Assert.Equal(precise,decimal.Parse(loaded.MetaData["precise"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+                Assert.IsType<string>(loaded.MetaData["literal_date"]);Assert.Equal(literalDate,loaded.MetaData["literal_date"]);
+            }
+        }
+        if(source is Avatar avatar)await Check(avatar);else if(source is AvatarDetail detail)await Check(detail);else await Check((Holon)source);
+    }
     [Fact]
     public void VersionedEnvelopeCannotRepairItsMissingEmbeddedIdentity()
     {
