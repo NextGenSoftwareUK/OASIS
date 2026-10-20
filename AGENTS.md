@@ -52,6 +52,7 @@ For a **new chat**, paste: goal + â€œsee `Docs/Devs/STAR_CLI_SessionHandoff.md`â
 - CI enforces Dockerfile usage and exact manifest/gitlink equality on both deployment branches, `Development` and `master`. The legacy parent `main` branch has no WEB4-WEB10 Dockerfiles, so this policy is not applicable there.
 - Full workflow: `Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`.
 - Development-to-production release sequence: `Docs/Devs/DEVELOPMENT_TO_MASTER_PROMOTION.md`.
+- Stale branch cleanup (parent + submodules): `Scripts/branch_cleanup.sh` (dry run by default), process in `Docs/Devs/BRANCH_CLEANUP_RUNBOOK.md`.
 - Normal developer release checklist: `Docs/Devs/MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md`.
 
 ## High-churn STAR CLI paths
