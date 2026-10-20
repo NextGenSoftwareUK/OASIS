@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Current shared receipt/equality checkpoint — Shared866 / Oracle96 green
+
+2026-10-20:9f345ff4a preserves exact receipt metadata and recognizes validated raw numeric values using one shared normalizer. Before-fix receipt2fail/2controls and rawcomparison4fail/2controls retained. Final paired shared866/866 zero skips8s, report341D1805C016DF9586CC5A1EDBF349D608307C4B6D28FAE545F9F667C224EA33; retained realOracle96/96 zero skips42s, reportF22A27B5A3B5215E944F1019658E164749AF0B34858A2A9BF488062BD4250FC6. BothactualCoreF2E6/Shared0071; priorC82controlled epoch distinguished. PendingOraclejournals0/containerEXITED, no installs/download/cloud spend/devpush. NativeSQLite history gate independently in progress; EmbeddedRecordHistory string reparses, generic wire/encrypted history and hosted/all-providerV2 remainOPEN. Details in SHARED_RECORD_HISTORY.md / ORACLE_CLIENT_PRIORITY.md; earlier entries below are chronological checkpoints, not newer current certification.
+
 ## Exact conditional fingerprint helper — Shared856 green; final-native caller gates OPEN
 
 Distinct root/child decimal intents formerly collided;2red/3controls captured. Sameowner nowusesdirecttokens+onepublic ComputeFingerprint exactnumeric normalizer, domains5/6 with no old-rounded fallback/replay. Final856/856controlled0skips SHA2567FC8F9AC90E7CEC3163B2B68B598D16EC5D121E4DC38B2BEA30C0DC7D3337BCF, CoreF2E6D954/SharedE317DC7A. Equivalent JSON/CLR numeric values/scale/order preserved; adjacent decimals/doubles differ. Earliernative954 usedintermediate75FE, notfinalE317; SQLitehelperadoption/nativeintentgatepending. Oldreceiptsmustreconcilewithoutrewrite/reset. Details/limits in SHARED_RECORD_HISTORY.md; no devpush/newruntime/download.
