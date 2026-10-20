@@ -19,7 +19,7 @@ public partial class OracleDBOASIS
             ["OASIS_WRITE_RECEIPTS"]=new(){{"OPERATION_ID","RAW"},{"REQUEST_HASH","VARCHAR2"},{"RESULT_JSON","CLOB"},{"COMMITTED_AT","TIMESTAMP"}}
         };
         foreach(var table in expected){
-            await using var command=CreateCommand("SELECT COLUMN_NAME,DATA_TYPE,DATA_LENGTH FROM USER_TAB_COLUMNS WHERE TABLE_NAME=:TableName",connection);
+            await using var command=CreateCommand("SELECT COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE,DATA_PRECISION,DATA_SCALE,CHAR_LENGTH FROM USER_TAB_COLUMNS WHERE TABLE_NAME=:TableName",connection);
             command.Parameters.Add("TableName",OracleDbType.Varchar2).Value=table.Key;
             var missing=new HashSet<string>(table.Value.Keys,StringComparer.Ordinal);
             await using var reader=await command.ExecuteReaderAsync();
@@ -27,6 +27,9 @@ public partial class OracleDBOASIS
                 var column=reader.GetString(0);
                 if(!table.Value.TryGetValue(column,out var required))continue;
                 ValidateStorageColumn(table.Key,column,required,reader.GetString(1),reader.GetInt32(2));
+                ValidateStorageColumnProperties(table.Key,column,required,reader.GetString(3),
+                    reader.IsDBNull(4)?null:reader.GetInt32(4),reader.IsDBNull(5)?null:reader.GetInt32(5),
+                    reader.IsDBNull(6)?0:reader.GetInt32(6));
                 missing.Remove(column);
             }
             if(missing.Count!=0)throw new InvalidDataException($"Oracle schema {table.Key} is missing required columns: {string.Join(",",missing)}.");
@@ -46,6 +49,20 @@ WHERE c.TABLE_NAME=:TableName AND c.CONSTRAINT_TYPE='P' ORDER BY cc.POSITION",co
             }
             ValidateStoragePrimaryKey(table,key,columns,status,validated,deferrable,indexStatus);
         }
+    }
+
+    private static void ValidateStorageColumnProperties(string table,string column,string required,string nullable,
+        int? precision,int? scale,int characters)
+    {
+        var permitsNull=column=="PARENT_HOLON_ID"||table=="OASIS_WRITE_RECEIPTS"&&column=="RESULT_JSON";
+        if(nullable!=(permitsNull?"Y":"N"))
+            throw new InvalidDataException($"Oracle schema {table}.{column} has incompatible nullability.");
+        if(required=="VARCHAR2"&&characters<(column=="REQUEST_HASH"?64:256))
+            throw new InvalidDataException($"Oracle schema {table}.{column} has insufficient character capacity.");
+        // Unconstrained NUMBER can hold the native integer inputs. Negative scale rounds them;
+        // fixed precision must leave enough integer digits after its fractional scale.
+        if(required=="NUMBER"&&((scale??0)<0||(precision??38)-(scale??0)<(column=="HOLON_TYPE"?10:1)))
+            throw new InvalidDataException($"Oracle schema {table}.{column} cannot preserve its native integer values.");
     }
 
     private static void ValidateStoragePrimaryKey(string table,string key,IReadOnlyList<string> columns,

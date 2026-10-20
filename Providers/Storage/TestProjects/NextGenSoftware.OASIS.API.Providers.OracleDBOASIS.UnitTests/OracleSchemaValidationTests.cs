@@ -6,6 +6,41 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 [TestClass]
 public class OracleSchemaValidationTests
 {
+    [DataTestMethod][DataRow("Y",true)][DataRow("N",false)]
+    public void ReceiptResultAllowsItsExistingTransactionalPlaceholder(string nullable,bool accepted)
+    {
+        var method=typeof(OracleDBOASIS).GetMethod("ValidateStorageColumnProperties",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var args=new object?[]{"OASIS_WRITE_RECEIPTS","RESULT_JSON","CLOB",nullable,null,null,0};
+        if(accepted)method.Invoke(null,args);
+        else Assert.IsInstanceOfType(Assert.ThrowsException<TargetInvocationException>(()=>method.Invoke(null,args)).InnerException,typeof(InvalidDataException));
+    }
+
+    [DataTestMethod]
+    [DataRow("DATA_JSON","CLOB","N",null,null,0,true)]
+    [DataRow("DATA_JSON","CLOB","Y",null,null,0,false)]
+    [DataRow("PARENT_HOLON_ID","RAW","Y",null,null,0,true)]
+    [DataRow("PARENT_HOLON_ID","RAW","N",null,null,0,false)]
+    [DataRow("IS_DELETED","NUMBER","N",1,0,0,true)]
+    [DataRow("IS_DELETED","NUMBER","N",1,1,0,false)]
+    [DataRow("IS_DELETED","NUMBER","N",2,-1,0,false)]
+    [DataRow("IS_DELETED","NUMBER","N",null,null,0,true)]
+    [DataRow("HOLON_TYPE","NUMBER","N",10,0,0,true)]
+    [DataRow("HOLON_TYPE","NUMBER","N",9,0,0,false)]
+    [DataRow("HOLON_TYPE","NUMBER","N",12,2,0,true)]
+    [DataRow("HOLON_TYPE","NUMBER","N",10,2,0,false)]
+    [DataRow("HOLON_TYPE","NUMBER","N",12,-1,0,false)]
+    [DataRow("USERNAME","VARCHAR2","N",null,null,256,true)]
+    [DataRow("USERNAME","VARCHAR2","N",null,null,64,false)]
+    [DataRow("REQUEST_HASH","VARCHAR2","N",null,null,64,true)]
+    [DataRow("REQUEST_HASH","VARCHAR2","N",null,null,63,false)]
+    public void ColumnPropertiesMustPreserveRequiredNullsIntegersAndText(string column,string required,string nullable,int? precision,int? scale,int characters,bool accepted)
+    {
+        var method=typeof(OracleDBOASIS).GetMethod("ValidateStorageColumnProperties",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var args=new object?[]{"OASIS_TEST",column,required,nullable,precision,scale,characters};
+        if(accepted)method.Invoke(null,args);
+        else Assert.IsInstanceOfType(Assert.ThrowsException<TargetInvocationException>(()=>method.Invoke(null,args)).InnerException,typeof(InvalidDataException));
+    }
+
     [DataTestMethod]
     [DataRow("ID","ID","ENABLED","VALIDATED","NOT DEFERRABLE","VALID",true)]
     [DataRow("OPERATION_ID","OPERATION_ID","ENABLED","VALIDATED","NOT DEFERRABLE","VALID",true)]
