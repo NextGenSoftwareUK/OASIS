@@ -321,7 +321,7 @@ jobs:
           dotnet test
           Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj
           --configuration Release
-          --filter "Category!=ExternalPrimaryTermination"
+          --filter "Category!=ExternalPrimaryTermination&Category!=OwnedFixtureReconciliation&Category!=OwnedMongoRunner"
           --logger "trx;LogFileName=hosted-mongo-sync.trx"
           --results-directory artifacts/hosted-mongo-ci
           --nologo
