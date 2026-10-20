@@ -33,7 +33,7 @@ public class DynamoIdentityTests
         public override async Task<ScanResponse> ScanAsync(ScanRequest request,CancellationToken cancellationToken=default)
         {
             var row=await GetItemAsync(new GetItemRequest {TableName=request.TableName,ConsistentRead=true,Key=new() {["id"]=new() {S=Guid.NewGuid().ToString()}}});
-            return new ScanResponse {Items=new() {row.Item}};
+            return new ScanResponse {HttpStatusCode=System.Net.HttpStatusCode.OK,Items=new() {row.Item}};
         }
     }
 
