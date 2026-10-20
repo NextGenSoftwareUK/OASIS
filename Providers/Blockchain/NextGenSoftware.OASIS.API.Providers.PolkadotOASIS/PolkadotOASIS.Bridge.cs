@@ -267,77 +267,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         /// Parse Polkadot blockchain response to Avatar collection
         /// </summary>
         private IEnumerable<IAvatar> ParsePolkadotToAvatars(string polkadotJson)
-        {
-            try
-            {
-                var jsonDoc = JsonDocument.Parse(polkadotJson);
-                var root = jsonDoc.RootElement;
-                var avatars = new List<IAvatar>();
-
-                if (root.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var element in root.EnumerateArray())
-                    {
-                        var avatar = ParsePolkadotToAvatar(element.GetRawText());
-                        if (avatar != null)
-                            avatars.Add(avatar);
-                    }
-                }
-                else if (root.TryGetProperty("avatars", out var avatarsArray) && avatarsArray.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var element in avatarsArray.EnumerateArray())
-                    {
-                        var avatar = ParsePolkadotToAvatar(element.GetRawText());
-                        if (avatar != null)
-                            avatars.Add(avatar);
-                    }
-                }
-
-                return avatars;
-            }
-            catch
-            {
-                return new List<IAvatar>();
-            }
-        }
+            => ParseCanonicalPolkadotRecords<Avatar>(polkadotJson,"avatars");
 
         /// <summary>
         /// Parse Polkadot blockchain response to Holon collection
         /// </summary>
         private IEnumerable<IHolon> ParsePolkadotToHolons(string polkadotJson)
-        {
-            try
-            {
-                var jsonDoc = JsonDocument.Parse(polkadotJson);
-                var root = jsonDoc.RootElement;
-                var holons = new List<IHolon>();
-
-                if (root.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var element in root.EnumerateArray())
-                    {
-                        var holon = ParsePolkadotToHolon(element.GetRawText());
-                        if (holon != null)
-                            holons.Add(holon);
-                    }
-                }
-                else if (root.TryGetProperty("holons", out var holonsArray) && holonsArray.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var element in holonsArray.EnumerateArray())
-                    {
-                        var holon = ParsePolkadotToHolon(element.GetRawText());
-                        if (holon != null)
-                            holons.Add(holon);
-                    }
-                }
-
-                return holons;
-            }
-            catch
-            {
-                return new List<IHolon>();
-            }
-        }
+            => ParseCanonicalPolkadotRecords<Holon>(polkadotJson,"holons");
 
         /// <summary>
         /// Parse Polkadot chain storage (hex-encoded) to Holon object
@@ -381,41 +317,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         /// Parse Polkadot blockchain response to Holon object
         /// </summary>
         private IHolon ParsePolkadotToHolon(string polkadotJson)
-        {
-            try
-            {
-                var jsonDoc = JsonDocument.Parse(polkadotJson);
-                var root = jsonDoc.RootElement;
-
-                var holon = new Holon
-                {
-                    Id = root.TryGetProperty("id", out var idElement) && idElement.GetString() != null ? Guid.Parse(idElement.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:holon:{root.GetRawText()}"),
-                    Name = root.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Polkadot Holon",
-                    Description = root.TryGetProperty("description", out var descElement) ? descElement.GetString() : "Holon from Polkadot blockchain",
-                    ProviderUniqueStorageKey = new Dictionary<ProviderType, string>
-                    {
-                        [Core.Enums.ProviderType.PolkadotOASIS] = root.TryGetProperty("polkadotId", out var polkadotIdElement) ? polkadotIdElement.GetString() ?? CreateDeterministicGuid($"{ProviderType.Value}:holon:{root.GetRawText()}").ToString() : CreateDeterministicGuid($"{ProviderType.Value}:holon:{root.GetRawText()}").ToString()
-                    },
-                    IsActive = root.TryGetProperty("isActive", out var activeElement) ? activeElement.GetBoolean() : true,
-                    CreatedDate = root.TryGetProperty("createdDate", out var createdElement) && DateTime.TryParse(createdElement.GetString(), out var createdDate) ? createdDate : DateTime.UtcNow,
-                    ModifiedDate = root.TryGetProperty("modifiedDate", out var modifiedElement) && DateTime.TryParse(modifiedElement.GetString(), out var modifiedDate) ? modifiedDate : DateTime.UtcNow
-                };
-
-                return holon;
-            }
-            catch
-            {
-                return new Holon
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:error"),
-                    Name = "Polkadot Holon",
-                    ProviderUniqueStorageKey = new Dictionary<ProviderType, string>
-                    {
-                        [Core.Enums.ProviderType.PolkadotOASIS] = CreateDeterministicGuid($"{ProviderType.Value}:holon:error").ToString()
-                    }
-                };
-            }
-        }
+            => ParseCanonicalPolkadotRecord<Holon>(polkadotJson);
 
         /// <summary>
         /// Creates a deterministic GUID from input string using SHA-256 hash

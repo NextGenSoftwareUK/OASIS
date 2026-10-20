@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Polkadot decoding truthfulness regression — 2026-10-19
+
+Removed fabricated avatar/holon fallback records and malformed-collection empty-success from four legacy decoders; reused canonical shared OASIS JSON materialization with explicit nonempty record identity validation. Eight red-before cases now pass; full controlled207/207pass15s/zero skips, SHA256 `39115F77E99566939310A5BBD90E86DA6CFAC568FEC4B7CCE473B7894B62D359`. Details/before hashes: [Polkadot native report](POLKADOT_PROVIDER_NATIVE_TESTS.md). NOT native storage acceptance: custom runtime RPC/deployment/ABI/encryption/NFT/full-interface and target selection remain OPEN. No native process, transaction or download for this batch.
+
 ## NEAR unique profile identity native gate verified — 2026-10-19
 
 Additional native lifecycle gate **19/19PASS**,zero skips,4m45s: avatar soft deletion hides current point/collection/username/email results; explicit historical version1 remains accessible until hard deletion removes it. No production change needed. Report SHA256 `6CF7C7CA0997858B58EDD07756BB9920BDBF1301EC0F20CED9ECBBFB9EE03C2E`. Prior detail proof retained in-place as `near-detail-identity-B183851E53D5.trx`. Node stopped, pending journals absent, checked fixture verified absent, retention restored5. Does not certify cascading detail deletion/all interfaces/hosted or V2 combinations.
