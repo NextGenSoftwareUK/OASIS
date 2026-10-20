@@ -12,6 +12,8 @@ public sealed record PlannedHolonWrite(IHolon Source,Holon Snapshot);
 public static class HolonGraphWritePlan
 {
     public static (List<IHolon> Roots,List<PlannedHolonWrite> Nodes) Create(IEnumerable<IHolon> input,bool children,bool recursive,int depth,int initialDepth)
+        => Create(input,children,recursive,depth,initialDepth,null);
+    public static (List<IHolon> Roots,List<PlannedHolonWrite> Nodes) Create(IEnumerable<IHolon> input,bool children,bool recursive,int depth,int initialDepth,Action<IHolon> validateSource)
     {
         ArgumentNullException.ThrowIfNull(input);
         if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
@@ -26,6 +28,7 @@ public static class HolonGraphWritePlan
             if(!identities.Add(id)) throw new ArgumentException("Selected graph has duplicate identities.");
             if(parent.HasValue && source.ParentHolonId!=Guid.Empty && source.ParentHolonId!=parent.Value)
                 throw new ArgumentException("Selected child has a conflicting parent identity.");
+            validateSource?.Invoke(source);
             var snapshot=OasisJson.Project<Holon>(source);
             snapshot.Id=id;snapshot.ParentHolonId=parent ?? source.ParentHolonId;
             nodes.Add(new PlannedHolonWrite(source,snapshot));
