@@ -6,6 +6,7 @@ using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using DataHelper = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers.DataHelper;
@@ -44,12 +45,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 var entries = plan.Nodes.Select(node => DataHelper.ConvertOASISHolonToMongoEntity(node.Snapshot)).ToList();
                 prepared = true;
                 var responses = new List<IHolon>();
+                HolonCommittedDelta delta=null;
+                var retainDeltaValues=IsVersionControlEnabled;
                 var conditional = conditionalPlan == null ? null : new Repositories.MongoAtomicHolonWrite(conditionalPlan, actorId,
-                    () => {
+                    (before,after,at) => {
+                        if(conditionalPlan is ConditionalHolonPlan primary)
+                        {
+                            delta=HolonCommittedDelta.Capture(primary.OperationId,primary.ActorId,primary.Authority,primary.Operation,at,
+                                before.Values.Select(ReadFlatCommittedHolon),after.Values.Select(ReadFlatCommittedHolon),retainDeltaValues);
+                            return ConditionalHolonReceipt.Write(responses,primary,delta);
+                        }
                         var receipt = ConditionalHolonReceipt.Write(responses, conditionalPlan);
                         _ = ConditionalHolonReceipt.Read(receipt, conditionalPlan);
                         return receipt;
-                    }, json => { responses.Clear(); responses.AddRange(ConditionalHolonReceipt.Read(json, conditionalPlan)); }, cancellationToken,
+                    }, json => {
+                        responses.Clear();
+                        if(conditionalPlan is ConditionalHolonPlan primary)
+                        {
+                            responses.AddRange(ConditionalHolonReceipt.Read(json,primary,out delta));
+                        }
+                        else responses.AddRange(ConditionalHolonReceipt.Read(json, conditionalPlan));
+                    }, cancellationToken,
                     conditionalPlan is ConditionalHolonPlan {ReplicationEnrollment:not null} edit
                         ?()=>CommittedHolonReplicaPayload.Capture(new CommittedHolonReplicaRequest(edit.OperationId,edit.ReplicationEnrollment.SourceId,
                             edit.Authority,actorId,edit.Operation,responses,edit.SaveChildren,edit.Recursive,edit.MaxChildDepth)):null);
@@ -65,7 +81,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     }
                     foreach (var entry in preparedEntries)
                         entry.Children = acknowledgements[entry.HolonId].Children;
-                    responses.AddRange(roots.Select(root => acknowledgements[snapshots[root].Id]));
                 }, (bodies, observed) => PreserveUnselectedGraphChildren(plan.Nodes, bodies, observed), conditional, (record,existing) =>
                 {
                     var node=plannedById[record.HolonId];
@@ -75,6 +90,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                             ? HolonChildRoleWriteKind.SourceDelete : HolonChildRoleWriteKind.SourceSave;
                     record.ChildRoleManifestJson = HolonChildRolePersistence.Resolve(node, kind,
                         existing != null, existing?.ChildRoleManifestJson);
+                }, bodies=> {
+                    // The acknowledgement and delta share the final BSON after-image,
+                    // after native serialization and opaque frontier preservation.
+                    var actual=bodies.ToDictionary(pair=>pair.Key,pair=>ReadFlatCommittedHolon(pair.Value));
+                    foreach(var node in plan.Nodes)actual[node.Snapshot.Id].Children=node.SelectedChildIds.Select(id=>actual[id]).ToList();
+                    responses.AddRange(roots.Select(root=>actual[snapshots[root].Id]));
                 }).ConfigureAwait(false);
                 if (saved.IsError)
                 {
@@ -99,6 +120,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 result.WarningCount = saved.WarningCount;
                 result.Exception = saved.Exception;
                 result.Message = saved.Message;
+                if(conditionalPlan is ConditionalHolonPlan)
+                {
+                    result.MetaData??=new Dictionary<string,string>();
+                    if(delta==null)result.MetaData["COSMIC.CommittedDeltaUnavailable"]="ReceiptPredatesDelta";
+                    else result.MetaData[HolonCommittedDelta.ResultMetadataKey]=delta.SummaryJson;
+                }
             }
             catch (Exception error)
             {
@@ -108,6 +135,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 if (!prepared) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
             }
             return result;
+        }
+        private static IHolon ReadFlatCommittedHolon(BsonDocument body)
+        {
+            var flat=(BsonDocument)body.DeepClone();
+            var children=BsonClassMap.LookupClassMap(typeof(Entities.Holon)).AllMemberMaps
+                .Single(member=>member.MemberName==nameof(IHolon.Children)).ElementName;
+            flat.Remove(children);
+            return DataHelper.ConvertMongoEntityToOASISHolon(BsonSerializer.Deserialize<Entities.Holon>(flat),false);
         }
         private static void PreserveUnselectedGraphChildren(IEnumerable<PlannedHolonWrite> nodes,
             IReadOnlyDictionary<Guid, BsonDocument> bodies, IReadOnlyDictionary<Guid, BsonDocument> observed)

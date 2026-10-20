@@ -9,6 +9,30 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public sealed class ConditionalHolonReceiptTests
 {
+    public sealed class ConstructorProbe
+    {
+        public static int Calls;
+        public string Label { get; set; } = "owned receipt probe";
+        public ConstructorProbe() { System.Threading.Interlocked.Increment(ref Calls); }
+    }
+
+    [TestMethod]
+    public void WrongOperationRejectsBeforeConstructingStoredMetadata()
+    {
+        var authority = NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS;
+        var source = new Holon { Id = Guid.NewGuid(), MetaData = new() { ["probe"] = new ConstructorProbe() } };
+        var request = new NextGenSoftware.OASIS.API.Core.Interfaces.ConditionalHolonWriteRequest(
+            new NextGenSoftware.OASIS.API.Core.Interfaces.ConditionalHolonWrite(Guid.NewGuid(), Guid.NewGuid(), authority,
+                new[] { new NextGenSoftware.OASIS.API.Core.Interfaces.HolonWriteCondition(source.Id, null) }),
+            NextGenSoftware.OASIS.API.Core.Interfaces.ConditionalHolonOperation.Save, new[] { source }, saveChildren: false);
+        var plan = ConditionalHolonPlan.Create(request, authority);
+        var ack = new Holon { Id = source.Id, Version = 1, VersionId = Guid.NewGuid(), MetaData = source.MetaData };
+        CosmicConcurrency.SetProviderRevisionId(ack, authority, Guid.NewGuid());
+        var document = JObject.Parse(ConditionalHolonReceipt.Write(new[] { ack }, plan));
+        document["operation"] = Guid.NewGuid().ToString("D"); Rehash(document); ConstructorProbe.Calls = 0;
+        Assert.ThrowsException<InvalidDataException>(() => ConditionalHolonReceipt.Read(document.ToString(), plan));
+        Assert.AreEqual(0, ConstructorProbe.Calls, "Unbound stored values must not construct CLR objects.");
+    }
     [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
     public void ReplayRetainsExactOriginalMetadataAfterLaterRevision(bool child,bool wide)
     {

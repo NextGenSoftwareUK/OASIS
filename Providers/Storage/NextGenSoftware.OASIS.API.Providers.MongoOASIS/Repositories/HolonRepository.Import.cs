@@ -18,7 +18,8 @@ public partial class HolonRepository
 {
     internal async Task<OASISResult<bool>> ImportAtomicAsync(IEnumerable<Holon> holons,Action<Holon,Holon> preserveAudit,Action<IReadOnlyList<Holon>> prepareResponse=null,
         Action<IReadOnlyDictionary<Guid,BsonDocument>,IReadOnlyDictionary<Guid,BsonDocument>> prepareBodies=null,
-        MongoAtomicHolonWrite conditional=null,Action<Holon,Holon> prepareMembership=null)
+        MongoAtomicHolonWrite conditional=null,Action<Holon,Holon> prepareMembership=null,
+        Action<IReadOnlyDictionary<Guid,BsonDocument>> finalizeResponse=null)
     {
         var result=new OASISResult<bool>();
         var validatingPayload=false;
@@ -136,7 +137,8 @@ public partial class HolonRepository
                 if(replica!=null)
                     foreach(var body in bodies.Values)
                         replica.ValidateAcknowledgedRecord(Helpers.DataHelper.ConvertMongoEntityToOASISHolon(BsonSerializer.Deserialize<Holon>(body),false));
-                var receiptJson=conditional?.CaptureReceipt();
+                finalizeResponse?.Invoke(bodies);
+                var receiptJson=conditional?.CaptureReceipt(observations,bodies,now);
                 string replicationPayload=null;
                 if(edit?.ReplicationEnrollment!=null)
                 {

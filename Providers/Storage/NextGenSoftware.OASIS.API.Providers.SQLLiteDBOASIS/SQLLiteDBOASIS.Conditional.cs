@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS : IConditionalHolonStorageProvider, IAtomicHolonReplicationStorageProvider
+public partial class SQLLiteDBOASIS : IConditionalHolonDeltaStorageProvider, IAtomicHolonReplicationStorageProvider
 {
     public OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(ConditionalHolonWriteRequest request,
         HolonReplicationEnrollment enrollment)

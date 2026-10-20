@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : IConditionalHolonStorageProvider,IAtomicHolonReplicationStorageProvider
+public partial class MongoDBOASIS : IConditionalHolonDeltaStorageProvider,IAtomicHolonReplicationStorageProvider
 {
     public OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(ConditionalHolonWriteRequest request,HolonReplicationEnrollment enrollment)
         =>ExecuteReplicatingHolonWriteAsync(request,enrollment).GetAwaiter().GetResult();

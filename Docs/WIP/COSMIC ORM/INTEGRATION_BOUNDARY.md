@@ -1,5 +1,11 @@
 # COSMIC source integration boundary
 
+## MongoDB committed delta adoption — 20 October 2026
+
+MongoDB conditional writes now capture deltas from authoritative BSON observations and final persisted BSON bodies inside the graph transaction. Acknowledgements are constructed from that final representation, including preserved unselected frontiers. Shared receipt format4 persists and validates the original delta; legacy format3 replay reports explicit missing-delta evidence. SQLite and MongoDB advertise the new conditional-delta capability. Core validation also binds logical predecessor identity/version and membership ownership; Shared rejects wrong operation/intent before metadata construction. [Implementation, acceptance evidence and remaining scope](MONGO_COMMITTED_DELTAS.md).
+
+This increment does not finish Stage7: Neo4j and other adapters, ordinary CRUD/replica enrollment, authorized historical-value reads/decryption, retention and operator reconciliation remain open.
+
 ## Atomic committed deltas and shared numeric token decoding — 20 October 2026
 
 Core `b3c74d44370a243894a46230c46e491bc7f9e771` is committed and remotely verified on the task branch. It adds the immutable provider-reusable delta capture/reader/context validator and fixes typed numeric Raw-token materialization in the existing canonical decoder without changing capture/wire bytes. SQLite primary format3 captures prior authoritative records under its writer reservation and persists the delta with the original acknowledgement/record/history/outbox transaction; format2 preserves original acknowledgement with explicit missing-delta evidence. Public summaries omit values; retained storage values follow the existing history policy.

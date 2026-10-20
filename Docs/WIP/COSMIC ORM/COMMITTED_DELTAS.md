@@ -2,6 +2,8 @@
 
 20 October 2026. First native transaction owner: SQLite conditional saves/deletes. Generic immutable capture/validation lives in Core `HolonCommittedDelta`; this is not the completed Stage7 provider/authorization rollout.
 
+Provider follow-on: [MongoDB native capture](MONGO_COMMITTED_DELTAS.md) now uses the same model and Shared format4 receipt extension, with final broad regression in progress. Both providers advertise `IConditionalHolonDeltaStorageProvider`; ordinary CRUD and authorized history reads are separate capabilities.
+
 ## Commit ownership
 
 SQLite acquires its native writer reservation, verifies all expected provider revisions, and detaches prior authoritative records before changing models/history. After assigning actual committed logical/provider revisions, it captures changes from those prior records and the acknowledged flat records. The delta is part of the same checksummed primary receipt inserted in the same transaction as records, history and any enrolled outbox obligations. Before COMMIT, the receipt and delta are decoded and checked against the original operation, actor, authority, selected identities and acknowledged revisions.

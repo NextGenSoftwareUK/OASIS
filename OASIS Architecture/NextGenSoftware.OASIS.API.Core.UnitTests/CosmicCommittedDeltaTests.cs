@@ -9,6 +9,50 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class CosmicCommittedDeltaTests
 {
+    private static JObject StoredDocument(HolonCommittedDelta packet)
+    {
+        using var input = new StringReader(packet.StoredJson);
+        using var reader = new Newtonsoft.Json.JsonTextReader(input) { DateParseHandling = Newtonsoft.Json.DateParseHandling.None };
+        return JObject.Load(reader);
+    }
+
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)]
+    public void AcknowledgementValidationBindsPredecessorLineage(int field)
+    {
+        var previous = Row(Guid.NewGuid(), 1, Guid.Empty); var current = Row(previous.Id, 2, previous.VersionId);
+        var packet = Capture(previous, current); var document = StoredDocument(packet); var record = document["records"]!.Single();
+        if (field == 0) record["previousVersionId"] = Guid.NewGuid().ToString("D");
+        else if (field == 1) record["previousVersion"] = 99;
+        else record["previousRevision"] = Guid.NewGuid().ToString("D");
+        var altered = HolonCommittedDelta.ReadStored(document.ToString(Newtonsoft.Json.Formatting.None));
+        Assert.Throws<InvalidDataException>(() => altered.ValidateAcknowledgement(packet.OperationId, packet.ActorId, packet.Authority,
+            packet.Operation, new[] { current }, new[] { new HolonWriteCondition(current.Id, CosmicConcurrency.GetProviderRevisionId(previous, packet.Authority)) }));
+    }
+
+    [Fact]
+    public void CaptureRejectsMembershipManifestOwnedByDifferentEntity()
+    {
+        var previous = Row(Guid.NewGuid(), 1, Guid.Empty); var current = Row(previous.Id, 2, previous.VersionId);
+        var wrong = HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1, Guid.NewGuid(), Array.Empty<HolonChildRole>()));
+        previous.ChildRoleManifestJson = wrong; current.ChildRoleManifestJson = wrong;
+        Assert.Throws<ArgumentException>(() => Capture(previous, current));
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void FieldExistenceCannotContradictEntityExistence(bool deletion)
+    {
+        var previous = Row(Guid.NewGuid(), 1, Guid.Empty); var current = Row(previous.Id, 2, previous.VersionId);
+        current.IsActive = false; current.DeletedDate = new DateTime(2026, 10, 20, 0, 0, 0, DateTimeKind.Utc);
+        var packet = deletion ? Capture(previous, current, operation: ConditionalHolonOperation.HardDelete)
+            : HolonCommittedDelta.Capture(Guid.NewGuid(), Guid.NewGuid(), ProviderType.SQLLiteDBOASIS, ConditionalHolonOperation.Save,
+                new DateTime(2026, 10, 20, 0, 0, 0, DateTimeKind.Utc), Array.Empty<IHolon>(), new[] { Row(Guid.NewGuid(), 1, Guid.Empty) }, true);
+        var document = StoredDocument(packet); var change = document["records"]!.Single()["changes"]!.First!;
+        change[deletion ? "currentExists" : "previousExists"] = true; change["change"] = "Modified";
+        change[deletion ? "currentJson" : "previousJson"] = "\"invented historical value\"";
+        Assert.Throws<InvalidDataException>(() => HolonCommittedDelta.ReadStored(document.ToString(Newtonsoft.Json.Formatting.None)));
+    }
     [Fact]
     public void StoredTypedIntegerArrayCanBeProjectedWithoutRawTokenReaderFailure()
     {
