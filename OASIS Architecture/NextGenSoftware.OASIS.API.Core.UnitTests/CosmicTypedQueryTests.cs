@@ -72,7 +72,7 @@ public class CosmicTypedQueryTests
         }
         else
         {
-            Assert.True(result.IsError); Assert.Null(result.Result); Assert.Equal("HOLON_METADATA_DECRYPTION_FAILED", result.ErrorCode);
+            Assert.True(result.IsError); Assert.False(result.IsLoaded); Assert.Null(result.Result); Assert.Equal("HOLON_METADATA_DECRYPTION_FAILED", result.ErrorCode);
         }
         Assert.Equal(ciphertext, row.MetaData["__oasis_enc__"]);
         if (fault == 4) Assert.Equal(99, row.MetaData["Rating"]);

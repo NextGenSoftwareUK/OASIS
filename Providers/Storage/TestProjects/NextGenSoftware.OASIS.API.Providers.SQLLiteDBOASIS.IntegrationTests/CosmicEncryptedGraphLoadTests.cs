@@ -35,7 +35,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         manager.OASISDNA.OASIS.Security = new SecuritySettings { HolonDataEncryption = settings };
         void AssertFailure<T>(OASISResult<T> result)
         {
-            result.IsError.Should().BeTrue(); result.Result.Should().BeNull();
+            result.IsError.Should().BeTrue(); result.IsLoaded.Should().BeFalse(); result.Result.Should().BeNull();
             result.ErrorCode.Should().Be("HOLON_METADATA_DECRYPTION_FAILED");
         }
         IHolon loaded = null!;

@@ -110,7 +110,7 @@ public class CosmicTrackingTests
             var result = synchronous ? f.Manager.LoadHolon(root.Id,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
                 : await f.Manager.LoadHolonAsync(root.Id,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
             result.IsError.Should().Be(invalidChild, result.Message + result.Exception);
-            if (invalidChild) { result.Result.Should().BeNull(); result.ErrorCode.Should().Be("HOLON_METADATA_DECRYPTION_FAILED"); }
+            if (invalidChild) { result.Result.Should().BeNull(); result.IsLoaded.Should().BeFalse(); result.ErrorCode.Should().Be("HOLON_METADATA_DECRYPTION_FAILED"); }
             else loaded = result.Result;
         }
         else
@@ -118,7 +118,7 @@ public class CosmicTrackingTests
             var result = synchronous ? f.Manager.LoadAllHolons(cache:false,providerType:ProviderType.SQLLiteDBOASIS)
                 : await f.Manager.LoadAllHolonsAsync(providerType:ProviderType.SQLLiteDBOASIS);
             result.IsError.Should().Be(invalidChild, result.Message + result.Exception);
-            if (invalidChild) { result.Result.Should().BeNull(); result.ErrorCode.Should().Be("HOLON_METADATA_DECRYPTION_FAILED"); }
+            if (invalidChild) { result.Result.Should().BeNull(); result.IsLoaded.Should().BeFalse(); result.ErrorCode.Should().Be("HOLON_METADATA_DECRYPTION_FAILED"); }
             else loaded = result.Result.Single();
         }
         if (!invalidChild)
