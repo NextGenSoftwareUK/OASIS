@@ -29,7 +29,9 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
     private async Task<Dictionary<string,AttributeValue>> ReadLifecycleItemAsync(string table,Guid id)
     {
         var read=await _client.GetItemAsync(new GetItemRequest {TableName=table,Key=LifecycleKey(id),ConsistentRead=true});
-        return read.Item ?? new Dictionary<string,AttributeValue>();
+        if(read?.HttpStatusCode!=HttpStatusCode.OK||read.Item==null)
+            throw new InvalidDataException("DynamoDB lifecycle snapshot lacks an authoritative read acknowledgement.");
+        return read.Item;
     }
 
     private static string LifecycleJson(Dictionary<string,AttributeValue> item,Guid id)
