@@ -1,7 +1,7 @@
-param([switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
+param([switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
     [switch]$CleanupVerifiedAwsRun,[ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$VerifiedReportSha256)
 $ErrorActionPreference='Stop'
-if(([int]$EncryptedReplay.IsPresent+[int]$PreparationClaims.IsPresent+[int]$ReconcileConditionalInitial.IsPresent+[int]$ConditionalGraphs.IsPresent+[int]$ReconcileKnownReadFixture.IsPresent+[int]$FullAwsSuite.IsPresent+[int]$ReconcileAwsPreRead.IsPresent+[int]$CleanupKnownAwsRun.IsPresent+[int]$ReconcileValidationFixtures.IsPresent+[int]$ReconcileReflectionFixtures.IsPresent+[int]$CleanupVerifiedAwsRun.IsPresent) -gt 1){throw 'Choose one explicit runner mode.'}
+if(([int]$EncryptedProcess.IsPresent+[int]$EncryptedReplay.IsPresent+[int]$PreparationClaims.IsPresent+[int]$ReconcileConditionalInitial.IsPresent+[int]$ConditionalGraphs.IsPresent+[int]$ReconcileKnownReadFixture.IsPresent+[int]$FullAwsSuite.IsPresent+[int]$ReconcileAwsPreRead.IsPresent+[int]$CleanupKnownAwsRun.IsPresent+[int]$ReconcileValidationFixtures.IsPresent+[int]$ReconcileReflectionFixtures.IsPresent+[int]$CleanupVerifiedAwsRun.IsPresent) -gt 1){throw 'Choose one explicit runner mode.'}
 if($CleanupVerifiedAwsRun -ne [bool]$VerifiedReportSha256){throw 'Verified cleanup requires its explicit original full-suite report SHA256, exclusively.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runtime='C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\runtime'
@@ -62,6 +62,21 @@ try{
     }while([DateTime]::UtcNow -lt $deadline)
     if(!$listener){throw 'Owned runtime readiness timeout.'}
     $env:DYNAMODB_SERVICE_URL='http://127.0.0.1:18000';$env:OASIS_DYNAMO_HISTORY_WORK=$work;$started=[DateTime]::UtcNow
+    if($EncryptedProcess){
+        foreach($phase in @('write','recover')){
+            $phaseReport=Join-Path $work "dynamo-encrypted-process-$phase.trx"
+            if(Test-Path -LiteralPath $phaseReport){throw 'Preserve original process evidence before another run.'}
+            $method=if($phase -eq 'write'){'PhaseOneCommitEncryptedOperation'}else{'PhaseTwoRecoverInDifferentProcess'}
+            & dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~DynamoEncryptedProcessNativeTests.$method" --logger "trx;LogFileName=dynamo-encrypted-process-$phase.trx" --results-directory $work /m:2 /nr:false -v:q
+            if($LASTEXITCODE -ne 0){throw 'Encrypted process verification failed; retain original fixtures, no replay/reset.'}
+            $phaseFile=Get-Item -LiteralPath $phaseReport
+            [xml]$phaseTrx=Get-Content -LiteralPath $phaseReport -Raw;$phaseCounts=$phaseTrx.TestRun.ResultSummary.Counters
+            if($phaseFile.LastWriteTimeUtc -lt $started -or [int]$phaseCounts.total -ne 2 -or [int]$phaseCounts.passed -ne 2 -or [int]$phaseCounts.notExecuted -ne 0){throw 'Fresh complete2/2 process phase required.'}
+            if($phase -eq 'write' -and @(Get-ChildItem -LiteralPath $work -Filter 'encrypted-process-*.pending.json').Count -ne 2){throw 'Exactly two committed process intents required before recovery.'}
+        }
+        if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Original process fixtures remain unresolved.'}
+        return
+    }
     if($ReconcileReflectionFixtures){
         & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~ReconcileKnownReflectionSignatureFixtures' --logger 'trx;LogFileName=dynamo-reflection-reconciliation-current.trx' --results-directory $work -v:q
         if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Original reflection fixtures require further reconciliation; no replay/reset.'}
