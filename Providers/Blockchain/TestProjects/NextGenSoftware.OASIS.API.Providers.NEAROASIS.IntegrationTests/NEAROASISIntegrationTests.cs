@@ -170,6 +170,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
         [TestMethod]
         public async Task Storage_PerformsAvatarDetailAndHardDeleteLifecycle()
         {
+            _provider.IsVersionControlEnabled = true;
             var marker = Guid.NewGuid().ToString("N");
             var avatar = new Avatar { Id = Guid.NewGuid(), Username = $"near-{marker}", Email = $"{marker}@near.test" };
             var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email, Karma = 42 };
@@ -182,10 +183,23 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual(avatar.Id, (await _provider.LoadAvatarDetailByUsernameAsync(avatar.Username)).Result.Id);
             Assert.AreEqual(avatar.Id, (await _provider.LoadAvatarDetailByEmailAsync(avatar.Email)).Result.Id);
             Assert.IsTrue((await _provider.LoadAllAvatarDetailsAsync()).Result.Any(item => item.Id == avatar.Id));
+            var tombstone=await _provider.DeleteAvatarAsync(avatar.Id,true);
+            Assert.IsFalse(tombstone.IsError,tombstone.Message);Assert.IsTrue(tombstone.Result);
+            var hidden=await _provider.LoadAvatarAsync(avatar.Id);
+            Assert.IsFalse(hidden.IsError,hidden.Message);Assert.IsNull(hidden.Result);
+            var visible=await _provider.LoadAllAvatarsAsync();
+            Assert.IsFalse(visible.IsError,visible.Message);Assert.IsFalse(visible.Result.Any(item=>item.Id==avatar.Id));
+            foreach(var missing in new[]{await _provider.LoadAvatarByUsernameAsync(avatar.Username),await _provider.LoadAvatarByEmailAsync(avatar.Email)}){
+                Assert.IsTrue(missing.IsError);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missing.ErrorCode);Assert.IsNull(missing.Result);
+            }
+            var historical=await _provider.LoadAvatarByUsernameAsync(avatar.Username,1);
+            Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(avatar.Id,historical.Result.Id);Assert.IsFalse(historical.Result.IsDeleted);
             var deleted = await _provider.DeleteAvatarAsync(avatar.Id, false);
             Assert.IsFalse(deleted.IsError, deleted.Message);
             Assert.IsTrue(deleted.Result);
             Assert.IsNull((await _provider.LoadAvatarAsync(avatar.Id)).Result);
+            var removedHistory=await _provider.LoadAvatarAsync(avatar.Id,1);
+            Assert.IsFalse(removedHistory.IsError,removedHistory.Message);Assert.IsNull(removedHistory.Result);
         }
 
         [TestMethod]
