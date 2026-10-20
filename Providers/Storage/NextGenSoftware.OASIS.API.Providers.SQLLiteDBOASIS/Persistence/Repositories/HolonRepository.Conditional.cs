@@ -123,15 +123,18 @@ public partial class HolonRepository
                         if (storedReceipt["fingerprintFormat"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("fingerprintFormat") is not (3 or 4))
                             return ConditionalError("COSMIC_RECEIPT_FINGERPRINT_RECONCILIATION_REQUIRED",
                                 "This receipt predates the exact intent fingerprint contract. Reconcile its original operation before another mutation.");
-                        if (storedReceipt["format"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("format") != 2)
+                        if (storedReceipt["format"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("format") is not (2 or 3))
                             return ConditionalError("COSMIC_RECEIPT_ENVELOPE_RECONCILIATION_REQUIRED",
                                 "This receipt predates the integrity-bound envelope. Reconcile its original acknowledgement before another mutation.");
                     }
                     if (reader.GetString(0) != fingerprint)
                         return ConditionalError("COSMIC_OPERATION_ID_REUSED", "This operation ID is already bound to different write content or actor.");
-                    var replay=replica==null ? ReadConditionalReceipt(reader.GetString(1),request,graph,fingerprint)
+                    HolonCommittedDelta replayDelta=null;
+                    var replay=replica==null ? ReadConditionalReceipt(reader.GetString(1),request,graph,fingerprint,out replayDelta)
                         : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Read(reader.GetString(1),replica);
-                    result=ConditionalSuccess(replay,operation);knownAcknowledgement=true;return result;
+                    result=ConditionalSuccess(replay,operation);
+                    if(replica==null)PublishCommittedDelta(result,replayDelta);
+                    knownAcknowledgement=true;return result;
                 }
             }
             var persisted = _dbContext.Holons.AsNoTracking().Where(row => ids.Contains(row.Id)).ToDictionary(row => row.Id);
@@ -149,6 +152,8 @@ public partial class HolonRepository
             if(replica!=null)PrepareReplicaModels(connection,native,graph,persisted,replica);
             var now = DateTime.UtcNow;
             var archiveRevisions=_versionControlEnabled();
+            // Detach authoritative prior values before any model, history or native write changes.
+            var deltaPrevious=replica==null ? persisted.Values.Select(value=>(IHolon)StoredRecordJson.Project<Holon>(GetHolonFromEntity(value))).ToArray():null;
             for (var index = 0; index < graph.Models.Count; index++)
             {
                 var model = graph.Models[index];
@@ -196,9 +201,11 @@ public partial class HolonRepository
             // Materialize and encode the exact acknowledgement before COMMIT. Replay never re-reads a newer record.
             var acknowledged = CommittedGraph(graph);
             var acknowledgement=ConditionalSuccess(acknowledged,operation);
-            var receiptJson = replica==null ? WriteConditionalReceipt(acknowledged,request,fingerprint)
+            var delta=replica==null ? HolonCommittedDelta.Capture(operationId,request.Write.ActorId,ProviderType.SQLLiteDBOASIS,
+                operation,now,deltaPrevious,graph.Models.Select(GetHolonFromEntity),archiveRevisions):null;
+            var receiptJson = replica==null ? WriteConditionalReceipt(acknowledged,request,fingerprint,delta)
                 : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Write(acknowledged,replica);
-            if(replica==null)_ = ReadConditionalReceipt(receiptJson,request,graph,fingerprint);
+            if(replica==null){_ = ReadConditionalReceipt(receiptJson,request,graph,fingerprint,out _);PublishCommittedDelta(acknowledgement,delta);}
             if(replica!=null){_ = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Read(receiptJson,replica);
                 WriteReplicaHeads(connection,native,acknowledged,replica);}
             if(enrollment!=null)WriteReplicationObligations(connection,native,request,enrollment,acknowledged,now);
@@ -229,6 +236,13 @@ public partial class HolonRepository
             IsDeleted = operation != ConditionalHolonOperation.Save,
             SavedCount=operation == ConditionalHolonOperation.Save ? selected.Nodes.Count:0,
             DeletedCount = operation == ConditionalHolonOperation.Save ? 0 : selected.Nodes.Count, HasAnyHolonsChanged = true };
+    }
+
+    private static void PublishCommittedDelta(OASISResult<IEnumerable<IHolon>> result,HolonCommittedDelta delta)
+    {
+        result.MetaData??=new Dictionary<string,string>();
+        if(delta==null)result.MetaData["COSMIC.CommittedDeltaUnavailable"]="ReceiptPredatesDelta";
+        else result.MetaData[HolonCommittedDelta.ResultMetadataKey]=delta.SummaryJson;
     }
 
     private static int ConditionalFingerprintFormat(ConditionalHolonWriteRequest request) => request.SubmittedRelationships.Count == 0 ? 3 : 4;
