@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Oracle existing-schema activation — native96 and controlled175 green
+
+Existing activation now validates required column presence/type/capacity after CREATE-if-name-absent; ORA955 alone is no longer schema verification. Read-only dictionary inspection, no automatic alteration/repair. Controlled175/175 and retained native96/96 pass zero skips; native SHA256846B5433586CAB486856B3063A407C2B7FE666B680551109014F9B30F1A1B164, original report archived in place. Native fixture cleanup/pending0/containerEXITED verified. Same environment, no download/public spend/deploy. PK/index/nullability/precision, runtime-versus-provisioning separation and hosted Oracle/OCI remain OPEN; detailed scope/identity/overhead in ORACLE_CLIENT_PRIORITY.md.
+
 ## Web3 profile canonical publisher — selected controlled129 green, native OPEN
 
 Avatar/detail saves now share canonical caller-edit validation with graph saves; two new metadata-edit regressions first failed and now pass, preserving original acknowledgement and caller edits without replay. Final selected129/129 zero skips, SHA25631039534EBB236DDA11D7BBF18C62CA75ACA2F839A911B3CB7A8E65F9ED0A97F. Actual copied CoreFB3936F3/Shared2D6A41B4; exact hashes/scope in EVM_RECORD_HISTORY_GAPS.md. No native-chain refresh, full-interface/global-V2 completion or deployment claim.
