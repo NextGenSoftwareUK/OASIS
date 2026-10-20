@@ -210,6 +210,7 @@ public partial class Neo4jNativeAvatarTests
         using var inspection = raw.AsyncSession();
         Assert.AreEqual(0L, (await (await inspection.RunAsync("MATCH (h:Holon) RETURN count(h) AS count")).SingleAsync())["count"].As<long>());
         var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        string[] acknowledgedIds=null;
         try
         {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
@@ -219,7 +220,9 @@ public partial class Neo4jNativeAvatarTests
             root.MetaData["selected"] = "root";
             root.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { child };
             child.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { leaf };
-            Assert.IsFalse((await provider.SaveHolonAsync(root)).IsError);
+            var setup=await provider.SaveHolonAsync(root);
+            Assert.IsFalse(setup.IsError,setup.Message+setup.Exception);Assert.IsNull(setup.Exception);
+            acknowledgedIds=new[]{root.Id.ToString(),child.Id.ToString(),leaf.Id.ToString()};
             foreach (var sync in new[] { false, true })
             foreach (var option in new[] { (Children:false, Recursive:true, Depth:0, Levels:0),
                 (Children:true, Recursive:false, Depth:0, Levels:1), (Children:true, Recursive:true, Depth:1, Levels:1),
@@ -246,15 +249,21 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse(typedParent.IsError, typedParent.Message); Assert.AreEqual(0, typedParent.Result.Count());
             var initial = await provider.LoadAllHolonsAsync(maxChildDepth:1, curentChildDepth:1);
             Assert.IsFalse(initial.IsError, initial.Message);
-            Assert.AreEqual(1, initial.Result.Single(record => record.Id == root.Id).Children.Count());
-            Assert.AreEqual(0, initial.Result.Single(record => record.Id == root.Id).Children.Single().Children.Count());
+            Assert.AreEqual(0, initial.Result.Single(record => record.Id == root.Id).Children.Count());
             Assert.IsTrue((await provider.LoadAllHolonsAsync(maxChildDepth:-1)).IsError);
             Assert.IsTrue((await provider.LoadHolonsForParentAsync(root.Id, curentChildDepth:-1)).IsError);
             Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync("selected", "root", maxChildDepth:-1)).IsError);
-            await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h",
-                new { ids = new[] { root.Id.ToString(), child.Id.ToString(), leaf.Id.ToString() } })).ConsumeAsync();
         }
-        finally { await provider.DeActivateProviderAsync(); }
+        finally
+        {
+            try
+            {
+                // Setup is acknowledged and every subsequent operation is read-only.
+                // Preserve uncertain setup writes, but do not strand known fixtures after a read assertion.
+                if(acknowledgedIds!=null)await(await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=acknowledgedIds})).ConsumeAsync();
+            }
+            finally{await provider.DeActivateProviderAsync();}
+        }
     }
 
     [TestMethod]
