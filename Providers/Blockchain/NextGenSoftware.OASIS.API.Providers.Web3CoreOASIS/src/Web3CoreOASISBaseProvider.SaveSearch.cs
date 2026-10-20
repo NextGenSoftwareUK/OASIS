@@ -94,6 +94,7 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             ArgumentNullException.ThrowIfNull(source);
+            var publication=StoredRecordPublicationSnapshot<T>.Capture(source);
             var originalId=source.Id;
             var snapshot=clone(source);
             snapshot.Id=originalId==Guid.Empty ? Guid.NewGuid():originalId;
@@ -104,7 +105,7 @@ public partial class Web3CoreOASISBaseProvider
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
             var committed=await submit((uint)HashUtility.GetNumericHash(snapshot.Id.ToString()),PrivateExternalId(snapshot.Id),payload);
             acknowledged=snapshot.Id;transaction=committed.Receipt.TransactionHash;
-            if(source.Id!=originalId) throw new InvalidOperationException("Caller profile identity changed during acknowledged Web3Core write.");
+            publication.ValidateUnchanged();
             source.Id=snapshot.Id;
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             source.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();source.IsNewHolon=false;
@@ -156,15 +157,15 @@ public partial class Web3CoreOASISBaseProvider
             {
                 Holon committed=null;
                 var receipt=await _web3CoreOASIS.UpsertPreparedAsync("holon",(uint)HashUtility.GetNumericHash(node.Snapshot.Id.ToString()),PrivateExternalId(node.Snapshot.Id),async previous=>{
-                    var staged=await StagePrivateHistoryAsync("holon",node.Snapshot,previous,createHistory);committed=staged.Record;return staged.Info;
+                    var staged=await StagePrivateHistoryAsync("holon",node.Snapshot,previous,createHistory,node.Write);committed=staged.Record;return staged.Info;
                 });
                 acknowledged.Add(committed);transactions.Add(receipt.TransactionHash);
-                if(node.Source.Id!=node.OriginalId || node.Source.ParentHolonId!=node.OriginalParent)
-                    throw new InvalidOperationException("Caller graph identity changed during acknowledged Web3Core write.");
+                node.Publication.ValidateUnchanged();
                 node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                 node.Source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
                 node.Source.ProviderUniqueStorageKey[ProviderType.Value]=node.Snapshot.Id.ToString();node.Source.IsNewHolon=false;
                 node.Source.Version=committed.Version;node.Source.VersionId=committed.VersionId;node.Source.PreviousVersionId=committed.PreviousVersionId;
+                if(node.Source is Holon source)source.ChildRoleManifestJson=committed.ChildRoleManifestJson;
             }
             result.Result=plan.Roots;result.IsSaved=true;
         }
