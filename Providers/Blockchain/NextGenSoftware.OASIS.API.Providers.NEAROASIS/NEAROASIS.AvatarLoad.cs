@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 
@@ -71,10 +72,7 @@ public partial class NEAROASIS
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
     {
-        var all = await LoadAllAvatarRecordsAsync(version);
-        if (all.IsError) return new OASISResult<IAvatar>(null) { IsError = true, Message = all.Message, Exception = all.Exception };
-        var avatar = all.Result?.FirstOrDefault(item => string.Equals(item.Email, avatarEmail, StringComparison.OrdinalIgnoreCase));
-        return new OASISResult<IAvatar>(avatar) { Message = avatar == null ? $"Avatar email '{avatarEmail}' was not found on NEAR." : "Avatar loaded from NEAR contract storage." };
+        return await StoredRecordIdentityLookup.SelectAsync(avatarEmail,version,LoadAllAvatarsAsync,record=>record.Email);
     }
 
     public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) =>
@@ -82,10 +80,7 @@ public partial class NEAROASIS
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
     {
-        var all = await LoadAllAvatarRecordsAsync(version);
-        if (all.IsError) return new OASISResult<IAvatar>(null) { IsError = true, Message = all.Message, Exception = all.Exception };
-        var avatar = all.Result?.FirstOrDefault(item => string.Equals(item.Username, avatarUsername, StringComparison.OrdinalIgnoreCase));
-        return new OASISResult<IAvatar>(avatar) { Message = avatar == null ? $"Avatar username '{avatarUsername}' was not found on NEAR." : "Avatar loaded from NEAR contract storage." };
+        return await StoredRecordIdentityLookup.SelectAsync(avatarUsername,version,LoadAllAvatarsAsync,record=>record.Username);
     }
 
     public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) =>
