@@ -148,6 +148,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             await DeleteAsync(entity.Id);
         }
 
+        public Task DeleteIfUnchangedAsync(T expected)
+        {
+            ArgumentNullException.ThrowIfNull(expected);
+            if(expected.Id==Guid.Empty)throw new ArgumentException("A nonempty Cosmos identity is required.");
+            var snapshot=ProjectInput(expected);var key=snapshot.Id.ToString();
+            return _cosmosDbClientFactory.GetClient(CollectionName).DeleteUnchangedDocumentAsync(key,snapshot,ResolvePartitionKey(key));
+        }
+
         public async Task DeleteAsync(Guid id)
         {
             await DeleteAsync(id.ToString());

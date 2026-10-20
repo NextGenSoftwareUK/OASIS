@@ -7,6 +7,7 @@ $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenO
 $started=$false;$previous=$env:OASIS_COSMOSDB_NATIVE
 try {
     Push-Location $root
+    if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Reconcile original Cosmos fixture journals before another run; do not replay or reset.'}
     if(Get-NetTCPConnection -LocalPort 8082 -State Listen -ErrorAction SilentlyContinue) {throw 'Reserved Cosmos SDK outage endpoint8082 occupied.'}
     $state=(& wsl.exe -d Ubuntu -u root -- podman inspect oasis-cosmos --format '{{.State.Status}} {{.Image}}') -join ''
     if($LASTEXITCODE -ne 0 -or $state.Trim() -notin @('created b4edfeff93d70f2438ca55dbb14cdb8c6f111208d69c525baf62b7269ce44b56','exited b4edfeff93d70f2438ca55dbb14cdb8c6f111208d69c525baf62b7269ce44b56')) {throw 'Expected preserved stopped Cosmos DB container/image; refusing replacement or interference.'}
@@ -46,7 +47,7 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'Cosmos DB native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    $expected=if($InspectRetainedFixture -or $ReconcileRetainedRoutingFixture){1}else{42}
+    $expected=if($InspectRetainedFixture -or $ReconcileRetainedRoutingFixture){1}else{48}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0) {throw 'Exact expected native Cosmos DB case count with no skips required.'}
 }
 finally {

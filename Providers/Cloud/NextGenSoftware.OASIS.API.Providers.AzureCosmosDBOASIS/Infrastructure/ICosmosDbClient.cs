@@ -15,5 +15,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         Task<string> ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default);
         Task<string> ReplaceUnchangedDocumentAsync(string documentId, object expected, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default);
         Task DeleteDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default);
+        Task DeleteUnchangedDocumentAsync(string documentId, object expected, PartitionKey? partitionKey, CancellationToken cancellationToken = default);
     }
 }

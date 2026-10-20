@@ -342,6 +342,7 @@ public class CosmosNativeStorageTests
         public Task<string> ReplaceDocumentAsync(string id,object doc,PartitionKey? key,CancellationToken token=default)=>failed.ReplaceDocumentAsync(id,doc,key,token);
         public Task<string> ReplaceUnchangedDocumentAsync(string id,object expected,object doc,PartitionKey? key,CancellationToken token=default)=>failed.ReplaceUnchangedDocumentAsync(id,expected,doc,key,token);
         public Task DeleteDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)=>failed.DeleteDocumentAsync(id,key,token);
+        public Task DeleteUnchangedDocumentAsync(string id,object expected,PartitionKey? key,CancellationToken token=default)=>failed.DeleteUnchangedDocumentAsync(id,expected,key,token);
     }
 
     private sealed class DeadlineClient(Infrastructure.ICosmosDbClient inner) : Infrastructure.ICosmosDbClient
@@ -359,6 +360,8 @@ public class CosmosNativeStorageTests
             =>Bound(t=>inner.ReplaceUnchangedDocumentAsync(id,expected,doc,key,t),token);
         public async Task DeleteDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)
             =>await Bound(async t=>{await inner.DeleteDocumentAsync(id,key,t);return true;},token);
+        public async Task DeleteUnchangedDocumentAsync(string id,object expected,PartitionKey? key,CancellationToken token=default)
+            =>await Bound(async t=>{await inner.DeleteUnchangedDocumentAsync(id,expected,key,t);return true;},token);
     }
 
     private static async Task VerifyFailureRoutingAsync(AzureCosmosDBOASIS cosmos,IOASISStorageProvider sqlite,
