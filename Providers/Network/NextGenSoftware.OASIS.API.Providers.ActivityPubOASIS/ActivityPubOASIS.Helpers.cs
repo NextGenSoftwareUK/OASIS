@@ -271,62 +271,80 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             var response = new OASISResult<ISearchResults>();
             try
             {
+                ObjectDisposedException.ThrowIf(_disposed,this);
+                ArgumentNullException.ThrowIfNull(searchParams);
+                if(version!=0)throw new NotSupportedException("Native social search does not expose historical OASIS versions.");
+                if((!searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId!=Guid.Empty) || searchParams.ParentId!=Guid.Empty)
+                    throw new NotSupportedException("Native status search cannot silently ignore an inactive avatar scope or parent scope.");
+                if(searchParams.SearchGroups==null || searchParams.SearchGroups.Count==0)
+                    throw new ArgumentException("Native status search requires text search groups.",nameof(searchParams));
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                var groups=searchParams.SearchGroups.ToArray();
+                foreach(var group in groups){
+                if(group is not ISearchTextGroup textGroup)throw new NotSupportedException("Native status search requires text groups.");
+                if(textGroup.SearchAvatars || textGroup.SearchIds || textGroup.SearchProviderKeys || textGroup.AvatarSearchParams!=null || textGroup.HolonSearchParams!=null)
+                    throw new NotSupportedException("Native status search does not implement account or structured identity field search.");
+                var searchQuery=textGroup.SearchQuery;
+                if(string.IsNullOrWhiteSpace(searchQuery))throw new ArgumentException("Search query cannot be empty.",nameof(searchParams));
+                }
+                if(string.IsNullOrWhiteSpace(_accessToken))throw new UnauthorizedAccessException("Complete native status search requires a user token with read:search authority.");
                 if (!_isActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,ISearchResults>(activateResult);
                     }
                 }
 
-                // Extract search query from searchParams
-                string searchQuery = "";
-                if (searchParams is ISearchTextGroup textGroup)
-                {
-                    searchQuery = textGroup.SearchQuery ?? "";
-                }
-
-                if (string.IsNullOrWhiteSpace(searchQuery))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Search query cannot be empty");
-                    return response;
-                }
-
-                // Use ActivityPub search API
-                var apiUrl = $"/api/v2/search?q={Uri.EscapeDataString(searchQuery)}&type=statuses";
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
+                Dictionary<Guid,IHolon> combined=null;var totalPages=0;
+                foreach(ISearchTextGroup group in groups){
+                var searchQuery=group.SearchQuery;
+                var holons=new List<IHolon>();var seen=new HashSet<Guid>();var exhausted=false;
+                // Bounded exhaustive native search: never report the first page or a truncated prefix as complete.
+                for(var page=0;page<100;page++){
+                if(++totalPages>100)throw new System.IO.InvalidDataException("Native compound search exceeded the total 100-page safety bound.");
+                var apiUrl = $"/api/v2/search?q={Uri.EscapeDataString(searchQuery)}&type=statuses&limit=40&offset="+(page*40).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                using var httpResponse = await _httpClient.GetAsync(apiUrl);
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     var searchResult = JsonSerializer.Deserialize<JsonElement>(content);
                     
-                    var searchResults = new SearchResults();
-                    
-                    if (searchResult.TryGetProperty("statuses", out var statuses))
+                    if(searchResult.ValueKind!=JsonValueKind.Object || !searchResult.TryGetProperty("statuses",out var statuses) || statuses.ValueKind!=JsonValueKind.Array)
+                        throw new System.IO.InvalidDataException("Native search response requires a statuses array.");
+                    if(statuses.GetArrayLength()>40)throw new System.IO.InvalidDataException("Native search page exceeds requested limit.");
+                    if(statuses.GetArrayLength()==0){
+                        exhausted=true;break;
+                    }
                     {
-                        var holons = new List<IHolon>();
                         foreach (var status in statuses.EnumerateArray())
                         {
                             var holon = ParseActivityPubToHolon(status);
-                            if (holon != null)
-                            {
-                                holons.Add(holon);
-                            }
+                            if(holon==null || !seen.Add(holon.Id))throw new System.IO.InvalidDataException("Native search returned a missing or repeated status across pages.");
+                            holons.Add(holon);
                         }
-                        searchResults.SearchResultHolons = holons;
                     }
-                    
-                    response.Result = searchResults;
-                    response.IsError = false;
-                    response.Message = "Search completed successfully in ActivityPub";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to search in ActivityPub: {httpResponse.StatusCode}");
+                    httpResponse.EnsureSuccessStatusCode();
                 }
+                }
+                if(!exhausted)throw new System.IO.InvalidDataException("Native search exceeded the 100-page safety bound; no partial result is published.");
+                var matches=holons.ToDictionary(value=>value.Id);
+                // Same left-to-right PreviousSearchGroupOperator semantics as StoredRecordSearch.Matches.
+                if(combined==null)combined=matches;
+                else if(group.PreviousSearchGroupOperator==SearchParamGroupOperator.And){foreach(var id in combined.Keys.Where(id=>!matches.ContainsKey(id)).ToArray())combined.Remove(id);}
+                else{foreach(var entry in matches)combined.TryAdd(entry.Key,entry.Value);}
+                }
+                var selected=combined.Values.Where(value=>(!searchParams.SearchOnlyForCurrentAvatar || value.CreatedByAvatarId==searchParams.AvatarId) && NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(value.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
+                if(loadChildren){
+                    for(var index=0;index<selected.Count;index++)selected[index]=await ReadMastodonReplyGraphAsync((Holon)selected[index],recursive,maxChildDepth);
+                }
+                response.Result=new SearchResults{SearchResultHolons=selected};
+                response.Message="Native search exhausted its result pages; results are not a point-in-time snapshot.";
             }
             catch (Exception ex)
             {

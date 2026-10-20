@@ -50,7 +50,7 @@ public partial class ActivityPubOASIS
             if(!DateTimeOffset.TryParse(created,CultureInfo.InvariantCulture,DateTimeStyles.None,out var timestamp))throw new InvalidDataException("Invalid native status timestamp.");
             if(!status.TryGetProperty("account",out var account))throw new InvalidDataException("Missing native status author.");
             var authorId=Required(account,"id");var authorAcct=Required(account,"acct");
-            var holon=new Holon{Id=MastodonProjectionId("status",id),Name="Mastodon status "+id,CreatedDate=timestamp.UtcDateTime,HolonType=Core.Enums.HolonType.Holon};
+            var holon=new Holon{Id=MastodonProjectionId("status",id),CreatedByAvatarId=MastodonProjectionId("account",authorId),Name="Mastodon status "+id,CreatedDate=timestamp.UtcDateTime,HolonType=Core.Enums.HolonType.Holon};
             holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS]=id;
             holon.MetaData["MastodonObjectUri"]=objectUri.AbsoluteUri;holon.MetaData["MastodonContentHtml"]=content;
             holon.MetaData["MastodonAuthorId"]=authorId;holon.MetaData["MastodonAuthorAcct"]=authorAcct;
