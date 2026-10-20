@@ -113,6 +113,18 @@ public partial class Neo4jNativeAvatarTests
             var soft=await Write(first,softRequest);Assert.IsFalse(soft.IsError,soft.Message+soft.Exception);Assert.IsTrue(soft.IsDeleted);
             Assert.AreEqual("SoftDeleted",JObject.Parse(soft.MetaData[HolonCommittedDelta.ResultMetadataKey])["records"]!.Single().Value<string>("kind"));
             var tombstone=soft.Result.Single();Assert.IsTrue(tombstone.IsDeleted);Assert.AreEqual(current.Name,tombstone.Name);Assert.AreEqual(actor,tombstone.DeletedByAvatarId);
+            var committedTombstone=await Snapshot(root.Id);
+            var resurrection=Request(new Holon {Id=root.Id,Name="owned forbidden conditional resurrection"},Token(tombstone));
+            var refused=await Write(first,resurrection);
+            Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,refused.ErrorCode,refused.Message+refused.Exception);
+            Assert.IsFalse(refused.MetaData.ContainsKey(HolonCommittedDelta.ResultMetadataKey));
+            Assert.AreEqual(committedTombstone,await Snapshot(root.Id));
+            Assert.AreEqual(0L,await Count("MATCH (r:CosmicWriteReceipt {OperationId:$operation}) RETURN count(r) AS count",new{operation=resurrection.Write.OperationId.ToString()}));
+            var ordinaryResurrection=new Holon {Id=root.Id,Name="owned forbidden ordinary resurrection"};
+            var ordinaryRefused=synchronous?first.SaveHolon(ordinaryResurrection,saveChildren:false):await first.SaveHolonAsync(ordinaryResurrection,saveChildren:false);
+            Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,ordinaryRefused.ErrorCode,ordinaryRefused.Message+ordinaryRefused.Exception);
+            Assert.AreEqual(committedTombstone,await Snapshot(root.Id));
+            Assert.AreEqual(0,ordinaryResurrection.Version);
             var hardRequest=Request(new Holon {Id=root.Id},Token(tombstone),ConditionalHolonOperation.HardDelete);
             var hard=await Write(first,hardRequest);Assert.IsFalse(hard.IsError,hard.Message+hard.Exception);Assert.IsTrue(hard.IsDeleted);
             var hardDelta=JObject.Parse(hard.MetaData[HolonCommittedDelta.ResultMetadataKey])["records"]!.Single();

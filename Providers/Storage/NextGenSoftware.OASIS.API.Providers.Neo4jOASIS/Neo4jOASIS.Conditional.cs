@@ -139,6 +139,8 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicH
         if(conflicts.Count!=0)throw new CosmicConcurrencyException(conflicts);
         if(write.Plan is CommittedHolonReplicaPlan replica)
             return await PrepareCommittedReplicaHolonsAsync(transaction,submitted,observed,write,replica,archive).ConfigureAwait(false);
+        if(write.Plan.Operation==ConditionalHolonOperation.Save)
+            foreach(var item in submitted)RequireSaveLifecycle(observed[item.Id],item);
         // Keep the locked authoritative before-images; never recapture caller objects.
         write.PreviousRecords=observed.Values.Where(record=>record!=null).Cast<IHolon>().ToArray();
         write.RetainDeltaValues=archive;
@@ -185,22 +187,16 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicH
         if(row["count"].As<long>()!=1)throw new InvalidDataException("Neo4j conditional receipt acknowledgement is incomplete.");
     }
 
-    private static void SetConditionalAcknowledgement(OASISResult<IEnumerable<IHolon>> result,List<IHolon> roots,NeoAtomicHolonWrite write)
+    private static OASISResult<IEnumerable<IHolon>> SetConditionalAcknowledgement(List<IHolon> roots,NeoAtomicHolonWrite write)
     {
-        var pending=new Stack<IHolon>(roots);
-        while(pending.Count!=0)
-        {
-            var record=pending.Pop();record.IsNewHolon=false;
-            foreach(var child in record.Children ?? Enumerable.Empty<IHolon>())pending.Push(child);
-        }
-        result.Result=roots;result.IsSaved=write.Plan.Operation==ConditionalHolonOperation.Save;result.IsDeleted=!result.IsSaved;
-        result.SavedCount=result.IsSaved ? write.Plan.Nodes.Count:0;result.DeletedCount=result.IsDeleted ? write.Plan.Nodes.Count:0;
+        var result=ConditionalHolonAcknowledgement.Create(roots,write.Plan.Operation);
         result.MetaData??=new Dictionary<string,string>();result.MetaData["COSMIC.OperationId"]=write.Plan.OperationId.ToString("D");
         if(write.Plan is ConditionalHolonPlan)
         {
             if(write.Delta==null)result.MetaData["COSMIC.CommittedDeltaUnavailable"]="ReceiptPredatesDelta";
             else result.MetaData[HolonCommittedDelta.ResultMetadataKey]=write.Delta.SummaryJson;
         }
+        return result;
     }
 
     private static OASISResult<IEnumerable<IHolon>> ConditionalNeoFailure(OASISResult<IEnumerable<IHolon>> result,NeoAtomicHolonWrite write,Exception cause)
@@ -213,6 +209,7 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicH
             ? new Neo4jReplicaReconciliationException(write.Plan.OperationId,replica.SourceId,cause)
             : new Neo4jConditionalReconciliationException(write.Plan.OperationId,cause):cause;
         result.ErrorCode=uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED":cause is CosmicConcurrencyException ? CosmicConcurrencyException.Code
+            :cause is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode
             :cause is NeoReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"
             :cause is NeoConditionalIntentException ? "COSMIC_OPERATION_ID_REUSED":cause is NeoConditionalReceiptException ? "COSMIC_RECEIPT_INVALID"
             :cause is OperationCanceledException ? write.Plan is CommittedHolonReplicaPlan ? "COSMIC_REPLICA_WRITE_CANCELLED":"COSMIC_CONDITIONAL_WRITE_CANCELLED"

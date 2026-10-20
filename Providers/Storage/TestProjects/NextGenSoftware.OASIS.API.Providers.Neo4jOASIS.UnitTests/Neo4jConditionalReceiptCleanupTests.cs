@@ -68,6 +68,7 @@ public class Neo4jConditionalReceiptCleanupTests
         Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);driverProbe.SessionFactory=()=>session;
         var result=synchronous ? provider.ExecuteConditionalHolonWrite(request):await provider.ExecuteConditionalHolonWriteAsync(request);
         Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsSaved);Assert.IsTrue(result.IsWarning);
+        Assert.AreEqual(1,result.SavedCount);Assert.AreEqual(0,result.DeletedCount);Assert.IsTrue(result.HasAnyHolonsChanged);
         Assert.IsFalse(result.Result.Single().IsNewHolon);Assert.AreSame(probe.Cleanup,result.Exception);Assert.AreEqual(committed.VersionId,result.Result.Single().VersionId);
         Assert.AreEqual(1,probe.Queries);Assert.AreEqual(1,probe.Rollbacks);Assert.AreEqual(0,probe.Commits);Assert.AreEqual(0,source.Version);
         Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);

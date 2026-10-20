@@ -1,5 +1,9 @@
 # COSMIC source integration boundary
 
+## Neo4j save lifecycle and acknowledgement parity — 20 October 2026
+
+Neo4j now validates committed tombstones at locked observations before any conditional history stamp or ordinary graph write. Save cannot clear/retime/reattribute deletion or make the tombstone active; compatible tombstone edits and live saves remain allowed. The explicit lifecycle error is preserved. Conditional/replica acknowledgement assembly delegates to the existing Shared helper, fixing missing changed-state flags without duplicating graph/count logic. Original baseline12 failures/4 controls and two receipt-flag failures close in full Neo190, native conditional13, ordinary-outcome16 and Shared917, all zero skips. [Contract, native evidence and remaining lifecycle scope](NEO4J_SAVE_LIFECYCLE.md). Avatar/detail/all-provider parity and explicit authorized restore remain open.
+
 ## Neo4j conditional delta adoption — 20 October 2026
 
 Neo4j's existing transaction owner now retains its locked authoritative before-images, captures a Core delta against native acknowledged snapshots, persists Shared format4, and publishes the redacted summary only after successful acknowledgement. Original receipt replay is independent of current row existence/history policy. Replica protocol remains unchanged. [Native acceptance, original structural-assertion failure and reviewed fixture evidence](NEO4J_COMMITTED_DELTAS.md). Final strengthened conditional13, replica6, primary-outbox2 and Shared904 pass, zero skips, at parent841ca4498 on unchanged Core7B8680F8/Shared715BDC19. The retained runtime is stopped; this does not close wider enrollment, authorization, retention or the full roadmap.
