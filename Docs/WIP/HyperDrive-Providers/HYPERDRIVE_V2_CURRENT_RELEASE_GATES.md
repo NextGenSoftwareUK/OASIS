@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## GoogleCloud ordinary caller-state publication — 2026-10-19
+
+Reused shared canonical snapshot for ordinary avatar/detail/standalone-holon saves; pre-commit caller edits prevent dispatch, post-ack edits retain GUID reconciliation evidence and caller stamps. Twelve red-before controlled cases now pass; final149controlled, retained native29history+79regression/checkpoint readback+cleanupPASS/zero skips. Native regression SHA256 `A3195B09335D0EC7A09882E978C4340CB29C4575F34322C1D8CBC1613A8680BC`; all hashes/limits in [Firestore report](FIRESTORE_RECORD_HISTORY.md). Same runtime/export, no pending journals/listeners afterward, no downloads/public costs. Graph originals and hosted IAM/billing/full-provider/V2 gates remain OPEN.
+
 ## DynamoDB/AWS graph caller-publication guard — 2026-10-19
 
 Shared snapshot capture now protects selected graph originals before node submission and post-ack publication; four red-before version-edit schedules now pass. Controlled249/249pass944ms; broader retained nativeAWS130/130pass44s/zero skips, then conditional cleanup1/1pass. Native report SHA256 `9F914D626B4F01E4E8E930A6334EA899910CA270AA18715ACCB07C06D5231778`; exact inventory/hashes and limitations in [DynamoDB history report](DYNAMODB_RECORD_HISTORY.md). Pending journals0/listeners0, retained tables verified empty, no new environment/download or public spend. Native suite is regression proof, not native injected races, hosted IAM/billing or every public route/interface certification. Lifecycle writers remain a separate review scope.

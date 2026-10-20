@@ -167,6 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(avatar);
+                var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Avatar>.Capture(avatar);
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -182,7 +183,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     return result;
                 }
 
-                var snapshot=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Avatar>(avatar);
+                var snapshot=publication.Proposal;
                 if(snapshot.Id==Guid.Empty) snapshot.Id=Guid.NewGuid();
                 snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=snapshot.Id.ToString();
@@ -198,7 +199,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     ["data_json"] = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(snapshot)
                 };
                 
-                var committed=await WriteFirestoreRecordAsync<Avatar>(docRef,avatarData,IsVersionControlEnabled);
+                var committed=await WriteFirestoreRecordAsync<Avatar>(docRef,avatarData,IsVersionControlEnabled,publication.ValidateUnchanged);
+                ValidateFirestoreCallerPublication(publication.ValidateUnchanged,committed.Id);
                 avatar.Version=committed.Version;avatar.VersionId=committed.VersionId;avatar.PreviousVersionId=committed.PreviousVersionId;
                 avatar.Id=snapshot.Id;
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();

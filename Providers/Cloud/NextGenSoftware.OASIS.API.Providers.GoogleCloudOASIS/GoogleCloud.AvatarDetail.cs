@@ -41,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(avatarDetail);
+                var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<AvatarDetail>.Capture(avatarDetail);
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -57,14 +58,15 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 }
 
                 // Save avatar detail to Firestore with FULL property mapping
-                var snapshot=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<AvatarDetail>(avatarDetail);
+                var snapshot=publication.Proposal;
                 if(snapshot.Id==Guid.Empty) snapshot.Id=Guid.NewGuid();
                 snapshot.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
                 snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=snapshot.Id.ToString();
                 var docRef = _firestoreDb.Collection("avatarDetails").Document(snapshot.Id.ToString());
                 var avatarDetailData = EncodeAvatarDetail(snapshot);
                 
-                var committed=await WriteFirestoreRecordAsync<AvatarDetail>(docRef,avatarDetailData,IsVersionControlEnabled);
+                var committed=await WriteFirestoreRecordAsync<AvatarDetail>(docRef,avatarDetailData,IsVersionControlEnabled,publication.ValidateUnchanged);
+                ValidateFirestoreCallerPublication(publication.ValidateUnchanged,committed.Id);
                 avatarDetail.Version=committed.Version;avatarDetail.VersionId=committed.VersionId;avatarDetail.PreviousVersionId=committed.PreviousVersionId;
                 avatarDetail.Id=snapshot.Id;
                 avatarDetail.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
@@ -117,6 +119,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     if(!graph.IsError) converted.Result=holon;
                     return converted;
                 }
+                var source=holon;
+                var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(source);
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -132,8 +136,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     return result;
                 }
 
-                var source=holon;
-                holon=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Holon>(source);
+                holon=publication.Proposal;
                 if (holon.Id == Guid.Empty)
                     holon.Id = Guid.NewGuid();
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
@@ -172,7 +175,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 };
                 
                 holonData["data_json"]=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(holon);
-                var committed=await WriteFirestoreRecordAsync<Holon>(docRef,holonData,IsVersionControlEnabled);
+                var committed=await WriteFirestoreRecordAsync<Holon>(docRef,holonData,IsVersionControlEnabled,publication.ValidateUnchanged);
+                ValidateFirestoreCallerPublication(publication.ValidateUnchanged,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=holon.Id;
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
