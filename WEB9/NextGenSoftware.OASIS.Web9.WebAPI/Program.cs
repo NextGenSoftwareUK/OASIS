@@ -46,6 +46,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services
     .AddGraphQLServer()
+    .DisableIntrospection(false)
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddType<UnifiedStatusType>()

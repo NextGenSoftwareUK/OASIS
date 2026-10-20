@@ -86,6 +86,12 @@ jobs:
       - name: Full production build must have zero errors
         run: dotnet build "The OASIS - NoTests.sln" --configuration Release -warnaserror:none
 
+      # Compiling is not enough for GraphQL: HotChocolate builds each schema at runtime, so a package or
+      # binding regression only shows up when the schema is built. Build, execute and introspect all of
+      # WEB4-WEB10 from the production registrations.
+      - name: Every Web API GraphQL schema must build, execute and introspect
+        run: dotnet run --project Tests/CompatibilitySchemas/CompatibilitySchemas.csproj --configuration Release -- . artifacts/compatibility-schemas
+
   # Runs the storage-provider integration tests against REAL backends, in throwaway
   # containers. Without this the tier-B integration tests compile and "pass" while
   # touching nothing, because each provider falls back to a localhost default that
