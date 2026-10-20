@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## AWS alias full130 refresh green after activation fix
+
+Retained3658terminal0: baseline1/full130/verifiedcleanup1 all green, zero skips. Full report2A14650395BFDDD2C1BCA41CFDF15B60FE3BE151F2BA41F52E40198AFC50C6DB; exact hashes/dependencies/cleanupinventory in DYNAMODB_RECORD_HISTORY.md. Original reports/inventory renamed in place after hash checks; pending0/listenersabsent. Same environment, no download/publicspend/devpush. Mix of local SDK/control/routing regression coverage, not130 hostedAWS proofs or full-interface/globalV2 certification. Consumer includes concurrent uncommitted SQLite numeric candidate; no immutable release claim.
+
 ## AWS/DynamoDB activation key contract — controlled297/native95 green
 
 Wrong partition key, extra sort key and numeric id formerly activated despite ACTIVE status;3regressions first failed. Same final DescribeTable now verifies canonical string id partition key without another SDK request or schema alteration. Controlled297/297 and retained native95/95 pass zero skips; native8CDBD95BDE62879BA1620EA472AEEE0DE5DF6753D694E362D3D59304F34937AE. Original report preserved in place, pending0/listenersabsent. AWS alias inherits owner; fullAWS130/hostedIAM/TLS/fees/interfaces/globalV2 not newly certified. Exact dependencies/scope in DYNAMODB_RECORD_HISTORY.md. No new runtime/download/devpush.
