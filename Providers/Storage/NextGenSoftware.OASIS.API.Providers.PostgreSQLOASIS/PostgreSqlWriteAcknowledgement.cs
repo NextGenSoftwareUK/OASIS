@@ -9,22 +9,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS;
 
 public partial class PostgreSQLOASIS
 {
-    private static async Task ExecuteStoredWriteAsync(NpgsqlCommand command,Guid recordId)
-    {
-        try{
-            if(await command.ExecuteNonQueryAsync()!=1)
-                throw new PostgreSqlWriteReconciliationException(recordId,new InvalidDataException("PostgreSQL upsert did not acknowledge exactly one row."));
-        }catch(NpgsqlException cause)when(cause is not PostgresException){
-            throw new PostgreSqlWriteReconciliationException(recordId,cause);
-        }
-    }
-
     private void PublishAcknowledgedIdentity<T>(T source,T stored,StoredRecordPublicationSnapshot<T> publication) where T:class,IHolonBase
     {
         try{
             publication.ValidateUnchanged();
             source.Id=stored.Id;source.ProviderUniqueStorageKey??=new();
             source.ProviderUniqueStorageKey[ProviderType.Value]=stored.Id.ToString();source.IsNewHolon=false;
+            source.Version=stored.Version;source.VersionId=stored.VersionId;source.PreviousVersionId=stored.PreviousVersionId;
         }catch(Exception cause){throw new PostgreSqlWriteReconciliationException(stored.Id,cause);}
     }
 }

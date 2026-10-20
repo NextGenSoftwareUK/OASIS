@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 namespace NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests;
 
 [TestClass][DoNotParallelize]
-public class PostgreSqlNativeAcceptanceTests
+public partial class PostgreSqlNativeAcceptanceTests
 {
     [DataTestMethod]
     [DataRow(false,false,false)][DataRow(false,false,true)][DataRow(false,true,false)][DataRow(false,true,true)]
@@ -77,7 +77,7 @@ public class PostgreSqlNativeAcceptanceTests
                 using var document=JsonDocument.Parse(body);Assert.AreEqual(row.Id,document.RootElement.GetProperty("Id").GetGuid());
                 Assert.AreEqual(marker,document.RootElement.GetProperty("MetaData").GetProperty("owned-fixture").GetString());ownedAcknowledgedBody=body;
             }
-            var query=new SearchParams{SearchGroups=new(){new SearchTextGroup{SearchQuery=marker}}};
+            var query=new SearchParams{SearchOnlyForCurrentAvatar=false,SearchGroups=new(){new SearchTextGroup{SearchQuery=marker}}};
             var found=await provider.SearchAsync(query,loadChildren:false);Assert.IsFalse(found.IsError,found.Exception?.ToString());
             Assert.IsTrue(found.Result.SearchResultHolons.Any(value=>value.Id==row.Id),"Canonical persisted text must be searchable.");
         }finally{
