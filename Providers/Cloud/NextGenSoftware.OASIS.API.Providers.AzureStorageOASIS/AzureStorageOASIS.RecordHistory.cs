@@ -28,7 +28,7 @@ public partial class AzureStorageOASIS
         ValidateDetailVersion(version);
         var record = Deserialise<T>(json) ?? throw new InvalidDataException("Canonical blob record is null.");
         if (record.Id == Guid.Empty) throw new InvalidDataException("Canonical blob record has no identity.");
-        var document = JObject.Parse(json);
+        var document = OasisJson.ParseStoredObject(json);
         if (document.Property("id") != null && (document["id"]?.Type != JTokenType.String || document["id"]!.Value<string>() != record.Id.ToString()))
             throw new InvalidDataException("Blob history identity differs from the canonical record.");
         document["id"] = record.Id.ToString();
@@ -57,7 +57,7 @@ public partial class AzureStorageOASIS
             prior = await ReadBlobHistoryAsync<T>(previousJson, 0);
             if (prior == null || prior.Id != proposed.Id)
                 throw new InvalidDataException("Existing blob identity differs from the proposed record.");
-            previous = JObject.Parse(previousJson);
+            previous = OasisJson.ParseStoredObject(previousJson);
             previous["id"] = prior.Id.ToString();
         }
         if(typeof(T)==typeof(Holon) && proposed is Holon holon)
@@ -65,7 +65,7 @@ public partial class AzureStorageOASIS
                 HolonChildRoleWriteKind.SourceSave,previousJson!=null,(prior as Holon)?.ChildRoleManifestJson);
         return createHistory || previous?.Property(EmbeddedRecordHistory.PropertyName) != null
             ? await BlobHistory.StageAsync(proposed, previous, Deserialise<T>)
-            : JObject.Parse(Serialise(proposed));
+            : OasisJson.ParseStoredObject(Serialise(proposed));
     }
 
     // The production constructor disables SDK retries: never replay an unknown Commit

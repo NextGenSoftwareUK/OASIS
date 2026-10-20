@@ -11,6 +11,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.UnitTests;
 [TestClass]
 public class AzureRecordHistoryTests
 {
+    [TestMethod]
+    public async Task UnversionedBlobStagePreservesExactMetadata()
+    {
+        var value=1.0000000000000000000000000001m;
+        var record=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=value}};
+        var staged=await Stage(record,null,false);
+        using var document=System.Text.Json.JsonDocument.Parse(staged.ToString());
+        Assert.AreEqual(value,document.RootElement.GetProperty("MetaData").GetProperty("precise").GetDecimal());
+        Assert.AreEqual(0,record.Version);Assert.AreEqual(value,record.MetaData["precise"]);
+    }
+
     private static Task<JObject> Stage<T>(T record, string? previous, bool enabled) where T : class, IHolonBase
         => (Task<JObject>)typeof(AzureStorageOASIS).GetMethod("StageBlobHistoryAsync", BindingFlags.Static | BindingFlags.NonPublic)!
             .MakeGenericMethod(typeof(T)).Invoke(null, new object?[] { record, previous, enabled, null })!;
