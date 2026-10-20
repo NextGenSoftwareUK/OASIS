@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteOwnership.cs" Link="Production/HolonWriteOwnership.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/HyperDrive/CosmicHolonReplicationEndpoints.cs" Link="Production/CosmicHolonReplicationEndpoints.cs" />
     <Compile Include="../NextGenSoftware.OASIS.OASISBootLoader/HederaQueryPreparationConfiguration.cs" Link="Production/HederaQueryPreparationConfiguration.cs" />
     <Compile Include="../NextGenSoftware.OASIS.OASISBootLoader/TronEscrowConfiguration.cs" Link="Production/TronEscrowConfiguration.cs" />
     <Compile Include="../NextGenSoftware.OASIS.OASISBootLoader/HederaEscrowConfiguration.cs" Link="Production/HederaEscrowConfiguration.cs" />
