@@ -12,10 +12,13 @@ The production profile and translator share `SqliteCqlContract.MetadataTypes`. U
 | `bool`, `bool?` | JSON true/false | `==`, `!=` | Exact scalar arrays | None |
 | `int`, `int?` | JSON integer within Int32 bounds | All six comparisons | Exact scalar arrays | None |
 | `long`, `long?` | JSON integer represented exactly by SQLite Int64 | All six comparisons | Exact scalar arrays | None |
+| `Guid`, `Guid?` | Canonical 36-byte GUID D text, either hex case | `==`, `!=` | Exact GUID arrays, including nullable null | None |
 
 Nullable value types additionally admit explicit JSON null. The CLR width of the value originally serialized is not retained in JSON: a JSON integer within Int32 bounds can be queried as either int or long. JSON true/false, numeric text and fractional numbers are not integers. Oversized JSON integers surfaced as SQLite REAL are excluded from integer domains, preventing rounding into a matching value.
 
-Decimal, floating-point, GUID, DateTime and enum metadata path types remain unsupported natively. Mixed numeric metadata comparisons are rejected; canonical Int32 field widening support does not grant metadata widening. These remain roadmap requirements rather than inferred capabilities.
+Decimal, floating-point, DateTime and enum metadata path types remain unsupported natively. Mixed numeric metadata comparisons are rejected; canonical Int32 field widening support does not grant metadata widening. These remain roadmap requirements rather than inferred capabilities.
+
+GUID identity is case-insensitive only when the declared marker type is `Guid`/`Guid?`. String markers retain ordinal comparison. Native SQL checks the exact ASCII hex/hyphen shape and byte length before comparing bound canonical literals with NOCASE collation. Compact GUIDs, braces, whitespace, embedded NUL, non-hex text, arrays and numeric values stay outside the GUID domain. Missing and nullable semantics follow the rules below. This capability currently belongs to SQLite; MongoDB UUID representations still require separate implementation and native verification.
 
 ## Missing, null and type semantics
 
@@ -43,6 +46,14 @@ var result = await provider.ExecuteCosmicQueryAsync(plan.Result, maximumResults:
 The complete query translates before EF opens a connection. Every key and literal contributes to the existing 900-parameter predicate budget; one separately bound result-limit parameter is reserved. Compiler, membership and result bounds remain enforced. Overflow returns an explicit error without a partial result or client evaluation. The adapter performs no writes.
 
 ## Verification
+
+### SQLite GUID increment
+
+The GUID-specific red gate failed9/passed1: the existing ordinal-string control passed while GUID predicates rejected missing provider capability. Final GUID plus existing scalar/null gates pass52/52; the complete native SQLite suite passes1,051/1,051 in153 seconds, zero skips. The prior unsupported-GUID assertion was replaced by positive native coverage; decimal/double/date/enum/coercion rejection remains tested. Native rows include CLR GUIDs, uppercase D text, another GUID, missing/null, compact/braced/padded/NUL/nonhex text, numbers and arrays. Equality/reversed equality, inequality, nullable tests, membership, NOT and ordinal-string controls verify exact returned identities.
+
+Evidence: `TestResults/SQLiteCurrent/sqlite-cql-guid-red.trx`, `sqlite-cql-guid-focused.trx`, `sqlite-cql-guid-full.trx`, and `cql-guid-artifacts.json`. Consumer Core SHA256 is `51A35ED9BDC5C1A1A36CF132B8F8F9195175096698D7A4556278E0E0AAF60270`; SQLite is `CB4EB5F6885ADDD568E09CCD87A29791FF73083C9EAE37485599F33719716E21`. The artifact report also records Shared and free disk space. The fixed SQLite database is absent after normal teardown. No Core source, dependency pin or deployment change belongs to this increment.
+
+The reports below describe earlier checkpoints.
 
 The original 26-case red report is preserved: 25 cases rejected absent scalar metadata capability; one exposed missing built-in nullable boolean literal lifting in the compiler. The compiler now admits only a method-free built-in T-to-Nullable<T> scalar literal lift, preserving the boxed scalar without invoking conversion methods. One new Core case also verifies nullable GUID and UTC DateTime literal compilation; that does not enable their SQLite metadata translation.
 

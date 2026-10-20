@@ -76,15 +76,14 @@ public partial class SQLLiteDBOASISIntegrationTests
     }
 
     [Theory]
-    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)] [InlineData(4)] [InlineData(5)]
+    [InlineData(0)] [InlineData(1)] [InlineData(3)] [InlineData(4)] [InlineData(5)]
     public async Task NativeCqlScalarMetadataRejectsUncertifiedTypesAndCoercionBeforeIO(int selection)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
-        var id = Guid.NewGuid(); var utc = new DateTime(2026, 10, 20, 0, 0, 0, DateTimeKind.Utc);
+        var utc = new DateTime(2026, 10, 20, 0, 0, 0, DateTimeKind.Utc);
         Expression<Func<Holon, bool>> predicate = selection switch {
             0 => h => CosmicQueryMetadata.Value<decimal>(h, "x") == 1.000000000000000000000000001m,
             1 => h => CosmicQueryMetadata.Value<double>(h, "x") == 1.1d,
-            2 => h => CosmicQueryMetadata.Value<Guid>(h, "x") == id,
             3 => h => CosmicQueryMetadata.Value<DateTime>(h, "x") == utc,
             4 => h => CosmicQueryMetadata.Value<NextGenSoftware.OASIS.API.Core.Enums.HolonType>(h, "x") == NextGenSoftware.OASIS.API.Core.Enums.HolonType.Quest,
             _ => h => (decimal)CosmicQueryMetadata.Value<int>(h, "x") == 1.1m

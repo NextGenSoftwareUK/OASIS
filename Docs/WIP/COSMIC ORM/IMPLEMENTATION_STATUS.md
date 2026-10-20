@@ -2,7 +2,11 @@
 
 Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-providers`. Selected foundations are implemented and verified; the full roadmap is unfinished. Source commits, assembly hashes, original failures and fixture reconciliation are retained in [integration evidence](INTEGRATION_BOUNDARY.md) and [verification history](VERIFICATION.md).
 
-## Latest working increment — MongoDB CQL and shared scalar-property queries
+## Latest working increment — SQLite GUID metadata queries
+
+SQLite now admits `Guid`/`Guid?` metadata equality, inequality and membership over canonical D strings, with case-insensitive GUID identity and strict shape/byte-length validation. Missing/wrong-type values, explicit nullable nulls and NOT preserve the existing scalar contract. String markers remain ordinal. The original native gate failed9/passed1; final focused52/52 and full native1,051/1,051 pass, zero skips. Core and dependency pins are unchanged. MongoDB UUID metadata translation remains open. [Contract and verification](CQL_SCALAR_METADATA.md#sqlite-guid-increment).
+
+## MongoDB CQL and shared scalar-property queries
 
 Focused follow-on: native comparison vectors exposed MongoDB inequality excluding canonical nulls and explicit nullable metadata nulls. Its native guard now matches the established SQLite contract; **188/188 controlled and 3/3 expanded native cases** pass, zero skips, after independent pre-write fixture reconciliation. Core/pins are unchanged. [Exact targeted epoch and distinction from the broad baseline below](CQL_MONGO_NATIVE.md#verification).
 
