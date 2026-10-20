@@ -2,7 +2,11 @@
 
 Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-providers`. Selected foundations are implemented and verified; the full roadmap is unfinished. Source commits, assembly hashes, original failures and fixture reconciliation are retained in [integration evidence](INTEGRATION_BOUNDARY.md) and [verification history](VERIFICATION.md).
 
-## Latest working increment — MongoDB GUID metadata queries
+## Latest working increment — MongoDB exact UTC metadata date queries
+
+MongoDB DateTime/DateTime? metadata predicates now compare exact Int64 ticks using the existing persisted precision companion; records without it retain their actual millisecond precision. All six comparisons and membership preserve sparse/null/NOT semantics without parsing strings or numeric epochs as dates. Final controlled193/193 and expanded native3/3 pass, zero skips, including one-tick separation, pre-1970 values and DateTime bounds in both dictionary layouts. [Contract, reports and remaining date-query scope](CQL_MONGO_NATIVE.md#utc-metadata-date-increment). No Core source, dependency pin or deployment change is included.
+
+## MongoDB GUID metadata queries
 
 MongoDB now translates Guid/Guid? metadata equality, inequality and membership over canonical D strings, standard UUID binary and CSharpLegacy UUID binary. The existing sparse/null/NOT contract is preserved; malformed text and unrelated binary remain outside the domain. Final controlled191/191 and expanded native3/3 pass with matching consumer assemblies and zero skips. [Native contract, original red evidence and exact verification scope](CQL_MONGO_NATIVE.md#guid-metadata-increment). No Core source or dependency pin change is included.
 

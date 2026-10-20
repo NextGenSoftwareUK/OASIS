@@ -26,6 +26,8 @@ internal static class MongoCqlContract
             new CosmicQueryMetadataCapability(typeof(bool?),equal,supportsMembership:true),
             new CosmicQueryMetadataCapability(typeof(Guid),equal,supportsMembership:true),
             new CosmicQueryMetadataCapability(typeof(Guid?),equal,supportsMembership:true),
+            new CosmicQueryMetadataCapability(typeof(DateTime),ordered,supportsMembership:true),
+            new CosmicQueryMetadataCapability(typeof(DateTime?),ordered,supportsMembership:true),
             new CosmicQueryMetadataCapability(typeof(int),ordered,supportsMembership:true),
             new CosmicQueryMetadataCapability(typeof(int?),ordered,supportsMembership:true),
             new CosmicQueryMetadataCapability(typeof(long),ordered,supportsMembership:true),
