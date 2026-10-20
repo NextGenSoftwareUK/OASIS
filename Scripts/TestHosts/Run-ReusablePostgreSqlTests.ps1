@@ -48,7 +48,7 @@ try{
     if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'PostgreSQL native verification incomplete; preserve original records/journals.'}
     [xml]$trx=Get-Content -LiteralPath $report -Raw
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($ReconcileComputedNameFixture){1}else{8}
+    $expected=if($ReconcileComputedNameFixture){1}else{16}
     if((Get-Item -LiteralPath $report).LastWriteTimeUtc -lt $started -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete native report without skips required.'}
     $passed=$true
 }finally{
