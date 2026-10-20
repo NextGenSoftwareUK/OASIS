@@ -21,13 +21,8 @@ public partial class GoogleCloudOASIS
     // Both identity documents are read in profile/detail order before any write.
     private static async Task<T> WriteFirestoreIdentityAsync<T>(DocumentReference reference,Dictionary<string,object> fields,T proposed,bool history,Action validateCaller) where T:class,IHolonBase
     {
-        var database=reference.Database;var client=database.Client;
-        var databasePath=$"projects/{database.ProjectId}/databases/{database.DatabaseId}";
-        var opened=await client.BeginTransactionAsync(new Native.BeginTransactionRequest{Database=databasePath},IdentityTransactionCallSettings);
-        var transaction=opened?.Transaction;
-        if(transaction==null||transaction.IsEmpty)throw new InvalidDataException("Firestore identity transaction lacks its native transaction ID.");
-        var dispatched=false;var rejected=false;
-        try{
+        var database=reference.Database;
+        return await RunFirestoreIdentityTransactionAsync<T>(database,reference.Path,async transaction=>{
             var profile=await ReadFirestoreIdentityDocumentAsync(database.Collection("avatars").Document(reference.Id),transaction);
             var detail=await ReadFirestoreIdentityDocumentAsync(database.Collection("avatarDetails").Document(reference.Id),transaction);
             var own=reference.Parent.Id=="avatars"?profile:detail;
@@ -43,20 +38,49 @@ public partial class GoogleCloudOASIS
             var document=new Native.Document{Name=reference.Path};
             foreach(var field in fields)document.Fields.Add(field.Key,EncodeFirestoreIdentityValue(field.Value));
             var condition=own==null?new Native.Precondition{Exists=false}:new Native.Precondition{UpdateTime=own.UpdateTime};
-            var request=new Native.CommitRequest{Database=databasePath,Transaction=transaction};
-            request.Writes.Add(new Native.Write{Update=document,CurrentDocument=condition});
-            validateCaller();dispatched=true;
+            return (committed,new[]{new Native.Write{Update=document,CurrentDocument=condition}});
+        },validateCaller);
+    }
+
+    // One protocol owner for identity saves and paired lifecycle writes. Preparation executes ONCE.
+    private static async Task<T> RunFirestoreIdentityTransactionAsync<T>(FirestoreDb database,string paths,
+        Func<ByteString,Task<(T Result,IReadOnlyList<Native.Write> Writes)>> prepare,Action validateCaller=null)
+    {
+        RequireSingleAttemptFirestoreCommit(database);
+        var client=database.Client;var databasePath=$"projects/{database.ProjectId}/databases/{database.DatabaseId}";
+        var opened=await client.BeginTransactionAsync(new Native.BeginTransactionRequest{Database=databasePath},IdentityTransactionCallSettings);
+        var transaction=opened?.Transaction;
+        if(transaction==null||transaction.IsEmpty)throw new InvalidDataException("Firestore identity transaction lacks its native transaction ID.");
+        var dispatched=false;var rejected=false;var rollbackAttempted=false;
+        try{
+            var prepared=await prepare(transaction);
+            if(prepared.Writes==null)throw new InvalidDataException("Firestore identity preparation returned no write plan.");
+            validateCaller?.Invoke();
+            if(prepared.Writes.Count==0){
+                rollbackAttempted=true;
+                await client.RollbackAsync(new Native.RollbackRequest{Database=databasePath,Transaction=transaction},IdentityTransactionCallSettings);
+                return prepared.Result;
+            }
+            var request=new Native.CommitRequest{Database=databasePath,Transaction=transaction};request.Writes.Add(prepared.Writes);
+            dispatched=true;
             Native.CommitResponse acknowledgement;
             try{acknowledgement=await client.CommitAsync(request,IdentityTransactionCallSettings);}
             catch(RpcException cause)when(cause.StatusCode is StatusCode.AlreadyExists or StatusCode.FailedPrecondition or StatusCode.NotFound or StatusCode.Aborted or StatusCode.InvalidArgument){rejected=true;throw;}
             if(acknowledgement?.CommitTime==null||Timestamp.FromProto(acknowledgement.CommitTime).Equals(default(Timestamp))
-                ||acknowledgement.WriteResults.Count!=1||acknowledgement.WriteResults[0].UpdateTime==null
-                ||Timestamp.FromProto(acknowledgement.WriteResults[0].UpdateTime).Equals(default(Timestamp)))
+                ||acknowledgement.WriteResults.Count!=prepared.Writes.Count)
                 throw new InvalidDataException("Firestore identity transaction lacks complete native commit acknowledgement.");
-            return committed;
+            for(var index=0;index<acknowledgement.WriteResults.Count;index++){
+                var result=acknowledgement.WriteResults[index];
+                // Firestore omits update_time on deletes; their individual result plus CommitTime acknowledges deletion.
+                if(result.UpdateTime==null&&prepared.Writes[index].OperationCase==Native.Write.OperationOneofCase.Delete)continue;
+                if(result.UpdateTime==null||Timestamp.FromProto(result.UpdateTime).Equals(default(Timestamp)))
+                    throw new InvalidDataException("Firestore identity transaction lacks a native write acknowledgement timestamp.");
+            }
+            return prepared.Result;
         }catch(Exception cause){
             if(dispatched&&!rejected)
-                throw new GoogleFirestoreMutationReconciliationException(reference.Path,cause,transaction.ToBase64());
+                throw new GoogleFirestoreMutationReconciliationException(paths,cause,transaction.ToBase64());
+            if(rollbackAttempted)throw;
             try{await client.RollbackAsync(new Native.RollbackRequest{Database=databasePath,Transaction=transaction},IdentityTransactionCallSettings);}
             catch(Exception rollback){throw new AggregateException("Firestore identity operation failed and native rollback was not acknowledged.",cause,rollback);}
             throw;
