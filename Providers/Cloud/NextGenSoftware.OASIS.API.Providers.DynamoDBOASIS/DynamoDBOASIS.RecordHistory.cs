@@ -68,7 +68,7 @@ public partial class DynamoDBOASIS
         }
         var proposed=ReadStoredIdentity<T>(item);var id=proposed.Id;
         var observed=await client.GetItemAsync(new GetItemRequest{TableName=table,Key=new(){{"id",new AttributeValue{S=id.ToString()}}},ConsistentRead=true});
-        if(observed?.HttpStatusCode!=HttpStatusCode.OK||observed.Item==null)throw new InvalidDataException("DynamoDB pre-write snapshot lacks authoritative acknowledgement.");
+        RequireItemRead(observed);
         var previous=observed.Item.Count==0?null:observed.Item;
         string previousJson=null;
         JObject previousDocument=null;
