@@ -21,12 +21,12 @@ public partial class AzureStorageOASIS
         catch(RequestFailedException cause) when(cause.Status==412 || cause.Status==409 && cause.ErrorCode=="BlobAlreadyExists") {throw;}
         catch(Exception cause) {throw new AzureBlobMutationReconciliationException(blob.BlobContainerName,blob.Name,cause);}
     }
-    private async Task<OASISResult<bool>> DeleteSelectedAvatarAsync(Task<OASISResult<IAvatar>> lookup,bool softDelete)
+    private async Task<OASISResult<bool>> DeleteSelectedAvatarAsync(Task<OASISResult<IAvatar>> lookup,bool softDelete,Func<IAvatar,bool> selectedIdentity)
     {
         var loaded=await lookup;
         if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(loaded);
         if(loaded.Result==null) return new OASISResult<bool> {IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="No avatar matches deletion selector."};
-        return await DeleteAvatarAsync(loaded.Result.Id,softDelete);
+        return await ApplyAvatarLifecycleAsync(loaded.Result.Id,softDelete,selectedIdentity:selectedIdentity);
     }
 
     private async Task<OASISResult<IAvatar>> ReadSelectedAvatarAsync(string selector,bool email,int version)
