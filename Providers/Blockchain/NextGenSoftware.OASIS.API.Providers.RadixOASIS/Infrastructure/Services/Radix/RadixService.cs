@@ -90,7 +90,7 @@ public sealed class RadixService : IRadixService
             token.ThrowIfCancellationRequested();
             
             Mnemonic mnemonic = new(Wordlist.English, WordCount.TwentyFour);
-            using PrivateKey privateKey = RadixBridgeHelper.GetPrivateKey(mnemonic);
+            using PrivateKey privateKey = RadixBridgeHelper.GetPrivateKey(mnemonic, _config.NetworkId);
             string publicKey = Convert.ToHexString(privateKey.PublicKeyBytes());
 
             result.Result = (publicKey, privateKey.RawHex(), mnemonic.ToString());
@@ -127,7 +127,7 @@ public sealed class RadixService : IRadixService
             }
 
             Mnemonic mnemonic = new(seedPhrase);
-            using PrivateKey privateKey = RadixBridgeHelper.GetPrivateKey(mnemonic);
+            using PrivateKey privateKey = RadixBridgeHelper.GetPrivateKey(mnemonic, _config.NetworkId);
             string publicKey = Convert.ToHexString(privateKey.PublicKeyBytes());
 
             result.Result = (publicKey, privateKey.RawHex());
