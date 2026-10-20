@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Ethereum linked-membership reader — controlled102 green; native280 OPEN
+
+Existing shared reader verified for legacy/empty/selected/missing/wrongparent/wrongowner and independent childversions:6new controlled cases pass, total102/102non-native0skips SHA256ABD2B8F186854FFC42CA8A2F5CDD4D3A3EE717F7F84984EE5139948170F48C25. No reader production change; same copiedCore0DA52/Shared8163 as96cohort, not later concurrentCorecandidate. Combined280count prepared; nativechainblocked/originalevidence preserved. Exactscope in EVM_RECORD_HISTORY_GAPS.md; no runtime/download/publicgas/devpush.
+
 ## Standalone Ethereum graph ownership — controlled96 green; native274 OPEN
 
 Shared iterative graph plan/role resolver/canonical publication guard replace standalone recursive Children-only/ID-only handling. Embedded selected snapshots, manager-only references and numeric-key collision refusal retained; selected-empty caches cleared. Same observed checked-history transaction owner, no extra native request/alternate writer. Three before regressions failed;12new cases included in final96/96non-nativegreen0skips, SHA256F11A818A513268C93AE145F627512C5E6ADE0863CBE0E43400BD7D64633B0F04. Source epochs, stale-consumer disclosure and limits in EVM_RECORD_HISTORY_GAPS.md. Combined274 expectation prepared,64retention guards pass; native unchanged/unresolved originals preserved, no publicgas/download/devpush. Not full-provider/globalV2 completion.
