@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Npgsql;
 using NextGenSoftware.OASIS.API.Core;
@@ -14,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS
 {
@@ -28,15 +28,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS
     /// Upserts use INSERT ... ON CONFLICT DO UPDATE (standard Postgres idiom).
     /// Indexed columns (id, username, email, parent_holon_id) serve fast key lookups.
     /// </summary>
-    public class PostgreSQLOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class PostgreSQLOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _connectionString;
-
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
 
         private const string CreateAvatarsTable = @"
 CREATE TABLE IF NOT EXISTS oasis_avatars (
@@ -118,8 +112,8 @@ CREATE INDEX IF NOT EXISTS ix_oasis_holons_type   ON oasis_holons(holon_type);";
 
         // ─── Helpers ─────────────────────────────────────────────────────────────
 
-        private static string Serialize(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private static T? Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        private static string Serialize(object obj) => Core.Serialization.StoredRecordJson.Serialize(obj);
+        private static T? Deserialize<T>(string json) => Core.Serialization.StoredRecordJson.DeserializeStored<T>(json);
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
 
@@ -128,6 +122,9 @@ CREATE INDEX IF NOT EXISTS ix_oasis_holons_type   ON oasis_holons(holon_type);";
             var result = new OASISResult<IAvatar>();
             try
             {
+                var source=avatar;
+                var publication=StoredRecordPublicationSnapshot<IAvatar>.Capture(source);
+                avatar=publication.Proposal;
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null)
                     avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
@@ -151,16 +148,18 @@ ON CONFLICT (id) DO UPDATE SET
                 cmd.Parameters.AddWithValue("@email", avatar.Email ?? "");
                 cmd.Parameters.AddWithValue("@is_deleted", avatar.IsDeleted);
                 cmd.Parameters.AddWithValue("@data_json", Serialize(avatar));
-                await cmd.ExecuteNonQueryAsync();
-
-                result.Result = avatar;
+                publication.ValidateUnchanged();
+                await ExecuteStoredWriteAsync(cmd,avatar.Id);
+                PublishAcknowledgedIdentity(source,avatar,publication);
+                result.IsSaved=true;
+                result.Result = source;
                 result.IsError = false;
                 result.Message = $"PostgreSQLOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex)
             {
                 result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error saving avatar '{avatar.Username}': {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error saving avatar '{avatar?.Username}': {ex.Message}");
             }
             return result;
         }
@@ -348,7 +347,12 @@ ON CONFLICT (id) DO UPDATE SET
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                var source=avatarDetail;
+                var publication=StoredRecordPublicationSnapshot<IAvatarDetail>.Capture(source);
+                avatarDetail=publication.Proposal;
                 if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
+                avatarDetail.ProviderUniqueStorageKey??=new();
+                avatarDetail.ProviderUniqueStorageKey[ProviderType.Value]=avatarDetail.Id.ToString();
                 const string sql = @"
 INSERT INTO oasis_avatar_details (id, username, email, data_json)
 VALUES (@id, @username, @email, @data_json)
@@ -363,8 +367,10 @@ ON CONFLICT (id) DO UPDATE SET
                 cmd.Parameters.AddWithValue("@username", avatarDetail.Username ?? "");
                 cmd.Parameters.AddWithValue("@email", avatarDetail.Email ?? "");
                 cmd.Parameters.AddWithValue("@data_json", Serialize(avatarDetail));
-                await cmd.ExecuteNonQueryAsync();
-                result.Result = avatarDetail; result.IsError = false; result.Message = "PostgreSQLOASIS: AvatarDetail saved.";
+                publication.ValidateUnchanged();
+                await ExecuteStoredWriteAsync(cmd,avatarDetail.Id);
+                PublishAcknowledgedIdentity(source,avatarDetail,publication);
+                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "PostgreSQLOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error saving avatar detail: {ex.Message}"); }
             return result;
@@ -462,6 +468,9 @@ ON CONFLICT (id) DO UPDATE SET
             var result = new OASISResult<IHolon>();
             try
             {
+                var source=holon;
+                var publication=StoredRecordPublicationSnapshot<IHolon>.Capture(source);
+                holon=publication.Proposal;
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null)
                     holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
@@ -485,11 +494,12 @@ ON CONFLICT (id) DO UPDATE SET
                 cmd.Parameters.AddWithValue("@holon_type", (int)holon.HolonType);
                 cmd.Parameters.AddWithValue("@is_deleted", holon.IsDeleted);
                 cmd.Parameters.AddWithValue("@data_json", Serialize(holon));
-                await cmd.ExecuteNonQueryAsync();
-
-                result.Result = holon; result.IsError = false; result.Message = $"PostgreSQLOASIS: Holon '{holon.Name}' saved.";
+                publication.ValidateUnchanged();
+                await ExecuteStoredWriteAsync(cmd,holon.Id);
+                PublishAcknowledgedIdentity(source,holon,publication);
+                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"PostgreSQLOASIS: Holon '{holon.Name}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error saving holon '{holon?.Name}': {ex.Message}"); }
             return result;
         }
 
