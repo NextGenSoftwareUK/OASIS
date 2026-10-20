@@ -76,13 +76,13 @@ try {
     $env:OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY=$env:OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY
     $env:WEB3CORE_NATIVE_FIXTURE=Join-Path $taskRoot 'TestResults/Web3CoreCurrent/web3-storage.json'
     $nativeChecksStarted=$true
-    & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~EthereumOASISIntegrationTests|FullyQualifiedName~EthereumParentDepthControlledTests|FullyQualifiedName~EvmSearchOwnershipControlledTests' --logger 'trx;LogFileName=ethereum-native-current.trx' --results-directory $work -v:q
+    & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~EthereumOASISIntegrationTests|FullyQualifiedName~EthereumParentDepthControlledTests|FullyQualifiedName~EvmSearchOwnershipControlledTests|FullyQualifiedName~EthereumProfilePublicationControlledTests' --logger 'trx;LogFileName=ethereum-native-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Actual local Ethereum verification failed.'}
     $report=Get-Item -LiteralPath (Join-Path $work 'ethereum-native-current.trx')
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 254 -or [int]$counts.passed -ne 254 -or [int]$counts.notExecuted -ne 0 -or (Test-Path -LiteralPath $keyDeletePending)){throw 'Expected254passing cases (230previous plus24controlled Ethereum/Web3 search ownership cases), no skips or pending original deletion.'}
+    if([int]$counts.total -ne 262 -or [int]$counts.passed -ne 262 -or [int]$counts.notExecuted -ne 0 -or (Test-Path -LiteralPath $keyDeletePending)){throw 'Expected262passing cases (254previous plus8controlled profile publication cases), no skips or pending original deletion.'}
     & $node (Join-Path $PSScriptRoot 'verify-web3core-pages.cjs')
     if($LASTEXITCODE){throw 'Web3Core native page verification failed.'}
     $web3Started=[DateTime]::UtcNow

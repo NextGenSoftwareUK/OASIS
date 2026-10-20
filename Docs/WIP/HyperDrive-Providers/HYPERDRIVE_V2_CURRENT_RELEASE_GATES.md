@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Standalone Ethereum profile publisher — controlled84 green; native262 OPEN
+
+Four public avatar/detail sync/async metadata-edit cases first failed; shared canonical snapshot now guards before dispatch/after acknowledgement while retaining original transaction. Four no-edit controls plus existing cohort84/84 green0skips, SHA256AFFBDFFEB61F4E68A5FF79BCCCE24BC0C5005450DA4E8E7F2330B8BE38A0363F. Same real checked writer; protected virtual boundary supports controlled acknowledgement only in tests. Combined runner262 expectation prepared, syntax+64retention guards pass, no native refresh due unresolved original ledger/outbox. Standalone graph planner/publication remains OPEN; details/epochs in EVM_RECORD_HISTORY_GAPS.md. No service/newenvironment/publicgas/devpush.
+
 ## AWS alias full130 refresh green after activation fix
 
 Retained3658terminal0: baseline1/full130/verifiedcleanup1 all green, zero skips. Full report2A14650395BFDDD2C1BCA41CFDF15B60FE3BE151F2BA41F52E40198AFC50C6DB; exact hashes/dependencies/cleanupinventory in DYNAMODB_RECORD_HISTORY.md. Original reports/inventory renamed in place after hash checks; pending0/listenersabsent. Same environment, no download/publicspend/devpush. Mix of local SDK/control/routing regression coverage, not130 hostedAWS proofs or full-interface/globalV2 certification. Consumer includes concurrent uncommitted SQLite numeric candidate; no immutable release claim.
