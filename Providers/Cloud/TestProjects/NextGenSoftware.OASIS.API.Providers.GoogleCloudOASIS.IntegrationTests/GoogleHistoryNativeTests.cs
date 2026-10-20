@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 
 [TestClass][DoNotParallelize][TestCategory("HistoryNative")]
-public class GoogleHistoryNativeTests
+public partial class GoogleHistoryNativeTests
 {
     private sealed class NativeCommitBoundary(Google.Cloud.Firestore.V1.FirestoreClient inner,string mode):Google.Cloud.Firestore.V1.FirestoreClient
     {

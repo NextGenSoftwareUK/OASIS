@@ -53,9 +53,9 @@ public partial class AzureCosmosDBOASIS
             }
             else
             {
-                // Remove detail first, so an acknowledged primary deletion never leaves its detail behind.
-                if(detail!=null) {await avatarDetailRepository.DeleteAsync(id.ToString());acknowledged.Add("avatarDetailItems");}
-                await avatarRepository.DeleteAsync(id.ToString());acknowledged.Add("avatarItems");
+                // Preserve detail-first ordering; cross-container partial outcomes remain explicit.
+                if(detail!=null) {await avatarDetailRepository.DeleteIfUnchangedAsync(detail);acknowledged.Add("avatarDetailItems");}
+                await avatarRepository.DeleteIfUnchangedAsync(avatar);acknowledged.Add("avatarItems");
             }
             result.Result=true;result.IsSaved=acknowledged.Count>0;result.IsDeleted=true;result.DeletedCount=1;
         }
@@ -84,10 +84,12 @@ public partial class AzureCosmosDBOASIS
         result.Result=null;result.IsLoaded=false;
         try
         {
-            await holonRepository.DeleteAsync(record.Id.ToString());
+            await holonRepository.DeleteIfUnchangedAsync(record);
             result.Result=record;result.IsSaved=true;result.IsDeleted=true;result.DeletedCount=1;
         }
-        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+            if(cause is StorageLifecycleConflictException||cause is Microsoft.Azure.Cosmos.CosmosException conflict&&conflict.StatusCode==System.Net.HttpStatusCode.PreconditionFailed)
+                result.ErrorCode=StorageLifecycleConflictException.ErrorCode;}
         return result;
     }
 

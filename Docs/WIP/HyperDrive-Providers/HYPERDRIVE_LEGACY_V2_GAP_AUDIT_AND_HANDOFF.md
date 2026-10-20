@@ -1,5 +1,13 @@
 # HyperDrive Legacy/V2 Gap Audit and Implementation Handoff
 
+## Current programme scope supersedes historical completion wording — 2026-10-19
+
+The historical October7 completion statement below concerns its original bounded routing/configuration batch. It does NOT mean ALL providers, live SDK/interface operations, hosted acceptance or every V2 failover/load-balancing/replication combination is complete. The expanded all-provider goal remains ACTIVE/INCOMPLETE. Current checkout is `C:/Source/OASIS`, branch `Development`; preserve concurrent work and do not recreate the old worktree/branches from historical handoff text. Oracle Database/Autonomous AND OCI Object Storage are the latest client priority, then AWS; all originally named providers remain in scope.
+
+Latest published checkpoints: AWS standalone detail lifecycle + native validation semantics through `caba5ffaa` (33 retained-native,227Dynamo-unit,26AWS-unit cases); Oracle standalone detail lifecycle/selector integrity through `000839c37` (85 retained-native,149unit cases). Verified but NOT YET PUBLISHED Oracle wallet current-authority fix increases Oracle evidence to86native/161unit cases; existing Git index lock currently prevents staging. Detailed hashes/limitations in ORACLE_CLIENT_PRIORITY.md and DYNAMODB_RECORD_HISTORY.md. Tests use existing retained local native runtimes, not hosted client cloud certification. OCI52 controlled-SDK cases do not substitute for real-account bucket/IAM acceptance; Oracle Cloud sign-in remains required. GitHub CI snapshots queued/pending are not deployment proof.
+
+Do not report local test counts as whole-provider completion or sweep peer COSMIC/unrelated dirty changes into publication. Track native/provider implementation gates before deeper all-provider routing certification. Legacy gaps remain documentation-only. Environment reuse/disk rules in AGENTS.md remain mandatory.
+
 **Audit date:** 2026-10-06  
 **Repository/branch inspected:** `C:\Source\OASIS`, `Development`  
 **Purpose:** Record the original gap audit and the verified implementation that closed it.

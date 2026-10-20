@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces
         Task<T> ReplaceIfUnchangedAsync(T expected,T replacement);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
+        Task DeleteIfUnchangedAsync(T expected);
         Task DeleteAsync(Guid id);
         Task DeleteAsync(string providerKey);
         //Task<List<T>> GetListAsync();
