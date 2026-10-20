@@ -1,5 +1,7 @@
 # Firestore record history — integration in progress
 
+2026-10-20 actual encrypted HolonManager/V2 graph/batch replay4/4 passed with root key rotation and explicit different child key/context. Fresh manager recovers original revisions, authenticated private metadata and exact decimal with no new commits; changed private intent/denied old preparation key rejected. Native values and UpdateTimes unchanged. Separate-process/service recovery and hosted acceptance remain open. Exact evidence/cohort/cleanup/cost scope in current release gates.
+
 2026-10-20 preparation suite now7/7 native green: two gated preparation-versus-graph native commit schedules prove the shared fence rejects a stale graph or a late preparation, depending on winner. Independent absence/read-only recovery and one dispatch per writer verified. Exact report/cohort and remaining authenticated-runtime/hosted gates in current release gates; earlier smaller suite reports retained in place.
 
 2026-10-20 native preparation suite expanded to5/5 green with synchronized same-operation/same-actor contenders using real SDK commits. Both return one identical winning preparation with one dispatch each. Exact report/cohort and open race/encryption/hosted gates are in current release gates. Prior4 report preserved in place; no new environment.
