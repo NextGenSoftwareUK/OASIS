@@ -23,6 +23,56 @@ public partial class SQLLiteDBOASISIntegrationTests
         plan.IsError.Should().BeFalse(plan.Message); return plan.Result;
     }
 
+    private static CosmicQueryPlan<InvalidMetadataRow> NativeTypedPlan(ICosmicQueryStorageProvider adapter)
+        => CosmicQueryPlanner.Plan(CosmicQuery<InvalidMetadataRow>.Create(), adapter.QueryProviderType,
+            new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) }).Result;
+
+    [Fact]
+    public async Task TypedCqlNativeHydrationIsCleanAndNoOpSaveDoesNotAdvanceRevision()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var row = new Holon { Id = Guid.NewGuid(), Name = "typed-cql", MetaData = new() { ["Rating"] = 7, ["Name"] = "forged" } };
+        (await provider.SaveHolonAsync(row, saveChildren: false)).IsError.Should().BeFalse();
+        var before = (await provider.LoadHolonAsync(row.Id, loadChildren: false)).Result;
+        var manager = CosmicManager(provider, true); ICosmicQueryStorageProvider adapter = provider;
+        var result = await manager.ExecuteQueryAsync(NativeTypedPlan(adapter), new[] { adapter });
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        var typed = result.Result.Providers.Single().Rows.Single(); typed.Rating.Should().Be(7); typed.Name.Should().Be("typed-cql");
+        HolonChangeTracking.HasChanges(typed).Should().BeFalse();
+        var noOp = await manager.SaveHolonAsync(typed, Guid.NewGuid(), saveChildren: false, providerType: ProviderType.SQLLiteDBOASIS);
+        noOp.IsError.Should().BeFalse(noOp.Message + noOp.Exception); noOp.IsSaved.Should().BeFalse();
+        var after = (await provider.LoadHolonAsync(row.Id, loadChildren: false)).Result;
+        after.Version.Should().Be(before.Version);
+        CosmicConcurrency.GetProviderRevisionId(after, ProviderType.SQLLiteDBOASIS).Should().Be(CosmicConcurrency.GetProviderRevisionId(before, ProviderType.SQLLiteDBOASIS));
+    }
+
+    [Fact]
+    public async Task TypedCqlInvalidMetadataDoesNotPublishEarlierValidRows()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var values = new object[] { 7, "invalid-integer" };
+        for (var index = 0; index < values.Length; index++)
+            (await provider.SaveHolonAsync(new Holon { Id = Guid.Parse("00000000-0000-0000-0000-" + (index + 1).ToString("D12")),
+                MetaData = new() { ["Rating"] = values[index] } }, saveChildren: false)).IsError.Should().BeFalse();
+        ICosmicQueryStorageProvider adapter = provider;
+        var result = await CosmicManager(provider, true).ExecuteQueryAsync(NativeTypedPlan(adapter), new[] { adapter });
+        AssertTypedMetadataFailure(result);
+    }
+
+    [Fact]
+    public async Task TypedCqlCancellationIsExplicitBeforeOpeningDatabase()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString); ICosmicQueryStorageProvider adapter = provider;
+        using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
+        // The explicit adapter is supplied at execution; avoid the existing injected-provider constructor's activation side effect.
+        var manager = CosmicManager(null!, true);
+        var result = await manager.ExecuteQueryAsync(NativeTypedPlan(adapter), new[] { adapter }, cancellationToken: cancellation.Token);
+        result.IsError.Should().BeTrue(); result.ErrorCode.Should().Be("CQL_QUERY_CANCELLED"); result.Result.Should().BeNull();
+        File.Exists(_databasePath).Should().BeFalse();
+    }
+
     public sealed class InvalidMetadataRow : Holon
     { [NextGenSoftware.OASIS.API.Core.CustomAttrbiutes.CustomOASISProperty] public int Rating { get; set; } }
 
