@@ -58,3 +58,14 @@ SQLite conditional receipt replay now uses this decoder for each stored root/chi
 This certifies the selected SQLite receipt boundary, not every provider/replica/text reader. Shared replica receipt adoption is coordinated with the provider session. Full committed delta generation, atomic persistence, authorization/redaction and replay remain unfinished, together with the complete original roadmap.
 
 Final receipt gate: Core1,374/1,374 passes11s, focused native2/2 passes2s and fullSQLite954/954 passes117s, zero skips (`receipt-precision-core-full.trx`, `sqlite-receipt-precision-focused.trx`, `sqlite-receipt-precision-full.trx`). Fixture absent after normal teardown. These reports certify the captured SQLite receipt epoch; other decoders and the full roadmap remain open.
+
+
+## One exact numeric-value owner for pending state — 20 October 2026
+
+Core.Serialization.StoredRecordValueEquality now owns logical JSON-value comparison, numeric classification and coefficient/exponent normalization. Tracking, pending value previews and save-publication edit checks use the same owner; the provider-session Shared wrapper delegates instead of keeping a second algorithm. Equivalent raw/CLR numeric values and decimal scales do not create artificial pending changes. Numeric text remains text; distinct precise numbers, missing/null distinctions and ordered arrays retain their existing meaning.
+
+Normalization uses coefficient text and BigInteger exponents, without double conversion or allocating powers; valid JSON exponents beyond Int64 do not overflow this comparison. Finite canonical fingerprint bytes are unchanged, verified by the provider-session compatibility gate. This is logical numeric value equivalence, not a general CLR runtime-type identity guarantee or completed CQL scalar conversion policy. Serialized nonnumeric scalar representation equivalence remains follow-on review.
+
+Four initial Core cases have2fail/2controls against the old comparer. Six final new cases pass within fullCore1,380/1,380, zero skips, including unbounded exponent/zero controls. Native sync/async cases verify an equivalent metadata edit yields an empty pending preview, a no-op Save and unchanged stored logical/provider revisions. Final native regression is recorded separately. Generic raw-metadata reader expansion and atomic authorized committed deltas remain open.
+
+Final equality acceptance: Core1,380/1,380 passes10s, Shared883/883 passes on matching recorded dependencies, native no-op2/2 passes2s and fullSQLite971/971 passes122s, zero skips. The fixed fixture database/wal/shm are absent. Existing finite fingerprint bytes remain unchanged; generic metadata reader expansion and committed delta persistence remain separate open gates.
