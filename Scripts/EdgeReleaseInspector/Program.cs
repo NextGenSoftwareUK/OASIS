@@ -344,9 +344,14 @@ static SortedSet<string> ReadApi(string assemblyPath)
 {
     string directory = Path.GetDirectoryName(assemblyPath)!;
     var context = new AssemblyLoadContext(Path.GetFileNameWithoutExtension(assemblyPath), isCollectible: true);
+    // Library outputs do not copy NuGet dependencies beside the assembly, and AssemblyDependencyResolver has no
+    // package probing paths for a library. Public signatures that mention a package type (e.g. Nethereum) are
+    // resolved from the assembly's .deps.json runtime assets in the NuGet packages folder, as the host does.
+    var packageAssets = PackageRuntimeAssets(assemblyPath);
     context.Resolving += (_, name) =>
     {
         string candidate = Path.Combine(directory, name.Name + ".dll");
+        if (!File.Exists(candidate) && name.Name != null && packageAssets.TryGetValue(name.Name, out string? package)) candidate = package;
         return File.Exists(candidate) ? context.LoadFromAssemblyPath(candidate) : null;
     };
     try
@@ -365,6 +370,31 @@ static SortedSet<string> ReadApi(string assemblyPath)
         return members;
     }
     finally { context.Unload(); }
+}
+
+/// <summary>Assembly simple name → package file, from the .deps.json runtime target and the NuGet packages folder.</summary>
+static Dictionary<string, string> PackageRuntimeAssets(string assemblyPath)
+{
+    var assets = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    string depsPath = Path.ChangeExtension(assemblyPath, ".deps.json");
+    if (!File.Exists(depsPath)) return assets;
+    string packagesRoot = Environment.GetEnvironmentVariable("NUGET_PACKAGES")
+        ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+    using var deps = JsonDocument.Parse(File.ReadAllText(depsPath));
+    var root = deps.RootElement;
+    string target = root.GetProperty("runtimeTarget").GetProperty("name").GetString()!;
+    var libraries = root.GetProperty("libraries");
+    foreach (var library in root.GetProperty("targets").GetProperty(target).EnumerateObject())
+    {
+        if (!library.Value.TryGetProperty("runtime", out var runtime) || !libraries.TryGetProperty(library.Name, out var info) ||
+            info.GetProperty("type").GetString() != "package" || !info.TryGetProperty("path", out var packagePath)) continue;
+        foreach (var asset in runtime.EnumerateObject())
+        {
+            string file = Path.Combine(packagesRoot, packagePath.GetString()!, asset.Name.Replace('/', Path.DirectorySeparatorChar));
+            assets.TryAdd(Path.GetFileNameWithoutExtension(asset.Name), file);
+        }
+    }
+    return assets;
 }
 
 static string Hash(string path) => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
