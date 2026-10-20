@@ -20,6 +20,18 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
             Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(evidence));
         }
 
+        [TestMethod]
+        public void NativeIdempotencyTokenIsPreservedWithoutInventingATransactionReceipt()
+        {
+            var token=Guid.NewGuid().ToString("N");var cause=new System.IO.IOException("owned lost acknowledgement");
+            var evidence=new DynamoDBMutationReconciliationException("OasisAvatars+OasisAvatarDetails","owned-key",cause,token);
+            Assert.AreEqual(token,evidence.ClientRequestToken);Assert.AreSame(cause,evidence.InnerException);
+            Assert.AreEqual(string.Empty,evidence.OriginalTransactionId);Assert.AreEqual(string.Empty,evidence.SdkRequestId);
+            Assert.AreEqual(0,NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.OriginalTransactionIds(evidence).Count);
+            Assert.IsFalse(evidence.Message.Contains(token,StringComparison.Ordinal));
+            Assert.AreEqual(string.Empty,new DynamoDBMutationReconciliationException("OasisHolons","owned-key",cause).ClientRequestToken);
+        }
+
         private sealed class PartialWriter : DynamoDBOASIS
         {
             public int Writes;
