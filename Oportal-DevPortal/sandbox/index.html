@@ -1133,8 +1133,8 @@ window.loadChatChoices = async function loadChatChoices() {
     const select = document.getElementById('c-agent');
     (agents.result || []).slice(0, 50).forEach(a => {
       const o = document.createElement('option');
-      o.value = a.id || a.agentId || a.holonId;
-      o.textContent = a.name || a.displayName || o.value;
+      o.value = a.id;
+      o.textContent = a.agentName || o.value;
       if (o.value) select.appendChild(o);
     });
   } catch (e) { console.warn('Agent list unavailable:', e.message); }
