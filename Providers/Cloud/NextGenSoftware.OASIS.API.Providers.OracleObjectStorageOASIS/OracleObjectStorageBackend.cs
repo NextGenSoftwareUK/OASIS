@@ -35,6 +35,10 @@ public sealed class OracleObjectStorageBackend : IKeyValueBackend
     }
 
     public async Task<string> GetAsync(string key,CancellationToken cancellationToken=default)
+        =>(await GetWithEntityTagAsync(key,cancellationToken))?.Value!;
+
+    /// <summary>Value and opaque native ETag from the SAME GET, not a later HEAD/read.</summary>
+    public async Task<OracleObjectSnapshot?> GetWithEntityTagAsync(string key,CancellationToken cancellationToken=default)
     {
         ValidateKey(key);cancellationToken.ThrowIfCancellationRequested();
         try {
@@ -42,9 +46,12 @@ public sealed class OracleObjectStorageBackend : IKeyValueBackend
             try {
                 using var stream=response.InputStream??throw new InvalidDataException("OCI object response has no content stream.");
                 using var reader=new StreamReader(stream,Utf8,detectEncodingFromByteOrderMarks:false);
-                return await reader.ReadToEndAsync(cancellationToken);
+                var value=await reader.ReadToEndAsync(cancellationToken);
+                if(string.IsNullOrWhiteSpace(response.ETag)||response.IsNotModified)
+                    throw new InvalidDataException("OCI object GET must return its observed ETag and complete value.");
+                return new OracleObjectSnapshot(value,response.ETag);
             }finally{response.httpResponseMessage?.Dispose();}
-        }catch(OciException cause)when(IsMissingObject(cause)){return null!;}
+        }catch(OciException cause)when(IsMissingObject(cause)){return null;}
     }
 
     public Task PutAsync(string key,string value,CancellationToken cancellationToken=default)
@@ -72,19 +79,29 @@ public sealed class OracleObjectStorageBackend : IKeyValueBackend
             var response=await _client.PutObject(request,Once(),token);
             response.httpResponseMessage?.Dispose();
         }catch(OciException cause)when(cause.StatusCode==HttpStatusCode.PreconditionFailed){
-            var conflict=new StorageLifecycleConflictException("OCI object write precondition failed.");
-            conflict.Data["NativeCause"]=cause;throw conflict;
+            throw PreconditionConflict(cause);
         }catch(OciException cause)when((int)cause.StatusCode>=400&&(int)cause.StatusCode<500&&cause.StatusCode!=HttpStatusCode.RequestTimeout){throw;}
         catch(Exception cause){throw new OracleObjectMutationReconciliationException(_objectPrefix+key,cause);}
     }
 
-    public async Task DeleteAsync(string key,CancellationToken cancellationToken=default)
+    public Task DeleteAsync(string key,CancellationToken cancellationToken=default)
+        =>DeleteObservedAsync(key,null,cancellationToken);
+
+    public Task DeleteUnchangedAsync(string key,string etag,CancellationToken cancellationToken=default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(etag);
+        return DeleteObservedAsync(key,etag,cancellationToken);
+    }
+
+    private async Task DeleteObservedAsync(string key,string? etag,CancellationToken cancellationToken)
     {
         ValidateKey(key);cancellationToken.ThrowIfCancellationRequested();
         try {
-            var response=await _client.DeleteObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=_objectPrefix+key},Once(),cancellationToken);
+            var response=await _client.DeleteObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=_objectPrefix+key,IfMatch=etag},Once(),cancellationToken);
             response.httpResponseMessage?.Dispose();
-        }catch(OciException cause)when(IsMissingObject(cause)){}
+        }catch(OciException cause)when(cause.StatusCode==HttpStatusCode.PreconditionFailed||(etag!=null&&IsMissingObject(cause))){
+            throw PreconditionConflict(cause);
+        }catch(OciException cause)when(etag==null&&IsMissingObject(cause)){}
         catch(OciException cause)when((int)cause.StatusCode>=400&&(int)cause.StatusCode<500&&cause.StatusCode!=HttpStatusCode.RequestTimeout){throw;}
         catch(Exception cause){throw new OracleObjectMutationReconciliationException(_objectPrefix+key,cause);}
     }
@@ -120,8 +137,15 @@ public sealed class OracleObjectStorageBackend : IKeyValueBackend
     }
 
     private static bool IsMissingObject(OciException cause)=>cause.StatusCode==HttpStatusCode.NotFound&&cause.ServiceCode=="ObjectNotFound";
+    private static StorageLifecycleConflictException PreconditionConflict(OciException cause)
+    {
+        var conflict=new StorageLifecycleConflictException("OCI object mutation precondition failed.");
+        conflict.Data["NativeCause"]=cause;return conflict;
+    }
     private static void ValidateKey(string key)=>ArgumentException.ThrowIfNullOrWhiteSpace(key);
 }
+
+public sealed record OracleObjectSnapshot(string Value,string EntityTag);
 
 public sealed class OracleObjectMutationReconciliationException : Exception,INativeMutationReconciliationRequired
 {
