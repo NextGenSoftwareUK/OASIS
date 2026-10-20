@@ -51,7 +51,7 @@ These declarations are admission prerequisites. Adapters must still validate exa
 ## Required next work
 
 - Integrate the pure scope/capability planner with an authenticated, authorized WEB4 target snapshot and certified native adapters.
-- Additional admitted operators, including string/inclusion, field comparisons, relationship predicates and custom persisted property mappings.
+- Additional admitted operators, including inclusion, field comparisons, relationship predicates, custom persisted property mappings and remaining string/collation modes.
 - Versioned query envelopes, capability-aware plans and explanations, authorized tenant/visibility/residency/encryption/cost admission.
 - Native parameterized adapters, beginning with the selected stores; unsupported pushdown must fail before I/O. Bounded client evaluation requires explicit opt-in.
 - Ordering/projection/paging/aggregates, stable pagination policy, async execution and cancellation.
@@ -71,3 +71,5 @@ Metadata presence/null checkpoint: `CosmicQueryMetadata.Exists(h, "key")` and `I
 Shared execution checkpoint: [the native adapter contract and executor](CQL_EXECUTION_PIPELINE.md) preflight every selected adapter before I/O, enforce total row budgets, preserve source/error provenance and detach canonical results. FullCore1,320/1,320 and SQLite833/833 pass, zero skips. This is an orchestration seam; authenticated WEB4 selection, typed manager integration and federation policies remain required.
 
 Typed manager checkpoint: `HolonManager.ExecuteQueryAsync<T>(plan, adapters, maximumResults, cancellationToken)` returns V2 typed leaf entities with private clean tracking, strict metadata hydration and retained provider groups. FullCore1,337/1,337 and SQLite845/845 pass, zero skips, including no-op-save revision preservation and no partial typed publication. The plan/adapter snapshot still requires trusted authorization; automatic entity-kind mapping, relationship options and complete WEB4 policy/routing remain open. See [execution pipeline](CQL_EXECUTION_PIPELINE.md).
+
+Ordinal string checkpoint: Contains(string), Contains(string,StringComparison.Ordinal) and explicit-ordinal StartsWith/EndsWith compile to immutable string nodes with per-field operator admission. Null patterns, culture-sensitive prefix/suffix defaults, other comparison modes, invalid Unicode and oversized patterns reject before I/O. String matching treats null receivers as false; NOT follows two-valued CQL semantics. SQLite supports Name/Description through bound BLOB operations, preserving Unicode sequences/NUL and literal wildcard text. Empty patterns match non-null values. FullCore1,341/1,341 and SQLite874/874 pass, zero skips; scalar metadata strings remain unsupported by SQLite. See [native contract](CQL_SQLITE_NATIVE.md).

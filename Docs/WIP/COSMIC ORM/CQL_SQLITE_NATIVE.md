@@ -8,7 +8,7 @@ This is a native leaf-row adapter milestone, not complete CQL or WEB4 authorizat
 
 | Fields | Operators and semantics |
 |---|---|
-| Name, Description | Equality, inequality and null tests; binary case-sensitive comparison |
+| Name, Description | Equality/inequality/null tests, Contains and explicit-ordinal StartsWith/EndsWith; literal case-sensitive matching |
 | Version, HolonType | Equality/inequality and ordered comparisons over native integer columns |
 | IsActive, IsPublic | Equality/inequality |
 | Id, ParentHolonId, VersionId, PreviousVersionId, CreatedByAvatarId, ModifiedByAvatarId | GUID equality/inequality, case-insensitive canonical text comparison; null legacy audit strings map to Guid.Empty consistently with materialization |
@@ -44,3 +44,11 @@ Initial metadata evidence: full Core1,313/1,313 passes13s. Native focused17 init
 Repaired focused metadata acceptance: sqlite-cql-metadata-focused-verified.trx passes17/17 in3s, zero skips. This verifies native json_object() resolves the EF formatting failure and confirms nested quote/dot/SQL-like labels remain literal. Full832/832 integration gate passes113s (sqlite-cql-metadata-full-verified.trx), zero skips, on captured copied assemblies. Fixture database is absent after normal teardown.
 
 Shared contract checkpoint: SQLite implements ICosmicQueryStorageProvider via its existing native execution path. A new integration case runs through CosmicQueryExecutor with actual SQLite capabilities and native name-plus-metadata-null filtering. Full833/833 passes2minutes0skips (sqlite-cql-executor-full.trx), fixture absent after teardown. See [execution pipeline](CQL_EXECUTION_PIPELINE.md) for provenance/budget/error contracts and remaining authorization/manager/federation requirements.
+
+## Ordinal string matching — verified
+
+New AST/compiler/native work supports string Contains, plus StartsWith/EndsWith only with explicit StringComparison.Ordinal. Other culture/case modes reject before I/O; no lowercasing or database-collation substitution occurs. Patterns are captured literals, bounded to4,096 characters and valid Unicode scalar sequences. NULL receivers yield false for the match predicate; NOT then follows CQL two-valued boolean semantics. Use an explicit non-null guard when comparing the query with CLR instance-method evaluation.
+
+SQLite uses bound patterns and BLOB instr/substr/length, preserving embedded NUL bytes (TEXT length stops at NUL). Percent/underscore/bracket/quote text remains literal rather than LIKE syntax. Empty patterns match every non-null value. Exact field capabilities and native translation use the same map; scalar metadata string paths and unlisted canonical string fields remain unsupported. Core1,341/1,341 and SQLite874/874 pass, zero skips.
+
+String verification checkpoint: fullCore1,341/1,341 passes14s and bothTFMs build0errors. Initial focusednative26 had25pass/1fail for empty-prefix against an empty stored value; native empty-pattern translation now directly tests columnISNOTNULL for all three operations. The original red report is retained. Repaired focused26/26 passes6s (sqlite-cql-string-focused-verified.trx); full874/874 SQLite regression passes116s, zero skips (sqlite-cql-string-full-verified.trx), with the fixture absent after teardown. Core unit and native copies share Core3CC0F440 epoch.
