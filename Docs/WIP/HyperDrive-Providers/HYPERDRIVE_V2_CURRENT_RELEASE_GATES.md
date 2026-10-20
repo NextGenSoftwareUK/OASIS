@@ -1,5 +1,24 @@
 # HyperDrive V2 current release gates
 
+## Oracle protected preparation and shared operation serialization — accepted scoped gates, 2026-10-20
+
+Implemented IHolonWritePreparationStorageProvider with opaque CLOB transport using new shared ProtectedPreparationJson (existing id/envelope-array format, no crypto/wire fork). New OASIS_WRITE_PREPARATIONS and OASIS_WRITE_OPERATION_LOCKS tables use existing activation/schema admission, including RAW16 identities, required columns/nullability and immediate single-column primary keys. Preparation claims AND conditional graph writers acquire the SAME per-operation guard under explicit read-committed isolation. First-winner claims retain protected envelopes; other actors receive no result; prior receipt without original preparation refuses reconciliation-required. Native ORA-01013 with requested cancellation preserves cancellation classification. No hidden retry, global table lock, advisory-lock grant or provider decryption.
+
+Conditional graph transaction removes its guard only in the SAME graph+receipt commit. A prepared-but-not-yet-written operation retains its guard. **6/6 native preparation cases passed3s, zero skipped**, including four sync/async normal/lost-commit cases plus TWO real cross-path races. Held graph commit AFTER guard DELETE blocks a preparation contender in V$SESSION until receipt becomes visible, then new preparation refuses; held claim commit similarly blocks graph writer, then original preparation and graph succeed and guard is absent. Both contenders' pending state/native blocking SID are checked before release. Original conditional/lifecycle native **96/96 passed44s**, final Oracle controlled **215/215 passed678ms**; shared transport **895/895 passed8s**. No test exclusions/skips. These are actual local Oracle operations, not hosted acceptance or encrypted V2 end-to-end proof.
+
+Evidence:
+- TestResults/OracleCurrent/oracle-preparation-native-current.trx SHA256224AB40326158C74DDE04D09C4FC6DDAB7AE877EF0FB95A96B4BB4FD5FDFD29B.
+- oracle-native-current.trx SHA256253C06F7D4C59036985775EFAE2267FFC9383578CBD057F6EFC923827CB45B30.
+- Oracle unit david_OASISOMEGA_2026-10-20_13_38_49_net10.0.trx SHA256E8F1515A67ED38DE9E47335DCF27BDCC15AFC21B1A4E25B8E6A8FD1CD7819B9D.
+- Shared unit david_OASISOMEGA_2026-10-20_13_28_50_net10.0.trx SHA2567FA759ACE77E5B6992BDB3C923AFA0CCF9342E6F6E8D5C12FC537BC742198FA4.
+All final consumer cohorts measured CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / SharedDDDD876546281FB19186A5BBF2E121FB1429C8F9917506E80C78221B3CF4EE2A. Prior B984...96report and9BD1...4claims report hashchecked/moved in place to oracle-pre-preparation-guard.trx and oracle-preparation-pre-native-races.trx. Not immutable deployed certification.
+
+Rollout MUST drain old conditional writer binaries that do not acquire this guard; mixed-version serialization is NOT claimed. Added two tables/storage/index overhead, two bootstrap DDL operations and four activation dictionary queries (12 total). Every conditional write adds guard INSERT/SELECT FOR UPDATE/DELETE; claim paths add corresponding guard/read/insert work. Hosted permissions, latency/cost and provisioning-vs-runtime DDL review remain OPEN; no precise fee estimate or automatic preparation expiry/backfill.
+
+Same approved retained OracleFree image/container/data volume/secret/loopback11521 reused. Synthetic holons/receipts/preparations/guards exact-conditionally removed with independent absence checks; pendingjournals0/containerexited independently verified. Full96 and final6 runners used exclusive shared build-lease wrapper; no overlap accepted as evidence. No download/install/reset/newenvironment/DBcopy/publiccloudfees/push/deploy. Free C68,159,614,976bytes;123GBtarget remains unmet, no reclaimed-space claim or attribution of concurrent changes.
+
+Remaining: Oracle encrypted V2 graph/batch replay and key-context gates, process recovery, hosted Autonomous/OCI Object Storage IAM/TLS/billing, atomic replication and all-provider full-interface/V2 certification. Native opaque preparation success does not close those gates.
+
 ## AWS encrypted recovery across a real client-process boundary — 2026-10-20
 
 Two separately launched dotnet test hosts exercised writer then recovery phases against the SAME running retained DynamoDB Local database. **2/2 writer cases passed1s and2/2 recovery cases passed626ms**, zero skipped; runner terminal0. Both aliases recorded writerPID13384 and independently asserted readerPID7264 differs. First process committed protected preparation plus graph/receipt, then exited. Second process constructed fresh Core runtime/provider/resolver, changed active write key key-a→key-b, decrypted original preparation using authorized key-a, returned original logical/provider revisions and private root/child values, and issued ZERO transaction writes. Independent reads matched original native JSON/receipt hashes and protected envelope bytes.
