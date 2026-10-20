@@ -1,5 +1,25 @@
 # SOLID provider implementation audit
 
+## Rejected credential cache recovery — 2026-10-20
+
+Root cause: the client retained rejected credentials until their advertised expiry. An initial fix requiring `DPoP error="invalid_token"` passed controlled tests but failed against the retained real CSS server. With a well-formed access JWT whose signature was deliberately damaged only in this client's cache, CSS returned **401 with `Bearer scope="openid webid"`**, without an error parameter. The same cached token was then sent again. No issuer credential or server record was altered by that probe.
+
+The handler now invalidates the exact cached credential sent on any resource 401. It returns the original response, never replays a resource request, never changes authentication scheme, and obtains fresh DPoP credentials only for the caller's next explicit request. Compare-exchange prevents a delayed rejection for an older token from evicting a newer token; a local cache snapshot avoids a concurrent-null return. Resource nonces remain available for the next request. This is credential-cache ownership, not an automatic retry or alternative authentication path. HTTP 401 semantics: [RFC 9110 section 15.5.2](https://www.rfc-editor.org/rfc/rfc9110.html#section-15.5.2).
+
+Evidence retained under `TestResults/SolidCurrent/`:
+
+- Original focused red: 2 failed / 4 passed, `solid-revoked-token-red.trx`, SHA256 `27A7B7449747938846374730249F994E0E3D6FC1DD6AE085055A376C71E22DA1`.
+- Narrow challenge-only candidate: controlled 340 passed (including late-old-token race), but native **5 passed / 1 failed**. Malformed-token probe archived as `solid-native-invalid-token-failed.trx`, SHA256 `7E33985D4D1E7C016B5BB590AA25928E9E301A1F00544C32217A02AC515674BE`. JWT-signature probe with actual challenge diagnostics archived as `solid-native-bearer-challenge-failed.trx`, SHA256 `924594AA08350841E2A30CB70ECC9876E675C6B2811D1903EB830F215949CBCF`. Neither is a success certificate.
+- Corrected owner: controlled **341/341 passed**, zero skipped, `solid-401-cache-green.trx`, SHA256 `3ED27C6CA9308D4270EBD0C62678B9CC55ABD9B63B8063F79B814EDA90BC3391`. Full native **6/6 passed**, zero skipped, 1m1s, runner terminal 0; `solid-native-current.trx`, SHA256 `EB4D6C34DDEA9668FDC87835EDEE71A1799FE06638E01BC6B02B83979ECE3FC2`. Native private case independently reads unchanged ACL after next-call refresh, then executes existing encrypted CRUD/history/anonymous denial.
+
+Final edge-case gate: **345/345 controlled passed**, zero skipped, 1s, terminal 0; `solid-401-final-controlled.trx`, SHA256 `587A6BDE4177F29E2F9651780D32990C5176147B6C7E1685DE9BD746F6FBEB07`. Adds proof that 403/500/200 do not evict credentials and a header-less 401 does. Existing resource nonce case asserts next explicit request obtains a new credential and retains the observed resource nonce; original PUT still dispatched exactly once.
+
+Actual native consumer Core SHA256 `D4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83`; native and final controlled Shared `0566AE17F64AE7B6621E4B8BAECBB72FAD1454B478A316AC514F8FD6D9D7C97B`. Earlier cohorts below retain their original identities.
+
+Same already-running pinned CSS server, volume, private identity and DPAPI keys reused. No installation, download, restart, identity provisioning, public spend or deployment. All pending fixture journals absent after terminal success; operator-owned server intentionally left running. Prior successful native report hash-verified and moved to `solid-native-pre-invalid-token-recovery.trx`. Free C: 67,500,089,344 bytes; disk target remains unmet. The pre-existing dirty reuse-only runner is not part of this source change.
+
+This proves recovery from a locally injected invalid token, **not real issuer revocation**, cold-start connection-abort resolution, complete OIDC conformance, full provider interfaces or all-provider V2 routing. Those gates remain open.
+
 ## Current dependency warm-server verification — 2026-10-20
 
 Reused ALREADY RUNNING original pinnedCSS58bee7... server/volume/DPAPIkey/privateidentity/fixturelease, no restart/newidentity/download/install. Existing reuse-only dirty runner executed but NOT staged as this checkpoint's change. Native **6/6 passed1m1s0skip**, fullcontrolled **333/333 passed1s0skip**, outerlease terminal0. Includes real private DPoP/anonymousdenial/encrypted CRUD/history and existing graph/query/lifecycle schedules. Actual native+unit consumers CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared1C35EE624DE22877EE450BE3EFC3930B1EBE960FF7EE2C127861ED28BF7CDDD6 measured; no source changes.
