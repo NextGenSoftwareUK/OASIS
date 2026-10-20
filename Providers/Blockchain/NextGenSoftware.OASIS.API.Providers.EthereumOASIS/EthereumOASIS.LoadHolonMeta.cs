@@ -77,8 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 result.ErrorCode=parent.ErrorCode;
                 return result;
             }
-            snapshot.Result=snapshot.Result.Where(row=>row.ParentHolonId == parent.Result.Id && (type == HolonType.All || row.HolonType == type)).ToList();
-            return snapshot;
+            return ProjectParentSnapshot(snapshot,parent.Result.Id,type,loadChildren,recursive,maxChildDepth,curentChildDepth);
         }
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)

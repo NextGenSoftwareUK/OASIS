@@ -69,13 +69,13 @@ try {
     $started=[DateTime]::UtcNow
     $env:OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY=$env:OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY
     $env:WEB3CORE_NATIVE_FIXTURE=Join-Path $taskRoot 'TestResults/Web3CoreCurrent/web3-storage.json'
-    & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter FullyQualifiedName~EthereumOASISIntegrationTests --logger 'trx;LogFileName=ethereum-native-current.trx' --results-directory $work -v:q
+    & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~EthereumOASISIntegrationTests|FullyQualifiedName~EthereumParentDepthControlledTests' --logger 'trx;LogFileName=ethereum-native-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Actual local Ethereum verification failed.'}
     $report=Get-Item -LiteralPath (Join-Path $work 'ethereum-native-current.trx')
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 207 -or [int]$counts.passed -ne 207 -or [int]$counts.notExecuted -ne 0){throw 'Expected207passing cases including three actual accepted-response-loss cases, no skips.'}
+    if([int]$counts.total -ne 215 -or [int]$counts.passed -ne 215 -or [int]$counts.notExecuted -ne 0){throw 'Expected215passing cases (207existing plus8parent-depth controlled), including three actual accepted-response-loss cases, no skips.'}
     & $node (Join-Path $PSScriptRoot 'verify-web3core-pages.cjs')
     if($LASTEXITCODE){throw 'Web3Core native page verification failed.'}
     $web3Started=[DateTime]::UtcNow

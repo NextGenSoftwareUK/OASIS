@@ -1,5 +1,17 @@
 # EVM record history: current gap and reuse map
 
+## Retained combined owner refresh — 2026-10-20
+
+Outer session42150 exited0: Ethereum215/215 (207 existing mixed cases plus8 new controlled parent-depth cases), paging59 assertions, and Web3 native5/5; zero skipped. Same retained local chain31337 and Mongo, no download or public gas. Current Ethereum TRX SHA256 `E073BEE82467505978B2B83F14CBDB38699C4F255DC5E0398368060C29A0F6A4`; Web3 TRX SHA256 `1BB221720B0C6D254C5423DDEF63E404DE1E570461B7EC80A8D2C9C4A42466F8`. Runner returned success after its original-intent/outbox and cleanup gates. This refresh supersedes the native-refresh requirement immediately below, but is not clean immutable deployment proof or full-interface/all-provider V2 certification.
+
+## Ethereum parent selected-edge projection — candidate 2026-10-20
+
+Before SHA256 `61A02711D064B0D33CDC99865725A24B6F7B2D5900715FD7C321B6DA329CFF9C`; current `B1BE46BDFF0ABD2CE48314D3851F3DE7091EE31D7C59E837627E07D62147A603`.
+
+Eight controlled public GUID/custom-key x sync/async x recursive/nonrecursive regressions ALL failed maxDepth1 (grandchildren returned). Both parent routes now use one shared ProjectParentSnapshot owner and existing HolonGraphProjection rootsAreChildren flag. Reprojects captured memberships already hydrated from LoadAll's frozen native block; does not rescan a newer chain block or rebuild descendants from historical-root versions. Tests assert exactly ONE snapshot read. Ordinary root/all projection unchanged, errors remain OASISResult and null snapshot collection is explicit failure.
+
+Focused8/8controlledpass/zero skips/103ms, `TestResults/EthereumCurrent/ethereum-parent-depth-before.trx` and `ethereum-parent-depth-current.trx`. Native contract/paging/Web3 owner refresh still required before publishing; no chain/runtime/service/download/public gas in this candidate batch. Full NFT/interface/route/durable-fee/publication/all-provider V2 gates remain open.
+
 ## Combined retained EVM owner gate GREEN — 2026-10-19
 
 Final outer71036terminal0: SAME retained Mongo initializer1pass, **Ethereum207/207pass**1minute4seconds, **native paging59/59checks pass**, **Web3Core5/5actual native scenarios pass**1minute47seconds,zero skips. Three ETHEREUM_REAL_OUTBOX_VERIFIED markers and WEB3_REAL_OUTBOX_VERIFIED present; original native intents0 and owned18545/18546/27029listeners0 after cleanup. Ethereum current report SHA256 `B1045A2CE4D506C91EE253FECAD1BCBB3DD4B28C95C8FFDA53D174543E2B5244`; Web3 current report SHA256 `25BDCBAA1978A1A15FA71293323A8FB4F86BF30A7C3A8BB549B52C2E4BB55BFE`. Both copied consumers Shared `BAE37137E58AD4EAF0639CC136CD8F72FBBBE57D1AD1F0559D90C49ACE7CDC88`,Core089E456D...94E6; peer unpublished traversal/hosting source included locally, NOT clean immutable release proof.
