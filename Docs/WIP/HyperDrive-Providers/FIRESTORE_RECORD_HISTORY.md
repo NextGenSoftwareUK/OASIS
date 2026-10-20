@@ -1,5 +1,22 @@
 # Firestore record history — integration in progress
 
+## Shared acknowledgement reuse — Google native177 refreshed, 2026-10-20
+
+Google's existing conditional result owner now delegates to `ConditionalHolonAcknowledgement.Create` in the existing Shared provider library, together with Oracle. Removed the provider-local graph count/flag implementation; one reusable implementation handles owned acknowledged graphs, with thirteen new pure controls. No Google SDK/write/receipt/history/format changes. **Shared917/917**, **Google265/265**, **Oracle229/229** controlled all passed, zero skipped. The shared contract and controlled hashes are recorded in [Oracle client priority](ORACLE_CLIENT_PRIORITY.md).
+
+Google full retained native177 refreshed, zero skipped, outer batch terminal0, on actual Core `7B8680F86B797D84CAE0120D167F0BFA36E72B2BC4B7E9EFB22A379DC17620CC` / Shared `7642CC7A5CD3C55B71D7121C22762E338CFD55F794FD6693C27F726E1910D1BB`. All controlled/native consumer identity guards match this cohort. Oracle MAIN250 also green; separate Oracle advanced suites not relabelled as rerun.
+
+| Report under TestResults/GoogleCurrent | Passed | SHA256 |
+| --- | ---: | --- |
+| google-batch-revision-native-current.trx | 4/4 | 090DF9A0BA5A23A98E6B240247441DBCB3D2A2B40FB8688AF6A40563A028104D |
+| google-encrypted-replay-native-current.trx | 4/4 | F95628E83787B61EE0E96610845858C1CD2E5DB231EDFA5CE87B2B8195E81AC2 |
+| google-preparation-native-current.trx | 7/7 | 08059DA8901AE598CC0A594EDBC2CDA509553949318A1A79A77CBD460A936192 |
+| google-conditional-native-current.trx | 4/4 | 7ADD0F63EE5F0B0DC5C20814DCAAB7209811BC4DE3229FDA44954A0B363D3CD4 |
+| google-history-native-current.trx | 79/79 | 1D72F0A07D8B95A90B06814F4A40F46F11F2AE6BEB27377E0690B2811CA522D5 |
+| google-native-current.trx | 79/79 | 784959161EB36A1A4A879CC1B9A6B3FA3489D8973F139D2F5E37CF37E70FBA9D |
+
+Prior six reports were exactSHA moved in place to `*-pre-shared-ack.trx`. Counts still describe the original acknowledged selected entities, not physical calls, fees or new mutations on receipt replay. Independent postterminal journals0/ports empty/owned emulator stopped; retained Oracle exited. Same runtimes/caches, no install/download/new environment/dev deployment. Free C65,571,647,488bytes,123GB cleanup target unmet. Hosted/full relevant-interface/V2 gates remain OPEN.
+
 ## Conditional result metadata — 265 controlled / 177 native accepted, 2026-10-20
 
 Final matched **265/265controlled**, zero skipped,3s, terminal0: `google-conditional-results-matched-controlled.trx`, SHA256 `5796FEF8AC75A3D3E62950487E1E98FA4DABD387C8B5EFE141A31083C4A8388F`. Native full177 refreshed, zero skipped, outer runner terminal0:
