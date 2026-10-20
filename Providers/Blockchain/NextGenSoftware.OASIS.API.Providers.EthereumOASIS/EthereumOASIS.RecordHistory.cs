@@ -18,6 +18,10 @@ public partial class EthereumOASIS
     // No persistence or caller publication: the checked writer must use this same observed ciphertext.
     private static async Task<(T Record,string Ciphertext)> StageStorageHistoryAsync<T>(string kind,T proposed,
         BigInteger observedEntityId,string observedIdentity,string observedCiphertext,bool createHistory) where T:class,IHolonBase
+        =>await StageStorageHistoryWithPlanAsync(kind,proposed,observedEntityId,observedIdentity,observedCiphertext,createHistory,null);
+
+    private static async Task<(T Record,string Ciphertext)> StageStorageHistoryWithPlanAsync<T>(string kind,T proposed,
+        BigInteger observedEntityId,string observedIdentity,string observedCiphertext,bool createHistory,PlannedHolonWrite planned) where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(proposed);
         var type=kind switch {"avatar"=>typeof(Avatar),"avatar-detail"=>typeof(AvatarDetail),"holon"=>typeof(Holon),_=>null};
@@ -32,6 +36,12 @@ public partial class EthereumOASIS
             prior=DecryptStorageDocument<T>(kind,entityId,observedCiphertext,proposed.Id).Document;
         }
         var detached=OasisJson.DeserializeStored<T>(SerializeCanonicalEmbeddedRecord(proposed).ToString(Formatting.None));
+        if(type==typeof(Holon)&&detached is Holon holon){
+            if(planned!=null&&planned.Snapshot.Id!=holon.Id)throw new InvalidDataException("Ethereum captured plan differs from staged identity.");
+            var observed=prior==null?null:OasisJson.DeserializeStored<Holon>(RecordHistory.CanonicalPayload(prior).ToString(Formatting.None));
+            holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(planned??new PlannedHolonWrite(holon,holon),
+                HolonChildRoleWriteKind.SourceSave,prior!=null,observed?.ChildRoleManifestJson);
+        }
         var document=createHistory || prior?.Property(EmbeddedRecordHistory.PropertyName)!=null
             ?await RecordHistory.StageAsync(detached,prior,OasisJson.DeserializeStored<T>,row=>SerializeCanonicalEmbeddedRecord(row).ToString(Formatting.None))
             :SerializeCanonicalEmbeddedRecord(detached);

@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Standalone Ethereum graph ownership — controlled96 green; native274 OPEN
+
+Shared iterative graph plan/role resolver/canonical publication guard replace standalone recursive Children-only/ID-only handling. Embedded selected snapshots, manager-only references and numeric-key collision refusal retained; selected-empty caches cleared. Same observed checked-history transaction owner, no extra native request/alternate writer. Three before regressions failed;12new cases included in final96/96non-nativegreen0skips, SHA256F11A818A513268C93AE145F627512C5E6ADE0863CBE0E43400BD7D64633B0F04. Source epochs, stale-consumer disclosure and limits in EVM_RECORD_HISTORY_GAPS.md. Combined274 expectation prepared,64retention guards pass; native unchanged/unresolved originals preserved, no publicgas/download/devpush. Not full-provider/globalV2 completion.
+
 ## Standalone Ethereum profile publisher — controlled84 green; native262 OPEN
 
 Four public avatar/detail sync/async metadata-edit cases first failed; shared canonical snapshot now guards before dispatch/after acknowledgement while retaining original transaction. Four no-edit controls plus existing cohort84/84 green0skips, SHA256AFFBDFFEB61F4E68A5FF79BCCCE24BC0C5005450DA4E8E7F2330B8BE38A0363F. Same real checked writer; protected virtual boundary supports controlled acknowledgement only in tests. Combined runner262 expectation prepared, syntax+64retention guards pass, no native refresh due unresolved original ledger/outbox. Standalone graph planner/publication remains OPEN; details/epochs in EVM_RECORD_HISTORY_GAPS.md. No service/newenvironment/publicgas/devpush.
