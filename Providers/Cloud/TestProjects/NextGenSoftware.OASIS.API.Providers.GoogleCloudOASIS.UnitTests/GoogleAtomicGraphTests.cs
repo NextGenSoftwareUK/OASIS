@@ -128,6 +128,19 @@ public partial class GoogleAtomicGraphTests
         Assert.AreEqual("COSMIC_CONCURRENCY_CONFLICT",stale.ErrorCode);Assert.AreEqual(2,client.Commits);
     }
     [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task OrdinaryBatchPublishesCurrentProviderRevisionToCaller(bool synchronous) {
+        var client=new Client();var provider=Provider(client);
+        var first=await provider.ExecuteConditionalHolonWriteAsync(Request(new Holon{Id=Guid.NewGuid()},Guid.NewGuid()));
+        var row=(Holon)first.Result.Single();var old=CosmicConcurrency.GetProviderRevisionId(row,ProviderType.GoogleCloudOASIS);
+        row.Name="ordinary batch replacement";
+        var saved=synchronous?provider.SaveHolons(new[]{row},saveChildren:false):await provider.SaveHolonsAsync(new[]{row},saveChildren:false);
+        Assert.IsFalse(saved.IsError,saved.Exception?.ToString());
+        var current=CosmicConcurrency.GetProviderRevisionId(row,ProviderType.GoogleCloudOASIS);
+        Assert.IsTrue(current.HasValue);Assert.AreNotEqual(old,current,"Batch publication must expose the committed revision, not the prior token.");
+        var update=await provider.ExecuteConditionalHolonWriteAsync(Request(row,Guid.NewGuid(),current));
+        Assert.IsFalse(update.IsError,update.Exception?.ToString());
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task RejectionAndCapacityDoNotBecomeUnknownExecution(bool capacity) {
         var client=new Client{Reject=!capacity};var provider=Provider(client);
         var row=new Holon{Id=Guid.NewGuid(),Description=capacity?new string('x',1024*1024):"owned"};

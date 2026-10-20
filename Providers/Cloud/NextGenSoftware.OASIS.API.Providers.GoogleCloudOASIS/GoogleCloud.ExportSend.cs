@@ -70,6 +70,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         if(node.Source is NextGenSoftware.OASIS.API.Core.Holons.Holon caller && written.Result is NextGenSoftware.OASIS.API.Core.Holons.Holon committed)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                         node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=node.Snapshot.Id.ToString();
+                        var revision=CosmicConcurrency.GetProviderRevisionId(written.Result,Core.Enums.ProviderType.GoogleCloudOASIS);
+                        if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(node.Source,Core.Enums.ProviderType.GoogleCloudOASIS,revision.Value);
                     }
                 }
                 result.Result=failures.Count==0 ? plan.Roots:saved;result.IsSaved=failures.Count==0;

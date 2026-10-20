@@ -1,5 +1,5 @@
 #requires -Version 7.5
-param([switch]$RunEncryptedReplay,[switch]$RunPreparationClaims,[switch]$RunConditionalGraphs,[switch]$ResumeExportedProof,[switch]$ReconcileRetainedExport,[switch]$InspectRetainedExport,[switch]$VerifyRetainedCheckpoint,[switch]$RunHistoryTests,[switch]$RunRegressionTests,[switch]$ReconcileRoleFixture,[int]$ContinueOwnedEmulatorId)
+param([switch]$RunBatchRevisions,[switch]$RunEncryptedReplay,[switch]$RunPreparationClaims,[switch]$RunConditionalGraphs,[switch]$ResumeExportedProof,[switch]$ReconcileRetainedExport,[switch]$InspectRetainedExport,[switch]$VerifyRetainedCheckpoint,[switch]$RunHistoryTests,[switch]$RunRegressionTests,[switch]$ReconcileRoleFixture,[int]$ContinueOwnedEmulatorId)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/GoogleCurrent'
@@ -18,6 +18,7 @@ if($RunRegressionTests -and !$RunHistoryTests){throw 'Regression suite requires 
 if($RunConditionalGraphs -and (!$RunHistoryTests -or $ReconcileRoleFixture)){throw 'Atomic graph mode requires history-runner admission without reconciliation mode.'}
 if($RunPreparationClaims -and (!$RunHistoryTests -or $ReconcileRoleFixture)){throw 'Preparation mode requires history-runner admission without reconciliation mode.'}
 if($RunEncryptedReplay -and (!$RunHistoryTests -or $ReconcileRoleFixture)){throw 'Encrypted runtime mode requires history-runner admission without reconciliation mode.'}
+if($RunBatchRevisions -and (!$RunHistoryTests -or $ReconcileRoleFixture)){throw 'Batch revision mode requires history-runner admission without reconciliation mode.'}
 if($ReconcileRoleFixture -and (!$ContinueOwnedEmulatorId -or !$RunHistoryTests -or $RunRegressionTests)){throw 'Exact role-fixture reconciliation requires the same owned live history runtime only.'}
 if($ResumeExportedProof -and $ReconcileRetainedExport){throw 'Choose one explicit recovery mode.'}
 if($InspectRetainedExport -and !$ReconcileRetainedExport){throw 'Inspection requires explicit retained export mode.'}
@@ -149,6 +150,15 @@ try{
             if($LASTEXITCODE -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Original role fixture reconciliation incomplete; preserve same live runtime.'}
             return
         }
+        if($RunBatchRevisions){
+            & dotnet test $project --no-build --no-restore --filter 'TestCategory=BatchRevisionNative' --logger 'trx;LogFileName=google-batch-revision-native-current.trx' --results-directory $work /m:2 /nr:false -v:q
+            if($LASTEXITCODE){throw 'Native batch revision tests failed; preserve original live emulator and fixtures.'}
+            $report=Get-Item -LiteralPath (Join-Path $work 'google-batch-revision-native-current.trx')
+            [xml]$trx=Get-Content -LiteralPath $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
+            if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 2 -or [int]$counts.passed -ne 2 -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete2/2 native batch revision report required.'}
+            if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Original batch revision fixtures remain unresolved.'}
+            if(!$RunEncryptedReplay -and !$RunPreparationClaims -and !$RunRegressionTests -and !$RunConditionalGraphs){$safeToStop=$true;return}
+        }
         if($RunEncryptedReplay){
             & dotnet test $project --no-build --no-restore --filter 'TestCategory=RuntimeEncryptedNative' --logger 'trx;LogFileName=google-encrypted-replay-native-current.trx' --results-directory $work /m:2 /nr:false -v:q
             if($LASTEXITCODE){throw 'Native encrypted runtime tests failed; preserve original live emulator and fixtures.'}
@@ -186,7 +196,7 @@ try{
         if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native history originals remain; do not stop.'}
         if($RunRegressionTests){
             $started=[DateTime]::UtcNow
-            & dotnet test $project --no-build --no-restore --filter 'TestCategory!=HistoryNative&TestCategory!=RoleFixtureReconciliation&TestCategory!=AtomicGraphNative&TestCategory!=PreparationNative&TestCategory!=RuntimeEncryptedNative' --logger 'trx;LogFileName=google-native-current.trx' --results-directory $work -v:q
+            & dotnet test $project --no-build --no-restore --filter 'TestCategory!=HistoryNative&TestCategory!=RoleFixtureReconciliation&TestCategory!=AtomicGraphNative&TestCategory!=PreparationNative&TestCategory!=RuntimeEncryptedNative&TestCategory!=BatchRevisionNative' --logger 'trx;LogFileName=google-native-current.trx' --results-directory $work -v:q
             if($LASTEXITCODE){throw 'Native regression failed; retain original live emulator for inspection.'}
             $report=Get-Item -LiteralPath (Join-Path $work 'google-native-current.trx')
             if($report.LastWriteTimeUtc -lt $started){throw 'Stale native regression report.'}
