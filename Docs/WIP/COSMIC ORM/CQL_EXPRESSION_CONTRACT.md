@@ -38,9 +38,19 @@ The initial enum expression shape and netstandard compatibility-name collision w
 
 Five additional composition cases pass in the full **1,303/1,303** Core gate, zero skips (`TestResults/CosmicMongoCurrent/cql-composition-core-verified.trx`). Both target frameworks build with zero errors. This extends the earlier compiler evidence, without certifying execution.
 
+## Capability planning boundary (pure admission verified)
+
+`CosmicQueryCapabilities` describes admitted logical operators, metadata/null support, exact CLR path types and comparison operators. Composition across multiple `Where` clauses requires AND capability. Nullable types remain distinct from their underlying type. Capability arrays are detached and immutable.
+
+`CosmicQueryPlanner.Plan` operates on a supplied, already authorized eligible target snapshot. It performs no registration discovery, policy evaluation or storage I/O. Current-default scope resolves to exactly one listed target, named scope preserves requested order, and all-eligible scope selects the entire snapshot. Missing targets or an unsupported selected target reject the whole plan; no target is silently dropped, no client evaluation is substituted, and an empty target selection is an error. Target snapshots are bounded to 64 unique identities.
+
+Five capability/planning cases pass in full Core **1,308/1,308**, zero skips (`TestResults/CosmicMongoCurrent/cql-planning-core-verified.trx`); both target frameworks build with zero errors.
+
+These declarations are admission prerequisites. Adapters must still validate exact provider-native translation semantics, and the WEB4 execution boundary must obtain and enforce actor/tenant/visibility/residency/encryption/cost authorization. A caller-supplied capability profile is not authorization or native certification. Native translation, parameter binding, execution and paging remain required.
+
 ## Required next work
 
-- Resolve immutable typed query composition and explicit provider scope into an authorized capability-aware execution plan.
+- Integrate the pure scope/capability planner with an authenticated, authorized WEB4 target snapshot and certified native adapters.
 - Additional admitted operators, including string/inclusion, field comparisons, relationship predicates and custom persisted property mappings.
 - Versioned query envelopes, capability-aware plans and explanations, authorized tenant/visibility/residency/encryption/cost admission.
 - Native parameterized adapters, beginning with the selected stores; unsupported pushdown must fail before I/O. Bounded client evaluation requires explicit opt-in.
