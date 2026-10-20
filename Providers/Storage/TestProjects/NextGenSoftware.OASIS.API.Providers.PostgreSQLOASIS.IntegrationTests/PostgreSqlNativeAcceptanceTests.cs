@@ -5,12 +5,51 @@ using Npgsql;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests;
 
 [TestClass][DoNotParallelize]
 public class PostgreSqlNativeAcceptanceTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task NativeTextSearchUsesCanonicalNameAndDescription(bool description)
+    {
+        var connection=Environment.GetEnvironmentVariable("POSTGRESQLOASIS_CONNECTIONSTRING")!;
+        var work=Environment.GetEnvironmentVariable("OASIS_POSTGRES_TEST_WORK")!;
+        var settings=new NpgsqlConnectionStringBuilder(connection);
+        Assert.AreEqual("127.0.0.1",settings.Host);Assert.AreEqual(15432,settings.Port);Assert.AreEqual("oasis_provider_test",settings.Database);
+        var journal=Path.Combine(work,$"native-search-{description}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var marker="owned-pg-search-"+Guid.NewGuid().ToString("N");
+        var row=new Holon{Id=Guid.NewGuid(),Name=description?"unrelated name":marker,Description=description?marker:"unrelated description",MetaData=new(){["owned-fixture"]=marker}};
+        var provider=new PostgreSQLOASIS(connection);Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        await using var verifier=new NpgsqlConnection(connection);await verifier.OpenAsync();
+        await using(var absent=new NpgsqlCommand("SELECT count(*) FROM oasis_holons WHERE id=@id",verifier)){absent.Parameters.AddWithValue("id",row.Id);Assert.AreEqual(0L,await absent.ExecuteScalarAsync());}
+        using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+            await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id=row.Id,table="oasis_holons",marker,state="before-native-search-fixture"}));file.Flush(true);
+        }
+        string? ownedAcknowledgedBody=null;
+        try{
+            var saved=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);
+            await using(var read=new NpgsqlCommand("SELECT data_json FROM oasis_holons WHERE id=@id",verifier)){
+                read.Parameters.AddWithValue("id",row.Id);var body=(string?)await read.ExecuteScalarAsync();Assert.IsNotNull(body);
+                using var document=JsonDocument.Parse(body);Assert.AreEqual(row.Id,document.RootElement.GetProperty("Id").GetGuid());
+                Assert.AreEqual(marker,document.RootElement.GetProperty("MetaData").GetProperty("owned-fixture").GetString());ownedAcknowledgedBody=body;
+            }
+            var query=new SearchParams{SearchGroups=new(){new SearchTextGroup{SearchQuery=marker}}};
+            var found=await provider.SearchAsync(query,loadChildren:false);Assert.IsFalse(found.IsError,found.Exception?.ToString());
+            Assert.IsTrue(found.Result.SearchResultHolons.Any(value=>value.Id==row.Id),"Canonical persisted text must be searchable.");
+        }finally{
+            // Only a known acknowledged, identity/marker-verified fixture is disposable. Unknown saves retain their journal.
+            if(ownedAcknowledgedBody!=null){
+                await using var cleanup=new NpgsqlCommand("DELETE FROM oasis_holons WHERE id=@id AND data_json=@observed",verifier);
+                cleanup.Parameters.AddWithValue("id",row.Id);cleanup.Parameters.AddWithValue("observed",ownedAcknowledgedBody);Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());
+                await using var check=new NpgsqlCommand("SELECT count(*) FROM oasis_holons WHERE id=@id",verifier);check.Parameters.AddWithValue("id",row.Id);Assert.AreEqual(0L,await check.ExecuteScalarAsync());File.Delete(journal);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
     [DataTestMethod]
     [DataRow(0,false)][DataRow(1,false)][DataRow(2,false)]
     [DataRow(0,true)][DataRow(1,true)][DataRow(2,true)]

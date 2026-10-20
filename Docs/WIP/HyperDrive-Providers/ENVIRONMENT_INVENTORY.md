@@ -1,5 +1,7 @@
 # Reusable environments and disk inventory
 
+2026-10-20 PostgreSQL canonical-search refresh reused SAME17.11 runtime/container/volume/secret/loopback15432 and fixed project outputs. Initial8cases6pass2canonical-key searchfail, final8/8nativegreen941ms; compact original reports renamed in place before reruns. Exact known-ACK fixtures cleaned viaID/marker/fullJSON checks even on assertion failure; unknown outcomes retain journals. Final3tablecounts0/journals0, taskownedcontainerEXITED/15432listenerabsent. No new download/install/env/database reset or runtime/userdata deletion; report hashes/scopes in HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md.
+
 2026-10-20 final decoder verification reuse: SAME retained DynamoDBJAR/data/ports/lease native95green9s, pending0/ownedJavaabsent/18000-18001absent; SAME pinned PostgreSQL17.11 container/image/data-volume/secret reused fornative6green918ms, pending0/containerEXITED. No new runtime/archive/container/volume/install/download or database reset. Prior compact reports moved in place before reruns (dynamo-history-pre-generic-decoder.trx /postgres-native-pre-final-decoder.trx); current hashes/scope in SHARED_RECORD_HISTORY.md. NativeSQL fixtures only cleaned by exactownedID/fullJSON conditions; no retained runtime/userdata deletion or recovered-space claim.
 
 ## Approved PostgreSQL runtime — installed once, 2026-10-20
