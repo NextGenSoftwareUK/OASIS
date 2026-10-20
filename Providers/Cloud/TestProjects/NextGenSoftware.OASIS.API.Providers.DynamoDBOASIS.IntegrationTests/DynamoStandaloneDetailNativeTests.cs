@@ -15,6 +15,34 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.IntegrationTests;
 
 public partial class DynamoHistoryNativeTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task NativeLifecycleOversizedHistoryIsKnownRejectionNotLostAcknowledgement(bool paired)
+    {
+        Assert.AreEqual("http://127.0.0.1:18000",Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL"));
+        var journal=Path.Combine(Environment.GetEnvironmentVariable("OASIS_DYNAMO_HISTORY_WORK")!,$"detail-validation-{paired}.pending.json");
+        Assert.IsFalse(File.Exists(journal));var id=Guid.NewGuid();var name="owned-validation-"+id.ToString("N");
+        var provider=new NextGenSoftware.OASIS.API.Providers.AWSOASIS.AWSOASIS("us-east-1","ownedhistorytest","ownedhistorytest","http://127.0.0.1:18000"){IsVersionControlEnabled=true};
+        using var verifier=Client();var key=new Dictionary<string,AttributeValue>{{"id",new(){S=id.ToString()}}};
+        async Task<GetItemResponse> Read(string table)=>await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true});
+        try{
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            foreach(var table in new[]{"OasisAvatars","OasisAvatarDetails"})Assert.AreEqual(0,(await Read(table)).Item.Count);
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+                await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,name,paired,state="before-owned-native-validation"}));file.Flush(true);}
+            await SavePublic(provider,new Avatar{Id=id,Username=name,Email=name+"@example.invalid",IsActive=true});
+            await SavePublic(provider,new AvatarDetail{Id=id,Username=name,Email=name+"@example.invalid",Description=new string('x',230*1024),IsActive=true});
+            var avatar=(await Read("OasisAvatars")).Item["data_json"].S;var detail=(await Read("OasisAvatarDetails")).Item["data_json"].S;
+            var result=paired?await provider.DeleteAvatarAsync(id):await provider.DeleteAvatarDetailAsync(id);
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsDeleted);
+            Assert.IsInstanceOfType<Amazon.DynamoDBv2.AmazonDynamoDBException>(result.Exception);
+            var cause=(Amazon.DynamoDBv2.AmazonDynamoDBException)result.Exception;
+            Assert.AreEqual(HttpStatusCode.BadRequest,cause.StatusCode);Assert.AreEqual("ValidationException",cause.ErrorCode);
+            Assert.IsFalse(NativeMutationReconciliation.IsRequired(cause));
+            Assert.AreEqual(avatar,(await Read("OasisAvatars")).Item["data_json"].S);Assert.AreEqual(detail,(await Read("OasisAvatarDetails")).Item["data_json"].S);
+            await RemoveOwned(verifier,"OasisAvatarDetails",id,detail);await RemoveOwned(verifier,"OasisAvatars",id,avatar);File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
+
     [DataTestMethod]
     [DataRow(false,0)][DataRow(true,0)][DataRow(false,1)][DataRow(true,1)][DataRow(false,2)][DataRow(true,2)]
     [DataRow(false,3)][DataRow(true,3)][DataRow(false,4)][DataRow(true,4)]
