@@ -14,6 +14,14 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.UnitTests
 [TestClass][DoNotParallelize]
 public class OracleObjectSdkTests
 {
+    private sealed class NamedOwner:NextGenSoftware.OASIS.API.Core.Holons.Holon
+    {
+        public List<NextGenSoftware.OASIS.API.Core.Holons.Holon> Components {get;set;}=new();
+        public override System.Collections.ObjectModel.ReadOnlyCollection<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> AllChildren
+            =>Children.Concat<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(Components).ToList().AsReadOnly();
+        public override IReadOnlyList<NextGenSoftware.OASIS.API.Core.Holons.HolonChildCollection> CaptureChildCollections()=>base.CaptureChildCollections()
+            .Concat(new[]{new NextGenSoftware.OASIS.API.Core.Holons.HolonChildCollection(nameof(Components),Components,rows=>Components=rows.Cast<NextGenSoftware.OASIS.API.Core.Holons.Holon>().ToList())}).ToArray();
+    }
     private const string Endpoint="http://127.0.0.1:18661/";
     private static ObjectStorageClient Client()
     {
@@ -316,6 +324,24 @@ public class OracleObjectSdkTests
             var removed=synchronous?provider.DeleteAvatar(avatar.Id,softDelete:false):await provider.DeleteAvatarAsync(avatar.Id,softDelete:false);Assert.IsFalse(removed.IsError,removed.Message);
             Assert.AreEqual(5,conditionalDeletes-beforeAvatarDelete,"Avatar, both identity indexes and both archives must use native If-Match deletion.");
             Assert.IsTrue((await provider.LoadAvatarAsync(avatar.Id)).IsError);
+            var owner=new NamedOwner{Id=Guid.NewGuid(),Name="private-named-owner"};
+            var member=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),Name="private-named-member"};owner.Components.Add(member);
+            var manifest=NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                NextGenSoftware.OASIS.API.Core.Holons.HolonChildCollectionState.Capture(owner).CreateManifest(owner.Id,row=>row.Id));
+            var named=synchronous?provider.SaveHolon(owner):await provider.SaveHolonAsync(owner);Assert.IsFalse(named.IsError,named.Exception?.ToString());
+            Assert.AreEqual(manifest,owner.ChildRoleManifestJson);Assert.AreEqual(owner.Id,member.ParentHolonId);
+            var currentOwner=(await provider.LoadHolonAsync(owner.Id,loadChildren:false)).Result;
+            Assert.AreEqual(manifest,((NextGenSoftware.OASIS.API.Core.Holons.Holon)currentOwner).ChildRoleManifestJson);
+            var memberBefore=OasisJson.Serialize((await provider.LoadHolonAsync(member.Id,loadChildren:false)).Result);
+            var scalar=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=owner.Id,Name="private-named-scalar"};
+            var rootOnly=synchronous?provider.SaveHolon(scalar,saveChildren:false):await provider.SaveHolonAsync(scalar,saveChildren:false);Assert.IsFalse(rootOnly.IsError,rootOnly.Exception?.ToString());
+            Assert.AreEqual(manifest,scalar.ChildRoleManifestJson);
+            Assert.AreEqual(memberBefore,OasisJson.Serialize((await provider.LoadHolonAsync(member.Id,loadChildren:false)).Result));
+            var archivedOwner=(await provider.LoadHolonAsync(owner.Id,loadChildren:false,version:1)).Result;
+            Assert.AreEqual(manifest,((NextGenSoftware.OASIS.API.Core.Holons.Holon)archivedOwner).ChildRoleManifestJson);
+            foreach(var value in objects.Values)foreach(var marker in new[]{owner.Name,member.Name,scalar.Name,owner.Id.ToString(),member.Id.ToString()})Assert.IsFalse(value.Contains(marker,StringComparison.Ordinal));
+            Assert.IsFalse((await provider.DeleteHolonAsync(member.Id)).IsError);Assert.IsFalse((await provider.DeleteHolonAsync(owner.Id)).IsError);
+            Assert.IsTrue((await provider.LoadHolonAsync(member.Id,loadChildren:false)).IsError);Assert.IsTrue((await provider.LoadHolonAsync(owner.Id,loadChildren:false)).IsError);
             provider.Dispose();Assert.IsFalse(provider.IsProviderActivated);
             Assert.IsTrue((await provider.ActivateProviderAsync()).IsError);
             await new OracleObjectStorageBackend(client,"ns","bucket").VerifyAsync(); // borrowed client remains caller-owned
