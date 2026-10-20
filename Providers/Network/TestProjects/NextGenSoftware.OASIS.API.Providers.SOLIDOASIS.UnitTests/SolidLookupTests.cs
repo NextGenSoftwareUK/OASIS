@@ -6,6 +6,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests;
 
 public class SolidLookupTests
 {
+    [Theory]
+    [InlineData(false,false,false)][InlineData(false,false,true)][InlineData(false,true,false)][InlineData(false,true,true)]
+    [InlineData(true,false,false)][InlineData(true,false,true)][InlineData(true,true,false)][InlineData(true,true,true)]
+    public async Task ProfileSelectorsIgnoreDeletedIdentityOwners(bool detail,bool email,bool synchronous)
+    {
+        var transport=new Transport();using var codec=new SolidPrivateRecordCodec(Root,Key());var deleted=Guid.NewGuid();var live=Guid.NewGuid();
+        foreach(var id in new[]{deleted,live}){
+            var when=id==deleted?DateTime.UtcNow:DateTime.MinValue;
+            if(detail)transport.Records[codec.Resource<IAvatarDetail>(id).AbsoluteUri]=codec.Encode<IAvatarDetail>(new AvatarDetail{Id=id,Username="owned",Email="owned@example.invalid",DeletedDate=when});
+            else transport.Records[codec.Resource<IAvatar>(id).AbsoluteUri]=codec.Encode<IAvatar>(new Avatar{Id=id,Username="owned",Email="owned@example.invalid",DeletedDate=when});
+        }
+        using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport);Assert.False((await provider.ActivateProviderAsync()).IsError);
+        if(detail){var result=email?(synchronous?provider.LoadAvatarDetailByEmail("owned@example.invalid"):await provider.LoadAvatarDetailByEmailAsync("owned@example.invalid")):(synchronous?provider.LoadAvatarDetailByUsername("owned"):await provider.LoadAvatarDetailByUsernameAsync("owned"));Assert.False(result.IsError,result.Exception?.ToString());Assert.Equal(live,result.Result.Id);}
+        else{var result=email?(synchronous?provider.LoadAvatarByEmail("owned@example.invalid"):await provider.LoadAvatarByEmailAsync("owned@example.invalid")):(synchronous?provider.LoadAvatarByUsername("owned"):await provider.LoadAvatarByUsernameAsync("owned"));Assert.False(result.IsError,result.Exception?.ToString());Assert.Equal(live,result.Result.Id);}
+    }
     private static readonly Uri Root=new("https://pod.invalid/private/");
     private static byte[] Key()=>Enumerable.Range(1,32).Select(x=>(byte)x).ToArray();
     private sealed class Transport : HttpMessageHandler
@@ -51,7 +66,7 @@ public class SolidLookupTests
         var transport=new Transport();using(var codec=new SolidPrivateRecordCodec(Root,Key()))foreach(var id in new[]{Guid.NewGuid(),Guid.NewGuid()})
             transport.Records[new Uri(Root,$"oasis/avatars/{id}.ttl").AbsoluteUri]=codec.Encode<IAvatar>(new Avatar{Id=id,Username="duplicate"});
         using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport);Assert.False((await provider.ActivateProviderAsync()).IsError);
-        var result=await provider.LoadAvatarByUsernameAsync("duplicate");Assert.True(result.IsError);Assert.Null(result.Result);Assert.IsType<InvalidDataException>(result.Exception);
+        var result=await provider.LoadAvatarByUsernameAsync("duplicate");Assert.True(result.IsError);Assert.Null(result.Result);Assert.IsType<NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException>(result.Exception);Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);
     }
     [Fact]
     public async Task MissingIdentityReturnsCanonicalRecordNotFoundClassification()
