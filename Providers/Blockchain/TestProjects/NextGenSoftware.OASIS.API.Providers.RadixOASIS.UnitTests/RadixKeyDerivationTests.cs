@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NBitcoin;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities;
+using NextGenSoftware.OASIS.API.Core.Helpers.Crypto;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Helpers;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Services.Radix;
 
