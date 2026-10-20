@@ -82,7 +82,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 274 -or [int]$counts.passed -ne 274 -or [int]$counts.notExecuted -ne 0 -or (Test-Path -LiteralPath $keyDeletePending)){throw 'Expected274passing cases (262previous plus12controlled graph ownership cases), no skips or pending original deletion.'}
+    if([int]$counts.total -ne 280 -or [int]$counts.passed -ne 280 -or [int]$counts.notExecuted -ne 0 -or (Test-Path -LiteralPath $keyDeletePending)){throw 'Expected280passing cases (274previous plus6controlled linked membership cases), no skips or pending original deletion.'}
     & $node (Join-Path $PSScriptRoot 'verify-web3core-pages.cjs')
     if($LASTEXITCODE){throw 'Web3Core native page verification failed.'}
     $web3Started=[DateTime]::UtcNow

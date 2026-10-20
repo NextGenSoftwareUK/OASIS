@@ -89,6 +89,25 @@ public class EthereumGraphPlanControlledTests
         try{Environment.SetEnvironmentVariable(name,Convert.ToBase64String(key));await test();}
         finally{Environment.SetEnvironmentVariable(name,previous);CryptographicOperations.ZeroMemory(key);}
     }
+    [DataTestMethod]
+    [DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)][DataRow(4)][DataRow(5)]
+    public void ProviderLinkedReadsHonorCapturedMembershipAndIndependentChildVersions(int kind)
+    {
+        var root=new Holon{Id=Guid.NewGuid(),Version=1};
+        var selected=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Version=9};
+        var unselected=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Version=8};
+        if(kind!=0)root.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1,kind==5?Guid.NewGuid():root.Id,
+            new[]{new HolonChildRole("Components",kind==1?Array.Empty<Guid>():new[]{kind==3?Guid.NewGuid():selected.Id})}));
+        if(kind==4)selected.ParentHolonId=Guid.NewGuid();
+        var method=typeof(EthereumOASIS).GetMethod("CreateHolonProjector",BindingFlags.Static|BindingFlags.NonPublic)!;
+        var project=(Func<IHolon,IHolon>)method.Invoke(null,new object[]{new IHolon[]{root,selected,unselected},true,true,0,0,true,false})!;
+        if(kind>=3){Assert.ThrowsException<InvalidDataException>(()=>project(root));return;}
+        var result=project(root);Assert.AreEqual(1,result.Version);
+        Assert.AreEqual(kind==0?2:kind==1?0:1,result.Children.Count);
+        if(kind==2){Assert.AreEqual(selected.Id,result.Children.Single().Id);Assert.AreEqual(9,result.Children.Single().Version);}
+        Assert.AreEqual(0,root.Children.Count);Assert.AreEqual(9,selected.Version);Assert.AreEqual(8,unselected.Version);
+    }
+
     [TestMethod]
     public Task NumericStorageKeyCollisionRejectsBeforeCallerPublication()=>WithKey(()=>{
         var first=Guid.Parse("00005f42-0000-0000-0000-000000000000");var second=Guid.Parse("00017b6d-0000-0000-0000-000000000000");
