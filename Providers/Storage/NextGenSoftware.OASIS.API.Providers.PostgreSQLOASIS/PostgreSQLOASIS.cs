@@ -674,7 +674,7 @@ ON CONFLICT (id) DO UPDATE SET
                     .FirstOrDefault()?.SearchQuery;
                 string sql = string.IsNullOrEmpty(query)
                     ? "SELECT data_json FROM oasis_holons WHERE is_deleted=FALSE"
-                    : "SELECT data_json FROM oasis_holons WHERE is_deleted=FALSE AND (data_json::jsonb->>'name' ILIKE @q OR data_json::jsonb->>'description' ILIKE @q)";
+                    : "SELECT data_json FROM oasis_holons WHERE is_deleted=FALSE AND (data_json::jsonb->>'Name' ILIKE @q OR data_json::jsonb->>'Description' ILIKE @q)";
                 await using var conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new NpgsqlCommand(sql, conn);
