@@ -289,7 +289,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             {
                 ValidateRecordVersion(version);
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatars",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
-                if (resp.Item == null || !resp.Item.Any()) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
+                RequireItemRead(resp);
+                if (resp.Item.Count==0) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var avatar = ReadStoredIdentity<Avatar>(resp.Item,id,version);
                 if(avatar==null||avatar.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
                 result.Result = avatar; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded.";
@@ -510,7 +511,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             {
                 ValidateRecordVersion(version);
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatarDetails",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
-                if (resp.Item == null || !resp.Item.Any()) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
+                RequireItemRead(resp);
+                if (resp.Item.Count==0) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var d = ReadStoredIdentity<AvatarDetail>(resp.Item,id,version);
                 if(d==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
                 result.Result = d; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail loaded.";
@@ -656,7 +658,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 ValidateGraphRead(maxChildDepth,0,version);
                 if(id==Guid.Empty) throw new ArgumentException("A nonempty holon identity is required.",nameof(id));
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisHolons",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
-                if (resp.Item == null || !resp.Item.Any()) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No holon for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
+                RequireItemRead(resp);
+                if (resp.Item.Count==0) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No holon for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = ReadStoredIdentity<Holon>(resp.Item,id,version);
                 if(holon==null||holon.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
                 var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():new List<IHolon> {holon};
