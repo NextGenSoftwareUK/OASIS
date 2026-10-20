@@ -2,7 +2,15 @@
 
 Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-providers`. Selected foundations are implemented and verified; the full roadmap is unfinished. Source commits, assembly hashes, original failures and fixture reconciliation are retained in [integration evidence](INTEGRATION_BOUNDARY.md) and [verification history](VERIFICATION.md).
 
-## Current working snapshot — 20 October, 12:20 local
+## Latest working increment — protected preparation ownership
+
+The encrypted logical-operation replay defect is now reproduced natively: unencrypted sync/async controls pass, encrypted sync/async retries fail with `COSMIC_OPERATION_ID_REUSED` across fresh managers/providers. The provider fingerprint correctly detects new randomized ciphertext. The required fix is durable authorized preparation ownership, not relaxed fingerprinting. See [defect and acceptance cases](CONDITIONAL_WRITES.md#encrypted-preparation-replay-defect--20-october-2026).
+
+The first prerequisite is implemented: shared domain-separated preparation protection, authenticating record/context/key and operation/actor/authority bindings while preserving the existing metadata envelope format. Full Core **1,508/1,508**, zero skips, passes; both target frameworks build. [Crypto evidence and remaining journal integration](ENCRYPTION_CONTEXT.md#protected-preparation-crypto-owner--20-october-2026). No durable preparation store or manager/V2 claim path exists yet; the two encrypted retry tests intentionally remain red. Native compatibility verification is separate from fixing those regressions.
+
+A consolidated [CQL getting-started guide](CQL_GETTING_STARTED.md) now documents the implemented shared API, native SQLite examples, provider scope, metadata/encryption semantics, tracked write-back and unfinished features. The original full roadmap remains active.
+
+## Previous accepted snapshot — 20 October, 12:20 local
 
 **Active priority: P0 persistence correctness and encryption context.** This is still a partial implementation of the full roadmap, not a completed product release.
 
