@@ -410,18 +410,20 @@ public partial class EthereumOASISIntegrationTests
         var unrelated=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=Guid.NewGuid(),Name="unrelated",HolonType=HolonType.Holon };
         child.Children.Add(grandchild);
         foreach(var row in new[] {child,grandchild,unrelated}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
-        async Task<OASISResult<IEnumerable<IHolon>>> Read(bool byKey=false,bool children=true,HolonType type=HolonType.All,int version=0)
+        async Task<OASISResult<IEnumerable<IHolon>>> Read(bool byKey=false,bool children=true,HolonType type=HolonType.All,int version=0,int maximum=0,bool recursive=true)
         {
-            if(byKey) return synchronous ? provider.LoadHolonsForParent(parent.ToString().ToUpperInvariant(),type,children,loadChildrenFromProvider:true,version:version)
-                : await provider.LoadHolonsForParentAsync(parent.ToString().ToUpperInvariant(),type,children,loadChildrenFromProvider:true,version:version);
-            return synchronous ? provider.LoadHolonsForParent(parent,type,children,loadChildrenFromProvider:true,version:version)
-                : await provider.LoadHolonsForParentAsync(parent,type,children,loadChildrenFromProvider:true,version:version);
+            if(byKey) return synchronous ? provider.LoadHolonsForParent(parent.ToString().ToUpperInvariant(),type,children,recursive:recursive,maxChildDepth:maximum,loadChildrenFromProvider:true,version:version)
+                : await provider.LoadHolonsForParentAsync(parent.ToString().ToUpperInvariant(),type,children,recursive:recursive,maxChildDepth:maximum,loadChildrenFromProvider:true,version:version);
+            return synchronous ? provider.LoadHolonsForParent(parent,type,children,recursive:recursive,maxChildDepth:maximum,loadChildrenFromProvider:true,version:version)
+                : await provider.LoadHolonsForParentAsync(parent,type,children,recursive:recursive,maxChildDepth:maximum,loadChildrenFromProvider:true,version:version);
         }
         foreach(var byKey in new[] {false,true})
         {
             var loaded=await Read(byKey); Assert.IsFalse(loaded.IsError,loaded.Message); Assert.IsTrue(loaded.IsLoaded);
             Assert.AreEqual(child.Id,loaded.Result.Single().Id); Assert.AreEqual(grandchild.Id,loaded.Result.Single().Children.Single().Id);
             var flat=await Read(byKey,children:false); Assert.IsFalse(flat.IsError,flat.Message); Assert.AreEqual(0,flat.Result.Single().Children.Count);
+            var bounded=await Read(byKey,maximum:1);Assert.IsFalse(bounded.IsError,bounded.Exception?.ToString());Assert.AreEqual(0,bounded.Result.Single().Children.Count);
+            var immediate=await Read(byKey,recursive:false);Assert.IsFalse(immediate.IsError,immediate.Exception?.ToString());Assert.AreEqual(0,immediate.Result.Single().Children.Count);
             var filtered=await Read(byKey,type:HolonType.Avatar); Assert.IsFalse(filtered.IsError,filtered.Message); Assert.AreEqual(0,filtered.Result.Count());
             var history=await Read(byKey,version:1);Assert.IsFalse(history.IsError,history.Message);Assert.IsTrue(history.IsLoaded);Assert.AreEqual(0,history.Result.Count());
         }
@@ -505,13 +507,16 @@ public partial class EthereumOASISIntegrationTests
         var customKey=unrelatedId.ToString();
         var parent=new CoreHolon { Id=Guid.NewGuid(),Name="custom parent",MetaData=new Dictionary<string,object> { ["CustomKey"]=customKey } };
         var child=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=parent.Id,Name="custom child" };
+        var grandchild=new CoreHolon{Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="custom grandchild"};child.Children.Add(grandchild);
         var unrelated=new CoreHolon { Id=unrelatedId,Name="must not win provider-key fallback" };
-        foreach(var row in new[] {parent,child,unrelated}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        foreach(var row in new[] {parent,child,grandchild,unrelated}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
         var loaded=synchronous ? provider.LoadHolonByCustomKey(customKey) : await provider.LoadHolonByCustomKeyAsync(customKey);
         Assert.IsFalse(loaded.IsError,loaded.Message); Assert.IsTrue(loaded.IsLoaded); Assert.AreEqual(parent.Id,loaded.Result.Id);
         var children=synchronous ? provider.LoadHolonsForParentByCustomKey(customKey,loadChildren:false)
             : await provider.LoadHolonsForParentByCustomKeyAsync(customKey,loadChildren:false);
         Assert.IsFalse(children.IsError,children.Message); Assert.IsTrue(children.IsLoaded); Assert.AreEqual(child.Id,children.Result.Single().Id);
+        var bounded=synchronous?provider.LoadHolonsForParentByCustomKey(customKey,maxChildDepth:1,loadChildrenFromProvider:true):await provider.LoadHolonsForParentByCustomKeyAsync(customKey,maxChildDepth:1,loadChildrenFromProvider:true);
+        Assert.IsFalse(bounded.IsError,bounded.Exception?.ToString());Assert.AreEqual(0,bounded.Result.Single().Children.Count);
         var missing=await provider.LoadHolonByCustomKeyAsync("absent-custom-key"); Assert.IsTrue(missing.IsError); Assert.IsInstanceOfType(missing.Exception,typeof(KeyNotFoundException));
         var blank=await provider.LoadHolonsForParentByCustomKeyAsync(" "); Assert.IsTrue(blank.IsError); Assert.IsInstanceOfType(blank.Exception,typeof(ArgumentException));
         var history=await provider.LoadHolonByCustomKeyAsync(customKey,version:1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(KeyNotFoundException));
