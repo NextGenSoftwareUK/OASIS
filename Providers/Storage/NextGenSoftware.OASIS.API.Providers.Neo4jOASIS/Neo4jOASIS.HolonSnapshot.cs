@@ -181,7 +181,7 @@ public partial class Neo4jOASIS
                         var replay = await ReadConditionalReceiptAsync(transaction,conditional).ConfigureAwait(false);
                         if (replay != null)
                         {
-                            SetConditionalAcknowledgement(result,replay,conditional);
+                            result=SetConditionalAcknowledgement(replay,conditional);
                             conditional.KnownCommitted=true;
                             await transaction.RollbackAsync().ConfigureAwait(false);
                         }
@@ -199,6 +199,7 @@ public partial class Neo4jOASIS
                         foreach(var record in staged)
                         {
                             memberships.TryGetValue(record.Id,out var existingMembership);
+                            if(conditional==null)RequireSaveLifecycle(existingMembership,record);
                             ApplyPlannedChildRoleManifest(record,plannedMemberships[record.Id],existingMembership,
                                 conditional==null || conditional.Plan.Operation==ConditionalHolonOperation.Save,conditional?.Plan is CommittedHolonReplicaPlan);
                         }
@@ -270,7 +271,7 @@ public partial class Neo4jOASIS
                         await transaction.CommitAsync().ConfigureAwait(false);
                         if(conditional!=null)
                         {
-                            SetConditionalAcknowledgement(result,acknowledgedRoots,conditional);
+                            result=SetConditionalAcknowledgement(acknowledgedRoots,conditional);
                             conditional.KnownCommitted=true;
                         }
                         else
