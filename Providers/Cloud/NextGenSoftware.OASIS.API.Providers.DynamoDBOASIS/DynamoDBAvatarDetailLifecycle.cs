@@ -17,7 +17,10 @@ public partial class DynamoDBOASIS
     public OASISResult<bool> DeleteAvatarDetail(Guid id, bool softDelete = true)
         => DeleteAvatarDetailAsync(id, softDelete).GetAwaiter().GetResult();
 
-    public async Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true)
+    public Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true)
+        =>DeleteCanonicalDetailAsync(id,softDelete);
+
+    private async Task<OASISResult<bool>> DeleteCanonicalDetailAsync(Guid id,bool softDelete,Func<IAvatarDetail,bool> selectedIdentity=null)
     {
         var result = new OASISResult<bool>();
         var dispatched = false;
@@ -31,6 +34,7 @@ public partial class DynamoDBOASIS
                 return new OASISResult<bool> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "AvatarDetail not found in DynamoDB." };
             var expected = LifecycleJson(observed, id);
             var detail = ReadStoredIdentity<AvatarDetail>(observed, id);
+            if(selectedIdentity!=null&&!selectedIdentity(detail))throw new StorageLifecycleConflictException("AvatarDetail identity changed after selection; refusing deletion.");
             string updated = null;
             if (softDelete)
             {
@@ -68,25 +72,26 @@ public partial class DynamoDBOASIS
             var failure = dispatched ? new DynamoDBMutationReconciliationException("OasisAvatarDetails", id.ToString(), cause, token) : cause;
             OASISErrorHandling.HandleError(ref result, failure.Message, failure);
             if (!dispatched && cause is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
+            else if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
         }
         return result;
     }
 
-    private async Task<OASISResult<bool>> DeleteSelectedDetailAsync(Task<OASISResult<IAvatarDetail>> lookup, bool softDelete)
+    private async Task<OASISResult<bool>> DeleteSelectedDetailAsync(Task<OASISResult<IAvatarDetail>> lookup, bool softDelete,Func<IAvatarDetail,bool> selectedIdentity)
     {
         var selected = await lookup;
         if (selected == null) return new OASISResult<bool> { IsError = true, Message = "AvatarDetail selector returned no acknowledgement." };
         if (selected.IsError || selected.Result == null)
             return new OASISResult<bool> { IsError = true, ErrorCode = selected.ErrorCode, Exception = selected.Exception, Message = selected.Message };
-        return await DeleteAvatarDetailAsync(selected.Result.Id, softDelete);
+        return await DeleteCanonicalDetailAsync(selected.Result.Id,softDelete,selectedIdentity);
     }
 
     public Task<OASISResult<bool>> DeleteAvatarDetailByEmailAsync(string email, bool softDelete = true)
-        => DeleteSelectedDetailAsync(LoadAvatarDetailByEmailAsync(email), softDelete);
+        => DeleteSelectedDetailAsync(LoadAvatarDetailByEmailAsync(email),softDelete,row=>string.Equals(row.Email,email,StringComparison.OrdinalIgnoreCase));
     public OASISResult<bool> DeleteAvatarDetailByEmail(string email, bool softDelete = true)
         => DeleteAvatarDetailByEmailAsync(email, softDelete).GetAwaiter().GetResult();
     public Task<OASISResult<bool>> DeleteAvatarDetailByUsernameAsync(string username, bool softDelete = true)
-        => DeleteSelectedDetailAsync(LoadAvatarDetailByUsernameAsync(username), softDelete);
+        => DeleteSelectedDetailAsync(LoadAvatarDetailByUsernameAsync(username),softDelete,row=>string.Equals(row.Username,username,StringComparison.OrdinalIgnoreCase));
     public OASISResult<bool> DeleteAvatarDetailByUsername(string username, bool softDelete = true)
         => DeleteAvatarDetailByUsernameAsync(username, softDelete).GetAwaiter().GetResult();
 }

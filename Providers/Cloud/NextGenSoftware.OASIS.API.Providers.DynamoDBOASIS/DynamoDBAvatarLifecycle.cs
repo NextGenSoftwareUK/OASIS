@@ -52,7 +52,7 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
             ConditionExpression="data_json = :expected",UpdateExpression="SET data_json = :json, is_deleted = :deleted",ExpressionAttributeValues=values}};
     }
 
-    private async Task<OASISResult<bool>> ApplyAvatarLifecycleAsync(Guid id,bool softDelete,AvatarTombstone supplied=null)
+    private async Task<OASISResult<bool>> ApplyAvatarLifecycleAsync(Guid id,bool softDelete,AvatarTombstone supplied=null,Func<IAvatar,bool> selectedIdentity=null)
     {
         var result=new OASISResult<bool>();var dispatched=false;string? requestToken=null;
         try
@@ -63,6 +63,7 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
             if(profileItem.Count==0) return new OASISResult<bool>(false) {IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Avatar not found in DynamoDB."};
             var profileJson=LifecycleJson(profileItem,id);
             var profile=ReadStoredIdentity<Avatar>(profileItem,id);
+            if(selectedIdentity!=null&&!selectedIdentity(profile))throw new StorageLifecycleConflictException("Avatar identity changed after selection; refusing deletion.");
             if(supplied!=null && profile.IsDeleted && (profile.DeletedDate!=supplied.DeletedAtUtc || profile.DeletedByAvatarId!=supplied.DeletedByAvatarId))
                 throw new StorageLifecycleConflictException("Avatar has a conflicting committed tombstone.");
             var detailItem=await ReadLifecycleItemAsync("OasisAvatarDetails",id);

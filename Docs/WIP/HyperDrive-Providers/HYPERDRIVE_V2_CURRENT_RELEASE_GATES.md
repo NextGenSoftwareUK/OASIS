@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## AWS/Dynamo identity-selected deletion - 2026-10-20
+
+Sixteen controlled reassignment cases reproduced deletion of a changed canonical identity. Existing avatar/detail lifecycle owners now recheck requested email/username against their same strongly consistent canonical observation before staging/transaction; original native conditional transaction protects later races. Dynamo269/AWS26controlled pass, retained official SDK/DynamoDB Local49native pass5s/zero skipped/runner64837terminal0. Sixteen actual AWS-wrapper schedules return original real scan snapshot while an independent conditional native replacement wins; zero lifecycle transactions and both original/winning canonical JSON preserved. Exact conditional cleanup and absence verified; pending0/listeners18000+18001absent. Full reports/digests/epoch/limits in DYNAMODB_RECORD_HISTORY.md. CoreF2E215/SharedDDDA differs from priorAzure/SOLID9371; no immutable dependency/publication proof inferred. Hosted AWS/fees/full interfaces/ALL-provider V2 stillOPEN. No hosted/Atlas query/config change; preserve separate latency-isolation worker pause.
+
 ## Azure identity tombstones and repeat lifecycle; SOLID resume - 2026-10-20
 
 Azure identity hard deletion after soft deletion committed d6bbb8f6c with80controlled/150native passing. Follow-up repeat lifecycle fix passes82controlled/152native, zero skipped; ordinary and supplied matching tombstones preserve exact blob JSON/ETags, partial profile-only tombstone still completes the active detail. Native consumer Core9371/Shared7C9F, runner56402terminal0/50s, no reserved listeners/routing files afterward. Exact full digests and before-fix evidence in provider I/O coverage; no real Azure IAM/retention/restart-durability claim.
