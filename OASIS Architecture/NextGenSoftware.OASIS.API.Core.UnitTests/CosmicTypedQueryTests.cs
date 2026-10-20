@@ -50,6 +50,43 @@ public class CosmicTypedQueryTests
         Assert.Equal("COSMIC_METADATA_HYDRATION_FAILED", result.ErrorCode); Assert.NotNull(result.Exception);
         Assert.Contains("owned setter failure", result.Exception.ToString()); Assert.Equal(id, adapter.Row.Id); Assert.Equal(7, adapter.Row.MetaData["Rating"]);
     }
+    public sealed class DecimalRow : Holon { [CustomOASISProperty] public decimal Amount { get; set; } }
+    public sealed class DoubleRow : Holon { [CustomOASISProperty] public double Amount { get; set; } }
+
+    [Theory]
+    [InlineData("1.00000000000000000000000000000000000000001", false)]
+    [InlineData("0.000000000000000000000000000001", false)]
+    [InlineData("9007199254740993", true)]
+    [InlineData("1e-400", true)]
+    public async Task TypedNumericHydrationRejectsRoundingWithoutPublishingRows(string json, bool floating)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(json);
+        var adapter = new Adapter { Row = new Holon { Id = Guid.NewGuid(), MetaData = new() { ["Amount"] = document.RootElement.Clone() } } };
+        if (floating)
+        {
+            var result = await Manager().ExecuteQueryAsync(Plan<DoubleRow>(adapter), new[] { adapter });
+            Assert.True(result.IsError); Assert.Null(result.Result); Assert.Equal("COSMIC_METADATA_HYDRATION_FAILED", result.ErrorCode);
+        }
+        else
+        {
+            var result = await Manager().ExecuteQueryAsync(Plan<DecimalRow>(adapter), new[] { adapter });
+            Assert.True(result.IsError); Assert.Null(result.Result); Assert.Equal("COSMIC_METADATA_HYDRATION_FAILED", result.ErrorCode);
+        }
+        Assert.Equal(json, ((System.Text.Json.JsonElement)adapter.Row.MetaData["Amount"]).GetRawText());
+    }
+
+    [Theory]
+    [InlineData("1.000000000000000000000000001")]
+    [InlineData("1.00")]
+    public async Task TypedDecimalHydrationAcceptsExactValues(string json)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(json);
+        var adapter = new Adapter { Row = new Holon { Id = Guid.NewGuid(), MetaData = new() { ["Amount"] = document.RootElement.Clone() } } };
+        var result = await Manager().ExecuteQueryAsync(Plan<DecimalRow>(adapter), new[] { adapter });
+        Assert.False(result.IsError, result.Message + result.Exception);
+        Assert.Equal(decimal.Parse(json, System.Globalization.CultureInfo.InvariantCulture), Assert.Single(Assert.Single(result.Result.Providers).Rows).Amount);
+    }
+
     [Fact]
     public async Task TypedCqlRejectsUnsupportedModeBeforeAdapterIO()
     {
