@@ -38,4 +38,44 @@ public class CosmicMetadataOwnershipTests
         manager.MapMetaData<CustomRow>(row);
         Assert.Equal(7, row.Rating); Assert.Equal("canonical", row.Name);
     }
+    public sealed class ConversionRow : Holon
+    {
+        [CustomOASISProperty] public int Count { get; set; }
+        [CustomOASISProperty] public float Weight { get; set; }
+        [CustomOASISProperty] public Guid? Owner { get; set; }
+        [CustomOASISProperty(StoreAsJsonString = true)] public List<string> Tags { get; set; } = new();
+        [CustomOASISProperty] public string? Optional { get; set; } = "initial";
+    }
+    private static HolonManager V2Manager()
+    {
+        var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };
+        return new HolonManager(null, dna, new ProviderManager(null, dna));
+    }
+    [Theory]
+    [InlineData("Count")] [InlineData("Owner")] [InlineData("Tags")] [InlineData("null-count")]
+    public void InvalidCustomMetadataFailsExplicitlyInsteadOfLeavingDefault(string field)
+    {
+        var row = new ConversionRow();
+        row.MetaData[field == "null-count" ? "Count" : field] = field == "null-count" ? null! : "invalid-value";
+        Assert.ThrowsAny<Exception>(() => V2Manager().MapMetaData<ConversionRow>(row));
+    }
+    [Fact]
+    public void JsonValuesNullableGuidsFloatAndDeclaredJsonStringsHydrateFaithfully()
+    {
+        var owner = Guid.NewGuid(); using var number = System.Text.Json.JsonDocument.Parse("12");
+        var row = new ConversionRow { MetaData = new() { ["Count"] = number.RootElement.Clone(), ["Weight"] = 3.5f,
+            ["Owner"] = owner.ToString(), ["Tags"] = "[\"one\",\"two\"]", ["Optional"] = null! } };
+        V2Manager().MapMetaData<ConversionRow>(row);
+        Assert.Equal(12, row.Count); Assert.Equal(3.5f, row.Weight); Assert.Equal(owner, row.Owner);
+        Assert.Equal(new[] { "one", "two" }, row.Tags); Assert.Null(row.Optional);
+    }
+    [Fact]
+    public void ConversionAndAmbiguityAdmissionFinishBeforeAnySetterRuns()
+    {
+        var row = new ConversionRow { Count = 1, MetaData = new() { ["Count"] = 7, ["Owner"] = "invalid-guid" } };
+        Assert.ThrowsAny<Exception>(() => V2Manager().MapMetaData<ConversionRow>(row)); Assert.Equal(1, row.Count);
+        row.MetaData = new() { ["Count"] = 7, ["count"] = 8 };
+        Assert.ThrowsAny<Exception>(() => V2Manager().MapMetaData<ConversionRow>(row)); Assert.Equal(1, row.Count);
+    }
+
 }
