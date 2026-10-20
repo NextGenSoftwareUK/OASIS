@@ -1,5 +1,15 @@
 # Reusable Polkadot/Substrate native transfer checks
 
+## Detail identity boundary — controlled223 green, 2026-10-20
+
+Username/email avatar-detail wrappers previously selected first duplicate, dropped upstream ErrorCode/Exception/ErrorCount and did not publish IsLoaded. Replaced BOTH duplicated selectors with EXISTING Shared StoredRecordIdentityLookup (already used by NEAR), preserving provider-owned versioned collection loading. Twelve sync/async×username/email×duplicate/upstream/unique regression cases all FAILED before correction; full **223/223 controlled passed17s0skip** after fix. Exactly1collection call/version7 retained; duplicate returns AmbiguousIdentity/no record, upstream exception/code/count preserved, unique success loaded. Native contract-backed profiles remain unavailable; this boundary fix is NOT native storage certification. No native node/download/install/SDKchange; free C67,765,702,656bytes,123GBtarget unmet.
+
+Reports TestResults/PolkadotCurrent/polkadot-detail-identity-red.trx SHA25666B8F98E05BC1800019F28416FAFA765C88143C409CB686A45A95C77ED264842; greenC4022D0501F22BD74D530E3483C7F6C8D4F33CA3B438A88315AE85F2A3B505BA. Earlier native6 remains wallet/facade proof only; not a profile-backend rerun.
+
+## Storage target decision — 2026-10-20
+
+No Cargo manifest/cargo-contract runtime or @polkadot/api-contract dependency/artifact/deployment exists for current draft. Existing Rust1.99 and wasm32 target are installed; no new compiler/tool/runtime has been installed. Retained substrate-contracts-node0.42 supports older pallet-contracts, not proof of current Hub. [Official ink v5 docs](https://use.ink/docs/v5/getting-started/building-your-contract/) state active maintenance stopped January2026. [Current Polkadot product deployment docs](https://docs.polkadot.com/apps/build/deploy-a-smart-contract/) describe Hub/pallet-revive and Solidity/resolc; account/runtime differences must be verified, not assumed equivalent to generic EVM. Recommended currentHub storage, reusing existing Solidity/EVM storage components only where compatible; user choice requested asynchronously for Hub vs both vs olderink. No large toolchain download/install or deployment while decision pending. Other providers can continue; global goal not blocked/complete.
+
 ## Public transaction facade — native six-case acceptance, 2026-10-20
 
 Existing native suite expanded4→6 with sync/async constructor-signer SendTransaction facade cases, reusing exact same fsync-owner/signature verification/submission/finalized receipt/native fee/balance proof. **6/6 passed3m32s0skip**, runnerterminal0 under exclusive build lease. Each facade transfers1000000000001localbaseunits, observes exactly1durable provider attempt and matches independent finalized dispatch/status/native fee plus exact sender/recipient balance deltas. No hash-only success or unsigned REST pseudoextrinsic remains. Earlier2redbefore/full211controlledgreen are separate evidence. This is provider API repair, not implementing legacy HyperDrive gaps.

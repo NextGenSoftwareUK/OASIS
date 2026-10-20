@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Polkadot identity boundary and storage target — 2026-10-20
+
+Reused existing Shared StoredRecordIdentityLookup for2detailusername/email selectors rather than firstduplicate/wrongdiagnostics.12redbefore/full223controlled17s0skipgreen, terminal0; version/singlecollectionread/ambiguity/errorcodes/exceptions/loadedflags verified. Exactreports in POLKADOT_PROVIDER_NATIVE_TESTS.md. Notnativecontractstorageproof; walletnative6 scope unchanged.
+
+Contractstorage remains open. Officialinkdocs report active maintenance stoppedJan2026; currentHubdocs describe pallet-revive/Solidity. Retainedoldernode compatibility cannot certifycurrentHub. Existingdraft lacksmanifest/ABI/deployment/compilerhelper; Rust/wasmtarget present, no newinstall. Usertargetchoice asynchronouslyrequested; recommendcurrentHub with existingEVMcomponents reused onlyaftermapping/runtimeverification. No invented deploy/config/backfill. Otherproviderwork remainsavailable; globalgoalactive.
+
 ## Polkadot public transaction facade native acceptance — 2026-10-20
 
 Native6/6 passed3m32s0skip terminal0, including both newly corrected constructor-signer SendTransaction sync/async facades through existing admitted-owner SDKpipeline. Exact1000000000001localunits and senderdelta=amount+actualnativefee, recipientdelta=amount,1durableattempt/finalizeddispatch/status verified. Fullcontrolled211green/2redbefore remains separate evidence. Report3E45498D0084D48AE6BCBF26F338B4C80227174611CA20FD6B9228975E6AD15C; actualCoreD490/Shared1C35EE; fullhashes/fees/proofs in POLKADOT_PROVIDER_NATIVE_TESTS.md.

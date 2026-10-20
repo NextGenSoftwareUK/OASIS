@@ -49,58 +49,18 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            // Load avatar details as separate objects from chain, then find by username
-            var allResult = await LoadAllAvatarDetailsAsync(version);
-            if (allResult.IsError || allResult.Result == null)
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                OASISErrorHandling.HandleError(ref response, allResult.Message ?? "Avatar details not loaded");
-                return response;
-            }
-            var match = allResult.Result.FirstOrDefault(d => string.Equals(d.Username, avatarUsername, StringComparison.OrdinalIgnoreCase));
-            if (match != null)
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                response.Result = match;
-                response.IsError = false;
-                response.Message = "Avatar detail loaded from Polkadot by username successfully";
-                return response;
-            }
-            var notFound = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref notFound, "Avatar detail not found by username");
-            return notFound;
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+            => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordIdentityLookup.SelectAsync(
+                avatarUsername,version,LoadAllAvatarDetailsAsync,record=>record.Username);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
             return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-        {
-            // Load avatar details as separate objects from chain, then find by email
-            var allResult = await LoadAllAvatarDetailsAsync(version);
-            if (allResult.IsError || allResult.Result == null)
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                OASISErrorHandling.HandleError(ref response, allResult.Message ?? "Avatar details not loaded");
-                return response;
-            }
-            var match = allResult.Result.FirstOrDefault(d => string.Equals(d.Email, avatarEmail, StringComparison.OrdinalIgnoreCase));
-            if (match != null)
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                response.Result = match;
-                response.IsError = false;
-                response.Message = "Avatar detail loaded from Polkadot by email successfully";
-                return response;
-            }
-            var notFound = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref notFound, "Avatar detail not found by email");
-            return notFound;
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+            => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordIdentityLookup.SelectAsync(
+                avatarEmail,version,LoadAllAvatarDetailsAsync,record=>record.Email);
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
