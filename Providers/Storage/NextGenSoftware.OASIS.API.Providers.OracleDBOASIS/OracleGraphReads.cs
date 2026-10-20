@@ -29,12 +29,12 @@ public partial class OracleDBOASIS
         if(type.HasValue&&!Enum.IsDefined(typeof(HolonType),type.Value))throw new ArgumentOutOfRangeException(nameof(type));
     }
 
-    private async Task<List<IHolon>> ProjectHolonRootsAsync(IEnumerable<IHolon> roots,bool children,bool recursive,int maxDepth,int initialDepth,bool fromProvider)
+    private async Task<List<IHolon>> ProjectHolonRootsAsync(IEnumerable<IHolon> roots,bool children,bool recursive,int maxDepth,int initialDepth,bool fromProvider,bool rootsAreChildren=false)
     {
         var selected=roots.ToList();
         var pool=children&&fromProvider?(await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",0)).Cast<IHolon>():selected;
         var project=HolonGraphProjection.Create(pool,children,recursive,maxDepth,initialDepth,fromProvider,
-            source=>Core.Serialization.StoredRecordJson.Project<Holon>(source));
+            source=>Core.Serialization.StoredRecordJson.Project<Holon>(source),rootsAreChildren:rootsAreChildren);
         return selected.Select(project).ToList();
     }
 }
