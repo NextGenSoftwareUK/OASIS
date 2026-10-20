@@ -9,6 +9,23 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public sealed class ConditionalHolonReceiptTests
 {
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public void ReplayRetainsExactOriginalMetadataAfterLaterRevision(bool child,bool wide)
+    {
+        var original=Graph();var selected=child?original.Children[0]:original;
+        selected.MetaData["precise"]=wide?(object)1e100:1.0000000000000000000000000001m;
+        var version=selected.Version;var json=ConditionalHolonReceipt.Write(new[]{original});
+        selected.MetaData["precise"]=0;selected.Version=99;
+        var replay=ConditionalHolonReceipt.Read(json)[0];var restored=child?replay.Children[0]:replay;
+        Assert.AreEqual(version,restored.Version);
+        var value=restored.MetaData["precise"].ToString();
+        if(wide)Assert.AreEqual(1e100,double.Parse(value,System.Globalization.CultureInfo.InvariantCulture));
+        else Assert.AreEqual(1.0000000000000000000000000001m,decimal.Parse(value,System.Globalization.CultureInfo.InvariantCulture));
+        restored.MetaData["precise"]="mutated replay";
+        var again=ConditionalHolonReceipt.Read(json)[0];
+        Assert.AreEqual(value,(child?again.Children[0]:again).MetaData["precise"].ToString());
+    }
+
     [DataTestMethod][DataRow("{")][DataRow("[]")][DataRow("null")]
     public void MalformedReceiptIsTypedCorruptionNotTransportFailure(string json)
         =>Assert.ThrowsException<InvalidDataException>(()=>ConditionalHolonReceipt.Read(json));
