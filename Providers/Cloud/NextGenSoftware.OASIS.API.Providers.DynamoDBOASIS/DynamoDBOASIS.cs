@@ -556,29 +556,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     if(!graph.IsError) converted.Result=holon;
                     return converted;
                 }
-                var source=holon;var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(source);
-                holon=publication.Proposal;
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[StorageProviderType] = holon.Id.ToString();
-                var committed=await WriteRecordAsync<Holon>(new PutItemRequest
-                {
-                    TableName = "OasisHolons",
-                    Item = new Dictionary<string, AttributeValue>
-                    {
-                        ["id"] = new AttributeValue { S = holon.Id.ToString() },
-                        ["parentHolonId"] = new AttributeValue { S = holon.ParentHolonId.ToString() },
-                        ["holon_type"] = new AttributeValue { N = ((int)holon.HolonType).ToString() },
-                        ["is_deleted"] = new AttributeValue { BOOL = holon.IsDeleted },
-                        ["data_json"] = new AttributeValue { S = Ser(holon) }
-                    }
-                },IsVersionControlEnabled,publication.ValidateUnchanged);
-                ValidateAcknowledgedCaller(publication.ValidateUnchanged,committed.Id);
-                source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
-                source.Id=holon.Id;
-                source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
-                source.ProviderUniqueStorageKey[StorageProviderType]=holon.Id.ToString();
-                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Holon '{holon.Name}' saved.";
+                return await SaveHolonRecordAsync(holon,null);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -600,7 +578,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     if(failedParents.Contains(node.Snapshot.ParentHolonId)) {
                         failedParents.Add(node.Snapshot.Id);failures.Add(new InvalidOperationException("Descendant skipped because its parent failed."));continue;
                     }
-                    var written=await SaveHolonAsync(node.Snapshot,false,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+                    var written=await SavePlannedHolonAsync(node);
                     if(written.IsError || written.Result==null) {
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
@@ -613,6 +591,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         publication.ValidateUnchanged();
                         node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                         node.Source.Version=written.Result.Version;node.Source.VersionId=written.Result.VersionId;node.Source.PreviousVersionId=written.Result.PreviousVersionId;
+                        if(node.Source is Holon caller&&written.Result is Holon committed)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                         node.Source.ProviderUniqueStorageKey[StorageProviderType]=node.Snapshot.Id.ToString();
                     }
