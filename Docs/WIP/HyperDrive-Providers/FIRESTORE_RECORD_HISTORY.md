@@ -1,5 +1,40 @@
 # Firestore record history — integration in progress
 
+## Current dependency sweep — 255 controlled / 177 native green, 2026-10-20
+
+Actual final consumers match Core `7B8680F86B797D84CAE0120D167F0BFA36E72B2BC4B7E9EFB22A379DC17620CC` / Shared `11AA9295B0FCEEF5AA3DB7B60C0227C0E5DF5E8C5B546041E9E06F8567F7D2BC`. Full controlled **255/255 passed**, zero skipped,1s, terminal0: `google-concurrent-current-controlled.trx`, SHA256 `6BBFBF0C54EB622820C2B7B93127F033C96F124FF5770515CFA8D0D5D79D6FCB`.
+
+All retained native categories refreshed against this cohort (177total, zero skips):
+
+| Existing fixed report under TestResults/GoogleCurrent | Passed | SHA256 |
+| --- | ---: | --- |
+| google-batch-revision-native-current.trx | 4/4 | 38DA74406EB847A62A960C263319ADCC243F93772D72AEB8375B10071A59FD43 |
+| google-encrypted-replay-native-current.trx | 4/4 | 966BF0A56098889F83B71F07632C50FC5FAA7D79FF861DFC93898C59F55514BA |
+| google-preparation-native-current.trx | 7/7 | DDF397C6CB3783793CB07B51B4438EDCA1F007C1E5F8253D66365073AADA823A |
+| google-conditional-native-current.trx | 4/4 | 7E9E12150CE34CD50710268FB335E9C42A6D7FA06F6FAF71E957C0AB6B82E025 |
+| google-history-native-current.trx | 79/79 | F5664EC99F192C273308CECD707DB27BD9F07A49E29985C07CF33B7812D0F8D1 |
+| google-native-current.trx | 79/79 | F8F8A669865F71D484C05725FACEBF5BA77CD6B40188DA175B0C5E4459BEDCAF |
+
+History79 took9s, broader79regression30s. Two simultaneous save/delete schedules now prove at most one published winner, explicit nativeAborted handling and a matching complete final pair or unchanged originals, without replay. This is safety/conflict evidence, NOT a guarantee that contention always produces a successful winner or of hosted throughput. The earlier invalid exactly-one expectation and original reconciliation remain documented below. Advanced19 passed before that test-only assertion correction with unchanged production source; SAME original runtime resumed for final history/regression and controls. Prior six fixed reports were exactSHA verified and moved in place to `*-pre-concurrent-sweep.trx`, not overwritten or duplicated databases.
+
+Both outer batches terminal0; actual final consumer identity guard passed. Independent post-run inspection found no pending journals or reserved18080–18083 listeners; owned emulator stopped. No new runtime/download/environment or deployment. C free65,832,173,568bytes;123GB cleanup target remains unmet. This closes the prior deferred79 regression/current dependency gate for this scope, not immutable deployment certification or all-provider completion. Hosted IAM/fees/latency, remaining relevant interfaces/options and complete V2 failover/load-balancing/replication matrices remain OPEN; Google does not advertise the newly optional conditional-delta capability merely because Shared format4 is available. Dependency source/pin publication is owned by the peer and must be verified before dev integration.
+
+## Concurrent schedule expectation corrected from native evidence — 2026-10-20
+
+After verified producer handoff, full native sweep passed batch4/encrypted4/preparation7/conditional4 on actual Core `7B8680F86B797D84CAE0120D167F0BFA36E72B2BC4B7E9EFB22A379DC17620CC` and Shared `11AA9295B0FCEEF5AA3DB7B60C0227C0E5DF5E8C5B546041E9E06F8567F7D2BC`. First concurrent schedule then exposed a TEST expectation error: both operations returned errors, whereas the test incorrectly required exactly one winner. Emulator logs show two transaction lock timeouts. Single-attempt/no-retry transactions do not guarantee a winner under contention. Production code was NOT changed to retry or mask rejection.
+
+Independent original avatar/detail reads showed BOTH version1/active/initial marker, no archived predecessor and unchanged native revisions `2026-10-20T23:18:14.216435Z` / `2026-10-20T23:18:14.337919Z`. Exact synthetic ID `8e402f6e-f48e-4dba-b2c5-43bac9f55f67`, marker and original intent SHA256 `9EE6724CF31D50DC7AB69FBE2371A8D71F150C398EA1574E15D4EF4509D8DD0C` verified before atomic two-revision conditional cleanup; native ACK2 plus both independent404 verified before removing only that unchanged intent. No mutation replay/reset. Failed79 history report SHA256 `DA79AAEE485DD558842141DFD36F943DEC4BB6899FAD5D1E62BE40F47FBF6BE3` retained in place as `google-history-native-both-aborted-before.trx`. Remaining78 failures were admission refusals over that original journal, not independent observed storage defects.
+
+Corrected schedule requires AT MOST one published winner and verifies every failed operation is nativeAborted/lifecycle-conflict with no reconciliation ambiguity. Zero-winner case must preserve BOTH exact original JSON/revisions; winner cases must produce the matching complete graph/version/history, never a partial pair. One Begin and Commit per operation remain mandatory; no replay or wildcard failure acceptance was introduced. Same original emulator PID32316 resumed for native history/regression and matched controls. Final acceptance remains pending this run.
+
+## True concurrent identity schedule — source ready, verification pending, 2026-10-20
+
+Paired owner batch committed/pushed to the existing task branch as `d3fb03a1e` (seven explicit paths only), remote SHA independently verified; no Development merge/deployment. Parent index released to the other owner; Core/Shared/SQLite/Mongo changes excluded.
+
+Added two native concurrent schedules (save Avatar or AvatarDetail versus paired soft delete) using TWO real clients/transactions and one precommit barrier. Both original transactions must finish reads/staging before either native commit is released. Tests require exactly one consistent winner and one nativeAborted lifecycle conflict, one Begin/Commit per operation, independent original record/history inspection, no replay, and exact-revision owned cleanup. Runner expected history count79 (previous77 plus these2). These new schedules have NOT compiled/run yet; prior255/77 green evidence does not certify concurrency. Producer hold for coordinated Core/Shared rollout is respected. No additional runtime/environment/download or deployment.
+
+Consumer-only refsfalse compile subsequently succeeded (0errors/40warnings) under the actual exclusive lease, without building any provider/Core/Shared/SQLite producer. The new schedules therefore compile, but remain NOT native-run. Actual copied dependencies are Core `5FE13342D0E9CE89C71C218F52AF112511BEB2B989AAE24284FDBA41B88CDC7B` and NEW Shared `AC55BA98CC2179AA92E3154E4C1B7BB60734DCC45C5E5185C060813848A081F9`; prior SharedCDAF green evidence must not be relabelled this new cohort. Source/runner changes remain local pending native acceptance. Free C65,852,817,408bytes observed;123GB target remains unmet.
+
 ## Paired lifecycle owner — scoped native acceptance, 2026-10-20
 
 Final **255/255controlled** and **77/77historynative**, zero skips, terminal0. Native `google-history-native-current.trx`, SHA256 `DE6635B95EDB9F104237A88236FBA6E29D7C6BC1D09F5B8ACC7237A43866CDF9`,5s. Eight new soft/hard paired cases each require one native Begin and one Commit attempt, independently inspect ORIGINAL outcomes without replay, then clean only exact observed owned revisions: real commit with reply lost, one result omitted, invalid second result timestamp, or real expired transaction returningAborted. Unknown commits retain original transaction token and do not publish deletion success; native rejection leaves both original records/revisions intact. Existing profile/detail history, matching repeated tombstone/no-op and ordinary identity saves remain covered within the same77 suite. Controlled report/hash/cohort below.
