@@ -59,6 +59,28 @@ public class SolanaTombstoneWireTests
         CryptographicOperations.ZeroMemory(key);
     }
 
+    [TestMethod]
+    public async Task SignedEncryptedUpdateRetainsExactMetadata()
+    {
+        var owner=new Account();var key=RandomNumberGenerator.GetBytes(32);
+        try{
+            var rpc=DispatchProxy.Create<IRpcClient,TombstoneProxy>();var proxy=(TombstoneProxy)(object)rpc;proxy.Writer=owner.PublicKey.Key;
+            var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone());
+            const decimal precise=0.1234567890123456789012345678m;
+            const string literalDate="2026-10-20T10:11:12.1234567+02:00";
+            var source=new SolanaHolonDto{Id=Guid.NewGuid(),Version=6,MetaData=new(){["precise"]=precise,["literal_date"]=literalDate}};
+            var signature=await repository.UpdateAsync(source);Assert.AreEqual(proxy.Signature,signature);
+            Assert.AreEqual(1,proxy.Sends);Assert.IsTrue(owner.Verify(proxy.Signed!.AsSpan(65).ToArray(),proxy.Signed.AsSpan(1,64).ToArray()));
+            var transaction=Solnet.Rpc.Models.Transaction.Deserialize(proxy.Signed);
+            var payload=(string)typeof(SolanaRepository).GetMethod("DecodeEntity",BindingFlags.NonPublic|BindingFlags.Instance)!
+                .Invoke(repository,new object[]{transaction.Instructions[1].Data})!;
+            using var exact=System.Text.Json.JsonDocument.Parse(payload);
+            Assert.AreEqual(precise,exact.RootElement.GetProperty("MetaData").GetProperty("precise").GetDecimal());
+            Assert.AreEqual(literalDate,exact.RootElement.GetProperty("MetaData").GetProperty("literal_date").GetString());
+            Assert.AreEqual(7,exact.RootElement.GetProperty("Version").GetInt32());Assert.AreEqual(7,source.Version);
+        }finally{CryptographicOperations.ZeroMemory(key);}
+    }
+
     [DataTestMethod]
     [DataRow("avatar",false)] [DataRow("avatar",true)]
     [DataRow("detail",false)] [DataRow("detail",true)]
