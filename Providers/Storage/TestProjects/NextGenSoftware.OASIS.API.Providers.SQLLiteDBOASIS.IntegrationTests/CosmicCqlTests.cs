@@ -24,6 +24,21 @@ public partial class SQLLiteDBOASISIntegrationTests
     }
 
     [Fact]
+    public async Task V2TypedLoadPreservesCanonicalIdentityAndValuesAgainstMetadataOverrides()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var id = Guid.NewGuid(); var actor = Guid.NewGuid();
+        var row = new Holon { Id = id, Name = "canonical", CreatedByAvatarId = actor, IsPublic = false,
+            MetaData = new() { ["Id"] = Guid.NewGuid().ToString(), ["Name"] = "forged", ["IsPublic"] = true, ["CreatedByAvatarId"] = Guid.NewGuid().ToString() } };
+        (await provider.SaveHolonAsync(row, saveChildren: false)).IsError.Should().BeFalse();
+        var result = CosmicManager(provider, true).LoadHolon<Holon>(id, loadChildren: false);
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        result.Result.Id.Should().Be(id); result.Result.Name.Should().Be("canonical");
+        result.Result.CreatedByAvatarId.Should().Be(actor); result.Result.IsPublic.Should().BeFalse(); result.Result.IsChanged.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task CosmicCqlSharedExecutorUsesTheNativeSQLiteContract()
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);

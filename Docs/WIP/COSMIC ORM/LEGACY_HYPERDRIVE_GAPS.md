@@ -22,3 +22,5 @@ Legacy unqualified save routing changes shared provider selection; replication u
 ## V2 implementation boundary
 
 Further work targets the canonical V2 router, provider contracts, conditional writes, graph semantics, history, durable delivery, migration, placement, deltas and CQL. V2 deletion remains an implementation/certification requirement. No new legacy-only repairs or legacy acceptance gates will be added.
+
+Typed metadata hydration audit: legacy MapMetaData can match metadata keys to canonical record/runtime properties (identity, audit, visibility and provider state) and silently ignore conversion failures. Legacy code is unchanged per scope. V2 canonical ownership repair and separate strict conversion work are tracked with CQL manager integration; no legacy correction is claimed.

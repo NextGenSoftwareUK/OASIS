@@ -39,3 +39,9 @@ An actual WEB4 boundary must obtain authenticated actor/tenant/visibility/reside
 ## Verification
 
 Seven new controlled cases cover preflight-before-I/O, missing/duplicate bindings, provenance and detachment, total budgets/overdelivery, error/exception preservation, cancellation before/during reads, and malformed provider output. Full Core1,320/1,320 passes13s with zero skips; both target frameworks build. A native SQLite interface/executor case passes in its full833/833 gate (2minutes), zero skips. Reports: cql-executor-core-full.trx and sqlite-cql-executor-full.trx. Exact assembly epochs and reports are recorded in the integration boundary.
+
+## Typed manager integration gate
+
+Audit found the existing metadata mapper can overwrite canonical Id/Name/audit/visibility/runtime fields and silently swallow custom conversion errors. V2 canonical ownership is now protected at that existing hydration boundary before typed CQL reuses it. The fix protects all public Holon properties case-insensitively while retaining metadata as data; legacy behavior is unchanged and documented only. Strict custom-property conversion/schema errors and complete typed query materialization remain open, so no public typed manager query API is claimed.
+
+Canonical ownership verification: eight new controlled cases pass in fullCore1,328/1,32815s0skips; bothTFMs build zero errors. The real SQLite typed-load case passes in full834/834 regression (115s), zero skips; it preserves canonical identity/audit/visibility with clean tracking despite conflicting metadata. Reports: metadata-ownership-core-full.trx and sqlite-metadata-ownership-full.trx. Conversion failures are still swallowed by the existing mapper and remain an explicit follow-on root cause; this checkpoint does not claim strict custom deserialization.
