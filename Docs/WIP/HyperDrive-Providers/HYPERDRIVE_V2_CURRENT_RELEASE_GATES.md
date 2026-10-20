@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## Aptos selector failure propagation — 2026-10-20
+
+Before TRX SHA256 `3D1FCF6E0F79F2A2BDDE1061041013EBF3AFD4B9E9C29507F7532C48BD52DD9E`; after `E67A58EA2D9E6658E1C8A953949E0F3DCF38637F0B16EA6B1945DC400129DD22`. Free C68,732,018,688bytes; target123GBunmet/no reclaim claimed.
+
+Cross-provider follow-up to NEAR found same exact partial-result reconstruction in Aptos username/email deletion. Two wrappers now reuse existing Core result-copy helper, retaining canonical notfound/ambiguity errorcodes, originalexception/detail/count.8new sync/async cases failed originalsource at dropped ErrorCode; final selected11/11passed94ms0skip (8wrapper+3existingburnamount), explicitly verifying one selection and ZERO GUID-delete dispatch. No chain/CLI/node/funds/native test involved; full Aptos unit/native/interface gates NOT certified. Old generic provider tests include hosted activation assumptions and were not included in this bounded offline cohort.
+
+Original Aptos unit assets missingNETSDK1004; restored project assets from existing `C:/Users/david/.nuget/packages` ONLY with `--no-dependencies` and auditdisabled, then built existing producer/consumer outputs. No networksource/download/install/newenvironment. Initial/final TRX under `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AptosOASIS.UnitTests/TestResults/`: `david_OASISOMEGA_2026-10-20_12_05_09_net10.0.trx`8red and `david_OASISOMEGA_2026-10-20_12_05_24_net10.0.trx`11green. Actual final Core `B79A16000233E4D72D1935C15D7F0E5184250E51A50E05EDFD4F5B51B1D6DFF3`: concurrent Core producer advanced during requested secondcopywindow; not the earlier2A27epoch or proof of immutable paired artifacts. Consumer compiled/tested successfully with capturedfinalbits; no DLLcopy workaround/pinchange/push/deploy.
+
 ## NEAR selector failure propagation — controlled202/202 green,2026-10-20
 
 Fixed four username/email export/delete wrappers dropping selector ErrorCode/detail/count using existing Core result-copy helper.16new sync/async failure cases originallyred; final202/202passed13s0skip, actualCore2A27. No chain calls/newenvironment/download/push; native19earlier source cohort not rerun or treated as certificate. Exact scope/chronology in NEAR_PUBLIC_CONDITIONAL_SAVE.md. Full provider/native recovery/globalV2 gates remainOPEN.
