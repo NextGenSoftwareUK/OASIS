@@ -214,7 +214,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 result.Result = source; result.IsSaved=true; result.IsError = false;
                 result.Message = $"OracleDBOASIS: Avatar '{avatar.Username}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar: {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar: {ex.Message}");if(ex is StorageLifecycleConflictException)result.ErrorCode=StorageLifecycleConflictException.ErrorCode; }
             return result;
         }
 
@@ -349,7 +349,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "OracleDBOASIS: AvatarDetail saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar detail: {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar detail: {ex.Message}");if(ex is StorageLifecycleConflictException)result.ErrorCode=StorageLifecycleConflictException.ErrorCode; }
             return result;
         }
 

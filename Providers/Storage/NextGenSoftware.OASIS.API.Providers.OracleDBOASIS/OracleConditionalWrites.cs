@@ -99,6 +99,7 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
             cancellationToken.ThrowIfCancellationRequested();commitEntered=true;await CommitLifecycleTransactionAsync(transaction);
             return ConditionalAcknowledgement(validated,request.Operation);
         }catch(CosmicConcurrencyException cause){return ConditionalFailure(CosmicConcurrencyException.Code,cause.Message,cause);}
+        catch(Core.Helpers.StorageLifecycleConflictException cause){return ConditionalFailure(Core.Helpers.StorageLifecycleConflictException.ErrorCode,cause.Message,cause);}
         catch(OracleException cause)when(!commitEntered&&cause.Number==1013&&cancellationToken.IsCancellationRequested){
             // ODP.NET can report caller cancellation as ORA-01013. Preserve the native cause,
             // but expose cancellation to the shared router rather than an eligible transport failure.
