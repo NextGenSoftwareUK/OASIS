@@ -1,4 +1,5 @@
 using System.Net;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -36,7 +37,8 @@ public class RetainedSolidPodTests
             var password=credentials.RootElement.GetProperty("secret").GetString()!;
             using var anonymous=new HttpClient{Timeout=TimeSpan.FromSeconds(10)};
             SolidDpopClientCredentialsHandler Handler()=>new(root,new Uri("http://localhost:13000/.oidc/token"),id,password);
-            using var client=new HttpClient(Handler()){Timeout=TimeSpan.FromSeconds(20)};
+            var credentialsHandler=Handler();
+            using var client=new HttpClient(credentialsHandler){Timeout=TimeSpan.FromSeconds(20)};
             // CSS deliberately publishes the new Pod root by default. Configure only this owned
             // synthetic Pod with an owner-only inheritable ACL before testing private storage.
             var podBytes=ProtectedData.Unprotect(await File.ReadAllBytesAsync(Path.Combine(work,"private-local-pod.dpapi")),null,DataProtectionScope.CurrentUser);
@@ -47,6 +49,20 @@ public class RetainedSolidPodTests
             var aclUri=new Uri(root,".acl");
             using var acl=await client.GetAsync(aclUri);Assert.True(acl.IsSuccessStatusCode,$"Authenticated ACL read status {(int)acl.StatusCode}; challenge {string.Join(";",acl.Headers.WwwAuthenticate)}: {await acl.Content.ReadAsStringAsync()}");
             var original=await acl.Content.ReadAsStringAsync();
+            // Corrupt only this client's cached token, NOT issuer credentials or server data.
+            // Real CSS must reject this request; only a subsequent explicit request may refresh.
+            var cachedToken=typeof(SolidDpopClientCredentialsHandler).GetField("_accessToken",BindingFlags.Instance|BindingFlags.NonPublic)!;
+            var originalAccess=(string?)cachedToken.GetValue(credentialsHandler);
+            Assert.False(string.IsNullOrWhiteSpace(originalAccess));
+            var parts=originalAccess!.Split('.');Assert.Equal(3,parts.Length);Assert.False(string.IsNullOrEmpty(parts[2]));
+            parts[2]=(parts[2][0]=='A'?"B":"A")+parts[2].Substring(1);
+            var invalidAccess=string.Join('.',parts);cachedToken.SetValue(credentialsHandler,invalidAccess);
+            using var rejectedToken=await client.GetAsync(aclUri);
+            Assert.Equal(HttpStatusCode.Unauthorized,rejectedToken.StatusCode);
+            using var recoveredToken=await client.GetAsync(aclUri);
+            Assert.True(recoveredToken.IsSuccessStatusCode,$"Explicit token recovery status {(int)recoveredToken.StatusCode}; rejection challenge {string.Join(";",rejectedToken.Headers.WwwAuthenticate)}; cached invalid token retained {Equals(invalidAccess,cachedToken.GetValue(credentialsHandler))}");
+            Assert.Equal(original,await recoveredToken.Content.ReadAsStringAsync());
+            Assert.NotEqual(invalidAccess,(string?)cachedToken.GetValue(credentialsHandler));
             var expected=$"@prefix acl: <http://www.w3.org/ns/auth/acl#>. <#owner> a acl:Authorization; acl:agent <{webId}>; acl:accessTo <{root.AbsoluteUri}>; acl:default <{root.AbsoluteUri}>; acl:mode acl:Read, acl:Write, acl:Control.";
             if(original!=expected){
                 var aclJournal=Path.Combine(work,"private-acl-pending.json");
