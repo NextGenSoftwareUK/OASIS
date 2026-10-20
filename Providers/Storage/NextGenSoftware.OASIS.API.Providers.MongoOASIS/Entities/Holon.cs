@@ -8,6 +8,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
     public class Holon : HolonBase // Equvilant to the Holon object in OASIS.API.Core.
     {
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfDefault]
+        public Guid ProviderRevisionId { get; set; }
+
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
+        public string ChildRoleManifestJson { get; set; }
+
+        public string CustomKey { get; set; }
+        public Guid ParentHolonId2 { get; set; }
+        public Guid ParentHolonId3 { get; set; }
+        public List<Guid> ParentHolonIds { get; set; }
+        public IList<Guid> ChildrenIds { get; set; } = new List<Guid>();
+
         /*
         [BsonId]  
         [BsonRepresentation(BsonType.ObjectId)]  

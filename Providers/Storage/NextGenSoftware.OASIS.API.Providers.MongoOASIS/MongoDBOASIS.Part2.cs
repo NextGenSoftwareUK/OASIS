@@ -144,66 +144,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => ReadHolonCollectionGraphAsync(type,null,null,null,MetaKeyValuePairMatchMode.All,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,true).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var graphError = ValidateMongoChildGraph(holon, maxChildDepth);
-            if (graphError != null) return graphError;
-            if (saveChildren && saveChildrenOnProvider && holon.Children != null && holon.Children.Any())
-                return await SaveGraphAtomicAsync(holon, recursive, maxChildDepth);
-            // Holon.Id is the public, provider-independent OASIS identity. MongoDB's ObjectId is
-            // intentionally private and therefore is not present in REST, JavaScript/NPM, Unity,
-            // or native update payloads. Resolve the operation from the persisted public identity
-            // itself: update the matching document, otherwise create the first document for it.
-            // Do not use CreatedDate or IsNewHolon here: both are lifecycle/audit state and are not
-            // a durable cross-client storage key.
-            var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon, saveChildren);
-            var persistedHolon = await _holonRepository.GetHolonAsync(mongoHolon.HolonId);
-            PreserveCreationAuditFields(mongoHolon, persistedHolon);
-            var saveResult = persistedHolon == null
-                ? await _holonRepository.AddAsync(mongoHolon)
-                : await _holonRepository.UpdateAsync(mongoHolon);
-            OASISResult<IHolon> result = DataHelper.ConvertMongoEntityToOASISHolon(saveResult, saveChildrenOnProvider);
-
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveSingleCapturedHolonAsync(holon, saveChildren, recursive, maxChildDepth, false);
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var graphError = ValidateMongoChildGraph(holon, maxChildDepth);
-            if (graphError != null) return graphError;
-            if (saveChildren && saveChildrenOnProvider && holon.Children != null && holon.Children.Any())
-                return SaveGraphAtomicAsync(holon, recursive, maxChildDepth).GetAwaiter().GetResult();
-            var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon, saveChildren);
-            var persistedHolon = _holonRepository.GetHolon(mongoHolon.HolonId);
-            PreserveCreationAuditFields(mongoHolon, persistedHolon);
-            var saveResult = persistedHolon == null
-                ? _holonRepository.Add(mongoHolon)
-                : _holonRepository.Update(mongoHolon);
-            OASISResult<IHolon> result = DataHelper.ConvertMongoEntityToOASISHolon(saveResult, saveChildrenOnProvider);
+            => SaveSingleCapturedHolonAsync(holon, saveChildren, recursive, maxChildDepth, true).GetAwaiter().GetResult();
 
-            return result;
-        }
-
-        private static OASISResult<IHolon> ValidateMongoChildGraph(IHolon root, int maxChildDepth = 0)
+        private static OASISResult<IHolon> ValidateMongoChildGraph(IHolon root, int maxChildDepth = 0, bool children = true, bool recursive = true)
         {
             if (maxChildDepth < 0)
             {
                 var cause = new ArgumentOutOfRangeException(nameof(maxChildDepth));
                 return new OASISResult<IHolon> { IsError = true, ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID", Exception = cause, Message = cause.Message };
             }
-            var pending = new Stack<IHolon>();
+            var pending = new Stack<(IHolon Node, int Depth)>();
             var visited = new HashSet<IHolon>(new HolonReferenceComparer());
             var identities = new HashSet<Guid>();
-            pending.Push(root);
+            pending.Push((root, 0));
             while (pending.Count != 0)
             {
-                var node = pending.Pop();
+                var current = pending.Pop();
+                var node = current.Node;
                 if (node == null || !visited.Add(node) || (node.Id != Guid.Empty && !identities.Add(node.Id)))
                 {
                     var cause = new ArgumentException("Holon graph contains null, cyclic or repeated child identities.");
                     return new OASISResult<IHolon> { IsError = true, ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID", Exception = cause, Message = cause.Message };
                 }
-                foreach (var child in node.Children ?? Enumerable.Empty<IHolon>()) pending.Push(child);
+                if (children && (maxChildDepth == 0 || current.Depth < maxChildDepth) && (recursive || current.Depth == 0))
+                    foreach (var child in node.Children ?? Enumerable.Empty<IHolon>()) pending.Push((child, current.Depth + 1));
             }
             return null;
         }

@@ -219,6 +219,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 return;
             }
 
+            if (value is Newtonsoft.Json.Linq.JObject jsonObject)
+            {
+                writer.WriteStartDocument();
+                foreach (var property in jsonObject.Properties())
+                { writer.WriteName(property.Name); SerializeValue(writer, property.Value); }
+                writer.WriteEndDocument();
+                return;
+            }
+            if (value is Newtonsoft.Json.Linq.JArray jsonArray)
+            {
+                writer.WriteStartArray();
+                foreach (var item in jsonArray) SerializeValue(writer, item);
+                writer.WriteEndArray();
+                return;
+            }
+            if (value is Newtonsoft.Json.Linq.JValue jsonValue)
+            {
+                if (jsonValue.Type == Newtonsoft.Json.Linq.JTokenType.Undefined)
+                    throw new BsonSerializationException("Undefined metadata JSON is not a persistent value.");
+                SerializeValue(writer, jsonValue.Value);
+                return;
+            }
             var valueType = value.GetType();
 
             if (valueType == typeof(bool))
@@ -235,12 +257,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 writer.WriteString((string)value);
             else if (valueType == typeof(DateTime))
             {
-                var dt = ((DateTime)value).ToUniversalTime();
-                var ms = (long)(dt - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
-                writer.WriteDateTime(ms);
+                var date = (DateTime)value;
+                var utc = date.Kind == DateTimeKind.Local ? date.ToUniversalTime() : DateTime.SpecifyKind(date, DateTimeKind.Utc);
+                writer.WriteDateTime(new BsonDateTime(utc).MillisecondsSinceEpoch);
             }
             else if (valueType == typeof(Guid))
                 writer.WriteString(((Guid)value).ToString());
+            else if (value is byte[] bytes)
+                writer.WriteBinaryData(new BsonBinaryData(bytes));
             else if (valueType.IsArray)
             {
                 writer.WriteStartArray();

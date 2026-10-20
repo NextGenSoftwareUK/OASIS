@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 internal static class MongoNativeRecordWriter
 {
-    internal static async Task<OASISResult<T>> SaveAsync<T>(IMongoCollection<T> records,T holon,bool updating,bool synchronous) where T:HolonBase
+    internal static async Task<OASISResult<T>> SaveAsync<T>(IMongoCollection<T> records,T holon,bool updating,bool synchronous,bool preserveChildren=false) where T:HolonBase
     {
         var entered=false;var validatingPayload=false;
         try
@@ -61,6 +61,7 @@ internal static class MongoNativeRecordWriter
             }
             if(!updating && holon.CreatedProviderType==null) holon.CreatedProviderType=new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
             PrepareIdentity(holon);
+            if (typeof(T) == typeof(Holon)) RotateHolonRevision((Holon)(object)holon);
             // Complete serialization before dispatch for inserts AND replacements. The
             // exact prepared BSON is what the SDK writes; no second serialization pass.
             validatingPayload=true;
@@ -69,6 +70,14 @@ internal static class MongoNativeRecordWriter
             if(updating)
             {
                 RetainUnknownFields<T>(replacement,observed);
+                if (preserveChildren)
+                {
+                    // Excluded graph membership must survive the same BSON CAS as the root write.
+                    var children = BsonClassMap.LookupClassMap(typeof(T)).AllMemberMaps.Single(member => member.MemberName == nameof(HolonBase.Children)).ElementName;
+                    replacement.Remove(children);
+                    if (observed.TryGetValue(children, out var retained))
+                        replacement.Add(children, retained.DeepClone());
+                }
             }
             var writer=raw.WithWriteConcern(WriteConcern.WMajority.With(journal:true));
             entered=true;
@@ -99,6 +108,15 @@ internal static class MongoNativeRecordWriter
                 Message="Mongo record save failed."};
         }
     }
+    internal static void RotateHolonRevision(Holon record)
+    {
+        record.ProviderRevisionId = Guid.NewGuid();
+        record.ProviderMetaData ??= new Dictionary<ProviderType,Dictionary<string,string>>();
+        if (!record.ProviderMetaData.TryGetValue(ProviderType.MongoDBOASIS, out var own) || own == null)
+            record.ProviderMetaData[ProviderType.MongoDBOASIS] = own = new Dictionary<string,string>();
+        own[Core.Holons.CosmicConcurrency.ProviderRevisionMetadataKey] = record.ProviderRevisionId.ToString("D");
+    }
+
     internal static BsonDocument SerializePayload<T>(IMongoCollection<T> collection,T record) where T:HolonBase
         => record.ToBsonDocument(collection.DocumentSerializer);
 
