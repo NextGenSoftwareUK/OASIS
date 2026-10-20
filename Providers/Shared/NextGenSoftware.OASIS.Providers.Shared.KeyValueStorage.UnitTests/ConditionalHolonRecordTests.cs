@@ -262,4 +262,71 @@ public sealed class ConditionalHolonRecordTests
         Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsDeleted);Assert.AreEqual(id,result.Result.Id);Assert.AreEqual(4,store.Mutations);
         Assert.AreEqual(1,store.Rows.Count);Assert.AreSame(originalChild,store.Rows[childKey]);
     }
+
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task AvatarDeletionCannotMutateChangedAvatarOrItsDetail(bool soft,bool synchronous)
+    {
+        var id=Guid.NewGuid();var key=$"oasis/avatar/{id:N}";var detailKey=$"oasis/avatardetail/{id:N}";var store=new Store();
+        store.Seed(key,OasisJson.Serialize<IAvatar>(new Avatar{Id=id,IsActive=true}));store.Seed(detailKey,OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,Karma=12}));
+        var winner=OasisJson.Serialize<IAvatar>(new Avatar{Id=id,Description="winner",IsActive=true,Version=2});var originalDetail=store.Rows[detailKey];
+        store.AfterRead=read=>{if(read==key){store.AfterRead=null;store.Seed(key,winner);}};
+        var provider=new TestProvider(store);var result=synchronous?provider.DeleteAvatar(id,soft):await provider.DeleteAvatarAsync(id,soft);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);Assert.IsFalse(result.Result);Assert.IsInstanceOfType<StorageLifecycleConflictException>(result.Exception);
+        Assert.AreEqual(winner,store.Rows[key].Value);Assert.AreSame(originalDetail,store.Rows[detailKey]);Assert.AreEqual(0,store.Mutations);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task AvatarDeletionPreservesChangedDetailAndReportsPartialAvatarAcknowledgement(bool soft)
+    {
+        var id=Guid.NewGuid();var key=$"oasis/avatar/{id:N}";var detailKey=$"oasis/avatardetail/{id:N}";var store=new Store();
+        store.Seed(key,OasisJson.Serialize<IAvatar>(new Avatar{Id=id,IsActive=true}));store.Seed(detailKey,OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,Karma=12}));
+        var winner=OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,Karma=99,IsActive=true,Version=2});
+        store.AfterRead=read=>{if(read==detailKey){store.AfterRead=null;store.Seed(detailKey,winner);}};
+        var result=await new TestProvider(store).DeleteAvatarAsync(id,soft);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.AreEqual(winner,store.Rows[detailKey].Value);Assert.AreEqual(1,store.Mutations);
+        var partial=(KeyValuePartialMutationException)result.Exception;CollectionAssert.AreEqual(new[]{key},partial.AcknowledgedKeys.ToArray());Assert.IsInstanceOfType<StorageLifecycleConflictException>(partial.InnerException);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task AvatarHardDeletionRefusesCorruptIdentityBeforeDeletingEitherRecord(bool email)
+    {
+        var id=Guid.NewGuid();var key=$"oasis/avatar/{id:N}";var value=email?"owner@example.invalid":"owner";var store=new Store();
+        store.Seed(key,OasisJson.Serialize<IAvatar>(new Avatar{Id=id,Username=email?null:value,Email=email?value:null}));var index=IdentityKey(email,value);store.Seed(index,Guid.NewGuid().ToString());
+        var original=store.Rows[key];var corrupt=store.Rows[index];var result=await new TestProvider(store).DeleteAvatarAsync(id,false);
+        Assert.IsTrue(result.IsError);Assert.IsInstanceOfType<System.IO.InvalidDataException>(result.Exception);Assert.AreSame(original,store.Rows[key]);Assert.AreSame(corrupt,store.Rows[index]);Assert.AreEqual(0,store.Mutations);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task AvatarHardDeletionCannotRemoveRenewedIdentityIndex(bool email)
+    {
+        var id=Guid.NewGuid();var key=$"oasis/avatar/{id:N}";var value=email?"owner@example.invalid":"owner";var index=IdentityKey(email,value);var store=new Store();
+        store.Seed(key,OasisJson.Serialize<IAvatar>(new Avatar{Id=id,Username=email?null:value,Email=email?value:null}));store.Seed(index,id.ToString());KeyValueObservation winner=null;
+        store.AfterMutation=written=>{if(written==key){store.AfterMutation=null;store.Seed(index,id.ToString());winner=store.Rows[index];}};
+        var result=await new TestProvider(store).DeleteAvatarAsync(id,false);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);Assert.AreSame(winner,store.Rows[index]);Assert.AreEqual(1,store.Mutations);
+        var partial=(KeyValuePartialMutationException)result.Exception;CollectionAssert.AreEqual(new[]{key},partial.AcknowledgedKeys.ToArray());Assert.IsInstanceOfType<StorageLifecycleConflictException>(partial.InnerException);
+    }
+
+    [TestMethod]
+    public async Task AvatarSoftDeletionRetainsBothOriginalHistoriesAndOneTimestamp()
+    {
+        var id=Guid.NewGuid();var avatarKey=$"oasis/avatar/{id:N}";var detailKey=$"oasis/avatardetail/{id:N}";var store=new Store();
+        store.Seed(avatarKey,OasisJson.Serialize<IAvatar>(new Avatar{Id=id,IsActive=true,Version=1,VersionId=Guid.NewGuid()}));store.Seed(detailKey,OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,IsActive=true,Karma=12,Version=1,VersionId=Guid.NewGuid()}));
+        var result=await new TestProvider(store){IsVersionControlEnabled=true}.DeleteAvatarAsync(id,true);Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsDeleted);
+        var avatar=OasisJson.DeserializeStored<IAvatar>(store.Rows[avatarKey].Value);var detail=OasisJson.DeserializeStored<IAvatarDetail>(store.Rows[detailKey].Value);
+        var oldAvatar=OasisJson.DeserializeStored<IAvatar>(store.Rows[$"oasis/version/avatar/{id:N}/0000000001"].Value);var oldDetail=OasisJson.DeserializeStored<IAvatarDetail>(store.Rows[$"oasis/version/avatardetail/{id:N}/0000000001"].Value);
+        Assert.IsTrue(avatar.IsDeleted);Assert.IsTrue(detail.IsDeleted);Assert.AreEqual(avatar.DeletedDate,detail.DeletedDate);Assert.AreEqual(2,avatar.Version);Assert.AreEqual(2,detail.Version);
+        Assert.IsTrue(oldAvatar.IsActive);Assert.IsFalse(oldAvatar.IsDeleted);Assert.IsTrue(oldDetail.IsActive);Assert.IsFalse(oldDetail.IsDeleted);Assert.AreEqual(4,store.Mutations);
+    }
+
+    [TestMethod]
+    public async Task AvatarHardDeletionRemovesOnlyObservedPairHistoriesAndIndexes()
+    {
+        var id=Guid.NewGuid();var avatarKey=$"oasis/avatar/{id:N}";var detailKey=$"oasis/avatardetail/{id:N}";var store=new Store();
+        store.Seed(avatarKey,OasisJson.Serialize<IAvatar>(new Avatar{Id=id,Username="owner",Email="owner@example.invalid",Version=2}));store.Seed(detailKey,OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,Version=2}));
+        store.Seed($"oasis/version/avatar/{id:N}/0000000001",OasisJson.Serialize<IAvatar>(new Avatar{Id=id,Version=1}));store.Seed($"oasis/version/avatardetail/{id:N}/0000000001",OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,Version=1}));
+        store.Seed(IdentityKey(false,"owner"),id.ToString());store.Seed(IdentityKey(true,"owner@example.invalid"),id.ToString());store.Seed("unrelated","preserved");var unrelated=store.Rows["unrelated"];
+        var result=await new TestProvider(store).DeleteAvatarAsync(id,false);Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsDeleted);
+        Assert.AreEqual(6,store.Mutations);Assert.AreEqual(1,store.Rows.Count);Assert.AreSame(unrelated,store.Rows["unrelated"]);
+    }
 }
