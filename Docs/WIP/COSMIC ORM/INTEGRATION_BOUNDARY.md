@@ -213,3 +213,18 @@ Evidence: `TestResults/SQLiteCurrent/sqlite-cql-numeric-focused.trx` (6/6), `sql
 - `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `BD89D7B92989BCE7E224974680BBEE39284F3A910FAACEE9B5C00B8A30B8F668`
 
 Shared changed independently from the preceding membership cohort; these hashes identify this actual native epoch. No Core pin, deployment, hosted data or legacy behavior was changed.
+
+
+## Exact metadata admission checkpoint — 20 October 2026
+
+Core `cb18555b6dcb0979ad9fa9c5ed84bbff85c14a6e` adds immutable per-CLR-type metadata capability descriptors, separating comparisons, strings, membership and mixed-numeric semantics from canonical fields. Exact profiles without metadata descriptors reject scalar metadata. Five new root unit cases verify isolation, nullable types, feature gates and detached ownership. Both Core TFMs and consumers build with zero errors.
+
+Full Core 1,352/1,352 passes12s (`cql-metadata-profile-core-full.trx`); SQLite compatibility 905/905 passes117s (`sqlite-cql-metadata-profile-full.trx`), zero skips. The owned database is absent after teardown. SQLite provider source is unchanged from numeric checkpoint ec51baa18; scalar metadata translation is still pending. Actual copied assembly/report SHA256:
+
+- `TestResults/CosmicMongoCurrent/cql-metadata-profile-core-full.trx`: `5A73C0A62205F2F6BC4CCB9F8994F3A05A7D98853EDBFBB99DEF4A0ABA885BC2`
+- `TestResults/SQLiteCurrent/sqlite-cql-metadata-profile-full.trx`: `2892954ABA03DFDCCFA771ABFEA7ED3488AAE18CD785B79357EE574C066F84D2`
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll`: `0DA52DA0FE4A1D4A96119FE8D9A7610B85DEDB5341FD6E60F7D200EACAB401EC`
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll`: `8163A71612D911ABA8F064A291D5B903CFD98874EFE69FC61D8B8BA66AE7B970`
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `BD89D7B92989BCE7E224974680BBEE39284F3A910FAACEE9B5C00B8A30B8F668`
+
+Core unit and SQLite consumer Core copies match. Shared is a separately captured concurrent epoch, not a new all-provider certification. Core gitlink and dependency manifest are advanced together; local commits do not prove remote publication or authorize deployment. All original roadmap acceptance remains open where not separately verified.
