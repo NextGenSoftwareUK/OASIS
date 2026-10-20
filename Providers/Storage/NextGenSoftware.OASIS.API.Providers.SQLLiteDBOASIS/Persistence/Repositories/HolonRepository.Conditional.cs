@@ -63,6 +63,7 @@ public partial class HolonRepository
                 var uncertain=commitEntered || rollbackFailed;
                 if(result?.IsError==true && !uncertain)result.Exception=failure;
                 else result=ConditionalError(uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED"
+                    : failure is SqliteConditionalReceiptInvalidException ? "COSMIC_RECEIPT_INVALID"
                     : failure is SqliteReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"
                     : failure is OperationCanceledException ? replicaRequest!=null ? "COSMIC_REPLICA_WRITE_CANCELLED":"COSMIC_CONDITIONAL_WRITE_CANCELLED"
                     : replicaRequest!=null && !admissionComplete && failure is ArgumentException ? "COSMIC_REPLICA_WRITE_INVALID"
@@ -122,10 +123,13 @@ public partial class HolonRepository
                         if (storedReceipt["fingerprintFormat"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("fingerprintFormat") is not (3 or 4))
                             return ConditionalError("COSMIC_RECEIPT_FINGERPRINT_RECONCILIATION_REQUIRED",
                                 "This receipt predates the exact intent fingerprint contract. Reconcile its original operation before another mutation.");
+                        if (storedReceipt["format"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("format") != 2)
+                            return ConditionalError("COSMIC_RECEIPT_ENVELOPE_RECONCILIATION_REQUIRED",
+                                "This receipt predates the integrity-bound envelope. Reconcile its original acknowledgement before another mutation.");
                     }
                     if (reader.GetString(0) != fingerprint)
                         return ConditionalError("COSMIC_OPERATION_ID_REUSED", "This operation ID is already bound to different write content or actor.");
-                    var replay=replica==null ? ReadConditionalReceipt(reader.GetString(1))
+                    var replay=replica==null ? ReadConditionalReceipt(reader.GetString(1),request,graph,fingerprint)
                         : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Read(reader.GetString(1),replica);
                     result=ConditionalSuccess(replay,operation);knownAcknowledgement=true;return result;
                 }
@@ -192,8 +196,9 @@ public partial class HolonRepository
             // Materialize and encode the exact acknowledgement before COMMIT. Replay never re-reads a newer record.
             var acknowledged = CommittedGraph(graph);
             var acknowledgement=ConditionalSuccess(acknowledged,operation);
-            var receiptJson = replica==null ? WriteConditionalReceipt(acknowledged, ConditionalFingerprintFormat(request))
+            var receiptJson = replica==null ? WriteConditionalReceipt(acknowledged,request,fingerprint)
                 : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Write(acknowledged,replica);
+            if(replica==null)_ = ReadConditionalReceipt(receiptJson,request,graph,fingerprint);
             if(replica!=null){_ = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Read(receiptJson,replica);
                 WriteReplicaHeads(connection,native,acknowledged,replica);}
             if(enrollment!=null)WriteReplicationObligations(connection,native,request,enrollment,acknowledged,now);
@@ -270,31 +275,4 @@ public partial class HolonRepository
         return NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonPlan.ComputeFingerprint(content);
     }
 
-    private static string WriteConditionalReceipt(IEnumerable<IHolon> roots, int fingerprintFormat)
-    {
-        var rootList = roots.ToList(); var nodes = new JArray(); var visited = new HashSet<Guid>();
-        void Visit(IHolon record)
-        {
-            if (!visited.Add(record.Id)) throw new InvalidOperationException("Invalid duplicate receipt identity.");
-            nodes.Add(new JObject { ["id"] = record.Id, ["record"] = StoredRecordJson.Serialize<IHolon>(record),
-                ["children"] = new JArray(record.Children.Select(child => child.Id)) });
-            foreach (var child in record.Children) Visit(child);
-        }
-        foreach (var root in rootList) Visit(root);
-        return new JObject { ["format"] = 1, ["fingerprintFormat"] = fingerprintFormat, ["roots"] = new JArray(rootList.Select(root => root.Id)), ["nodes"] = nodes }.ToString(Formatting.None);
-    }
-
-    private static IEnumerable<IHolon> ReadConditionalReceipt(string json)
-    {
-        var receipt = JObject.Parse(json);
-        if (receipt.Value<int>("format") != 1) throw new InvalidOperationException("Unsupported conditional receipt format.");
-        var nodes = (JArray)receipt["nodes"];
-        var records = nodes.ToDictionary(node => node["id"].ToObject<Guid>(), node => StoredRecordJson.DeserializeStoredHolon((string)node["record"]) as IHolon);
-        foreach (var node in nodes)
-        {
-            records[node["id"].ToObject<Guid>()].Children = node["children"].Select(id => records[id.ToObject<Guid>()]).ToList();
-            records[node["id"].ToObject<Guid>()].IsNewHolon = false;
-        }
-        return receipt["roots"].Select(id => records[id.ToObject<Guid>()]).ToList();
-    }
 }

@@ -2,7 +2,11 @@
 
 Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-providers`. Selected foundations are implemented and verified; the full roadmap is unfinished. Source commits, assembly hashes, original failures and fixture reconciliation are retained in [integration evidence](INTEGRATION_BOUNDARY.md) and [verification history](VERIFICATION.md).
 
-## Latest working increment — SQLite exact UTC metadata date queries
+## Latest working increment — SQLite receipt integrity prerequisite for committed deltas
+
+SQLite primary receipts now bind checksummed graph data to original operation/actor/authority/intent and validate selected roots, edges and revisions. Save replay verifies exact submitted persistent intent; each new primary receipt is read/validated before COMMIT. Seven original accepted-corruption regressions now reject; checksum-valid wrong saved content and historical-envelope reconciliation are also covered. Final focused20/20 and full native1,078/1,078 pass, zero skips. [Contract, compatibility gate, original failures and artifacts](SQLITE_RECEIPT_INTEGRITY.md). Core/Shared source and deployment pins are unchanged. Atomic committed-delta capture/persistence remains the next Stage7 requirement.
+
+## SQLite exact UTC metadata date queries
 
 SQLite now translates DateTime/DateTime? metadata comparisons and membership over its canonical UTC JSON text, preserving all seven fractional digits through fixed-width binary comparison. Native guards validate the Gregorian calendar and exclude malformed, non-UTC and overprecision values. The focused date/scalar gate passes69/69; final full native1,068/1,068 passes with zero skips after replacing one stale unsupported-date assertion with unsupported enum coverage. [Domain, original red evidence and final artifacts](CQL_SCALAR_METADATA.md#utc-dates). Core source and dependency pins are unchanged.
 

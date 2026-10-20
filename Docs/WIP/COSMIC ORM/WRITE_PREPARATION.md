@@ -4,6 +4,8 @@
 
 ## Current V2 save flow
 
+SQLite primary acknowledgement decoding now uses the [integrity-bound receipt envelope](SQLITE_RECEIPT_INTEGRITY.md), including pre-COMMIT self-validation and exact original replay. The preparation protocol and immutable encrypted winner are unchanged. Historical primary envelopes require explicit reconciliation; they are not rewritten by preparation recovery.
+
 Provider updates: [MongoDB](MONGO_WRITE_PREPARATION.md) has 153/153 controlled, 10/10 native conditional and 1/1 independent reconciliation cases. [Neo4j](NEO4J_WRITE_PREPARATION.md) now has 174/174 controlled and 13/13 native conditional cases, including encrypted manager/V2 replay. These are bounded evidence sets; broader fault, retention and authorization acceptance remains open.
 
 1. The detached save plan allocates stable operation-based identities. Core captures exact logical values before audit/encryption, retaining selected root/child order and per-record protection contexts.
