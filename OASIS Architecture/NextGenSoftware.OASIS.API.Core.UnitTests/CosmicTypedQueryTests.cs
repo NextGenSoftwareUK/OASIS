@@ -135,6 +135,50 @@ public class CosmicTypedQueryTests
         Assert.Equal(amount, row.Detail.Amount); Assert.Equal(amount, Assert.Single(row.Amounts)); Assert.Equal(amount, row.Values["entry"]);
     }
 
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)]
+    public async Task TypedOwnedNumericStringsCannotSilentlyRound(int shape)
+    {
+        const string number = "1.00000000000000000000000000000000000000001";
+        var key = shape == 0 ? "Detail" : shape == 1 ? "Amounts" : "Values";
+        var json = shape == 0 ? "{\"Amount\":\"" + number + "\"}" : shape == 1 ? "[\"" + number + "\"]" : "{\"entry\":\"" + number + "\"}";
+        using var document = System.Text.Json.JsonDocument.Parse(json);
+        var adapter = new Adapter { Row = new Holon { Id = Guid.NewGuid(), MetaData = new() { [key] = document.RootElement.Clone() } } };
+        var result = await Manager().ExecuteQueryAsync(Plan<OwnedNumericRow>(adapter), new[] { adapter });
+        Assert.True(result.IsError); Assert.Null(result.Result); Assert.Equal("COSMIC_METADATA_HYDRATION_FAILED", result.ErrorCode);
+        Assert.Equal(json, ((System.Text.Json.JsonElement)adapter.Row.MetaData[key]).GetRawText());
+    }
+
+    [Fact]
+    public async Task TypedOwnedMetadataRejectsAmbiguousPropertyAliases()
+    {
+        using var document = System.Text.Json.JsonDocument.Parse("{\"Amount\":1,\"amount\":1}");
+        var adapter = new Adapter { Row = new Holon { Id = Guid.NewGuid(), MetaData = new() { ["Detail"] = document.RootElement.Clone() } } };
+        var result = await Manager().ExecuteQueryAsync(Plan<OwnedNumericRow>(adapter), new[] { adapter });
+        Assert.True(result.IsError); Assert.Null(result.Result); Assert.Equal("COSMIC_METADATA_HYDRATION_FAILED", result.ErrorCode);
+    }
+
+    public sealed class ExplodingOwnedValue
+    {
+        public ExplodingOwnedValue() => throw new InvalidOperationException("unexpected owned construction");
+        public decimal Amount { get; set; }
+    }
+    public sealed class OwnedConstructorRow : Holon
+    {
+        [CustomOASISProperty] public ExplodingOwnedValue Detail { get; set; } = null!;
+    }
+
+    [Fact]
+    public async Task DuplicateOwnedAssignmentsAreRejectedBeforeInvokingTheirConstructor()
+    {
+        using var document = System.Text.Json.JsonDocument.Parse("{\"Amount\":1,\"amount\":1}");
+        var adapter = new Adapter { Row = new Holon { Id = Guid.NewGuid(), MetaData = new() { ["Detail"] = document.RootElement.Clone() } } };
+        var result = await Manager().ExecuteQueryAsync(Plan<OwnedConstructorRow>(adapter), new[] { adapter });
+        Assert.True(result.IsError); Assert.Null(result.Result);
+        Assert.Contains("Ambiguous owned metadata property", result.Exception.ToString());
+        Assert.DoesNotContain("unexpected owned construction", result.Exception.ToString());
+    }
+
     public enum NamedMode { Ready = 1 }
     public sealed class TextAndEnumRow : Holon
     {
@@ -150,6 +194,29 @@ public class CosmicTypedQueryTests
         Assert.False(result.IsError, result.Message + result.Exception);
         var row = Assert.Single(Assert.Single(result.Result.Providers).Rows);
         Assert.Equal("001.00", row.Amount); Assert.Equal(NamedMode.Ready, row.Mode);
+    }
+
+    public sealed class OwnedSchemaRow : Holon
+    {
+        [CustomOASISProperty] public List<NamedMode> Modes { get; set; } = new();
+        [CustomOASISProperty] public List<decimal?> Amounts { get; set; } = new();
+        [CustomOASISProperty] public Dictionary<string, decimal> Values { get; set; } = new();
+    }
+
+    [Fact]
+    public async Task OwnedSchemaPreservesNamedEnumsNullableNumbersAndDistinctDictionaryKeys()
+    {
+        using var modes = System.Text.Json.JsonDocument.Parse("[\"Ready\"]");
+        using var amounts = System.Text.Json.JsonDocument.Parse("[\"1.000000000000000000000000001\",null]");
+        using var values = System.Text.Json.JsonDocument.Parse("{\"a\":1,\"A\":2}");
+        var adapter = new Adapter { Row = new Holon { Id = Guid.NewGuid(), MetaData = new() {
+            ["Modes"] = modes.RootElement.Clone(), ["Amounts"] = amounts.RootElement.Clone(), ["Values"] = values.RootElement.Clone() } } };
+        var result = await Manager().ExecuteQueryAsync(Plan<OwnedSchemaRow>(adapter), new[] { adapter });
+        Assert.False(result.IsError, result.Message + result.Exception);
+        var row = Assert.Single(Assert.Single(result.Result.Providers).Rows);
+        Assert.Equal(NamedMode.Ready, Assert.Single(row.Modes));
+        Assert.Equal(1.000000000000000000000000001m, row.Amounts[0]); Assert.Null(row.Amounts[1]);
+        Assert.Equal(1m, row.Values["a"]); Assert.Equal(2m, row.Values["A"]);
     }
 
     [Fact]
