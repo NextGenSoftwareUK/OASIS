@@ -25,7 +25,7 @@ public static class StoredAvatarWalletSelector
         {
             if(string.IsNullOrWhiteSpace(key)) throw new ArgumentException("A nonempty avatar credential selector is required.",nameof(key));
             ArgumentNullException.ThrowIfNull(matchesSelector);
-            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+            if(version!=0) throw new ArgumentOutOfRangeException(nameof(version),"Credential selectors require latest version zero; archived records are not authentication authority.");
             var source=await load(version);
             if(source==null) throw new InvalidDataException("Avatar collection result is missing.");
             if(source.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,IAvatar>(source);
