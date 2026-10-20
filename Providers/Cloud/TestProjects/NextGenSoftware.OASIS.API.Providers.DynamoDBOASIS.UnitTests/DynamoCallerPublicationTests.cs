@@ -71,6 +71,24 @@ public class DynamoCallerPublicationTests
 
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task BatchPreservesNewerCallerVersionAndStopsBeforeLaterChangedNode(bool synchronous,bool later)
+    {
+        var first=new Holon();var second=new Holon();
+        var provider=new DynamoDBOASIS("owned","owned","us-east-1");
+        var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var original=(AmazonDynamoDBClient)field.GetValue(provider)!;
+        using var client=new ChangingClient(()=>(later?second:first).Version=999);field.SetValue(provider,client);
+        try{
+            var result=synchronous?provider.SaveHolons(new[]{first,second}):await provider.SaveHolonsAsync(new[]{first,second});
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,client.Writes);
+            Assert.AreEqual(999,(later?second:first).Version);
+            var partial=result.Exception as DynamoDBPartialMutationException;Assert.IsNotNull(partial);
+            Assert.AreEqual(Guid.Parse(client.Submitted!.Item["id"].S),partial.AcknowledgedRecordIds.Single());
+        }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task BatchPreservesChangedIdentityAndDoesNotWriteLaterChangedNode(bool synchronous,bool later)
     {
         var first=new Holon();var second=new Holon();var replacement=Guid.NewGuid();

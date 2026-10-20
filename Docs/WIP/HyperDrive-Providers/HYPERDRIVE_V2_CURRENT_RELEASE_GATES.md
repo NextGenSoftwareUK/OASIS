@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## DynamoDB/AWS graph caller-publication guard — 2026-10-19
+
+Shared snapshot capture now protects selected graph originals before node submission and post-ack publication; four red-before version-edit schedules now pass. Controlled249/249pass944ms; broader retained nativeAWS130/130pass44s/zero skips, then conditional cleanup1/1pass. Native report SHA256 `9F914D626B4F01E4E8E930A6334EA899910CA270AA18715ACCB07C06D5231778`; exact inventory/hashes and limitations in [DynamoDB history report](DYNAMODB_RECORD_HISTORY.md). Pending journals0/listeners0, retained tables verified empty, no new environment/download or public spend. Native suite is regression proof, not native injected races, hosted IAM/billing or every public route/interface certification. Lifecycle writers remain a separate review scope.
+
 ## DynamoDB/AWS ordinary caller-publication guard — 2026-10-19
 
 Reused shared canonical publication snapshot for ordinary avatar/detail/standalone-holon saves: observed caller edits before dispatch stop PutItem; post-ack edits retain acknowledged IDs in existing partial-mutation error without stamp overwrite. Twelve red-before controlled cases now pass; final Dynamo245/AWS26controlled and retained native33pass/zero skips. Native TRX SHA256 `FE6D060023A667794899BF9B94962F8901F760165C2DD1A6E0931E166B35EB51`; exact hashes/scopes in [DynamoDB history report](DYNAMODB_RECORD_HISTORY.md). Same retained runtime, no pending journals/ports afterward, no installs or public fees. Graph originals/lifecycle publication, hosted IAM/cost and full-provider/V2 gates remain distinct OPEN scopes; no atomic synchronization guarantee or native injected-caller-race claim.
