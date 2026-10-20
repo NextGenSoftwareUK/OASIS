@@ -21,6 +21,8 @@ public partial class NEAROASIS
         try
         {
             StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+            searchParams=Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+            StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
 
             var matches = new SearchResults();
             var avatarsResult = await LoadAllAvatarRecordsAsync(version);
@@ -36,6 +38,7 @@ public partial class NEAROASIS
 
             matches.NumberOfResults = matches.SearchResultAvatars.Count + matches.SearchResultHolons.Count;
             result.Result = matches;
+            result.IsLoaded = true;
             result.Message = $"Found {matches.NumberOfResults} NEAR records.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error searching NEAR storage: {ex.Message}", ex); }
