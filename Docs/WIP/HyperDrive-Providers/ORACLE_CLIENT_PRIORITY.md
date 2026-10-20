@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Conditional replacement disappearance — 2026-10-19
+
+Expected-present replacement now classifies explicit native `404 ObjectNotFound` as a known `StorageLifecycleConflictException`, matching conditional deletion. The observed ETag remains in the native `If-Match` request; no read-then-upsert, retry or fallback is added. Ambiguous `404 NotAuthorizedOrNotFound` remains the original SDK rejection, not an existence disclosure or concurrency claim. The original SDK cause is retained in conflict data.
+
+Two real-SDK/signed-loopback regression cases first produced one failure (explicit disappearance) and one pass (authorization ambiguity). Before report `TestResults/OracleCurrent/oracle-object-replace-before.trx`, SHA256 `029092BA0CDC33A6A92965BE0CE54B0D939E1C3A7EEF3331FD923860989E2E97`. After the single transport-owner correction, full suite **38/38 passed**, zero skipped, 3 seconds; `oracle-object-replace-current.trx`, SHA256 `5FDD6B6831511325A48DF2EF124E9A6DF01E3FFC9548A36E7004EC12E0E277FE`. Cached bounded provider/test builds: zero errors, 2/3 warnings. No new runtime/download/environment/cloud resource or paid operation. These are controlled HTTP responses through the actual OCI SDK, not live OCI acceptance or multi-object atomicity proof.
+
+Account-access check found no OCI CLI, matching credential environment-variable names, or standard Windows/WSL OCI profiles in the checked locations. User asked whether setup can be handled by the agent; local configuration can be completed once existing account access is available, but no account/billing commitment was created. Live profile/bucket/IAM acceptance remains open; continue other Oracle correctness work meanwhile.
+
 Final ETag/delete refresh2026-10-19: after null-annotation cleanup,36/36same-source SDK/controlled HTTP cases passed4s/zero skips, final snapshot reportSHA2561AC4969CA783742AF029F69FB5A2F4BED40261FF4B768D8BF7AC2EFE9693154D supersedes earlier36hash below; manifest/gitlinks pass. COSMIC session coordination authorized by David’s actual human message in Audit COSMIC ORM gaps and scope reply sent: peer owns tracking, conditional/replica contracts and SQLite/Mongo/Neo4j outbox delivery, this session owns Oracle/OCI and existing KeyValueStorageProviderBase policy/write integration. No COSMIC files staged or changes to peer contracts/plans in this batch. Core pin remains enum-only a03082c; peer broader dirty work remains unpublished and preserved. Shared output builds can change concurrently; immutable hosted-source validation still required. No global durable replication/atomic object-store claim inferred from peer progress.
 
 ## Native ETag observations and conditional deletion — 2026-10-19
