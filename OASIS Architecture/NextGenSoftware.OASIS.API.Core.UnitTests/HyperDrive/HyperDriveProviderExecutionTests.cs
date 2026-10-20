@@ -4249,7 +4249,7 @@ public sealed partial class HyperDriveProviderExecutionTests
     [Fact]
     public void HolonSearchUsesInjectedRuntimeAndForwardsRoutingOptions()
     {
-        var holon = new Mock<IHolon>().Object;
+        var holon = new Holon { Id = Guid.NewGuid() };
         var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "isolated-holon-search");
         selected.Setup(x => x.Search(It.IsAny<ISearchParams>(), false, false, 3, false, 7))
             .Returns(new OASISResult<ISearchResults>(new SearchResults

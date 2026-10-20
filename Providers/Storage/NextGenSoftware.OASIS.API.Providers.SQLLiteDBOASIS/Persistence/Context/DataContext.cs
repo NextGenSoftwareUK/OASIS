@@ -93,6 +93,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
                 if (!inventoryColumns.Contains(property.Name))
                     modelBuilder.Entity<InventoryItemModel>().Ignore(property.Name);
             modelBuilder.Entity<InventoryItemModel>().Property(x=>x.ExtendedValueJson).IsRequired().HasDefaultValue("{}");
+            modelBuilder.Entity<HolonModel>().Property(x=>x.PersistentValueJson).IsRequired().HasDefaultValue("{}");
+            modelBuilder.Entity<HolonModel>().Property(x=>x.HasCreatedProviderType).HasDefaultValue(true).ValueGeneratedNever();
+            modelBuilder.Entity<HolonModel>().Property(x=>x.HasCreatedOASISType).HasDefaultValue(true).ValueGeneratedNever();
             modelBuilder.Entity<InventoryItemModel>().Property(x=>x.Image2DURI)
                 .HasConversion(value=>value.OriginalString,value=>new Uri(value,UriKind.RelativeOrAbsolute));
             modelBuilder.Entity<InventoryItemModel>().Property(x=>x.Object3DURI)
@@ -332,7 +335,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             base.OnModelCreating(modelBuilder);
         }
 
-        private static DateTime ValidateDeletionUtc(DateTime value)
+        internal static DateTime ValidateDeletionUtc(DateTime value)
         {
             if(value!=DateTime.MinValue && value.Kind!=DateTimeKind.Utc)
                 throw new ArgumentException("SQLite deletion timestamps must be UTC, or the empty DateTime.MinValue sentinel.");

@@ -28,12 +28,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public bool IsActive { get; set; }
         public bool IsPublic { get; set; }
         public Guid VersionId { get; set; }
+        public Guid ProviderRevisionId { get; set; }
         public Guid PreviousVersionId { get; set; }
         public string CustomHolonType { get; set; }
         // Repository metadata payload belongs to this holon, not a global property-key row.
         public string MetaDataJson { get; set; } = "{}";
         public string LocalProviderKey { get; set; }
         public string ProviderKeysJson { get; set; } = "{}";
+        public string PersistentValueJson { get; set; } = "{}";
         
         public DimensionModel ParentDimension { get; set; }
         public DimensionLevel DimensionLevel { get; set; }
@@ -51,7 +53,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public UniverseModel ParentUniverse { get; set; }
 
         public ProviderType CreatedProviderType { get; set; }
+        public bool HasCreatedProviderType { get; set; } = true;
         public OASISType CreatedOASISType { get; set; }
+        public bool HasCreatedOASISType { get; set; } = true;
         
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
