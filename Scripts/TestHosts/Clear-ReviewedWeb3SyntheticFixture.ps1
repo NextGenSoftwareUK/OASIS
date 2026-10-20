@@ -32,6 +32,7 @@ try {
         if(@($offlineNames|Where-Object{$_ -ne 'subscription_usage_outbox_v1'}).Count){throw 'Unknown offline collection; preserve database.'}
         $command=[MongoDB.Driver.BsonDocumentCommand[MongoDB.Bson.BsonDocument]]::new([MongoDB.Bson.BsonDocument]::Parse('{"find":"subscription_usage_outbox_v1","filter":{},"batchSize":2}'))
         $reply=$offline.RunCommand[MongoDB.Bson.BsonDocument]($command,$null,[Threading.CancellationToken]::None)
+        if($reply['cursor']['id'].ToInt64() -ne 0){throw 'Offline inventory is incomplete; preserve database.'}
         $batch=$reply['cursor']['firstBatch'].AsBsonArray
         if($batch.Count -ne 1){throw 'Expected exactly one reviewed offline outbox; preserve database.'}
         $record=$batch[0].AsBsonDocument
@@ -43,13 +44,21 @@ try {
         Write-Output ('Offline state: '+$record['State'].AsString+'; attempts='+$record['ProviderAttempts'].AsBsonArray.Count+'; policy='+$record['Policy'].ToString())
         if($InspectOnly){return}
         # Reviewed 2026-10-17: offline SDK signing + parent pipe only, never broadcast.
-        if($evidenceHash -ne '9B8218F990C086A8BB6EC71CA4A7E759D2D3BD85A4F2B3E6B8F011761A19B60E'){throw 'Offline evidence changed; preserve it for a new review.'}
-        $attempt=$record['ProviderAttempts'].AsBsonArray[0].AsBsonDocument
-        if($record['State'].AsString -ne 'executing' -or $record['Endpoint'].AsString -ne 'POST /offline-test' -or
-            $record['Receipts'].AsBsonArray.Count -ne 0 -or !$record['Settlement'].IsBsonNull -or
-            $attempt['Provider'].AsString -ne 'CosmosBlockChainOASIS' -or !$attempt['AcknowledgedAtUtc'].IsBsonNull -or
-            $attempt['NativePreparation']['ChainId'].AsString -ne 'offline-test-chain'){throw 'Not the reviewed offline-only preparation; preserve database.'}
-        $evidencePath=Join-Path $work 'cosmos-offline-reviewed-evidence.json'
+        if($evidenceHash -eq 'ED79BFEEBD6B82CF00A67D495511B50BB54046DE66A0109DCE9FCB08AF3132AD'){
+            # Reviewed 2026-10-20: SDK import failed before signing/preparation, from the exact failed240 report.
+            if($record['State'].AsString -ne 'executing' -or $record['Endpoint'].AsString -ne 'POST /offline-test' -or
+                $record['ProviderAttempts'].AsBsonArray.Count -ne 0 -or $record['Receipts'].AsBsonArray.Count -ne 0 -or
+                !$record['Settlement'].IsBsonNull -or $record['NativePreparationBytes'].ToInt64() -ne 0 -or
+                $record['NativeFeeExposureUsd'].ToDecimal() -ne 0){throw 'Not the exact reviewed pre-signing import failure; preserve database.'}
+            $evidencePath=Join-Path $work 'cosmos-offline-import-failure-ED79BFEEBD6B.json'
+        }elseif($evidenceHash -eq '9B8218F990C086A8BB6EC71CA4A7E759D2D3BD85A4F2B3E6B8F011761A19B60E'){
+            $attempt=$record['ProviderAttempts'].AsBsonArray[0].AsBsonDocument
+            if($record['State'].AsString -ne 'executing' -or $record['Endpoint'].AsString -ne 'POST /offline-test' -or
+                $record['Receipts'].AsBsonArray.Count -ne 0 -or !$record['Settlement'].IsBsonNull -or
+                $attempt['Provider'].AsString -ne 'CosmosBlockChainOASIS' -or !$attempt['AcknowledgedAtUtc'].IsBsonNull -or
+                $attempt['NativePreparation']['ChainId'].AsString -ne 'offline-test-chain'){throw 'Not the reviewed offline-only preparation; preserve database.'}
+            $evidencePath=Join-Path $work 'cosmos-offline-reviewed-evidence.json'
+        }else{throw 'Offline evidence changed; preserve it for a new review.'}
         if((Test-Path -LiteralPath $evidencePath) -and (Get-FileHash -LiteralPath $evidencePath -Algorithm SHA256).Hash -ne $evidenceHash){throw 'Different retained review evidence already exists.'}
         [IO.File]::WriteAllText($evidencePath,$evidence,[Text.UTF8Encoding]::new($false))
         if((Get-FileHash -LiteralPath $evidencePath -Algorithm SHA256).Hash -ne $evidenceHash){throw 'Offline evidence export verification failed.'}
