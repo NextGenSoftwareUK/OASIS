@@ -59,6 +59,21 @@ public class CosmosGraphWriteTests
 
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task ChangedBatchCallerVersionIsNotPublishedOrWrittenAgain(bool synchronous,bool later)
+    {
+        var first=new Holon();var second=new Holon();var calls=0;Guid acknowledged=Guid.Empty;
+        var repository=new Mock<IHolonRepository>();
+        repository.Setup(r=>r.UpsertAsync(It.IsAny<IHolon>())).Returns(async(IHolon row)=>{
+            calls++;acknowledged=row.Id;await Task.Yield();(later?second:first).Version=999;return row;
+        });
+        var provider=Provider(repository.Object);
+        var result=synchronous?provider.SaveHolons(new[]{first,second}):await provider.SaveHolonsAsync(new[]{first,second});
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,calls);Assert.AreEqual(999,(later?second:first).Version);
+        var partial=result.Exception as CosmosPartialMutationException;Assert.IsNotNull(partial);Assert.AreEqual(acknowledged,partial.AcknowledgedRecordIds.Single());Assert.AreNotEqual(Guid.Empty,acknowledged);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task ChangedBatchCallerIdentityIsNotPublishedOrWrittenAgain(bool synchronous,bool later)
     {
         var first=new Holon();var second=new Holon();var replacement=Guid.NewGuid();var calls=0;
