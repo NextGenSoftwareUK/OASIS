@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## Web3 profile canonical publisher — selected controlled129 green, native OPEN
+
+Avatar/detail saves now share canonical caller-edit validation with graph saves; two new metadata-edit regressions first failed and now pass, preserving original acknowledgement and caller edits without replay. Final selected129/129 zero skips, SHA25631039534EBB236DDA11D7BBF18C62CA75ACA2F839A911B3CB7A8E65F9ED0A97F. Actual copied CoreFB3936F3/Shared2D6A41B4; exact hashes/scope in EVM_RECORD_HISTORY_GAPS.md. No native-chain refresh, full-interface/global-V2 completion or deployment claim.
+
+## Web3 captured graph/history/publication — controlled127 green; native OPEN
+
+Shared Web3Core owner now reuses the common graph planner, observed child-role resolver and canonical caller-publication snapshot; acknowledged transaction identity is retained when publication rejects caller edits. Final selected controlled127/127, zero skipped, report SHA256 DFCAEE89DBC1944504AC9F99BC639632D11F9ECF3D00E34133F29C30BC2AE7B1. This excludes native storage/recovery/retained-outbox/SQLite fault-owner classes. No fresh native receipt or full-provider/global-V2 proof; original lost-chain outcomes remain unresolved and preserved. See EVM_RECORD_HISTORY_GAPS.md for regression hashes, scope, fees and publication limits. No new runtime/download/public spend/dev push.
+
 ## NEAR canonical publisher native19 compatibility green — 2026-10-20
 
 Retained46080 terminal0,19/19actualnativepass5m15s0skips with cdfbd0443 publisher; C6FD2ED97BF00459E7AF0F24A803836866D66F5AD61EF50BA8BE7C7EF1430A0A. Native Core89468/Shared2D6A EXACTunit186cohort; portableguardpassed. Existing19suite normal SDK behavior+namedroles/rootonly proved,8sourceeditfaults remain CONTROLLED IPC/notlivenativefaultclaim. Owned642837stopped/process+portsabsent/pending0/checkedcompletionverified-fixtures-absent/retention50restored5,ledger291MiB retained. PriorE615reporthash-verified/movedinplace. No newruntime/download/reset/upgrade/publicspend/devpush. Exactscope/hashes/sourceguardlimits in NEAR_PUBLIC_CONDITIONAL_SAVE.md; fullinterfaces/liveraces/hostedfees/immutablepublication/globalV2OPEN.

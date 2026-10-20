@@ -14,6 +14,7 @@ public sealed class Web3PartialMutationException : Exception, INativeMutationRec
         :base("Web3Core graph partially acknowledged; reconcile before replay.",cause)
     {
         AcknowledgedRecordIds=Array.AsReadOnly(ids.ToArray());AcknowledgedTransactionIds=Array.AsReadOnly(transactions.ToArray());
-        OriginalTransactionId=cause is INativeMutationReconciliationRequired native ? native.OriginalTransactionId:string.Empty;
+        OriginalTransactionId=cause is INativeMutationReconciliationRequired native ? native.OriginalTransactionId
+            :AcknowledgedTransactionIds.LastOrDefault()??string.Empty;
     }
 }
