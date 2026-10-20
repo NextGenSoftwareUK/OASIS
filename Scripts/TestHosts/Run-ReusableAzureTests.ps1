@@ -27,7 +27,11 @@ try {
     $ready=$false
     for($i=0;$i -lt 60;$i++) {
         if($process.HasExited) {throw 'Owned Azurite exited before readiness.'}
-        if(Get-NetTCPConnection -LocalPort 10000 -State Listen -ErrorAction SilentlyContinue) {$ready=$true;break}
+        $listener=Get-NetTCPConnection -LocalPort 10000 -State Listen -ErrorAction SilentlyContinue
+        if($listener) {
+            if(@($listener | Where-Object OwningProcess -ne $process.Id).Count) {throw 'Azure readiness listener is not the owned Azurite process.'}
+            $ready=$true;break
+        }
         Start-Sleep -Milliseconds 250
     }
     if(!$ready) {throw 'Owned Azurite readiness timed out.'}

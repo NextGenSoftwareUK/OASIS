@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Azure native refresh — 2026-10-20,160/160 green
+
+Previously stalled Azurite command now starts in a bounded diagnostic (~1.4s) with the same pinned runtime/options; diagnostic child was stopped before the actual run. The prior timeout cause is NOT established and no startup repair is claimed. Runner readiness now additionally rejects a listener not owned by its launched process; PowerShell syntax checked, successful real ownership path exercised (mismatched-PID branch not separately fault-injected).
+
+Full retained Azure suite160/160 passed50s/zero skips/runner0, including the existing exact-object changes whose previous native attempt never reached tests. `TestResults/AzureCurrent/azure-native-current.trx` SHA256 `471336D2BE2177CB18F728DA5A029326068AB75EA3365E891B0EB09F6EE2F1A6`; Core `03766A44A7A20F6452CDFC22D14B1749FD0B85DC32B4914F1A90468A911A521A`, Shared `A8AAF9C149B61BBE64E0C16AAB7CDACA2B5B80E12C2C1745B032963E6A893095`. Same installed Node/Azurite/cache/workspace; no download/reinstall/new environment. Owned service stopped, ports10000/10003 absent, routing fixture files0. Hosted Azure IAM/TLS/paid-service behavior, complete interface/recovery and universal V2 certification remainOPEN. Earlier readiness-timeout evidence remains historical, not erased or represented as a product fix.
+
 ## Google Firestore exact native metadata — 2026-10-20
 
 Regression report `TestResults/GoogleCurrent/google-native-current.trx` SHA256 `F01E64E3F1F6B22D0291702074E9E909B7483DC3EF9ED93DF9B2DFBA1E9EC884`.
