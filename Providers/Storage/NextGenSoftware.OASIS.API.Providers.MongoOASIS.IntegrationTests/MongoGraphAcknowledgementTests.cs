@@ -45,6 +45,7 @@ public sealed class MongoGraphAcknowledgementTests
     }
 
     [Theory]
+    [Trait("Category", "OwnedMongoRunner")] // Pins the owned single-node replica; the hosted three-node job filters this category out.
     [InlineData(true)]
     [InlineData(false)]
     public async Task RolledBackGraphDoesNotPublishCallerIdentities(bool synchronous)
