@@ -510,13 +510,20 @@ public class CosmicTrackingTests
     [Theory]
     [InlineData("wrong-key")] [InlineData("corrupt")]
     [InlineData("invalid-json")] [InlineData("null-payload")]
+    [InlineData("plaintext-json")] [InlineData("colliding-key")]
+    [InlineData("duplicate-key")] [InlineData("reserved-key")]
     public void FailedMetadataDecryptionPreservesCiphertextAndExistingValues(string fault)
     {
         var f=Fixture(true);
         var settings=new EncryptionSettings{Rijndael256EncryptionEnabled=true,Rijndael256Key=new string('e',32)};
         f.Manager.OASISDNA.OASIS.Security=new SecuritySettings{HolonDataEncryption=settings};
-        var payload=fault=="invalid-json" ? "not-json":fault=="null-payload" ? "null":"{\"private-note\":\"private-value\"}";
-        var ciphertext=fault=="corrupt" ? "invalid-ciphertext"
+        var payload=fault switch {
+            "invalid-json" => "not-json", "null-payload" => "null",
+            "colliding-key" => "{\"existing\":\"shadow\"}",
+            "duplicate-key" => "{\"private-note\":1,\"private-note\":2}",
+            "reserved-key" => "{\"__oasis_enc__\":\"replacement\"}",
+            _ => "{\"private-note\":\"private-value\"}" } ;
+        var ciphertext=fault=="corrupt" ? "invalid-ciphertext" : fault=="plaintext-json" ? payload
             :NextGenSoftware.OASIS.API.Core.Helpers.PasswordEncryptionHelper.EncryptValue(payload,settings);
         var source=new Holon();source.MetaData["__oasis_enc__"]=ciphertext;source.MetaData["existing"]="preserved";
         if(fault=="wrong-key")source.DataEncryptionOverride=new EncryptionSettings{
@@ -529,6 +536,26 @@ public class CosmicTrackingTests
         source.MetaData["existing"].Should().Be("preserved");
         source.MetaData.Should().NotContainKey("private-note");
         source.MetaData.Count.Should().Be(2);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void SuccessfulMetadataDecryptionPublishesAnOwnedValidatedDictionary(bool quantum)
+    {
+        var f = Fixture(true);
+        var settings = new EncryptionSettings { Rijndael256EncryptionEnabled = true, Rijndael256Key = new string('e',32),
+            QuantumEncryptionEnabled = quantum, QuantumEncryptionKey = new string('q',32) };
+        f.Manager.OASISDNA.OASIS.Security = new SecuritySettings { HolonDataEncryption = settings };
+        const string precise = "1.00000000000000000000000000000000000000001";
+        var ciphertext = Core.Helpers.PasswordEncryptionHelper.EncryptValue("{\"a\":1,\"A\":2,\"exact\":" + precise + "}", settings);
+        var source = new Holon { MetaData = new() { ["__oasis_enc__"] = ciphertext, ["existing"] = "clear" } };
+        var original = source.MetaData;
+        var result = f.Manager.DecryptHolonMetaData(source);
+        result.IsError.Should().BeFalse(result.Message + result.Exception); result.Result.Should().BeTrue();
+        source.MetaData.Should().NotBeSameAs(original); source.MetaData.Should().NotContainKey("__oasis_enc__");
+        source.MetaData["existing"].Should().Be("clear"); source.MetaData["a"].ToString().Should().Be("1");
+        source.MetaData["A"].ToString().Should().Be("2"); StoredRecordJson.Serialize(source.MetaData).Should().Contain(precise);
+        original.Count.Should().Be(2); original["__oasis_enc__"].Should().Be(ciphertext);
     }
 
     [Theory]
