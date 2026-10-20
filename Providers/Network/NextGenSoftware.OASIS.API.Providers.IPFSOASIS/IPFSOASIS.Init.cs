@@ -179,24 +179,34 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             catch (Exception cause) { throw new IPFSRecordPublicationException(recordCid, cause); }
         }
 
-        private async Task SavePrivateEntityAsync(IHolonBase entity, string kind, HolonResume index)
+        private async Task SavePrivateEntityAsync(IHolonBase entity, string kind, HolonResume index,
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite plannedHolon=null,Action validateCaller=null)
         {
             if (entity == null || entity.Id == Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
             _idLookup = await LoadLookupToJson();
             var previous = FindIndexEntry(kind, row => row.Id == entity.Id, true);
+            if(kind=="holon" && entity is Holon holon){
+                var observed=previous.Value==null?null:await ReadPrivateRecordAsync<Holon>(previous.Key,kind,entity.Id);
+                var write=plannedHolon??new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite(holon,holon);
+                holon.ChildRoleManifestJson=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonChildRolePersistence.Resolve(write,
+                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonChildRoleWriteKind.SourceSave,observed!=null,observed?.ChildRoleManifestJson);
+            }
             entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             entity.PreviousVersionProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             if (previous.Value != null) entity.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = previous.Key;
             index.Id = entity.Id;
             index.RecordKind = kind;
             var json = ProtectRecord(kind, entity.Id, OasisJson.Serialize(entity));
+            validateCaller?.Invoke();
             var acknowledged = await IPFSClient.FileSystem.AddTextAsync(json);
             var cid = acknowledged.Id.ToString();
             try
             {
+                validateCaller?.Invoke();
                 entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = cid;
                 index.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType,string>(entity.ProviderUniqueStorageKey);
                 await PublishAcknowledgedRecordAsync(cid, index);
+                validateCaller?.Invoke();
             }
             catch (IPFSRecordPublicationException) { throw; }
             catch (Exception cause) { throw new IPFSRecordPublicationException(cid, cause); }
@@ -210,11 +220,19 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return avatar;
         }
 
-        public async Task<IHolon> SaveHolonToFile(IHolon holon)
+        public Task<IHolon> SaveHolonToFile(IHolon holon)=>SaveHolonRecordAsync(holon,null);
+
+        private async Task<IHolon> SaveHolonRecordAsync(IHolon holon,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite plan,Action validateSource=null)
         {
             if (holon == null) throw new ArgumentNullException(nameof(holon));
-            await SavePrivateEntityAsync(holon, "holon", new HolonResume {
-                ParentHolonId=holon.ParentHolonId, HolonType=holon.HolonType });
+            var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(holon);
+            var proposal=publication.Proposal;
+            void Validate(){publication.ValidateUnchanged();validateSource?.Invoke();}
+            await SavePrivateEntityAsync(proposal, "holon", new HolonResume {
+                ParentHolonId=proposal.ParentHolonId, HolonType=proposal.HolonType },plan,Validate);
+            holon.ProviderUniqueStorageKey=new Dictionary<Core.Enums.ProviderType,string>(proposal.ProviderUniqueStorageKey);
+            holon.PreviousVersionProviderUniqueStorageKey=new Dictionary<Core.Enums.ProviderType,string>(proposal.PreviousVersionProviderUniqueStorageKey);
+            if(holon is Holon caller)caller.ChildRoleManifestJson=proposal.ChildRoleManifestJson;
             return holon;
         }
 
