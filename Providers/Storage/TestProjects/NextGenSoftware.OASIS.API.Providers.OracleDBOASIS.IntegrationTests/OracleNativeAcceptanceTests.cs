@@ -1001,8 +1001,8 @@ public sealed partial class OracleNativeAcceptanceTests
                 await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids=rows.Select(row=>row.Id).ToArray(),import,state="before-native-batch-uncertainty"}));file.Flush(true);
             }
             Exception cause;
-            if(import){var result=await provider.ImportAsync(rows);Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);cause=result.Exception;}
-            else{var result=await provider.SaveHolonsAsync(rows,saveChildren:false,curentChildDepth:0,continueOnError:true);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,result.Result.Count());cause=result.Exception;}
+            if(import){var result=await provider.ImportAsync(rows);Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,result.SavedCount);cause=result.Exception;}
+            else{var result=await provider.SaveHolonsAsync(rows,saveChildren:false,curentChildDepth:0,continueOnError:true);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,result.SavedCount);Assert.AreEqual(1,result.Result.Count());cause=result.Exception;}
             Assert.IsInstanceOfType<OraclePartialMutationException>(cause);CollectionAssert.AreEqual(new[]{rows[0].Id},((OraclePartialMutationException)cause).AcknowledgedRecordIds.ToArray());
             Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(cause));Assert.AreSame(provider.Lost,cause.InnerException!.InnerException);
             Assert.AreEqual(2,provider.CommitCalls);Assert.AreEqual(1,rows[0].Version);Assert.AreEqual(0,rows[1].Version);Assert.AreEqual(0,rows[2].Version);Assert.IsNull(await Read(verifier,"OASIS_HOLONS",rows[2].Id));
