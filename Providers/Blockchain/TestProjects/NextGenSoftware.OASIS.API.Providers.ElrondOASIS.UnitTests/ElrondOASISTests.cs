@@ -92,21 +92,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS.UnitTests
         }
 
         [Fact]
-        public async Task LoadAvatarAsync_ShouldReturnElrondAvatar()
+        public async Task LoadAvatarAsync_NeverInventsAnAvatarThatDoesNotExist()
         {
-            // Arrange
-            var elrondProvider = new ElrondOASIS();
-            var avatarId = Guid.NewGuid();
-
-            // Act
-            var result = await elrondProvider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.False(result.IsError);
-            Assert.NotNull(result.Result);
-            Assert.Equal(avatarId, result.Result.Id);
-            Assert.Contains("elrond_user", result.Result.Username);
-            Assert.Contains("elrond.example", result.Result.Email);
+            // An unknown id must not come back as a fabricated avatar (the old test expected made-up
+            // "elrond_user"/"elrond.example" data); either an error or no result is the honest outcome.
+            var result = await new ElrondOASIS().LoadAvatarAsync(Guid.NewGuid());
+            Assert.True(result.IsError || result.Result == null);
         }
     }
 }
