@@ -440,10 +440,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         }
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-            => await DeleteSelectedAvatarAsync(LoadAvatarByEmailAsync(avatarEmail),softDelete);
+            => await DeleteSelectedAvatarAsync(LoadAvatarByEmailAsync(avatarEmail),softDelete,profile=>string.Equals(profile.Email,avatarEmail,StringComparison.OrdinalIgnoreCase));
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-            => await DeleteSelectedAvatarAsync(LoadAvatarByUsernameAsync(avatarUsername),softDelete);
+            => await DeleteSelectedAvatarAsync(LoadAvatarByUsernameAsync(avatarUsername),softDelete,profile=>string.Equals(profile.Username,avatarUsername,StringComparison.OrdinalIgnoreCase));
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
 
         // ─── Import / Export ──────────────────────────────────────────────────────

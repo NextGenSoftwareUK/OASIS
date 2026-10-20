@@ -30,11 +30,12 @@ public class AzureConditionalHistoryWriterTests
     private sealed class ObservedBlob : BlobClient
     {
         public Holon? Existing;
+        public IHolonBase? ExistingRecord;
         public string ReadEtag = "original-revision";
         public string AckEtag = "committed-revision";
         public Exception? ReadFailure;
         public Exception? WriteFailure;
-        public int Writes;
+        public int Writes,Deletes;
         public BlobUploadOptions? Options;
         public BinaryData? Payload;
         public Action? OnRead,OnWrite;
@@ -44,9 +45,9 @@ public class AzureConditionalHistoryWriterTests
         {
             OnRead?.Invoke();
             if (ReadFailure != null) throw ReadFailure;
-            if (Existing == null) throw new RequestFailedException(404, "Absent", "BlobNotFound", null);
+            if (Existing == null&&ExistingRecord==null) throw new RequestFailedException(404, "Absent", "BlobNotFound", null);
             return Task.FromResult(Response.FromValue(BlobsModelFactory.BlobDownloadResult(
-                BinaryData.FromString(OasisJson.Serialize(Existing)), BlobsModelFactory.BlobDownloadDetails(eTag: new ETag(ReadEtag))), new SdkResponse()));
+                BinaryData.FromString(OasisJson.Serialize(ExistingRecord??Existing)), BlobsModelFactory.BlobDownloadDetails(eTag: new ETag(ReadEtag))), new SdkResponse()));
         }
         public override Task<Response<BlobContentInfo>> UploadAsync(BinaryData content, BlobUploadOptions options, CancellationToken cancellationToken = default)
         {
@@ -55,12 +56,42 @@ public class AzureConditionalHistoryWriterTests
             OnWrite?.Invoke();
             return Task.FromResult(Response.FromValue(BlobsModelFactory.BlobContentInfo(new ETag(AckEtag), DateTimeOffset.UtcNow, Array.Empty<byte>(), null, null, null, 0), new SdkResponse()));
         }
+        public override Task<Response> DeleteAsync(DeleteSnapshotsOption snapshotsOption=DeleteSnapshotsOption.None,BlobRequestConditions? conditions=null,CancellationToken cancellationToken=default)
+        {Deletes++;return Task.FromResult<Response>(new SdkResponse());}
     }
 
     private sealed class Container(BlobClient blob):BlobContainerClient
     {public override BlobClient GetBlobClient(string name)=>blob;}
-    private sealed class Service(BlobClient blob):BlobServiceClient
-    {public override BlobContainerClient GetBlobContainerClient(string name)=>new Container(blob);}
+    private sealed class MissingBlob(Action read):BlobClient
+    {public override Task<Response<BlobDownloadResult>> DownloadContentAsync(CancellationToken cancellationToken=default){read();throw new RequestFailedException(404,"Absent","BlobNotFound",null);}}
+    private sealed class Service(BlobClient blob,string? onlyContainer=null):BlobServiceClient
+    {
+        public int MissingReads;
+        public override BlobContainerClient GetBlobContainerClient(string name)=>new Container(onlyContainer==null||name==onlyContainer?blob:new MissingBlob(()=>MissingReads++));
+    }
+    private sealed class SelectedIdentity(Avatar original):AzureStorageOASIS("UseDevelopmentStorage=true")
+    {
+        public override Task<NextGenSoftware.OASIS.Common.OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username,int version=0)=>Selected();
+        public override Task<NextGenSoftware.OASIS.Common.OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email,int version=0)=>Selected();
+        private Task<NextGenSoftware.OASIS.Common.OASISResult<IAvatar>> Selected()=>Task.FromResult(new NextGenSoftware.OASIS.Common.OASISResult<IAvatar>{Result=original,IsLoaded=true});
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false,false)][DataRow(false,false,true)][DataRow(false,true,false)][DataRow(false,true,true)]
+    [DataRow(true,false,false)][DataRow(true,false,true)][DataRow(true,true,false)][DataRow(true,true,true)]
+    public async Task IdentityDeletionRefusesReassignedCanonicalAvatar(bool email,bool softDelete,bool synchronous)
+    {
+        var original=new Avatar{Id=Guid.NewGuid(),Username="owned-original",Email="owned-original@example.invalid"};
+        var blob=new ObservedBlob{ExistingRecord=new Avatar{Id=original.Id,Username="different-owner",Email="different-owner@example.invalid",IsActive=true}};
+        var service=new Service(blob,"oasis-avatars");var provider=new SelectedIdentity(original);
+        typeof(AzureStorageOASIS).GetField("_serviceClient",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,service);
+        var result=email?synchronous?provider.DeleteAvatarByEmail(original.Email,softDelete):await provider.DeleteAvatarByEmailAsync(original.Email,softDelete)
+            :synchronous?provider.DeleteAvatarByUsername(original.Username,softDelete):await provider.DeleteAvatarByUsernameAsync(original.Username,softDelete);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsDeleted);
+        Assert.IsInstanceOfType(result.Exception,typeof(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException));
+        Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
+        Assert.AreEqual(0,service.MissingReads);Assert.AreEqual(0,blob.Writes);Assert.AreEqual(0,blob.Deletes);
+    }
     private static AzureStorageOASIS PublicProvider(BlobClient blob)
     {
         var provider=new AzureStorageOASIS("UseDevelopmentStorage=true"){IsVersionControlEnabled=true};

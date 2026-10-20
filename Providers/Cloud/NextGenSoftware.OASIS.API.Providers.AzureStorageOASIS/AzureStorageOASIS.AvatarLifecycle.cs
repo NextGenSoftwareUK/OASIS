@@ -39,7 +39,7 @@ public partial class AzureStorageOASIS : IAvatarTombstoneStorageProvider
             },blob);
     }
 
-    private async Task<OASISResult<bool>> ApplyAvatarLifecycleAsync(Guid id,bool softDelete,AvatarTombstone supplied=null)
+    private async Task<OASISResult<bool>> ApplyAvatarLifecycleAsync(Guid id,bool softDelete,AvatarTombstone supplied=null,Func<IAvatar,bool> selectedIdentity=null)
     {
         var result=new OASISResult<bool>();var acknowledged=new List<string>();
         try
@@ -50,6 +50,7 @@ public partial class AzureStorageOASIS : IAvatarTombstoneStorageProvider
             if(string.IsNullOrWhiteSpace(profileRead.Details.ETag.ToString())) throw new InvalidDataException("Azure avatar read lacks an ETag.");
             var profile=await ReadBlobHistoryAsync<Avatar>(profileRead.Content.ToString(),0) ?? throw new InvalidDataException("Azure avatar is null.");
             if(profile.Id!=id) throw new InvalidDataException("Azure avatar identity differs from blob key.");
+            if(selectedIdentity!=null&&!selectedIdentity(profile))throw new StorageLifecycleConflictException("Azure avatar identity changed after selection; refusing deletion.");
             if(supplied!=null && profile.IsDeleted && (profile.DeletedDate!=supplied.DeletedAtUtc || profile.DeletedByAvatarId!=supplied.DeletedByAvatarId))
                 throw new StorageLifecycleConflictException("Azure avatar has a conflicting committed tombstone.");
             var detailBlob=_serviceClient.GetBlobContainerClient(_detailContainer).GetBlobClient(id.ToString());

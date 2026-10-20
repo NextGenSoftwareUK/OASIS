@@ -1,5 +1,15 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Azure identity-selected deletion race - 2026-10-20
+
+Eight controlled username/email x soft/hard x sync/async cases genuinely failed before fix: a lookup selected the old identity, but lifecycle reread a reassigned canonical avatar and proceeded with deletion. Current owner now rechecks the ORIGINAL immutable selector predicate against its SAME strong-ETag canonical profile observation BEFORE detail lookup or mutation. Existing IfMatch protects later changes; GUID-addressed lifecycle and committed tombstone APIs unchanged. No extra native read/write, duplicate lookup, retry or cross-blob transaction claim. Cases prove StorageLifecycleConflictException/code with zero detail reads, uploads or deletes.
+
+Controlled8red-before `TestResults/AzureCurrent/azure-identity-delete-before.trx` SHA256 `898689B1F295413EF7FF6F6FA93472F0A542F6E019FD4887929797E62290C07D`; full64/64pass, zero skips,566ms, `azure-identity-delete-current.trx` SHA256 `B160D74B7E146DE2BAF03071A06BA839A997C1524C596FA8188EF21734C6E03F`.
+
+FULL guarded retained runner33715 passed118/118actual official-SDK/Azurite cases, zero skips,50seconds. New8native schedules capture the old lookup snapshot, conditionally reassign the SAME profile using the real SDK/history writer, then verify lifecycle rejects before ANY detail read/PUT/DELETE. Native profile winnerJSON+ETag and original detailJSON+ETag remain byte-exact; active current owner/version2 and archived original identity/version1 verified. Exact observed-ETag cleanup and absence checks pass. `azure-native-current.trx` SHA256 `8870F4ECBCD2C45D78FCF69F61A6007D0A5A4A3CC413223E8BD122560BC0C6C3`; copied Core `2E1FB57779B7155022680827A4CFC6E963F33A3BE269940122D4DCA3145B4B68`, Shared `7C9FEA9BCF524E51CF40158526EAE9063CDDB2081CDF8297D53CAE050BDF4DE3` (local consumer identities, NOT immutable deployment proof).
+
+Same installed Node24.19.0/Azurite3.37.0 background runner started normally this run (PID56032,ready log about1.36seconds after launch). Previous74544startup timeout NOT reproduced; root cause undetermined, not claimed fixed. No alternative production path or retry added. Runner33715terminal0; PID56032absent, ports10000/10003zero, AzureRoutingFiles0. Existing runtime/cache/data paths reused; previous110native report moved in-place by digest, no download/duplicate environment/cloud fees. Hosted IAM/fees/restart durability/full-interface and all-provider/V2/immutable publication gates remain OPEN.
+
 ## Azure Blob caller-publication integrity - 2026-10-20
 
 Azure public-history baseline86ab007e0 already wires ordinary public history reads/saves/lifecycle; older Azure helper-only/unwired statements below are historical, NOT current source. This batch addresses a different defect: canonical caller changes during SDK awaits could be overwritten by unconditional ID/parent/version/provider-key publication, including graph originals that differed from detached planned nodes.
