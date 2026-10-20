@@ -1,6 +1,6 @@
 # CQL expression contract: first implementation milestone
 
-20 October 2026. This is a predicate compiler, not a working database query API. It performs no provider I/O and does not satisfy the complete CQL roadmap.
+20 October 2026. Predicate compilation and immutable typed query composition are implemented; database query execution remains incomplete. It performs no provider I/O and does not satisfy the complete CQL roadmap.
 
 ## Implemented
 
@@ -30,9 +30,17 @@ Nine compiler cases pass within the full Core **1,298/1,298**, zero failures/ski
 
 The initial enum expression shape and netstandard compatibility-name collision were fixed at the compiler boundary; no compatibility shim or provider fallback was added. Exact source/assembly evidence is in the integration boundary.
 
+## Typed composition and scope
+
+`CosmicQuery<T>.Create()` defaults to explicit `CurrentDefault` intent. `CosmicQueryScope.Named(...)` returns an `OASISResult` and rejects null/empty/duplicate/undefined providers, routing sentinel values and more than 64 identities. Named provider order is retained, with a detached immutable copy. `AllEligible` is separate planner intent; it does not authorize every registered provider.
+
+`Where(expression)` returns an `OASISResult<CosmicQuery<T>>`, freezes the expression immediately and appends an AND predicate to a new query. Previous queries remain unchanged. Compiler errors preserve their code and exception; at most 32 predicates can be composed, each subject to the compiler limits. `WithScope` produces a new query and requires a non-null scope. Scope is unresolved until planning; no provider registration, capability, tenant authorization or I/O is implied.
+
+Five additional composition cases pass in the full **1,303/1,303** Core gate, zero skips (`TestResults/CosmicMongoCurrent/cql-composition-core-verified.trx`). Both target frameworks build with zero errors. This extends the earlier compiler evidence, without certifying execution.
+
 ## Required next work
 
-- Typed query composition and explicit current/named/all-eligible provider scope.
+- Resolve immutable typed query composition and explicit provider scope into an authorized capability-aware execution plan.
 - Additional admitted operators, including string/inclusion, field comparisons, relationship predicates and custom persisted property mappings.
 - Versioned query envelopes, capability-aware plans and explanations, authorized tenant/visibility/residency/encryption/cost admission.
 - Native parameterized adapters, beginning with the selected stores; unsupported pushdown must fail before I/O. Bounded client evaluation requires explicit opt-in.
@@ -40,4 +48,4 @@ The initial enum expression shape and netstandard compatibility-name collision w
 - Federated identity/version deduplication, provenance, conflict/freshness policy and explicit partial failures.
 - Equivalent native-provider results, injection/resource/security tests and runnable end-to-end examples.
 
-No provider scope, authorization enforcement, query execution or native certification is implied by compiler success. Committed per-save deltas and the earlier unfinished roadmap stages remain independent required work.
+Provider scope intent is implemented; authorization enforcement, query execution and native certification remain unimplemented. Committed per-save deltas and the earlier unfinished roadmap stages remain independent required work.
