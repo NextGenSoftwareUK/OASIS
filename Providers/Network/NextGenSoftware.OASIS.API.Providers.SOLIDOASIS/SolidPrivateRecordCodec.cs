@@ -105,7 +105,7 @@ public sealed class SolidPrivateRecordCodec : IDisposable
         if(graph.Triples.Count!=2||type.Length!=1||type[0].Object is not IUriNode marker||marker.Uri.AbsoluteUri!=Namespace+"EncryptedRecordV1"
             ||payload.Length!=1||payload[0].Object is not ILiteralNode literal)
             throw new InvalidDataException("A single exact encrypted RDF record envelope is required; no plaintext downgrade is permitted.");
-        var document=JObject.Parse(_encryption.Decrypt(AssociatedData<T>(resource),literal.Value));
+        var document=OasisJson.ParseStoredObject(_encryption.Decrypt(AssociatedData<T>(resource),literal.Value));
         var record=StoredRecordJson.DeserializeStored<T>(History.CanonicalPayload(document).ToString(Newtonsoft.Json.Formatting.None));
         if(record==null||record.Id!=expectedId)throw new InvalidDataException("Decrypted record identity does not match its resource.");
         if(document["id"]==null){

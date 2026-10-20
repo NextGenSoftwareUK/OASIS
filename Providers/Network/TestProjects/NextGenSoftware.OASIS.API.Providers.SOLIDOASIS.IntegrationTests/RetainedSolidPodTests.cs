@@ -61,7 +61,8 @@ public class RetainedSolidPodTests
             Assert.Contains(denied.StatusCode,new[]{HttpStatusCode.Unauthorized,HttpStatusCode.Forbidden});
             var journal=Path.Combine(work,"private-native-pending.json");
             Assert.False(File.Exists(journal),"Reconcile original private fixture before further writes.");
-            var holon=new Holon{Id=Guid.NewGuid(),Name="private-dpop-canary",Version=1};
+            const decimal exactMetadata=0.1234567890123456789012345678m;
+            var holon=new Holon{Id=Guid.NewGuid(),Name="private-dpop-canary",Version=1,MetaData=new(){["exact_decimal"]=exactMetadata}};
             var resource=new Uri(root,$"oasis/holons/{holon.Id}.ttl");
             await WriteJournalAsync(journal,new{root=root.AbsoluteUri,resource=resource.AbsoluteUri,state="before-private-native-write"});
             await EnsureContainersAsync(client,root.AbsoluteUri);
@@ -81,8 +82,12 @@ public class RetainedSolidPodTests
             var read=await provider.LoadHolonAsync(holon.Id,loadChildren:false);Assert.False(read.IsError,read.Exception?.ToString());Assert.Equal(holon.Name,read.Result.Name);
             Assert.Equal(2,read.Result.Version);
             var history=await provider.LoadHolonAsync(holon.Id,loadChildren:false,version:1);Assert.False(history.IsError,history.Exception?.ToString());Assert.Equal("private-dpop-canary",history.Result.Name);
+            Assert.Equal(exactMetadata,decimal.Parse(read.Result.MetaData["exact_decimal"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+            Assert.Equal(exactMetadata,decimal.Parse(history.Result.MetaData["exact_decimal"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
             provider.IsVersionControlEnabled=false;holon.Name="private-dpop-history-retained";
+            holon.MetaData=null!;
             var third=await provider.SaveHolonAsync(holon,saveChildren:false);Assert.False(third.IsError,third.Exception?.ToString());Assert.Equal(3,holon.Version);
+            var nullable=await provider.LoadHolonAsync(holon.Id,loadChildren:false);Assert.False(nullable.IsError,nullable.Exception?.ToString());Assert.Empty(nullable.Result.MetaData);
             Assert.Equal("private-dpop-updated",provider.LoadHolon(holon.Id.ToString(),loadChildren:false,version:2).Result.Name);
             var deleted=await provider.DeleteHolonAsync(holon.Id);Assert.False(deleted.IsError,deleted.Exception?.ToString());
             using var absent=await client.GetAsync(resource);Assert.Equal(HttpStatusCode.NotFound,absent.StatusCode);
