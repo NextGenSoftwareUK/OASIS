@@ -1,5 +1,13 @@
 # EVM record history: current gap and reuse map
 
+## Exact private history JSON boundaries — Ethereum104 / Web3 controlled137 green
+
+2026-10-20: two Ethereum root/embedded-child exact metadata staging regressions and one Web3 decrypted-document regression failed before change. Existing Ethereum canonical embedded-record serializer/decrypted-document reader and shared Web3 private document/non-history staging reader now reuse `OasisJson.ParseStoredObject`. No provider-specific codec/math, changed encryption format/context/key ownership, extra RPC or alternate native writer. Source caller metadata remains unchanged. Exact typed record decoding is separate Core-owned work; this closes text-to-object boundaries, not that whole path.
+
+Rebuilt both providers and consumers successfully (0 errors; initial warnings3/29/4/8, final3/29/4/2). Ethereum **104/104 non-native**, Web3 **137/137 selected controlled**, all zero skipped,1s each. Ethereum explicitly excludes `EthereumOASISIntegrationTests` (native class); Web3 explicitly excludes `Web3NativeStorageTests`, `Web3RecoveryProcessTests`, `RetainedWeb3OutboxInspectionTests`, `SqliteNativeCommitFaultOwnerTests`. These are scoped suites, not complete suites/native proof. Existing original unresolved ledgers/outbox/transactions untouched, no gas/broadcast/node/start/reset/replay or native outcome claim.
+
+SharedCurrent report SHA256: Ethereum before2fail `ethereum-text-precision-before.trx` 2A927F3CC1909D76C89B537BAD09861D6B64671DEEFAEEA8F6E4012043CD703E; Web3 before1fail `web3-text-precision-before.trx` F5B00EFE054B5395DFAAB42A92371D9948B4DF9800BB9E4C7D691AF0E8D7A520; Ethereum final `ethereum-text-precision-final.trx` C1DB5E2AA9ACEDFD481B7014913C1F06410AC982EC24B68521AA567E1A6AA4E7; Web3 final `web3-text-precision-final.trx` B24D6BC53631D87107D3C32BFB78673818F4F08B2A6EC27B2F6A4B4B3394DF21. Actual CoreFBAE964B/Shared12F46C54, not future generic-decoder epoch. No new runtime/cache/download/environment/publicfunds/push/deploy. FreeC61,907,750,912bytes;123GBtargetunmet. Native/full interfaces/hosted/all-providerV2 gates remain OPEN.
+
 ## Web3 pre-dispatch caller and numeric-key admission — controlled136 green, native OPEN
 
 Post-ack canonical checks existed, but an edited later graph caller still dispatched its stale snapshot before rejection. Two public sync/async later-edit regressions failed (2submissions instead of1); a known distinct-GUID/numeric-key collision case also failed (accepted2writes instead of preflight refusal), while four normal/current-edit controls passed. Before TestResults/Web3CoreCurrent/web3-graph-dispatch-before.trx SHA256BFD9FE80EF5B6F091CBEF3DB644A8CFDBC0C1D3F9A5020F6B57163CD7F5EC64F,3fail4pass240ms.
