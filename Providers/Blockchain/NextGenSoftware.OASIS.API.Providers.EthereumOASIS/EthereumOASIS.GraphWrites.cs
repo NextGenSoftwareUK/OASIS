@@ -1,79 +1,53 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
-namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
+namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
+
+public partial class EthereumOASIS
 {
-    public partial class EthereumOASIS
+    private sealed record PlannedEthereumHolon(PlannedHolonWrite Write,StoredRecordPublicationSnapshot<IHolon> Publication)
     {
-        private sealed class StoredNodeResolver : DefaultContractResolver
-        {
-            protected override JsonProperty CreateProperty(MemberInfo member,MemberSerialization serialization)
-            {
-                var property=base.CreateProperty(member,serialization);
-                if(member.Name is "Children" or "AllChildren" or "ParentHolon" or "ParentHolon2" or "ParentHolon3") property.Ignored=true;
-                return property;
-            }
-        }
+        public IHolon Source=>Write.Source;
+        public Holon Record=>Write.Snapshot;
+    }
 
-        private static (List<IHolon> Roots,List<(IHolon Source,Guid OriginalId,Guid OriginalParent,Core.Holons.Holon Record)> Nodes) PlanStoredGraph(
-            IEnumerable<IHolon> roots,bool saveChildren,bool recursive,int maxDepth,int initialDepth)
-        {
-            ArgumentNullException.ThrowIfNull(roots);
-            if(maxDepth < 0 || initialDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
-            var sourceRoots=roots.ToList();
-            var seenIds=new HashSet<Guid>();
-            var seenNativeKeys=new HashSet<int>();
-            var seenReferences=new HashSet<IHolon>(ReferenceEqualityComparer.Instance);
-            var nodes=new List<IHolon>();
-            var assignments=new List<(IHolon Source,Guid OriginalId,Guid OriginalParent)>();
-            var settings=new JsonSerializerSettings { ContractResolver=new StoredNodeResolver() };
-            IHolon Visit(IHolon source,int depth,Guid? parent)
-            {
-                if(source == null) throw new ArgumentException("Selected Ethereum graph contains a null holon.");
-                if(!seenReferences.Add(source)) throw new ArgumentException("Selected Ethereum graph repeats a reference or contains a cycle.");
-                var id=source.Id == Guid.Empty ? Guid.NewGuid() : source.Id;
-                if(!seenIds.Add(id)) throw new ArgumentException("Selected Ethereum graph contains duplicate GUIDs.");
-                if(!seenNativeKeys.Add(Core.Utilities.HashUtility.GetNumericHash(id.ToString())))
-                    throw new ArgumentException("Selected Ethereum graph contains colliding numeric storage keys.");
-                if(parent.HasValue && source.ParentHolonId != Guid.Empty && source.ParentHolonId != parent.Value)
-                    throw new ArgumentException("Selected Ethereum child has a conflicting parent GUID.");
-                var copy=JsonConvert.DeserializeObject<Core.Holons.Holon>(JsonConvert.SerializeObject(source,settings),new StoredHolonConverter());
-                copy.Id=id;
-                copy.ParentHolonId=parent ?? source.ParentHolonId;
-                assignments.Add((source,source.Id,source.ParentHolonId));
-                copy.Children=new List<IHolon>();
-                nodes.Add(copy);
-                if(saveChildren && (maxDepth == 0 || depth < maxDepth) && (recursive || depth == initialDepth))
-                    foreach(var child in source.Children ?? Enumerable.Empty<IHolon>()) copy.Children.Add(Visit(child,depth+1,id));
-                // Manager-managed calls may intentionally provide only cache references.
-                // Rebuild derived IDs only when this plan actually owns child nodes.
-                if(copy.Children.Count > 0)
-                {
-                    copy.ChildrenIds=copy.Children.Select(child=>child.Id).ToList();
-                    copy.ChildIdListCache=string.Join(",",copy.ChildrenIds);
-                    copy.AllChildIdListCache=string.Join(",",PlannedDescendantIds(copy));
-                }
-                return copy;
+    private static (List<IHolon> Roots,List<PlannedEthereumHolon> Nodes) PlanStoredGraph(
+        IEnumerable<IHolon> roots,bool saveChildren,bool recursive,int maxDepth,int initialDepth)
+    {
+        var publications=new Dictionary<IHolon,StoredRecordPublicationSnapshot<IHolon>>(ReferenceEqualityComparer.Instance);
+        var plan=HolonGraphWritePlan.Create(roots,saveChildren,recursive,maxDepth,initialDepth,
+            source=>publications.Add(source,StoredRecordPublicationSnapshot<IHolon>.Capture(source)));
+        var nativeKeys=new HashSet<int>();
+        var records=plan.Nodes.ToDictionary(node=>node.Snapshot.Id,node=>node.Snapshot);
+        foreach(var node in plan.Nodes)
+            if(!nativeKeys.Add(Core.Utilities.HashUtility.GetNumericHash(node.Snapshot.Id.ToString())))
+                throw new ArgumentException("Selected Ethereum graph contains colliding numeric storage keys.");
+        // Preserve Ethereum's embedded selected-child snapshots without recursing over caller collections.
+        foreach(var node in plan.Nodes.AsEnumerable().Reverse()){
+            if(node.SelectsChildren)node.Snapshot.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(node,HolonChildRoleWriteKind.SourceSave,false,null);
+            node.Snapshot.Children=node.SelectedChildIds.Select(id=>(IHolon)records[id]).ToList();
+            if(node.SelectsChildren){
+                node.Snapshot.ChildrenIds=node.SelectedChildIds.ToList();
+                node.Snapshot.ChildIdListCache=string.Join(",",node.SelectedChildIds);
+                node.Snapshot.AllChildIdListCache=string.Join(",",PlannedDescendantIds(node.Snapshot));
             }
-            var selectedRoots=sourceRoots.Select(root=>Visit(root,initialDepth,null)).ToList();
-            // Materialize every encrypted payload before the first native transaction.
-            foreach(var node in nodes.AsEnumerable().Reverse()) _=SerializePrivateStorage("holon",node);
-            var encoded=nodes.Select((node,index)=>(assignments[index].Source,assignments[index].OriginalId,assignments[index].OriginalParent,Record:(Core.Holons.Holon)node)).ToList();
-            return (selectedRoots,encoded);
+            _=SerializePrivateStorage("holon",node.Snapshot);
         }
+        var bySource=plan.Nodes.ToDictionary(node=>node.Source,node=>node.Snapshot,ReferenceEqualityComparer.Instance);
+        return(plan.Roots.Select(root=>(IHolon)bySource[root]).ToList(),
+            plan.Nodes.Select(node=>new PlannedEthereumHolon(node,publications[node.Source])).ToList());
+    }
 
-        private static IEnumerable<Guid> PlannedDescendantIds(IHolon root)
-        {
-            foreach(var child in root.Children)
-            {
-                yield return child.Id;
-                foreach(var id in PlannedDescendantIds(child)) yield return id;
-            }
+    private static IEnumerable<Guid> PlannedDescendantIds(IHolon root)
+    {
+        var pending=new Stack<IHolon>(root.Children.AsEnumerable().Reverse());
+        while(pending.Count>0){
+            var child=pending.Pop();yield return child.Id;
+            foreach(var descendant in child.Children.AsEnumerable().Reverse())pending.Push(descendant);
         }
     }
 }

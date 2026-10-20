@@ -68,7 +68,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
                 foreach(var node in plan.Nodes)
                 {
-                    var staged=await UpsertStorageHistoryAsync("holon",node.Record,createHistory);
+                    node.Publication.ValidateUnchanged();
+                    var staged=await UpsertPlannedStorageHistoryAsync(node.Write,createHistory);
                     var receipt=staged.Receipt;
                     if(!StorageReceiptSucceeded(receipt))
                     {
@@ -78,12 +79,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     else
                     {
                         committed.Add(receipt.TransactionHash);
-                        if(node.Source.Id!=node.OriginalId || node.Source.ParentHolonId!=node.OriginalParent)
-                            throw new InvalidOperationException("Caller graph identity changed during acknowledged Ethereum write.");
+                        node.Publication.ValidateUnchanged();
                         node.Source.Id=node.Record.Id;node.Source.ParentHolonId=node.Record.ParentHolonId;
                         node.Source.Version=staged.Record.Version;node.Source.VersionId=staged.Record.VersionId;node.Source.PreviousVersionId=staged.Record.PreviousVersionId;
+                        if(node.Source is Holon source)source.ChildRoleManifestJson=staged.Record.ChildRoleManifestJson;
                         CommitEthereumStorageIdentity(node.Source);
                         node.Record.Version=staged.Record.Version;node.Record.VersionId=staged.Record.VersionId;node.Record.PreviousVersionId=staged.Record.PreviousVersionId;
+                        node.Record.ChildRoleManifestJson=staged.Record.ChildRoleManifestJson;
                         CommitEthereumStorageIdentity(node.Record);
                     }
                 }
