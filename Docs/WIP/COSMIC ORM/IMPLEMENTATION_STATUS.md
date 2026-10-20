@@ -2,9 +2,13 @@
 
 Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-providers`. Selected foundations are implemented and verified; the full roadmap is unfinished. Source commits, assembly hashes, original failures and fixture reconciliation are retained in [integration evidence](INTEGRATION_BOUNDARY.md) and [verification history](VERIFICATION.md).
 
-## Latest working increment — SQLite receipt integrity prerequisite for committed deltas
+## Latest working increment — atomic committed deltas on SQLite
 
-SQLite primary receipts now bind checksummed graph data to original operation/actor/authority/intent and validate selected roots, edges and revisions. Save replay verifies exact submitted persistent intent; each new primary receipt is read/validated before COMMIT. Seven original accepted-corruption regressions now reject; checksum-valid wrong saved content and historical-envelope reconciliation are also covered. Final focused20/20 and full native1,078/1,078 pass, zero skips. [Contract, compatibility gate, original failures and artifacts](SQLITE_RECEIPT_INTEGRITY.md). Core/Shared source and deployment pins are unchanged. Atomic committed-delta capture/persistence remains the next Stage7 requirement.
+Core now owns immutable, provider-reusable committed-delta capture/validation. SQLite conditional writes persist the delta with records/history/receipt in one native transaction and return a redacted summary through HolonManager; replay returns the original summary after newer commits, restart and history-policy change. Historical values remain storage representations under the existing history policy; public summaries omit values/membership identities. Final committed Core1,546/1,546, Shared895/895 and SQLite1,089/1,089 pass with matching consumer artifacts and zero skips. Additional native codec/conditional regressions pass MongoDB84/84 and Neo4j13/13; these do not implement their delta adoption. [API example, retention/encryption semantics, original failures and remaining Stage7 scope](COMMITTED_DELTAS.md). The remotely verified Coreb3c74d4 is paired with the parent dependency pin; broader provider/authorization/retention rollout remains open.
+
+## SQLite receipt integrity prerequisite for committed deltas
+
+SQLite primary receipts now bind checksummed graph data to original operation/actor/authority/intent and validate selected roots, edges and revisions. Save replay verifies exact submitted persistent intent; each new primary receipt is read/validated before COMMIT. Seven original accepted-corruption regressions now reject; checksum-valid wrong saved content and historical-envelope reconciliation are also covered. Final focused20/20 and full native1,078/1,078 pass, zero skips. [Contract, compatibility gate, original failures and artifacts](SQLITE_RECEIPT_INTEGRITY.md). That prerequisite changed no Core/Shared source or deployment pins; the newer capture checkpoint above extends the boundary.
 
 ## SQLite exact UTC metadata date queries
 

@@ -150,7 +150,9 @@ Done means the declared guarantees pass through the real public route and active
 
 ## Stage 7 — Per-save deltas
 
-Current prerequisite: [SQLite primary receipt integrity](SQLITE_RECEIPT_INTEGRITY.md) replaces an unbound decoded acknowledgement with a versioned operation/intent-bound envelope and the existing Shared graph codec. The original native gate exposes7 accepted-corruption cases with1 rejecting control. Final focused integrity/replay checks pass20/20 and full native1,078/1,078, zero skips, including checksum-valid semantic mismatch and historical admission. Committed delta capture/persistence is not yet implemented.
+First atomic capture owner is implemented: [Core reusable immutable capture plus SQLite conditional commit/replay](COMMITTED_DELTAS.md). Authoritative before/after values, physical/logical revision binding, descriptor summaries and history-policy storage are persisted in the primary receipt transaction. Core1,546 / Shared895 / SQLite1,089 pass, zero skips; focused11 includes pending edits, encryption/no-op, rollback, soft/hard deletion and original replay. Provider adoption beyond SQLite, unconditional CRUD/replica enrollment, authorized historical values/decryption, retention/operator workflows and full restore/fault acceptance remain open. This is not completed Stage7.
+
+Prior prerequisite: [SQLite primary receipt integrity](SQLITE_RECEIPT_INTEGRITY.md) replaces an unbound decoded acknowledgement with a versioned operation/intent-bound envelope and the existing Shared graph codec. The original native gate exposes7 accepted-corruption cases with1 rejecting control. Final focused integrity/replay checks pass20/20 and full native1,078/1,078, zero skips, including checksum-valid semantic mismatch and historical admission. The newer capture checkpoint above extends this boundary.
 
 Prerequisite checkpoint: [relationship membership comparison](RELATIONSHIP_DELTA_PREREQUISITE.md) now compares immutable manifests without inferring deletion from unlinking. Core1,135 passes. This is not committed Save evidence; all transaction, revision, authorization, persistence and replay acceptance below remains open.
 
