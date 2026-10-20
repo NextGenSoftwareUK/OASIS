@@ -44,12 +44,15 @@ public partial class AzureStorageOASISIntegrationTests
         var pair=await Pair(id);Assert.IsFalse(pair.Profile.IsActive);Assert.IsFalse(pair.Detail.IsActive);
         Assert.AreEqual(committed.DeletedAtUtc,pair.Detail.DeletedDate);Assert.AreEqual(committed.DeletedByAvatarId,pair.Detail.DeletedByAvatarId);
         Assert.AreEqual("azure-profile",pair.Profile.FirstName);Assert.AreEqual(321L,pair.Detail.XP);Assert.AreEqual("azure-inventory",pair.Detail.Inventory.Single().Name);
+        var profileBeforeRepeat=(await ProfileBlob(id).DownloadContentAsync()).Value;var detailBeforeRepeat=(await DetailBlob(id).DownloadContentAsync()).Value;
         Assert.IsFalse((await _provider.DeleteAvatarAsync(id)).IsError);Assert.AreEqual(committed.DeletedAtUtc,(await Pair(id)).Profile.DeletedDate);
+        await AssertUnchangedPair(id,profileBeforeRepeat,detailBeforeRepeat);
         Assert.IsFalse((await _provider.DeleteAvatarAsync(id,false)).IsError);
         Assert.IsFalse((await ProfileBlob(id).ExistsAsync()).Value);Assert.IsFalse((await DetailBlob(id).ExistsAsync()).Value);
         var target=Guid.NewGuid();await Seed(target,Guid.Empty);
         var tombstone=new AvatarTombstone(target,new DateTime(2026,10,16,0,0,0,DateTimeKind.Utc),Guid.NewGuid());
         var capability=(IAvatarTombstoneStorageProvider)_provider;
+        BlobDownloadResult previousProfile=null,previousDetail=null;
         foreach(var repeat in new[] {false,true})
         {
             var applied=synchronous ? capability.ApplyAvatarTombstone(tombstone):await capability.ApplyAvatarTombstoneAsync(tombstone);
@@ -57,9 +60,35 @@ public partial class AzureStorageOASISIntegrationTests
             Assert.AreEqual(tombstone.DeletedAtUtc,pair.Profile.DeletedDate);Assert.AreEqual(tombstone.DeletedAtUtc,pair.Detail.DeletedDate);
             Assert.AreEqual(tombstone.DeletedByAvatarId,pair.Profile.DeletedByAvatarId);Assert.AreEqual(tombstone.DeletedByAvatarId,pair.Detail.DeletedByAvatarId);
             Assert.AreEqual(321L,pair.Detail.XP);
+            if(repeat)await AssertUnchangedPair(target,previousProfile,previousDetail);
+            previousProfile=(await ProfileBlob(target).DownloadContentAsync()).Value;previousDetail=(await DetailBlob(target).DownloadContentAsync()).Value;
         }
         var conflict=await capability.ApplyAvatarTombstoneAsync(new AvatarTombstone(target,tombstone.DeletedAtUtc.AddSeconds(1),tombstone.DeletedByAvatarId));
         Assert.IsTrue(conflict.IsError);Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,conflict.ErrorCode);
+    }
+
+    private async Task AssertUnchangedPair(Guid id,BlobDownloadResult profile,BlobDownloadResult detail)
+    {
+        var actualProfile=(await ProfileBlob(id).DownloadContentAsync()).Value;var actualDetail=(await DetailBlob(id).DownloadContentAsync()).Value;
+        Assert.AreEqual(profile.Content.ToString(),actualProfile.Content.ToString());Assert.AreEqual(profile.Details.ETag,actualProfile.Details.ETag);
+        Assert.AreEqual(detail.Content.ToString(),actualDetail.Content.ToString());Assert.AreEqual(detail.Details.ETag,actualDetail.Details.ETag);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task ExistingProfileTombstoneStillCompletesActiveDetail(bool synchronous)
+    {
+        RequireLive();_provider.IsVersionControlEnabled=true;var id=Guid.NewGuid();await Seed(id,Guid.NewGuid());
+        var blob=ProfileBlob(id);var original=(await blob.DownloadContentAsync()).Value;
+        var profile=OasisJson.Deserialize<Avatar>(original.Content.ToString());profile.IsActive=false;profile.DeletedDate=DateTime.UtcNow;
+        await blob.UploadAsync(BinaryData.FromString(OasisJson.Serialize(profile)),new BlobUploadOptions{Conditions=new BlobRequestConditions{IfMatch=original.Details.ETag}});
+        var appliedProfile=(await blob.DownloadContentAsync()).Value;
+        var detailBefore=(await DetailBlob(id).DownloadContentAsync()).Value;
+        var result=synchronous?_provider.DeleteAvatar(id):await _provider.DeleteAvatarAsync(id);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(AvatarTombstoneEvidence.TryGet(result,out var tombstone));
+        var finalProfile=(await blob.DownloadContentAsync()).Value;Assert.AreEqual(appliedProfile.Content.ToString(),finalProfile.Content.ToString());Assert.AreEqual(appliedProfile.Details.ETag,finalProfile.Details.ETag);
+        var finalDetail=(await DetailBlob(id).DownloadContentAsync()).Value;Assert.AreNotEqual(detailBefore.Details.ETag,finalDetail.Details.ETag);
+        var detail=OasisJson.DeserializeStored<AvatarDetail>(finalDetail.Content.ToString());Assert.IsFalse(detail.IsActive);Assert.AreEqual(tombstone.DeletedAtUtc,detail.DeletedDate);Assert.AreEqual(profile.DeletedByAvatarId,detail.DeletedByAvatarId);Assert.AreEqual(321L,detail.XP);
+        Assert.IsFalse((await _provider.DeleteAvatarAsync(id)).IsError);await AssertUnchangedPair(id,finalProfile,finalDetail);
     }
 
     private sealed class SplitService : BlobServiceClient
