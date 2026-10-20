@@ -51,12 +51,14 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var result=synchronous ? router.RouteRequest<IEnumerable<IHolon>>(request):await router.RouteRequestAsync<IEnumerable<IHolon>>(request);
                 result.IsError.Should().BeFalse(result.Exception?.ToString() ?? result.Message);result.IsLoaded.Should().BeTrue();
                 var selected=result.Result.Should().ContainSingle().Which;selected.Id.Should().Be(root.Id);
-                if(!option.Children || option.Depth!=0 && option.Initial>=option.Depth) selected.Children.Should().BeEmpty();
+                var parentSelection=selection is "parent" or "parentKey";
+                var resultDepth=option.Initial+(parentSelection ? 1:0);
+                if(!option.Children || parentSelection && !option.Recursive || option.Depth!=0 && resultDepth>=option.Depth) selected.Children.Should().BeEmpty();
                 else
                 {
                     var projected=selected.Children.Should().ContainSingle().Which;
                     projected.Id.Should().Be(child.Id);projected.Name.Should().Be(fromProvider ? child.Name:embeddedChild.Name);
-                    if(!option.Recursive || option.Depth!=0 && option.Initial+1>=option.Depth) projected.Children.Should().BeEmpty();
+                    if(!option.Recursive || option.Depth!=0 && resultDepth+1>=option.Depth) projected.Children.Should().BeEmpty();
                     else projected.Children.Should().ContainSingle().Which.Name.Should().Be(fromProvider ? grand.Name:embeddedGrand.Name);
                 }
             }
