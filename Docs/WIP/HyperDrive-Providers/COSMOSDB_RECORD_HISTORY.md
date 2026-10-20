@@ -1,5 +1,13 @@
 # Cosmos DB retained record history
 
+## Graph original-caller publication — 2026-10-19
+
+Graph saves now capture the shared canonical publication snapshot for each selected original through the existing planner source callback, validate it before its node write and after acknowledgement, and only then publish ID/parent/version/provider keys. This extends the existing ID-only check without adding another graph engine or native call. Four sync/async current/later-node version-edit regressions failed before: `cosmos-graph-publication-before.trx` SHA256 `42C0D39316FDCD6BA5C488A21B48DAC074208364A4057D38E202D21D024D130B`. After correction full controlled215/215pass1s/zero skips, `cosmos-graph-publication-current.trx` SHA256 `02791EC7666BA4BBBB13DB4AEB991361C43B1AD64346B269773A1E97E4FC684C`. Repository callbacks are controlled schedules, not native caller-edit injection.
+
+Same retained Cosmos SDK/emulator native53/53pass1m29s/zero skips, `cosmos-native-current.trx` SHA256 `720DC784736576C52B916AFD00BC0BFCF915CE4A03AF8E91EEE4B42C56051193`. Runner verified Core0EFD46F8...22D50/SharedA4D8BE4C9D0C04BBDEB2E4DA5780C13AA68084F2E61C576436CA7532DA19531F. Prior ordinary-publication native proof moved in-place after exact hash validation to `cosmos-publication-02F9B77790FB.trx`. Reports are in existing CosmosDBCurrent. Runner terminal0/container exited/pending journals0; no duplicate runtime/install/download/reset/public fees. C:free71,951,855,616bytes;123GBtarget unmet.
+
+On an edit detected after the current node acknowledgement, preserve acknowledged IDs in the existing partial-mutation error, do not roll back or replay. Later changed nodes are not dispatched. Shared canonical navigation exclusion/no atomic setter lock remain limits. Direct repository caller mutation, full provider interface/options/API matrix and hosted IAM/fees/all-provider V2 acceptance remain OPEN. These native tests are regression evidence, not certification of every concurrent graph schedule.
+
 ## Public ordinary caller-state publication — 2026-10-19
 
 The common public save wrapper now captures the existing shared canonical publication snapshot before activation/I/O and passes its detached Proposal to the existing repository. It validates the original before repository dispatch and again after acknowledgement before publishing ID/version/provider-key stamps. A post-ack caller edit retains the actual acknowledged document ID in existing `CosmosMutationReconciliationException` with Acknowledged=true, without overwriting caller state. It still returns the repository's acknowledged record; there is no second write engine, retry or native request. The extra class constraint is on the private helper only, not public storage interfaces.
