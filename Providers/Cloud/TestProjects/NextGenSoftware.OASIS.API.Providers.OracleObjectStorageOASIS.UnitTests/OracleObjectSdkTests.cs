@@ -298,6 +298,11 @@ public class OracleObjectSdkTests
             Assert.IsFalse(deletedDetail.IsError,deletedDetail.Exception?.ToString());Assert.IsTrue(deletedDetail.IsDeleted);
             Assert.AreEqual(2,conditionalDeletes-beforeDetailDelete,"Current detail and its observed history must both use native If-Match deletion.");
             Assert.IsTrue((await provider.LoadAvatarDetailAsync(avatar.Id)).IsError);
+            var beforeHolonDelete=conditionalDeletes;
+            var deletedHolon=synchronous?provider.DeleteHolon(holon.Id):await provider.DeleteHolonAsync(holon.Id);
+            Assert.IsFalse(deletedHolon.IsError,deletedHolon.Exception?.ToString());Assert.IsTrue(deletedHolon.IsDeleted);
+            Assert.AreEqual(3,conditionalDeletes-beforeHolonDelete,"Current holon, parent link and history must use native If-Match deletion.");
+            Assert.IsTrue((await provider.LoadHolonAsync(holon.Id,loadChildren:false)).IsError);
             var removed=synchronous?provider.DeleteAvatar(avatar.Id,softDelete:false):await provider.DeleteAvatarAsync(avatar.Id,softDelete:false);Assert.IsFalse(removed.IsError,removed.Message);
             Assert.IsTrue((await provider.LoadAvatarAsync(avatar.Id)).IsError);
             provider.Dispose();Assert.IsFalse(provider.IsProviderActivated);
