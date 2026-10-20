@@ -1,0 +1,23 @@
+# MongoDB audit precision and receipt cleanup
+
+Updated 19 October 2026. Shared provider correctness work for COSMIC ORM/V2; legacy Hyperdrive is documentation-only.
+
+## Invariants and implementation
+
+The audit timestamps acknowledged by a provider must equal its persisted timestamps. Native BSON dates have millisecond precision, while .NET DateTime and committed source records may carry finer values. The existing deletion precision representation is now extended to CreatedDate and ModifiedDate on Mongo provider entities: keep the native BSON date projection and store an optional exact UTC tick value when needed. The driver ISupportInitialize lifecycle restores precision only after all fields have been read, so BSON member order does not change the result. Conflicting tick/date values and missing date projections fail deserialization. Records without precision fields retain their actual stored millisecond value. No precision is invented for older records.
+
+The same shared validation restores all three audit timestamps. Assigning a date after loading replaces the old storage precision value. No second serialization/write path is introduced.
+
+A validated original receipt already proves the durable save. Aborting the read-only transaction used to look up that receipt, or disposing its session, cannot revoke the original acknowledgement. ImportAtomicAsync preserves success with cleanup warnings, keeps all cleanup exceptions, and does not attempt a second abort after that cleanup fails. MongoDbContext exposes IMongoClient so its native client/session boundary can be observed with a forwarding interface proxy while retaining the existing cached singleton clients.
+
+## Evidence and limits
+
+MongoAuditPrecisionTests: 11 passing cases, including exact BSON byte round trips, reverse member order, all three legacy millisecond date fields, replacement of dates after hydration, and inconsistent/missing projections. The initial full Mongo unit suite passed 86 tests; the later receiver checkpoint passes 112. Provider and native integration projects build with existing warnings and no errors.
+
+Two native conditional sequences passed with direct persisted-BSON versus receipt creation-date equality before the cleanup fault case was added. The full bounded native Mongo transaction suite passes 54 tests. A first abort-server fault experiment did not test the application failure branch: the driver suppresses abort-command errors. That experiment failed an expected-warning assertion and retained the owned fixture; the subsequent variant refused to overwrite it. A forwarding proxy now injects a client-side fault only after the real native read-only abort has completed. Independent majority-visible reconciliation verified seven owned rows, fifteen valid receipts and one uncertain-commit receipt, checked other collections were empty, then removed only the owned cosmic_conditional_fixture database without replaying a save. Both native sync/async conditional sequences subsequently passed the client-side abort cleanup fault with no repeated writes. An additional disposal-failure variant verifies that both cleanup causes survive together.
+
+## Embedded audit precision follow-up
+
+The later [Mongo receiver checkpoint](MONGO_COMMITTED_REPLICAS.md) also repairs embedded canonical Core audit records through a driver serialization provider. Its wrapper delegates existing class maps/discriminators, ID and member/query metadata; all three date fields share the provider entity precision validator. Sixteen tests verify nested/derived graphs, reversed order, malformed projections and older millisecond records. Native source-to-target replicas compare actual persisted embedded child precision with committed source values.
+
+The full native suite now passes 56 cases and the selected conditional/replica suite has four cases. Exact audit precision and common portable-field mapping prerequisites are implemented; arbitrary metadata dates, cross-provider receiver certification, hosted adapter and atomic CRUD outbox integration remain open. Native BSON date predicates retain millisecond resolution; exact range/order semantics require explicit tick-aware query translation. Earlier counts and the retained-fixture incident above are historical evidence, not current open failures.
