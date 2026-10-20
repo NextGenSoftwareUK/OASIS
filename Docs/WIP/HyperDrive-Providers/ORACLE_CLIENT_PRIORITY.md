@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Public encrypted save uncertainty boundary — 2026-10-19
+
+Added four sync/async public `SaveAvatar` schedules through the actual Oracle provider, persisted-key/private encryption wrappers, shared storage owner and real signed OCI SDK HTTP dispatch. On first object PUT503 the native uncertain-outcome marker reaches the public error; on record PUT acknowledgement followed by username-index PUT503, the existing shared partial-mutation exception retains exactly one acknowledged logical key and the original OCI uncertainty cause. Neither case reports saved/result success, publishes generated caller ID/version, replaces the caller's original provider-key dictionary, or blindly retries. Captured PUT bodies do not contain the synthetic private username. Tests pass without changing production behavior: this verifies the existing failure propagation, not a newly reproduced defect.
+
+Full suite **42/42 passed**, zero skips, 3 seconds, cached bounded build zero errors/3 warnings. Fixed report `TestResults/OracleCurrent/oracle-object-public-uncertainty-current.trx`, SHA256 `904BE0DB28D1B1CFD042E899F38E605432EEF9A3AC8AB6694C0827E9384D81C7`. Existing listener/SDK/cache reused, no installation/download/cloud provisioning or fee. The controlled service's 503 is deliberately ambiguous: tests do not infer whether the uncertain remote mutation committed. The partial save is NOT rolled back or called atomic; live OCI, conditional record/index/history integration and complete V2 acceptance remain open.
+
 ## Conditional replacement disappearance — 2026-10-19
 
 Expected-present replacement now classifies explicit native `404 ObjectNotFound` as a known `StorageLifecycleConflictException`, matching conditional deletion. The observed ETag remains in the native `If-Match` request; no read-then-upsert, retry or fallback is added. Ambiguous `404 NotAuthorizedOrNotFound` remains the original SDK rejection, not an existence disclosure or concurrency claim. The original SDK cause is retained in conflict data.
