@@ -115,7 +115,7 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
         return roots;
     }
     private static OASISResult<IEnumerable<IHolon>> ConditionalAcknowledgement(IEnumerable<IHolon> roots,ConditionalHolonOperation operation)
-        =>new(){Result=roots,IsSaved=operation==ConditionalHolonOperation.Save,IsDeleted=operation!=ConditionalHolonOperation.Save};
+        =>ConditionalHolonAcknowledgement.Create(roots,operation);
     private static OASISResult<IEnumerable<IHolon>> ConditionalFailure(string code,string message,Exception? cause=null)
         =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
 }
