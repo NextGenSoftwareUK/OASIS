@@ -50,7 +50,7 @@ public static class ConditionalHolonReceipt
         foreach(var node in nodes){
             var id=Identity(node["id"]);
             if(node["record"]?.Type!=JTokenType.String||node["children"] is not JArray children)throw new InvalidDataException("Invalid receipt node.");
-            var record=StoredRecordJson.DeserializeStored<Holon>(node.Value<string>("record"));
+            var record=StoredRecordJson.DeserializeStoredHolon(node.Value<string>("record"));
             if(record==null||record.Id!=id||!records.TryAdd(id,record))throw new InvalidDataException("Receipt node identity is invalid or duplicated.");
             links.Add(id,children.Select(Identity).ToArray());
         }
