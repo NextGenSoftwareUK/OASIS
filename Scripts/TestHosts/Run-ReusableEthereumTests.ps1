@@ -5,9 +5,11 @@ $work=Join-Path $taskRoot 'TestResults/EthereumCurrent'
 $historyPending=Join-Path $taskRoot 'TestResults/Web3CoreCurrent/history-response-loss.pending.json'
 $ethereumPending=Join-Path $work 'ethereum-accepted-loss.pending.json'
 $keyDeletePending=Join-Path $work 'delete-key-native.pending.json'
+$retainedRouting=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests/bin/Debug/net10.0/TestResults/Web3CoreRouting/routing.db'
 if(Test-Path -LiteralPath $historyPending){throw 'Pending original history fault requires reconciliation; never restart/reset the local chain.'}
 if(Test-Path -LiteralPath $ethereumPending){throw 'Pending original Ethereum fault requires reconciliation; never restart/reset the local chain.'}
 if(Test-Path -LiteralPath $keyDeletePending){throw 'Pending original provider-key deletion requires reconciliation; never restart/reset the local chain.'}
+if(Test-Path -LiteralPath $retainedRouting){throw 'Retained original Web3 routing fixture requires reviewed reconciliation; no native restart/reset or fresh suite attempted.'}
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
