@@ -40,6 +40,7 @@ builder.Services.AddControllers(options =>
 
 builder.Services.AddGrpc();
 builder.Services.AddGraphQLServer()
+    .DisableIntrospection(false)
     .AddQueryType<Query>()
     .AddMutationType<Mutation>();
 builder.Services.AddHttpClient();
