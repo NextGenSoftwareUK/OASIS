@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Shared Web3 pre-dispatch fence — controlled136 green; native OPEN
+
+Two later-caller-edit regressions and one numeric-key collision regression first failed; now canonical caller validation precedes every submission and duplicate nativekeys reject beforeI/O. Default UpsertPrepared/history owner retained, no new RPC/retry. Selected136/136controlled0skips SHA256CD1A1A46E787C9CA492AA442CC81ADA7D23127D9CC015E8E38B13AAF89418E36; actual0DF9Core/8163Shared. Existing native exclusions/unresolved originals remain, no broadcast/runtime/download/devpush. Exact scope in EVM_RECORD_HISTORY_GAPS.md; not full-provider/globalV2 certification.
+
 ## SOLID named-role native acceptance — native6/controlled330 green
 
 Already-running retained operatorCSS reused without restart/download: expanded2graph cases prove named roles/root-only preservation/empty unlink/unchanged retainedchild; all6nativecases including existing privateDPoP pass0skips,D93DA1CAC7AD36F99C3364A78EF5ADA3C6C0381A60A4F62947DFC36622332CB1. Matching855DCore/8163Shared controlled330green1E1EE059248B55884D3A884F10FA3AA296A707D8C79CBF4650A37B3330228BBB. Pendingjournals0, serverleftasfound. New-role native compatibility gate closed only; coldstart/hosted/fullinterfaces/globalV2/immutablepublication remainOPEN. Exact scope in SOLID_PROVIDER_IMPLEMENTATION_AUDIT.md, no devpush.
