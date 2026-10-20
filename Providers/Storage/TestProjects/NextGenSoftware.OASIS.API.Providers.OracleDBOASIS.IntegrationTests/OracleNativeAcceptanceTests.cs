@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 
 [TestClass][DoNotParallelize]
-public sealed class OracleNativeAcceptanceTests
+public sealed partial class OracleNativeAcceptanceTests
 {
     [TestMethod]
     public async Task ReconcileKnownProjectionAssertionFixtures()
