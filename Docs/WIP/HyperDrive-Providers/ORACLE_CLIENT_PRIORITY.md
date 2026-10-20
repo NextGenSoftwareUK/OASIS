@@ -1,5 +1,9 @@
 # Oracle client readiness — top priority
 
+## Oracle Object Storage inherits shared search ownership fix - 2026-10-20
+
+Reused the common key-value Base.SearchAsync owner rather than adding an OCI-specific copy. Twelve new shared regressions all red before; full796Sharedpass6s. Existing actual Oracle SDK/controlled-service consumer rebuilt on the same CoreEFE3/Shared7FBF epoch,52/52pass10s/zero skipped, `TestResults/OracleObjectCurrent/oracle-object-search-snapshot-current.trx` SHA256 `A80A49E7DFDA82F980E6D407F9306300F5BA0C7274BA755C0AC2AAD84428E5FB`. Full shared evidence/build-window distinctions in current release gates. No production OCI profile/key/bucket or network service access created; this is NOT hosted Object Storage acceptance. Same SDK/project/cache/output folders reused, no download/environment duplicate/native fees. Canonical request capture adds no backend writes; exact controlled backend data/writes unchanged. Real OCI IAM/TLS/retention/billing and Autonomous acceptance remain open; neither Oracle service is declared100%.
+
 ## Canonical search request ownership - 2026-10-20
 
 Actual Oracle SDK/SQL reproduced SIX request-ownership regressions before the fix: changing AvatarId/current-avatar flag, parent scope, text, metadata or nested field masks after SearchAsync suspended changed the returned selection. Before runner73913:86baseline native cases passed/six new cases failed/zero skipped/38s; `oracle-search-snapshot-before.trx` SHA256 `4093573C3408723DC9769451BA99DD5CD8916D0BD149B4210CDA5DF23A3837B0`. Each case explicitly observed an incomplete native search task before editing the request; no sleeps/retries or successful completed-before-edit schedule counted as timing proof. Stored JSON verified unchanged and exact ID/full-CLOB conditional cleanup/absence completed BEFORE asserting selection, so these known read-only bad-result cases left no original fixture intents behind.
