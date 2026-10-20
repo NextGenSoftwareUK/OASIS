@@ -26,7 +26,9 @@ public partial class IPFSOASIS
                 if(matches.Count>1) throw new StorageIdentityAmbiguousException();
                 if(matches.Count==0) return new OASISResult<IEnumerable<IHolon>> {IsError=true,ErrorCount=1,
                     ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="No IPFS avatar matches the export selector."};
-                owner=matches[0].Value.Id;
+                var canonical=await ReadPrivateVersionAsync<Avatar>(matches[0].Key,"avatar",matches[0].Value.Id,0,
+                    current=>ValidateCanonicalSelector(current,"avatar",selector));
+                owner=canonical.Id;
             }
             var records=await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true,version);
             result.Result=records.Where(row=>!owner.HasValue || row.CreatedByAvatarId==owner.Value || row.ParentHolonId==owner.Value).Cast<IHolon>().ToList();

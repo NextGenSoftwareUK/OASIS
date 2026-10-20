@@ -1,5 +1,15 @@
 # HyperDrive V2 current release gates
 
+## IPFS canonical identity selector admission — controlled90/native16 green,2026-10-20
+
+Final native TRX SHA256 `D79ACF7DE219242EFE8549D4B765792DAA92BA5455D8457809E46BAD639D875B`; final controlled TRX SHA256 `E3494C67EA60A5C199A7321C0B0CE84358CA34EFB24894F1FEA38D9DCD680CE3`.
+
+Username/email point loads and exports previously trusted a matching encrypted index selector without checking it against the referenced canonical avatar.16newcontrolledcases (four operations×sync/async×matching/stale), original8stale casesfailed/8matchingpassed; corrected code validates predicate against canonical current record in SAME captured index snapshot. Version traversal invokes validation only on its first/current record before selecting an older requested version. It does NOT claim historical-name lookup or latest-global-index linearizability. Single loads add no extra cat; selector-based exports now read/verify the selected avatar once before deriving owner. No fallback, guessedidentity, mutation or alternate matcher.
+
+Final **90/90 controlled** passed412ms0skip (existing74+16); native/reconciliation/inspection categories explicitly excluded from controlledrun and not represented as fullsuite. Separate existing **16/16 actual Kubo native** passed69s0skip/runner88630terminal0, including healthy storage/query/export/graph and existing routing cases. New stale-index fault schedules remain controlled, NOT native corruption-injection proof. Both finalconsumers actualCore `7CCF84EF919BFC6CE9631C7E4E841C39A4D99E3E4EE4BA2D65D898A0B57211C8` / Shared `7DBDE7FBD47CD510F27E9D5CDE3BE031AF57033F278F00EA3338A89834A74D60`, a later producer cohort than initial90pass08BD; not immutable artifact/deployment certification. Same cached SDK/Shared/SQLite/LocalFile/IPFS producers built refsfalse, no Coreproducer by this session.
+
+Evidence: controlledproject TestResults/`david_OASISOMEGA_2026-10-20_12_44_12_net10.0.trx` original16cases SHA256 `BB9E16FDA15697CD225CA770E4223EA336D40A44C81B272A2416BF2F8428A970`; finalcontrolled `david_OASISOMEGA_2026-10-20_12_48_26_net10.0.trx`. Native `C:/Source/OASIS-hyperdrive-v2-gaps/TestResults/IPFSCurrent/ipfs-native-current.trx`; prior1E023... hashchecked/moved in place to `ipfs-native-pre-selector-check.trx`. Same original repo/protectedkey/exclusivelease/pinnedKubo0.43.1/ports18547-18549 reused via explicitEnvironmentPath; no newrepo/key/worktree/download/install/reset. Owneddaemonstopped, reservedlisteners0/currentDNAabsent independentlychecked. OfflineGC removed672unpinned testblocks only, pins/originalsretained; freebefore68,642,172,928/after68,641,292,288bytes (no broadreclaimclaim,123GBtargetunmet). Fullinterfaces/mutableindexconcurrency/unknownpublication/hosted/security/ALLproviderV2 remainOPEN; no push/deploy.
+
 ## SOLID exact metadata correction — native6/controlled333 green,2026-10-20
 
 Final native report SHA256 `86E33760C26B69DFBFA52352AA3F16AE289BD9F62281D7ECD1686E1C8416A4E3`. Post-run free C68,619,407,360bytes;123GBtargetunmet, no reclaim claimed.
