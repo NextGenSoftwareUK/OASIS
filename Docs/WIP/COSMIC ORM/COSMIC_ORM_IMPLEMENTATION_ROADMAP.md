@@ -160,7 +160,7 @@ Acceptance: scalar/custom/metadata/nested/graph edits, explicit null versus miss
 
 ## Stage 8 — CQL (COSMIC Query Language)
 
-Initial implementation: [the CQL predicate compiler](CQL_EXPRESSION_CONTRACT.md) now freezes typed scalar/metadata comparisons and boolean composition into an immutable representation without provider I/O or arbitrary client execution. Nine cases pass in Core1,298. Query composition, provider scope, capability/security planning, native execution and all remaining acceptance below are still required.
+Initial implementation: [the CQL predicate compiler](CQL_EXPRESSION_CONTRACT.md) now freezes typed scalar/metadata comparisons and boolean composition into an immutable representation without provider I/O or arbitrary client execution. Typed immutable query composition and explicit current/named/all-eligible scope are also implemented; pure scope/capability planning is implemented; nineteen cases pass in Core1,308. security integration, native execution and all remaining acceptance below are still required.
 
 Requested 19 October 2026. Build a typed LINQ/EF-style query API over WEB4, with a provider-neutral expression/AST contract suitable for later textual CQL. Support composed predicates (AND/OR/NOT, equality/ranges/inclusion/null tests and metadata paths), ordering, projection, paging, aggregates and relationship queries according to explicitly declared capabilities. Replace the limits of exact metadata selectors without concatenating provider-native query strings from user input.
 
