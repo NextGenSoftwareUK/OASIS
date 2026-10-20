@@ -13,23 +13,11 @@ The StarknetOASIS provider enables:
 
 ## Provider Registration
 
-The provider is registered in `OASIS_DNA.json` and uses `ProviderType.StarknetOASIS`. To activate:
+The provider uses `ProviderType.StarknetOASIS`. Construct it with a network and RPC endpoint, or set the environment
+variables below:
 
-1. Ensure the provider is configured in `OASIS_DNA.json`:
-```json
-{
-  "StorageProviders": {
-    "StarknetOASIS": {
-      "Network": "alpha-goerli",
-      "ApiBaseUrl": "https://alpha4.starknet.io"
-    }
-  }
-}
-```
-
-2. Activate the provider via API or programmatically:
 ```csharp
-var provider = new StarknetOASIS("alpha-goerli", "https://alpha4.starknet.io");
+var provider = new StarknetOASIS("sepolia", "https://starknet-sepolia-rpc.publicnode.com");
 await provider.ActivateProviderAsync();
 ```
 
@@ -37,13 +25,33 @@ await provider.ActivateProviderAsync();
 
 ### Environment Variables
 
-- `STARKNET_NETWORK`: Network name (default: "alpha-goerli")
-- `STARKNET_API_BASE_URL`: RPC endpoint URL (default: "https://alpha4.starknet.io")
+- `STARKNET_NETWORK`: `sepolia` (default) or `mainnet`. Each maps to a pinned chain id (`SN_SEPOLIA`, `SN_MAIN`);
+  every network call verifies the RPC reports that chain. Retired networks such as Goerli are rejected.
+- `STARKNET_API_BASE_URL`: RPC endpoint (default: PublicNode for the chosen network). Endpoints with embedded
+  credentials are refused.
+- `STARKNET_ACCOUNT_CLASS_HASH`: account class for OASIS accounts (default
+  `0x540d7f5ec7ecf317e68d48564934cb99259781b1ee3cedbbc37ec5337f8e688`, the OpenZeppelin account declared on Sepolia
+  and mainnet). The SDK bridge re-verifies its ABI before every deployment.
+- `OASIS_STARKNET_SDK_BRIDGE` / `OASIS_STARKNET_NODE`: optional overrides for the bridge script and the Node binary.
 
-### Supported Networks
+## Keys and accounts (official starknet.js)
 
-- `alpha-goerli`: Starknet testnet (default)
-- `alpha-mainnet`: Starknet mainnet (when available)
+Key material and account deployment run through the pinned official SDK (`SdkBridge/`, starknet.js 10.8.0). Provision
+its locked dependencies once with `npm ci --ignore-scripts` in `SdkBridge` (or in the `StarknetSdkBridge` output
+folder); secrets are passed to it only on stdin.
+
+- `CreateAccountAsync`: new 12-word BIP-39 mnemonic; Stark-curve key from `m/44'/9004'/0'/0/0` (ground into the Stark
+  field); OpenZeppelin account address for the configured class.
+- `RestoreAccountAsync(mnemonic)`: the same key and address again.
+- `GenerateKeyPairAsync`: a fresh key pair and its account address.
+- `GetAccountAddressAsync(privateKey)`, `GetAccountStatusAsync(address)`: address derivation and deployed/nonce state.
+- `EstimateAccountDeployFeeAsync(privateKey)`: STRK (in FRI) the address must hold before deployment.
+- `DeployAccountAsync(privateKey)` / `DeployAvatarAccountAsync(avatarId)`: submit the deploy-account transaction once and
+  wait for acceptance. A submitted but unconfirmed deployment returns a reconciliation-required error; check the
+  account status for the (deterministic) address before any retry.
+
+Signed invoke transactions (token transfers, burns, holon storage) are not yet routed through the SDK; until they are,
+those operations return an error rather than an unsigned or simulated transaction.
 
 ## Key Features
 
