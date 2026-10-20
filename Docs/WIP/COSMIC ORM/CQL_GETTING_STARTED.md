@@ -113,7 +113,7 @@ var saved = await manager.SaveHolonAsync(
 if (saved.IsError) throw new InvalidOperationException(saved.Message);
 ```
 
-Keep the operation ID stable for retries of the same operation. Encrypted logical conditional retries currently have a reproduced preparation-ownership defect; see [conditional writes](CONDITIONAL_WRITES.md#encrypted-preparation-replay-defect--20-october-2026). This example does not certify that open retry case.
+Keep the operation ID stable for retries of the same operation. SQLite encrypted conditional saves now use [durable authenticated preparation recovery](WRITE_PREPARATION.md), including selected restart, key-rotation and concurrent-client cases. The provider must implement the preparation capability; providers without it refuse before persistence. DynamoDB/AWS also has selected native encrypted manager/V2 proof, recorded separately in the preparation documentation. Full fault, retention and authorization acceptance remains open.
 
 ## Encryption and querying
 

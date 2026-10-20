@@ -125,6 +125,8 @@ Final fingerprint acceptance: focused9/9 passes2s and fullSQLite963/963 passes12
 
 ## Encrypted preparation replay defect — 20 October 2026
 
+Historical red checkpoint: the subsequent [shared V2 recovery implementation](WRITE_PREPARATION.md#current-v2-save-flow) now passes the original four-case regression and selected expanded native cases. The original failure evidence and acceptance requirements below remain useful; they do not describe the latest SQLite retry behavior.
+
 Native regression `CosmicEncryptedConditionalReplayTests.EncryptedConditionalCreateReplaysOriginalReceiptAcrossFreshManagers` reconstructs both provider and manager, submits an identical new-record input with the same actor and operation ID, and requires the original ID, logical version, physical revision and decrypted metadata acknowledgement. Both synchronous and asynchronous unencrypted controls pass. Both authenticated-encryption cases fail with `COSMIC_OPERATION_ID_REUSED`. Focused evidence: `TestResults/SQLiteCurrent/encrypted-replay-red.trx`, four executed, two passed, two failed, zero skipped; build succeeds. Core source revision: `25a15a846c2759af64a5d20e11a73dd92857fd85`.
 
 The manager generates a fresh AES-GCM nonce during each preparation. SQLite correctly binds its receipt to the actual prepared ciphertext, so repeated logical plaintext is different submitted content. Existing provider receipt replay is therefore insufficient to promise encrypted logical-operation replay across fresh clients. This is an open correctness defect, not a passing acceptance gate. The new regression intentionally remains red until the preparation owner is implemented.
