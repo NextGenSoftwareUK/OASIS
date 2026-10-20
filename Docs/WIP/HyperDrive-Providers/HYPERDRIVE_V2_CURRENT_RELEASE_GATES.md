@@ -1,5 +1,17 @@
 # HyperDrive V2 current release gates
 
+## Polkadot public transaction facade native acceptance — 2026-10-20
+
+Native6/6 passed3m32s0skip terminal0, including both newly corrected constructor-signer SendTransaction sync/async facades through existing admitted-owner SDKpipeline. Exact1000000000001localunits and senderdelta=amount+actualnativefee, recipientdelta=amount,1durableattempt/finalizeddispatch/status verified. Fullcontrolled211green/2redbefore remains separate evidence. Report3E45498D0084D48AE6BCBF26F338B4C80227174611CA20FD6B9228975E6AD15C; actualCoreD490/Shared1C35EE; fullhashes/fees/proofs in POLKADOT_PROVIDER_NATIVE_TESTS.md.
+
+Facade nativefees270083459/345891454LOCALbaseunits; no public/fiatprice/cap/billing claim. Same retained runtime/spec/ledger/SDK, no download/install/reset/topup. Pending0; owned774558verifiedSIGINT/originalhandleterminal0, independentprocess/portsabsent. Ledger1.6MiB retained, free C67,768,012,800bytes;123GBtargetunmet. Nativefacade gap closed for this pinned runtime; Polkadotcontractstorage STILLunimplemented/no reviewedABIencoder, otherfullinterface/hosted/V2gates OPEN.
+
+## Polkadot transaction facade unsigned path removed — controlled checkpoint, 2026-10-20
+
+Public provider SendTransaction (not HyperDrive legacy routing) still bypassed durable admitted-owner SDK pipeline with /accounts REST, hardcoded decimal truncation and empty-signature pseudoextrinsic. Replaced parallel implementation with existing SendOwnedNativeTransferAsync using explicit constructor signer/from/to/amount/memo. No unsigned submission/hash-only success; existing owner/signature/exactunits/finality/recovery gates now apply. Two guards2redbefore,full211controlled17s0skipgreen, plus2facade owner/finality IPC cases. Native facade and configured-signer acceptance still pending, source uncommitted. Actual contract storage ABI/SDK encoder remains absent/unimplemented; fullprovider/V2 stays OPEN.
+
+Exact report hashes/scope in POLKADOT_PROVIDER_NATIVE_TESTS.md. No native node/runtime/download/install/public fee used for controlled tests; free C67,772,174,336bytes,123GBtarget unmet. No push/deploy.
+
 ## NEAR current dependency native acceptance — 2026-10-20
 
 Full existing **19/19 native passed5m26s0skip**, terminal0, on SAME CoreD490/Shared1C35EE cohort as202/202controlled refresh. Official SDK/retained chain/contract, no exclusions/reset/deploy/download/newenvironment. Report TestResults/NearRuntime/near-provider-current.trx SHA25684A248705938B04D7CE0F566971BC9E36907073A8B93D6496535AD073D5A83B1; previous C6FD2... report SHAchecked/moved in place to near-provider-pre-current-core.trx. This closes fresh normal native compatibility for this cohort, not every interface/fault/race/hosted fee/V2 gate. Exactcohort/scope in NEAR_PUBLIC_CONDITIONAL_SAVE.md.
