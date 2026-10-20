@@ -70,6 +70,30 @@ public partial class HolonRepository
         }
         internal string Translate(CosmicQueryPredicate predicate)
         {
+            if (predicate is CosmicQueryMembership membership)
+            {
+                if (membership.Path.IsMetadata || membership.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(membership.Path.Segments[0], out var memberField)
+                    || memberField.ValueType != membership.Path.ValueType || !memberField.Comparisons.Contains(CosmicQueryComparisonOperator.Equal))
+                    throw new NotSupportedException("SQLite CQL membership path is unsupported.");
+                var memberColumn = "\"" + memberField.Name + "\"";
+                if (memberField.ValueType == typeof(Guid))
+                {
+                    if (memberField.Name == "CreatedByAvatarId" || memberField.Name == "ModifiedByAvatarId") memberColumn = "COALESCE(" + memberColumn + ", '00000000-0000-0000-0000-000000000000')";
+                    memberColumn += " COLLATE NOCASE";
+                }
+                else if (memberField.ValueType == typeof(string)) memberColumn += " COLLATE BINARY";
+                var memberParameters = new List<string>(); var includesNull = false;
+                foreach (var item in membership.Values)
+                {
+                    if (item.Kind == CosmicQueryScalarKind.Null) { includesNull = true; continue; }
+                    object memberValue = item.Value;
+                    if (memberField.ValueType == typeof(Guid)) memberValue = ((Guid)memberValue).ToString("D");
+                    else if (memberField.ValueType == typeof(bool)) memberValue = (bool)memberValue ? 1L : 0L;
+                    memberParameters.Add(Bind(memberValue));
+                }
+                var memberSql = memberParameters.Count == 0 ? "0" : "COALESCE((" + memberColumn + " IN (" + string.Join(",", memberParameters) + ")),0)";
+                return includesNull ? "((" + memberColumn + " IS NULL) OR " + memberSql + ")" : "(" + memberSql + ")";
+            }
             if (predicate is CosmicQueryStringMatch match)
             {
                 if (match.Path.IsMetadata || match.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(match.Path.Segments[0], out var stringField)
@@ -92,6 +116,8 @@ public partial class HolonRepository
             if (predicate is CosmicQueryNot not) return "(NOT " + Translate(not.Operand) + ")";
             if (predicate is not CosmicQueryComparison comparison || comparison.Path.IsMetadata || comparison.Path.Segments.Count != 1)
                 throw new NotSupportedException("SQLite CQL does not yet admit this predicate/path.");
+            if (comparison.Literal.Kind != CosmicQueryScalarKind.Null && comparison.Literal.Kind != comparison.Path.ScalarKind)
+                throw new NotSupportedException("SQLite CQL does not yet admit mixed numeric comparison semantics.");
             var name = comparison.Path.Segments[0];
             if (!SqliteCqlContract.Fields.TryGetValue(name, out var field) || field.ValueType != comparison.Path.ValueType || !field.Comparisons.Contains(comparison.Operator))
                 throw new NotSupportedException("SQLite CQL field/operator is unsupported: " + name + "/" + comparison.Operator);
