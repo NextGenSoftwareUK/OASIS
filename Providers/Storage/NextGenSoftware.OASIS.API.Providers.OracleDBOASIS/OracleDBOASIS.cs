@@ -564,7 +564,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-                if (avatarResult.IsError) { result.IsError=true;result.Exception=avatarResult.Exception;result.ErrorCode=avatarResult.ErrorCode;result.Message=avatarResult.Message;return result; }
+                if (avatarResult.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 if (avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar with email '{avatarEmailAddress}' not found."); return result; }
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }
@@ -609,7 +609,11 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            try { var r = await SaveHolonsAsync(holons); result.IsError = r.IsError; result.Result = !r.IsError; result.Message = r.Message;result.Exception=r.Exception;result.ErrorCode=r.ErrorCode; }
+            try {
+                var saved=await SaveHolonsAsync(holons,curentChildDepth:0);
+                result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+                result.Result=!saved.IsError&&saved.IsSaved;
+            }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
@@ -740,7 +744,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername,version);
-                if (avatarResult.IsError) { result.IsError=true;result.Exception=avatarResult.Exception;result.ErrorCode=avatarResult.ErrorCode;result.Message=avatarResult.Message;return result; }
+                if (avatarResult.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 if (avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar '{avatarUsername}' not found."); return result; }
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }
