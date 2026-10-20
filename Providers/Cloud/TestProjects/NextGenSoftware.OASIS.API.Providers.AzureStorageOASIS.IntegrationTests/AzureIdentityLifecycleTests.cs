@@ -10,9 +10,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests
 
 public partial class AzureStorageOASISIntegrationTests
 {
-    private sealed class IdentityReassignService(BlobServiceClient healthy,BlobClient target):BlobServiceClient
+    private sealed class IdentityReassignService(BlobServiceClient healthy,BlobClient target,bool detail=false):BlobServiceClient
     {
         public BlobClient Target=>target;
+        public bool IsDetail=>detail;
         public int ProfileReads,OtherReads,Writes,Deletes;
         public string? WinnerJson;public ETag WinnerTag;
         public override BlobContainerClient GetBlobContainerClient(string name)=>new IdentityReassignContainer(healthy.GetBlobContainerClient(name),this);
@@ -32,9 +33,15 @@ public partial class AzureStorageOASISIntegrationTests
             var observed=await healthy.DownloadContentAsync(cancellationToken);
             if(Name==owner.Target.Name&&BlobContainerName==owner.Target.BlobContainerName){
                 if(++owner.ProfileReads==1){
-                    var reassigned=OasisJson.DeserializeStored<Avatar>(observed.Value.Content.ToString());
-                    reassigned.Username="reassigned-owner";reassigned.Email="reassigned-owner@example.invalid";
-                    await WriteHistory(healthy,reassigned,true);
+                    if(owner.IsDetail){
+                        var reassigned=OasisJson.DeserializeStored<AvatarDetail>(observed.Value.Content.ToString());
+                        reassigned.Username="reassigned-owner";reassigned.Email="reassigned-owner@example.invalid";
+                        await WriteHistory(healthy,reassigned,true);
+                    }else{
+                        var reassigned=OasisJson.DeserializeStored<Avatar>(observed.Value.Content.ToString());
+                        reassigned.Username="reassigned-owner";reassigned.Email="reassigned-owner@example.invalid";
+                        await WriteHistory(healthy,reassigned,true);
+                    }
                     var actual=(await healthy.DownloadContentAsync(cancellationToken)).Value;owner.WinnerJson=actual.Content.ToString();owner.WinnerTag=actual.Details.ETag;
                 }
             }else owner.OtherReads++;

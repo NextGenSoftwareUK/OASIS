@@ -90,7 +90,7 @@ public partial class AzureStorageOASIS
         return result;
     }
 
-    private async Task<OASISResult<IEnumerable<IAvatarDetail>>> ReadAllDetailsAsync(int version)
+    private async Task<OASISResult<IEnumerable<IAvatarDetail>>> ReadAllDetailsAsync(int version,bool includeDeleted=false)
     {
         var result=new OASISResult<IEnumerable<IAvatarDetail>>();
         try {
@@ -103,7 +103,7 @@ public partial class AzureStorageOASIS
                 var detail=await ReadBlobHistoryAsync<AvatarDetail>(json,version);
                 if(detail==null) continue;
                 detail=DecodeDetail(Serialise(detail),blob.Name);
-                if(!detail.IsDeleted) details.Add(detail);
+                if(includeDeleted||!detail.IsDeleted) details.Add(detail);
             }
             result.Result=details;result.IsLoaded=true;
         }
@@ -111,13 +111,13 @@ public partial class AzureStorageOASIS
         return result;
     }
 
-    private async Task<OASISResult<IAvatarDetail>> ReadSelectedDetailAsync(string selector,bool email,int version)
+    private async Task<OASISResult<IAvatarDetail>> ReadSelectedDetailAsync(string selector,bool email,int version,bool includeDeleted=false)
     {
         var result=new OASISResult<IAvatarDetail>();
         try {
             ValidateDetailVersion(version);
             if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
-            var loaded=await ReadAllDetailsAsync(version);
+            var loaded=await ReadAllDetailsAsync(version,includeDeleted);
             if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatarDetail>,IAvatarDetail>(loaded);
             var matches=loaded.Result.Where(row=>string.Equals(email ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToList();
             if(matches.Count>1) throw new StorageIdentityAmbiguousException();

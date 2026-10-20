@@ -35,14 +35,16 @@ public class AzureConditionalHistoryWriterTests
         public string AckEtag = "committed-revision";
         public Exception? ReadFailure;
         public Exception? WriteFailure;
-        public int Writes,Deletes;
+        public int Reads,Writes,Deletes;
+        public string RecordName="owned-record";
         public BlobUploadOptions? Options;
         public BinaryData? Payload;
         public Action? OnRead,OnWrite;
-        public override string Name => "owned-record";
+        public override string Name => RecordName;
         public override string BlobContainerName => "owned-container";
         public override Task<Response<BlobDownloadResult>> DownloadContentAsync(CancellationToken cancellationToken = default)
         {
+            Reads++;
             OnRead?.Invoke();
             if (ReadFailure != null) throw ReadFailure;
             if (Existing == null&&ExistingRecord==null) throw new RequestFailedException(404, "Absent", "BlobNotFound", null);
@@ -61,7 +63,32 @@ public class AzureConditionalHistoryWriterTests
     }
 
     private sealed class Container(BlobClient blob):BlobContainerClient
-    {public override BlobClient GetBlobClient(string name)=>blob;}
+    {
+        public override BlobClient GetBlobClient(string name)=>blob;
+        public override AsyncPageable<BlobItem> GetBlobsAsync(BlobTraits traits=BlobTraits.None,BlobStates states=BlobStates.None,string? prefix=null,CancellationToken cancellationToken=default)
+            =>AsyncPageable<BlobItem>.FromPages(new[]{Page<BlobItem>.FromValues(new[]{BlobsModelFactory.BlobItem(name:blob.Name)},null,new SdkResponse())});
+    }
+
+    [DataTestMethod]
+    [DataRow(0,false)][DataRow(1,false)][DataRow(2,false)][DataRow(3,false)][DataRow(4,false)][DataRow(5,false)]
+    [DataRow(0,true)][DataRow(1,true)][DataRow(2,true)][DataRow(3,true)][DataRow(4,true)][DataRow(5,true)]
+    public async Task StandaloneDetailDeletionUsesObservedRevisionWithoutAvatarAccess(int route,bool hard)
+    {
+        var row=new AvatarDetail{Id=Guid.NewGuid(),Username="owned-detail",Email="owned-detail@example.invalid",IsActive=true,Version=1,Karma=123,XP=456};
+        var blob=new ObservedBlob{ExistingRecord=row,RecordName=row.Id.ToString()};var service=new Service(blob,"oasis-avatar-details");
+        var provider=new AzureStorageOASIS("UseDevelopmentStorage=true"){IsVersionControlEnabled=true};
+        typeof(AzureStorageOASIS).GetField("_serviceClient",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,service);IOASISStorageProvider contract=provider;
+        var result=route switch{
+            0=>await contract.DeleteAvatarDetailAsync(row.Id,!hard),1=>contract.DeleteAvatarDetail(row.Id,!hard),
+            2=>await contract.DeleteAvatarDetailByEmailAsync(row.Email,!hard),3=>contract.DeleteAvatarDetailByEmail(row.Email,!hard),
+            4=>await contract.DeleteAvatarDetailByUsernameAsync(row.Username,!hard),_=>contract.DeleteAvatarDetailByUsername(row.Username,!hard)};
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.Result);Assert.IsTrue(result.IsDeleted);Assert.AreEqual(0,service.MissingReads);
+        Assert.AreEqual(route<2?1:2,blob.Reads);Assert.AreEqual(hard?0:1,blob.Writes);Assert.AreEqual(hard?1:0,blob.Deletes);
+        if(!hard){
+            Assert.AreEqual(new ETag(blob.ReadEtag),blob.Options!.Conditions.IfMatch);
+            var actual=OasisJson.DeserializeStored<AvatarDetail>(blob.Payload!.ToString());Assert.IsFalse(actual.IsActive);Assert.AreNotEqual(DateTime.MinValue,actual.DeletedDate);Assert.AreEqual(123L,actual.Karma);Assert.AreEqual(456L,actual.XP);
+        }
+    }
     private sealed class MissingBlob(Action read):BlobClient
     {public override Task<Response<BlobDownloadResult>> DownloadContentAsync(CancellationToken cancellationToken=default){read();throw new RequestFailedException(404,"Absent","BlobNotFound",null);}}
     private sealed class Service(BlobClient blob,string? onlyContainer=null):BlobServiceClient
