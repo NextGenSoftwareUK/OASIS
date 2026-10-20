@@ -3,6 +3,7 @@ using Moq;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 
@@ -23,7 +24,7 @@ public class CosmosGraphWriteTests
     public async Task SelectedGraphHonoursChildrenRecursionAndDepth(bool children,bool recursive,int depth,int initial,int count)
     {
         var seen=new List<IHolon>();var repository=new Mock<IHolonRepository>();
-        repository.Setup(r=>r.UpsertAsync(It.IsAny<IHolon>())).Returns((IHolon row)=>{seen.Add(row);return Task.FromResult(row);});
+        repository.Setup(r=>r.UpsertPlannedAsync(It.IsAny<PlannedHolonWrite>())).Returns((PlannedHolonWrite plan)=>{IHolon row=plan.Snapshot;seen.Add(row);return Task.FromResult(row);});
         var grandchild=new Holon();var child=new Holon {Children=new List<IHolon> {grandchild}};
         var root=new Holon {Children=new List<IHolon> {child}};
         var result=await Provider(repository.Object).SaveHolonsAsync(new[] {root},children,recursive,depth,initial);
@@ -48,7 +49,7 @@ public class CosmosGraphWriteTests
     {
         var calls=0;var cause=new CosmosMutationReconciliationException("owned",new IOException("lost response"));
         var repository=new Mock<IHolonRepository>();
-        repository.Setup(r=>r.UpsertAsync(It.IsAny<IHolon>())).Returns((IHolon row)=>++calls==1 ? Task.FromResult(row):Task.FromException<IHolon>(cause));
+        repository.Setup(r=>r.UpsertPlannedAsync(It.IsAny<PlannedHolonWrite>())).Returns((PlannedHolonWrite plan)=>++calls==1 ? Task.FromResult<IHolon>(plan.Snapshot):Task.FromException<IHolon>(cause));
         var rows=new[] {new Holon {Id=Guid.NewGuid()},new Holon {Id=Guid.NewGuid()},new Holon {Id=Guid.NewGuid()}};
         var result=await Provider(repository.Object).SaveHolonsAsync(rows,continueOnError:true);
         Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(2,calls);
@@ -63,7 +64,7 @@ public class CosmosGraphWriteTests
     {
         var first=new Holon();var second=new Holon();var calls=0;Guid acknowledged=Guid.Empty;
         var repository=new Mock<IHolonRepository>();
-        repository.Setup(r=>r.UpsertAsync(It.IsAny<IHolon>())).Returns(async(IHolon row)=>{
+        repository.Setup(r=>r.UpsertPlannedAsync(It.IsAny<PlannedHolonWrite>())).Returns(async(PlannedHolonWrite plan)=>{IHolon row=plan.Snapshot;
             calls++;acknowledged=row.Id;await Task.Yield();(later?second:first).Version=999;return row;
         });
         var provider=Provider(repository.Object);
@@ -78,7 +79,7 @@ public class CosmosGraphWriteTests
     {
         var first=new Holon();var second=new Holon();var replacement=Guid.NewGuid();var calls=0;
         var repository=new Mock<IHolonRepository>();
-        repository.Setup(r=>r.UpsertAsync(It.IsAny<IHolon>())).Returns(async(IHolon row)=>{
+        repository.Setup(r=>r.UpsertPlannedAsync(It.IsAny<PlannedHolonWrite>())).Returns(async(PlannedHolonWrite plan)=>{IHolon row=plan.Snapshot;
             calls++;await Task.Yield();(later?second:first).Id=replacement;return row;
         });
         var provider=Provider(repository.Object);

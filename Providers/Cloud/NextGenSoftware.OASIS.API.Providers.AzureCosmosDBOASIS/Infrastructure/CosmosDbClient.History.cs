@@ -16,6 +16,16 @@ public partial class CosmosDbClient
 {
     private enum RecordWriteMode { Create, Upsert, Replace, ConditionalReplace }
 
+    public Task<string> UpsertPlannedDocumentAsync(object document,PlannedHolonWrite plan,
+        PartitionKey? partitionKey,CancellationToken cancellationToken=default)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+        if(document is not IHolon holon || holon.Id!=plan.Snapshot.Id)
+            throw new ArgumentException("A planned Cosmos write requires its captured holon identity.");
+        return WriteCanonicalRecordAsync(holon.Id.ToString(),document,partitionKey??PartitionKey.None,
+            RecordWriteMode.Upsert,null,false,null,cancellationToken,plan);
+    }
+
     public Task<string> UpsertVersionedDocumentAsync<T>(T proposed,Func<string,T> decode,
         PartitionKey partitionKey,CancellationToken token=default) where T:class,IHolonBase
     {
@@ -29,7 +39,8 @@ public partial class CosmosDbClient
     // One owner for all record writes. Persisted format determines archive retention even if
     // configuration is later disabled; it is not a retry/fallback after a failed operation.
     private async Task<string> WriteCanonicalRecordAsync(string id,object document,PartitionKey partition,
-        RecordWriteMode mode,object expected,bool forceHistory,Func<string,IHolonBase> decode,CancellationToken token)
+        RecordWriteMode mode,object expected,bool forceHistory,Func<string,IHolonBase> decode,CancellationToken token,
+        PlannedHolonWrite plannedHolon=null)
     {
         ArgumentNullException.ThrowIfNull(document);
         token.ThrowIfCancellationRequested();
@@ -63,6 +74,21 @@ public partial class CosmosDbClient
         if(expectedPayload!=null && (previousPayload==null ||
             !StoredRecordPayloadEquality.Equivalent(expectedPayload,previousPayload)))
             throw new Core.Helpers.StorageLifecycleConflictException("Cosmos record changed before conditional replacement.");
+
+        if(document is Core.Holons.Holon holon && document is not IAvatar && document is not IAvatarDetail
+            && mode is RecordWriteMode.Create or RecordWriteMode.Upsert)
+        {
+            var plan=plannedHolon ?? new PlannedHolonWrite(holon,holon);
+            var observedRoles=previousPayload?["ChildRoleManifestJson"];
+            if(observedRoles!=null && observedRoles.Type is not JTokenType.String and not JTokenType.Null)
+                throw new InvalidDataException("Stored Cosmos child-role manifest must be a string or null.");
+            var resolved=HolonChildRolePersistence.Resolve(plan,HolonChildRoleWriteKind.SourceSave,
+                previous!=null,observedRoles?.Type==JTokenType.String ? observedRoles.Value<string>():null);
+            // Match the canonical serializer's null omission; emitting a new JSON-null
+            // property would break exact subsequent conditional-delete comparisons.
+            if(resolved==null)staged.Remove("ChildRoleManifestJson");
+            else staged["ChildRoleManifestJson"]=resolved;
+        }
 
         var retainsHistory=forceHistory || _retainRecordHistory || previous?[CosmosEmbeddedHistory.PropertyName]!=null;
         if(retainsHistory)
