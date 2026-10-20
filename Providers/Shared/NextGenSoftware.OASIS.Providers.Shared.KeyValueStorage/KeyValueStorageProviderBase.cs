@@ -268,9 +268,9 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         private async Task DeleteAcknowledgedAsync(string key,List<string> acknowledged)
         {await Backend.DeleteAsync(key);acknowledged.Add(key);}
 
-        private void PublishSavedMetadata(IHolonBase source,IHolonBase saved,Guid originalId)
+        private void PublishSavedMetadata(IHolonBase source,IHolonBase saved,Action validateCaller)
         {
-            StoredRecordPublication.EnsureIdentityUnchanged(source,originalId);
+            validateCaller();
             source.Id=saved.Id;source.Version=saved.Version;source.VersionId=saved.VersionId;source.PreviousVersionId=saved.PreviousVersionId;
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             source.ProviderUniqueStorageKey[StorageType]=saved.ProviderUniqueStorageKey[StorageType];
@@ -278,10 +278,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            var source=avatar;var originalId=source?.Id ?? Guid.Empty;var acknowledged=new List<string>();
+            var source=avatar;var acknowledged=new List<string>();
             try
             {
                 if (avatar == null) return Fail<IAvatar>("Avatar is required.");
+                var publication=StoredRecordPublicationSnapshot<IAvatar>.Capture(source);
                 avatar=OasisJson.Deserialize<IAvatar>(OasisJson.Serialize(source));
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
@@ -312,20 +313,25 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     }
                 }
                 if(conditional!=null)foreach(var key in retiredKeys)indexes.Add(key,await ReadOwnedIndexAsync(conditional,key,avatar.Id));
+                publication.ValidateUnchanged();
                 await StampVersionAsync(recordKey,avatar,previous,acknowledged,conditional);
+                publication.ValidateUnchanged();
                 if(conditional==null)await PutAcknowledgedAsync(recordKey,OasisJson.Serialize(avatar),acknowledged);
                 else await PutObservedAcknowledgedAsync(conditional,recordKey,OasisJson.Serialize(avatar),observed,acknowledged);
+                publication.ValidateUnchanged();
                 foreach(var key in nextKeys){
                     if(conditional==null)await PutAcknowledgedAsync(key,avatar.Id.ToString(),acknowledged);
                     else await PutObservedAcknowledgedAsync(conditional,key,avatar.Id.ToString(),indexes[key],acknowledged);
+                    publication.ValidateUnchanged();
                 }
                 // Normalized keys define ownership, so case/whitespace-only changes cannot retire a still-current index.
                 foreach(var key in retiredKeys){
-                    if(conditional==null)await Backend.DeleteAsync(key);
+                    if(conditional==null)await DeleteAcknowledgedAsync(key,acknowledged);
                     else if(indexes[key]!=null){await conditional.DeleteUnchangedAsync(key,indexes[key].Revision);acknowledged.Add(key);}
+                    publication.ValidateUnchanged();
                 }
 
-                PublishSavedMetadata(source,avatar,originalId);
+                PublishSavedMetadata(source,avatar,publication.ValidateUnchanged);
                 return new OASISResult<IAvatar>(source) { IsSaved = true, Message = $"Avatar {avatar.Id} saved to {Name}." };
             }
             catch (Exception ex) { return Fail<IAvatar>($"Error saving avatar: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
@@ -505,20 +511,23 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            var source=avatarDetail;var originalId=source?.Id ?? Guid.Empty;var acknowledged=new List<string>();
+            var source=avatarDetail;var acknowledged=new List<string>();
             try
             {
                 if (avatarDetail == null) return Fail<IAvatarDetail>("Avatar detail is required.");
                 if (avatarDetail.Id == Guid.Empty) return Fail<IAvatarDetail>("Avatar detail must carry its avatar's id.");
+                var publication=StoredRecordPublicationSnapshot<IAvatarDetail>.Capture(source);
                 avatarDetail=OasisJson.Deserialize<IAvatarDetail>(OasisJson.Serialize(source));
                 avatarDetail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatarDetail.ProviderUniqueStorageKey[StorageType] = avatarDetail.Id.ToString();
                 var key=AvatarDetailKey(avatarDetail.Id);var conditional=Backend as IConditionalKeyValueBackend;
                 var (previous,observed)=await ReadForMutationAsync<IAvatarDetail>(key,conditional);
+                publication.ValidateUnchanged();
                 await StampVersionAsync(key,avatarDetail,previous,acknowledged,conditional);
+                publication.ValidateUnchanged();
                 if(conditional==null)await PutAcknowledgedAsync(key,OasisJson.Serialize(avatarDetail),acknowledged);
                 else await PutObservedAcknowledgedAsync(conditional,key,OasisJson.Serialize(avatarDetail),observed,acknowledged);
-                PublishSavedMetadata(source,avatarDetail,originalId);
+                PublishSavedMetadata(source,avatarDetail,publication.ValidateUnchanged);
                 return new OASISResult<IAvatarDetail>(source) { IsSaved = true, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
             }
             catch (Exception ex) { return Fail<IAvatarDetail>($"Error saving avatar detail: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
@@ -630,11 +639,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private async Task<OASISResult<IHolon>> SaveHolonInternalAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int depth, bool continueOnError,Guid? parent=null)
         {
-            var source=holon;var originalId=source?.Id ?? Guid.Empty;var acknowledged=new List<string>();
+            var source=holon;var acknowledged=new List<string>();
             try
             {
                 if (holon == null) return Fail<IHolon>("Holon is required.");
                 ValidateSaveForest(new[] {holon}, saveChildren, recursive, maxChildDepth, depth);
+                var publication=StoredRecordPublicationSnapshot<IHolon>.Capture(source);
                 holon=OasisJson.Deserialize<IHolon>(OasisJson.Serialize(source));
                 if(parent.HasValue) holon.ParentHolonId=parent.Value;
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
@@ -650,21 +660,26 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     if(nextParentKey!=null)nextParent=await ReadOwnedIndexAsync(conditional,nextParentKey,holon.Id);
                     if(oldParentKey!=null)oldParent=await ReadOwnedIndexAsync(conditional,oldParentKey,holon.Id);
                 }
+                publication.ValidateUnchanged();
                 await StampVersionAsync(recordKey, holon, previous,acknowledged,conditional);
+                publication.ValidateUnchanged();
                 if(conditional==null)await PutAcknowledgedAsync(recordKey,OasisJson.Serialize(holon),acknowledged);
                 else await PutObservedAcknowledgedAsync(conditional,recordKey,OasisJson.Serialize(holon),observed,acknowledged);
+                publication.ValidateUnchanged();
                 if(nextParentKey!=null){
                     if(conditional==null)await PutAcknowledgedAsync(nextParentKey,holon.Id.ToString(),acknowledged);
                     else await PutObservedAcknowledgedAsync(conditional,nextParentKey,holon.Id.ToString(),nextParent,acknowledged);
+                    publication.ValidateUnchanged();
                 }
                 if(oldParentKey!=null){
-                    if(conditional==null)await Backend.DeleteAsync(oldParentKey);
+                    if(conditional==null)await DeleteAcknowledgedAsync(oldParentKey,acknowledged);
                     else if(oldParent!=null){
                         await conditional.DeleteUnchangedAsync(oldParentKey,oldParent.Revision);acknowledged.Add(oldParentKey);
                     }
+                    publication.ValidateUnchanged();
                 }
 
-                PublishSavedMetadata(source,holon,originalId);source.ParentHolonId=holon.ParentHolonId;
+                PublishSavedMetadata(source,holon,publication.ValidateUnchanged);source.ParentHolonId=holon.ParentHolonId;
                 var result = new OASISResult<IHolon>(source) { IsSaved = true, Message = $"Holon {holon.Id} saved to {Name}." };
                 var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
                 if (saveChildren && source.Children != null && (depth == 0 || recursive) && !reachedDepth)

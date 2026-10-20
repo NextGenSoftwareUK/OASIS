@@ -10,16 +10,62 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class CallerPublicationTests
 {
-    private sealed class IdentityChangingBackend : IKeyValueBackend
+    private class IdentityChangingBackend : IKeyValueBackend
     {
         public readonly InMemoryBackend Store = new();
         public Action AfterWrite;
-        public Task<string> GetAsync(string key,System.Threading.CancellationToken ct=default)=>Store.GetAsync(key,ct);
+        public Action AfterRead;
+        public Action AfterDelete;
+        public async Task<string> GetAsync(string key,System.Threading.CancellationToken ct=default){var value=await Store.GetAsync(key,ct);AfterRead?.Invoke();return value;}
         public async Task PutAsync(string key,string value,System.Threading.CancellationToken ct=default)
         { await Store.PutAsync(key,value,ct); await Task.Yield(); AfterWrite?.Invoke(); }
-        public Task DeleteAsync(string key,System.Threading.CancellationToken ct=default)=>Store.DeleteAsync(key,ct);
+        public async Task DeleteAsync(string key,System.Threading.CancellationToken ct=default){await Store.DeleteAsync(key,ct);AfterDelete?.Invoke();}
         public Task<System.Collections.Generic.IReadOnlyList<string>> ListKeysAsync(string prefix,System.Threading.CancellationToken ct=default)=>Store.ListKeysAsync(prefix,ct);
         public Task VerifyAsync(System.Threading.CancellationToken ct=default)=>Store.VerifyAsync(ct);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task RetiredIndexDeletionRemainsInAcknowledgedKeysWhenCallerChanges(bool synchronous)
+    {
+        var backend=new IdentityChangingBackend();var id=Guid.NewGuid();var seed=new TestProvider(backend.Store);
+        Assert.IsFalse((await seed.SaveAvatarAsync(new Avatar{Id=id,Username="old-owned",Email="old-owned@example.invalid"})).IsError);
+        var before=backend.Store.Items.Keys.ToArray();var source=new Avatar{Id=id,Username="new-owned",Email="new-owned@example.invalid"};
+        backend.AfterDelete=()=>source.Version=999;var provider=new TestProvider(backend);
+        var result=synchronous?provider.SaveAvatar(source):await provider.SaveAvatarAsync(source);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(999,source.Version);
+        var deleted=before.Except(backend.Store.Items.Keys).Single();
+        var partial=result.Exception as KeyValuePartialMutationException;Assert.IsNotNull(partial);Assert.IsTrue(partial.AcknowledgedKeys.Contains(deleted));
+    }
+    // Controlled preconditions over the same test store, not a native CAS certification.
+    private sealed class ConditionalIdentityChangingBackend:IdentityChangingBackend,IConditionalKeyValueBackend
+    {
+        public async Task<KeyValueObservation> ReadObservedAsync(string key,System.Threading.CancellationToken ct=default){var value=await GetAsync(key,ct);return value==null?null:new KeyValueObservation(value,"owned");}
+        public async Task CreateOnlyAsync(string key,string value,System.Threading.CancellationToken ct=default){if(Store.Items.ContainsKey(key))throw new StorageLifecycleConflictException("Controlled key exists.");await PutAsync(key,value,ct);}
+        public async Task ReplaceUnchangedAsync(string key,string value,string revision,System.Threading.CancellationToken ct=default){if(revision!="owned"||!Store.Items.ContainsKey(key))throw new StorageLifecycleConflictException("Controlled revision mismatch.");await PutAsync(key,value,ct);}
+        public async Task DeleteUnchangedAsync(string key,string revision,System.Threading.CancellationToken ct=default){if(revision!="owned"||!Store.Items.ContainsKey(key))throw new StorageLifecycleConflictException("Controlled revision mismatch.");await DeleteAsync(key,ct);AfterWrite?.Invoke();}
+    }
+
+    [DataTestMethod]
+    [DataRow(0,false,false,false)][DataRow(1,false,false,false)][DataRow(2,false,false,false)]
+    [DataRow(0,true,false,false)][DataRow(1,true,false,false)][DataRow(2,true,false,false)]
+    [DataRow(0,false,true,false)][DataRow(1,false,true,false)][DataRow(2,false,true,false)]
+    [DataRow(0,true,true,false)][DataRow(1,true,true,false)][DataRow(2,true,true,false)]
+    [DataRow(0,false,false,true)][DataRow(1,false,false,true)][DataRow(2,false,false,true)]
+    [DataRow(0,true,false,true)][DataRow(1,true,false,true)][DataRow(2,true,false,true)]
+    [DataRow(0,false,true,true)][DataRow(1,false,true,true)][DataRow(2,false,true,true)]
+    [DataRow(0,true,true,true)][DataRow(1,true,true,true)][DataRow(2,true,true,true)]
+    public async Task CanonicalCallerEditStopsBeforeWriteOrFurtherIndexPublication(int kind,bool synchronous,bool duringRead,bool conditional)
+    {
+        IHolonBase source=kind==0?new Avatar{Username="owned",Email="owned@example.invalid"}:kind==1?new AvatarDetail{Id=Guid.NewGuid()}:new Holon();
+        IdentityChangingBackend backend=conditional?new ConditionalIdentityChangingBackend():new IdentityChangingBackend();Action edit=()=>source.Version=999;
+        if(duringRead)backend.AfterRead=edit;else backend.AfterWrite=edit;
+        var provider=new TestProvider(backend);Exception failure;
+        if(kind==0){var result=synchronous?provider.SaveAvatar((IAvatar)source):await provider.SaveAvatarAsync((IAvatar)source);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+        else if(kind==1){var result=synchronous?provider.SaveAvatarDetail((IAvatarDetail)source):await provider.SaveAvatarDetailAsync((IAvatarDetail)source);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+        else{var result=synchronous?provider.SaveHolon((IHolon)source,saveChildren:false):await provider.SaveHolonAsync((IHolon)source,saveChildren:false);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+        Assert.AreEqual(999,source.Version);Assert.AreEqual(duringRead?0:1,backend.Store.PutCalls);
+        if(duringRead)Assert.IsInstanceOfType<InvalidOperationException>(failure);
+        else{var partial=failure as KeyValuePartialMutationException;Assert.IsNotNull(partial);CollectionAssert.AreEquivalent(backend.Store.Items.Keys.ToArray(),partial.AcknowledgedKeys.ToArray());}
     }
 
     [DataTestMethod]
