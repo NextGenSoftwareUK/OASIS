@@ -69,10 +69,7 @@ public partial class GoogleCloudOASIS
         if(collection=="holons" && proposed is Core.Holons.Holon holon)
             holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plannedHolon??new PlannedHolonWrite(holon,holon),
                 HolonChildRoleWriteKind.SourceSave,previous!=null,(observedRecord as Core.Holons.Holon)?.ChildRoleManifestJson);
-        var hasHistory=previous!=null && OasisJson.ParseStoredObject((string)previous["data_json"]).Property(EmbeddedRecordHistory.PropertyName)!=null;
-        var staged=createHistory||hasHistory
-            ? await StageFirestoreHistoryAsync(proposed,previous,reference.Id)
-            : OasisJson.ParseStoredObject(OasisJson.Serialize(proposed));
+        var staged=await StageFirestoreDocumentAsync(proposed,previous,reference.Id,createHistory);
         var committed=OasisJson.DeserializeStored<T>(staged.ToString(Newtonsoft.Json.Formatting.None));
         fields["data_json"]=staged.ToString(Newtonsoft.Json.Formatting.None);
         fields["version"]=committed.Version;
@@ -102,6 +99,13 @@ public partial class GoogleCloudOASIS
     {
         if(database?.Client.Settings?.CommitSettings?.Retry?.MaxAttempts!=1)
             throw new InvalidOperationException("Conditional Firestore writes require explicit single-attempt Commit settings before native I/O.");
+    }
+
+    private static async Task<JObject> StageFirestoreDocumentAsync<T>(T proposed,Dictionary<string,object> previous,string id,bool createHistory) where T:class,IHolonBase
+    {
+        if(proposed is IHolon holon)Core.Holons.CosmicConcurrency.SetProviderRevisionId(holon,Core.Enums.ProviderType.GoogleCloudOASIS,Guid.NewGuid());
+        var hasHistory=previous!=null&&OasisJson.ParseStoredObject((string)previous["data_json"]).Property(EmbeddedRecordHistory.PropertyName)!=null;
+        return createHistory||hasHistory?await StageFirestoreHistoryAsync(proposed,previous,id):OasisJson.ParseStoredObject(OasisJson.Serialize(proposed));
     }
 
     private static Google.Cloud.Firestore.V1.FirestoreSettings CreateFirestoreSettings()
