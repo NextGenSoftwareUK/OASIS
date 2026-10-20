@@ -110,7 +110,7 @@ public partial class DynamoHistoryNativeTests
         if(row is IAvatar avatar){item["username"]=new(){S=avatar.Username};item["email"]=new(){S=avatar.Email};}
         else if(row is IAvatarDetail detail){item["username"]=new(){S=detail.Username};item["email"]=new(){S=detail.Email};}
         else if(row is IHolon holon){item["parentHolonId"]=new(){S=holon.ParentHolonId.ToString()};item["holon_type"]=new(){N=((int)holon.HolonType).ToString()};}
-        var task=(Task)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(row.GetType()).Invoke(provider,new object[]{new PutItemRequest{TableName=table,Item=item},true,(Action)(()=>{})})!;
+        var task=(Task)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(row.GetType()).Invoke(provider,new object?[]{new PutItemRequest{TableName=table,Item=item},true,(Action)(()=>{}),null})!;
         await task;return (IHolonBase)task.GetType().GetProperty("Result")!.GetValue(task)!;
     }
     private static async Task RemoveOwned(AmazonDynamoDBClient client,string table,Guid id,string expected)

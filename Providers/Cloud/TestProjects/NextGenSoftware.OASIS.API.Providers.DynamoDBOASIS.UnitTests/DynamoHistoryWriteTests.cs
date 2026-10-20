@@ -67,7 +67,7 @@ public class DynamoHistoryWriteTests
         ["id"]=new(){S=row.Id.ToString()},["parentHolonId"]=new(){S=row.ParentHolonId.ToString()},
         ["holon_type"]=new(){N=((int)row.HolonType).ToString()},["is_deleted"]=new(){BOOL=row.IsDeleted},["data_json"]=new(){S=OasisJson.Serialize(row)}}};
     private static Task<Holon> Write(DynamoDBOASIS provider,PutItemRequest request)
-        =>(Task<Holon>)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.NonPublic|BindingFlags.Instance)!.MakeGenericMethod(typeof(Holon)).Invoke(provider,new object[]{request,true,(Action)(()=>{})})!;
+        =>(Task<Holon>)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.NonPublic|BindingFlags.Instance)!.MakeGenericMethod(typeof(Holon)).Invoke(provider,new object?[]{request,true,(Action)(()=>{}),null})!;
     private static async Task Use(HistoryClient client,Func<DynamoDBOASIS,Task> test)
     {
         var provider=new DynamoDBOASIS("owned","owned","us-east-1");var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!;
