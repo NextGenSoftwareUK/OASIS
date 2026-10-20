@@ -37,7 +37,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
     {
         ValidateStorageEntity(entity);
         var nextVersion=checked(entity.Version + 1);
-        var snapshot=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(entity));
+        var snapshot=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.ParseStoredObject(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(entity));
         snapshot["Version"]=nextVersion;
         snapshot["PreviousVersionId"]=entity.Id;
         var serializedEntity = EncodeEntity(snapshot);
@@ -65,8 +65,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
     public async Task<string> CreateTombstoneAsync(string transactionHashReference)
     {
         var transactionContent = await ReadStoredRecordAsync(transactionHashReference);
-        var deserializedEntity = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(transactionContent)
-            ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
+        var deserializedEntity = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.ParseStoredObject(transactionContent);
         if(deserializedEntity.Value<string>("RecordKind") is not ("oasis.avatar.v1" or "oasis.avatar-detail.v1" or "oasis.holon.v1"))
             throw new InvalidOperationException("Solana tombstone requires a canonical typed storage record.");
 

@@ -24,6 +24,9 @@ public class SolanaTombstoneWireTests
         var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone());
         SolanaBaseDto source=kind switch {"avatar"=>new SolanaAvatarDto {Email="private@example.invalid"},"detail"=>new SolanaAvatarDetailDto {XP=93},_=>new SolanaHolonDto {Name="private holon"}};
         source.Id=Guid.NewGuid();source.Version=6;
+        const decimal precise=0.1234567890123456789012345678m;
+        const string literalDate="2026-10-20T10:11:12.1234567+02:00";
+        source.GetType().GetProperty("MetaData")!.SetValue(source,new Dictionary<string,object>{["precise"]=precise,["literal_date"]=literalDate});
         proxy.Memo=(string)typeof(SolanaRepository).GetMethod("EncodeEntity",BindingFlags.NonPublic|BindingFlags.Instance)!
             .MakeGenericMethod(source.GetType()).Invoke(repository,new object[] {source})!;
         var before=DateTime.UtcNow;
@@ -38,6 +41,11 @@ public class SolanaTombstoneWireTests
         Assert.IsFalse(Encoding.UTF8.GetString(envelope).Contains("private"));
         var payload=(string)typeof(SolanaRepository).GetMethod("DecodeEntity",BindingFlags.NonPublic|BindingFlags.Instance)!
             .Invoke(repository,new object[] {envelope})!;
+        using(var exact=System.Text.Json.JsonDocument.Parse(payload)){
+            var metadata=exact.RootElement.GetProperty("MetaData");
+            Assert.AreEqual(precise,metadata.GetProperty("precise").GetDecimal());
+            Assert.AreEqual(literalDate,metadata.GetProperty("literal_date").GetString());
+        }
         var reopened=JsonConvert.DeserializeObject(payload,source.GetType()) as SolanaBaseDto;
         Assert.IsNotNull(reopened);Assert.AreEqual(source.Id,reopened.Id);Assert.AreEqual(7,reopened.Version);
         Assert.AreEqual(source.Id,reopened.PreviousVersionId);Assert.IsTrue(reopened.IsDeleted);
