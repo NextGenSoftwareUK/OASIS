@@ -11,6 +11,18 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class EmbeddedRecordHistoryTests
 {
     [DataTestMethod]
+    [DataRow("1",true)][DataRow("1.0",false)][DataRow("1e0",false)][DataRow("\"1\"",false)]
+    public async Task ExactObjectParserRetainsStrictIntegerSchemaContract(string schema,bool valid)
+    {
+        var codec=new EmbeddedRecordHistory();var source=new Holon{Id=Guid.NewGuid()};
+        var staged=await codec.StageAsync(source,null,Decode);
+        var parsed=OasisJson.ParseStoredObject(staged.ToString());
+        parsed[EmbeddedRecordHistory.PropertyName]["schema"]=new JRaw(schema);
+        if(valid)Assert.AreEqual(1,(await codec.ReadAsync(source.Id,parsed,0,Decode)).Version);
+        else await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>codec.ReadAsync(source.Id,parsed,0,Decode));
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
     public async Task StagingAndArchiveRetainExactNumericMetadata(bool customEncode,bool wide)
     {

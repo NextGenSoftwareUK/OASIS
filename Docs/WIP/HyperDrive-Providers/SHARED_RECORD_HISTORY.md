@@ -1,5 +1,15 @@
 # Shared canonical record-history codec
 
+## Exact cloud history document parsing — Shared879 / Dynamo298 / Google168 green
+
+2026-10-20: independent provider regressions reproduced decimal rounding in DynamoDB unversioned staging and Firestore canonical history-document parsing (each1failed before change). Moved the existing exact EmbeddedRecordHistory parser into reusable `OasisJson.ParseStoredObject`; all DynamoDB/Google RecordHistory text-object boundaries and Embedded history reuse it. Core's existing structural JsonElement converter owns conversion, no CLR type activation or new numeric parser. Invalid JSON/non-object records classify as InvalidDataException. New parser tests retain precise/wide numbers, literal timestamp strings, detached nested values and `$type` as data; typed record decoding still uses the restricted canonical binder.
+
+First full cloud runs exposed schema-token compatibility rather than numeric loss: Dynamo297pass1fail,Google159pass9fail, retained as `dynamo-text-precision-final.trx` / `google-text-precision-final.trx`. Exact parsing represents JSON integer schema1 as raw token. Existing shared envelope validator now accepts the exact raw lexeme1 as well as typed integer1; four tests retain rejection of1.0,1e0 and quoted1. No schema relaxation to floats/text, no alternate reader or discarded archive.
+
+Rebuilt producer/consumers followed by **Shared879/879**, **Dynamo298/298**, **Google168/168**, all zero skips (6s,1s,971ms). Actual CoreF2E6D954 / Shared `75B29E96D31D89FB499C2387DAD9ACB411B2595EA8E5F8A30DA36EBDC60308FC`. Verified reports in SharedCurrent: `shared-stored-object-verified.trx` SHA256 `2EC1B32247FFF62BD48689ACD4E5F7D1681761217BEA4BC11567925B0AF015D8`; `dynamo-text-precision-verified.trx` `F6AEB9C4160B42F1A805CA5A6FA9B3B926F21A933F58AAF08AB928D7251E9C69`; `google-text-precision-verified.trx` `30D144309218CFD8E82BB0F5F243FC3CBB26C17C12D6F58073BF469599CD7A34`.
+
+These controlled tests prove the repaired text-object boundaries only. Generic concrete record decoder metadata preservation is separate Core work; no provider-specific decoder forks added. Real native cloud regression/hosted authorization/other reader paths and full provider/V2 certification remain OPEN. No cloud runtime/download/install/public funds/devpush; fixed current outputs and package cache reused. Original failed reports retained rather than overwritten.
+
 ## Embedded history staging precision — Shared870 verified; provider decoder work remains
 
 Cloud compatibility report SHA256: DynamoDB `51564D0673D2388FB7DB9BB8B13B41E0AE7C726F1F5B9712FC0746595096F23F`; GoogleCloud `060A6A9C59570E0D1C3DFAB00556C9D63A514E94CC49FA0E50B439D2D9104878`. FreeC62,148,214,784bytes after tests;123GBtarget unmet. No cleanup or mass-recovery claim.

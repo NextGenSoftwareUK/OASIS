@@ -34,7 +34,7 @@ public partial class GoogleCloudOASIS
             throw new InvalidDataException("Firestore lifecycle stage requires the matching soft-deleted record.");
         var staged=createHistory||current.Property(EmbeddedRecordHistory.PropertyName)!=null
             ? await StageFirestoreHistoryAsync(proposed,previous,documentId)
-            : JObject.Parse(OasisJson.Serialize(proposed));
+            : OasisJson.ParseStoredObject(OasisJson.Serialize(proposed));
         var record=OasisJson.DeserializeStored<T>(staged.ToString(Newtonsoft.Json.Formatting.None));
         var update=new Dictionary<string,object>{["isActive"]=false,["isDeleted"]=true,["data_json"]=staged.ToString(Newtonsoft.Json.Formatting.None)};
         if(previous.ContainsKey("version") || staged.Property(EmbeddedRecordHistory.PropertyName)!=null)update["version"]=record.Version;
@@ -69,10 +69,10 @@ public partial class GoogleCloudOASIS
         if(collection=="holons" && proposed is Core.Holons.Holon holon)
             holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plannedHolon??new PlannedHolonWrite(holon,holon),
                 HolonChildRoleWriteKind.SourceSave,previous!=null,(observedRecord as Core.Holons.Holon)?.ChildRoleManifestJson);
-        var hasHistory=previous!=null && JObject.Parse((string)previous["data_json"]).Property(EmbeddedRecordHistory.PropertyName)!=null;
+        var hasHistory=previous!=null && OasisJson.ParseStoredObject((string)previous["data_json"]).Property(EmbeddedRecordHistory.PropertyName)!=null;
         var staged=createHistory||hasHistory
             ? await StageFirestoreHistoryAsync(proposed,previous,reference.Id)
-            : JObject.Parse(OasisJson.Serialize(proposed));
+            : OasisJson.ParseStoredObject(OasisJson.Serialize(proposed));
         var committed=OasisJson.DeserializeStored<T>(staged.ToString(Newtonsoft.Json.Formatting.None));
         fields["data_json"]=staged.ToString(Newtonsoft.Json.Formatting.None);
         fields["version"]=committed.Version;
@@ -147,7 +147,7 @@ public partial class GoogleCloudOASIS
             throw new InvalidDataException("Firestore native active projection differs from canonical record.");
         if(fields.TryGetValue("isDeleted",out var deleted) && (deleted is not bool deletedValue || deletedValue!=record.IsDeleted))
             throw new InvalidDataException("Firestore native deletion projection differs from canonical record.");
-        var document=JObject.Parse(json);
+        var document=OasisJson.ParseStoredObject(json);
         if(document["id"]!=null&&document["id"].Value<string>()!=documentId)
             throw new InvalidDataException("Firestore embedded identity differs from document key.");
         document["id"]=documentId;
