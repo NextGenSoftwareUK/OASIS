@@ -1,5 +1,5 @@
 #requires -Version 7.5
-param([switch]$ResumeExportedProof,[switch]$ReconcileRetainedExport,[switch]$InspectRetainedExport,[switch]$VerifyRetainedCheckpoint,[switch]$RunHistoryTests,[switch]$RunRegressionTests,[switch]$ReconcileRoleFixture,[int]$ContinueOwnedEmulatorId)
+param([switch]$RunConditionalGraphs,[switch]$ResumeExportedProof,[switch]$ReconcileRetainedExport,[switch]$InspectRetainedExport,[switch]$VerifyRetainedCheckpoint,[switch]$RunHistoryTests,[switch]$RunRegressionTests,[switch]$ReconcileRoleFixture,[int]$ContinueOwnedEmulatorId)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/GoogleCurrent'
@@ -15,6 +15,7 @@ if($VerifyRetainedCheckpoint){
 }
 if($RunHistoryTests -and !$VerifyRetainedCheckpoint -and !$ContinueOwnedEmulatorId){throw 'History suite requires explicit verified checkpoint mode or owned-runtime continuation.'}
 if($RunRegressionTests -and !$RunHistoryTests){throw 'Regression suite requires the durable history runner.'}
+if($RunConditionalGraphs -and (!$RunHistoryTests -or $ReconcileRoleFixture)){throw 'Atomic graph mode requires history-runner admission without reconciliation mode.'}
 if($ReconcileRoleFixture -and (!$ContinueOwnedEmulatorId -or !$RunHistoryTests -or $RunRegressionTests)){throw 'Exact role-fixture reconciliation requires the same owned live history runtime only.'}
 if($ResumeExportedProof -and $ReconcileRetainedExport){throw 'Choose one explicit recovery mode.'}
 if($InspectRetainedExport -and !$ReconcileRetainedExport){throw 'Inspection requires explicit retained export mode.'}
@@ -146,6 +147,15 @@ try{
             if($LASTEXITCODE -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Original role fixture reconciliation incomplete; preserve same live runtime.'}
             return
         }
+        if($RunConditionalGraphs){
+            & dotnet test $project --no-build --no-restore --filter 'TestCategory=AtomicGraphNative' --logger 'trx;LogFileName=google-conditional-native-current.trx' --results-directory $work /m:2 /nr:false -v:q
+            if($LASTEXITCODE){throw 'Native atomic graph tests failed; preserve original live emulator and fixtures.'}
+            $report=Get-Item -LiteralPath (Join-Path $work 'google-conditional-native-current.trx')
+            [xml]$trx=Get-Content -LiteralPath $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
+            if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete4/4 native atomic graph report required.'}
+            if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Original atomic graph fixtures remain unresolved.'}
+            if(!$RunRegressionTests){$safeToStop=$true;return}
+        }
         & dotnet test $project --no-build --no-restore --filter 'TestCategory=HistoryNative' --logger 'trx;LogFileName=google-history-native-current.trx' --results-directory $work -v:q
         if($LASTEXITCODE){throw 'Native history suite failed; retain live emulator for original reconciliation.'}
         $report=Get-Item -LiteralPath (Join-Path $work 'google-history-native-current.trx')
@@ -156,7 +166,7 @@ try{
         if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native history originals remain; do not stop.'}
         if($RunRegressionTests){
             $started=[DateTime]::UtcNow
-            & dotnet test $project --no-build --no-restore --filter 'TestCategory!=HistoryNative&TestCategory!=RoleFixtureReconciliation' --logger 'trx;LogFileName=google-native-current.trx' --results-directory $work -v:q
+            & dotnet test $project --no-build --no-restore --filter 'TestCategory!=HistoryNative&TestCategory!=RoleFixtureReconciliation&TestCategory!=AtomicGraphNative' --logger 'trx;LogFileName=google-native-current.trx' --results-directory $work -v:q
             if($LASTEXITCODE){throw 'Native regression failed; retain original live emulator for inspection.'}
             $report=Get-Item -LiteralPath (Join-Path $work 'google-native-current.trx')
             if($report.LastWriteTimeUtc -lt $started){throw 'Stale native regression report.'}
