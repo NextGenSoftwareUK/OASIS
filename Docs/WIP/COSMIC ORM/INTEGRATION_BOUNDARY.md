@@ -434,3 +434,9 @@ SQLite selected native proof: **31/31 passed**, zero skipped, terminal exit 0 (`
 Typed semantic child property mapping, mixed per-node durable key identities, key rotation/resolution, authenticated versioned envelopes, complete route/provider conformance and the full roadmap remain open. Decrypting selected nodes does not authorize new provider reads or querying encrypted private fields.
 
 Full SQLite graph-admission acceptance completed: **996/996 passed**, zero failures/skips, 125 seconds, terminal exit 0 (`TestResults/SQLiteCurrent/graph-decryption-native-full.trx`) on the same `03766A44...` Core / `A8AAF9C1...` Shared consumer epoch. The earlier running-suite note is superseded by this result. Disposable fixture DB is removed by the owned fixture after completion. No push/deployment or all-provider certification is implied.
+
+## Decryption failure-state flags — 20 October 2026
+
+The common decryption result owner now clears `IsLoaded` when rejecting a read. Existing graph and typed-CQL assertions exposed eight failures with five success controls (`TestResults/CosmicMongoCurrent/decryption-flags-red.trx`): an error with a null result had incorrectly retained the loaded flag. The corrected invariant is an explicit error, `IsLoaded=false`, and no result. Existing native point/graph/CQL cases now assert all three without weakening prior content, revision or baseline checks.
+
+Final full Core **1,450/1,450** and selected SQLite **31/31** pass with zero skips and terminal exit 0 (`decryption-flags-full.trx` and `TestResults/SQLiteCurrent/decryption-flags-native.trx`). Both Core targets built. Core SHA-256 `2A27DB17AE34A417F6BB7B0B1181CDE0DA7AF081AB81F7C209ADAB22C9247C62`. The earlier full SQLite **996/996** proof belongs to the preceding `03766A44...` assembly; this follow-on changes the failure flag only and does not claim another full native run. Durable key identity and the complete roadmap remain open.
