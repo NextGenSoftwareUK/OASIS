@@ -24,7 +24,8 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
         try{
             cancellationToken.ThrowIfCancellationRequested();var plan=ConditionalHolonPlan.Create(request,Core.Enums.ProviderType.OracleDBOASIS);
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync(cancellationToken);
-            await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync(cancellationToken);
+            await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted,cancellationToken);
+            await AcquireWriteOperationLockAsync(connection,transaction,request.Write.OperationId,cancellationToken);
             try{
                 await using var claim=CreateCommand("INSERT INTO OASIS_WRITE_RECEIPTS(OPERATION_ID,REQUEST_HASH) VALUES(:Id,:Hash)",connection);claim.Transaction=transaction;
                 claim.Parameters.Add("Id",OracleDbType.Raw).Value=request.Write.OperationId.ToByteArray();claim.Parameters.Add("Hash",OracleDbType.Varchar2).Value=plan.Fingerprint;
@@ -88,6 +89,12 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
             await using(var receipt=CreateCommand("UPDATE OASIS_WRITE_RECEIPTS SET RESULT_JSON=:Json,COMMITTED_AT=SYSTIMESTAMP WHERE OPERATION_ID=:Id AND REQUEST_HASH=:Hash",connection)){
                 receipt.Transaction=transaction;receipt.Parameters.Add("Json",OracleDbType.Clob).Value=receiptJson;receipt.Parameters.Add("Id",OracleDbType.Raw).Value=request.Write.OperationId.ToByteArray();receipt.Parameters.Add("Hash",OracleDbType.Varchar2).Value=plan.Fingerprint;
                 if(await receipt.ExecuteNonQueryAsync(cancellationToken)!=1)throw new InvalidDataException("Oracle conditional receipt claim changed unexpectedly.");
+            }
+            // Keep the per-operation guard until receipt+graph are ready, then remove it
+            // in this SAME transaction. Waiters cannot observe absence before the receipt commits.
+            await using(var release=CreateCommand("DELETE FROM OASIS_WRITE_OPERATION_LOCKS WHERE OPERATION_ID=:Id",connection)) {
+                release.Transaction=transaction;release.Parameters.Add("Id",OracleDbType.Raw).Value=request.Write.OperationId.ToByteArray();
+                if(await release.ExecuteNonQueryAsync(cancellationToken)!=1)throw new InvalidDataException("Oracle operation guard changed before commit.");
             }
             cancellationToken.ThrowIfCancellationRequested();commitEntered=true;await CommitLifecycleTransactionAsync(transaction);
             return ConditionalAcknowledgement(validated,request.Operation);
