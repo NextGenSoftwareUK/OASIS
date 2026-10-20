@@ -1,5 +1,7 @@
 # MongoDB durable preparation implementation checkpoint
 
+Subsequent numeric prerequisite: the current selected suite now passes 175/175 controlled and 12/12 native cases, including all ten preparation/conditional cases below. [Exact numeric persistence proof and separate artifact cohort](MONGO_AUDIT_PRECISION.md#json-numeric-storage-follow-up--20-october-2026). The original ten-case report is retained as TestResults/SubscriptionUsageCurrent/mongo-cosmic-conditional-before-json-numbers-907B347CEC56.trx; the earlier preparation evidence below retains its original scope.
+
 20 October 2026. The final MongoDB unit consumer passes 153/153 tests and the reusable native conditional suite passes 10/10, with zero skips. An independent retained-fixture reconciliation also passes 1/1. These prove the selected cases below, not full fault or production acceptance.
 
 ## Native ownership
