@@ -64,7 +64,7 @@ try {
     if($report.LastWriteTimeUtc -lt $testStarted){throw 'Native Neo4j report is stale.'}
     [xml]$evidence=Get-Content -LiteralPath $report.FullName
     $counts=$evidence.SelectSingleNode("//*[local-name()='Counters']")
-    $expectedCount=if($ReconcileTypedSearchFixtures){1}elseif($CosmicTypedQueries){12}elseif($ReconcileReadFrontierFixture){1}elseif($CosmicReadDepth){8}elseif($ReconcileCredentialHistoryFixture){1}elseif($CosmicConfiguredHosting){2}elseif($CosmicOutboxHosting){2}elseif($CosmicMongoOutboxReconcile){1}elseif($CosmicMongoOutboxDelivery){4}elseif($CosmicOutboxDelivery){6}elseif($CosmicPrimaryOutbox){2}elseif($CosmicReplica){6}elseif($CosmicOrdinaryOutcomes){16}elseif($CosmicParentAssignment){8}elseif($CosmicConditional){4}elseif($CosmicSchema){7}elseif($ReconcileTimeoutFixtures){1}else{202}
+    $expectedCount=if($ReconcileTypedSearchFixtures){1}elseif($CosmicTypedQueries){12}elseif($ReconcileReadFrontierFixture){1}elseif($CosmicReadDepth){8}elseif($ReconcileCredentialHistoryFixture){1}elseif($CosmicConfiguredHosting){2}elseif($CosmicOutboxHosting){2}elseif($CosmicMongoOutboxReconcile){1}elseif($CosmicMongoOutboxDelivery){4}elseif($CosmicOutboxDelivery){6}elseif($CosmicPrimaryOutbox){2}elseif($CosmicReplica){6}elseif($CosmicOrdinaryOutcomes){16}elseif($CosmicParentAssignment){8}elseif($CosmicConditional){9}elseif($CosmicSchema){7}elseif($ReconcileTimeoutFixtures){1}else{202}
     if(!$counts -or [int]$counts.total -ne $expectedCount -or [int]$counts.passed -ne $expectedCount -or [int]$counts.notExecuted -ne 0){throw 'Exact fresh native case count, including timeout classification, with no skips required.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {

@@ -1,5 +1,11 @@
 # COSMIC source integration boundary
 
+## Neo4j protected preparation increment — 20 October 2026
+
+The shared Core contract is unchanged. Neo4j's native receipt node now owns opaque preparation and conditional acknowledgement under one transaction lock. Final full controlled **174/174** and native conditional **9/9** pass, zero skips. Native coverage includes actual encrypted V2 graph replay/key rotation plus synchronized first-winner and preparation-versus-write schedules. Unit/native Core, Shared and Neo4j assemblies were independently hash-matched; exact reports, hashes, historical failures and remaining acceptance are in the [Neo4j checkpoint](NEO4J_WRITE_PREPARATION.md). No Development merge, dependency-pin change or deployment is included.
+
+The read-only audit below and subsequent chronological checkpoints retain their original historical scope.
+
 20 October 2026. Read-only audit of the current shared checkout. No Git/index changes, commit, push or dependency-pin update performed by this audit.
 
 ## Evidence and dependency closure
