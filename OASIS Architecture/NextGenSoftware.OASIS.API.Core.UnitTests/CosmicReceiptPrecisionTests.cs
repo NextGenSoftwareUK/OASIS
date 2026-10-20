@@ -22,7 +22,7 @@ public class CosmicReceiptPrecisionTests
     [Fact]
     public void StoredHolonReaderRejectsAmbiguousAndNonObjectMetadata()
     {
-        foreach (var json in new[] { "[]", "{\"MetaData\":null}", "{\"MetaData\":2}", "{\"MetaData\":[]}",
+        foreach (var json in new[] { "[]", "{\"MetaData\":null,\"metadata\":null}", "{\"MetaData\":2}", "{\"MetaData\":[]}",
             "{\"MetaData\":{},\"metadata\":{}}", "{\"MetaData\":{},\"MetaData\":{}}", "{" })
         {
             Action read = () => StoredRecordJson.DeserializeStoredHolon(json);
