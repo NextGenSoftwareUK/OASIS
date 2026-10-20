@@ -15,15 +15,16 @@ public class PolkadotLocalNativeTests
     private const string Sender = "0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c";
     private const string Recipient = "0x8ee504148e75c34e8f051899b3c6e4241ff18dc1c9211260b6a6a434bedb485f";
 
-    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)][TestCategory("LocalNative")]
-    public async Task OwnedNativeTransferFinalizesAndAccountsForExactFees(bool synchronous, bool bridge)
+    [DataTestMethod][DataRow(false,false,false)][DataRow(true,false,false)][DataRow(false,true,false)][DataRow(true,true,false)]
+    [DataRow(false,false,true)][DataRow(true,false,true)][TestCategory("LocalNative")]
+    public async Task OwnedNativeTransferFinalizesAndAccountsForExactFees(bool synchronous, bool bridge,bool configuredSignerFacade)
     {
         Assert.AreEqual("1", Environment.GetEnvironmentVariable("OASIS_POLKADOT_LOCAL_NATIVE"));
         var journal = Environment.GetEnvironmentVariable("OASIS_POLKADOT_LOCAL_NATIVE_JOURNAL")!;
         Assert.IsFalse(string.IsNullOrWhiteSpace(journal), "Explicit fixed journal required.");
         Assert.IsFalse(File.Exists(journal), "Pending original exists: reconcile read-only, never replay or overwrite.");
         var localSeed = "0x" + string.Concat(Enumerable.Repeat("02", 32));
-        using var provider = bridge ? new PolkadotOASIS(Endpoint, Genesis, localSeed, synchronous ? Sender : Recipient)
+        using var provider = bridge||configuredSignerFacade ? new PolkadotOASIS(Endpoint, Genesis, localSeed, synchronous ? Sender : Recipient)
             : new PolkadotOASIS(Endpoint, Genesis);
         Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
         Assert.AreEqual(Genesis, provider.ReportedGenesisHash);
@@ -52,8 +53,9 @@ public class PolkadotLocalNativeTests
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed, sent.Result.Status);
             transactionId = sent.Result.TransactionId;
         } else {
-            var sent = await provider.ExecutePreparedNativeOperationAsync(() => synchronous
-                ? Task.FromResult(provider.SendToken(request)) : provider.SendTokenAsync(request),
+            var sent = await provider.ExecutePreparedNativeOperationAsync(() => configuredSignerFacade
+                ? synchronous?Task.FromResult(provider.SendTransaction(Sender,Recipient,request.Amount,request.MemoText)):provider.SendTransactionAsync(Sender,Recipient,request.Amount,request.MemoText)
+                : synchronous?Task.FromResult(provider.SendToken(request)):provider.SendTokenAsync(request),
                 execution, "local-native-transfer", Sender, deadline.Token);
             Assert.IsFalse(sent.IsError, sent.Exception?.ToString());
             transactionId = sent.Result.TransactionResult;
@@ -92,7 +94,8 @@ public class PolkadotLocalNativeTests
         Assert.AreEqual(transferred + actualFee, beforeSender - await Balance(provider, Sender));
         using var retained = JsonDocument.Parse(await File.ReadAllTextAsync(journal));
         Assert.AreEqual(transactionId, retained.RootElement.GetProperty("ProviderRequestId").GetString());
-        var completed = journal + (bridge ? (synchronous ? ".bridge-deposit.completed.json" : ".bridge-withdraw.completed.json")
+        var completed = journal + (configuredSignerFacade ? (synchronous?".facade-sync.completed.json":".facade-async.completed.json")
+            : bridge ? (synchronous ? ".bridge-deposit.completed.json" : ".bridge-withdraw.completed.json")
             : (synchronous ? ".sync.completed.json" : ".async.completed.json"));
         using (var file = new FileStream(completed, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough))
         {
