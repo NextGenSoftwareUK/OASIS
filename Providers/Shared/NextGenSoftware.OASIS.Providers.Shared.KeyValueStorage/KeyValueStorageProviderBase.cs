@@ -88,6 +88,20 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             {await Backend.DeleteAsync(key);acknowledged?.Add(key);}
         }
 
+        private async Task<List<(string Key,KeyValueObservation Observation)>> ObserveHistoricalDeletesAsync<T>(string recordKey,Guid identity,IConditionalKeyValueBackend conditional) where T:class,IHolonBase
+        {
+            var prefix=VersionPrefix(recordKey);var selected=new List<(string,KeyValueObservation)>();
+            foreach(var key in await Backend.ListKeysAsync(prefix)){
+                if(!key.StartsWith(prefix,StringComparison.Ordinal)||!int.TryParse(key[prefix.Length..],System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out var version)||version<=0)
+                    throw new System.IO.InvalidDataException("Stored history key is invalid.");
+                var observed=await conditional.ReadObservedAsync(key)??throw new StorageLifecycleConflictException("Stored history changed during deletion admission.");
+                var row=OasisJson.DeserializeStored<T>(observed.Value);
+                if(row==null||row.Id!=identity||row.Version!=version)throw new System.IO.InvalidDataException("Stored history identity/version differs from its key.");
+                selected.Add((key,observed));
+            }
+            return selected;
+        }
+
         // Usernames and emails may contain characters some services reject in keys; base64url keeps keys portable.
         private static string Encode(string value)
             => Convert.ToBase64String(Encoding.UTF8.GetBytes(value.Trim().ToLowerInvariant())).TrimEnd('=').Replace('+', '-').Replace('/', '_');
@@ -238,6 +252,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             if(observed==null)await backend.CreateOnlyAsync(key,value);
             else await backend.ReplaceUnchangedAsync(key,value,observed.Revision);
             acknowledged.Add(key);
+        }
+
+        private static async Task DeleteObservedAcknowledgedAsync(IConditionalKeyValueBackend backend,string key,KeyValueObservation observed,List<string> acknowledged)
+        {
+            await backend.DeleteUnchangedAsync(key,observed.Revision);acknowledged.Add(key);
         }
 
         private async Task DeleteAcknowledgedAsync(string key,List<string> acknowledged)
@@ -529,18 +548,31 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 if (id == Guid.Empty) return Fail<bool>("Avatar detail ID is required.");
-                var loaded = await LoadAvatarDetailAsync(id);
-                if (loaded.IsError) return Fail<bool>(loaded.Message, loaded.Exception,loaded.ErrorCode);
+                var key=AvatarDetailKey(id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (record,observed)=await ReadForMutationAsync<IAvatarDetail>(key,conditional);
+                var detail=await ReadVersionAsync(key,record,0);
+                if(detail==null)return Fail<bool>($"Avatar detail {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
                 if (softDelete)
                 {
-                    loaded.Result.IsActive = false; loaded.Result.DeletedDate = DateTime.UtcNow;
-                    var saved = await SaveAvatarDetailAsync(loaded.Result);
-                    if (saved.IsError) return Fail<bool>(saved.Message, saved.Exception,saved.ErrorCode);
+                    var proposal=OasisJson.Deserialize<IAvatarDetail>(OasisJson.Serialize(detail));
+                    proposal.IsActive=false;proposal.DeletedDate=DateTime.UtcNow;
+                    if(conditional==null){
+                        var saved=await SaveAvatarDetailAsync(proposal);
+                        if(saved.IsError)return Fail<bool>(saved.Message,saved.Exception,saved.ErrorCode);
+                    }else{
+                        await StampVersionAsync(key,proposal,detail,acknowledged,conditional);
+                        await PutObservedAcknowledgedAsync(conditional,key,OasisJson.Serialize(proposal),observed,acknowledged);
+                    }
                 }
                 else
                 {
-                    await DeleteVersionsAsync(AvatarDetailKey(id),acknowledged);
-                    await DeleteAcknowledgedAsync(AvatarDetailKey(id),acknowledged);
+                    if(conditional==null){await DeleteVersionsAsync(key,acknowledged);await DeleteAcknowledgedAsync(key,acknowledged);}
+                    else {
+                        var versions=await ObserveHistoricalDeletesAsync<IAvatarDetail>(key,id,conditional);
+                        // Refuse a changed current record BEFORE removing any of its observed history.
+                        await DeleteObservedAcknowledgedAsync(conditional,key,observed,acknowledged);
+                        foreach(var version in versions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
+                    }
                 }
                 return new OASISResult<bool>(true) { IsDeleted = true, Message = "Avatar detail deleted." };
             }
