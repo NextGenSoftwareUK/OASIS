@@ -263,13 +263,13 @@ public partial class AzureCosmosDBOASIS
         return result;
     }
 
-    private async Task<OASISResult<T>> SaveCurrentRecordAsync<T>(T record,Func<IRepository<T>> repository) where T:IHolonBase
+    private async Task<OASISResult<T>> SaveCurrentRecordAsync<T>(T record,Func<IRepository<T>> repository) where T:class,IHolonBase
     {
         var result=new OASISResult<T>();
         try
         {
             ArgumentNullException.ThrowIfNull(record);
-            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(record);
+            var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<T>.Capture(record);
             if(!IsProviderActivated)
             {
                 var activation=await ActivateProviderAsync();
@@ -277,8 +277,14 @@ public partial class AzureCosmosDBOASIS
                 if(!activation.Result) throw new InvalidOperationException("Cosmos activation did not acknowledge readiness.");
             }
             var store=repository() ?? throw new InvalidOperationException("Cosmos repository was not initialized.");
-            var saved=await store.UpsertAsync(record);
+            publication.ValidateUnchanged();
+            var saved=await store.UpsertAsync(publication.Proposal);
             if(saved==null) throw new CosmosMutationReconciliationException(record.Id.ToString(),new System.IO.InvalidDataException("Cosmos save returned no acknowledged record."));
+            try{publication.ValidateUnchanged();}
+            catch(Exception cause){throw new CosmosMutationReconciliationException(saved.Id.ToString(),cause,acknowledged:true);}
+            record.Id=saved.Id;record.Version=saved.Version;record.VersionId=saved.VersionId;record.PreviousVersionId=saved.PreviousVersionId;
+            record.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
+            record.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=saved.Id.ToString();
             result.Result=saved;result.IsSaved=true;
         }
         catch(Exception cause) {

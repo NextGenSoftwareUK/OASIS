@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Azure Cosmos DB public ordinary publication — 2026-10-19
+
+Public avatar/detail/standalone-holon saves now isolate repository proposals with the shared canonical snapshot and validate originals before publishing acknowledged stamps. Six red-before repository-callback cases now pass; controlled211/211 and retained native53/53pass/zero skips. Native report SHA256 `02F9B77790FBB5FCA01DCB93198940FE423F8C6835622B4353FDE9D6A7AA30B2`; exact evidence/failed mock correction/limits in [Cosmos DB report](COSMOSDB_RECORD_HISTORY.md). Container stopped/pending journals0, same retained image/runtime, no install/public spend. Graph originals/direct-repository publication and hosted IAM/fees/full provider/V2 acceptance remain OPEN; this wrapper cannot prevent a current node's native commit for an edit detected only post-ack.
+
 ## GoogleCloud graph original publication — 2026-10-19
 
 Shared snapshot now guards selected graph originals before dispatch/post-ack publication; four red-before regressions now pass. Controlled153/153 plus retained checkpoint readback/cleanup and native29history+79regressionpass/zero skips; native regression SHA256 `6216FECA295631F619FA133110B137192DF54474A4AAE44DC95D8BFFBBFC18AF`. Same emulator/export, no pending journals/listeners after terminal0, no new installation or public spend. Exact dependencies/hashes/limits: [Firestore report](FIRESTORE_RECORD_HISTORY.md). Controlled edit schedules are not native race proof; hosted IAM/billing, full interface/options and all-provider/V2 acceptance remain OPEN.
