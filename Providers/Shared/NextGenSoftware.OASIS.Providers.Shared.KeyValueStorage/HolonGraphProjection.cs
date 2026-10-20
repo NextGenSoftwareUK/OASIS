@@ -14,25 +14,32 @@ public static class HolonGraphProjection
         if(maxChildDepth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
         // Parent lookups have already traversed one edge to produce their result roots.
         // Nonrecursive parent lookup returns those immediate children without grandchildren.
-        if(rootsAreChildren) {initialDepth=checked(initialDepth+1);loadChildren=loadChildren && recursive;}
+        var startDepth=(long)initialDepth+(rootsAreChildren ? 1:0);
+        if(rootsAreChildren)loadChildren=loadChildren && recursive;
         var children=records.ToLookup(row=>row.ParentHolonId);
-        IHolon Project(IHolon source,int depth,HashSet<Guid> path)
+        IHolon Project(IHolon root)
         {
-            if(!path.Add(source.Id)) throw new InvalidDataException("Persisted holon graph contains a cycle.");
-            var copy=clone(source);
-            copy.Children=new List<IHolon>();
-            if(loadChildren && (maxChildDepth==0 || depth<maxChildDepth) && (recursive || depth==initialDepth))
+            var path=new HashSet<Guid>();IHolon result=null;
+            var pending=new Stack<(IHolon Source,long Depth,IHolon Parent,Guid? Exit)>();
+            pending.Push((root,startDepth,null,null));
+            while(pending.Count>0)
             {
-                var selected=childrenFromProvider ? children[source.Id] : source.Children ?? Enumerable.Empty<IHolon>();
-                foreach(var child in selected)
+                var (source,depth,parent,exit)=pending.Pop();
+                if(exit.HasValue){path.Remove(exit.Value);continue;}
+                if(source==null)throw new InvalidDataException("Persisted holon graph contains a null child.");
+                var id=source.Id;
+                if(!path.Add(id))throw new InvalidDataException("Persisted holon graph contains a cycle.");
+                var copy=clone(source);copy.Children=new List<IHolon>();
+                if(parent==null)result=copy;else parent.Children.Add(copy);
+                pending.Push((null,0,null,id));
+                if(loadChildren && (maxChildDepth==0 || depth<maxChildDepth) && (recursive || depth==startDepth))
                 {
-                    if(child == null) throw new InvalidDataException("Persisted holon graph contains a null child.");
-                    copy.Children.Add(Project(child,depth+1,path));
+                    var selected=(childrenFromProvider ? children[id] : source.Children ?? Enumerable.Empty<IHolon>()).ToArray();
+                    for(var index=selected.Length-1;index>=0;index--)pending.Push((selected[index],depth+1,copy,null));
                 }
             }
-            path.Remove(source.Id);
-            return copy;
+            return result;
         }
-        return root=>Project(root,initialDepth,new HashSet<Guid>());
+        return Project;
     }
 }

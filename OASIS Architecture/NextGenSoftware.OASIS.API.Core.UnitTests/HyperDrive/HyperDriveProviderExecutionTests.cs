@@ -146,6 +146,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         providers.RegisterProvider(provider.Object);providers.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
         var manager=new HolonManager(null,dna,providers);var actor=Guid.NewGuid();
         var baseline=await manager.SaveHolonsAsync(new[]{holon},actor,providerType:ProviderType.SQLLiteDBOASIS);
+        holon.Name = "second actual edit"; // Compare two writes; an unchanged second save intentionally performs no I/O.
         var generic=await manager.SaveHolonsAsync<Holon>(new[]{holon},actor,providerType:ProviderType.SQLLiteDBOASIS);
         generic.IsError.Should().Be(baseline.IsError);generic.IsWarning.Should().Be(baseline.IsWarning);
         generic.IsSaved.Should().Be(baseline.IsSaved);generic.ErrorCount.Should().Be(baseline.ErrorCount);
@@ -208,6 +209,121 @@ public sealed partial class HyperDriveProviderExecutionTests
         remaining.Verify(x => x.SaveHolonAsync(holon, true, true, 0, true, false), uncertain ? Times.Never() : Times.Once());
     }
 
+    [Theory]
+    [InlineData(false, 0)] [InlineData(true, 0)]
+    [InlineData(false, 1)] [InlineData(true, 1)]
+    [InlineData(false, 2)] [InlineData(true, 2)]
+    public async Task NativeUncertaintyOverridesSuccessFlagsBeforeReplication(bool asynchronous, int wrapping)
+    {
+        var holon = new Holon { Id = Guid.NewGuid(), Name = "unconfirmed native result" };
+        Exception evidence = wrapping switch
+        {
+            0 => new UnreconciledMutationException(),
+            1 => new InvalidOperationException("wrapper", new UnreconciledMutationException()),
+            _ => new AggregateException(new IOException("other failure"), new UnreconciledMutationException())
+        };
+        var unconfirmed = new OASISResult<IHolon>(holon)
+        {
+            IsSaved = true, IsDeleted = true, Exception = evidence, Message = "original native evidence"
+        };
+        var primary = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "uncertain-primary");
+        var replica = CreateActiveProvider(ProviderType.MongoDBOASIS, "must-not-replay");
+        primary.Setup(x => x.SaveHolon(holon, true, true, 0, true, false)).Returns(unconfirmed);
+        primary.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false)).ReturnsAsync(unconfirmed);
+        var dna = CreateDna(HyperDriveModes.V2); dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        var providers = new ProviderManager(null, dna)
+        { IsAutoReplicationEnabled = true, IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false };
+        providers.RegisterProvider(primary.Object); providers.RegisterProvider(replica.Object);
+        var targets = new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS) };
+        providers.SetAndReplaceAutoReplicationListForProviders(targets).IsError.Should().BeFalse();
+        providers.SetAndReplaceAutoFailOverListForProviders(targets).IsError.Should().BeFalse();
+        var router = new OASISHyperDrive(providers);
+        var request = new StorageOperationRequest
+        { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.SQLLiteDBOASIS };
+        var result = asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+        result.IsError.Should().BeTrue(); result.IsSaved.Should().BeFalse(); result.IsDeleted.Should().BeFalse();
+        result.ErrorCount.Should().BeGreaterThan(0);
+        result.ErrorCode.Should().Be("HYPERDRIVE_NATIVE_RECONCILIATION_REQUIRED");
+        result.Exception.Should().BeSameAs(evidence); result.Result.Should().BeSameAs(holon);
+        result.Message.Should().Contain("original native evidence");
+        router.LastReplicationDiagnostic.Should().BeNull(); router.LastFailoverDiagnostic.Should().BeNull();
+        replica.Invocations.Should().NotContain(x => x.Method.Name.StartsWith("SaveHolon"));
+    }
+
+    [Theory]
+    [InlineData(false, false)] [InlineData(true, false)]
+    [InlineData(false, true)] [InlineData(true, true)]
+    public async Task HardDeleteReplicationUsesCommittedLogicalIdentityAcrossAllTargets(bool asynchronous, bool byKey)
+    {
+        var id = Guid.NewGuid(); const string nativeKey = "primary-only-native-key";
+        var deleted = new Holon { Id = id };
+        var primary = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "delete-primary");
+        var replica = CreateActiveProvider(ProviderType.MongoDBOASIS, "delete-replica");
+        var remaining = CreateActiveProvider(ProviderType.LocalFileOASIS, "delete-remaining");
+        var committed = new OASISResult<IHolon>(deleted) { IsDeleted = true, Message = "primary deletion" };
+        primary.Setup(x => x.DeleteHolon(id)).Returns(committed);
+        primary.Setup(x => x.DeleteHolonAsync(id)).ReturnsAsync(committed);
+        primary.Setup(x => x.DeleteHolon(nativeKey)).Returns(committed);
+        primary.Setup(x => x.DeleteHolonAsync(nativeKey)).ReturnsAsync(committed);
+        foreach (var target in new[] { replica, remaining })
+        {
+            target.Setup(x => x.DeleteHolon(id)).Returns(new OASISResult<IHolon>(new Holon { Id = id }) { IsDeleted = true });
+            target.Setup(x => x.DeleteHolonAsync(id)).ReturnsAsync(new OASISResult<IHolon>(new Holon { Id = id }) { IsDeleted = true });
+        }
+        var dna = CreateDna(HyperDriveModes.V2); dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        var providers = new ProviderManager(null, dna)
+        { IsAutoReplicationEnabled = true, IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false };
+        foreach (var provider in new[] { primary, replica, remaining }) providers.RegisterProvider(provider.Object);
+        providers.SetAndReplaceAutoReplicationListForProviders(new[] {
+            new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)
+        }).IsError.Should().BeFalse();
+        var request = new StorageOperationRequest { Operation = byKey ? "DeleteHolonByProviderKey" : "DeleteHolon",
+            HolonId = byKey ? Guid.Empty : id, ProviderKey = byKey ? nativeKey : null,
+            SoftDelete = false, PreferredProvider = ProviderType.SQLLiteDBOASIS };
+        var router = new OASISHyperDrive(providers);
+        var result = asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+        result.IsError.Should().BeFalse(); result.IsDeleted.Should().BeTrue(); result.Result.Should().BeSameAs(deleted);
+        result.Message.Should().Contain("primary deletion");
+        router.LastReplicationDiagnostic.Attempts.Should().HaveCount(2);
+        foreach (var target in new[] { replica, remaining })
+        {
+            target.Invocations.Count(x => x.Method.Name is "DeleteHolon" or "DeleteHolonAsync").Should().Be(1);
+            target.Invocations.Where(x => x.Method.Name is "DeleteHolon" or "DeleteHolonAsync")
+                .Should().OnlyContain(x => x.Arguments[0] is Guid && (Guid)x.Arguments[0] == id);
+        }
+        request.Operation.Should().Be(byKey ? "DeleteHolonByProviderKey" : "DeleteHolon");
+        request.ProviderKey.Should().Be(byKey ? nativeKey : null);
+    }
+
+    [Theory]
+    [InlineData(false, 0)] [InlineData(true, 0)]
+    [InlineData(false, 1)] [InlineData(true, 1)]
+    [InlineData(false, 2)] [InlineData(true, 2)]
+    public async Task InvalidHardDeleteAcknowledgementRequiresReconciliationBeforeReplication(bool asynchronous, int invalid)
+    {
+        var id = Guid.NewGuid();
+        IHolon? payload = invalid == 0 ? null : new Holon { Id = invalid == 1 ? Guid.Empty : Guid.NewGuid() };
+        var committed = new OASISResult<IHolon> { Result = payload, IsDeleted = true };
+        var primary = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "invalid-delete-evidence");
+        var replica = CreateActiveProvider(ProviderType.MongoDBOASIS, "must-not-delete");
+        primary.Setup(x => x.DeleteHolon(id)).Returns(committed);
+        primary.Setup(x => x.DeleteHolonAsync(id)).ReturnsAsync(committed);
+        var dna = CreateDna(HyperDriveModes.V2); dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        var providers = new ProviderManager(null, dna)
+        { IsAutoReplicationEnabled = true, IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false };
+        providers.RegisterProvider(primary.Object); providers.RegisterProvider(replica.Object);
+        providers.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS) });
+        var router = new OASISHyperDrive(providers);
+        var request = new StorageOperationRequest
+        { Operation = "DeleteHolon", HolonId = id, SoftDelete = false, PreferredProvider = ProviderType.SQLLiteDBOASIS };
+        var result = asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+        result.IsError.Should().BeTrue(); result.IsDeleted.Should().BeFalse(); result.Result.Should().BeSameAs(payload);
+        result.ErrorCode.Should().Be("HYPERDRIVE_COMMITTED_EVIDENCE_INVALID");
+        Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception).Should().BeTrue();
+        router.LastReplicationDiagnostic.Attempts.Should().BeEmpty();
+        replica.Invocations.Should().NotContain(x => x.Method.Name == "DeleteHolon" || x.Method.Name == "DeleteHolonAsync");
+    }
+
     private sealed class UnreconciledMutationException : InvalidOperationException, INativeMutationReconciliationRequired
     {
         public string OriginalTransactionId => "original-controlled-transaction";
@@ -245,10 +361,10 @@ public sealed partial class HyperDriveProviderExecutionTests
         var cause=new AggregateException(new IOException("ordinary error without identity"),
             new ReconciliationEvidenceException(""),new ReconciliationEvidenceException("tx-a",new ReconciliationEvidenceException("tx-b")),
             new ReconciliationEvidenceException("tx-a"));
-        primary.Setup(p=>p.SaveHolon(holon,true,true,0,true,false)).Returns(new OASISResult<IHolon>(holon){IsSaved=true});
-        primary.Setup(p=>p.SaveHolonAsync(holon,true,true,0,true,false)).ReturnsAsync(new OASISResult<IHolon>(holon){IsSaved=true});
-        replica.Setup(p=>p.SaveHolon(holon,true,true,0,true,false)).Returns(new OASISResult<IHolon>{IsError=true,Exception=cause,Message="unknown replica outcome"});
-        replica.Setup(p=>p.SaveHolonAsync(holon,true,true,0,true,false)).ReturnsAsync(new OASISResult<IHolon>{IsError=true,Exception=cause,Message="unknown replica outcome"});
+        primary.Setup(p=>p.SaveHolon(It.Is<IHolon>(h => h.Id == holon.Id),true,true,0,true,false)).Returns(new OASISResult<IHolon>(holon){IsSaved=true});
+        primary.Setup(p=>p.SaveHolonAsync(It.Is<IHolon>(h => h.Id == holon.Id),true,true,0,true,false)).ReturnsAsync(new OASISResult<IHolon>(holon){IsSaved=true});
+        replica.Setup(p=>p.SaveHolon(It.Is<IHolon>(h => h.Id == holon.Id),true,true,0,true,false)).Returns(new OASISResult<IHolon>{IsError=true,Exception=cause,Message="unknown replica outcome"});
+        replica.Setup(p=>p.SaveHolonAsync(It.Is<IHolon>(h => h.Id == holon.Id),true,true,0,true,false)).ReturnsAsync(new OASISResult<IHolon>{IsError=true,Exception=cause,Message="unknown replica outcome"});
         var dna=CreateDna(HyperDriveModes.V2);dna.OASIS.SubscriptionConfig.PlanType="Gold";
         var manager=new ProviderManager(null,dna){IsAutoReplicationEnabled=true,IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false};
         manager.RegisterProvider(primary.Object);manager.RegisterProvider(replica.Object);manager.RegisterProvider(later.Object);
@@ -886,16 +1002,16 @@ public sealed partial class HyperDriveProviderExecutionTests
             LoadedCount = 1
         };
         var provider = new Mock<IOASISStorageProvider> { CallBase = true };
-        provider.Setup(x => x.LoadAllAvatarsAsync(7)).ReturnsAsync(source);
+        provider.Setup(x => x.LoadAllAvatarsAsync(0)).ReturnsAsync(source);
 
         IOASISStorageProvider contract = provider.Object;
         var results = new[]
         {
-            await contract.LoadAvatarByVerificationTokenAsync("verification-token", 7),
-            await contract.LoadAvatarByResetTokenAsync("reset-token", 7),
-            await contract.LoadAvatarByRefreshTokenAsync("refresh-token", 7),
-            await contract.LoadAvatarByPublicKeyAsync("public-key", 7),
-            await contract.LoadAvatarByPrivateKeyAsync("private-key", 7)
+            await contract.LoadAvatarByVerificationTokenAsync("verification-token", 0),
+            await contract.LoadAvatarByResetTokenAsync("reset-token", 0),
+            await contract.LoadAvatarByRefreshTokenAsync("refresh-token", 0),
+            await contract.LoadAvatarByPublicKeyAsync("public-key", 0),
+            await contract.LoadAvatarByPrivateKeyAsync("private-key", 0)
         };
 
         results.Should().OnlyContain(result => result.Result == avatar && result.IsWarning &&
@@ -903,7 +1019,7 @@ public sealed partial class HyperDriveProviderExecutionTests
             result.DetailedMessage == "authoritative avatar collection detail" &&
             result.InnerMessages.Contains("secondary avatar index pending") &&
             result.MetaData["provider"] == "default-avatar-lookup");
-        provider.Verify(x => x.LoadAllAvatarsAsync(7), Times.Exactly(5));
+        provider.Verify(x => x.LoadAllAvatarsAsync(0), Times.Exactly(5));
         provider.Verify(x => x.LoadAllAvatars(It.IsAny<int>()), Times.Never);
     }
 
@@ -916,17 +1032,17 @@ public sealed partial class HyperDriveProviderExecutionTests
             MetaData = new Dictionary<string, string> { ["provider"] = "sync-default-avatar-lookup" }
         };
         var provider = new Mock<IOASISStorageProvider> { CallBase = true };
-        provider.Setup(x => x.LoadAllAvatars(4)).Returns(source);
+        provider.Setup(x => x.LoadAllAvatars(0)).Returns(source);
 
         IOASISStorageProvider contract = provider.Object;
-        var result = contract.LoadAvatarByVerificationToken("missing", 4);
+        var result = contract.LoadAvatarByVerificationToken("missing", 0);
 
         result.IsError.Should().BeTrue();
         result.ErrorCode.Should().Be("AVATAR_COLLECTION_PAYLOAD_REQUIRED");
         result.ErrorCount.Should().BeGreaterThan(0);
         result.DetailedMessage.Should().Be("provider returned no collection payload");
         result.MetaData["provider"].Should().Be("sync-default-avatar-lookup");
-        provider.Verify(x => x.LoadAllAvatars(4), Times.Once);
+        provider.Verify(x => x.LoadAllAvatars(0), Times.Once);
         provider.Verify(x => x.LoadAllAvatarsAsync(It.IsAny<int>()), Times.Never);
     }
 
@@ -1038,7 +1154,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var current = CreateActiveProvider(ProviderType.MongoDBOASIS, "current-mongo");
         var injected = CreateActiveProvider(ProviderType.IPFSOASIS, "injected-ipfs");
         var holonId = Guid.NewGuid();
-        var holon = new Mock<IHolon>().Object;
+        var holon = new Holon { Id = holonId };
         current.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
         injected.Setup(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0))
             .ReturnsAsync(new OASISResult<IHolon> { Result = holon });
@@ -1601,7 +1717,7 @@ public sealed partial class HyperDriveProviderExecutionTests
                 new OASISResult<IHolon>(new Holon
                 {
                     Id = saved.Id, Name = saved.Name, Description = saved.Description,
-                    HolonType = saved.HolonType,
+                    HolonType = saved.HolonType, ParentHolonId = saved.ParentHolonId,
                     MetaData = new Dictionary<string, object>(saved.MetaData)
                 }));
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
@@ -3973,7 +4089,7 @@ public sealed partial class HyperDriveProviderExecutionTests
     public void HolonManagerUsesItsInjectedDnaAndProviderManagerForV2Routing()
     {
         var holonId = Guid.NewGuid();
-        var holon = new Mock<IHolon>().Object;
+        var holon = new Holon { Id = holonId };
         var current = CreateActiveProvider(ProviderType.MongoDBOASIS, "current-mongo");
         var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "selected-sqlite");
         current.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
@@ -4280,8 +4396,6 @@ public sealed partial class HyperDriveProviderExecutionTests
             DeletedCount = 1
         };
         var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "delete-diagnostics");
-        selected.Setup(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0))
-            .ReturnsAsync(new OASISResult<IHolon>(holon));
         selected.Setup(x => x.DeleteHolonAsync(holonId)).ReturnsAsync(providerResult);
         var dna = CreateDna(HyperDriveModes.V2);
         var providerManager = new ProviderManager(null, dna)
@@ -4303,6 +4417,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         result.MetaData.Should().Contain("provider", "delete-diagnostics");
         result.Result.Should().NotBeNull();
         result.Result.Id.Should().Be(holonId);
+        selected.Verify(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0), Times.Never);
         selected.VerifyAll();
     }
 
@@ -5869,8 +5984,8 @@ public sealed partial class HyperDriveProviderExecutionTests
         replica.Object.IsProviderActivated = paid;
         foreach (var provider in new[] { primary, replica })
         {
-            provider.Setup(x => x.SaveHolon(holon, true, true, 0, true, false)).Returns(new OASISResult<IHolon>(holon));
-            provider.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false)).ReturnsAsync(new OASISResult<IHolon>(holon));
+            provider.Setup(x => x.SaveHolon(It.Is<IHolon>(h => h.Id == holon.Id), true, true, 0, true, false)).Returns(new OASISResult<IHolon>(holon));
+            provider.Setup(x => x.SaveHolonAsync(It.Is<IHolon>(h => h.Id == holon.Id), true, true, 0, true, false)).ReturnsAsync(new OASISResult<IHolon>(holon));
         }
         var dna = CreateDna(HyperDriveModes.V2); dna.OASIS.SubscriptionConfig.PlanType = paid ? "Gold" : "Free";
         var manager = new ProviderManager(null, dna) { IsAutoReplicationEnabled = true, IsAutoFailOverEnabled = false };
@@ -5886,8 +6001,8 @@ public sealed partial class HyperDriveProviderExecutionTests
         if (!paid) router.LastReplicationDiagnostic.Attempts.Single().ErrorCode.Should().Be("HYPERDRIVE_SUBSCRIPTION_PROVIDER_DENIED");
         var explicitReplication = await router.ReplicateRequestAsync<IHolon>(request);
         explicitReplication.IsError.Should().Be(!paid, explicitReplication.Message);
-        replica.Verify(x => x.SaveHolon(holon, true, true, 0, true, false), paid && !asynchronous ? Times.Once() : Times.Never());
-        replica.Verify(x => x.SaveHolonAsync(holon, true, true, 0, true, false), paid ? Times.Exactly(asynchronous ? 2 : 1) : Times.Never());
+        replica.Verify(x => x.SaveHolon(It.Is<IHolon>(h => h.Id == holon.Id), true, true, 0, true, false), paid && !asynchronous ? Times.Once() : Times.Never());
+        replica.Verify(x => x.SaveHolonAsync(It.Is<IHolon>(h => h.Id == holon.Id), true, true, 0, true, false), paid ? Times.Exactly(asynchronous ? 2 : 1) : Times.Never());
         if (!paid)
         {
             replica.Verify(x => x.ActivateProvider(), Times.Never);
@@ -6239,11 +6354,11 @@ public sealed partial class HyperDriveProviderExecutionTests
         var first = CreateActiveProvider(ProviderType.IPFSOASIS, "first");
         var second = CreateActiveProvider(ProviderType.Neo4jOASIS, "second");
         var holon = new Holon { Id = Guid.NewGuid() };
-        primary.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false))
+        primary.Setup(x => x.SaveHolonAsync(It.Is<IHolon>(h => h.Id == holon.Id), true, true, 0, true, false))
             .Callback(() => calls.Add("primary")).ReturnsAsync(new OASISResult<IHolon>(holon));
-        first.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false))
+        first.Setup(x => x.SaveHolonAsync(It.Is<IHolon>(h => h.Id == holon.Id), true, true, 0, true, false))
             .Callback(() => calls.Add("first")).ReturnsAsync(new OASISResult<IHolon>(holon));
-        second.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false))
+        second.Setup(x => x.SaveHolonAsync(It.Is<IHolon>(h => h.Id == holon.Id), true, true, 0, true, false))
             .Callback(() => calls.Add("second")).ReturnsAsync(new OASISResult<IHolon>(holon));
         manager.RegisterProvider(primary.Object);
         manager.RegisterProvider(first.Object);
@@ -6281,12 +6396,12 @@ public sealed partial class HyperDriveProviderExecutionTests
         var failed = CreateActiveProvider(ProviderType.IPFSOASIS, "failed");
         var recovered = CreateActiveProvider(ProviderType.Neo4jOASIS, "recovered");
         var holon = new Holon { Id = Guid.NewGuid() };
-        primary.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false))
+        primary.Setup(x => x.SaveHolonAsync(It.Is<IHolon>(h => h.Id == holon.Id), true, true, 0, true, false))
             .ReturnsAsync(new OASISResult<IHolon>(holon));
-        failed.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false))
+        failed.Setup(x => x.SaveHolonAsync(It.Is<IHolon>(h => h.Id == holon.Id), true, true, 0, true, false))
             .ReturnsAsync(new OASISResult<IHolon>
                 { IsError = true, ErrorCode = "REPLICA_UNAVAILABLE", Message = "Replica unavailable." });
-        recovered.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false))
+        recovered.Setup(x => x.SaveHolonAsync(It.Is<IHolon>(h => h.Id == holon.Id), true, true, 0, true, false))
             .ReturnsAsync(new OASISResult<IHolon>(holon));
         manager.RegisterProvider(primary.Object);
         manager.RegisterProvider(failed.Object);

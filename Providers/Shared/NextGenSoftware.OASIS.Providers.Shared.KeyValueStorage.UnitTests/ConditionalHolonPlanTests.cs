@@ -9,6 +9,40 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public sealed class ConditionalHolonPlanTests
 {
+    [DataTestMethod]
+    [DataRow("source")] [DataRow("target")] [DataRow("plain")] [DataRow("reordered")]
+    public void CapablePlanBindsReplicationEnrollmentWithoutChangingUnenrolledIntent(string changed)
+    {
+        var root=new Holon{Id=Guid.NewGuid()};var authority=ProviderType.MongoDBOASIS;
+        var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),Guid.NewGuid(),authority,
+            new[]{new HolonWriteCondition(root.Id,null)}),ConditionalHolonOperation.Save,new[]{root});
+        var baseline=ConditionalHolonPlan.CreateReplicating(request,authority,new HolonReplicationEnrollment("source",new[]{"a","b"}));
+        var actual=changed=="plain" ? ConditionalHolonPlan.Create(request,authority)
+            :ConditionalHolonPlan.CreateReplicating(request,authority,new HolonReplicationEnrollment(changed=="source" ? "other":"source",
+                changed=="target" ? new[]{"a","c"}:new[]{"b","a"}));
+        if(changed=="reordered")Assert.AreEqual(baseline.Fingerprint,actual.Fingerprint);else Assert.AreNotEqual(baseline.Fingerprint,actual.Fingerprint);
+    }
+
+    [TestMethod]
+    public void ExplicitReplicationPlanRejectsDisagreeingEmbeddedEnrollment()
+    {
+        var root=new Holon{Id=Guid.NewGuid()};var authority=ProviderType.MongoDBOASIS;
+        var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),Guid.NewGuid(),authority,
+            new[]{new HolonWriteCondition(root.Id,null)},new HolonReplicationEnrollment("source",new[]{"a"})),ConditionalHolonOperation.Save,new[]{root});
+        Assert.ThrowsException<ArgumentException>(()=>ConditionalHolonPlan.CreateReplicating(request,authority,new HolonReplicationEnrollment("other",new[]{"a"})));
+        Assert.ThrowsException<ArgumentNullException>(()=>ConditionalHolonPlan.CreateReplicating(request,authority,null));
+    }
+
+    [TestMethod]
+    public void PlainConditionalPlanCannotDiscardRequiredReplicationEnrollment()
+    {
+        var root=new Holon{Id=Guid.NewGuid()};var authority=ProviderType.MongoDBOASIS;
+        var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),Guid.NewGuid(),authority,
+            new[]{new HolonWriteCondition(root.Id,null)},new HolonReplicationEnrollment("source",new[]{"target"})),
+            ConditionalHolonOperation.Save,new[]{root});
+        Assert.ThrowsException<ArgumentException>(()=>ConditionalHolonPlan.Create(request,authority));
+    }
+
     [TestMethod]
     public void AuthorityMetadataOtherThanAssignedRevisionRemainsBound()
     {
