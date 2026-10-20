@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -57,6 +58,10 @@ public partial class DynamoDBOASIS
         {
             OASISErrorHandling.HandleError(ref result, "AvatarDetail changed before lifecycle commit.", cause);
             result.ErrorCode = StorageLifecycleConflictException.ErrorCode;
+        }
+        catch (AmazonDynamoDBException cause) when (IsNativeValidationRejection(cause))
+        {
+            OASISErrorHandling.HandleError(ref result, cause.Message, cause);
         }
         catch (Exception cause)
         {

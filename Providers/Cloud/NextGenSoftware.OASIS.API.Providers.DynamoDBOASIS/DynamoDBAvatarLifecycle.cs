@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -103,6 +104,10 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
         {
             result.IsError=true;result.Exception=cause;result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
             result.Message="DynamoDB avatar/detail changed before lifecycle commit; transaction canceled atomically.";
+        }
+        catch(AmazonDynamoDBException cause) when(IsNativeValidationRejection(cause))
+        {
+            OASISErrorHandling.HandleError(ref result,cause.Message,cause);
         }
         catch(Exception cause)
         {
