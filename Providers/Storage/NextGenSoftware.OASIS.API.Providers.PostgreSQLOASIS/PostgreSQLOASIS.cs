@@ -118,7 +118,7 @@ CREATE INDEX IF NOT EXISTS ix_oasis_holons_type   ON oasis_holons(holon_type);";
         // ─── Helpers ─────────────────────────────────────────────────────────────
 
         private static string Serialize(object obj) => Core.Serialization.StoredRecordJson.Serialize(obj);
-        private static T? Deserialize<T>(string json) => Core.Serialization.StoredRecordJson.DeserializeStored<T>(json);
+        private static T? Deserialize<T>(string json) where T:class,IHolonBase => ReadStoredRecordAsync<T>(json,0).GetAwaiter().GetResult();
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
 
@@ -154,7 +154,7 @@ ON CONFLICT (id) DO UPDATE SET
                 cmd.Parameters.AddWithValue("@is_deleted", avatar.IsDeleted);
                 cmd.Parameters.AddWithValue("@data_json", Serialize(avatar));
                 publication.ValidateUnchanged();
-                await ExecuteStoredWriteAsync(cmd,avatar.Id);
+                avatar=await ExecuteRecordWriteAsync(cmd,"oasis_avatars",avatar,publication.ValidateUnchanged);
                 PublishAcknowledgedIdentity(source,avatar,publication);
                 result.IsSaved=true;
                 result.Result = source;
@@ -173,16 +173,18 @@ ON CONFLICT (id) DO UPDATE SET
 
         // ─── Avatar loading ───────────────────────────────────────────────────────
 
-        private async Task<Avatar?> LoadAvatarByColumnAsync(string column, object value)
+        private async Task<Avatar?> LoadAvatarByIdAsync(Guid id,int version=0)
         {
-            string sql = $"SELECT data_json FROM oasis_avatars WHERE {column}=@val AND is_deleted=FALSE LIMIT 1";
+            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            if(id==Guid.Empty)throw new ArgumentException("A nonempty avatar identity is required.",nameof(id));
+            const string sql = "SELECT data_json FROM oasis_avatars WHERE id=@val AND is_deleted=FALSE LIMIT 1";
             await using var conn = new NpgsqlConnection(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@val", value);
+            cmd.Parameters.AddWithValue("@val", id);
             var scalar = await cmd.ExecuteScalarAsync();
             if (scalar == null) return null;
-            return Deserialize<Avatar>(scalar.ToString()!);
+            return await ReadKeyedStoredRecordAsync<Avatar>(id,scalar.ToString()!,version);
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -190,9 +192,9 @@ ON CONFLICT (id) DO UPDATE SET
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatar = await LoadAvatarByColumnAsync("id", id);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No avatar found with ID '{id}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PostgreSQLOASIS: Avatar loaded for ID '{id}'.";
+                var avatar = await LoadAvatarByIdAsync(id,version);
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No avatar found with ID '{id}'.");result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result; }
+                result.Result = avatar; result.IsLoaded=true;result.LoadedCount=1;result.IsError = false; result.Message = $"PostgreSQLOASIS: Avatar loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading avatar by ID '{id}': {ex.Message}"); }
             return result;
@@ -225,17 +227,18 @@ ON CONFLICT (id) DO UPDATE SET
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 var avatars = new List<IAvatar>();
                 await using var conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand("SELECT data_json FROM oasis_avatars WHERE is_deleted=FALSE", conn);
+                await using var cmd = new NpgsqlCommand("SELECT id,data_json FROM oasis_avatars WHERE is_deleted=FALSE", conn);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    var a = Deserialize<Avatar>(reader.GetString(0));
+                    var a = await ReadKeyedStoredRecordAsync<Avatar>(reader.GetGuid(0),reader.GetString(1),version);
                     if (a != null) avatars.Add(a);
                 }
-                result.Result = avatars; result.IsError = false; result.Message = $"PostgreSQLOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsLoaded=true;result.LoadedCount=avatars.Count;result.IsError = false; result.Message = $"PostgreSQLOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading all avatars: {ex.Message}"); }
             return result;
@@ -353,7 +356,7 @@ ON CONFLICT (id) DO UPDATE SET
                 cmd.Parameters.AddWithValue("@email", avatarDetail.Email ?? "");
                 cmd.Parameters.AddWithValue("@data_json", Serialize(avatarDetail));
                 publication.ValidateUnchanged();
-                await ExecuteStoredWriteAsync(cmd,avatarDetail.Id);
+                avatarDetail=await ExecuteRecordWriteAsync(cmd,"oasis_avatar_details",avatarDetail,publication.ValidateUnchanged);
                 PublishAcknowledgedIdentity(source,avatarDetail,publication);
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "PostgreSQLOASIS: AvatarDetail saved.";
             }
@@ -368,13 +371,16 @@ ON CONFLICT (id) DO UPDATE SET
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 await using var conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new NpgsqlCommand("SELECT data_json FROM oasis_avatar_details WHERE id=@id LIMIT 1", conn);
                 cmd.Parameters.AddWithValue("@id", id);
                 var scalar = await cmd.ExecuteScalarAsync();
-                if (scalar == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No avatar detail found for ID '{id}'."); return result; }
-                result.Result = Deserialize<AvatarDetail>(scalar.ToString()!); result.IsError = false;
+                if (scalar == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No avatar detail found for ID '{id}'.");result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result; }
+                result.Result = await ReadKeyedStoredRecordAsync<AvatarDetail>(id,scalar.ToString()!,version);
+                if(result.Result==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Requested avatar-detail version was not found.";return result;}result.IsLoaded=true;
+                result.IsError = false;
                 result.Message = $"PostgreSQLOASIS: AvatarDetail loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading avatar detail for '{id}': {ex.Message}"); }
@@ -398,17 +404,18 @@ ON CONFLICT (id) DO UPDATE SET
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 var details = new List<IAvatarDetail>();
                 await using var conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand("SELECT data_json FROM oasis_avatar_details", conn);
+                await using var cmd = new NpgsqlCommand("SELECT id,data_json FROM oasis_avatar_details", conn);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    var d = Deserialize<AvatarDetail>(reader.GetString(0));
+                    var d = await ReadKeyedStoredRecordAsync<AvatarDetail>(reader.GetGuid(0),reader.GetString(1),version);
                     if (d != null) details.Add(d);
                 }
-                result.Result = details; result.IsError = false; result.Message = $"PostgreSQLOASIS: Loaded {details.Count} avatar detail(s).";
+                result.Result = details; result.IsLoaded=true;result.LoadedCount=details.Count;result.IsError = false; result.Message = $"PostgreSQLOASIS: Loaded {details.Count} avatar detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading all avatar details: {ex.Message}"); }
             return result;
@@ -450,7 +457,7 @@ ON CONFLICT (id) DO UPDATE SET
                 cmd.Parameters.AddWithValue("@is_deleted", holon.IsDeleted);
                 cmd.Parameters.AddWithValue("@data_json", Serialize(holon));
                 publication.ValidateUnchanged();
-                await ExecuteStoredWriteAsync(cmd,holon.Id);
+                holon=await ExecuteRecordWriteAsync(cmd,"oasis_holons",holon,publication.ValidateUnchanged);
                 PublishAcknowledgedIdentity(source,holon,publication);
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"PostgreSQLOASIS: Holon '{holon.Name}' saved.";
             }
@@ -481,15 +488,16 @@ ON CONFLICT (id) DO UPDATE SET
 
         // ─── Holon loading ────────────────────────────────────────────────────────
 
-        private async Task<Holon?> LoadHolonByIdAsync(Guid id)
+        private async Task<Holon?> LoadHolonByIdAsync(Guid id,int version=0)
         {
+            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
             await using var conn = new NpgsqlConnection(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand("SELECT data_json FROM oasis_holons WHERE id=@id AND is_deleted=FALSE LIMIT 1", conn);
             cmd.Parameters.AddWithValue("@id", id);
             var scalar = await cmd.ExecuteScalarAsync();
             if (scalar == null) return null;
-            return Deserialize<Holon>(scalar.ToString()!);
+            return await ReadKeyedStoredRecordAsync<Holon>(id,scalar.ToString()!,version);
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -497,9 +505,13 @@ ON CONFLICT (id) DO UPDATE SET
             var result = new OASISResult<IHolon>();
             try
             {
-                var holon = await LoadHolonByIdAsync(id);
-                if (holon == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No holon found with ID '{id}'."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = $"PostgreSQLOASIS: Holon loaded for ID '{id}'.";
+                if(maxChildDepth<0)throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                var holon = await LoadHolonByIdAsync(id,version);
+                if (holon == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No holon found with ID '{id}'.");result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result; }
+                var pool=loadChildren&&loadChildrenFromProvider?await ReadHolonRowsAsync(0):new List<IHolon>{holon};
+                var project=HolonGraphProjection.Create(pool,loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider,
+                    row=>Core.Serialization.StoredRecordJson.DeserializeStored<Holon>(Core.Serialization.StoredRecordJson.Serialize(row)));
+                result.Result = project(holon);result.IsLoaded=true;result.LoadedCount=1;result.IsError = false; result.Message = $"PostgreSQLOASIS: Holon loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading holon '{id}': {ex.Message}"); }
             return result;
@@ -520,50 +532,13 @@ ON CONFLICT (id) DO UPDATE SET
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                string sql = type == HolonType.All
-                    ? "SELECT data_json FROM oasis_holons WHERE is_deleted=FALSE"
-                    : "SELECT data_json FROM oasis_holons WHERE is_deleted=FALSE AND holon_type=@holon_type";
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                if (type != HolonType.All) cmd.Parameters.AddWithValue("@holon_type", (int)type);
-                var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
-                result.Result = holons; result.IsError = false; result.Message = $"PostgreSQLOASIS: Loaded {holons.Count} holon(s).";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading all holons: {ex.Message}"); }
-            return result;
-        }
+            => await QueryStoredHolonsAsync(type,null,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                string sql = type == HolonType.All
-                    ? "SELECT data_json FROM oasis_holons WHERE parent_holon_id=@pid AND is_deleted=FALSE"
-                    : "SELECT data_json FROM oasis_holons WHERE parent_holon_id=@pid AND is_deleted=FALSE AND holon_type=@holon_type";
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@pid", id);
-                if (type != HolonType.All) cmd.Parameters.AddWithValue("@holon_type", (int)type);
-                var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
-                result.Result = holons; result.IsError = false; result.Message = $"PostgreSQLOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
-            return result;
-        }
+            => await QueryStoredHolonsAsync(type,row=>row.ParentHolonId==id,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,rootsAreChildren:true);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -614,29 +589,7 @@ ON CONFLICT (id) DO UPDATE SET
         // ─── Search ───────────────────────────────────────────────────────────────
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var result = new OASISResult<ISearchResults>();
-            try
-            {
-                var holons = new List<IHolon>();
-                string? query = searchParams.SearchGroups?
-                    .OfType<SearchTextGroup>()
-                    .FirstOrDefault()?.SearchQuery;
-                string sql = string.IsNullOrEmpty(query)
-                    ? "SELECT data_json FROM oasis_holons WHERE is_deleted=FALSE"
-                    : "SELECT data_json FROM oasis_holons WHERE is_deleted=FALSE AND (data_json::jsonb->>'Name' ILIKE @q OR data_json::jsonb->>'Description' ILIKE @q)";
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("@q", $"%{query}%");
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
-                var sr = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
-                result.Result = sr; result.IsError = false; result.Message = $"PostgreSQLOASIS: Found {holons.Count} holon(s).";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+            => await SearchStoredRecordsAsync(searchParams,loadChildren,recursive,maxChildDepth,version);
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
             => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
@@ -644,61 +597,13 @@ ON CONFLICT (id) DO UPDATE SET
         // ─── Metadata queries ─────────────────────────────────────────────────────
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                string sql = $"SELECT data_json FROM oasis_holons WHERE is_deleted=FALSE AND data_json::jsonb->'metaData'->>@key = @val";
-                if (type != HolonType.All) sql += " AND holon_type=@holon_type";
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@key", metaKey);
-                cmd.Parameters.AddWithValue("@val", metaValue);
-                if (type != HolonType.All) cmd.Parameters.AddWithValue("@holon_type", (int)type);
-                var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
-                result.Result = holons; result.IsError = false;
-                result.Message = $"PostgreSQLOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+            => await QueryStoredMetadataAsync(metaKey,metaValue,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0) { OASISErrorHandling.HandleError(ref result, "PostgreSQLOASIS: No metadata filters provided."); return result; }
-            try
-            {
-                var conditions = metaKeyValuePairs.Select((kvp, i) => $"data_json::jsonb->'metaData'->>@k{i} = @v{i}").ToList();
-                string join = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? " OR " : " AND ";
-                string sql = $"SELECT data_json FROM oasis_holons WHERE is_deleted=FALSE AND ({string.Join(join, conditions)})";
-                if (type != HolonType.All) sql += " AND holon_type=@holon_type";
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                int idx = 0;
-                foreach (var kvp in metaKeyValuePairs)
-                {
-                    cmd.Parameters.AddWithValue($"@k{idx}", kvp.Key);
-                    cmd.Parameters.AddWithValue($"@v{idx}", kvp.Value);
-                    idx++;
-                }
-                if (type != HolonType.All) cmd.Parameters.AddWithValue("@holon_type", (int)type);
-                var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
-                result.Result = holons; result.IsError = false;
-                result.Message = $"PostgreSQLOASIS: Loaded {holons.Count} holon(s) matching metadata filter.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+            => await QueryStoredMetadataAsync(metaKeyValuePairs,metaKeyValuePairMatchMode,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -714,34 +619,18 @@ ON CONFLICT (id) DO UPDATE SET
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => await LoadAllHolonsAsync();
+            => await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                const string sql = "SELECT data_json FROM oasis_holons WHERE is_deleted=FALSE AND data_json::jsonb->>'avatarId'=@aid";
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@aid", avatarId.ToString());
-                var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
-                result.Result = holons; result.IsError = false; result.Message = $"PostgreSQLOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+            => await QueryStoredHolonsAsync(HolonType.All,row=>row.CreatedByAvatarId==avatarId||row.ParentHolonId==avatarId,true,true,0,0,true,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername,version);
             if (avatarResult.IsError || avatarResult.Result == null)
             {
                 var r = new OASISResult<IEnumerable<IHolon>>();
@@ -755,7 +644,7 @@ ON CONFLICT (id) DO UPDATE SET
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress,version);
             if (avatarResult.IsError || avatarResult.Result == null)
             {
                 var r = new OASISResult<IEnumerable<IHolon>>();
