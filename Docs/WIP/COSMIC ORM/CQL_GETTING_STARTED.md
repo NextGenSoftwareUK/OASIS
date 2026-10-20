@@ -7,7 +7,7 @@
 | Area | Available now | Remaining |
 |---|---|---|
 | Expressions | Where, AND/OR/NOT, scalar comparisons, null tests, ordinal string matching, bounded scalar-array membership; annotated scalar member paths | Wider expression forms, field-to-field comparisons |
-| Metadata | Nested literal paths, Exists, IsNull; SQLite/MongoDB string/bool/int/long comparisons, membership and supported strings; Guid/Guid? equality and membership; MongoDB exact UTC DateTime/DateTime? comparisons and membership | SQLite date metadata; native decimal/double/enum metadata predicates |
+| Metadata | Nested literal paths, Exists, IsNull; SQLite/MongoDB string/bool/int/long comparisons, membership and supported strings; Guid/Guid? equality and membership; UTC DateTime/DateTime? comparisons and membership over each provider's declared storage domain | Native decimal/double/enum metadata predicates |
 | Scope | Current default, named providers, all eligible targets; capability admission before I/O | Automatic authenticated WEB4 target discovery and policy routing |
 | Native execution | SQLite SQL and MongoDB BSON expressions, cancellation and result/query budgets; MongoDB scan deadline and streamed payload budget | Neo4j/other adapters, wider deadline/cost policy |
 | Returned entities | V2 typed leaf entities, metadata hydration/decryption, clean tracking, conditional save integration | Child loading options, relationship predicates, broader entity-kind mapping |
@@ -111,6 +111,14 @@ foreach (var group in result.Result.Providers)
 maximumResults is a total result safety budget, not pagination or Take. Exceeding it returns an error rather than publishing a truncated successful result. Results retain provider groups; there is no implicit identity deduplication or cross-provider winner selection.
 
 ## Membership and strings
+
+Date predicates use UTC literals and keep .NET tick precision. SQLite admits its canonical UTC JSON text, while MongoDB uses native BSON dates plus the existing exact-tick companion. Choose targets whose declared metadata representation matches your data; the planner does not parse arbitrary timestamp strings or numeric epochs. [SQLite date domain and validation](CQL_SCALAR_METADATA.md#utc-dates), [MongoDB exact date contract](CQL_MONGO_NATIVE.md#utc-metadata-date-increment).
+
+```csharp
+var since = new DateTime(2026, 10, 20, 12, 0, 0, DateTimeKind.Utc).AddTicks(1);
+var dated = CosmicQuery<Holon>.Create().Where(h =>
+    CosmicQueryMetadata.Value<DateTime>(h, "events", "recordedAt") >= since);
+```
 
 For MongoDB, the same planning/execution API accepts an activated MongoDB adapter and `ProviderType.MongoDBOASIS`. Its profile revalidates predicates before repository access, uses literal BSON values and binary collation, and returns clean leaf entities through HolonManager. It enforces count/query/payload budgets and a native deadline. See [MongoDB native CQL examples, exact evidence and remaining limits](CQL_MONGO_NATIVE.md) before choosing provider-specific scalar features.
 

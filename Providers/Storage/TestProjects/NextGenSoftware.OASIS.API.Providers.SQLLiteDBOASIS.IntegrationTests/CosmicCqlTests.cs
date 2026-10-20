@@ -246,7 +246,7 @@ public partial class SQLLiteDBOASISIntegrationTests
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
         var cutoff = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var metadata = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => CosmicQueryMetadata.Value<DateTime>(h, "score") > cutoff, overbroad: true));
+        var metadata = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => CosmicQueryMetadata.Value<HolonType>(h, "score") == HolonType.Quest, overbroad: true));
         metadata.IsError.Should().BeTrue(); metadata.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
         var date = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => h.CreatedDate > cutoff, overbroad: true));
         date.IsError.Should().BeTrue(); date.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
