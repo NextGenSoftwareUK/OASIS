@@ -10,6 +10,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 public partial class SQLLiteDBOASIS
 {
+    /// <summary>Exact immutable native predicate contract; it grants no caller authorization.</summary>
+    public static CosmicQueryCapabilities CqlCapabilities => SqliteCqlContract.Capabilities;
+
     /// <summary>Native leaf-row execution of an admitted SQLite-only plan. WEB4 authorization is a separate required boundary.</summary>
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon

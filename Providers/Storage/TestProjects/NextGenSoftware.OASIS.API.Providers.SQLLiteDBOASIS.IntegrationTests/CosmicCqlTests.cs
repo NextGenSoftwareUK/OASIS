@@ -10,17 +10,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
 public partial class SQLLiteDBOASISIntegrationTests
 {
-    private static CosmicQueryPlan<Holon> CqlPlan(Expression<Func<Holon, bool>> predicate)
+    private static CosmicQueryPlan<Holon> CqlPlan(Expression<Func<Holon, bool>> predicate, bool overbroad = false)
     {
         var scope = CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS).Result;
         var query = CosmicQuery<Holon>.Create(scope).Where(predicate);
         query.IsError.Should().BeFalse(query.Message);
         var features = CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not |
             CosmicQueryFeatures.Metadata | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant;
-        var capability = new CosmicQueryCapabilities(features, new[] { typeof(string), typeof(int), typeof(bool), typeof(Guid), typeof(HolonType), typeof(DateTime) },
-            System.Enum.GetValues<CosmicQueryComparisonOperator>());
+        var capability = overbroad ? new CosmicQueryCapabilities(features, new[] { typeof(string), typeof(int), typeof(bool), typeof(Guid), typeof(HolonType), typeof(DateTime) },
+            System.Enum.GetValues<CosmicQueryComparisonOperator>()) : SQLLiteDBOASIS.CqlCapabilities;
         var plan = CosmicQueryPlanner.Plan(query.Result, ProviderType.SQLLiteDBOASIS, new[] { new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, capability) });
         plan.IsError.Should().BeFalse(plan.Message); return plan.Result;
+    }
+
+    [Fact]
+    public void CosmicCqlProductionCapabilitiesRejectUnmappedFieldsBeforeExecution()
+    {
+        var profile = SQLLiteDBOASIS.CqlCapabilities;
+        profile.RestrictsCanonicalFields.Should().BeTrue();
+        var unsupported = new Expression<Func<Holon, bool>>[] {
+            h => h.CustomKey == "key", h => h.IsDeleted,
+            h => CosmicQueryMetadata.Value<int>(h, "score") > 2
+        };
+        foreach (var predicate in unsupported)
+        {
+            var query = CosmicQuery<Holon>.Create().Where(predicate).Result;
+            var plan = CosmicQueryPlanner.Plan(query, ProviderType.SQLLiteDBOASIS,
+                new[] { new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, profile) });
+            plan.IsError.Should().BeTrue(); plan.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED"); plan.Result.Should().BeNull();
+        }
+        File.Exists(_databasePath).Should().BeFalse();
     }
 
     [Theory]
@@ -57,10 +76,10 @@ public partial class SQLLiteDBOASISIntegrationTests
     public async Task CosmicCqlUnsupportedPathsRejectBeforeOpeningDatabase()
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
-        var metadata = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => CosmicQueryMetadata.Value<int>(h, "score") > 2));
+        var metadata = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => CosmicQueryMetadata.Value<int>(h, "score") > 2, overbroad: true));
         metadata.IsError.Should().BeTrue(); metadata.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
         var cutoff = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var date = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => h.CreatedDate > cutoff));
+        var date = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => h.CreatedDate > cutoff, overbroad: true));
         date.IsError.Should().BeTrue(); date.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
         File.Exists(_databasePath).Should().BeFalse();
     }

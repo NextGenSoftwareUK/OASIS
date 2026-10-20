@@ -46,10 +46,6 @@ public partial class HolonRepository
     private sealed class CqlSqlTranslator
     {
         internal readonly List<SqliteParameter> Parameters = new();
-        private static readonly HashSet<string> Strings = new(StringComparer.Ordinal) { "Name", "Description" };
-        private static readonly HashSet<string> Integers = new(StringComparer.Ordinal) { "Version", "HolonType" };
-        private static readonly HashSet<string> Booleans = new(StringComparer.Ordinal) { "IsActive", "IsPublic" };
-        private static readonly HashSet<string> Guids = new(StringComparer.Ordinal) { "Id", "ParentHolonId", "VersionId", "PreviousVersionId", "CreatedByAvatarId", "ModifiedByAvatarId" };
         internal string Translate(CosmicQueryPredicate predicate)
         {
             if (predicate is CosmicQueryBoolean boolean) return boolean.Value ? "1" : "0";
@@ -59,10 +55,9 @@ public partial class HolonRepository
             if (predicate is not CosmicQueryComparison comparison || comparison.Path.IsMetadata || comparison.Path.Segments.Count != 1)
                 throw new NotSupportedException("SQLite CQL does not yet admit this predicate/path.");
             var name = comparison.Path.Segments[0];
-            var equality = comparison.Operator == CosmicQueryComparisonOperator.Equal || comparison.Operator == CosmicQueryComparisonOperator.NotEqual;
-            var text = Strings.Contains(name); var integer = Integers.Contains(name); var booleanField = Booleans.Contains(name); var guid = Guids.Contains(name);
-            if ((!text && !integer && !booleanField && !guid) || (!integer && !equality))
+            if (!SqliteCqlContract.Fields.TryGetValue(name, out var field) || field.ValueType != comparison.Path.ValueType || !field.Comparisons.Contains(comparison.Operator))
                 throw new NotSupportedException("SQLite CQL field/operator is unsupported: " + name + "/" + comparison.Operator);
+            var text = field.ValueType == typeof(string); var booleanField = field.ValueType == typeof(bool); var guid = field.ValueType == typeof(Guid);
             // Identifiers originate only in the fixed column whitelist, never in caller text.
             var column = "\"" + name + "\"";
             if (guid)
