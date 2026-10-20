@@ -41,7 +41,7 @@ public partial class DynamoHistoryNativeTests
     private sealed class FaultClient:AmazonDynamoDBClient
     {
         public string Mode="normal";public int Writes;public Func<Task>? BeforePut;
-        public bool LoseTransactionReturn;public int Transactions;public string? TransactionToken;
+        public bool LoseTransactionReturn;public int Transactions;public string? TransactionToken;public Func<Task>? BeforeTransaction;
         public readonly IOException Lost=new("owned response dropped after actual SDK commit");
         public FaultClient():base(new BasicAWSCredentials("ownedhistorytest","ownedhistorytest"),Configuration()){}
         public override async Task<PutItemResponse> PutItemAsync(PutItemRequest request,CancellationToken cancellationToken=default)
@@ -55,6 +55,7 @@ public partial class DynamoHistoryNativeTests
         public override async Task<TransactWriteItemsResponse> TransactWriteItemsAsync(TransactWriteItemsRequest request,CancellationToken token=default)
         {
             Transactions++;TransactionToken=request.ClientRequestToken;
+            if(BeforeTransaction!=null){var callback=BeforeTransaction;BeforeTransaction=null;await callback();}
             var actual=await base.TransactWriteItemsAsync(request,token);
             if(LoseTransactionReturn)throw Lost;
             return actual;
