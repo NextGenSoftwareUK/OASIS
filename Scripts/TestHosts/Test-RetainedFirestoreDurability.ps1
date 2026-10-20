@@ -192,7 +192,7 @@ try{
         if($report.LastWriteTimeUtc -lt $started){throw 'Stale native report.'}
         [xml]$trx=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$trx.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 49 -or [int]$counts.passed -ne 49 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly49native history/lifecycle/search/role/identity/count cases, no skips.'}
+        if([int]$counts.total -ne 61 -or [int]$counts.passed -ne 61 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly61native history/lifecycle/search/role/identity/count cases, no skips.'}
         if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native history originals remain; do not stop.'}
         if($RunRegressionTests){
             $started=[DateTime]::UtcNow
