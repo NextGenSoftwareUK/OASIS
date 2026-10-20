@@ -23,13 +23,13 @@ internal static class MongoProviderConventions
                 || type.FullName?.StartsWith("NextGenSoftware",StringComparison.Ordinal)==true
                 || type.FullName?.StartsWith("System",StringComparison.Ordinal)==true)
         },type=>type.Namespace?.StartsWith("NextGenSoftware.",StringComparison.Ordinal)==true);
-        ConventionRegistry.Register("OASIS.MongoDB.DictionaryRepresentation",new ConventionPack {
-            new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays)
-        },_=>true);
         ConventionRegistry.Register("OASIS.MongoDB.CoreRecordNavigation",new ConventionPack {
             new CoreRecordNavigationConvention()
         },type=>typeof(IAuditBase).IsAssignableFrom(type)
             && type.Namespace?.StartsWith("NextGenSoftware.OASIS.API.Core.",StringComparison.Ordinal)==true);
+        ConventionRegistry.Register("OASIS.MongoDB.DictionaryRepresentation",new ConventionPack {
+            new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays)
+        },_=>true);
         // Preserve existing OASIS Guid-string and metadata BSON contracts before any
         // entity/member lookup can freeze driver defaults. Conflicting host policy stays an error.
         SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
@@ -48,8 +48,11 @@ internal static class MongoProviderConventions
             // stores its IDs, not hydrated parent objects. Children is the selected embedded graph
             // contract and must retain descendants. Ignore old parent navigation/extension data
             // on these Core value classes, matching canonical JSON's unknown-member behavior.
-            foreach(var member in map.DeclaredMemberMaps.Where(member=>StoredRecordJson.IsNavigationMember(member.MemberType)
-                && member.MemberName!=nameof(IHolon.Children)).ToArray())
+            // Honor Core's declared runtime-only contract before freezing any member serializer.
+            // In particular, encryption contexts/resolvers must never become BSON value types.
+            foreach(var member in map.DeclaredMemberMaps.Where(member=>member.MemberName!=nameof(IHolon.Children)
+                && (StoredRecordJson.IsNavigationMember(member.MemberType)
+                    || Attribute.IsDefined(member.MemberInfo,typeof(Newtonsoft.Json.JsonIgnoreAttribute),inherit:true))).ToArray())
                 map.UnmapMember(member.MemberInfo);
             map.SetIgnoreExtraElements(true);
         }

@@ -61,6 +61,9 @@ public partial class HolonRepository
                         }
                         return result;
                     }
+                    // Positive receipt replay stays read-only. For an absent receipt, a
+                    // committed fence write makes a stale snapshot conflict before mutation.
+                    await TouchOperationFenceAsync(session, conditional.Plan.OperationId, cancellation).ConfigureAwait(false);
                 }
                 var staged=new List<(BsonDocument Body,bool New)>();
                 var bodies=new Dictionary<Guid,BsonDocument>();
