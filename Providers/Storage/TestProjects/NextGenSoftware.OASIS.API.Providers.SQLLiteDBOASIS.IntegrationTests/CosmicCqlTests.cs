@@ -23,6 +23,53 @@ public partial class SQLLiteDBOASISIntegrationTests
         plan.IsError.Should().BeFalse(plan.Message); return plan.Result;
     }
 
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)] [InlineData(4)] [InlineData(5)] [InlineData(6)]
+    public async Task CosmicCqlMetadataPresenceKeepsMissingNullTypesAndLiteralKeysDistinct(int selection)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var key = "a.b\"'; --";
+        var values = new[] {
+            new Holon { Id = Guid.NewGuid(), Name = "missing", MetaData = new() },
+            new Holon { Id = Guid.NewGuid(), Name = "explicit-null", MetaData = new() { ["status"] = null! } },
+            new Holon { Id = Guid.NewGuid(), Name = "text-null", MetaData = new() { ["status"] = "null", ["nested"] = new Dictionary<string, object> { [key] = null! } } },
+            new Holon { Id = Guid.NewGuid(), Name = "numeric", MetaData = new() { ["status"] = 0, ["nested"] = new[] { new Dictionary<string, object> { ["target"] = null! } } } }
+        };
+        foreach (var value in values) (await provider.SaveHolonAsync(value, saveChildren: false)).IsError.Should().BeFalse();
+        Expression<Func<Holon, bool>> predicate = selection switch {
+            0 => h => CosmicQueryMetadata.Exists(h, "status"),
+            1 => h => CosmicQueryMetadata.IsNull(h, "status"),
+            2 => h => !CosmicQueryMetadata.Exists(h, "status"),
+            3 => h => CosmicQueryMetadata.Exists(h, "nested", key),
+            4 => h => CosmicQueryMetadata.IsNull(h, "nested", key),
+            5 => h => CosmicQueryMetadata.Exists(h, "nested", "target"),
+            _ => h => CosmicQueryMetadata.Exists(h, "status") && !CosmicQueryMetadata.IsNull(h, "status")
+        };
+        var expected = selection switch {
+            0 => new[] { "explicit-null", "numeric", "text-null" }, 1 => new[] { "explicit-null" },
+            2 => new[] { "missing" }, 3 or 4 => new[] { "text-null" }, 5 => Array.Empty<string>(), _ => new[] { "numeric", "text-null" }
+        };
+        var result = await provider.ExecuteCosmicQueryAsync(CqlPlan(predicate));
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        result.Result.Select(h => h.Name).OrderBy(n => n).Should().Equal(expected.OrderBy(n => n));
+    }
+
+    [Fact]
+    public async Task CosmicCqlMetadataParameterBudgetRejectsBeforeOpeningDatabase()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        var query = CosmicQuery<Holon>.Create();
+        for (var i = 0; i < 32; i++)
+            query = query.Where(h => CosmicQueryMetadata.Exists(h, "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p")
+                || CosmicQueryMetadata.IsNull(h, "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p")).Result;
+        var plan = CosmicQueryPlanner.Plan(query, ProviderType.SQLLiteDBOASIS,
+            new[] { new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, SQLLiteDBOASIS.CqlCapabilities) });
+        plan.IsError.Should().BeFalse(plan.Message);
+        var result = await provider.ExecuteCosmicQueryAsync(plan.Result);
+        result.IsError.Should().BeTrue(); result.ErrorCode.Should().Be("CQL_QUERY_LIMIT"); File.Exists(_databasePath).Should().BeFalse();
+    }
+
     [Fact]
     public void CosmicCqlProductionCapabilitiesRejectUnmappedFieldsBeforeExecution()
     {

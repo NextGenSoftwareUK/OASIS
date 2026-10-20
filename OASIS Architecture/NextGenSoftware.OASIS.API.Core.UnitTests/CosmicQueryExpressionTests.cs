@@ -9,6 +9,30 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CosmicQueryExpressionTests
 {
     [Fact]
+    public void MetadataPresenceAndNullMarkersCaptureLiteralSegmentsWithoutExecutingAccessors()
+    {
+        var key = "a.b\"'; --";
+        var result = CosmicQueryExpression.Compile<Holon>(h => CosmicQueryMetadata.Exists(h, "nested", key) && !CosmicQueryMetadata.IsNull(h, "status"));
+        Assert.False(result.IsError, result.Message); key = "changed";
+        var logical = Assert.IsType<CosmicQueryLogical>(result.Result);
+        var exists = Assert.IsType<CosmicQueryMetadataTest>(logical.Left);
+        Assert.Equal(CosmicQueryMetadataTestKind.Exists, exists.Kind); Assert.Equal(new[] { "nested", "a.b\"'; --" }, exists.Segments);
+        var nullTest = Assert.IsType<CosmicQueryMetadataTest>(Assert.IsType<CosmicQueryNot>(logical.Right).Operand);
+        Assert.Equal(CosmicQueryMetadataTestKind.IsNull, nullTest.Kind);
+        Assert.Throws<InvalidOperationException>(() => CosmicQueryMetadata.Exists(new Holon(), "x"));
+    }
+
+    [Fact]
+    public void MetadataMarkerAdmissionRejectsUnboundedPathsAndForeignOwners()
+    {
+        var foreign = new Holon();
+        Assert.True(CosmicQueryExpression.Compile<Holon>(h => CosmicQueryMetadata.Exists(foreign, "x")).IsError);
+        var empty = CosmicQueryExpression.Compile<Holon>(h => CosmicQueryMetadata.IsNull(h, ""));
+        Assert.True(empty.IsError); Assert.Equal("CQL_EXPRESSION_INVALID", empty.ErrorCode);
+        Assert.True(CosmicQueryExpression.Compile<Holon>(h => CosmicQueryMetadata.Exists(h)).IsError);
+    }
+
+    [Fact]
     public void CapturedEnumsAreFrozenAndUndefinedEnumValuesAreRejected()
     {
         var selected=HolonType.Quest;
