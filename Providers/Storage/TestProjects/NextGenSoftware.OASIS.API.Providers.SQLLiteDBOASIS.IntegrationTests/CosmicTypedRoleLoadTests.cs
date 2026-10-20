@@ -39,7 +39,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         parent.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS]=parentKey;
         var root=new NativeRoleOwner{Name="typed query owner",HolonType=HolonType.Quest};
         root.MetaData["typed-kind"]="query-owner";
-        root.Components.Add(new NativeRoleMember{Name="query member"});
+        root.Components.Add(new NativeRoleMember{Name="query member",HolonType=HolonType.Holon});
         parent.Children.Add(root);
         var saved=await writer.SaveHolonAsync(parent,actor,new CosmicWriteOptions(Guid.NewGuid()));
         saved.IsError.Should().BeFalse(saved.Message+saved.Exception);
@@ -72,6 +72,28 @@ public partial class SQLLiteDBOASISIntegrationTests
         var independentlyLoaded=await writer.LoadHolonAsync<NativeRoleOwner>(root.Id,providerType:ProviderType.SQLLiteDBOASIS);
         independentlyLoaded.IsError.Should().BeFalse(independentlyLoaded.Message+independentlyLoaded.Exception);
         independentlyLoaded.Result.Components.Should().ContainSingle().Which.Name.Should().Be("query member edited");
+        if(route=="search")
+        {
+            var memberId=independentlyLoaded.Result.Components.Single().Id;
+            var before=await other.LoadHolonAsync(memberId,loadChildren:false);
+            before.IsError.Should().BeFalse(before.Message+before.Exception);
+            var beforeJson=Core.Serialization.StoredRecordJson.Serialize<IHolon>(before.Result);
+            foreach(var nativeChildren in new[]{false,true})
+            foreach(var childType in new[]{HolonType.Holon,HolonType.Quest})
+            {
+                var selected=synchronous ? reader.SearchHolons("typed query owner",actor,searchOnlyForCurrentAvatar:false,
+                        maxChildDepth:1,loadChildrenFromProvider:nativeChildren,childHolonType:childType,providerType:ProviderType.SQLLiteDBOASIS)
+                    :await reader.SearchHolonsAsync("typed query owner",actor,searchOnlyForCurrentAvatar:false,
+                        maxChildDepth:1,loadChildrenFromProvider:nativeChildren,childHolonType:childType,providerType:ProviderType.SQLLiteDBOASIS);
+                selected.IsError.Should().BeFalse(selected.Message+selected.Exception);
+                var selectedRoot=selected.Result.Should().ContainSingle().Subject;selectedRoot.Id.Should().Be(root.Id);
+                if(childType==HolonType.Quest)selectedRoot.Children.Should().BeEmpty();
+                else selectedRoot.Children.Should().ContainSingle().Which.Id.Should().Be(memberId);
+                selectedRoot.HasHolonChanged().Should().BeFalse();
+            }
+            var after=await other.LoadHolonAsync(memberId,loadChildren:false);after.IsError.Should().BeFalse(after.Message+after.Exception);
+            Core.Serialization.StoredRecordJson.Serialize<IHolon>(after.Result).Should().Be(beforeJson);
+        }
     }
 
     [Theory]
