@@ -13,6 +13,121 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class Web3RecordHistoryTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task ProfilePublicationRejectsNonIdentityCallerEdits(bool detail)
+    {
+        var oldKey=Environment.GetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY");var key=RandomNumberGenerator.GetBytes(32);
+        try{
+            Environment.SetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY",Convert.ToBase64String(key));
+            var provider=new PolygonOASIS.PolygonOASIS("http://127.0.0.1:18545","unused","0xowned");
+            var flags=BindingFlags.Instance|BindingFlags.NonPublic;
+            typeof(Web3CoreOASISBaseProvider).GetField("_web3CoreOASIS",flags)!.SetValue(provider,
+                new Web3CoreOASIS("0x"+new string('1',64),"http://127.0.0.1:18545","0x0000000000000000000000000000000000000001",Web3CoreOASISBaseProviderHelper.Abi,31337));
+            if(detail)await VerifyProfileEdit<IAvatarDetail>(provider,new AvatarDetail{Id=Guid.NewGuid(),IsNewHolon=true},"detail",row=>OasisJson.Deserialize<AvatarDetail>(OasisJson.Serialize(row)));
+            else await VerifyProfileEdit<IAvatar>(provider,new Avatar{Id=Guid.NewGuid(),IsNewHolon=true},"avatar",row=>OasisJson.Deserialize<Avatar>(OasisJson.Serialize(row)));
+        }finally{Environment.SetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY",oldKey);CryptographicOperations.ZeroMemory(key);}
+    }
+
+    private static async Task VerifyProfileEdit<T>(Web3CoreOASISBaseProvider provider,T source,string kind,Func<T,T> clone) where T:class,IHolonBase
+    {
+        var original=source.Id;var calls=0;
+        Func<uint,byte[],byte[],Task<(Nethereum.RPC.Eth.DTOs.TransactionReceipt Receipt,IHolonBase Record)>> submit=(id,external,payload)=>{
+            calls++;source.MetaData["concurrent edit"]="keep";
+            IHolonBase committed=clone(source);committed.Version=9;
+            return Task.FromResult((new Nethereum.RPC.Eth.DTOs.TransactionReceipt{TransactionHash="controlled-ack"},committed));
+        };
+        var method=typeof(Web3CoreOASISBaseProvider).GetMethod("SavePrivateProfileAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(T));
+        var result=await (Task<NextGenSoftware.OASIS.Common.OASISResult<T>>)method.Invoke(provider,new object[]{source,kind,clone,submit})!;
+        Assert.IsTrue(result.IsError,"Nonidentity caller edits must reject acknowledgement publication.");Assert.IsFalse(result.IsSaved);
+        Assert.AreEqual(1,calls);Assert.AreEqual(original,source.Id);Assert.AreEqual(0,source.Version);Assert.IsTrue(source.IsNewHolon);
+        Assert.AreEqual("keep",source.MetaData["concurrent edit"]);
+        var evidence=result.Exception as Web3PartialMutationException;Assert.IsNotNull(evidence);Assert.AreEqual("controlled-ack",evidence.OriginalTransactionId);
+    }
+
+    [TestMethod]
+    public void AcknowledgedPublicationFailureRetainsLastAcknowledgedTransaction()
+    {
+        var error=new Web3PartialMutationException(new[]{Guid.NewGuid()},new[]{"acknowledged-first","acknowledged-current"},new InvalidOperationException("caller edited after acknowledgement"));
+        Assert.AreEqual("acknowledged-current",error.OriginalTransactionId);
+        CollectionAssert.AreEqual(new[]{"acknowledged-first","acknowledged-current"},error.AcknowledgedTransactionIds.ToArray());
+        var uncertain=new NativeTransactionFollowupException(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.PolygonOASIS,"uncertain-later",new IOException("lost reply"));
+        Assert.AreEqual("uncertain-later",new Web3PartialMutationException(new[]{Guid.NewGuid()},new[]{"acknowledged-first"},uncertain).OriginalTransactionId);
+        Assert.AreEqual(string.Empty,new Web3PartialMutationException(Array.Empty<Guid>(),Array.Empty<string>(),new InvalidOperationException()).OriginalTransactionId);
+    }
+
+    private sealed class NamedOwner:Holon
+    {
+        public List<Holon> Components {get;set;}=new();
+        public override System.Collections.ObjectModel.ReadOnlyCollection<IHolon> AllChildren=>Children.Concat<IHolon>(Components).ToList().AsReadOnly();
+        public override IReadOnlyList<HolonChildCollection> CaptureChildCollections()=>base.CaptureChildCollections()
+            .Concat(new[]{new HolonChildCollection(nameof(Components),Components,rows=>Components=rows.Cast<Holon>().ToList())}).ToArray();
+    }
+
+    [TestMethod]
+    public void GraphPlanIncludesDeclaredNamedChildrenWithoutPublishingIdentities()
+    {
+        var source=new NamedOwner();var child=new Holon();source.Components.Add(child);
+        var method=typeof(Web3CoreOASISBaseProvider).GetMethod("PlanWeb3Graph",BindingFlags.Static|BindingFlags.NonPublic)!;
+        var plan=(System.Runtime.CompilerServices.ITuple)method.Invoke(null,new object[]{new IHolon[]{source},true,true,0,0})!;
+        Assert.AreEqual(2,((System.Collections.IList)plan[1]!).Count);
+        Assert.AreEqual(Guid.Empty,source.Id);Assert.AreEqual(Guid.Empty,child.Id);Assert.AreEqual(Guid.Empty,child.ParentHolonId);
+    }
+
+    [TestMethod]
+    public void GraphPlanCapturesCanonicalCallerForPublication()
+    {
+        var source=new Holon{Name="captured"};
+        var method=typeof(Web3CoreOASISBaseProvider).GetMethod("PlanWeb3Graph",BindingFlags.Static|BindingFlags.NonPublic)!;
+        var plan=(System.Runtime.CompilerServices.ITuple)method.Invoke(null,new object[]{new IHolon[]{source},false,true,0,0})!;
+        var node=((System.Collections.IList)plan[1]!)[0]!;
+        var guard=(StoredRecordPublicationSnapshot<IHolon>)node.GetType().GetProperty("Publication")!.GetValue(node)!;
+        source.MetaData["newer caller edit"]="preserve";
+        Assert.ThrowsException<InvalidOperationException>(guard.ValidateUnchanged);Assert.AreEqual(Guid.Empty,source.Id);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task SelectedHistoryUsesCapturedRolesBeforeEncryption(bool history)
+    {
+        var originalKey=Environment.GetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY");var key=RandomNumberGenerator.GetBytes(32);
+        try{
+            Environment.SetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY",Convert.ToBase64String(key));
+            var provider=new PolygonOASIS.PolygonOASIS("http://127.0.0.1:18545","unused","0xowned");
+            var source=new NamedOwner();source.Components.Add(new Holon());
+            var method=typeof(Web3CoreOASISBaseProvider).GetMethod("PlanWeb3Graph",BindingFlags.Static|BindingFlags.NonPublic)!;
+            var graph=(System.Runtime.CompilerServices.ITuple)method.Invoke(null,new object[]{new IHolon[]{source},true,true,0,0})!;
+            var node=((System.Collections.IList)graph[1]!)[0]!;
+            var plan=(PlannedHolonWrite)node.GetType().GetProperty("Write")!.GetValue(node)!;
+            var expected=NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(plan.RelationshipManifest);
+            source.Components.Clear();
+            var staged=await provider.StagePrivateHistoryAsync("holon",plan.Snapshot,null,history,plan);
+            Assert.AreEqual(expected,staged.Record.ChildRoleManifestJson);Assert.IsNull(plan.Snapshot.ChildRoleManifestJson);Assert.AreEqual(Guid.Empty,source.Id);
+            var stored=new EntityOASIS{EntityId=(uint)HashUtility.GetNumericHash(staged.Record.Id.ToString()),ExternalId=Web3CoreOASISBaseProvider.PrivateExternalId(staged.Record.Id),Info=staged.Info};
+            var decoded=provider.DecodePrivateRecord<Holon>("holon",staged.Record.Id,stored);
+            Assert.AreEqual(expected,decoded.ChildRoleManifestJson);
+            Assert.AreEqual(history?1:0,decoded.Version);
+        }finally{Environment.SetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY",originalKey);CryptographicOperations.ZeroMemory(key);}
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task RootOnlyHistoryPreservesObservedRolesIncludingNull(bool hasRoles)
+    {
+        var originalKey=Environment.GetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY");var key=RandomNumberGenerator.GetBytes(32);
+        try{
+            Environment.SetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY",Convert.ToBase64String(key));
+            var provider=new PolygonOASIS.PolygonOASIS("http://127.0.0.1:18545","unused","0xowned");var id=Guid.NewGuid();
+            string Manifest()=>NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1,id,new[]{new HolonChildRole("Components",new[]{Guid.NewGuid()})}));
+            var observed=hasRoles?Manifest():null;
+            var first=await provider.StagePrivateHistoryAsync("holon",new Holon{Id=id,ChildRoleManifestJson=observed},null,true);
+            var stored=new EntityOASIS{EntityId=(uint)HashUtility.GetNumericHash(id.ToString()),ExternalId=Web3CoreOASISBaseProvider.PrivateExternalId(id),Info=first.Info};
+            var proposal=new Holon{Id=id,Name="root update",ChildRoleManifestJson=Manifest()};var callerRoles=proposal.ChildRoleManifestJson;
+            var second=await provider.StagePrivateHistoryAsync("holon",proposal,stored,false);
+            Assert.AreEqual(2,second.Record.Version);Assert.AreEqual(first.Record.VersionId,second.Record.PreviousVersionId);
+            Assert.AreEqual(callerRoles,proposal.ChildRoleManifestJson,"Detached staging must not mutate the caller.");
+            CollectionAssert.AreEqual(first.Info,stored.Info);
+            Assert.AreEqual(observed,second.Record.ChildRoleManifestJson,"Root-only save must use the authoritative observed membership, including null.");
+        }finally{Environment.SetEnvironmentVariable("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY",originalKey);CryptographicOperations.ZeroMemory(key);}
+    }
+
     [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)]
     public async Task EncryptedHistoryStagesDetachedAndRetainsArchiveWhenDisabled(int kind)
     {
