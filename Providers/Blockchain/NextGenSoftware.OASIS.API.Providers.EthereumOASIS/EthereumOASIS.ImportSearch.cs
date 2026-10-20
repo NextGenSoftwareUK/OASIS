@@ -246,6 +246,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                searchParams=Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
                 var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
                 var wantsAvatars=groups.Count == 0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
                 var wantsHolons=groups.Count == 0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
