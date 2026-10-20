@@ -345,6 +345,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[Cloud Deployment](./DEPLOYMENT/CLOUD_DEPLOYMENT.md)** - Cloud deployment
 - **[Edge Deployment](./DEPLOYMENT/EDGE_DEPLOYMENT.md)** - Edge computing
 - **[Railway WEB4-WEB10 Dependency Pins](./RAILWAY_DEPENDENCY_PINS.md)** - Single manifest, update workflow, and CI enforcement for deterministic Railway builds
+- **[Branch Cleanup Runbook](./BRANCH_CLEANUP_RUNBOOK.md)** - Repeatable merge/archive/delete of stale branches across the parent and all submodules (`Scripts/branch_cleanup.sh`)
 - **[Development to master Promotion](./DEVELOPMENT_TO_MASTER_PROMOTION.md)** - Ordered submodule and parent release process, automated manifest synchronization, review gates, and recovery
 - **[Merge Development to master: Quick Start](./MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md)** - Simple GitHub Actions release checklist for normal development releases
 
