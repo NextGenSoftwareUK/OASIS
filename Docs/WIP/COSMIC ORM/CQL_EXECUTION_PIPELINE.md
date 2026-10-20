@@ -80,3 +80,13 @@ The old executor used ToArray before checking the row budget, and the planner en
 This bounds entry count and removes enumeration from snapshot admission. It does not establish atomic consistency for arbitrary same-count mutations, bound arbitrary indexer/getter duration, implement native scan deadlines, or limit serialized bytes per record. Provider-owned query scans/deadlines, payload-size admission and the complete security/federation/graph roadmap remain required.
 
 Final compatibility gate: fullSQLite948/948 passes123s, zero skips (`sqlite-cql-snapshot-full-verified.trx`), with fixture absent after teardown. This uses the final shared planner/executor helper and matching Core unit/native copies; the earlier executor-only native report remains a separate interim epoch.
+
+## Decrypt typed collection roots before hydration — 20 October 2026
+
+The V2 shared typed-collection materializer now decrypts each detached root before mapping custom metadata, child-role hydration and tracking acceptance. Typed CQL uses this same owner. Previously encrypted values were absent during custom-property mapping, causing default values to be accepted as clean; malformed/wrong-key ciphertext also bypassed admission. Decryption failure propagates its original error code and produces no CQL execution result. No legacy mapping path was changed.
+
+Five new public CQL tests initially failed (`TestResults/CosmicMongoCurrent/cql-encryption-red.trx`): a valid encrypted custom value, plain JSON under the marker, wrong key, duplicate decrypted fields and conflict with clear metadata. They retain assertions that provider observations are unchanged. Final complete Core: **1,440/1,440 passed**, zero skipped, terminal exit 0 (`cql-encryption-full.trx`); both target frameworks built. Core SHA-256 `C643340449BAF3DA817BD2A0FE4B394DB36682E2A6C735DDB9573AC9BCF6261E`.
+
+SQLite native selected acceptance: **23/23 passed**, zero skipped, terminal exit 0 (`TestResults/SQLiteCurrent/cql-encryption-native.trx`). Four additional malformed-envelope CQL cases and a durable encrypted custom-decimal CQL case pass alongside point-load admission and existing typed-query regression cases. Successful query values start clean, while direct stored reads retain ciphertext and identical committed content.
+
+This certifies selected typed collection/CQL roots. Untyped collection decryption, encrypted descendants/typed roles, key identity/rotation, authenticated/versioned envelopes, authorization/cost admission and complete query/provider conformance remain open. Private encrypted fields do not become provider-queryable merely because returned roots are decrypted. The full roadmap remains active.

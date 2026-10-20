@@ -50,6 +50,35 @@ public class CosmicTypedQueryTests
         Assert.Equal("COSMIC_METADATA_HYDRATION_FAILED", result.ErrorCode); Assert.NotNull(result.Exception);
         Assert.Contains("owned setter failure", result.Exception.ToString()); Assert.Equal(id, adapter.Row.Id); Assert.Equal(7, adapter.Row.MetaData["Rating"]);
     }
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)] [InlineData(4)]
+    public async Task TypedQueriesDecryptBeforeHydrationOrReturnAnExplicitError(int fault)
+    {
+        var settings = new EncryptionSettings { Rijndael256EncryptionEnabled = true, Rijndael256Key = new string('e',32) };
+        var payload = fault == 3 ? "{\"Rating\":7,\"Rating\":8}" : "{\"Rating\":7}";
+        var ciphertext = fault == 1 ? payload : Core.Helpers.PasswordEncryptionHelper.EncryptValue(payload, settings);
+        var row = new Holon { Id = Guid.NewGuid(), MetaData = new() { ["__oasis_enc__"] = ciphertext } };
+        if (fault == 4) row.MetaData["Rating"] = 99;
+        var adapter = new Adapter { Row = row }; var manager = Manager();
+        if (fault == 2) settings.Rijndael256Key = new string('w',32);
+        manager.OASISDNA.OASIS.Security = new SecuritySettings { HolonDataEncryption = settings };
+        var result = await manager.ExecuteQueryAsync(Plan<TypedRow>(adapter), new[] { adapter });
+        if (fault == 0)
+        {
+            Assert.False(result.IsError, result.Message + result.Exception);
+            var typed = Assert.Single(Assert.Single(result.Result.Providers).Rows);
+            Assert.Equal(7, typed.Rating); Assert.False(HolonChangeTracking.HasChanges(typed));
+            Assert.False(typed.MetaData.ContainsKey("__oasis_enc__"));
+        }
+        else
+        {
+            Assert.True(result.IsError); Assert.Null(result.Result); Assert.Equal("HOLON_METADATA_DECRYPTION_FAILED", result.ErrorCode);
+        }
+        Assert.Equal(ciphertext, row.MetaData["__oasis_enc__"]);
+        if (fault == 4) Assert.Equal(99, row.MetaData["Rating"]);
+        else Assert.False(row.MetaData.ContainsKey("Rating"));
+    }
+
     public sealed class DecimalRow : Holon { [CustomOASISProperty] public decimal Amount { get; set; } }
     public sealed class DoubleRow : Holon { [CustomOASISProperty] public double Amount { get; set; } }
 

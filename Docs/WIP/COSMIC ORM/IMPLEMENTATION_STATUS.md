@@ -6,7 +6,7 @@ Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-provi
 
 | Area | Evidence | Acceptance still open |
 |---|---|---|
-| Tracking and save ownership | Detached preparation, private baselines, no-op detection, failed-write isolation, submitted membership and acknowledgement checks; Core 1,435 tests pass, including typed numeric hydration and generic metadata decoder regressions, predicate compilation, composition and pure capability planning | Complete encryption/key-context and arbitrary callback failure acceptance |
+| Tracking and save ownership | Detached preparation, private baselines, no-op detection, failed-write isolation, submitted membership and acknowledgement checks; Core 1,440 tests pass, including typed numeric hydration and generic metadata decoder regressions, predicate compilation, composition and pure capability planning | Complete encryption/key-context and arbitrary callback failure acceptance |
 | Cross-client concurrency | Native revision checks and idempotent operation receipts under MongoDB, SQLite and Neo4j transaction owners | Wider provider capability admission and complete public route/fault coverage |
 | Typed child roles | Captured manifests, root-only authoritative-null preservation, hydration before tracking, explicit partial selections | Remaining parameter, visibility, history and provider conformance |
 | V2 graph loading | ID/key, collection, metadata and parent routes; source-bound member reads, heap traversal, depth limits, unlink protection and overlapping roots | Coherent historical snapshots and wider failure/security policies |
@@ -216,3 +216,13 @@ The four additional failure cases initially all failed while the four existing w
 SQLite native acceptance: **12/12 passed**, zero skipped, terminal exit 0 (`TestResults/SQLiteCurrent/encrypted-metadata-admission-native.trx`): eight new sync/async typed-load malformed-envelope cases plus four existing encrypted/plain decimal lifecycle cases. Errors return `HOLON_METADATA_DECRYPTION_FAILED` without a loaded result; direct stored reads prove ciphertext, clear fields and revisions remain unchanged. This is selected lifecycle evidence, not full provider recertification.
 
 Persisted non-secret key identity, authorized key resolution/rotation, authenticated versioned envelopes (including the older CBC format), encryption context across durable replication/migration, resource bounds and arbitrary callback behavior remain open. No global wallet/password crypto semantics or legacy routing implementation was changed. The shared helper was hardened because V2 calls it; this does not certify legacy Hyperdrive.
+
+## Decrypt typed collection roots before hydration — 20 October 2026
+
+The V2 shared typed-collection materializer now decrypts each detached root before mapping custom metadata, child-role hydration and tracking acceptance. Typed CQL uses this same owner. Previously encrypted values were absent during custom-property mapping, causing default values to be accepted as clean; malformed/wrong-key ciphertext also bypassed admission. Decryption failure propagates its original error code and produces no CQL execution result. No legacy mapping path was changed.
+
+Five new public CQL tests initially failed (`TestResults/CosmicMongoCurrent/cql-encryption-red.trx`): a valid encrypted custom value, plain JSON under the marker, wrong key, duplicate decrypted fields and conflict with clear metadata. They retain assertions that provider observations are unchanged. Final complete Core: **1,440/1,440 passed**, zero skipped, terminal exit 0 (`cql-encryption-full.trx`); both target frameworks built. Core SHA-256 `C643340449BAF3DA817BD2A0FE4B394DB36682E2A6C735DDB9573AC9BCF6261E`.
+
+SQLite native selected acceptance: **23/23 passed**, zero skipped, terminal exit 0 (`TestResults/SQLiteCurrent/cql-encryption-native.trx`). Four additional malformed-envelope CQL cases and a durable encrypted custom-decimal CQL case pass alongside point-load admission and existing typed-query regression cases. Successful query values start clean, while direct stored reads retain ciphertext and identical committed content.
+
+This certifies selected typed collection/CQL roots. Untyped collection decryption, encrypted descendants/typed roles, key identity/rotation, authenticated/versioned envelopes, authorization/cost admission and complete query/provider conformance remain open. Private encrypted fields do not become provider-queryable merely because returned roots are decrypted. The full roadmap remains active.
