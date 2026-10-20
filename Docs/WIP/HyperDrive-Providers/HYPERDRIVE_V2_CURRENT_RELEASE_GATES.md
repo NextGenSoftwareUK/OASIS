@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR canonical publisher native19 compatibility green — 2026-10-20
+
+Retained46080 terminal0,19/19actualnativepass5m15s0skips with cdfbd0443 publisher; C6FD2ED97BF00459E7AF0F24A803836866D66F5AD61EF50BA8BE7C7EF1430A0A. Native Core89468/Shared2D6A EXACTunit186cohort; portableguardpassed. Existing19suite normal SDK behavior+namedroles/rootonly proved,8sourceeditfaults remain CONTROLLED IPC/notlivenativefaultclaim. Owned642837stopped/process+portsabsent/pending0/checkedcompletionverified-fixtures-absent/retention50restored5,ledger291MiB retained. PriorE615reporthash-verified/movedinplace. No newruntime/download/reset/upgrade/publicspend/devpush. Exactscope/hashes/sourceguardlimits in NEAR_PUBLIC_CONDITIONAL_SAVE.md; fullinterfaces/liveraces/hostedfees/immutablepublication/globalV2OPEN.
+
 ## NEAR canonical caller publication controlled186 green; native refresh OPEN — 2026-10-20
 
 Existing gatedIPCfixture8newDescription/metadata sourceeditcasesallred(oldfalseSaved). Shared canonical snapshots nowguard Avatar/Detail/Holon proposals+graphoriginals and requiredsinglepublisher; postACKfailure retainsactualreceipt/reconciliationmarker, no stamp overwrite/replay/extraSDKoperation. Full186controlledpass13s0skips,Core89468/Shared2D6A; exacthash/scope in NEAR_PUBLIC_CONDITIONAL_SAVE.md. Existingidentity/abort/boundedfixtureassertions retained, no duplicateenvironment/runtime/download. Previous19nativeE615 is earlierproductionepoch, NOT certification of this new publisher; native refresh/livefault/fullinterfaces/coherentpublication/globalV2stillOPEN.
