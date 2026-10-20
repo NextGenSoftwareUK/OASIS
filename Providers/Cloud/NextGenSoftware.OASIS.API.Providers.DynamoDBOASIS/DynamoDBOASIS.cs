@@ -431,7 +431,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             => ApplyAvatarLifecycleAsync(id,softDelete);
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
-        private async Task<OASISResult<bool>> DeleteSelectedAvatarAsync(Task<OASISResult<IAvatar>> lookup, bool softDelete)
+        private async Task<OASISResult<bool>> DeleteSelectedAvatarAsync(Task<OASISResult<IAvatar>> lookup, bool softDelete,Func<IAvatar,bool> selectedIdentity)
         {
             var selected=await lookup;
             if(selected.IsError || selected.Result==null)
@@ -442,11 +442,11 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if(!result.IsError) OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: Avatar not found.");
                 return result;
             }
-            return await DeleteAvatarAsync(selected.Result.Id,softDelete);
+            return await ApplyAvatarLifecycleAsync(selected.Result.Id,softDelete,selectedIdentity:selectedIdentity);
         }
-        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadAvatarByUsernameAsync(u),softDelete);
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadAvatarByUsernameAsync(u),softDelete,row=>string.Equals(row.Username,u,StringComparison.OrdinalIgnoreCase));
         public override OASISResult<bool> DeleteAvatarByUsername(string u, bool softDelete = true) => DeleteAvatarByUsernameAsync(u, softDelete).GetAwaiter().GetResult();
-        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadAvatarByEmailAsync(e),softDelete);
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadAvatarByEmailAsync(e),softDelete,row=>string.Equals(row.Email,e,StringComparison.OrdinalIgnoreCase));
         public override OASISResult<bool> DeleteAvatarByEmail(string e, bool softDelete = true) => DeleteAvatarByEmailAsync(e, softDelete).GetAwaiter().GetResult();
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteAvatarAsync(id, softDelete); return await DeleteAvatarByUsernameAsync(pk, softDelete); }
         public override OASISResult<bool> DeleteAvatar(string pk, bool softDelete = true) => DeleteAvatarAsync(pk, softDelete).Result;
