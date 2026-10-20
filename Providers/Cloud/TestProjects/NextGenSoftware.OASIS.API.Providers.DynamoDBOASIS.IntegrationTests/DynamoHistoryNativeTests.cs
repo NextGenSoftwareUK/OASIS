@@ -209,6 +209,10 @@ public partial class DynamoHistoryNativeTests
                 Assert.IsTrue((await provider.ExportAllAsync(1)).Result.Any(value=>value.Id==id&&value.Version==1));Assert.IsTrue((await provider.LoadHolonAsync(id,loadChildren:false,version:99)).IsError);
                 var linked=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true,version:1);Assert.IsFalse(linked.IsError,linked.Message);Assert.AreEqual(1,linked.Result.Version);Assert.AreEqual(5,linked.Result.Children.Single().Version);
                 var parents=await provider.LoadHolonsForParentAsync(Guid.Empty,loadChildrenFromProvider:true,version:1);Assert.IsFalse(parents.IsError,parents.Message);Assert.AreEqual(5,parents.Result.Single(value=>value.Id==id).Children.Single().Version);
+                var bounded=await provider.LoadHolonsForParentAsync(Guid.Empty,maxChildDepth:1,loadChildrenFromProvider:true,version:1);
+                Assert.IsFalse(bounded.IsError,bounded.Exception?.ToString());Assert.AreEqual(0,bounded.Result.Single(value=>value.Id==id).Children.Count);
+                var boundedSync=provider.LoadHolonsForParent(Guid.Empty.ToString(),maxChildDepth:1,loadChildrenFromProvider:true,version:1);
+                Assert.IsFalse(boundedSync.IsError,boundedSync.Exception?.ToString());Assert.AreEqual(0,boundedSync.Result.Single(value=>value.Id==id).Children.Count);
                 var search=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,FilterByMetaData=new(){["owned_history_fixture"]="first"}},version:1);
                 Assert.IsFalse(search.IsError,search.Message);Assert.AreEqual(1,search.Result.SearchResultHolons.Single(value=>value.Id==id).Version);
                 var exported=await provider.ExportAllDataForAvatarByIdAsync(owner,1);Assert.IsFalse(exported.IsError,exported.Message);Assert.AreEqual(5,exported.Result.Single(value=>value.Id==id).Children.Single().Version);

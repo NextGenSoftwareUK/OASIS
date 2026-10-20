@@ -1,5 +1,13 @@
 # DynamoDB/AWS record history — implementation in progress
 
+## Parent-query traversal depth — candidate 2026-10-20
+
+Native acceptance completed: extended existing kind2/Dynamo and kind5/AWS history fixtures with public GUID async/string sync maxDepth1 parent assertions. Retained official SDK/DynamoDB Local33/33pass, zero skips,3s; `TestResults/DynamoHistoryCurrent/dynamo-history-native-current.trx` SHA256 `9890B13E34B4C785BA2F9EA44F59176BD833905AE4B3B6E92EE94115D7A78C09`. Actual consumer Core `7605F612F67C142D9B65ECC0FA8B081DB2126D9B7D1011089377F065CC57DEBD`, Shared `95D9E1F7A88D2A4792C2904464730DC7BAF33C8798ACD13241C62D4521960A14`. Runner terminal0, pending journals0/no reserved listeners after stop. Existing runtime/data/ports reused; prior report moved in place to hash-named evidence. This supersedes the pending native gate below for this scoped change only; hosted IAM and complete provider/API/V2 acceptance remain open.
+
+Parent-query selection already traverses one edge. Public LoadHolonsForParent incorrectly passed results to the shared projector as depth-zero roots. Four sync/async/provider-linked/embedded tests:2 provider-linked cases reproduced maxDepth1 exposing grandchildren;2 embedded cases already passed. Reused existing HolonGraphProjection rootsAreChildren option only for parent selection; ordinary point/all roots unchanged. No new query/storage algorithm or SDK operations.
+
+Full controlled Dynamo253/253pass, zero skips,985ms. Red-before `TestResults/DynamoHistoryCurrent/dynamo-parent-depth-before.trx` SHA256 `6446657A72FF237EF5564D1DC633C9DD27F40EA751372FCA077B6C7879FFBB36`; current `dynamo-parent-depth-current.trx` SHA256 `B1AA37920753F7BE71895360D76A4D8B99861CD7D429C4FFFCA27C9978B15689`. Retained native DynamoDB/AWS wrapper acceptance remains required before publishing this candidate. No installation/download/service startup/public fees.
+
 ## Lifecycle caller-publication scope review — 2026-10-19
 
 Reviewed `DynamoDBAvatarLifecycle.cs`, `DynamoDBAvatarDetailLifecycle.cs` and public delete selectors: inputs are GUID/string/bool values or the Core sealed `AvatarTombstone` with get-only GUID/UTC fields. Mutable records are freshly decoded from private native read results, not accepted caller-owned entities, and these methods return booleans rather than publishing stamps to caller record objects. Consequently the mutable-original publication guard fixed for saves is not required by these lifecycle signatures; no speculative second writer was added. Native transaction/CAS/reconciliation and broader lifecycle semantics remain separate gates.
