@@ -1,5 +1,17 @@
 # MongoDB audit precision and receipt cleanup
 
+## JSON numeric storage follow-up — 20 October 2026
+
+CQL adapter review found two numeric gaps in the active metadata serializer: JsonElement numbers outside Int32/Int64 were converted to Double before Decimal, and lossless JRaw numbers were treated as literal strings. The original hash-verified provider binary fails 18 focused cases while four controls pass (`TestResults/CosmicMongoCurrent/mongo-json-number-red.trx`). Exact decimal values rounded; extreme exponents could underflow to zero or overflow to a non-finite double; numeric identity could become text.
+
+The serializer now retains existing Int32/Int64 shapes, selects Decimal128 only when its CLR decimal preserves the exact JSON value, and admits a finite Double only when the shared Core numeric-equivalence owner proves its serialized value is unchanged. Unsupported numeric values reject serialization explicitly. JRaw uses the same JSON value encoder, retaining numeric rather than string identity. There is no approximate successful substitute. No shared Core implementation or fingerprint rule changes.
+
+Final paired verification passes **175/175 controlled tests and 12/12 native cases**, zero skips. Reports: `TestResults/CosmicMongoCurrent/mongo-json-number-paired-unit-full.trx` and `TestResults/SubscriptionUsageCurrent/mongo-cosmic-conditional-current.trx`. The 22 new controlled cases include nested values, decimal maximum, tiny exact decimals, unrepresentable numbers, literal numeric strings and existing integer/double controls. Two new native sync/async cases inspect persisted Decimal128, reload exact numeric values, and prove a rejected underflow inserts no row and leaves an existing row byte-identical. The ten earlier conditional/preparation/replica regressions remain included; their original report was hashed and retained as `mongo-cosmic-conditional-before-json-numbers-907B347CEC56.trx` in the same native report directory.
+
+`TestResults/CosmicMongoCurrent/mongo-json-number-paired-artifacts.json` records exact matching unit/native consumer assemblies: Core `D4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83`, Shared `C57A6DCB5D2EA23B95701ADC8DE61EAB028E2991BFE823E0F62706CE00653609`, MongoDB `AF64C569B45B91514BA2859603A35DB5B1D44EBE83B94246B91E92638FB634AB`. The original regression binary hash was independently checked before producer rebuild: `0B0BECDBBCB064F77EE1F6E03A9411390B60D3A800E5D0EA12C4E695723816B0`. The retained runtime/data directory was reused, the owned process stopped, disposable successful fixtures removed, and the owned Mongo log bounded to a compact tail.
+
+Numbers that cannot survive the supported BSON/CLR representation now fail explicitly; this does not add arbitrary-precision numeric storage. Already rounded historical values cannot be reconstructed by this fix. Date-aware native range semantics and MongoDB CQL translation remain open; this removes a storage prerequisite, not the broader query roadmap.
+
 Updated 19 October 2026. Shared provider correctness work for COSMIC ORM/V2; legacy Hyperdrive is documentation-only.
 
 ## Invariants and implementation
