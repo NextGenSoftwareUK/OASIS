@@ -30,7 +30,7 @@ public sealed partial class OracleNativeAcceptanceTests
     {
         var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;
         var journal=Path.Combine(Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!,$"named-child-roles-{synchronous}-{conditional}.pending.json");Assert.IsFalse(File.Exists(journal));
-        var root=new NativeRoleOwner{Id=Guid.NewGuid(),ParentHolonId=Guid.NewGuid(),Name="owned named-role root",IsActive=true};
+        var root=new NativeRoleOwner{Id=Guid.NewGuid(),ParentHolonId=Guid.NewGuid(),Name="owned named-role root",HolonType=NextGenSoftware.OASIS.API.Core.Enums.HolonType.Quest,IsActive=true};
         var marker=root.Id.ToString("N");root.MetaData["oracle-role-fixture"]=marker;
         var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="owned named-role component",IsActive=true};root.Components.Add(child);
         var actor=Guid.NewGuid();var operations=conditional?new[]{Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid()}:Array.Empty<Guid>();
@@ -60,11 +60,17 @@ public sealed partial class OracleNativeAcceptanceTests
             var loaded=await provider.LoadHolonAsync(root.Id,loadChildren:false);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());
             var initialManifest=((Holon)loaded.Result).ChildRoleManifestJson;
             var manager=TypedOracleRoleManager(other);
+            // All includes heterogeneous records. Never silently project the base child into
+            // an incompatible custom owner schema just to make a typed query succeed.
+            var incompatible=synchronous?manager.LoadAllHolons<NativeRoleOwner>(cache:false,providerType:ProviderType.OracleDBOASIS):await manager.LoadAllHolonsAsync<NativeRoleOwner>(providerType:ProviderType.OracleDBOASIS);
+            var overlapping=synchronous?manager.LoadAllHolons(cache:false,providerType:ProviderType.OracleDBOASIS):await manager.LoadAllHolonsAsync(providerType:ProviderType.OracleDBOASIS);
+            var overlappingRoot=overlapping.Result?.SingleOrDefault(row=>row.Id==root.Id);
+            var overlappingChild=overlapping.Result?.SingleOrDefault(row=>row.Id==child.Id);
             var typedObservations=new List<(string Route,bool Error,string Cause,int Children,int Components,string? Name,bool Changed)>();
             foreach(var route in new[]{"all","search","metadata","pairs","parent","parent-key"}){
                 var pairs=new Dictionary<string,string>{{"oracle-role-fixture",marker}};
                 var result=route switch{
-                    "all"=>synchronous?manager.LoadAllHolons<NativeRoleOwner>(cache:false,providerType:ProviderType.OracleDBOASIS):await manager.LoadAllHolonsAsync<NativeRoleOwner>(providerType:ProviderType.OracleDBOASIS),
+                    "all"=>synchronous?manager.LoadAllHolons<NativeRoleOwner>(holonType:NextGenSoftware.OASIS.API.Core.Enums.HolonType.Quest,cache:false,providerType:ProviderType.OracleDBOASIS):await manager.LoadAllHolonsAsync<NativeRoleOwner>(holonType:NextGenSoftware.OASIS.API.Core.Enums.HolonType.Quest,providerType:ProviderType.OracleDBOASIS),
                     "search"=>synchronous?manager.SearchHolons<NativeRoleOwner>(root.Name,actor,searchOnlyForCurrentAvatar:false,providerType:ProviderType.OracleDBOASIS):await manager.SearchHolonsAsync<NativeRoleOwner>(root.Name,actor,searchOnlyForCurrentAvatar:false,providerType:ProviderType.OracleDBOASIS),
                     "metadata"=>synchronous?manager.LoadHolonsByMetaData<NativeRoleOwner>("oracle-role-fixture",marker,providerType:ProviderType.OracleDBOASIS):await manager.LoadHolonsByMetaDataAsync<NativeRoleOwner>("oracle-role-fixture",marker,providerType:ProviderType.OracleDBOASIS),
                     "pairs"=>synchronous?manager.LoadHolonsByMetaData<NativeRoleOwner>(pairs,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,providerType:ProviderType.OracleDBOASIS):await manager.LoadHolonsByMetaDataAsync<NativeRoleOwner>(pairs,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,providerType:ProviderType.OracleDBOASIS),
@@ -90,7 +96,9 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.AreEqual(scalar.Name,stored.Name);Assert.AreEqual(childBefore,await Read(verifier,"OASIS_HOLONS",child.Id));
             var preservedManifest=stored.ChildRoleManifestJson;
             // An explicitly observed legacy-null manifest must beat stale caller membership.
-            stored.ChildRoleManifestJson=null;var legacyJson=StoredRecordJson.Serialize(stored);
+            stored.ChildRoleManifestJson=null;var legacyDocument=Newtonsoft.Json.Linq.JObject.Parse(rootJson);
+            legacyDocument[nameof(Holon.ChildRoleManifestJson)]=Newtonsoft.Json.Linq.JValue.CreateNull();
+            var legacyJson=legacyDocument.ToString(Newtonsoft.Json.Formatting.None);
             await using(var legacy=new OracleCommand("UPDATE OASIS_HOLONS SET DATA_JSON=:Legacy WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true}){
                 legacy.Parameters.Add("Legacy",OracleDbType.Clob).Value=legacyJson;legacy.Parameters.Add("Id",OracleDbType.Raw).Value=root.Id.ToByteArray();legacy.Parameters.Add("Expected",OracleDbType.Clob).Value=rootJson;Assert.AreEqual(1,await legacy.ExecuteNonQueryAsync());
             }
@@ -132,6 +140,11 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.AreEqual(expected,initialManifest,"Selected named memberships must be persisted with the original graph.");
             Assert.AreEqual(expected,preservedManifest,"A root-only write must preserve locked persisted membership, not replace it with caller absence.");
             Assert.IsNull(legacyAfter.ChildRoleManifestJson,"Persisted null is authoritative, even when the caller supplies stale membership.");
+            Assert.IsTrue(incompatible.IsError);Assert.IsFalse(incompatible.IsLoaded);Assert.IsNull(incompatible.Result);
+            Assert.AreEqual("COSMIC_CHILD_ROLE_HYDRATION_FAILED",incompatible.ErrorCode);StringAssert.Contains(incompatible.Exception.Message,"stored roles differ");
+            Assert.IsFalse(overlapping.IsError,overlapping.Message+overlapping.Exception);Assert.IsNotNull(overlappingRoot);Assert.IsNotNull(overlappingChild);
+            var nested=overlappingRoot.Children.Single();Assert.AreEqual(child.Id,nested.Id);Assert.AreEqual(child.Name,nested.Name);Assert.AreNotSame(overlappingChild,nested);
+            Assert.IsFalse(overlappingRoot.HasHolonChanged());Assert.IsFalse(overlappingChild.HasHolonChanged());Assert.IsFalse(nested.HasHolonChanged());
             foreach(var observation in typedObservations){Assert.IsFalse(observation.Error,observation.Route+": "+observation.Cause);Assert.AreEqual(0,observation.Children,observation.Route);Assert.AreEqual(1,observation.Components,observation.Route);Assert.AreEqual(child.Name,observation.Name,observation.Route);Assert.IsFalse(observation.Changed,observation.Route+" must establish tracking after role hydration.");}
         }finally{await provider.DeActivateProviderAsync();await other.DeActivateProviderAsync();}
     }
