@@ -279,6 +279,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 if(searchParams.SearchGroups==null || searchParams.SearchGroups.Count==0)
                     throw new ArgumentException("Native status search requires text search groups.",nameof(searchParams));
                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                searchParams=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
                 var groups=searchParams.SearchGroups.ToArray();
                 foreach(var group in groups){
                 if(group is not ISearchTextGroup textGroup)throw new NotSupportedException("Native status search requires text groups.");
@@ -343,7 +345,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 if(loadChildren){
                     for(var index=0;index<selected.Count;index++)selected[index]=await ReadMastodonReplyGraphAsync((Holon)selected[index],recursive,maxChildDepth);
                 }
-                response.Result=new SearchResults{SearchResultHolons=selected};
+                response.Result=new SearchResults{SearchResultHolons=selected,NumberOfResults=selected.Count};
+                response.IsLoaded=true;
                 response.Message="Native search exhausted its result pages; results are not a point-in-time snapshot.";
             }
             catch (Exception ex)
