@@ -34,6 +34,8 @@ public partial class DynamoDBOASIS
             source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
             source.Id=holon.Id;source.ProviderUniqueStorageKey??=new Dictionary<Core.Enums.ProviderType,string>();
             source.ProviderUniqueStorageKey[StorageProviderType]=holon.Id.ToString();
+            var revision=CosmicConcurrency.GetProviderRevisionId(committed,StorageProviderType);
+            if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(source,StorageProviderType,revision.Value);
             if(source is Holon caller)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
             result.Result=source;result.IsSaved=true;result.Message=$"DynamoDBOASIS: Holon '{holon.Name}' saved.";
         }catch(Exception cause){result.Exception=cause;OASISErrorHandling.HandleError(ref result,$"DynamoDBOASIS: {cause.Message}");}

@@ -244,6 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     MakeGsi("parentHolonId-index", "parentHolonId", "ALL")
                 });
 
+                await EnsureTableAsync(ConditionalReceiptTable,pkSchema,pkAttr);
                 IsProviderActivated = true;
                 result.Result = true; result.IsError = false; result.Message = $"{ProviderName} activated — DynamoDB tables ready.";
             }
