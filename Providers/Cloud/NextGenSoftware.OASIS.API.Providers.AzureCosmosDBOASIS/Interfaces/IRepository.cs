@@ -17,7 +17,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces
         Task DeleteIfUnchangedAsync(T expected);
         Task DeleteAsync(Guid id);
         Task DeleteAsync(string providerKey);
-        //Task<List<T>> GetListAsync();
+        Task<List<T>> GetListAsync();
+        Task<List<T>> GetListAsync(int version);
         List<T> GetList();
         List<T> GetList(int version);
     }
