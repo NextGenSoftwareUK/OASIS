@@ -1,5 +1,11 @@
 # DynamoDB/AWS record history — implementation in progress
 
+## Lifecycle caller-publication scope review — 2026-10-19
+
+Reviewed `DynamoDBAvatarLifecycle.cs`, `DynamoDBAvatarDetailLifecycle.cs` and public delete selectors: inputs are GUID/string/bool values or the Core sealed `AvatarTombstone` with get-only GUID/UTC fields. Mutable records are freshly decoded from private native read results, not accepted caller-owned entities, and these methods return booleans rather than publishing stamps to caller record objects. Consequently the mutable-original publication guard fixed for saves is not required by these lifecycle signatures; no speculative second writer was added. Native transaction/CAS/reconciliation and broader lifecycle semantics remain separate gates.
+
+Separate read-policy discrepancy identified: direct/all detail reads currently expose selected tombstones while identity detail selectors filter them. Existing lifecycle tests inspect stored tombstone fields, so do not silently change that policy based only on save-guard work. Reconcile intended public detail visibility and internal tombstone inspection requirements before a targeted consistency change. This is an OPEN semantic issue, not provider completion.
+
 ## Graph original-caller publication guard — 2026-10-19
 
 Selected graph originals previously retained only an ID guard around detached node saves. Four sync/async current-node/later-node version-edit schedules reproduced overwritten caller state or a stale later submission. Graph planning now uses its existing source-validation callback to capture the shared canonical publication snapshot BEFORE each selected source is captured by the planner. Each original is revalidated before its node dispatch and after acknowledgement before publishing ID/parent/version/provider keys. Existing acknowledged-node IDs remain in `DynamoDBPartialMutationException`; later edited nodes are not dispatched. No shared graph algorithm or retry path was duplicated.
