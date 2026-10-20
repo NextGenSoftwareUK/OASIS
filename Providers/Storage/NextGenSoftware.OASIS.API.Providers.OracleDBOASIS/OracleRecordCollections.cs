@@ -16,10 +16,11 @@ public partial class OracleDBOASIS
         var rows=new List<T>();
         await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync();
         var validateHolon=typeof(T)==typeof(Core.Holons.Holon)&&version==0;
-        await using var command=CreateCommand($"SELECT ID,DATA_JSON{(validateHolon?",HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID":"")} FROM {table}",connection);
+        var validateAvatar=typeof(T)==typeof(Core.Holons.Avatar);
+        await using var command=CreateCommand($"SELECT ID,DATA_JSON{(validateHolon?",HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID":validateAvatar?",IS_DELETED":"")} FROM {table}",connection);
         await using var reader=await command.ExecuteReaderAsync();
         while(await reader.ReadAsync()){
-            var id=new Guid((byte[])reader.GetValue(0));var row=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version);
+            var id=new Guid((byte[])reader.GetValue(0));var row=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version,validateAvatar?reader.GetInt32(2):null);
             if(validateHolon&&row is IHolon holon)
                 ValidateNativeHolonProjection(holon,reader.GetInt32(2),reader.GetInt32(3),reader.IsDBNull(4)?Guid.Empty:new Guid((byte[])reader.GetValue(4)));
             if(row!=null&&!row.IsDeleted)rows.Add(row);
