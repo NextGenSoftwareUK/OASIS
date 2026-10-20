@@ -282,3 +282,21 @@ Final fullCore1,370/1,370 passes9s, Shared847/847 passes on matching dependencie
 - `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `12DA6DBDBE6FEF6A4B62D466981BF4ED9F069F06338584636155F890FFB54C54`
 
 Core unit/native/Shared-test Core copies match; Shared-test/native Shared copies match. The native provider was rebuilt against these dependencies. This is selected local runtime/native acceptance, not all-provider wire precision or deployment readiness. Generic external text/ciphertext/receipt readers and decimal-safe conditional fingerprints remain explicit open gates. Shared fingerprint follow-on belongs to the provider session; receipt replay belongs to the COSMIC ORM session. No dev push/deployment or new legacy Hyperdrive implementation is included. All original roadmap requirements, especially atomic authorized committed deltas and original receipt replay, remain active.
+
+
+## Exact SQLite receipt replay metadata — 20 October 2026
+
+Core `9897491ab5f68094e33d043cca81dd5caec41cb9` adds DeserializeStoredHolon: raw metadata values are decoded independently before restricted typed decoding of the remaining canonical record. It preserves arbitrary numeric lexemes and native JsonElement metadata semantics without a rounded temporary metadata dictionary. Duplicate/case-ambiguous metadata and non-object shapes reject; root type binding remains restricted and metadata type-name text remains data. Generic Deserialize<T> behavior is unchanged.
+
+SQLite's format1 conditional receipt reader delegates each original root/child record to this owner; persisted receipt format and write protocol are unchanged. Two restart/replay cases failed against the old reader and now pass unchanged: an original operation replays exact root/child decimal metadata and original provider/logical revisions after a newer root update, while current storage retains that update. Wide-double/null/string controls remain asserted. Original red report sqlite-receipt-precision-red.trx is retained.
+
+Four new codec cases pass within fullCore1,374/1,374 (11s). Native focused2/2 (2s) and fullSQLite954/954 (117s) pass, zero skips. Both Core targets, SQLite producer and consumers build with zero errors; the owned fixture is absent after teardown. Actual report/native consumer SHA256:
+
+- `TestResults/CosmicMongoCurrent/receipt-precision-core-full.trx`: `C5C4C38D0DFFC110455A5D47CDF765D2AA793778B1066F8286DA3E5438642C4D`
+- `TestResults/SQLiteCurrent/sqlite-receipt-precision-focused.trx`: `5BF50F97287FAE164717CDBEB52BDD8A8DA65C5C5D60566903FE15E446D087B3`
+- `TestResults/SQLiteCurrent/sqlite-receipt-precision-full.trx`: `540FF24F0EDF7704A92F01198602609AA04495D05FDBA83D0158061317343368`
+- `NextGenSoftware.OASIS.API.Core.dll`: `F2E6D954DAE22CB45345CBFC241BDF34838C91183D7C465D76C45058886F3D12`
+- `NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll`: `75FE89C81369887179F04F97512168E49F6E3D9D23EE3FE777612CA6B8CF621D`
+- `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `BFB30BB33911BB5978E2556961239BFEDAB1C6A5C736A09ECBF07E46424580B4`
+
+Core unit/native Core copies match. Shared75FE is the concurrent fingerprint candidate captured by this consumer; it is separate from the preceding Shared2BABC cohort. Shared changes are owned and checkpointed by the provider session. Core gitlink and dependency manifest advance together. No dev push/deployment is included; other provider/replica readers, generic text/ciphertext boundaries and atomic authorized committed deltas remain unverified/open where not separately certified.
