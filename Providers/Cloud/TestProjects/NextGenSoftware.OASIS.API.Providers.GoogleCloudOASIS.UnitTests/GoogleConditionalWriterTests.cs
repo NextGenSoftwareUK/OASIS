@@ -69,7 +69,7 @@ public class GoogleConditionalWriterTests
     {
         var db=FirestoreDb.Create("owned-controlled-history",client);var reference=db.Collection("holons").Document(row.Id.ToString());
         var fields=new Dictionary<string,object>{["id"]=row.Id.ToString(),["data_json"]=OasisJson.Serialize(row)};
-        return (Task<Holon>)typeof(GoogleCloudOASIS).GetMethod("WriteFirestoreRecordAsync",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object[]{reference,fields,history,(Action)(()=>{})})!;
+        return (Task<Holon>)typeof(GoogleCloudOASIS).GetMethod("WriteFirestoreRecordAsync",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object?[]{reference,fields,history,(Action)(()=>{}),null})!;
     }
     [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
     public async Task BatchRejectsNewerOriginalVersionAndDoesNotSubmitLaterEditedNode(bool synchronous,bool later)
