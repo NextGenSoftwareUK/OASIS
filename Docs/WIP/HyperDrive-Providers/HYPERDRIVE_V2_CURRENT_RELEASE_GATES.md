@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Cosmos DB precise metadata conflict/ACK boundaries — controlled249 green
+
+Two genuine precise-decimal comparison failures fixed by same shared exact-object parser (history/conditional deletion/repository ACK). Full249/249pass0skip1s, SHA25653662821F02B03B1F4ECD73BED4E9F49D3E3F082403C0887A234F0F4EC5AF52C, CoreFBAE/Shared12F46. Initial mocksetup error and6timestamp/parser-cause test compatibility failures retained/documented in SHARED_RECORD_HISTORY.md; no broad assertion weakening. NativeCosmos unresolvedoriginal/deniedresume untouched, no native/hosted/globalV2 certification or service/download/devpush. Genericdecoder remains separatelyCore-owned.
+
 ## Core/shared equality consolidation — Shared883 / nativeDynamo95 / nativeSQLite971 green
 
 Pairing locallyverified: parentc398a2447 pinsCore51eb67b in gitlink+manifest, strictvalidatorpasses; Core1380/focusedSQLite no-op2/full971 green, fixtureabsent. Full971reportD9D20FBC379C3DCB74099543954FCE8A084AACD2CDF277AAB25F2AA06E01711E, sameFBAE/12F46. This closes the dependency-pair hold recorded below, not genericdecoder/hosted/allproviderV2 gates. No deployment/devpush.

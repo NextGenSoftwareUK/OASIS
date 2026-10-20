@@ -203,7 +203,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                     entity=ProjectInput(entity);
                     ((Core.Holons.Holon)(object)entity).ChildRoleManifestJson=committed.ChildRoleManifestJson;
                 }
-                if(JObject.Parse(json)[CosmosEmbeddedHistory.PropertyName]!=null)
+                if(OasisJson.ParseStoredObject(json)[CosmosEmbeddedHistory.PropertyName]!=null)
                 {
                     // SDK already checked the exact stamped document including its archive.
                     // Compare application fields against that ACK while accepting only SDK-owned version changes.
@@ -212,7 +212,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 }
                 // Compare OASIS-owned fields after canonical decoding; Cosmos system fields
                 // (id/_etag/_rid/_ts) are not part of the submitted domain payload.
-                if(!StoredRecordPayloadEquality.Equivalent(JObject.Parse(OasisJson.Serialize(entity)),JObject.Parse(OasisJson.Serialize(acknowledged))))
+                if(!StoredRecordPayloadEquality.Equivalent(OasisJson.ParseStoredObject(OasisJson.Serialize(entity)),OasisJson.ParseStoredObject(OasisJson.Serialize(acknowledged))))
                     throw new InvalidDataException("Acknowledged Cosmos record differs from the submitted canonical payload.");
                 return acknowledged;
             }
@@ -223,7 +223,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             try
             {
-                var document=JObject.Parse(json);
+                var document=OasisJson.ParseStoredObject(json);
                 if(document["Id"]?.Type!=JTokenType.String || document["id"]?.Type!=JTokenType.String
                     || !Guid.TryParse(document["Id"].Value<string>(),out var logical) || logical==Guid.Empty
                     || document["id"].Value<string>()!=logical.ToString()

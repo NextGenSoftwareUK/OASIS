@@ -44,11 +44,11 @@ public partial class CosmosDbClient
     {
         ArgumentNullException.ThrowIfNull(document);
         token.ThrowIfCancellationRequested();
-        var staged=JObject.Parse(OasisJson.Serialize(document));
+        var staged=OasisJson.ParseStoredObject(OasisJson.Serialize(document));
         if(string.IsNullOrWhiteSpace(id) || staged["Id"]?.ToString()!=id)
             throw new ArgumentException("Document payload identity differs from its native item key.");
         staged["id"]=id;
-        var expectedPayload=expected==null ? null:JObject.Parse(OasisJson.Serialize(expected));
+        var expectedPayload=expected==null ? null:OasisJson.ParseStoredObject(OasisJson.Serialize(expected));
         var inputType=document.GetType(); // Trusted caller input type, never a type name taken from stored history.
         JObject previous=null; string etag=null;
         if(mode!=RecordWriteMode.Create)
@@ -56,7 +56,7 @@ public partial class CosmosDbClient
             var json=await ReadDocumentAsync(id,partition,token).ConfigureAwait(false);
             if(json!=null)
             {
-                previous=JObject.Parse(json);
+                previous=OasisJson.ParseStoredObject(json);
                 etag=previous["_etag"]?.Type==JTokenType.String ? previous["_etag"].Value<string>() : null;
                 if(string.IsNullOrWhiteSpace(etag))throw new InvalidDataException("Cosmos replacement requires an observed native ETag.");
             }
@@ -108,7 +108,7 @@ public partial class CosmosDbClient
         var acknowledged=await ReadAcknowledgedPayloadAsync(response,id).ConfigureAwait(false);
         try
         {
-            var observed=JObject.Parse(acknowledged);
+            var observed=OasisJson.ParseStoredObject(acknowledged);
             foreach(var native in new[]{"_etag","_rid","_self","_attachments","_ts"})observed.Remove(native);
             if(!StoredRecordPayloadEquality.Equivalent(staged,observed))
                 throw new InvalidDataException("Acknowledged Cosmos current/history document differs from the staged atomic write.");

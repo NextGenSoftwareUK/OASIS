@@ -30,7 +30,8 @@ public class CosmosIdentityTests
                 else if(reader=="field") repository.GetByField("Username","owned");
                 else repository.GetList();
             });
-            Assert.IsInstanceOfType(error.InnerException,typeof(Newtonsoft.Json.JsonException));
+            Assert.IsInstanceOfType(error.InnerException,corruption=="malformed"
+                ?typeof(System.Text.Json.JsonException):typeof(Newtonsoft.Json.JsonException));
         }
         await Probe(new AvatarRepository(factory.Object));
         await Probe(new AvatarDetailRepository(factory.Object));
