@@ -14,6 +14,21 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 public class DynamoHistoryWriteTests
 {
     [TestMethod]
+    public Task ConditionalHistoryWriterReturnsExactCurrentAndArchivedMetadata()=>Use(new HistoryClient(),async provider=>{
+        var initial=1.0000000000000000000000000001m;var later=1.0000000000000000000000000002m;
+        var row=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=initial}};
+        var first=await Write(provider,Request(row));
+        Assert.AreEqual(initial,decimal.Parse(first.MetaData["precise"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+        row.MetaData["precise"]=later;
+        var second=await Write(provider,Request(row));
+        Assert.AreEqual(later,decimal.Parse(second.MetaData["precise"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+        var client=(HistoryClient)typeof(DynamoDBOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(provider)!;
+        var archived=(Holon)typeof(DynamoDBOASIS).GetMethod("ReadStoredVersion",BindingFlags.NonPublic|BindingFlags.Static)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object[]{client.Stored!,row.Id,1})!;
+        Assert.AreEqual(initial,decimal.Parse(archived.MetaData["precise"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+        Assert.AreEqual(1,first.Version);Assert.AreEqual(2,second.Version);Assert.AreEqual(0,row.Version);
+    });
+
+    [TestMethod]
     public Task UnversionedStagingPreservesExactMetadata()=>Use(new HistoryClient(),async provider=>{
         var value=1.0000000000000000000000000001m;
         var row=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=value}};
