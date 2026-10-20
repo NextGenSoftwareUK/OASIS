@@ -68,6 +68,7 @@ public class OracleObjectSdkTests
                 Assert.AreEqual("tree 🌳",await reader.ReadToEndAsync());
                 Assert.AreEqual(Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes("tree 🌳"))),context.Request.Headers["Content-MD5"]);
             }
+            if(operation=="get")context.Response.Headers["ETag"]="\"observed-read\"";
             await Reply(context,operation=="delete"?204:200,operation=="get"?"tree 🌳":"");
         });
     }
@@ -78,6 +79,48 @@ public class OracleObjectSdkTests
         await Exchange(async backend=>CollectionAssert.AreEqual(new[]{"oasis/a","oasis/b"},(await backend.ListKeysAsync("oasis/")).ToArray()),
             async context=>{Assert.AreEqual("oasis/",context.Request.QueryString["prefix"]);Assert.IsNull(context.Request.QueryString["start"]);await Reply(context,200,"{\"objects\":[{\"name\":\"oasis/a\"}],\"nextStartWith\":\"cursor-b\"}");},
             async context=>{Assert.AreEqual("oasis/",context.Request.QueryString["prefix"]);Assert.AreEqual("cursor-b",context.Request.QueryString["start"]);await Reply(context,200,"{\"objects\":[{\"name\":\"oasis/b\"}]}");});
+    }
+
+    [TestMethod]
+    public async Task NativeSnapshotReturnsValueAndOpaqueEtagFromOneGet()
+    {
+        await Exchange(async backend=>{
+            var snapshot=await backend.GetWithEntityTagAsync("oasis/snapshot");Assert.IsNotNull(snapshot);
+            Assert.AreEqual("owned-value",snapshot.Value);Assert.AreEqual("\"native-etag-not-a-guid\"",snapshot.EntityTag);
+        },async context=>{
+            Assert.AreEqual("GET",context.Request.HttpMethod);context.Response.Headers["ETag"]="\"native-etag-not-a-guid\"";
+            await Reply(context,200,"owned-value");
+        });
+    }
+
+    [TestMethod]
+    public async Task NativeSnapshotWithoutEtagIsCorruptionNotAnUnconditionalObservation()
+    {
+        await Exchange(async backend=>{
+            var cause=await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>backend.GetWithEntityTagAsync("oasis/snapshot"));
+            Assert.IsFalse(NativeMutationReconciliation.IsRequired(cause));
+        },context=>Reply(context,200,"owned-value"));
+    }
+
+    [DataTestMethod][DataRow(204)][DataRow(412)][DataRow(404)][DataRow(403)][DataRow(503)]
+    public async Task ConditionalDeleteUsesObservedEtagAndPreservesOutcomeClassification(int status)
+    {
+        await Exchange(async backend=>{
+            Task Delete()=>backend.DeleteUnchangedAsync("oasis/conditional-delete","\"observed-delete\"");
+            if(status==204)await Delete();
+            else if(status==412||status==404){
+                var conflict=await Assert.ThrowsExceptionAsync<StorageLifecycleConflictException>(Delete);
+                Assert.IsInstanceOfType<OciException>(conflict.Data["NativeCause"]);Assert.IsFalse(NativeMutationReconciliation.IsRequired(conflict));
+            }else if(status==403){
+                var rejected=await Assert.ThrowsExceptionAsync<OciException>(Delete);Assert.IsFalse(NativeMutationReconciliation.IsRequired(rejected));
+            }else{
+                var uncertain=await Assert.ThrowsExceptionAsync<OracleObjectMutationReconciliationException>(Delete);
+                Assert.IsTrue(NativeMutationReconciliation.IsRequired(uncertain));Assert.AreEqual("oasis/conditional-delete",uncertain.ObjectName);
+            }
+        },async context=>{
+            Assert.AreEqual("DELETE",context.Request.HttpMethod);Assert.AreEqual("\"observed-delete\"",context.Request.Headers["If-Match"]);
+            await Reply(context,status,status==204?"":"{\"code\":\""+(status==404?"ObjectNotFound":"controlled")+"\",\"message\":\"controlled\"}");
+        });
     }
 
     [DataTestMethod][DataRow("ObjectNotFound")][DataRow("NotAuthorizedOrNotFound")]
@@ -161,7 +204,7 @@ public class OracleObjectSdkTests
                     if(context.Request.HttpMethod=="PUT") {
                         using var reader=new StreamReader(context.Request.InputStream);objects[key]=await reader.ReadToEndAsync();await Reply(context,200,"");
                     }else if(context.Request.HttpMethod=="GET") {
-                        if(objects.TryGetValue(key,out var value))await Reply(context,200,value);
+                        if(objects.TryGetValue(key,out var value)){context.Response.Headers["ETag"]="\""+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)))+"\"";await Reply(context,200,value);}
                         else await Reply(context,404,"{\"code\":\"ObjectNotFound\",\"message\":\"controlled\"}");
                     }else {Assert.AreEqual("DELETE",context.Request.HttpMethod);objects.TryRemove(key,out _);await Reply(context,204,"");}
                 }finally{context.Response.Close();}
