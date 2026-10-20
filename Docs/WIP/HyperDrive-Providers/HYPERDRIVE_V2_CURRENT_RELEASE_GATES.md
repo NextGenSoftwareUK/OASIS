@@ -1,5 +1,25 @@
 # HyperDrive V2 current release gates
 
+## Precision/ownership batch repaired — Core1370 / Shared847 / nativeSQLite952 green
+
+Full952nativepasses0skips121s, report229B638987F0B5A53E52DF9D9491E05A33F19D49282856FE5D46EF931EEBC5E3; focused6/Core1370/Shared847 allgreen, fixtureabsenceverifiedbyCoreowner. MatchingCore5C37DEB4/Shared2BABC681. FinalsourceCorea54d8776 pairedpinrequiredbeforeSharedcheckpoint, no devpush. Exactrootcauses/failurepreservation in SHARED_RECORD_HISTORY.md. Genericwire/receipt/committeddelta/conditionalfingerprint precision and whole-provider/globalV2 remainOPEN; earlier950failuresarehistoricalnotcurrentgate.
+
+## Shared graph decimal staging —845 green, native recheck/Core pairing pending
+
+SQLite-focused failure traced to SharedGraphWritePlan stringreparse beforeDB;2root/childprecision cases failbeforeI/O,2widedoublecontrols pass. Sameowner nowusesoneCoreCaptureInputToken snapshot/exactintent/directprojection, retainingdelegate/cyclerejection. Final845/845controlled0skips SHA2568FAC8C474B883F1C1BA46F2C45FED746FE7DD7D2BB4949086669BA6BB6B441EE, Core725776DD/Shared2BABC681. No SQLiteengine-storage-loss claim, provider-native success or allwireprecisionproof. Holding source for pairedCoreAPIs+native recheck; exactscope in SHARED_RECORD_HISTORY.md. No devpush/download/runtime.
+
+Focused originalSQLiteprecision2 now2/2green unchanged, reportCF20E7A2F58385301DB0AFC7DC7EB84692782826345D9A918F82FAA7C91C4C0F; sameCore725776DD/Shared2BABC681 measured. Full950running, pairedCorepinpending; not a wholeprovider/wireprecisioncertificate.
+
+Full950terminal948pass2FAIL: existingnativeencryption-context publication cases exposed CoreJsonElement rawquoted-string issue. Report79CCF0A9986468AD3530058F1B786ACAB8BA337F912E9C9DA67B89226386515A. Coreownerfixingcanonicalconverter/encryptedpayload, assertions/encryption unchanged. Shared847expectedafter2newstringkindcases; notrunyet. HOLDCoreSharedpairing/deployment pending repairednativegates.
+
+Follow-up Shared847/847green0skips2036050BD9F65F01D06A20673774E40215D4036015F6121C32B1D6264B7F49FC and nativefocused6greenD5466F24EE5B9B05CC1F1833D93DB7E4C74AD4FB224BB75582D8003F2A675E68 after CorestructuralJsonElement/encryptedpayload fix. Core5C37DEB4/Shared2BABC681; full952running/pairingheld. Conditional precise-decimal fingerprint boundary separatelyOPEN before devmerge; not allwireprecision/globalV2 certification.
+
+## Shared canonical precision —841 green / hold for paired Core dependency
+
+Six beforecases4decimalfail2widedoublepass; Core Project + Shared guard need direct canonical tokens. Candidate Shared full840=839pass1FAIL: existing inventory-image byte[] detachment assertion exposes Core token alias. Assertion retained; Core owner fixes capture/clone, new Sharedbyte-isolation regression added. No841-suite green/native proof yet. New CaptureRuntimeToken API requires coherent Core commit/pin before Shared publication. Exact reports/limits in SHARED_RECORD_HISTORY.md; no devpush. External wire JSON numeric precision is separate unresolved scope.
+
+Follow-up final841/841controlled0skips7s on byte-detachedCore1BBFAFD5/Shared101B3FE0, report8E25F6E81D56F52FFCA49F07465877530134E876C90CE4A0561AF9BEFE490C04. Originalfailed840preserved/assertionunchanged. This closes controlled failure only; source still held for Coreowner nativegate+pairedAPIpin before Sharedcommit/publish. No provider-native/hosted/wireprecision/globalV2 certification.
+
 ## PostgreSQL lifecycle flags — controlled24 green; live server pending
 
 Four before failures fixed in existing activation/deactivation owner; no stale activated state after failure or deactivation. Full24controlled0skips SHA25626DC51D3BB1CB556A0C3D12A2C3B7C4F6F1165A5FF56B1945EC8ADA2F81640DA. No live native success/schema proof or full-interface claim. Read-only runtime inventory found no reusable PostgreSQL server; single-runtime/existingDB user choice pending, no download/environment allocated. Details in HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md; no devpush.
