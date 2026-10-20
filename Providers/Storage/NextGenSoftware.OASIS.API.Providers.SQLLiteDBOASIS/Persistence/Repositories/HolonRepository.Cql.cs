@@ -75,6 +75,13 @@ public partial class HolonRepository
         {
             var type = Nullable.GetUnderlyingType(declaredType) ?? declaredType;
             if (type == typeof(string)) return alias + ".type = 'text'";
+            if (type == typeof(Guid))
+            {
+                // JSON stores Guid as canonical D text. Reject malformed text instead of coercing it.
+                const string hex = "[0-9a-fA-F]";
+                var pattern = string.Join("-", new[] { 8, 4, 4, 4, 12 }.Select(count => string.Concat(Enumerable.Repeat(hex, count))));
+                return alias + ".type = 'text' AND length(CAST(" + alias + ".value AS BLOB)) = 36 AND " + alias + ".value GLOB '" + pattern + "'";
+            }
             if (type == typeof(bool)) return alias + ".type IN ('true','false')";
             if (type == typeof(int) || type == typeof(long))
             {
@@ -101,18 +108,25 @@ public partial class HolonRepository
                 }
                 object value = comparison.Literal.Value;
                 if (comparison.Path.ScalarKind == CosmicQueryScalarKind.Boolean) value = (bool)value ? 1L : 0L;
+                if (comparison.Path.ScalarKind == CosmicQueryScalarKind.Guid) value = ((Guid)value).ToString("D");
                 var symbol = comparison.Operator switch {
                     CosmicQueryComparisonOperator.Equal => "=", CosmicQueryComparisonOperator.NotEqual => "<>",
                     CosmicQueryComparisonOperator.GreaterThan => ">", CosmicQueryComparisonOperator.GreaterThanOrEqual => ">=",
                     CosmicQueryComparisonOperator.LessThan => "<", CosmicQueryComparisonOperator.LessThanOrEqual => "<=",
                     _ => throw new NotSupportedException("Unknown metadata comparison operator.")
                 };
-                var column = alias + ".value" + (comparison.Path.ValueType == typeof(string) ? " COLLATE BINARY" : "");
+                var column = MetadataColumn(alias, comparison.Path.ValueType);
                 var test = "((" + guard + ") AND COALESCE((" + column + " " + symbol + " " + Bind(value) + "),0))";
                 // An explicit nullable null has CLR inequality semantics; missing and wrong-type paths remain false.
                 return comparison.Operator == CosmicQueryComparisonOperator.NotEqual && MetadataNullable(comparison.Path.ValueType)
                     ? "(" + test + " OR " + alias + ".type = 'null')" : test;
             });
+        }
+
+        private static string MetadataColumn(string alias, Type declaredType)
+        {
+            var type = Nullable.GetUnderlyingType(declaredType) ?? declaredType;
+            return alias + ".value" + (type == typeof(Guid) ? " COLLATE NOCASE" : type == typeof(string) ? " COLLATE BINARY" : "");
         }
 
         private string StringMatch(string column, CosmicQueryStringMatch match)
@@ -195,7 +209,7 @@ public partial class HolonRepository
                     return MetadataPredicate(membership.Path.Segments, alias => {
                         var guard = MetadataTypeGuard(membership.Path.ValueType, alias);
                         if (MetadataNullable(membership.Path.ValueType)) guard = "(" + guard + ") OR " + alias + ".type = 'null'";
-                        return "((" + guard + ") AND " + Membership(alias + ".value", membership.Path.ValueType, membership.Values) + ")";
+                        return "((" + guard + ") AND " + Membership(MetadataColumn(alias, membership.Path.ValueType), membership.Path.ValueType, membership.Values) + ")";
                     });
                 }
                 if (membership.Path.IsMetadata || membership.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(membership.Path.Segments[0], out var memberField)

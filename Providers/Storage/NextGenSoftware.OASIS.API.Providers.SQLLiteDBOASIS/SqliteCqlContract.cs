@@ -28,6 +28,8 @@ internal static class SqliteCqlContract
             new CosmicQueryMetadataCapability(typeof(string), equality, System.Enum.GetValues<CosmicQueryStringOperator>(), supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(bool), equality, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(bool?), equality, supportsMembership: true),
+            new CosmicQueryMetadataCapability(typeof(Guid), equality, supportsMembership: true),
+            new CosmicQueryMetadataCapability(typeof(Guid?), equality, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(int), ordered, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(int?), ordered, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(long), ordered, supportsMembership: true),

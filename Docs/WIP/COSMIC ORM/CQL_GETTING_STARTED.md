@@ -7,7 +7,7 @@
 | Area | Available now | Remaining |
 |---|---|---|
 | Expressions | Where, AND/OR/NOT, scalar comparisons, null tests, ordinal string matching, bounded scalar-array membership; annotated scalar member paths | Wider expression forms, field-to-field comparisons |
-| Metadata | Nested literal paths, Exists, IsNull; SQLite/MongoDB string/bool/int/long comparisons, membership and supported strings | Native decimal/double/Guid/date/enum metadata predicates |
+| Metadata | Nested literal paths, Exists, IsNull; SQLite/MongoDB string/bool/int/long comparisons, membership and supported strings; SQLite Guid/Guid? equality and membership | MongoDB GUID metadata; native decimal/double/date/enum metadata predicates |
 | Scope | Current default, named providers, all eligible targets; capability admission before I/O | Automatic authenticated WEB4 target discovery and policy routing |
 | Native execution | SQLite SQL and MongoDB BSON expressions, cancellation and result/query budgets; MongoDB scan deadline and streamed payload budget | Neo4j/other adapters, wider deadline/cost policy |
 | Returned entities | V2 typed leaf entities, metadata hydration/decryption, clean tracking, conditional save integration | Child loading options, relationship predicates, broader entity-kind mapping |
