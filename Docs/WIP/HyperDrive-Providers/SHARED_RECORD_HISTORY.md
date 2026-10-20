@@ -1,5 +1,15 @@
 # Shared canonical record-history codec
 
+## Solana graph DTO staging — controlled555 green; native/Core gates remain open
+
+2026-10-20: two root/child precise-decimal regressions failed before any SDK/network operation; two wide-double controls passed. PlanSolanaGraph's JsonConvert text clone narrowed MetaData values. The existing DTO projection now reuses `OasisJson.Project<SolanaHolonDto>` direct canonical tokens; captured metadata is detached and source/child IDs/parent IDs remain unpublished. No new wire codec, SDK request, record layout or retry. Raw memo readers/tombstones and full graph role/publication contracts remain separate unverified work; this one local projection does not resolve them.
+
+Initial full555=545pass10fail was traced to outdated historical credential test expectations at SolanaCredentialSelectorTests line46, NOT genericCore decoder or this graph change. Shared credential authority was already intentionally latest-only since9b4246162; tests expected archived versions1/2 to authenticate. Tests now assert both positive versions reject with HYPERDRIVE_PAYLOAD_INVALID and no provider read, then verify current-version lookup/ambiguity/underlying failures unchanged. No production security relaxation or excluded cases. Initial commentary inference linking10fail to Core was explicitly corrected after diagnostic stack inspection.
+
+Successful producer/unit builds preceded final **555/555controlledpass0skip6s**, `TestResults/SharedCurrent/solana-graph-precision-verified.trx` SHA256B8F12193E060F2C40A88FBB798C6588CF3EEDF2CCFD401E97F9E940F476A61CB. Before4 (2fail2controls) report solana-graph-precision-before.trx SHA25639B7BFE2EC88C2923FC7284AFF3F83437EAF77584A671644D67DF4BCDAB939C4; intermediate full555failure solana-graph-precision-final.trx SHA256231038F7ED028092A117DC6BB3994D91EA3EE52F1DBD0F290A515F2A52F9F59E retained. Actual CoreA2EA/Shared495073 candidate; its three separate Shared metadata/binder compatibility failures remain release-blocking despite this Solana suite passing. No Core dependency advance/deployment claimed.
+
+No node/RPC/ledger start/reset/broadcast/gas, new downloads/runtime/environment, or public funds. Existing unresolved Solana native ledger and native/hosted/fullproviderV2 gates remain OPEN. FreeC61,525,860,352bytes;123GBtarget unmet. Earlier Solana submission-concurrency document dirty edits belong to existing work and were not staged with this scoped change.
+
 ## Generic decoder consumer gate — HOLD, three existing Shared regressions
 
 2026-10-20 Core owner reported1396green after generic record raw-metadata dispatch/local trusted-clone correction. Rebuilt Shared producer+consumer against actualCoreA2EA2E44F4CA7427F492279A7007C07E39D2445FA2AC1F3B0C54116CEBD32AAF; actualShared495073344EB43C6144FC381A7E8696B3D766897927792C86EBF4D65A95D1EE19. **883executed=880pass/3fail/0skip**,7s, `TestResults/SharedCurrent/shared-generic-decoder-compat.trx` SHA2564CD2955F1A3AA3191196443156B9F1F265CE52C5941A2FD590A588E7F7B1ECED. Not a successful compatibility/release gate; prior FBAE/12F46 green evidence cannot certify this changed decoder.

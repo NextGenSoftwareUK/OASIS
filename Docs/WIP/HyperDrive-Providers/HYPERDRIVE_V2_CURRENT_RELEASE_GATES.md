@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Solana local graph precision — controlled555 green; generic decoder still HOLD
+
+Two root/child decimal projection failures fixed through existing canonical DTO projection (wide2controls retained). Full555/555pass0skip6s, reportB8F12193E060F2C40A88FBB798C6588CF3EEDF2CCFD401E97F9E940F476A61CB. Ten intermediate failures were obsolete archived-credential-success assertions; tests now enforce existing latest-only/no-I/O authority, no production relaxation. CoreA2EA/Shared495073: separate Shared3metadata/binder regressions remain release-blocking. No nativeSolana proof/ledger operation/reset/download/deployment; exact scope/originalreports in SHARED_RECORD_HISTORY.md.
+
 ## HOLD generic record decoder — Core1396 does not establish consumer compatibility
 
 NewCoreA2EA/Shared495073 rebuild full883=880pass3FAIL0skip, report4CD2955F1A3AA3191196443156B9F1F265CE52C5941A2FD590A588E7F7B1ECED. Existing typed karma-history collection shape and two forbidden nested-type rejection contracts fail; no assertion edits/exclusions. Coreowner centralrepair required before pairing/deploying genericdecoder; exactnames/lines in SHARED_RECORD_HISTORY.md. EarlierCoreFBAE/Shared12F46 green suites are distinct epoch, not proof forA2EA. No nativeoriginal resets/newruntime/deployment.
