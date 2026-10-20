@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## SOLID captured roles: controlled330 green, native gate OPEN — 2026-10-20
+
+New2sync/async named Components cases reproduced graph-plan loss at encrypted private writer. Captured plan now reaches SAME observed Turtle/ETag conditional/history owner and common role resolver, with guarded source publication and no extra HTTP operation. Full330/330controlledpass1s/zero skips; tests verify encrypted stored/source roles, root-only preservation, archive, observednull authority, unchanged child ciphertext and exactPUTcount. Actual CoreB9C95292/Shared536D8D28. Exact evidence in SOLID_PROVIDER_IMPLEMENTATION_AUDIT.md. No server start/download/duplicate environment; prior execution-policy denial and OIDC cold-start issue remain unresolved, new-role native acceptance/fullinterfaces/V2/coherent publication OPEN. Not SOLID100% certification.
+
 ## Cosmos DB planned-role writer: controlled green, native gate OPEN — 2026-10-20
 
 Latest controlled246/246pass adds canonical-null-omission and role-ACK-tamper assertions. Exact recovery verifies both original feed/point digests but structural equality differs, so refuses BEFORE mutation; no cleanup occurred. Pending inspector prints differing fields; first no-build attempt503before readiness/stoppedfinally, next retained-runtime start blocked by execution policy and user asked about resuming existingcontainer. Original fixture preserved/containerEXITED. Exact latest hashes/consumer epochs in COSMOSDB_RECORD_HISTORY.md; native61 acceptance still OPEN.
