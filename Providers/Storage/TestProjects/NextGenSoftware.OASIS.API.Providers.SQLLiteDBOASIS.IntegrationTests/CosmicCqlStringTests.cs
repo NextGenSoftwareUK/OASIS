@@ -52,15 +52,16 @@ public partial class SQLLiteDBOASISIntegrationTests
     }
 
     [Fact]
-    public void NativeCqlStringAdmissionDoesNotGrantUnmappedOrScalarMetadataPaths()
+    public void NativeCqlStringAdmissionRejectsUnmappedFieldsAndAdmitsDeclaredMetadata()
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString); ICosmicQueryStorageProvider adapter = provider;
-        foreach (var query in new[] { CosmicQuery<Holon>.Create().Where(h => h.CustomKey.Contains("x")).Result,
-            CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "title").Contains("x")).Result })
-        {
-            var plan = CosmicQueryPlanner.Plan(query, adapter.QueryProviderType, new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) });
-            plan.IsError.Should().BeTrue(); plan.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED"); plan.Result.Should().BeNull();
-        }
+        var targets = new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) };
+        var unmapped = CosmicQuery<Holon>.Create().Where(h => h.CustomKey.Contains("x")).Result;
+        var rejected = CosmicQueryPlanner.Plan(unmapped, adapter.QueryProviderType, targets);
+        rejected.IsError.Should().BeTrue(); rejected.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED"); rejected.Result.Should().BeNull();
+        var metadata = CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "title").Contains("x")).Result;
+        var admitted = CosmicQueryPlanner.Plan(metadata, adapter.QueryProviderType, targets);
+        admitted.IsError.Should().BeFalse(admitted.Message);
         File.Exists(_databasePath).Should().BeFalse();
     }
 }
