@@ -12,14 +12,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 [TestClass][DoNotParallelize][TestCategory("BatchRevisionNative")]
 public class GoogleBatchRevisionNativeTests
 {
-    [DataTestMethod][DataRow(false)][DataRow(true)]
-    public async Task OrdinaryGraphBatchPublishesNativeRevisionsForSubsequentConditionalWrite(bool synchronous)
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task OrdinaryGraphBatchPublishesNativeRevisionsForSubsequentConditionalWrite(bool synchronous,bool import)
     {
         Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
         var work=Environment.GetEnvironmentVariable("OASIS_FIRESTORE_HISTORY_WORK")!;
         Assert.IsTrue(File.Exists(Path.Combine(work,"history-durability-ready.json")));
         Assert.AreEqual(0,Directory.GetFiles(work,"*.pending.json").Length);
-        var journal=Path.Combine(work,$"history-native-batch-revision-{synchronous}.pending.json");
+        var journal=Path.Combine(work,$"history-native-batch-revision-{synchronous}-{import}.pending.json");
         var root=new Holon{Id=Guid.NewGuid(),Name="owned ordinary root",IsActive=true};
         var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="owned ordinary child",IsActive=true};root.Children.Add(child);
         var operation=Guid.NewGuid();var actor=Guid.NewGuid();var key="GoogleCloudOASIS:"+operation.ToString("N");
@@ -34,8 +34,8 @@ public class GoogleBatchRevisionNativeTests
             using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)) {
                 await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{root=root.Id,child=child.Id,operation,actor,synchronous,state="before-native-ordinary-batch"}));file.Flush(true);
             }
-            var saved=synchronous?provider.SaveHolons(new[]{root}):await provider.SaveHolonsAsync(new[]{root});
-            Assert.IsFalse(saved.IsError,saved.Exception?.ToString());
+            if(import){var saved=synchronous?provider.Import(new[]{root}):await provider.ImportAsync(new[]{root});Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.Result);Assert.IsTrue(saved.IsSaved);Assert.AreEqual(2,saved.SavedCount);}
+            else{var saved=synchronous?provider.SaveHolons(new[]{root}):await provider.SaveHolonsAsync(new[]{root});Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);Assert.AreEqual(2,saved.SavedCount);}
             var rows=new[]{root,child};var revisions=new Dictionary<Guid,Guid?>();
             foreach(var row in rows) {
                 var revision=CosmicConcurrency.GetProviderRevisionId(row,ProviderType.GoogleCloudOASIS);

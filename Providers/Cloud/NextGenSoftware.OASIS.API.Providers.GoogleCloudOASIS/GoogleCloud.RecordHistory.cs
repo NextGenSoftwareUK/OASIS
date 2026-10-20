@@ -19,9 +19,19 @@ public partial class GoogleCloudOASIS
     private static void HandleFirestoreSaveError<T>(ref NextGenSoftware.OASIS.Common.OASISResult<T> result,string message,Exception cause)
     {
         NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,message,cause);
+        result.SavedCount=KnownFirestoreAcknowledgements(cause).Distinct().Count();
         // A definite create/revision rejection is not provider unavailability. Keep the original SDK cause.
         if(cause is Grpc.Core.RpcException rpc && rpc.StatusCode is Grpc.Core.StatusCode.AlreadyExists or Grpc.Core.StatusCode.FailedPrecondition or Grpc.Core.StatusCode.NotFound)
             result.ErrorCode=NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode;
+    }
+    private static IEnumerable<Guid> KnownFirestoreAcknowledgements(Exception cause)
+    {
+        if(cause==null)yield break;
+        if(cause is GoogleFirestorePartialMutationException partial)
+            foreach(var id in partial.AcknowledgedRecordIds)if(id!=Guid.Empty)yield return id;
+        if(cause is AggregateException aggregate){
+            foreach(var inner in aggregate.InnerExceptions)foreach(var id in KnownFirestoreAcknowledgements(inner))yield return id;
+        }else foreach(var id in KnownFirestoreAcknowledgements(cause.InnerException))yield return id;
     }
     private static readonly EmbeddedRecordHistory FirestoreHistory=new();
 

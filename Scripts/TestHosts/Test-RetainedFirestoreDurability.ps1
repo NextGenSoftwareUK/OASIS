@@ -155,7 +155,7 @@ try{
             if($LASTEXITCODE){throw 'Native batch revision tests failed; preserve original live emulator and fixtures.'}
             $report=Get-Item -LiteralPath (Join-Path $work 'google-batch-revision-native-current.trx')
             [xml]$trx=Get-Content -LiteralPath $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
-            if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 2 -or [int]$counts.passed -ne 2 -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete2/2 native batch revision report required.'}
+            if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete4/4 native batch/import revision report required.'}
             if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Original batch revision fixtures remain unresolved.'}
             if(!$RunEncryptedReplay -and !$RunPreparationClaims -and !$RunRegressionTests -and !$RunConditionalGraphs){$safeToStop=$true;return}
         }
@@ -192,7 +192,7 @@ try{
         if($report.LastWriteTimeUtc -lt $started){throw 'Stale native report.'}
         [xml]$trx=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$trx.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 41 -or [int]$counts.passed -ne 41 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly41native history/lifecycle/search/role/identity cases, no skips.'}
+        if([int]$counts.total -ne 49 -or [int]$counts.passed -ne 49 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly49native history/lifecycle/search/role/identity/count cases, no skips.'}
         if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native history originals remain; do not stop.'}
         if($RunRegressionTests){
             $started=[DateTime]::UtcNow

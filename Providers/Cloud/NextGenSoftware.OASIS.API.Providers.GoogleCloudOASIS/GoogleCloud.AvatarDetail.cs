@@ -74,6 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 
                 result.Result = avatarDetail;
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.IsError = false;
                 result.Message = "Avatar detail saved successfully to Google Cloud Firestore with full property mapping";
             }
@@ -169,6 +170,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 
                 result.Result = source;
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.IsError = false;
                 result.Message = "Holon saved successfully to Google Cloud Firestore with full property mapping";
             }

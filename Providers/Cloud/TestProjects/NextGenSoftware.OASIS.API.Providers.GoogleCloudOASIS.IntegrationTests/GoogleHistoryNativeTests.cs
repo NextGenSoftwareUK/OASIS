@@ -77,8 +77,8 @@ public partial class GoogleHistoryNativeTests
                 else Check(await provider.SaveHolonAsync((IHolon)row,saveChildren:false),initial);
             }
             void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result,bool initial){
-                if(initial){Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);return;}
-                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
+                if(initial){Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);Assert.AreEqual(1,result.SavedCount);return;}
+                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);Assert.AreEqual(0,result.SavedCount,"Unknown/rejected acknowledgement cannot be counted as a successful write.");
                 if(mode is "conflict" or "create-race"){
                     Assert.IsInstanceOfType<Grpc.Core.RpcException>(result.Exception);
                     Assert.AreEqual(mode=="create-race"?Grpc.Core.StatusCode.AlreadyExists:Grpc.Core.StatusCode.FailedPrecondition,((Grpc.Core.RpcException)result.Exception).StatusCode);
