@@ -2,7 +2,11 @@
 
 Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-providers`. Selected foundations are implemented and verified; the full roadmap is unfinished. Source commits, assembly hashes, original failures and fixture reconciliation are retained in [integration evidence](INTEGRATION_BOUNDARY.md) and [verification history](VERIFICATION.md).
 
-## Latest working increment — protected preparation ownership
+## Latest working increment — MongoDB CQL and shared scalar-property queries
+
+MongoDB now executes the shared CQL predicate contract natively, including typed metadata paths, presence/null tests, logical predicates, membership and ordinal strings. Annotated scalar properties such as `row.Rating >= 7` compile centrally and execute on both MongoDB and SQLite without getter/attribute-constructor execution. Native results support clean tracking, no-op save and conditional write-back retaining unselected children. MongoDB streams bounded projected payloads and enforces a native deadline. Final acceptance: **Core 1,536; Shared 895; MongoDB unit 188/selected native 84; SQLite native 1,042**, all passing with zero skips and matching Core/Shared artifacts. [Implementation, exact reports/hashes, reconciled failures and open CQL scope](CQL_MONGO_NATIVE.md). Core a6d0865 is paired with the parent dependency pin; no Development deployment is included.
+
+## Earlier protected preparation ownership increments
 
 MongoDB numeric prerequisite discovered during CQL review is fixed: JsonElement prefers exact decimal storage, lossless JRaw retains numeric identity, and unsupported rounded/underflowed/overflowed values reject rather than persist a successful substitute. Final paired **175/175 controlled and 12/12 native cases** pass, zero skips, including prior conditional/preparation regressions. [Precision evidence and limits](MONGO_AUDIT_PRECISION.md#json-numeric-storage-follow-up--20-october-2026). This is a storage correction; the MongoDB CQL adapter remains unfinished.
 
