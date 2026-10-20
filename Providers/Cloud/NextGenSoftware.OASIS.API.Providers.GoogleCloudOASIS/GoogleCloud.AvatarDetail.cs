@@ -119,6 +119,18 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     if(!graph.IsError) converted.Result=holon;
                     return converted;
                 }
+                return await SaveHolonRecordAsync(holon,null);
+            }
+            catch(Exception cause){HandleFirestoreSaveError(ref result,$"Error saving holon to Google Cloud: {cause.Message}",cause);return result;}
+        }
+
+        protected virtual Task<OASISResult<IHolon>> SavePlannedHolonAsync(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite write)
+            =>SaveHolonRecordAsync(write.Snapshot,write);
+
+        private async Task<OASISResult<IHolon>> SaveHolonRecordAsync(IHolon holon,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite plan)
+        {
+            var result=new OASISResult<IHolon>();
+            try{
                 var source=holon;
                 var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(source);
                 if (!IsProviderActivated)
@@ -175,9 +187,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 };
                 
                 holonData["data_json"]=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(holon);
-                var committed=await WriteFirestoreRecordAsync<Holon>(docRef,holonData,IsVersionControlEnabled,publication.ValidateUnchanged);
+                var committed=await WriteFirestoreRecordAsync<Holon>(docRef,holonData,IsVersionControlEnabled,publication.ValidateUnchanged,plan);
                 ValidateFirestoreCallerPublication(publication.ValidateUnchanged,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
+                if(source is Holon caller)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                 source.Id=holon.Id;
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 source.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=holon.Id.ToString();

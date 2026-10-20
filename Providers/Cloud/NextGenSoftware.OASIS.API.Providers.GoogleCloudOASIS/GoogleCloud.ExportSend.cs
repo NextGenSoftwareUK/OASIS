@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         failures.Add(new InvalidOperationException("Firestore descendant skipped because its parent failed."));
                         continue;
                     }
-                    var written=await SaveHolonAsync(node.Snapshot,false,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+                    var written=await SavePlannedHolonAsync(node);
                     if(written.IsError || written.Result==null) {
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
@@ -67,6 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         publication.ValidateUnchanged();
                         node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                         node.Source.Version=written.Result.Version;node.Source.VersionId=written.Result.VersionId;node.Source.PreviousVersionId=written.Result.PreviousVersionId;
+                        if(node.Source is NextGenSoftware.OASIS.API.Core.Holons.Holon caller && written.Result is NextGenSoftware.OASIS.API.Core.Holons.Holon committed)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                         node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=node.Snapshot.Id.ToString();
                     }
