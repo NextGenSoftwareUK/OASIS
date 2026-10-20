@@ -10,7 +10,7 @@ User direction: implement and certify Hyperdrive V2 only. Record legacy Hyperdri
 
 ## Current acceptance checkpoint — 20 October 2026
 
-The complete scope below remains active. [Implementation status](IMPLEMENTATION_STATUS.md) summarizes verified foundations and remaining work for all eight stages. Selected tracking/concurrency, graph ownership and search fixes have native evidence; they do not close the full roadmap. Per-save committed deltas and CQL have not been delivered.
+The complete scope below remains active. [Implementation status](IMPLEMENTATION_STATUS.md) summarizes verified foundations and remaining work for all eight stages. Selected tracking/concurrency, graph ownership and search fixes have native evidence; they do not close the full roadmap. Per-save committed deltas and complete CQL have not been delivered; the initial predicate compiler is documented in Stage 8.
 
 Detailed sections preserve dated checkpoints. Treat earlier counts and remaining-work notes as historical where superseded by [integration evidence](INTEGRATION_BOUNDARY.md). Legacy implementation is excluded by user direction; shared provider fixes needed for V2 remain in scope.
 
@@ -159,6 +159,8 @@ Generate deltas from the same canonical before/after commit values that own conc
 Acceptance: scalar/custom/metadata/nested/graph edits, explicit null versus missing, collection order, delete versus unlink, concurrent edits, rejected writes, uncertain acknowledgement and idempotent replay all produce the correct authorized result. A failed conditional write must never advertise a committed delta.
 
 ## Stage 8 — CQL (COSMIC Query Language)
+
+Initial implementation: [the CQL predicate compiler](CQL_EXPRESSION_CONTRACT.md) now freezes typed scalar/metadata comparisons and boolean composition into an immutable representation without provider I/O or arbitrary client execution. Nine cases pass in Core1,298. Query composition, provider scope, capability/security planning, native execution and all remaining acceptance below are still required.
 
 Requested 19 October 2026. Build a typed LINQ/EF-style query API over WEB4, with a provider-neutral expression/AST contract suitable for later textual CQL. Support composed predicates (AND/OR/NOT, equality/ranges/inclusion/null tests and metadata paths), ordering, projection, paging, aggregates and relationship queries according to explicitly declared capabilities. Replace the limits of exact metadata selectors without concatenating provider-native query strings from user input.
 
