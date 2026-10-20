@@ -1,5 +1,15 @@
 # HyperDrive V2 current release gates
 
+## Solana DTO read precision newly reproduced — OPEN,2026-10-20
+
+Restored focused report SHA256 `FF1AFE84E3D42E494C932FBDCF6AA95E6AD31F0804B794555D7F283261D82E31`; explicitly excluded-read556pass report SHA256 `EA2B78AA042C7957F12C02207E06F34B1B0A383029E56C1583BFEE3EDD3E4677`. Actual consumer Core `8B00B2A6EB2AA2AEEB43F2671289E5061418D222B99DF52541DED09DAAD61631`. Core owner agreed explicit `DeserializeMetadataRecord<T>` API reusing existing extractor/binder; implementation/consumer adoption still pending, not represented as done.
+
+Three new direct stored-DTO cases prove read rounding in avatar/detail/holon (0.1234567890123456789012345678→0.123456789012346). Added signed-update exactdecimal/literaldate test now passes, closing the previous dedicated-update coverage omission; original555cases plus that test pass556/556 when the THREE known failing read regressions are explicitly excluded. This is NOT a full559 pass and is a local non-deployable test checkpoint.
+
+An attempted reuse of ParseStoredObject+Project at the entire DTO root failed64/559 because raw JSON integer tokens cannot hydrate ordinary typed integer properties (e.g.HerzSequentialNumber). That candidate was reverted in source AND rebuilt outputs; no assertion weakened and no product decoder workaround retained. Existing Core exact metadata decoder requires IHolonBase, whereas Solana DTOs do not implement it. Requested central supported DTO/metadata-decoding contract from Core owner, reusing the existing restricted binder/exact metadata owner rather than introducing a provider serializer. Product read fix remainsOPEN.
+
+Evidence in existing SOLANAOASIS.UnitTests/TestResults: initial `david_OASISOMEGA_2026-10-20_12_10_30_net10.0.trx` includes three genuine read failures plus one TEST evaluation-order error in new update assertion (expected signature read before await), corrected without product change. Failed candidate `david_OASISOMEGA_2026-10-20_12_10_58_net10.0.trx` SHA256846C091DA3EFE98A7396D49C5857B73668B2504E69909136C2BEB780341EE62A retained. Restored-original focused `david_OASISOMEGA_2026-10-20_12_12_15_net10.0.trx` proves3red/1green; explicitly excluded-read suite `david_OASISOMEGA_2026-10-20_12_12_32_net10.0.trx`556green. No native ledger/process/reset/download/spending or deployment. Do not merge this known-red checkpoint as verified release work.
+
 ## Solana exact signed tombstone staging — 2026-10-20
 
 Actual controlled Solnet signing/encrypted-wire tests exposed default JObject parsing narrowing metadata before tombstone signing: expected0.1234567890123456789012345678 became0.12345678901234568, three record kinds allred. Repository update and tombstone staging now use existing Shared `OasisJson.ParseStoredObject`; no new serializer/codec/key/envelope/wire version. Typed DTO decoding remains separate/open; kind-only parse sites were not changed just for consistency.
