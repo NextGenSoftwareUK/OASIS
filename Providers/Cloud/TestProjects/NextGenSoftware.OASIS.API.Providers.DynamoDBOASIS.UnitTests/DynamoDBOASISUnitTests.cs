@@ -108,6 +108,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
                     if(fail) throw cause;
                 }
                 return Task.FromResult(new Amazon.DynamoDBv2.Model.QueryResponse {
+                    HttpStatusCode=System.Net.HttpStatusCode.OK,
                     Items=new() {new() {["id"]=new() {S="page-"+calls}}},
                     LastEvaluatedKey=calls==1 ? new() {["id"]=new() {S="cursor"}} : new()
                 });
@@ -186,6 +187,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
                 calls++;
                 if(calls>1) Assert.AreEqual("next",request.ExclusiveStartKey["id"].S);
                 return Task.FromResult(new Amazon.DynamoDBv2.Model.ScanResponse {
+                    HttpStatusCode=System.Net.HttpStatusCode.OK,
                     Items=calls==1 ? new() {Row(true)} : duplicate ? new() {Row(false),Row(false)} : new() {Row(false)},
                     LastEvaluatedKey=calls==1 ? new() {["id"]=new() {S="next"}} : new()
                 });

@@ -315,25 +315,15 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read,string tableName,Func<T,bool> matches,int version=0) where T:class,IHolonBase
         {
-            var request = new ScanRequest
-            {
-                TableName = tableName,
-                ConsistentRead = true,
-            };
             T? match = null;
-            do
+            await foreach(var item in ReadScanRowsAsync(read,tableName))
             {
-                var response = await read(request);
-                foreach(var item in response.Items)
-                {
-                    var avatar=ReadStoredIdentity<T>(item,version);
-                    if(avatar==null||avatar.IsDeleted) continue;
-                    if(!matches(avatar)) continue;
-                    if(match!=null) throw new StorageIdentityAmbiguousException();
-                    match=avatar;
-                }
-                request.ExclusiveStartKey=response.LastEvaluatedKey;
-            } while(request.ExclusiveStartKey?.Count>0);
+                var avatar=ReadStoredIdentity<T>(item,version);
+                if(avatar==null||avatar.IsDeleted)continue;
+                if(!matches(avatar))continue;
+                if(match!=null)throw new StorageIdentityAmbiguousException();
+                match=avatar;
+            }
             return match;
         }
 
@@ -421,15 +411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ValidateRecordVersion(version);
-                var items = new List<Dictionary<string, AttributeValue>>();
-                ScanResponse? scanResp = null;
-                do
-                {
-                    var req = new ScanRequest { TableName = "OasisAvatars", ConsistentRead=true };
-                    if (scanResp?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = scanResp.LastEvaluatedKey;
-                    scanResp = await _client.ScanAsync(req);
-                    items.AddRange(scanResp.Items);
-                } while (scanResp.LastEvaluatedKey?.Any() == true);
+                var items=await ReadScanItemsAsync(request=>_client.ScanAsync(request),"OasisAvatars");
 
                 var avatars = items.Select(i => ReadStoredIdentity<Avatar>(i,version)).Where(row=>row!=null&&!row.IsDeleted).Cast<IAvatar>().ToList();
                 result.Result = avatars; result.IsLoaded=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {avatars.Count} avatar(s).";
@@ -549,7 +531,12 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { ValidateRecordVersion(version); ScanResponse? sr = null; var items = new List<Dictionary<string, AttributeValue>>(); do { var req = new ScanRequest { TableName = "OasisAvatarDetails", ConsistentRead=true }; if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey; sr = await _client.ScanAsync(req); items.AddRange(sr.Items); } while (sr.LastEvaluatedKey?.Any() == true); var details = items.Select(i => ReadStoredIdentity<AvatarDetail>(i,version)).Where(row=>row!=null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsLoaded=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {details.Count} detail(s)."; }
+            try {
+                ValidateRecordVersion(version);
+                var items=await ReadScanItemsAsync(request=>_client.ScanAsync(request),"OasisAvatarDetails");
+                var details=items.Select(item=>ReadStoredIdentity<AvatarDetail>(item,version)).Where(row=>row!=null).Cast<IAvatarDetail>().ToList();
+                result.Result=details;result.IsLoaded=true;result.Message=$"DynamoDBOASIS: Loaded {details.Count} detail(s).";
+            }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -676,27 +663,19 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         private async Task<List<IHolon>> ScanHolonsAsync(int version=0)
         {
-            var items = new List<Dictionary<string, AttributeValue>>();
-            ScanResponse? sr = null;
-            do
-            {
-                var req = new ScanRequest { TableName = "OasisHolons", ConsistentRead=true };
-                if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey;
-                sr = await _client.ScanAsync(req);
-                items.AddRange(sr.Items);
-            } while (sr.LastEvaluatedKey?.Any() == true);
+            var items=await ReadScanItemsAsync(request=>_client.ScanAsync(request),"OasisHolons");
             return items.Select(i => ReadStoredIdentity<Holon>(i,version)).Where(row=>row!=null&&!row.IsDeleted).Cast<IHolon>().ToList();
         }
 
         private static async Task<List<Dictionary<string,AttributeValue>>> ReadQueryItemsAsync(Func<QueryRequest,Task<QueryResponse>> query,QueryRequest request)
         {
             var items=new List<Dictionary<string,AttributeValue>>();
-            do {
+            await foreach(var item in ReadNativePagesAsync(async cursor=>{
+                request.ExclusiveStartKey=cursor;
                 var response=await query(request);
-                if(response?.Items==null) throw new InvalidOperationException("DynamoDB query returned no item collection.");
-                items.AddRange(response.Items);
-                request.ExclusiveStartKey=response.LastEvaluatedKey;
-            } while(request.ExclusiveStartKey?.Count>0);
+                RequireReadAcknowledgement(response,response?.Items!=null);
+                return(response.Items,response.LastEvaluatedKey);
+            },request.ExclusiveStartKey))items.Add(item);
             return items;
         }
 

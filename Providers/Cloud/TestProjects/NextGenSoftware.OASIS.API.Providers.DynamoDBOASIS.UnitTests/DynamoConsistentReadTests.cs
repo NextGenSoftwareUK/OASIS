@@ -16,12 +16,12 @@ public class DynamoConsistentReadTests
         public override Task<ScanResponse> ScanAsync(ScanRequest request,CancellationToken cancellationToken=default)
         {
             Assert.IsTrue(request.ConsistentRead,"Every page must request a strong base-table read.");Assert.IsTrue(string.IsNullOrEmpty(request.IndexName));Reads++;
-            if(Reads==1) return Task.FromResult(new ScanResponse {Items=new(),LastEvaluatedKey=new() {["id"]=new() {S="owned-cursor"}}});
+            if(Reads==1) return Task.FromResult(new ScanResponse {HttpStatusCode=System.Net.HttpStatusCode.OK,Items=new(),LastEvaluatedKey=new() {["id"]=new() {S="owned-cursor"}}});
             Assert.AreEqual("owned-cursor",request.ExclusiveStartKey["id"].S);Assert.AreEqual(2,Reads);
             var json=request.TableName=="OasisAvatars" ? OasisJson.Serialize(new Avatar {Id=Id,IsActive=true})
                 :request.TableName=="OasisAvatarDetails" ? OasisJson.Serialize(new AvatarDetail {Id=Id,IsActive=true})
                 :OasisJson.Serialize(new Holon {Id=Id,ParentHolonId=Parent,IsActive=true});
-            return Task.FromResult(new ScanResponse {Items=new() {new() {["id"]=new() {S=Id.ToString()},["data_json"]=new() {S=json}}}});
+            return Task.FromResult(new ScanResponse {HttpStatusCode=System.Net.HttpStatusCode.OK,Items=new() {new() {["id"]=new() {S=Id.ToString()},["data_json"]=new() {S=json}}}});
         }
         public override Task<QueryResponse> QueryAsync(QueryRequest request,CancellationToken cancellationToken=default)
             =>throw new AssertFailedException("A GSI cannot supply strongly consistent parent reads.");
