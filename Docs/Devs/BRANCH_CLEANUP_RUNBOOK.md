@@ -9,6 +9,8 @@ Scripts/branch_cleanup.sh            # dry run: lists what is safe to delete and
 Scripts/branch_cleanup.sh --apply    # deletes the safe branches (remote and local)
 ```
 
+On Windows, double-click `Scripts\branch_cleanup.bat` for a dry run (the window stays open), or run it from a command prompt with the same options, for example `Scripts\branch_cleanup.bat --apply`. It runs the same script through Git Bash; Git for Windows must be installed.
+
 Options: `--remote-only`, `--local-only`. Extra branches to protect: `KEEP_BRANCHES='codex/live-work|feature/x' Scripts/branch_cleanup.sh`.
 
 Exit codes: `0` nothing needs review, `3` some branches hold work not in `Development` (listed at the end), `2` bad option.
