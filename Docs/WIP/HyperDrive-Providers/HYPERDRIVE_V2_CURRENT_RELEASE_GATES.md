@@ -1,5 +1,26 @@
 # HyperDrive V2 current release gates
 
+## Solana stored DTO exact reader + nullable metadata — final controlled559/Shared887 green,2026-10-20
+
+Core API source is committed as `25a15a846c2759af64a5d20e11a73dd92857fd85`, with parent gitlink/deployment manifest paired before this facade adoption. Core owner reports full1494/Core +1003/nativeSQLite passing on the same F6A4/3C84 cohort; this session directly executed and inspected Solana559/Shared887 and the four cloud controlled suites below. No deployment or all-provider completion claim.
+
+Follow-up cloud compatibility on the SAME captured Core F6A4 / Shared3C84: full controlled Dynamo306, Google169, AzureStorage95 and Cosmos249 all passed, zero skips. All eight cached producer/consumer builds passed with zero errors; no Core/Shared producer was rebuilt during this copy window. No hosted/native services were launched. Reports are in each existing cloud unit project's `TestResults/` directory:
+
+| Provider | Report filename | SHA256 |
+| --- | --- | --- |
+| DynamoDBOASIS | david_OASISOMEGA_2026-10-20_12_23_51_net10.0.trx | E195E2C37678080EDF027FBE9AD4562AF65B65F3C8DFE2097449E3A797A6A0A4 |
+| GoogleCloudOASIS | david_OASISOMEGA_2026-10-20_12_23_54_net10.0.trx | DD6813A8D5A3EF3433165F78A8A0BE0621EE2F0B1E1F454AE60776F208331777 |
+| AzureStorageOASIS | david_OASISOMEGA_2026-10-20_12_23_58_net10.0.trx | E6E21FD5F11515AB44F7925CA63F96E63569AC33368D514BD1B1C1B6406550E9 |
+| AzureCosmosDBOASIS | david_OASISOMEGA_2026-10-20_12_24_01_net10.0.trx | 804337CD78CCD74AE2F8C28962D50516809B91A3AA32C249095A3C76ABD45B02 |
+
+Free C after cloud compatibility:68,874,485,760bytes; target123GBunmet. This verifies the scoped shared-reader change, not hosted cloud IAM, native recovery, complete interfaces or universal V2 policies.
+
+Supersedes the scoped Solana DTO read precision OPEN/known-red checkpoint below: Shared facade delegates to Core's explicit `DeserializeMetadataRecord<T>`, reusing the existing canonical metadata extractor/restricted binder and typed-field owner. Solana's existing reader now uses that API after record-kind validation. No per-provider serializer, raw-root integer workaround, key/wire fork or relaxed type admission. Newtests verify exact decimal/wide numeric metadata, numeric-looking/literaldate strings, DTO→domain→JSON precision, plus dedicated signed update. All **559/559 Solana** pass6s0skip with NO exclusions; **887/887 Shared** pass6s0skip (existing883unchanged+4nullmetadatafacadetests).
+
+Human explicitly confirmed metadata can be null. Central decoder accepts null/absent metadata for canonical Holon/Avatar/Detail and declared DTOs using existing NullValueHandling.Ignore/constructor-default behavior; duplicate/caseambiguous null+object still rejected. New Shared positive3kinds+negativealias check pass; existing unsafe-type/identity/origin/tombstone regressions remain unchanged. Earlier candidate produced556/559 with3oldnull failures and was not represented as green. Its report SHA256B65090499F2957885E461DA9D18B44FDF42361B6022670AD8FBD9FE110B02815 retained; earlier unchangedShared883report46CC9C655179BDABD03FFC1733A86CE3BDB1CF6D864A42CCEB7CE2557077AFA8 retained. Own newSharedtest initially missed System/IO usings; compilationfixed BEFORE finalno-build tests, no assertion weakened.
+
+Final TRX: SolanaUnitTests/TestResults/`david_OASISOMEGA_2026-10-20_12_22_00_net10.0.trx` SHA256 `F6250551F4F4C94D165D252E83EA7EDF049B77115AC110096197265E4405AE65`; SharedUnitTests/TestResults/`david_OASISOMEGA_2026-10-20_12_22_08_net10.0.trx` SHA256 `6807C2A8ECFCD1BC4A96B4DE1B5090F186471D8A39481928A62AC5BD2DB4BABC`. Both consumers actual Core `F6A4E026662FAC8B4C181FA141796FD1C0B77742F589AF031F4FA1AD9D80BC90`, Solana captured Shared `3C84DBF709EE5EE6F58068F2E8DE491AA10A7A61192F486C75F7F8AC86EB380F`. SameSDK/cache/outputdirectories, no downloads/installs/nativeledger/process/reset/gas/devpush. Free C68,875,046,912bytes;123GBtargetunmet/no reclaim claimed. Original Solana ledger recovery/native full-interface/hosted/globalV2 gates remainOPEN; controlled success is not chain acceptance.
+
 ## Solana DTO read precision newly reproduced — OPEN,2026-10-20
 
 Restored focused report SHA256 `FF1AFE84E3D42E494C932FBDCF6AA95E6AD31F0804B794555D7F283261D82E31`; explicitly excluded-read556pass report SHA256 `EA2B78AA042C7957F12C02207E06F34B1B0A383029E56C1583BFEE3EDD3E4677`. Actual consumer Core `8B00B2A6EB2AA2AEEB43F2671289E5061418D222B99DF52541DED09DAAD61631`. Core owner agreed explicit `DeserializeMetadataRecord<T>` API reusing existing extractor/binder; implementation/consumer adoption still pending, not represented as done.

@@ -113,10 +113,10 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
 
     private static T DeserializeStoredRecord<T>(string content) where T : SolanaBaseDto,new()
     {
-        var document=Newtonsoft.Json.Linq.JObject.Parse(content);
+        var document=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.ParseStoredObject(content);
         if(document.Value<string>("RecordKind") != new T().RecordKind)
             throw new InvalidOperationException("Solana storage record kind does not match the requested type; untyped historical memos require explicit review.");
-        var record=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(content) ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
+        var record=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeMetadataRecord<T>(content) ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
         if(record.Id == Guid.Empty || record.Version < 0)
             throw new InvalidOperationException("Solana storage record has invalid identity/version.");
         if(!record.HasValidCreationOrigin())
