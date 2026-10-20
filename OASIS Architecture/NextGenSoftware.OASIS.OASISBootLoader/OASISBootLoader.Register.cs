@@ -31,7 +31,7 @@ using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArweaveOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
@@ -177,11 +177,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.Neo4jOASIS:
                             {
-                                Neo4jOASIS Neo4jOASIS = new Neo4jOASIS(
-                                    overrideConnectionString == null
-                                        ? OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString
-                                        : overrideConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username,
-                                    OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
+                                Neo4jOASIS Neo4jOASIS = Neo4jProviderFactory.Create(
+                                    OASISDNA.OASIS.StorageProviders.Neo4jOASIS, overrideConnectionString);
                                 Neo4jOASIS.OnStorageProviderError += Neo4jOASIS_StorageProviderError;
                                 result.Result = Neo4jOASIS;
                             }
