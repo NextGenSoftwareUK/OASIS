@@ -69,9 +69,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }, (bodies, observed) => PreserveUnselectedGraphChildren(plan.Nodes, bodies, observed), conditional, (record,existing) =>
                 {
                     var node=plannedById[record.HolonId];
-                    record.ChildRoleManifestJson=node.SelectsChildren && node.RelationshipManifest!=null
-                        ? Core.Serialization.HolonChildRoleManifestJson.Serialize(node.RelationshipManifest)
-                        :existing!=null ? existing.ChildRoleManifestJson:record.ChildRoleManifestJson;
+                    var kind = conditionalPlan is CommittedHolonReplicaPlan
+                        ? HolonChildRoleWriteKind.CommittedReplica
+                        : conditionalPlan != null && conditionalPlan.Operation != ConditionalHolonOperation.Save
+                            ? HolonChildRoleWriteKind.SourceDelete : HolonChildRoleWriteKind.SourceSave;
+                    record.ChildRoleManifestJson = HolonChildRolePersistence.Resolve(node, kind,
+                        existing != null, existing?.ChildRoleManifestJson);
                 }).ConfigureAwait(false);
                 if (saved.IsError)
                 {
