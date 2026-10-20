@@ -11,6 +11,56 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public sealed class OracleNativeAcceptanceTests
 {
+    [TestMethod]
+    public async Task ReconcileKnownProjectionAssertionFixtures()
+    {
+        var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        Assert.AreEqual("7B6F8CA06B6046ED32464DC794050B5A162DF97A71AE9A55BE2DC71A2F51DBB5",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(Path.Combine(work,"oracle-projection-assertion-failed.trx")))));
+        var names=new[]{"canonical-metadata.pending.json","canonical-records.pending.json","conditional-parent-projection-0.pending.json","conditional-parent-projection-1.pending.json","conditional-parent-projection-2.pending.json","graph-three-level.pending.json"};
+        CollectionAssert.AreEquivalent(names,Directory.GetFiles(work,"*.pending.json").Select(Path.GetFileName).ToArray());
+        await using var connection=new OracleConnection(Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING"));await connection.OpenAsync();
+        var rows=new List<(string Table,Guid Id,string Json)>();
+        async Task Observe(string table,Guid id,string expectedName,Guid? corruptParent=null){
+            var json=await Read(connection,table,id);Assert.IsNotNull(json);
+            using var parsed=JsonDocument.Parse(json);Assert.AreEqual(id,parsed.RootElement.GetProperty("Id").GetGuid());
+            Assert.AreEqual(expectedName,parsed.RootElement.GetProperty(table=="OASIS_HOLONS"?"Name":"Username").GetString());
+            if(corruptParent.HasValue){
+                Assert.AreEqual(Guid.Empty,parsed.RootElement.GetProperty("ParentHolonId").GetGuid());
+                await using var parent=new OracleCommand("SELECT PARENT_HOLON_ID FROM OASIS_HOLONS WHERE ID=:Id",connection){BindByName=true};parent.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();
+                Assert.AreEqual(corruptParent.Value,new Guid((byte[])(await parent.ExecuteScalarAsync())!));
+            }
+            rows.Add((table,id,json));
+        }
+        foreach(var name in names){
+            using var journal=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(work,name)));var data=journal.RootElement;
+            if(name.StartsWith("conditional-parent",StringComparison.Ordinal)){
+                Assert.AreEqual("before-owned-projection-fixture",data.GetProperty("state").GetString());
+                await AssertReceiptAbsent(connection,data.GetProperty("operationId").GetGuid());
+                await Observe("OASIS_HOLONS",data.GetProperty("id").GetGuid(),"owned-parent-projection",data.GetProperty("wrongParent").GetGuid());
+            }else if(name=="canonical-metadata.pending.json"){
+                Assert.AreEqual("before-canonical-metadata-fixture",data.GetProperty("state").GetString());
+                await Observe("OASIS_HOLONS",data.GetProperty("id").GetGuid(),"owned-canonical-metadata-current");
+            }else if(name=="canonical-records.pending.json"){
+                Assert.AreEqual("before-native-canonical-records",data.GetProperty("state").GetString());var id=data.GetProperty("id").GetGuid();var expected="owned-oracle-"+id.ToString("N");Assert.AreEqual(expected,data.GetProperty("name").GetString());
+                foreach(var table in new[]{"OASIS_AVATARS","OASIS_AVATAR_DETAILS","OASIS_HOLONS"})await Observe(table,id,expected);
+                await Observe("OASIS_HOLONS",data.GetProperty("childId").GetGuid(),"owned independently current child");
+            }else{
+                Assert.AreEqual("before-native-three-level-graph",data.GetProperty("state").GetString());var ids=data.GetProperty("ids").EnumerateArray().Select(item=>item.GetGuid()).ToArray();Assert.AreEqual(3,ids.Length);
+                for(var index=0;index<ids.Length;index++)await Observe("OASIS_HOLONS",ids[index],new[]{"owned graph root","owned graph child","owned graph leaf"}[index]);
+            }
+        }
+        Assert.AreEqual(11,rows.Count);Assert.AreEqual(11,rows.Select(row=>(row.Table,row.Id)).Distinct().Count());
+        await using(var transaction=(OracleTransaction)await connection.BeginTransactionAsync()){
+            foreach(var row in rows){
+                await using var delete=new OracleCommand($"DELETE FROM {row.Table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",connection){BindByName=true,Transaction=transaction};
+                delete.Parameters.Add("Id",OracleDbType.Raw).Value=row.Id.ToByteArray();delete.Parameters.Add("Expected",OracleDbType.Clob).Value=row.Json;Assert.AreEqual(1,await delete.ExecuteNonQueryAsync());
+            }
+            await transaction.CommitAsync();
+        }
+        foreach(var row in rows)Assert.IsNull(await Read(connection,row.Table,row.Id));
+        foreach(var name in names)File.Delete(Path.Combine(work,name));
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task ChangedLaterGraphCallerDoesNotReachNativeWrite(bool synchronous)
     {
@@ -433,6 +483,16 @@ public sealed class OracleNativeAcceptanceTests
                 Assert.IsTrue(searched.IsError,"Collection-based search must not conceal inconsistent native projections.");
                 Assert.IsNull(searched.Result);Assert.IsInstanceOfType<InvalidDataException>(searched.Exception);
                 Assert.AreEqual(original,await Read(verifier,"OASIS_HOLONS",id));
+                var proposed=new Holon{Id=id,Name="must-not-repair-corrupt-projection",ParentHolonId=row.ParentHolonId};
+                var rejectedSave=sync?provider.SaveHolon(proposed,saveChildren:false):await provider.SaveHolonAsync(proposed,saveChildren:false);
+                Assert.IsTrue(rejectedSave.IsError);Assert.IsFalse(rejectedSave.IsSaved);Assert.IsNull(rejectedSave.Result);
+                Assert.IsInstanceOfType<InvalidDataException>(rejectedSave.Exception);Assert.AreEqual(0,proposed.Version);
+                foreach(var softDelete in new[]{true,false}){
+                    var rejectedDelete=sync?provider.DeleteHolonWithSoftDelete(id,softDelete):await provider.DeleteHolonWithSoftDeleteAsync(id,softDelete);
+                    Assert.IsTrue(rejectedDelete.IsError);Assert.IsFalse(rejectedDelete.Result);
+                    Assert.IsInstanceOfType<InvalidDataException>(rejectedDelete.Exception);
+                    Assert.AreEqual(original,await Read(verifier,"OASIS_HOLONS",id));
+                }
                 if(!parent){
                     var single=sync?provider.LoadHolonsByMetaData("owned-index-fixture",id.ToString(),selectedType,loadChildren:false):await provider.LoadHolonsByMetaDataAsync("owned-index-fixture",id.ToString(),selectedType,loadChildren:false);
                     var pairs=new Dictionary<string,string>{{"owned-index-fixture",id.ToString()}};

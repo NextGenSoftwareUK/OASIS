@@ -18,12 +18,12 @@ public partial class OracleDBOASIS
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync();
             await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync();
             Holon row;string original;
-            await using(var select=CreateCommand("SELECT DATA_JSON FROM OASIS_HOLONS WHERE ID=:Id FOR UPDATE",connection)){
+            await using(var select=CreateCommand("SELECT DATA_JSON,HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID FROM OASIS_HOLONS WHERE ID=:Id FOR UPDATE",connection)){
                 select.Transaction=transaction;select.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();
-                var json=await select.ExecuteScalarAsync();
-                if(json==null||json==DBNull.Value)throw new InvalidOperationException("Oracle holon to delete was not found.");
-                original=json.ToString()!;row=await ReadRecordVersionAsync<Holon>(id,original,0)??throw new InvalidDataException("Oracle locked holon is missing its current version.");
-                if(row.Id!=id)throw new InvalidDataException("Oracle holon identity projection does not match its canonical record.");
+                await using var reader=await select.ExecuteReaderAsync();
+                if(!await reader.ReadAsync())throw new InvalidOperationException("Oracle holon to delete was not found.");
+                original=reader.GetString(0);row=await ReadRecordVersionAsync<Holon>(id,original,0)??throw new InvalidDataException("Oracle locked holon is missing its current version.");
+                ValidateNativeHolonProjection(row,reader.GetInt32(1),reader.GetInt32(2),reader.IsDBNull(3)?Guid.Empty:new Guid((byte[])reader.GetValue(3)));
             }
             if(softDelete&&row.IsDeleted&&!row.IsActive){result.Result=row;return result;}
             if(softDelete){row.IsActive=false;if(!row.IsDeleted)row.DeletedDate=DateTime.UtcNow;}

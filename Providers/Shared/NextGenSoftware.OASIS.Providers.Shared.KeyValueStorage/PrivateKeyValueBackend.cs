@@ -11,8 +11,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 /// <summary>Hides logical keys and values on publicly readable stores.
 /// Record counts, sizes and access patterns remain public.</summary>
-public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
+public class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
 {
+    public static PrivateKeyValueBackend Create(IKeyValueBackend inner,byte[] key,bool compress=false)
+        =>inner is IConditionalKeyValueBackend?new Conditional(inner,key,compress):new PrivateKeyValueBackend(inner,key,compress);
     private const string PhysicalPrefix = "oasis/private/v1/";
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private readonly EncryptedKeyValueBackend _encrypted;
@@ -21,7 +23,7 @@ public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
 
     public PrivateKeyValueBackend(IKeyValueBackend inner, byte[] encryptionKey, bool compress = false)
     {
-        _encrypted = new EncryptedKeyValueBackend(inner, encryptionKey, compress);
+        _encrypted = EncryptedKeyValueBackend.Create(inner, encryptionKey, compress);
         _indexKey = HMACSHA256.HashData(encryptionKey, Encoding.UTF8.GetBytes("OASIS private storage index v1"));
     }
 
@@ -50,6 +52,11 @@ public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
     {
         var payload = await _encrypted.GetAsync(PhysicalKey(key), cancellationToken);
         if (payload == null) return null;
+        return ReadLogicalValue(key,payload);
+    }
+
+    private static string ReadLogicalValue(string key,string payload)
+    {
         var record = Parse(payload);
         if (!string.Equals(record.Key, key, StringComparison.Ordinal))
             throw new InvalidDataException("Private storage record identity mismatch.");
@@ -58,9 +65,14 @@ public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
 
     public Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
     {
+        return _encrypted.PutAsync(PhysicalKey(key),EncodeValue(key,value),cancellationToken);
+    }
+
+    private static string EncodeValue(string key,string value)
+    {
         ArgumentNullException.ThrowIfNull(value);
         StrictUtf8.GetByteCount(value);
-        return _encrypted.PutAsync(PhysicalKey(key), JsonSerializer.Serialize(new { key, value }), cancellationToken);
+        return JsonSerializer.Serialize(new { key, value });
     }
 
     public Task DeleteAsync(string key, CancellationToken cancellationToken = default)
@@ -127,5 +139,23 @@ public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
         _disposed = true;
         CryptographicOperations.ZeroMemory(_indexKey);
         _encrypted.Dispose();
+    }
+
+    private sealed class Conditional:PrivateKeyValueBackend,IConditionalKeyValueBackend
+    {
+        private readonly IConditionalKeyValueBackend _native;
+        public Conditional(IKeyValueBackend inner,byte[] key,bool compress):base(inner,key,compress)
+            =>_native=(IConditionalKeyValueBackend)_encrypted;
+        public async Task<KeyValueObservation> ReadObservedAsync(string key,CancellationToken token=default)
+        {
+            token.ThrowIfCancellationRequested();var observed=await _native.ReadObservedAsync(PhysicalKey(key),token);
+            return observed==null?null:new KeyValueObservation(ReadLogicalValue(key,observed.Value),observed.Revision);
+        }
+        public Task CreateOnlyAsync(string key,string value,CancellationToken token=default)
+            =>_native.CreateOnlyAsync(PhysicalKey(key),EncodeValue(key,value),token);
+        public Task ReplaceUnchangedAsync(string key,string value,string revision,CancellationToken token=default)
+            =>_native.ReplaceUnchangedAsync(PhysicalKey(key),EncodeValue(key,value),revision,token);
+        public Task DeleteUnchangedAsync(string key,string revision,CancellationToken token=default)
+            =>_native.DeleteUnchangedAsync(PhysicalKey(key),revision,token);
     }
 }
