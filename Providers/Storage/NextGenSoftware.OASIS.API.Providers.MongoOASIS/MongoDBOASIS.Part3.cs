@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -29,12 +29,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         // Each bulk request is one mutation unit: failed writes must not leave earlier roots committed.
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            return SaveGraphsAtomicAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, saveChildrenOnProvider).GetAwaiter().GetResult();
+            return SaveGraphsAtomicAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth).GetAwaiter().GetResult();
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            return SaveGraphsAtomicAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, saveChildrenOnProvider);
+            return SaveGraphsAtomicAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth);
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)

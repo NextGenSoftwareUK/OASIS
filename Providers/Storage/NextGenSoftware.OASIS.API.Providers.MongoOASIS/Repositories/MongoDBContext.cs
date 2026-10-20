@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         private static readonly Dictionary<string, MongoClient> _clients = new();
         private static readonly object _lock = new();
 
-        public MongoClient MongoClient { get; set; }
+        public IMongoClient MongoClient { get; set; }
         public IMongoDatabase MongoDB { get; set; }
 
         public MongoDbContext(string connectionString, string dbName)
