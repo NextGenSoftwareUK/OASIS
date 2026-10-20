@@ -16,6 +16,14 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
     [DoNotParallelize]
     public class NEAROASISIntegrationTests
     {
+        private sealed class NamedGraphOwner:Holon
+        {
+            public System.Collections.Generic.List<Holon> Components {get;set;}=new();
+            public override System.Collections.ObjectModel.ReadOnlyCollection<IHolon> AllChildren=>Children.Concat<IHolon>(Components).ToList().AsReadOnly();
+            public override System.Collections.Generic.IReadOnlyList<HolonChildCollection> CaptureChildCollections()=>base.CaptureChildCollections()
+                .Concat(new[]{new HolonChildCollection(nameof(Components),Components,rows=>Components=rows.Cast<Holon>().ToList())}).ToArray();
+        }
+
         private NEAROASIS _provider = null!;
 
         [TestInitialize]
@@ -207,7 +215,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
         {
             var marker = Guid.NewGuid().ToString("N");
             var owner = Guid.NewGuid();
-            var parent = new Holon { Id = Guid.NewGuid(), Name = $"parent-{marker}" };
+            var parent = new NamedGraphOwner { Id = Guid.NewGuid(), Name = $"parent-{marker}" };
             var child = new Holon
             {
                 Id = Guid.NewGuid(), Name = $"child-{marker}", CreatedByAvatarId = owner,
@@ -215,7 +223,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             };
             var grandchild = new Holon { Id = Guid.NewGuid(), Name = $"grandchild-{marker}" };
             child.Children.Add(grandchild);
-            parent.Children.Add(child);
+            parent.Components.Add(child);
+            var expectedRoles=NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                HolonChildCollectionState.Capture(parent).CreateManifest(parent.Id,row=>row.Id));
             var saved = await _provider.SaveHolonAsync(parent, saveChildren: true, recursive: true);
             Assert.IsFalse(saved.IsError, saved.Message);
 
@@ -223,6 +233,16 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse(loadedParent.IsError, loadedParent.Message);
             Assert.IsNotNull(loadedParent.Result, loadedParent.Message);
             Assert.IsTrue(loadedParent.Result.Children.Any(item => item.Id == child.Id));
+            Assert.AreEqual(expectedRoles,parent.ChildRoleManifestJson);
+            Assert.AreEqual(expectedRoles,((Holon)loadedParent.Result).ChildRoleManifestJson);
+            var childBefore=await _provider.LoadHolonAsync(child.Id,loadChildren:false);Assert.IsFalse(childBefore.IsError,childBefore.Message);Assert.IsNotNull(childBefore.Result);
+            var scalar=new Holon{Id=parent.Id,Name=parent.Name,Version=parent.Version};
+            var rootOnly=await _provider.SaveHolonAsync(scalar,saveChildren:false);Assert.IsFalse(rootOnly.IsError,rootOnly.Message);
+            var persistedRoot=await _provider.LoadHolonAsync(parent.Id,loadChildren:false);Assert.IsFalse(persistedRoot.IsError,persistedRoot.Message);
+            Assert.AreEqual(expectedRoles,scalar.ChildRoleManifestJson);Assert.AreEqual(expectedRoles,((Holon)persistedRoot.Result).ChildRoleManifestJson);
+            var childAfter=await _provider.LoadHolonAsync(child.Id,loadChildren:false);Assert.IsFalse(childAfter.IsError,childAfter.Message);Assert.IsNotNull(childAfter.Result);
+            Assert.AreEqual(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(childBefore.Result),
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(childAfter.Result),"Root-only write must leave the independently loaded child unchanged.");
             var byKey = await _provider.LoadHolonAsync(parent.Id.ToString("D"), loadChildren: true,
                 recursive: true, loadChildrenFromProvider: true);
             Assert.IsFalse(byKey.IsError, byKey.Message);

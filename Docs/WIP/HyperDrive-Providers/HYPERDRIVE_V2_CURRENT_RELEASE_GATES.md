@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR roles native19 passed / common runner hash portability fixed — 2026-10-20
+
+Retained28985 terminal0,19/19actualnativeNEARpass5m10s0skips, newasyncnamedComponents/source+storedmanifest/rootonlypreservation/unchangedchild plus originalstorage assertions. NativeE615F26292F4AA203EE240C2B0FB696C8B32B4A05A96B8CD1B484EA4A834FEAC, Core943F/SharedF13A; unit178EF337/B85D differentepoch. Normalnode590538SIGINT/RocksDBclosed/process+portsabsent/pending0/checkedcompletionverified-fixtures-absent; retention50restored5AFTERstop,ledger283MiB. No SDK/runtime download,contractupgrade,newenvironment,reset,publicspend or devpush. Two earlierpre-testnamespace/cmdlet failures recorded; commonguard nowONE .NETSHA256stream owner, positivelyexecutedwithinexistingWindowsPowerShelllauncher and rejectsolderconsumer. No guard removal/fallback/globalpolicychange. Exactscope/hashes/fees/failurechronology in NEAR_PUBLIC_CONDITIONAL_SAVE.md. Fullcanonicalpublication/nativelegacy-null/allinterfaces/publicchainfees/coherentpublication/ALLproviderV2remainOPEN.
+
 ## NEAR captured-role staging controlled178 green, native OPEN — 2026-10-20
 
 Graph plan now reaches SAME observed-ciphertext/current-history checked-write owner/commonroleResolver. Root-only preserves observed roles/null; selected saves persist captured membership. Full178controlledpass12s0skips,4newownership/historycases; source epochCoreEF337/SharedB85D. Initial two-red/full176archive-string expectations were invalid, corrected-test/old-rolebehavior replaygenuinely2red; all chronology/hashes in NEAR_PUBLIC_CONDITIONAL_SAVE.md. No extra RPC/transaction/contractupgrade/runtime/download/reset/publicfunds. Existing identity-only source publication guard is NOT full canonical edit protection; native role/typedquery/concurrency/fees/fullinterfaces/coherentpublication/globalV2 remainOPEN. Old19native report does NOT certify this change.
