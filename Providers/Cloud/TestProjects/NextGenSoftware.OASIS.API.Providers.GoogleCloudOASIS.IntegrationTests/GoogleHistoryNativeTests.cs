@@ -221,7 +221,9 @@ public partial class GoogleHistoryNativeTests
         Assert.AreEqual(0,Directory.GetFiles(work,"*.pending.json").Length,"Reconcile original native intents before another fixture.");
         var id=Guid.NewGuid();var collection=kind==0?"avatars":kind==1?"avatarDetails":"holons";
         IHolonBase row=kind==0?new Avatar{Id=id,IsActive=true}:kind==1?new AvatarDetail{Id=id,IsActive=true}:new Holon{Id=id,IsActive=true};
-        row.MetaData=new(){["owned_history_native"]="first"};
+        const decimal exactMetadata=0.1234567890123456789012345678m;
+        const string numericText="0.1234567890123456789012345678";
+        row.MetaData=new(){["owned_history_native"]="first",["exact_decimal"]=exactMetadata,["numeric_text"]=numericText};
         var oldName="owned-history-"+id;var oldEmail=oldName+"@example.invalid";
         if(row is IAvatar profile){profile.Username=oldName;profile.Email=oldEmail;profile.VerificationToken=oldName;}
         if(row is IAvatarDetail identity){identity.Username=oldName;identity.Email=oldEmail;}
@@ -245,6 +247,15 @@ public partial class GoogleHistoryNativeTests
             if(row is IAvatar currentProfile){currentProfile.Username=oldName+"-changed";currentProfile.Email="changed-"+oldEmail;currentProfile.VerificationToken=oldName+"-changed";}
             if(row is IAvatarDetail currentIdentity){currentIdentity.Username=oldName+"-changed";currentIdentity.Email="changed-"+oldEmail;}
             await Save();Assert.AreEqual(2,row.Version);Assert.AreEqual(firstVersion,row.PreviousVersionId);
+            foreach(var selectedVersion in new[]{0,1}){
+                IHolonBase selected;
+                if(kind==0){var loaded=await provider.LoadAvatarAsync(id,selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                else if(kind==1){var loaded=await provider.LoadAvatarDetailAsync(id,selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                else{var loaded=await provider.LoadHolonAsync(id,loadChildren:false,version:selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                Assert.AreEqual(exactMetadata,Convert.ToDecimal(selected.MetaData["exact_decimal"],System.Globalization.CultureInfo.InvariantCulture));
+                Assert.IsInstanceOfType<string>(selected.MetaData["numeric_text"]);
+                Assert.AreEqual(numericText,selected.MetaData["numeric_text"]);
+            }
             var actual=await reference.GetSnapshotAsync();Assert.IsTrue(actual.Exists);Assert.IsTrue(actual.UpdateTime.HasValue);
             var document=JObject.Parse(actual.GetValue<string>("data_json"));Assert.AreEqual(2,document["Version"]!.Value<int>());
             Assert.AreEqual(2L,actual.GetValue<long>("version"));Assert.AreEqual("second",document["MetaData"]!["owned_history_native"]!.Value<string>());

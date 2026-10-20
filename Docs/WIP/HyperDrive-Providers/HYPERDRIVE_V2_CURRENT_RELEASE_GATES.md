@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Google Firestore exact native metadata — 2026-10-20
+
+Regression report `TestResults/GoogleCurrent/google-native-current.trx` SHA256 `F01E64E3F1F6B22D0291702074E9E909B7483DC3EF9ED93DF9B2DFBA1E9EC884`.
+
+Expanded the three real public create/update/history cases with current and archived 28-digit decimal and numeric-looking string checks for avatar/detail/holon. Retained official Firestore emulator: history37/37 passed4s, regression79/79 passed34s, zero skips, full runner exit0. This expands assertions, not case counts. Existing checkpoint import/readback and exact native revision conditional cleanup also passed. Both consumers captured Core03766A44A7A20F6452CDFC22D14B1749FD0B85DC32B4914F1A90468A911A521A / SharedA8AAF9C149B61BBE64E0C16AAB7CDACA2B5B80E12C2C1745B032963E6A893095. `TestResults/GoogleCurrent/google-history-native-current.trx` SHA256FAAF6A5827C709BB18BD955563693AA76E8B581DF17AD2B2B57011BEE15CE6DF. Prior reports were hashchecked/moved in place to `*-pre-native-decimal.trx`. Same runtime/export/project reused, pending0/listeners0 afterward. Not hosted IAM/Cloud Storage/BigQuery parity, complete interfaces or universal V2 certification; those gates remain open.
+
 ## AWS/Dynamo direct signing validation and native metadata — 2026-10-20
 
 Direct constructors now reject blank signing configuration before SDK client creation; controlled suite306/306 passed. Retained native95/95 subsequently passed with expanded exact decimal/numeric-string current+archive assertions across avatar/detail/holon in both facades. Different captured Core epochs are explicitly documented, not one paired certification. Report SHA2566F593A81476C49C7CCBC3279C641FE01DE232DFFC2538111BB3A1311F6CE9BE1; zero pending journals/listeners afterward. Same retained environment, no downloads/reset. See [AWS direct configuration audit](AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md) for hashes, cost/performance finding (scans plus unused secondary indexes), and remaining hosted/interface/recovery gates. This does not certify all AWS or V2 policy support.
