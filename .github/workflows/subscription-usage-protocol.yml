@@ -57,7 +57,7 @@ jobs:
       - name: WEB4 transactions, ownership, migration and failure injection
         run: dotnet test ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj -m:1 --logger trx --results-directory TestResults/authority
       - name: WEB4 application unit tests
-        run: dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj -m:1 --logger trx --results-directory TestResults/web4
+        run: dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj -m:1 --filter "Category!=LocalMongoSoak" --logger trx --results-directory TestResults/web4
       - name: Shared SDK, durable outbox and HTTP lifecycle
         run: dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Tests/SubscriptionUsage/SubscriptionUsage.Tests.csproj" -m:1 --logger trx --results-directory TestResults/sdk
       - name: Independent provider and Stripe reconciliation
