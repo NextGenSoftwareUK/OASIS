@@ -18,10 +18,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.UnitTests
             public int Writes;
             public readonly System.Exception Cause=new AzureBlobMutationReconciliationException("owned-container","owned-key",new System.IO.IOException("owned lost reply"));
             public PartialWriter():base("UseDevelopmentStorage=true") {}
-            public override System.Threading.Tasks.Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SaveHolonAsync(
-                NextGenSoftware.OASIS.API.Core.Interfaces.IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+            protected override System.Threading.Tasks.Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SaveCapturedHolonAsync(
+                NextGenSoftware.OASIS.API.Core.Interfaces.IHolon holon,NextGenSoftware.OASIS.API.Core.Holons.Holon staged,System.Action validatePublication)
             {
+                validatePublication();
                 Writes++;
+                if(Writes==1){holon.Id=staged.Id;holon.ParentHolonId=staged.ParentHolonId;}
                 return System.Threading.Tasks.Task.FromResult(Writes==1 ? new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {Result=holon,IsSaved=true}
                     :new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {IsError=true,Exception=Cause});
             }
