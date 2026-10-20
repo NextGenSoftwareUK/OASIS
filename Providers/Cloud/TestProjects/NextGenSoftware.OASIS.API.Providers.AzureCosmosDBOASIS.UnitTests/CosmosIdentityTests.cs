@@ -23,7 +23,7 @@ public class CosmosIdentityTests
         client.Setup(c=>c.ReadDocumentByField(It.IsAny<string>(),It.IsAny<string>(),0)).Returns(json);
         client.Setup(c=>c.ReadAllDocuments()).Returns(new List<string> {json});
         var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient(It.IsAny<string>())).Returns(client.Object);
-        async Task Probe<T>(CosmosDbRepository<T> repository) where T:NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase
+        async Task Probe<T>(CosmosDbRepository<T> repository) where T:class,NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase
         {
             var error=await Assert.ThrowsExceptionAsync<InvalidDataException>(async()=> {
                 if(reader=="id") await repository.GetByIdAsync(id.ToString());
