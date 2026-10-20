@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## PostgreSQL lifecycle flags — controlled24 green; live server pending
+
+Four before failures fixed in existing activation/deactivation owner; no stale activated state after failure or deactivation. Full24controlled0skips SHA25626DC51D3BB1CB556A0C3D12A2C3B7C4F6F1165A5FF56B1945EC8ADA2F81640DA. No live native success/schema proof or full-interface claim. Read-only runtime inventory found no reusable PostgreSQL server; single-runtime/existingDB user choice pending, no download/environment allocated. Details in HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md; no devpush.
+
 ## Shared Web3 pre-dispatch fence — controlled136 green; native OPEN
 
 Two later-caller-edit regressions and one numeric-key collision regression first failed; now canonical caller validation precedes every submission and duplicate nativekeys reject beforeI/O. Default UpsertPrepared/history owner retained, no new RPC/retry. Selected136/136controlled0skips SHA256CD1A1A46E787C9CA492AA442CC81ADA7D23127D9CC015E8E38B13AAF89418E36; actual0DF9Core/8163Shared. Existing native exclusions/unresolved originals remain, no broadcast/runtime/download/devpush. Exact scope in EVM_RECORD_HISTORY_GAPS.md; not full-provider/globalV2 certification.
