@@ -31,11 +31,7 @@ try {
         if($LASTEXITCODE) {throw "Cached build failed: $producer"}
     }
     $consumer=Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests/bin/Debug/net10.0'
-    foreach($binary in @(
-        @{source='OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll';name='NextGenSoftware.OASIS.API.Core.dll'},
-        @{source='Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll';name='NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll'})){
-        if((Get-FileHash -LiteralPath (Join-Path $root $binary.source)).Hash -ne (Get-FileHash -LiteralPath (Join-Path $consumer $binary.name)).Hash){throw 'Native consumer dependency differs from built producer; no service startup.'}
-    }
+    & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput $consumer
     & wsl.exe -d Ubuntu -u root -- podman start oasis-cosmos
     if($LASTEXITCODE) {throw 'Retained Cosmos DB container did not start.'}
     $started=$true;$ready=$false
