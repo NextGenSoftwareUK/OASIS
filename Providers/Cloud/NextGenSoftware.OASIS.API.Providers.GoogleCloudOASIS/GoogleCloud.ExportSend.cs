@@ -55,11 +55,11 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         continue;
                     }
                     var written=await SavePlannedHolonAsync(node);
-                    if(written.IsError || written.Result==null) {
+                    if(written.IsError || written.Result==null || !written.IsSaved) {
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
                         result.IsError=true;
-                        failures.Add(written.Exception ?? new InvalidOperationException(written.Message ?? "Firestore item returned no acknowledgement."));
+                        failures.Add(written.Exception ?? new InvalidDataException(written.Message ?? "Firestore item returned no acknowledged save."));
                         if(!continueOnError || NativeMutationReconciliation.IsRequired(written.Exception)) break;
                     }
                     else {
@@ -85,6 +85,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 result.Exception=saved.Count>0 ? new GoogleFirestorePartialMutationException(saved.Select(row=>row.Id),cause):cause;
                 result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
             }
+            result.SavedCount=saved.Select(row=>row.Id).Concat(KnownFirestoreAcknowledgements(result.Exception)).Distinct().Count();
+            if(result.IsError)result.ErrorCount=Math.Max(1,result.ErrorCount);
             return result;
         }
 
