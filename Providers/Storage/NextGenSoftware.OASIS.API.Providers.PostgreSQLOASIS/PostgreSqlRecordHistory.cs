@@ -153,8 +153,6 @@ public partial class PostgreSQLOASIS
         }
         var previous=await ReadLockedRecordAsync(command.Connection!,command.Transaction!,table,proposal.Id);
         if(!proposal.IsDeleted&&(table is "oasis_avatars" or "oasis_avatar_details")){
-            if(previous!=null&&(await ReadKeyedStoredRecordAsync<T>(proposal.Id,previous,0)).IsDeleted)
-                throw new StorageLifecycleConflictException("Active profile save cannot overwrite a committed tombstone.");
             if(table=="oasis_avatars"){
                 var detailBody=await ReadLockedRecordAsync(command.Connection!,command.Transaction!,"oasis_avatar_details",proposal.Id);
                 if(detailBody!=null&&(await ReadKeyedStoredRecordAsync<AvatarDetail>(proposal.Id,detailBody,0)).IsDeleted)
@@ -172,9 +170,11 @@ public partial class PostgreSQLOASIS
 
     private async Task<T> WriteObservedRecordInTransactionAsync<T>(NpgsqlCommand command,T proposal,string previous,Action validateCaller,PlannedHolonWrite plan=null,Action mutationStarting=null) where T:class,IHolonBase
     {
+        T? observed=previous!=null&&(plan!=null||!proposal.IsDeleted)?await ReadKeyedStoredRecordAsync<T>(proposal.Id,previous,0):null;
+        if(!proposal.IsDeleted&&observed?.IsDeleted==true)
+            throw new StorageLifecycleConflictException("Active save cannot overwrite a committed tombstone.");
         if(plan!=null&&proposal is Holon holon){
-            var observed=previous==null?null:await ReadKeyedStoredRecordAsync<Holon>(proposal.Id,previous,0);
-            holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plan,HolonChildRoleWriteKind.SourceSave,observed!=null,observed?.ChildRoleManifestJson);
+            holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plan,HolonChildRoleWriteKind.SourceSave,observed!=null,(observed as Holon)?.ChildRoleManifestJson);
         }
         var staged=await StageStoredRecordAsync(proposal,previous);
         command.Parameters["@data_json"].Value=staged.Json;

@@ -458,30 +458,15 @@ ON CONFLICT (id) DO UPDATE SET
         // ─── Holon deletion ───────────────────────────────────────────────────────
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var loaded = await LoadHolonByIdAsync(id);
-                if (loaded == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No holon found with ID '{id}'."); return result; }
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand("UPDATE oasis_holons SET is_deleted=TRUE, modified_date=NOW() WHERE id=@id", conn);
-                cmd.Parameters.AddWithValue("@id", id);
-                await cmd.ExecuteNonQueryAsync();
-                result.Result = loaded; result.IsError = false; result.Message = $"PostgreSQLOASIS: Holon '{id}' soft-deleted.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+            =>await DeleteHolonRecordAsync(id);
 
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            if (Guid.TryParse(providerKey, out Guid id)) return await DeleteHolonAsync(id);
-            var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            if (Guid.TryParse(providerKey, out Guid id)&&id!=Guid.Empty) return await DeleteHolonAsync(id);
+            var result = new OASISResult<IHolon>();var cause=new ArgumentException("A nonempty PostgreSQL holon GUID key is required.",nameof(providerKey));
+            OASISErrorHandling.HandleError(ref result,cause.Message,cause);result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
             return result;
         }
 
@@ -513,8 +498,9 @@ ON CONFLICT (id) DO UPDATE SET
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            var saved = await SaveHolonsAsync(holons);
-            return new OASISResult<bool> { Result = !saved.IsError, IsError = saved.IsError, Message = saved.Message };
+            var saved = await SaveHolonsAsync(holons,continueOnError:false);
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+            result.Result=!saved.IsError&&saved.IsSaved;return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
@@ -532,10 +518,11 @@ ON CONFLICT (id) DO UPDATE SET
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername,version);
-            if (avatarResult.IsError || avatarResult.Result == null)
+            if(avatarResult.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
+            if (avatarResult.Result == null)
             {
                 var r = new OASISResult<IEnumerable<IHolon>>();
-                OASISErrorHandling.HandleError(ref r, $"PostgreSQLOASIS: Avatar '{avatarUsername}' not found.");
+                OASISErrorHandling.HandleError(ref r,"PostgreSQL identity selector returned no successful avatar payload.",new System.IO.InvalidDataException("Missing successful identity payload."));
                 return r;
             }
             return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
@@ -546,10 +533,11 @@ ON CONFLICT (id) DO UPDATE SET
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
             var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress,version);
-            if (avatarResult.IsError || avatarResult.Result == null)
+            if(avatarResult.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
+            if (avatarResult.Result == null)
             {
                 var r = new OASISResult<IEnumerable<IHolon>>();
-                OASISErrorHandling.HandleError(ref r, $"PostgreSQLOASIS: Avatar with email '{avatarEmailAddress}' not found.");
+                OASISErrorHandling.HandleError(ref r,"PostgreSQL identity selector returned no successful avatar payload.",new System.IO.InvalidDataException("Missing successful identity payload."));
                 return r;
             }
             return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);

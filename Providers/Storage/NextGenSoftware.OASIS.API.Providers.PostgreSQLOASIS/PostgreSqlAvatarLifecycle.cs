@@ -109,12 +109,12 @@ public partial class PostgreSQLOASIS
     private static void MarkTombstone(IHolonBase record,DateTime date,Guid actor)
     {record.IsActive=false;record.DeletedDate=date;record.DeletedByAvatarId=actor;}
 
-    private async Task WriteTombstoneAsync<T>(NpgsqlConnection connection,NpgsqlTransaction transaction,string table,T record,string original,Action mutationStarting) where T:class,IHolonBase
+    private async Task<T> WriteTombstoneAsync<T>(NpgsqlConnection connection,NpgsqlTransaction transaction,string table,T record,string original,Action mutationStarting) where T:class,IHolonBase
     {
         var nativeFlag=table=="oasis_avatar_details"?"":"is_deleted=TRUE,modified_date=NOW(),";
         await using var command=new NpgsqlCommand($"UPDATE {table} SET {nativeFlag}data_json=@data_json WHERE id=@id",connection,transaction);
         command.Parameters.AddWithValue("id",record.Id);command.Parameters.AddWithValue("data_json",string.Empty);
-        await WriteObservedRecordInTransactionAsync(command,record,original,static()=>{},mutationStarting:mutationStarting);
+        return await WriteObservedRecordInTransactionAsync(command,record,original,static()=>{},mutationStarting:mutationStarting);
     }
 
     private static async Task DeleteObservedRecordAsync(NpgsqlConnection connection,NpgsqlTransaction transaction,string table,Guid id,string original,Action mutationStarting)

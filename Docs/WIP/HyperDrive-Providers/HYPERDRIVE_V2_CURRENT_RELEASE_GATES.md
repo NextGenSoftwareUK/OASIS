@@ -1,5 +1,15 @@
 # HyperDrive V2 current release gates
 
+## PostgreSQL holon lifecycle and result propagation — 2026-10-20
+
+Fresh retained-environment verification: **88/88 controlled and 76/76 native tests passed, zero skipped**. Native report `TestResults/PostgreSqlCurrent/postgres-native-current.trx`, SHA256 `E8BF3729FA931414A30D5155238B279071AF7B39ECFB72343F3CB2705F3B36F1`; controlled `postgres-holon-import-controlled.trx`, SHA256 `757C2E13DE6E137A2709C70F6FB6FDD942106CD1121618EF0C2FDC4DD197444B`. Original reports recovered after terminal-output truncation; no rerun or mutation replay. Independent checks confirmed retained `oasis-postgres` exited and no pending fixture journals. Core DLL hash matched both consumers: `51A35ED9BDC5C1A1A36CF132B8F8F9195175096698D7A4556278E0E0AAF60270`.
+
+Holon deletion now uses the existing native transaction, canonical codec and history writer rather than changing only the SQL deletion flag. GUID/provider-key sync/async tests cover canonical tombstones, stable repeated deletion, hidden historical reads, unchanged child records (no cascade), and rejection/rollback of stale active saves. Four admission regressions failed before the correction. The shared observed-row writer also enforces the existing avatar resurrection guard for holons.
+
+Import now uses the existing atomic batch mode and result-copy helper, preserving original exceptions, reconciliation failures, counts and flags. Native tests prove complete two-node import and rollback when the child exhausts its version counter. Export by username/email preserves identity lookup errors rather than replacing them with not-found. Eight result-forwarding regressions failed before correction. No new database API invented: `IOASISDBStorageProvider` adds the implemented version-control flag to its inherited storage interface; inherited credential/token and karma operations still require coverage review.
+
+This is scoped PostgreSQL acceptance, NOT full-provider or all-provider V2 certification. Network/commit uncertainty recovery, actual concurrent avatar save/delete, durable preparation/receipts, restore and retired-ID policy, replication/tombstone contracts, hosted IAM/TLS/fees and complete inherited-interface/API coverage remain open. Existing pinned PostgreSQL runtime/volume reused; no installation, download, duplicate environment, public fee or deployment. C free after verification: 66,303,074,304 bytes; disk-space target remains unmet. Prior native68 report was hash-verified and moved in place to `postgres-native-pre-holon-lifecycle.trx`, not overwritten.
+
 ## Cosmos native61 gate recovered — 2026-10-20
 
 Userapproved EXACTsyntheticCosmosrow/SQLitefixture cleanup; reconciler1/1green604ms verifiedBOTHoriginalhashes+solepoint_self+strictallotherfields+originalETag+SQLitehash/identity before conditionaldelete/404 and closedfile removal. No mutation replay/reset/expectedhashreplacement. Fullnative **61/61green1m32s0skip**, terminal0, SAME retainedruntime/data; prior37pass24fail regression gate nowclosed for current source. This is not completeprovider/V2certification.
