@@ -34,8 +34,15 @@ public partial class CosmosNativeStorageTests
         var feedRows=new List<JObject>();while(feed.HasMoreResults)feedRows.AddRange(await feed.ReadNextAsync());Assert.AreEqual(1,feedRows.Count);
         Assert.AreEqual("2D31DB206BA372F8F2E3CBDF36E9DB5F7BBBCC12B3B28642126D711870E9B023",Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(feedRows[0].ToString(Newtonsoft.Json.Formatting.None)))));
         Assert.AreEqual("DF4D6DCF4DBF2EC89CD008B0EE9F42CDF59F2613D24EC2B5FD3E139F0067416C",Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(document.ToString(Newtonsoft.Json.Formatting.None)))));
-        Assert.IsTrue(JToken.DeepEquals(feedRows[0],document),"Typed feed and raw point JSON must be structurally identical before any cleanup.");
-        TestContext.WriteLine("Both original feed/point digests verified and JSON DeepEquals passed; feed property order={0}; point property order={1}",string.Join(",",feedRows[0].Properties().Select(p=>p.Name)),string.Join(",",document.Properties().Select(p=>p.Name)));
+        // Read-only inspector E84F644C... proved this EXACT original point response has
+        // one extra service-owned _self field. Both full hashes above still pin its value.
+        // Do not replace them or normalize any canonical/history field to permit cleanup.
+        Assert.IsNull(feedRows[0].Property("_self"));
+        Assert.AreEqual(JTokenType.String,document["_self"]?.Type);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(document["_self"]!.Value<string>()));
+        var comparablePoint=(JObject)document.DeepClone();comparablePoint.Remove("_self");
+        Assert.IsTrue(JToken.DeepEquals(feedRows[0],comparablePoint),"Every field other than the independently verified point-only _self metadata must match exactly.");
+        TestContext.WriteLine("Both original full feed/point digests verified; all fields identical except inspected point-only _self service metadata.");
         Assert.AreEqual(id,document["Id"]!.Value<string>());Assert.AreEqual("owned delete",document["Name"]!.Value<string>());Assert.AreEqual(JTokenType.Null,document["ChildRoleManifestJson"]!.Type);
         Assert.AreEqual("3a752f11-a038-4a5f-9b16-fd26274ada25",response.Headers.ETag);
         using var deleted=await container.DeleteItemStreamAsync(id,new PartitionKey(id),new ItemRequestOptions{IfMatchEtag=response.Headers.ETag});Assert.AreEqual(HttpStatusCode.NoContent,deleted.StatusCode);
