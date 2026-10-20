@@ -1,5 +1,9 @@
 # Firestore record history — integration in progress
 
+## Protected preparation checkpoint — 2026-10-20
+
+Shared opaque preparation transport now integrates with the native atomic Commit/operation fence. Controlled186/186 and native4/4 preparation reports passed, zero skipped. Native tests use synthetic opaque envelopes, not authenticated runtime cipher proof. Native claim/graph races, encrypted runtime/process recovery, hosted IAM/billing and atomic replication remain open. Exact report hashes, acknowledgement/error semantics, runtime observations and costs are recorded in HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md under the matching preparation checkpoint. This supersedes earlier statements that preparation storage itself is not implemented, but does not close its untested gates.
+
 ## Firestore atomic graph + durable operation receipt — controlled179/native4+37+79 green, 2026-10-20
 
 Implemented shared IConditionalHolonStorageProvider with official SDK WriteBatch.CommitAsync (native atomic Commit, NOT nonatomic BatchWrite). Reuses ConditionalHolonPlan/fingerprint, ConditionalHolonReceipt, graph-role and embedded-history owners. Extracted existing native holon projection into ONE CreateFirestoreHolonFields used by ordinary/atomic saves. Ordinary saves now rotate/publish distinct provider revision tokens too, invalidating stale atomic baselines.
