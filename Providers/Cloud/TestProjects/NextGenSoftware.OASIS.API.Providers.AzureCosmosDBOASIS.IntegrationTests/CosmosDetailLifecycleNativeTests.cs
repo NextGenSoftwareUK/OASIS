@@ -11,6 +11,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
 
 public partial class AzureCosmosDBOASISIntegrationTests
 {
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)]
+    public async Task NativeRepositoryDeleteOverloadsUseConditionalOwnerAndRejectStaleEntity(int kind)
+    {
+        var id=Guid.NewGuid();var source=new AvatarDetail{Id=id,Username="owned-repository-"+id.ToString("N"),IsActive=true};
+        var partition=new PartitionKey(id.ToString());var native=new CosmosDbClient(_client.GetContainer(DatabaseName,"avatarDetailItems"));
+        var path=$"C:/Source/OASIS/TestResults/CosmosDBCurrent/repository-delete-{kind}.pending.json";Assert.IsFalse(File.Exists(path));Assert.IsNull(await native.ReadDocumentAsync(id.ToString(),partition));
+        using(var stream=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+            await stream.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,kind,state="before-owned-repository-delete"}));stream.Flush(true);}
+        _provider.IsVersionControlEnabled=true;var saved=await _provider.SaveAvatarDetailAsync(source);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());
+        var repository=(Interfaces.IAvatarDetailRepository)typeof(AzureCosmosDBOASIS).GetField("avatarDetailRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(_provider)!;
+        if(kind==0)await repository.DeleteAsync(source);
+        else if(kind==1)await repository.DeleteAsync(id);
+        else if(kind==2)await repository.DeleteAsync(id.ToString());
+        else {
+            var changed=OasisJson.Project<AvatarDetail>(source);changed.Username+="-changed";
+            var update=await _provider.SaveAvatarDetailAsync(changed);Assert.IsFalse(update.IsError,update.Exception?.ToString());
+            var expected=await native.ReadDocumentAsync(id.ToString(),partition);
+            await Assert.ThrowsExceptionAsync<NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException>(()=>repository.DeleteAsync(source));
+            Assert.AreEqual(expected,await native.ReadDocumentAsync(id.ToString(),partition));
+            await repository.DeleteAsync(await repository.GetByIdAsync(id.ToString()));
+        }
+        Assert.IsNull(await native.ReadDocumentAsync(id.ToString(),partition));File.Delete(path);
+    }
+
     [DataTestMethod][DataRow(false,0)][DataRow(true,0)][DataRow(false,1)][DataRow(true,1)][DataRow(false,2)][DataRow(true,2)]
     public async Task NativeStandaloneDetailDeletionPreservesAvatarAndRetainsSoftHistory(bool soft,int selector)
     {
