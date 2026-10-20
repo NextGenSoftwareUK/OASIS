@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
@@ -16,14 +17,14 @@ public partial class AptosOASIS
     public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
     {
         var avatar = await LoadAvatarByEmailAsync(email);
-        if (avatar.IsError || avatar.Result == null) return new() { IsError = avatar.IsError, Message = avatar.Message, Exception = avatar.Exception };
+        if (avatar.IsError || avatar.Result == null) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(avatar);
         return await DeleteAvatarAsync(avatar.Result.Id, softDelete);
     }
     public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
     public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
     {
         var avatar = await LoadAvatarByUsernameAsync(username);
-        if (avatar.IsError || avatar.Result == null) return new() { IsError = avatar.IsError, Message = avatar.Message, Exception = avatar.Exception };
+        if (avatar.IsError || avatar.Result == null) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(avatar);
         return await DeleteAvatarAsync(avatar.Result.Id, softDelete);
     }
     public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true) => DeleteAvatarByUsernameAsync(username, softDelete).Result;
