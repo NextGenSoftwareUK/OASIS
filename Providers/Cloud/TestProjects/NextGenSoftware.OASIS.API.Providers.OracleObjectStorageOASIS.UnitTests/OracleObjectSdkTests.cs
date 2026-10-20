@@ -264,6 +264,41 @@ public class OracleObjectSdkTests
         }finally{CryptographicOperations.ZeroMemory(storageKey);stopped.Cancel();listener.Stop();await server;}
     }
 
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task PublicSavePreservesNativeUncertaintyAndCallerUntilAllWritesAcknowledge(bool synchronous,bool partial)
+    {
+        var puts=0;
+        Func<HttpListenerContext,Task> missing=context=>{
+            Assert.AreEqual("GET",context.Request.HttpMethod);
+            return Reply(context,404,"{\"code\":\"ObjectNotFound\",\"message\":\"controlled\"}");
+        };
+        Func<HttpListenerContext,Task> write=async context=>{
+            Assert.AreEqual("PUT",context.Request.HttpMethod);puts++;
+            using var reader=new StreamReader(context.Request.InputStream);
+            var encrypted=await reader.ReadToEndAsync();Assert.IsFalse(encrypted.Contains("private-user",StringComparison.Ordinal));
+            await Reply(context,partial&&puts==1?200:503,partial&&puts==1?"":"{\"code\":\"ServiceUnavailable\",\"message\":\"controlled\"}");
+        };
+        await Exchange(async _=>{
+            using var client=Client();var storageKey=RandomNumberGenerator.GetBytes(32);
+            try {
+                using var provider=new OracleObjectStorageOASIS(client,"ns","bucket",()=>storageKey.ToArray());
+                var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar{Username="private-user",Version=9};
+                var originalKeys=avatar.ProviderUniqueStorageKey;
+                var result=synchronous?provider.SaveAvatar(avatar):await provider.SaveAvatarAsync(avatar);
+                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
+                Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception));
+                var native=result.Exception;
+                if(partial){
+                    var acknowledged=(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValuePartialMutationException)native!;
+                    Assert.AreEqual(1,acknowledged.AcknowledgedKeys.Count);native=acknowledged.InnerException;
+                }
+                Assert.IsInstanceOfType<OracleObjectMutationReconciliationException>(native);
+                Assert.AreEqual(Guid.Empty,avatar.Id);Assert.AreEqual(9,avatar.Version);
+                Assert.AreSame(originalKeys,avatar.ProviderUniqueStorageKey);Assert.AreEqual(partial?2:1,puts);
+            }finally{CryptographicOperations.ZeroMemory(storageKey);}
+        },partial?new[]{missing,missing,write,write}:new[]{missing,missing,write});
+    }
+
     [TestMethod]
     public async Task MissingPersistedEncryptionKeyFailsBeforeAnySdkRequest()
     {
