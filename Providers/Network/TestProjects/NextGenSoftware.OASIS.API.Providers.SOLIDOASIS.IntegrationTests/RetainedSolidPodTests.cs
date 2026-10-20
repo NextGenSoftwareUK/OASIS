@@ -14,6 +14,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests;
 /// <summary>Retained CSS server: anonymous encrypted storage and native private DPoP client-credentials tests.</summary>
 public class RetainedSolidPodTests
 {
+    private sealed class NamedGraphOwner:Holon
+    {
+        public List<Holon> Components{get;set;}=new();
+        public override List<IHolon> AllChildren=>base.AllChildren.Concat(Components).ToList();
+        public override IReadOnlyList<HolonChildCollection> CaptureChildCollections()=>base.CaptureChildCollections()
+            .Concat(new[]{new HolonChildCollection(nameof(Components),Components,rows=>Components=rows.Cast<Holon>().ToList())}).ToArray();
+    }
     [Fact]
     public async Task PrivateDpopPodDeniesAnonymousAndSupportsEncryptedProviderCrud()
     {
@@ -158,8 +165,8 @@ public class RetainedSolidPodTests
             var owner=Guid.NewGuid();
             var grand=new Holon{Id=Guid.NewGuid(),Name="native-private-graph-grand",Version=9,CreatedByAvatarId=owner};
             var child=new Holon{Id=Guid.NewGuid(),Name="native-private-graph-child",Version=2,CreatedByAvatarId=owner,Children=new List<IHolon>{grand}};
-            IHolon graph=new Holon{Id=Guid.NewGuid(),Name="native-private-graph-root",Version=5,ParentHolonId=owner,CreatedByAvatarId=owner,
-                MetaData=new(){["tier"]="root"},Children=new List<IHolon>{child}};
+            IHolon graph=new NamedGraphOwner{Id=Guid.NewGuid(),Name="native-private-graph-root",Version=5,ParentHolonId=owner,CreatedByAvatarId=owner,
+                MetaData=new(){["tier"]="root"},Components=new(){child}};
             var rows=new IHolon[]{graph,child,grand};
             var resources=rows.Select(row=>new Uri(new Uri(root),$"oasis/holons/{row.Id}.ttl")).ToArray();
             await WriteJournalAsync(journal,new{root,synchronous,resources=resources.Select(uri=>uri.AbsoluteUri).ToArray(),state="before-native-graph"});
@@ -176,6 +183,15 @@ public class RetainedSolidPodTests
             Assert.False(linked.IsError,linked.Exception?.ToString());
             var linkedChild=Assert.Single(linked.Result.Children);Assert.Equal(child.Id,linkedChild.Id);Assert.Equal(2,linkedChild.Version);
             Assert.Equal(grand.Id,Assert.Single(linkedChild.Children).Id);
+            var roles=((Holon)graph).ChildRoleManifestJson;Assert.NotNull(roles);Assert.Contains("Components",roles);
+            Assert.Equal(roles,((Holon)linked.Result).ChildRoleManifestJson);
+            var childResource=resources[1];var originalChildRdf=await client.GetStringAsync(childResource);
+            graph.Description="native-root-only-role-preservation";
+            var rootOnly=synchronous?provider.SaveHolon(graph,saveChildren:false):await provider.SaveHolonAsync(graph,saveChildren:false);
+            Assert.False(rootOnly.IsError,rootOnly.Exception?.ToString());Assert.Equal(roles,((Holon)graph).ChildRoleManifestJson);
+            var observedRoot=await provider.LoadHolonAsync(graph.Id,loadChildren:false);
+            Assert.False(observedRoot.IsError,observedRoot.Exception?.ToString());Assert.Equal(roles,((Holon)observedRoot.Result).ChildRoleManifestJson);
+            Assert.Equal(originalChildRdf,await client.GetStringAsync(childResource));
             var limited=await provider.LoadHolonAsync(graph.Id,maxChildDepth:1,loadChildrenFromProvider:true);
             Assert.False(limited.IsError,limited.Message);Assert.Empty(Assert.Single(limited.Result.Children).Children);
             var metadata=synchronous?provider.LoadHolonsByMetaData("tier","root",loadChildrenFromProvider:true):await provider.LoadHolonsByMetaDataAsync("tier","root",loadChildrenFromProvider:true);
@@ -196,6 +212,15 @@ public class RetainedSolidPodTests
             var exported=synchronous?provider.ExportAllDataForAvatarById(owner):await provider.ExportAllDataForAvatarByIdAsync(owner);
             Assert.False(exported.IsError,exported.Exception?.ToString());Assert.Equal(3,exported.Result.Count());
             Assert.Contains(exported.Result,row=>row.Id==child.Id&&row.Name==child.Name);
+            var childAfterImport=await client.GetStringAsync(childResource);
+            ((NamedGraphOwner)graph).Components.Clear();
+            var unlinked=synchronous?provider.SaveHolon(graph):await provider.SaveHolonAsync(graph);
+            Assert.False(unlinked.IsError,unlinked.Exception?.ToString());
+            var empty=await provider.LoadHolonAsync(graph.Id,loadChildrenFromProvider:true);
+            Assert.False(empty.IsError,empty.Exception?.ToString());Assert.Empty(empty.Result.Children);
+            var retainedChild=await provider.LoadHolonAsync(child.Id,loadChildren:false);
+            Assert.False(retainedChild.IsError,retainedChild.Exception?.ToString());Assert.Equal(child.Name,retainedChild.Result.Name);
+            Assert.Equal(childAfterImport,await client.GetStringAsync(childResource));
             foreach(var row in rows.Reverse()){
                 var deleted=synchronous?provider.DeleteHolon(row.Id):await provider.DeleteHolonAsync(row.Id);
                 Assert.False(deleted.IsError,deleted.Exception?.ToString());Assert.True(deleted.IsDeleted);
