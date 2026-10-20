@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Serialization;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
@@ -39,21 +38,14 @@ public sealed class EmbeddedRecordHistory
         return record;
     }
 
-    private static JObject EncodedPayload(string json)
-    {
-        using var document=System.Text.Json.JsonDocument.Parse(json);
-        if(document.RootElement.ValueKind!=System.Text.Json.JsonValueKind.Object)
-            throw new InvalidDataException("Embedded history requires a canonical record object.");
-        // Reuse Core's structural JSON-value converter; a default JObject text reader narrows numbers to double.
-        return (JObject)StoredRecordJson.CaptureRuntimeToken(document.RootElement);
-    }
 
     private SortedDictionary<int,JObject> ReadArchive<T>(JObject document,T current,Func<string,T> decode) where T : class,IHolonBase
     {
         var result = new SortedDictionary<int,JObject>();
         if (document[PropertyName] == null) return result;
         if (document[PropertyName] is not JObject envelope || envelope.Count != 2
-            || envelope["schema"]?.Type != JTokenType.Integer || envelope["schema"].Value<int>() != 1
+            || !(envelope["schema"]?.Type == JTokenType.Integer && envelope["schema"].Value<int>() == 1
+                || envelope["schema"] is JRaw rawSchema && rawSchema.ToString(Newtonsoft.Json.Formatting.None) == "1")
             || envelope["records"] is not JArray entries)
             throw new InvalidDataException("Unsupported or malformed Embedded history envelope.");
         foreach (var token in entries)
@@ -75,7 +67,7 @@ public sealed class EmbeddedRecordHistory
         ArgumentNullException.ThrowIfNull(proposed); ArgumentNullException.ThrowIfNull(decode); ArgumentNullException.ThrowIfNull(encode);
         if (proposed.Id == Guid.Empty) throw new ArgumentException("An explicit staged identity is required.",nameof(proposed));
         // Decode a detached canonical copy; no caller Version/keys are published before native acknowledgement.
-        var next = Decode(EncodedPayload(encode(proposed)),proposed.Id,decode);
+        var next = Decode(OasisJson.ParseStoredObject(encode(proposed)),proposed.Id,decode);
         T previous = null;
         var archive = new SortedDictionary<int,JObject>();
         if (previousDocument != null)
@@ -86,11 +78,11 @@ public sealed class EmbeddedRecordHistory
             archive = ReadArchive(previousDocument,previous,decode);
         }
         await StoredRecordVersions.StampAsync(proposed.Id,next,previous,stored => {
-            if (!archive.TryAdd(stored.Version,EncodedPayload(encode((T)stored))))
+            if (!archive.TryAdd(stored.Version,OasisJson.ParseStoredObject(encode((T)stored))))
                 throw new InvalidDataException("Embedded history archive would overwrite an existing version.");
             return Task.CompletedTask;
         });
-        var document = EncodedPayload(encode(next));
+        var document = OasisJson.ParseStoredObject(encode(next));
         document["id"] = next.Id.ToString();
         document[PropertyName] = new JObject { ["schema"] = 1, ["records"] = new JArray(archive.Values) };
         return document;

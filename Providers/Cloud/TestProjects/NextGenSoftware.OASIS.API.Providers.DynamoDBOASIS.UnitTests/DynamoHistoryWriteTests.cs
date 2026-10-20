@@ -13,6 +13,16 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 [TestClass]
 public class DynamoHistoryWriteTests
 {
+    [TestMethod]
+    public Task UnversionedStagingPreservesExactMetadata()=>Use(new HistoryClient(),async provider=>{
+        var value=1.0000000000000000000000000001m;
+        var row=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=value}};
+        var staged=await Stage(provider,row,null);
+        using var json=System.Text.Json.JsonDocument.Parse(staged.ToString());
+        Assert.AreEqual(value,json.RootElement.GetProperty("MetaData").GetProperty("precise").GetDecimal());
+        Assert.AreEqual(0,row.Version);Assert.AreEqual(value,row.MetaData["precise"]);
+    });
+
     private static Task<JObject> Stage(DynamoDBOASIS provider,Holon row,JObject? previous)
         =>(Task<JObject>)typeof(DynamoDBOASIS).GetMethod("StageRecordAsync",BindingFlags.NonPublic|BindingFlags.Instance)!.MakeGenericMethod(typeof(Holon)).Invoke(provider,new object?[]{row,previous})!;
 

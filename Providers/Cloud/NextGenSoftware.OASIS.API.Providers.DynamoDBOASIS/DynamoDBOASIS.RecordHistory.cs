@@ -33,14 +33,14 @@ public partial class DynamoDBOASIS
             }
             return await RecordHistory.StageAsync(proposed,previous,OasisJson.DeserializeStored<T>);
         }
-        return JObject.Parse(OasisJson.Serialize(proposed));
+        return OasisJson.ParseStoredObject(OasisJson.Serialize(proposed));
     }
 
     private static T ReadStoredVersion<T>(Dictionary<string,AttributeValue> item,Guid identity,int version) where T:class,IHolonBase
     {
         if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
         var current=ReadCanonicalIdentity<T>(item,identity);
-        var document=JObject.Parse(item["data_json"].S);
+        var document=OasisJson.ParseStoredObject(item["data_json"].S);
         if(document.Property(EmbeddedRecordHistory.PropertyName)==null)return version==0||current.Version==version?current:null;
         if(document["id"]!=null&&document["id"].Value<string>()!=identity.ToString())throw new InvalidDataException("Embedded record identity conflicts with native key.");
         document["id"]=identity.ToString();
@@ -75,7 +75,7 @@ public partial class DynamoDBOASIS
         if(previous!=null){
             observedRecord=ReadStoredIdentity<T>(previous,id);
             previousJson=previous["data_json"].S;
-            previousDocument=JObject.Parse(previousJson);
+            previousDocument=OasisJson.ParseStoredObject(previousJson);
             if(previousDocument["id"]!=null&&previousDocument["id"].Value<string>()!=id.ToString())throw new InvalidDataException("Embedded native identity differs from its item key.");
             previousDocument["id"]=id.ToString();
         }
