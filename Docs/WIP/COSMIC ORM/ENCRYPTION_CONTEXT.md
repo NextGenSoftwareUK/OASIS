@@ -1,5 +1,7 @@
 # Metadata encryption context
 
+Latest provider increment: [Neo4j protected preparation](NEO4J_WRITE_PREPARATION.md) passes 174/174 controlled and 9/9 native cases, including encrypted manager/V2 graph replay with separate root/child contexts and root write-key rotation. Original protected envelopes remain unchanged; runtime key resolvers and policies stay outside the stored operation record. Broader key/tenant and fault acceptance remains open.
+
 20 October 2026. Save-publication ownership is implemented locally; durable key context remains open.
 
 Preparation encrypts metadata using the effective per-holon override or runtime configuration. It now snapshots those settings onto the detached save value. Publication carries that snapshot into the committed value before decryption, so a caller changing global or override settings while I/O is pending cannot change the decryption context of that acknowledgement. The caller's configuration object is not replaced by publication.
