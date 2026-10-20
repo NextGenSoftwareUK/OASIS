@@ -16,7 +16,7 @@ public class StoredAvatarWalletSelectorTests
     {
         var calls=0;
         Task<OASISResult<IEnumerable<IAvatar>>> Read(int version) {calls++;throw new InvalidOperationException();}
-        foreach(var input in new[] {(" ",0),("synthetic",-1)})
+        foreach(var input in new[] {(" ",0),("synthetic",-1),("synthetic",1),("synthetic",int.MaxValue)})
         {
             var result=await StoredAvatarWalletSelector.SelectAsync(input.Item1,privateKey,input.Item2,Read);
             Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));

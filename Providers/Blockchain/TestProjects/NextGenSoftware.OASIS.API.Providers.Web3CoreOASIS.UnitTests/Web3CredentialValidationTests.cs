@@ -24,7 +24,7 @@ public class Web3CredentialValidationTests
                 3=>sync ? storage.LoadAvatarByPublicKey(input.Item1,input.Item2):await storage.LoadAvatarByPublicKeyAsync(input.Item1,input.Item2),
                 _=>sync ? storage.LoadAvatarByPrivateKey(input.Item1,input.Item2):await storage.LoadAvatarByPrivateKeyAsync(input.Item1,input.Item2)};
             Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
-            if(input.Item2==1) Assert.IsInstanceOfType(result.Exception,typeof(NotSupportedException));
+            if(input.Item2==1) Assert.IsInstanceOfType(result.Exception,typeof(ArgumentOutOfRangeException));
             else Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
             Assert.IsFalse(provider.IsProviderActivated);
         }
