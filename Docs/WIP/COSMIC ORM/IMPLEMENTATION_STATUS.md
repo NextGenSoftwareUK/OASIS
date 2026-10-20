@@ -2,7 +2,11 @@
 
 Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-providers`. Selected foundations are implemented and verified; the full roadmap is unfinished. Source commits, assembly hashes, original failures and fixture reconciliation are retained in [integration evidence](INTEGRATION_BOUNDARY.md) and [verification history](VERIFICATION.md).
 
-## Latest working increment — MongoDB exact UTC metadata date queries
+## Latest working increment — SQLite exact UTC metadata date queries
+
+SQLite now translates DateTime/DateTime? metadata comparisons and membership over its canonical UTC JSON text, preserving all seven fractional digits through fixed-width binary comparison. Native guards validate the Gregorian calendar and exclude malformed, non-UTC and overprecision values. The focused date/scalar gate passes69/69; final full native1,068/1,068 passes with zero skips after replacing one stale unsupported-date assertion with unsupported enum coverage. [Domain, original red evidence and final artifacts](CQL_SCALAR_METADATA.md#utc-dates). Core source and dependency pins are unchanged.
+
+## MongoDB exact UTC metadata date queries
 
 MongoDB DateTime/DateTime? metadata predicates now compare exact Int64 ticks using the existing persisted precision companion; records without it retain their actual millisecond precision. All six comparisons and membership preserve sparse/null/NOT semantics without parsing strings or numeric epochs as dates. Final controlled193/193 and expanded native3/3 pass, zero skips, including one-tick separation, pre-1970 values and DateTime bounds in both dictionary layouts. [Contract, reports and remaining date-query scope](CQL_MONGO_NATIVE.md#utc-metadata-date-increment). No Core source, dependency pin or deployment change is included.
 
