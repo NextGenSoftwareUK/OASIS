@@ -97,6 +97,44 @@ public class CosmicTypedQueryTests
         Assert.Equal(decimal.Parse(document.RootElement.ValueKind == System.Text.Json.JsonValueKind.String ? document.RootElement.GetString()! : json, System.Globalization.CultureInfo.InvariantCulture), Assert.Single(Assert.Single(result.Result.Providers).Rows).Amount);
     }
 
+    public sealed class OwnedAmount { public decimal Amount { get; set; } }
+    public sealed class OwnedNumericRow : Holon
+    {
+        [CustomOASISProperty] public OwnedAmount Detail { get; set; } = new();
+        [CustomOASISProperty] public List<decimal> Amounts { get; set; } = new();
+        [CustomOASISProperty] public Dictionary<string, decimal> Values { get; set; } = new();
+    }
+
+    [Theory]
+    [InlineData(0, false)] [InlineData(1, false)] [InlineData(2, false)]
+    [InlineData(0, true)] [InlineData(1, true)] [InlineData(2, true)]
+    public async Task TypedOwnedNumericHydrationRejectsNestedPrecisionLoss(int shape, bool underflow)
+    {
+        var number = underflow ? "1e-30" : "1.00000000000000000000000000000000000000001";
+        var key = shape == 0 ? "Detail" : shape == 1 ? "Amounts" : "Values";
+        var json = shape == 0 ? "{\"amount\":" + number + "}" : shape == 1 ? "[" + number + "]" : "{\"entry\":" + number + "}";
+        using var document = System.Text.Json.JsonDocument.Parse(json);
+        var adapter = new Adapter { Row = new Holon { Id = Guid.NewGuid(), MetaData = new() { [key] = document.RootElement.Clone() } } };
+        var result = await Manager().ExecuteQueryAsync(Plan<OwnedNumericRow>(adapter), new[] { adapter });
+        Assert.True(result.IsError); Assert.Null(result.Result); Assert.Equal("COSMIC_METADATA_HYDRATION_FAILED", result.ErrorCode);
+        Assert.Equal(json, ((System.Text.Json.JsonElement)adapter.Row.MetaData[key]).GetRawText());
+    }
+
+    [Fact]
+    public async Task TypedOwnedNumbersPreserveExactValuesAndCaseInsensitiveBinding()
+    {
+        const decimal amount = 1.000000000000000000000000001m;
+        using var detail = System.Text.Json.JsonDocument.Parse("{\"amount\":1.000000000000000000000000001}");
+        using var amounts = System.Text.Json.JsonDocument.Parse("[1.000000000000000000000000001]");
+        using var values = System.Text.Json.JsonDocument.Parse("{\"entry\":1.000000000000000000000000001}");
+        var adapter = new Adapter { Row = new Holon { Id = Guid.NewGuid(), MetaData = new() {
+            ["Detail"] = detail.RootElement.Clone(), ["Amounts"] = amounts.RootElement.Clone(), ["Values"] = values.RootElement.Clone() } } };
+        var result = await Manager().ExecuteQueryAsync(Plan<OwnedNumericRow>(adapter), new[] { adapter });
+        Assert.False(result.IsError, result.Message + result.Exception);
+        var row = Assert.Single(Assert.Single(result.Result.Providers).Rows);
+        Assert.Equal(amount, row.Detail.Amount); Assert.Equal(amount, Assert.Single(row.Amounts)); Assert.Equal(amount, row.Values["entry"]);
+    }
+
     public enum NamedMode { Ready = 1 }
     public sealed class TextAndEnumRow : Holon
     {
