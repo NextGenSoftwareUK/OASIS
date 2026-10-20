@@ -11,6 +11,40 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public sealed class OracleNativeAcceptanceTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task ChangedLaterGraphCallerDoesNotReachNativeWrite(bool synchronous)
+    {
+        var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;
+        var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        var journal=Path.Combine(work,$"later-caller-{synchronous}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var first=new Holon{Id=Guid.NewGuid(),Name="owned first graph caller"};
+        var second=new Holon{Id=Guid.NewGuid(),Name="owned later graph caller"};
+        var provider=new LostCommitProvider(connection){IsVersionControlEnabled=true};
+        try {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();
+            Assert.IsNull(await Read(verifier,"OASIS_HOLONS",first.Id));Assert.IsNull(await Read(verifier,"OASIS_HOLONS",second.Id));
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+                await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{first=first.Id,second=second.Id,state="before-owned-later-caller-write"}));file.Flush(true);
+            }
+            provider.AfterCommit=()=>second.Name="newer caller edit";
+            var result=synchronous?provider.SaveHolons(new[]{first,second}):await provider.SaveHolonsAsync(new[]{first,second});
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);
+            Assert.IsInstanceOfType<OraclePartialMutationException>(result.Exception);
+            CollectionAssert.AreEqual(new[]{first.Id},((OraclePartialMutationException)result.Exception).AcknowledgedRecordIds.ToArray());
+            Assert.AreEqual(1,provider.CommitCalls);Assert.AreEqual(1,first.Version);
+            Assert.AreEqual("newer caller edit",second.Name);Assert.AreEqual(0,second.Version);
+            Assert.IsNull(await Read(verifier,"OASIS_HOLONS",second.Id));
+            var committed=await Read(verifier,"OASIS_HOLONS",first.Id);Assert.IsNotNull(committed);
+            using(var parsed=JsonDocument.Parse(committed))Assert.AreEqual("owned first graph caller",parsed.RootElement.GetProperty("Name").GetString());
+            provider.AfterCommit=null;
+            await using var cleanup=new OracleCommand("DELETE FROM OASIS_HOLONS WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};
+            cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=first.Id.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=committed;
+            Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",first.Id));
+            File.Delete(journal);
+        }finally{await provider.DeActivateProviderAsync();}
+    }
+
     [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)]
     public async Task ConditionalMutationRejectsCorruptParentProjection(int operation)
     {

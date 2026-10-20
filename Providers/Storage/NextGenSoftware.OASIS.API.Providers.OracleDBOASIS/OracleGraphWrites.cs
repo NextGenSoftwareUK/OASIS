@@ -22,6 +22,7 @@ public partial class OracleDBOASIS
                 if(failedParents.Contains(node.Snapshot.ParentHolonId)){
                     failedParents.Add(node.Snapshot.Id);failures.Add(new InvalidOperationException("Oracle descendant skipped because its parent failed."));continue;
                 }
+                publications[node.Source].ValidateUnchanged();
                 var written=await SaveHolonAsync(node.Snapshot,false,recursive,maxDepth,continueOnError,onProvider);
                 if(written.IsError||written.Result==null){
                     var cause=written.Exception??new InvalidOperationException(written.Message);failures.Add(cause);failedParents.Add(node.Snapshot.Id);
