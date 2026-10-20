@@ -14,16 +14,41 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 
 public partial class Web3NativeStorageTests
 {
+    internal static async Task VerifyNativeCommitFaultOwnerAsync(bool synchronous)
+    {
+        var path=Path.GetFullPath("TestResults/Web3CoreRouting/commit-fault-check.db");
+        Assert.IsFalse(File.Exists(path),"Preserve original failed commit-fault fixture.");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);var connection=$"Data Source={path};Pooling=False";
+        var healthy=new SQLLiteDBOASIS.SQLLiteDBOASIS(connection);var cause=new IOException("Owned fault after actual native commit.");
+        var faulty=new CommitFaultSqlite(connection,cause);var verified=false;
+        try{
+            Assert.IsFalse((await healthy.ActivateProviderAsync()).IsError);
+            Assert.IsFalse((await faulty.ActivateProviderAsync()).IsError);
+            var child=new Holon{Id=Guid.NewGuid(),Name="owned committed child"};
+            var root=new Holon{Id=Guid.NewGuid(),Name="owned committed root",Children=new List<IHolon>{child}};
+            var result=synchronous?faulty.SaveHolon(root):await faulty.SaveHolonAsync(root);
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
+            var marker=result.Exception as SQLLiteDBOASIS.SqliteMutationReconciliationException;Assert.IsNotNull(marker,result.Exception?.ToString());
+            Assert.AreSame(cause,marker.InnerException);Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(marker));
+            CollectionAssert.AreEquivalent(new[]{root.Id,child.Id},marker.RecordIds.ToArray());
+            foreach(var row in new[]{root,child}){
+                var committed=await healthy.LoadHolonAsync(row.Id,loadChildren:false);Assert.IsFalse(committed.IsError,committed.Exception?.ToString());Assert.AreEqual(row.Name,committed.Result.Name);
+            }
+            verified=true;
+        }finally{faulty.Context.Dispose();faulty.Dispose();healthy.Dispose();if(verified)File.Delete(path);}
+    }
+
     private sealed class AfterCommitFault(IOException cause) : SaveChangesInterceptor
     {
-        public override int SavedChanges(SaveChangesCompletedEventData data,int result)=>throw cause;
+        public override int SavedChanges(SaveChangesCompletedEventData data,int result)
+            =>data.Context?.Database.CurrentTransaction==null?throw cause:result;
         public override ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData data,int result,CancellationToken token=default)
-            =>ValueTask.FromException<int>(cause);
+            =>data.Context?.Database.CurrentTransaction==null?ValueTask.FromException<int>(cause):ValueTask.FromResult(result);
     }
-    private sealed class CommitFaultContext(string connection,IInterceptor interceptor) : SqlContext(connection)
+    private sealed class CommitFaultContext(string connection,params IInterceptor[] interceptors) : SqlContext(connection)
     {
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-        {base.OnConfiguring(options);options.AddInterceptors(interceptor);}
+        {base.OnConfiguring(options);options.AddInterceptors(interceptors);}
     }
     private sealed class AfterTransactionCommitFault(IOException cause) : DbTransactionInterceptor
     {
@@ -52,7 +77,7 @@ public partial class Web3NativeStorageTests
         private readonly SQLLiteDBOASIS.Persistence.Repositories.HolonRepository holons;
         private readonly SQLLiteDBOASIS.Persistence.Repositories.AvatarRepository avatars;
         public CommitFaultSqlite(string connection,IOException cause) : base(connection)
-        {Context=new CommitFaultContext(connection,new AfterCommitFault(cause));repository=new DetailRepository(Context);holons=new(Context);avatars=new(Context);}
+        {Context=new CommitFaultContext(connection,new AfterCommitFault(cause),new AfterTransactionCommitFault(cause));repository=new DetailRepository(Context);holons=new(Context);avatars=new(Context);}
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail detail)=>repository.SaveAvatarDetail(detail);
         public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail detail)=>repository.SaveAvatarDetailAsync(detail);
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)=>avatars.SaveAvatar(avatar);

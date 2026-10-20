@@ -422,54 +422,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Load holon by provider key first
-                var holonResult = await LoadHolonAsync(providerKey);
-                if (holonResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
-                    return result;
-                }
-
-                if (holonResult.Result != null)
-                {
-                    // Delete holon by ID
-                    var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
-                    if (deleteResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
-                        return result;
-                    }
-
-                    result.Result = holonResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Holon deleted successfully by provider key from Ethereum";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Ethereum: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+            =>DeleteHolonByProviderKeyAsync(providerKey);
 
         public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
