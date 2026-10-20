@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## PostgreSQL inherited credential authority — 2026-10-20
+
+Native suite expanded to **82/82 passed, zero skipped, 12 seconds**, runner terminal exit zero. Report `TestResults/PostgreSqlCurrent/postgres-native-current.trx` SHA256 `48964F42FFCC41A94F01C048C59E27AEBBA847A0A94D0AFEAC9336FB9A8EB363`. Six new real Npgsql cases cover verification/reset/refresh selectors, sync and async: current lookup, rotation invalidating old selectors, explicit archived-version rejection, duplicate-selector ambiguity without arbitrary winner, deletion removing duplicate authority, and final deletion rejecting both current and old tokens. Reuses the existing Core selector and owned-fixture cleanup; no provider-specific authentication implementation added. Credential expiry/revocation remains the authentication manager's responsibility, not an assertion made by these storage lookup tests.
+
+Actual native consumer cohort Core `51A35ED9BDC5C1A1A36CF132B8F8F9195175096698D7A4556278E0E0AAF60270`, Shared `4A301D3B37165529D940ABF1C44A1A45C522D1D42E2EB149E8CF1B549A768554` (later Shared build epoch than native76). Prior76 report SHA-verified and moved in place to `postgres-native-pre-credentials.trx`; zero pending journals; runner stopped its owned runtime. No new download/runtime/database, public fees or deployment; free C 66,326,745,088 bytes. Railway manifest/seven Dockerfiles/gitlinks validator passed. These are storage-provider tests, not HTTP authentication or full V2 certification.
+
+Karma audit: `OASISStorageProviderBase.AddKarmaToAvatar*`/`RemoveKarmaFromAvatar*` delegate to `IAvatarDetail.KarmaEarnt*`/`KarmaLost*`; concrete AvatarDetail delegates to central KarmaManager by avatar ID. Do not duplicate business accounting in PostgreSQL. Manager/provider selection, durable Akashic records, fee policy and complete routed API verification remain separate open gates.
+
 ## PostgreSQL holon lifecycle and result propagation — 2026-10-20
 
 Fresh retained-environment verification: **88/88 controlled and 76/76 native tests passed, zero skipped**. Native report `TestResults/PostgreSqlCurrent/postgres-native-current.trx`, SHA256 `E8BF3729FA931414A30D5155238B279071AF7B39ECFB72343F3CB2705F3B36F1`; controlled `postgres-holon-import-controlled.trx`, SHA256 `757C2E13DE6E137A2709C70F6FB6FDD942106CD1121618EF0C2FDC4DD197444B`. Original reports recovered after terminal-output truncation; no rerun or mutation replay. Independent checks confirmed retained `oasis-postgres` exited and no pending fixture journals. Core DLL hash matched both consumers: `51A35ED9BDC5C1A1A36CF132B8F8F9195175096698D7A4556278E0E0AAF60270`.
