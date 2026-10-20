@@ -24,9 +24,9 @@ public class CosmosMutationResultTests
         holons.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(new Holon {Id=id,IsActive=true});
         avatars.Setup(r=>r.ReplaceIfUnchangedAsync(It.IsAny<IAvatar>(),It.IsAny<IAvatar>())).ReturnsAsync((IAvatar _,IAvatar value)=>value);
         details.Setup(r=>r.ReplaceIfUnchangedAsync(It.IsAny<IAvatarDetail>(),It.IsAny<IAvatarDetail>())).ReturnsAsync((IAvatarDetail _,IAvatarDetail value)=>value);
-        avatars.Setup(r=>r.DeleteAsync(id.ToString())).Returns(Task.CompletedTask);
-        details.Setup(r=>r.DeleteAsync(id.ToString())).Returns(Task.CompletedTask);
-        holons.Setup(r=>r.DeleteAsync(id.ToString())).Returns(Task.CompletedTask);
+        avatars.Setup(r=>r.DeleteIfUnchangedAsync(It.IsAny<IAvatar>())).Returns(Task.CompletedTask);
+        details.Setup(r=>r.DeleteIfUnchangedAsync(It.IsAny<IAvatarDetail>())).Returns(Task.CompletedTask);
+        holons.Setup(r=>r.DeleteIfUnchangedAsync(It.IsAny<IHolon>())).Returns(Task.CompletedTask);
         foreach(var pair in new Dictionary<string,object> {{"avatarRepository",avatars.Object},{"avatarDetailRepository",details.Object},{"holonRepository",holons.Object}})
             typeof(AzureCosmosDBOASIS).GetField(pair.Key,System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,pair.Value);
         void Check<T>(OASISResult<T> result)
