@@ -245,6 +245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 });
 
                 await EnsureTableAsync(ConditionalReceiptTable,pkSchema,pkAttr);
+                await EnsureTableAsync(PreparationTable,pkSchema,pkAttr);
                 IsProviderActivated = true;
                 result.Result = true; result.IsError = false; result.Message = $"{ProviderName} activated — DynamoDB tables ready.";
             }
