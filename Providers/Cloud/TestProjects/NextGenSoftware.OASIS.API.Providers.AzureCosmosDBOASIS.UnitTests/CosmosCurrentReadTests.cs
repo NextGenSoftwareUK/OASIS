@@ -9,6 +9,20 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 [TestClass]
 public class CosmosCurrentReadTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task ParentDepthCountsTheSelectedEdge(bool synchronous)
+    {
+        var parent=Guid.NewGuid();var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=parent};
+        var grandchild=new Holon{Id=Guid.NewGuid(),ParentHolonId=child.Id};
+        var repository=new Mock<IHolonRepository>();
+        repository.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>{child,grandchild});
+        var provider=new Provider(false);
+        typeof(AzureCosmosDBOASIS).GetField("holonRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
+        var result=synchronous?provider.LoadHolonsForParent(parent.ToString(),maxChildDepth:1,loadChildrenFromProvider:true)
+            :await provider.LoadHolonsForParentAsync(parent,maxChildDepth:1,loadChildrenFromProvider:true);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(0,result.Result.Single().Children.Count);
+    }
+
     [TestMethod]
     public async Task PairedDeleteRetainsPartialAcknowledgementAndOriginalCause()
     {

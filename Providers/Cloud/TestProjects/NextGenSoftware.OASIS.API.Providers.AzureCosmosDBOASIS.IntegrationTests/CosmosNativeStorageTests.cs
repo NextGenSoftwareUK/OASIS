@@ -198,7 +198,7 @@ public class CosmosNativeStorageTests
             Assert.AreEqual(detail.Inventory[0].Id,detailRead.Result.Inventory.Single().Id);
             await VerifyV2RoutingAsync(provider,avatar,detail,holonId);
             var child=new Holon {Id=childId,IsActive=true,Name="owned child"};
-            var root=new Holon {Id=holonId,IsActive=true,Name="owned root",CreatedByAvatarId=avatarId,Children=new List<IHolon> {child},
+            var root=new Holon {Id=holonId,IsActive=true,Name="owned root",CreatedByAvatarId=avatarId,ParentHolonId=avatarId,Children=new List<IHolon> {child},
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"},{"Latitude",-33.0009d},{"Longitude",151d}}};
             Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
             var graph=await provider.SaveHolonAsync(root);Assert.IsFalse(graph.IsError,graph.Message);
@@ -213,6 +213,10 @@ public class CosmosNativeStorageTests
             var parentRead=await provider.LoadHolonsForParentAsync(holonId);
             Assert.IsFalse(parentRead.IsError,parentRead.Message);Assert.IsTrue(parentRead.IsLoaded);
             Assert.AreEqual(childId,parentRead.Result.Single().Id);
+            var bounded=await provider.LoadHolonsForParentAsync(avatarId,maxChildDepth:1,loadChildrenFromProvider:true);
+            Assert.IsFalse(bounded.IsError,bounded.Exception?.ToString());Assert.AreEqual(holonId,bounded.Result.Single().Id);Assert.AreEqual(0,bounded.Result.Single().Children.Count);
+            var boundedSync=provider.LoadHolonsForParent(avatarId.ToString(),maxChildDepth:1,loadChildrenFromProvider:true);
+            Assert.IsFalse(boundedSync.IsError,boundedSync.Exception?.ToString());Assert.AreEqual(0,boundedSync.Result.Single().Children.Count);
             var emptyParent=provider.LoadHolonsForParent(Guid.NewGuid().ToString());
             Assert.IsFalse(emptyParent.IsError,emptyParent.Message);Assert.IsTrue(emptyParent.IsLoaded);Assert.IsFalse(emptyParent.Result.Any());
             var pairs=new Dictionary<string,string> {{"owned-field","owned-value"},{"missing","no"}};

@@ -182,7 +182,7 @@ public partial class AzureCosmosDBOASIS
             var pool=await ReadGraphPoolAsync(loaded,version,children,fromProvider);
             if(pool.IsError)return pool;
             var project=HolonGraphProjection.Create(pool.Result,children,recursive,depth,initialDepth,fromProvider,
-                source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+                source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)),rootsAreChildren:true);
             result.Result=records.Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).Select(project).ToArray();
             result.IsLoaded=true;
         }
