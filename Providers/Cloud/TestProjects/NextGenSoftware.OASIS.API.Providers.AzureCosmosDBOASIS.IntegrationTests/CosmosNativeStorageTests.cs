@@ -1,4 +1,5 @@
 using Microsoft.Azure.Cosmos;
+using Newtonsoft.Json.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -80,6 +81,41 @@ public class CosmosNativeStorageTests
                 long count=0;while(query.HasMoreResults)count+=(await query.ReadNextAsync()).Single();
                 TestContext.WriteLine("Retained fixture container={0}; records={1}; partition={2}",container.Id,count,container.PartitionKeyPath);
             }
+        var credentialIntent="C:/Source/OASIS/TestResults/CosmosDBCurrent/credentials.pending.json";
+        if(File.Exists(credentialIntent)){
+            Assert.AreEqual("CAB9A0205C414AC9AA16C21CFB35C3FB4E0941DDF5840C47FBCFAC67AF79A846",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync("C:/Source/OASIS/TestResults/CosmosDBCurrent/cosmos-native-current.trx"))));
+            using var intent=System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(credentialIntent));
+            var ids=intent.RootElement.GetProperty("ids").EnumerateArray().Select(value=>value.GetGuid()).ToArray();
+            CollectionAssert.AreEqual(new[]{Guid.Parse("778d30d7-0cea-463f-a111-24987b1b2ef3"),Guid.Parse("dab893d6-11a8-4d55-82ec-d7c08b36bdff")},ids);
+            Assert.AreEqual("before-owned-credential-fixture",intent.RootElement.GetProperty("state").GetString());
+            var name="owned-credentials-"+ids[0].ToString("N");Assert.AreEqual(name,intent.RootElement.GetProperty("name").GetString());
+            var native=new Infrastructure.CosmosDbClient(client.GetContainer("oasis-cosmos-crud","avatarItems"));
+            var json=await native.ReadDocumentAsync(ids[0].ToString(),new PartitionKey(ids[0].ToString()));Assert.IsNotNull(json);
+            var document=Newtonsoft.Json.Linq.JObject.Parse(json);Assert.AreEqual(ids[0].ToString(),document["Id"]!.Value<string>());Assert.AreEqual(name,document["Username"]!.Value<string>());Assert.AreEqual(1,document["Version"]!.Value<int>());
+            Assert.IsNull(await native.ReadDocumentAsync(ids[1].ToString(),new PartitionKey(ids[1].ToString())));
+            var factory=new Infrastructure.CosmosDbClientFactory(client,"oasis-cosmos-crud",new(){"avatarItems","avatarDetailItems","holonItems"});
+            var repository=new Infrastructure.AvatarRepository(factory);
+            var queried=native.ReadAllDocuments().Single();var queryDocument=JObject.Parse(queried);
+            TestContext.WriteLine("Point wallet property order: {0}",string.Join(",",((JObject)document["ProviderWallets"]!["AzureCosmosDBOASIS"]![0]!).Properties().Select(property=>property.Name)));
+            TestContext.WriteLine("Query wallet property order: {0}",string.Join(",",((JObject)queryDocument["ProviderWallets"]!["AzureCosmosDBOASIS"]![0]!).Properties().Select(property=>property.Name)));
+            TestContext.WriteLine("Point/query wallet type annotations present: {0}/{1}",document["ProviderWallets"]!["AzureCosmosDBOASIS"]![0]!["$type"]!=null,queryDocument["ProviderWallets"]!["AzureCosmosDBOASIS"]![0]!["$type"]!=null);
+            try{var row=await repository.GetByIdAsync(ids[0].ToString());TestContext.WriteLine("Original point decode: {0}",row!=null);}catch(Exception cause){TestContext.WriteLine("Original point decode failure: {0}",cause);}
+            try{var rows=repository.GetList();TestContext.WriteLine("Original collection decode count: {0}",rows.Count);}catch(Exception cause){TestContext.WriteLine("Original collection decode failure: {0}",cause);}
+            var verifiedRows=repository.GetList();Assert.AreEqual(1,verifiedRows.Count);
+            var verified=verifiedRows.Single();Assert.AreEqual(ids[0],verified.Id);Assert.AreEqual(name,verified.Username);
+            Assert.AreEqual(name+"-public-old",verified.ProviderWallets[Core.Enums.ProviderType.AzureCosmosDBOASIS].Single().PublicKey);
+            Assert.AreEqual(json,await native.ReadDocumentAsync(ids[0].ToString(),new PartitionKey(ids[0].ToString())),"Read-only verification must preserve exact original JSON.");
+            TestContext.WriteLine("Original canonical JSON SHA256={0}",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(json))));
+            if(Environment.GetEnvironmentVariable("OASIS_COSMOS_CREDENTIAL_RECONCILE")=="1"){
+                var originalDigest=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(json)));
+                Assert.AreEqual("CA215C6991B607BCC989F6A76E77AAF25EABF4D4EB69F38BCA124BD77B9C84DE",originalDigest);
+                Assert.AreEqual(name+"-verify-old",verified.VerificationToken);Assert.AreEqual(name+"-reset-old",verified.ResetToken);
+                Assert.AreEqual(name+"-refresh-old",verified.RefreshTokens.Single().Token);
+                await native.DeleteUnchangedDocumentAsync(ids[0].ToString(),verified,new PartitionKey(ids[0].ToString()));
+                foreach(var id in ids)Assert.IsNull(await native.ReadDocumentAsync(id.ToString(),new PartitionKey(id.ToString())));
+                File.Delete(credentialIntent);TestContext.WriteLine("Exact original synthetic credential fixture conditionally removed; both recorded IDs absent.");
+            }
+        }
         foreach(var file in new[]{"delete-backup.db","cosmos-routing.db"})
         {
         var sqlitePath=Path.Combine(AppContext.BaseDirectory,"TestResults","CosmosDBRouting",file);
