@@ -1,0 +1,6 @@
+{
+  "name": "oasis-starknet-sdk-bridge",
+  "private": true,
+  "type": "module",
+  "dependencies": { "starknet": "10.8.0", "@scure/bip39": "1.6.0", "@scure/bip32": "1.7.0" }
+}
