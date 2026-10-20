@@ -53,7 +53,7 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
 
     private async Task<OASISResult<bool>> ApplyAvatarLifecycleAsync(Guid id,bool softDelete,AvatarTombstone supplied=null)
     {
-        var result=new OASISResult<bool>();var dispatched=false;
+        var result=new OASISResult<bool>();var dispatched=false;string? requestToken=null;
         try
         {
             if(id==Guid.Empty) throw new ArgumentException("Avatar identity required.");
@@ -91,8 +91,9 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
                 var updatedDetail=softDelete ? await StageRecordAsync(detail,JObject.Parse(detailJson)):null;
                 writes.Add(LifecycleWrite("OasisAvatarDetails",id,detailJson,updatedDetail?.ToString(Newtonsoft.Json.Formatting.None)));
             }
-            dispatched=true;
-            var response=await _client.TransactWriteItemsAsync(new TransactWriteItemsRequest {TransactItems=writes,ClientRequestToken=Guid.NewGuid().ToString("N")});
+            var request=new TransactWriteItemsRequest{TransactItems=writes,ClientRequestToken=Guid.NewGuid().ToString("N")};
+            requestToken=request.ClientRequestToken;dispatched=true;
+            var response=await _client.TransactWriteItemsAsync(request);
             if(response?.HttpStatusCode!=HttpStatusCode.OK) throw new InvalidDataException("DynamoDB lifecycle transaction lacks an authoritative acknowledgement.");
             result.Result=true;result.IsSaved=true;result.IsDeleted=true;
             if(tombstone!=null) AvatarTombstoneEvidence.Attach(result,tombstone);
@@ -105,7 +106,7 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
         }
         catch(Exception cause)
         {
-            result.IsError=true;result.Exception=dispatched ? new DynamoDBMutationReconciliationException("OasisAvatars+OasisAvatarDetails",id.ToString(),cause):cause;
+            result.IsError=true;result.Exception=dispatched ? new DynamoDBMutationReconciliationException("OasisAvatars+OasisAvatarDetails",id.ToString(),cause,requestToken):cause;
             result.Message=result.Exception.Message;
             if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
             else if(!dispatched && cause is ArgumentException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";

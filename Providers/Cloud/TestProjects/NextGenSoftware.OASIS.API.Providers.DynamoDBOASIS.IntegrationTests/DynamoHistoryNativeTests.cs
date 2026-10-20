@@ -41,6 +41,7 @@ public partial class DynamoHistoryNativeTests
     private sealed class FaultClient:AmazonDynamoDBClient
     {
         public string Mode="normal";public int Writes;public Func<Task>? BeforePut;
+        public bool LoseTransactionReturn;public int Transactions;public string? TransactionToken;
         public readonly IOException Lost=new("owned response dropped after actual SDK commit");
         public FaultClient():base(new BasicAWSCredentials("ownedhistorytest","ownedhistorytest"),Configuration()){}
         public override async Task<PutItemResponse> PutItemAsync(PutItemRequest request,CancellationToken cancellationToken=default)
@@ -51,6 +52,49 @@ public partial class DynamoHistoryNativeTests
             if(Mode=="missing-ack")actual.Attributes.Clear();
             return actual;
         }
+        public override async Task<TransactWriteItemsResponse> TransactWriteItemsAsync(TransactWriteItemsRequest request,CancellationToken token=default)
+        {
+            Transactions++;TransactionToken=request.ClientRequestToken;
+            var actual=await base.TransactWriteItemsAsync(request,token);
+            if(LoseTransactionReturn)throw Lost;
+            return actual;
+        }
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task RealAwsLifecycleLostReturnRetainsOriginalNativeIdempotencyToken(bool softDelete)
+    {
+        Assert.AreEqual("http://127.0.0.1:18000",Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL"));
+        var work=Environment.GetEnvironmentVariable("OASIS_DYNAMO_HISTORY_WORK")!;var journal=Path.Combine(work,$"native-lifecycle-token-{softDelete}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var id=Guid.NewGuid();var name="owned-native-token-"+id.ToString("N");
+        var provider=new NextGenSoftware.OASIS.API.Providers.AWSOASIS.AWSOASIS("us-east-1","ownedhistorytest","ownedhistorytest","http://127.0.0.1:18000"){IsVersionControlEnabled=true};
+        var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;var original=(AmazonDynamoDBClient)field.GetValue(provider)!;
+        using var client=new FaultClient{LoseTransactionReturn=true};using var verifier=Client();field.SetValue(provider,client);
+        var key=new Dictionary<string,AttributeValue>{{"id",new(){S=id.ToString()}}};
+        try {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            foreach(var table in new[]{"OasisAvatars","OasisAvatarDetails"})Assert.AreEqual(0,(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item.Count);
+            using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+                await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,name,softDelete,state="before-owned-aws-lifecycle-lost-return"}));file.Flush(true);
+            }
+            await Write(provider,new Avatar{Id=id,Username=name,Email=name+"@example.invalid",IsActive=true},"OasisAvatars");
+            await Write(provider,new AvatarDetail{Id=id,Username=name,Email=name+"@example.invalid",IsActive=true},"OasisAvatarDetails");
+            var result=await provider.DeleteAvatarAsync(id,softDelete);
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsSaved);Assert.IsFalse(result.IsDeleted);
+            var evidence=(DynamoDBMutationReconciliationException)result.Exception;Assert.AreSame(client.Lost,evidence.InnerException);
+            Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(evidence));
+            Assert.IsTrue(Guid.TryParseExact(client.TransactionToken,"N",out _));Assert.AreEqual(client.TransactionToken,evidence.ClientRequestToken);
+            Assert.AreEqual(string.Empty,evidence.OriginalTransactionId);Assert.AreEqual(0,NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.OriginalTransactionIds(evidence).Count);
+            foreach(var table in new[]{"OasisAvatars","OasisAvatarDetails"}){
+                var actual=await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true});Assert.AreEqual(HttpStatusCode.OK,actual.HttpStatusCode);
+                if(!softDelete){Assert.AreEqual(0,actual.Item.Count);continue;}
+                Assert.IsTrue(actual.Item["is_deleted"].BOOL);var json=actual.Item["data_json"].S;var document=JObject.Parse(json);
+                Assert.AreEqual(2,document["Version"]!.Value<int>());Assert.AreEqual(name,document[EmbeddedRecordHistory.PropertyName]!["records"]![0]!["Username"]!.Value<string>());
+                await RemoveOwned(verifier,table,id,json);
+                Assert.AreEqual(0,(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item.Count);
+            }
+            Assert.AreEqual(1,client.Transactions,"Do not generate a new transaction/replay to resolve an uncertain return.");File.Delete(journal);
+        }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
     }
     private static async Task<IHolonBase> Write(DynamoDBOASIS provider,IHolonBase row,string table)
     {
