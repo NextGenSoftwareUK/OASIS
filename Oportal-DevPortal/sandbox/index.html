@@ -180,9 +180,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:13px 32px;display:fl
 </div>
 
 <div class="auth-card" style="max-width:900px">
-  <label>Development Avatar JWT</label>
-  <input type="password" id="jwt" autocomplete="off" placeholder="Authenticating test avatar…">
-  <div class="auth-note">This development sandbox authenticates the temporary test avatar through <code>dev.api.web4.oasisomniverse.one</code>, then sends its JWT only to <code>dev.api.web6.oasisomniverse.one</code>. The token is kept in memory and is never stored.</div>
+  <label>Sign in with your OASIS avatar</label>
+  <input type="text" id="auth-user" autocomplete="username" placeholder="Username or email">
+  <input type="password" id="auth-pass" autocomplete="current-password" placeholder="Password">
+  <button class="btn bg" id="auth-btn" onclick="signIn()">Sign in</button>
+  <input type="password" id="jwt" autocomplete="off" placeholder="…or paste a WEB4 JWT">
+  <div class="auth-note" id="auth-note">Your credentials go only to <code>dev.api.web4.oasisomniverse.one</code> to sign in; the returned JWT is sent only to <code>dev.api.web6.oasisomniverse.one</code>. Nothing is stored, and every call is billed to your own avatar. No account? <a href="https://oportal.oasisomniverse.one" style="color:var(--cyan)">Create one free</a>.</div>
 </div>
 
 <div class="tabs-row">
@@ -613,47 +616,45 @@ import { Web6Client } from 'https://esm.sh/@oasisomniverse/web6-api@2.0.3';
 
 const WEB4_BASE = 'https://dev.api.web4.oasisomniverse.one';
 const BASE = 'https://dev.api.web6.oasisomniverse.one';
-const DEV_TEST_AVATAR = {
-  username: 'davidellams@hotmail.com',
-  password: 'test1234567'
-};
-
-let authenticationPromise;
-
+// The visitor signs in with their own avatar. Credentials go only to WEB4, are never stored, and the password field is
+// cleared after use; the JWT lives only in this page's memory (the JWT field).
 async function authenticateTestAvatar() {
-  const jwtInput = document.getElementById('jwt');
-  if (jwtInput.value.trim()) return jwtInput.value.trim();
-  if (authenticationPromise) return authenticationPromise;
+  const jwt = document.getElementById('jwt').value.trim();
+  if (!jwt) throw new Error('Sign in with your OASIS avatar first (top of the page).');
+  return jwt;
+}
 
-  authenticationPromise = (async () => {
+window.signIn = async () => {
+  const user = document.getElementById('auth-user');
+  const pass = document.getElementById('auth-pass');
+  const note = document.getElementById('auth-note');
+  const button = document.getElementById('auth-btn');
+  if (!user.value.trim() || !pass.value) { note.textContent = 'Enter your username and password.'; return; }
+  button.disabled = true;
+  try {
     const response = await fetch(`${WEB4_BASE}/api/avatar/authenticate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(DEV_TEST_AVATAR)
+      body: JSON.stringify({ username: user.value.trim(), password: pass.value })
     });
     const data = await response.json();
     const authResult = data?.result;
     const avatar = authResult?.result;
-
     if (!response.ok || authResult?.isError || !avatar?.jwtToken) {
-      throw new Error(authResult?.message || data?.message || `Authentication failed with HTTP ${response.status}`);
+      throw new Error(authResult?.message || data?.message || `Sign-in failed with HTTP ${response.status}`);
     }
-
-    jwtInput.value = avatar.jwtToken;
-    jwtInput.placeholder = 'Authenticated development avatar';
-    return avatar.jwtToken;
-  })().catch(error => {
-    authenticationPromise = undefined;
-    jwtInput.placeholder = 'Development avatar authentication failed';
-    throw error;
-  });
-
-  return authenticationPromise;
-}
-
-authenticateTestAvatar().catch(error => {
-  console.error('Development avatar authentication failed:', error);
-});
+    document.getElementById('jwt').value = avatar.jwtToken;
+    note.textContent = `Signed in as ${avatar.username || user.value.trim()}. Calls are billed to this avatar.`;
+    window.loadChatChoices?.();
+  } catch (error) {
+    note.textContent = 'Sign-in failed: ' + error.message;
+  } finally {
+    pass.value = '';
+    button.disabled = false;
+  }
+};
+document.getElementById('auth-pass').addEventListener('keydown', e => { if (e.key === 'Enter') signIn(); });
+document.getElementById('jwt').addEventListener('change', () => window.loadChatChoices?.());
 
 function client() {
   const jwt = document.getElementById('jwt').value.trim();
@@ -1122,9 +1123,12 @@ document.getElementById('c-in').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSend(); }
 });
 
-(async function loadChatChoices() {
+window.loadChatChoices = async function loadChatChoices() {
+  if (!document.getElementById('jwt').value.trim()) return;
+  const agentSelect = document.getElementById('c-agent');
+  const modelSelect = document.getElementById('c-model');
+  agentSelect.length = 1; modelSelect.length = 1;
   try {
-    await authenticateTestAvatar();
     const agents = await apiJson(`${BASE}/v1/reasoning-network/agents`, { headers: hdrs() });
     const select = document.getElementById('c-agent');
     (agents.result || []).slice(0, 50).forEach(a => {
@@ -1143,7 +1147,7 @@ document.getElementById('c-in').addEventListener('keydown', e => {
       select.appendChild(o);
     });
   } catch (e) { console.warn('Model list unavailable:', e.message); }
-})();
+};
 
 // ─── GRANTS, CHANNELS, SCHEDULES ───
 window.createGrant = async (endpoint, targetId, sbId, sbtId) => {
