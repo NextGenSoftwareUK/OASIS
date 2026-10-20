@@ -428,6 +428,11 @@ public sealed class OracleNativeAcceptanceTests
             foreach(var sync in new[]{false,true}){
                 var found=parent?(sync?provider.LoadHolonsForParent(selectedParent,loadChildren:false):await provider.LoadHolonsForParentAsync(selectedParent,loadChildren:false)):(sync?provider.LoadAllHolons(selectedType,loadChildren:false):await provider.LoadAllHolonsAsync(selectedType,loadChildren:false));
                 Assert.IsTrue(found.IsError);Assert.IsNull(found.Result);Assert.IsInstanceOfType<InvalidDataException>(found.Exception);Assert.AreEqual(original,await Read(verifier,"OASIS_HOLONS",id));
+                var searchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,FilterByMetaData=new(){["owned-index-fixture"]=id.ToString()}};
+                var searched=sync?provider.Search(searchParams,loadChildren:false):await provider.SearchAsync(searchParams,loadChildren:false);
+                Assert.IsTrue(searched.IsError,"Collection-based search must not conceal inconsistent native projections.");
+                Assert.IsNull(searched.Result);Assert.IsInstanceOfType<InvalidDataException>(searched.Exception);
+                Assert.AreEqual(original,await Read(verifier,"OASIS_HOLONS",id));
                 if(!parent){
                     var single=sync?provider.LoadHolonsByMetaData("owned-index-fixture",id.ToString(),selectedType,loadChildren:false):await provider.LoadHolonsByMetaDataAsync("owned-index-fixture",id.ToString(),selectedType,loadChildren:false);
                     var pairs=new Dictionary<string,string>{{"owned-index-fixture",id.ToString()}};
