@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## PostgreSQL canonical search — native8/8 green
+
+Two actualSQL Name/Description missing-result regressions fixed by matching canonical PascalCase JSON keys in existing parameterized query. Previous6nativeCRUDcases retained; final8pass0skip941ms, report7C1C58ED7999D9AD684B9ED5CC285C6AF54B34E81B9C08075A78EC168BE70C54, actual19EFCore/ECDDACShared. Original6pass2fail report preserved; knownACKfixturescondition-cleaned, all3tables0/journals0/containerEXITED/portabsent. Exactscope in HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md; no newruntime/download/reset/devpush and no fullPostgreSQL/V2 claim.
+
 ## Generic decoder repair — final consumer/native regressions green
 
 Dependency pairing locallycomplete06f3db0a7/Corebab3288, strictmanifest/gitlinksvalidatorpasses. Independently checked finalSQLite971 counters/report4B3E116C115857EB954A715BFA892EFED47E979AEF1C8BE446993BF584C2E02A. Publication remains local/no deployment; broader typednarrowing/envelopes/provider-native/interfaces/V2 gates separate.
