@@ -73,26 +73,42 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
                 own?.Remove(CosmicConcurrency.ProviderRevisionMetadataKey);
                 if(own==null||own.Count==0)intent.ProviderMetaData.Remove(authority);
             }
-            var values=JObject.Parse(StoredRecordJson.Serialize(intent));
+            var values=(JObject)StoredRecordJson.CaptureRuntimeToken(intent);
             values.Remove(nameof(Holon.ChildRoleManifestJson)); // Explicit submitted manifests own relationship intent.
             foreach(var field in new[]{"Version","VersionId","PreviousVersionId","CreatedDate","ModifiedDate","CreatedByAvatarId","ModifiedByAvatarId","CreatedProviderType","InstanceSavedOnProviderType"})values.Remove(field);
             if(intent.ProviderUniqueStorageKey==null||intent.ProviderUniqueStorageKey.Count==0)values.Remove("ProviderUniqueStorageKey");
             records.Add(values);
         }
-        var content=new JObject{["format"]=3,["actor"]=request.Write.ActorId,["authority"]=authority.ToString(),["operation"]=request.Operation.ToString(),["children"]=request.SaveChildren,["recursive"]=request.Recursive,["depth"]=request.MaxChildDepth,["roots"]=new JArray(RootIds),["nodes"]=records,["conditions"]=JArray.FromObject(request.Write.Conditions.OrderBy(c=>c.HolonId))};
+        // New exact-number domain: old rounded receipts must reconcile, never silently replay.
+        var content=new JObject{["format"]=5,["actor"]=request.Write.ActorId,["authority"]=authority.ToString(),["operation"]=request.Operation.ToString(),["children"]=request.SaveChildren,["recursive"]=request.Recursive,["depth"]=request.MaxChildDepth,["roots"]=new JArray(RootIds),["nodes"]=records,["conditions"]=JArray.FromObject(request.Write.Conditions.OrderBy(c=>c.HolonId))};
         if(request.SubmittedRelationships.Count>0)
         {
-            content["format"]=4;
+            content["format"]=6;
             content["relationships"]=new JArray(request.SubmittedRelationships.OrderBy(pair=>pair.Key)
                 .Select(pair=>JObject.Parse(HolonChildRoleManifestJson.Serialize(pair.Value))));
         }
         if(enrollment!=null)content["replication"]=new JObject{["format"]=1,["source"]=enrollment.SourceId,["targets"]=new JArray(enrollment.TargetIds)};
-        Fingerprint=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Canonical(content).ToString(Formatting.None))));
+        Fingerprint=ComputeFingerprint(content);
+    }
+    /// <summary>Exact canonical value binding for an already captured logical intent. The caller supplies its domain/version.</summary>
+    public static string ComputeFingerprint(JToken content)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Canonical(content).ToString(Formatting.None))));
     }
     public static ConditionalHolonPlan Create(ConditionalHolonWriteRequest request,ProviderType authority)=>new(request,authority);
     public static ConditionalHolonPlan CreateReplicating(ConditionalHolonWriteRequest request,ProviderType authority,HolonReplicationEnrollment enrollment)
         =>new(request,authority,enrollment ?? throw new ArgumentNullException(nameof(enrollment)));
-    private static JToken Canonical(JToken value)=>value is JObject obj
-        ?new JObject(obj.Properties().OrderBy(p=>p.Name,StringComparer.Ordinal).Select(p=>new JProperty(p.Name,Canonical(p.Value))))
-        :value is JArray array?new JArray(array.Select(Canonical)):value.DeepClone();
+    private static JToken Canonical(JToken value)
+    {
+        if(value is JObject obj)return new JObject(obj.Properties().OrderBy(p=>p.Name,StringComparer.Ordinal).Select(p=>new JProperty(p.Name,Canonical(p.Value))));
+        if(value is JArray array)return new JArray(array.Select(Canonical));
+        if(value.Type is JTokenType.Integer or JTokenType.Float)return new JRaw(StoredRecordPayloadEquality.CanonicalNumberText(value));
+        if(value is JRaw raw){
+            using var document=System.Text.Json.JsonDocument.Parse(raw.ToString(Formatting.None));
+            if(document.RootElement.ValueKind==System.Text.Json.JsonValueKind.Number)
+                return new JRaw(StoredRecordPayloadEquality.CanonicalNumberText(value));
+        }
+        return value.DeepClone();
+    }
 }
