@@ -259,6 +259,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             await backend.DeleteUnchangedAsync(key,observed.Revision);acknowledged.Add(key);
         }
 
+        private async Task WriteObservedLifecycleAsync<T>(string key,T proposal,T previous,KeyValueObservation observed,IConditionalKeyValueBackend conditional,List<string> acknowledged) where T:class,IHolonBase
+        {
+            await StampVersionAsync(key,proposal,previous,acknowledged,conditional);
+            await PutObservedAcknowledgedAsync(conditional,key,OasisJson.Serialize(proposal),observed,acknowledged);
+        }
+
         private async Task DeleteAcknowledgedAsync(string key,List<string> acknowledged)
         {await Backend.DeleteAsync(key);acknowledged.Add(key);}
 
@@ -421,29 +427,49 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             var acknowledged=new List<string>();
             try
             {
-                var avatar = await ReadVersionAsync(AvatarKey(id),await ReadAsync<IAvatar>(AvatarKey(id)),0);
+                var avatarKey=AvatarKey(id);var detailKey=AvatarDetailKey(id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (avatarRecord,avatarObserved)=await ReadForMutationAsync<IAvatar>(avatarKey,conditional);
+                var avatar=await ReadVersionAsync(avatarKey,avatarRecord,0);
                 if (avatar == null) return Fail<bool>($"Avatar {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
-                var detail=await ReadVersionAsync(AvatarDetailKey(id),await ReadAsync<IAvatarDetail>(AvatarDetailKey(id)),0);
+                var (detailRecord,detailObserved)=await ReadForMutationAsync<IAvatarDetail>(detailKey,conditional);
+                var detail=await ReadVersionAsync(detailKey,detailRecord,0);
 
                 if (softDelete)
                 {
-                    avatar.DeletedDate = DateTime.UtcNow;
-                    avatar.IsActive = false;
-                    await PutAcknowledgedAsync(AvatarKey(id), OasisJson.Serialize(avatar),acknowledged);
-                    if(detail!=null)
-                    {
-                        detail.IsActive=false;detail.DeletedDate=avatar.DeletedDate;
-                        await PutAcknowledgedAsync(AvatarDetailKey(id),OasisJson.Serialize(detail),acknowledged);
+                    var deletedAt=DateTime.UtcNow;
+                    if(conditional==null){
+                        avatar.DeletedDate=deletedAt;avatar.IsActive=false;
+                        await PutAcknowledgedAsync(avatarKey,OasisJson.Serialize(avatar),acknowledged);
+                        if(detail!=null){detail.IsActive=false;detail.DeletedDate=deletedAt;await PutAcknowledgedAsync(detailKey,OasisJson.Serialize(detail),acknowledged);}
+                    }else{
+                        var proposal=OasisJson.Deserialize<IAvatar>(OasisJson.Serialize(avatar));proposal.DeletedDate=deletedAt;proposal.IsActive=false;
+                        await WriteObservedLifecycleAsync(avatarKey,proposal,avatar,avatarObserved,conditional,acknowledged);
+                        if(detail!=null){
+                            var detailProposal=OasisJson.Deserialize<IAvatarDetail>(OasisJson.Serialize(detail));detailProposal.DeletedDate=deletedAt;detailProposal.IsActive=false;
+                            await WriteObservedLifecycleAsync(detailKey,detailProposal,detail,detailObserved,conditional,acknowledged);
+                        }
                     }
                 }
                 else
                 {
-                    if (!string.IsNullOrWhiteSpace(avatar.Username)) await DeleteAcknowledgedAsync(UsernameKey(avatar.Username),acknowledged);
-                    if (!string.IsNullOrWhiteSpace(avatar.Email)) await DeleteAcknowledgedAsync(EmailKey(avatar.Email),acknowledged);
-                    await DeleteVersionsAsync(AvatarDetailKey(id),acknowledged);
-                    await DeleteAcknowledgedAsync(AvatarDetailKey(id),acknowledged);
-                    await DeleteVersionsAsync(AvatarKey(id),acknowledged);
-                    await DeleteAcknowledgedAsync(AvatarKey(id),acknowledged);
+                    if(conditional==null){
+                        if(!string.IsNullOrWhiteSpace(avatar.Username))await DeleteAcknowledgedAsync(UsernameKey(avatar.Username),acknowledged);
+                        if(!string.IsNullOrWhiteSpace(avatar.Email))await DeleteAcknowledgedAsync(EmailKey(avatar.Email),acknowledged);
+                        await DeleteVersionsAsync(detailKey,acknowledged);await DeleteAcknowledgedAsync(detailKey,acknowledged);
+                        await DeleteVersionsAsync(avatarKey,acknowledged);await DeleteAcknowledgedAsync(avatarKey,acknowledged);
+                    }else{
+                        var indexes=new Dictionary<string,KeyValueObservation>(StringComparer.Ordinal);
+                        foreach(var index in new[]{string.IsNullOrWhiteSpace(avatar.Username)?null:UsernameKey(avatar.Username),string.IsNullOrWhiteSpace(avatar.Email)?null:EmailKey(avatar.Email)}.Where(key=>key!=null)){
+                            var observed=await ReadOwnedIndexAsync(conditional,index,id);if(observed!=null)indexes.Add(index,observed);
+                        }
+                        var avatarVersions=await ObserveHistoricalDeletesAsync<IAvatar>(avatarKey,id,conditional);
+                        var detailVersions=await ObserveHistoricalDeletesAsync<IAvatarDetail>(detailKey,id,conditional);
+                        await DeleteObservedAcknowledgedAsync(conditional,avatarKey,avatarObserved,acknowledged);
+                        if(detailObserved!=null)await DeleteObservedAcknowledgedAsync(conditional,detailKey,detailObserved,acknowledged);
+                        foreach(var index in indexes)await DeleteObservedAcknowledgedAsync(conditional,index.Key,index.Value,acknowledged);
+                        foreach(var version in detailVersions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
+                        foreach(var version in avatarVersions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
+                    }
                 }
                 return new OASISResult<bool>(true) { IsDeleted = true, Message = $"Avatar {id} {(softDelete ? "soft" : "permanently")} deleted from {Name}." };
             }
@@ -560,8 +586,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                         var saved=await SaveAvatarDetailAsync(proposal);
                         if(saved.IsError)return Fail<bool>(saved.Message,saved.Exception,saved.ErrorCode);
                     }else{
-                        await StampVersionAsync(key,proposal,detail,acknowledged,conditional);
-                        await PutObservedAcknowledgedAsync(conditional,key,OasisJson.Serialize(proposal),observed,acknowledged);
+                        await WriteObservedLifecycleAsync(key,proposal,detail,observed,conditional,acknowledged);
                     }
                 }
                 else
