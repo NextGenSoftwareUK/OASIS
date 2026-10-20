@@ -151,6 +151,17 @@ public partial class GoogleCloudOASIS
             throw new InvalidDataException("Firestore native active projection differs from canonical record.");
         if(fields.TryGetValue("isDeleted",out var deleted) && (deleted is not bool deletedValue || deletedValue!=record.IsDeleted))
             throw new InvalidDataException("Firestore native deletion projection differs from canonical record.");
+        (string Username,string Email)? canonicalIdentity=record switch{
+            IAvatar avatar=>(avatar.Username,avatar.Email),
+            IAvatarDetail detail=>(detail.Username,detail.Email),
+            _=>null
+        };
+        if(canonicalIdentity.HasValue){
+            if(fields.TryGetValue("username",out var username)&&!Equals(username,canonicalIdentity.Value.Username))
+                throw new InvalidDataException("Firestore native username projection differs from canonical record.");
+            if(fields.TryGetValue("email",out var email)&&!Equals(email,canonicalIdentity.Value.Email))
+                throw new InvalidDataException("Firestore native email projection differs from canonical record.");
+        }
         var document=OasisJson.ParseStoredObject(json);
         if(document["id"]!=null&&document["id"].Value<string>()!=documentId)
             throw new InvalidDataException("Firestore embedded identity differs from document key.");
