@@ -1,5 +1,15 @@
 # HyperDrive V2 current release gates
 
+## NEAR current dependency native acceptance — 2026-10-20
+
+Full existing **19/19 native passed5m26s0skip**, terminal0, on SAME CoreD490/Shared1C35EE cohort as202/202controlled refresh. Official SDK/retained chain/contract, no exclusions/reset/deploy/download/newenvironment. Report TestResults/NearRuntime/near-provider-current.trx SHA25684A248705938B04D7CE0F566971BC9E36907073A8B93D6496535AD073D5A83B1; previous C6FD2... report SHAchecked/moved in place to near-provider-pre-current-core.trx. This closes fresh normal native compatibility for this cohort, not every interface/fault/race/hosted fee/V2 gate. Exactcohort/scope in NEAR_PUBLIC_CONDITIONAL_SAVE.md.
+
+Owned719851 shutdown confirmed allRocksDBclosed; pending/process/listeners0; checkedcompletion verified-fixtures-absent SHA2561A8565DE9D96B98045C220DFC3E476A062B127608C8FF600C1E58A3BA266F410, negativefixture verified-failed. Temporary retention50 restoredoriginal5afterstop/readback. Stoppedledger299MiB(previous291), free C67,768,864,768bytes;123GBtarget unmet. No new environment or publicfunds; local failuregas still applies. Fullgoal remains OPEN.
+
+## NEAR current dependency compatibility — 2026-10-20
+
+Existing unmodified NEAR suite **202/202 controlled14s0skip**, terminal0, on actual CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared1C35EE624DE22877EE450BE3EFC3930B1EBE960FF7EE2C127861ED28BF7CDDD6. Cached producer/consumer builds under exclusive lease and build-identity guard passed. TestResults/NearRuntime/near-current-core-controlled.trx SHA25642AEE31AD7998EE4177941235C1B62349D41E6C4437CD0B5726234A7BB3233D7. This supersedes stale controlled dependency evidence only: earlier19native is not a fresh proof for current cohort. No chain/runtime/node/key/contract/retention changes/downloads/install. Free C67,869,601,792bytes;123GBtarget unmet. Fresh native/direct-interface/hosted fee/recovery/full-V2 gates remain OPEN. Full details in NEAR_PUBLIC_CONDITIONAL_SAVE.md.
+
 ## Dynamo/AWS batch revision publication — native acceptance, 2026-10-20
 
 Both provider aliases×sync/async **4/4 native passed1s0skip**, runnerterminal0 under exclusive build lease. Ordinary two-node graph batches return nonempty caller tokens matching independently strongly-consistent native canonical records; subsequent atomic graph using exactly those caller tokens succeeds and rotates both revisions. Confirms the two controlled red-before cases and326green root fix below. Same production publication owner/shared CosmicConcurrency helper, no new persistence write or interface fork.

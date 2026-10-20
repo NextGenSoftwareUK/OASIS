@@ -1,5 +1,17 @@
 # NEAR public conditional record saves
 
+## Current dependency native refresh — 2026-10-20
+
+Retained original launcher session52770 terminal0: **19/19 actual native tests passed5m26s,0skip**. Producer/native builds0errors2warnings each and dependency identity guard passed. Actual consumer CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared1C35EE624DE22877EE450BE3EFC3930B1EBE960FF7EE2C127861ED28BF7CDDD6, SAME dependency cohort as current202controlled refresh. Report TestResults/NearRuntime/near-provider-current.trx SHA25684A248705938B04D7CE0F566971BC9E36907073A8B93D6496535AD073D5A83B1. Prior C6FD2ED97BF00459E7AF0F24A803836866D66F5AD61EF50BA8BE7C7EF1430A0A SHAverified/moved in place to near-provider-pre-current-core.trx before run.
+
+Existing storage/avatar/detail/graph/history/query/import/export, token/NFT/bridge/status/checked-write native cases run without exclusions; not all relevant interfaces, public-chain IAM/fees, exhaustive races or durable signed-original recovery. Ordinary full-provider and universal V2 gates remain OPEN. No contract upgrade/reset/keyreplacement/newenvironment/download/install; same pinned runtime/Node/SDK/chain/ledger/bytecode/DPAPI key.
+
+Owned node719851 graceful SIGINT completed, all RocksDB instances closed; independently process/3030+24567listeners/pendingjournals absent. Native completion state verified-fixtures-absent SHA2561A8565DE9D96B98045C220DFC3E476A062B127608C8FF600C1E58A3BA266F410; negativefixture verified-failed. Temporary testretention5→50 restored5 AFTER confirmedstop/readback. Stable stopped ledger299MiB vs291MiBbefore; intermediate live du encountered files disappearing during snapshot churn, not used as stable allocation proof. Free C67,768,864,768bytes;123GBtarget unmet. Local testNEAR/gas only; live receipts include failures that burn gas, no new fiat/public fee estimate. No hosted/deployment claim.
+
+## Current Core/Shared compatibility refresh — 2026-10-20
+
+Unmodified current NEAR producer/unit suite rebuilt with bounded cached no-restore builds under exclusive build lease. Full **202/202 controlled passed14s, zero skipped**, terminal0; native SDK/IPC-controlled cases retained without exclusions. Report TestResults/NearRuntime/near-current-core-controlled.trx SHA25642AEE31AD7998EE4177941235C1B62349D41E6C4437CD0B5726234A7BB3233D7. Actual consumer CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared1C35EE624DE22877EE450BE3EFC3930B1EBE960FF7EE2C127861ED28BF7CDDD6, identity guard passed. Earlier native19 remains its older cohort, not refreshed by these controlled tests. No node/ledger/retention/key/contract changes, downloads/installs/newenvironment; free C67,869,601,792bytes,123GBtarget unmet. Full relevant interfaces, fresh native failure/normal gates, hosted fees and all-provider V2 remain open.
+
 ## Selector failures retained by export/delete wrappers — 2026-10-20
 
 Final controlled report SHA256 `FD7AD51C4CE4942D7B6DD154ABFA1A7063DDBA845A5D824F5D30B5B83013829E`. Free C after bounded builds/tests68,786,774,016bytes;123GBtargetunmet/no reclaim claimed.
