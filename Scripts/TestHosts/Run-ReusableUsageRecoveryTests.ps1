@@ -112,9 +112,10 @@ try{
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION=$env:SUBSCRIPTION_TEST_MONGODB_URI
         $typedProject=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj'
         $typedFilter=if($CosmicTypedQueryCommittedReconcile){'FullyQualifiedName~ReconcileExactCommittedTypedQueryFixture'}else{'FullyQualifiedName~ReconcileExactEmptyPreSubmissionTypedQueryFixture'}
-        & dotnet test $typedProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter $typedFilter --logger 'trx;LogFileName=mongo-typed-query-empty-reconciliation.trx' --results-directory $work -v:q
+        $typedReport=if($CosmicTypedQueryCommittedReconcile){'mongo-typed-query-committed-reconciliation.trx'}else{'mongo-typed-query-empty-reconciliation.trx'}
+        & dotnet test $typedProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter $typedFilter --logger "trx;LogFileName=$typedReport" --results-directory $work -v:q
         if($LASTEXITCODE){throw 'Exact typed-query empty fixture reconciliation failed.'}
-        [xml]$typedEvidence=Get-Content (Join-Path $work 'mongo-typed-query-empty-reconciliation.trx')
+        [xml]$typedEvidence=Get-Content (Join-Path $work $typedReport)
         $typedCounts=$typedEvidence.SelectSingleNode("//*[local-name()='Counters']")
         if([int]$typedCounts.total -ne 1 -or [int]$typedCounts.passed -ne 1 -or [int]$typedCounts.notExecuted -ne 0){throw 'Exact fixture reconciliation must execute once without skips.'}
     }elseif($CosmicNeo4jReplicasReconcile){

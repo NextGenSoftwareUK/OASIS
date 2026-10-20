@@ -16,6 +16,43 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CosmicTrackingTests
 {
     [Theory]
+    [InlineData(false,false,false)] [InlineData(true,false,false)]
+    [InlineData(false,true,false)] [InlineData(true,true,false)]
+    [InlineData(false,false,true)] [InlineData(true,false,true)]
+    [InlineData(false,true,true)] [InlineData(true,true,true)]
+    public async Task V2SearchHonorsChildSourceAndTypeWithoutMutatingProviderObservations(bool synchronous,bool fromProvider,bool filter)
+    {
+        var f=Fixture(true);var root=new Holon {Id=Guid.NewGuid()};
+        var quest=new Holon {Id=Guid.NewGuid(),ParentHolonId=root.Id,HolonType=HolonType.Quest};
+        var other=new Holon {Id=Guid.NewGuid(),ParentHolonId=root.Id,HolonType=HolonType.Holon};
+        root.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1,root.Id,
+            new[]{new HolonChildRole("Children",new[]{quest.Id,other.Id})}));
+        if(fromProvider)root.Children=new List<IHolon>{quest,other};
+        var payload=new Core.Objects.Search.SearchResults {SearchResultHolons=new List<IHolon>{root},NumberOfResults=1};
+        f.Provider.Setup(p=>p.Search(It.IsAny<Core.Objects.Search.ISearchParams>(),true,true,1,true,0)).Returns(new OASISResult<Core.Interfaces.Search.ISearchResults>(payload));
+        f.Provider.Setup(p=>p.SearchAsync(It.IsAny<Core.Objects.Search.ISearchParams>(),true,true,1,true,0)).ReturnsAsync(new OASISResult<Core.Interfaces.Search.ISearchResults>(payload));
+        f.Provider.Setup(p=>p.LoadHolon(quest.Id,false,false,0,true,false,0)).Returns(new OASISResult<IHolon>(quest));
+        f.Provider.Setup(p=>p.LoadHolon(other.Id,false,false,0,true,false,0)).Returns(new OASISResult<IHolon>(other));
+        f.Provider.Setup(p=>p.LoadHolonAsync(quest.Id,false,false,0,true,false,0)).ReturnsAsync(new OASISResult<IHolon>(quest));
+        f.Provider.Setup(p=>p.LoadHolonAsync(other.Id,false,false,0,true,false,0)).ReturnsAsync(new OASISResult<IHolon>(other));
+        var selectedType=filter ? HolonType.Quest:HolonType.All;
+        var result=synchronous ? f.Manager.SearchHolons("owned",Guid.Empty,searchOnlyForCurrentAvatar:false,maxChildDepth:1,
+                loadChildrenFromProvider:fromProvider,childHolonType:selectedType,providerType:ProviderType.SQLLiteDBOASIS)
+            :await f.Manager.SearchHolonsAsync("owned",Guid.Empty,searchOnlyForCurrentAvatar:false,maxChildDepth:1,
+                loadChildrenFromProvider:fromProvider,childHolonType:selectedType,providerType:ProviderType.SQLLiteDBOASIS);
+        result.IsError.Should().BeFalse(result.Message+result.Exception);
+        var actual=result.Result.Should().ContainSingle().Subject;
+        actual.Children.Select(child=>child.Id).Should().Equal(filter ? new[]{quest.Id}:new[]{quest.Id,other.Id});
+        actual.Should().BeAssignableTo<Holon>().Which.ChildRoleManifestJson.Should().Be(root.ChildRoleManifestJson);actual.HasHolonChanged().Should().BeFalse();
+        root.Children.Count.Should().Be(fromProvider ? 2:0);payload.SearchResultHolons.Single().Should().BeSameAs(root);
+        if(fromProvider)
+        {
+            f.Provider.Verify(p=>p.LoadHolon(It.IsAny<Guid>(),It.IsAny<bool>(),It.IsAny<bool>(),It.IsAny<int>(),It.IsAny<bool>(),It.IsAny<bool>(),It.IsAny<int>()),Times.Never);
+            f.Provider.Verify(p=>p.LoadHolonAsync(It.IsAny<Guid>(),It.IsAny<bool>(),It.IsAny<bool>(),It.IsAny<int>(),It.IsAny<bool>(),It.IsAny<bool>(),It.IsAny<int>()),Times.Never);
+        }
+    }
+
+    [Theory]
     [InlineData(false)] [InlineData(true)]
     public async Task DefaultV2ManagerGraphTraversesDeepMembershipWithoutRecursiveFrames(bool synchronous)
     {
@@ -247,9 +284,9 @@ public class CosmicTrackingTests
         f.Provider.Setup(p=>p.SearchAsync(It.IsAny<Core.Objects.Search.ISearchParams>(),loadChildren,true,1,true,0))
             .ReturnsAsync(new OASISResult<Core.Interfaces.Search.ISearchResults>(payload));
         var result=synchronous ? f.Manager.SearchHolons<LoadedRoleOwner>("search",Guid.Empty,searchOnlyForCurrentAvatar:false,
-                loadChildren:loadChildren,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS)
+                loadChildren:loadChildren,maxChildDepth:1,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS)
             :await f.Manager.SearchHolonsAsync<LoadedRoleOwner>("search",Guid.Empty,searchOnlyForCurrentAvatar:false,
-                loadChildren:loadChildren,maxChildDepth:1,providerType:ProviderType.SQLLiteDBOASIS);
+                loadChildren:loadChildren,maxChildDepth:1,loadChildrenFromProvider:true,providerType:ProviderType.SQLLiteDBOASIS);
         result.IsError.Should().Be(missing && loadChildren,result.Message+result.Exception);
         if(missing && loadChildren)
         {

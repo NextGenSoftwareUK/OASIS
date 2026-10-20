@@ -57,7 +57,7 @@ public sealed class CosmicTypedQueryTests(Xunit.Abstractions.ITestOutputHelper o
         parent.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS]=parentKey;
         var root=new NativeRoleOwner{Name="typed query owner",HolonType=HolonType.Quest};
         root.MetaData["typed-kind"]="query-owner";
-        root.Components.Add(new NativeRoleMember{Name="query member"});
+        root.Components.Add(new NativeRoleMember{Name="query member",HolonType=HolonType.Holon});
         parent.Children.Add(root);
         var saved=await writer.SaveHolonAsync(parent,actor,new CosmicWriteOptions(Guid.NewGuid()),providerType:ProviderType.MongoDBOASIS);
         Assert.False(saved.IsError,saved.Message+saved.Exception);
@@ -127,6 +127,33 @@ public sealed class CosmicTypedQueryTests(Xunit.Abstractions.ITestOutputHelper o
         Assert.Null(Assert.IsType<Holon>(Assert.Single(legacy.Result)).ChildRoleManifestJson);
         Assert.False((await rowsCollection.Find(rootFilter).SingleAsync()).Contains("ChildRoleManifestJson"));
         Assert.Equal(childBefore,(await rowsCollection.Find(childFilter).SingleAsync()).ToJson());
+        if(route=="search")
+        {
+            // Advance only the independent child; the parent's embedded snapshot stays older.
+            var currentChild=await writer.LoadHolonAsync<NativeRoleMember>(component.Id,loadChildren:false,providerType:ProviderType.MongoDBOASIS);
+            Assert.False(currentChild.IsError,currentChild.Message+currentChild.Exception);
+            currentChild.Result.Name="search independently updated child";
+            var advanced=await writer.SaveHolonAsync(currentChild.Result,actor,new CosmicWriteOptions(Guid.NewGuid()),
+                saveChildren:false,providerType:ProviderType.MongoDBOASIS);
+            Assert.False(advanced.IsError,advanced.Message+advanced.Exception);
+            var rootBeforeSearch=(await rowsCollection.Find(rootFilter).SingleAsync()).ToJson();
+            var childBeforeSearch=(await rowsCollection.Find(childFilter).SingleAsync()).ToJson();
+            foreach(var nativeChildren in new[]{false,true})
+            foreach(var childType in new[]{HolonType.Holon,HolonType.Quest})
+            {
+                var selected=synchronous ? reader.SearchHolons("scalar-only owner",actor,searchOnlyForCurrentAvatar:false,
+                        maxChildDepth:1,loadChildrenFromProvider:nativeChildren,childHolonType:childType,providerType:ProviderType.MongoDBOASIS)
+                    :await reader.SearchHolonsAsync("scalar-only owner",actor,searchOnlyForCurrentAvatar:false,
+                        maxChildDepth:1,loadChildrenFromProvider:nativeChildren,childHolonType:childType,providerType:ProviderType.MongoDBOASIS);
+                Assert.False(selected.IsError,selected.Message+selected.Exception);
+                var selectedRoot=Assert.Single(selected.Result);Assert.Equal(root.Id,selectedRoot.Id);
+                if(childType==HolonType.Quest)Assert.Empty(selectedRoot.Children);
+                else Assert.Equal(nativeChildren ? "query member edited":"search independently updated child",Assert.Single(selectedRoot.Children).Name);
+                Assert.False(selectedRoot.HasHolonChanged());
+            }
+            Assert.Equal(rootBeforeSearch,(await rowsCollection.Find(rootFilter).SingleAsync()).ToJson());
+            Assert.Equal(childBeforeSearch,(await rowsCollection.Find(childFilter).SingleAsync()).ToJson());
+        }
         complete=true;
         }
         finally
@@ -173,8 +200,11 @@ public sealed class CosmicTypedQueryTests(Xunit.Abstractions.ITestOutputHelper o
         var client=new MongoClient(uri);var database=client.GetDatabase(name);
         using var cursor=await database.ListCollectionNamesAsync();var collections=await cursor.ToListAsync();
         Assert.Contains("CosmicOwnedFixture",collections);
-        var receipt=Assert.Single(await database.GetCollection<MongoDB.Bson.BsonDocument>("CosmicWriteReceipt")
-            .WithReadConcern(ReadConcern.Majority).Find(FilterDefinition<MongoDB.Bson.BsonDocument>.Empty).ToListAsync());
+        var observedReceipts=await database.GetCollection<BsonDocument>("CosmicWriteReceipt")
+            .WithReadConcern(ReadConcern.Majority).Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+        if(observedReceipts.Count==5)
+        { await ReconcileExpandedSearchFixture(database,client,collections,observedReceipts,workspace);return; }
+        var receipt=Assert.Single(observedReceipts);
         var roots=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Read(receipt["ResultJson"].AsString);
         var graph=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(roots,true,true,0,0);
         Assert.Equal(3,graph.Nodes.Count);
@@ -197,6 +227,53 @@ public sealed class CosmicTypedQueryTests(Xunit.Abstractions.ITestOutputHelper o
             Assert.Equal(0,await database.GetCollection<MongoDB.Bson.BsonDocument>(collection).WithReadConcern(ReadConcern.Majority)
                 .CountDocumentsAsync(FilterDefinition<MongoDB.Bson.BsonDocument>.Empty));
         output.WriteLine("Owned receipt SHA256="+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(MongoDB.Bson.BsonExtensionMethods.ToBson(receipt))));
+        await client.DropDatabaseAsync(name);
+        using var remaining=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await remaining.ToListAsync());
+    }
+
+    private async Task ReconcileExpandedSearchFixture(IMongoDatabase database,MongoClient client,List<string> collections,
+        List<BsonDocument> receipts,string workspace)
+    {
+        const string name="cosmic_typed_query_fixture";Assert.Equal(name,database.DatabaseNamespace.DatabaseName);
+        var rows=await database.GetCollection<BsonDocument>("Holon").WithReadConcern(ReadConcern.Majority)
+            .Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();Assert.Equal(3,rows.Count);
+        var records=rows.Select(row=>MongoDB.Bson.Serialization.BsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>(row))
+            .Select(row=>NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers.DataHelper.ConvertMongoEntityToOASISHolon(row,false)).ToArray();
+        var parent=Assert.Single(records.Where(row=>row.Name=="query parent"));
+        var root=Assert.Single(records.Where(row=>row.Name=="scalar-only owner"));
+        var child=Assert.Single(records.Where(row=>row.Name=="search independently updated child"));
+        Assert.Equal(1,parent.Version);Assert.Equal(4,root.Version);Assert.Equal(3,child.Version);
+        Assert.Equal(parent.Id,root.ParentHolonId);Assert.Equal(root.Id,child.ParentHolonId);
+        Assert.Null(Assert.IsAssignableFrom<Holon>(root).ChildRoleManifestJson);Assert.Equal(HolonType.Default,child.HolonType);
+        var expected=new HashSet<(Guid,int)> {(parent.Id,1),(root.Id,1),(root.Id,2),(root.Id,3),(root.Id,4),(child.Id,1),(child.Id,2),(child.Id,3)};
+        var acknowledged=new Dictionary<(Guid,int),IHolon>();
+        foreach(var receipt in receipts)
+        {
+            Assert.NotEqual(Guid.Empty,Guid.Parse(receipt["_id"].AsString));
+            Assert.Equal(64,receipt["Fingerprint"].AsString.Length);
+            var roots=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Read(receipt["ResultJson"].AsString);
+            var graph=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(roots,true,true,0,0);
+            foreach(var node in graph.Nodes)Assert.True(acknowledged.TryAdd((node.Snapshot.Id,node.Snapshot.Version),node.Snapshot));
+        }
+        Assert.True(expected.SetEquals(acknowledged.Keys));
+        foreach(var current in records)
+        {
+            Assert.NotEqual(Guid.Empty,current.Id);
+            Assert.Equal(current.VersionId,acknowledged[(current.Id,current.Version)].VersionId);
+            for(var version=2;version<=current.Version;version++)
+                Assert.Equal(acknowledged[(current.Id,version-1)].VersionId,acknowledged[(current.Id,version)].PreviousVersionId);
+        }
+        var rootDocument=Assert.Single(rows.Where(row=>Guid.Parse(row["HolonId"].AsString)==root.Id));
+        var embedded=Assert.Single(MongoDB.Bson.Serialization.BsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>(rootDocument).Children);
+        Assert.Equal(child.Id,embedded.Id);Assert.Equal("query member edited",embedded.Name);Assert.Equal(2,embedded.Version);
+        foreach(var collection in collections.Where(value=>value!="Holon" && value!="CosmicWriteReceipt"))
+            Assert.Equal(0L,await database.GetCollection<BsonDocument>(collection).WithReadConcern(ReadConcern.Majority).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        var archive=new BsonDocument{{"format",1},{"database",name},{"records",new BsonArray(rows)},{"receipts",new BsonArray(receipts)}}.ToBson();
+        var archivePath=Path.Combine(workspace,"TestResults/CosmicMongoCurrent/mongo-search-selection-failed-fixture.bson");
+        Assert.False(File.Exists(archivePath));await File.WriteAllBytesAsync(archivePath,archive);
+        Assert.Equal(archive,await File.ReadAllBytesAsync(archivePath));
+        var digest=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(archive));
+        output.WriteLine($"Verified expanded search fixture: three records/eight coherent acknowledged revisions/five receipts, child Default excludes Holon filter, embedded child v2 vs independent v3. Full BSON archive SHA256={digest}; no operation replayed.");
         await client.DropDatabaseAsync(name);
         using var remaining=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await remaining.ToListAsync());
     }
