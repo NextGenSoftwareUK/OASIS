@@ -9,13 +9,36 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 [TestClass]
 public class CosmosCurrentReadTests
 {
+    private sealed class ObservedContext:SynchronizationContext
+    {
+        public int Posts;
+        public override void Post(SendOrPostCallback callback,object? state){Interlocked.Increment(ref Posts);ThreadPool.QueueUserWorkItem(_=>callback(state));}
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task AsyncCollectionAndSearchDoNotRequireCallerContext(bool search)
+    {
+        var provider=new AzureCosmosDBOASIS(new Uri("https://localhost:8081"),"unused","owned",new()){IsProviderActivated=true};
+        var gate=new TaskCompletionSource<List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>>(TaskCreationOptions.RunContinuationsAsynchronously);var repository=new Mock<IHolonRepository>();repository.Setup(row=>row.GetListAsync(0)).Returns(gate.Task);
+        typeof(AzureCosmosDBOASIS).GetField("holonRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
+        var context=new ObservedContext();var previous=SynchronizationContext.Current;
+        Task<OASISResult<IEnumerable<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>>>? collection=null;
+        Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults>>? found=null;
+        try{SynchronizationContext.SetSynchronizationContext(context);if(search)found=provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchHolons=true,SearchQuery="oak"}}},loadChildren:false);else collection=provider.LoadAllHolonsAsync(loadChildren:false);}
+        finally{SynchronizationContext.SetSynchronizationContext(previous);}
+        Assert.IsFalse((search?(Task)found!:collection!).IsCompleted);gate.SetResult(new(){new Holon{Id=Guid.NewGuid(),Name="oak",IsActive=true}});
+        if(search){var result=await found!.WaitAsync(TimeSpan.FromSeconds(5));Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(1,result.Result.NumberOfResults);}
+        else{var result=await collection!.WaitAsync(TimeSpan.FromSeconds(5));Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(1,result.Result.Count());}
+        Assert.AreEqual(0,context.Posts,"Library collection awaits must not require a blocked synchronous caller's context.");
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task ParentDepthCountsTheSelectedEdge(bool synchronous)
     {
         var parent=Guid.NewGuid();var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=parent};
         var grandchild=new Holon{Id=Guid.NewGuid(),ParentHolonId=child.Id};
         var repository=new Mock<IHolonRepository>();
-        repository.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>{child,grandchild});
+        repository.Setup(r=>r.GetListAsync(0)).ReturnsAsync(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>{child,grandchild});
         var provider=new Provider(false);
         typeof(AzureCosmosDBOASIS).GetField("holonRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
         var result=synchronous?provider.LoadHolonsForParent(parent.ToString(),maxChildDepth:1,loadChildrenFromProvider:true)
@@ -87,7 +110,7 @@ public class CosmosCurrentReadTests
         var child=new Holon {Id=Guid.NewGuid(),IsActive=true,ParentHolonId=root.Id,HolonType=NextGenSoftware.OASIS.API.Core.Enums.HolonType.InventoryItem};
         var grandchild=new Holon {Id=Guid.NewGuid(),IsActive=true,ParentHolonId=child.Id};
         var repository=new Mock<IHolonRepository>();
-        repository.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {root,child,grandchild});
+        repository.Setup(r=>r.GetListAsync(0)).ReturnsAsync(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {root,child,grandchild});
         repository.Setup(r=>r.GetByIdAsync(root.Id.ToString())).ReturnsAsync(root);
         var provider=new Provider(false);
         typeof(AzureCosmosDBOASIS).GetField("holonRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
@@ -130,14 +153,14 @@ public class CosmosCurrentReadTests
         var avatarId=Guid.NewGuid();root.CreatedByAvatarId=avatarId;
         var avatars=new Mock<IAvatarRepository>();
         var owner=new Avatar {Id=avatarId,IsActive=true,Username="export-owner",Email="owner@example.invalid"};
-        avatars.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {owner});
+        avatars.Setup(r=>r.GetListAsync(0)).ReturnsAsync(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {owner});
         typeof(AzureCosmosDBOASIS).GetField("avatarRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,avatars.Object);
         var exported=await provider.ExportAllDataForAvatarByUsernameAsync("EXPORT-OWNER");
         Assert.IsFalse(exported.IsError,exported.Message);Assert.IsTrue(exported.IsLoaded);
         Assert.AreEqual(root.Id,exported.Result.Single().Id);Assert.AreEqual(child.Id,exported.Result.Single().Children.Single().Id);
         Assert.AreEqual(root.Id,provider.ExportAllDataForAvatarByEmail("OWNER@EXAMPLE.INVALID").Result.Single().Id);
         Assert.AreEqual(3,provider.ExportAll().Result.Count());
-        avatars.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {owner,new Avatar {Id=Guid.NewGuid(),IsActive=true,Username=owner.Username}});
+        avatars.Setup(r=>r.GetListAsync(0)).ReturnsAsync(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {owner,new Avatar {Id=Guid.NewGuid(),IsActive=true,Username=owner.Username}});
         Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.ExportAllDataForAvatarByUsernameAsync(owner.Username)).ErrorCode);
         root.MetaData["Latitude"]="-33.0009";root.MetaData["Longitude"]="151";
         var nearby=provider.GetHolonsNearMe(-33000000,151000000,200,NextGenSoftware.OASIS.API.Core.Enums.HolonType.All);
@@ -164,11 +187,11 @@ public class CosmosCurrentReadTests
     public async Task CollectionsFilterInactiveAndReturnSuccessfulEmptyResult()
     {
         var provider=new Provider(false);var repository=new Mock<IAvatarRepository>();
-        repository.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {new Avatar {IsActive=false}});
+        repository.Setup(r=>r.GetListAsync(0)).ReturnsAsync(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {new Avatar {IsActive=false}});
         typeof(AzureCosmosDBOASIS).GetField("avatarRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
         var empty=await provider.LoadAllAvatarsAsync();
         Assert.IsFalse(empty.IsError);Assert.IsTrue(empty.IsLoaded);Assert.AreEqual(0,empty.Result.Count());
-        var cause=new IOException("owned collection failure");repository.Setup(r=>r.GetList()).Throws(cause);
+        var cause=new IOException("owned collection failure");repository.Setup(r=>r.GetListAsync(0)).ThrowsAsync(cause);
         Assert.AreSame(cause,provider.LoadAllAvatars().Exception);
     }
 

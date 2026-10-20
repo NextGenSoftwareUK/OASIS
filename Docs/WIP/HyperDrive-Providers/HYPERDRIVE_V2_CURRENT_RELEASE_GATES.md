@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Cosmos DB search ownership and genuine async collections - 2026-10-20
+
+Search12controlledredbefore fixed with existing canonical request projection. Native initial53pass/6incomplete-task guard failures correctly NOT accepted as race proof; identified synchronous repository/SDK paging beneath async collection methods. New real async repository/client collection members await native pages/body, sync wrappers reuse same owner; read continuations do not require caller context. Public repository/client implementers must add async members/rebuild (no default sync fallback); REST signatures/schema unchanged. In-repo adapters/Moq expectations updated without removing original assertions. Two build-adapter omissions and two disposal-verification harness mistakes preserved separately, not native success.
+
+Final243/243unitpass1s, including two gated multi-page/disposal and two context cases. Full native59/59pass1m31s/zero skipped/runner4351terminal0, six new actual SDK schedules retain original timing guard and verify scope/exact body+ETag/conditional cleanup/absence. Earlier post-async59green separately retained; final source rerun includes all53baseline cases. Both copied Core1EA8/SharedED25 identities and complete report hashes in COSMOSDB_RECORD_HISTORY.md; no deployed-parity inference. Finalpending0/containerEXITED/reservedlisteners0, same runtime/data/lease/ports/SDK/cache, no install/download/new environment/reset. Free C68,360,495,104bytes,123GBtarget unmet/no reclaim claim. No hosted Azure/Atlas/config/spending. Hosted RU/IAM/consistency/retention/interfaces/publicAPI/ALL-provider V2 remainOPEN.
+
 ## Azure Storage custom search ownership - 2026-10-20
 
 Azure's blob search override bypasses the shared base. Twelve controlled sync/async scope/text/parent/metadata/nested-mask cases ALL failed before; `azure-search-snapshot-before.trx` SHA256 `4980C328CB7B22FBA143A9B319D9638DB40458F0B892E646F7B7D87F8579BDFF`. Two-line reuse of Core canonical SearchParams projection+validation before first await now passes94/94controlled672ms/zero skipped, `azure-search-snapshot-current.trx` SHA256 `DEE1F693D52606C345A35779D8B6ED0503E2BC6EBDDD291CA13D8989433F6BDD`. No duplicate codec/search backend or SDK installation.

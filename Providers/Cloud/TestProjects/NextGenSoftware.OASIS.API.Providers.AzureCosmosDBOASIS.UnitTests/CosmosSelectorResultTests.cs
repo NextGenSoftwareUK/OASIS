@@ -15,7 +15,7 @@ public class CosmosSelectorResultTests
         var owner=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=Guid.NewGuid(),IsActive=true,Username="owner",Email="owner@example.invalid"};
         var repository=new Mock<IAvatarRepository>();
         var rows=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {owner,new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=Guid.NewGuid(),IsActive=false,Username=owner.Username,Email=owner.Email}};
-        repository.Setup(r=>r.GetList()).Returns(rows);
+        repository.Setup(r=>r.GetListAsync(0)).ReturnsAsync(rows);
         typeof(AzureCosmosDBOASIS).GetField("avatarRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
         Assert.AreEqual(owner.Id,(await provider.LoadAvatarByUsernameAsync("OWNER")).Result.Id);
         Assert.IsTrue(provider.LoadAvatarByEmail("OWNER@EXAMPLE.INVALID").IsLoaded);
@@ -32,12 +32,12 @@ public class CosmosSelectorResultTests
         var avatar=new Mock<IAvatarRepository>();var detail=new Mock<IAvatarDetailRepository>();
         var cause=new StorageIdentityAmbiguousException();
         provider.IsProviderActivated=true;
-        avatar.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>());
-        detail.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>());
+        avatar.Setup(r=>r.GetListAsync(0)).ReturnsAsync(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>());
+        detail.Setup(r=>r.GetListAsync(0)).ReturnsAsync(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>());
         if(ambiguous)
         {
-            avatar.Setup(r=>r.GetList()).Throws(cause);
-            detail.Setup(r=>r.GetList()).Throws(cause);
+            avatar.Setup(r=>r.GetListAsync(0)).ThrowsAsync(cause);
+            detail.Setup(r=>r.GetListAsync(0)).ThrowsAsync(cause);
         }
         typeof(AzureCosmosDBOASIS).GetField("avatarRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,avatar.Object);
         typeof(AzureCosmosDBOASIS).GetField("avatarDetailRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,detail.Object);
