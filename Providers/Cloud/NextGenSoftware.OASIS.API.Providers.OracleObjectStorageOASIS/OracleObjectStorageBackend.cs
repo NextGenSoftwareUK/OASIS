@@ -78,7 +78,7 @@ public sealed class OracleObjectStorageBackend : IKeyValueBackend
         try {
             var response=await _client.PutObject(request,Once(),token);
             response.httpResponseMessage?.Dispose();
-        }catch(OciException cause)when(cause.StatusCode==HttpStatusCode.PreconditionFailed){
+        }catch(OciException cause)when(cause.StatusCode==HttpStatusCode.PreconditionFailed||(etag!=null&&IsMissingObject(cause))){
             throw PreconditionConflict(cause);
         }catch(OciException cause)when((int)cause.StatusCode>=400&&(int)cause.StatusCode<500&&cause.StatusCode!=HttpStatusCode.RequestTimeout){throw;}
         catch(Exception cause){throw new OracleObjectMutationReconciliationException(_objectPrefix+key,cause);}

@@ -168,6 +168,23 @@ public class OracleObjectSdkTests
         });
     }
 
+    [DataTestMethod][DataRow("ObjectNotFound")][DataRow("NotAuthorizedOrNotFound")]
+    public async Task ConditionalReplacementDistinguishesDisappearedObjectFromHiddenBucket(string code)
+    {
+        await Exchange(async backend=>{
+            Task Replace()=>backend.ReplaceUnchangedAsync("oasis/disappeared","owned","observed-etag");
+            if(code=="ObjectNotFound"){
+                var conflict=await Assert.ThrowsExceptionAsync<StorageLifecycleConflictException>(Replace);
+                Assert.IsInstanceOfType<OciException>(conflict.Data["NativeCause"]);
+                Assert.IsFalse(NativeMutationReconciliation.IsRequired(conflict));
+            }else await Assert.ThrowsExceptionAsync<OciException>(Replace);
+        },async context=>{
+            Assert.AreEqual("PUT",context.Request.HttpMethod);
+            Assert.AreEqual("observed-etag",context.Request.Headers["If-Match"]);
+            await Reply(context,404,"{\"code\":\""+code+"\",\"message\":\"controlled\"}");
+        });
+    }
+
     [TestMethod]
     public async Task PreCancelledRequestsDoNotDispatch()
     {
