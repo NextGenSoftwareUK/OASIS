@@ -14,6 +14,41 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 public class CosmosHistoryWriteTests
 {
     [TestMethod]
+    public async Task PreciseMetadataChangeRejectsConditionalReplacementBeforeDispatch()
+    {
+        var expected=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=1.0000000000000000000000000001m}};
+        var prior=OasisJson.ParseStoredObject(OasisJson.Serialize(expected));
+        prior["MetaData"]["precise"]=1.0000000000000000000000000002m;
+        prior["id"]=expected.Id.ToString();prior["_etag"]="precise-observed";
+        var container=new Mock<Container>(MockBehavior.Strict);
+        container.Setup(c=>c.ReadItemStreamAsync(expected.Id.ToString(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResponseMessage(HttpStatusCode.OK){Content=Bytes(prior.ToString())});
+        await Assert.ThrowsExceptionAsync<NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException>(()=>
+            new CosmosDbClient(container.Object).ReplaceUnchangedDocumentAsync(expected.Id.ToString(),expected,expected,new PartitionKey(expected.Id.ToString())));
+        container.Verify(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()),Times.Never());
+    }
+
+    [TestMethod]
+    public async Task PreciseMetadataAcknowledgementMismatchRequiresReconciliation()
+    {
+        var source=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=1.0000000000000000000000000001m}};
+        var container=new Mock<Container>(MockBehavior.Strict);
+        container.Setup(c=>c.ReadContainerAsync(It.IsAny<ContainerRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(Mock.Of<ContainerResponse>());
+        container.Setup(c=>c.ReadItemStreamAsync(source.Id.ToString(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResponseMessage(HttpStatusCode.NotFound));
+        container.Setup(c=>c.CreateItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
+            .Returns(async(Stream stream,PartitionKey _,ItemRequestOptions __,CancellationToken ___)=>{
+                using var reader=new StreamReader(stream,Encoding.UTF8,false,1024,true);
+                var acknowledged=OasisJson.ParseStoredObject(await reader.ReadToEndAsync());
+                acknowledged["MetaData"]["precise"]=1.0000000000000000000000000002m;
+                return new ResponseMessage(HttpStatusCode.Created){Content=Bytes(acknowledged.ToString())};
+            });
+        await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(()=>
+            new CosmosDbClient(container.Object).UpsertDocumentAsync(source,new PartitionKey(source.Id.ToString())));
+        Assert.AreEqual(1.0000000000000000000000000001m,source.MetaData["precise"]);
+    }
+
+    [TestMethod]
     public async Task PlannedSdkWriteUsesCapturedMembershipWithSameObservedEtagAndHistory()
     {
         var root=new Holon{Id=Guid.NewGuid(),Name="captured root"};
@@ -101,7 +136,7 @@ public class CosmosHistoryWriteTests
         var source=new Holon{Id=Guid.NewGuid(),Name="original"};
         var prior=await CosmosEmbeddedHistory.StageAsync(source,null!,Decode);prior["_etag"]="observed";
         var expected=await CosmosEmbeddedHistory.ReadAsync(source.Id,prior,0,Decode);
-        var expectedJson=JObject.Parse(OasisJson.Serialize(expected));var persistedJson=CosmosEmbeddedHistory.CanonicalPayload(prior);
+        var expectedJson=OasisJson.ParseStoredObject(OasisJson.Serialize(expected));var persistedJson=CosmosEmbeddedHistory.CanonicalPayload(prior);
         var differences=expectedJson.Properties().Where(p=>!persistedJson.TryGetValue(p.Name,out var value)||!StoredRecordPayloadEquality.Equivalent(p.Value,value)).Select(p=>p.Name);
         Assert.IsTrue(StoredRecordPayloadEquality.Equivalent(expectedJson,persistedJson),"Roundtrip changed fields: "+string.Join(",",differences));
         var proposed=OasisJson.Project<Holon>(expected);proposed.Name="replacement";
