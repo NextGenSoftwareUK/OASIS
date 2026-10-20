@@ -299,6 +299,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         case ProviderType.AWSOASIS:
                             result.Result = CloudProviderFactory.CreateAws(OASISDNA.OASIS.StorageProviders.AWSOASIS,overrideConnectionString);
                             break;
+                        case ProviderType.SOLIDOASIS:
+                            result.Result = SolidProviderFactory.Create(OASISDNA.OASIS.StorageProviders.SOLIDOASIS,overrideConnectionString);
+                            break;
                         case ProviderType.AzureStorageOASIS:
                             result.Result = CloudProviderFactory.CreateAzureStorage(OASISDNA.OASIS.StorageProviders.AzureStorageOASIS,overrideConnectionString);
                             break;

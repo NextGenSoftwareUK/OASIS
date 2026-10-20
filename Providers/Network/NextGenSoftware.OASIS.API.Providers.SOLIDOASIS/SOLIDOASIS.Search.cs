@@ -18,10 +18,10 @@ public partial class SOLIDOASIS
     {
         var result=new OASISResult<ISearchResults>();SearchParams query;
         try{
-            StoredRecordSearch.Validate(request,version,depth);
+            StoredRecordSearch.Validate(request,version,depth,supportsHistory:true);
             // Own the supported canonical request/masks before the first native read.
             query=StoredRecordJson.Project<SearchParams>(request);
-            StoredRecordSearch.Validate(query,version,depth);
+            StoredRecordSearch.Validate(query,version,depth,supportsHistory:true);
         }catch(Exception error){
             OASISErrorHandling.HandleError(ref result,"Invalid SOLID search request.",error);
             result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";return result;
@@ -41,12 +41,18 @@ public partial class SOLIDOASIS
                 if(loaded.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(loaded);
                 holons=loaded.Result.ToArray();
             }
+            var currentHolons=holons;
+            if(version>0&&(searchHolons||query.ParentId!=Guid.Empty)){
+                var current=await LoadPrivateRecordsAsync<IHolon>(0);
+                if(current.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(current);
+                currentHolons=current.Result.ToArray();
+            }
             var found=new SearchResults();
-            found.SearchResultAvatars.AddRange(avatars.Where(record=>record.DeletedDate==DateTime.MinValue&&StoredRecordSearch.Matches(record,true,query,holons)));
+            found.SearchResultAvatars.AddRange(avatars.Where(record=>record.DeletedDate==DateTime.MinValue&&StoredRecordSearch.Matches(record,true,query,currentHolons)));
             if(searchHolons){
-                var project=HolonGraphProjection.Create(holons,children,recursive,depth,0,true,
+                var project=HolonGraphProjection.Create(currentHolons.Where(record=>record.DeletedDate==DateTime.MinValue),children,recursive,depth,0,true,
                     record=>StoredRecordJson.DeserializeStored<IHolon>(StoredRecordJson.Serialize(record)));
-                found.SearchResultHolons.AddRange(holons.Where(record=>record.DeletedDate==DateTime.MinValue&&StoredRecordSearch.Matches(record,false,query,holons)).Select(project));
+                found.SearchResultHolons.AddRange(holons.Where(record=>record.DeletedDate==DateTime.MinValue&&StoredRecordSearch.Matches(record,false,query,currentHolons)).Select(project));
             }
             found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
             result.Result=found;

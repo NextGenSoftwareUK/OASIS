@@ -6,6 +6,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests;
 
 public class SolidPrivateRecordCodecTests
 {
+    [Fact]
+    public void VersionedEnvelopeCannotRepairItsMissingEmbeddedIdentity()
+    {
+        using var codec=new SolidPrivateRecordCodec(Root,Key());IHolon row=new Holon{Id=Guid.NewGuid(),Version=1};
+        var document=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(row));
+        document[NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.EmbeddedRecordHistory.PropertyName]=new Newtonsoft.Json.Linq.JObject{["schema"]=1,["records"]=new Newtonsoft.Json.Linq.JArray()};
+        var encode=typeof(SolidPrivateRecordCodec).GetMethod("EncodePayload",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.MakeGenericMethod(typeof(IHolon));
+        var rdf=(string)encode.Invoke(codec,new object[]{row.Id,document.ToString()})!;
+        Assert.Throws<System.IO.InvalidDataException>(()=>codec.Decode<IHolon>(rdf,row.Id));
+    }
+    [Theory][InlineData(0)][InlineData(1)][InlineData(2)]
+    public async Task EncryptedSameResourceHistoryReusesCanonicalVersionChain(int kind)
+    {
+        using var codec=new SolidPrivateRecordCodec(Root,Key());
+        IHolonBase source=kind==0?new Avatar{Id=Guid.NewGuid()}:kind==1?new AvatarDetail{Id=Guid.NewGuid()}:new Holon{Id=Guid.NewGuid()};
+        source.Description="first-private-canary";
+        async Task Check<T>(T original) where T:class,IHolonBase
+        {
+            var first=await codec.StageVersionAsync(original);Assert.Equal(0,original.Version);Assert.Equal(1,first.Record.Version);Assert.DoesNotContain(original.Description,first.Turtle);
+            original.Description="second-private-canary";var second=await codec.StageVersionAsync(original,first.Turtle);
+            Assert.Equal(2,second.Record.Version);Assert.Equal(first.Record.VersionId,second.Record.PreviousVersionId);Assert.NotEqual(first.Record.VersionId,second.Record.VersionId);
+            Assert.Equal("first-private-canary",(await codec.DecodeVersionAsync<T>(second.Turtle,original.Id,1)).Description);
+            Assert.Equal("second-private-canary",codec.Decode<T>(second.Turtle,original.Id).Description);
+            Assert.Null(await codec.DecodeVersionAsync<T>(second.Turtle,original.Id,99));Assert.Equal(0,original.Version);
+            Assert.DoesNotContain("first-private-canary",second.Turtle);Assert.DoesNotContain("second-private-canary",second.Turtle);
+            using var reopened=new SolidPrivateRecordCodec(Root,Key());Assert.Equal(first.Record.VersionId,(await reopened.DecodeVersionAsync<T>(second.Turtle,original.Id,1)).VersionId);
+        }
+        if(source is IAvatar avatar)await Check(avatar);else if(source is IAvatarDetail detail)await Check(detail);else await Check((IHolon)source);
+    }
     private static readonly Uri Root=new("https://pod.invalid/private/");
     private static byte[] Key()=>Enumerable.Range(1,32).Select(x=>(byte)x).ToArray();
     [Fact]

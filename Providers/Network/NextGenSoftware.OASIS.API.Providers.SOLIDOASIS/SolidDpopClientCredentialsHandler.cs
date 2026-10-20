@@ -20,7 +20,7 @@ public sealed class SolidDpopClientCredentialsHandler : DelegatingHandler
     private readonly Uri _podRoot,_tokenEndpoint;
     private readonly string _clientId,_clientSecret;
     private readonly HttpClient _tokens;
-    private readonly ECDsa _key=ECDsa.Create(ECCurve.NamedCurves.nistP256);
+    private readonly ECDsa _key;
     private readonly SemaphoreSlim _tokenGate=new(1,1);
     private readonly object _signingGate=new();
     private string _accessToken;
@@ -40,6 +40,8 @@ public sealed class SolidDpopClientCredentialsHandler : DelegatingHandler
         if(string.IsNullOrWhiteSpace(clientId)||string.IsNullOrWhiteSpace(clientSecret))throw new ArgumentException("Explicit Solid client credentials required.");
         _tokenEndpoint=tokenEndpoint;_clientId=clientId;_clientSecret=clientSecret;
         _tokens=new HttpClient(WithoutRedirects(tokenTransport??new HttpClientHandler())){Timeout=TimeSpan.FromSeconds(30)};
+        // Do not allocate a native signing key for configuration rejected by this constructor.
+        _key=ECDsa.Create(ECCurve.NamedCurves.nistP256);
     }
 
     private static HttpMessageHandler WithoutRedirects(HttpMessageHandler handler)

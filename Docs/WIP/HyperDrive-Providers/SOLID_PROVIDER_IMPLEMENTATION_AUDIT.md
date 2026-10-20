@@ -1,6 +1,146 @@
 # SOLID provider implementation audit
 
+## Query acknowledgement and native competing writer — 2026-10-20
+
+Follow-up one-shot cold-start/awaited OIDC-discovery diagnostic was rejected by execution policy BEFORE process creation. No container resumed and no diagnostic test ran. Do not bypass through another shell/API or describe the cold-start problem as fixed. Last known server state remains exited after verified stop; retain approved server/volume/identity and both failed reports for next authorized diagnostic.
+
+Ten sync/async public collection/parent GUID/parent key/single metadata/dictionary metadata regressions all failed: records were correct but IsLoaded remained false. One shared SOLID query-owner acknowledgement now fixes all routes. Full328/328controlledpass, zero skips,1s. Before report `solid-query-loaded-before.trx` SHA256 `A589D100CF9EBA2C0D676676D0B9884F6B833A2D4F366BCDBCF576B6D0539E66`; current `solid-query-loaded-current.trx` SHA256 `FF8FF7182419D5AB305C7566E1F30AE92A950BBD7EEF0F69DE46EAB71DE6F759` in TestResults/SolidCurrent.
+
+Extended existing six native cases WITHOUT another environment/resource identity: synchronous/asynchronous ordinary holon saves capture original native GET/tag; a second real HTTP client replaces the SAME encrypted resource conditionally before provider PUT. Real server rejects provider's stale If-Match with412; no false IsSaved/result/version publication, winner/current version and previous archived payload independently verified. Existing journal covers this original resource through provider hard-delete/404 cleanup. Native parent/metadata success now assert IsLoaded too. Latest same-server six cases all passed, zero skips,1minute; copied consumer Core SHA256 `2E1FB57779B7155022680827A4CFC6E963F33A3BE269940122D4DCA3145B4B68`, Shared `976E6427CC696853A6C7F1E4BBD361CEB1910C1D48118BEE9C92F5F042F00BE6`. These local unpublished-output identities are NOT immutable deployment proof.
+
+Cold-start issue REPRODUCED: after stopping/resuming SAME container, initial authenticated token request again aborted at line41 before Pod dispatch/mutation, whereas other5cases passed. Failure preserved `solid-native-failed-B63EC0538EA5.trx`, SHA256 `B63EC0538EA5C119917C4E92DBB0A9F643019527C790E93035245E07C48F0B53`. Later public OIDC discovery returns expected issuer/token endpoint. Root cause remains OPEN; do not claim transient issue fixed, add production retries or hide failed evidence. Passing warm-server run is scoped functional/concurrency proof, NOT cold-start reliability certification. Latest native report SHA256 `861CA7D9C84256E76C34503BDF0421CEFBBA6749603B962E3C82517C8A1C8957`; original journals absent before stop. No downloads/new identity/reset or public spend.
+
+## Retained native acceptance refresh — 2026-10-20
+
+User explicitly approved resuming the existing server. Verified pinned image `58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a`, loopback127.0.0.1:13000, original volume `oasis-solid-data`, original three DPAPI files present, no pending journals before launch. Resumed SAME container; no creation/download/reset/new identity.
+
+First run5/6pass: private DPoP initial token request suffered host-side connection abort at test line41, BEFORE ACL/data mutation or journal creation. Failure retained as `TestResults/SolidCurrent/solid-native-failed-E4746A756980.trx`, SHA256 `E4746A75698087A1176E7A64E7F980717258DC932655F6399751D23707C5C9BB`. This does not establish a root cause or justify production mutation retries.
+
+After verifying no pending journals, bounded rerun on SAME running server passed6/6, zero skipped,43s. Current report SHA256 `9EDAE300F3687EF5735A4B27242F460D880F94E58BC3C0BEC8652AA4CF57D106`. Real private DPoP/factory history and standalone detail lifecycle assertions prepared below now exercised successfully. All three original pending journals absent after terminal; server independently confirmed `exited`, volume/keys retained. Podman stop escalated from SIGTERM to SIGKILL after its10-second timeout; no test was running then. Free C:70,918,283,264bytes afterward; disk recovery target remains unmet. Full interface/concurrent-writer/adversarial and immutable deployment/V2 certification remain OPEN; controlled318 results are separate evidence, not318 native cases. No provider100% claim.
+
+## Avatar identity-reassignment deletion guard — candidate 2026-10-20
+
+Before SHA256 `CD51F7C51FBF251B7ADA5A612D15624BF548305936C076A54F5D9F378FC8B3A8`; final `94D7097AA277BF4C4DA69DAFA3022BCBC88465E796C781B99E3EA61D09E08BA3`.
+
+Four public username/email soft/hard schedules reproduced successful mutation of a newly reassigned avatar after unique identity lookup. The GUID lifecycle owner now accepts the original selection predicate and checks it against the exact tagged canonical avatar observation BEFORE detail preflight or any lifecycle dispatch. Conditional native tag continues guarding changes after observation. No extra request, retries or false multi-resource atomicity. GUID-addressed delete behavior unchanged. Controlled transport also now returns proper404 for other resource URIs instead of returning another kind's RDF.
+
+Final318/318controlledpass/zero skips/1s. Reports `TestResults/SolidCurrent/solid-avatar-identity-before.trx` and `solid-avatar-identity-current.trx`. All four cases now explicit StorageLifecycleConflictException with zero lifecycle PUT/DELETE and active reassigned record preserved. Native identity races/DPoP/history/full interface and immutable release still open; no server/download/new environment/commit/deploy.
+
+## Profile identity tombstone visibility — candidate 2026-10-20
+
+Eight public sync/async username/email Avatar/Detail cases reproduced a deleted owner incorrectly making a live matching identity ambiguous. Profile lookup now filters selected-version tombstones before existing shared unique selector; null records remain visible to shared integrity validation, not silently dropped. Direct point/collection data inspection unchanged. Lifecycle identity resolution explicitly includes tombstones so hard deletion can remove archived resources; multiple tombstone/live identity owners remain ambiguous and refuse deletion. No new query/native endpoint or extra requests.
+
+Final314/314controlledpass/zero skips/1s. Before `TestResults/SolidCurrent/solid-profile-tombstones-before.trx` SHA256 `63E2B012DA73B5D5EAE6A40E4736B31FD4FA5B90BA312378613ABA1F1FF31A97`; final `solid-profile-tombstones-current.trx` SHA256 `E5220DB116F24249E078B8EF6BA3ECC04D6E68C3C1C78B977A36B3FD64A5773B`. Native duplicate/profile/lifecycle acceptance still open; no server/new environment/download/publication. Historical profile selection uses tombstone state of the requested version and is not credential authentication.
+
+## Nearby tombstone visibility — candidate 2026-10-20
+
+Before SHA256 `F0644C6E2EC923642F433EE66B558B01EBE73C066444769403433B9BC8993841`; final `5C4FFB7E0CC0594584E895E8C764EB80DDE75E599FA81A4427ACEF6727922208`.
+
+Two controlled encrypted HTTP regressions reproduced deleted avatar/holon at query center being returned by IOASISNETProvider proximity APIs. Nearby owners now reject DeletedDate!=MinValue before coordinate/distance matching, matching search result visibility; direct point/collection tombstone inspection policy is deliberately unchanged. Same native collection/read/coordinate helpers, no extra request or parallel persistence logic. Final306/306controlledpass/zero skips/1s. Reports `TestResults/SolidCurrent/solid-nearby-tombstone-before.trx` and `solid-nearby-tombstone-current.trx`; no native proximity proof or full provider/V2 completion claimed. No server/download/new environment/publication.
+
+## Retained native consumer prepared — NOT RUN, 2026-10-20
+
+Existing six-case RetainedSolidPodTests now includes private real-DPoP factory history v1/v2/v3 with history disabled before third save, and sync/async existing record fixture verifies standalone detail email-soft/username-hard lifecycle plus exact avatar RDF unchanged and archived detail readback. Reuses same retained identity/DPAPI key/resource journal/conditional cleanup; no extra test identities or count change. Paired avatar hard delete then exercises permitted missing-detail state. Integration consumer builds0errors17warnings with no restore. No native tests executed, no server started, no new runtime/download; explicit resume request still pending. These prepared assertions are not evidence of passing native history/lifecycle acceptance.
+
+## Standalone detail identity races / failure envelopes — controlled, 2026-10-20
+
+Final report SHA256 `221402EB9E786B708188D459B417C15A35840F70358A11DCAF29D38251587419`.
+
+Four additional encrypted HTTP schedules pass: username/email reassignment after unique lookup but before canonical lifecycle observation returns StorageLifecycleConflictException, zero lifecycle PUT/DELETE and preserves changed owner's active record; soft-delete412 preserves original RDF; committed soft-delete lost response returns reconciliation-required without false Result/IsDeleted, while exact resource retains tombstone+prior archive. Caller detail savedVersion1 remains unchanged in failure cases; no replay. No production changes needed for these schedules. First test compilation used wrong exception namespace; corrected to existing Core.Helpers type before any tests ran.
+
+Final304/304controlledpass/zero skips/890ms, `TestResults/SolidCurrent/solid-detail-races-current.trx`. This is NOT native concurrent-writer/DPoP/atomic multi-resource certification. Native server resume request still pending; no service/new environment/download/commit/deploy. Duplicate/corrupt identity, hard-delete uncertain return and whole provider/native/release gates remain open.
+
+## Standalone AvatarDetail lifecycle — candidate 2026-10-20
+
+Before SHA256 `B07CBF695327CF4C909EA9DA964A90E895DE354620CCD91A55C1527BD174C6B5`; final `4E293655FB9336119EFFB38C8F7C0B9B89855DB5A2ED5E8E6DEC06499B47EF03`.
+
+Six public interface members now owned by SOLID rather than inherited defaults: GUID/username/email x sync/async support soft/hard detail deletion. Shared unique identity lookup reused; original selected identity rechecked against exact native observed record before mutation. Strong ETag required. Soft deletion passes original payload/tag through existing conditional encrypted save/history owner; repeated GUID soft deletion is no-op preserving RDF/version. Hard deletion removes entire encrypted resource/archive using existing conditional-delete/independent-absence owner. Avatar resource is never requested. No cross-resource atomicity/retry/rollback claim.
+
+Twelve new controlled encrypted HTTP interface-dispatched cases ALL failed before (hard-delete refusal or repeated soft-write); final300/300pass/zero skips/916ms. Each selector/sync/soft-hard combination verifies native tag,123Karma/321XP retention, old history, no avatar path and idempotence or verified hard absence. Reports `TestResults/SolidCurrent/solid-detail-lifecycle-before.trx` and `solid-detail-lifecycle-current.trx`. Native DPoP/identity-race/duplicate/corruption/lost-ack/lifecycle acceptance and immutable publication remain open; no server/new runtime/download/publication.
+
+## History failure/readback completeness — controlled, 2026-10-20
+
+Final report SHA256 `330813DFD8B883897F0E49555508C4329C89CD1F2244C4511F1967E318C2C4E0`.
+
+Three public SaveHolon schedules through encrypted controlled HTTP resource:412before write retains exact original RDF; commit followed by thrown lost return retains real v2+v1 archive but returns reconciliation-required (WriteAcknowledged=false); successful PUT followed by readback of matching current fields WITHOUT archive is rejected as acknowledged reconciliation (WriteAcknowledged=true). All retain callerVersion1/VersionId/original intent, IsSaved=false/null result, exactly two total PUTs including seed and no replay. These validate current implementation; no pre-fix failure run is claimed.
+
+Full288/288 controlledpass/zero skips/631ms, `TestResults/SolidCurrent/solid-history-failure-current.trx`. This does NOT prove native server failure injection, concurrent DPoP or atomic multi-resource graphs; native/history/lifecycle/size/complete-interface gates remain open. No source production change needed in this test batch; no native runtime/download/service/publication.
+
+## Credential historical-authority matrix — controlled, 2026-10-20
+
+Final report SHA256 `2D8DBEDE4870D25CD87E0098DBCED03F9AE4A233D6D9F791506D5148CCF193C1`.
+
+Thirty interface-dispatched cases cover verification/reset/refresh/public-wallet/private-wallet selectors x sync/async x versions-1/1/intMax. All refuse before ANY HTTP call through current Core default guard. Initial test run255pass/30fail expected NotSupportedException, whereas existing InvalidAvatarSelector deliberately uses ArgumentOutOfRangeException for version!=0; corrected exact expected type, no production guard relaxation. Two additional encrypted HTTP rotation schedules (sync/async) prove all five old selectors stop matching and current selectors resolve same avatar after version2 save, while profile version1 retains old verification token as data.
+
+Final285/285 controlledpass/zero skips/424ms, `TestResults/SolidCurrent/solid-history-credentials-final.trx`. This is authority-selection coverage, NOT token expiration/revocation/signature validation or native DPoP proof. Depends on currently built latest-only Core; immutable dependency publication remains open. No server/install/download/new environment or source commit/deploy. Native duplicate identity/credential rotation and other native full-interface/history gates remain open.
+
+## Historical search / independent descendants — candidate 2026-10-20
+
+Six encrypted-resource HTTP fixtures cover point/parent/search roots version1 vs current root2 and child3, with/without currently deleted child. Four failed before (search history refusal and deleted descendants); two independently versioned point/parent nondeleted cases already passed. Search now admits historical requests through shared validator, selects archived roots against current independent ancestry/child pool; point/parent/collection child pools exclude current tombstones before projection. Original root fields/parent remain historical; this is NOT a coherent point-in-time graph snapshot. Explicit tombstone root-read policy unchanged.
+
+Full253/253 controlledpass/zero skips/481ms. Before `TestResults/SolidCurrent/solid-history-graph-before.trx` SHA256 `AA27E349BC0361C6DD6D0FD49AB51D1A456212FB71BC6F95BB7334037288E6C1`; final `solid-history-graph-current.trx` SHA256 `C7022ACA957DBB8EE5A1A52841FD5082907B10BC77D5931C16EEBDBF0B8F0387`. No native server/new environment/download. Expanded credential/wallet/ambiguity/size/uncertainty/lifecycle/history-integrity/native acceptance and immutable release remain OPEN. Earlier search-history-pending statements superseded for this tested scope only; no full-provider/V2 completion claim.
+
+## DNA/factory history configuration — candidate 2026-10-20
+
+Final report SHA256 `ADB623D719839C4735B9E4AB8595CD1C66B961E0F5B8171E037933DDC081E524`.
+
+SolidOASISProviderSettings now exposes IsVersionControlEnabled defaultfalse; production SolidProviderFactory captures it into the provider at construction. Two enabled/disabled JSON roundtrip/factory tests prove correct value, no activation/network and no later settings-object mutation changing provider behavior. Initial build caught an incorrect assumption that ProviderSettingsBase already owned the property: it only has ConnectionString; corrected by adding SOLID-specific property like other provider settings, not changing the common base. Both DNA targets built successfully (existing warnings), full SOLID247/247pass/zero skips/422ms, `TestResults/SolidCurrent/solid-history-factory-current.trx`. No restore/install/service/download. Historical search, expanded credential/graph/uncertainty/native acceptance and immutable publication remain open; this supersedes factory-pending statements below only.
+
+## Historical point/collection read routing — candidate 2026-10-20
+
+Report SHA256 `5BBBB2F791C5999C4DCF6B214105AC43E9F5C78B5264AA7C7C42C7BFE62C62F4`; copied Core `C39D7C54FC63B0ACE85F0EA871CA5DCC81B25B74F026DDE3E4BBAF25C3705AB9`.
+
+Ordinary point reads select requested version from the SAME fetched encrypted resource; unknown positive version returns RecordNotFound. Collections select each member's version and omit members lacking that version (not a whole-collection failure); negative version refused. Point/collection loaded flags now set. Provider-linked query descendants use current independent pool for historical roots; single root already uses current pool. Token credential helpers remain latest-only in current Core; new public verification-token version1 assertion proves rejection before any HTTP request. Clean published Core dependency is still a release gate, not inferred from dirty builds.
+
+Extended public Avatar/Detail/Holon save fixture now exercises GUID/provider-key historical points and historical collections plus absent point/collection version. Full245/245 controlledpass, zero skips,470ms, `TestResults/SolidCurrent/solid-history-read-current.trx`. First build stopped missing concurrently rebuilt Core ref (no stale test); subsequent test compilation corrected wrong Avatar string overload to actual LoadAvatarByProviderKey. Search historical support, complete credential/wallet matrix, graph history native coverage and DNA/factory binding still OPEN. No service/download/new environment/native proof/commit/deploy. Earlier blanket historical API-refusal statements are superseded only for wired point/collection/query paths.
+
+## Ordinary history-save routing — candidate 2026-10-20
+
+Controlled report SHA256 `50DD102CFA1B787FFEA653DB66982F7F9F2CDA8A144D1BAC7004645D562B5FCA`.
+
+SavePrivateRecordAsync now captures IsVersionControlEnabled before I/O; ordinary GUID saves retain observed encrypted payload+strong ETag from SAME GET. Paired lifecycle saves pass their original payload/tag without extra GET. EmbeddedRecordHistory staging occurs when enabled OR an archive already exists, preserving archives if disabled later; whole decrypted payload (including archive) must match readback before caller identity/version stamps publish. Graph originals receive acknowledged version stamps too. Lifecycle-provided observation cannot silently be replaced by a newer ETag. No new storage algorithm, request retry or pretend multi-resource transaction.
+
+Three new controlled encrypted HTTP resource tests cover Avatar/Detail/Holon public saves v1→v2→v3, original-tag replacement and archive preservation when disabled, with exact prior descriptions still readable via codec. Full245/245pass/zero skips/378ms, `TestResults/SolidCurrent/solid-history-save-current.trx`. Initial build revealed SOLID had no version-control setting; added public IsVersionControlEnabled defaultfalse, with DNA/factory wiring still OPEN. Historical public read/collection routing and latest-only credential admission remain OPEN and explicit nonzero API reads still refuse; native DPoP/race/size/full-interface/release gates also OPEN. No new runtime/download/service. Earlier codec-only status below is superseded only for ordinary save routing, not full history support.
+
+## Encrypted same-resource history codec — foundation, 2026-10-20
+
+Final report SHA256 `93FAB37E67499B4029967B404DA31D27CC86D2BFD051651836787A4D7C1A65C1`.
+
+SolidPrivateRecordCodec StageVersionAsync/DecodeVersionAsync reuse existing EmbeddedRecordHistory and StoredRecordVersions, inside the existing resource-bound AES-GCM encrypted RDF payload. No public archive objects, duplicate version algorithm, trimming, HTTP calls or caller stamp publication. Existing nonversioned canonical payload reads remain supported; versioned missing embedded identity is rejected rather than repaired. Three avatar/detail/holon tests verify version chains, encrypted historical descriptions, caller unchanged, absent requested version and reopened key; one malformed embedded identity test checks refusal. Initial239pass/2fail came from test using computed Avatar/Detail Name as a canary (empty/whitespace), not history behavior; corrected test uses canonical Description. Reports retained.
+
+Final242/242 controlled tests pass, zero skips,530ms; `TestResults/SolidCurrent/solid-codec-history-integrity-final.trx`. This is codec-only progress: ordinary SOLID save/read/collection APIs STILL need version/history routing, conditional whole-payload readback, retained archive preservation with history disabled, latest-only credential selectors, roots-only historical graph hydration, lifecycle and native DPoP/size/race acceptance. Existing API version refusal remains until wired. No native server/download/install/new environment or release claim.
+
+## Parent selected-edge projection — candidate 2026-10-20
+
+Four controlled encrypted-RDF HTTP tests reproduced parent maxDepth1 returning grandchildren (GUIDasync/string-sync x recursive true/false). Reused existing HolonGraphProjection rootsAreChildren at both parent owners; ordinary all/metadata projection unchanged. Full238/238 controlled tests pass, zero skips,364ms. `TestResults/SolidCurrent/solid-parent-depth-before.trx` SHA256 `AA492B3ABEF30145045258F36F66CEB72C9C5E126895D43E6545475B9C5E4B39`; final `solid-parent-depth-current.trx` SHA256 `7E8E5E97DC85BB3CDC43DB7A596D8E3C38028988C2CA960CD2A780D8EB181B5A`. No native server resumed or download/install/new environment. New explicit retained-server resume request pending after earlier policy denial; no bypass. Private DPoP/conditional-native acceptance, record history (explicit versions still refused), full-interface/API/V2/publication remain open. Earlier unpublished save/graph/publication source is not swept into a passing deployment claim.
+
 2026-10-18. Incomplete; no full-provider release certification.
+
+## Observation-time caller edits stop before PUT — 2026-10-19
+
+Added existing publication snapshot validation after preflight/encoding but BEFORE entering mutation/reconciliation boundary. Caller edits during native observation now return local InvalidOperationException with ZERO PUTs, not an acknowledged stale write followed by reconciliation. Post-write edits still use acknowledged reconciliation; classifications reflect actual dispatch timing, no retry/fallback. Two genuine red-before profile/detail cases previously reached mutation and reconciliation; before TRX `solid-preflight-publication-before.trx` SHA256 `B69460C28B76A4617C0E1CF41D5CDFC22EC25A4D137D61C8A2885960A7690367`. Final **234/234 units passed**,zero skips,386ms, current TRX SHA256 `9684011BD58A603D7BD4FFA8345E2783D166E5879461466642F310E0ECE8D1C3`. Tests assert no write, exact original ciphertext/local edit retained. Cached builds0errors2warnings each. This remains detection at observation points, not atomic locking against unsynchronized setters. No service/download/key changes; native DPoP/conditional-write acceptance still pending, source unpublished.
+
+## Graph original-caller publication fenced — 2026-10-19
+
+Captured each original selected graph node through existing shared snapshot owner BEFORE any I/O. Validate again before its native save and after acknowledged canonical readback/before original ID/parent/provider-key publication. Later node caller edits cannot cause stale planned writes; post-commit root edits cannot be overwritten by save metadata. Existing KeyValuePartialMutationException retains acknowledged exact URIs and prevents blind replay; no pretend multi-record transaction or rollback. Successful graph SavedCount now reports acknowledged node count.
+
+Two genuine regressions FAILED before fix: controlled root readback gate allowed root or future-child caller edits, yet operation incorrectly returned success. Before report `solid-graph-publication-before.trx` SHA256 `B52DE058A4067774DCAD05408FDD0A88716F3BE3B325775DABEEF9AA2A2DBF38`. Final full **232/232 SOLID units passed**,zero skips,350ms; current TRX SHA256 `64B5C3EC3F6ACEEA35C70818152DC8107D61FB1D76B02533F0FF5F69F57324B5`. Checks prove local edit intact, one acknowledged URI/one PUT, no child write/publication, and root metadata withheld or already-acknowledged publication retained according to schedule. Existing graph selection/depth/cycle/later failure cases remain green. Cached producer0errors2warnings/consumer0errors8warnings. Canonical snapshots exclude navigation: this does not claim detection of arbitrary topology edits or an atomic lock against unsynchronized setters. Native graph concurrency/conditional DPoP acceptance remains OPEN; source uncommitted/unpublished, same environment/no services/downloads/key mutation.
+
+## Canonical publication guard and save acknowledgement repaired — 2026-10-19
+
+Profile/detail writer now captures existing StoredRecordPublicationSnapshot before I/O, stages canonical provider key/IsNewHolon=false, verifies full native readback, then validates caller unchanged before publishing ID/provider key/IsSaved/SavedCount1. A caller edit after actual PUT remains intact; result is acknowledged-write reconciliation, never a safe replay/success. Graph snapshots reuse the same writer; graph ORIGINAL-source publication still warrants its own guard (do not infer this protects all graph caller edits).
+
+Integration exposed a shared helper defect: snapshot called Core.Project<T>, which requires a concrete DTO, using interface T. Initial local SOLID run65failed/165passed with interface-instantiation JsonSerializationException BEFORE successful writes; failed current report was subsequently overwritten during local repair, so no retained failed-TRX hash claimed. Fixed the SHARED snapshot owner with explicit existing interface->canonical DTO projection (IAvatar/Avatar, IAvatarDetail/AvatarDetail, IHolon/Holon), retaining concrete generic behavior. No permissive binder, second codec or failure fallback. New shared check covers all3 interface types and caller-edit detection.
+
+Final **230/230 SOLID units passed**,376ms, current TRX SHA256 `476A295A1B10C72E84B79B9C37C82F4086DB7859208A8AC5ECA219816CC18F2C`; full **657/657Shared passed**,2seconds, `TestResults/SolidCurrent/shared-publication-interface-current.trx` SHA256 `B9F1AE4D1A17014EBAA043CC65DBC3C98581A2E14A53BD21E1F56016A176F280`,zero skips. Includes peer uncommitted hosting tests; not immutable publication proof. Cached producer/consumer builds0errors2warnings. Two new profile/detail controlled cases prove caller edit survives actual simulated write/readback, no provider metadata publication, one PUT and acknowledged reconciliation; success cases assert IsSaved/provider key. Native DPoP/conditional wire-concurrency gates remain OPEN, all these changes uncommitted/unpublished. Same environment/no runtime/download/key changes.
+
+## Ordinary private saves now condition on native observation — 2026-10-19, native gate OPEN
+
+Existing SavePrivateRecordAsync is the single save owner for avatar/detail/holon. When GUID is supplied without an explicit lifecycle ETag, it now reads the canonical encrypted record and requires a strong native ETag before replacement; exact404 selects If-None-Match:* creation. New generated IDs already use create-only. Existing lifecycle-provided expected ETags remain ORIGINAL observations, not reread/replaced. Missing/weak tag or non404 read/decode failure prevents PUT; a native412 remains definite rejection, not reconciliation-required uncertainty. No retries, fallback write or second codec/backend.
+
+Eleven new controlled cases across all three kinds prove explicit-ID404create, observed replacement and412race refusal, plus missing/weak ETag refusal with ZERO PUTs. Original ciphertext remains unchanged on refusal; acknowledged write still requires existing complete canonical readback before result publication. Full **228/228 controlled passed**,zero skips,240ms; `TestResults/SolidCurrent/solid-conditional-save-current.trx` SHA256 `0644994800CCA550892EA97C8FD5562E9B690FE178AB88FC4D81F4DD3282F80F`. Existing217cases passed immediately after source edit, then228after added coverage; no red-before regression claim. Cached provider0errors2warnings/consumer0errors8warnings.
+
+Limitations: closes writer changes BETWEEN native observation and PUT, not stale caller edits made BEFORE observation (no caller-held revision contract yet). No version/history implementation, cross-resource transaction or wire-crash proof. Adds one GET/decrypt per explicit-ID ordinary save, increasing request/CPU/egress cost; actual hosted fees unmeasured. Final native private DPoP/factory suite and native conditional concurrency remain OPEN pending authorized resume of retained server. No source commit/deploy/full-provider claim; key/journal/data preserved, no downloads/new environment.
 
 ## Canonical-resource redirect policy (2026-10-18)
 

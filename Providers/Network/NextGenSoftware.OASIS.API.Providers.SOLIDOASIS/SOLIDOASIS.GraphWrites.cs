@@ -26,6 +26,7 @@ public partial class SOLIDOASIS
         try{
             RequirePrivateStorage();
             var plan=HolonGraphWritePlan.Create(sources,children,recursive,depth,initialDepth);
+            var publications=plan.Nodes.ToDictionary(node=>node.Snapshot.Id,node=>StoredRecordPublicationSnapshot<IHolon>.Capture(node.Source));
             var newRecords=plan.Nodes.Where(node=>node.Source.Id==Guid.Empty).Select(node=>node.Snapshot.Id).ToHashSet();
             foreach(var node in plan.Nodes){
                 node.Snapshot.ProviderUniqueStorageKey??=new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>();
@@ -33,6 +34,7 @@ public partial class SOLIDOASIS
                 node.Snapshot.IsNewHolon=false;
             }
             foreach(var node in plan.Nodes){
+                publications[node.Snapshot.Id].ValidateUnchanged();
                 var saved=await SavePrivateRecordAsync<IHolon>(node.Snapshot,createOnly:newRecords.Contains(node.Snapshot.Id));
                 if(saved.IsError){
                     if(acknowledged.Count==0)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(saved);
@@ -40,13 +42,15 @@ public partial class SOLIDOASIS
                 }
                 if(saved.Result==null)throw new InvalidDataException("SOLID graph member write returned no acknowledged record.");
                 acknowledged.Add(_privateRecords.Resource<IHolon>(node.Snapshot.Id).AbsoluteUri);
+                publications[node.Snapshot.Id].ValidateUnchanged();
                 // Publishing is per verified native record, not an atomic multi-resource commit.
                 node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                node.Source.Version=node.Snapshot.Version;node.Source.VersionId=node.Snapshot.VersionId;node.Source.PreviousVersionId=node.Snapshot.PreviousVersionId;
                 node.Source.ProviderUniqueStorageKey??=new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>();
                 node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.SOLIDOASIS]=node.Snapshot.Id.ToString();
                 node.Source.IsNewHolon=false;
             }
-            result.Result=plan.Roots;result.IsSaved=true;
+            result.Result=plan.Roots;result.IsSaved=true;result.SavedCount=acknowledged.Count;
         }catch(Exception error){
             if(acknowledged.Count>0)error=new KeyValuePartialMutationException(Core.Enums.ProviderType.SOLIDOASIS,acknowledged,error);
             OASISErrorHandling.HandleError(ref result,"SOLID graph save failed.",error);

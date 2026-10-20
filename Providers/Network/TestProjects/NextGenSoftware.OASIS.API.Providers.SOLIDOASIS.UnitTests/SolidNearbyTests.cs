@@ -7,6 +7,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests;
 
 public class SolidNearbyTests
 {
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task NearbyQueriesDoNotExposeDeletedRecords(bool avatar)
+    {
+        var transport=new SolidRecordHttpTests.Transport();using var codec=new SolidPrivateRecordCodec(Root,Key);var id=Guid.NewGuid();
+        var metadata=new Dictionary<string,object>{{"Latitude",0d},{"Longitude",0d}};
+        if(avatar)transport.Records[codec.Resource<IAvatar>(id).AbsoluteUri]=codec.Encode<IAvatar>(new Avatar{Id=id,DeletedDate=DateTime.UtcNow,MetaData=metadata});
+        else transport.Records[codec.Resource<IHolon>(id).AbsoluteUri]=codec.Encode<IHolon>(new Holon{Id=id,DeletedDate=DateTime.UtcNow,MetaData=metadata});
+        using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key,transport);Assert.False((await provider.ActivateProviderAsync()).IsError);var network=(IOASISNETProvider)provider;
+        if(avatar){var result=network.GetAvatarsNearMe(0,0,10);Assert.False(result.IsError,result.Exception?.ToString());Assert.Empty(result.Result);}
+        else{var result=network.GetHolonsNearMe(0,0,10,HolonType.All);Assert.False(result.IsError,result.Exception?.ToString());Assert.Empty(result.Result);}
+    }
     private static readonly Uri Root=new("https://pod.invalid/private/");
     private static readonly byte[] Key=Enumerable.Range(1,32).Select(x=>(byte)x).ToArray();
     [Theory][InlineData(false)][InlineData(true)]

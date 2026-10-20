@@ -23,7 +23,7 @@ public partial class SOLIDOASIS
             // Root selection owns its requested version; children retain independent current versions.
             var loaded=await LoadPrivateRecordsAsync<IHolon>(0);
             if(loaded.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(loaded);
-            var project=HolonGraphProjection.Create(loaded.Result,true,recursive,maxDepth,0,true,
+            var project=HolonGraphProjection.Create(loaded.Result.Where(record=>record.DeletedDate==DateTime.MinValue),true,recursive,maxDepth,0,true,
                 record=>StoredRecordJson.DeserializeStored<IHolon>(StoredRecordJson.Serialize(record)));
             root.Result=project(root.Result);return root;
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID single holon graph read failed.",error);}
@@ -38,7 +38,7 @@ public partial class SOLIDOASIS
     }
 
     private async Task<OASISResult<IEnumerable<IHolon>>> QueryPrivateHolonsAsync(HolonType type,Func<IHolon,bool> filter,
-        bool loadChildren,bool recursive,int maxDepth,int initialDepth,bool childrenFromProvider,int version)
+        bool loadChildren,bool recursive,int maxDepth,int initialDepth,bool childrenFromProvider,int version,bool rootsAreChildren=false)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();
         try{
@@ -47,9 +47,12 @@ public partial class SOLIDOASIS
             var loaded=await LoadPrivateRecordsAsync<IHolon>(version);
             if(loaded.IsError)return loaded;
             var rows=loaded.Result.ToArray();
-            var project=HolonGraphProjection.Create(rows,loadChildren,recursive,maxDepth,initialDepth,childrenFromProvider,
-                record=>StoredRecordJson.DeserializeStored<IHolon>(StoredRecordJson.Serialize(record)));
+            var pool=loadChildren&&childrenFromProvider&&version>0?await LoadPrivateRecordsAsync<IHolon>(0):loaded;
+            if(pool.IsError)return pool;
+            var project=HolonGraphProjection.Create(pool.Result.Where(record=>record.DeletedDate==DateTime.MinValue),loadChildren,recursive,maxDepth,initialDepth,childrenFromProvider,
+                record=>StoredRecordJson.DeserializeStored<IHolon>(StoredRecordJson.Serialize(record)),rootsAreChildren:rootsAreChildren);
             result.Result=rows.Where(record=>(type==HolonType.All||record.HolonType==type)&&(filter==null||filter(record))).Select(project).ToArray();
+            result.IsLoaded=true;
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private holon query failed.",error);}
         return result;
     }
@@ -76,7 +79,7 @@ public partial class SOLIDOASIS
     private Task<OASISResult<IEnumerable<IHolon>>> QueryPrivateChildrenByKeyAsync(string key,HolonType type,
         bool loadChildren,bool recursive,int maxDepth,int initialDepth,bool childrenFromProvider,int version)
     {
-        if(Guid.TryParse(key,out var id))return QueryPrivateHolonsAsync(type,record=>record.ParentHolonId==id,loadChildren,recursive,maxDepth,initialDepth,childrenFromProvider,version);
+        if(Guid.TryParse(key,out var id))return QueryPrivateHolonsAsync(type,record=>record.ParentHolonId==id,loadChildren,recursive,maxDepth,initialDepth,childrenFromProvider,version,rootsAreChildren:true);
         var result=new OASISResult<IEnumerable<IHolon>>();
         OASISErrorHandling.HandleError(ref result,"SOLID parent provider key must be a GUID.",new ArgumentException("Invalid parent key.",nameof(key)));
         return Task.FromResult(result);

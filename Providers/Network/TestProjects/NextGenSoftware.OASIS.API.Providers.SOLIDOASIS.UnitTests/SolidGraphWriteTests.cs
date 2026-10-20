@@ -9,6 +9,21 @@ public class SolidGraphWriteTests
 {
     private static readonly Uri Root=new("https://pod.invalid/private/");
     private static byte[] Key()=>Enumerable.Range(1,32).Select(x=>(byte)x).ToArray();
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task CallerEditDuringReadbackCannotBeOverwrittenOrWrittenFromStaleGraph(bool rootEdit)
+    {
+        var gate=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var transport=new SolidRecordHttpTests.Transport{ReadGate=gate};using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport);
+        Assert.False((await provider.ActivateProviderAsync()).IsError);
+        var child=new Holon{Name="owned-child"};var root=new Holon{Name="owned-root",Children=new List<IHolon>{child}};
+        var pending=provider.SaveHolonAsync(root);Assert.Equal(1,transport.Writes);
+        (rootEdit?root:child).Description="newer local edit";gate.SetResult(true);
+        var result=await pending.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True(result.IsError);Assert.False(result.IsSaved);Assert.Null(result.Result);
+        var evidence=Assert.IsType<KeyValuePartialMutationException>(result.Exception);Assert.Single(evidence.AcknowledgedKeys);
+        Assert.Equal("newer local edit",(rootEdit?root:child).Description);Assert.Equal(1,transport.Writes);Assert.Equal(Guid.Empty,child.Id);
+        if(rootEdit)Assert.Equal(Guid.Empty,root.Id);else Assert.NotEqual(Guid.Empty,root.Id);
+    }
     [Theory]
     [InlineData(false,true,0,1,false)][InlineData(false,true,0,1,true)]
     [InlineData(true,false,0,2,false)][InlineData(true,false,0,2,true)]

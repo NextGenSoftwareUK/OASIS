@@ -30,6 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         private readonly string _podServerUrl;
         private bool _isActivated;
         private bool _disposed;
+        public bool IsVersionControlEnabled { get; set; }
 
         public SOLIDOASIS(string podServerUrl = "https://solidcommunity.net", string authToken = "")
             :this(podServerUrl,authToken,null,new HttpClientHandler()) { }
@@ -207,7 +208,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await QueryPrivateHolonsAsync(type,record=>record.ParentHolonId==id,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
+            => await QueryPrivateHolonsAsync(type,record=>record.ParentHolonId==id,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,rootsAreChildren:true);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -313,7 +314,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                 var nearby = new List<IAvatar>();
                 foreach (var avatar in avatarsResult.Result)
                 {
-                    if (avatar.MetaData != null
+                    if (avatar.DeletedDate == DateTime.MinValue && avatar.MetaData != null
                         && avatar.MetaData.TryGetValue("Latitude", out var latObj)
                         && avatar.MetaData.TryGetValue("Longitude", out var lngObj)
                         && TryReadCoordinate(latObj,90,out var lat)
@@ -350,7 +351,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                 var nearby = new List<IHolon>();
                 foreach (var holon in holonsResult.Result)
                 {
-                    if (holon.MetaData != null
+                    if (holon.DeletedDate == DateTime.MinValue && holon.MetaData != null
                         && holon.MetaData.TryGetValue("Latitude", out var latObj)
                         && holon.MetaData.TryGetValue("Longitude", out var lngObj)
                         && TryReadCoordinate(latObj,90,out var lat)

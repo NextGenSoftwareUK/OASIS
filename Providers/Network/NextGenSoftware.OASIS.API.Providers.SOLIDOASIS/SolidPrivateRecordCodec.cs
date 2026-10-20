@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -18,12 +20,17 @@ public sealed class SolidPrivateRecordCodec : IDisposable
     private const string RdfType="http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     private readonly Uri _root;
     private readonly EncryptedRecordCodec _encryption;
+    private static readonly EmbeddedRecordHistory History=new();
+    public bool HasHistory<T>(string turtle,Guid id) where T:class,IHolonBase
+        =>DecodeDocument<T>(turtle,id)[EmbeddedRecordHistory.PropertyName]!=null;
+    public bool PayloadEquals<T>(string expected,string actual,Guid id) where T:class,IHolonBase
+        =>StoredRecordPayloadEquality.Equivalent(DecodeDocument<T>(expected,id),DecodeDocument<T>(actual,id));
     public SolidPrivateRecordCodec(Uri podRoot,byte[] storageKey)
     {
         _root=NormalizePodRoot(podRoot);
         _encryption=new EncryptedRecordCodec(storageKey);
     }
-    internal static Uri NormalizePodRoot(Uri podRoot)
+    public static Uri NormalizePodRoot(Uri podRoot)
     {
         ArgumentNullException.ThrowIfNull(podRoot);
         if(!podRoot.IsAbsoluteUri||(podRoot.Scheme!=Uri.UriSchemeHttps&&!(podRoot.Scheme==Uri.UriSchemeHttp&&podRoot.IsLoopback))
@@ -51,9 +58,23 @@ public sealed class SolidPrivateRecordCodec : IDisposable
     public string Encode<T>(T record) where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(record);
-        var resource=Resource<T>(record.Id);
+        return EncodePayload<T>(record.Id,StoredRecordJson.Serialize(record));
+    }
+
+    public async Task<(T Record,string Turtle)> StageVersionAsync<T>(T proposed,string previousTurtle=null) where T:class,IHolonBase
+    {
+        ArgumentNullException.ThrowIfNull(proposed);
+        var previous=previousTurtle==null?null:DecodeDocument<T>(previousTurtle,proposed.Id);
+        var document=await History.StageAsync(proposed,previous,StoredRecordJson.DeserializeStored<T>,record=>StoredRecordJson.Serialize(record));
+        var record=await History.ReadAsync(proposed.Id,document,0,StoredRecordJson.DeserializeStored<T>);
+        return (record,EncodePayload<T>(proposed.Id,document.ToString(Newtonsoft.Json.Formatting.None)));
+    }
+
+    private string EncodePayload<T>(Guid id,string json) where T:class,IHolonBase
+    {
+        var resource=Resource<T>(id);
         // The existing canonical codec owns interface types and relationship-by-ID semantics.
-        var ciphertext=_encryption.Encrypt(AssociatedData<T>(resource),StoredRecordJson.Serialize(record));
+        var ciphertext=_encryption.Encrypt(AssociatedData<T>(resource),json);
         using var graph=new Graph();
         var subject=graph.CreateUriNode(resource);
         graph.Assert(new Triple(subject,graph.CreateUriNode(new Uri(RdfType)),graph.CreateUriNode(new Uri(Namespace+"EncryptedRecordV1"))));
@@ -64,6 +85,15 @@ public sealed class SolidPrivateRecordCodec : IDisposable
     }
 
     public T Decode<T>(string turtle,Guid expectedId) where T:class,IHolonBase
+        =>DecodeVersionAsync<T>(turtle,expectedId,0).GetAwaiter().GetResult();
+
+    public Task<T> DecodeVersionAsync<T>(string turtle,Guid expectedId,int version) where T:class,IHolonBase
+    {
+        if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+        return History.ReadAsync(expectedId,DecodeDocument<T>(turtle,expectedId),version,StoredRecordJson.DeserializeStored<T>);
+    }
+
+    private JObject DecodeDocument<T>(string turtle,Guid expectedId) where T:class,IHolonBase
     {
         var resource=Resource<T>(expectedId);
         using var graph=new Graph{BaseUri=resource};
@@ -75,9 +105,14 @@ public sealed class SolidPrivateRecordCodec : IDisposable
         if(graph.Triples.Count!=2||type.Length!=1||type[0].Object is not IUriNode marker||marker.Uri.AbsoluteUri!=Namespace+"EncryptedRecordV1"
             ||payload.Length!=1||payload[0].Object is not ILiteralNode literal)
             throw new InvalidDataException("A single exact encrypted RDF record envelope is required; no plaintext downgrade is permitted.");
-        var record=StoredRecordJson.DeserializeStored<T>(_encryption.Decrypt(AssociatedData<T>(resource),literal.Value));
+        var document=JObject.Parse(_encryption.Decrypt(AssociatedData<T>(resource),literal.Value));
+        var record=StoredRecordJson.DeserializeStored<T>(History.CanonicalPayload(document).ToString(Newtonsoft.Json.Formatting.None));
         if(record==null||record.Id!=expectedId)throw new InvalidDataException("Decrypted record identity does not match its resource.");
-        return record;
+        if(document["id"]==null){
+            if(document[EmbeddedRecordHistory.PropertyName]!=null)throw new InvalidDataException("Versioned encrypted record is missing its embedded identity.");
+            document["id"]=expectedId.ToString();
+        }
+        return document;
     }
     public void Dispose()=>_encryption.Dispose();
 }
