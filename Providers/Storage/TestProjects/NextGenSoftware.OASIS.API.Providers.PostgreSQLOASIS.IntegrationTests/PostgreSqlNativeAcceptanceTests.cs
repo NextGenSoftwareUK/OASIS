@@ -12,6 +12,47 @@ namespace NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public class PostgreSqlNativeAcceptanceTests
 {
+    [DataTestMethod]
+    [DataRow(false,false,false)][DataRow(false,false,true)][DataRow(false,true,false)][DataRow(false,true,true)]
+    [DataRow(true,false,false)][DataRow(true,false,true)][DataRow(true,true,false)][DataRow(true,true,true)]
+    public async Task NativeDuplicateProfileIdentityIsRejected(bool detail,bool email,bool synchronous)
+    {
+        var connection=Environment.GetEnvironmentVariable("POSTGRESQLOASIS_CONNECTIONSTRING")!;
+        var settings=new NpgsqlConnectionStringBuilder(connection);
+        Assert.AreEqual("127.0.0.1",settings.Host);Assert.AreEqual(15432,settings.Port);Assert.AreEqual("oasis_provider_test",settings.Database);
+        var work=Environment.GetEnvironmentVariable("OASIS_POSTGRES_TEST_WORK")!;
+        var journal=Path.Combine(work,$"native-identity-{detail}-{email}-{synchronous}.pending.json");Assert.IsFalse(File.Exists(journal));
+        var marker="owned-pg-identity-"+Guid.NewGuid().ToString("N");
+        var ids=new[]{Guid.NewGuid(),Guid.NewGuid()};
+        var table=detail?"oasis_avatar_details":"oasis_avatars";
+        var provider=new PostgreSQLOASIS(connection);Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        await using var verifier=new NpgsqlConnection(connection);await verifier.OpenAsync();
+        foreach(var id in ids){await using var absent=new NpgsqlCommand($"SELECT count(*) FROM {table} WHERE id=@id",verifier);absent.Parameters.AddWithValue("id",id);Assert.AreEqual(0L,await absent.ExecuteScalarAsync());}
+        using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+            await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids,table,marker,state="before-native-duplicate-identity"}));file.Flush(true);
+        }
+        var observed=new Dictionary<Guid,string>();
+        try{
+            for(var index=0;index<ids.Length;index++){
+                var identity=index==0?marker:marker.ToUpperInvariant();
+                if(detail){var saved=await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=ids[index],Username=identity,Email=identity,MetaData=new(){["owned-fixture"]=marker}});Assert.IsFalse(saved.IsError,saved.Exception?.ToString());}
+                else{var saved=await provider.SaveAvatarAsync(new Avatar{Id=ids[index],Username=identity,Email=identity,MetaData=new(){["owned-fixture"]=marker}});Assert.IsFalse(saved.IsError,saved.Exception?.ToString());}
+                await using var read=new NpgsqlCommand($"SELECT data_json FROM {table} WHERE id=@id",verifier);read.Parameters.AddWithValue("id",ids[index]);
+                var body=(string?)await read.ExecuteScalarAsync();Assert.IsNotNull(body);using var json=JsonDocument.Parse(body);
+                Assert.AreEqual(ids[index],json.RootElement.GetProperty("Id").GetGuid());Assert.AreEqual(marker,json.RootElement.GetProperty("MetaData").GetProperty("owned-fixture").GetString());observed.Add(ids[index],body);
+            }
+            void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){Assert.IsTrue(result.IsError);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);}
+            var query=" "+marker+" ";
+            if(detail)Check(email?(synchronous?provider.LoadAvatarDetailByEmail(query):await provider.LoadAvatarDetailByEmailAsync(query)):(synchronous?provider.LoadAvatarDetailByUsername(query):await provider.LoadAvatarDetailByUsernameAsync(query)));
+            else Check(email?(synchronous?provider.LoadAvatarByEmail(query):await provider.LoadAvatarByEmailAsync(query)):(synchronous?provider.LoadAvatarByUsername(query):await provider.LoadAvatarByUsernameAsync(query)));
+        }finally{
+            // Only exact observed synthetic rows can be removed; uncertain writes retain the journal.
+            foreach(var row in observed){await using var cleanup=new NpgsqlCommand($"DELETE FROM {table} WHERE id=@id AND data_json=@observed",verifier);cleanup.Parameters.AddWithValue("id",row.Key);cleanup.Parameters.AddWithValue("observed",row.Value);Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());}
+            if(observed.Count==ids.Length){foreach(var id in ids){await using var absent=new NpgsqlCommand($"SELECT count(*) FROM {table} WHERE id=@id",verifier);absent.Parameters.AddWithValue("id",id);Assert.AreEqual(0L,await absent.ExecuteScalarAsync());}File.Delete(journal);}
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task NativeTextSearchUsesCanonicalNameAndDescription(bool description)
     {

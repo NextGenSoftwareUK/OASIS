@@ -201,32 +201,12 @@ ON CONFLICT (id) DO UPDATE SET
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                var avatar = await LoadAvatarByColumnAsync("username", username);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No avatar found with username '{username}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PostgreSQLOASIS: Avatar loaded for username '{username}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
-            return result;
-        }
+            => await StoredRecordIdentityLookup.SelectAsync(username,version,LoadAllAvatarsAsync,row=>row.Username);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0) => LoadAvatarByUsernameAsync(username, version).Result;
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                var avatar = await LoadAvatarByColumnAsync("email", avatarEmail);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No avatar found with email '{avatarEmail}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PostgreSQLOASIS: Avatar loaded for email '{avatarEmail}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); }
-            return result;
-        }
+            => await StoredRecordIdentityLookup.SelectAsync(avatarEmail,version,LoadAllAvatarsAsync,row=>row.Email);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
@@ -404,42 +384,12 @@ ON CONFLICT (id) DO UPDATE SET
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand("SELECT data_json FROM oasis_avatar_details WHERE username=@username LIMIT 1", conn);
-                cmd.Parameters.AddWithValue("@username", username);
-                var scalar = await cmd.ExecuteScalarAsync();
-                if (scalar == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No avatar detail found for username '{username}'."); return result; }
-                result.Result = Deserialize<AvatarDetail>(scalar.ToString()!); result.IsError = false;
-                result.Message = $"PostgreSQLOASIS: AvatarDetail loaded for username '{username}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
-            return result;
-        }
+            => await StoredRecordIdentityLookup.SelectAsync(username,version,LoadAllAvatarDetailsAsync,row=>row.Username);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0) => LoadAvatarDetailByUsernameAsync(username, version).Result;
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand("SELECT data_json FROM oasis_avatar_details WHERE email=@email LIMIT 1", conn);
-                cmd.Parameters.AddWithValue("@email", email);
-                var scalar = await cmd.ExecuteScalarAsync();
-                if (scalar == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No avatar detail found for email '{email}'."); return result; }
-                result.Result = Deserialize<AvatarDetail>(scalar.ToString()!); result.IsError = false;
-                result.Message = $"PostgreSQLOASIS: AvatarDetail loaded for email '{email}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
-            return result;
-        }
+            => await StoredRecordIdentityLookup.SelectAsync(email,version,LoadAllAvatarDetailsAsync,row=>row.Email);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0) => LoadAvatarDetailByEmailAsync(email, version).Result;
 
