@@ -1,5 +1,13 @@
 # SOLID provider implementation audit
 
+## Current dependency warm-server verification — 2026-10-20
+
+Reused ALREADY RUNNING original pinnedCSS58bee7... server/volume/DPAPIkey/privateidentity/fixturelease, no restart/newidentity/download/install. Existing reuse-only dirty runner executed but NOT staged as this checkpoint's change. Native **6/6 passed1m1s0skip**, fullcontrolled **333/333 passed1s0skip**, outerlease terminal0. Includes real private DPoP/anonymousdenial/encrypted CRUD/history and existing graph/query/lifecycle schedules. Actual native+unit consumers CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared1C35EE624DE22877EE450BE3EFC3930B1EBE960FF7EE2C127861ED28BF7CDDD6 measured; no source changes.
+
+Reports TestResults/SolidCurrent/solid-native-current.trx SHA2566FA98CC9CBECFED317B486E85C275D14233E261FFB3AD885A21366B72783E16E; solid-current-core-controlled.trx SHA25683FECFC400BBDDF1E9340FEF6ABCE89516EBD29DB70CDFFBA8B42F494BCE0052. Prior native86E33760C26B69DFBFA52352AA3F16AE289BD9F62281D7ECD1686E1C8416A4E3 SHAverified/moved in place to solid-native-pre-current-core.trx. Postterminal ALL pendingjournals absent; operator server independently stillrunning and intentionally left unchanged. No ownership inferred from test use. Free C67,774,885,888bytes;123GBtargetunmet.
+
+This refresh closes scoped warmserver currentdependency compatibility, NOT documented coldstart token-abort rootcause, complete OIDC conformance, server/client process recovery, everyinterface/hostedTLS/billing/V2 certification. No automatic retry/restart introduced to hide prior failures; failed reports remain preserved. No deploy/publicspend.
+
 ## Captured named roles — retained native6 and controlled330 green
 
 Read-only environment inspection found the approved retained CSS server ALREADY RUNNING. Reused pinned image58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a, loopback127.0.0.1:13000 and oasis-solid-data:/data, original DPAPI key/private identity and exclusive existing fixture lease. No start/restart/create/download/account/key reset. Original A9F5D287 report hash-verified and renamed in place solid-native-pre-named-roles.trx. Pre-existing dirty reuse-only runner was executed but is NOT part of this checkpoint.
