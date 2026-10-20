@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR selector failure propagation — controlled202/202 green,2026-10-20
+
+Fixed four username/email export/delete wrappers dropping selector ErrorCode/detail/count using existing Core result-copy helper.16new sync/async failure cases originallyred; final202/202passed13s0skip, actualCore2A27. No chain calls/newenvironment/download/push; native19earlier source cohort not rerun or treated as certificate. Exact scope/chronology in NEAR_PUBLIC_CONDITIONAL_SAVE.md. Full provider/native recovery/globalV2 gates remainOPEN.
+
 ## Azure native refresh — 2026-10-20,160/160 green
 
 Previously stalled Azurite command now starts in a bounded diagnostic (~1.4s) with the same pinned runtime/options; diagnostic child was stopped before the actual run. The prior timeout cause is NOT established and no startup repair is claimed. Runner readiness now additionally rejects a listener not owned by its launched process; PowerShell syntax checked, successful real ownership path exercised (mismatched-PID branch not separately fault-injected).

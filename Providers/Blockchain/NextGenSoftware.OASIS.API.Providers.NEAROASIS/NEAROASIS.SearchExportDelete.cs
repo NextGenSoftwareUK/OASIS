@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
@@ -78,7 +79,7 @@ public partial class NEAROASIS
     {
         var avatar = await LoadAvatarByEmailAsync(email, version);
         if (avatar.IsError || avatar.Result == null)
-            return new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()) { IsError = avatar.IsError, Message = avatar.Message, Exception = avatar.Exception };
+            return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatar);
         return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
     }
 
@@ -89,7 +90,7 @@ public partial class NEAROASIS
     {
         var avatar = await LoadAvatarByUsernameAsync(username, version);
         if (avatar.IsError || avatar.Result == null)
-            return new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()) { IsError = avatar.IsError, Message = avatar.Message, Exception = avatar.Exception };
+            return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatar);
         return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
     }
 
@@ -100,7 +101,7 @@ public partial class NEAROASIS
     {
         var avatar = await LoadAvatarByUsernameAsync(username);
         if (avatar.IsError || avatar.Result == null)
-            return new OASISResult<bool>(false) { IsError = avatar.IsError, Message = avatar.Message, Exception = avatar.Exception };
+            return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(avatar);
         return await DeleteAvatarRecordAsync(avatar.Result.Id, softDelete);
     }
 
@@ -115,7 +116,7 @@ public partial class NEAROASIS
     {
         var avatar = await LoadAvatarByEmailAsync(email);
         if (avatar.IsError || avatar.Result == null)
-            return new OASISResult<bool>(false) { IsError = avatar.IsError, Message = avatar.Message, Exception = avatar.Exception };
+            return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(avatar);
         return await DeleteAvatarRecordAsync(avatar.Result.Id, softDelete);
     }
 

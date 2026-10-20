@@ -1,5 +1,15 @@
 # NEAR public conditional record saves
 
+## Selector failures retained by export/delete wrappers — 2026-10-20
+
+Final controlled report SHA256 `FD7AD51C4CE4942D7B6DD154ABFA1A7063DDBA845A5D824F5D30B5B83013829E`. Free C after bounded builds/tests68,786,774,016bytes;123GBtargetunmet/no reclaim claimed.
+
+Username/email export and deletion wrappers previously rebuilt failed avatar lookup results with only IsError/Message/Exception, dropping ErrorCode and diagnostics. They now reuse the existing Core `OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult` across all four owners; sync methods delegate to those owners. No alternative selector, retry, chain call, SDK/wire change or successful-result publication was added. Export failures now have no fabricated empty data collection.
+
+Sixteen controlled cases cover four operations, sync/async and not-found/ambiguity codes; original source failed all16 at dropped ErrorCode. Before report `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests/TestResults/david_OASISOMEGA_2026-10-20_12_02_13_net10.0.trx`, SHA256 `CB20D0B10A4711FA356CEAB85BA896DAEC0E04EAD5260EE1B088259A0E135854`. Final test uses the canonical `OASISResultErrorCodes.AmbiguousIdentity` constant rather than the initial synthetic ambiguity string. Full controlled suite **202/202**, zero skipped,13s; final report `david_OASISOMEGA_2026-10-20_12_02_52_net10.0.trx` in the same directory. Assertions preserve exact original exception/message/detail/errorcount and exactly one selector call, with no loaded/saved/deleted flags. Actual copied Core `2A27DB17AE34A417F6BB7B0B1181CDE0DA7AF081AB81F7C209ADAB22C9247C62`.
+
+No native NEAR node/transaction or download/new environment was needed. Earlier19native evidence predates this wrapper change and is not a fresh full native certificate. Full interfaces, native failure schedules, hosted fees/recovery and ALL-provider V2 gates remain open. Existing SDK/IPC controlled suite retained, no assertion weakened. No push/deploy.
+
 ## Canonical publication native compatibility refreshed — 2026-10-20
 
 Retained exec46080 terminal0: **19/19 actual native NEAR passed**,0skips5m15s with cdfbd0443 canonical-publication guard. `TestResults/NearRuntime/near-provider-current.trx` SHA256 `C6FD2ED97BF00459E7AF0F24A803836866D66F5AD61EF50BA8BE7C7EF1430A0A`. Native consumer Core `89468DF093B3E819000FA13507ED20F6908863C409D9503608592460EC69DBCD`, Shared `2D6A41B4F595F0C9B8E8EB7CC1181CC1A4D6152764718AFED80ADCD07918C5F8`, EXACTLY the unit186cohort. Provider/native builds0errors2warnings each, portable guard passed within original launcher. This closes scoped normal native compatibility for strengthened publisher; eight canonical caller-edit/receipt/one-PUT schedules remain controlled IPC evidence, NOT live native fault injection or full-interface/global V2 proof.
