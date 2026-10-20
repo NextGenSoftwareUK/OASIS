@@ -16,6 +16,7 @@ WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse stack �
 | [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | Full reference for all 508 MCP tools — parameters, return values, examples |
 | [WEB6 User Guide](WEB6_User_Guide.md) | Common workflows, environment setup, recipes |
 | [WEB6 Leela AI Integration Guide](WEB6-Leela-AI-Integration-Guide.md) | Cost reduction playbook — Bedrock swap, BRAID/caching, holonic document storage, Prometheus PromQL examples |
+| [WEB6 vs OpenRouter vs Hermes Agent](WEB6_vs_OpenRouter_vs_Hermes.md) | Feature and price comparison, with a worked 1,000-user cost example |
 
 ## Quick links
 
