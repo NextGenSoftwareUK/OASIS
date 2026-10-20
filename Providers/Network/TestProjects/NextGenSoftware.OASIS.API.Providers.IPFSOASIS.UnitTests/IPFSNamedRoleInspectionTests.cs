@@ -48,18 +48,24 @@ public class IPFSNamedRoleInspectionTests
     {
         const string endpoint="http://127.0.0.1:18547";Assert.Equal(endpoint,Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_RPC"));
         var path=Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_DNA_PATH")!;var before=await File.ReadAllBytesAsync(path);
-        var report=Path.Combine(Path.GetDirectoryName(path)!,"ipfs-native-current.trx");Assert.Equal("ED3C3820957168165FCA3889E8EC45744B1F433FFCE44C4963B41B7B2C95F3F6",Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(report))));
+        var report=Path.Combine(Path.GetDirectoryName(path)!,"ipfs-native-current.trx");var reportHash=Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(report)));
+        var unlink=reportHash=="8648DA40D1D9CD1A34FE05B059FDBD64BCD2F3CD8C8987DEF1EB1D9576F43749";
+        if(unlink)Assert.Equal("3167FA05E1CE4E046188195A0217A86D820F0DCC438AAA8A71046107487FC0D8",Convert.ToHexString(SHA256.HashData(before)));
+        else Assert.Equal("ED3C3820957168165FCA3889E8EC45744B1F433FFCE44C4963B41B7B2C95F3F6",reportHash);
         var dna=JsonConvert.DeserializeObject<OASISDNA>(System.Text.Encoding.UTF8.GetString(before))!;
         var client=new Ipfs.Http.IpfsClient(endpoint);async Task<string[]> Pins()=>(await client.Pin.ListAsync()).Select(cid=>cid.ToString()).OrderBy(value=>value,StringComparer.Ordinal).ToArray();var pins=await Pins();
         var prior=OASISDNAManager.OASISDNA;var priorPath=OASISDNAManager.OASISDNAPath;var provider=new IPFSOASIS(dna,path);
         try{
             Assert.False((await provider.ActivateProviderAsync()).IsError);var index=await provider.LoadLookupToJson();Assert.Equal(2,index.Count);Assert.All(index.Values,row=>Assert.Equal("holon",row.RecordKind));
             var rows=new List<Holon>();foreach(var entry in index.Values){var loaded=await provider.LoadHolonAsync(entry.Id,loadChildren:false);Assert.False(loaded.IsError,loaded.Message);rows.Add((Holon)loaded.Result);}
-            var root=Assert.Single(rows.Where(row=>row.Name=="native scalar update"));var child=Assert.Single(rows.Where(row=>row.Name=="native named child"));Assert.Equal(root.Id,child.ParentHolonId);Assert.Equal(0,root.Version);Assert.Equal(0,child.Version);
-            var manifest=HolonChildRoleManifestJson.Deserialize(root.ChildRoleManifestJson);Assert.Equal(root.Id,manifest.ParentId);Assert.Equal(child.Id,Assert.Single(manifest.Roles.Single(role=>role.Name=="Components").ChildIds));Assert.Empty(manifest.Roles.Single(role=>role.Name=="Children").ChildIds);
+            var root=Assert.Single(rows.Where(row=>row.Name==(unlink?"native named owner":"native scalar update")));var child=Assert.Single(rows.Where(row=>row.Name=="native named child"));Assert.Equal(root.Id,child.ParentHolonId);Assert.Equal(unlink?3:0,root.Version);Assert.Equal(unlink?1:0,child.Version);
+            var manifest=HolonChildRoleManifestJson.Deserialize(root.ChildRoleManifestJson);Assert.Equal(root.Id,manifest.ParentId);
+            if(unlink)Assert.Empty(manifest.Roles.Single(role=>role.Name=="Components").ChildIds);else Assert.Equal(child.Id,Assert.Single(manifest.Roles.Single(role=>role.Name=="Components").ChildIds));Assert.Empty(manifest.Roles.Single(role=>role.Name=="Children").ChildIds);
             var old=root.PreviousVersionProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.IPFSOASIS];Assert.Contains(old,pins);
             var envelope=await provider.LoadStringToJson(old);var json=(string)typeof(IPFSOASIS).GetMethod("UnprotectRecord",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(provider,new object[]{"holon",root.Id,envelope})!;
-            var archived=OasisJson.DeserializeStored<Holon>(json);Assert.Equal(root.Id,archived.Id);Assert.Equal(0,archived.Version);Assert.Equal("native named owner",archived.Name);Assert.Equal(root.ChildRoleManifestJson,archived.ChildRoleManifestJson);
+            var archived=OasisJson.DeserializeStored<Holon>(json);Assert.Equal(root.Id,archived.Id);Assert.Equal(unlink?2:0,archived.Version);Assert.Equal(unlink?"native scalar update":"native named owner",archived.Name);
+            if(unlink){var priorManifest=HolonChildRoleManifestJson.Deserialize(archived.ChildRoleManifestJson);Assert.Equal(child.Id,Assert.Single(priorManifest.Roles.Single(role=>role.Name=="Components").ChildIds));}
+            else Assert.Equal(root.ChildRoleManifestJson,archived.ChildRoleManifestJson);
             Assert.Equal(before,await File.ReadAllBytesAsync(path));Assert.Equal(pins,await Pins());
         }finally{await provider.DeActivateProviderAsync();OASISDNAManager.OASISDNA=prior;OASISDNAManager.OASISDNAPath=priorPath;}
     }
