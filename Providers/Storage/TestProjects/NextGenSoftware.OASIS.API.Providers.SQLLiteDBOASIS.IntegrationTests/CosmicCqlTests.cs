@@ -199,7 +199,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         profile.RestrictsCanonicalFields.Should().BeTrue();
         var unsupported = new Expression<Func<Holon, bool>>[] {
             h => h.CustomKey == "key", h => h.IsDeleted,
-            h => CosmicQueryMetadata.Value<int>(h, "score") > 2
+            h => CosmicQueryMetadata.Value<decimal>(h, "score") > 2m
         };
         foreach (var predicate in unsupported)
         {
@@ -245,9 +245,9 @@ public partial class SQLLiteDBOASISIntegrationTests
     public async Task CosmicCqlUnsupportedPathsRejectBeforeOpeningDatabase()
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
-        var metadata = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => CosmicQueryMetadata.Value<int>(h, "score") > 2, overbroad: true));
-        metadata.IsError.Should().BeTrue(); metadata.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
         var cutoff = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var metadata = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => CosmicQueryMetadata.Value<DateTime>(h, "score") > cutoff, overbroad: true));
+        metadata.IsError.Should().BeTrue(); metadata.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
         var date = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => h.CreatedDate > cutoff, overbroad: true));
         date.IsError.Should().BeTrue(); date.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
         File.Exists(_databasePath).Should().BeFalse();

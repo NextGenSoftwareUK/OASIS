@@ -58,3 +58,5 @@ Local reports and fixture archives are under `TestResults/CosmicMongoCurrent/`; 
 - [CQL SQLite native execution](CQL_SQLITE_NATIVE.md) — parameterized leaf-row adapter scope and remaining WEB4 integration.
 
 - [CQL native execution pipeline](CQL_EXECUTION_PIPELINE.md) — shared adapter contract, full-target preflight, budgets and provider provenance.
+
+- [CQL typed scalar metadata](CQL_SCALAR_METADATA.md) — SQLite type, null, comparison, membership and string semantics.

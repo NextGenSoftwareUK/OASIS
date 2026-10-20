@@ -228,3 +228,21 @@ Full Core 1,352/1,352 passes12s (`cql-metadata-profile-core-full.trx`); SQLite c
 - `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `BD89D7B92989BCE7E224974680BBEE39284F3A910FAACEE9B5C00B8A30B8F668`
 
 Core unit and SQLite consumer Core copies match. Shared is a separately captured concurrent epoch, not a new all-provider certification. Core gitlink and dependency manifest are advanced together; local commits do not prove remote publication or authorize deployment. All original roadmap acceptance remains open where not separately verified.
+
+
+## Native scalar metadata checkpoint — 20 October 2026
+
+Core `2e4187af33bafad2aa10ac5098bd37ab1d997135` fixes built-in nullable scalar literal lifting without executing conversion methods. SQLite adds native string/bool/int/long metadata comparisons, nullable variants, membership and ordinal string matching through shared translation helpers and exact capabilities. See [the scalar metadata contract](CQL_SCALAR_METADATA.md) for domains, missing/null/inequality and remaining unsupported types.
+
+Original red26: 25 absent-capability rejections and one nullable boolean literal compiler rejection. Repaired focused26, expanded37 and final43 all pass. First full948 had946pass/2fail because historical tests still rejected newly supported scalar metadata; those assertions now preserve unmapped/uncertified rejection and explicitly admit declared metadata. No failed report is admitted as acceptance.
+
+Final full Core1,353/1,353 passes13s; native focused43/43 passes10s; native full948/948 passes125s, zero skips. Both Core TFMs, SQLite producer and consumers build with zero errors. The owned SQLite fixture is absent after teardown. Report and actual native consumer SHA256:
+
+- `TestResults/CosmicMongoCurrent/cql-scalar-metadata-core-full.trx`: `9E0CCF61DA64C7D8A3B12AEE90BC6DAF8E2633952CB52DA5A38BF1BD6D1F9305`
+- `TestResults/SQLiteCurrent/sqlite-cql-scalar-metadata-focused-certified.trx`: `2483AD09DEBB81F478D3C756BFD7399FF48A7534AACD803A9F6BDCEA36316ED4`
+- `TestResults/SQLiteCurrent/sqlite-cql-scalar-metadata-full-verified.trx`: `99196DB277BE413379163DDD686EBE8EF44D428FF8CB940C24E7116F003A8379`
+- `NextGenSoftware.OASIS.API.Core.dll`: `855D12663D747117D24DFABF5CA5C6AC04802F7B93BDCD48AE0203832886D32D`
+- `NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll`: `8163A71612D911ABA8F064A291D5B903CFD98874EFE69FC61D8B8BA66AE7B970`
+- `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `12EDB4019FACDA633847A049E980E68A540DB598147E1E3A83942B128D428964`
+
+Core unit and native Core copies match; final native consumer hashes match focused43. Shared is an independently captured concurrent epoch, not an all-provider certification. Core gitlink and manifest advance together. Legacy behavior, hosted data and deployment are unchanged; local commits do not establish remote publication. The full original roadmap remains active, including additional metadata types, authenticated policy/routing, other adapters, graph queries and federation.

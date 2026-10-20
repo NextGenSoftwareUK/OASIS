@@ -9,6 +9,19 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CosmicQueryExpressionTests
 {
     [Fact]
+    public void BuiltInNullableLiteralLiftsPreserveBooleanGuidAndUtcValues()
+    {
+        var id = Guid.NewGuid(); var utc = new DateTime(2026, 10, 20, 0, 0, 0, DateTimeKind.Utc);
+        var flag = CosmicQueryExpression.Compile<Holon>(h => CosmicQueryMetadata.Value<bool?>(h, "flag") != true);
+        Assert.False(flag.IsError, flag.Message);
+        Assert.Equal(true, Assert.IsType<CosmicQueryComparison>(flag.Result).Literal.Value);
+        var guid = CosmicQueryExpression.Compile<Holon>(h => CosmicQueryMetadata.Value<Guid?>(h, "id") == id);
+        Assert.False(guid.IsError, guid.Message); Assert.Equal(id, Assert.IsType<CosmicQueryComparison>(guid.Result).Literal.Value);
+        var date = CosmicQueryExpression.Compile<Holon>(h => CosmicQueryMetadata.Value<DateTime?>(h, "at") == utc);
+        Assert.False(date.IsError, date.Message); Assert.Equal(utc, Assert.IsType<CosmicQueryComparison>(date.Result).Literal.Value);
+    }
+
+    [Fact]
     public void MetadataPresenceAndNullMarkersCaptureLiteralSegmentsWithoutExecutingAccessors()
     {
         var key = "a.b\"'; --";
