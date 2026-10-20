@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
-    public abstract class CosmosDbRepository<T> : IRepository<T>, IDocumentCollectionContext<T> where T : IHolonBase
+    public abstract class CosmosDbRepository<T> : IRepository<T>, IDocumentCollectionContext<T> where T : class,IHolonBase
     {
         private readonly ICosmosDbClientFactory _cosmosDbClientFactory;
 
@@ -91,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         private async Task<T> WriteSnapshotAsync(T entity,bool create)
         {
             ArgumentNullException.ThrowIfNull(entity);
-            var originalId=entity.Id;
+            var publication=StoredRecordPublicationSnapshot<T>.Capture(entity);
             var snapshot=ProjectInput(entity);
             if(snapshot.Id==Guid.Empty) snapshot.Id=GenerateId(entity);
             if(snapshot.Id==Guid.Empty) throw new InvalidDataException("Cosmos generated an empty identity.");
@@ -100,9 +100,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=expectedId;
             var client=_cosmosDbClientFactory.GetClient(CollectionName);
             var partition=ResolvePartitionKey(expectedId);
+            publication.ValidateUnchanged();
             var json=create ? await client.CreateDocumentAsync(snapshot,partition):await client.UpsertDocumentAsync(snapshot,partition);
             var acknowledged=DecodeAcknowledgedEntity(json,snapshot,expectedId);
-            if(entity.Id!=originalId) throw new CosmosMutationReconciliationException(expectedId,new InvalidDataException("Caller identity changed during acknowledged Cosmos write."),acknowledged:true);
+            ValidateRepositoryPublication(publication.ValidateUnchanged,expectedId);
             entity.Id=snapshot.Id;
             entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=expectedId;
@@ -129,17 +130,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             ArgumentNullException.ThrowIfNull(entity);
             var originalId=entity.Id;
             if(originalId==Guid.Empty) throw new ArgumentException("A nonempty Cosmos identity is required for replacement.",nameof(entity));
+            var publication=StoredRecordPublicationSnapshot<T>.Capture(entity);
             var snapshot=ProjectInput(entity);
             var key=originalId.ToString();
             snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
             var client=_cosmosDbClientFactory.GetClient(CollectionName);
+            publication.ValidateUnchanged();
             var json=await client.ReplaceDocumentAsync(key,snapshot,ResolvePartitionKey(key));
             var acknowledged=DecodeAcknowledgedEntity(json,snapshot,key);
-            if(entity.Id!=originalId) throw new CosmosMutationReconciliationException(key,new InvalidDataException("Caller identity changed during acknowledged Cosmos replacement."),acknowledged:true);
+            ValidateRepositoryPublication(publication.ValidateUnchanged,key);
             entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
             entity.Version=acknowledged.Version;entity.VersionId=acknowledged.VersionId;entity.PreviousVersionId=acknowledged.PreviousVersionId;
+        }
+
+        private static void ValidateRepositoryPublication(Action validate,string acknowledgedId)
+        {
+            try{validate();}
+            catch(Exception cause){throw new CosmosMutationReconciliationException(acknowledgedId,new InvalidDataException("Caller canonical record changed during acknowledged Cosmos write.",cause),acknowledged:true);}
         }
 
         public Task DeleteAsync(T entity) => DeleteIfUnchangedAsync(entity);

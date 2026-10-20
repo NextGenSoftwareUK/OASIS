@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Azure Cosmos DB direct-repository publication — 2026-10-20
+
+Add/upsert/update reuse shared canonical caller guard before client dispatch/post-ack publication while preserving overridable ProjectInput. Nine red-before controlled cases now pass, final225controlled and53nativepass/zero skips; native SHA256 `76801C592D47E091861C6501E04255ED3BACD76D2F55436A84EBAA7901A53B34`. Existing container exited/pending0, no install/public fees. Reference-type generic constraint is an explicit source-compatibility change for external subclasses; exact evidence/projection-hook regression/limits in [Cosmos DB report](COSMOSDB_RECORD_HISTORY.md). No hosted/concurrent-write/all-interface or all-provider V2 certification inferred.
+
 ## Azure Cosmos DB graph original publication — 2026-10-19
 
 Shared canonical snapshot guards selected graph originals before node submission/post-ack publication. Four red-before version-edit schedules now pass; controlled215/215 and retained native53/53pass/zero skips. Native report SHA256 `720DC784736576C52B916AFD00BC0BFCF915CE4A03AF8E91EEE4B42C56051193`. Container stopped/pending journals0, no new runtime/download/public fees. Exact hashes/dependencies/limits: [Cosmos DB report](COSMOSDB_RECORD_HISTORY.md). Direct repository mutation, hosted IAM/billing/full provider/API/V2 gates remain OPEN; no native concurrent-edit or atomic graph guarantee claimed.
