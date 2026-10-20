@@ -630,35 +630,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
             return new Guid(bytes.Take(16).ToArray());
         }
 
-        /// <summary>
-        /// Derives Cardano address from public key
-        /// Cardano uses bech32 encoding for addresses
-        /// </summary>
-        private string DeriveCardanoAddress(byte[] publicKeyBytes)
-        {
-            try
-            {
-                // Cardano addresses use bech32 encoding with specific prefixes
-                // Mainnet: "addr1", Testnet: "addr_test1"
-                var prefix = _networkId == "mainnet" ? "addr1" : "addr_test1";
-                
-                // Hash public key using Blake2b-224 (Cardano specific)
-                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                var hash = sha256.ComputeHash(publicKeyBytes);
-                
-                // Take first 28 bytes for address (simplified - in production use proper bech32 library)
-                var addressBytes = new byte[28];
-                Array.Copy(hash, 0, addressBytes, 0, Math.Min(28, hash.Length));
-                
-                // Simplified bech32 encoding (in production use proper bech32 library)
-                return prefix + Convert.ToBase64String(addressBytes).Substring(0, Math.Min(32, Convert.ToBase64String(addressBytes).Length));
-            }
-            catch
-            {
-                // Fallback to hex representation
-                return "addr1" + BitConverter.ToString(publicKeyBytes).Replace("-", "").ToLowerInvariant();
-            }
-        }
+        private string DeriveCardanoAddress(byte[] publicKeyBytes) => CardanoAddress.Enterprise(publicKeyBytes, _networkId == "mainnet");
 
     }
 }

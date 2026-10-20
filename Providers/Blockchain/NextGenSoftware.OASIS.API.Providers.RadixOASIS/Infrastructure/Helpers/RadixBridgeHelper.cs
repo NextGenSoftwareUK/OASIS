@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using NBitcoin;
+using NextGenSoftware.OASIS.API.Core.Helpers.Crypto;
 using RadixEngineToolkit;
 
 namespace NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Helpers;
