@@ -2,6 +2,8 @@
 
 Updated 19 October 2026. Implementation is local and in progress. SQLite and MongoDB now have local native implementations; remaining provider certification, fault injection and durable replication remain open.
 
+20 October primary-receipt follow-on: new SQLite acknowledgements use an integrity-checked format2 envelope, the existing Shared graph codec, operation/context binding and exact saved-intent validation. Historical format1 receipts require explicit reconciliation before replay; the historical checkpoint below describing format1 is superseded for new writes. See [receipt contract, rollout gate and verification](SQLITE_RECEIPT_INTEGRITY.md).
+
 ## Provider-local revisions and logical history
 
 Concurrency tokens are now separate from logical `VersionId`/`PreviousVersionId`. SQLite owns a physical `ProviderRevisionId`, exposed through `CosmicConcurrency.GetProviderRevisionId(holon, authority)` using reserved provider metadata. Ordinary copies and replication preserve logical version identity while each SQLite write issues a fresh local token. Logical version IDs cannot serve as expected concurrency tokens.
