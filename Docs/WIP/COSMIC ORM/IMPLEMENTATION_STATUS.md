@@ -6,7 +6,7 @@ Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-provi
 
 | Area | Evidence | Acceptance still open |
 |---|---|---|
-| Tracking and save ownership | Detached preparation, private baselines, no-op detection, failed-write isolation, submitted membership and acknowledgement checks; Core 1,347 tests pass, including predicate compilation, composition and pure capability planning | Complete encryption/key-context and arbitrary callback failure acceptance |
+| Tracking and save ownership | Detached preparation, private baselines, no-op detection, failed-write isolation, submitted membership and acknowledgement checks; Core 1,353 tests pass, including predicate compilation, composition and pure capability planning | Complete encryption/key-context and arbitrary callback failure acceptance |
 | Cross-client concurrency | Native revision checks and idempotent operation receipts under MongoDB, SQLite and Neo4j transaction owners | Wider provider capability admission and complete public route/fault coverage |
 | Typed child roles | Captured manifests, root-only authoritative-null preservation, hydration before tracking, explicit partial selections | Remaining parameter, visibility, history and provider conformance |
 | V2 graph loading | ID/key, collection, metadata and parent routes; source-bound member reads, heap traversal, depth limits, unlink protection and overlapping roots | Coherent historical snapshots and wider failure/security policies |
@@ -29,7 +29,7 @@ Recent local commits include Core `768d2e6` (manager graph ownership) and `ccb7b
 | 5. Controlled migration | Full checkpoint/catch-up/verification/cutover workflow is not implemented; import/export alone is insufficient |
 | 6. Gas-aware placement | Authorized durable settlement, quote freshness, budgets, deadlines, finality and reconciliation remain open |
 | 7. Per-save deltas | Local comparison/preview prerequisites exist; atomically persisted, authorized committed deltas and replay semantics are incomplete |
-| 8. CQL | [Predicate compiler and typed composition/scope](CQL_EXPRESSION_CONTRACT.md) implemented and unit-tested; pure scope/capability planning is verified, first SQLite leaf-row native adapter and exact field capabilities verified (833/833 integration cohort, including metadata presence/null and shared execution); security/manager integration, broader native adapters and federation remain open |
+| 8. CQL | [Typed CQL compiler, composition, scope and manager pipeline](CQL_EXPRESSION_CONTRACT.md) implemented; SQLite leaf queries include canonical comparisons, metadata presence/null and selected scalar metadata, strings and membership; authenticated WEB4 policy/routing, broader native adapters, graph queries, paging/aggregates and federation remain open |
 
 The [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) retains the original requirements and acceptance criteria. No overall percentage is asserted without a verified weighted checklist. Failover selection does not prove 100% uptime, completed migration or finalized settlement.
 
@@ -80,3 +80,12 @@ Six focused native cases pass, covering 420 comparisons against separately compi
 Five new cases verify operator/type separation, metadata-only profiles, nullable admission, membership/string/mixed-numeric gates and immutable descriptor ownership. Full Core 1,352/1,352 passes with zero skips, and both target frameworks build with zero errors. This is admission groundwork: SQLite scalar metadata translation is not enabled by this checkpoint. Native missing/null/type semantics and the full original roadmap remain required.
 
 Native compatibility verification on the new Core contract: SQLite 905/905 passes in117s, zero skips, with fixture absent after teardown (`sqlite-cql-metadata-profile-full.trx`). No scalar metadata native support is claimed.
+
+
+## Native SQLite scalar metadata checkpoint — 20 October 2026
+
+The [typed scalar metadata contract](CQL_SCALAR_METADATA.md) adds native comparisons, membership and ordinal string matching for string, boolean, Int32 and Int64 metadata, including nullable value types. The production profile and translator share exact type/operator declarations. Missing and wrong-type paths remain distinct from explicit JSON null; integer bounds and SQLite runtime types are checked before comparison. Arrays and JSON-encoded strings are not traversed as objects. Shared native string/membership helpers preserve existing canonical field behavior. Unsupported metadata types and mixed numeric metadata comparisons reject before I/O, including with overbroad caller plans.
+
+The compiler also handles method-free built-in nullable scalar literal lifting, fixing the nullable boolean comparison exposed by the original red fixture. Full Core 1,353/1,353 and focused native 43/43 pass with zero skips. The original 26-case failure report is retained. Native decimal/double/GUID/date/enum metadata, authenticated WEB4 policy/routing, broader adapters, graph queries, paging/aggregates/federation and all unfinished original roadmap stages remain required.
+
+Final native regression: SQLite 948/948 passes125s, zero skips (`sqlite-cql-scalar-metadata-full-verified.trx`), with the fixture absent after normal teardown. Full Core1,353/1,353 and focused native43/43 belong to the recorded matching Core/provider epoch.
