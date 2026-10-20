@@ -1,5 +1,7 @@
 # CQL expression contract: first implementation milestone
 
+For the current usage overview, start with [CQL getting started](CQL_GETTING_STARTED.md). The checkpoint sections below retain their original scope and evidence; later native/manager implementation supersedes earlier statements that execution is unimplemented. Complete WEB4 authorization/routing, additional adapters and the remaining CQL roadmap are still open.
+
 20 October 2026. Predicate compilation and immutable typed query composition are implemented; database query execution remains incomplete. It performs no provider I/O and does not satisfy the complete CQL roadmap.
 
 ## Implemented

@@ -1,0 +1,130 @@
+# CQL getting started
+
+20 October 2026. CQL is the typed query layer for COSMIC ORM. It translates supported C# expression trees into a provider-independent query representation, checks the selected providers' capabilities, then executes native queries. The first native adapter is SQLite. Full roadmap completion is not claimed.
+
+## Current feature status
+
+| Area | Available now | Remaining |
+|---|---|---|
+| Expressions | Where, AND/OR/NOT, scalar comparisons, null tests, ordinal string matching, bounded scalar-array membership | Wider expression forms, field-to-field comparisons |
+| Metadata | Nested literal paths, Exists, IsNull; SQLite string/bool/int/long comparisons, membership and supported strings | Native decimal/double/Guid/date/enum metadata predicates |
+| Scope | Current default, named providers, all eligible targets; capability admission before I/O | Automatic authenticated WEB4 target discovery and policy routing |
+| Native execution | Parameterized SQLite queries, cancellation checks, result and parameter budgets | MongoDB/Neo4j and other adapters, native scan deadlines |
+| Returned entities | V2 typed leaf entities, metadata hydration/decryption, clean tracking, conditional save integration | Child loading options, relationship predicates, broader entity-kind mapping |
+| Federation | Provider-grouped results with provenance and errors | Deduplication, freshness/conflict policy, paging/order/projection/aggregates |
+
+This is currently a fluent expression API, not a textual SQL-like parser or a complete EF IQueryable implementation. Query compilation can represent more scalar types than any particular adapter can execute. Capability checks distinguish the two.
+
+## Build a query
+
+```csharp
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Queries;
+
+var minimumVersion = 2;
+var built = CosmicQuery<Holon>.Create().Where(h =>
+    h.Version >= minimumVersion &&
+    h.Name.StartsWith("Coffee", StringComparison.Ordinal));
+
+if (built.IsError)
+    throw new InvalidOperationException(built.Message);
+
+var query = built.Result;
+```
+
+Captured values are frozen when Where is called. Changing minimumVersion afterwards does not change this query. Composition is immutable: another Where returns another OASISResult containing a new query and combines the predicates with AND. Check each result before using it.
+
+## Query nested metadata
+
+```csharp
+var built = CosmicQuery<Holon>.Create().Where(h =>
+    CosmicQueryMetadata.Value<int>(h, "stats", "score") >= 7 &&
+    CosmicQueryMetadata.Value<string>(h, "category") == "coffee" &&
+    CosmicQueryMetadata.Exists(h, "merchantId"));
+```
+
+The segments "stats", "score" mean nested objects. A single segment "stats.score" means one literal key containing a dot. Paths and values are bound parameters, not native query fragments.
+
+Exists matches a present entry, including explicit JSON null. IsNull matches explicit JSON null, not a missing path. Typed predicates reject missing/wrong-type values as nonmatches; NOT complements the entire predicate. See the detailed [metadata semantics](CQL_SCALAR_METADATA.md) before relying on inequality/null combinations.
+
+## Select provider scope
+
+```csharp
+// Default intent: the current default in the authorized target snapshot.
+var defaultQuery = CosmicQuery<Holon>.Create();
+
+var named = CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS);
+if (named.IsError) throw new InvalidOperationException(named.Message);
+var sqliteQuery = query.WithScope(named.Result);
+
+// Every target supplied by the trusted eligibility boundary.
+var allQuery = query.WithScope(CosmicQueryScope.AllEligible);
+```
+
+These examples also require `using NextGenSoftware.OASIS.API.Core.Enums;`. AllEligible means all supplied eligible targets, not every registered provider. If any selected target cannot execute the complete predicate, planning rejects the query; it does not silently omit that target or evaluate the filter locally.
+
+## Plan and execute against SQLite
+
+This example assumes an activated SQLite provider and an existing HolonManager configured to use Hyperdrive V2. The hosting application must already have authorized this actor and target. Passing an adapter or constructing a plan does not grant authorization; automatic WEB4 policy integration is still open.
+
+```csharp
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+
+ICosmicQueryStorageProvider adapter = provider;
+var targets = new[] {
+    new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities)
+};
+
+var plan = CosmicQueryPlanner.Plan(query, adapter.QueryProviderType, targets);
+if (plan.IsError) throw new InvalidOperationException(plan.Message);
+
+var result = await manager.ExecuteQueryAsync(
+    plan.Result, new[] { adapter },
+    maximumResults: 100, cancellationToken: cancellationToken);
+if (result.IsError) throw new InvalidOperationException(result.Message);
+
+foreach (var group in result.Result.Providers)
+    foreach (var holon in group.Rows)
+        Console.WriteLine($"{group.Provider}: {holon.Id} {holon.Name}");
+```
+
+maximumResults is a total result safety budget, not pagination or Take. Exceeding it returns an error rather than publishing a truncated successful result. Results retain provider groups; there is no implicit identity deduplication or cross-provider winner selection.
+
+## Membership and strings
+
+```csharp
+var ids = new[] { firstId, secondId }; // Guid values
+var built = CosmicQuery<Holon>.Create().Where(h =>
+    ids.Contains(h.Id) && h.Description.Contains("espresso"));
+```
+
+Use `using System.Linq;` for array membership. Membership arrays are captured, bounded to 128 values and must match the path's declared type. String matching is ordinal; StartsWith/EndsWith require explicit StringComparison.Ordinal. SQL wildcard characters remain literal text. Arbitrary application methods/getters are not executed by the compiler.
+
+## Edit a query result
+
+Typed manager query results have clean tracking baselines. An unchanged save preserves the revision; an edit can use the existing conditional save API and its accepted provider revision:
+
+```csharp
+var row = result.Result.Providers.Single().Rows.First();
+row.Description = "Updated description";
+var saved = await manager.SaveHolonAsync(
+    row, actorId, new CosmicWriteOptions(Guid.NewGuid()),
+    saveChildren: false, providerType: ProviderType.SQLLiteDBOASIS);
+if (saved.IsError) throw new InvalidOperationException(saved.Message);
+```
+
+Keep the operation ID stable for retries of the same operation. Encrypted logical conditional retries currently have a reproduced preparation-ownership defect; see [conditional writes](CONDITIONAL_WRITES.md#encrypted-preparation-replay-defect--20-october-2026). This example does not certify that open retry case.
+
+## Encryption and querying
+
+Reserved system metadata and explicitly configured AdditionalQueryableKeys remain clear and can be queried. Private entries stored inside __oasis_enc__ cannot be filtered by a native metadata predicate. Authorized typed results are decrypted before metadata hydration/tracking; this does not make their encrypted fields searchable in storage.
+
+## Source and evidence
+
+- [Expression and capability contract](CQL_EXPRESSION_CONTRACT.md).
+- [Execution, typed results and write-back](CQL_EXECUTION_PIPELINE.md).
+- [SQLite native translation](CQL_SQLITE_NATIVE.md).
+- [Metadata type/null semantics](CQL_SCALAR_METADATA.md).
+- [Current implementation status](IMPLEMENTATION_STATUS.md) and [exact verification epochs](INTEGRATION_BOUNDARY.md).
+
+Executable native examples live in Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests: CosmicCqlTests.cs, CosmicCqlScalarMetadataTests.cs, CosmicCqlConcurrencyTests.cs and CosmicAuthenticatedMetadataTests.cs. These are fixture-backed tests, not production deployment examples. Historical test totals in the linked checkpoint documents describe those specific runs, not a CQL completion percentage.
