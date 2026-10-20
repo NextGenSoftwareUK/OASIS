@@ -41,6 +41,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         try {
             ValidateFirestoreVersion(version);
             StoredRecordSearch.Validate(search,version,maxDepth,supportsHistory:true);
+            search=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(search);
+            StoredRecordSearch.Validate(search,version,maxDepth,supportsHistory:true);
             var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
             var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
             var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);

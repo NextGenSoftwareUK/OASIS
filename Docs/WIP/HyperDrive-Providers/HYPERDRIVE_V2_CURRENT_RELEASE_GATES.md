@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Google Cloud custom search ownership - 2026-10-20
+
+Twelve controlled request-edit regressions all red before, final167/167pass948ms. Google custom search now reuses Core canonical SearchParams projection+validation before native await (two production lines), not a duplicate codec/engine. Retained checkpoint verification PASS; native runner89319terminal35history/lifecycle/search pass3s+79regressionpass33s/zero skipped. Six added actual SDK async read-suspension schedules preserve original scope/selection and exact JSON/native revision, conditionally clean owned originals with absence before intent removal. Controlled sync cases are not falsely native sync races. Same copied CoreC8D2/Shared7FBF across both consumers; Core further local work/publication remains separately owned. No Core build/edit here. Full hashes/limits in FIRESTORE_RECORD_HISTORY.md.
+
+Same pinned emulator/JAR/export/checkpoint/project/ports/lease/SDK/cache, no install/download/duplicate environment/reset. After stop pending0/18080-18083listenersabsent; free C68,536,553,472bytes,123GBtarget unmet/no reclaim claim. No hosted Google/Atlas/config/spending calls. Hosted IAM/billing/TLS, CloudStorage/BigQuery, all relevant interfaces/public endpoints and ALL-provider V2 remainOPEN. Azure Storage/Cosmos custom search paths still need their own follow-up; shared-base proof does not cover overrides automatically.
+
 ## Shared canonical search ownership - 2026-10-20
 
 The shared key-value base had the same caller-request mutation gap fixed separately in AWS/Oracle. Twelve controlled sync/async scope/text/parent/metadata/nested-mask schedules ALL failed before; `TestResults/SharedCurrent/shared-search-snapshot-before.trx` SHA256 `955B77685E731D72BC8161E6FE911035744DC47B8AED415B03629126E42617E2`. Existing pre-I/O search validation boundary now captures Core StoredRecordJson.Project<SearchParams> and validates that owned request; capture/validation errors remain OASISResult payload errors before storage. No duplicate codec/search algorithm/native backend or graph/replication source edits. Inherited providers including OCI Object Storage and shared-base chains receive the common behavior, NOT separate copies.
