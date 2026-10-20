@@ -216,4 +216,50 @@ public sealed class ConditionalHolonRecordTests
         var partial=(KeyValuePartialMutationException)result.Exception;CollectionAssert.AreEqual(new[]{key},partial.AcknowledgedKeys.ToArray());
         Assert.IsInstanceOfType<StorageLifecycleConflictException>(partial.InnerException);
     }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task HolonDeletionCannotRemoveChangedCurrentOrAnyAuxiliaryKeys(bool synchronous)
+    {
+        var id=Guid.NewGuid();var parent=Guid.NewGuid();var key=$"oasis/holon/{id:N}";var link=$"oasis/holon-parent/{parent:N}/{id:N}";var history=$"oasis/version/holon/{id:N}/0000000001";
+        var store=new Store();store.Seed(key,OasisJson.Serialize<IHolon>(new Holon{Id=id,ParentHolonId=parent,Version=2}));store.Seed(link,id.ToString());store.Seed(history,OasisJson.Serialize<IHolon>(new Holon{Id=id,Version=1}));
+        var winner=OasisJson.Serialize<IHolon>(new Holon{Id=id,ParentHolonId=parent,Name="winner",Version=3});
+        store.AfterRead=read=>{if(read==key){store.AfterRead=null;store.Seed(key,winner);}};
+        var oldLink=store.Rows[link];var oldHistory=store.Rows[history];var provider=new TestProvider(store);
+        var result=synchronous?provider.DeleteHolon(id):await provider.DeleteHolonAsync(id);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);Assert.IsNull(result.Result);Assert.IsInstanceOfType<StorageLifecycleConflictException>(result.Exception);
+        Assert.AreEqual(winner,store.Rows[key].Value);Assert.AreSame(oldLink,store.Rows[link]);Assert.AreSame(oldHistory,store.Rows[history]);Assert.AreEqual(0,store.Mutations);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task HolonDeletionPreservesChangedParentOrChildLinkAfterCurrentAcknowledgement(bool child)
+    {
+        var id=Guid.NewGuid();var parent=Guid.NewGuid();var childId=Guid.NewGuid();var key=$"oasis/holon/{id:N}";
+        var link=child?$"oasis/holon-parent/{id:N}/{childId:N}":$"oasis/holon-parent/{parent:N}/{id:N}";var owner=child?childId:id;
+        var store=new Store();store.Seed(key,OasisJson.Serialize<IHolon>(new Holon{Id=id,ParentHolonId=child?Guid.Empty:parent}));store.Seed(link,owner.ToString());KeyValueObservation winner=null;
+        store.AfterMutation=written=>{if(written==key){store.AfterMutation=null;store.Seed(link,owner.ToString());winner=store.Rows[link];}};
+        var result=await new TestProvider(store).DeleteHolonAsync(id);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);Assert.IsFalse(store.Rows.ContainsKey(key));Assert.AreSame(winner,store.Rows[link]);Assert.AreEqual(1,store.Mutations);
+        var partial=(KeyValuePartialMutationException)result.Exception;CollectionAssert.AreEqual(new[]{key},partial.AcknowledgedKeys.ToArray());Assert.IsInstanceOfType<StorageLifecycleConflictException>(partial.InnerException);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task HolonDeletionRefusesCorruptLinkOrHistoryBeforeMutation(bool history)
+    {
+        var id=Guid.NewGuid();var parent=Guid.NewGuid();var key=$"oasis/holon/{id:N}";var store=new Store();store.Seed(key,OasisJson.Serialize<IHolon>(new Holon{Id=id,ParentHolonId=history?Guid.Empty:parent}));
+        var corruptKey=history?$"oasis/version/holon/{id:N}/0000000001":$"oasis/holon-parent/{parent:N}/{id:N}";
+        store.Seed(corruptKey,history?OasisJson.Serialize<IHolon>(new Holon{Id=Guid.NewGuid(),Version=1}):Guid.NewGuid().ToString());
+        var original=store.Rows[key];var corrupt=store.Rows[corruptKey];var result=await new TestProvider(store).DeleteHolonAsync(id);
+        Assert.IsTrue(result.IsError);Assert.IsInstanceOfType<System.IO.InvalidDataException>(result.Exception);Assert.AreEqual(0,store.Mutations);Assert.AreSame(original,store.Rows[key]);Assert.AreSame(corrupt,store.Rows[corruptKey]);
+    }
+
+    [TestMethod]
+    public async Task HolonDeletionRemovesObservedLinksAndHistoryButNotChildRecords()
+    {
+        var id=Guid.NewGuid();var parent=Guid.NewGuid();var child=Guid.NewGuid();var key=$"oasis/holon/{id:N}";var childKey=$"oasis/holon/{child:N}";var store=new Store();
+        store.Seed(key,OasisJson.Serialize<IHolon>(new Holon{Id=id,ParentHolonId=parent,Version=2}));store.Seed(childKey,OasisJson.Serialize<IHolon>(new Holon{Id=child,ParentHolonId=id}));
+        store.Seed($"oasis/holon-parent/{parent:N}/{id:N}",id.ToString());store.Seed($"oasis/holon-parent/{id:N}/{child:N}",child.ToString());store.Seed($"oasis/version/holon/{id:N}/0000000001",OasisJson.Serialize<IHolon>(new Holon{Id=id,Version=1}));
+        var originalChild=store.Rows[childKey];var result=await new TestProvider(store).DeleteHolonAsync(id);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsDeleted);Assert.AreEqual(id,result.Result.Id);Assert.AreEqual(4,store.Mutations);
+        Assert.AreEqual(1,store.Rows.Count);Assert.AreSame(originalChild,store.Rows[childKey]);
+    }
 }

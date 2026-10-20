@@ -862,13 +862,32 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             var acknowledged=new List<string>();
             try
             {
-                var holon = await ReadVersionAsync(HolonKey(id),await ReadAsync<IHolon>(HolonKey(id)),0);
+                var key=HolonKey(id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (record,observed)=await ReadForMutationAsync<IHolon>(key,conditional);
+                var holon=await ReadVersionAsync(key,record,0);
                 if (holon == null) return Fail<IHolon>($"Holon {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
-                if (holon.ParentHolonId != Guid.Empty) await DeleteAcknowledgedAsync(ParentKey(holon.ParentHolonId, id),acknowledged);
-                foreach (var childLink in await Backend.ListKeysAsync(ParentPrefix(id)))
-                    await DeleteAcknowledgedAsync(childLink,acknowledged);
-                await DeleteVersionsAsync(HolonKey(id),acknowledged);
-                await DeleteAcknowledgedAsync(HolonKey(id),acknowledged);
+                if(conditional==null){
+                    if(holon.ParentHolonId!=Guid.Empty)await DeleteAcknowledgedAsync(ParentKey(holon.ParentHolonId,id),acknowledged);
+                    foreach(var childLink in await Backend.ListKeysAsync(ParentPrefix(id)))await DeleteAcknowledgedAsync(childLink,acknowledged);
+                    await DeleteVersionsAsync(key,acknowledged);await DeleteAcknowledgedAsync(key,acknowledged);
+                }else{
+                    var links=new Dictionary<string,KeyValueObservation>(StringComparer.Ordinal);
+                    if(holon.ParentHolonId!=Guid.Empty){
+                        var parentKey=ParentKey(holon.ParentHolonId,id);var parent=await ReadOwnedIndexAsync(conditional,parentKey,id);
+                        if(parent!=null)links.Add(parentKey,parent);
+                    }
+                    var prefix=ParentPrefix(id);
+                    foreach(var childLink in await Backend.ListKeysAsync(prefix)){
+                        if(!childLink.StartsWith(prefix,StringComparison.Ordinal)||childLink.Length!=prefix.Length+32||!Guid.TryParseExact(childLink[prefix.Length..],"N",out var childId)||childId==Guid.Empty)
+                            throw new System.IO.InvalidDataException("Stored child-link key is invalid.");
+                        if(links.ContainsKey(childLink))continue;
+                        var child=await ReadOwnedIndexAsync(conditional,childLink,childId);if(child!=null)links.Add(childLink,child);
+                    }
+                    var versions=await ObserveHistoricalDeletesAsync<IHolon>(key,id,conditional);
+                    await DeleteObservedAcknowledgedAsync(conditional,key,observed,acknowledged);
+                    foreach(var link in links)await DeleteObservedAcknowledgedAsync(conditional,link.Key,link.Value,acknowledged);
+                    foreach(var version in versions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
+                }
                 return new OASISResult<IHolon>(holon) { IsDeleted = true, Message = $"Holon {id} deleted from {Name}." };
             }
             catch (Exception ex) { return Fail<IHolon>($"Error deleting holon {id}: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
