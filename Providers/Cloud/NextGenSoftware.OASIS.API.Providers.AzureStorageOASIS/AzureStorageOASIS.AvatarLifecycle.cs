@@ -62,6 +62,7 @@ public partial class AzureStorageOASIS : IAvatarTombstoneStorageProvider
             var detail=detailRead==null ? null:await ReadBlobHistoryAsync<AvatarDetail>(detailRead.Content.ToString(),0);
             if(detailRead!=null && (detail==null || detail.Id!=id)) throw new InvalidDataException("Azure detail identity differs from blob key.");
             AvatarTombstone tombstone=null;
+            var writeProfile=true;var writeDetail=detail!=null;
             if(softDelete)
             {
                 var date=supplied?.DeletedAtUtc ?? (profile.IsDeleted ? profile.DeletedDate:DateTime.UtcNow);
@@ -69,18 +70,19 @@ public partial class AzureStorageOASIS : IAvatarTombstoneStorageProvider
                 tombstone=new AvatarTombstone(id,date,actor);
                 if(detail!=null && detail.IsDeleted && (detail.DeletedDate!=date || detail.DeletedByAvatarId!=actor))
                     throw new StorageLifecycleConflictException("Azure profile/detail committed tombstones conflict.");
+                writeProfile=!profile.IsDeleted||profile.IsActive;
+                writeDetail=detail!=null&&(!detail.IsDeleted||detail.IsActive);
                 profile.IsActive=false;profile.DeletedDate=date;profile.DeletedByAvatarId=actor;
                 if(detail!=null) {detail.IsActive=false;detail.DeletedDate=date;detail.DeletedByAvatarId=actor;}
             }
             // Materialize both payloads before the first mutation. ETags guard each
             // blob; this is deliberately NOT represented as a cross-blob transaction.
-            var profilePayload=softDelete ? BinaryData.FromString((await StageBlobHistoryAsync(profile,profileRead.Content.ToString(),IsVersionControlEnabled)).ToString(Newtonsoft.Json.Formatting.None)):null;
-            var detailPayload=softDelete && detail!=null ? BinaryData.FromString((await StageBlobHistoryAsync(detail,detailRead.Content.ToString(),IsVersionControlEnabled)).ToString(Newtonsoft.Json.Formatting.None)):null;
+            var profilePayload=softDelete && writeProfile ? BinaryData.FromString((await StageBlobHistoryAsync(profile,profileRead.Content.ToString(),IsVersionControlEnabled)).ToString(Newtonsoft.Json.Formatting.None)):null;
+            var detailPayload=softDelete && writeDetail ? BinaryData.FromString((await StageBlobHistoryAsync(detail,detailRead.Content.ToString(),IsVersionControlEnabled)).ToString(Newtonsoft.Json.Formatting.None)):null;
             if(softDelete)
             {
-                await WriteLifecycleBlobAsync(profileBlob,profileRead.Details.ETag,profilePayload);
-                acknowledged.Add(_avatarContainer+"/"+id);
-                if(detailRead!=null) {await WriteLifecycleBlobAsync(detailBlob,detailRead.Details.ETag,detailPayload);acknowledged.Add(_detailContainer+"/"+id);}
+                if(writeProfile) {await WriteLifecycleBlobAsync(profileBlob,profileRead.Details.ETag,profilePayload);acknowledged.Add(_avatarContainer+"/"+id);}
+                if(writeDetail) {await WriteLifecycleBlobAsync(detailBlob,detailRead.Details.ETag,detailPayload);acknowledged.Add(_detailContainer+"/"+id);}
             }
             else
             {
