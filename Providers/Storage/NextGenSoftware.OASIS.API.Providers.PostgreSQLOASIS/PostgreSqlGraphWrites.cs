@@ -67,6 +67,7 @@ public partial class PostgreSQLOASIS
                 var cause=failures.Count==1?failures[0]:new AggregateException(failures);
                 result.Exception=acknowledged.Count>0||failures.Any(NativeMutationReconciliation.IsRequired)
                     ?new PostgreSqlGraphReconciliationException(originalIds,acknowledged,cause):cause;
+                if(IsLifecycleConflict(cause))result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
                 result.Result=committedRoots;OASISErrorHandling.HandleError(ref result,"PostgreSQL selected graph save failed.");
             }
         }catch(Exception cause){result.Exception=acknowledged.Count>0?new PostgreSqlGraphReconciliationException(originalIds,acknowledged,cause):cause;OASISErrorHandling.HandleError(ref result,"PostgreSQL graph admission or publication failed.");}
