@@ -1,6 +1,49 @@
 # Durable conditional-write preparation
 
-20 October 2026. This is an implementation checkpoint. The provider-neutral claim contract and native SQLite storage are implemented; manager/V2 integration and encrypted logical retry acceptance remain open.
+20 October 2026. This is an implementation checkpoint. Shared manager/V2 preparation recovery and the native SQLite store are implemented. Selected native encrypted retry cases now pass; complete provider, failure, retention and authorization acceptance remains open. Historical storage-only evidence is retained below.
+
+## Current V2 save flow
+
+1. The detached save plan allocates stable operation-based identities. Core captures exact logical values before audit/encryption, retaining selected root/child order and per-record protection contexts.
+2. Normal metadata preparation runs. Core protects each node's original prepared snapshot and logical intent in that node's own authenticated preparation envelope. The protected graph intent binds authority, actor, operation ID, ordered roots/edges, relationship roles, expected revisions, child/recursive/depth flags, replication enrollment and requested CLR snapshot contracts. Type identity uses FullName and assembly simple name, omitting assembly version. Stored names never select an instantiated type.
+3. Hyperdrive checks the required preparation capability before provider activation/persistence. The claim runs inside the existing pinned V2 provider invocation and its configured admission owner; there is no direct database access from HolonManager. This does not implement the unfinished authenticated WEB4 tenant/policy boundary.
+4. Core authenticates every winning envelope and compares the complete logical selection before constructing any recovered entity. Exact numeric comparison preserves tiny decimal differences; strings remain strings. Changed intent is rejected before holon mutation.
+5. Core restores the original prepared snapshots into the currently requested admitted CLR types, then reconnects the captured topology. Original encryption nonces/ciphertext remain unchanged. Runtime resolvers, policies and key material are not persisted.
+6. The existing provider conditional transaction/receipt owner receives the recovered request with its full fingerprint unchanged. Caller state and tracking publish only after the normal complete acknowledgement checks.
+
+Unsupported preparation providers return COSMIC_PREPARATION_UNSUPPORTED. SQLite has the selected end-to-end encrypted recovery proof. The coordinated provider session has also implemented DynamoDB/AWS claims and eight native encrypted manager/V2 cases on the same Core D490 epoch; see its provider-specific evidence. Newly implemented conditional capabilities in other providers do not automatically grant encrypted preparation support.
+
+## Runtime policy and rollout
+
+The ordinary conditional-save API selects the shared recovery path; callers do not invoke the preparation store directly:
+
+```csharp
+manager.MetadataEncryptionPolicy = new HolonMetadataEncryptionPolicy(
+    "application-context", "current-key-id", authorizedResolver,
+    new[] { "AppRegion" });
+var operationId = Guid.NewGuid(); // retain for retries of this logical operation
+var saved = await manager.SaveHolonAsync(
+    holon, avatarId, new CosmicWriteOptions(operationId),
+    saveChildren: true, providerType: ProviderType.SQLLiteDBOASIS);
+```
+
+This assumes an activated/configured V2 manager and uses Security, Interfaces and Enums from Core. The application supplies authorizedResolver; no runtime resolver is accepted from stored data. AppRegion and reserved system metadata remain queryable in the holon store. The preparation journal encrypts its copy of both logical and prepared data; it does not change which metadata the actual holon keeps clear.
+
+For an older explicitly configured metadata cipher, set `manager.PreparationEncryptionPolicy` to an authorized policy while retaining the existing metadata encryption settings. This protects the journal without silently changing the metadata format.
+
+For each selected node, preparation protection selects its MetadataEncryptionOverride, otherwise the manager's explicit PreparationEncryptionPolicy, otherwise MetadataEncryptionPolicy. Every selected node requires an authorized context. A current write-key change can read an older winner through its retained stored key reference; denied/retired keys are errors. Changing configuration does not rewrite an original prepared operation.
+
+Existing CBC/layered metadata formats can use a separate PreparationEncryptionPolicy. Their metadata cipher and reserved query-key behavior remain unchanged. An encrypted conditional save without any authorized preparation context fails before storage. Ordinary saves are unchanged.
+
+A prior write receipt without an original protected preparation cannot establish the original logical plaintext. SQLite rejects that state with COSMIC_PREPARATION_RECONCILIATION_REQUIRED before inserting a new claim. Operators must reconcile the original operation; no receipt-derived guess, automatic backfill, new nonce reconstruction or silent second write is allowed. Retain original preparation and receipt/key lineage together until an explicit retention policy proves replay is no longer required.
+
+## Recovery verification in progress
+
+The original four-case native regression now passes4/4, including both encrypted retries. Expanded native23/23 and complete native1,034/1,034 pass with no exclusions/skips on the recorded 1FA3 Core epoch. Eleven new Core admission cases exposed one ordering defect (a valid root constructed before late-child authentication failure); the corrected all-selection owner passes within complete Core1,522/1,522. An additional six native cases pass, covering abandoned post-claim dispatch, real commit followed by injected application acknowledgement loss, and old metadata CBC with explicit preparation protection. These are application-boundary injections, not process termination or real network fault certification. Final complete Core1,524/1,524 and native SQLite1,041/1,041 pass with no exclusions/skips; the receipt-cutover, explicit mixed-context and typed-snapshot binding gates are included. Exact reports and artifact identities are in the integration boundary.
+
+Open acceptance includes actual process/transport interruption, native claim commit/rollback/cleanup fault injection, history/replication/migration key-context integration, mixed-tenant contexts, paid native-fee provider preparation, operator reconciliation/retention and other provider implementations. The original broader roadmap remains active.
+
+Final recovery acceptance: Core **1,524/1,524** and SQLite **1,041/1,041**, zero skips/exclusions, with both red ordering/type-contract cases corrected. Core source `a265d7a`; final reports are preparation-type-contract-final-core-full.trx and preparation-type-contract-final-native-full.trx. The coordinated [DynamoDB/AWS encrypted V2 proof](../HyperDrive-Providers/AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md#aws-end-to-end-encrypted-v2-replay--88-native-green-2026-10-20) adds eight native cases on the same Core epoch, with its own Shared artifact and explicit scope. Exact evidence is retained in [integration history](INTEGRATION_BOUNDARY.md#shared-v2-encrypted-conditional-save-recovery--20-october-2026-1322-local).
 
 ## Ownership invariant
 
@@ -24,7 +67,7 @@ Actor and authority mismatches are errors without returned contents. Corrupt/dup
 
 Both activation upgrade and EF migration create the table. Downgrade refuses to discard any retained claim. Retention, abandoned preparations, operational reconciliation and authenticated tenant admission are still required; do not delete claims to make a retry appear new.
 
-## Evidence and remaining integration
+## Initial storage-only evidence and then-remaining integration
 
 Initial focused native claim cohort: eight executed, eight passed, zero skipped (`TestResults/SQLiteCurrent/preparation-store-native-focused.trx`). These storage tests intentionally use opaque random tokens, not authenticated Core envelopes, and do not certify encrypted logical replay. Three new Core contract tests cover detached ordering, immutable publication, duplicate/null/identity admission and count/payload limits. Full Core initially passes 1,511/1,511; final valid-Unicode admission evidence is recorded in the integration boundary after rebuilding.
 
