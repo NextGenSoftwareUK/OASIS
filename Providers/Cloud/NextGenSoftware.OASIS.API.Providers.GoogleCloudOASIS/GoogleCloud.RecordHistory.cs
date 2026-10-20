@@ -12,6 +12,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
+    private static void ValidateFirestoreCallerPublication(Action validate,Guid acknowledgedId)
+    {
+        try{validate();}catch(Exception cause){throw new GoogleFirestorePartialMutationException(new[]{acknowledgedId},cause);}
+    }
     private static void HandleFirestoreSaveError<T>(ref NextGenSoftware.OASIS.Common.OASISResult<T> result,string message,Exception cause)
     {
         NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,message,cause);
@@ -40,9 +44,10 @@ public partial class GoogleCloudOASIS
     }
 
     // One conditional writer; callers publish state only after native acknowledgement.
-    private static async Task<T> WriteFirestoreRecordAsync<T>(DocumentReference reference,Dictionary<string,object> proposal,bool createHistory) where T:class,IHolonBase
+    private static async Task<T> WriteFirestoreRecordAsync<T>(DocumentReference reference,Dictionary<string,object> proposal,bool createHistory,Action validateCaller) where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(reference);ArgumentNullException.ThrowIfNull(proposal);
+        ArgumentNullException.ThrowIfNull(validateCaller);validateCaller();
         RequireSingleAttemptFirestoreCommit(reference.Database);
         var collection=reference.Parent.Id;
         var expected=collection=="avatars"?typeof(Core.Holons.Avatar):collection=="avatarDetails"?typeof(Core.Holons.AvatarDetail):collection=="holons"?typeof(Core.Holons.Holon):null;
@@ -77,6 +82,7 @@ public partial class GoogleCloudOASIS
             // Update with an exact observed revision and delete removed fields, preserving Set's replacement semantics.
             foreach(var key in previous.Keys.Where(key=>!fields.ContainsKey(key)))replacement[new FieldPath(key)]=FieldValue.Delete;
         }
+        validateCaller();
         try{
             RequireFirestoreAcknowledgement(snapshot.Exists
                 ? await reference.UpdateAsync(replacement,Precondition.LastUpdated(snapshot.UpdateTime.Value))

@@ -27,11 +27,12 @@ public class GoogleConditionalWriterTests
     private sealed class Client:FirestoreClient
     {
         public Document? Stored;public CommitRequest? Submitted;public int Writes,Reads;public string Mode="normal";public bool RetryCapable;
+        public Action? OnRead,OnCommit;
         public readonly IOException Lost=new("owned controlled response loss after simulated commit");
         public RpcException? Rejection;
         public override FirestoreSettings Settings=>RetryCapable?FirestoreSettings.GetDefault():(FirestoreSettings)typeof(GoogleCloudOASIS).GetMethod("CreateFirestoreSettings",BindingFlags.Static|BindingFlags.NonPublic)!.Invoke(null,null)!;
         public override BatchGetDocumentsStream BatchGetDocuments(BatchGetDocumentsRequest request,CallSettings callSettings=null)
-        {Reads++;return new SnapshotStream(Stored==null?new(){Missing=request.Documents.Single(),ReadTime=Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow)}:new(){Found=Stored.Clone(),ReadTime=Stored.UpdateTime});}
+        {Reads++;OnRead?.Invoke();return new SnapshotStream(Stored==null?new(){Missing=request.Documents.Single(),ReadTime=Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow)}:new(){Found=Stored.Clone(),ReadTime=Stored.UpdateTime});}
         public override Task<CommitResponse> CommitAsync(CommitRequest request,CallSettings callSettings=null)
         {
             Writes++;Submitted=request.Clone();
@@ -39,15 +40,36 @@ public class GoogleConditionalWriterTests
             if(Mode.StartsWith("conflict"))throw new RpcException(new Status(Mode=="conflict-exists"?StatusCode.AlreadyExists:Mode=="conflict-missing"?StatusCode.NotFound:StatusCode.FailedPrecondition,"owned controlled conflict"));
             var write=request.Writes.Single();var now=Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
             Stored=write.Update.Clone();Stored.UpdateTime=now;Stored.CreateTime=now;
+            OnCommit?.Invoke();
             if(Mode=="lost")throw Lost;
             var response=new CommitResponse{CommitTime=Mode=="invalid-ack"?new Google.Protobuf.WellKnownTypes.Timestamp():now};response.WriteResults.Add(new Google.Cloud.Firestore.V1.WriteResult{UpdateTime=Mode=="invalid-ack"?new Google.Protobuf.WellKnownTypes.Timestamp():now});return Task.FromResult(response);
         }
+    }
+    [DataTestMethod]
+    [DataRow(0,false,false)][DataRow(1,false,false)][DataRow(2,false,false)]
+    [DataRow(0,true,false)][DataRow(1,true,false)][DataRow(2,true,false)]
+    [DataRow(0,false,true)][DataRow(1,false,true)][DataRow(2,false,true)]
+    [DataRow(0,true,true)][DataRow(1,true,true)][DataRow(2,true,true)]
+    public async Task CallerVersionEditCannotBeOverwrittenOrDispatchedAfterObservation(int kind,bool synchronous,bool duringRead)
+    {
+        NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase source=kind==0?new Avatar{Id=Guid.NewGuid()}:kind==1?new AvatarDetail{Id=Guid.NewGuid()}:new Holon{Id=Guid.NewGuid()};
+        var client=new Client();Action change=()=>source.Version=999;
+        if(duringRead)client.OnRead=change;else client.OnCommit=change;
+        var provider=new GoogleCloudOASIS("owned-controlled-history",enableFirestore:true){IsProviderActivated=true};
+        typeof(GoogleCloudOASIS).GetField("_firestoreDb",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,FirestoreDb.Create("owned-controlled-history",client));
+        Exception? failure;
+        if(kind==0){var result=synchronous?provider.SaveAvatar((Avatar)source):await provider.SaveAvatarAsync((Avatar)source);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+        else if(kind==1){var result=synchronous?provider.SaveAvatarDetail((AvatarDetail)source):await provider.SaveAvatarDetailAsync((AvatarDetail)source);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+        else{var result=synchronous?provider.SaveHolon((Holon)source,saveChildren:false):await provider.SaveHolonAsync((Holon)source,saveChildren:false);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+        Assert.AreEqual(999,source.Version);Assert.AreEqual(duringRead?0:1,client.Writes);
+        if(duringRead)Assert.IsInstanceOfType<InvalidOperationException>(failure);
+        else{var partial=failure as GoogleFirestorePartialMutationException;Assert.IsNotNull(partial);Assert.AreEqual(source.Id,partial.AcknowledgedRecordIds.Single());}
     }
     private static Task<Holon> Write(Client client,Holon row,bool history)
     {
         var db=FirestoreDb.Create("owned-controlled-history",client);var reference=db.Collection("holons").Document(row.Id.ToString());
         var fields=new Dictionary<string,object>{["id"]=row.Id.ToString(),["data_json"]=OasisJson.Serialize(row)};
-        return (Task<Holon>)typeof(GoogleCloudOASIS).GetMethod("WriteFirestoreRecordAsync",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object[]{reference,fields,history})!;
+        return (Task<Holon>)typeof(GoogleCloudOASIS).GetMethod("WriteFirestoreRecordAsync",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object[]{reference,fields,history,(Action)(()=>{})})!;
     }
     [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)]
     public async Task PublicInvalidArgumentPreservesDefiniteRejectionWithoutFalseConflict(int kind)
