@@ -38,7 +38,7 @@ public class CosmicGenericMetadataPrecisionTests
     [InlineData(0)] [InlineData(1)] [InlineData(2)]
     public void GenericRecordReadersRejectAmbiguousMetadataAndUnsafeRootTypes(int route)
     {
-        foreach (var json in new[] { "{\"MetaData\":null}", "{\"MetaData\":[]}", "{\"MetaData\":{},\"metadata\":{}}",
+        foreach (var json in new[] { "{\"MetaData\":null,\"metadata\":{}}", "{\"MetaData\":[]}", "{\"MetaData\":{},\"metadata\":{}}",
             "{\"$type\":\"System.IO.FileInfo, System.Private.CoreLib\",\"MetaData\":{}}" })
         {
             Action read = () => {
@@ -69,6 +69,18 @@ public class CosmicGenericMetadataPrecisionTests
     {
         Action read = () => StoredRecordJson.Deserialize<Holon>("{\"MetaData\":{\"unsafe\":" + value + "}}");
         read.Should().Throw<Newtonsoft.Json.JsonSerializationException>();
+    }
+
+    [Fact]
+    public void CanonicalRecordReadersAcceptNullOrMissingMetadataWithoutOverridingConstructorDefaults()
+    {
+        foreach (var json in new[] { "{}", "{\"MetaData\":null}" })
+        {
+            StoredRecordJson.Deserialize<Holon>(json).MetaData.Should().NotBeNull();
+            StoredRecordJson.Deserialize<Avatar>(json).MetaData.Should().NotBeNull();
+            StoredRecordJson.Deserialize<AvatarDetail>(json).MetaData.Should().NotBeNull();
+            StoredRecordJson.DeserializeStoredHolon(json).MetaData.Should().NotBeNull();
+        }
     }
 
     public sealed class PlainContainer { public string MetaData { get; set; } = ""; }

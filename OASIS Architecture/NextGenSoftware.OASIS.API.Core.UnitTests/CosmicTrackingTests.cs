@@ -13,7 +13,7 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
-public class CosmicTrackingTests
+public partial class CosmicTrackingTests
 {
     [Theory]
     [InlineData(false,false,false)] [InlineData(true,false,false)]
