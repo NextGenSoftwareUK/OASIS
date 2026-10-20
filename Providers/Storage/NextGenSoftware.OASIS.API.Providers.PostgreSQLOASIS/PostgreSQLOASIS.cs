@@ -156,7 +156,7 @@ ON CONFLICT (id) DO UPDATE SET
                 publication.ValidateUnchanged();
                 avatar=await ExecuteRecordWriteAsync(cmd,"oasis_avatars",avatar,publication.ValidateUnchanged);
                 PublishAcknowledgedIdentity(source,avatar,publication);
-                result.IsSaved=true;
+                result.IsSaved=true;result.SavedCount=1;
                 result.Result = source;
                 result.IsError = false;
                 result.Message = $"PostgreSQLOASIS: Avatar '{avatar.Username}' saved.";
@@ -358,7 +358,7 @@ ON CONFLICT (id) DO UPDATE SET
                 publication.ValidateUnchanged();
                 avatarDetail=await ExecuteRecordWriteAsync(cmd,"oasis_avatar_details",avatarDetail,publication.ValidateUnchanged);
                 PublishAcknowledgedIdentity(source,avatarDetail,publication);
-                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "PostgreSQLOASIS: AvatarDetail saved.";
+                result.Result = source; result.IsSaved=true;result.SavedCount=1;result.IsError = false; result.Message = "PostgreSQLOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error saving avatar detail: {ex.Message}"); }
             return result;
@@ -427,41 +427,9 @@ ON CONFLICT (id) DO UPDATE SET
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var source=holon;
-                var publication=StoredRecordPublicationSnapshot<IHolon>.Capture(source);
-                holon=publication.Proposal;
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null)
-                    holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[ProviderType.Value] = holon.Id.ToString();
-
-                const string sql = @"
-INSERT INTO oasis_holons (id, parent_holon_id, holon_type, is_deleted, data_json)
-VALUES (@id, @parent_holon_id, @holon_type, @is_deleted, @data_json)
-ON CONFLICT (id) DO UPDATE SET
-    parent_holon_id = EXCLUDED.parent_holon_id,
-    holon_type = EXCLUDED.holon_type,
-    is_deleted = EXCLUDED.is_deleted,
-    modified_date = NOW(),
-    data_json = EXCLUDED.data_json";
-
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@id", holon.Id);
-                cmd.Parameters.AddWithValue("@parent_holon_id", holon.ParentHolonId == Guid.Empty ? (object)DBNull.Value : holon.ParentHolonId);
-                cmd.Parameters.AddWithValue("@holon_type", (int)holon.HolonType);
-                cmd.Parameters.AddWithValue("@is_deleted", holon.IsDeleted);
-                cmd.Parameters.AddWithValue("@data_json", Serialize(holon));
-                publication.ValidateUnchanged();
-                holon=await ExecuteRecordWriteAsync(cmd,"oasis_holons",holon,publication.ValidateUnchanged);
-                PublishAcknowledgedIdentity(source,holon,publication);
-                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"PostgreSQLOASIS: Holon '{holon.Name}' saved.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error saving holon '{holon?.Name}': {ex.Message}"); }
+            var graph=await WriteSelectedGraphAsync(new[]{holon},saveChildren,recursive,maxChildDepth,0,continueOnError);
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(graph);
+            if(!graph.IsError)result.Result=holon;
             return result;
         }
 
@@ -469,19 +437,7 @@ ON CONFLICT (id) DO UPDATE SET
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var holon in holons)
-            {
-                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (r.IsError) errors.Add(r.Message ?? r.Exception?.Message ?? "Unknown error");
-                else if (r.Result != null) saved.Add(r.Result);
-            }
-            result.Result = saved; result.IsError = errors.Count > 0;
-            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"PostgreSQLOASIS: {saved.Count} holon(s) saved.";
-            return result;
-        }
+            =>await WriteSelectedGraphAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,continueOnError);
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;

@@ -129,26 +129,38 @@ public partial class PostgreSQLOASIS
     {
         // One serializable transaction owns observation, archive, current payload and
         // indexed columns. Serialization conflicts surface; no implicit write retry.
-        await using var transaction=await command.Connection!.BeginTransactionAsync(IsolationLevel.Serializable);
-        command.Transaction=transaction;
+        var committing=false;var committed=false;var mutationStarted=false;
+        try{
+            await using var transaction=await command.Connection!.BeginTransactionAsync(IsolationLevel.Serializable);
+            command.Transaction=transaction;
+            var stored=await WriteRecordInTransactionAsync(command,table,proposal,validateCaller,mutationStarting:()=>mutationStarted=true);
+            validateCaller();
+            committing=true;await transaction.CommitAsync();committed=true;
+            return stored;
+        }catch(Exception cause)when(committed||mutationStarted&&cause is NpgsqlException and not PostgresException||committing&&cause is not PostgresException){
+            throw new PostgreSqlWriteReconciliationException(proposal.Id,cause);
+        }
+    }
+
+    private async Task<T> WriteRecordInTransactionAsync<T>(NpgsqlCommand command,string table,T proposal,Action validateCaller,PlannedHolonWrite plan=null,Action mutationStarting=null) where T:class,IHolonBase
+    {
         string previous;
-        await using(var read=new NpgsqlCommand($"SELECT data_json FROM {table} WHERE id=@id FOR UPDATE",command.Connection,transaction)){
+        await using(var read=new NpgsqlCommand($"SELECT data_json FROM {table} WHERE id=@id FOR UPDATE",command.Connection,command.Transaction)){
             read.Parameters.AddWithValue("id",proposal.Id);previous=(string)await read.ExecuteScalarAsync();
+        }
+        if(plan!=null&&proposal is Holon holon){
+            var observed=previous==null?null:await ReadKeyedStoredRecordAsync<Holon>(proposal.Id,previous,0);
+            holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plan,HolonChildRoleWriteKind.SourceSave,observed!=null,observed?.ChildRoleManifestJson);
         }
         var staged=await StageStoredRecordAsync(proposal,previous);
         command.Parameters["@data_json"].Value=staged.Json;
         command.CommandText+=" RETURNING data_json";
         validateCaller();
-        var committing=false;
-        try{
-            var acknowledged=await command.ExecuteScalarAsync();
-            if(acknowledged is not string json||!StoredRecordPayloadEquality.Equivalent(OasisJson.ParseStoredObject(staged.Json),OasisJson.ParseStoredObject(json)))
-                throw new InvalidDataException("PostgreSQL RETURNING payload did not acknowledge the exact staged record.");
-            validateCaller();
-            committing=true;await transaction.CommitAsync();
-            return staged.Record;
-        }catch(Exception cause)when(cause is NpgsqlException and not PostgresException||committing&&cause is not PostgresException){
-            throw new PostgreSqlWriteReconciliationException(proposal.Id,cause);
-        }
+        mutationStarting?.Invoke();
+        var acknowledged=await command.ExecuteScalarAsync();
+        if(acknowledged is not string json||!StoredRecordPayloadEquality.Equivalent(OasisJson.ParseStoredObject(staged.Json),OasisJson.ParseStoredObject(json)))
+            throw new InvalidDataException("PostgreSQL RETURNING payload did not acknowledge the exact staged record.");
+        validateCaller();
+        return staged.Record;
     }
 }
