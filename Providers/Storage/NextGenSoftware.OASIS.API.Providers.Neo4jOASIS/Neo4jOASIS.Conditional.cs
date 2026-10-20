@@ -87,6 +87,17 @@ public partial class Neo4jOASIS : IConditionalHolonStorageProvider,IAtomicHolonR
             try {return ConditionalHolonReceipt.Read((string)json,write.Plan).ToList();}
             catch(Exception invalid){throw new NeoConditionalReceiptException(invalid);}
         }
+        if(receipt.Properties.ContainsKey("PreparationJson")&&!receipt.Properties.ContainsKey("__cosmicClaim"))
+        {
+            try{RequirePreparationOwner(receipt,write.Actor);}
+            catch(PreparationActorException){throw new NeoConditionalIntentException();}
+            catch(InvalidDataException invalid){throw new NeoConditionalReceiptException(invalid);}
+            var promoted=await(await transaction.RunAsync("MATCH (r:CosmicWriteReceipt {OperationId:$operation}) "
+                +"WHERE r.ResultJson IS NULL AND r.__cosmicClaim IS NULL SET r.__cosmicClaim=$claim RETURN count(r) AS count",
+                new{operation=write.Plan.OperationId.ToString("D"),claim=write.Claim}).ConfigureAwait(false)).SingleAsync().ConfigureAwait(false);
+            if(promoted["count"].As<long>()!=1)throw new NeoConditionalReceiptException(new InvalidDataException("Preparation promotion is incomplete."));
+            return null;
+        }
         if(!receipt.Properties.TryGetValue("__cosmicClaim",out var owner) || (string)owner!=write.Claim)
             throw new NeoConditionalReceiptException(new InvalidDataException("Receipt has no committed acknowledgement."));
         return null;
