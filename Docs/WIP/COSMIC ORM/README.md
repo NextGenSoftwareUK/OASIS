@@ -6,6 +6,8 @@ These are working documents. Dated reports retain historical evidence; earlier c
 
 ## Documents
 
+- [Neo4j atomic committed deltas: implementation and acceptance](NEO4J_COMMITTED_DELTAS.md).
+
 - [CQL getting started: feature status and usage examples](CQL_GETTING_STARTED.md).
 - [Durable write preparation: shared claim contract and SQLite owner](WRITE_PREPARATION.md).
 - [MongoDB durable preparation: shared operation fence and verification checkpoint](MONGO_WRITE_PREPARATION.md).

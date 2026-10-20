@@ -1,5 +1,9 @@
 # COSMIC source integration boundary
 
+## Neo4j conditional delta adoption — 20 October 2026
+
+Neo4j's existing transaction owner now retains its locked authoritative before-images, captures a Core delta against native acknowledged snapshots, persists Shared format4, and publishes the redacted summary only after successful acknowledgement. Original receipt replay is independent of current row existence/history policy. Replica protocol remains unchanged. [Native acceptance, original structural-assertion failure and reviewed fixture evidence](NEO4J_COMMITTED_DELTAS.md). Final strengthened conditional13, replica6, primary-outbox2 and Shared904 pass, zero skips, at parent841ca4498 on unchanged Core7B8680F8/Shared715BDC19. The retained runtime is stopped; this does not close wider enrollment, authorization, retention or the full roadmap.
+
 ## MongoDB committed delta adoption — 20 October 2026
 
 MongoDB conditional writes now capture deltas from authoritative BSON observations and final persisted BSON bodies inside the graph transaction. Acknowledgements are constructed from that final representation, including preserved unselected frontiers. Shared receipt format4 persists and validates the original delta; legacy format3 replay reports explicit missing-delta evidence. SQLite and MongoDB advertise the new conditional-delta capability. Core validation also binds logical predecessor identity/version and membership ownership; Shared rejects wrong operation/intent before metadata construction. [Implementation, acceptance evidence and remaining scope](MONGO_COMMITTED_DELTAS.md).

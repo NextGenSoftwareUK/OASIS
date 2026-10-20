@@ -1,5 +1,7 @@
 # Committed per-save deltas
 
+Neo4j conditional adoption is tracked in the [Neo4j transaction and acceptance checkpoint](NEO4J_COMMITTED_DELTAS.md).
+
 20 October 2026. First native transaction owner: SQLite conditional saves/deletes. Generic immutable capture/validation lives in Core `HolonCommittedDelta`; this is not the completed Stage7 provider/authorization rollout.
 
 Provider follow-on: [MongoDB native capture](MONGO_COMMITTED_DELTAS.md) now uses the same model and Shared format4 receipt extension, with final broad regression in progress. Both providers advertise `IConditionalHolonDeltaStorageProvider`; ordinary CRUD and authorized history reads are separate capabilities.
