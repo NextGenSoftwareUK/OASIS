@@ -94,9 +94,11 @@ CREATE INDEX IF NOT EXISTS ix_oasis_holons_type   ON oasis_holons(holon_type);";
                 result.Result = true;
                 result.IsError = false;
                 result.Message = "PostgreSQLOASIS activated — tables created/verified.";
+                IsProviderActivated=true;
             }
             catch (Exception ex)
             {
+                IsProviderActivated=false;
                 result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: Error activating provider — {ex.Message}");
             }
@@ -105,8 +107,11 @@ CREATE INDEX IF NOT EXISTS ix_oasis_holons_type   ON oasis_holons(holon_type);";
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-            => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "PostgreSQLOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated=false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "PostgreSQLOASIS deactivated." });
+        }
 
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
