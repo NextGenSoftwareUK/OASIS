@@ -17,44 +17,10 @@ public partial class PostgreSqlNativeAcceptanceTests
             .Concat(new[]{new HolonChildCollection(nameof(Components),Components,rows=>Components=rows.Cast<Holon>().ToList())}).ToArray();
     }
 
-    private sealed class GraphFixture:IAsyncDisposable
+    private sealed class GraphFixture:OwnedFixture
     {
-        public readonly PostgreSQLOASIS Provider;
-        public readonly NpgsqlConnection Connection;
-        public readonly string Marker="owned-pg-graph-"+Guid.NewGuid().ToString("N");
-        private readonly string _journal;
-        private readonly Guid[] _ids;
-        private readonly Dictionary<Guid,string> _observed=new();
-        private bool _begun,_safe;
-        public GraphFixture(string name,Guid[] ids){
-            var text=Environment.GetEnvironmentVariable("POSTGRESQLOASIS_CONNECTIONSTRING")!;
-            var settings=new NpgsqlConnectionStringBuilder(text);Assert.AreEqual("127.0.0.1",settings.Host);Assert.AreEqual(15432,settings.Port);Assert.AreEqual("oasis_provider_test",settings.Database);
-            _ids=ids;_journal=Path.Combine(Environment.GetEnvironmentVariable("OASIS_POSTGRES_TEST_WORK")!,name+".pending.json");
-            Provider=new PostgreSQLOASIS(text){IsVersionControlEnabled=true};Connection=new NpgsqlConnection(text);
-        }
-        public async Task Begin(){
-            Assert.IsFalse(File.Exists(_journal));await Connection.OpenAsync();Assert.IsFalse((await Provider.ActivateProviderAsync()).IsError);
-            foreach(var id in _ids)Assert.IsNull(await Body(id));
-            using var file=new FileStream(_journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough);
-            await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids=_ids,marker=Marker,table="oasis_holons",state="before-native-graph"}));file.Flush(true);
-            _begun=true;
-        }
-        public void BeforeMutation()=>_safe=false;
-        public async Task<string?> Body(Guid id){await using var read=new NpgsqlCommand("SELECT data_json FROM oasis_holons WHERE id=@id",Connection);read.Parameters.AddWithValue("id",id);return (string?)await read.ExecuteScalarAsync();}
-        public async Task Observe(){
-            foreach(var id in _ids){var body=await Body(id);if(body==null)continue;using var json=JsonDocument.Parse(body);Assert.AreEqual(id,json.RootElement.GetProperty("Id").GetGuid());Assert.AreEqual(Marker,json.RootElement.GetProperty("MetaData").GetProperty("owned-fixture").GetString());_observed[id]=body;}
-            _safe=true;
-        }
-        public async ValueTask DisposeAsync(){
-            // Read-back does not authorize deletion of an uncertain mutation. Only the
-            // exact verified snapshots captured by successful/definite-outcome test code do.
-            if(_begun&&_safe){
-                foreach(var row in _observed){await using var cleanup=new NpgsqlCommand("DELETE FROM oasis_holons WHERE id=@id AND data_json=@observed",Connection);cleanup.Parameters.AddWithValue("id",row.Key);cleanup.Parameters.AddWithValue("observed",row.Value);Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());}
-                var absent=true;foreach(var id in _ids)absent&=await Body(id)==null;
-                if(absent)File.Delete(_journal);
-            }
-            await Provider.DeActivateProviderAsync();await Connection.DisposeAsync();
-        }
+        public GraphFixture(string name,Guid[] ids):base(name,ids.Select(id=>("oasis_holons",id))){}
+        public Task<string?> Body(Guid id)=>base.Body("oasis_holons",id);
     }
 
     [DataTestMethod]
