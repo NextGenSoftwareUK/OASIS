@@ -6,7 +6,7 @@ Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-provi
 
 | Area | Evidence | Acceptance still open |
 |---|---|---|
-| Tracking and save ownership | Detached preparation, private baselines, no-op detection, failed-write isolation, submitted membership and acknowledgement checks; Core 1,313 tests pass, including predicate compilation, composition and pure capability planning | Complete encryption/key-context and arbitrary callback failure acceptance |
+| Tracking and save ownership | Detached preparation, private baselines, no-op detection, failed-write isolation, submitted membership and acknowledgement checks; Core 1,320 tests pass, including predicate compilation, composition and pure capability planning | Complete encryption/key-context and arbitrary callback failure acceptance |
 | Cross-client concurrency | Native revision checks and idempotent operation receipts under MongoDB, SQLite and Neo4j transaction owners | Wider provider capability admission and complete public route/fault coverage |
 | Typed child roles | Captured manifests, root-only authoritative-null preservation, hydration before tracking, explicit partial selections | Remaining parameter, visibility, history and provider conformance |
 | V2 graph loading | ID/key, collection, metadata and parent routes; source-bound member reads, heap traversal, depth limits, unlink protection and overlapping roots | Coherent historical snapshots and wider failure/security policies |
@@ -29,7 +29,7 @@ Recent local commits include Core `768d2e6` (manager graph ownership) and `ccb7b
 | 5. Controlled migration | Full checkpoint/catch-up/verification/cutover workflow is not implemented; import/export alone is insufficient |
 | 6. Gas-aware placement | Authorized durable settlement, quote freshness, budgets, deadlines, finality and reconciliation remain open |
 | 7. Per-save deltas | Local comparison/preview prerequisites exist; atomically persisted, authorized committed deltas and replay semantics are incomplete |
-| 8. CQL | [Predicate compiler and typed composition/scope](CQL_EXPRESSION_CONTRACT.md) implemented and unit-tested; pure scope/capability planning is verified, first SQLite leaf-row native adapter and exact field capabilities verified (832/832 integration cohort, including metadata presence/null); security/manager integration, broader native adapters and federation remain open |
+| 8. CQL | [Predicate compiler and typed composition/scope](CQL_EXPRESSION_CONTRACT.md) implemented and unit-tested; pure scope/capability planning is verified, first SQLite leaf-row native adapter and exact field capabilities verified (833/833 integration cohort, including metadata presence/null and shared execution); security/manager integration, broader native adapters and federation remain open |
 
 The [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) retains the original requirements and acceptance criteria. No overall percentage is asserted without a verified weighted checklist. Failover selection does not prove 100% uptime, completed migration or finalized settlement.
 
@@ -50,3 +50,5 @@ SQLite CQL checkpoint: parameterized native predicates with CLR-compatible admit
 Exact field capability checkpoint: Core1,310/1,310 and SQLite824/824 pass. `CqlCapabilities` and native translation share a single field/type/operator map; unsupported canonical fields reject during planning. Current copied Core38E010/SharedCA844/SQLite2FF450 epoch is retained separately from prior gates.
 
 Metadata CQL checkpoint: native Exists/IsNull supports literal nested object keys and distinguishes missing from explicit JSON null. Core1,313/1,313 and SQLite832/832 pass. Native metadata scalar comparisons remain open; presence/null predicates do not imply scalar conversion or full metadata querying.
+
+Shared CQL execution checkpoint: native provider interface and preflight/execution coordinator pass seven new Core cases; SQLite implements and exercises the contract natively. FullCore1,320/1,320 and SQLite833/833 pass. Results retain per-provider groups rather than claiming global deduplication, ordering or snapshot consistency. AuthenticatedWEB4 routing/typedmanager/federation remain open. See [execution pipeline](CQL_EXECUTION_PIPELINE.md).
