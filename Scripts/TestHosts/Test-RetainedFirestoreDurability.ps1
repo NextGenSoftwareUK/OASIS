@@ -75,10 +75,11 @@ try{
             }
         }
         foreach($build in @((Join-Path $root 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj'),$project)){
-            & dotnet build $build --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+            & dotnet build $build --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
             if($LASTEXITCODE){throw 'Cached native history build failed.'}
         }
     }
+    if($RunHistoryTests){& (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput (Join-Path (Split-Path $project) 'bin/Debug/net10.0')}
     if($ContinueOwnedEmulatorId){
         $owned=Get-Process -Id $ContinueOwnedEmulatorId;$safeToStop=$false
         # The checkpoint was already reconciled on this exact process; never reimport/replay it.
