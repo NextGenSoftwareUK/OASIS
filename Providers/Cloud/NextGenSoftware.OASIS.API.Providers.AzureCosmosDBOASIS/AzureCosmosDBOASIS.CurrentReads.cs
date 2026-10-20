@@ -263,7 +263,8 @@ public partial class AzureCosmosDBOASIS
         return result;
     }
 
-    private async Task<OASISResult<T>> SaveCurrentRecordAsync<T>(T record,Func<IRepository<T>> repository) where T:class,IHolonBase
+    private async Task<OASISResult<T>> SaveCurrentRecordAsync<T>(T record,Func<IRepository<T>> repository,
+        Func<IRepository<T>,T,Task<T>> write=null) where T:class,IHolonBase
     {
         var result=new OASISResult<T>();
         try
@@ -278,11 +279,12 @@ public partial class AzureCosmosDBOASIS
             }
             var store=repository() ?? throw new InvalidOperationException("Cosmos repository was not initialized.");
             publication.ValidateUnchanged();
-            var saved=await store.UpsertAsync(publication.Proposal);
+            var saved=write==null ? await store.UpsertAsync(publication.Proposal):await write(store,publication.Proposal);
             if(saved==null) throw new CosmosMutationReconciliationException(record.Id.ToString(),new System.IO.InvalidDataException("Cosmos save returned no acknowledged record."));
             try{publication.ValidateUnchanged();}
             catch(Exception cause){throw new CosmosMutationReconciliationException(saved.Id.ToString(),cause,acknowledged:true);}
             record.Id=saved.Id;record.Version=saved.Version;record.VersionId=saved.VersionId;record.PreviousVersionId=saved.PreviousVersionId;
+            if(record is Core.Holons.Holon source && saved is Core.Holons.Holon committed)source.ChildRoleManifestJson=committed.ChildRoleManifestJson;
             record.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
             record.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=saved.Id.ToString();
             result.Result=saved;result.IsSaved=true;

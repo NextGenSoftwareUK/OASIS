@@ -48,6 +48,7 @@ public class CosmosMutationResultTests
         avatar.Setup(r=>r.UpsertAsync(It.IsAny<IAvatar>())).ThrowsAsync(cause);
         detail.Setup(r=>r.UpsertAsync(It.IsAny<IAvatarDetail>())).ThrowsAsync(cause);
         holon.Setup(r=>r.UpsertAsync(It.IsAny<IHolon>())).ThrowsAsync(cause);
+        holon.Setup(r=>r.UpsertPlannedAsync(It.IsAny<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite>())).ThrowsAsync(cause);
         foreach(var pair in new Dictionary<string,object> {{"avatarRepository",avatar.Object},{"avatarDetailRepository",detail.Object},{"holonRepository",holon.Object}})
             typeof(AzureCosmosDBOASIS).GetField(pair.Key,System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,pair.Value);
         void Check<T>(OASISResult<T> result) {Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreSame(cause,result.Exception);}
