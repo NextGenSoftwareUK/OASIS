@@ -98,7 +98,15 @@ internal sealed class MongoCqlTranslator
                     CosmicQueryComparisonOperator.GreaterThan=>"$gt",CosmicQueryComparisonOperator.GreaterThanOrEqual=>"$gte",
                     CosmicQueryComparisonOperator.LessThan=>"$lt",CosmicQueryComparisonOperator.LessThanOrEqual=>"$lte",
                     _=>throw new NotSupportedException("Unknown CQL comparison.")};
-                return Choose(Domain(value,comparison.Path.ValueType),Op(symbol,value,Constant(comparison.Literal)),Literal(false));
+                var domain=Domain(value,comparison.Path.ValueType);
+                var test=Choose(domain,Op(symbol,value,Constant(comparison.Literal)),Literal(false));
+                if(comparison.Operator!=CosmicQueryComparisonOperator.NotEqual)return test;
+                if(!comparison.Path.IsMetadata)
+                    return Op("$not",Choose(domain,Op("$eq",value,Constant(comparison.Literal)),Literal(false)));
+                // Sparse metadata keeps missing/wrong-type paths outside the atomic domain,
+                // while an explicit nullable null differs from every non-null literal.
+                return comparison.Path.ValueType==typeof(string)||Nullable.GetUnderlyingType(comparison.Path.ValueType)!=null
+                    ?Op("$or",test,Op("$eq",Type(value),Literal("null"))):test;
             });
             case CosmicQueryMembership membership:return At(membership.Path,value=>{
                 var guard=Domain(value,membership.Path.ValueType);

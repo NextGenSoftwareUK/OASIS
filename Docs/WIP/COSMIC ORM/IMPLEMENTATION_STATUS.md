@@ -4,6 +4,8 @@ Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-provi
 
 ## Latest working increment — MongoDB CQL and shared scalar-property queries
 
+Focused follow-on: native comparison vectors exposed MongoDB inequality excluding canonical nulls and explicit nullable metadata nulls. Its native guard now matches the established SQLite contract; **188/188 controlled and 3/3 expanded native cases** pass, zero skips, after independent pre-write fixture reconciliation. Core/pins are unchanged. [Exact targeted epoch and distinction from the broad baseline below](CQL_MONGO_NATIVE.md#verification).
+
 MongoDB now executes the shared CQL predicate contract natively, including typed metadata paths, presence/null tests, logical predicates, membership and ordinal strings. Annotated scalar properties such as `row.Rating >= 7` compile centrally and execute on both MongoDB and SQLite without getter/attribute-constructor execution. Native results support clean tracking, no-op save and conditional write-back retaining unselected children. MongoDB streams bounded projected payloads and enforces a native deadline. Final acceptance: **Core 1,536; Shared 895; MongoDB unit 188/selected native 84; SQLite native 1,042**, all passing with zero skips and matching Core/Shared artifacts. [Implementation, exact reports/hashes, reconciled failures and open CQL scope](CQL_MONGO_NATIVE.md). Core a6d0865 is paired with the parent dependency pin; no Development deployment is included.
 
 ## Earlier protected preparation ownership increments
