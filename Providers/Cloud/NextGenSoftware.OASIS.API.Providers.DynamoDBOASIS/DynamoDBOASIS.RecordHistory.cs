@@ -49,7 +49,7 @@ public partial class DynamoDBOASIS
     }
 
     // One conditional writer for ordinary and versioned records. No caller-state publication here.
-    private async Task<T> WriteRecordAsync<T>(PutItemRequest proposal,bool createHistory,Action validateCaller) where T:class,IHolonBase
+    private async Task<T> WriteRecordAsync<T>(PutItemRequest proposal,bool createHistory,Action validateCaller,PlannedHolonWrite? plannedHolon=null) where T:class,IHolonBase
     {
         var client=_client;
         if(client.Config.MaxErrorRetry!=0)throw new InvalidOperationException("Conditional history writes require single-attempt SDK configuration; unknown acknowledgements must not become a retry's condition failure.");
@@ -70,14 +70,18 @@ public partial class DynamoDBOASIS
         var observed=await client.GetItemAsync(new GetItemRequest{TableName=table,Key=new(){{"id",new AttributeValue{S=id.ToString()}}},ConsistentRead=true});
         RequireItemRead(observed);
         var previous=observed.Item.Count==0?null:observed.Item;
-        string previousJson=null;
+        string previousJson=null;T? observedRecord=null;
         JObject previousDocument=null;
         if(previous!=null){
-            _=ReadStoredIdentity<T>(previous,id);
+            observedRecord=ReadStoredIdentity<T>(previous,id);
             previousJson=previous["data_json"].S;
             previousDocument=JObject.Parse(previousJson);
             if(previousDocument["id"]!=null&&previousDocument["id"].Value<string>()!=id.ToString())throw new InvalidDataException("Embedded native identity differs from its item key.");
             previousDocument["id"]=id.ToString();
+        }
+        if(table=="OasisHolons"&&proposed is Core.Holons.Holon holon){
+            var write=plannedHolon??new PlannedHolonWrite(holon,holon);
+            holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(write,HolonChildRoleWriteKind.SourceSave,previous!=null,(observedRecord as Core.Holons.Holon)?.ChildRoleManifestJson);
         }
         var staged=await StageRecordDocumentAsync(proposed,previousDocument,createHistory);
         item["data_json"]=new AttributeValue{S=staged.ToString(Newtonsoft.Json.Formatting.None)};
