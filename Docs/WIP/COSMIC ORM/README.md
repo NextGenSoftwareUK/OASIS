@@ -7,6 +7,7 @@ These are working documents. Dated reports retain historical evidence; earlier c
 ## Documents
 
 - [CQL getting started: feature status and usage examples](CQL_GETTING_STARTED.md).
+- [Durable write preparation: shared claim contract and SQLite owner](WRITE_PREPARATION.md).
 - [CQL expression contract: first implementation milestone](CQL_EXPRESSION_CONTRACT.md).
 - [Atomic primary holon outbox](ATOMIC_HOLON_OUTBOX.md).
 - [Child-holon load, save and query certification](CHILD_HOLON_CERTIFICATION.md).

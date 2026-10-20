@@ -18,7 +18,7 @@ public partial class SQLLiteDBOASIS
         using (var receiptSchema = connection.CreateCommand())
         {
             receiptSchema.Transaction = transaction.GetDbTransaction();
-            receiptSchema.CommandText = CosmicSqliteSchema.CreateReceiptTable+"; "+CosmicSqliteSchema.CreateReplicaHeadTable+"; "+CosmicSqliteSchema.CreateOutboxTable+"; "+CosmicSqliteSchema.CreateRevisionArchive+"; "+CosmicSqliteSchema.CreateRevisionKeyIndex+"; "+CosmicSqliteSchema.CreateRevisionCollectionIndex+"; "+CosmicSqliteSchema.CreateRevisionParentIndex;
+            receiptSchema.CommandText = CosmicSqliteSchema.CreatePreparationTable+"; "+CosmicSqliteSchema.CreateReceiptTable+"; "+CosmicSqliteSchema.CreateReplicaHeadTable+"; "+CosmicSqliteSchema.CreateOutboxTable+"; "+CosmicSqliteSchema.CreateRevisionArchive+"; "+CosmicSqliteSchema.CreateRevisionKeyIndex+"; "+CosmicSqliteSchema.CreateRevisionCollectionIndex+"; "+CosmicSqliteSchema.CreateRevisionParentIndex;
             await receiptSchema.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicHolonOutbox",CosmicSqliteSchema.OutboxDeliveryColumns()).ConfigureAwait(false);
