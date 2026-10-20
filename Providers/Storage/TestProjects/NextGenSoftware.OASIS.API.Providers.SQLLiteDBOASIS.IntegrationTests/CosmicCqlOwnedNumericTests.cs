@@ -18,12 +18,14 @@ public partial class SQLLiteDBOASISIntegrationTests
     }
 
     [Theory]
-    [InlineData(false)] [InlineData(true)]
-    public async Task TypedCqlOwnedNumericValuesPreservePrecisionOrRejectWithoutChangingStoredRows(bool unrepresentable)
+    [InlineData(false, false)] [InlineData(true, false)]
+    [InlineData(false, true)] [InlineData(true, true)]
+    public async Task TypedCqlOwnedNumericValuesPreservePrecisionOrRejectWithoutChangingStoredRows(bool unrepresentable, bool numericStrings)
     {
         var number = unrepresentable ? "1.00000000000000000000000000000000000000001" : "1.000000000000000000000000001";
-        using var detail = System.Text.Json.JsonDocument.Parse("{\"Amount\":" + number + "}");
-        using var amounts = System.Text.Json.JsonDocument.Parse("[" + number + "]");
+        var encoded = numericStrings ? "\"" + number + "\"" : number;
+        using var detail = System.Text.Json.JsonDocument.Parse("{\"Amount\":" + encoded + "}");
+        using var amounts = System.Text.Json.JsonDocument.Parse("[" + encoded + "]");
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         var source = new Holon { Id = Guid.NewGuid(), Name = "owned numeric CQL", MetaData = new() {
