@@ -1,5 +1,9 @@
 # Firestore record history — integration in progress
 
+2026-10-20 preparation suite now7/7 native green: two gated preparation-versus-graph native commit schedules prove the shared fence rejects a stale graph or a late preparation, depending on winner. Independent absence/read-only recovery and one dispatch per writer verified. Exact report/cohort and remaining authenticated-runtime/hosted gates in current release gates; earlier smaller suite reports retained in place.
+
+2026-10-20 native preparation suite expanded to5/5 green with synchronized same-operation/same-actor contenders using real SDK commits. Both return one identical winning preparation with one dispatch each. Exact report/cohort and open race/encryption/hosted gates are in current release gates. Prior4 report preserved in place; no new environment.
+
 ## Protected preparation checkpoint — 2026-10-20
 
 Shared opaque preparation transport now integrates with the native atomic Commit/operation fence. Controlled186/186 and native4/4 preparation reports passed, zero skipped. Native tests use synthetic opaque envelopes, not authenticated runtime cipher proof. Native claim/graph races, encrypted runtime/process recovery, hosted IAM/billing and atomic replication remain open. Exact report hashes, acknowledgement/error semantics, runtime observations and costs are recorded in HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md under the matching preparation checkpoint. This supersedes earlier statements that preparation storage itself is not implemented, but does not close its untested gates.
