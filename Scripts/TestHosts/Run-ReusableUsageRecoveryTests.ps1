@@ -52,7 +52,7 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
 $prior=@{}
-foreach($name in 'OASIS_OWNED_RECOVERY_REPLICA_URI','SUBSCRIPTION_TEST_MONGODB_URI','OASIS_HEDERA_SDK_BRIDGE','OASIS_SUI_SDK_BRIDGE','OASIS_MONGO_REPLICA_SET_CONNECTION','OASIS_WEB3_PREPARED_OUTBOX_REQUIRED'){$prior[$name]=[Environment]::GetEnvironmentVariable($name)}
+foreach($name in 'OASIS_OWNED_RECOVERY_REPLICA_URI','SUBSCRIPTION_TEST_MONGODB_URI','OASIS_HEDERA_SDK_BRIDGE','OASIS_SUI_SDK_BRIDGE','OASIS_COSMOS_SDK_BRIDGE','OASIS_MONGO_REPLICA_SET_CONNECTION','OASIS_WEB3_PREPARED_OUTBOX_REQUIRED'){$prior[$name]=[Environment]::GetEnvironmentVariable($name)}
 try{
     if($MongoV2){
         foreach($relative in @(
@@ -106,6 +106,8 @@ try{
         $ledgerCounters=$ledgerEvidence.SelectSingleNode("//*[local-name()='Counters']")
         if(!$ledgerCounters -or [int]$ledgerCounters.total -lt 1 -or [int]$ledgerCounters.passed -ne [int]$ledgerCounters.total){throw 'Authority ledger must actually run and pass every case.'}
     }elseif($CosmosPreparedOwners){
+        $env:OASIS_COSMOS_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/SdkBridge/bridge.mjs'
+        if(!(Test-Path -LiteralPath $env:OASIS_COSMOS_SDK_BRIDGE) -or !(Test-Path -LiteralPath (Join-Path (Split-Path $env:OASIS_COSMOS_SDK_BRIDGE) 'node_modules/@cosmjs/cosmwasm/package.json'))){throw 'Retained Cosmos SDK installation required; no automatic download.'}
         $cosmosProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests.csproj'
         $cosmosStarted=[DateTime]::UtcNow
         if($CosmosReviewedToken -or $CosmosReviewedNFT -or $CosmosReviewScenario -eq 'LockEscrow'){
