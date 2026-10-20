@@ -1030,6 +1030,12 @@ public sealed partial class OracleNativeAcceptanceTests
             foreach(var row in rows){Assert.AreEqual(1,row.Version);var actual=await Read(verifier,"OASIS_HOLONS",row.Id);Assert.IsNotNull(actual);using var document=JsonDocument.Parse(actual);Assert.AreEqual(row.ParentHolonId,document.RootElement.GetProperty("ParentHolonId").GetGuid());}
             var deep=await provider.LoadHolonAsync(root.Id,loadChildrenFromProvider:true);Assert.IsFalse(deep.IsError,deep.Exception?.ToString());Assert.AreEqual(leaf.Id,deep.Result.Children.Single().Children.Single().Id);
             var shallow=await provider.LoadHolonAsync(root.Id,maxChildDepth:1,loadChildrenFromProvider:true);Assert.AreEqual(0,shallow.Result.Children.Single().Children.Count);
+            foreach(var version in new[]{0,1}){
+                var bounded=await provider.LoadHolonsForParentAsync(root.Id,maxChildDepth:1,loadChildrenFromProvider:true,version:version);
+                Assert.IsFalse(bounded.IsError,bounded.Exception?.ToString());Assert.AreEqual(child.Id,bounded.Result.Single().Id);Assert.AreEqual(0,bounded.Result.Single().Children.Count);
+                var boundedSync=provider.LoadHolonsForParent(root.Id.ToString(),maxChildDepth:1,loadChildrenFromProvider:true,version:version);
+                Assert.IsFalse(boundedSync.IsError,boundedSync.Exception?.ToString());Assert.AreEqual(0,boundedSync.Result.Single().Children.Count);
+            }
             foreach(var row in rows.Reverse()){var deleted=await provider.DeleteHolonWithSoftDeleteAsync(row.Id,false);Assert.IsFalse(deleted.IsError,deleted.Exception?.ToString());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));}File.Delete(journal);
         }finally{await provider.DeActivateProviderAsync();}
     }
