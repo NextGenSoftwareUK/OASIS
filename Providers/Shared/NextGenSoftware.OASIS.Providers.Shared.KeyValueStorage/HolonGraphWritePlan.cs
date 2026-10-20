@@ -42,10 +42,11 @@ public static class HolonGraphWritePlan
             if(parent.HasValue && source.ParentHolonId!=Guid.Empty && source.ParentHolonId!=parent.Value)
                 throw new ArgumentException("Selected child has a conflicting parent identity.");
             validateSource?.Invoke(source);
-            var captured=StoredRecordJson.SerializeInput<IHolon>(source);
-            var document=JObject.Parse(captured);document.Remove("$type");
+            var document=StoredRecordJson.CaptureInputToken<IHolon>(source) as JObject
+                ??throw new ArgumentException("Selected graph input must capture a record object.");
+            var captured=document.ToString(Newtonsoft.Json.Formatting.None);document.Remove("$type");
             // This JSON was just captured from input, not read from storage.
-            var snapshot=StoredRecordJson.Deserialize<Holon>(document.ToString(Newtonsoft.Json.Formatting.None));
+            var snapshot=StoredRecordJson.Project<Holon>(document);
             snapshot.Id=id;snapshot.ParentHolonId=parent ?? source.ParentHolonId;
             var selectsChildren = children && (depth==0 || current<depth) && (recursive || current==initialDepth);
             var childIds=new List<Guid>();
