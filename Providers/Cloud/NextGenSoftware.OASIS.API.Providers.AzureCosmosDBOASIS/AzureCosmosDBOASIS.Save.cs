@@ -111,6 +111,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 result.Exception=saved.Count>0 ? new CosmosPartialMutationException(saved.Select(row=>row.Id),cause):cause;
                 result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
             }
+            result.SavedCount=saved.Count;
             return result;
         }
 

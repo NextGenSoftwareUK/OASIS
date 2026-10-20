@@ -287,7 +287,7 @@ public partial class AzureCosmosDBOASIS
             if(record is Core.Holons.Holon source && saved is Core.Holons.Holon committed)source.ChildRoleManifestJson=committed.ChildRoleManifestJson;
             record.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
             record.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=saved.Id.ToString();
-            result.Result=saved;result.IsSaved=true;
+            result.Result=saved;result.IsSaved=true;result.SavedCount=1;
         }
         catch(Exception cause) {
             OASISErrorHandling.HandleError(ref result,cause.Message,cause);

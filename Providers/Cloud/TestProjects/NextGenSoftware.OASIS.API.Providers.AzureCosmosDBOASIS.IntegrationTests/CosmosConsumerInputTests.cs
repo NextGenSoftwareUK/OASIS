@@ -30,16 +30,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
             if(kind==0)
             {
                 var saved=synchronous?_provider.SaveAvatar(avatar):await _provider.SaveAvatarAsync(avatar);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());
+                Assert.IsTrue(saved.IsSaved);Assert.AreEqual(1,saved.SavedCount);
                 var read=await _provider.LoadAvatarAsync(id);Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(marker,read.Result.Username);Assert.AreEqual(typeof(Avatar),read.Result.GetType());
             }
             else if(kind==1)
             {
                 var saved=synchronous?_provider.SaveAvatarDetail(detail):await _provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());
+                Assert.IsTrue(saved.IsSaved);Assert.AreEqual(1,saved.SavedCount);
                 var read=await _provider.LoadAvatarDetailAsync(id);Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(543L,read.Result.XP);Assert.AreEqual(marker,read.Result.Inventory.Single().Name);Assert.AreEqual(typeof(AvatarDetail),read.Result.GetType());
             }
             else
             {
                 var saved=synchronous?_provider.SaveHolon(holon,saveChildren:kind==3):await _provider.SaveHolonAsync(holon,saveChildren:kind==3);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());
+                Assert.IsTrue(saved.IsSaved);Assert.AreEqual(kind==3?2:1,saved.SavedCount);
                 var read=await _provider.LoadHolonAsync(id,loadChildren:kind==3,loadChildrenFromProvider:kind==3);Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(marker,read.Result.Name);Assert.AreEqual(typeof(Holon),read.Result.GetType());
                 if(kind==3){Assert.AreEqual(child.Id,read.Result.Children.Single().Id);Assert.AreEqual(id,read.Result.Children.Single().ParentHolonId);}
             }

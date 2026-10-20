@@ -29,6 +29,7 @@ public class CosmosGraphWriteTests
         var root=new Holon {Children=new List<IHolon> {child}};
         var result=await Provider(repository.Object).SaveHolonsAsync(new[] {root},children,recursive,depth,initial);
         Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsSaved);Assert.AreEqual(count,seen.Count);
+        Assert.AreEqual(count,result.SavedCount);
         Assert.AreNotEqual(Guid.Empty,root.Id);
         if(count>1) Assert.AreEqual(root.Id,child.ParentHolonId);
         if(count>2) Assert.AreEqual(child.Id,grandchild.ParentHolonId);
@@ -42,6 +43,7 @@ public class CosmosGraphWriteTests
         var root=new Holon();root.Children=new List<IHolon> {root};
         var result=await Provider(repository.Object).SaveHolonAsync(root);
         Assert.IsTrue(result.IsError);Assert.AreEqual(Guid.Empty,root.Id);repository.VerifyNoOtherCalls();
+        Assert.AreEqual(0,result.SavedCount);
     }
 
     [TestMethod]
@@ -53,6 +55,7 @@ public class CosmosGraphWriteTests
         var rows=new[] {new Holon {Id=Guid.NewGuid()},new Holon {Id=Guid.NewGuid()},new Holon {Id=Guid.NewGuid()}};
         var result=await Provider(repository.Object).SaveHolonsAsync(rows,continueOnError:true);
         Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(2,calls);
+        Assert.AreEqual(1,result.SavedCount);
         var partial=result.Exception as CosmosPartialMutationException;Assert.IsNotNull(partial);
         Assert.AreEqual(rows[0].Id,partial.AcknowledgedRecordIds.Single());Assert.AreSame(cause,partial.InnerException);
         Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(partial));
@@ -70,6 +73,7 @@ public class CosmosGraphWriteTests
         var provider=Provider(repository.Object);
         var result=synchronous?provider.SaveHolons(new[]{first,second}):await provider.SaveHolonsAsync(new[]{first,second});
         Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,calls);Assert.AreEqual(999,(later?second:first).Version);
+        Assert.AreEqual(1,result.SavedCount);
         var partial=result.Exception as CosmosPartialMutationException;Assert.IsNotNull(partial);Assert.AreEqual(acknowledged,partial.AcknowledgedRecordIds.Single());Assert.AreNotEqual(Guid.Empty,acknowledged);
     }
 
@@ -85,6 +89,7 @@ public class CosmosGraphWriteTests
         var provider=Provider(repository.Object);
         var result=synchronous ? provider.SaveHolons(new[]{first,second}):await provider.SaveHolonsAsync(new[]{first,second});
         Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,calls);
+        Assert.AreEqual(1,result.SavedCount);
         Assert.AreEqual(replacement,(later?second:first).Id);
         var partial=result.Exception as CosmosPartialMutationException;Assert.IsNotNull(partial);
         Assert.AreEqual(1,partial.AcknowledgedRecordIds.Count);
