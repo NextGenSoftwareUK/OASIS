@@ -2,6 +2,8 @@
 
 ## Current Oracle/Dynamo native closure and inherited OCI follow-up — 2026-10-20
 
+Newer Oracle refresh42367:96/96native42s/zero skips, TRX SHA256 `049E2EE6CBAD06735E01A57AEF619D0E8120D4B15A59D6854484EA12E9009DFD`; Core0181/Shared725B same as OCI52. All4×6route diagnostics remain clean, including new central search-owner path. PriorC28BC report preserved in place. Shared save fix3025491dc committed5scopedpaths locally, no devpush. Pending0/containerexited; all-provider/hosted/release gates still OPEN.
+
 Supersedes the failed Oracle default-query checkpoint below for the tested scope: expanded96/96native39s, SHA256 `C28BCBB429BCB4A67E76318903E735521330FD145D17CAC1597B367B8999EBBB`. All4named-role save combinations ×6default-ownership query routes pass; explicit typed schema rejection and untyped overlapping root/child preservation also pass. Peer Core1281/1281 unit gate independently hash-verified13AC1709... at the same copiedCore3239epoch. Source commits47354c86a (Dynamo10paths), b66e5684f (Oraclefixture/doc), peer768dCore/b5b984185pairedparent remain task-branch/local, NOT hosted deployment parity.
 
 Dynamo95/95native9s, SHA256 `B1469DC432996F86164C8C64ACAFB5E156BC9A423DC7BA5A9370C0312DBFAE4B`, plus293Dynamounits/26AWSaliasunits. Nine reflection-helper failures were reconciled by exact report/journal hashes, native absence or conditional cleanup of the two legitimate version2 records; no mutation replay/reset. All original compact reports retained; native journals0 and owned Java/Oracle services stopped. Full provenance/fees/limits in DYNAMODB_RECORD_HISTORY.md and ORACLE_CLIENT_PRIORITY.md.
