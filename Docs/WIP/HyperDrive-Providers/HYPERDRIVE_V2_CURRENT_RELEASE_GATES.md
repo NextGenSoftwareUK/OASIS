@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## SOLID named-role native acceptance — native6/controlled330 green
+
+Already-running retained operatorCSS reused without restart/download: expanded2graph cases prove named roles/root-only preservation/empty unlink/unchanged retainedchild; all6nativecases including existing privateDPoP pass0skips,D93DA1CAC7AD36F99C3364A78EF5ADA3C6C0381A60A4F62947DFC36622332CB1. Matching855DCore/8163Shared controlled330green1E1EE059248B55884D3A884F10FA3AA296A707D8C79CBF4650A37B3330228BBB. Pendingjournals0, serverleftasfound. New-role native compatibility gate closed only; coldstart/hosted/fullinterfaces/globalV2/immutablepublication remainOPEN. Exact scope in SOLID_PROVIDER_IMPLEMENTATION_AUDIT.md, no devpush.
+
 ## PostgreSQL detached saves — first controlled20 green; native/full interfaces OPEN
 
 Six public bad-Npgsql-connection regressions first failed because IDs/keys were published before I/O. Existing save owners now reuse Shared publication snapshots/Core codec and one native acknowledgement/reconciliation helper. Final20/20controlled0skips SHA2569883A08412A2DDE34776C98381379024BD277C1CFCC740CBA40CFF10EFB54850. No successful native DB operation, hosted/V2 or complete-interface claim; history/graph/options/selectors/lifecycle remain explicitly OPEN in HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md. Existing package cache reused, no download/runtime/service/deployment.

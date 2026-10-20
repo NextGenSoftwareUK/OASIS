@@ -1,5 +1,9 @@
 # SOLID private authentication — scoped native verification
 
+## Reused running server — native role refresh and DPoP compatibility green
+
+Existing retained server already running, no restart: expanded graph cases plus existing privateDPoP test pass6/6native, reportD93DA1CAC7AD36F99C3364A78EF5ADA3C6C0381A60A4F62947DFC36622332CB1; matching-dependency controlled330green1E1EE059248B55884D3A884F10FA3AA296A707D8C79CBF4650A37B3330228BBB. Source/copy identities, exact scope and original report preservation in SOLID_PROVIDER_IMPLEMENTATION_AUDIT.md. All pending fixture journals absent; operator-owned server left running as found. This is warm-server compatibility, not proof the earlier cold-start issue is resolved. No new identity/keys/environment/download/deployment.
+
 ## Approved retained-server resume and fresh native acceptance - 2026-10-20
 
 User explicitly approved resuming the SAME retained loopback-only server, volume and identity. Inspected pinned image `58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a`, binding127.0.0.1:13000 and volume `oasis-solid-data:/data`, then `podman start oasis-solid` succeeded. No download, container replacement, key/account provisioning or data reset. No pending fixture journals existed before launch.
