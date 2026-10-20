@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 public sealed class GoogleFirestoreMutationReconciliationException : Exception, INativeMutationReconciliationRequired
 {
     public string DocumentPath {get;}
-    public string OriginalTransactionId => string.Empty; // No native commit receipt observed.
-    public GoogleFirestoreMutationReconciliationException(string path,Exception cause)
-        :base("Firestore mutation attempt requires reconciliation before replay.",cause) => DocumentPath=path;
+    public string OriginalTransactionId {get;} // Transaction identity is not proof of commit acknowledgement.
+    public GoogleFirestoreMutationReconciliationException(string path,Exception cause,string transactionId="")
+        :base("Firestore mutation attempt requires reconciliation before replay.",cause){DocumentPath=path;OriginalTransactionId=transactionId;}
 }

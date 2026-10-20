@@ -192,11 +192,11 @@ try{
         if($report.LastWriteTimeUtc -lt $started){throw 'Stale native report.'}
         [xml]$trx=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$trx.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 61 -or [int]$counts.passed -ne 61 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly61native history/lifecycle/search/role/identity/count cases, no skips.'}
+        if([int]$counts.total -ne 69 -or [int]$counts.passed -ne 69 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly69native history/lifecycle/search/role/identity/count cases, no skips.'}
         if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native history originals remain; do not stop.'}
         if($RunRegressionTests){
             $started=[DateTime]::UtcNow
-            & dotnet test $project --no-build --no-restore --filter 'TestCategory!=HistoryNative&TestCategory!=RoleFixtureReconciliation&TestCategory!=AtomicGraphNative&TestCategory!=PreparationNative&TestCategory!=RuntimeEncryptedNative&TestCategory!=BatchRevisionNative' --logger 'trx;LogFileName=google-native-current.trx' --results-directory $work -v:q
+            & dotnet test $project --no-build --no-restore --filter 'TestCategory!=HistoryNative&TestCategory!=RoleFixtureReconciliation&TestCategory!=IdentityTransactionInspection&TestCategory!=AtomicGraphNative&TestCategory!=PreparationNative&TestCategory!=RuntimeEncryptedNative&TestCategory!=BatchRevisionNative' --logger 'trx;LogFileName=google-native-current.trx' --results-directory $work -v:q
             if($LASTEXITCODE){throw 'Native regression failed; retain original live emulator for inspection.'}
             $report=Get-Item -LiteralPath (Join-Path $work 'google-native-current.trx')
             if($report.LastWriteTimeUtc -lt $started){throw 'Stale native regression report.'}

@@ -19,6 +19,8 @@ public partial class GoogleHistoryNativeTests
         public Grpc.Core.RpcException? NativeFailure;
         public readonly IOException Lost=new("Owned native commit acknowledgement withheld after actual success.");
         public override Google.Cloud.Firestore.V1.FirestoreSettings Settings=>inner.Settings;
+        public override Task<Google.Cloud.Firestore.V1.BeginTransactionResponse> BeginTransactionAsync(Google.Cloud.Firestore.V1.BeginTransactionRequest request,Google.Api.Gax.Grpc.CallSettings settings=null)=>inner.BeginTransactionAsync(request,settings);
+        public override Task RollbackAsync(Google.Cloud.Firestore.V1.RollbackRequest request,Google.Api.Gax.Grpc.CallSettings settings=null)=>inner.RollbackAsync(request,settings);
         public override BatchGetDocumentsStream BatchGetDocuments(Google.Cloud.Firestore.V1.BatchGetDocumentsRequest request,Google.Api.Gax.Grpc.CallSettings callSettings=null)
             =>inner.BatchGetDocuments(request,callSettings);
         public override async Task<Google.Cloud.Firestore.V1.CommitResponse> CommitAsync(Google.Cloud.Firestore.V1.CommitRequest request,Google.Api.Gax.Grpc.CallSettings callSettings=null)
@@ -28,7 +30,13 @@ public partial class GoogleHistoryNativeTests
             else Assert.IsNotNull(request.Writes.Single().CurrentDocument.UpdateTime);
             if(mode is "conflict" or "create-race"){
                 // Deterministic real service interleaving: an independent writer wins the observed revision.
-                await inner.CommitAsync(request.Clone(),callSettings);CompetitorCommits++;
+                var competing=request.Clone();
+                if(!request.Transaction.IsEmpty){
+                    // Release this test's read locks, expire its original transaction, then let an independent native writer win.
+                    await inner.RollbackAsync(new Google.Cloud.Firestore.V1.RollbackRequest{Database=request.Database,Transaction=request.Transaction},callSettings);
+                    competing.Transaction=Google.Protobuf.ByteString.Empty;
+                }
+                await inner.CommitAsync(competing,callSettings);CompetitorCommits++;
             }
             Google.Cloud.Firestore.V1.CommitResponse actual;
             try{actual=await inner.CommitAsync(request,callSettings);}
@@ -81,7 +89,8 @@ public partial class GoogleHistoryNativeTests
                 Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);Assert.AreEqual(0,result.SavedCount,"Unknown/rejected acknowledgement cannot be counted as a successful write.");
                 if(mode is "conflict" or "create-race"){
                     Assert.IsInstanceOfType<Grpc.Core.RpcException>(result.Exception);
-                    Assert.AreEqual(mode=="create-race"?Grpc.Core.StatusCode.AlreadyExists:Grpc.Core.StatusCode.FailedPrecondition,((Grpc.Core.RpcException)result.Exception).StatusCode);
+                    var status=((Grpc.Core.RpcException)result.Exception).StatusCode;
+                    Assert.AreEqual(kind<2?Grpc.Core.StatusCode.Aborted:mode=="create-race"?Grpc.Core.StatusCode.AlreadyExists:Grpc.Core.StatusCode.FailedPrecondition,status);
                     Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
                 }else{
                     Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
