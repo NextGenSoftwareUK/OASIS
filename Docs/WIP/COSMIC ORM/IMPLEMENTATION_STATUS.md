@@ -6,7 +6,7 @@ Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-provi
 
 | Area | Evidence | Acceptance still open |
 |---|---|---|
-| Tracking and save ownership | Detached preparation, private baselines, no-op detection, failed-write isolation, submitted membership and acknowledgement checks; Core 1,380 tests pass, including predicate compilation, composition and pure capability planning | Complete encryption/key-context and arbitrary callback failure acceptance |
+| Tracking and save ownership | Detached preparation, private baselines, no-op detection, failed-write isolation, submitted membership and acknowledgement checks; Core 1,399 tests pass, including generic metadata decoder regressions, predicate compilation, composition and pure capability planning | Complete encryption/key-context and arbitrary callback failure acceptance |
 | Cross-client concurrency | Native revision checks and idempotent operation receipts under MongoDB, SQLite and Neo4j transaction owners | Wider provider capability admission and complete public route/fault coverage |
 | Typed child roles | Captured manifests, root-only authoritative-null preservation, hydration before tracking, explicit partial selections | Remaining parameter, visibility, history and provider conformance |
 | V2 graph loading | ID/key, collection, metadata and parent routes; source-bound member reads, heap traversal, depth limits, unlink protection and overlapping roots | Coherent historical snapshots and wider failure/security policies |
@@ -157,3 +157,20 @@ Normalization uses coefficient text and BigInteger exponents, without double con
 Four initial Core cases have2fail/2controls against the old comparer. Six final new cases pass within fullCore1,380/1,380, zero skips, including unbounded exponent/zero controls. Native sync/async cases verify an equivalent metadata edit yields an empty pending preview, a no-op Save and unchanged stored logical/provider revisions. Final native regression is recorded separately. Generic raw-metadata reader expansion and atomic authorized committed deltas remain open.
 
 Final equality acceptance: Core1,380/1,380 passes10s, Shared883/883 passes on matching recorded dependencies, native no-op2/2 passes2s and fullSQLite971/971 passes122s, zero skips. The fixed fixture database/wal/shm are absent. Existing finite fingerprint bytes remain unchanged; generic metadata reader expansion and committed delta persistence remain separate open gates.
+
+
+## Generic record metadata decoder — verification in progress, 20 October 2026
+
+The generic `StoredRecordJson.Deserialize<T>`, runtime-Type overload and `DeserializeStored<T>` now dispatch declared `IHolonBase` roots through exact metadata token capture. Holon, Avatar and AvatarDetail roots preserve decimal and arbitrary JSON numeric lexemes without an intermediate double. Generic metadata retains restricted runtime-type binding and typed collection contracts. Recursive metadata capture checks embedded `$type` names even within untyped arrays and objects. The explicitly raw `DeserializeStoredHolon` receipt reader retains its existing JSON-valued metadata contract; its metadata type-name fields remain data, while root runtime types remain restricted.
+
+Import graph attempt staging now uses detached token snapshots rather than a wire text round trip, preserving owned CLR values and replica isolation. No existing failure assertions were weakened.
+
+Evidence: `TestResults/CosmicMongoCurrent/generic-metadata-binder-full-verified.trx`: **1,399 passed, zero failed/skipped**, terminal exit 0. Core assembly SHA-256: `BB68B18BA77A686AD0458E514734854C5BC51F15EF25B08BDEDC4BF44FBDBBE7`. Producer builds succeeded for both target frameworks. Original reports are retained: the first generic change caused three local staging failures; the next full run exposed raw receipt contract differences and an array-nested forbidden type gap (1,395 passed / four failed). These were fixed centrally and the full suite rerun.
+
+Provider acceptance is still pending for this final assembly: Shared 883 passed against the intermediate `1079A928...` assembly, which does not certify the final `BB68B18B...` build. SQLite native acceptance and final cloud consumer compatibility must be recorded before a dependency pin is advanced. Generic collection/envelope roots, nested owned record metadata and lossless typed numeric narrowing remain open. Persisted per-save deltas, wider CQL and the remaining full roadmap remain unfinished.
+
+Final Shared compatibility: **883/883 passed, zero skips**, terminal exit 0, against the final Core `BB68B18B...` and Shared `ECDDACB033BC794BF4B79908AE1D674ADBF7DE971B114BB0F875DC8B5E5D9608`. Report `TestResults/SharedCurrent/shared-generic-decoder-final.trx`, SHA-256 `BA3926D1E2919E5175542119401C66E894E148F5193A955F93938D55657E4D7C`. Original three provider assertions remain intact. SQLite native full-suite process is running; no dependency pin has been advanced.
+
+Provider-session final controlled compatibility on Core `BB68B18B...` / Shared `ECDDACB0...`: Dynamo 299, Google 169, Azure 95 and Cosmos 249 passed with zero skips. Dynamo/Google include precise current and archived record reads. These controlled results do not certify hosted/native deployments. SQLite native full suite remains running at this checkpoint; the provider session is arranging its retained Dynamo native regression.
+
+Final SQLite acceptance: **971/971 passed, zero failed/skipped**, 124 seconds, terminal exit 0 (`TestResults/SQLiteCurrent/generic-metadata-native-full.trx`). Copied Core `BB68B18B...` and Shared `ECDDACB0...` hashes match the final producer cohort. Core source committed locally as `bab32888c0dc5a70560b624feae2d95d443a802c`; paired root commit advances the Core gitlink and manifest together. No push or deployment. Generic root decoder acceptance is verified for this cohort; the remaining roadmap scope is unchanged.
