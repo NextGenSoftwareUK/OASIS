@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Serialization;
@@ -117,6 +116,13 @@ public partial class HolonRepository
                 using var reader = receipt.ExecuteReader();
                 if (reader.Read())
                 {
+                    if (replica == null)
+                    {
+                        var storedReceipt = JObject.Parse(reader.GetString(1));
+                        if (storedReceipt["fingerprintFormat"]?.Type != JTokenType.Integer || storedReceipt.Value<int>("fingerprintFormat") is not (3 or 4))
+                            return ConditionalError("COSMIC_RECEIPT_FINGERPRINT_RECONCILIATION_REQUIRED",
+                                "This receipt predates the exact intent fingerprint contract. Reconcile its original operation before another mutation.");
+                    }
                     if (reader.GetString(0) != fingerprint)
                         return ConditionalError("COSMIC_OPERATION_ID_REUSED", "This operation ID is already bound to different write content or actor.");
                     var replay=replica==null ? ReadConditionalReceipt(reader.GetString(1))
@@ -186,7 +192,7 @@ public partial class HolonRepository
             // Materialize and encode the exact acknowledgement before COMMIT. Replay never re-reads a newer record.
             var acknowledged = CommittedGraph(graph);
             var acknowledgement=ConditionalSuccess(acknowledged,operation);
-            var receiptJson = replica==null ? WriteConditionalReceipt(acknowledged)
+            var receiptJson = replica==null ? WriteConditionalReceipt(acknowledged, ConditionalFingerprintFormat(request))
                 : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Write(acknowledged,replica);
             if(replica!=null){_ = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonReceipt.Read(receiptJson,replica);
                 WriteReplicaHeads(connection,native,acknowledged,replica);}
@@ -220,28 +226,37 @@ public partial class HolonRepository
             DeletedCount = operation == ConditionalHolonOperation.Save ? 0 : selected.Nodes.Count, HasAnyHolonsChanged = true };
     }
 
+    private static int ConditionalFingerprintFormat(ConditionalHolonWriteRequest request) => request.SubmittedRelationships.Count == 0 ? 3 : 4;
+
     private static string ConditionalFingerprint(ConditionalHolonWriteRequest request, PreparedGraph graph)
     {
         var nodes = new JArray();
         foreach (var node in graph.Nodes)
         {
-            var values = JObject.Parse(node.CapturedIntentJson ?? throw new System.IO.InvalidDataException("Selected holon intent was not captured."));
+            var values = (JObject)StoredRecordJson.CaptureRuntimeToken(node.Snapshot);
             values.Remove(nameof(Holon.ChildRoleManifestJson));
             // These values are assigned by persistence, rather than part of the logical write intent.
             foreach (var field in new[] { "Version", "VersionId", "PreviousVersionId", "CreatedDate", "ModifiedDate",
-                "CreatedByAvatarId", "ModifiedByAvatarId", "CreatedProviderType", "InstanceSavedOnProviderType",
-                "ProviderUniqueStorageKey", "PreviousVersionProviderUniqueStorageKey" }) values.Remove(field);
+                "CreatedByAvatarId", "ModifiedByAvatarId", "CreatedProviderType", "InstanceSavedOnProviderType" }) values.Remove(field);
+            // Only this authority assigns its current key/revision. Foreign observations remain persisted write intent.
+            if (values["ProviderUniqueStorageKey"] is JObject keys)
+            {
+                keys.Remove(ProviderType.SQLLiteDBOASIS.ToString());
+                if (!keys.Properties().Any()) values.Remove("ProviderUniqueStorageKey");
+            }
             if (values["ProviderMetaData"] is JObject providerFields)
-                foreach (var provider in providerFields.Properties().ToArray())
-                    if (provider.Value is JObject fields)
-                    {
-                        fields.Remove(CosmicConcurrency.ProviderRevisionMetadataKey);
-                        if (!fields.Properties().Any()) provider.Remove();
-                    }
+            {
+                if (providerFields[ProviderType.SQLLiteDBOASIS.ToString()] is JObject local)
+                {
+                    local.Remove(CosmicConcurrency.ProviderRevisionMetadataKey);
+                    if (!local.Properties().Any()) providerFields.Remove(ProviderType.SQLLiteDBOASIS.ToString());
+                }
+                if (!providerFields.Properties().Any()) values.Remove("ProviderMetaData");
+            }
             values["Id"] = node.Snapshot.Id; values["ParentHolonId"] = node.Snapshot.ParentHolonId;
             nodes.Add(values);
         }
-        var content = new JObject { ["actor"] = request.Write.ActorId, ["operation"] = request.Operation.ToString(),
+        var content = new JObject { ["fingerprintFormat"] = ConditionalFingerprintFormat(request), ["actor"] = request.Write.ActorId, ["operation"] = request.Operation.ToString(),
             ["children"] = request.SaveChildren, ["recursive"] = request.Recursive, ["depth"] = request.MaxChildDepth,
             ["roots"] = new JArray(request.Roots.Select(root => root.Id)), ["nodes"] = nodes,
             ["authority"] = request.Write.Authority.ToString(),
@@ -252,14 +267,10 @@ public partial class HolonRepository
             content["relationships"]=new JArray(request.SubmittedRelationships.OrderBy(pair=>pair.Key)
                 .Select(pair=>JObject.Parse(HolonChildRoleManifestJson.Serialize(pair.Value))));
         }
-        JToken Canonical(JToken token) => token is JObject obj
-            ? new JObject(obj.Properties().OrderBy(property => property.Name, StringComparer.Ordinal).Select(property => new JProperty(property.Name, Canonical(property.Value))))
-            : token is JArray array ? new JArray(array.Select(Canonical)) : token.DeepClone();
-        using var hash = SHA256.Create();
-        return Convert.ToHexString(hash.ComputeHash(Encoding.UTF8.GetBytes(Canonical(content).ToString(Formatting.None))));
+        return NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonPlan.ComputeFingerprint(content);
     }
 
-    private static string WriteConditionalReceipt(IEnumerable<IHolon> roots)
+    private static string WriteConditionalReceipt(IEnumerable<IHolon> roots, int fingerprintFormat)
     {
         var rootList = roots.ToList(); var nodes = new JArray(); var visited = new HashSet<Guid>();
         void Visit(IHolon record)
@@ -270,7 +281,7 @@ public partial class HolonRepository
             foreach (var child in record.Children) Visit(child);
         }
         foreach (var root in rootList) Visit(root);
-        return new JObject { ["format"] = 1, ["roots"] = new JArray(rootList.Select(root => root.Id)), ["nodes"] = nodes }.ToString(Formatting.None);
+        return new JObject { ["format"] = 1, ["fingerprintFormat"] = fingerprintFormat, ["roots"] = new JArray(rootList.Select(root => root.Id)), ["nodes"] = nodes }.ToString(Formatting.None);
     }
 
     private static IEnumerable<IHolon> ReadConditionalReceipt(string json)
