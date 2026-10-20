@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Exact DynamoDB/Firestore history text boundaries — controlled green
+
+2026-10-20: Shared879/Dynamo298/Google168 allpass0skip on CoreF2E6/Shared75B29. Two independent provider decimal failures fixed using one reusable exact object parser; strict history schema integer1 retained with4explicit numeric/text-form cases. Intermediate cloud failures1/9 retained and repaired, not excluded. Exact report hashes in SHARED_RECORD_HISTORY.md. Generic record decoding still Core-owned/open; no hosted/native cloud/full-provider/V2 completion claim. No downloads/newenvironment/devpush.
+
 ## Latest embedded-history staging — Shared870 / cloud controlled compatibility green
 
 Three shared encoded-text reparses rounded decimals independently of the decoder callback. Two decimal regressions failed before fix; wide-double2controls passed. Reuse existing Core JSON-value converter, no new codec/provider fork. Shared870/870 zero skips7s on CoreF2E6/SharedA7F8; DynamoDB297 and GoogleCloud167 controlled suites green againstA7F8. Exact report hashes/scope in SHARED_RECORD_HISTORY.md. Generic provider decoder callbacks and other provider text-reader boundaries remain OPEN; this is not nativecloud/complete-provider/globalV2 proof. Prior Oracle96 used0071, not newA7F8. No downloads/runtime/cloud spend/devpush.

@@ -9,6 +9,19 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests;
 [TestClass]
 public class GoogleRecordHistoryTests
 {
+    [TestMethod]
+    public void CanonicalHistoryDocumentPreservesExactMetadata()
+    {
+        var value=1.0000000000000000000000000001m;
+        var row=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=value}};
+        var fields=new Dictionary<string,object>{["id"]=row.Id.ToString(),["data_json"]=OasisJson.Serialize(row)};
+        var method=typeof(GoogleCloudOASIS).GetMethod("CanonicalFirestoreHistoryDocument",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon));
+        var document=(JObject)method.Invoke(null,new object[]{fields,row.Id.ToString()})!;
+        using var json=System.Text.Json.JsonDocument.Parse(document.ToString());
+        Assert.AreEqual(value,json.RootElement.GetProperty("MetaData").GetProperty("precise").GetDecimal());
+        Assert.AreEqual(OasisJson.Serialize(row),fields["data_json"]);
+    }
+
     [DataTestMethod][DataRow("version-int")][DataRow("version-double")][DataRow("version-string")][DataRow("active")][DataRow("deleted")]
     public async Task NativeProjectionMustNotContradictCanonicalRecord(string mode)
     {
