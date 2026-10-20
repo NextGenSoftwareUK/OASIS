@@ -1,5 +1,7 @@
 # Reusable environments and disk inventory
 
+2026-10-20 Firestore ordinarybatch revision native2/2 used SAME emulator/export/cache, terminal0 under build lease; controlled188 green separately. Exact revision owned fixture cleanup verified; after native run journals0/listeners18080-18083zero. No new download/install/runtime/reset. Fixed red/green/native compact reports retained; free C67,871,846,400bytes,123GBtarget unmet.
+
 2026-10-20 Firestore runtime-encrypted replay4/4 batch reused SAME retained emulator/export/cache under exclusive build lease, terminal0. Compact google-encrypted-replay-native-current.trx retained; no per-run environment/download/install/reset. Exact UpdateTime cleanup and absence verified; after run pendingjournals0/listeners18080-18083zero. Free C67,879,653,376bytes;123GBtarget unmet. Synthetic test key material is not deployed key custody. Scope/report hash in release gates.
 
 2026-10-20 native Firestore cross-path race7/7 batch reused SAME emulator/export/cache under build lease, terminal0. Prior5 report SHAchecked then moved in place to google-preparation-pre-cross-path-races.trx. Exact revision cleanup/absence verified; pendingjournals0/listeners18080-18083zero. No runtime download/install/newenvironment/reset. Free C67,879,919,616bytes;123GBtarget unmet; no attribution of concurrent disk changes. Current report/cohort in release gates.
