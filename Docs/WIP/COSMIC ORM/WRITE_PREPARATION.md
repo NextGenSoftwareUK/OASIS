@@ -4,7 +4,7 @@
 
 ## Current V2 save flow
 
-Provider updates: [MongoDB](MONGO_WRITE_PREPARATION.md) has 153/153 controlled, 10/10 native conditional and 1/1 independent reconciliation cases. [Neo4j](NEO4J_WRITE_PREPARATION.md) now has 174/174 controlled and 9/9 native conditional cases, including encrypted manager/V2 replay. These are bounded evidence sets; broader fault, retention and authorization acceptance remains open.
+Provider updates: [MongoDB](MONGO_WRITE_PREPARATION.md) has 153/153 controlled, 10/10 native conditional and 1/1 independent reconciliation cases. [Neo4j](NEO4J_WRITE_PREPARATION.md) now has 174/174 controlled and 13/13 native conditional cases, including encrypted manager/V2 replay. These are bounded evidence sets; broader fault, retention and authorization acceptance remains open.
 
 1. The detached save plan allocates stable operation-based identities. Core captures exact logical values before audit/encryption, retaining selected root/child order and per-record protection contexts.
 2. Normal metadata preparation runs. Core protects each node's original prepared snapshot and logical intent in that node's own authenticated preparation envelope. The protected graph intent binds authority, actor, operation ID, ordered roots/edges, relationship roles, expected revisions, child/recursive/depth flags, replication enrollment and requested CLR snapshot contracts. Type identity uses FullName and assembly simple name, omitting assembly version. Stored names never select an instantiated type.

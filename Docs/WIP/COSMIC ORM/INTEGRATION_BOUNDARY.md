@@ -2,6 +2,8 @@
 
 ## Neo4j protected preparation increment — 20 October 2026
 
+Subsequent test-only recovery increment: native **13/13** passes, zero skips, retaining all nine prior cases and adding single/batch sync/async real preparation commit with injected application acknowledgement loss. Native inspection confirms no holons exist before authorized recovery; the fresh manager recovers original ciphertext across write-key rotation and exact replay preserves revisions. This run has its own recorded native artifact cohort; it is not a process/network fault certification. See the [checkpoint evidence](NEO4J_WRITE_PREPARATION.md).
+
 The shared Core contract is unchanged. Neo4j's native receipt node now owns opaque preparation and conditional acknowledgement under one transaction lock. Final full controlled **174/174** and native conditional **9/9** pass, zero skips. Native coverage includes actual encrypted V2 graph replay/key rotation plus synchronized first-winner and preparation-versus-write schedules. Unit/native Core, Shared and Neo4j assemblies were independently hash-matched; exact reports, hashes, historical failures and remaining acceptance are in the [Neo4j checkpoint](NEO4J_WRITE_PREPARATION.md). No Development merge, dependency-pin change or deployment is included.
 
 The read-only audit below and subsequent chronological checkpoints retain their original historical scope.
