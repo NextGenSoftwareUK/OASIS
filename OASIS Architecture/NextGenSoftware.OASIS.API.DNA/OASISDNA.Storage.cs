@@ -79,6 +79,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public AztecOASISProviderSettings AztecOASIS { get; set; }
 
         // Network Providers
+        public SolidOASISProviderSettings SOLIDOASIS { get; set; }
         public ActivityPubOASISProviderSettings ActivityPubOASIS { get; set; }
         public GoogleCloudOASISProviderSettings GoogleCloudOASIS { get; set; }
     }

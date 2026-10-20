@@ -64,6 +64,14 @@ public class SolidMetadataQueryTests
         var result=await provider.LoadHolonsForParentAsync(transport.Parent,loadChildren:true,maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true);
         Assert.False(result.IsError,result.Message);Assert.Empty(Assert.Single(result.Result).Children);
     }
+    [Theory][InlineData(false,false)][InlineData(false,true)][InlineData(true,false)][InlineData(true,true)]
+    public async Task ParentSelectionAlreadyTraversedOneEdge(bool synchronous,bool recursive)
+    {
+        var transport=new Transport();using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport);Assert.False((await provider.ActivateProviderAsync()).IsError);
+        var result=synchronous?provider.LoadHolonsForParent(transport.Parent.ToString(),recursive:recursive,maxChildDepth:1,loadChildrenFromProvider:true)
+            :await provider.LoadHolonsForParentAsync(transport.Parent,recursive:recursive,maxChildDepth:1,loadChildrenFromProvider:true);
+        Assert.False(result.IsError,result.Exception?.ToString());Assert.Equal(transport.Child,Assert.Single(result.Result).Id);Assert.Empty(Assert.Single(result.Result).Children);
+    }
     [Fact]
     public async Task InvalidMetadataModeFailsBeforeHttp()
     {

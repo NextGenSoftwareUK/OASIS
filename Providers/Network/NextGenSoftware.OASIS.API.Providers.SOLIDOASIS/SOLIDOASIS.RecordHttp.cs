@@ -32,9 +32,9 @@ public partial class SOLIDOASIS
     private readonly SolidPrivateRecordCodec _privateRecords;
     private async Task<OASISResult<bool>> DeleteAvatarByIdentityAsync(string identity,bool email,bool softDelete)
     {
-        var found=email?await LoadAvatarByEmailAsync(identity):await LoadAvatarByUsernameAsync(identity);
+        var found=await FindPrivateRecordAsync<IAvatar>(identity,record=>email?record.Email:record.Username,0,includeDeleted:true);
         if(found.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(found);
-        if(found.Result!=null)return await DeleteAvatarAsync(found.Result.Id,softDelete);
+        if(found.Result!=null)return await DeletePrivateAvatarAsync(found.Result.Id,softDelete,record=>string.Equals((email?record.Email:record.Username)?.Trim(),identity.Trim(),StringComparison.OrdinalIgnoreCase));
         var result=new OASISResult<bool>();
         OASISErrorHandling.HandleError(ref result,"SOLID avatar lookup returned no record; refusing deletion.",new InvalidDataException("Missing identity result."));
         return result;
@@ -51,23 +51,14 @@ public partial class SOLIDOASIS
         catch(Exception error){OASISErrorHandling.HandleError(ref invalid,"SOLID provider key read failed.",error);}
         return invalid;
     }
-    private async Task<OASISResult<T>> FindPrivateRecordAsync<T>(string query,Func<T,string> selector,int version) where T:class,IHolonBase
+    private async Task<OASISResult<T>> FindPrivateRecordAsync<T>(string query,Func<T,string> selector,int version,bool includeDeleted=false) where T:class,IHolonBase
     {
-        var result=new OASISResult<T>();
-        try{
-            if(string.IsNullOrWhiteSpace(query))throw new ArgumentException("A nonblank private identity lookup is required.",nameof(query));
-            var selected=query.Trim();
-            var records=await LoadPrivateRecordsAsync<T>(version);
-            if(records.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,T>(records);
-            var matches=records.Result.Where(record=>string.Equals(selector(record)?.Trim(),selected,StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
-            if(matches.Length==0){
-                OASISErrorHandling.HandleError(ref result,"No matching private record.",new KeyNotFoundException("Private identity not found."));
-                result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;
-            }
-            if(matches.Length!=1)throw new InvalidDataException("Multiple private records match the identity; refusing arbitrary selection.");
-            result.Result=matches[0];
-        }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private identity lookup failed.",error);}
-        return result;
+        return await StoredRecordIdentityLookup.SelectAsync(query,version,async selectedVersion=>{
+            var loaded=await LoadPrivateRecordsAsync<T>(selectedVersion);
+            if(!includeDeleted&&!loaded.IsError&&loaded.Result!=null)
+                loaded.Result=loaded.Result.Where(record=>record==null||record.DeletedDate==DateTime.MinValue).ToArray();
+            return loaded;
+        },selector);
     }
     private void RequirePrivateStorage()
     {
@@ -77,7 +68,7 @@ public partial class SOLIDOASIS
     }
     private async Task<T> ReadPrivateRecordAsync<T>(Guid id) where T:class,IHolonBase
         => (await ReadPrivateRecordStateAsync<T>(id)).Record;
-    private async Task<(T Record,System.Net.Http.Headers.EntityTagHeaderValue ETag)> ReadPrivateRecordStateAsync<T>(Guid id) where T:class,IHolonBase
+    private async Task<(T Record,System.Net.Http.Headers.EntityTagHeaderValue ETag,string Turtle)> ReadPrivateRecordStateAsync<T>(Guid id) where T:class,IHolonBase
     {
         var resource=_privateRecords.Resource<T>(id);
         using var request=new HttpRequestMessage(HttpMethod.Get,resource);
@@ -86,7 +77,8 @@ public partial class SOLIDOASIS
         response.EnsureSuccessStatusCode();
         if(!string.Equals(response.Content.Headers.ContentType?.MediaType,"text/turtle",StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("SOLID private record response must be text/turtle.");
-        return (_privateRecords.Decode<T>(await response.Content.ReadAsStringAsync(),id),response.Headers.ETag);
+        var turtle=await response.Content.ReadAsStringAsync();
+        return (_privateRecords.Decode<T>(turtle,id),response.Headers.ETag,turtle);
     }
     private async Task<OASISResult<IHolon>> DeletePrivateHolonAsync(string key)
     {
@@ -130,14 +122,15 @@ public partial class SOLIDOASIS
             catch(HttpRequestException error)when(!acknowledged&&error.StatusCode.HasValue){throw;}
             catch(Exception error){throw new SolidRecordReconciliationException(resource,acknowledged,error);}
     }
-    private async Task<OASISResult<bool>> DeletePrivateAvatarAsync(Guid id,bool softDelete)
+    private async Task<OASISResult<bool>> DeletePrivateAvatarAsync(Guid id,bool softDelete,Func<IAvatar,bool> selectedIdentity=null)
     {
         var result=new OASISResult<bool>();var acknowledged=new List<string>();
         try{
             RequirePrivateStorage();
             var avatar=await ReadPrivateRecordStateAsync<IAvatar>(id);
             RequireStrongDeleteTag(avatar.ETag);
-            (IAvatarDetail Record,System.Net.Http.Headers.EntityTagHeaderValue ETag)? detail=null;
+            if(selectedIdentity!=null&&!selectedIdentity(avatar.Record))throw new StorageLifecycleConflictException("SOLID avatar identity changed before deletion.");
+            (IAvatarDetail Record,System.Net.Http.Headers.EntityTagHeaderValue ETag,string Turtle)? detail=null;
             try{detail=await ReadPrivateRecordStateAsync<IAvatarDetail>(id);}
             // The established provider contract permits an avatar without a detail record.
             catch(HttpRequestException error)when(error.StatusCode==System.Net.HttpStatusCode.NotFound){}
@@ -146,12 +139,12 @@ public partial class SOLIDOASIS
             if(softDelete){
                 var deletedAt=DateTime.UtcNow;
                 avatar.Record.IsActive=false;avatar.Record.DeletedDate=deletedAt;
-                var saved=await SavePrivateRecordAsync(avatar.Record,avatar.ETag);
+                var saved=await SavePrivateRecordAsync(avatar.Record,avatar.ETag,expectedTurtle:avatar.Turtle);
                 if(saved.IsError)throw saved.Exception??new InvalidDataException(saved.Message);
                 acknowledged.Add(_privateRecords.Resource<IAvatar>(id).AbsoluteUri);
                 if(detail.HasValue){
                     detail.Value.Record.IsActive=false;detail.Value.Record.DeletedDate=deletedAt;
-                    var savedDetail=await SavePrivateRecordAsync(detail.Value.Record,detail.Value.ETag);
+                    var savedDetail=await SavePrivateRecordAsync(detail.Value.Record,detail.Value.ETag,expectedTurtle:detail.Value.Turtle);
                     if(savedDetail.IsError)throw savedDetail.Exception??new InvalidDataException(savedDetail.Message);
                     acknowledged.Add(_privateRecords.Resource<IAvatarDetail>(id).AbsoluteUri);
                 }
@@ -176,8 +169,11 @@ public partial class SOLIDOASIS
         var result=new OASISResult<T>();
         try{
             RequirePrivateStorage();
-            if(version!=0)throw new NotSupportedException("Explicit SOLID record versions require a verified history implementation; current-only reads must request version zero.");
-            result.Result=await ReadPrivateRecordAsync<T>(id);
+            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            var state=await ReadPrivateRecordStateAsync<T>(id);
+            result.Result=version==0?state.Record:await _privateRecords.DecodeVersionAsync<T>(state.Turtle,id,version);
+            if(result.Result==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Requested SOLID record version was not found.";}
+            else result.IsLoaded=true;
         }catch(Exception error){
             OASISErrorHandling.HandleError(ref result,"SOLID private record read failed.",error);
             if(error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
@@ -189,7 +185,7 @@ public partial class SOLIDOASIS
         var result=new OASISResult<IEnumerable<T>>();
         try{
             RequirePrivateStorage();
-            if(version!=0)throw new NotSupportedException("Explicit SOLID collection versions require verified record history.");
+            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
             var container=_privateRecords.Container<T>();
             using var graph=await ReadPrivateContainerPagesAsync(container);
             var subject=graph.CreateUriNode(container);
@@ -206,21 +202,43 @@ public partial class SOLIDOASIS
                 ids.Add(id);if(ids.Count>10000)throw new InvalidDataException("SOLID collection exceeds the 10000-record safety bound; no partial result returned.");
             }
             var records=new List<T>();
-            foreach(var id in ids.OrderBy(value=>value))records.Add(await ReadPrivateRecordAsync<T>(id));
-            result.Result=records;
+            foreach(var id in ids.OrderBy(value=>value)){
+                var state=await ReadPrivateRecordStateAsync<T>(id);
+                var record=version==0?state.Record:await _privateRecords.DecodeVersionAsync<T>(state.Turtle,id,version);
+                if(record!=null)records.Add(record);
+            }
+            result.Result=records;result.IsLoaded=true;
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private collection read failed.",error);}
         return result;
     }
-    private async Task<OASISResult<T>> SavePrivateRecordAsync<T>(T source,System.Net.Http.Headers.EntityTagHeaderValue expectedTag=null,bool createOnly=false) where T:class,IHolonBase
+    private async Task<OASISResult<T>> SavePrivateRecordAsync<T>(T source,System.Net.Http.Headers.EntityTagHeaderValue expectedTag=null,bool createOnly=false,string expectedTurtle=null) where T:class,IHolonBase
     {
         var result=new OASISResult<T>();
         try{
             RequirePrivateStorage();ArgumentNullException.ThrowIfNull(source);
-            var staged=StoredRecordJson.DeserializeStored<T>(StoredRecordJson.Serialize(source));
+            var historyEnabled=IsVersionControlEnabled;
+            var publication=StoredRecordPublicationSnapshot<T>.Capture(source);
+            var staged=publication.Proposal;
             if(staged.Id==Guid.Empty){staged.Id=Guid.NewGuid();createOnly=true;}
+            staged.ProviderUniqueStorageKey??=new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>();
+            staged.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SOLIDOASIS]=staged.Id.ToString();
+            staged.IsNewHolon=false;
             if(createOnly&&expectedTag!=null)throw new ArgumentException("Create-only SOLID writes cannot also replace an expected revision.");
+            if(!createOnly&&expectedTurtle==null){
+                try{
+                    var observed=await ReadPrivateRecordStateAsync<T>(staged.Id);
+                    RequireStrongDeleteTag(observed.ETag);
+                    if(expectedTag!=null&&!expectedTag.Equals(observed.ETag))throw new StorageLifecycleConflictException("SOLID resource changed since its original observation.");
+                    expectedTag=observed.ETag;expectedTurtle=observed.Turtle;
+                }catch(HttpRequestException missing)when(expectedTag==null&&missing.StatusCode==System.Net.HttpStatusCode.NotFound){createOnly=true;}
+            }
             var resource=_privateRecords.Resource<T>(staged.Id);
-            using var content=new StringContent(_privateRecords.Encode(staged),Encoding.UTF8,"text/turtle");
+            string turtle;
+            if(historyEnabled||(expectedTurtle!=null&&_privateRecords.HasHistory<T>(expectedTurtle,staged.Id))){
+                var versioned=await _privateRecords.StageVersionAsync(staged,expectedTurtle);staged=versioned.Record;turtle=versioned.Turtle;
+            }else turtle=_privateRecords.Encode(staged);
+            using var content=new StringContent(turtle,Encoding.UTF8,"text/turtle");
+            publication.ValidateUnchanged();
             bool acknowledged=false;
             try{
                 using var request=new HttpRequestMessage(HttpMethod.Put,resource){Content=content};
@@ -233,10 +251,13 @@ public partial class SOLIDOASIS
                     response.EnsureSuccessStatusCode();
                 }
                 acknowledged=true;
-                var actual=await ReadPrivateRecordAsync<T>(staged.Id);
-                if(!StoredRecordPayloadEquality.Equivalent(JToken.Parse(StoredRecordJson.Serialize(staged)),JToken.Parse(StoredRecordJson.Serialize(actual))))
+                var actual=await ReadPrivateRecordStateAsync<T>(staged.Id);
+                if(!_privateRecords.PayloadEquals<T>(turtle,actual.Turtle,staged.Id))
                     throw new InvalidDataException("SOLID readback differs from the complete canonical record written.");
-                source.Id=staged.Id;result.Result=source;
+                publication.ValidateUnchanged();
+                source.Id=staged.Id;source.ProviderUniqueStorageKey=new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>(staged.ProviderUniqueStorageKey);
+                source.Version=staged.Version;source.VersionId=staged.VersionId;source.PreviousVersionId=staged.PreviousVersionId;
+                source.IsNewHolon=false;result.Result=source;result.IsSaved=true;result.SavedCount=1;
             }catch(SolidRecordReconciliationException){throw;}
             catch(HttpRequestException error)when(!acknowledged&&error.StatusCode.HasValue){throw;}
             catch(Exception error){throw new SolidRecordReconciliationException(resource,acknowledged,error);}
