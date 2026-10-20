@@ -191,6 +191,10 @@ public partial class GoogleHistoryNativeTests
             var point=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true,version:1);Assert.IsFalse(point.IsError,point.Exception?.ToString());CheckRoot(point.Result);
             var listed=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true,version:1);Assert.IsFalse(listed.IsError,listed.Message);CheckRoot(listed.Result.Single(row=>row.Id==id));
             var parent=await provider.LoadHolonsForParentAsync(oldParent,loadChildrenFromProvider:true,version:1);Assert.IsFalse(parent.IsError,parent.Message);CheckRoot(parent.Result.Single());
+            var bounded=await provider.LoadHolonsForParentAsync(oldParent,maxChildDepth:1,loadChildrenFromProvider:true,version:1);
+            Assert.IsFalse(bounded.IsError,bounded.Exception?.ToString());Assert.AreEqual(0,bounded.Result.Single().Children.Count);
+            var boundedSync=provider.LoadHolonsForParent(oldParent.ToString(),maxChildDepth:1,loadChildrenFromProvider:true,version:1);
+            Assert.IsFalse(boundedSync.IsError,boundedSync.Exception?.ToString());Assert.AreEqual(0,boundedSync.Result.Single().Children.Count);
             var currentParent=await provider.LoadHolonsForParentAsync(newParent,loadChildren:false,version:1);Assert.IsFalse(currentParent.IsError,currentParent.Message);Assert.IsFalse(currentParent.Result.Any(row=>row.Id==id));
             var metadata=await provider.LoadHolonsByMetaDataAsync("owned-query",id.ToString(),loadChildrenFromProvider:true,version:1);Assert.IsFalse(metadata.IsError,metadata.Message);CheckRoot(metadata.Result.Single());
             var search=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,FilterByMetaData=new(){{"owned-query",id.ToString()}},SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery=oldName,SearchHolons=true}}},version:1);

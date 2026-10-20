@@ -120,7 +120,7 @@ public partial class GoogleCloudOASIS
             var current=children&&fromProvider&&version>0?await LoadAllHolonsAsync(loadChildren:false,version:0):loaded;
             if(current.IsError)return current;
             var project = HolonGraphProjection.Create(current.Result,children,recursive,depth,initialDepth,fromProvider,
-                source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+                source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)),rootsAreChildren:true);
             result.Result = records.Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).Select(project).ToList();
             result.IsLoaded = true;
         }
