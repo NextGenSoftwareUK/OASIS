@@ -18,7 +18,7 @@ Nullable value types additionally admit explicit JSON null. The CLR width of the
 
 Decimal, floating-point, DateTime and enum metadata path types remain unsupported natively. Mixed numeric metadata comparisons are rejected; canonical Int32 field widening support does not grant metadata widening. These remain roadmap requirements rather than inferred capabilities.
 
-GUID identity is case-insensitive only when the declared marker type is `Guid`/`Guid?`. String markers retain ordinal comparison. Native SQL checks the exact ASCII hex/hyphen shape and byte length before comparing bound canonical literals with NOCASE collation. Compact GUIDs, braces, whitespace, embedded NUL, non-hex text, arrays and numeric values stay outside the GUID domain. Missing and nullable semantics follow the rules below. This capability currently belongs to SQLite; MongoDB UUID representations still require separate implementation and native verification.
+GUID identity is case-insensitive only when the declared marker type is `Guid`/`Guid?`. String markers retain ordinal comparison. Native SQL checks the exact ASCII hex/hyphen shape and byte length before comparing bound canonical literals with NOCASE collation. Compact GUIDs, braces, whitespace, embedded NUL, non-hex text, arrays and numeric values stay outside the GUID domain. Missing and nullable semantics follow the rules below. MongoDB additionally supports its existing native UUID representations; see the [MongoDB contract and native evidence](CQL_MONGO_NATIVE.md#guid-metadata-increment).
 
 ## Missing, null and type semantics
 

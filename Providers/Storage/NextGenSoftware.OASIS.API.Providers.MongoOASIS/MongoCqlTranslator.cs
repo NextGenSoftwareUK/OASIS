@@ -50,9 +50,29 @@ internal sealed class MongoCqlTranslator
         if(path.ValueType==typeof(string))return Op("$ifNull",value,Literal(BsonNull.Value));
         return Op("$ifNull",value,Literal(path.ValueType==typeof(bool)?new BsonBoolean(name=="IsActive"):new BsonInt32(0)));
     }
-    private static BsonValue Domain(BsonValue value,Type declared)
+    private static bool GuidMetadata(CosmicQueryPath path)=>path.IsMetadata&&(Nullable.GetUnderlyingType(path.ValueType)??path.ValueType)==typeof(Guid);
+    private static BsonValue GuidOperand(BsonValue value)=>Choose(Op("$eq",Type(value),Literal("string")),new BsonDocument("$toLower",value),value);
+    private static IEnumerable<BsonValue> GuidLiterals(Guid value)
+    {
+        yield return new BsonString(value.ToString("D"));
+        yield return new BsonBinaryData(value,GuidRepresentation.Standard);
+        yield return new BsonBinaryData(value,GuidRepresentation.CSharpLegacy);
+    }
+    private static BsonValue GuidDomain(BsonValue value)
+    {
+        var text=new BsonDocument("$regexMatch",new BsonDocument{{"input",value},{"regex",Literal(@"\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z")}});
+        // BSON BinData ordering is length, subtype, unsigned bytes. These inclusive
+        // ranges admit exactly 16-byte UUID subtypes already supported by our reader.
+        BsonValue BinaryRange(BsonBinarySubType subtype)=>Op("$and",
+            Op("$gte",value,Literal(new BsonBinaryData(new byte[16],subtype))),
+            Op("$lte",value,Literal(new BsonBinaryData(Enumerable.Repeat((byte)255,16).ToArray(),subtype))));
+        return Choose(Op("$eq",Type(value),Literal("string")),text,
+            Op("$and",Op("$eq",Type(value),Literal("binData")),Op("$or",BinaryRange(BsonBinarySubType.UuidStandard),BinaryRange(BsonBinarySubType.UuidLegacy))));
+    }
+    private static BsonValue Domain(BsonValue value,Type declared,bool metadata=false)
     {
         var type=Nullable.GetUnderlyingType(declared)??declared;
+        if(metadata&&type==typeof(Guid))return GuidDomain(value);
         if(type==typeof(string)||type==typeof(Guid))return Op("$eq",Type(value),Literal("string"));
         if(type==typeof(bool))return Op("$eq",Type(value),Literal("bool"));
         if(type==typeof(int)||type==typeof(long)||type.IsEnum)
@@ -92,14 +112,21 @@ internal sealed class MongoCqlTranslator
             case CosmicQueryComparison comparison:return At(comparison.Path,value=>{
                 if(comparison.Literal.Kind==CosmicQueryScalarKind.Null)
                     return comparison.Operator==CosmicQueryComparisonOperator.Equal?Op("$eq",Type(value),Literal("null"))
-                        :Domain(value,comparison.Path.ValueType);
+                        :Domain(value,comparison.Path.ValueType,comparison.Path.IsMetadata);
                 var symbol=comparison.Operator switch{
                     CosmicQueryComparisonOperator.Equal=>"$eq",CosmicQueryComparisonOperator.NotEqual=>"$ne",
                     CosmicQueryComparisonOperator.GreaterThan=>"$gt",CosmicQueryComparisonOperator.GreaterThanOrEqual=>"$gte",
                     CosmicQueryComparisonOperator.LessThan=>"$lt",CosmicQueryComparisonOperator.LessThanOrEqual=>"$lte",
                     _=>throw new NotSupportedException("Unknown CQL comparison.")};
-                var domain=Domain(value,comparison.Path.ValueType);
-                var test=Choose(domain,Op(symbol,value,Constant(comparison.Literal)),Literal(false));
+                var domain=Domain(value,comparison.Path.ValueType,comparison.Path.IsMetadata);
+                BsonValue comparisonTest;
+                if(GuidMetadata(comparison.Path))
+                {
+                    comparisonTest=Op("$in",GuidOperand(value),Literal(new BsonArray(GuidLiterals((Guid)comparison.Literal.Value))));
+                    if(comparison.Operator==CosmicQueryComparisonOperator.NotEqual)comparisonTest=Op("$not",comparisonTest);
+                }
+                else comparisonTest=Op(symbol,value,Constant(comparison.Literal));
+                var test=Choose(domain,comparisonTest,Literal(false));
                 if(comparison.Operator!=CosmicQueryComparisonOperator.NotEqual)return test;
                 if(!comparison.Path.IsMetadata)
                     return Op("$not",Choose(domain,Op("$eq",value,Constant(comparison.Literal)),Literal(false)));
@@ -109,10 +136,12 @@ internal sealed class MongoCqlTranslator
                     ?Op("$or",test,Op("$eq",Type(value),Literal("null"))):test;
             });
             case CosmicQueryMembership membership:return At(membership.Path,value=>{
-                var guard=Domain(value,membership.Path.ValueType);
+                var guard=Domain(value,membership.Path.ValueType,membership.Path.IsMetadata);
                 if(membership.Values.Any(item=>item.Kind==CosmicQueryScalarKind.Null))guard=Op("$or",guard,Op("$eq",Type(value),Literal("null")));
-                var values=new BsonArray(membership.Values.Select(item=>((BsonDocument)Constant(item))["$literal"]));
-                return Choose(guard,Op("$in",value,Literal(values)),Literal(false));
+                var guid=GuidMetadata(membership.Path);
+                var values=new BsonArray(membership.Values.SelectMany(item=>guid&&item.Kind==CosmicQueryScalarKind.Guid
+                    ?GuidLiterals((Guid)item.Value):new[]{((BsonDocument)Constant(item))["$literal"]}));
+                return Choose(guard,Op("$in",guid?GuidOperand(value):value,Literal(values)),Literal(false));
             });
             case CosmicQueryStringMatch match:return At(match.Path,value=>{
                 BsonValue content=Literal(match.Value);BsonValue expression;

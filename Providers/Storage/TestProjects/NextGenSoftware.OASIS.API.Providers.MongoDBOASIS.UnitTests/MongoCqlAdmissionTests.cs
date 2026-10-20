@@ -60,13 +60,18 @@ public class MongoCqlAdmissionTests
     }
     [DataTestMethod]
     [DataRow("canonical")] [DataRow("metadata")] [DataRow("membership")] [DataRow("null")]
+    [DataRow("guid")] [DataRow("nullable-guid")] [DataRow("guid-membership")]
     public async Task SupportedExpressionsAreCompletelyTranslatedBeforeRepositoryAccess(string form)
     {
         var ids=new[]{Guid.NewGuid(),Guid.NewGuid()};
+        var target=ids[0];
         Expression<Func<Holon,bool>> predicate=form switch{
             "canonical"=>h=>h.Version>=2&&h.Name.StartsWith("$where",StringComparison.Ordinal)&&!h.IsPublic,
             "metadata"=>h=>CosmicQueryMetadata.Value<int>(h,"a.b","$value")>=7&&CosmicQueryMetadata.Exists(h,"literal.dot"),
             "membership"=>h=>ids.Contains(h.Id)||h.Description.EndsWith("\0coffee",StringComparison.Ordinal),
+            "guid"=>h=>CosmicQueryMetadata.Value<Guid>(h,"guid")==target,
+            "nullable-guid"=>h=>CosmicQueryMetadata.Value<Guid?>(h,"guid")!=null,
+            "guid-membership"=>h=>ids.Contains(CosmicQueryMetadata.Value<Guid>(h,"guid")),
             _=>h=>CosmicQueryMetadata.IsNull(h,"nullable")||CosmicQueryMetadata.Value<string>(h,"name")!=null};
         var built=CosmicQuery<Holon>.Create().Where(predicate);Assert.IsFalse(built.IsError,built.Message);
         var provider=new MongoDBOASIS("mongodb://127.0.0.1:1/?serverSelectionTimeoutMS=1","cql-admission-only");
