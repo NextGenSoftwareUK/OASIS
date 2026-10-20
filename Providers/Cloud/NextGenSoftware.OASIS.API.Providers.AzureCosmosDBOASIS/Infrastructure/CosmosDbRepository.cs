@@ -142,11 +142,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             entity.Version=acknowledged.Version;entity.VersionId=acknowledged.VersionId;entity.PreviousVersionId=acknowledged.PreviousVersionId;
         }
 
-        public async Task DeleteAsync(T entity)
-        {
-            ArgumentNullException.ThrowIfNull(entity);
-            await DeleteAsync(entity.Id);
-        }
+        public Task DeleteAsync(T entity) => DeleteIfUnchangedAsync(entity);
 
         public Task DeleteIfUnchangedAsync(T expected)
         {
@@ -165,8 +161,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             if(!Guid.TryParse(providerKey,out var id) || id==Guid.Empty) throw new ArgumentException("A nonempty Cosmos GUID key is required.",nameof(providerKey));
             var key=id.ToString();
-            var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-            await cosmosDbClient.DeleteDocumentAsync(key, ResolvePartitionKey(key));
+            var observed=await GetByIdAsync(key);
+            if(observed==null)throw new CosmosException("Cosmos deletion target does not exist.",HttpStatusCode.NotFound,0,null,0);
+            await DeleteIfUnchangedAsync(observed);
         }
 
         public abstract string CollectionName { get; }

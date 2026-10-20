@@ -101,10 +101,10 @@ public class CosmosAcknowledgedWriteTests
     public async Task EntityDeleteUsesCanonicalIdentityNotStaleProviderKey()
     {
         var id=Guid.NewGuid();var client=new Mock<ICosmosDbClient>();
-        client.Setup(c=>c.DeleteDocumentAsync(id.ToString(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        client.Setup(c=>c.DeleteUnchangedDocumentAsync(id.ToString(),It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
         await new AvatarRepository(factory.Object).DeleteAsync(new Avatar {Id=id,ProviderUniqueStorageKey=null!});
-        client.Verify(c=>c.DeleteDocumentAsync(id.ToString(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()),Times.Once);
+        client.Verify(c=>c.DeleteUnchangedDocumentAsync(id.ToString(),It.Is<object>(value=>((Avatar)value).Id==id),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()),Times.Once);
     }
 
     [DataTestMethod]
