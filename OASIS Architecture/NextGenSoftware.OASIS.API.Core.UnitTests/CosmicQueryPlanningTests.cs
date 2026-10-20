@@ -7,6 +7,38 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class CosmicQueryPlanningTests
 {
+    [Fact]
+    public void ExactFieldAdmissionDoesNotInferSupportFromAnotherFieldOfTheSameType()
+    {
+        var capability = new CosmicQueryCapabilities(CosmicQueryFeatures.NullLiteral,
+            new CosmicQueryFieldCapability("Name", typeof(string), CosmicQueryComparisonOperator.Equal),
+            new CosmicQueryFieldCapability("Version", typeof(int), CosmicQueryComparisonOperator.Equal, CosmicQueryComparisonOperator.GreaterThan));
+        Assert.True(capability.RestrictsCanonicalFields);
+        Assert.False(capability.Admit(CosmicQuery<Holon>.Create().Where(h => h.Name == "ok").Result).IsError);
+        Assert.True(capability.Admit(CosmicQuery<Holon>.Create().Where(h => h.Description == "ok").Result).IsError);
+        Assert.True(capability.Admit(CosmicQuery<Holon>.Create().Where(h => h.Name != "ok").Result).IsError);
+        Assert.False(capability.Admit(CosmicQuery<Holon>.Create().Where(h => h.Version > 2).Result).IsError);
+        var wrongType = new CosmicQueryCapabilities(CosmicQueryFeatures.None,
+            new CosmicQueryFieldCapability("Version", typeof(long), CosmicQueryComparisonOperator.GreaterThan));
+        Assert.True(wrongType.Admit(CosmicQuery<Holon>.Create().Where(h => h.Version > 2).Result).IsError);
+    }
+
+    [Fact]
+    public void ExactFieldProfilesAreImmutableAndRejectAmbiguousDeclarations()
+    {
+        var operations = new[] { CosmicQueryComparisonOperator.Equal };
+        var field = new CosmicQueryFieldCapability("Name", typeof(string), operations);
+        var fields = new[] { field };
+        var profile = new CosmicQueryCapabilities(CosmicQueryFeatures.None, fields);
+        fields[0] = new CosmicQueryFieldCapability("Description", typeof(string), CosmicQueryComparisonOperator.NotEqual);
+        operations[0] = CosmicQueryComparisonOperator.NotEqual;
+        Assert.Same(field, Assert.Single(profile.CanonicalFields));
+        Assert.Equal(CosmicQueryComparisonOperator.Equal, Assert.Single(field.Comparisons));
+        Assert.Throws<ArgumentException>(() => new CosmicQueryCapabilities(CosmicQueryFeatures.None, field, field));
+        Assert.Throws<ArgumentException>(() => new CosmicQueryCapabilities(CosmicQueryFeatures.None, new CosmicQueryFieldCapability[] { null! }));
+        Assert.Throws<ArgumentException>(() => new CosmicQueryFieldCapability(" ", typeof(string), CosmicQueryComparisonOperator.Equal));
+    }
+
     private static CosmicQueryCapabilities Capability(CosmicQueryFeatures features = CosmicQueryFeatures.None, params Type[] types)
         => new(features, types, System.Enum.GetValues<CosmicQueryComparisonOperator>());
 

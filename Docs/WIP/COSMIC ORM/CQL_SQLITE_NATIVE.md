@@ -25,3 +25,9 @@ The method is a direct provider adapter. It is not an HTTP endpoint or a complet
 ## Native evidence
 
 Eight cases compare supported results against separately materialized CLR predicates and cover case sensitivity, null composition, injection-like literals, integer/enum/GUID/boolean predicates, unsupported-before-I/O rejection, cancellation, exclusive target selection and result overflow. The focused gate passes8/8 in3s (sqlite-cql-native-focused.trx), followed by full823/823 in127s (sqlite-cql-native-full.trx). Producer and consumer builds succeed with zero errors. Reports and actual assembly hashes are retained under TestResults/SQLiteCurrent; exact hashes are recorded in the integration boundary. The reused fixture database is absent after successful teardown.
+
+## Exact field capability profile — verified
+
+`SQLLiteDBOASIS.CqlCapabilities` publishes the immutable native profile. Canonical fields now declare exact CLR types and operators; support for one string field does not imply support for every string field. The native translator and published profile consume one `SqliteCqlContract` mapping, so the field/operator whitelist has one owner. Native translation still refuses unsupported paths when presented with an overbroad caller-supplied plan.
+
+Two new Core cases pass in full1,310/1,310 (15s); the added native production-profile case passes in the full824/824 SQLite cohort (122s), zero skips. Both Core TFMs and SQLite producer/consumers build with zero errors. Reports: cql-fields-core-full.trx and sqlite-cql-fields-full.trx. Earlier823 evidence remains a distinct captured epoch.
