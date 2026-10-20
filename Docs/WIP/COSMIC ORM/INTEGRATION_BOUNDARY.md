@@ -334,3 +334,20 @@ Four native red-before cases fail for rounded historical reads and hidden checks
 - `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `6642A02C64D4E229CD21322C4FA38EB350B2703E8B6928793D11526BC31435CD`
 
 CoreF2E6/SharedC82 belong to the recorded Shared866/SQLite969 epoch. The provider session subsequently rebuilt identical Shared source for Oracle into a different0071 DLL; its Oracle96/Shared866 evidence is separate, not substituted for this C82 native proof. Core9897491 gitlink/manifest are unchanged, and Core1374 was not rerun for this SQLite-only change. Coherent historical graph snapshots, restore/retention, exact other-provider history, committed deltas and the full roadmap remain open. No dev push/deployment is included.
+
+
+## One exact numeric value owner in Core — 20 October 2026
+
+Core `51eb67b98ed52f6c1016b9c6c6c84ce79fbe20f4` moves exact logical JSON-number equality/normalization down to Core.Serialization.StoredRecordValueEquality. Tracking, pending deltas and save-publication edit checks use it; the provider session's Shared wrapper delegates, avoiding a Core-to-provider dependency and duplicate implementations. BigInteger exponents extend valid raw number comparison beyond Int64 without allocating powers or converting to double. Previously accepted finite canonical fingerprint bytes remain unchanged.
+
+Initial four Core cases have2fail/2controls. Six final new cases cover equivalent raw/CLR representations, arrays, true precise edits, numeric text, huge exponents and zero. FullCore1,380/1,380 passes10s; Shared883/883 passes with its exponent controls and finite-byte golden case. Native sync/async no-op2/2 passes2s; fullSQLite971/971 passes122s, zero skips. Producer/consumers and both Core TFMs build with zero errors. Database/wal/shm are absent after teardown. Actual reports/native copies SHA256:
+
+- `TestResults/CosmicMongoCurrent/numeric-value-equality-core-full.trx`: `76C55199BB76B4355CFD7B922A040E9C9768366686526F1B5095B4B4307847BD`
+- `TestResults/SQLiteCurrent/sqlite-numeric-value-equality-focused.trx`: `7A82827A757BA88AA489CE99687B6FD2C893BAEAF41C0A4C6683143D392401BD`
+- `TestResults/SQLiteCurrent/sqlite-numeric-value-equality-full.trx`: `D9D20FBC379C3DCB74099543954FCE8A084AACD2CDF277AAB25F2AA06E01711E`
+- `TestResults/SharedCurrent/shared-core-value-owner-final.trx`: `C6F6DD89970489250EEA812128224D38D180D5EC018896C604B608E0EA4CCD2E`
+- `NextGenSoftware.OASIS.API.Core.dll`: `FBAE964B1CC2786FBA1F17AB42D3730680708EE50BC31D2F115A83999A8F18C9`
+- `NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll`: `12F46C5436B54F4D744FA8BECF1C4B5A1D1CE7BE54DF3452D2EE69B5C2E3F56F`
+- `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `4057C353774BA761B3C5052E2F9396A1EEC3FEED1005F70004D08802B241C0C6`
+
+Core unit/native copies match; Shared883 recordedFBAE/12F46 matches this native consumer. The provider session checkpoints wrapper delegation after this paired Core pin. Its retained Dynamo95 is independently scoped; no all-provider release claim is inferred. This is logical numeric value equality, not a complete general runtime-type/string representation policy or completed CQL numeric schema contract. Generic metadata decoding, persisted authorized committed deltas and all original unfinished roadmap stages remain active. No dev push/deployment is included.
