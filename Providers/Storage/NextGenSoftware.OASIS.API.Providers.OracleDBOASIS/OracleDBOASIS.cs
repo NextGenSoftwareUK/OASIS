@@ -236,7 +236,10 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
             // Table/column are internal constants, never caller-supplied SQL identifiers.
             var historicalIdentity=version>0&&column!="ID";
-            string sql = $"SELECT ID,DATA_JSON FROM {table}" + (historicalIdentity?"":$" WHERE {column}=:val" + (excludeDeleted&&version==0?" AND IS_DELETED=0":""));
+            var validateAvatar=typeof(T)==typeof(Avatar);
+            // Validate current native/canonical agreement before deletion filtering or
+            // historical selection; an inconsistent SQL flag must not hide the record.
+            string sql = $"SELECT ID,DATA_JSON{(validateAvatar?",IS_DELETED":"")} FROM {table}" + (historicalIdentity?"":$" WHERE {column}=:val"+(excludeDeleted&&!validateAvatar&&version==0?" AND IS_DELETED=0":""));
             await using var conn = new OracleConnection(_connectionString);
             await conn.OpenAsync();
             await using var cmd = CreateCommand(sql, conn);
@@ -244,7 +247,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             await using var reader=await cmd.ExecuteReaderAsync();
             T? selected=null;
             while(await reader.ReadAsync()){
-                var id=new Guid((byte[])reader.GetValue(0));var record=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version);
+                var id=new Guid((byte[])reader.GetValue(0));var record=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version,validateAvatar?reader.GetInt32(2):null);
                 if(record==null||record.IsDeleted)continue;
                 if(column!="ID"){
                     if(!CanonicalIdentityMatches(record,column,value)){
