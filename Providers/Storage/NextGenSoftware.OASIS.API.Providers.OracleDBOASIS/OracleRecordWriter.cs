@@ -21,6 +21,10 @@ public partial class OracleDBOASIS
         try{
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync();
             await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync();
+            // Match deletion's profile-then-detail lock order. The related tombstone
+            // check and the proposed record write belong to this SAME transaction.
+            if(!proposed.IsDeleted&&typeof(T)==typeof(AvatarDetail))
+                await RejectRelatedTombstoneAsync<Avatar>(connection,transaction,"OASIS_AVATARS",proposed.Id);
             string? previous=null;Holon? observedHolon=null;
             var validateHolon=typeof(T)==typeof(Holon);
             await using(var select=CreateCommand($"SELECT DATA_JSON{(validateHolon?",HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID":"")} FROM {table} WHERE ID=:Id FOR UPDATE",connection)){
@@ -39,6 +43,8 @@ public partial class OracleDBOASIS
                 var write=plannedHolon??new PlannedHolonWrite(holon,holon);
                 holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(write,HolonChildRoleWriteKind.SourceSave,previous!=null,observedHolon?.ChildRoleManifestJson);
             }
+            if(!proposed.IsDeleted&&typeof(T)==typeof(Avatar))
+                await RejectRelatedTombstoneAsync<AvatarDetail>(connection,transaction,"OASIS_AVATAR_DETAILS",proposed.Id);
             creating=previous==null;var json=await StageRecordHistoryAsync(proposed,previous);var staged=Deserialize<T>(json);
             await using var command=CreateCanonicalWriteCommand(staged,json,table,creating,connection,transaction);
             dispatched=true;if(await ExecuteCanonicalWriteAsync(command)!=1)throw new InvalidDataException("Oracle locked canonical writer did not affect exactly one record.");
@@ -46,6 +52,19 @@ public partial class OracleDBOASIS
         }catch(OracleException cause)when(creating&&cause.Number==1){
             throw new InvalidDataException("Oracle create-only record conflicted with an existing native identity.",cause);
         }catch(Exception cause)when(dispatched){throw new OracleLifecycleReconciliationException(proposed.Id,cause);}
+    }
+
+    private async Task RejectRelatedTombstoneAsync<T>(OracleConnection connection,OracleTransaction transaction,string table,Guid id) where T:class,IHolonBase
+    {
+        if(!(typeof(T)==typeof(Avatar)&&table=="OASIS_AVATARS"||typeof(T)==typeof(AvatarDetail)&&table=="OASIS_AVATAR_DETAILS"))
+            throw new ArgumentException("Related Oracle identity type must match its fixed table.");
+        await using var select=CreateCommand($"SELECT DATA_JSON FROM {table} WHERE ID=:Id FOR UPDATE",connection);
+        select.Transaction=transaction;select.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();
+        var original=await select.ExecuteScalarAsync();
+        if(original!=null&&original!=DBNull.Value){
+            var related=await ReadRecordVersionAsync<T>(id,original.ToString()!,0)??throw new InvalidDataException("Oracle related identity is missing its current canonical record.");
+            if(related.IsDeleted)throw new Core.Helpers.StorageLifecycleConflictException("Active save conflicts with a committed related Oracle identity tombstone.");
+        }
     }
 
     // SQL/projection binding has one owner; callers own connection, transaction and acknowledgement.

@@ -28,7 +28,7 @@ public partial class OracleDBOASIS
             var stored=await WriteCanonicalRecordAsync(proposal,"OASIS_HOLONS",write);
             PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
             result.Result=source;result.IsSaved=true;result.SavedCount=1;result.Message=$"OracleDBOASIS: Holon '{proposal.Name}' saved.";
-        }catch(Exception cause){result.Exception=cause;OASISErrorHandling.HandleError(ref result,$"OracleDBOASIS: Error saving holon: {cause.Message}");}
+        }catch(Exception cause){result.Exception=cause;OASISErrorHandling.HandleError(ref result,$"OracleDBOASIS: Error saving holon: {cause.Message}");if(cause is StorageLifecycleConflictException)result.ErrorCode=StorageLifecycleConflictException.ErrorCode;}
         return result;
     }
 
@@ -64,6 +64,7 @@ public partial class OracleDBOASIS
             OASISErrorHandling.HandleError(ref result,"Oracle graph admission or write failed.");
         }
         result.SavedCount=saved.Count;
+        if(result.Exception is StorageLifecycleConflictException)result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
         return result;
     }
 }
