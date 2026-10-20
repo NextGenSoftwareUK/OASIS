@@ -457,6 +457,7 @@ public sealed partial class HyperDriveProviderExecutionTests
     {
         var primary = CreateActiveProvider(); var replica = CreateActiveProvider(ProviderType.LocalFileOASIS, "unavailable-replica");
         var settings = new Holon { Id = Guid.NewGuid(), MetaData = new Dictionary<string, object> { ["totalKarma"] = 100L } };
+        DeclareLeafChildReadContract(primary);
         primary.Setup(value => value.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0)).Returns(new OASISResult<IHolon>(settings));
         primary.Setup(value => value.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0)).ReturnsAsync(new OASISResult<IHolon>(settings));
         primary.Setup(value => value.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false)).Returns((IHolon value, bool a, bool b, int c, bool d, bool e) => new OASISResult<IHolon>(value));
@@ -1156,6 +1157,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var holonId = Guid.NewGuid();
         var holon = new Holon { Id = holonId };
         current.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(injected);
         injected.Setup(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0))
             .ReturnsAsync(new OASISResult<IHolon> { Result = holon });
         providerManager.RegisterProvider(current.Object);
@@ -1165,7 +1167,8 @@ public sealed partial class HyperDriveProviderExecutionTests
         var result = await manager.LoadHolonAsync(holonId);
 
         result.IsError.Should().BeFalse(result.Message);
-        result.Result.Should().BeSameAs(holon);
+        result.Result.Should().NotBeSameAs(holon);
+        result.Result.Id.Should().Be(holon.Id);
         injected.Verify(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0), Times.Once);
         current.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<bool>(),
             It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
@@ -1542,6 +1545,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "files-alias-rejection");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(fileId, true, true, 0, true, false, 0))
             .ReturnsAsync(new OASISResult<IHolon>(stored));
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
@@ -1985,8 +1989,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-messaging-write-failure");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
-            .ReturnsAsync(() => new OASISResult<IHolon>(new Holon { MetaData = new Dictionary<string, object>() }));
+            .ReturnsAsync((Guid id, bool children, bool recursive, int depth, bool keepGoing, bool native, int version) => new OASISResult<IHolon>(new Holon { Id=id, MetaData = new Dictionary<string, object>() }));
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
             .ReturnsAsync(new OASISResult<IHolon> { IsError = true, Message = "write rejected" });
         providerManager.RegisterProvider(provider.Object);
@@ -2122,8 +2127,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-eggs-write-failure");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
-            .ReturnsAsync(() => new OASISResult<IHolon>(new Holon { MetaData = new Dictionary<string, object>() }));
+            .ReturnsAsync((Guid id, bool children, bool recursive, int depth, bool keepGoing, bool native, int version) => new OASISResult<IHolon>(new Holon { Id=id, MetaData = new Dictionary<string, object>() }));
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
             .ReturnsAsync(new OASISResult<IHolon> { IsError = true, Message = "egg write rejected" });
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
@@ -2148,8 +2154,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-eggs-durable");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
-            .ReturnsAsync(() => new OASISResult<IHolon>(stored));
+            .ReturnsAsync((Guid id, bool children, bool recursive, int depth, bool keepGoing, bool native, int version) => new OASISResult<IHolon>(LeafSettingsObservation(id,stored)));
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
             .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
             {
@@ -2185,6 +2192,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-competition-durable");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
             .ReturnsAsync((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
                 new OASISResult<IHolon> { Result = stored.TryGetValue(id, out var holon) ? holon : null! });
@@ -2232,8 +2240,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-competition-rejected");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
-            .ReturnsAsync(new OASISResult<IHolon>(stored));
+            .ReturnsAsync((Guid id, bool children, bool recursive, int depth, bool keepGoing, bool native, int version) => new OASISResult<IHolon>(LeafSettingsObservation(id,stored)));
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
             .ReturnsAsync(new OASISResult<IHolon>
             {
@@ -2270,6 +2279,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-tournament-durable");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<bool>(),
                 It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
             .ReturnsAsync((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
@@ -2307,6 +2317,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-tournament-rejected");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
             .ReturnsAsync(() => new OASISResult<IHolon> { Result = stored });
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
@@ -2643,6 +2654,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-sync-settings-save");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0))
             .Returns(new OASISResult<IHolon>(settingsHolon));
         IHolon savedHolon = null;
@@ -2682,6 +2694,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-sync-karma");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0))
             .Returns((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
                 new OASISResult<IHolon>(stored.TryGetValue(id, out var holon)
@@ -2724,6 +2737,7 @@ public sealed partial class HyperDriveProviderExecutionTests
             .Returns(new OASISResult<IAvatarDetail>(detail));
         provider.Setup(x => x.SaveAvatarDetail(It.IsAny<IAvatarDetail>()))
             .Returns((IAvatarDetail avatar) => new OASISResult<IAvatarDetail>(avatar) { IsSaved = true });
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0))
             .Returns((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
                 new OASISResult<IHolon>(stored.TryGetValue(id, out var holon)
@@ -2767,6 +2781,7 @@ public sealed partial class HyperDriveProviderExecutionTests
             .Returns(new OASISResult<IAvatarDetail>(detail));
         provider.Setup(x => x.SaveAvatarDetail(It.IsAny<IAvatarDetail>()))
             .Returns((IAvatarDetail avatar) => new OASISResult<IAvatarDetail>(avatar) { IsSaved = true });
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0))
             .Returns((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
                 new OASISResult<IHolon>(stored.TryGetValue(id, out var holon)
@@ -2817,6 +2832,7 @@ public sealed partial class HyperDriveProviderExecutionTests
             .Returns(new OASISResult<IAvatarDetail>(detail));
         provider.Setup(x => x.SaveAvatarDetail(It.IsAny<IAvatarDetail>()))
             .Returns((IAvatarDetail avatar) => new OASISResult<IAvatarDetail>(avatar) { IsSaved = true });
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
             .ReturnsAsync((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
                 new OASISResult<IHolon>(stored.TryGetValue(id, out var holon)
@@ -2889,8 +2905,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-karma-write-failure");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
-            .ReturnsAsync(new OASISResult<IHolon>(new Holon { MetaData = new Dictionary<string, object>() }));
+            .ReturnsAsync((Guid id, bool children, bool recursive, int depth, bool keepGoing, bool native, int version) => new OASISResult<IHolon>(new Holon { Id=id, MetaData = new Dictionary<string, object>() }));
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
             .ReturnsAsync(new OASISResult<IHolon>
             {
@@ -2922,8 +2939,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-durable-karma");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
         IHolon stored = new Holon { MetaData = new Dictionary<string, object>() };
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
-            .ReturnsAsync(() => new OASISResult<IHolon>(stored));
+            .ReturnsAsync((Guid id, bool children, bool recursive, int depth, bool keepGoing, bool native, int version) => new OASISResult<IHolon>(LeafSettingsObservation(id,stored)));
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
             .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
             {
@@ -2955,8 +2973,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
         IHolon stored = new Holon { MetaData = new Dictionary<string, object>() };
         var saveCount = 0;
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
-            .ReturnsAsync(() => new OASISResult<IHolon>(stored));
+            .ReturnsAsync((Guid id, bool children, bool recursive, int depth, bool keepGoing, bool native, int version) => new OASISResult<IHolon>(LeafSettingsObservation(id,stored)));
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
             .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
             {
@@ -3001,6 +3020,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-durable-karma-stats");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
         var stored = new Dictionary<Guid, IHolon>();
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
             .ReturnsAsync((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
                 new OASISResult<IHolon>(stored.TryGetValue(id, out var holon)
@@ -3040,9 +3060,10 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "json-karma-history");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
-            .ReturnsAsync(new OASISResult<IHolon>(new Holon
-            {
+            .ReturnsAsync((Guid id, bool children, bool recursive, int depth, bool keepGoing, bool native, int version) => new OASISResult<IHolon>(new Holon
+            { Id=id,
                 MetaData = new Dictionary<string, object>
                 {
                     ["totalKarma"] = 11L,
@@ -3160,8 +3181,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-social-runtime");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        DeclareLeafChildReadContract(provider);
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
-            .ReturnsAsync(new OASISResult<IHolon>(new Holon { MetaData = new Dictionary<string, object>() }));
+            .ReturnsAsync((Guid id, bool children, bool recursive, int depth, bool keepGoing, bool native, int version) => new OASISResult<IHolon>(new Holon { Id=id, MetaData = new Dictionary<string, object>() }));
         provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
             .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
                 new OASISResult<IHolon>(holon) { IsSaved = true });
@@ -4331,7 +4353,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         };
         var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "metadata-diagnostics");
         selected.Setup(x => x.LoadHolonsByMetaDataAsync("kind", "quest", HolonType.All,
-                true, true, 0, 0, true, false, 0))
+                false, true, 0, 0, true, false, 0))
             .ReturnsAsync(providerResult);
         var dna = CreateDna(HyperDriveModes.V2);
         var providerManager = new ProviderManager(null, dna)
@@ -4340,7 +4362,7 @@ public sealed partial class HyperDriveProviderExecutionTests
 
         var result = await new HolonManager(null, dna, providerManager)
             .LoadHolonByMetaDataAsync<Holon>("kind", "quest",
-                providerType: ProviderType.SQLLiteDBOASIS);
+                loadChildren: false, providerType: ProviderType.SQLLiteDBOASIS);
 
         result.IsError.Should().BeFalse(result.Message);
         result.IsWarning.Should().BeTrue();
@@ -6638,6 +6660,25 @@ public sealed partial class HyperDriveProviderExecutionTests
         manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests.Should().Be(2);
         fast.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>()), Times.Exactly(2));
         slow.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>()), Times.Once);
+    }
+
+    private static IHolon LeafSettingsObservation(Guid id,IHolon stored)
+    {
+        var observed=NextGenSoftware.OASIS.API.Core.Helpers.Mapper<IHolon,Holon>.MapBaseHolonProperties(stored,new Holon());
+        observed.Id=id;
+        // Preserve the metadata alias so rejected-write tests still exercise production isolation.
+        observed.MetaData=stored.MetaData;
+        return observed;
+    }
+
+    // These fixtures model scalar settings/file records with no parent-linked child rows.
+    // An explicit graph request still performs a real provider-boundary child query.
+    private static void DeclareLeafChildReadContract(Mock<IOASISStorageProvider> provider)
+    {
+        provider.Setup(p=>p.LoadHolonsForParent(It.IsAny<Guid>(),HolonType.All,false,false,0,0,It.IsAny<bool>(),false,0))
+            .Returns(new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()));
+        provider.Setup(p=>p.LoadHolonsForParentAsync(It.IsAny<Guid>(),HolonType.All,false,false,0,0,It.IsAny<bool>(),false,0))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()));
     }
 
     private static Mock<IOASISStorageProvider> CreateActiveProvider(
