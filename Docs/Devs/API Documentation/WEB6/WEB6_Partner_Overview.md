@@ -95,8 +95,11 @@ WEB6 passes through provider costs at **exactly** what they charge — no markup
 | Document corpus / RAG storage | ❌ | ❌ | ✅ Holonic Memory |
 | Long-term memory | ❌ | One agent's local notes | ✅ Per-avatar Holonic Memory + 7 external memory adapters, auto-curated |
 | Server-side agent loop | ❌ | ✅ | ✅ `/v1/agent/run`, metered per step |
-| Self-improving skills | ❌ | ✅ | ✅ SkillOpt, trained from scored runs |
-| WhatsApp / Telegram / Slack / Discord | ❌ | ✅ | ✅ Signed webhooks, per-chat memory, voice notes, per-client billing |
+| Self-improving skills | ❌ | ✅ | ✅ Agent-drafted skills, kept by score, evolved by SkillOpt |
+| WhatsApp / Telegram / Slack / Discord / Signal / Email | ❌ | ✅ | ✅ Signed webhooks, per-chat memory, voice notes, per-client billing |
+| Code execution | ❌ | Local shell | ✅ Isolated metered sandboxes as an agent tool |
+| Any MCP server as agent tools | ❌ | ✅ | ✅ Public-HTTPS guarded |
+| Terminal chat | ❌ | `hermes` | ✅ `star chat` |
 | Scheduled agent runs | ❌ | ✅ (unbilled, single user) | ✅ Exactly-once cron under budget-capped grants |
 | Multi-user isolation and per-user billing | ❌ | ❌ | ✅ WEB4 avatars, plans, limits, grants |
 | Data ownership | OpenRouter's servers | Your box | Your infrastructure (self-hostable ONODE) |

@@ -443,14 +443,16 @@ You may be weighing two alternatives: a **model router** such as [OpenRouter](ht
 | Multi-user (each client separate) | No: one account and key | No: designed for one person | **Yes: every client is a WEB4 avatar with their own memory, budgets, metering and audit trail** |
 | Privacy controls for therapy data | None beyond the provider's | Memory sits in local files on whatever box runs it | **Per-avatar holons, membrane rules (nothing is shared upward unless allowed), TTL retention, self-hostable ONODE for full data sovereignty** |
 | Agent loop | No | Yes | **Yes: `POST /v1/agent/run`, metered per step, with pause-for-client-tools** |
-| Self-improving skills | No | Yes: writes skills from tasks | **Yes: SkillOpt evolves each agent's skill per task category from scored runs (`/v1/agent/feedback`), and only keeps edits that measurably improve results** |
+| Self-improving skills | No | Yes: writes skills from tasks | **Yes: the agent drafts a skill after a task, your score keeps it, and SkillOpt then evolves it from scored runs, keeping only edits that measurably improve results** |
 | Long-term memory | No | One agent's own notes | **Holonic Memory hierarchy plus Mem0, Zep, Letta, LangMem, Graphiti, Qdrant and Weaviate adapters; the agent curates durable facts automatically** |
 | Shared reasoning | No | No | **Holonic BRAID: proven reasoning plans are reused across sessions and users** |
 | Multi-agent orchestration | No | Parallel subagents | **FAHRN: serial, parallel, debate, voting and decomposed dispatch with budget guards and loop detection** |
-| WhatsApp, Telegram, Slack, Discord | No | Yes | **Yes: signed webhooks, one-time avatar linking, per-chat conversation memory, voice notes transcribed and answered, every reply billed to that client's own capped grant** |
+| WhatsApp, Telegram, Slack, Discord, Signal, Email | No | Yes | **Yes: signed webhooks, one-time avatar linking, per-chat conversation memory, voice notes transcribed and answered, every reply billed to that client's own capped grant** |
 | Scheduled / unattended runs | No | Built-in cron, unbilled and single-user | **Cron schedules per avatar, run exactly once across servers, each under a revocable, budget-capped grant, with results to a webhook or the client's chat** |
 | Spending control | Account-level credit balance | None | **Per-user plans, daily and monthly limits, per-grant monthly and per-operation caps, reserve-then-settle accounting on every call** |
-| Tools and interop | No | MCP client | **508 MCP tools at `/mcp`, plus A2A, ACP, ANP, LangGraph, OpenAI Agents, gRPC, GraphQL and webhooks** |
+| Tools and interop | No | MCP client | **Any remote MCP server as agent tools, plus 508 MCP tools served at `/mcp`, A2A, ACP, ANP, LangGraph, OpenAI Agents, gRPC, GraphQL and webhooks** |
+| Code execution | No | Local shell on one machine | **Isolated, metered sandboxes (E2B, Judge0, Daytona) as an agent tool, billed per millisecond to the client** |
+| Chat from the terminal | No | `hermes` | **`star chat`, with memory, skills, sandbox and MCP tools** |
 | Drop-in for existing code | OpenAI-compatible API | You adopt its runtime | **OpenAI-compatible `/v1/chat/completions`: LangChain, AutoGen and CrewAI work by changing the base URL** |
 
 ### What this means for Leela
