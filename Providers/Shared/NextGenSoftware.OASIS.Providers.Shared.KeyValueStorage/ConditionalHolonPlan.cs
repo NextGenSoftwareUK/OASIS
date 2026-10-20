@@ -20,6 +20,7 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
     public IReadOnlyDictionary<Guid,IReadOnlyList<Guid>> ChildIds {get;}
     public string Fingerprint {get;}
     public Guid OperationId {get;}
+    public Guid ActorId {get;}
     public ProviderType Authority {get;}
     public ConditionalHolonOperation Operation {get;}
     public IReadOnlyDictionary<Guid,Guid?> ExpectedRevisions {get;}
@@ -37,6 +38,7 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
             throw new ArgumentException("Explicit and embedded replication enrollment differ.");
         ReplicationEnrollment=enrollment;SaveChildren=request.SaveChildren;Recursive=request.Recursive;MaxChildDepth=request.MaxChildDepth;
         OperationId=request.Write.OperationId;
+        ActorId=request.Write.ActorId;
         Authority=request.Write.Authority;Operation=request.Operation;
         ExpectedRevisions=new System.Collections.ObjectModel.ReadOnlyDictionary<Guid,Guid?>(request.Write.Conditions.ToDictionary(c=>c.HolonId,c=>c.ExpectedRevisionId));
         if(request.Write.Authority!=authority)throw new ArgumentException("Conditional request belongs to another authority.");

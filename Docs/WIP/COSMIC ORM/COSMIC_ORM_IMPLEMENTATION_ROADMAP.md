@@ -282,3 +282,7 @@ Normalization uses coefficient text and BigInteger exponents, without double con
 Four initial Core cases have2fail/2controls against the old comparer. Six final new cases pass within fullCore1,380/1,380, zero skips, including unbounded exponent/zero controls. Native sync/async cases verify an equivalent metadata edit yields an empty pending preview, a no-op Save and unchanged stored logical/provider revisions. Final native regression is recorded separately. Generic raw-metadata reader expansion and atomic authorized committed deltas remain open.
 
 Final equality acceptance: Core1,380/1,380 passes10s, Shared883/883 passes on matching recorded dependencies, native no-op2/2 passes2s and fullSQLite971/971 passes122s, zero skips. The fixed fixture database/wal/shm are absent. Existing finite fingerprint bytes remain unchanged; generic metadata reader expansion and committed delta persistence remain separate open gates.
+
+### Stage7 MongoDB adoption checkpoint — 20 October 2026
+
+MongoDB now implements atomic committed-delta capture using the shared Core model and Shared receipt codec. SQLite and MongoDB expose the conditional-delta capability; authorized stored-value access, wider provider rollout, ordinary CRUD/replicas and retention/operator workflows remain required. See [MongoDB acceptance and scope](MONGO_COMMITTED_DELTAS.md).
