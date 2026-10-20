@@ -60,17 +60,16 @@ public partial class SQLLiteDBOASISIntegrationTests
     }
 
     [Fact]
-    public async Task NativeCqlDoesNotAdmitUnsafeMixedNumericCoercionEvenWithForgedProfile()
+    public async Task NativeCqlMixedDecimalEqualityNeverRoundsToTheStoredInteger()
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString); ICosmicQueryStorageProvider adapter = provider;
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), Version = 1 }, saveChildren: false)).IsError.Should().BeFalse();
         var value = 1.000000000000000000000000001m;
         var query = CosmicQuery<Holon>.Create().Where(h => (decimal)h.Version == value).Result;
-        var actual = CosmicQueryPlanner.Plan(query, adapter.QueryProviderType, new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) });
-        actual.IsError.Should().BeTrue(); actual.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
-        var overbroad = new CosmicQueryCapabilities(CosmicQueryFeatures.MixedNumericComparison, new[] { typeof(int) }, new[] { CosmicQueryComparisonOperator.Equal });
-        var forged = CosmicQueryPlanner.Plan(query, adapter.QueryProviderType, new[] { new CosmicQueryTarget(adapter.QueryProviderType, overbroad) });
-        forged.IsError.Should().BeFalse(forged.Message);
-        var result = await provider.ExecuteCosmicQueryAsync(forged.Result);
-        result.IsError.Should().BeTrue(); result.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED"); File.Exists(_databasePath).Should().BeFalse();
+        var plan = CosmicQueryPlanner.Plan(query, adapter.QueryProviderType, new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) });
+        plan.IsError.Should().BeFalse(plan.Message);
+        var result = await provider.ExecuteCosmicQueryAsync(plan.Result);
+        result.IsError.Should().BeFalse(result.Message + result.Exception); result.Result.Should().BeEmpty();
     }
 }
