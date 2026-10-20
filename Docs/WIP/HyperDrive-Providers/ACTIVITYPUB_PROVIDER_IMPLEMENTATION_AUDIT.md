@@ -1,5 +1,15 @@
 # ActivityPub provider implementation audit
 
+## Fresh public-native refresh and relationship-write scope — 2026-10-20
+
+Inspected private holon save contract: ActivityPub deliberately returns `RejectPrivateRecordStorage` rather than projecting private OASIS graph records into public statuses. There is no captured private relationship-plan writer to patch here. Do not force the SOLID/Cosmos persistence fix into this public-social adapter or count native unsupported private-record storage as implemented. Public reply graphs retain native status/context semantics; authenticated authorized social operations are a separate acceptance scope.
+
+Reused existing provider/integration projects and SDK caches, bounded no-restore/no-project-reference builds0errors/2warnings each. Actual copied Core `0395C2FE5A1BAD0FF4C30E2FD19A5A8643263BB944744DD7F0624276D62E58D7`, Shared `536D8D28F837F7C31C26A6DBF2322414DA3FFD68F782174FACB9A8A00ECEB2F9`. First full public native8 run had7pass/1fail/0skips39s: independent reference status GET timed out15seconds at PublicMastodonAccountTests.cs:72 BEFORE provider status dispatch; preserved `activitypub-live-role-audit.trx`, SHA256 `4EB07E4F2495A85CC68BC9C2FCEF6EDADA91B6E694B1CC0F2756DC4921BC6DD1`. No fixture/timeout/assertion/production retry changes were made. One bounded full no-build recheck passed **8/8 live public native**,0skips9s; separate `activitypub-live-role-audit-recheck.trx` report retained. First failure is not erased or claimed fixed; no network availability/SLA certification follows.
+
+Both runs use original mastodon.social/hachyderm.io GET-only fixtures: public profile mapping, status/author linkage, independently selected timeline cursor, native reply/context/parent relationships. No account/token/signup/post/delete, runtime/server setup, download or environment copy. Opt-in env restored in finally. No ActivityPub production source changed. Authenticated search/write/ownership, complete relevant interfaces, private-record capability policy, immutable publication and ALL-provider V2 gates remain OPEN.
+
+Recheck report SHA256 `E1BA2A8BFD69EEEED4D23D454C2A1D058B62107667CC34E321CFDB51F3565D4C`; free C:63,775,006,720bytes observed,123GBtarget still unmet/no reclaim claim. No build/test process from these runs remains live.
+
 2026-10-18. Incomplete; not release certification.
 
 ## Search request ownership and truthful success envelope — 2026-10-20
