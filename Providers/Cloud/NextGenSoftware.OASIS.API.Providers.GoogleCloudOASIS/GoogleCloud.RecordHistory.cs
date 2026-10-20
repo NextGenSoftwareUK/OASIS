@@ -21,8 +21,10 @@ public partial class GoogleCloudOASIS
         NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,message,cause);
         result.SavedCount=KnownFirestoreAcknowledgements(cause).Distinct().Count();
         // A definite create/revision rejection is not provider unavailability. Keep the original SDK cause.
-        if(cause is Core.Helpers.StorageLifecycleConflictException || cause is Grpc.Core.RpcException rpc && rpc.StatusCode is Grpc.Core.StatusCode.AlreadyExists or Grpc.Core.StatusCode.FailedPrecondition or Grpc.Core.StatusCode.NotFound)
+        if(cause is Core.Helpers.StorageLifecycleConflictException || cause is Grpc.Core.RpcException rpc && rpc.StatusCode is Grpc.Core.StatusCode.AlreadyExists or Grpc.Core.StatusCode.FailedPrecondition or Grpc.Core.StatusCode.NotFound or Grpc.Core.StatusCode.Aborted)
             result.ErrorCode=NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode;
+        if(cause is Grpc.Core.RpcException invalid && invalid.StatusCode==Grpc.Core.StatusCode.InvalidArgument)
+            result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
     }
     private static IEnumerable<Guid> KnownFirestoreAcknowledgements(Exception cause)
     {
@@ -72,6 +74,8 @@ public partial class GoogleCloudOASIS
         }
         _=CanonicalFirestoreHistoryDocument<T>(fields,reference.Id);
         var proposed=OasisJson.DeserializeStored<T>((string)fields["data_json"]);
+        if(collection is "avatars" or "avatarDetails")
+            return await WriteFirestoreIdentityAsync(reference,fields,proposed,createHistory,validateCaller);
         var snapshot=await reference.GetSnapshotAsync();
         var previous=snapshot.Exists?snapshot.ToDictionary():null;
         T observedRecord=null;
@@ -79,12 +83,7 @@ public partial class GoogleCloudOASIS
         if(collection=="holons" && proposed is Core.Holons.Holon holon)
             holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plannedHolon??new PlannedHolonWrite(holon,holon),
                 HolonChildRoleWriteKind.SourceSave,previous!=null,(observedRecord as Core.Holons.Holon)?.ChildRoleManifestJson);
-        var staged=await StageFirestoreDocumentAsync(proposed,previous,reference.Id,createHistory);
-        var committed=OasisJson.DeserializeStored<T>(staged.ToString(Newtonsoft.Json.Formatting.None));
-        fields["data_json"]=staged.ToString(Newtonsoft.Json.Formatting.None);
-        fields["version"]=committed.Version;
-        if(fields.ContainsKey("previousVersionId"))fields["previousVersionId"]=committed.PreviousVersionId.ToString();
-        if(fields.ContainsKey("nextVersionId"))fields["nextVersionId"]=committed.VersionId.ToString();
+        var committed=await StageFirestoreFieldsAsync(proposed,previous,reference.Id,createHistory,fields);
         Dictionary<FieldPath,object> replacement=null;
         if(snapshot.Exists){
             if(!snapshot.UpdateTime.HasValue || snapshot.UpdateTime.Value.Equals(default(Timestamp)))
@@ -109,6 +108,17 @@ public partial class GoogleCloudOASIS
     {
         if(database?.Client.Settings?.CommitSettings?.Retry?.MaxAttempts!=1)
             throw new InvalidOperationException("Conditional Firestore writes require explicit single-attempt Commit settings before native I/O.");
+    }
+
+    private static async Task<T> StageFirestoreFieldsAsync<T>(T proposed,Dictionary<string,object> previous,string id,bool history,Dictionary<string,object> fields) where T:class,IHolonBase
+    {
+        var staged=await StageFirestoreDocumentAsync(proposed,previous,id,history);
+        var committed=OasisJson.DeserializeStored<T>(staged.ToString(Newtonsoft.Json.Formatting.None));
+        fields["data_json"]=staged.ToString(Newtonsoft.Json.Formatting.None);
+        fields["version"]=committed.Version;
+        if(fields.ContainsKey("previousVersionId"))fields["previousVersionId"]=committed.PreviousVersionId.ToString();
+        if(fields.ContainsKey("nextVersionId"))fields["nextVersionId"]=committed.VersionId.ToString();
+        return committed;
     }
 
     private static async Task<JObject> StageFirestoreDocumentAsync<T>(T proposed,Dictionary<string,object> previous,string id,bool createHistory) where T:class,IHolonBase
