@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -116,17 +116,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         var result=new OASISResult<ISearchResults>();
         try {
             StoredRecordSearch.Validate(search,version,maxDepth,supportsHistory:true);
+            search=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(search);
+            StoredRecordSearch.Validate(search,version,maxDepth,supportsHistory:true);
             var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
             var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
             var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
             var avatars=new List<IAvatar>();var holons=new List<IHolon>();
             if(wantsAvatars) {
-                var loaded=await LoadAllAvatarsAsync(version);
+                var loaded=await LoadAllAvatarsAsync(version).ConfigureAwait(false);
                 if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,ISearchResults>(loaded);
                 avatars=loaded.Result.ToList();
             }
             if(wantsHolons || search.ParentId!=Guid.Empty) {
-                var loaded=await LoadAllHolonsAsync(HolonType.All,children,recursive,maxDepth,0,continueOnError,true,version);
+                var loaded=await LoadAllHolonsAsync(HolonType.All,children,recursive,maxDepth,0,continueOnError,true,version).ConfigureAwait(false);
                 if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(loaded);
                 holons=loaded.Result.ToList();
             }
@@ -177,19 +179,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => ExportCurrentSelectorAsync(avatarEmailAddress,true,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => await ReadCurrentHolonsAsync(HolonType.All,true,true,0,0,true,version);
+            => await ReadCurrentHolonsAsync(HolonType.All,true,true,0,0,true,version).ConfigureAwait(false);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
             => ReadCurrentHolonsAsync(HolonType.All,true,true,0,0,true,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadCurrentMetadataAsync(metaKey==null ? null : new Dictionary<string,string> {{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
+            => await ReadCurrentMetadataAsync(metaKey==null ? null : new Dictionary<string,string> {{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).ConfigureAwait(false);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => ReadCurrentMetadataAsync(metaKey==null ? null : new Dictionary<string,string> {{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadCurrentMetadataAsync(metaKeyValuePairs,metaKeyValuePairMatchMode,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
+            => await ReadCurrentMetadataAsync(metaKeyValuePairs,metaKeyValuePairMatchMode,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).ConfigureAwait(false);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => ReadCurrentMetadataAsync(metaKeyValuePairs,metaKeyValuePairMatchMode,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();

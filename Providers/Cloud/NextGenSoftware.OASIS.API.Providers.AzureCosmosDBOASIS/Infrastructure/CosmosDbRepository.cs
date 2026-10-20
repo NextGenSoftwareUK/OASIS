@@ -67,12 +67,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         public List<T> GetList() => GetList(0);
 
         public List<T> GetList(int version)
+            =>GetListAsync(version).GetAwaiter().GetResult();
+
+        public Task<List<T>> GetListAsync()=>GetListAsync(0);
+
+        public async Task<List<T>> GetListAsync(int version)
         {
             try
             {
                 if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-                var jsonList = cosmosDbClient.ReadAllDocuments();
+                var jsonList = await cosmosDbClient.ReadAllDocumentsAsync().ConfigureAwait(false);
                 var list = new List<T>();
                 foreach (var json in jsonList)
                 {

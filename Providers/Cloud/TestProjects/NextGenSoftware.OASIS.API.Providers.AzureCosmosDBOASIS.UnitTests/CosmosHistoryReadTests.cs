@@ -25,7 +25,7 @@ public class CosmosHistoryReadTests
             input.MetaData["history_marker"]="second";
             var second=await CosmosEmbeddedHistory.StageAsync(input,first,decode);
             client.Setup(c=>c.ReadDocumentAsync(input.Id.ToString(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).ReturnsAsync(second.ToString());
-            client.Setup(c=>c.ReadAllDocuments()).Returns(new List<string>{second.ToString()});
+            client.Setup(c=>c.ReadAllDocumentsAsync()).ReturnsAsync(new List<string>{second.ToString()});
             var previous=await repository.GetByIdAsync(input.Id.ToString(),1);
             Assert.AreEqual("first",previous.MetaData["history_marker"].ToString());Assert.AreEqual(1,previous.Version);
             Assert.AreEqual(2,(await repository.GetByIdAsync(input.Id.ToString())).Version);
@@ -49,8 +49,8 @@ public class CosmosHistoryReadTests
         var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,IsActive=true,Name="current child",Version=5};
         var repository=new Mock<IHolonRepository>();
         repository.Setup(r=>r.GetByIdAsync(root.Id.ToString(),1)).ReturnsAsync(root);
-        repository.Setup(r=>r.GetList(1)).Returns(new List<IHolon>{root});
-        repository.Setup(r=>r.GetList()).Returns(new List<IHolon>{current,child});
+        repository.Setup(r=>r.GetListAsync(1)).ReturnsAsync(new List<IHolon>{root});
+        repository.Setup(r=>r.GetListAsync(0)).ReturnsAsync(new List<IHolon>{current,child});
         var provider=new AzureCosmosDBOASIS(new Uri("https://owned.invalid"),"owned","owned",new(){"holonItems"}){IsProviderActivated=true};
         typeof(AzureCosmosDBOASIS).GetField("holonRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
         var single=await provider.LoadHolonAsync(root.Id,loadChildrenFromProvider:true,version:1);

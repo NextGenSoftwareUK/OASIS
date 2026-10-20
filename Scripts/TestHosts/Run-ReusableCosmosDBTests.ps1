@@ -55,7 +55,7 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'Cosmos DB native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    $expected=if($InspectRetainedFixture -or $ReconcileRetainedRoutingFixture){1}else{53}
+    $expected=if($InspectRetainedFixture -or $ReconcileRetainedRoutingFixture){1}else{59}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0) {throw 'Exact expected native Cosmos DB case count with no skips required.'}
 }
 finally {

@@ -377,6 +377,7 @@ public class CosmosNativeStorageTests
         public Task<string> ReadDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)=>healthy.ReadDocumentAsync(id,key,token);
         public string ReadDocumentByField(string field,string value,int version=0)=>healthy.ReadDocumentByField(field,value,version);
         public List<string> ReadAllDocuments()=>healthy.ReadAllDocuments();
+        public Task<List<string>> ReadAllDocumentsAsync()=>healthy.ReadAllDocumentsAsync();
         public Task<string> CreateDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>failed.CreateDocumentAsync(doc,key,token);
         public Task<string> UpsertDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>failed.UpsertDocumentAsync(doc,key,token);
         public Task<string> ReplaceDocumentAsync(string id,object doc,PartitionKey? key,CancellationToken token=default)=>failed.ReplaceDocumentAsync(id,doc,key,token);
@@ -392,6 +393,7 @@ public class CosmosNativeStorageTests
         public Task<string> ReadDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.ReadDocumentAsync(id,key,t),token);
         public string ReadDocumentByField(string field,string value,int version=0)=>inner.ReadDocumentByField(field,value,version);
         public List<string> ReadAllDocuments()=>inner.ReadAllDocuments();
+        public Task<List<string>> ReadAllDocumentsAsync()=>inner.ReadAllDocumentsAsync();
         public Task<string> CreateDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.CreateDocumentAsync(doc,key,t),token);
         public Task<string> UpsertDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.UpsertDocumentAsync(doc,key,t),token);
         public Task<string> ReplaceDocumentAsync(string id,object doc,PartitionKey? key,CancellationToken token=default)
