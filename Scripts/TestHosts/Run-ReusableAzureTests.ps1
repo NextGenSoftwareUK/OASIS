@@ -21,6 +21,7 @@ try {
         & dotnet build $producer --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE) {throw "Cached build failed: $producer"}
     }
+    & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests/bin/Debug/net10.0'
     $node=(Get-Command node.exe).Source
     $process=Start-Process -FilePath $node -ArgumentList @($runtime,'--blobHost','127.0.0.1','--blobPort','10000','--inMemoryPersistence','--extentMemoryLimit','64','--disableTelemetry','--silent') -WorkingDirectory $work -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'azurite.out.log') -RedirectStandardError (Join-Path $work 'azurite.err.log')
     $ready=$false

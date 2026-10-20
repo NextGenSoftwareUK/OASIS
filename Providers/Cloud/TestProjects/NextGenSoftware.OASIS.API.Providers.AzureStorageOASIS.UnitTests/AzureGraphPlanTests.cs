@@ -15,8 +15,8 @@ public class AzureGraphPlanTests
     {
         public int Writes;
         public WriteProbe():base("UseDevelopmentStorage=true") { }
-        protected override Task<OASISResult<IHolon>> SaveCapturedHolonAsync(IHolon holon,Holon staged,Action validatePublication)
-        {validatePublication();Writes++;holon.Id=staged.Id;holon.ParentHolonId=staged.ParentHolonId;return Task.FromResult(new OASISResult<IHolon> {Result=holon,IsSaved=true});}
+        protected override Task<OASISResult<IHolon>> SavePlannedHolonAsync(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite write,Action validatePublication)
+        {var holon=write.Source;var staged=write.Snapshot;validatePublication();Writes++;holon.Id=staged.Id;holon.ParentHolonId=staged.ParentHolonId;return Task.FromResult(new OASISResult<IHolon> {Result=holon,IsSaved=true});}
     }
 
     [DataTestMethod]

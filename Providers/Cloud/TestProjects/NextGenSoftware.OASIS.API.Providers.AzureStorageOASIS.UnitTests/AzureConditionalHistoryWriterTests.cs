@@ -178,7 +178,7 @@ public class AzureConditionalHistoryWriterTests
 
     private static Task<Holon> Write(BlobClient blob, Holon record)
         => (Task<Holon>)typeof(AzureStorageOASIS).GetMethod("WriteVersionedBlobAsync", BindingFlags.NonPublic | BindingFlags.Static)!
-            .MakeGenericMethod(typeof(Holon)).Invoke(null, new object?[] { blob, record, true, null })!;
+            .MakeGenericMethod(typeof(Holon)).Invoke(null, new object?[] { blob, record, true, null, null })!;
 
     [DataTestMethod] [DataRow(false)] [DataRow(true)]
     public async Task ExactlyOneConditionalWritePublishesOnlyDetachedAcknowledgedVersion(bool existing)
