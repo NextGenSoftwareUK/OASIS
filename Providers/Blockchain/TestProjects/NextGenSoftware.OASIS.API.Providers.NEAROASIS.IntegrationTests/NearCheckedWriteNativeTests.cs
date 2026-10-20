@@ -31,10 +31,13 @@ public class NearCheckedWriteNativeTests
         if(File.Exists(complete)){
             using var prior=JsonDocument.Parse(File.ReadAllText(complete));Assert.AreEqual("verified-fixtures-absent",prior.RootElement.GetProperty("phase").GetString());
             Assert.IsNull(await Get(prior.RootElement.GetProperty("key").GetString()!));Assert.IsNull(await Get(prior.RootElement.GetProperty("archive").GetString()!));
+            if(prior.RootElement.TryGetProperty("identityKeys",out var previousIdentityKeys))
+                foreach(var previousKey in previousIdentityKeys.EnumerateArray())Assert.IsNull(await Get(previousKey.GetString()!));
             using(var history=new FileStream(Path.Combine(reports,"near-checked-sdk-history.ndjson"),FileMode.Append,FileAccess.Write,FileShare.None)){history.Write(Encoding.UTF8.GetBytes(File.ReadAllText(complete)+Environment.NewLine));history.Flush(true);}File.Delete(complete);
         }
         var id=Guid.NewGuid();string key="holon:"+id,archive="history:"+key+":0000000001";var receipts=new List<object>();
-        void Persist(string phase,bool first=false){using var file=new FileStream(pending,first?FileMode.CreateNew:FileMode.Create,FileAccess.Write,FileShare.None);var bytes=Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{phase,id,key,archive,receipts}));file.Write(bytes);file.Flush(true);}
+        var detailIds=new[]{Guid.NewGuid(),Guid.NewGuid()};var identityKeys=detailIds.Select(value=>"avatar-detail:"+value.ToString("D")).ToArray();
+        void Persist(string phase,bool first=false){using var file=new FileStream(pending,first?FileMode.CreateNew:FileMode.Create,FileAccess.Write,FileShare.None);var bytes=Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{phase,id,key,archive,identityKeys,receipts}));file.Write(bytes);file.Flush(true);}
         async Task Receipt(string label,string hash,BridgeTransactionStatus expected){receipts.Add(new{label,hash});Persist("acknowledged-"+label);var observed=await provider.GetTransactionStatusAsync(hash);Assert.IsFalse(observed.IsError,observed.Message);Assert.AreEqual(expected,observed.Result);}
         Persist("planned",true);
         var absent=await Snapshot(key);Assert.IsNull(Field(absent,"Ciphertext"));Assert.IsNull(await Get(archive));
@@ -51,6 +54,24 @@ public class NearCheckedWriteNativeTests
         StringAssert.Contains(collision.NativeStatusJson,"OASIS_ARCHIVE_CONFLICT");await Receipt("archive-collision",collision.OriginalTransactionId,BridgeTransactionStatus.Failed);
         Assert.AreEqual(currentCiphertext,Field(await Snapshot(key),"Ciphertext"));Assert.AreEqual(second,await Get(key));Assert.AreEqual(first,await Get(archive));
         foreach(var target in new[]{key,archive}){Persist("before-known-cleanup");var hash=await (Task<string>)serviceType.GetMethod("DeleteAsync")!.Invoke(service,new object[]{target})!;await Receipt("cleanup",hash,BridgeTransactionStatus.Completed);Assert.IsNull(await Get(target));}
-        Persist("verified-fixtures-absent");File.Move(pending,complete);Console.WriteLine("NEAR_CHECKED_SDK_NATIVE_VERIFIED "+JsonSerializer.Serialize(new{id,key,archive,receipts}));
+        var username="near-detail-"+id.ToString("N");var email=username+"@example.invalid";
+        for(var index=0;index<detailIds.Length;index++){
+            var snapshot=await Snapshot(identityKeys[index]);Assert.IsNull(Field(snapshot,"Ciphertext"));
+            var payload=OasisJson.Serialize(new AvatarDetail{Id=detailIds[index],Version=1,Username=username,Email=email,Karma=17});
+            Persist("before-detail-create-"+index);await Receipt("detail-create-"+index,await Write(snapshot,payload),BridgeTransactionStatus.Completed);
+            var stored=await Snapshot(identityKeys[index]);Assert.AreEqual(payload,Field(stored,"Plaintext"));Assert.IsFalse(Field(stored,"Ciphertext")!.Contains(username));
+        }
+        foreach(var ambiguous in new[]{await provider.LoadAvatarDetailByUsernameAsync(username),await provider.LoadAvatarDetailByEmailAsync(email)}){
+            Assert.IsTrue(ambiguous.IsError);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,ambiguous.ErrorCode);Assert.IsNull(ambiguous.Result);Assert.IsFalse(ambiguous.IsLoaded);
+        }
+        for(var index=1;index>=0;index--){
+            Persist("before-detail-cleanup-"+index);var hash=await (Task<string>)serviceType.GetMethod("DeleteAsync")!.Invoke(service,new object[]{identityKeys[index]})!;
+            await Receipt("detail-cleanup-"+index,hash,BridgeTransactionStatus.Completed);Assert.IsNull(await Get(identityKeys[index]));
+            if(index==1){
+                Assert.AreEqual(detailIds[0],(await provider.LoadAvatarDetailByUsernameAsync(username)).Result.Id);
+                Assert.AreEqual(detailIds[0],(await provider.LoadAvatarDetailByEmailAsync(email)).Result.Id);
+            }
+        }
+        Persist("verified-fixtures-absent");File.Move(pending,complete);Console.WriteLine("NEAR_CHECKED_SDK_NATIVE_VERIFIED "+JsonSerializer.Serialize(new{id,key,archive,identityKeys,receipts}));
     }
 }
