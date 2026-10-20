@@ -57,6 +57,12 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         public DynamoDBOASIS(string accessKey,string secretKey,string region,string? serviceUrl,string? sessionToken,bool useDefaultCredentials)
         {
+            if(string.IsNullOrWhiteSpace(region))
+                throw new ArgumentException("A signing region is required.",nameof(region));
+            if(!useDefaultCredentials && (string.IsNullOrWhiteSpace(accessKey) || string.IsNullOrWhiteSpace(secretKey)))
+                throw new ArgumentException("Explicit credentials require an access key and secret key.");
+            if(sessionToken!=null && sessionToken.Length>0 && string.IsNullOrWhiteSpace(sessionToken))
+                throw new ArgumentException("A supplied session token must not be whitespace.",nameof(sessionToken));
             if(useDefaultCredentials && (!string.IsNullOrEmpty(accessKey) || !string.IsNullOrEmpty(secretKey) || !string.IsNullOrEmpty(sessionToken)))
                 throw new ArgumentException("Choose SDK default credentials or explicit credentials, not both.");
             if(!useDefaultCredentials && !string.IsNullOrEmpty(sessionToken)
