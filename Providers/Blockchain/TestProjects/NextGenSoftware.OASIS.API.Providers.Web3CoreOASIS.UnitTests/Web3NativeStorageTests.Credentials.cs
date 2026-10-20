@@ -48,7 +48,7 @@ public partial class Web3NativeStorageTests
                     var result=synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request);
                     Assert.AreEqual(code,result.ErrorCode);Assert.IsNull(result.Result);
                     Assert.AreEqual(code!=OASISResultErrorCodes.RecordNotFound,result.IsError);
-                    if(version==1) Assert.IsInstanceOfType(result.Exception,typeof(NotSupportedException));
+                    if(version==1) Assert.IsInstanceOfType(result.Exception,typeof(ArgumentOutOfRangeException));
                 }
                 Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             }
@@ -63,7 +63,7 @@ public partial class Web3NativeStorageTests
                 Assert.AreEqual(first.ProviderWallets[ProviderType.SolanaOASIS][0].Id,found.Result.ProviderWallets[ProviderType.SolanaOASIS][0].Id);
                 Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await Read(kind,key+"missing")).ErrorCode);
                 Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",(await Read(kind," ")).ErrorCode);
-                var history=await Read(kind,key,1);Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",history.ErrorCode);Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+                var history=await Read(kind,key,1);Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",history.ErrorCode);Assert.IsInstanceOfType(history.Exception,typeof(ArgumentOutOfRangeException));
             }
             Assert.IsFalse((await provider.SaveAvatarAsync(second)).IsError);
             Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=second.Id,IsActive=true})).IsError);

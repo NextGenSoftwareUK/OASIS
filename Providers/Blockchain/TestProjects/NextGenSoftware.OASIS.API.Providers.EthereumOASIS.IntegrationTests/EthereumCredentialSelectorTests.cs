@@ -46,7 +46,7 @@ public partial class EthereumOASISIntegrationTests
                     var absent=synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request);
                     Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,absent.ErrorCode);Assert.IsNull(absent.Result);
                     request.Version=1;var invalid=synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request);
-                    Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalid.ErrorCode);Assert.IsInstanceOfType(invalid.Exception,typeof(NotSupportedException));
+                    Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalid.ErrorCode);Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentOutOfRangeException));
                 }
                 Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
                 await VerifyCredentialPoliciesAsync(provider,sqlite,key+"-policy",synchronous);
