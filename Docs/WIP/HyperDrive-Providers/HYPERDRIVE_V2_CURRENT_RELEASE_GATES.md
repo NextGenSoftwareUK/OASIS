@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## PostgreSQL detached saves — first controlled20 green; native/full interfaces OPEN
+
+Six public bad-Npgsql-connection regressions first failed because IDs/keys were published before I/O. Existing save owners now reuse Shared publication snapshots/Core codec and one native acknowledgement/reconciliation helper. Final20/20controlled0skips SHA2569883A08412A2DDE34776C98381379024BD277C1CFCC740CBA40CFF10EFB54850. No successful native DB operation, hosted/V2 or complete-interface claim; history/graph/options/selectors/lifecycle remain explicitly OPEN in HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md. Existing package cache reused, no download/runtime/service/deployment.
+
 ## Ethereum linked-membership reader — controlled102 green; native280 OPEN
 
 Existing shared reader verified for legacy/empty/selected/missing/wrongparent/wrongowner and independent childversions:6new controlled cases pass, total102/102non-native0skips SHA256ABD2B8F186854FFC42CA8A2F5CDD4D3A3EE717F7F84984EE5139948170F48C25. No reader production change; same copiedCore0DA52/Shared8163 as96cohort, not later concurrentCorecandidate. Combined280count prepared; nativechainblocked/originalevidence preserved. Exactscope in EVM_RECORD_HISTORY_GAPS.md; no runtime/download/publicgas/devpush.
