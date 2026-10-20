@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## HOLD generic record decoder — Core1396 does not establish consumer compatibility
+
+NewCoreA2EA/Shared495073 rebuild full883=880pass3FAIL0skip, report4CD2955F1A3AA3191196443156B9F1F265CE52C5941A2FD590A588E7F7B1ECED. Existing typed karma-history collection shape and two forbidden nested-type rejection contracts fail; no assertion edits/exclusions. Coreowner centralrepair required before pairing/deploying genericdecoder; exactnames/lines in SHARED_RECORD_HISTORY.md. EarlierCoreFBAE/Shared12F46 green suites are distinct epoch, not proof forA2EA. No nativeoriginal resets/newruntime/deployment.
+
 ## Ethereum/Web3 private history exact-object boundaries — controlled green
 
 Ethereum104 non-native/Web3 selected137 controlled pass0skip1s each after3true decimal text-boundary regressions. Same shared exact parser, encryption/context/nativewriter unchanged. Reports C1DB5E2AA9ACEDFD481B7014913C1F06410AC982EC24B68521AA567E1A6AA4E7 /B24D6BC53631D87107D3C32BFB78673818F4F08B2A6EC27B2F6A4B4B3394DF21, CoreFBAE/Shared12F46. Explicit native/recovery/outbox/fault exclusions and all limits documented in EVM_RECORD_HISTORY_GAPS.md. No chaincalls/gas/node/reset/replay/download/devpush; generic record decoder/native/fullproviderV2 gates remainOPEN.
