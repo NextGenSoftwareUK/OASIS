@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## Solana exact signed tombstone staging — 2026-10-20
+
+Actual controlled Solnet signing/encrypted-wire tests exposed default JObject parsing narrowing metadata before tombstone signing: expected0.1234567890123456789012345678 became0.12345678901234568, three record kinds allred. Repository update and tombstone staging now use existing Shared `OasisJson.ParseStoredObject`; no new serializer/codec/key/envelope/wire version. Typed DTO decoding remains separate/open; kind-only parse sites were not changed just for consistency.
+
+Full555/555controlledpassed6s0skip after source+consumer successful bounded builds. Existing three signed tombstone tests now inspect decrypted raw output with System.Text.Json for exact decimal AND literal timestamp-string preservation; existing signature/envelope/version/audit/source-unchanged assertions retained. Update uses the same parser but this batch does NOT add dedicated signed-update precision coverage. No chain RPC/native ledger/start/reset/gas/download/environment allocation. Existing unsafe original-ledger recovery block remains; no native certification claim.
+
+Evidence in `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests/TestResults/`: before `david_OASISOMEGA_2026-10-20_12_07_37_net10.0.trx` SHA256 `354281BBFE07A3F26CF3BF3C0F1B3D6CA164B31DFE17C99548A63CC3B36893B3`; final `david_OASISOMEGA_2026-10-20_12_08_00_net10.0.trx` SHA256 `913192B6CCDE048E1793C8005AFCB893B328AAD7ADD21210BFE5632BC28E1897`. CapturedCore `B79A16000233E4D72D1935C15D7F0E5184250E51A50E05EDFD4F5B51B1D6DFF3`. Full provider/native recovery/interfaces/V2 remainOPEN; no push/deploy. Unrelated dirty Solana submission doc preserved.
+
 ## Aptos selector failure propagation — 2026-10-20
 
 Before TRX SHA256 `3D1FCF6E0F79F2A2BDDE1061041013EBF3AFD4B9E9C29507F7532C48BD52DD9E`; after `E67A58EA2D9E6658E1C8A953949E0F3DCF38637F0B16EA6B1945DC400129DD22`. Free C68,732,018,688bytes; target123GBunmet/no reclaim claimed.
