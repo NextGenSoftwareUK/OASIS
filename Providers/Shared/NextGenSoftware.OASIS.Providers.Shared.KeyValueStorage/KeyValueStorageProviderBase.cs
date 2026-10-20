@@ -317,15 +317,19 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).GetAwaiter().GetResult();
 
+        /// <summary>Provider credential admission boundary; record-history reads remain independent.</summary>
+        protected virtual Task<OASISResult<IEnumerable<IAvatar>>> LoadAvatarsForCredentialSelectionAsync(int version)
+            => LoadAllAvatarsAsync(version);
+
         private Task<OASISResult<IAvatar>> LoadAvatarByTokenAsync(string token, Func<IAvatar, bool> matches, int version)
-            => StoredAvatarWalletSelector.SelectMatchingAsync(token,version,LoadAllAvatarsAsync,matches);
+            => StoredAvatarWalletSelector.SelectMatchingAsync(token,version,LoadAvatarsForCredentialSelectionAsync,matches);
 
         public virtual Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string publicKey,int version=0)
-            => StoredAvatarWalletSelector.SelectAsync(publicKey,false,version,LoadAllAvatarsAsync);
+            => StoredAvatarWalletSelector.SelectAsync(publicKey,false,version,LoadAvatarsForCredentialSelectionAsync);
         public virtual OASISResult<IAvatar> LoadAvatarByPublicKey(string publicKey,int version=0)
             => LoadAvatarByPublicKeyAsync(publicKey,version).GetAwaiter().GetResult();
         public virtual Task<OASISResult<IAvatar>> LoadAvatarByPrivateKeyAsync(string privateKey,int version=0)
-            => StoredAvatarWalletSelector.SelectAsync(privateKey,true,version,LoadAllAvatarsAsync);
+            => StoredAvatarWalletSelector.SelectAsync(privateKey,true,version,LoadAvatarsForCredentialSelectionAsync);
         public virtual OASISResult<IAvatar> LoadAvatarByPrivateKey(string privateKey,int version=0)
             => LoadAvatarByPrivateKeyAsync(privateKey,version).GetAwaiter().GetResult();
 

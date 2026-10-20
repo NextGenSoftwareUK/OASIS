@@ -18,22 +18,27 @@ public sealed class OracleObjectStorageBackend : IKeyValueBackend
     private readonly ObjectStorageClient _client;
     private readonly string _namespace;
     private readonly string _bucket;
+    private readonly string _objectPrefix;
     private static readonly UTF8Encoding Utf8=new(false,true);
     private static RetryConfiguration Once()=>new(){MaxAttempts=1,RetryableErrors=new(),RetryableStatusCodeFamilies=new()};
 
-    public OracleObjectStorageBackend(ObjectStorageClient client,string namespaceName,string bucketName)
+    public OracleObjectStorageBackend(ObjectStorageClient client,string namespaceName,string bucketName,string objectPrefix="")
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentException.ThrowIfNullOrWhiteSpace(namespaceName);
         ArgumentException.ThrowIfNullOrWhiteSpace(bucketName);
+        ArgumentNullException.ThrowIfNull(objectPrefix);
+        if(objectPrefix.Length>0&&(!objectPrefix.EndsWith("/",StringComparison.Ordinal)||objectPrefix.Split('/').Any(part=>part=="."||part=="..")))
+            throw new ArgumentException("OCI object namespace prefix must end in '/' and cannot contain dot-navigation segments.",nameof(objectPrefix));
         _client=client;_namespace=namespaceName;_bucket=bucketName;
+        _objectPrefix=objectPrefix;
     }
 
     public async Task<string> GetAsync(string key,CancellationToken cancellationToken=default)
     {
         ValidateKey(key);cancellationToken.ThrowIfCancellationRequested();
         try {
-            var response=await _client.GetObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=key},Once(),cancellationToken);
+            var response=await _client.GetObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=_objectPrefix+key},Once(),cancellationToken);
             try {
                 using var stream=response.InputStream??throw new InvalidDataException("OCI object response has no content stream.");
                 using var reader=new StreamReader(stream,Utf8,detectEncodingFromByteOrderMarks:false);
@@ -60,7 +65,7 @@ public sealed class OracleObjectStorageBackend : IKeyValueBackend
         ValidateKey(key);ArgumentNullException.ThrowIfNull(value);token.ThrowIfCancellationRequested();
         var bytes=Utf8.GetBytes(value);
         using var stream=new MemoryStream(bytes,writable:false);
-        var request=new PutObjectRequest {NamespaceName=_namespace,BucketName=_bucket,ObjectName=key,PutObjectBody=stream,
+        var request=new PutObjectRequest {NamespaceName=_namespace,BucketName=_bucket,ObjectName=_objectPrefix+key,PutObjectBody=stream,
             ContentLength=bytes.LongLength,ContentType="application/octet-stream",ContentMD5=Convert.ToBase64String(MD5.HashData(bytes)),
             IfMatch=etag,IfNoneMatch=createOnly?"*":null};
         try {
@@ -70,18 +75,18 @@ public sealed class OracleObjectStorageBackend : IKeyValueBackend
             var conflict=new StorageLifecycleConflictException("OCI object write precondition failed.");
             conflict.Data["NativeCause"]=cause;throw conflict;
         }catch(OciException cause)when((int)cause.StatusCode>=400&&(int)cause.StatusCode<500&&cause.StatusCode!=HttpStatusCode.RequestTimeout){throw;}
-        catch(Exception cause){throw new OracleObjectMutationReconciliationException(key,cause);}
+        catch(Exception cause){throw new OracleObjectMutationReconciliationException(_objectPrefix+key,cause);}
     }
 
     public async Task DeleteAsync(string key,CancellationToken cancellationToken=default)
     {
         ValidateKey(key);cancellationToken.ThrowIfCancellationRequested();
         try {
-            var response=await _client.DeleteObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=key},Once(),cancellationToken);
+            var response=await _client.DeleteObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=_objectPrefix+key},Once(),cancellationToken);
             response.httpResponseMessage?.Dispose();
         }catch(OciException cause)when(IsMissingObject(cause)){}
         catch(OciException cause)when((int)cause.StatusCode>=400&&(int)cause.StatusCode<500&&cause.StatusCode!=HttpStatusCode.RequestTimeout){throw;}
-        catch(Exception cause){throw new OracleObjectMutationReconciliationException(key,cause);}
+        catch(Exception cause){throw new OracleObjectMutationReconciliationException(_objectPrefix+key,cause);}
     }
 
     public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix,CancellationToken cancellationToken=default)
@@ -89,15 +94,16 @@ public sealed class OracleObjectStorageBackend : IKeyValueBackend
         ArgumentNullException.ThrowIfNull(prefix);cancellationToken.ThrowIfCancellationRequested();
         var keys=new List<string>();var seen=new HashSet<string>(StringComparer.Ordinal);
         var cursors=new HashSet<string>(StringComparer.Ordinal);string? start=null;
+        var physicalPrefix=_objectPrefix+prefix;
         do {
             cancellationToken.ThrowIfCancellationRequested();
-            var response=await _client.ListObjects(new(){NamespaceName=_namespace,BucketName=_bucket,Prefix=prefix,Start=start},Once(),cancellationToken);
+            var response=await _client.ListObjects(new(){NamespaceName=_namespace,BucketName=_bucket,Prefix=physicalPrefix,Start=start},Once(),cancellationToken);
             try {
                 var page=response.ListObjects??throw new InvalidDataException("OCI object listing is missing its payload.");
                 foreach(var item in page.Objects??throw new InvalidDataException("OCI object listing is missing its objects.")) {
-                    if(string.IsNullOrWhiteSpace(item?.Name)||!item.Name.StartsWith(prefix,StringComparison.Ordinal)||!seen.Add(item.Name))
+                    if(string.IsNullOrWhiteSpace(item?.Name)||!item.Name.StartsWith(physicalPrefix,StringComparison.Ordinal)||!seen.Add(item.Name))
                         throw new InvalidDataException("OCI listing contains an invalid, duplicate or out-of-prefix object.");
-                    keys.Add(item.Name);
+                    keys.Add(item.Name[_objectPrefix.Length..]);
                 }
                 start=page.NextStartWith;
                 if(!string.IsNullOrEmpty(start)&&!cursors.Add(start))throw new InvalidDataException("OCI object listing repeated its continuation cursor.");
