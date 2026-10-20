@@ -4313,7 +4313,7 @@ public sealed partial class HyperDriveProviderExecutionTests
             ResultsCount = 1
         };
         var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "search-diagnostics");
-        selected.Setup(x => x.SearchAsync(It.IsAny<ISearchParams>(), true, true, 0, true, 0))
+        selected.Setup(x => x.SearchAsync(It.IsAny<ISearchParams>(), false, true, 0, true, 0))
             .ReturnsAsync(providerResult);
         var dna = CreateDna(HyperDriveModes.V2);
         var providerManager = new ProviderManager(null, dna)
@@ -4322,7 +4322,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var manager = new HolonManager(null, dna, providerManager);
 
         var result = await manager.SearchHolonsAsync<Holon>("nebula", Guid.NewGuid(),
-            searchOnlyForCurrentAvatar: false,
+            searchOnlyForCurrentAvatar: false, loadChildren:false,
             providerType: ProviderType.SQLLiteDBOASIS);
 
         result.IsError.Should().BeFalse(result.Message);
@@ -4334,7 +4334,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         result.MetaData.Should().Contain("provider", "search-diagnostics");
         result.ResultsCount.Should().Be(1);
         result.Result.Should().ContainSingle().Which.Id.Should().Be(holon.Id);
-        selected.Verify(x => x.SearchAsync(It.IsAny<ISearchParams>(), true, true, 0, true, 0), Times.Once);
+        selected.Verify(x => x.SearchAsync(It.IsAny<ISearchParams>(), false, true, 0, true, 0), Times.Once);
     }
 
     [Fact]
