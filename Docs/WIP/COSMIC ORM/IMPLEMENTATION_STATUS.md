@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Neo4j save lifecycle and acknowledgement parity — 20 October 2026
+
+Neo4j now validates committed tombstones at locked observations before any conditional history stamp or ordinary graph write. Save cannot clear/retime/reattribute deletion or make the tombstone active; compatible tombstone edits and live saves remain allowed. The explicit lifecycle error is preserved. Conditional/replica acknowledgement assembly delegates to the existing Shared helper, fixing missing changed-state flags without duplicating graph/count logic. Original baseline12 failures/4 controls and two receipt-flag failures close in full Neo190, native conditional13, ordinary-outcome16 and Shared917, all zero skips. [Contract, native evidence and remaining lifecycle scope](NEO4J_SAVE_LIFECYCLE.md). Avatar/detail/all-provider parity and explicit authorized restore remain open.
+
 ## Neo4j atomic committed deltas — selected acceptance verified
 
 Neo4j adopts the shared Core delta model and Shared format4 receipt in its existing native graph transaction. Locked previous snapshots and native acknowledged snapshots own capture; original replay retains its delta after physical deletion and history-policy changes. Strengthened conditional13/13, replica6/6, primary-outbox2/2 and paired Shared904/904 pass with zero skips. The original structural assertion failure was independently reconciled against native state before exact owned fixture cleanup. [Scope and evidence](NEO4J_COMMITTED_DELTAS.md). Authorized historical values, retention/operator workflow and wider enrollment remain open.

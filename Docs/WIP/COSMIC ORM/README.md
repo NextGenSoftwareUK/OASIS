@@ -6,6 +6,8 @@ These are working documents. Dated reports retain historical evidence; earlier c
 
 ## Documents
 
+- [Neo4j save lifecycle: tombstone admission and verification](NEO4J_SAVE_LIFECYCLE.md).
+
 - [Neo4j atomic committed deltas: implementation and acceptance](NEO4J_COMMITTED_DELTAS.md).
 
 - [CQL getting started: feature status and usage examples](CQL_GETTING_STARTED.md).
