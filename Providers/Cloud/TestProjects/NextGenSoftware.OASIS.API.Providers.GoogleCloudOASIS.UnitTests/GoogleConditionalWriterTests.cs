@@ -32,7 +32,7 @@ public class GoogleConditionalWriterTests
         public RpcException? Rejection;
         public override FirestoreSettings Settings=>RetryCapable?FirestoreSettings.GetDefault():(FirestoreSettings)typeof(GoogleCloudOASIS).GetMethod("CreateFirestoreSettings",BindingFlags.Static|BindingFlags.NonPublic)!.Invoke(null,null)!;
         public override BatchGetDocumentsStream BatchGetDocuments(BatchGetDocumentsRequest request,CallSettings callSettings=null)
-        {Reads++;OnRead?.Invoke();return new SnapshotStream(Stored==null?new(){Missing=request.Documents.Single(),ReadTime=Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow)}:new(){Found=Stored.Clone(),ReadTime=Stored.UpdateTime});}
+        {Reads++;OnRead?.Invoke();return new SnapshotStream(Stored==null||Stored.Name!=request.Documents.Single()?new(){Missing=request.Documents.Single(),ReadTime=Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow)}:new(){Found=Stored.Clone(),ReadTime=Stored.UpdateTime});}
         public override Task<CommitResponse> CommitAsync(CommitRequest request,CallSettings callSettings=null)
         {
             Writes++;Submitted=request.Clone();
@@ -70,6 +70,17 @@ public class GoogleConditionalWriterTests
         var db=FirestoreDb.Create("owned-controlled-history",client);var reference=db.Collection("holons").Document(row.Id.ToString());
         var fields=new Dictionary<string,object>{["id"]=row.Id.ToString(),["data_json"]=OasisJson.Serialize(row)};
         return (Task<Holon>)typeof(GoogleCloudOASIS).GetMethod("WriteFirestoreRecordAsync",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object[]{reference,fields,history,(Action)(()=>{})})!;
+    }
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task BatchRejectsNewerOriginalVersionAndDoesNotSubmitLaterEditedNode(bool synchronous,bool later)
+    {
+        var first=new Holon{Id=Guid.NewGuid()};var second=new Holon{Id=Guid.NewGuid()};
+        var client=new Client{OnCommit=()=>(later?second:first).Version=999};
+        var provider=new GoogleCloudOASIS("owned-controlled-history",enableFirestore:true){IsProviderActivated=true};
+        typeof(GoogleCloudOASIS).GetField("_firestoreDb",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,FirestoreDb.Create("owned-controlled-history",client));
+        var result=synchronous?provider.SaveHolons(new[]{first,second}):await provider.SaveHolonsAsync(new[]{first,second});
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(999,(later?second:first).Version);Assert.AreEqual(1,client.Writes);
+        var partial=result.Exception as GoogleFirestorePartialMutationException;Assert.IsNotNull(partial);Assert.AreEqual(first.Id,partial.AcknowledgedRecordIds.Single());
     }
     [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)]
     public async Task PublicInvalidArgumentPreservesDefiniteRejectionWithoutFalseConflict(int kind)

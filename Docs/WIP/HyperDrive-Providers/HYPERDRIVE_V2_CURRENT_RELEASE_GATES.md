@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## GoogleCloud graph original publication — 2026-10-19
+
+Shared snapshot now guards selected graph originals before dispatch/post-ack publication; four red-before regressions now pass. Controlled153/153 plus retained checkpoint readback/cleanup and native29history+79regressionpass/zero skips; native regression SHA256 `6216FECA295631F619FA133110B137192DF54474A4AAE44DC95D8BFFBBFC18AF`. Same emulator/export, no pending journals/listeners after terminal0, no new installation or public spend. Exact dependencies/hashes/limits: [Firestore report](FIRESTORE_RECORD_HISTORY.md). Controlled edit schedules are not native race proof; hosted IAM/billing, full interface/options and all-provider/V2 acceptance remain OPEN.
+
 ## GoogleCloud ordinary caller-state publication — 2026-10-19
 
 Reused shared canonical snapshot for ordinary avatar/detail/standalone-holon saves; pre-commit caller edits prevent dispatch, post-ack edits retain GUID reconciliation evidence and caller stamps. Twelve red-before controlled cases now pass; final149controlled, retained native29history+79regression/checkpoint readback+cleanupPASS/zero skips. Native regression SHA256 `A3195B09335D0EC7A09882E978C4340CB29C4575F34322C1D8CBC1613A8680BC`; all hashes/limits in [Firestore report](FIRESTORE_RECORD_HISTORY.md). Same runtime/export, no pending journals/listeners afterward, no downloads/public costs. Graph originals and hosted IAM/billing/full-provider/V2 gates remain OPEN.
