@@ -16,29 +16,17 @@ public partial class IPFSOASIS
         bool children,bool recursive,int maximumDepth,int initialDepth,bool continueOnError)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();
-        var nodes=new List<(IHolon Source,IHolon Stored,Guid? Parent)>();
+        List<PlannedHolonWrite> nodes;
+        var publications=new Dictionary<IHolon,StoredRecordPublicationSnapshot<Holon>>(ReferenceEqualityComparer.Instance);
         List<IHolon> roots;
         try
         {
             ArgumentNullException.ThrowIfNull(input);
             if(maximumDepth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(maximumDepth));
-            roots=input.ToList();var references=new HashSet<IHolon>(ReferenceEqualityComparer.Instance);var ids=new HashSet<Guid>();
-            void Visit(IHolon source,int depth,Guid? parent)
-            {
-                if(source==null || !references.Add(source)) throw new ArgumentException("Selected IPFS graph contains null/repeated nodes or a cycle.");
-                var id=source.Id;
-                if(id==Guid.Empty) throw new ArgumentException("Selected IPFS records require nonempty identities.");
-                if(!ids.Add(id)) throw new ArgumentException("Selected IPFS graph has duplicate identities.");
-                if(parent.HasValue && source.ParentHolonId!=Guid.Empty && source.ParentHolonId!=parent.Value)
-                    throw new ArgumentException("Selected IPFS child has a conflicting parent identity.");
-                // Reuse the canonical codec: navigation members are excluded, not copied into parent blobs.
-                var stored=OasisJson.Deserialize<Holon>(OasisJson.Serialize<IHolon>(source));
-                stored.Id=id;stored.ParentHolonId=parent ?? source.ParentHolonId;
-                nodes.Add((source,stored,parent));
-                if(children && (maximumDepth==0 || depth<maximumDepth) && (recursive || depth==initialDepth))
-                    foreach(var child in source.Children ?? Enumerable.Empty<IHolon>()) Visit(child,depth+1,id);
-            }
-            foreach(var root in roots) Visit(root,initialDepth,null);
+            roots=input.ToList();
+            nodes=roots.Count==0?new List<PlannedHolonWrite>():HolonGraphWritePlan.Create(roots,children,recursive,maximumDepth,initialDepth,
+                source=>{if(source.Id==Guid.Empty)throw new ArgumentException("Selected IPFS records require nonempty identities.");}).Nodes;
+            foreach(var node in nodes)publications.Add(node.Source,StoredRecordPublicationSnapshot<Holon>.Capture(node.Source));
         }
         catch(Exception cause)
         {
@@ -50,18 +38,21 @@ public partial class IPFSOASIS
         var committed=new List<string>();var failed=new HashSet<Guid>();var failures=new List<Exception>();
         foreach(var node in nodes)
         {
-            if(node.Parent.HasValue && failed.Contains(node.Parent.Value)) {failed.Add(node.Stored.Id);continue;}
+            if(failed.Contains(node.Snapshot.ParentHolonId)) {failed.Add(node.Snapshot.Id);continue;}
             try
             {
-                await SaveHolonToFile(node.Stored);
-                var cid=node.Stored.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS];committed.Add(cid);
-                node.Source.Id=node.Stored.Id;node.Source.ParentHolonId=node.Stored.ParentHolonId;
-                node.Source.ProviderUniqueStorageKey=new Dictionary<Core.Enums.ProviderType,string>(node.Stored.ProviderUniqueStorageKey);
-                node.Source.PreviousVersionProviderUniqueStorageKey=new Dictionary<Core.Enums.ProviderType,string>(node.Stored.PreviousVersionProviderUniqueStorageKey);
+                publications[node.Source].ValidateUnchanged();
+                await SaveHolonRecordAsync(node.Snapshot,node,publications[node.Source].ValidateUnchanged);
+                var cid=node.Snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS];committed.Add(cid);
+                publications[node.Source].ValidateUnchanged();
+                node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                node.Source.ProviderUniqueStorageKey=new Dictionary<Core.Enums.ProviderType,string>(node.Snapshot.ProviderUniqueStorageKey);
+                node.Source.PreviousVersionProviderUniqueStorageKey=new Dictionary<Core.Enums.ProviderType,string>(node.Snapshot.PreviousVersionProviderUniqueStorageKey);
+                if(node.Source is Holon caller)caller.ChildRoleManifestJson=node.Snapshot.ChildRoleManifestJson;
             }
             catch(Exception cause)
             {
-                failed.Add(node.Stored.Id);failures.Add(cause);
+                failed.Add(node.Snapshot.Id);failures.Add(cause);
                 if(cause is IPFSRecordPublicationException publication) committed.AddRange(publication.AcknowledgedRecordCids);
                 if(!continueOnError || NativeMutationReconciliation.IsRequired(cause)) break;
             }
