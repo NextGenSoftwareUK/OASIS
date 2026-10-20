@@ -161,9 +161,7 @@ public partial class NEAROASIS
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
     {
-        var all = await LoadAllAvatarDetailRecordsAsync(version);
-        if (all.IsError) return new OASISResult<IAvatarDetail>(null) { IsError=true, Message=all.Message, Exception=all.Exception };
-        return new OASISResult<IAvatarDetail>(all.Result.FirstOrDefault(item => string.Equals(item.Email,email,StringComparison.OrdinalIgnoreCase)));
+        return await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordIdentityLookup.SelectAsync(email,version,LoadAllAvatarDetailsAsync,record=>record.Email);
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0) =>
@@ -171,9 +169,7 @@ public partial class NEAROASIS
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
     {
-        var all = await LoadAllAvatarDetailRecordsAsync(version);
-        if (all.IsError) return new OASISResult<IAvatarDetail>(null) { IsError=true, Message=all.Message, Exception=all.Exception };
-        return new OASISResult<IAvatarDetail>(all.Result.FirstOrDefault(item => string.Equals(item.Username,username,StringComparison.OrdinalIgnoreCase)));
+        return await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordIdentityLookup.SelectAsync(username,version,LoadAllAvatarDetailsAsync,record=>record.Username);
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0) =>

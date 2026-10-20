@@ -35,18 +35,9 @@ try {
     # Windows PowerShell 5.1 does not load the DPAPI assembly implicitly.
     Add-Type -AssemblyName System.Security
     $cache=Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'OASIS/provider-evidence/near'
-    New-Item -ItemType Directory -Force -Path $cache | Out-Null
     $keyPath=Join-Path $cache 'storage-key.dpapi'
     if(!(Test-Path -LiteralPath $keyPath)){
-        $key=New-Object byte[] 32
-        $rng=[Security.Cryptography.RandomNumberGenerator]::Create()
-        try{
-            $rng.GetBytes($key)
-            $protected=[Security.Cryptography.ProtectedData]::Protect($key,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
-            # Atomic create-only: never overwrite/rotate an existing storage key after a race.
-            $file=[IO.File]::Open($keyPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
-            try{$file.Write($protected,0,$protected.Length)}finally{$file.Dispose()}
-        }finally{[Array]::Clear($key,0,$key.Length);$rng.Dispose()}
+        throw 'Original retained NEAR storage key is missing; recover it before testing the existing encrypted ledger. No replacement is generated.'
     }
     $key=[Security.Cryptography.ProtectedData]::Unprotect([IO.File]::ReadAllBytes($keyPath),$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
     try{
