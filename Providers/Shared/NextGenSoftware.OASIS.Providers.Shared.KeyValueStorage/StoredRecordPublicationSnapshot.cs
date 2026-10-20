@@ -1,6 +1,7 @@
 using System;
 using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -16,14 +17,22 @@ public sealed class StoredRecordPublicationSnapshot<T> where T:class,IHolonBase
     private StoredRecordPublicationSnapshot(IHolonBase source)
     {
         ArgumentNullException.ThrowIfNull(source);_source=source;
-        Proposal=StoredRecordJson.Project<T>(source);
+        Proposal=Project(source);
         _expected=JToken.Parse(StoredRecordJson.Serialize(Proposal));
     }
     public static StoredRecordPublicationSnapshot<T> Capture(IHolonBase source)=>new(source);
     public void ValidateUnchanged()
     {
-        var current=StoredRecordJson.Project<T>(_source);
+        var current=Project(_source);
         if(!StoredRecordPayloadEquality.Equivalent(_expected,JToken.Parse(StoredRecordJson.Serialize(current))))
             throw new InvalidOperationException("Caller canonical record changed after its pre-write snapshot; do not publish over newer caller state.");
+    }
+    // Project requires a concrete DTO; interface-facing provider APIs use the same canonical record classes.
+    private static T Project(IHolonBase source)
+    {
+        if(typeof(T)==typeof(IAvatar))return (T)(object)StoredRecordJson.Project<Avatar>(source);
+        if(typeof(T)==typeof(IAvatarDetail))return (T)(object)StoredRecordJson.Project<AvatarDetail>(source);
+        if(typeof(T)==typeof(IHolon))return (T)(object)StoredRecordJson.Project<Holon>(source);
+        return StoredRecordJson.Project<T>(source);
     }
 }
