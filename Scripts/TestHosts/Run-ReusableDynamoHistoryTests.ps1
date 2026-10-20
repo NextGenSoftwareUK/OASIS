@@ -106,7 +106,7 @@ try{
     $reportName=if($ReconcileConditionalInitial){'dynamo-conditional-reconciliation-current.trx'}elseif($ConditionalGraphs){'dynamo-conditional-native-current.trx'}elseif($ReconcileKnownReadFixture){'dynamo-history-reconciliation-current.trx'}else{'dynamo-history-native-current.trx'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Native history test failed; preserve journal/data for reconciliation.'}
-    $report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($ReconcileConditionalInitial){1}elseif($ConditionalGraphs){4}elseif($ReconcileKnownReadFixture){1}else{95}
+    $report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($ReconcileConditionalInitial){1}elseif($ConditionalGraphs){8}elseif($ReconcileKnownReadFixture){1}else{95}
     if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Fresh complete native cases and cleared original journals required.'}
 }finally{
     $env:DYNAMODB_SERVICE_URL=$previousEndpoint;$env:OASIS_DYNAMO_HISTORY_WORK=$previousWork
