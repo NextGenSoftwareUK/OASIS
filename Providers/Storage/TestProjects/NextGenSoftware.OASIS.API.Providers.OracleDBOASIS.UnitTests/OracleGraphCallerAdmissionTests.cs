@@ -25,6 +25,24 @@ public class OracleGraphCallerAdmissionTests
     }
 
     [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task AcknowledgedCallerEditPreservesReconciliationAndStopsDescendants(bool synchronous)
+    {
+        var first=new Holon{Id=Guid.NewGuid(),Name="first",IsNewHolon=true};
+        var child=new Holon{Name="not dispatched"};first.Children.Add(child);
+        var provider=new ControlledAcknowledgement(()=>first.MetaData["concurrent caller edit"]="keep");
+        var result=synchronous?provider.SaveHolons(new[]{first}):await provider.SaveHolonsAsync(new[]{first});
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);
+        Assert.AreEqual(1,provider.Writes,"Never dispatch descendants after failed acknowledged publication.");
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
+        var evidence=result.Exception as OracleLifecycleReconciliationException;Assert.IsNotNull(evidence);
+        Assert.AreEqual(first.Id,evidence.RecordId);
+        Assert.AreEqual("keep",first.MetaData["concurrent caller edit"]);
+        Assert.AreEqual(0,first.Version);Assert.AreEqual(Guid.Empty,first.VersionId);Assert.IsTrue(first.IsNewHolon);
+        Assert.AreEqual(Guid.Empty,child.Id);Assert.AreEqual(Guid.Empty,child.ParentHolonId);
+        Assert.IsFalse(first.ProviderUniqueStorageKey?.ContainsKey(Core.Enums.ProviderType.OracleDBOASIS)==true);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task EditedLaterCallerIsRejectedBeforeAnotherGraphWrite(bool synchronous)
     {
         var first=new Holon{Id=Guid.NewGuid(),Name="first"};
