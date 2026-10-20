@@ -46,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             var executor = new HyperDriveCommandExecutor(providerResult.Result,
                 NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA);
             _logger.LogInformation("HyperDrive ordered command worker {WorkerId} started.", _workerId);
+            var backoff = new HyperDriveWorkerBackoff();
             try
             {
                 while (!stoppingToken.IsCancellationRequested)
@@ -55,15 +56,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     if (claim.IsError)
                     {
                         _logger.LogError("HyperDrive command claim failed ({Code}): {Message}", claim.ErrorCode, claim.Message);
-                        await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
+                        await Task.Delay(backoff.NextDelay(false), stoppingToken).ConfigureAwait(false);
                         continue;
                     }
                     if (!claim.Result.LeaseAcquired || claim.Result.Items.Count == 0)
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
+                        await Task.Delay(backoff.NextDelay(false), stoppingToken).ConfigureAwait(false);
                         continue;
                     }
                     var command = claim.Result.Items[0];
+                    backoff.NextDelay(true);
                     try
                     {
                         var execution = executor.ExecuteAsync(command, stoppingToken);
