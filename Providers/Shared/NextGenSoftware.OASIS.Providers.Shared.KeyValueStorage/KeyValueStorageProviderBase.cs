@@ -772,7 +772,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if (loadChildren)
                 {
                     var failures = new List<string>();
-                    var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, 0, version,
+                    var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, 0, 0,
                         continueOnError: continueOnError, failures: failures);
                     holon.Children = children.Result?.ToList() ?? new List<IHolon>();
                     return MarkPartialRead(Ok(holon), failures);
@@ -810,12 +810,13 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 var keys = await Backend.ListKeysAsync(ParentPrefix(parentId));
                 children = (await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version, continueOnError, failures)).Where(child => child.ParentHolonId == parentId).ToList();
             }
+            children = children.Where(child => child.DeletedDate == DateTime.MinValue).ToList();
             var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
             if (recursive && !reachedDepth)
             {
                 foreach (var child in children)
                 {
-                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1, version, path, continueOnError, failures);
+                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1, 0, path, continueOnError, failures);
                     child.Children = grandChildren.Result?.ToList() ?? new List<IHolon>();
                 }
             }
@@ -858,7 +859,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if (loadChildren)
                     foreach (var holon in selected)
                     {
-                        var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, curentChildDepth, version,
+                        var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, curentChildDepth, 0,
                             continueOnError: continueOnError, failures: failures);
                         holon.Children = children.Result.ToList();
                     }
