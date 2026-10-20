@@ -56,3 +56,5 @@ The provider session maintains [its own working evidence](../HyperDrive-Provider
 Local reports and fixture archives are under `TestResults/CosmicMongoCurrent/`; exact paths and hashes are in the integration boundary. They are separate from this documentation commit. Provider certification, source publication and deployment remain separate gates.
 
 - [CQL SQLite native execution](CQL_SQLITE_NATIVE.md) — parameterized leaf-row adapter scope and remaining WEB4 integration.
+
+- [CQL native execution pipeline](CQL_EXECUTION_PIPELINE.md) — shared adapter contract, full-target preflight, budgets and provider provenance.

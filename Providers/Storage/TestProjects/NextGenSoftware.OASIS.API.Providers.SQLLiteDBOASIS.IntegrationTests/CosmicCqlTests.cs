@@ -23,6 +23,23 @@ public partial class SQLLiteDBOASISIntegrationTests
         plan.IsError.Should().BeFalse(plan.Message); return plan.Result;
     }
 
+    [Fact]
+    public async Task CosmicCqlSharedExecutorUsesTheNativeSQLiteContract()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var row = new Holon { Id = Guid.NewGuid(), Name = "shared-executor", MetaData = new() { ["tag"] = null! } };
+        (await provider.SaveHolonAsync(row, saveChildren: false)).IsError.Should().BeFalse();
+        ICosmicQueryStorageProvider adapter = provider;
+        adapter.QueryProviderType.Should().Be(ProviderType.SQLLiteDBOASIS);
+        var query = CosmicQuery<Holon>.Create().Where(h => h.Name == "shared-executor" && CosmicQueryMetadata.IsNull(h, "tag")).Result;
+        var plan = CosmicQueryPlanner.Plan(query, adapter.QueryProviderType, new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) });
+        plan.IsError.Should().BeFalse(plan.Message);
+        var result = await CosmicQueryExecutor.ExecuteAsync(plan.Result, new[] { adapter });
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        result.Result.TotalRows.Should().Be(1); result.Result.Providers.Single().Rows.Single().Id.Should().Be(row.Id);
+    }
+
     [Theory]
     [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)] [InlineData(4)] [InlineData(5)] [InlineData(6)]
     public async Task CosmicCqlMetadataPresenceKeepsMissingNullTypesAndLiteralKeysDistinct(int selection)
