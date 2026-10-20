@@ -1,5 +1,11 @@
 # COSMIC ORM implementation status
 
+## MongoDB committed delta adoption — 20 October 2026
+
+MongoDB conditional writes now capture deltas from authoritative BSON observations and final persisted BSON bodies inside the graph transaction. Acknowledgements are constructed from that final representation, including preserved unselected frontiers. Shared receipt format4 persists and validates the original delta; legacy format3 replay reports explicit missing-delta evidence. SQLite and MongoDB advertise the new conditional-delta capability. Core validation also binds logical predecessor identity/version and membership ownership; Shared rejects wrong operation/intent before metadata construction. [Implementation, acceptance evidence and remaining scope](MONGO_COMMITTED_DELTAS.md).
+
+This increment does not finish Stage7: Neo4j and other adapters, ordinary CRUD/replica enrollment, authorized historical-value reads/decryption, retention and operator reconciliation remain open.
+
 Checkpoint: 20 October 2026. The goal remains active on `fix/hyperdrive-v2-providers`. Selected foundations are implemented and verified; the full roadmap is unfinished. Source commits, assembly hashes, original failures and fixture reconciliation are retained in [integration evidence](INTEGRATION_BOUNDARY.md) and [verification history](VERIFICATION.md).
 
 ## Latest working increment — atomic committed deltas on SQLite
