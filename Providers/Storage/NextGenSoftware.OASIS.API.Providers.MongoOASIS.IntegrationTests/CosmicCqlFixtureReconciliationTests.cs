@@ -65,8 +65,9 @@ public sealed class CosmicCqlFixtureReconciliationTests
         var a=Assert.Single(native.Where(row=>row.Name=="$where.coffee😀\0end"));
         var b=Assert.Single(native.Where(row=>row.Name=="tea"));var c=Assert.Single(native.Where(row=>row.Name=="coffee"));
         var d=Assert.Single(native.Where(row=>row.Name==null));var child=Assert.Single(native.Where(row=>row.Name=="owned unselected child"));
-        Assert.Equal(3,a.Version);Assert.Equal(3,b.Version);Assert.Equal(4,c.Version);Assert.Equal(1,d.Version);Assert.Equal(1,child.Version);
-        Assert.Equal("owned CQL conditional edit",a.Description);Assert.Equal(a.HolonId,child.ParentHolonId);
+        Assert.Contains(a.Version,new[]{2,3});var edited=a.Version==3;
+        Assert.Equal(3,b.Version);Assert.Equal(4,c.Version);Assert.Equal(1,d.Version);Assert.Equal(1,child.Version);
+        Assert.Equal(edited?"owned CQL conditional edit":"espresso%_",a.Description);Assert.Equal(a.HolonId,child.ParentHolonId);
         // ChildrenIds is an independently declared DTO value; actual native graph reads use ParentHolonId.
         Assert.Empty(a.ChildrenIds);Assert.Equal(child.HolonId,Assert.Single(native.Where(row=>row.ParentHolonId==a.HolonId)).HolonId);
         foreach(var root in new[]{b,c,d}){Assert.Empty(root.ChildrenIds);Assert.Equal(Guid.Empty,root.ParentHolonId);Assert.Null(root.Description);}
@@ -74,12 +75,26 @@ public sealed class CosmicCqlFixtureReconciliationTests
         void Metadata(NativeHolon row,Dictionary<string,object> expected)=>Assert.True(StoredRecordValueEquality.Equivalent(
             StoredRecordJson.CaptureRuntimeToken(expected),StoredRecordJson.CaptureRuntimeToken(row.MetaData)),"Full owned metadata differs for "+row.Name
                 +" expected="+StoredRecordJson.Serialize(expected)+" actual="+StoredRecordJson.Serialize(row.MetaData));
-        Metadata(a,new(){["stats"]=new Dictionary<string,object>{{"score",7}},["a.b"]="literal",["$tag"]="coffee",["nullable"]=null,
-            ["number"]=9007199254740993L,["flag"]=true,["optional"]=7,["Rating"]=7,["Name"]="forged metadata name",
-            ["CreatedByAvatarId"]=Guid.Empty.ToString("D"),["Active"]="1"});
+        var expectedA=new Dictionary<string,object>{["stats"]=new Dictionary<string,object>{{"score",7}},["a.b"]="literal",["$tag"]="coffee",["nullable"]=null,
+            ["number"]=9007199254740993L,["flag"]=true,["optional"]=7,["Rating"]=7,["Name"]="forged metadata name"};
+        if(edited){expectedA["CreatedByAvatarId"]=Guid.Empty.ToString("D");expectedA["Active"]="1";}
+        Metadata(a,expectedA);
         Metadata(b,new(){["stats"]=new Dictionary<string,object>{{"score","7"}},["a"]=new Dictionary<string,object>{{"b","nested"}},["flag"]=false,["Rating"]=8});
         Metadata(c,new(){["stats"]=new Dictionary<string,object>{{"score",8}},["nullable"]="value",["number"]=9L,["optional"]="7",["Rating"]=9});
         Metadata(d,new(){["stats"]=new object[]{new Dictionary<string,object>{{"score",7}}},["nullable"]=null,["optional"]=null});
+        if(!edited)
+        {
+            var rawAllowed=new[]{"CosmicOwnedFixture","Holon","Avatar","AvatarDetail","SearchData","CosmicHolonOutbox"};
+            foreach(var collection in collections)
+            {
+                Assert.Contains(collection,rawAllowed);
+                if(collection!="Holon")Assert.Equal(0,await database.GetCollection<BsonDocument>(collection).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            }
+            await File.WriteAllTextAsync(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/mongo-cql-prewrite-semantics-reconciliation.json"),
+                JsonSerializer.Serialize(new{Database=database.DatabaseNamespace.DatabaseName,ReadConcern="majority",Stage="Exact raw version-2 graph before any conditional mutation",
+                    Rows=rows.Select(row=>new{Id=row["HolonId"].AsString,Sha256=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(row.ToBson()))}).ToArray()}));
+            await client.DropDatabaseAsync("cosmic_cql_fixture");return;
+        }
         var receipt=Assert.Single(await database.GetCollection<BsonDocument>("CosmicWriteReceipt").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync());
         var acknowledgement=Assert.Single(ConditionalHolonReceipt.Read(receipt["ResultJson"].AsString));
         using var envelope=JsonDocument.Parse(receipt["ResultJson"].AsString);

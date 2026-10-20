@@ -123,7 +123,12 @@ public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
             await Check(root=>root.Name.StartsWith("$where",StringComparison.Ordinal)&&root.Description.Contains("%_"),a);
             await Check(root=>root.Name.EndsWith("\0end",StringComparison.Ordinal),a);
             await Check(root=>root.Version>=3,b,c);
+            await Check(root=>root.Version!=3,a,c,d);
+            var emptyId=Guid.Empty;await Check(root=>root.ParentHolonId!=emptyId);
+            await Check(root=>root.IsPublic!=true,a,b,c,d);
             await Check(root=>root.Name==null,d);
+            await Check(root=>root.Name!="tea",a,c,d);
+            await Check(root=>root.Description!="espresso%_",b,c,d);
             await Check(root=>CosmicQueryMetadata.Value<int>(root,"stats","score")>=7,a,c);
             await Check(root=>! (CosmicQueryMetadata.Value<int>(root,"stats","score")>=7),b,d);
             await Check(root=>CosmicQueryMetadata.Value<string>(root,"a.b")=="literal",a);
@@ -136,6 +141,9 @@ public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
             await Check(root=>CosmicQueryMetadata.Value<string>(root,"nullable")!=null,c);
             await Check(root=>CosmicQueryMetadata.Value<int?>(root,"optional")==null,d);
             await Check(root=>CosmicQueryMetadata.Value<int?>(root,"optional")!=null,a);
+            await Check(root=>CosmicQueryMetadata.Value<int?>(root,"optional")!=7,d);
+            await Check(root=>CosmicQueryMetadata.Value<string>(root,"nullable")!="value",a,d);
+            await Check(root=>!(CosmicQueryMetadata.Value<int?>(root,"optional")!=7),a,b,c);
             await Check(root=>CosmicQueryMetadata.Value<long>(root,"number")==9007199254740993L,a);
             await Check(root=>CosmicQueryMetadata.Value<int>(root,"number")==9,c);
             await Check(root=>CosmicQueryMetadata.Value<bool>(root,"flag")==true,a);
