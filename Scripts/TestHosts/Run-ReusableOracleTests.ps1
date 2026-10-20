@@ -1,5 +1,5 @@
-param([switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileOriginal,[switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,[switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions)
-if(([int]$EncryptedReplay.IsPresent+[int]$PreparationClaims.IsPresent+[int]$ReconcileOriginal.IsPresent+[int]$ReconcileAmbiguity.IsPresent+[int]$ReconcileHistoricalExport.IsPresent+[int]$ReconcileCorruptAvatar.IsPresent+[int]$ReconcileProjectionAssertions.IsPresent) -gt 1){throw 'Choose one original reconciliation mode.'}
+param([switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileOriginal,[switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,[switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions)
+if(([int]$EncryptedProcess.IsPresent+[int]$EncryptedReplay.IsPresent+[int]$PreparationClaims.IsPresent+[int]$ReconcileOriginal.IsPresent+[int]$ReconcileAmbiguity.IsPresent+[int]$ReconcileHistoricalExport.IsPresent+[int]$ReconcileCorruptAvatar.IsPresent+[int]$ReconcileProjectionAssertions.IsPresent) -gt 1){throw 'Choose one original reconciliation mode.'}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/OracleCurrent'
@@ -46,6 +46,23 @@ try{
     $env:ORACLEDBOASIS_CONNECTIONSTRING="User Id=SYSTEM;Password=$secret;Data Source=127.0.0.1:11521/FREEPDB1;Connection Timeout=10;Pooling=false"
     $env:OASIS_ORACLE_TEST_WORK=$work;$env:OASIS_ORACLE_RESUME_CANONICAL=if($ReconcileOriginal){'1'}else{$null}
     $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=if($ReconcileAmbiguity){'1'}else{$null}
+    if($EncryptedProcess){
+        $processStarted=[DateTime]::UtcNow
+        $processProject=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj'
+        foreach($phase in @('write','recover')){
+            $phaseReport=Join-Path $work "oracle-encrypted-process-$phase.trx"
+            if(Test-Path -LiteralPath $phaseReport){throw 'Preserve original process evidence before another run.'}
+            $method=if($phase -eq 'write'){'PhaseOneCommitEncryptedOperation'}else{'PhaseTwoRecoverInDifferentProcess'}
+            & dotnet test $processProject --no-build --no-restore --filter "FullyQualifiedName~OracleEncryptedProcessNativeTests.$method" --logger "trx;LogFileName=oracle-encrypted-process-$phase.trx" --results-directory $work /m:2 /nr:false
+            if($LASTEXITCODE -ne 0){throw 'Oracle encrypted process verification failed; preserve original fixture, no replay/reset.'}
+            $phaseFile=Get-Item -LiteralPath $phaseReport
+            [xml]$phaseTrx=Get-Content -LiteralPath $phaseReport -Raw;$phaseCounts=$phaseTrx.TestRun.ResultSummary.Counters
+            if($phaseFile.LastWriteTimeUtc -lt $processStarted -or [int]$phaseCounts.total -ne 2 -or [int]$phaseCounts.passed -ne 2 -or [int]$phaseCounts.notExecuted -ne 0){throw 'Fresh complete2/2 Oracle process phase required.'}
+            if($phase -eq 'write' -and @(Get-ChildItem -LiteralPath $work -Filter 'encrypted-process-*.pending.json').Count -ne 2){throw 'Exactly two committed process intents required before recovery.'}
+        }
+        if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Original Oracle process fixtures remain unresolved.'}
+        $passed=$true;return
+    }
     $report=if($EncryptedReplay){'oracle-encrypted-replay-native-current.trx'}elseif($PreparationClaims){'oracle-preparation-native-current.trx'}elseif($ReconcileOriginal){'oracle-native-reconciliation-current.trx'}elseif($ReconcileAmbiguity){'oracle-ambiguity-reconciliation.trx'}elseif($ReconcileHistoricalExport){'oracle-history-export-reconciliation.trx'}elseif($ReconcileCorruptAvatar){'oracle-corrupt-avatar-reconciliation.trx'}elseif($ReconcileProjectionAssertions){'oracle-projection-assertion-reconciliation.trx'}else{'oracle-native-current.trx'}
     $filter=if($EncryptedReplay){'FullyQualifiedName~OracleEncryptedReplayNativeTests'}elseif($PreparationClaims){'FullyQualifiedName~OraclePreparationNativeTests'}elseif($ReconcileOriginal){'FullyQualifiedName~RealSdkCanonicalRecordsSelectorsAndMetadataPaths'}elseif($ReconcileAmbiguity){'FullyQualifiedName~DuplicateIdentityIsRejectedInsteadOfSelectingArbitraryAvatar'}elseif($ReconcileHistoricalExport){'FullyQualifiedName~ReconcileKnownHistoricalExportFixture'}elseif($ReconcileCorruptAvatar){'FullyQualifiedName~ReconcileKnownCorruptAvatarFixture'}elseif($ReconcileProjectionAssertions){'FullyQualifiedName~ReconcileKnownProjectionAssertionFixtures'}else{'FullyQualifiedName~OracleNativeAcceptanceTests&FullyQualifiedName!~Reconcile'}
     $testStarted=[DateTime]::UtcNow
