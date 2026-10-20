@@ -17,12 +17,13 @@ public partial class EthereumOASIS
         var result=new OASISResult<TInterface>();
         string acknowledged=null;
         try {
-            var originalId=source.Id;
-            var snapshot=OasisJson.DeserializeStored<TRecord>(SerializeCanonicalEmbeddedRecord(source).ToString(Newtonsoft.Json.Formatting.None));
+            var publication=StoredRecordPublicationSnapshot<TInterface>.Capture(source);
+            var snapshot=OasisJson.DeserializeStored<TRecord>(SerializeCanonicalEmbeddedRecord(publication.Proposal).ToString(Newtonsoft.Json.Formatting.None));
+            publication.ValidateUnchanged();
             var committed=await UpsertStorageHistoryAsync(kind,snapshot,IsVersionControlEnabled);
             if(!StorageReceiptSucceeded(committed.Receipt))throw new InvalidOperationException("Ethereum profile checked write reverted.");
             acknowledged=committed.Receipt.TransactionHash;
-            if(source.Id!=originalId)throw new InvalidOperationException("Caller profile identity changed during acknowledged Ethereum write.");
+            publication.ValidateUnchanged();
             CommitEthereumStorageIdentity(source);
             source.Version=committed.Record.Version;source.VersionId=committed.Record.VersionId;source.PreviousVersionId=committed.Record.PreviousVersionId;
             result.Result=source;result.IsSaved=true;

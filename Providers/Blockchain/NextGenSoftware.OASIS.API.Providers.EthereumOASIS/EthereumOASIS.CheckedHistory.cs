@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 
 public partial class EthereumOASIS
 {
-    private async Task<(TransactionReceipt Receipt,T Record)> UpsertStorageHistoryAsync<T>(string kind,T proposed,bool createHistory)
+    protected virtual async Task<(TransactionReceipt Receipt,T Record)> UpsertStorageHistoryAsync<T>(string kind,T proposed,bool createHistory)
         where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(proposed);
