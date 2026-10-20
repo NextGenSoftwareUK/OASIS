@@ -956,8 +956,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            try {StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);}
-            catch(Exception ex) when(ex is ArgumentException || ex is NotSupportedException)
+            try {
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                searchParams=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+            }
+            catch(Exception ex)
             {return Fail<ISearchResults>($"Invalid search request: {ex.Message}",ex,"HYPERDRIVE_PAYLOAD_INVALID");}
             try
             {
