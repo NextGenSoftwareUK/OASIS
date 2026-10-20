@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -52,11 +52,19 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         private IDriver CreateDriver()
         {
-            var uri = Uri.TryCreate(Host, UriKind.Absolute, out var configuredUri) &&
-                      (configuredUri.Scheme == "bolt" || configuredUri.Scheme == "neo4j")
-                ? configuredUri.AbsoluteUri
-                : $"bolt://{Host}:7687";
-            return GraphDatabase.Driver(uri, AuthTokens.Basic(Username, Password));
+            return GraphDatabase.Driver(ConnectionUri(Host), AuthTokens.Basic(Username, Password));
+        }
+
+        internal static Uri ConnectionUri(string host)
+        {
+            if (string.IsNullOrWhiteSpace(host)) throw new ArgumentException("An explicit Neo4j host is required.", nameof(host));
+            var explicitScheme = host.Contains("://", StringComparison.Ordinal);
+            if (!Uri.TryCreate(explicitScheme ? host : "bolt://" + host, UriKind.Absolute, out var uri)
+                || string.IsNullOrEmpty(uri.Host) || !string.IsNullOrEmpty(uri.UserInfo)
+                || uri.AbsolutePath != "/" && uri.AbsolutePath != ""
+                || !(new[] { "bolt", "bolt+s", "bolt+ssc", "neo4j", "neo4j+s", "neo4j+ssc" }).Contains(uri.Scheme, StringComparer.Ordinal))
+                throw new ArgumentException("A valid Neo4j connection URI or hostname is required.", nameof(host));
+            return !explicitScheme && uri.Port == -1 ? new UriBuilder(uri) { Port = 7687 }.Uri : uri;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
@@ -67,7 +75,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             try
             {
                 _driver ??= _driverFactory();
-                await _driver.VerifyConnectivityAsync();
+                await _driver.VerifyConnectivityAsync().ConfigureAwait(false);
+                await EnsureHolonWriteSchemaAsync().ConfigureAwait(false);
                 IsProviderActivated = true;
                 return new OASISResult<bool>(true);
             }

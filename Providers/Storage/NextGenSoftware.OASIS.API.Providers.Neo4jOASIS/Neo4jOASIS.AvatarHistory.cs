@@ -37,14 +37,16 @@ public partial class Neo4jOASIS
         if(rows.Count>1)throw new StorageIdentityAmbiguousException();
         var previous=rows.Count==0 ? null:readCurrent(rows[0]["a"].As<INode>());
         var expected=rows.Count==0 ? null:(string)rows[0]["a"].As<INode>()["SnapshotJson"];
-        await StoredRecordVersions.StampAsync(staged.Id,staged,previous,async stored=>
-        {
-            var archived=await (await transaction.RunAsync("MERGE (v:OasisRecordVersion {Kind:$kind,RecordId:$id,Version:$version}) "
-                + "ON CREATE SET v.SnapshotJson=$snapshot WITH v WHERE v.SnapshotJson=$snapshot RETURN v",
-                new{kind,id=stored.Id.ToString(),version=stored.Version,snapshot=OasisJson.Serialize(stored)})).ToListAsync();
-            if(archived.Count!=1)throw new StorageLifecycleConflictException("Neo4j archived record version conflicts with its original snapshot.");
-        });
+        await StoredRecordVersions.StampAsync(staged.Id,staged,previous,stored=>ArchiveRecordVersionAsync(transaction,kind,stored));
         return expected;
+    }
+
+    private static async Task ArchiveRecordVersionAsync(IAsyncTransaction transaction,string kind,IHolonBase stored)
+    {
+        var archived=await (await transaction.RunAsync("MERGE (v:OasisRecordVersion {Kind:$kind,RecordId:$id,Version:$version}) "
+            + "ON CREATE SET v.SnapshotJson=$snapshot WITH v WHERE v.SnapshotJson=$snapshot RETURN v",
+            new{kind,id=stored.Id.ToString(),version=stored.Version,snapshot=OasisJson.Serialize(stored)})).ToListAsync();
+        if(archived.Count!=1)throw new StorageLifecycleConflictException("Neo4j archived record version conflicts with its original snapshot.");
     }
 
     private Task<OASISResult<IEnumerable<IAvatar>>> ReadHistoricalAvatarsAsync(int version)
