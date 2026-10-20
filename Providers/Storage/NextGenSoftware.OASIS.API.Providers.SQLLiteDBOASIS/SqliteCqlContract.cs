@@ -16,7 +16,7 @@ internal static class SqliteCqlContract
         var fields = new Dictionary<string, CosmicQueryFieldCapability>(StringComparer.Ordinal);
         var equality = new[] { CosmicQueryComparisonOperator.Equal, CosmicQueryComparisonOperator.NotEqual };
         var ordered = System.Enum.GetValues<CosmicQueryComparisonOperator>();
-        foreach (var name in new[] { "Name", "Description" }) fields.Add(name, new(name, typeof(string), equality));
+        foreach (var name in new[] { "Name", "Description" }) fields.Add(name, new(name, typeof(string), equality, System.Enum.GetValues<CosmicQueryStringOperator>()));
         fields.Add("Version", new("Version", typeof(int), ordered));
         fields.Add("HolonType", new("HolonType", typeof(HolonType), ordered));
         foreach (var name in new[] { "IsActive", "IsPublic" }) fields.Add(name, new(name, typeof(bool), equality));

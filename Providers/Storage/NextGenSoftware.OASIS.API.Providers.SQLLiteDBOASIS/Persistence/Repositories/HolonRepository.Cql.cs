@@ -70,6 +70,21 @@ public partial class HolonRepository
         }
         internal string Translate(CosmicQueryPredicate predicate)
         {
+            if (predicate is CosmicQueryStringMatch match)
+            {
+                if (match.Path.IsMetadata || match.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(match.Path.Segments[0], out var stringField)
+                    || stringField.ValueType != typeof(string) || !stringField.StringOperations.Contains(match.Operator))
+                    throw new NotSupportedException("SQLite CQL string path/operator is unsupported.");
+                // BLOB operations preserve embedded NUL bytes and exact Unicode sequences; TEXT length stops at NUL.
+                var stringColumn = "CAST(\"" + stringField.Name + "\" AS BLOB)";
+                if (match.Value.Length == 0) return "(" + stringColumn + " IS NOT NULL)";
+                var stringPattern = "CAST(" + Bind(match.Value) + " AS BLOB)";
+                var stringLength = "length(" + stringPattern + ")";
+                var stringSql = match.Operator == CosmicQueryStringOperator.Contains ? "instr(" + stringColumn + "," + stringPattern + ") > 0"
+                    : match.Operator == CosmicQueryStringOperator.StartsWith ? "substr(" + stringColumn + ",1," + stringLength + ") = " + stringPattern
+                    : "substr(" + stringColumn + ",-" + stringLength + ") = " + stringPattern;
+                return "(COALESCE((" + stringSql + "),0))";
+            }
             if (predicate is CosmicQueryMetadataTest test) return MetadataTest(test);
             if (predicate is CosmicQueryBoolean boolean) return boolean.Value ? "1" : "0";
             if (predicate is CosmicQueryLogical logical)
