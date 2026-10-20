@@ -96,13 +96,14 @@ public partial class Web3CoreOASISBaseProvider
             ArgumentNullException.ThrowIfNull(source);
             var publication=StoredRecordPublicationSnapshot<T>.Capture(source);
             var originalId=source.Id;
-            var snapshot=clone(source);
+            var snapshot=clone(publication.Proposal);
             snapshot.Id=originalId==Guid.Empty ? Guid.NewGuid():originalId;
             snapshot.IsNewHolon=false;
             snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             snapshot.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();
             var payload=Encoding.UTF8.GetBytes(EncodePrivateRecord(kind,snapshot));
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            publication.ValidateUnchanged();
             var committed=await submit((uint)HashUtility.GetNumericHash(snapshot.Id.ToString()),PrivateExternalId(snapshot.Id),payload);
             acknowledged=snapshot.Id;transaction=committed.Receipt.TransactionHash;
             publication.ValidateUnchanged();
@@ -123,6 +124,15 @@ public partial class Web3CoreOASISBaseProvider
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
         =>SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
+
+    protected virtual async Task<(TransactionReceipt Receipt,Holon Record)> SavePlannedPrivateHolonAsync(PlannedHolonWrite write,bool createHistory)
+    {
+        Holon committed=null;
+        var receipt=await _web3CoreOASIS.UpsertPreparedAsync("holon",(uint)HashUtility.GetNumericHash(write.Snapshot.Id.ToString()),PrivateExternalId(write.Snapshot.Id),async previous=>{
+            var staged=await StagePrivateHistoryAsync("holon",write.Snapshot,previous,createHistory,write);committed=staged.Record;return staged.Info;
+        });
+        return(receipt,committed);
+    }
 
     public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
     {
@@ -155,10 +165,8 @@ public partial class Web3CoreOASISBaseProvider
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
             foreach(var node in writes)
             {
-                Holon committed=null;
-                var receipt=await _web3CoreOASIS.UpsertPreparedAsync("holon",(uint)HashUtility.GetNumericHash(node.Snapshot.Id.ToString()),PrivateExternalId(node.Snapshot.Id),async previous=>{
-                    var staged=await StagePrivateHistoryAsync("holon",node.Snapshot,previous,createHistory,node.Write);committed=staged.Record;return staged.Info;
-                });
+                node.Publication.ValidateUnchanged();
+                var (receipt,committed)=await SavePlannedPrivateHolonAsync(node.Write,createHistory);
                 acknowledged.Add(committed);transactions.Add(receipt.TransactionHash);
                 node.Publication.ValidateUnchanged();
                 node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;

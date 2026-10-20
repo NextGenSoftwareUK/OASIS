@@ -18,6 +18,10 @@ public partial class Web3CoreOASISBaseProvider
         var publications=new Dictionary<IHolon,StoredRecordPublicationSnapshot<IHolon>>(ReferenceEqualityComparer.Instance);
         var plan=HolonGraphWritePlan.Create(input,children,recursive,depth,initialDepth,
             source=>publications.Add(source,StoredRecordPublicationSnapshot<IHolon>.Capture(source)));
+        var nativeKeys=new HashSet<uint>();
+        foreach(var node in plan.Nodes)
+            if(!nativeKeys.Add((uint)Core.Utilities.HashUtility.GetNumericHash(node.Snapshot.Id.ToString())))
+                throw new ArgumentException("Selected Web3Core graph contains colliding numeric storage keys.");
         return (plan.Roots,plan.Nodes.Select(node=>new PlannedWeb3Holon(node,publications[node.Source])).ToList());
     }
 
