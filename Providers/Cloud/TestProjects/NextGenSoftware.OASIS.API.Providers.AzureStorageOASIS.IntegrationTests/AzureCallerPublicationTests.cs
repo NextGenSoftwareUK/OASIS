@@ -11,10 +11,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests
 
 public partial class AzureStorageOASISIntegrationTests
 {
-    private sealed class CallerEditService(BlobServiceClient healthy,Action edit,bool afterWrite):BlobServiceClient
+    private sealed class CallerEditService(BlobServiceClient healthy,Action edit,bool afterWrite,Func<Task>? nativeMutation=null):BlobServiceClient
     {
-        public int Writes;private bool edited;
-        public void Edit(){if(!edited){edited=true;edit();}}
+        public int Writes,Deletes;private bool edited;
+        public async Task EditAsync(){if(!edited){edited=true;if(nativeMutation!=null)await nativeMutation();else edit();}}
         public override BlobContainerClient GetBlobContainerClient(string name)=>new CallerEditContainer(healthy.GetBlobContainerClient(name),this,afterWrite);
     }
     private sealed class CallerEditContainer(BlobContainerClient healthy,CallerEditService owner,bool afterWrite):BlobContainerClient
@@ -24,9 +24,11 @@ public partial class AzureStorageOASISIntegrationTests
         public override string Name=>healthy.Name;
         public override string BlobContainerName=>healthy.BlobContainerName;
         public override async Task<Response<BlobDownloadResult>> DownloadContentAsync(CancellationToken cancellationToken=default)
-        {try{return await healthy.DownloadContentAsync(cancellationToken);}finally{if(!afterWrite)owner.Edit();}}
+        {try{return await healthy.DownloadContentAsync(cancellationToken);}finally{if(!afterWrite)await owner.EditAsync();}}
         public override async Task<Response<BlobContentInfo>> UploadAsync(BinaryData content,BlobUploadOptions options,CancellationToken cancellationToken=default)
-        {owner.Writes++;var response=await healthy.UploadAsync(content,options,cancellationToken);if(afterWrite)owner.Edit();return response;}
+        {owner.Writes++;var response=await healthy.UploadAsync(content,options,cancellationToken);if(afterWrite)await owner.EditAsync();return response;}
+        public override async Task<Response> DeleteAsync(DeleteSnapshotsOption snapshotsOption=DeleteSnapshotsOption.None,BlobRequestConditions? conditions=null,CancellationToken cancellationToken=default)
+        {owner.Deletes++;var response=await healthy.DeleteAsync(snapshotsOption,conditions,cancellationToken);if(afterWrite)await owner.EditAsync();return response;}
     }
 
     [DataTestMethod]
