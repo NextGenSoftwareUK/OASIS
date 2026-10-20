@@ -1,5 +1,11 @@
 # Cosmos DB retained record history
 
+## Current Core/Shared controlled compatibility — 2026-10-20
+
+Full **249/249 controlled passed2s0skip**, terminal0, after bounded cached producer/unit builds under exclusivelease. Identityguard verified actual CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared1C35EE624DE22877EE450BE3EFC3930B1EBE960FF7EE2C127861ED28BF7CDDD6. Report TestResults/CosmosDBCurrent/cosmos-current-core-controlled.trx SHA2562008E327E2AACF4961649FBB0E56C45474CBAAC74943E5327EA5972BE22C2645. This refreshes controlled dependency compatibility only; native61 remains FAILED37pass24fail at original checkpoint below, not certified by249green.
+
+Read-only source/evidence review confirms point/feed DeepEquals mismatch remains unexplained. Original failed run19099.../Cosmos row2666b81f.../ETag3a752.../SQLite fixture must remain intact. No expectedhash replacement, equality relaxation, delete, reset or replay. Earlier native resume was denied; new user request asks to resume only same retained loopbackcontainer for read-only inspection. Pending answer, container independently remains exited on pinnedimageb4edfeff93d70f2438ca55dbb14cdb8c6f111208d69c525baf62b7269ce44b56. No runtime started/download/install/newenvironment. Free C67,764,293,632bytes;123GBtargetunmet. Otherproviders remain actionable; globalgoalactive, no fullprovider/deployment claim.
+
 ## Captured planned-write controlled proof - 2026-10-20
 
 Added direct SDK planned-write regression: capture selected membership, then mutate original caller name/children; writer must use captured body/membership in exactly one replacement with the original observed ETag, retain prior body/roles/history identity, and leave captured proposal untouched. Full **247/247 controlled passed**, zero skips,1s; `cosmos-role-captured-plan-unit.trx` SHA256 `EE049C55A0A5AF05652A8F1E64322A11940A5233DDA207EDB593BD682FEA7844`. Same unit CoreB9C95292/Shared536D8D28 epoch as previous246-case proof, build0errors/5warnings. This is controlled SDK evidence, not native graph certification; it does not prove arbitrary unrelated-body rejection or concurrency/immutable-setter locking. Native61 and exact original cleanup remain open; runtime restart approval pending. Checkpoint work is local-only, not a releasable/dev-deployed batch.

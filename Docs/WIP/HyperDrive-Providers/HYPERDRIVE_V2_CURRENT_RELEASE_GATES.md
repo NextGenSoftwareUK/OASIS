@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## SOLID current dependency warm-server acceptance — 2026-10-20
+
+Native6/6 1m1s +controlled333/333 1s,0skip,terminal0 under buildlease on measuredCoreD490/Shared1C35EE. Same original running privateDPoP/CSSserver/keys/identity/volume reused, no sourcechange/restart/download/newenvironment. Allpendingjournals absent, operatorserver intentionally left running. Reportnative6FA98CC9CBECFED317B486E85C275D14233E261FFB3AD885A21366B72783E16E; controlled83FECFC400BBDDF1E9340FEF6ABCE89516EBD29DB70CDFFBA8B42F494BCE0052. PriorreportSHAchecked/movedinplace; exactscope/cohort in SOLID_PROVIDER_IMPLEMENTATION_AUDIT.md. Coldstart tokenabort/rootcause, completeinterfaces/OIDC/hosted/V2 remain OPEN; no retry/restart masks failures. Free C67,774,885,888bytes;123GBtargetunmet.
+
+## Cosmos DB current controlled compatibility — 2026-10-20
+
+249/249controlled2s0skip terminal0 on CoreD490/Shared1C35EE, identityguard passed, no sourcechanges. Report TestResults/CosmosDBCurrent/cosmos-current-core-controlled.trx SHA2562008E327E2AACF4961649FBB0E56C45474CBAAC74943E5327EA5972BE22C2645. This DOES NOT close originalnative61failure(37pass24fail), preservedpoint/feed/SQLitefixture mismatch or hosted/fullinterface/V2 gates. Samecontainer independently exited/pinnedimage; no start/reset/replay/deletion/download. Earlierdeniedresume boundary preserved; userpermission requested for read-only inspection only. Free C67,764,293,632bytes,123GBtargetunmet. Exactscope/cohort in COSMOSDB_RECORD_HISTORY.md.
+
 ## Polkadot identity boundary and storage target — 2026-10-20
 
 Reused existing Shared StoredRecordIdentityLookup for2detailusername/email selectors rather than firstduplicate/wrongdiagnostics.12redbefore/full223controlled17s0skipgreen, terminal0; version/singlecollectionread/ambiguity/errorcodes/exceptions/loadedflags verified. Exactreports in POLKADOT_PROVIDER_NATIVE_TESTS.md. Notnativecontractstorageproof; walletnative6 scope unchanged.
