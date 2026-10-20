@@ -6,6 +6,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS;
@@ -43,22 +44,25 @@ public partial class AzureStorageOASIS
 
     // Staging never mutates the caller. The native writer must condition the complete
     // current+archive document on the exact revision read, not upload an archive separately.
-    private static async Task<JObject> StageBlobHistoryAsync<T>(T proposed, string previousJson, bool createHistory)
+    private static async Task<JObject> StageBlobHistoryAsync<T>(T proposed, string previousJson, bool createHistory,PlannedHolonWrite? plannedHolon=null)
         where T : class, IHolonBase
     {
         ArgumentNullException.ThrowIfNull(proposed);
         if (proposed.Id == Guid.Empty) throw new ArgumentException("An explicit staged blob identity is required.");
-        JObject previous = null;
+        JObject previous = null;T? prior=null;
         if (previousJson != null)
         {
             // Use the canonical decoder first: it turns malformed canonical records into
             // typed integrity failures rather than trusting an unvalidated archive.
-            var prior = await ReadBlobHistoryAsync<T>(previousJson, 0);
+            prior = await ReadBlobHistoryAsync<T>(previousJson, 0);
             if (prior == null || prior.Id != proposed.Id)
                 throw new InvalidDataException("Existing blob identity differs from the proposed record.");
             previous = JObject.Parse(previousJson);
             previous["id"] = prior.Id.ToString();
         }
+        if(typeof(T)==typeof(Holon) && proposed is Holon holon)
+            holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plannedHolon??new PlannedHolonWrite(holon,holon),
+                HolonChildRoleWriteKind.SourceSave,previousJson!=null,(prior as Holon)?.ChildRoleManifestJson);
         return createHistory || previous?.Property(EmbeddedRecordHistory.PropertyName) != null
             ? await BlobHistory.StageAsync(proposed, previous, Deserialise<T>)
             : JObject.Parse(Serialise(proposed));
@@ -66,7 +70,7 @@ public partial class AzureStorageOASIS
 
     // The production constructor disables SDK retries: never replay an unknown Commit
     // and misreport its subsequent precondition rejection as the original outcome.
-    private static async Task<T> WriteVersionedBlobAsync<T>(BlobClient blob, T proposed, bool createHistory,Action validatePublication=null)
+    private static async Task<T> WriteVersionedBlobAsync<T>(BlobClient blob, T proposed, bool createHistory,Action validatePublication=null,PlannedHolonWrite? plannedHolon=null)
         where T : class, IHolonBase
     {
         ArgumentNullException.ThrowIfNull(blob);
@@ -77,7 +81,7 @@ public partial class AzureStorageOASIS
         catch (RequestFailedException cause) when (cause.Status == 404 && cause.ErrorCode == "BlobNotFound") { }
         if (observed != null && string.IsNullOrWhiteSpace(observed.Details.ETag.ToString()))
             throw new InvalidDataException("Observed blob has no authoritative revision.");
-        var staged = await StageBlobHistoryAsync(proposed, observed?.Content.ToString(), createHistory);
+        var staged = await StageBlobHistoryAsync(proposed, observed?.Content.ToString(), createHistory,plannedHolon);
         var payload = BinaryData.FromString(staged.ToString(Newtonsoft.Json.Formatting.None));
         var committed = Deserialise<T>(payload.ToString())
             ?? throw new InvalidDataException("Staged blob record is null.");

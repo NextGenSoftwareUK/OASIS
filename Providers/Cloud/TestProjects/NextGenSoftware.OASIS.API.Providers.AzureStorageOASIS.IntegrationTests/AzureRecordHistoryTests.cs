@@ -14,7 +14,7 @@ public partial class AzureStorageOASISIntegrationTests
 {
     private static Task<T> WriteHistory<T>(BlobClient blob, T proposal, bool enabled) where T : class, IHolonBase
         => (Task<T>)typeof(AzureStorageOASIS).GetMethod("WriteVersionedBlobAsync", BindingFlags.NonPublic | BindingFlags.Static)!
-            .MakeGenericMethod(typeof(T)).Invoke(null, new object?[] { blob, proposal, enabled, null })!;
+            .MakeGenericMethod(typeof(T)).Invoke(null, new object?[] { blob, proposal, enabled, null, null })!;
 
     private async Task VerifyNativeHistory<T>(T proposal, int containerIndex) where T : class, IHolonBase
     {

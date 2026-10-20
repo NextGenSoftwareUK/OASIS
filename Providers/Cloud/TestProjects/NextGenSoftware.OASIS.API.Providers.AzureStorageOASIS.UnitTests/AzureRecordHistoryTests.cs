@@ -13,7 +13,7 @@ public class AzureRecordHistoryTests
 {
     private static Task<JObject> Stage<T>(T record, string? previous, bool enabled) where T : class, IHolonBase
         => (Task<JObject>)typeof(AzureStorageOASIS).GetMethod("StageBlobHistoryAsync", BindingFlags.Static | BindingFlags.NonPublic)!
-            .MakeGenericMethod(typeof(T)).Invoke(null, new object?[] { record, previous, enabled })!;
+            .MakeGenericMethod(typeof(T)).Invoke(null, new object?[] { record, previous, enabled, null })!;
 
     private static async Task VerifyHistory<T>(T record) where T : class, IHolonBase
     {

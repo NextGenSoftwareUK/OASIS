@@ -32,12 +32,18 @@ public partial class AzureStorageOASISIntegrationTests
         var scalar=new Holon{Id=root.Id,Name="owned scalar update"};var updated=sync?_provider.SaveHolon(scalar,saveChildren:false):await _provider.SaveHolonAsync(scalar,saveChildren:false);Assert.IsFalse(updated.IsError,updated.Exception?.ToString());
         var current=(await rootBlob.DownloadContentAsync()).Value;var observed=OasisJson.DeserializeStored<Holon>(current.Content.ToString())!;
         var historical=await _provider.LoadHolonAsync(root.Id,loadChildren:false,version:1);Assert.IsFalse(historical.IsError,historical.Message);
+        var legacy=Newtonsoft.Json.Linq.JObject.Parse(current.Content.ToString());legacy[nameof(Holon.ChildRoleManifestJson)]=Newtonsoft.Json.Linq.JValue.CreateNull();
+        await rootBlob.UploadAsync(BinaryData.FromString(legacy.ToString(Newtonsoft.Json.Formatting.None)),new BlobUploadOptions{Conditions=new BlobRequestConditions{IfMatch=current.Details.ETag}});
+        scalar.Name="owned legacy update";scalar.ChildRoleManifestJson=expected;
+        var savedLegacy=sync?_provider.SaveHolon(scalar,saveChildren:false):await _provider.SaveHolonAsync(scalar,saveChildren:false);Assert.IsFalse(savedLegacy.IsError,savedLegacy.Exception?.ToString());
+        current=(await rootBlob.DownloadContentAsync()).Value;var observedLegacy=OasisJson.DeserializeStored<Holon>(current.Content.ToString())!;
         var childAfter=(await childBlob.DownloadContentAsync()).Value;Assert.AreEqual(childBefore.Content.ToString(),childAfter.Content.ToString());Assert.AreEqual(childBefore.Details.ETag,childAfter.Details.ETag);
         // Independently validated successful originals are conditionally cleaned BEFORE
         // role assertions, so a reproduced mapping defect leaves no test records.
         foreach(var row in new[]{(Blob:rootBlob,Observed:current),(Blob:childBlob,Observed:childAfter)}){
             var deleted=await row.Blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots,new BlobRequestConditions{IfMatch=row.Observed.Details.ETag});Assert.IsTrue(deleted.Status>=200&&deleted.Status<300);Assert.IsFalse((await row.Blob.ExistsAsync()).Value);
         }
-        Assert.AreEqual(expected,selected);Assert.AreEqual(expected,observed.ChildRoleManifestJson);Assert.AreEqual(expected,scalar.ChildRoleManifestJson);Assert.AreEqual(expected,((Holon)historical.Result).ChildRoleManifestJson);
+        Assert.AreEqual(expected,selected);Assert.AreEqual(expected,observed.ChildRoleManifestJson);Assert.AreEqual(expected,((Holon)historical.Result).ChildRoleManifestJson);
+        Assert.IsNull(observedLegacy.ChildRoleManifestJson,"Observed persisted null must override stale caller roles.");Assert.IsNull(scalar.ChildRoleManifestJson);
     }
 }
