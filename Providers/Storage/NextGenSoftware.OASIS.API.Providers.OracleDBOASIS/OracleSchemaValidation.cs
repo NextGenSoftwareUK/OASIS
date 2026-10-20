@@ -19,7 +19,7 @@ public partial class OracleDBOASIS
             ["OASIS_WRITE_RECEIPTS"]=new(){{"OPERATION_ID","RAW"},{"REQUEST_HASH","VARCHAR2"},{"RESULT_JSON","CLOB"},{"COMMITTED_AT","TIMESTAMP"}}
         };
         foreach(var table in expected){
-            await using var command=CreateCommand("SELECT COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE,DATA_PRECISION,DATA_SCALE,CHAR_LENGTH FROM USER_TAB_COLUMNS WHERE TABLE_NAME=:TableName",connection);
+            await using var command=CreateCommand("SELECT COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE,DATA_PRECISION,DATA_SCALE,CHAR_LENGTH,DEFAULT_LENGTH FROM USER_TAB_COLUMNS WHERE TABLE_NAME=:TableName",connection);
             command.Parameters.Add("TableName",OracleDbType.Varchar2).Value=table.Key;
             var missing=new HashSet<string>(table.Value.Keys,StringComparer.Ordinal);
             await using var reader=await command.ExecuteReaderAsync();
@@ -30,6 +30,7 @@ public partial class OracleDBOASIS
                 ValidateStorageColumnProperties(table.Key,column,required,reader.GetString(3),
                     reader.IsDBNull(4)?null:reader.GetInt32(4),reader.IsDBNull(5)?null:reader.GetInt32(5),
                     reader.IsDBNull(6)?0:reader.GetInt32(6));
+                ValidateStorageInsertDefault(table.Key,column,required,reader.IsDBNull(7)?null:reader.GetInt32(7));
                 missing.Remove(column);
             }
             if(missing.Count!=0)throw new InvalidDataException($"Oracle schema {table.Key} is missing required columns: {string.Join(",",missing)}.");
@@ -49,6 +50,14 @@ WHERE c.TABLE_NAME=:TableName AND c.CONSTRAINT_TYPE='P' ORDER BY cc.POSITION",co
             }
             ValidateStoragePrimaryKey(table,key,columns,status,validated,deferrable,indexStatus);
         }
+    }
+
+    private static void ValidateStorageInsertDefault(string table,string column,string required,int? defaultLength)
+    {
+        // The fixed canonical INSERTs and receipt claim omit these native audit timestamps.
+        // All are NOT NULL; without a default activation would advertise an unwritable schema.
+        if(required=="TIMESTAMP"&&defaultLength.GetValueOrDefault()<=0)
+            throw new InvalidDataException($"Oracle schema {table}.{column} requires an insert default for its omitted audit timestamp.");
     }
 
     private static void ValidateStorageColumnProperties(string table,string column,string required,string nullable,

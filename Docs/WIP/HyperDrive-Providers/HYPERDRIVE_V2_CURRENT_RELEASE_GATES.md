@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## Oracle omitted timestamp defaults — controlled212/native96 green, 2026-10-20
+
+Canonical INSERTs omit CREATED_DATE/MODIFIED_DATE and receipt INSERTs omit COMMITTED_AT, relying on defaults for these NOT NULL columns. Existing read-only schema admission now checks DEFAULT_LENGTH in the same four column queries and rejects absent defaults before activation. Eight new controlled cases plus204 existing pass **212/212**, zero skipped; no writer, DDL repair, extra query or schema migration added. This checks default existence, NOT expression correctness (including DEFAULT NULL), extra required columns, generated columns or all constraints.
+
+Unit report `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests/TestResults/david_OASISOMEGA_2026-10-20_12_53_24_net10.0.trx` SHA256 `1A8D1783FB19A166296FD7E613D1C26D8A746646528D1CC99FC8AB85EA7A4B7F`. Real retained Oracle **96/96 passed44s**, zero skipped, runner terminal0; `TestResults/OracleCurrent/oracle-native-current.trx` SHA256 `B984AE9223CB46AA75B781FB35E5AF34FB94985AC5C315D2B35194011AD57270`. Native tests inspect the real valid schema and perform existing operations; deliberate missing-default schemas are controlled tests, not live fault injection. Both consumers Core `B6A13DFC4886A9C69FFE99F83B5254AA972EA328D314C5723BB057B42695AFAA`; unit Shared `7DBDE7FBD47CD510F27E9D5CDE3BE031AF57033F278F00EA3338A89834A74D60`, native Shared `BBFE9C464BE306D324392453CDA415B85756DC13BFBC2479A24DB1C22A3D47D6` after runner rebuild. Distinct Shared epochs, not an immutable paired deployment certificate.
+
+Prior native0B3D508C report hash-checked then moved in place to `oracle-pre-insert-default-validation.trx`. Same pinned Oracle image/container/volume/secret/loopback11521 and cached dependencies reused; no download, install, clone, reset or paid cloud operation. Owned synthetic fixtures cleaned by suite, pendingjournals0 and container exited independently verified. Free C68,605,456,384bytes;123GBtarget remains unmet, no space reclamation claimed. Hosted Oracle DB/OCI IAM/TLS/fees, remaining relevant interfaces and universal V2 verification remain OPEN. Catalog reference: [Oracle ALL_TAB_COLS](https://docs.oracle.com/en/database/oracle/oracle-database/21/refrn/ALL_TAB_COLS.html).
+
 ## IPFS canonical identity selector admission — controlled90/native16 green,2026-10-20
 
 Final native TRX SHA256 `D79ACF7DE219242EFE8549D4B765792DAA92BA5455D8457809E46BAD639D875B`; final controlled TRX SHA256 `E3494C67EA60A5C199A7321C0B0CE84358CA34EFB24894F1FEA38D9DCD680CE3`.

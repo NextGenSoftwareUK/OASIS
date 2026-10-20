@@ -6,6 +6,22 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 [TestClass]
 public class OracleSchemaValidationTests
 {
+    [DataTestMethod]
+    [DataRow("CREATED_DATE","TIMESTAMP",null,false)]
+    [DataRow("MODIFIED_DATE","TIMESTAMP",0,false)]
+    [DataRow("COMMITTED_AT","TIMESTAMP",null,false)]
+    [DataRow("CREATED_DATE","TIMESTAMP",12,true)]
+    [DataRow("MODIFIED_DATE","TIMESTAMP",12,true)]
+    [DataRow("COMMITTED_AT","TIMESTAMP",12,true)]
+    [DataRow("DATA_JSON","CLOB",null,true)]
+    [DataRow("ID","RAW",null,true)]
+    public void OmittedNativeAuditColumnsRequireAnInsertDefault(string column,string required,int? length,bool accepted)
+    {
+        var method=typeof(OracleDBOASIS).GetMethod("ValidateStorageInsertDefault",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var args=new object?[]{"OASIS_TEST",column,required,length};
+        if(accepted)method.Invoke(null,args);
+        else Assert.IsInstanceOfType(Assert.ThrowsException<TargetInvocationException>(()=>method.Invoke(null,args)).InnerException,typeof(InvalidDataException));
+    }
     [DataTestMethod][DataRow("Y",true)][DataRow("N",false)]
     public void ReceiptResultAllowsItsExistingTransactionalPlaceholder(string nullable,bool accepted)
     {
