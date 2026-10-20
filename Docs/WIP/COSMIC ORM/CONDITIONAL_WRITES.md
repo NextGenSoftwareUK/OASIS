@@ -111,3 +111,14 @@ SQLite now retains additional common-holon persistent fields/provider metadata o
 ## SQLite shared atomic owner and explicit replica intent
 
 SQLite now applies committed replicas through the same IMMEDIATE graph transaction owner as conditional edits. Existing edit request/hash/receipt format is retained; intent is captured before I/O and exact replay normalizes committed lifecycle state. Captured child topology, complete pre-commit acknowledgement validation, native rollback, commit dispatch and cleanup ownership prevent later caller/cleanup changes from altering the durable result. Replica receipts use the shared content-bound codec and durable per-record heads. See [receiver semantics and evidence](SQLITE_COMMITTED_REPLICAS.md). Direct conditional command replication remains unsupported until independent target application and atomic source delivery enrollment are integrated.
+
+
+## SQLite exact intent fingerprints — 20 October 2026
+
+Precision audit found that SQLite still reparsed captured intent through the default double reader and omitted every provider's keys/revisions. The conditional owner now fingerprints the already captured canonical Holon snapshot and uses the shared exact-number hash owner, without recapturing live inputs. Only this authority's assigned current key/revision and persistence-assigned audit/version fields are excluded. Foreign provider keys/revisions and previous-version keys remain persisted write intent. Equivalent numeric scale and JsonElement/CLR representations normalize without double conversion; strings remain strings.
+
+The corrected hash has explicit fingerprint domain3 (plain intent) or4 (submitted relationship intent), distinct from historical rounded hashes. New SQLite primary receipts retain acknowledgement format1 and add a fingerprintFormat marker. An unmarked/obsolete receipt returns COSMIC_RECEIPT_FINGERPRINT_RECONCILIATION_REQUIRED before another mutation; there is no rounded-hash fallback or automatic second write. Operators must reconcile the original committed operation before retrying with a new intent. This compatibility gate remains an operational rollout requirement before deployment.
+
+Nine native regressions cover changed tiny decimals, nested values, foreign keys/revisions/prior keys, equivalent numeric/local-observation controls and historical receipt refusal without mutation. The original gate fails6/passes3, establishing the defects and controls. Final native acceptance is recorded separately.
+
+Final fingerprint acceptance: focused9/9 passes2s and fullSQLite963/963 passes122s, zero skips, with fixture absent after teardown. Shared exact-hash API dependency83d6523cc has its own856/856 report on matching recorded Core/Shared hashes. No Core source/pin change or deployment is included in this SQLite caller batch.
