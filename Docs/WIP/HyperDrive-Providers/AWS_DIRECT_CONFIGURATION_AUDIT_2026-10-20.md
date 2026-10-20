@@ -2,6 +2,18 @@
 
 Status: partial provider verification; not hosted AWS or full HyperDrive certification.
 
+## Atomic graph capability audit — implementation gate, 2026-10-20
+
+Current source declares DynamoDBOASIS as OASISStorageProviderBase plus storage/DB/NET and transport-classifier interfaces; neither its partials nor the inheriting AWSOASIS facade implement IConditionalHolonStorageProvider. Existing WriteRecordAsync protects individual history writes with native observed-data conditions. Avatar/detail lifecycle operations already use official SDK TransactWriteItems. These are real operations, but neither supplies the shared selected-graph plus durable operation-receipt contract.
+
+Core OASISHyperDrive.cs explicitly rejects a conditional request when this capability is absent, returning COSMIC_CONDITIONAL_WRITE_UNSUPPORTED before activation/dispatch. Newly required encrypted preparation and atomic replication enrollment are separately capability-checked. Thus ordinary local SDK/routing suite passes do NOT establish these contracts. This is source inspection, not a newly executed live rejection test; Core integration is concurrently changing, and no build was run during its reserved producer window.
+
+Next AWS implementation tranche must reuse the existing shared ConditionalHolonPlan/fingerprint, ConditionalHolonReceipt codec, graph planning and canonical history owner; add one native transactional writer, not route through sequential ordinary saves. Persist an operation-ID/content-bound receipt in the SAME transaction as every selected node. Durable replay must survive process restart and the SDK token window, reject changed intent, validate returned identities/graph, and preserve unknown acknowledgements without resubmission. Creation, replacement, soft/hard delete and conflicting revisions require real retained DynamoDB Local tests, including concurrent same-operation contenders and independent readback. Native limits must include receipt/preparation/outbox actions, not count only graph nodes; unsupported replication enrollment must reject before writes rather than silently downgrade.
+
+AWS currently permits at most100 distinct-item actions and4MB aggregate items in a transaction; its ClientRequestToken lasts10minutes, so a token alone cannot implement the durable OASIS receipt contract. See [official TransactWriteItems reference](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html). Receipt item capacity, history size, IAM permissions and native transaction/read charges must be tested/documented; no invented fee estimate or claim of hosted billing verification. Large graphs must fail explicitly rather than split into non-atomic batches.
+
+Existing retained runtime and official SDK are sufficient to start this tranche; no new service/download/environment is justified. Hosted AWS identity/permissions/cost acceptance remains a separate gate. No production behaviour, credentials, schema or cloud resources changed by this audit.
+
 ## Configuration boundary
 
 The production boot factory already rejects missing explicit settings. Direct public DynamoDB/AWS construction did not consistently enforce that contract: blank access keys, whitespace secrets, blank signing regions with endpoint overrides and whitespace session tokens could reach SDK client construction. An empty secret was rejected by the SDK itself rather than the provider boundary.
