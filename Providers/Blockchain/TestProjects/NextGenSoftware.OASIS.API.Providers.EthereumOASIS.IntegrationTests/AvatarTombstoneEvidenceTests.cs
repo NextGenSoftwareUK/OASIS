@@ -39,7 +39,8 @@ public class AvatarTombstoneEvidenceTests
             var evidence=new OASISResult<bool> {Result=true};
             AvatarTombstoneEvidence.Attach(evidence,snapshot);
             var prepare=typeof(OASISHyperDrive).GetMethod("CommittedReplicationRequest",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(bool));
-            request=(StorageOperationRequest)prepare.Invoke(null,new object[] {new StorageOperationRequest {Operation="DeleteAvatar",SoftDelete=true},evidence})!;
+            var factory=(Func<IRequest>)prepare.Invoke(null,new object[] {new StorageOperationRequest {Operation="DeleteAvatar",SoftDelete=true},evidence})!;
+            request=(StorageOperationRequest)factory();
         }
         var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings()}};
         var router=new OASISHyperDrive(new ProviderManager(null,dna));
@@ -75,12 +76,14 @@ public class AvatarTombstoneEvidenceTests
         Assert.IsNull(method.Invoke(null,new object[] {request,result}));
         var snapshot=new AvatarTombstone(request.AvatarId,DateTime.UtcNow,Guid.NewGuid());
         AvatarTombstoneEvidence.Attach(result,snapshot);
-        var committed=(StorageOperationRequest)method.Invoke(null,new object[] {request,result})!;
+        var factory=(Func<IRequest>)method.Invoke(null,new object[] {request,result})!;
+        var committed=(StorageOperationRequest)factory();
         Assert.AreEqual("ApplyAvatarTombstone",committed.Operation);
         Assert.AreEqual(snapshot.AvatarId,committed.AvatarId);
         Assert.AreSame(snapshot,committed.GetType().GetProperty("Tombstone")!.GetValue(committed));
+        Assert.AreNotSame(committed,factory(),"Each target receives its own committed request envelope.");
         request.SoftDelete=false;
-        Assert.AreSame(request,method.Invoke(null,new object[] {request,result}));
+        Assert.AreSame(request,((Func<IRequest>)method.Invoke(null,new object[] {request,result})!)());
     }
 
     [DataTestMethod]
@@ -115,7 +118,7 @@ public class AvatarTombstoneEvidenceTests
         var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings()}};
         var router=new OASISHyperDrive(new ProviderManager(null,dna));
         var method=typeof(OASISHyperDrive).GetMethod("ConvertResult",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(object),typeof(bool));
-        var converted=(OASISResult<object>)method.Invoke(router,new object[] {source})!;
+        var converted=(OASISResult<object>)method.Invoke(router,new object[] {source,false})!;
         Assert.IsTrue((bool)converted.Result);
         Assert.IsTrue(AvatarTombstoneEvidence.TryGet(converted,out var copied)); Assert.AreSame(snapshot,copied);
         foreach(var json in new[] {Newtonsoft.Json.JsonConvert.SerializeObject(converted),System.Text.Json.JsonSerializer.Serialize(converted)})
