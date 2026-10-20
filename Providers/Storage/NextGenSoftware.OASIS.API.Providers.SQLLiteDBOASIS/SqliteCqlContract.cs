@@ -24,6 +24,6 @@ internal static class SqliteCqlContract
             fields.Add(name, new(name, typeof(Guid), equality));
         Fields = new ReadOnlyDictionary<string, CosmicQueryFieldCapability>(fields);
         Capabilities = new CosmicQueryCapabilities(CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not |
-            CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant, fields.Values.ToArray());
+            CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists | CosmicQueryFeatures.MetadataNull, fields.Values.ToArray());
     }
 }

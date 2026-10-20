@@ -8,6 +8,19 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CosmicQueryPlanningTests
 {
     [Fact]
+    public void MetadataPresenceAndNullCapabilitiesDoNotGrantScalarMetadataTranslation()
+    {
+        var exists = CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Exists(h, "x")).Result;
+        var isNull = CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.IsNull(h, "x")).Result;
+        var profile = new CosmicQueryCapabilities(CosmicQueryFeatures.MetadataExists, Array.Empty<CosmicQueryFieldCapability>());
+        Assert.False(profile.Admit(exists).IsError); Assert.True(profile.Admit(isNull).IsError);
+        var scalar = CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<int>(h, "x") == 1).Result;
+        Assert.True(profile.Admit(scalar).IsError);
+        var nullOnly = new CosmicQueryCapabilities(CosmicQueryFeatures.MetadataNull, Array.Empty<CosmicQueryFieldCapability>());
+        Assert.False(nullOnly.Admit(isNull).IsError); Assert.True(nullOnly.Admit(exists).IsError);
+    }
+
+    [Fact]
     public void ExactFieldAdmissionDoesNotInferSupportFromAnotherFieldOfTheSameType()
     {
         var capability = new CosmicQueryCapabilities(CosmicQueryFeatures.NullLiteral,

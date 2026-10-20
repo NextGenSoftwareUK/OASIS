@@ -35,6 +35,7 @@ public partial class HolonRepository
             IReadOnlyList<IHolon> result = rows.Select(GetHolonFromEntity).ToList().AsReadOnly();
             return new OASISResult<IReadOnlyList<IHolon>>(result) { IsLoaded = true };
         }
+        catch (CqlTranslationLimitException cause) { return CqlError("CQL_QUERY_LIMIT", cause.Message, cause); }
         catch (NotSupportedException cause) { return CqlError("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
         catch (OperationCanceledException cause) { return CqlError("CQL_QUERY_CANCELLED", "SQLite CQL execution was cancelled.", cause); }
         catch (Exception cause) { return CqlError("CQL_QUERY_FAILED", "SQLite CQL execution failed: " + cause.Message, cause); }
@@ -43,11 +44,33 @@ public partial class HolonRepository
     private static OASISResult<IReadOnlyList<IHolon>> CqlError(string code, string message, Exception cause = null)
         => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = cause };
 
+    private sealed class CqlTranslationLimitException : Exception
+    { internal CqlTranslationLimitException() : base("SQLite CQL exceeds its 900-bound-parameter translation budget.") { } }
+
     private sealed class CqlSqlTranslator
     {
         internal readonly List<SqliteParameter> Parameters = new();
+        private string Bind(object value)
+        {
+            if (Parameters.Count >= 900) throw new CqlTranslationLimitException();
+            var name = "$cql" + Parameters.Count; Parameters.Add(new SqliteParameter(name, value)); return name;
+        }
+        private string MetadataTest(CosmicQueryMetadataTest test)
+        {
+            var sources = new List<string>(); var conditions = new List<string>();
+            for (var i = 0; i < test.Segments.Count; i++)
+            {
+                var alias = "m" + i;
+                var document = i == 0 ? "\"MetaDataJson\"" : "CASE WHEN m" + (i - 1) + ".type = 'object' THEN m" + (i - 1) + ".value ELSE json_object() END";
+                sources.Add("json_each(" + document + ") AS " + alias);
+                conditions.Add(alias + ".key COLLATE BINARY = " + Bind(test.Segments[i]));
+            }
+            if (test.Kind == CosmicQueryMetadataTestKind.IsNull) conditions.Add("m" + (test.Segments.Count - 1) + ".type = 'null'");
+            return "EXISTS (SELECT 1 FROM " + string.Join(", ", sources) + " WHERE " + string.Join(" AND ", conditions) + ")";
+        }
         internal string Translate(CosmicQueryPredicate predicate)
         {
+            if (predicate is CosmicQueryMetadataTest test) return MetadataTest(test);
             if (predicate is CosmicQueryBoolean boolean) return boolean.Value ? "1" : "0";
             if (predicate is CosmicQueryLogical logical)
                 return "(" + Translate(logical.Left) + (logical.IsAnd ? " AND " : " OR ") + Translate(logical.Right) + ")";
@@ -72,8 +95,7 @@ public partial class HolonRepository
             object value = comparison.Literal.Value;
             if (guid) value = ((Guid)value).ToString("D");
             else if (booleanField) value = (bool)value ? 1L : 0L;
-            var parameter = "$cql" + Parameters.Count;
-            Parameters.Add(new SqliteParameter(parameter, value));
+            var parameter = Bind(value);
             var operation = comparison.Operator switch
             {
                 CosmicQueryComparisonOperator.Equal => "=", CosmicQueryComparisonOperator.NotEqual => "=",
