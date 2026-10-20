@@ -78,6 +78,9 @@ public class PublicMastodonAccountTests
         Assert.Equal(status.RootElement.GetProperty("uri").GetString(),result.Result.MetaData["MastodonObjectUri"]);
         Assert.Equal(status.RootElement.GetProperty("content").GetString(),result.Result.MetaData["MastodonContentHtml"]);
         Assert.Equal(status.RootElement.GetProperty("account").GetProperty("id").GetString(),result.Result.MetaData["MastodonAuthorId"]);
+        var authorId=status.RootElement.GetProperty("account").GetProperty("id").GetString()!;
+        var author=synchronous?provider.LoadAvatarByProviderKey(authorId):await provider.LoadAvatarByProviderKeyAsync(authorId).WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.False(author.IsError,author.Exception?.ToString());Assert.Equal(author.Result.Id,result.Result.CreatedByAvatarId);
     }
     [Theory][InlineData(false)][InlineData(true)]
     public async Task PublicProfileMatchesIndependentNativeResponse(bool synchronous)
