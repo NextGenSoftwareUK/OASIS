@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR captured-role staging controlled178 green, native OPEN — 2026-10-20
+
+Graph plan now reaches SAME observed-ciphertext/current-history checked-write owner/commonroleResolver. Root-only preserves observed roles/null; selected saves persist captured membership. Full178controlledpass12s0skips,4newownership/historycases; source epochCoreEF337/SharedB85D. Initial two-red/full176archive-string expectations were invalid, corrected-test/old-rolebehavior replaygenuinely2red; all chronology/hashes in NEAR_PUBLIC_CONDITIONAL_SAVE.md. No extra RPC/transaction/contractupgrade/runtime/download/reset/publicfunds. Existing identity-only source publication guard is NOT full canonical edit protection; native role/typedquery/concurrency/fees/fullinterfaces/coherentpublication/globalV2 remainOPEN. Old19native report does NOT certify this change.
+
 ## AWS full suite130 / baseline1 / cleanup1 refreshed — 2026-10-20
 
 Retained DynamoDBLocal/officialAWSSDK fullAWSacceptance130/130pass46s0skips, separateemptybaseline1pass andverifiedcleanup1pass; reportA8F56C605BD8A5B198B98B7E4BC5B6214A0F8ED33AF5CE72F03B9BF443EF0DB1. ActualCoreEF337431/SharedB85D591F identityguardpassed; not laterCorehydrationepoch. Prior130greenreport+inventory+begin/cleanupTRXhash-verified/renamedinplace before fresh run. Pending0/ownedJavastopped/18000-01absent; exact cleanupinventoryretained. No SDK/runtime download,environmentcopy,table reset,hostedspend/devpush. Coverage includes controlledboundary/nativeLocalSDK/existingroutingcases, not all130hostedAWSoperations. Separate95Dynamohistoryscope/hostedIAMTLSfees/allrelevantinterfaces/coherentpublication/globalV2 stillOPEN. Exactdetails in DYNAMODB_RECORD_HISTORY.md.
