@@ -37,6 +37,7 @@ internal sealed class MongoCqlTranslator
         CosmicQueryScalarKind.Boolean=>new BsonBoolean((bool)value.Value),
         CosmicQueryScalarKind.Int64=>new BsonInt64(Convert.ToInt64(value.Value,System.Globalization.CultureInfo.InvariantCulture)),
         CosmicQueryScalarKind.Guid=>new BsonString(((Guid)value.Value).ToString("D")),
+        CosmicQueryScalarKind.UtcDateTime=>new BsonInt64(((DateTime)value.Value).Ticks),
         _=>throw new NotSupportedException("MongoDB CQL literal type is not admitted.")});
 
     private static BsonValue Canonical(CosmicQueryPath path)
@@ -73,6 +74,8 @@ internal sealed class MongoCqlTranslator
     {
         var type=Nullable.GetUnderlyingType(declared)??declared;
         if(metadata&&type==typeof(Guid))return GuidDomain(value);
+        if(type==typeof(DateTime))return Op("$and",Op("$eq",Type(value),Literal("long")),
+            Op("$gte",value,Literal(DateTime.MinValue.Ticks)),Op("$lte",value,Literal(DateTime.MaxValue.Ticks)));
         if(type==typeof(string)||type==typeof(Guid))return Op("$eq",Type(value),Literal("string"));
         if(type==typeof(bool))return Op("$eq",Type(value),Literal("bool"));
         if(type==typeof(int)||type==typeof(long)||type.IsEnum)
@@ -97,8 +100,26 @@ internal sealed class MongoCqlTranslator
         }
         return Walk(root,0);
     }
+    private static BsonValue MetadataDate(BsonValue value,IReadOnlyList<string> segments)
+    {
+        var pointer="/"+string.Join("/",segments.Select(segment=>segment.Replace("~","~0").Replace("/","~1")));
+        var matches=new BsonDocument("$filter",new BsonDocument{
+            {"input",Op("$ifNull","$MetaDataExactUtcTicks",Literal(new BsonArray()))},
+            {"as","cqldateentry"},{"cond",Op("$eq","$$cqldateentry.Path",Literal(pointer))}});
+        // Legacy records have only their actual millisecond projection. New records
+        // carry the exact ticks in the existing storage-owned precision companion.
+        var projected=Op("$add",Op("$multiply",new BsonDocument("$toLong",value),Literal(TimeSpan.TicksPerMillisecond)),
+            Literal(DateTime.UnixEpoch.Ticks));
+        var exact=new BsonDocument("$let",new BsonDocument{
+            {"vars",new BsonDocument("cqldateentries",matches)},
+            {"in",Choose(Op("$eq",new BsonDocument("$size","$$cqldateentries"),Literal(0)),projected,
+                new BsonDocument("$let",new BsonDocument{{"vars",new BsonDocument("cqldatefirst",Op("$arrayElemAt","$$cqldateentries",Literal(0)))},{"in","$$cqldatefirst.Ticks"}}))}});
+        return Choose(Op("$eq",Type(value),Literal("date")),exact,
+            Choose(Op("$eq",Type(value),Literal("null")),Literal(BsonNull.Value),Literal(new BsonDocument())));
+    }
     private static BsonValue At(CosmicQueryPath path,Func<BsonValue,BsonValue> predicate)
-        =>path.IsMetadata?Metadata(path.Segments,predicate):predicate(Canonical(path));
+        =>path.IsMetadata?Metadata(path.Segments,value=>predicate((Nullable.GetUnderlyingType(path.ValueType)??path.ValueType)==typeof(DateTime)
+            ?MetadataDate(value,path.Segments):value)):predicate(Canonical(path));
     private BsonValue Translate(CosmicQueryPredicate predicate,int depth)
     {
         if(++nodes>2048||depth>64)throw new MongoCqlLimitException();
