@@ -1,5 +1,15 @@
 # HyperDrive V2 current release gates
 
+## Firestore authenticated V2 replay — 2026-10-20
+
+Actual HolonManager→HyperDriveV2→protected preparation→official Firestore graph/receipt Commit passed **4/4 native1s,0skip**, terminal0 under exclusive build lease. Sync/async × two-node graph/two-root batch. Explicit stable IDs, root key-a/context and distinct child key-b/context; first save dispatches2 commits (preparation plus graph). Fresh provider/manager/resolver changes active root key to key-b, authenticates original key-a preparation and recovers ORIGINAL logical/provider revisions, private root/child metadata and28-digit decimal. Native document values AND UpdateTimes remain unchanged across recovery, including receipt/preparation/fence. Legitimate retry, changed private intent refusal and denied old preparation-key refusal dispatch ZERO new commits. Caller change tracking remains clean.
+
+Native holon JSON contains oasis2 envelopes without private fixture text; preparation contains oasis-preparation1 without private text. These are synthetic test keys and metadata encryption policy, not proof of whole-record encryption or production key custody. Separate client/service process recovery, empty-ID identity allocation, custom CLR types, hosted IAM/billing, tamper/fault combinations and atomic replication remain OPEN. Earlier opaque-only scope is superseded for these four actual runtime schedules, not universal certification.
+
+Report TestResults/GoogleCurrent/google-encrypted-replay-native-current.trx SHA2560D92D7DFBBAD7D5F60F4755B0E5A517A3E3589580F243EA0A9BF50F83132FB72. Actual consumer CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared37D94218D0BE8E534428C80A1B526B738028C9A3549986B1759575ABE4C1C668. Existing controlled/history/native graph suites not rerun or relabelled here.
+
+SAME retained emulator/export/cache, no downloads/installs/reset/newenvironment. Owned documents removed only with exact observed UpdateTime and independent absence before journal removal; after terminal journals0/listeners18080-18083zero. Free C67,879,653,376bytes;123GBtarget unmet. First-save preparation/graph native costs unchanged; no hosted fee estimate or deployment.
+
 ## Firestore native preparation-versus-graph ordering — 2026-10-20
 
 Preparation suite **7/7 passed1s,0skip**, terminal0 under exclusive build lease. Two additional real SDK schedules wait until BOTH graph and preparation batches have completed preflight and reached bounded pre-dispatch gates for one operation. Preparation-first commits original preparation/fence; stale graph atomically rejects with COSMIC_CONCURRENCY_CONFLICT, leaving holon/receipt absent. Graph-first commits holon/receipt/fence; late preparation rejects reconciliation-required without backfill. Independent reads and read-only winner/receipt recovery confirm these outcomes; exactly one native dispatch per provider. Existing contender and ACK-loss cases also passed. This closes these two native cross-path schedules, not all concurrency/fault interleavings.
