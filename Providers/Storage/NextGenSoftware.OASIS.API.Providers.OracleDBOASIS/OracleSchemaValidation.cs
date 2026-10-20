@@ -16,7 +16,9 @@ public partial class OracleDBOASIS
             ["OASIS_AVATARS"]=new(){{"ID","RAW"},{"USERNAME","VARCHAR2"},{"EMAIL","VARCHAR2"},{"IS_DELETED","NUMBER"},{"CREATED_DATE","TIMESTAMP"},{"MODIFIED_DATE","TIMESTAMP"},{"DATA_JSON","CLOB"}},
             ["OASIS_AVATAR_DETAILS"]=new(){{"ID","RAW"},{"USERNAME","VARCHAR2"},{"EMAIL","VARCHAR2"},{"DATA_JSON","CLOB"}},
             ["OASIS_HOLONS"]=new(){{"ID","RAW"},{"PARENT_HOLON_ID","RAW"},{"HOLON_TYPE","NUMBER"},{"IS_DELETED","NUMBER"},{"CREATED_DATE","TIMESTAMP"},{"MODIFIED_DATE","TIMESTAMP"},{"DATA_JSON","CLOB"}},
-            ["OASIS_WRITE_RECEIPTS"]=new(){{"OPERATION_ID","RAW"},{"REQUEST_HASH","VARCHAR2"},{"RESULT_JSON","CLOB"},{"COMMITTED_AT","TIMESTAMP"}}
+            ["OASIS_WRITE_RECEIPTS"]=new(){{"OPERATION_ID","RAW"},{"REQUEST_HASH","VARCHAR2"},{"RESULT_JSON","CLOB"},{"COMMITTED_AT","TIMESTAMP"}},
+            ["OASIS_WRITE_OPERATION_LOCKS"]=new(){{"OPERATION_ID","RAW"}},
+            ["OASIS_WRITE_PREPARATIONS"]=new(){{"OPERATION_ID","RAW"},{"ACTOR_ID","RAW"},{"PAYLOAD_JSON","CLOB"}}
         };
         foreach(var table in expected){
             await using var command=CreateCommand("SELECT COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE,DATA_PRECISION,DATA_SCALE,CHAR_LENGTH,DEFAULT_LENGTH FROM USER_TAB_COLUMNS WHERE TABLE_NAME=:TableName",connection);
@@ -36,7 +38,7 @@ public partial class OracleDBOASIS
             if(missing.Count!=0)throw new InvalidDataException($"Oracle schema {table.Key} is missing required columns: {string.Join(",",missing)}.");
         }
         foreach(var table in expected.Keys){
-            var key=table=="OASIS_WRITE_RECEIPTS"?"OPERATION_ID":"ID";
+            var key=expected[table].ContainsKey("OPERATION_ID")?"OPERATION_ID":"ID";
             await using var command=CreateCommand(@"SELECT cc.COLUMN_NAME,c.STATUS,c.VALIDATED,c.DEFERRABLE,i.STATUS
 FROM USER_CONSTRAINTS c JOIN USER_CONS_COLUMNS cc ON cc.CONSTRAINT_NAME=c.CONSTRAINT_NAME AND cc.TABLE_NAME=c.TABLE_NAME
 LEFT JOIN USER_INDEXES i ON i.INDEX_NAME=c.INDEX_NAME
