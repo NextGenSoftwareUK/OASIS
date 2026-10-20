@@ -20,6 +20,7 @@ try {
     if($LASTEXITCODE){throw 'Retained runtime, ledger and keys are required; no download/reset/generation attempted.'}
     $version=(& wsl -d Ubuntu -- /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator --version).Trim()
     if($version -ne 'solana-test-validator 4.3.0 (src:825efd18; feat:c9ad34d2, client:Agave)'){throw 'Retained runtime version differs.'}
+    & (Join-Path $PSScriptRoot 'Assert-ReusableSolanaReplayBridge.ps1')
     & wsl -d Ubuntu -- bash -lc 'test -z "$(pgrep -x solana-test-val)" && test -z "$(ss -ltnH sport = :18899)"'
     if($LASTEXITCODE){throw 'A validator or owned port is already active; refusing duplicate environment.'}
     $project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.csproj'
@@ -27,7 +28,9 @@ try {
         & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
         if($LASTEXITCODE){throw 'Consumer build failed; no validator started.'}
     }
-    $owned=Start-Process -FilePath wsl.exe -ArgumentList @('-d','Ubuntu','--','/usr/bin/taskset','-c','0-3','/var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator','--ledger','/var/tmp/oasis-solana/ledger','--bind-address','127.0.0.1','--rpc-port','18899','--faucet-port','18900','--dynamic-port-range','18901-18927','--limit-ledger-size','10000','--rpc-pubsub-worker-threads','1','--rpc-pubsub-notification-threads','1','--quiet') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'validator-current.log') -RedirectStandardError (Join-Path $work 'validator-current.err')
+    # Do not independently purge shreds: retained snapshots/tower may still require them for replay.
+    # Bound runs and monitor disk; prune only after independently verifying a sufficient durable snapshot.
+    $owned=Start-Process -FilePath wsl.exe -ArgumentList @('-d','Ubuntu','--','/usr/bin/taskset','-c','0-3','/var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator','--ledger','/var/tmp/oasis-solana/ledger','--bind-address','127.0.0.1','--rpc-port','18899','--faucet-port','18900','--dynamic-port-range','18901-18927','--rpc-pubsub-worker-threads','1','--rpc-pubsub-notification-threads','1','--quiet') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'validator-current.log') -RedirectStandardError (Join-Path $work 'validator-current.err')
     $deadline=[DateTime]::UtcNow.AddSeconds(30)
     $ready=$false
     do {
