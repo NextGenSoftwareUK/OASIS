@@ -123,6 +123,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     await cmd.ExecuteNonQueryAsync();
                 }
 
+                await ValidateStorageSchemaAsync(conn);
                 result.Result = true;
                 result.IsError = false;
                 result.Message = "OracleDBOASIS activated — tables created/verified.";
