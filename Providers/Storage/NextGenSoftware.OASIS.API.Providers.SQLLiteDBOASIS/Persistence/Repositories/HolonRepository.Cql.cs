@@ -75,6 +75,7 @@ public partial class HolonRepository
         {
             var type = Nullable.GetUnderlyingType(declaredType) ?? declaredType;
             if (type == typeof(string)) return alias + ".type = 'text'";
+            if (type == typeof(DateTime)) return SqliteCqlDate.Guard(alias);
             if (type == typeof(Guid))
             {
                 // JSON stores Guid as canonical D text. Reject malformed text instead of coercing it.
@@ -109,6 +110,7 @@ public partial class HolonRepository
                 object value = comparison.Literal.Value;
                 if (comparison.Path.ScalarKind == CosmicQueryScalarKind.Boolean) value = (bool)value ? 1L : 0L;
                 if (comparison.Path.ScalarKind == CosmicQueryScalarKind.Guid) value = ((Guid)value).ToString("D");
+                if (comparison.Path.ScalarKind == CosmicQueryScalarKind.UtcDateTime) value = SqliteCqlDate.Literal((DateTime)value);
                 var symbol = comparison.Operator switch {
                     CosmicQueryComparisonOperator.Equal => "=", CosmicQueryComparisonOperator.NotEqual => "<>",
                     CosmicQueryComparisonOperator.GreaterThan => ">", CosmicQueryComparisonOperator.GreaterThanOrEqual => ">=",
@@ -126,6 +128,7 @@ public partial class HolonRepository
         private static string MetadataColumn(string alias, Type declaredType)
         {
             var type = Nullable.GetUnderlyingType(declaredType) ?? declaredType;
+            if (type == typeof(DateTime)) return SqliteCqlDate.Column(alias);
             return alias + ".value" + (type == typeof(Guid) ? " COLLATE NOCASE" : type == typeof(string) ? " COLLATE BINARY" : "");
         }
 
@@ -150,6 +153,7 @@ public partial class HolonRepository
                 object value = item.Value;
                 var type = Nullable.GetUnderlyingType(valueType) ?? valueType;
                 if (type == typeof(Guid)) value = ((Guid)value).ToString("D");
+                else if (type == typeof(DateTime)) value = SqliteCqlDate.Literal((DateTime)value);
                 else if (type == typeof(bool)) value = (bool)value ? 1L : 0L;
                 parameters.Add(Bind(value));
             }

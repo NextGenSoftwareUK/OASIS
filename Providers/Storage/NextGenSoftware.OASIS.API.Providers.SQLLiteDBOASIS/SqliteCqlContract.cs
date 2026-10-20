@@ -30,6 +30,8 @@ internal static class SqliteCqlContract
             new CosmicQueryMetadataCapability(typeof(bool?), equality, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(Guid), equality, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(Guid?), equality, supportsMembership: true),
+            new CosmicQueryMetadataCapability(typeof(DateTime), ordered, supportsMembership: true),
+            new CosmicQueryMetadataCapability(typeof(DateTime?), ordered, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(int), ordered, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(int?), ordered, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(long), ordered, supportsMembership: true),
