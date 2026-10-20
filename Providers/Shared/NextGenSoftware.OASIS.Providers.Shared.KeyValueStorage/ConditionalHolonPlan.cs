@@ -103,12 +103,7 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
     {
         if(value is JObject obj)return new JObject(obj.Properties().OrderBy(p=>p.Name,StringComparer.Ordinal).Select(p=>new JProperty(p.Name,Canonical(p.Value))));
         if(value is JArray array)return new JArray(array.Select(Canonical));
-        if(value.Type is JTokenType.Integer or JTokenType.Float)return new JRaw(StoredRecordPayloadEquality.CanonicalNumberText(value));
-        if(value is JRaw raw){
-            using var document=System.Text.Json.JsonDocument.Parse(raw.ToString(Formatting.None));
-            if(document.RootElement.ValueKind==System.Text.Json.JsonValueKind.Number)
-                return new JRaw(StoredRecordPayloadEquality.CanonicalNumberText(value));
-        }
+        if(StoredRecordPayloadEquality.IsNumber(value))return new JRaw(StoredRecordPayloadEquality.CanonicalNumberText(value));
         return value.DeepClone();
     }
 }

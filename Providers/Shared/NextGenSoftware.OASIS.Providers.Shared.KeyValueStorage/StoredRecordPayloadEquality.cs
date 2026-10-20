@@ -21,7 +21,13 @@ public static class StoredRecordPayloadEquality
         return JToken.DeepEquals(expected,actual);
     }
 
-    private static bool IsNumber(JToken token)=>token.Type is JTokenType.Integer or JTokenType.Float;
+    internal static bool IsNumber(JToken token)
+    {
+        if(token.Type is JTokenType.Integer or JTokenType.Float)return true;
+        if(token is not JRaw raw)return false;
+        using var document=System.Text.Json.JsonDocument.Parse(raw.ToString(Formatting.None));
+        return document.RootElement.ValueKind==System.Text.Json.JsonValueKind.Number;
+    }
 
     internal static string CanonicalNumberText(JToken token)
     {

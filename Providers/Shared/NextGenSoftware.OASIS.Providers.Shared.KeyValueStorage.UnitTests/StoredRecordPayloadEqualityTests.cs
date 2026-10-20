@@ -7,6 +7,24 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class StoredRecordPayloadEqualityTests
 {
     [DataTestMethod]
+    [DataRow("1.00", "1", true)]
+    [DataRow("1e100", "1E+100", true)]
+    [DataRow("1.0000000000000000000000000001", "1.0000000000000000000000000002", false)]
+    [DataRow("-0.00", "0", true)]
+    [DataRow("\"1\"", "1", false)]
+    public void RawNumericMetadataUsesExactValueMeaning(string left,string right,bool equal)
+        =>Assert.AreEqual(equal,StoredRecordPayloadEquality.Equivalent(
+            new JObject { ["value"]=new JRaw(left) },
+            new JObject { ["value"]=new JRaw(right) }));
+
+    [TestMethod]
+    public void RawNumericMetadataMatchesClrDecimalButNotText()
+    {
+        Assert.IsTrue(StoredRecordPayloadEquality.Equivalent(new JRaw("1.00"),new JValue(1m)));
+        Assert.IsFalse(StoredRecordPayloadEquality.Equivalent(new JRaw("1"),new JValue("1")));
+    }
+
+    [DataTestMethod]
     [DataRow("151.0","151",true)][DataRow("1e3","1000",true)]
     [DataRow("0.0","-0.0",true)][DataRow("-12.5","-12.50",true)]
     [DataRow("9007199254740993","9007199254740992.0",false)]
