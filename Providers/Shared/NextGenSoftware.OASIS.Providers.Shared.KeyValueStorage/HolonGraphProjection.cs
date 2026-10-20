@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
@@ -16,7 +18,22 @@ public static class HolonGraphProjection
         // Nonrecursive parent lookup returns those immediate children without grandchildren.
         var startDepth=(long)initialDepth+(rootsAreChildren ? 1:0);
         if(rootsAreChildren)loadChildren=loadChildren && recursive;
-        var children=records.ToLookup(row=>row.ParentHolonId);
+        var pool=records.ToArray();
+        var children=pool.ToLookup(row=>row.ParentHolonId);
+        var identities=pool.ToLookup(row=>row.Id);
+        IHolon[] SelectChildren(IHolon source)
+        {
+            if(!childrenFromProvider)return (source.Children ?? Enumerable.Empty<IHolon>()).ToArray();
+            if(source is not Holon {ChildRoleManifestJson:not null} owner)return children[source.Id].ToArray();
+            var manifest=HolonChildRoleManifestJson.Deserialize(owner.ChildRoleManifestJson);
+            if(manifest.ParentId!=source.Id)throw new InvalidDataException("Persisted child-role manifest belongs to another owner.");
+            return manifest.Roles.SelectMany(role=>role.ChildIds).Distinct().Select(id=>{
+                var matches=identities[id].Take(2).ToArray();
+                if(matches.Length!=1 || matches[0].ParentHolonId!=source.Id)
+                    throw new InvalidDataException("Selected child-role member is missing, ambiguous or belongs to another parent.");
+                return matches[0];
+            }).ToArray();
+        }
         IHolon Project(IHolon root)
         {
             var path=new HashSet<Guid>();IHolon result=null;
@@ -34,7 +51,7 @@ public static class HolonGraphProjection
                 pending.Push((null,0,null,id));
                 if(loadChildren && (maxChildDepth==0 || depth<maxChildDepth) && (recursive || depth==startDepth))
                 {
-                    var selected=(childrenFromProvider ? children[id] : source.Children ?? Enumerable.Empty<IHolon>()).ToArray();
+                    var selected=SelectChildren(source);
                     for(var index=selected.Length-1;index>=0;index--)pending.Push((selected[index],depth+1,copy,null));
                 }
             }
