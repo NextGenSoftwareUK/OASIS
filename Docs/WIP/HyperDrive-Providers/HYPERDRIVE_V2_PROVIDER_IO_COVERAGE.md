@@ -1,5 +1,13 @@
 # HyperDrive V2 provider-I/O coverage
 
+## PostgreSQL first real native gate — six scoped cases verified
+
+2026-10-20 user approved one pinned runtime; one officialPostgreSQL17.11 retained in existingWSL/Podman. Inventory/size/port/volume/secret/reuse/cleanup ownership in ENVIRONMENT_INVENTORY.md. Native tests use actual Npgsql/public provider SQL for avatar/detail/holon×sync/async create+replace+ID reads; avatar/detail username+email selectors; publication keys and metadata; lifecycle flags; exact synthetic cleanup. **6/6passed0skips904ms**, runnerterminal0, TestResults/PostgreSqlCurrent/postgres-native-current.trx SHA2562ADA608492441E42444D3EB141ADBDE7A9697F3E08544EBA84F8A1BA99F6057C. Actual consumerCoreA2EA2E44F4CA7427F492279A7007C07E39D2445FA2AC1F3B0C54116CEBD32AAF /Shared12F46C54. Core is an in-flight generic-decoder candidate, not immutable published-release certification.
+
+Initial6 had2holonpass4fixtureassertfail because Avatar/AvatarDetail Name getters compute their domain values rather than preserve arbitrary assignedlabel. Corrected test to compare actualsource.Name, retaining separate ID/username/email/owned-metadata markers. Failed report4C8A6D8DE1E9E1A696D75E2D7D9A2FC3F729C5B946BC23E7CA6114C60F701C47 preserved in place as postgres-native-computed-name-before.trx. Evidence-pinned ReconcileKnownComputedNameAssertionFixtures validates original report hash/exact4journalnames/IDs/tables/marker/nativeJSON before conditional deletes in one transaction and absent-row checks; reconciliation1/1pass180ms reportB654F845B8FAA5B2C6EC5C15DE5DD64C2126E346D1A8B2B719D5890FDF670487. No reset/replay/unrelated deletion. Final journals0 and all three table counts0, task-started service stopped after success.
+
+This closes the prior missing-runtime/basic native CRUD gate ONLY. Version arguments/history, graph roles/options, query ambiguity/projections, soft deletion consistency, concurrency/unknown outcomes, hostedRDS/Neon/etc TLS/IAM and complete relevant interfaces/fullV2 remainOPEN. No legacygap implementation, cloudpublicfees or deployment. Do not report PostgreSQL100% from6cases.
+
 ## PostgreSQL lifecycle state — controlled24 green, native activation OPEN
 
 Four genuine before failures: sync/async failed activation retained stale IsProviderActivated=true, and sync/async local deactivation never cleared it. Before TestResults/PostgreSqlCurrent/postgres-lifecycle-before.trx SHA2567611C511E7E66B2BA5177795C292B4F4D85BF7A67042D0224D381E90185CDAB6,4fail51ms. Existing activation now publishes true only after its DDL loop, clears false on error; deactivation clears state locally and idempotently without a connection or global Npgsql pool destruction. No schema creation/repair policy change or alternate activation path.
