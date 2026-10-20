@@ -300,3 +300,21 @@ Four new codec cases pass within fullCore1,374/1,374 (11s). Native focused2/2 (2
 - `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `BFB30BB33911BB5978E2556961239BFEDAB1C6A5C736A09ECBF07E46424580B4`
 
 Core unit/native Core copies match. Shared75FE is the concurrent fingerprint candidate captured by this consumer; it is separate from the preceding Shared2BABC cohort. Shared changes are owned and checkpointed by the provider session. Core gitlink and dependency manifest advance together. No dev push/deployment is included; other provider/replica readers, generic text/ciphertext boundaries and atomic authorized committed deltas remain unverified/open where not separately certified.
+
+
+## SQLite exact intent fingerprint and historical receipt boundary — 20 October 2026
+
+SQLite now hashes the captured canonical snapshot without default-double reparsing and delegates exact-number/key-order normalization plus SHA256 to ConditionalHolonPlan.ComputeFingerprint. Shared API dependency83d6523cc is committed first. Only SQLite-assigned current key/revision and persistence-assigned audit/version values are excluded; foreign/prior keys and foreign revisions bind persisted intent. Numeric scale and JsonElement/CLR equivalence do not change an otherwise identical fingerprint.
+
+New fingerprint domains3/4 are recorded inside acknowledgement-format1 primary receipts. Unmarked/obsolete fingerprint receipts return COSMIC_RECEIPT_FINGERPRINT_RECONCILIATION_REQUIRED before another mutation, without rounded-hash fallback. This is an explicit predeployment reconciliation/migration gate, not a claim that old rounded intent can be reconstructed automatically. Valid current domains with different request content still reject as operation-ID reuse. Replica receipt ownership remains separate.
+
+Nine red-before cases have6fail/3controls. Final focused9/9 passes2s; fullSQLite963/963 passes122s, zero skips, with fixture absent. Producer/consumer builds have zero errors (the first missing enum import compile failure is retained as non-acceptance). Shared856/856 API gate is separate and its exact report is recorded below; Core1374 is unchanged from the preceding receipt checkpoint and was not rerun for this SQLite-only source change. Actual report/native consumer SHA256:
+
+- `TestResults/SQLiteCurrent/sqlite-fingerprint-precision-focused.trx`: `85161B81A68E20CD39CB20546A473A582EADB45524B2477E90D10BF83F9033F4`
+- `TestResults/SQLiteCurrent/sqlite-fingerprint-precision-full.trx`: `DAC4BBC6E590A0D1C65D6A737428C6F29503840914C45B7EB8F74C2500AE60D3`
+- `TestResults/SharedCurrent/shared-conditional-api-verified-final.trx`: `7FC8F9AC90E7CEC3163B2B68B598D16EC5D121E4DC38B2BEA30C0DC7D3337BCF`
+- `NextGenSoftware.OASIS.API.Core.dll`: `F2E6D954DAE22CB45345CBFC241BDF34838C91183D7C465D76C45058886F3D12`
+- `NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll`: `E317DC7A25E127CE98258C4AA636C05E0280B9EB9389D783A7107FCE6BBBFB2C`
+- `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `5DC84218FAE74BBE7698765213519A2135550C7C2FF50F1D633A56D80D72668A`
+
+Native CoreF2E6/SharedE317 match the recorded Shared API epoch; subsequent Shared receipt-reader work is a separate provider-session candidate. Core9897491 gitlink/manifest remain unchanged. No dev push/deployment or legacy Hyperdrive implementation change is included. Full delta persistence, historical receipt reconciliation workflow, other provider certification and the complete roadmap remain open.
