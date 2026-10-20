@@ -9,6 +9,18 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public sealed class StoredRecordPublicationSnapshotTests
 {
     [TestMethod]
+    public void InterfaceContractsUseCanonicalConcreteDtosAndDetectCallerEdits()
+    {
+        void Check<T>(T source)where T:class,NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase{
+            var snapshot=StoredRecordPublicationSnapshot<T>.Capture(source);snapshot.ValidateUnchanged();
+            Assert.AreNotSame(source,snapshot.Proposal);source.Description="changed";
+            Assert.ThrowsException<InvalidOperationException>(snapshot.ValidateUnchanged);
+        }
+        Check<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>(new Avatar());
+        Check<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(new AvatarDetail());
+        Check<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(new Holon());
+    }
+    [TestMethod]
     public void ProposalChangesDoNotChangeOriginalContractOrPublishToCaller()
     {
         var source=new Holon();var capture=StoredRecordPublicationSnapshot<Holon>.Capture(source);
