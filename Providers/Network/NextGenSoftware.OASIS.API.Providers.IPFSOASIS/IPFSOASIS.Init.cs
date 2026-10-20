@@ -334,6 +334,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                searchParams=Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
                 var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
                 var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
                 var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);

@@ -291,7 +291,7 @@ public class IPFSNativeStorageTests
                 var healthyClient=provider.IPFSClient;
                 try
                 {
-                    provider.IPFSClient=new Ipfs.Http.IpfsClient("http://127.0.0.1:18549");
+                    typeof(IPFSOASIS).GetField("_ipfsClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,new Ipfs.Http.IpfsClient("http://127.0.0.1:18549"));
                     foreach(var asynchronous in new[] {false,true})
                     {
                         var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=id,PreferredProvider=ProviderType.IPFSOASIS};
@@ -300,7 +300,7 @@ public class IPFSNativeStorageTests
                         Assert.Equal(ProviderType.LocalFileOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
                     }
                 }
-                finally {provider.IPFSClient=healthyClient;}
+                finally {typeof(IPFSOASIS).GetField("_ipfsClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,healthyClient);}
                 Assert.False((await local.SaveHolonAsync(new Holon {Id=missingId,Name="must-not-return-stale-local-copy"},saveChildren:false)).IsError);
                 var localBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests;
                 foreach(var asynchronous in new[] {false,true})

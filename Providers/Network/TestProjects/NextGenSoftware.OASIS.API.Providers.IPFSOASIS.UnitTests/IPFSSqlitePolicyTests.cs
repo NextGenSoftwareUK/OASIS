@@ -27,12 +27,9 @@ public sealed class IPFSSqlitePolicyTests
     {
         const string endpoint="http://127.0.0.1:18547";
         if(Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_RPC")!=endpoint) throw new InvalidOperationException("Existing owned IPFS runner required.");
-        var directory=new DirectoryInfo(AppContext.BaseDirectory);
-        while(directory!=null && !File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/Run-ReusableIpfsTests.ps1"))) directory=directory.Parent;
-        if(directory==null) throw new InvalidOperationException("Existing checkout required.");
-        var work=Path.Combine(directory.FullName,"TestResults","IPFSCurrent");
-        var path=Path.Combine(work,"owned-dna.json");var dbPath=Path.Combine(work,"v2-routing.db");
-        if(Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_DNA_PATH")!)!=path || File.Exists(path) || File.Exists(dbPath))
+        var path=Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_DNA_PATH")!);
+        var work=Path.GetDirectoryName(path)!;var dbPath=Path.Combine(work,"v2-routing.db");
+        if(Path.GetFileName(path)!="owned-dna.json" || !Directory.Exists(work) || File.Exists(path) || File.Exists(dbPath))
             throw new InvalidOperationException("Existing/unexpected fixed fixture requires inspection; no reset.");
         var resolve=typeof(OASISDNAManager).GetMethod("ResolveEffectiveOASISDNAPath",BindingFlags.Static|BindingFlags.NonPublic)!;
         Assert.Equal(path,(string)resolve.Invoke(null,new object[]{path})!);
@@ -149,7 +146,7 @@ public sealed class IPFSSqlitePolicyTests
             var healthyClient=ipfs.IPFSClient;
             try
             {
-                ipfs.IPFSClient=new Ipfs.Http.IpfsClient("http://127.0.0.1:18549");
+                typeof(IPFSOASIS).GetField("_ipfsClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(ipfs,new Ipfs.Http.IpfsClient("http://127.0.0.1:18549"));
                 var fallback=await Route<IHolon>(new OASISHyperDrive(failingManager),new StorageOperationRequest {
                     Operation="LoadHolon",HolonId=marker,LoadChildren=false,PreferredProvider=ProviderType.IPFSOASIS});
                 Assert.False(fallback.IsError,fallback.Message);Assert.Equal("native-sqlite-marker",fallback.Result.Name);
@@ -166,7 +163,7 @@ public sealed class IPFSSqlitePolicyTests
                     Assert.Equal(1L,credentialFailover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
                 }
             }
-            finally {ipfs.IPFSClient=healthyClient;}
+            finally {typeof(IPFSOASIS).GetField("_ipfsClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(ipfs,healthyClient);}
             var missingPath=Path.Combine(work,"unavailable-routing.db");Assert.False(File.Exists(missingPath));
             using(var unavailable=new SqliteProvider($"Data Source={missingPath};Mode=ReadOnly;Pooling=False"))
             {

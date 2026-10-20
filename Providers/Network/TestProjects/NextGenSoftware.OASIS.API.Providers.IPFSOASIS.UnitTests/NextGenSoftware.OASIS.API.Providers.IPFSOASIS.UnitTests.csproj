@@ -23,6 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Tests explicitly exercise the bundled SDK, which is intentionally private to the provider package. -->
+    <ProjectReference Include="..\..\..\..\External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj" />
     <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
     <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj" />

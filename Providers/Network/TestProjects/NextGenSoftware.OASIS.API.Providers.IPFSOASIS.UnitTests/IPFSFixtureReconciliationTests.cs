@@ -12,6 +12,46 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 public sealed class IPFSFixtureReconciliationTests(ITestOutputHelper output)
 {
     [Fact]
+    [Trait("Category","IPFSCredentialInspection")]
+    public async Task InspectLatestOnlyCredentialAssertionFixtureWithoutMutation()
+    {
+        const string endpoint="http://127.0.0.1:18547";
+        Assert.Equal(endpoint,Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_RPC"));
+        var path=Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_DNA_PATH")!;
+        Assert.Equal("owned-dna.json",Path.GetFileName(path));
+        var before=await File.ReadAllBytesAsync(path);
+        var dna=JsonConvert.DeserializeObject<OASISDNA>(System.Text.Encoding.UTF8.GetString(before))!;
+        Assert.Equal(endpoint,dna.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+        foreach(var name in new[]{"credential-routing.db","v2-routing.db","tombstone-routing.db"})
+            Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(path)!,name)));
+        var client=new Ipfs.Http.IpfsClient(endpoint);
+        async Task<string[]> Pins()=> (await client.Pin.ListAsync()).Select(cid=>cid.ToString()).OrderBy(cid=>cid,StringComparer.Ordinal).ToArray();
+        var pins=await Pins();
+        var priorDna=OASISDNAManager.OASISDNA;var priorPath=OASISDNAManager.OASISDNAPath;
+        var provider=new IPFSOASIS(dna,path);
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            var index=await provider.LoadLookupToJson();Assert.Equal(4,index.Count);
+            var profiles=(await provider.LoadAllAvatarsAsync()).Result.ToArray();Assert.Equal(2,profiles.Length);
+            var first=Assert.Single(profiles.Where(row=>row.Username.EndsWith("first",StringComparison.Ordinal)));
+            var duplicate=Assert.Single(profiles.Where(row=>row.Username.EndsWith("duplicate",StringComparison.Ordinal)));
+            Assert.StartsWith("owned-credential-",first.Username);
+            var key=first.Username[..^"first".Length];Assert.Equal(key+"duplicate",duplicate.Username);
+            Assert.All(profiles,row=>{Assert.Equal(2,row.Version);Assert.Equal(key+"-new",row.VerificationToken);Assert.Equal(key+"-new",row.ResetToken);});
+            var historical=await provider.LoadAvatarAsync(first.Id,version:1);
+            Assert.False(historical.IsError,historical.Message);Assert.Equal(key,historical.Result.VerificationToken);
+            var details=(await provider.LoadAllAvatarDetailsAsync()).Result.ToArray();Assert.Equal(2,details.Length);
+            Assert.Equal(1,Assert.Single(details.Where(row=>row.Id==first.Id)).Version);
+            Assert.Equal(2,Assert.Single(details.Where(row=>row.Id==duplicate.Id)).Version);
+            Assert.Empty((await provider.LoadAllHolonsAsync()).Result);
+            Assert.Equal(pins,await Pins());Assert.Equal(before,await File.ReadAllBytesAsync(path));
+            output.WriteLine("Read-only credential fixture verified: four authenticated current index entries, original profile history, unchanged pins/DNA. SHA256="+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(before)));
+        }
+        finally{await provider.DeActivateProviderAsync();OASISDNAManager.OASISDNA=priorDna;OASISDNAManager.OASISDNAPath=priorPath;}
+    }
+
+    [Fact]
     [Trait("Category","IPFSRootVersionReconciliation")]
     public async Task ReleaseExactRootVersionAssertionFixture()
     {
