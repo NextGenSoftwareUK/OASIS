@@ -96,11 +96,16 @@ public class AzureConditionalHistoryWriterTests
         public int MissingReads;
         public override BlobContainerClient GetBlobContainerClient(string name)=>new Container(onlyContainer==null||name==onlyContainer?blob:new MissingBlob(()=>MissingReads++));
     }
-    private sealed class SelectedIdentity(Avatar original):AzureStorageOASIS("UseDevelopmentStorage=true")
+
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task IdentityHardDeletionCanResolveExistingAvatarTombstone(bool email,bool synchronous)
     {
-        public override Task<NextGenSoftware.OASIS.Common.OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username,int version=0)=>Selected();
-        public override Task<NextGenSoftware.OASIS.Common.OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email,int version=0)=>Selected();
-        private Task<NextGenSoftware.OASIS.Common.OASISResult<IAvatar>> Selected()=>Task.FromResult(new NextGenSoftware.OASIS.Common.OASISResult<IAvatar>{Result=original,IsLoaded=true});
+        var row=new Avatar{Id=Guid.NewGuid(),Username="owned-tombstone",Email="owned-tombstone@example.invalid",IsActive=false,DeletedDate=DateTime.UtcNow};
+        var blob=new ObservedBlob{ExistingRecord=row,RecordName=row.Id.ToString()};var service=new Service(blob,"oasis-avatars");
+        var provider=new AzureStorageOASIS("UseDevelopmentStorage=true");typeof(AzureStorageOASIS).GetField("_serviceClient",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,service);
+        var result=email?synchronous?provider.DeleteAvatarByEmail(row.Email,false):await provider.DeleteAvatarByEmailAsync(row.Email,false)
+            :synchronous?provider.DeleteAvatarByUsername(row.Username,false):await provider.DeleteAvatarByUsernameAsync(row.Username,false);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.Result);Assert.IsTrue(result.IsDeleted);Assert.AreEqual(1,blob.Deletes);Assert.AreEqual(0,blob.Writes);
     }
 
     [DataTestMethod]
@@ -109,8 +114,9 @@ public class AzureConditionalHistoryWriterTests
     public async Task IdentityDeletionRefusesReassignedCanonicalAvatar(bool email,bool softDelete,bool synchronous)
     {
         var original=new Avatar{Id=Guid.NewGuid(),Username="owned-original",Email="owned-original@example.invalid"};
-        var blob=new ObservedBlob{ExistingRecord=new Avatar{Id=original.Id,Username="different-owner",Email="different-owner@example.invalid",IsActive=true}};
-        var service=new Service(blob,"oasis-avatars");var provider=new SelectedIdentity(original);
+        var changed=new Avatar{Id=original.Id,Username="different-owner",Email="different-owner@example.invalid",IsActive=true};
+        var blob=new ObservedBlob{RecordName=original.Id.ToString()};blob.OnRead=()=>blob.ExistingRecord=blob.Reads==1?original:changed;
+        var service=new Service(blob,"oasis-avatars");var provider=new AzureStorageOASIS("UseDevelopmentStorage=true");
         typeof(AzureStorageOASIS).GetField("_serviceClient",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,service);
         var result=email?synchronous?provider.DeleteAvatarByEmail(original.Email,softDelete):await provider.DeleteAvatarByEmailAsync(original.Email,softDelete)
             :synchronous?provider.DeleteAvatarByUsername(original.Username,softDelete):await provider.DeleteAvatarByUsernameAsync(original.Username,softDelete);

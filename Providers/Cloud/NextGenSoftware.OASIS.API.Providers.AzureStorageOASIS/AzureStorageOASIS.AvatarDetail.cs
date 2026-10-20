@@ -29,16 +29,16 @@ public partial class AzureStorageOASIS
         return await ApplyAvatarLifecycleAsync(loaded.Result.Id,softDelete,selectedIdentity:selectedIdentity);
     }
 
-    private async Task<OASISResult<IAvatar>> ReadSelectedAvatarAsync(string selector,bool email,int version)
-        => await ReadSelectedAvatarAsync(selector,row=>string.Equals(email ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase),version);
+    private async Task<OASISResult<IAvatar>> ReadSelectedAvatarAsync(string selector,bool email,int version,bool includeDeleted=false)
+        => await ReadSelectedAvatarAsync(selector,row=>string.Equals(email ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase),version,includeDeleted);
 
-    private async Task<OASISResult<IAvatar>> ReadSelectedAvatarAsync(string selector,Func<IAvatar,bool> predicate,int version)
+    private async Task<OASISResult<IAvatar>> ReadSelectedAvatarAsync(string selector,Func<IAvatar,bool> predicate,int version,bool includeDeleted=false)
     {
         var result=new OASISResult<IAvatar>();
         try {
             ValidateDetailVersion(version);
             if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
-            var loaded=await LoadAllAvatarsAsync(version);
+            var loaded=await ReadAvatarCollectionAsync(version,includeDeleted);
             if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,IAvatar>(loaded);
             if(loaded.Result==null) throw new InvalidDataException("Azure avatar selector returned no collection.");
             var matches=loaded.Result.Where(predicate).Take(2).ToList();
