@@ -170,16 +170,20 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             if (gsis != null) req.GlobalSecondaryIndexes = gsis;
             await _client.CreateTableAsync(req);
             }
-            await WaitForTableActiveAsync(() => _client.DescribeTableAsync(tableName), () => Task.Delay(1000));
+            var table=await WaitForTableActiveAsync(() => _client.DescribeTableAsync(tableName), () => Task.Delay(1000));
+            if(table.TableName!=tableName||table.KeySchema==null||table.KeySchema.Count!=1||
+                table.KeySchema[0].AttributeName!="id"||table.KeySchema[0].KeyType!=KeyType.HASH||
+                table.AttributeDefinitions==null||table.AttributeDefinitions.Count(attribute=>attribute.AttributeName=="id"&&attribute.AttributeType==ScalarAttributeType.S)!=1)
+                throw new System.IO.InvalidDataException($"DynamoDB table {tableName} requires the canonical string id partition key without a sort key.");
         }
 
-        private static async Task WaitForTableActiveAsync(Func<Task<DescribeTableResponse>> describe, Func<Task> delay)
+        private static async Task<TableDescription> WaitForTableActiveAsync(Func<Task<DescribeTableResponse>> describe, Func<Task> delay)
         {
             for (int i = 0; i < 30; i++)
             {
                 var desc = await describe();
                 if (desc?.Table == null) throw new InvalidOperationException("DynamoDB table description is missing.");
-                if (desc.Table.TableStatus == TableStatus.ACTIVE) return;
+                if (desc.Table.TableStatus == TableStatus.ACTIVE) return desc.Table;
                 if (desc.Table.TableStatus != TableStatus.CREATING && desc.Table.TableStatus != TableStatus.UPDATING)
                     throw new InvalidOperationException($"DynamoDB table is not available: {desc.Table.TableStatus}.");
                 if(i<29) await delay();

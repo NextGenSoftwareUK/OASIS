@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## AWS/DynamoDB activation key contract — controlled297/native95 green
+
+Wrong partition key, extra sort key and numeric id formerly activated despite ACTIVE status;3regressions first failed. Same final DescribeTable now verifies canonical string id partition key without another SDK request or schema alteration. Controlled297/297 and retained native95/95 pass zero skips; native8CDBD95BDE62879BA1620EA472AEEE0DE5DF6753D694E362D3D59304F34937AE. Original report preserved in place, pending0/listenersabsent. AWS alias inherits owner; fullAWS130/hostedIAM/TLS/fees/interfaces/globalV2 not newly certified. Exact dependencies/scope in DYNAMODB_RECORD_HISTORY.md. No new runtime/download/devpush.
+
 ## Oracle existing-schema activation — native96 and controlled175 green
 
 Existing activation now validates required column presence/type/capacity after CREATE-if-name-absent; ORA955 alone is no longer schema verification. Read-only dictionary inspection, no automatic alteration/repair. Controlled175/175 and retained native96/96 pass zero skips; native SHA256846B5433586CAB486856B3063A407C2B7FE666B680551109014F9B30F1A1B164, original report archived in place. Native fixture cleanup/pending0/containerEXITED verified. Same environment, no download/public spend/deploy. PK/index/nullability/precision, runtime-versus-provisioning separation and hosted Oracle/OCI remain OPEN; detailed scope/identity/overhead in ORACLE_CLIENT_PRIORITY.md.
