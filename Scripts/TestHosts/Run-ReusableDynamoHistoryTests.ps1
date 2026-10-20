@@ -41,9 +41,10 @@ try{
         }
     }
     foreach($build in @((Join-Path $root 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj'),(Join-Path $root 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj'),(Join-Path $root 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj'),$project)){
-        & dotnet build $build --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        & dotnet build $build --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Cached producer/consumer build failed.'}
     }
+    & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput (Join-Path (Split-Path $project) 'bin/Debug/net10.0')
     $java=(Get-Command java -ErrorAction Stop).Source
     $owned=Start-Process -FilePath $java -ArgumentList @("-Djava.library.path=$runtime/DynamoDBLocal_lib",'-jar',"$runtime/DynamoDBLocal.jar",'-dbPath',$data,'-sharedDb','-disableTelemetry','-port','18000') -WindowStyle Hidden -WorkingDirectory $runtime -PassThru -RedirectStandardOutput (Join-Path $work 'native-current.log') -RedirectStandardError (Join-Path $work 'native-current.err')
     $deadline=[DateTime]::UtcNow.AddSeconds(20)
