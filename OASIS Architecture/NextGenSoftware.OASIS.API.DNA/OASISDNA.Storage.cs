@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public PolygonOASISProviderSettings PolygonOASIS { get; set; }
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
         public OracleDBOASISSettings OracleDBOASIS { get; set; }
+        public OracleObjectStorageOASISSettings OracleObjectStorageOASIS { get; set; }
         public IPFSOASISSettings IPFSOASIS { get; set; }
         public Neo4jOASISSettings Neo4jOASIS { get; set; }
         public SolanaOASISSettings SolanaOASIS { get; set; }

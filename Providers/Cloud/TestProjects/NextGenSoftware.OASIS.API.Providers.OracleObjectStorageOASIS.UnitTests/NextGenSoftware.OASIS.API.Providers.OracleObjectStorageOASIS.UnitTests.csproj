@@ -8,5 +8,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.csproj" />
+    <ProjectReference Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj" />
+    <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OracleObjectStorageProviderFactory.cs" Link="Production/OracleObjectStorageProviderFactory.cs" />
   </ItemGroup>
 </Project>
