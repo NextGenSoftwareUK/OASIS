@@ -149,6 +149,42 @@ public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
             await Check(root=>CosmicQueryMetadata.Value<bool>(root,"flag")==true,a);
             await Check(root=>CosmicQueryMetadata.Value<string>(root,"$tag").EndsWith("fee",StringComparison.Ordinal),a);
             var selections=new[]{"coffee","tea"};await Check(root=>selections.Contains(root.Name),b,c);
+            var target=Guid.Parse("aabbccdd-1234-5678-9abc-def012345678");
+            var other=Guid.Parse("12345678-1234-5678-9abc-def012345678");
+            var originalA=await rows.Find(new BsonDocument("HolonId",a.Id.ToString("D"))).SingleAsync();
+            var guidVectors=new (BsonValue Value,bool Domain,bool Equal)[]{
+                (new BsonString(target.ToString("D")),true,true),
+                (new BsonString(target.ToString("D").ToUpperInvariant()),true,true),
+                (new BsonBinaryData(target,GuidRepresentation.Standard),true,true),
+                (new BsonBinaryData(target,GuidRepresentation.CSharpLegacy),true,true),
+                (new BsonBinaryData(other,GuidRepresentation.Standard),true,false),
+                (new BsonBinaryData(other,GuidRepresentation.CSharpLegacy),true,false),
+                (new BsonString(other.ToString("D")),true,false),
+                (BsonNull.Value,false,false),
+                (new BsonString(target.ToString("N")),false,false),
+                (new BsonString("{"+target+"}"),false,false),
+                (new BsonString(target+"\n"),false,false),
+                (new BsonString(target+"\0"),false,false),
+                (new BsonString("zzbbccdd-1234-5678-9abc-def012345678"),false,false),
+                (new BsonBinaryData(target.ToByteArray(),BsonBinarySubType.Binary),false,false),
+                (new BsonBinaryData(new byte[15],BsonBinarySubType.Binary),false,false),
+                (new BsonInt32(7),false,false),(new BsonArray{target.ToString("D")},false,false)};
+            var guidMembers=new[]{target};var nullableGuidMembers=new Guid?[]{null,target};
+            foreach(var vector in guidVectors)
+            {
+                var metadata=originalA["MetaData"].DeepClone();
+                if(arrayDictionary)metadata.AsBsonArray.Add(new BsonArray{"guid.probe",vector.Value});
+                else metadata.AsBsonDocument.Add("guid.probe",vector.Value);
+                await rows.UpdateOneAsync(new BsonDocument("_id",originalA["_id"]),new BsonDocument("$set",new BsonDocument("MetaData",metadata)));
+                await Check(root=>CosmicQueryMetadata.Value<Guid>(root,"guid.probe")==target,vector.Equal?new[]{a}:Array.Empty<Holon>());
+                await Check(root=>CosmicQueryMetadata.Value<Guid>(root,"guid.probe")!=target,vector.Domain&&!vector.Equal?new[]{a}:Array.Empty<Holon>());
+                await Check(root=>CosmicQueryMetadata.Value<Guid?>(root,"guid.probe")!=target,(vector.Domain&&!vector.Equal)||vector.Value.IsBsonNull?new[]{a}:Array.Empty<Holon>());
+                await Check(root=>CosmicQueryMetadata.Value<Guid?>(root,"guid.probe")!=null,vector.Domain?new[]{a}:Array.Empty<Holon>());
+                await Check(root=>guidMembers.Contains(CosmicQueryMetadata.Value<Guid>(root,"guid.probe")),vector.Equal?new[]{a}:Array.Empty<Holon>());
+                await Check(root=>nullableGuidMembers.Contains(CosmicQueryMetadata.Value<Guid?>(root,"guid.probe")),vector.Equal||vector.Value.IsBsonNull?new[]{a}:Array.Empty<Holon>());
+                await Check(root=>!(CosmicQueryMetadata.Value<Guid>(root,"guid.probe")==target),vector.Equal?new[]{b,c,d}:roots);
+            }
+            await rows.UpdateOneAsync(new BsonDocument("_id",originalA["_id"]),new BsonDocument("$set",new BsonDocument("MetaData",originalA["MetaData"])));
             var limited=await manager.ExecuteQueryAsync(Plan(root=>true),new[]{adapter},maximumResults:1);
             Assert.True(limited.IsError);Assert.Null(limited.Result);Assert.Equal("CQL_QUERY_LIMIT",limited.ErrorCode);
             using var cancelled=new CancellationTokenSource();cancelled.Cancel();
