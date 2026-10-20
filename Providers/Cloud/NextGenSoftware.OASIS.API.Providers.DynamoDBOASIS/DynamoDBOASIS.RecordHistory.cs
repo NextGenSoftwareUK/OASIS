@@ -49,11 +49,11 @@ public partial class DynamoDBOASIS
     }
 
     // One conditional writer for ordinary and versioned records. No caller-state publication here.
-    private async Task<T> WriteRecordAsync<T>(PutItemRequest proposal,bool createHistory) where T:class,IHolonBase
+    private async Task<T> WriteRecordAsync<T>(PutItemRequest proposal,bool createHistory,Action validateCaller) where T:class,IHolonBase
     {
         var client=_client;
         if(client.Config.MaxErrorRetry!=0)throw new InvalidOperationException("Conditional history writes require single-attempt SDK configuration; unknown acknowledgements must not become a retry's condition failure.");
-        ArgumentNullException.ThrowIfNull(proposal);var table=proposal.TableName;
+        ArgumentNullException.ThrowIfNull(proposal);ArgumentNullException.ThrowIfNull(validateCaller);var table=proposal.TableName;
         if(table is not ("OasisAvatars" or "OasisAvatarDetails" or "OasisHolons"))throw new ArgumentException("Canonical OASIS table required.");
         var expectedType=table=="OasisAvatars"?typeof(Core.Holons.Avatar):table=="OasisAvatarDetails"?typeof(Core.Holons.AvatarDetail):typeof(Core.Holons.Holon);
         if(typeof(T)!=expectedType)throw new ArgumentException("Canonical record kind differs from its native table.");
@@ -88,6 +88,8 @@ public partial class DynamoDBOASIS
             request.ConditionExpression="#data = :observed";request.ExpressionAttributeNames.Remove("#id");
             request.ExpressionAttributeValues=new(){{":observed",new AttributeValue{S=previousJson}}};
         }
+        // A caller edit during observation is a pre-dispatch rejection, not an uncertain native write.
+        validateCaller();
         return await ObserveMutationAsync(async()=>{
             var ack=await client.PutItemAsync(request);
             if(ack?.HttpStatusCode!=HttpStatusCode.OK)throw new InvalidDataException("Conditional history write lacks authoritative acknowledgement.");

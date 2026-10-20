@@ -45,9 +45,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private bool _clientDisposed;
         protected virtual ProviderType StorageProviderType => Core.Enums.ProviderType.DynamoDBOASIS;
 
-        private static void ValidateAcknowledgedCaller(IHolonBase source,Guid originalId,Guid acknowledgedId)
+        private static void ValidateAcknowledgedCaller(Action validateUnchanged,Guid acknowledgedId)
         {
-            try{NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublication.EnsureIdentityUnchanged(source,originalId);}
+            try{validateUnchanged();}
             catch(Exception cause){throw new DynamoDBPartialMutationException(new[]{acknowledgedId},cause);}
         }
 
@@ -253,8 +253,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(avatar);
-                var source=avatar;var originalId=source.Id;
-                avatar=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Avatar>(source);
+                var source=avatar;var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Avatar>.Capture(source);
+                avatar=publication.Proposal;
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[StorageProviderType] = avatar.Id.ToString();
@@ -269,8 +269,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["is_deleted"] = new AttributeValue { BOOL = avatar.IsDeleted },
                         ["data_json"] = new AttributeValue { S = Ser(avatar) }
                     })
-                },IsVersionControlEnabled);
-                ValidateAcknowledgedCaller(source,originalId,committed.Id);
+                },IsVersionControlEnabled,publication.ValidateUnchanged);
+                ValidateAcknowledgedCaller(publication.ValidateUnchanged,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=avatar.Id;
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
@@ -459,8 +459,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(d);
-                var source=d;var originalId=source.Id;
-                d=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<AvatarDetail>(source);
+                var source=d;var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<AvatarDetail>.Capture(source);
+                d=publication.Proposal;
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 d.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
                 d.ProviderUniqueStorageKey[StorageProviderType]=d.Id.ToString();
@@ -475,8 +475,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["is_deleted"] = new AttributeValue {BOOL=d.IsDeleted},
                         ["data_json"] = new AttributeValue { S = Ser(d) }
                     })
-                },IsVersionControlEnabled);
-                ValidateAcknowledgedCaller(source,originalId,committed.Id);
+                },IsVersionControlEnabled,publication.ValidateUnchanged);
+                ValidateAcknowledgedCaller(publication.ValidateUnchanged,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=d.Id;
                 source.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
@@ -562,8 +562,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     if(!graph.IsError) converted.Result=holon;
                     return converted;
                 }
-                var source=holon;var originalId=source.Id;
-                holon=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Holon>(source);
+                var source=holon;var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(source);
+                holon=publication.Proposal;
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[StorageProviderType] = holon.Id.ToString();
@@ -578,8 +578,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["is_deleted"] = new AttributeValue { BOOL = holon.IsDeleted },
                         ["data_json"] = new AttributeValue { S = Ser(holon) }
                     }
-                },IsVersionControlEnabled);
-                ValidateAcknowledgedCaller(source,originalId,committed.Id);
+                },IsVersionControlEnabled,publication.ValidateUnchanged);
+                ValidateAcknowledgedCaller(publication.ValidateUnchanged,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=holon.Id;
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();

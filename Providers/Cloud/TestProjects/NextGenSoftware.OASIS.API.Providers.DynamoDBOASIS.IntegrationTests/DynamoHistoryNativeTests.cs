@@ -103,7 +103,7 @@ public partial class DynamoHistoryNativeTests
         if(row is IAvatar avatar){item["username"]=new(){S=avatar.Username};item["email"]=new(){S=avatar.Email};}
         else if(row is IAvatarDetail detail){item["username"]=new(){S=detail.Username};item["email"]=new(){S=detail.Email};}
         else if(row is IHolon holon){item["parentHolonId"]=new(){S=holon.ParentHolonId.ToString()};item["holon_type"]=new(){N=((int)holon.HolonType).ToString()};}
-        var task=(Task)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(row.GetType()).Invoke(provider,new object[]{new PutItemRequest{TableName=table,Item=item},true})!;
+        var task=(Task)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(row.GetType()).Invoke(provider,new object[]{new PutItemRequest{TableName=table,Item=item},true,(Action)(()=>{})})!;
         await task;return (IHolonBase)task.GetType().GetProperty("Result")!.GetValue(task)!;
     }
     private static async Task RemoveOwned(AmazonDynamoDBClient client,string table,Guid id,string expected)
@@ -144,18 +144,54 @@ public partial class DynamoHistoryNativeTests
                 await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{table,id,childId=child?.Id,endpoint="http://127.0.0.1:18000",state="before-native-history-create"}));file.Flush(true);
             }
             provider.IsVersionControlEnabled=true;
+            void SetAdditionalCredentials(IAvatar avatar,string suffix){
+                avatar.RefreshTokens=new(){new NextGenSoftware.OASIS.API.Core.Objects.RefreshToken{Token=name+suffix+"-refresh",Expires=DateTime.UtcNow.AddDays(1)}};
+                avatar.ProviderWallets=new(){[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS]=new(){new NextGenSoftware.OASIS.API.Core.Objects.ProviderWallet{Id=Guid.NewGuid(),PublicKey=name+suffix+"-public",PrivateKey=name+suffix+"-private"}}};
+            }
+            async Task CheckAdditionalCredentials(string suffix,bool present){
+                var results=new[]{await provider.LoadAvatarByRefreshTokenAsync(name+suffix+"-refresh"),provider.LoadAvatarByPublicKey(name+suffix+"-public"),await provider.LoadAvatarByPrivateKeyAsync(name+suffix+"-private")};
+                foreach(var result in results){
+                    if(present){Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(id,result.Result.Id);}
+                    else{Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,result.ErrorCode);}
+                }
+            }
+            if(row is Avatar initialCredentials){initialCredentials.VerificationToken=name+"-old-verification";initialCredentials.ResetToken=name+"-old-reset";SetAdditionalCredentials(initialCredentials,"-old");}
             await SavePublic(provider,row);Assert.AreEqual(1,row.Version);var firstVersionId=row.VersionId;
+            if(row is Avatar){
+                var verification=await provider.LoadAvatarByVerificationTokenAsync(name+"-old-verification");
+                Assert.IsFalse(verification.IsError,verification.Exception?.ToString());Assert.AreEqual(id,verification.Result.Id);
+                var reset=provider.LoadAvatarByResetToken(name+"-old-reset");
+                Assert.IsFalse(reset.IsError,reset.Exception?.ToString());Assert.AreEqual(id,reset.Result.Id);
+                await CheckAdditionalCredentials("-old",true);
+            }
             var providerType=useAws?NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AWSOASIS:NextGenSoftware.OASIS.API.Core.Enums.ProviderType.DynamoDBOASIS;
             Assert.AreEqual(id.ToString(),row.ProviderUniqueStorageKey[providerType]);
             provider.IsVersionControlEnabled=false;
             row.MetaData["owned_history_fixture"]="second";
-            if(row is IAvatar renamedAvatar){renamedAvatar.Username=name+"-current";renamedAvatar.Email=name+"-current@example.invalid";}
+            if(row is IAvatar renamedAvatar){renamedAvatar.Username=name+"-current";renamedAvatar.Email=name+"-current@example.invalid";renamedAvatar.VerificationToken=name+"-new-verification";renamedAvatar.ResetToken=name+"-new-reset";}
             else if(row is IAvatarDetail renamedDetail){renamedDetail.Username=name+"-current";renamedDetail.Email=name+"-current@example.invalid";}
             else if(row is IHolon movedRoot)movedRoot.ParentHolonId=Guid.NewGuid();
+            if(row is IAvatar rotatingCredentials)SetAdditionalCredentials(rotatingCredentials,"-new");
             await SavePublic(provider,row);Assert.AreEqual(2,row.Version);Assert.AreEqual(firstVersionId,row.PreviousVersionId);
             if(child!=null)await Write(provider,child,table);
             if(kind==0){
                 var selected=await provider.LoadAvatarAsync(id,1);Assert.IsFalse(selected.IsError,selected.Message);Assert.AreEqual("first",selected.Result.MetaData["owned_history_fixture"].ToString());
+                Assert.AreEqual(name+"-old-verification",selected.Result.VerificationToken);
+                Assert.AreEqual(name+"-old-reset",selected.Result.ResetToken);
+                Assert.AreEqual(name+"-old-refresh",selected.Result.RefreshTokens.Single().Token);
+                Assert.AreEqual(name+"-old-public",selected.Result.ProviderWallets[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS].Single().PublicKey);
+                Assert.AreEqual(name+"-old-private",selected.Result.ProviderWallets[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS].Single().PrivateKey);
+                await CheckAdditionalCredentials("-old",false);await CheckAdditionalCredentials("-new",true);
+                var oldVerification=provider.LoadAvatarByVerificationToken(name+"-old-verification");
+                Assert.IsTrue(oldVerification.IsError);Assert.IsFalse(oldVerification.IsLoaded);Assert.IsNull(oldVerification.Result);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,oldVerification.ErrorCode);
+                var oldReset=await provider.LoadAvatarByResetTokenAsync(name+"-old-reset");
+                Assert.IsTrue(oldReset.IsError);Assert.IsFalse(oldReset.IsLoaded);Assert.IsNull(oldReset.Result);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,oldReset.ErrorCode);
+                var currentVerification=provider.LoadAvatarByVerificationToken(name+"-new-verification");
+                Assert.IsFalse(currentVerification.IsError,currentVerification.Exception?.ToString());Assert.AreEqual(id,currentVerification.Result.Id);
+                var currentReset=await provider.LoadAvatarByResetTokenAsync(name+"-new-reset");
+                Assert.IsFalse(currentReset.IsError,currentReset.Exception?.ToString());Assert.AreEqual(id,currentReset.Result.Id);
                 Assert.AreEqual(id,(await provider.LoadAvatarByProviderKeyAsync(id.ToString(),1)).Result.Id);
                 Assert.AreEqual(id,(await provider.LoadAvatarByUsernameAsync(name,1)).Result.Id);Assert.AreEqual(id,(await provider.LoadAvatarByEmailAsync(name+"@example.invalid",1)).Result.Id);
                 Assert.IsTrue((await provider.LoadAllAvatarsAsync(1)).Result.Any(value=>value.Id==id&&value.Version==1));

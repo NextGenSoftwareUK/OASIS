@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## DynamoDB/AWS ordinary caller-publication guard — 2026-10-19
+
+Reused shared canonical publication snapshot for ordinary avatar/detail/standalone-holon saves: observed caller edits before dispatch stop PutItem; post-ack edits retain acknowledged IDs in existing partial-mutation error without stamp overwrite. Twelve red-before controlled cases now pass; final Dynamo245/AWS26controlled and retained native33pass/zero skips. Native TRX SHA256 `FE6D060023A667794899BF9B94962F8901F760165C2DD1A6E0931E166B35EB51`; exact hashes/scopes in [DynamoDB history report](DYNAMODB_RECORD_HISTORY.md). Same retained runtime, no pending journals/ports afterward, no installs or public fees. Graph originals/lifecycle publication, hosted IAM/cost and full-provider/V2 gates remain distinct OPEN scopes; no atomic synchronization guarantee or native injected-caller-race claim.
+
 ## Polkadot decoding truthfulness regression — 2026-10-19
 
 Removed fabricated avatar/holon fallback records and malformed-collection empty-success from four legacy decoders; reused canonical shared OASIS JSON materialization with explicit nonempty record identity validation. Eight red-before cases now pass; full controlled207/207pass15s/zero skips, SHA256 `39115F77E99566939310A5BBD90E86DA6CFAC568FEC4B7CCE473B7894B62D359`. Details/before hashes: [Polkadot native report](POLKADOT_PROVIDER_NATIVE_TESTS.md). NOT native storage acceptance: custom runtime RPC/deployment/ABI/encryption/NFT/full-interface and target selection remain OPEN. No native process, transaction or download for this batch.
