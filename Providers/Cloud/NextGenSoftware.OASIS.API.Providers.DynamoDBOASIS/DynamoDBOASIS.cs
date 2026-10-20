@@ -125,6 +125,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             throw new ArgumentException("Canonical avatar or detail required.",nameof(record));
         }
 
+        private static bool IsNativeValidationRejection(AmazonDynamoDBException cause)
+            => cause.StatusCode==System.Net.HttpStatusCode.BadRequest
+                &&string.Equals(cause.ErrorCode,"ValidationException",StringComparison.Ordinal);
+
         private static async Task<T> ObserveMutationAsync<T>(Func<Task<T>> mutation,string table,string key)
         {
             try {return await mutation();}
@@ -132,8 +136,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             catch(ConditionalCheckFailedException) {throw;}
             // A native HTTP400 ValidationException rejects the request; it is not a lost ACK.
             // Do not generalize this to arbitrary400s, transport failures or server errors.
-            catch(AmazonDynamoDBException cause)when(cause.StatusCode==System.Net.HttpStatusCode.BadRequest
-                &&string.Equals(cause.ErrorCode,"ValidationException",StringComparison.Ordinal)){throw;}
+            catch(AmazonDynamoDBException cause)when(IsNativeValidationRejection(cause)){throw;}
             catch(Exception cause) {throw new DynamoDBMutationReconciliationException(table,key,cause);}
         }
         private Task<UpdateItemResponse> UpdateItemAsync(UpdateItemRequest request)

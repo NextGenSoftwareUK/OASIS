@@ -39,10 +39,11 @@ public sealed class DynamoStandaloneDetailLifecycleTests
                 Assert.AreEqual(Original,write.Delete.ExpressionAttributeValues[":expected"].S); }
             if(mode==3)throw new TransactionCanceledException("conflict"){CancellationReasons=new(){new CancellationReason{Code="ConditionalCheckFailed"}}};
             if(mode==4)throw new IOException("lost native return");
+            if(mode==6)throw new AmazonDynamoDBException("native validation rejection"){StatusCode=HttpStatusCode.BadRequest,ErrorCode="ValidationException"};
             return Task.FromResult(new TransactWriteItemsResponse{HttpStatusCode=mode==5?HttpStatusCode.BadGateway:HttpStatusCode.OK});
         }
     }
-    public static IEnumerable<object[]> Cases(){foreach(var soft in new[]{false,true})foreach(var mode in Enumerable.Range(0,6))yield return new object[]{soft,mode};}
+    public static IEnumerable<object[]> Cases(){foreach(var soft in new[]{false,true})foreach(var mode in Enumerable.Range(0,7))yield return new object[]{soft,mode};}
     [DataTestMethod][DynamicData(nameof(Cases),DynamicDataSourceType.Method)]
     public async Task StandaloneDetailUsesOriginalConditionAndTruthfulOutcome(bool soft,int mode)
     {
@@ -57,6 +58,7 @@ public sealed class DynamoStandaloneDetailLifecycleTests
             Assert.AreEqual(1,probe.Reads);Assert.AreEqual(mode is 1 or 2?0:1,probe.Transactions);
             if(mode==2)Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,result.ErrorCode);
             if(mode==3)Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
+            if(mode==6){Assert.IsInstanceOfType<AmazonDynamoDBException>(result.Exception);Assert.IsFalse(NativeMutationReconciliation.IsRequired(result.Exception));}
             if(mode is 4 or 5){Assert.IsInstanceOfType<DynamoDBMutationReconciliationException>(result.Exception);
                 Assert.AreEqual(probe.Token,((DynamoDBMutationReconciliationException)result.Exception).ClientRequestToken);}
         }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
