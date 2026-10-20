@@ -1,5 +1,15 @@
 # HyperDrive V2 current release gates
 
+## Firestore protected preparation storage — 2026-10-20
+
+Implemented IHolonWritePreparationStorageProvider using the existing shared ProtectedPreparationJson transport and official Firestore atomic Commit. A first claim creates the opaque preparation and conditionally advances the SAME operation fence used by the graph writer. Original winner recovery is read-only; another actor is refused before payload parsing. A receipt without its original preparation requires reconciliation, not backfill. Unknown/lost acknowledgement is not automatically resubmitted.
+
+Latest reports prove **186/186 controlled and 4/4 native preparation tests passed, zero skipped**. Native cases cover sync/async, first-winner retention, actor isolation, receipt cutover and actual post-commit acknowledgement loss. They use synthetic opaque envelopes: authenticated runtime encryption, native competing-claim/graph races, process recovery, hosted IAM/fees and atomic replication remain OPEN. Earlier graph/history/regression reports remain their own checkpoint, not a rerun of this source cohort.
+
+Report SHA256: Google unit david_OASISOMEGA_2026-10-20_14_10_57_net10.0.trx = 15A970EB68383FA7D479C4BF0FE157AA944A4553D16637D32880811FD965BD9F; TestResults/GoogleCurrent/google-preparation-native-current.trx = 244A641107F4E06FA23CEF16872BBB42CF695405D9A38C6F95FA56C5D538EA02. Original process handle is no longer available; no terminal exit code is reconstructed from that fact. Reports were inspected directly. No pending journals or listeners on18080-18083 were found after the run. Emulator stderr contains connection-reset warnings; these are retained, not silently erased or treated as a failing test result.
+
+One new preparation document and one operation-fence write per first claim, plus reads/storage; hosted cost remains unmeasured. Same retained emulator/export/cache reused, no download/install/duplicate environment. Free C68,112,711,680bytes;123GBtarget unmet. Current source still awaits scoped commit and remaining verification.
+
 ## Firestore atomic graph + durable operation receipt — controlled179/native4+37+79 green, 2026-10-20
 
 Implemented shared IConditionalHolonStorageProvider with official SDK WriteBatch.CommitAsync (native atomic Commit, NOT nonatomic BatchWrite). Reuses ConditionalHolonPlan/fingerprint, ConditionalHolonReceipt, graph-role and embedded-history owners. Extracted existing native holon projection into ONE CreateFirestoreHolonFields used by ordinary/atomic saves. Ordinary saves now rotate/publish distinct provider revision tokens too, invalidating stale atomic baselines.
