@@ -1,5 +1,23 @@
 # HyperDrive V2 current release gates
 
+## Firestore native preparation-versus-graph ordering — 2026-10-20
+
+Preparation suite **7/7 passed1s,0skip**, terminal0 under exclusive build lease. Two additional real SDK schedules wait until BOTH graph and preparation batches have completed preflight and reached bounded pre-dispatch gates for one operation. Preparation-first commits original preparation/fence; stale graph atomically rejects with COSMIC_CONCURRENCY_CONFLICT, leaving holon/receipt absent. Graph-first commits holon/receipt/fence; late preparation rejects reconciliation-required without backfill. Independent reads and read-only winner/receipt recovery confirm these outcomes; exactly one native dispatch per provider. Existing contender and ACK-loss cases also passed. This closes these two native cross-path schedules, not all concurrency/fault interleavings.
+
+Current native report SHA256E3D7799EA7364D8E55B186FB0668B6818DD4E9286FFCF1B46DAA2C5477E452F0 at TestResults/GoogleCurrent/google-preparation-native-current.trx. Prior5 report215CCE... SHAchecked/moved in place to google-preparation-pre-cross-path-races.trx. Actual consumer CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared37D94218D0BE8E534428C80A1B526B738028C9A3549986B1759575ABE4C1C668. No controlled-suite rerun inferred. Tests use opaque synthetic envelopes; authenticated runtime replay/key rotation/process recovery, hosted IAM/fees, native tampering, different-actor simultaneous contention and atomic replication remain OPEN.
+
+Owned fixture documents exact UpdateTime-conditionally deleted, absence checked before pendingjournal removal. After terminal: journals0/listeners18080-18083zero. SAME retained emulator/export/cache, no downloads/installs/newenvironment/reset/DBcopy. Free C67,879,919,616bytes;123GBtarget unmet; concurrent changes are not attributed to this run. Costs unchanged; no push/deployment.
+
+## Firestore native preparation contenders — 2026-10-20
+
+Expanded preparation native suite **5/5 passed1s, zero skipped**, runner terminal0 under exclusive build lease. New case holds two independent provider/SDK batches at a bounded pre-dispatch barrier for the SAME operation and actor, with distinct opaque candidate envelopes. Both attempts reach native Commit; only one preparation/fence creation wins. Native rejected contender returns the original winner; both callers return identical winner envelopes and each provider dispatch count stays1. No retry, reset or simulated database conflict. Actor refusal, receipt gates and exact observed-revision cleanup also run for this schedule.
+
+This closes only the same-actor preparation contender schedule. Preparation-versus-graph races, different-actor simultaneous contenders, runtime authenticated encryption/key rotation, process recovery, hosted acceptance and atomic replication remain OPEN. Synthetic opaque envelopes do not prove cipher validity.
+
+Report TestResults/GoogleCurrent/google-preparation-native-current.trx SHA256215CCEBA7598E512697671BEF91E1945E76FF3C03CBDBC2DEC3AC8D0F64782DE. Prior4 report SHA244A641107F4E06FA23CEF16872BBB42CF695405D9A38C6F95FA56C5D538EA02 verified then moved in place to google-preparation-pre-native-contenders.trx. Actual consumer CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared37D94218D0BE8E534428C80A1B526B738028C9A3549986B1759575ABE4C1C668. Earlier186 controlled result remains its measured cohort, not a rerun here.
+
+Same retained emulator/export/cache, no download/install/duplicate environment. Pendingjournals0/listeners18080-18083zero verified after terminal. Free C68,108,464,128bytes;123GBtarget unmet. First-claim costs and retention semantics unchanged. Preparation implementation committed locally as b902b9a24 before this additional test; no dev merge/deployment.
+
 ## Firestore protected preparation storage — 2026-10-20
 
 Implemented IHolonWritePreparationStorageProvider using the existing shared ProtectedPreparationJson transport and official Firestore atomic Commit. A first claim creates the opaque preparation and conditionally advances the SAME operation fence used by the graph writer. Original winner recovery is read-only; another actor is refused before payload parsing. A receipt without its original preparation requires reconciliation, not backfill. Unknown/lost acknowledgement is not automatically resubmitted.
