@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Oracle identity/receipt primary-key admission — controlled185/native96 green
+
+Read-only activation now checks actual singleID/OPERATION_ID primarykey, enabledvalidated/nondeferrable/validindex across4tables. Controlled185/185 and retained Oracle96/96 pass0skip, pairedCore177F/Shared7F820. Reports CD18BACEC8B49DC1DBDD78E0EE9E6E3A478CF847541DEF0DB27E365C50160606 /45A316B7B0A4373BCA7EF0CCDD41E5C9A9B86E3F782300349C7C21D436342B3B. Negative-schema helper cases controlled, notlive corruption; actual existing schema nativecompatible.4extra dictionaryqueries/activation, no perrecordwrites/repair/newruntime/download/devpush. Pending0/containerEXITED; exactlimits/remainingOracleCloudgates in ORACLE_CLIENT_PRIORITY.md.
+
 ## PostgreSQL canonical search — native8/8 green
 
 Two actualSQL Name/Description missing-result regressions fixed by matching canonical PascalCase JSON keys in existing parameterized query. Previous6nativeCRUDcases retained; final8pass0skip941ms, report7C1C58ED7999D9AD684B9ED5CC285C6AF54B34E81B9C08075A78EC168BE70C54, actual19EFCore/ECDDACShared. Original6pass2fail report preserved; knownACKfixturescondition-cleaned, all3tables0/journals0/containerEXITED/portabsent. Exactscope in HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md; no newruntime/download/reset/devpush and no fullPostgreSQL/V2 claim.

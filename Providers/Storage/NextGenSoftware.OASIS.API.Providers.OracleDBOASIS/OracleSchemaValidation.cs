@@ -31,6 +31,29 @@ public partial class OracleDBOASIS
             }
             if(missing.Count!=0)throw new InvalidDataException($"Oracle schema {table.Key} is missing required columns: {string.Join(",",missing)}.");
         }
+        foreach(var table in expected.Keys){
+            var key=table=="OASIS_WRITE_RECEIPTS"?"OPERATION_ID":"ID";
+            await using var command=CreateCommand(@"SELECT cc.COLUMN_NAME,c.STATUS,c.VALIDATED,c.DEFERRABLE,i.STATUS
+FROM USER_CONSTRAINTS c JOIN USER_CONS_COLUMNS cc ON cc.CONSTRAINT_NAME=c.CONSTRAINT_NAME AND cc.TABLE_NAME=c.TABLE_NAME
+LEFT JOIN USER_INDEXES i ON i.INDEX_NAME=c.INDEX_NAME
+WHERE c.TABLE_NAME=:TableName AND c.CONSTRAINT_TYPE='P' ORDER BY cc.POSITION",connection);
+            command.Parameters.Add("TableName",OracleDbType.Varchar2).Value=table;
+            var columns=new List<string>();string status=null,validated=null,deferrable=null,indexStatus=null;
+            await using var reader=await command.ExecuteReaderAsync();
+            while(await reader.ReadAsync()){
+                columns.Add(reader.GetString(0));status=reader.GetString(1);validated=reader.GetString(2);deferrable=reader.GetString(3);
+                indexStatus=reader.IsDBNull(4)?null:reader.GetString(4);
+            }
+            ValidateStoragePrimaryKey(table,key,columns,status,validated,deferrable,indexStatus);
+        }
+    }
+
+    private static void ValidateStoragePrimaryKey(string table,string key,IReadOnlyList<string> columns,
+        string status,string validated,string deferrable,string indexStatus)
+    {
+        if(columns.Count!=1||columns[0]!=key||status!="ENABLED"||validated!="VALIDATED"
+            ||deferrable!="NOT DEFERRABLE"||indexStatus!="VALID")
+            throw new InvalidDataException($"Oracle schema {table} requires an enabled, validated, immediate single-column {key} primary key with a valid index.");
     }
 
     private static void ValidateStorageColumn(string table,string column,string required,string actual,int length)
