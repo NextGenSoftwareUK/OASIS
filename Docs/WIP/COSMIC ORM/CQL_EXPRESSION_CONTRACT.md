@@ -40,7 +40,7 @@ Five additional composition cases pass in the full **1,303/1,303** Core gate, ze
 
 ## Capability planning boundary (pure admission verified)
 
-`CosmicQueryCapabilities` describes admitted logical operators, metadata/null support, exact CLR path types and comparison operators. Composition across multiple `Where` clauses requires AND capability. Nullable types remain distinct from their underlying type. Capability arrays are detached and immutable.
+`CosmicQueryCapabilities` describes admitted logical operators, metadata/null support, exact CLR path types and comparison operators. Composition across multiple `Where` clauses requires AND capability. Nullable types remain distinct from their underlying type. Capability arrays are detached and immutable. An exact canonical-field profile additionally binds each field to its declared CLR type and admitted operators; type-wide profiles do not imply adapter certification. SQLite publishes its exact profile from the same field map used by native translation.
 
 `CosmicQueryPlanner.Plan` operates on a supplied, already authorized eligible target snapshot. It performs no registration discovery, policy evaluation or storage I/O. Current-default scope resolves to exactly one listed target, named scope preserves requested order, and all-eligible scope selects the entire snapshot. Missing targets or an unsupported selected target reject the whole plan; no target is silently dropped, no client evaluation is substituted, and an empty target selection is an error. Target snapshots are bounded to 64 unique identities.
 
@@ -63,3 +63,5 @@ Provider scope intent is implemented; authorization enforcement, query execution
 ## Native adapter checkpoint
 
 The [SQLite native adapter](CQL_SQLITE_NATIVE.md) now has eight focused native cases passing, including independent CLR result comparison, unsupported-before-I/O checks, cancellation, injection-like text and result budgets. Full SQLite823/823 passes127s, zero skips. It is a direct provider seam, without WEB4 authorization or manager integration; complete CQL acceptance remains open.
+
+Exact field capability checkpoint: full Core1,310/1,310 and SQLite824/824 pass with zero skips. SQLite publishes `CqlCapabilities`; both its native grammar and exact planner profile derive from one field/operator map. Unmapped fields reject in planning rather than inheriting support merely from another field with the same CLR type. The native translator also rejects overbroad caller profiles before I/O. These gates do not authorize caller-created plans or close WEB4 integration.
