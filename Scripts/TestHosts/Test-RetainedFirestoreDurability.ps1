@@ -153,7 +153,7 @@ try{
             if($LASTEXITCODE){throw 'Native preparation tests failed; preserve original live emulator and fixtures.'}
             $report=Get-Item -LiteralPath (Join-Path $work 'google-preparation-native-current.trx')
             [xml]$trx=Get-Content -LiteralPath $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
-            if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete4/4 native preparation report required.'}
+            if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 7 -or [int]$counts.passed -ne 7 -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete7/7 native preparation report required.'}
             if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Original preparation fixtures remain unresolved.'}
             if(!$RunRegressionTests -and !$RunConditionalGraphs){$safeToStop=$true;return}
         }

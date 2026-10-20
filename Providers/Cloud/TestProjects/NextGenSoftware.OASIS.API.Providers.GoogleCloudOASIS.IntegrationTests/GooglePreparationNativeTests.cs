@@ -9,25 +9,27 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 
 [TestClass][DoNotParallelize][TestCategory("PreparationNative")]
-public class GooglePreparationNativeTests
+public partial class GooglePreparationNativeTests
 {
     private sealed class Owner():GoogleCloudOASIS("oasis-google-native",enableStorage:false,enableFirestore:true,enableBigQuery:false)
     {
-        public int Commits;public bool LoseAck;
+        public int Commits;public bool LoseAck;public Func<Task>? BeforeCommit;
         protected override async Task<IList<WriteResult>> CommitFirestoreConditionalBatchAsync(WriteBatch batch,CancellationToken token) {
-            Commits++;var results=await base.CommitFirestoreConditionalBatchAsync(batch,token);
+            Commits++;if(BeforeCommit!=null)await BeforeCommit();
+            var results=await base.CommitFirestoreConditionalBatchAsync(batch,token);
             if(LoseAck){LoseAck=false;throw new IOException("owned preparation ACK loss after actual Firestore commit");}
             return results;
         }
     }
-    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
-    public async Task NativeOpaqueFirstWinnerActorIsolationReceiptGateAndAckLoss(bool synchronous,bool loseAck)
+    [DataTestMethod][DataRow(false,false,false)][DataRow(false,true,false)][DataRow(true,false,false)][DataRow(true,true,false)]
+    [DataRow(false,false,true)]
+    public async Task NativeOpaqueFirstWinnerActorIsolationReceiptGateAndAckLoss(bool synchronous,bool loseAck,bool concurrent)
     {
         Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
         var work=Environment.GetEnvironmentVariable("OASIS_FIRESTORE_HISTORY_WORK")!;
         Assert.IsTrue(File.Exists(Path.Combine(work,"history-durability-ready.json")));
         Assert.AreEqual(0,Directory.GetFiles(work,"*.pending.json").Length);
-        var journal=Path.Combine(work,$"history-native-preparation-{synchronous}-{loseAck}.pending.json");
+        var journal=Path.Combine(work,$"history-native-preparation-{synchronous}-{loseAck}-{concurrent}.pending.json");
         var op=Guid.NewGuid();var blocked=Guid.NewGuid();var actor=Guid.NewGuid();var id=Guid.NewGuid();
         string Key(Guid operation)=>"GoogleCloudOASIS:"+operation.ToString("N");
         // Storage is deliberately opaque; these are NOT authenticated runtime envelopes.
@@ -37,6 +39,7 @@ public class GooglePreparationNativeTests
         var provider=new Owner{IsProviderActivated=true,LoseAck=loseAck};
         typeof(GoogleCloudOASIS).GetField("_firestoreDb",BindingFlags.Instance|BindingFlags.NonPublic)!
             .SetValue(provider,GoogleNativeFirestore.Database());
+        Owner? contender=null;
         try {
             foreach(var operation in new[]{op,blocked})foreach(var collection in new[]{"cosmicWritePreparations","cosmicWriteReceipts","cosmicOperationFences"})
                 Assert.IsFalse((await verifier.Collection(collection).Document(Key(operation)).GetSnapshotAsync()).Exists);
@@ -44,7 +47,23 @@ public class GooglePreparationNativeTests
                 await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{op,blocked,actor,id,state="before-opaque-Firestore-native-claim"}));file.Flush(true);
             }
             var candidate=Candidate(op,actor,"first");
-            var first=synchronous?provider.ClaimHolonWritePreparation(candidate):await provider.ClaimHolonWritePreparationAsync(candidate);
+            NextGenSoftware.OASIS.Common.OASISResult<HolonWritePreparation> first;
+            if(concurrent) {
+                contender=new Owner{IsProviderActivated=true};
+                typeof(GoogleCloudOASIS).GetField("_firestoreDb",BindingFlags.Instance|BindingFlags.NonPublic)!
+                    .SetValue(contender,GoogleNativeFirestore.Database());
+                var arrival=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);var arrivals=0;
+                Task Gate(){if(Interlocked.Increment(ref arrivals)==2)arrival.TrySetResult();return arrival.Task.WaitAsync(TimeSpan.FromSeconds(15));}
+                provider.BeforeCommit=Gate;contender.BeforeCommit=Gate;
+                var alternative=Candidate(op,actor,"competing-original");
+                var outcomes=await Task.WhenAll(provider.ClaimHolonWritePreparationAsync(candidate),contender.ClaimHolonWritePreparationAsync(alternative));
+                foreach(var outcome in outcomes)Assert.IsFalse(outcome.IsError,outcome.Exception?.ToString());
+                Assert.AreEqual(2,arrivals,"Both native batches must reach commit before either is dispatched.");
+                Assert.AreEqual(outcomes[0].Result.Records[0].Envelope,outcomes[1].Result.Records[0].Envelope);
+                Assert.IsTrue(outcomes[0].Result.Records[0].Envelope==candidate.Records[0].Envelope||outcomes[0].Result.Records[0].Envelope==alternative.Records[0].Envelope);
+                Assert.AreEqual(1,contender.Commits,"Rejected contender must not resubmit a native write.");
+                first=outcomes[0];candidate=first.Result;
+            } else first=synchronous?provider.ClaimHolonWritePreparation(candidate):await provider.ClaimHolonWritePreparationAsync(candidate);
             if(loseAck) {
                 Assert.AreEqual("COSMIC_PREPARATION_RECONCILIATION_REQUIRED",first.ErrorCode);
                 Assert.IsInstanceOfType<INativeMutationReconciliationRequired>(first.Exception);Assert.AreEqual(1,provider.Commits);
@@ -89,6 +108,6 @@ public class GooglePreparationNativeTests
                 Assert.AreNotEqual(default(Timestamp),ack.UpdateTime);Assert.IsFalse((await snapshot.Reference.GetSnapshotAsync()).Exists);
             }
             File.Delete(journal);
-        } finally {await provider.DeActivateProviderAsync();}
+        } finally {await provider.DeActivateProviderAsync();if(contender!=null)await contender.DeActivateProviderAsync();}
     }
 }
