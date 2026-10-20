@@ -35,8 +35,9 @@ public partial class DynamoDBOASIS
             var expected = LifecycleJson(observed, id);
             var detail = ReadStoredIdentity<AvatarDetail>(observed, id);
             if(selectedIdentity!=null&&!selectedIdentity(detail))throw new StorageLifecycleConflictException("AvatarDetail identity changed after selection; refusing deletion.");
+            var unchanged=softDelete&&detail.IsDeleted&&!detail.IsActive;
             string updated = null;
-            if (softDelete)
+            if (softDelete&&!unchanged)
             {
                 detail.IsActive = false;
                 if (!detail.IsDeleted) detail.DeletedDate = DateTime.UtcNow;
@@ -45,17 +46,17 @@ public partial class DynamoDBOASIS
             var request = new TransactWriteItemsRequest
             {
                 ClientRequestToken = Guid.NewGuid().ToString("N"),
-                TransactItems = new() { LifecycleWrite("OasisAvatarDetails", id, expected, updated) }
+                TransactItems = new() {unchanged?LifecycleCheck("OasisAvatarDetails",id,expected):LifecycleWrite("OasisAvatarDetails", id, expected, updated) }
             };
             token = request.ClientRequestToken;
-            dispatched = true;
+            dispatched = !unchanged;
             var response = await _client.TransactWriteItemsAsync(request);
             if (response?.HttpStatusCode != HttpStatusCode.OK)
                 throw new InvalidDataException("DynamoDB AvatarDetail lifecycle lacks an authoritative acknowledgement.");
             result.Result = true;
             result.IsDeleted = true;
             result.IsSaved = true;
-            result.DeletedCount = 1;
+            result.DeletedCount = unchanged?0:1;
         }
         catch (TransactionCanceledException cause) when (cause.CancellationReasons?.Exists(reason => reason.Code == "ConditionalCheckFailed") == true
             && cause.CancellationReasons.TrueForAll(reason => reason.Code == "None" || reason.Code == "ConditionalCheckFailed"))

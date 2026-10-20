@@ -52,6 +52,10 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
             ConditionExpression="data_json = :expected",UpdateExpression="SET data_json = :json, is_deleted = :deleted",ExpressionAttributeValues=values}};
     }
 
+    private static TransactWriteItem LifecycleCheck(string table,Guid id,string expected)
+        =>new(){ConditionCheck=new(){TableName=table,Key=LifecycleKey(id),ConditionExpression="data_json = :expected",
+            ExpressionAttributeValues=new(){{":expected",new(){S=expected}}}}};
+
     private async Task<OASISResult<bool>> ApplyAvatarLifecycleAsync(Guid id,bool softDelete,AvatarTombstone supplied=null,Func<IAvatar,bool> selectedIdentity=null)
     {
         var result=new OASISResult<bool>();var dispatched=false;string? requestToken=null;
@@ -69,6 +73,7 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
             var detailItem=await ReadLifecycleItemAsync("OasisAvatarDetails",id);
             if(supplied!=null && detailItem.Count==0) throw new StorageLifecycleConflictException("Committed tombstone requires an existing avatar detail.");
             AvatarTombstone tombstone=null;
+            var profileNeedsChange=!profile.IsDeleted||profile.IsActive;
             if(softDelete)
             {
                 var date=supplied?.DeletedAtUtc ?? (profile.IsDeleted ? profile.DeletedDate:DateTime.UtcNow);
@@ -76,25 +81,26 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
                 if(supplied!=null) profile.DeletedByAvatarId=supplied.DeletedByAvatarId;
                 tombstone=new AvatarTombstone(id,date,profile.DeletedByAvatarId);
             }
-            var updatedProfile=softDelete ? await StageRecordAsync(profile,JObject.Parse(profileJson)):null;
-            var writes=new List<TransactWriteItem> {LifecycleWrite("OasisAvatars",id,profileJson,updatedProfile?.ToString(Newtonsoft.Json.Formatting.None))};
+            var updatedProfile=softDelete&&profileNeedsChange ? await StageRecordAsync(profile,JObject.Parse(profileJson)):null;
+            var writes=new List<TransactWriteItem> {softDelete&&!profileNeedsChange?LifecycleCheck("OasisAvatars",id,profileJson):LifecycleWrite("OasisAvatars",id,profileJson,updatedProfile?.ToString(Newtonsoft.Json.Formatting.None))};
             if(detailItem.Count==0)
                 writes.Add(new TransactWriteItem {ConditionCheck=new ConditionCheck {TableName="OasisAvatarDetails",Key=LifecycleKey(id),ConditionExpression="attribute_not_exists(id)"}});
             else
             {
                 var detailJson=LifecycleJson(detailItem,id);
                 var detail=ReadStoredIdentity<AvatarDetail>(detailItem,id);
+                var detailNeedsChange=!detail.IsDeleted||detail.IsActive;
                 if(softDelete)
                 {
                     if(detail.IsDeleted && (detail.DeletedDate!=tombstone.DeletedAtUtc || detail.DeletedByAvatarId!=tombstone.DeletedByAvatarId))
                         throw new StorageLifecycleConflictException("Avatar/detail committed tombstones conflict.");
                     detail.IsActive=false;detail.DeletedDate=tombstone.DeletedAtUtc;detail.DeletedByAvatarId=tombstone.DeletedByAvatarId;
                 }
-                var updatedDetail=softDelete ? await StageRecordAsync(detail,JObject.Parse(detailJson)):null;
-                writes.Add(LifecycleWrite("OasisAvatarDetails",id,detailJson,updatedDetail?.ToString(Newtonsoft.Json.Formatting.None)));
+                var updatedDetail=softDelete&&detailNeedsChange ? await StageRecordAsync(detail,JObject.Parse(detailJson)):null;
+                writes.Add(softDelete&&!detailNeedsChange?LifecycleCheck("OasisAvatarDetails",id,detailJson):LifecycleWrite("OasisAvatarDetails",id,detailJson,updatedDetail?.ToString(Newtonsoft.Json.Formatting.None)));
             }
             var request=new TransactWriteItemsRequest{TransactItems=writes,ClientRequestToken=Guid.NewGuid().ToString("N")};
-            requestToken=request.ClientRequestToken;dispatched=true;
+            requestToken=request.ClientRequestToken;dispatched=writes.Any(write=>write.Update!=null||write.Delete!=null);
             var response=await _client.TransactWriteItemsAsync(request);
             if(response?.HttpStatusCode!=HttpStatusCode.OK) throw new InvalidDataException("DynamoDB lifecycle transaction lacks an authoritative acknowledgement.");
             result.Result=true;result.IsSaved=true;result.IsDeleted=true;
