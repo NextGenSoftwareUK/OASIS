@@ -1,6 +1,6 @@
 # SQLite holon history: implementation and remaining gaps
 
-20 October 2026. Current implementation: opt-in atomic archive capture covers ordinary saves/deletes, conditional mutations and committed replica replacement. Checksum-validated historical point/key/collection/parent reads are implemented, including concurrent rollover and conflicting-revision checks. Latest completed full suite is797/797, zero skipped (`metadata-query-sqlite-verified.trx`); owned database/wal/shm absent after terminal completion. Selected holon metadata/search history routes are verified below; broader query coverage, retention/restore policy, typed role hydration and broader acceptance remain open. This is not a legacy-only exclusion.
+20 October 2026. Current implementation: opt-in atomic archive capture covers ordinary saves/deletes, conditional mutations and committed replica replacement. Checksum-validated historical point/key/collection/parent reads are implemented, including concurrent rollover and conflicting-revision checks. Latest completed full suite is969/969, zero skipped (`sqlite-history-precision-full.trx`); owned database/wal/shm absent after terminal completion. Selected holon metadata/search history routes are verified below; broader query coverage, retention/restore policy, typed role hydration and broader acceptance remain open. This is not a legacy-only exclusion.
 
 ## Original findings (before the implementation checkpoints below)
 
@@ -87,3 +87,12 @@ Metadata query boundary correction:12 native pre-activation cases failed before 
 Combined verification passes32/32 (`metadata-query-native-current.trx`), including4 culture/empty-filter/stable-selection cases. SQLite producer/consumer SHA256 match `3F8C89114D3A63D3ADB5627D16DB4346C35BE8FBCD93A61AF6AA4D00E1D455F1`. Full regression is running as `metadata-query-sqlite-verified.trx`; no newer full count claimed yet. Core/Shared sources unchanged.
 
 Metadata/query final regression:797/797 native SQLite tests pass, zero skipped (`metadata-query-sqlite-verified.trx`), terminal0, owned database/wal/shm absent. This adds32 cases over the765 ordinary-delete checkpoint. Producer source and native consumer were rebuilt nonincrementally with bounded workers and equal copied SQLite hashes before the run. No Core/Shared source, Git/index, push or deployment writes were performed. Typed relationship hydration, broader history/query contracts, retention/restore, committed deltas, CQL and clean-source integration remain unfinished.
+
+
+## Exact archived metadata and physical-observation comparison — 20 October 2026
+
+SQLite archived-record decoding now uses the canonical stored-Holon reader, preserving raw metadata numeric precision rather than converting untyped fractions to double. Current/archive observations of one native revision are compared through the shared exact payload-equivalence owner on canonical tokens. No double-based text reparsing remains in this merge check. Numeric scale-equivalent representations remain equal; a checksum-valid tiny decimal change under the same physical revision remains corrupt data.
+
+Four native red-before cases fail against the old reader/merge. Six new cases now cover sync/async versioned reads, point/collection conflicts and same-value/different-scale controls. Combined with the existing physical-conflict/rollover cases, focused12/12 passes3s, zero skips. Final full native acceptance is recorded separately. This fixes selected historical before-value precision prerequisites; coherent historical graphs, retention/restore policy, committed delta persistence and broader roadmap requirements remain open.
+
+Final history precision gate: focused12/12 passes3s and fullSQLite969/969 passes128s, zero skips, with owned database/wal/shm absent after teardown (`sqlite-history-precision-focused.trx`, `sqlite-history-precision-full.trx`). Shared equality dependency9f345ff4a has its recorded866/866 gate on C82/F2E6; subsequent Oracle0071 evidence is a separate build epoch. No Core source/pin change or deployment is included.

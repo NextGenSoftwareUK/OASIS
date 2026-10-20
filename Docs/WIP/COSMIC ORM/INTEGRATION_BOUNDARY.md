@@ -318,3 +318,19 @@ Nine red-before cases have6fail/3controls. Final focused9/9 passes2s; fullSQLite
 - `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `5DC84218FAE74BBE7698765213519A2135550C7C2FF50F1D633A56D80D72668A`
 
 Native CoreF2E6/SharedE317 match the recorded Shared API epoch; subsequent Shared receipt-reader work is a separate provider-session candidate. Core9897491 gitlink/manifest remain unchanged. No dev push/deployment or legacy Hyperdrive implementation change is included. Full delta persistence, historical receipt reconciliation workflow, other provider certification and the complete roadmap remain open.
+
+
+## SQLite archived metadata precision and exact physical-conflict checks — 20 October 2026
+
+Archived records now use Core's canonical stored-Holon decoder. Same-native-revision candidate merging uses shared StoredRecordPayloadEquality.Equivalent on direct canonical tokens, preserving exact number comparison without default-double reparsing. Shared dependency9f345ff4a adds validated raw numeric recognition through the existing coefficient/exponent owner. No second equality parser/hash path is introduced.
+
+Four native red-before cases fail for rounded historical reads and hidden checksum-valid tiny-decimal conflicts. Six final new cases cover sync/async archive reads, point/collection conflicts and scale-equivalent controls; combined with the existing rollover/conflict matrix, focused12/12 passes3s. FullSQLite969/969 passes128s, zero skips. Both producer/consumer builds have zero errors; database/wal/shm are absent after teardown. Actual report/native consumer SHA256:
+
+- `TestResults/SQLiteCurrent/sqlite-history-precision-focused.trx`: `603CDCD44EAD33A8138AADCB93696FAAF8409656BBC6D2114D8797D6E44D59C8`
+- `TestResults/SQLiteCurrent/sqlite-history-precision-full.trx`: `38881CA5F4B0ED5CEA475FE2A358B710E74AD0A57248EA37EB7E158E1ECF3ACF`
+- `TestResults/SharedCurrent/shared-raw-equality-final.trx`: `22761576ADFAADF18D2091C2BF04D640675A3BE5A922E75A712B45FF3DD9A23A`
+- `NextGenSoftware.OASIS.API.Core.dll`: `F2E6D954DAE22CB45345CBFC241BDF34838C91183D7C465D76C45058886F3D12`
+- `NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll`: `C82CE38893DD295F4A7A935D2E935A319BFE20615EA7FA9D5064F469CD9E832F`
+- `NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll`: `6642A02C64D4E229CD21322C4FA38EB350B2703E8B6928793D11526BC31435CD`
+
+CoreF2E6/SharedC82 belong to the recorded Shared866/SQLite969 epoch. The provider session subsequently rebuilt identical Shared source for Oracle into a different0071 DLL; its Oracle96/Shared866 evidence is separate, not substituted for this C82 native proof. Core9897491 gitlink/manifest are unchanged, and Core1374 was not rerun for this SQLite-only change. Coherent historical graph snapshots, restore/retention, exact other-provider history, committed deltas and the full roadmap remain open. No dev push/deployment is included.
