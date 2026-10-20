@@ -52,69 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         /// Parse Polkadot blockchain response to Avatar object
         /// </summary>
         private Avatar ParsePolkadotToAvatar(string polkadotJson)
-        {
-            try
-            {
-                // Deserialize the complete Avatar object from Polkadot JSON
-                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(polkadotJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-
-                return avatar;
-            }
-            catch (Exception)
-            {
-                // If JSON deserialization fails, try to extract basic info
-                return CreateAvatarFromPolkadot(polkadotJson);
-            }
-        }
-
-        /// <summary>
-        /// Create Avatar from Polkadot response when JSON deserialization fails
-        /// </summary>
-        private Avatar CreateAvatarFromPolkadot(string polkadotJson)
-        {
-            try
-            {
-                // Extract basic information from Polkadot JSON response
-                var avatar = new Avatar
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{ExtractPolkadotProperty(polkadotJson, "address") ?? "polkadot_user"}"),
-                    Username = ExtractPolkadotProperty(polkadotJson, "address") ?? "polkadot_user",
-                    Email = ExtractPolkadotProperty(polkadotJson, "email") ?? "user@polkadot.example",
-                    FirstName = ExtractPolkadotProperty(polkadotJson, "first_name"),
-                    LastName = ExtractPolkadotProperty(polkadotJson, "last_name"),
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                return avatar;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Extract property value from Polkadot JSON response
-        /// </summary>
-        private string ExtractPolkadotProperty(string polkadotJson, string propertyName)
-        {
-            try
-            {
-                // Simple regex-based extraction for Polkadot properties
-                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
-                var match = System.Text.RegularExpressions.Regex.Match(polkadotJson, pattern);
-                return match.Success ? match.Groups[1].Value : null;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+            => ParseCanonicalPolkadotRecord<Avatar>(polkadotJson);
 
         /// <summary>
         /// Convert Avatar to Polkadot blockchain format
