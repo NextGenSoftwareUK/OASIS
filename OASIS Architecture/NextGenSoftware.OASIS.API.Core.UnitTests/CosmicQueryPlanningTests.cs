@@ -52,6 +52,79 @@ public class CosmicQueryPlanningTests
         Assert.Throws<ArgumentException>(() => new CosmicQueryFieldCapability(" ", typeof(string), CosmicQueryComparisonOperator.Equal));
     }
 
+    [Fact]
+    public void ExactMetadataTypesDoNotBorrowCanonicalOperationsOrOtherMetadataTypes()
+    {
+        var profile = new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata,
+            new[] { new CosmicQueryFieldCapability("Version", typeof(int), System.Enum.GetValues<CosmicQueryComparisonOperator>()) },
+            new[] { new CosmicQueryMetadataCapability(typeof(int), new[] { CosmicQueryComparisonOperator.Equal }) });
+        Assert.False(profile.Admit(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<int>(h, "x") == 1).Result).IsError);
+        Assert.True(profile.Admit(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<int>(h, "x") > 1).Result).IsError);
+        Assert.True(profile.Admit(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<long>(h, "x") == 1L).Result).IsError);
+        Assert.False(profile.Admit(CosmicQuery<Holon>.Create().Where(h => h.Version > 1).Result).IsError);
+        var noMetadata = new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata,
+            new CosmicQueryFieldCapability("Version", typeof(int), CosmicQueryComparisonOperator.Equal));
+        Assert.True(noMetadata.Admit(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<int>(h, "x") == 1).Result).IsError);
+    }
+
+    [Fact]
+    public void MetadataOnlyProfilesAdmitWithoutGrantingCanonicalFields()
+    {
+        var profile = new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata | CosmicQueryFeatures.NullLiteral,
+            Array.Empty<CosmicQueryFieldCapability>(),
+            new[] { new CosmicQueryMetadataCapability(typeof(int?), new[] { CosmicQueryComparisonOperator.Equal, CosmicQueryComparisonOperator.NotEqual }) });
+        Assert.False(profile.Admit(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<int?>(h, "x") != null).Result).IsError);
+        Assert.True(profile.Admit(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<int>(h, "x") == 1).Result).IsError);
+        Assert.True(profile.Admit(CosmicQuery<Holon>.Create().Where(h => h.Version == 1).Result).IsError);
+    }
+
+    [Fact]
+    public void MetadataStringAndMembershipOperationsNeedTheirOwnDeclarations()
+    {
+        var features = CosmicQueryFeatures.Metadata | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith | CosmicQueryFeatures.Membership;
+        var profile = new CosmicQueryCapabilities(features, Array.Empty<CosmicQueryFieldCapability>(),
+            new[] { new CosmicQueryMetadataCapability(typeof(string), new[] { CosmicQueryComparisonOperator.Equal }, new[] { CosmicQueryStringOperator.Contains }) });
+        Assert.False(profile.Admit(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "x").Contains("a")).Result).IsError);
+        Assert.True(profile.Admit(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "x").StartsWith("a", StringComparison.Ordinal)).Result).IsError);
+        var values = new[] { "a", "b" };
+        var query = CosmicQuery<Holon>.Create().Where(h => values.Contains(CosmicQueryMetadata.Value<string>(h, "x"))).Result;
+        Assert.True(profile.Admit(query).IsError);
+        var membership = new CosmicQueryCapabilities(features, Array.Empty<CosmicQueryFieldCapability>(),
+            new[] { new CosmicQueryMetadataCapability(typeof(string), new[] { CosmicQueryComparisonOperator.Equal }, supportsMembership: true) });
+        Assert.False(membership.Admit(query).IsError);
+        Assert.True(new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata, Array.Empty<CosmicQueryFieldCapability>(), membership.MetadataTypes.ToArray()).Admit(query).IsError);
+    }
+
+    [Fact]
+    public void MixedMetadataNumericSemanticsAreNotBorrowedFromCanonicalFields()
+    {
+        var features = CosmicQueryFeatures.Metadata | CosmicQueryFeatures.MixedNumericComparison;
+        var metadata = new CosmicQueryMetadataCapability(typeof(int), new[] { CosmicQueryComparisonOperator.Equal });
+        var query = CosmicQuery<Holon>.Create().Where(h => (decimal)CosmicQueryMetadata.Value<int>(h, "x") == 1.1m).Result;
+        Assert.True(new CosmicQueryCapabilities(features, Array.Empty<CosmicQueryFieldCapability>(), new[] { metadata }).Admit(query).IsError);
+        var exact = new CosmicQueryMetadataCapability(typeof(int), new[] { CosmicQueryComparisonOperator.Equal }, supportsMixedNumericComparison: true);
+        Assert.False(new CosmicQueryCapabilities(features, Array.Empty<CosmicQueryFieldCapability>(), new[] { exact }).Admit(query).IsError);
+        Assert.True(new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata, Array.Empty<CosmicQueryFieldCapability>(), new[] { exact }).Admit(query).IsError);
+    }
+
+    [Fact]
+    public void MetadataCapabilitiesAreDetachedAndRejectAmbiguity()
+    {
+        var operations = new[] { CosmicQueryComparisonOperator.Equal };
+        var strings = new[] { CosmicQueryStringOperator.Contains };
+        var descriptor = new CosmicQueryMetadataCapability(typeof(string), operations, strings);
+        var descriptors = new[] { descriptor };
+        var profile = new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata, Array.Empty<CosmicQueryFieldCapability>(), descriptors);
+        descriptors[0] = null!; operations[0] = CosmicQueryComparisonOperator.NotEqual; strings[0] = CosmicQueryStringOperator.EndsWith;
+        Assert.Same(descriptor, Assert.Single(profile.MetadataTypes));
+        Assert.Equal(CosmicQueryComparisonOperator.Equal, Assert.Single(descriptor.Comparisons));
+        Assert.Equal(CosmicQueryStringOperator.Contains, Assert.Single(descriptor.StringOperations));
+        Assert.Throws<ArgumentException>(() => new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata, Array.Empty<CosmicQueryFieldCapability>(), new[] { descriptor, descriptor }));
+        Assert.Throws<ArgumentException>(() => new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata, Array.Empty<CosmicQueryFieldCapability>(), new CosmicQueryMetadataCapability[] { null! }));
+        Assert.Throws<ArgumentException>(() => new CosmicQueryMetadataCapability(typeof(int), operations, strings));
+        Assert.Throws<ArgumentException>(() => new CosmicQueryMetadataCapability(typeof(int), new[] { CosmicQueryComparisonOperator.GreaterThan }, supportsMembership: true));
+    }
+
     private static CosmicQueryCapabilities Capability(CosmicQueryFeatures features = CosmicQueryFeatures.None, params Type[] types)
         => new(features, types, System.Enum.GetValues<CosmicQueryComparisonOperator>());
 
