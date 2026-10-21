@@ -40,7 +40,7 @@ public partial class OracleDBOASIS
                 if(await reader.ReadAsync()){detailJson=reader.GetString(0);detail=await ReadRecordVersionAsync<AvatarDetail>(id,detailJson,0,null,ReadNativeIdentityProjection(reader,1))??throw new InvalidDataException("Oracle locked detail is missing its current version.");if(detail.Id!=id)throw new InvalidDataException("Oracle avatar detail identity projection is invalid.");}
             }
             if(softDelete&&avatar.IsDeleted&&!avatar.IsActive&&(detail==null||detail.IsDeleted&&!detail.IsActive&&detail.DeletedDate==avatar.DeletedDate)){
-                result.Result=true;return result;
+                result.Result=true;result.IsDeleted=true;result.DeletedCount=1;return result;
             }
             var deletedAt=avatar.IsDeleted?avatar.DeletedDate:DateTime.UtcNow;
             foreach(var table in new[]{"OASIS_AVATARS","OASIS_AVATAR_DETAILS"}){
@@ -55,8 +55,9 @@ public partial class OracleDBOASIS
                     ?await StageRecordHistoryAsync(storedAvatar,avatarJson):await StageRecordHistoryAsync((AvatarDetail)row,detailJson);
                 dispatched=true;if(await command.ExecuteNonQueryAsync()!=1)throw new InvalidDataException("Oracle locked lifecycle row changed unexpectedly.");
             }
-            await CommitLifecycleTransactionAsync(transaction);result.Result=true;
+            await CommitLifecycleTransactionAsync(transaction);result.Result=true;result.IsSaved=true;result.IsDeleted=true;result.DeletedCount=1;
         }catch(Exception cause){
+            result.Result=false;result.IsSaved=false;result.IsDeleted=false;result.DeletedCount=0;
             result.Exception=dispatched?new OracleLifecycleReconciliationException(id,cause):cause;
             OASISErrorHandling.HandleError(ref result,"Oracle avatar lifecycle operation failed; inspect the original exception.");
         }

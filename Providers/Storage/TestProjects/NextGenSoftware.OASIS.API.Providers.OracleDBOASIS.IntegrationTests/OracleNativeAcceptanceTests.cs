@@ -809,6 +809,7 @@ public sealed partial class OracleNativeAcceptanceTests
                 var trigger="OASIS_TEST_"+id.ToString("N")[..20];
                 await using(var create=new OracleCommand($"CREATE TRIGGER {trigger} BEFORE UPDATE ON OASIS_AVATAR_DETAILS FOR EACH ROW BEGIN IF :NEW.ID=HEXTORAW('{Convert.ToHexString(id.ToByteArray())}') THEN RAISE_APPLICATION_ERROR(-20001,'owned lifecycle rollback proof'); END IF; END;",verifier))await create.ExecuteNonQueryAsync();
                 var rejected=await provider.DeleteAvatarAsync(id,true);Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.Result);
+                Assert.IsFalse(rejected.IsSaved);Assert.IsFalse(rejected.IsDeleted);Assert.AreEqual(0,rejected.DeletedCount);
                 Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(rejected.Exception);
                 Assert.IsInstanceOfType<OracleException>(rejected.Exception.InnerException);Assert.AreEqual(20001,((OracleException)rejected.Exception.InnerException!).Number);
                 Assert.AreEqual(beforeAvatar,await Read(verifier,"OASIS_AVATARS",id),"First row update must roll back when second-row native update fails.");
@@ -818,6 +819,7 @@ public sealed partial class OracleNativeAcceptanceTests
             if(!resume){
                 var commits=provider.CommitCalls;provider.LoseNextCommit=true;
                 var lost=await provider.DeleteAvatarAsync(id,true);Assert.IsTrue(lost.IsError);Assert.IsFalse(lost.Result);
+                Assert.IsFalse(lost.IsSaved);Assert.IsFalse(lost.IsDeleted);Assert.AreEqual(0,lost.DeletedCount);
                 Assert.AreEqual(commits+1,provider.CommitCalls);Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(lost.Exception);Assert.AreSame(provider.Lost,lost.Exception.InnerException);
                 Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(lost.Exception));
                 var committedAvatar=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Avatar>((await Read(verifier,"OASIS_AVATARS",id))!);
