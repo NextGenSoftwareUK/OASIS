@@ -1,5 +1,15 @@
 # Oracle client readiness — top priority
 
+## Native Oracle Database karma-history field acceptance
+
+Strengthened the existing canonical-record native case (main suite remains270, not extra new cases): store ordered karma entries, update through sync/async saves, verify every entry's owner/date/amount/running total/provider/source/gain-loss classifications/title/description/link through GUID/username/email selectors, direct canonical SDK readback and archived version1. Existing journal/unknown-outcome/exact cleanup guards remain intact; no production behavior changed. This addresses a previously unasserted AvatarDetail field family, not a complete high-level KarmaManager or every date-kind proof.
+
+Actual74518 terminal0: **270/270 native passed**,0skip,1m14s; `TestResults/OracleCurrent/oracle-native-current.trx` SHA256 `0364266131D8EB79F9CA879762A0305B5A3B66DEA11927CD806D442BF5294ECF`. Matched **235/235 controlled passed**,0skip,579ms; `oracle-karma-history-matched-controls.trx` `50507480F74AB8F6059D4BC7282D63607624763A31ADBB672605C3263C9AA803`. Identity verifier confirms both consumer cohorts Core `EB9EFAD0C29B70A546ADD34AD651F9EB21F7A86341CD30693251729EBD0759AC` / Shared `0D2BB0D178BCCF66F7B14CBFA46E45A9371418AF4AE4E048C471D415C5C5151A`.
+
+Previous native270 report0D0DE5 was hash-verified and moved in place to `oracle-native-pre-karma-history-fields.trx`, not overwritten/copied. Same pinned Oracle Free container/image/data volume/loopback11521/protected secret/cache reused; no install/download/new environment/hosted spending/deployment. Independent postterminal inspection confirms container `exited` and pending journals0 after exact fixture cleanup. FreeC60,555,149,312bytes;123GBcleanup target remains unmet.
+
+Scoped configuration recheck found no OCI_/ORACLEOBJECTSTORAGE*/ORACLEDBOASIS environment variables in this process and no standard `C:/Users/david/.oci/config` or standard API key file. This does not exhaust nondefault profiles or hosted settings; no account/key/bucket was created. Hosted Autonomous Database/OCI Object Storage/IAM/TLS/billing and full interface/concurrency/recovery/V2 gates remain OPEN. Oracle Free native acceptance must not be described as Oracle Cloud acceptance.
+
 ## Import result forwarding — shared/OCI controlled closure
 
 Shared `ImportAsync` created a new bool result and discarded underlying save flags/counts (and error code metadata). Four sync/async success/partial-failure controls genuinely failed: successes had `IsSaved=false`, partial failures lost the one completed record. `TestResults/SharedCurrent/import-result-forwarding-red.trx` SHA256 `271A1BC89B5B91A394E171C76CCC553A6F0459B623BCEFEDCF4313072BD39A71`.
