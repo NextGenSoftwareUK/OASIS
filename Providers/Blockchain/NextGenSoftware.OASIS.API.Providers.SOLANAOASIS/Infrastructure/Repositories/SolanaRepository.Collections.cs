@@ -47,10 +47,11 @@ public partial class SolanaRepository
                 foreach(var memo in memos)
                 {
                     var text=new UTF8Encoding(false,true).GetString(Encoders.Base58.DecodeData(memo.Data));
-                    if(text.StartsWith("oasis-aes256gcm-",StringComparison.Ordinal)) ownedStorage=true;
+                    if(text.StartsWith(SolanaMemoFrames.CipherPrefix,StringComparison.Ordinal)
+                        || text.StartsWith("oasis-solana-commit-",StringComparison.Ordinal)) ownedStorage=true;
                 }
                 if(!ownedStorage) continue; // An explicitly non-storage memo, not a guessed avatar.
-                var payload=DecodeEntity(ValidateStoredTransaction(transaction.Result,entry.Signature,writer));
+                var payload=await DecodeStoredMemoAsync(entry.Signature,ValidateStoredTransaction(transaction.Result,entry.Signature,writer));
                 var document=Newtonsoft.Json.Linq.JObject.Parse(payload);
                 var kind=document.Value<string>("RecordKind");
                 if(kind is not ("oasis.avatar.v1" or "oasis.avatar-detail.v1" or "oasis.holon.v1"))

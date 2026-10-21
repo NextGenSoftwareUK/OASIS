@@ -125,6 +125,7 @@ public partial class SolanaOASIS
             var evidence=committed.Count>0 ? new SolanaPartialMutationException(committed,cause):cause;
             OASISErrorHandling.HandleError(ref result,"Solana selected graph save failed: "+cause.Message,evidence);
         }
+        result.SavedCount=committed.Count;
         return result;
     }
 }

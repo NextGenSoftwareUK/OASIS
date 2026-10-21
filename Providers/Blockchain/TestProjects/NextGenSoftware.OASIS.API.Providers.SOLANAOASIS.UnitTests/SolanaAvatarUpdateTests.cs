@@ -14,6 +14,42 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaAvatarUpdateTests
 {
+    [DataTestMethod]
+    [DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task AcknowledgedProfileRevisionIsPublishedToCaller(bool detail,bool synchronous)
+    {
+        var account=new Account();var provider=new SolanaOASIS("http://127.0.0.1:1",account.PrivateKey.Key,account.PublicKey.Key);
+        IHolonBase source=detail?new AvatarDetail():new Avatar();source.Id=Guid.NewGuid();source.Version=1;
+        source.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]="old-signature";
+        SolanaBaseDto persisted=detail?new SolanaAvatarDetailDto():new SolanaAvatarDto();persisted.Id=source.Id;persisted.Version=5;
+        var repository=new CapturingRepository{Existing=persisted,AdvanceVersion=true};
+        typeof(SolanaOASIS).GetField("_solanaRepository",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,repository);
+        typeof(SolanaOASIS).GetProperty("IsProviderActivated")!.SetValue(provider,true);
+        Assert.IsFalse(await SaveOriginCase(provider,source,detail?"detail":"avatar",synchronous));
+        Assert.AreEqual(6,source.Version);Assert.AreEqual(source.Id,source.PreviousVersionId);
+        Assert.AreEqual("new-signature",source.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+    }
+
+    [DataTestMethod]
+    [DataRow("avatar",false)][DataRow("avatar",true)][DataRow("detail",false)][DataRow("detail",true)]
+    [DataRow("holon",false)][DataRow("holon",true)][DataRow("bulk",false)][DataRow("bulk",true)]
+    public async Task SuccessfulUpdateAcknowledgesExactlyOneLogicalRecord(string kind,bool synchronous)
+    {
+        var account=new Account();var provider=new SolanaOASIS("http://127.0.0.1:1",account.PrivateKey.Key,account.PublicKey.Key);
+        IHolonBase source=kind switch {"avatar"=>new Avatar(),"detail"=>new AvatarDetail(),_=>new Holon()};
+        source.Id=Guid.NewGuid();source.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]="old-signature";
+        SolanaBaseDto existing=kind switch {"avatar"=>new SolanaAvatarDto(),"detail"=>new SolanaAvatarDetailDto(),_=>new SolanaHolonDto()};
+        existing.Id=source.Id;existing.Version=5;
+        var repository=new CapturingRepository{Existing=existing};
+        typeof(SolanaOASIS).GetField("_solanaRepository",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,repository);
+        typeof(SolanaOASIS).GetProperty("IsProviderActivated")!.SetValue(provider,true);
+        void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsSaved);Assert.AreEqual(1,result.SavedCount);}
+        if(kind=="avatar")Check(synchronous?provider.SaveAvatar((IAvatar)source):await provider.SaveAvatarAsync((IAvatar)source));
+        else if(kind=="detail")Check(synchronous?provider.SaveAvatarDetail((IAvatarDetail)source):await provider.SaveAvatarDetailAsync((IAvatarDetail)source));
+        else if(kind=="bulk")Check(synchronous?provider.SaveHolons(new[]{(IHolon)source},saveChildren:false):await provider.SaveHolonsAsync(new[]{(IHolon)source},saveChildren:false));
+        else Check(synchronous?provider.SaveHolon((IHolon)source,saveChildren:false):await provider.SaveHolonAsync((IHolon)source,saveChildren:false));
+    }
+
     private static async Task<bool> SaveOriginCase(SolanaOASIS provider,IHolonBase source,string kind,bool synchronous) => kind switch {
         "avatar"=>synchronous ? provider.SaveAvatar((IAvatar)source).IsError:(await provider.SaveAvatarAsync((IAvatar)source)).IsError,
         "detail"=>synchronous ? provider.SaveAvatarDetail((IAvatarDetail)source).IsError:(await provider.SaveAvatarDetailAsync((IAvatarDetail)source)).IsError,
@@ -160,9 +196,10 @@ public class SolanaAvatarUpdateTests
         public SolanaBaseDto Existing = null!;
         public SolanaBaseDto? Updated;
         public Exception? UpdateFailure;
+        public bool AdvanceVersion;
         public Task<T> GetAsync<T>(string reference) where T : SolanaBaseDto, new() => Task.FromResult((T)Existing);
         public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>(int version=0) where T:SolanaBaseDto,new() => throw new InvalidOperationException("Unexpected collection read");
-        public Task<string> UpdateAsync<T>(T entity) where T : SolanaBaseDto, new() { Updated = entity; if(UpdateFailure!=null) throw UpdateFailure; return Task.FromResult("new-signature"); }
+        public Task<string> UpdateAsync<T>(T entity) where T : SolanaBaseDto, new() { Updated = entity; if(UpdateFailure!=null) throw UpdateFailure; if(AdvanceVersion){entity.Version=checked(entity.Version+1);entity.PreviousVersionId=entity.Id;} return Task.FromResult("new-signature"); }
         public Task<string> CreateAsync<T>(T entity) where T : SolanaBaseDto, new() => throw new InvalidOperationException("Unexpected create");
         public Task<bool> DeleteAsync(string reference) => throw new InvalidOperationException("Unexpected delete");
         public Task<string> CreateTombstoneAsync(string reference) => throw new InvalidOperationException("Unexpected tombstone");

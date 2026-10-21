@@ -1,4 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+      <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests" />
+    </ItemGroup>
 
     <PropertyGroup>
         <OutputType>Library</OutputType>
