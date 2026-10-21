@@ -44,7 +44,9 @@ public partial class SQLLiteDBOASIS
                 {"ParentHolonId2","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
                 {"ParentHolonId3","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"Avatar",
-            new Dictionary<string,string> {{"ProviderWalletsJson","TEXT NOT NULL DEFAULT '{}'"},
+            new Dictionary<string,string> {{"HasAvatarType","INTEGER NOT NULL DEFAULT 1"},
+                {"HasCreatedProviderType","INTEGER NOT NULL DEFAULT 1"},{"HasCreatedOASISType","INTEGER NOT NULL DEFAULT 1"},
+                {"ProviderWalletsJson","TEXT NOT NULL DEFAULT '{}'"},
                 {"ParentHolonId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"AvatarInventory",
             new Dictionary<string,string> {{"Image2D","BLOB NULL"},{"Object3D","BLOB NULL"},
