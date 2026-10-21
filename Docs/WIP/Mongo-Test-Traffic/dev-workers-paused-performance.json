@@ -1,0 +1,101 @@
+[
+  {
+    "Label": "Authenticate",
+    "Utc": "2026-10-20T08:21:15.8734663Z",
+    "Status": 200,
+    "Milliseconds": 3780,
+    "Bytes": 10873,
+    "IsError": false,
+    "Count": null
+  },
+  {
+    "Label": "Profile",
+    "Utc": "2026-10-20T08:21:17.2161326Z",
+    "Status": 200,
+    "Milliseconds": 1323,
+    "Bytes": 895,
+    "IsError": false,
+    "Count": null
+  },
+  {
+    "Label": "Metadata children=False",
+    "Utc": "2026-10-20T08:21:22.5498865Z",
+    "Status": 200,
+    "Milliseconds": 5318,
+    "Bytes": 401676,
+    "IsError": false,
+    "Count": 30
+  },
+  {
+    "Label": "Metadata children=True",
+    "Utc": "2026-10-20T08:21:27.9115468Z",
+    "Status": 200,
+    "Milliseconds": 5339,
+    "Bytes": 401676,
+    "IsError": false,
+    "Count": 30
+  },
+  {
+    "Label": "Metadata children=False",
+    "Utc": "2026-10-20T08:21:33.0962759Z",
+    "Status": 200,
+    "Milliseconds": 5168,
+    "Bytes": 401676,
+    "IsError": false,
+    "Count": 30
+  },
+  {
+    "Label": "Metadata children=True",
+    "Utc": "2026-10-20T08:21:38.3243097Z",
+    "Status": 200,
+    "Milliseconds": 5208,
+    "Bytes": 401676,
+    "IsError": false,
+    "Count": 30
+  },
+  {
+    "Label": "Game quests",
+    "Utc": "2026-10-20T08:21:43.8285190Z",
+    "Status": 200,
+    "Milliseconds": 5495,
+    "Bytes": 37297,
+    "IsError": false,
+    "Count": 10
+  },
+  {
+    "Label": "Game quests",
+    "Utc": "2026-10-20T08:21:49.2678259Z",
+    "Status": 200,
+    "Milliseconds": 5437,
+    "Bytes": 37297,
+    "IsError": false,
+    "Count": 10
+  },
+  {
+    "Label": "Profile before same-selection save",
+    "Utc": "2026-10-20T08:21:50.4196719Z",
+    "Status": 200,
+    "Milliseconds": 1149,
+    "Bytes": 895,
+    "IsError": false,
+    "Count": null
+  },
+  {
+    "Label": "Save same selection",
+    "Utc": "2026-10-20T08:21:54.7080004Z",
+    "Status": 200,
+    "Milliseconds": 4285,
+    "Bytes": 616,
+    "IsError": false,
+    "Count": null
+  },
+  {
+    "Label": "Profile after save",
+    "Utc": "2026-10-20T08:21:55.8367329Z",
+    "Status": 200,
+    "Milliseconds": 1128,
+    "Bytes": 895,
+    "IsError": false,
+    "Count": null
+  }
+]

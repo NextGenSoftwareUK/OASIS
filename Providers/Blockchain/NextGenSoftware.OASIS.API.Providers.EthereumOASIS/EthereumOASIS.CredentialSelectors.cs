@@ -12,7 +12,7 @@ public partial class EthereumOASIS : IOASISStorageProvider
 {
     private Task<OASISResult<IEnumerable<IAvatar>>> LoadCredentialAvatarsAsync(int version)
     {
-        if(version!=0) throw new NotSupportedException("Ethereum credential collection history is not implemented; only version 0 is supported.");
+        if(version!=0) throw new NotSupportedException("Ethereum credential authentication requires the latest record (version 0); archived credentials cannot authenticate an avatar.");
         return LoadAllAvatarsAsync(version);
     }
     public Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string key,int version=0)
