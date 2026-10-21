@@ -12,6 +12,52 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaSdkMintTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task PublicMintKeepsCollectionVerificationWarningAndFinalizedMint(bool synchronous)
+    {
+        var owner=new Account();var rpc=DispatchProxy.Create<IRpcClient,MintProxy>();var proxy=(MintProxy)(object)rpc;
+        proxy.Scenario="finalized";proxy.FailFollowupSimulation=true;
+        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
+        typeof(SolanaOASIS).GetField("_solanaService",BindingFlags.NonPublic|BindingFlags.Instance)!
+            .SetValue(provider,new SolanaService(owner,rpc));
+        var request=new MintWeb3NFTRequest{Title="warning fixture",Symbol="OWN",JSONMetaDataURL="https://example.invalid/owned.json",
+            CollectionPublicKey=new Account().PublicKey.Key,WaitTillNFTVerified=false};
+        var result=synchronous?provider.MintNFT(request):await provider.MintNFTAsync(request);
+        Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsWarning);Assert.IsTrue(result.WarningCount>0);
+        Assert.IsTrue(result.IsSaved);Assert.AreEqual(1,proxy.Sends);Assert.AreEqual(proxy.Signature,result.Result.TransactionResult);
+        StringAssert.Contains(result.Message,"collection verification failed");
+    }
+
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task PublicMintAcceptsIndependentInterfaceAndPreservesOriginalOutcome(bool synchronous,bool lost)
+    {
+        var owner=new Account();var rpc=DispatchProxy.Create<IRpcClient,MintProxy>();var proxy=(MintProxy)(object)rpc;
+        proxy.Scenario=lost?"lost-reply":"finalized";
+        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
+        typeof(SolanaOASIS).GetField("_solanaService",BindingFlags.NonPublic|BindingFlags.Instance)!
+            .SetValue(provider,new SolanaService(owner,rpc));
+        var request=DispatchProxy.Create<NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests.IMintWeb3NFTRequest,IndependentMintRequest>();
+        request.Title="interface NFT";request.Symbol="OWN";request.JSONMetaDataURL="https://example.invalid/owned.json";
+        var result=synchronous?provider.MintNFT(request):await provider.MintNFTAsync(request);
+        Assert.AreEqual(lost,result.IsError,result.Exception?.ToString()??result.Message);Assert.AreEqual(1,proxy.Sends);
+        if(lost){Assert.IsFalse(result.IsSaved);Assert.IsInstanceOfType(result.Exception,typeof(SolanaTransactionReconciliationException));
+            Assert.AreEqual(proxy.Signature,((SolanaTransactionReconciliationException)result.Exception).OriginalTransactionId);}
+        else{Assert.IsTrue(result.IsSaved);Assert.AreEqual(proxy.Signature,result.Result.TransactionResult);
+            Assert.AreEqual("OWN",result.Result.Web3NFT.Symbol);Assert.IsFalse(string.IsNullOrWhiteSpace(result.Result.Web3NFT.NFTTokenAddress));}
+    }
+
+    public class IndependentMintRequest:DispatchProxy
+    {
+        private readonly Dictionary<string,object?> _values=new();
+        protected override object? Invoke(MethodInfo? method,object?[]? args)
+        {
+            if(method!.Name.StartsWith("set_",StringComparison.Ordinal)){_values[method.Name[4..]]=args![0];return null;}
+            if(method.Name.StartsWith("get_",StringComparison.Ordinal))return _values.TryGetValue(method.Name[4..],out var value)?value:
+                method.ReturnType.IsValueType?Activator.CreateInstance(method.ReturnType):null;
+            throw new NotSupportedException("Property-only independent request fixture.");
+        }
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)][DoNotParallelize]
     public async Task AwaitingSdkMintMustNotReplaceProcessConsoleWriter(bool collection)
     {

@@ -39,7 +39,7 @@ public sealed partial class SolanaService
         return result;
     }
 
-    public async Task<OASISResult<MintNftResult>> MintNftAsync(MintWeb3NFTRequest mintNftRequest)
+    public async Task<OASISResult<MintNftResult>> MintNftAsync(IMintWeb3NFTRequest mintNftRequest)
     {
         FinalizedSolanaRpc submissionState=null;
         try
