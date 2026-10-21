@@ -8,6 +8,19 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 public class CosmicQueryTranslationTests
 {
     [TestMethod]
+    public void NullableMetadataAndCanonicalFieldsShareFieldComparisonAdmission()
+    {
+        var built=CosmicQuery<Holon>.Create().Where(h=>
+            CosmicQueryMetadata.Value<int?>(h,"left")==CosmicQueryMetadata.Value<int?>(h,"right")
+            && h.Name!=h.Description && h.Version>CosmicQueryMetadata.Value<int>(h,"minimum"));
+        Assert.IsFalse(built.IsError,built.Message);
+        var admitted=NeoCqlContract.Capabilities.Admit(built.Result);
+        Assert.IsFalse(admitted.IsError,admitted.Message);
+        var translator=new NeoCqlTranslator();
+        foreach(var predicate in built.Result.Predicates)translator.Translate(predicate);
+    }
+
+    [TestMethod]
     public void MetadataKeysAndValuesRemainBoundParameters()
     {
         const string hostile = "x']) DETACH DELETE h //";

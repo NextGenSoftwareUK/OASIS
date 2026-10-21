@@ -40,6 +40,7 @@ public sealed class HolonReplicationHostedService : BackgroundService
     private readonly HolonReplicationCatalog[] _catalogs;
     private readonly HolonReplicationHostOptions _options;
     private readonly ILogger<HolonReplicationHostedService> _logger;
+    private int _executionEntered;
     public HolonReplicationHostState State {get;}
     public HolonReplicationHostedService(IEnumerable<HolonReplicationCatalog> catalogs,HolonReplicationHostOptions options,
         ILogger<HolonReplicationHostedService> logger) : this(catalogs,options,logger,new HolonReplicationHostState()) { }
@@ -68,6 +69,7 @@ public sealed class HolonReplicationHostedService : BackgroundService
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        Interlocked.Exchange(ref _executionEntered,1);
         State.Running();
         using var joined=CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
         var loops=_catalogs.SelectMany(catalog=>{
@@ -90,7 +92,14 @@ public sealed class HolonReplicationHostedService : BackgroundService
         try{await base.StopAsync(cancellationToken).ConfigureAwait(false);}catch(Exception cause){failure=cause;}
         // BackgroundService may return at its stop deadline. Never report successful shutdown while routes still run.
         if(ExecuteTask!=null)
-        {try{await ExecuteTask.WaitAsync(cancellationToken).ConfigureAwait(false);}catch(Exception cause){failure=Join(failure,cause);}}
+        {
+            try{await ExecuteTask.WaitAsync(cancellationToken).ConfigureAwait(false);}
+            // .NET 10 may cancel its scheduled Task.Run before ExecuteAsync enters.
+            // No route exists in that case; preserve deadlines and all entered failures.
+            catch(OperationCanceledException)when(!cancellationToken.IsCancellationRequested
+                && ExecuteTask.IsCanceled && Volatile.Read(ref _executionEntered)==0){State.Terminal(false);}
+            catch(Exception cause){failure=Join(failure,cause);}
+        }
         if(failure!=null){State.Terminal(true);System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();}
     }
     private static Exception Join(Exception first,Exception second)=>first==null ? second:ReferenceEquals(first,second) ? first:new AggregateException(first,second);

@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Narrow integer domains and replication shutdown — 21 October 2026
+
+Neo4j now admits byte/sbyte/short/ushort/uint metadata and nullable forms with exact range guards shared across predicates, membership, field comparisons and ordering. Full Neo controls pass 301/301. A separately reproduced pre-execution BackgroundService cancellation bug is repaired at the shutdown owner; its three controls distinguish expected scheduling cancellation from expired deadlines and post-entry faults. Full Shared passes 946/946. Rebuilt native CQL plus configured replication hosting passes 66/66, zero skips. See [integer domains](CQL_INTEGER_DOMAINS.md) and [shutdown evidence](REPLICATION_HOST_SHUTDOWN.md). Broader CQL domains, resource stress, federation and remaining roadmap acceptance are still open.
+
 ## Neo4j native ordering/paging — 21 October 2026
 
 Native window execution preserves shared missing/null/valid/invalid buckets, per-key direction, normalized logical-ID ties and sequential Skip/Take algebra. A separate guard branch within the same native query prevents offsets from hiding invalid projections. Empty windows perform no native I/O. FullNeo300/300, Shared943/943 and expanded nativeNeo64/64 pass, zero skips;23 declared assembly copies match. [Semantics and acceptance](CQL_ORDERING_PAGING.md#verified-neo4j-window-gate). Existing Core pin is unchanged; broader scalar domains, native resource stress, global federation and snapshot continuation remain open.
