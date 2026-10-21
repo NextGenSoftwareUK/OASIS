@@ -2,7 +2,7 @@
 
 ## Subscription protocol update (2026-09-22)
 
-WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
 
 
 ## 📋 **Complete Developer Documentation Guide**
@@ -56,7 +56,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OASIS Architecture Overview](../OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture (WEB4–WEB10)
 - **[OASIS Architecture Diagrams](./OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual system diagrams
 - **[Combined API Overview](./API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 + WEB6 integration
-- **[Current Implementation Status](../CURRENT_IMPLEMENTATION_STATUS.md)** - Complete implementation status across all components
+- **[Current Implementation Status](<../WIP/Release and Status/CURRENT_IMPLEMENTATION_STATUS.md>)** - Complete implementation status across all components
 
 ### **WEB6 OASIS AI API — The Intelligence Layer** *(Live July 2026)*
 - **[WEB6 Getting Started Guide](./API%20Documentation/WEB6/WEB6-Getting-Started-Guide.md)** - **Start here** — quickstart, 26+ providers, OpenAI-compat drop-in, migration phases, cost savings
@@ -74,7 +74,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[Wallet Management System](./Wallet-Management-System.md)** - Comprehensive wallet management guide
 
 ### **Core Components**
-- **[OASIS Edge Runtime releases, packages and evidence](./EDGE_RUNTIME_RELEASES.md)** — canonical map of Edge/ONODE packages, providers, tests, scripts, outputs, GitHub Actions and publication channels
+- **[OASIS Edge Runtime releases, packages and evidence](<../WIP/Edge and Games/EDGE_RUNTIME_RELEASES.md>)** — canonical map of Edge/ONODE packages, providers, tests, scripts, outputs, GitHub Actions and publication channels
 - **WEB4 OASIS API**: Data aggregation and identity layer
 - **WEB5 STAR API**: Gamification and business layer  
 - **STARNET Web UI**: Comprehensive web interface and app store
@@ -125,10 +125,10 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 ## 🚀 **Revolutionary Systems Documentation**
 
 ### **OASIS HyperDrive**
-- **[Three-game Edge release artifact map](./THREE_GAME_EDGE_RELEASE_ARTIFACT_MAP.md)** - Canonical locations for Our World, ODOOM and OQuake source, release commands, tests, outputs, deployment, backups and cleanup
+- **[Three-game Edge release artifact map](<../WIP/Edge and Games/THREE_GAME_EDGE_RELEASE_ARTIFACT_MAP.md>)** - Canonical locations for Our World, ODOOM and OQuake source, release commands, tests, outputs, deployment, backups and cleanup
 - **[OASIS Edge Runtime & Offline Sync Architecture](./OASIS_EDGE_RUNTIME_OFFLINE_SYNC_ARCHITECTURE.md)** - Canonical, code-audited design for mobile offline operation, durable synchronization, hosted ONODE integration, provider roles and ONET transport boundaries
 - **[Our World Offline-First Delivery Plan](./OUR_WORLD_OFFLINE_PLAN.md)** - Narrow Android/Unity milestone, audited live API surface, acceptance criteria, implementation order and deferred full-API backlog
-- **[OGEngineClient Unity Asset Store Release](./OGENGINECLIENT_UNITY_ASSET_STORE_RELEASE.md)** - Public package identity, automated UPM/Unity/Android gates, listing disclosures and manual Publisher Portal checklist
+- **[OGEngineClient Unity Asset Store Release](<../WIP/Edge and Games/OGENGINECLIENT_UNITY_ASSET_STORE_RELEASE.md>)** - Public package identity, automated UPM/Unity/Android gates, listing disclosures and manual Publisher Portal checklist
 - **[OASIS HyperDrive Whitepaper](../OASIS_HYPERDRIVE_WHITEPAPER.md)** - Complete HyperDrive documentation
 - **Features**: 100% uptime, auto-failover, auto-load balancing, auto-replication
 - **Benefits**: Impossible to shutdown, intelligent routing, geographic optimization

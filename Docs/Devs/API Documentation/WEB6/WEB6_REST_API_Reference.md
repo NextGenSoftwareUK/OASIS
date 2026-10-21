@@ -2,7 +2,7 @@
 
 ## Subscription protocol update (2026-09-22)
 
-WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
 
 
 **Base URL:** `https://api.web6.oasisomniverse.one`  
@@ -395,19 +395,21 @@ Token prices come from each model entry. Every **unit-metered** call needs a con
     "models": [ "...the current models array, unchanged..." ],
     "unitPrices": [
       { "provider": "AssemblyAI", "model": "nano",   "unit": "audio_ms", "usdPerUnit": 0.0000000333, "maxUnitsPerCall": 600000 },
-      { "provider": "Deepgram",   "model": "nova-3", "unit": "audio_ms", "usdPerUnit": 0.0000000717, "maxUnitsPerCall": 600000 }
+      { "provider": "Deepgram",   "model": "nova-3", "unit": "audio_ms", "usdPerUnit": 0.0000000717, "maxUnitsPerCall": 600000 },
+      { "provider": "E2B",        "model": "sandbox", "unit": "sandbox_ms", "usdPerUnit": 0.00000005, "maxUnitsPerCall": 300000 },
+      { "provider": "Judge0",     "model": "sandbox", "unit": "sandbox_ms", "usdPerUnit": 0.00000001, "maxUnitsPerCall": 300000 }
     ]
   }
 }
 ```
 
-The figures above are placeholders: use the rates in your provider contracts. `maxUnitsPerCall` bounds the reservation (600000 ms = 10 minutes of audio). Completions never reserve unit exposure. An agent run, including a voice note's agent run, reserves the worst unit call for each provider call in its budget.
+The figures above are placeholders: use the rates in your provider contracts. `maxUnitsPerCall` bounds the reservation (600000 ms = 10 minutes of audio; 300000 ms = the 5-minute sandbox ceiling). `provider` is the name receipts report: an AI provider, or a code sandbox (`E2B`, `Judge0`, `Daytona`). Code execution (`/v1/code/execute` and the agent's code tool) bills measured sandbox wall-clock time against the provider's execution id; Modal returns no execution id and is refused whenever usage is metered. Completions never reserve unit exposure. An agent run, including a voice note's agent run, reserves the worst unit call for each provider call in its budget.
 
 ## Agent Runtime
 
 ### POST `/v1/agent/run`
 
-Runs a server-side agent loop inside one request. WEB6 reserves usage for up to **10 provider calls** (the endpoint's call budget); each model step settles from its measured usage, so you pay only for the steps that run.
+Runs a server-side agent loop inside one request, under one WEB4 reservation **sized for this request**: its call budget (`maxSteps`, plus one reflection call when it may curate memory or draft a skill; 10 at most), its output bound (`maxTokens`, default 1024 per call) and an input ceiling (the request plus bounded server context, room to grow and MCP tool schemas). Each model step and sandbox run settles from measured usage, so you pay only for what runs. Before every model call the loop measures the input exactly as the reservation does; if the next call would not fit, the run stops with `context_budget_exhausted` instead of exceeding what was reserved. A short chat (3 steps × 600 tokens) reserves well under a bronze plan's daily tokens.
 
 ```json
 {
@@ -417,15 +419,23 @@ Runs a server-side agent loop inside one request. WEB6 reserves usage for up to 
   "taskCategory": "wellbeing",
   "memoryHolonId": "<your Holonic Memory holon — optional, enables memory tools and curation>",
   "curateMemory": true,
+  "maxTokens": 600,
+  "allowCodeExecution": true,
+  "codeExecutionProvider": "auto",
+  "mcpServers": [ { "name": "github", "url": "https://mcp.example.com/mcp", "bearerToken": "<sent only to that server, never stored>" } ],
+  "draftSkill": true,
   "clientTools": [ { "type": "function", "function": { "name": "calendar_lookup", "description": "...", "parameters": { "type": "object" } } } ]
 }
 ```
 
-- `maxSteps` is 1–9 (one call is kept back for memory curation).
+- `maxSteps` is 1–9 (one call is kept back for reflection). Model steps, sandbox runs and the reflection call all draw on the same budget; at most 4 tool calls run per step (extras get an explicit error result) and tool output is capped at 4,000 characters.
+- `allowCodeExecution` adds `oasis_agent_code_execute` (python, javascript or bash in an isolated sandbox: E2B, Judge0 or Daytona via `codeExecutionProvider`). Each run is a metered provider call priced per `sandbox_ms`.
+- `mcpServers` (up to 4) exposes each server's tools as `mcp__<name>__<tool>`. Servers must be public HTTPS; every connection is checked after DNS resolution, so private, loopback and link-local addresses are refused.
+- `draftSkill` (default true): when the `agentHolonId` has no skill document for `taskCategory`, the run's reflection call drafts one (`skillDrafted: true`). Scoring the run ≥ 0.7 with `/v1/agent/feedback` promotes the draft to the agent's skill; SkillOpt epochs then refine it.
 - `history` (optional, new runs only): earlier `user` / `assistant` messages of an ongoing conversation. These are placed between the system prompt and the task, up to 20 messages and 16,000 characters.
 - With `memoryHolonId` (must be owned by the caller), the agent gets `oasis_agent_memory_search` and `oasis_agent_memory_record`, recalled memories are injected up front, and after a completed run one curation call stores durable facts tagged `agent-curated`.
 - If the model calls one of your `clientTools`, the run returns `status: "awaiting_tool_results"` with `pendingToolCalls` and `messages`. Execute the tools, append `{ "role": "tool", "toolCallId": ..., "content": ... }` messages, and POST again with `messages` (instead of `task`).
-- `status` is `completed`, `awaiting_tool_results` or `step_budget_exhausted`. The response also includes `runId`, `finalAnswer`, `steps` (per-step provider, model, tokens and tool calls), `curatedMemories`, `providerCalls`, and token and cost totals.
+- `status` is `completed`, `awaiting_tool_results`, `step_budget_exhausted` or `context_budget_exhausted`. The response also includes `runId`, `finalAnswer`, `steps` (per-step provider, model, tokens and tool calls, each marked `server`, `mcp`, `client` or `refused`), `availableTools`, `codeExecutions`, `curatedMemories`, `skillApplied`, `skillDrafted`, `providerCalls`, and token and cost totals.
 
 ### POST `/v1/agent/feedback`
 
@@ -433,7 +443,7 @@ Runs a server-side agent loop inside one request. WEB6 reserves usage for up to 
 { "agentHolonId": "...", "runId": "...", "score": 0.9 }
 ```
 
-Scores a completed run started by the same avatar. The run becomes a SkillOpt rollout for its task category; scores ≥ 0.7 count as successes when `/evolve` runs the next epoch.
+Scores a completed run started by the same avatar. The run becomes a SkillOpt rollout for its task category; scores ≥ 0.7 count as successes when `/evolve` runs the next epoch. If that run drafted a skill and the agent still has none for the category, a score ≥ 0.7 makes the draft its skill (the response message says so).
 
 ## Scheduled Agent Runs
 
@@ -491,7 +501,10 @@ Run history, newest first. Each run has `status` (`succeeded`, `incomplete` when
 
 ## Messaging Channels
 
-Chat users on Telegram, WhatsApp, Slack and Discord link their chat identity to an OASIS avatar, then talk to their agent from that app.
+Chat users on Telegram, WhatsApp, Slack, Discord, Signal and Email link their chat identity to an OASIS avatar, then talk to their agent from that app.
+
+- **Signal** has no bot webhooks: run signal-cli-rest-api, and have a relay POST each received envelope to `/v1/channels/webhooks/signal` with `X-Signal-Signature: sha256=<HMAC-SHA256(SIGNAL_WEBHOOK_SECRET, body)>`. Replies and voice attachments go through `SIGNAL_API_URL` as `SIGNAL_NUMBER`.
+- **Email** uses a Mailgun inbound route forwarding to `/v1/channels/webhooks/email`. Each POST is verified with Mailgun's signature (`MAILGUN_SIGNING_KEY`, 5-minute replay window), and mail is accepted only when Mailgun reports a passing DKIM or SPF check, because the From header alone is trivially forged. Replies are sent through `MAILGUN_DOMAIN` as `MAILGUN_FROM`, threaded with `In-Reply-To`.
 
 ### GET/POST `/v1/channels/webhooks/{channel}`
 

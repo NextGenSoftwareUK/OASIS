@@ -20,6 +20,7 @@ public sealed class LocalHyperDriveSoakCollection { }
 public sealed class HyperDriveLocalMongoSoakTests
 {
     [Fact]
+    [Trait("Category", "LocalMongoSoak")] // Needs the operator's loopback MongoDB; run via Scripts/Test-HyperDriveLocalWorkers.ps1. Hosted CI filters this category out.
     public async Task LocalWorkersBackOffWithoutIdleLeaseWritesAndKeepClaimsExclusive()
     {
         const string connection="mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=3000";

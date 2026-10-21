@@ -61,7 +61,7 @@ Run the required WEB4-WEB10 publishes described in [Railway dependency pins](./R
 
 ## Staging release-candidate process (gate implementation in progress)
 
-The owner has now requested enforcement. See [Railway staging gate implementation and proof checklist](RAILWAY_STAGING_GATE.md). Live staging/production push autodeploys have been disabled; dev is unchanged. The new gated workflow freezes an exact CI-tested master candidate, stages it, requires native GitHub approval by dellams, rechecks staging and promotes the same source SHA. It remains blocked from live proof by scoped-token provisioning and staging data/payment isolation; do not claim end-to-end completion. The numbered intended sequence below is the target contract, not a claim that every acceptance item has passed.
+The owner has now requested enforcement. See [Railway staging gate implementation and proof checklist](<../WIP/Release and Status/RAILWAY_STAGING_GATE.md>). Live staging/production push autodeploys have been disabled; dev is unchanged. The new gated workflow freezes an exact CI-tested master candidate, stages it, requires native GitHub approval by dellams, rechecks staging and promotes the same source SHA. It remains blocked from live proof by scoped-token provisioning and staging data/payment isolation; do not claim end-to-end completion. The numbered intended sequence below is the target contract, not a claim that every acceptance item has passed.
 
 Staging is a Railway **environment**, not an additional long-lived Git branch. Do not create `staging` branches
 in the parent or every component repository. Keep the existing `Development → master` parent and
