@@ -63,11 +63,13 @@ public partial class OracleDBOASIS
                 dispatched = true;
                 if (await command.ExecuteNonQueryAsync() != 1) throw new InvalidDataException("Oracle locked detail changed unexpectedly.");
                 await CommitLifecycleTransactionAsync(transaction);
+                result.IsSaved = true;
             }
-            result.Result = true; result.IsSaved = true; result.IsDeleted = true; result.DeletedCount = 1;
+            result.Result = true; result.IsDeleted = true; result.DeletedCount = 1;
         }
         catch (Exception cause)
         {
+            result.Result = false; result.IsSaved = false; result.IsDeleted = false; result.DeletedCount = 0;
             var failure = dispatched ? new OracleLifecycleReconciliationException(id, cause) : cause;
             OASISErrorHandling.HandleError(ref result, "Oracle AvatarDetail lifecycle failed; inspect the original exception.", failure);
             if (!dispatched && cause is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";

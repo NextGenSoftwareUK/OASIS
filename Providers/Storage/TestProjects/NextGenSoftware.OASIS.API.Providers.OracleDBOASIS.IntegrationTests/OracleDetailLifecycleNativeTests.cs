@@ -74,10 +74,11 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.AreEqual(mode==3,result.IsError,result.Exception?.ToString());Assert.AreEqual(mode!=3,result.Result);
             Assert.AreEqual(before+1,provider.CommitCalls);Assert.AreEqual(avatar,await Read(verifier,"OASIS_AVATARS",id));
             if(mode==3){Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(result.Exception);Assert.AreSame(provider.Lost,result.Exception.InnerException);Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception));}
+            NextGenSoftware.OASIS.Common.OASISResult<bool>? repeated=null;
             var actual=await Read(verifier,"OASIS_AVATAR_DETAILS",id);
             if(soft){Assert.IsNotNull(actual);var detail=OasisJson.DeserializeStored<AvatarDetail>(actual);Assert.IsTrue(detail.IsDeleted);Assert.IsFalse(detail.IsActive);Assert.AreEqual(123L,detail.Karma);Assert.AreEqual(456L,detail.XP);
                 using var parsed=JsonDocument.Parse(actual);Assert.AreEqual(2,parsed.RootElement.GetProperty("Version").GetInt32());Assert.IsTrue(parsed.RootElement.TryGetProperty(EmbeddedRecordHistory.PropertyName,out _));
-                var repeat=await storage.DeleteAvatarDetailAsync(id);Assert.IsFalse(repeat.IsError);Assert.AreEqual(before+1,provider.CommitCalls);Assert.AreEqual(actual,await Read(verifier,"OASIS_AVATAR_DETAILS",id));
+                repeated=await storage.DeleteAvatarDetailAsync(id);Assert.IsFalse(repeated.IsError);Assert.AreEqual(before+1,provider.CommitCalls);Assert.AreEqual(actual,await Read(verifier,"OASIS_AVATAR_DETAILS",id));
             }else Assert.IsNull(actual);
             foreach(var table in new[]{"OASIS_AVATAR_DETAILS","OASIS_AVATARS"}){
                 var expected=await Read(verifier,table,id);if(expected==null)continue;
@@ -85,6 +86,8 @@ public sealed partial class OracleNativeAcceptanceTests
                 cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=expected;Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,table,id));
             }
             File.Delete(journal);
+            Assert.AreEqual(mode!=3,result.IsSaved);Assert.AreEqual(mode!=3,result.IsDeleted);Assert.AreEqual(mode==3?0:1,result.DeletedCount);Assert.AreEqual(0,result.SavedCount);
+            if(repeated!=null){Assert.IsTrue(repeated.Result);Assert.IsTrue(repeated.IsDeleted);Assert.IsFalse(repeated.IsSaved,"An observed tombstone is not a new acknowledged mutation.");Assert.AreEqual(1,repeated.DeletedCount);Assert.AreEqual(0,repeated.SavedCount);}
         }finally{await provider.DeActivateProviderAsync();}
     }
 }
