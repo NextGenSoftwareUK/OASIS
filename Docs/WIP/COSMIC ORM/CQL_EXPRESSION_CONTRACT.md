@@ -1,5 +1,7 @@
 # CQL expression contract: first implementation milestone
 
+The current field-comparison increment adds a common immutable two-path predicate and explicit `FieldComparison` capability. Both paths must have the same underlying CLR scalar type; each operand independently passes exact field/type/operator admission. Provider execution, nullable/missing semantics and original regression evidence are tracked in [field comparisons](CQL_FIELD_COMPARISONS.md). The final pinned-source cohort passes Core1,558, Shared925, Mongo197 controls/3 native and SQLite1,130, zero skips.
+
 Latest shared scalar-property increment (20 October 2026): exact trusted `CustomOASISProperty` scalar members now compile to literal metadata paths without invoking getters or attribute constructors. Inherited/overridden markers are supported; unmarked, read-only, canonical-shadowing and StoreAsJsonString members remain explicit unsupported paths. The seven original positive failures now pass with five safety controls unchanged, inside complete Core 1,536/1,536. MongoDB and SQLite execute these same paths natively; [acceptance and remaining default/schema semantics](CQL_MONGO_NATIVE.md).
 
 For the current usage overview, start with [CQL getting started](CQL_GETTING_STARTED.md). The checkpoint sections below retain their original scope and evidence; later native/manager implementation supersedes earlier statements that execution is unimplemented. Complete WEB4 authorization/routing, additional adapters and the remaining CQL roadmap are still open.

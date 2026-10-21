@@ -86,14 +86,14 @@ internal sealed class MongoCqlTranslator
         }
         throw new NotSupportedException("MongoDB CQL path type is not admitted.");
     }
-    private static BsonValue Metadata(IReadOnlyList<string> segments,Func<BsonValue,BsonValue> predicate)
+    private static BsonValue Metadata(IReadOnlyList<string> segments,Func<BsonValue,BsonValue> predicate,string prefix="cqlm")
     {
         if(segments.Any(segment=>segment.IndexOf('\0')>=0))throw new NotSupportedException("MongoDB metadata field names cannot contain NUL.");
         // Both dictionary representations are already part of this provider's read contract.
         BsonValue root=Choose(Op("$eq",Type("$MetaData"),Literal("array")),new BsonDocument("$arrayToObject","$MetaData"),"$MetaData");
         BsonValue Walk(BsonValue input,int index)
         {
-            var name="cqlm"+index;BsonValue current="$$"+name;
+            var name=prefix+index;BsonValue current="$$"+name;
             var body=index==segments.Count?predicate(current):Walk(new BsonDocument("$getField",new BsonDocument{
                 {"field",Literal(segments[index])},{"input",Choose(Op("$eq",Type(current),Literal("object")),current,Literal(new BsonDocument()))}}),index+1);
             return new BsonDocument("$let",new BsonDocument{{"vars",new BsonDocument(name,input)},{"in",body}});
@@ -117,14 +117,53 @@ internal sealed class MongoCqlTranslator
         return Choose(Op("$eq",Type(value),Literal("date")),exact,
             Choose(Op("$eq",Type(value),Literal("null")),Literal(BsonNull.Value),Literal(new BsonDocument())));
     }
-    private static BsonValue At(CosmicQueryPath path,Func<BsonValue,BsonValue> predicate)
+    private static BsonValue At(CosmicQueryPath path,Func<BsonValue,BsonValue> predicate,string prefix="cqlm")
         =>path.IsMetadata?Metadata(path.Segments,value=>predicate((Nullable.GetUnderlyingType(path.ValueType)??path.ValueType)==typeof(DateTime)
-            ?MetadataDate(value,path.Segments):value)):predicate(Canonical(path));
+            ?MetadataDate(value,path.Segments):value),prefix):predicate(Canonical(path));
+    private static BsonValue ComparableGuid(BsonValue value)
+    {
+        var text = new BsonDocument("$replaceAll", new BsonDocument {
+            {"input", new BsonDocument("$toLower", value)}, {"find", Literal("-")}, {"replacement", Literal("")} });
+        // MongoDB emits uppercase hex; string UUIDs normalize to lowercase.
+        var hex = new BsonDocument("$toLower", new BsonDocument("$convert", new BsonDocument {
+            {"input", value}, {"to", "string"}, {"format", "hex"} }));
+        var legacy = Op("$and",
+            Op("$gte", value, Literal(new BsonBinaryData(new byte[16], BsonBinarySubType.UuidLegacy))),
+            Op("$lte", value, Literal(new BsonBinaryData(Enumerable.Repeat((byte)255,16).ToArray(), BsonBinarySubType.UuidLegacy))));
+        var reversed = Op("$concat", new[] {6,4,2,0,10,8,14,12}
+            .Select(offset => (BsonValue)Op("$substrBytes", "$$cqlguidhex", Literal(offset), Literal(2)))
+            .Concat(new[] {(BsonValue)Op("$substrBytes", "$$cqlguidhex", Literal(16), Literal(16))}).ToArray());
+        var binary = new BsonDocument("$let", new BsonDocument {
+            {"vars", new BsonDocument("cqlguidhex", hex)}, {"in", Choose(legacy, reversed, "$$cqlguidhex")} });
+        return Choose(Op("$eq",Type(value),Literal("null")), Literal(BsonNull.Value),
+            Choose(Op("$eq",Type(value),Literal("string")), text, binary));
+    }
+    private static BsonValue FieldDomain(BsonValue value,CosmicQueryPath path)
+    {
+        var valid = Domain(value,path.ValueType,path.IsMetadata);
+        return path.ValueType==typeof(string) || Nullable.GetUnderlyingType(path.ValueType)!=null
+            ? Op("$or",valid,Op("$eq",Type(value),Literal("null"))) : valid;
+    }
+    private static BsonValue FieldComparison(CosmicQueryFieldComparison fields)
+        => At(fields.Left,left=>At(fields.Right,right=> {
+            var operation=fields.Operator switch {
+                CosmicQueryComparisonOperator.Equal=>"$eq", CosmicQueryComparisonOperator.NotEqual=>"$ne",
+                CosmicQueryComparisonOperator.GreaterThan=>"$gt", CosmicQueryComparisonOperator.GreaterThanOrEqual=>"$gte",
+                CosmicQueryComparisonOperator.LessThan=>"$lt", CosmicQueryComparisonOperator.LessThanOrEqual=>"$lte",
+                _=>throw new NotSupportedException("MongoDB CQL field operator is unsupported.") };
+            var valid=Op("$and",FieldDomain(left,fields.Left),FieldDomain(right,fields.Right));
+            var guid=(Nullable.GetUnderlyingType(fields.Left.ValueType)??fields.Left.ValueType)==typeof(Guid);
+            var comparison=Op(operation,guid?ComparableGuid(left):left,guid?ComparableGuid(right):right);
+            if(fields.Operator!=CosmicQueryComparisonOperator.Equal && fields.Operator!=CosmicQueryComparisonOperator.NotEqual)
+                comparison=Op("$and",Op("$ne",Type(left),Literal("null")),Op("$ne",Type(right),Literal("null")),comparison);
+            return Choose(valid,comparison,Literal(false));
+        },"cqlright"),"cqlleft");
     private BsonValue Translate(CosmicQueryPredicate predicate,int depth)
     {
         if(++nodes>2048||depth>64)throw new MongoCqlLimitException();
         switch(predicate)
         {
+            case CosmicQueryFieldComparison fields:return FieldComparison(fields);
             case CosmicQueryBoolean boolean:return Literal(boolean.Value);
             case CosmicQueryLogical logical:return Op(logical.IsAnd?"$and":"$or",Translate(logical.Left,depth+1),Translate(logical.Right,depth+1));
             case CosmicQueryNot not:return Op("$not",Translate(not.Operand,depth+1));

@@ -62,6 +62,7 @@ public class MongoCqlAdmissionTests
     [DataRow("canonical")] [DataRow("metadata")] [DataRow("membership")] [DataRow("null")]
     [DataRow("guid")] [DataRow("nullable-guid")] [DataRow("guid-membership")]
     [DataRow("date")] [DataRow("date-membership")]
+    [DataRow("field-canonical")] [DataRow("field-metadata")] [DataRow("field-guid")] [DataRow("field-date")]
     public async Task SupportedExpressionsAreCompletelyTranslatedBeforeRepositoryAccess(string form)
     {
         var ids=new[]{Guid.NewGuid(),Guid.NewGuid()};
@@ -76,6 +77,10 @@ public class MongoCqlAdmissionTests
             "guid-membership"=>h=>ids.Contains(CosmicQueryMetadata.Value<Guid>(h,"guid")),
             "date"=>h=>CosmicQueryMetadata.Value<DateTime>(h,"when")>=when,
             "date-membership"=>h=>dates.Contains(CosmicQueryMetadata.Value<DateTime>(h,"when")),
+            "field-canonical"=>h=>h.Name==h.Description,
+            "field-metadata"=>h=>CosmicQueryMetadata.Value<long?>(h,"left","a.b")<CosmicQueryMetadata.Value<long?>(h,"right","a.b"),
+            "field-guid"=>h=>CosmicQueryMetadata.Value<Guid?>(h,"guid-left")==CosmicQueryMetadata.Value<Guid?>(h,"guid-right"),
+            "field-date"=>h=>CosmicQueryMetadata.Value<DateTime?>(h,"when-left")>=CosmicQueryMetadata.Value<DateTime?>(h,"when-right"),
             _=>h=>CosmicQueryMetadata.IsNull(h,"nullable")||CosmicQueryMetadata.Value<string>(h,"name")!=null};
         var built=CosmicQuery<Holon>.Create().Where(predicate);Assert.IsFalse(built.IsError,built.Message);
         var provider=new MongoDBOASIS("mongodb://127.0.0.1:1/?serverSelectionTimeoutMS=1","cql-admission-only");

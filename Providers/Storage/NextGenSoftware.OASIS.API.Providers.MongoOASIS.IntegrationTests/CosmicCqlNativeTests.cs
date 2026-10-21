@@ -98,6 +98,14 @@ public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
         a.MetaData["when/~"]=firstTick;b.MetaData["when/~"]=secondTick;c.MetaData["when/~"]=instant;d.MetaData["when/~"]=null;
         a.MetaData["past"]=past;a.MetaData["dateText"]=firstTick.ToString("O");
         a.MetaData["minimumDate"]=minimum;b.MetaData["maximumDate"]=maximum;
+        a.MetaData["left"]=new Dictionary<string,object>{{"a.b'; $x",long.MaxValue}};
+        a.MetaData["right"]=new Dictionary<string,object>{{"a.b'; $x",long.MaxValue-1}};
+        b.MetaData["left"]=new Dictionary<string,object>{{"a.b'; $x",2L}};
+        b.MetaData["right"]=new Dictionary<string,object>{{"a.b'; $x",2L}};
+        c.MetaData["left"]=new Dictionary<string,object>{{"a.b'; $x","2"}};
+        c.MetaData["right"]=new Dictionary<string,object>{{"a.b'; $x",2L}};
+        d.MetaData["left"]=new Dictionary<string,object>{{"a.b'; $x",null}};
+        d.MetaData["right"]=new Dictionary<string,object>{{"a.b'; $x",null}};
         var child=Row("owned unselected child",1);a.Children.Add(child);
         var roots=new[]{a,b,c,d};var ids=roots.Select(root=>root.Id).ToArray();
         CosmicQueryPlan<Holon> Plan(Expression<Func<Holon,bool>> predicate)
@@ -129,6 +137,22 @@ public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
             }
             await Check(root=>root.Name.StartsWith("$where",StringComparison.Ordinal)&&root.Description.Contains("%_"),a);
             await Check(root=>root.Name.EndsWith("\0end",StringComparison.Ordinal),a);
+            await Check(root=>root.Name==root.Description,d);
+            await Check(root=>root.Name!=root.Description,a,b,c);
+            await Check(root=>CosmicQueryMetadata.Value<long?>(root,"left","a.b'; $x")==CosmicQueryMetadata.Value<long?>(root,"right","a.b'; $x"),b,d);
+            await Check(root=>CosmicQueryMetadata.Value<long?>(root,"left","a.b'; $x")!=CosmicQueryMetadata.Value<long?>(root,"right","a.b'; $x"),a);
+            await Check(root=>CosmicQueryMetadata.Value<long?>(root,"left","a.b'; $x")>CosmicQueryMetadata.Value<long?>(root,"right","a.b'; $x"),a);
+            await Check(root=>CosmicQueryMetadata.Value<long?>(root,"left","a.b'; $x")>=CosmicQueryMetadata.Value<long?>(root,"right","a.b'; $x"),a,b);
+            await Check(root=>CosmicQueryMetadata.Value<long?>(root,"left","a.b'; $x")<CosmicQueryMetadata.Value<long?>(root,"right","a.b'; $x"));
+            await Check(root=>CosmicQueryMetadata.Value<long?>(root,"left","a.b'; $x")<=CosmicQueryMetadata.Value<long?>(root,"right","a.b'; $x"),b);
+            await Check(root=>!(CosmicQueryMetadata.Value<long?>(root,"left","a.b'; $x")==CosmicQueryMetadata.Value<long?>(root,"right","a.b'; $x")),a,c);
+            await Check(root=>CosmicQueryMetadata.Value<int>(root,"Rating")>root.Version,a,b,c);
+            await Check(root=>CosmicQueryMetadata.Value<bool>(root,"flag")==root.IsPublic,b);
+            await Check(root=>root.Id==root.Id,a,b,c,d);
+            await Check(root=>root.CreatedByAvatarId==root.ModifiedByAvatarId,a,b,c,d);
+            await Check(root=>CosmicQueryMetadata.Value<DateTime?>(root,"when/~")==CosmicQueryMetadata.Value<DateTime?>(root,"when/~"),a,b,c,d);
+            await Check(root=>CosmicQueryMetadata.Value<DateTime>(root,"when/~")>CosmicQueryMetadata.Value<DateTime>(root,"past"),a);
+            await Check(root=>CosmicQueryMetadata.Value<long?>(root,"missing-left")==CosmicQueryMetadata.Value<long?>(root,"missing-right"));
             await Check(root=>root.Version>=3,b,c);
             await Check(root=>root.Version!=3,a,c,d);
             var emptyId=Guid.Empty;await Check(root=>root.ParentHolonId!=emptyId);
@@ -201,7 +225,14 @@ public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
                 var metadata=originalA["MetaData"].DeepClone();
                 if(arrayDictionary)metadata.AsBsonArray.Add(new BsonArray{"guid.probe",vector.Value});
                 else metadata.AsBsonDocument.Add("guid.probe",vector.Value);
+                if(arrayDictionary) metadata.AsBsonArray.Add(new BsonArray{"guid.reference",new BsonBinaryData(target,GuidRepresentation.Standard)});
+                else metadata.AsBsonDocument.Add("guid.reference",new BsonBinaryData(target,GuidRepresentation.Standard));
                 await rows.UpdateOneAsync(new BsonDocument("_id",originalA["_id"]),new BsonDocument("$set",new BsonDocument("MetaData",metadata)));
+                await Check(root=>CosmicQueryMetadata.Value<Guid>(root,"guid.probe")==CosmicQueryMetadata.Value<Guid>(root,"guid.reference"),vector.Equal?new[]{a}:Array.Empty<Holon>());
+                await Check(root=>CosmicQueryMetadata.Value<Guid>(root,"guid.reference")==CosmicQueryMetadata.Value<Guid>(root,"guid.probe"),vector.Equal?new[]{a}:Array.Empty<Holon>());
+                await Check(root=>CosmicQueryMetadata.Value<Guid?>(root,"guid.probe")!=CosmicQueryMetadata.Value<Guid?>(root,"guid.reference"),(vector.Domain&&!vector.Equal)||vector.Value.IsBsonNull?new[]{a}:Array.Empty<Holon>());
+                await Check(root=>CosmicQueryMetadata.Value<Guid?>(root,"guid.reference")!=CosmicQueryMetadata.Value<Guid?>(root,"guid.probe"),(vector.Domain&&!vector.Equal)||vector.Value.IsBsonNull?new[]{a}:Array.Empty<Holon>());
+
                 await Check(root=>CosmicQueryMetadata.Value<Guid>(root,"guid.probe")==target,vector.Equal?new[]{a}:Array.Empty<Holon>());
                 await Check(root=>CosmicQueryMetadata.Value<Guid>(root,"guid.probe")!=target,vector.Domain&&!vector.Equal?new[]{a}:Array.Empty<Holon>());
                 await Check(root=>CosmicQueryMetadata.Value<Guid?>(root,"guid.probe")!=target,(vector.Domain&&!vector.Equal)||vector.Value.IsBsonNull?new[]{a}:Array.Empty<Holon>());

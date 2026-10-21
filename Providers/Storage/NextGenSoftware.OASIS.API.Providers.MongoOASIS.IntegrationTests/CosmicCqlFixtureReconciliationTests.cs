@@ -35,6 +35,12 @@ public sealed class CosmicCqlFixtureReconciliationTests
         var rowCount=await database.GetCollection<BsonDocument>("Holon").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty);
         if(rowCount!=0)
         {
+            var comparisonFixture=await database.GetCollection<BsonDocument>("Holon").Find(new BsonDocument("HolonId","14cfbaa0-335a-49f4-aa7f-f7fb5278a080")).SingleOrDefaultAsync();
+            if(comparisonFixture!=null && comparisonFixture["MetaData"] is BsonDocument comparisonMetadata && comparisonMetadata.Contains("guid.reference"))
+            {
+                await InspectFieldComparisonFixture(client,database,collections,workspace);
+                return;
+            }
             await InspectTypedCompilerFixture(client,database,collections,workspace);
             return;
         }
@@ -51,6 +57,49 @@ public sealed class CosmicCqlFixtureReconciliationTests
             Reason="Original native code 388 seed transaction rolled back; no rows, receipts or preparations committed."}));
         // Only the exact empty owned fixture is removed, after every collection was checked.
         await client.DropDatabaseAsync(name);
+    }
+
+    private static async Task InspectFieldComparisonFixture(MongoClient client,IMongoDatabase database,List<string> collections,string workspace)
+    {
+        Assert.Equal("24C02F7E6DF2F3F49A9B79C279696AE31893B6B14F167B50E2ECA7A956C15766",
+            Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(
+                Path.Combine(workspace,"TestResults/CosmicMongoCurrent/cql-field-original-failure.trx")))));
+        var snapshots=new SortedDictionary<string,BsonArray>(StringComparer.Ordinal);
+        foreach(var name in collections)
+            snapshots.Add(name,new BsonArray(await database.GetCollection<BsonDocument>(name).Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("_id",1)).ToListAsync()));
+        Assert.Equal(5,snapshots["Holon"].Count);
+        foreach(var pair in snapshots.Where(pair=>pair.Key!="Holon")) Assert.Empty(pair.Value);
+        var rows=snapshots["Holon"].Select(value=>value.AsBsonDocument).ToArray();
+        var root=Assert.Single(rows.Where(row=>row["HolonId"]=="14cfbaa0-335a-49f4-aa7f-f7fb5278a080"));
+        Assert.Equal(2,root["Version"].AsInt32);
+        Assert.Equal("aabbccdd-1234-5678-9abc-def012345678",root["MetaData"]["guid.probe"].AsString);
+        Assert.Equal(new BsonBinaryData(Guid.Parse("aabbccdd-1234-5678-9abc-def012345678"),GuidRepresentation.Standard),root["MetaData"]["guid.reference"]);
+        BsonDocument Field(string name)=>new("$getField",new BsonDocument{{"field",name},{"input","$MetaData"}});
+        var projection=new BsonDocument("$project",new BsonDocument {
+            {"_id",0},{"text",new BsonDocument("$replaceAll",new BsonDocument{{"input",Field("guid.probe")},{"find","-"},{"replacement",""}})},
+            {"hex",new BsonDocument("$convert",new BsonDocument{{"input",Field("guid.reference")},{"to","string"},{"format","hex"}})} });
+        var diagnostic=Assert.Single(await database.GetCollection<BsonDocument>("Holon").Aggregate<BsonDocument>(new[]{
+            new BsonDocument("$match",new BsonDocument("HolonId",root["HolonId"])),projection}).ToListAsync());
+        var archive=new BsonDocument{{"collections",new BsonDocument(snapshots.Select(pair=>new BsonElement(pair.Key,pair.Value)))},{"diagnostic",diagnostic}};
+        var archivePath=Path.Combine(workspace,"TestResults/CosmicMongoCurrent/cql-field-observed-fixture.json");
+        var reviewed=await File.ReadAllBytesAsync(archivePath);
+        Assert.Equal("03E832A270EA915589676E21B84B38A7DECABF40D9C7B6F462CB3E92013CED01",
+            Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(reviewed)));
+        var expected=BsonDocument.Parse(System.Text.Encoding.UTF8.GetString(reviewed));
+        Assert.Equal(expected.ToBson(),archive.ToBson());
+        Assert.Equal(diagnostic["text"].AsString,diagnostic["hex"].AsString,ignoreCase:true);
+        Assert.NotEqual(diagnostic["text"].AsString,diagnostic["hex"].AsString);
+        using var currentNames=await database.ListCollectionNamesAsync();
+        Assert.Equal(snapshots.Keys,(await currentNames.ToListAsync()).OrderBy(name=>name,StringComparer.Ordinal));
+        foreach(var pair in snapshots)
+        {
+            var current=new BsonArray(await database.GetCollection<BsonDocument>(pair.Key).Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("_id",1)).ToListAsync());
+            Assert.Equal(new BsonDocument("rows",pair.Value).ToBson(),new BsonDocument("rows",current).ToBson());
+        }
+        Assert.Equal("cosmic_cql_fixture",database.DatabaseNamespace.DatabaseName);
+        await client.DropDatabaseAsync("cosmic_cql_fixture");
+        await File.WriteAllTextAsync(Path.Combine(workspace,"TestResults/CosmicMongoCurrent/cql-field-fixture-reviewed.json"),
+            JsonSerializer.Serialize(new{Database="cosmic_cql_fixture",ArchiveSha256="03E832A270EA915589676E21B84B38A7DECABF40D9C7B6F462CB3E92013CED01",Rows=5,Removed=true}));
     }
 
     private static async Task InspectTypedCompilerFixture(MongoClient client,IMongoDatabase database,List<string> collections,string workspace)
