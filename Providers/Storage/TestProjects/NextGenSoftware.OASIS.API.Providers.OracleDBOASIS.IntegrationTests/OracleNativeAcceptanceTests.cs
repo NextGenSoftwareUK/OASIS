@@ -1106,10 +1106,10 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();Assert.IsNull(await Read(verifier,table,id));Assert.IsNull(await Read(verifier,"OASIS_HOLONS",childId));
             using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,childId,editedId,table,kind,state="before-native-caller-publication"}));file.Flush(true);}
             provider.AfterCommit=()=>{if(kind==0)caller.Id=editedId;else if(caller is AvatarDetail d)d.Inventory[0].Quantity=2;else caller.Name=name+" edited";};
-            Exception cause;
-            if(caller is Avatar avatar){var saved=await provider.SaveAvatarAsync(avatar);Check(saved);cause=saved.Exception;}
-            else if(caller is AvatarDetail d){var saved=await provider.SaveAvatarDetailAsync(d);Check(saved);cause=saved.Exception;}
-            else{var saved=await provider.SaveHolonAsync((Holon)caller,saveChildren:kind==3);Check(saved);cause=saved.Exception;}
+            Exception cause;int acknowledgedCount;
+            if(caller is Avatar avatar){var saved=await provider.SaveAvatarAsync(avatar);Check(saved);cause=saved.Exception;acknowledgedCount=saved.SavedCount;}
+            else if(caller is AvatarDetail d){var saved=await provider.SaveAvatarDetailAsync(d);Check(saved);cause=saved.Exception;acknowledgedCount=saved.SavedCount;}
+            else{var saved=await provider.SaveHolonAsync((Holon)caller,saveChildren:kind==3);Check(saved);cause=saved.Exception;acknowledgedCount=saved.SavedCount;}
             Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(cause);Assert.AreEqual(id,((OracleLifecycleReconciliationException)cause).RecordId);Assert.IsInstanceOfType<InvalidOperationException>(cause.InnerException);Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(cause));
             Assert.AreEqual(1,provider.CommitCalls);Assert.AreEqual(kind==0?editedId:id,caller.Id);Assert.AreEqual(0,caller.Version);Assert.AreEqual(Guid.Empty,caller.VersionId);Assert.AreSame(keys,caller.ProviderUniqueStorageKey);Assert.AreEqual(0,keys.Count);
             if(caller is AvatarDetail changed)Assert.AreEqual(2,changed.Inventory[0].Quantity);else if(kind>=2)Assert.AreEqual(name+" edited",caller.Name);
@@ -1120,6 +1120,7 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.IsNull(await Read(verifier,"OASIS_HOLONS",childId));
             await using var cleanup=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=actual;
             Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,table,id));File.Delete(journal);
+            Assert.AreEqual(1,acknowledgedCount,"The native commit was acknowledged before caller publication failed.");
         }finally{await provider.DeActivateProviderAsync();}
         static void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);}
     }
