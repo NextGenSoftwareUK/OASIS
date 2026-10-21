@@ -16,17 +16,29 @@ public partial class AzureCosmosDBOASISIntegrationTests
         NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase source=kind=="avatar" ? new Avatar{Username="owned-history-"+id}
             : kind=="detail" ? new AvatarDetail{XP=456} : new Holon();
         source.Id=id;source.IsActive=true;source.MetaData=new Dictionary<string,object>{{"history_marker","first"}};
+        if(source is AvatarDetail detail){
+            detail.Karma=17;
+            detail.KarmaAkashicRecords.Add(new NextGenSoftware.OASIS.API.Core.Objects.KarmaAkashicRecord{
+                AvatarId=id,Date=new DateTime(2026,10,20,0,0,0,DateTimeKind.Utc),Karma=17,TotalKarma=17,
+                KarmaSourceTitle="Owned Cosmos history",KarmaSourceDesc="first",WebLink="https://example.invalid/cosmos-history",
+                Provider=new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AzureCosmosDBOASIS),
+                KarmaSource=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType.Game),
+                KarmaEarntOrLost=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaEarntOrLost.Earnt),
+                KarmaTypePositive=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaTypePositive.Other),
+                KarmaTypeNegative=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaTypeNegative.None)});
+        }
         _provider.IsVersionControlEnabled=true;
-        async Task Save()
+        async Task Save(bool syncDetail=false)
         {
             if(kind=="avatar") {var r=await _provider.SaveAvatarAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar)source);Assert.IsFalse(r.IsError,r.Exception?.ToString());}
-            else if(kind=="detail") {var r=await _provider.SaveAvatarDetailAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail)source);Assert.IsFalse(r.IsError,r.Exception?.ToString());}
+            else if(kind=="detail") {var r=syncDetail ? _provider.SaveAvatarDetail((NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail)source) : await _provider.SaveAvatarDetailAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail)source);Assert.IsFalse(r.IsError,r.Exception?.ToString());}
             else {var r=await _provider.SaveHolonAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IHolon)source,saveChildren:false);Assert.IsFalse(r.IsError,r.Exception?.ToString());}
         }
         await Save();var firstVersion=source.Version;var firstIdentity=source.VersionId;
         _provider.IsVersionControlEnabled=false;
         source.MetaData["history_marker"]="second";
-        await Save();var secondVersion=source.Version;var secondIdentity=source.VersionId;
+        if(source is AvatarDetail updatedDetail)updatedDetail.KarmaAkashicRecords[0].KarmaSourceDesc="second";
+        await Save(syncDetail:true);var secondVersion=source.Version;var secondIdentity=source.VersionId;
         NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase old;
         if(kind=="avatar") {var r=await _provider.LoadAvatarAsync(id,1);Assert.IsFalse(r.IsError,r.Exception?.ToString());old=r.Result;}
         else if(kind=="detail") {var r=await _provider.LoadAvatarDetailAsync(id,1);Assert.IsFalse(r.IsError,r.Exception?.ToString());old=r.Result;}
@@ -38,6 +50,25 @@ public partial class AzureCosmosDBOASISIntegrationTests
         }
         var native=new CosmosDbClient(_client.GetContainer(DatabaseName,kind=="avatar"?"avatarItems":kind=="detail"?"avatarDetailItems":"holonItems"));
         var stored=JObject.Parse(await native.ReadDocumentAsync(id.ToString(),new PartitionKey(id.ToString())));
+        if(kind=="detail"){
+            void CheckHistory(AvatarDetail actual,string description){
+                Assert.AreEqual(456L,Convert.ToInt64(actual.XP));Assert.AreEqual(17L,actual.Karma);
+                Assert.AreEqual(1,actual.KarmaAkashicRecords.Count);var entry=actual.KarmaAkashicRecords.Single();
+                Assert.AreEqual(id,entry.AvatarId);Assert.AreEqual(new DateTime(2026,10,20,0,0,0,DateTimeKind.Utc),entry.Date);
+                Assert.AreEqual(DateTimeKind.Utc,entry.Date.Kind);Assert.AreEqual(17,entry.Karma);Assert.AreEqual(17L,entry.TotalKarma);
+                Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AzureCosmosDBOASIS,entry.Provider.Value);
+                Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType.Game,entry.KarmaSource.Value);
+                Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Enums.KarmaEarntOrLost.Earnt,entry.KarmaEarntOrLost.Value);
+                Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Enums.KarmaTypePositive.Other,entry.KarmaTypePositive.Value);
+                Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Enums.KarmaTypeNegative.None,entry.KarmaTypeNegative.Value);
+                Assert.AreEqual("Owned Cosmos history",entry.KarmaSourceTitle);Assert.AreEqual(description,entry.KarmaSourceDesc);
+                Assert.AreEqual("https://example.invalid/cosmos-history",entry.WebLink);
+            }
+            CheckHistory((AvatarDetail)old,"first");
+            var current=await _provider.LoadAvatarDetailAsync(id);Assert.IsFalse(current.IsError,current.Message);
+            CheckHistory((AvatarDetail)current.Result,"second");
+            CheckHistory(OasisJson.DeserializeStored<AvatarDetail>(CosmosEmbeddedHistory.CanonicalPayload(stored).ToString()),"second");
+        }
         Assert.AreEqual(id.ToString(),stored["id"]!.Value<string>());
         Assert.AreEqual("second",stored["MetaData"]!["history_marker"]!.Value<string>());
         await native.DeleteDocumentAsync(id.ToString(),new PartitionKey(id.ToString()));
