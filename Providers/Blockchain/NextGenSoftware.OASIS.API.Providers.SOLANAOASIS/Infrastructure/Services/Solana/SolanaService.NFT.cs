@@ -44,6 +44,11 @@ public sealed partial class SolanaService
         FinalizedSolanaRpc submissionState=null;
         try
         {
+            ArgumentNullException.ThrowIfNull(mintNftRequest);
+            var royaltyPercentage=mintNftRequest.RoyaltyPercentage;
+            if(royaltyPercentage is <0 or >100)
+                throw new ArgumentOutOfRangeException(nameof(mintNftRequest.RoyaltyPercentage),"NFT royalty percentage must be between 0 and 100 inclusive.");
+            var royaltyBasisPoints=royaltyPercentage.HasValue?checked((uint)royaltyPercentage.Value*100):SellerFeeBasisPoints;
             string verifyTransaction = null;
             string verifyWarning = null;
             Account mintAccount = new();
@@ -52,7 +57,7 @@ public sealed partial class SolanaService
             {
                 name = mintNftRequest.Title,
                 symbol = mintNftRequest.Symbol,
-                sellerFeeBasisPoints = SellerFeeBasisPoints,
+                sellerFeeBasisPoints = royaltyBasisPoints,
                 uri = mintNftRequest.JSONMetaDataURL,
                 creators = _creators,
                 collection = string.IsNullOrEmpty(mintNftRequest.CollectionPublicKey) ? null : new Collection(new PublicKey(mintNftRequest.CollectionPublicKey))

@@ -12,6 +12,39 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaSdkMintTests
 {
+    [DataTestMethod][DataRow(-1,500)][DataRow(0,0)][DataRow(13,1300)][DataRow(100,10000)]
+    public async Task RequestedRoyaltyIsEncodedInActualSdkMetadata(int percentage,int expectedBasisPoints)
+    {
+        const string uri="https://example.invalid/royalty-proof-unique.json";
+        var owner=new Account();var rpc=DispatchProxy.Create<IRpcClient,MintProxy>();var proxy=(MintProxy)(object)rpc;proxy.Scenario="finalized";
+        var result=await new SolanaService(owner,rpc).MintNftAsync(new MintWeb3NFTRequest
+            {Title="royalty fixture",Symbol="OWN",JSONMetaDataURL=uri,RoyaltyPercentage=percentage<0?null:percentage});
+        Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(1,proxy.Sends);
+        var tx=Solnet.Rpc.Models.Transaction.Deserialize(proxy.SignedTransactions.Single());
+        var uriBytes=System.Text.Encoding.UTF8.GetBytes(uri);
+        var metadata=tx.Instructions.Where(instruction=>instruction.ProgramId.SequenceEqual(Solnet.Metaplex.NFT.Library.MetadataProgram.ProgramIdKey.KeyBytes))
+            .Select(instruction=>instruction.Data).Single(bytes=>FindUri(bytes,uriBytes)>=0);
+        var offset=FindUri(metadata,uriBytes)+uriBytes.Length;
+        Assert.IsTrue(offset+2<=metadata.Length);
+        // Canonical Token Metadata DataV2 Borsh layout: URI string, then u16 seller_fee_basis_points.
+        Assert.AreEqual(expectedBasisPoints,metadata[offset]|metadata[offset+1]<<8);
+    }
+
+    private static int FindUri(byte[] bytes,byte[] uri)
+    {
+        for(var index=0;index<=bytes.Length-uri.Length;index++)if(bytes.AsSpan(index,uri.Length).SequenceEqual(uri))return index;
+        return -1;
+    }
+
+    [DataTestMethod][DataRow(-1)][DataRow(101)]
+    public async Task OutOfRangeRoyaltyCannotBroadcast(int percentage)
+    {
+        var rpc=DispatchProxy.Create<IRpcClient,MintProxy>();var proxy=(MintProxy)(object)rpc;proxy.Scenario="finalized";
+        var result=await new SolanaService(new Account(),rpc).MintNftAsync(new MintWeb3NFTRequest
+            {Title="invalid royalty",Symbol="OWN",JSONMetaDataURL="https://example.invalid/invalid.json",RoyaltyPercentage=percentage});
+        Assert.IsTrue(result.IsError);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentOutOfRangeException));Assert.AreEqual(0,proxy.Sends);
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task PublicMintKeepsCollectionVerificationWarningAndFinalizedMint(bool synchronous)
     {
