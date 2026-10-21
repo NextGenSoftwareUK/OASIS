@@ -7,10 +7,10 @@
 | Area | Available now | Remaining |
 |---|---|---|
 | Expressions | Where, AND/OR/NOT, scalar comparisons, null tests, ordinal string matching, bounded scalar-array membership; annotated scalar member paths; [native field-to-field comparisons](CQL_FIELD_COMPARISONS.md) | Wider expression forms |
-| Metadata | Nested literal paths, Exists, IsNull; SQLite/MongoDB string/bool/int/long comparisons, membership and supported strings; Guid/Guid? equality and membership; UTC DateTime/DateTime? comparisons and membership over each provider's declared storage domain | Native decimal/double/enum metadata predicates |
+| Metadata | Nested literal paths, Exists, IsNull; SQLite/MongoDB string/bool/int/long comparisons, membership and supported strings; [exact byte/sbyte/short/ushort/uint domains](CQL_INTEGER_DOMAINS.md); [defined HolonType/ProviderType enums](CQL_ENUM_METADATA.md), including nullable forms; Guid/Guid? equality/membership; UTC DateTime/DateTime? comparisons/membership over each provider's declared storage domain | Native decimal/double/UInt64, unregistered enums, broader schema registration and canonical audit-date policy |
 | Scope | Current default, named providers, all eligible targets; capability admission before I/O | Automatic authenticated WEB4 target discovery and policy routing |
 | Ordering/paging | [Fluent OrderBy/ThenBy, Skip/Take](CQL_ORDERING_PAGING.md); native SQLite/MongoDB scalar/domain ordering, identity ties and resource bounds | Subquery composition, global federated pages and snapshot/continuation semantics |
-| Native execution | SQLite SQL and MongoDB BSON expressions, cancellation and result/query budgets; MongoDB scan deadline and streamed payload budget | Neo4j/other adapters, wider deadline/cost policy |
+| Native execution | SQLite SQL and MongoDB BSON expressions, cancellation and result/query budgets; SQLite native work/deadline/record bounds and MongoDB native deadline/sort/payload bounds | Neo4j/other adapters, broader admission/cost policy |
 | Returned entities | V2 typed leaf entities, metadata hydration/decryption, clean tracking, conditional save integration | Child loading options, relationship predicates, broader entity-kind mapping |
 | Federation | Provider-grouped results with provenance and errors | Deduplication, freshness/conflict policy, paging/order/projection/aggregates |
 

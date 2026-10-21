@@ -301,6 +301,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", b =>
                 {
+                    b.Property<int>("CreatedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("ModifiedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("DeletedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
@@ -539,6 +554,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", b =>
                 {
+                    b.Property<int>("CreatedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("ModifiedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("DeletedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
@@ -1358,6 +1388,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", b =>
                 {
+                    b.Property<int>("CreatedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("ModifiedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("DeletedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
