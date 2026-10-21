@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
@@ -22,7 +23,7 @@ internal static class NeoCqlContract
         var metadata = new List<CosmicQueryMetadataCapability> { new(typeof(string), equality, strings, supportsMembership: true) };
         foreach (var type in new[] { typeof(bool), typeof(bool?), typeof(int), typeof(int?), typeof(long), typeof(long?) })
             metadata.Add(new(type, type == typeof(bool) || type == typeof(bool?) ? equality : ordered, supportsMembership: true));
-        foreach(var type in new[]{typeof(byte),typeof(sbyte),typeof(short),typeof(ushort),typeof(uint)})
+        foreach(var type in new[]{typeof(byte),typeof(sbyte),typeof(short),typeof(ushort),typeof(uint),typeof(HolonType),typeof(ProviderType)})
             foreach(var declared in new[]{type,typeof(Nullable<>).MakeGenericType(type)})
                 metadata.Add(new(declared,ordered,supportsMembership:true));
         return new(CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not | CosmicQueryFeatures.Metadata |

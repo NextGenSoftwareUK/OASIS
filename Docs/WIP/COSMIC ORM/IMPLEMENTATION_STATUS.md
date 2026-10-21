@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Neo4j enum metadata — 21 October 2026
+
+Exact HolonType/ProviderType metadata and nullable domains now execute through the common CQL pipeline with one native defined-value guard for comparisons, membership, fields and ordering. Complete Neo controls pass 305/305 and the expanded native regression passes 64/64, zero skips; 20 declared producer/consumer copies match. A prior interrupted five-record fixture was independently reviewed and reconciled with locked exact snapshot hashes before the fresh native run. [Acceptance and limitations](CQL_ENUM_METADATA.md#verified-neo4j-enrollment--21-october-2026); [resource/cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). No Core/Shared source or pin change; broader types, native stress, relationships and federation remain open.
+
 ## Narrow integer domains and replication shutdown — 21 October 2026
 
 Neo4j now admits byte/sbyte/short/ushort/uint metadata and nullable forms with exact range guards shared across predicates, membership, field comparisons and ordering. Full Neo controls pass 301/301. A separately reproduced pre-execution BackgroundService cancellation bug is repaired at the shutdown owner; its three controls distinguish expected scheduling cancellation from expired deadlines and post-entry faults. Full Shared passes 946/946. Rebuilt native CQL plus configured replication hosting passes 66/66, zero skips. See [integer domains](CQL_INTEGER_DOMAINS.md) and [shutdown evidence](REPLICATION_HOST_SHUTDOWN.md). Broader CQL domains, resource stress, federation and remaining roadmap acceptance are still open.
