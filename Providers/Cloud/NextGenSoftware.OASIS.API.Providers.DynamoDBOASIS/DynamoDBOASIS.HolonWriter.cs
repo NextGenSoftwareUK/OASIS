@@ -30,6 +30,7 @@ public partial class DynamoDBOASIS
                     ["holon_type"]=new(){N=((int)holon.HolonType).ToString()},["is_deleted"]=new(){BOOL=holon.IsDeleted},["data_json"]=new(){S=Ser(holon)}
                 }
             },IsVersionControlEnabled,publication.ValidateUnchanged,write);
+            result.SavedCount=1;
             ValidateAcknowledgedCaller(publication.ValidateUnchanged,committed.Id);
             source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
             source.Id=holon.Id;source.ProviderUniqueStorageKey??=new Dictionary<Core.Enums.ProviderType,string>();
