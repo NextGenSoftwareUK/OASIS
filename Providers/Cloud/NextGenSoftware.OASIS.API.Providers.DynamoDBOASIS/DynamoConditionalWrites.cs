@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2.Model;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -56,6 +57,8 @@ public partial class DynamoDBOASIS : IConditionalHolonStorageProvider
                 if(receipt!=null)return GraphAcknowledgement(receipt,request.Operation);
                 throw new CosmicConcurrencyException(conflicts);
             }
+            if(request.Operation==ConditionalHolonOperation.Save)
+                foreach(var node in plan.Nodes)HolonSaveLifecycle.RequireCompatibleSave(previous[node.Snapshot.Id],node.Snapshot);
             var actions=new List<TransactWriteItem>();
             var acknowledged=new Dictionary<Guid,IHolon>();
             var sizes=new List<long>();
@@ -141,6 +144,8 @@ public partial class DynamoDBOASIS : IConditionalHolonStorageProvider
                 dispatched=false;throw;
             }
             return GraphAcknowledgement(validated,request.Operation);
+        } catch(StorageLifecycleConflictException cause) {
+            return GraphFailure(StorageLifecycleConflictException.ErrorCode,cause.Message,cause);
         } catch(CosmicConcurrencyException cause) {
             return GraphFailure(CosmicConcurrencyException.Code,cause.Message,cause);
         } catch(GraphOperationReuseException cause) {
@@ -187,7 +192,7 @@ public partial class DynamoDBOASIS : IConditionalHolonStorageProvider
         return size;
     }
     private static OASISResult<IEnumerable<IHolon>> GraphAcknowledgement(IEnumerable<IHolon> roots,ConditionalHolonOperation operation)
-        =>new(){Result=roots,IsSaved=operation==ConditionalHolonOperation.Save,IsDeleted=operation!=ConditionalHolonOperation.Save};
+        =>ConditionalHolonAcknowledgement.Create(roots,operation);
     private static OASISResult<IEnumerable<IHolon>> GraphFailure(string code,string message,Exception cause)
         =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
     private sealed class GraphOperationReuseException:Exception

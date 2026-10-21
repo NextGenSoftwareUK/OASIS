@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.IntegrationTests;
@@ -140,7 +141,7 @@ public class DynamoConditionalNativeTests
         var root=new Holon{Id=Guid.NewGuid(),Name="owned atomic root",IsActive=true};
         var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="owned atomic child",IsActive=true};
         root.Children.Add(child);root.MetaData["exact"]=0.1234567890123456789012345678m;
-        var operations=Enumerable.Range(0,4).Select(_=>Guid.NewGuid()).ToArray();
+        var operations=Enumerable.Range(0,5).Select(_=>Guid.NewGuid()).ToArray();
         var ids=new[]{root.Id,child.Id};
         async Task<Dictionary<string,AttributeValue>> Read(string table,string id) {
             var response=await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=new(){{"id",new(){S=id}}},ConsistentRead=true});
@@ -160,6 +161,7 @@ public class DynamoConditionalNativeTests
             field.SetValue(provider,client);client.LoseAck=loseAck;
             var request=Request(root,0,ConditionalHolonOperation.Save,true);
             var first=await provider.ExecuteConditionalHolonWriteAsync(request);
+            var originalOutcome=first;
             if(loseAck) {
                 Assert.AreEqual("COSMIC_CONDITIONAL_RECONCILIATION_REQUIRED",first.ErrorCode);
                 Assert.IsInstanceOfType<INativeMutationReconciliationRequired>(first.Exception);
@@ -170,6 +172,7 @@ public class DynamoConditionalNativeTests
             var current=(Holon)first.Result.Single();Assert.AreEqual(1,current.Children.Single().Version);
             var initialVersion=current.VersionId;
             var replay=await provider.ExecuteConditionalHolonWriteAsync(request);
+            var acknowledgements=new List<(ConditionalHolonOperation Kind,OASISResult<IEnumerable<IHolon>> Outcome)>{(ConditionalHolonOperation.Save,first),(ConditionalHolonOperation.Save,replay)};
             Assert.IsFalse(replay.IsError,replay.Exception?.ToString());Assert.AreEqual(initialVersion,replay.Result.Single().VersionId);
             Assert.AreEqual(1,client.Transactions);
             var stored=await Read("OasisHolons",root.Id.ToString());
@@ -184,13 +187,26 @@ public class DynamoConditionalNativeTests
             for(var index=1;index<4;index++) {
                 var kind=index==1?ConditionalHolonOperation.Save:index==2?ConditionalHolonOperation.SoftDelete:ConditionalHolonOperation.HardDelete;
                 var result=await provider.ExecuteConditionalHolonWriteAsync(Request(current,index,kind));
+                acknowledgements.Add((kind,result));
                 Assert.IsFalse(result.IsError,result.Exception?.ToString());current=(Holon)result.Result.Single();
                 Assert.AreEqual(index+1,current.Version);Assert.AreEqual(index+1,current.Children.Single().Version);
+                if(index==2){
+                    var before=await Read("OasisHolons",root.Id.ToString());var childBefore=await Read("OasisHolons",child.Id.ToString());
+                    var deletion=current.DeletedDate;var active=current.IsActive;var version=current.VersionId;
+                    current.IsActive=true;current.DeletedDate=DateTime.MinValue;
+                    var rejected=await provider.ExecuteConditionalHolonWriteAsync(Request(current,4,ConditionalHolonOperation.Save));
+                    current.IsActive=active;current.DeletedDate=deletion;
+                    Assert.IsTrue(rejected.IsError);Assert.AreEqual(Core.Helpers.StorageLifecycleConflictException.ErrorCode,rejected.ErrorCode);
+                    Assert.IsFalse(rejected.Exception is INativeMutationReconciliationRequired);Assert.AreEqual(3,client.Transactions);Assert.AreEqual(version,current.VersionId);
+                    Assert.AreEqual(before["data_json"].S,(await Read("OasisHolons",root.Id.ToString()))["data_json"].S);
+                    Assert.AreEqual(childBefore["data_json"].S,(await Read("OasisHolons",child.Id.ToString()))["data_json"].S);
+                }
             }
             Assert.AreEqual(4,client.Transactions);
             foreach(var id in ids)Assert.AreEqual(0,(await Read("OasisHolons",id.ToString())).Count);
             foreach(var op in operations) {
                 var key=authority+":"+op.ToString("N");var receipt=await Read("OasisHolonWriteReceipts",key);
+                if(op==operations[4]){Assert.AreEqual(0,receipt.Count);continue;}
                 Assert.AreEqual(key,receipt["id"].S);
                 var ack=await verifier.DeleteItemAsync(new DeleteItemRequest{TableName="OasisHolonWriteReceipts",Key=new(){{"id",new(){S=key}}},
                     ConditionExpression="#json=:expected",ExpressionAttributeNames=new(){{"#json","result_json"}},
@@ -199,6 +215,14 @@ public class DynamoConditionalNativeTests
                 Assert.AreEqual(0,(await Read("OasisHolonWriteReceipts",key)).Count);
             }
             File.Delete(journal);
+            // Result-only checks follow exact cleanup; receipt replay describes the original graph, not new billable writes.
+            if(loseAck){Assert.AreEqual(0,originalOutcome.SavedCount);Assert.AreEqual(0,originalOutcome.DeletedCount);}
+            foreach(var acknowledged in acknowledgements){
+                Assert.AreEqual(acknowledged.Kind==ConditionalHolonOperation.Save?2:0,acknowledged.Outcome.SavedCount);
+                Assert.AreEqual(acknowledged.Kind==ConditionalHolonOperation.Save?0:2,acknowledged.Outcome.DeletedCount);
+                Assert.IsTrue(acknowledged.Outcome.HasAnyHolonsChanged);var node=acknowledged.Outcome.Result.Single();
+                Assert.IsFalse(node.IsNewHolon);Assert.IsFalse(node.Children.Single().IsNewHolon);
+            }
         } finally {
             field.SetValue(provider,original);await provider.DeActivateProviderAsync();
         }

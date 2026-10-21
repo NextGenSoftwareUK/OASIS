@@ -13,12 +13,52 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 
 [TestClass]
 public class DynamoConditionalWriteTests
 {
+    [DataTestMethod][DataRow(0,false)][DataRow(0,true)][DataRow(1,false)][DataRow(1,true)][DataRow(2,false)][DataRow(2,true)]
+    public async Task CurrentRevisionCannotAuthorizeClearingOrReplacingCommittedTombstone(int change,bool synchronous)
+    {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var created=await provider.ExecuteConditionalHolonWriteAsync(Request(new Holon{Id=Guid.NewGuid(),IsActive=true},Guid.NewGuid()));
+        Assert.IsFalse(created.IsError,created.Exception?.ToString());var current=(Holon)created.Result.Single();
+        var deleted=await provider.ExecuteConditionalHolonWriteAsync(Request(current,Guid.NewGuid(),CosmicConcurrency.GetProviderRevisionId(current,ProviderType.DynamoDBOASIS),ConditionalHolonOperation.SoftDelete));
+        Assert.IsFalse(deleted.IsError,deleted.Exception?.ToString());current=(Holon)deleted.Result.Single();
+        var nativeKey="OasisHolons/"+current.Id;var originalJson=client.Rows[nativeKey]["data_json"].S;var revision=CosmicConcurrency.GetProviderRevisionId(current,ProviderType.DynamoDBOASIS);
+        if(change==0){current.IsActive=true;current.DeletedDate=DateTime.MinValue;}else if(change==1)current.DeletedDate=current.DeletedDate.AddTicks(1);else current.DeletedByAvatarId=Guid.NewGuid();
+        var version=current.Version;var versionId=current.VersionId;
+        var request=Request(current,Guid.NewGuid(),revision);var rejected=synchronous?provider.ExecuteConditionalHolonWrite(request):await provider.ExecuteConditionalHolonWriteAsync(request);
+        Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.IsSaved);Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,rejected.ErrorCode);
+        Assert.IsInstanceOfType<StorageLifecycleConflictException>(rejected.Exception);Assert.AreEqual(2,client.Writes);Assert.AreEqual(originalJson,client.Rows[nativeKey]["data_json"].S);
+        Assert.AreEqual(version,current.Version);Assert.AreEqual(versionId,current.VersionId);Assert.AreEqual(revision,CosmicConcurrency.GetProviderRevisionId(current,ProviderType.DynamoDBOASIS));
+    }
+    [DataTestMethod]
+    [DataRow(ConditionalHolonOperation.Save,false)][DataRow(ConditionalHolonOperation.Save,true)]
+    [DataRow(ConditionalHolonOperation.SoftDelete,false)][DataRow(ConditionalHolonOperation.SoftDelete,true)]
+    [DataRow(ConditionalHolonOperation.HardDelete,false)][DataRow(ConditionalHolonOperation.HardDelete,true)]
+    public async Task SelectedGraphAcknowledgementsCountPersistedNodesAndReceiptRecovery(ConditionalHolonOperation operation,bool synchronous)
+    {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var root=new Holon{Id=Guid.NewGuid(),IsActive=true};var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,IsActive=true};
+        child.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=child.Id,IsActive=true});root.Children.Add(child);
+        ConditionalHolonWriteRequest RequestGraph(Holon current,Guid operationId,ConditionalHolonOperation kind,bool initial)
+            =>new(new ConditionalHolonWrite(operationId,Guid.Empty,ProviderType.DynamoDBOASIS,
+                new[]{current,current.Children.Single(),current.Children.Single().Children.Single()}.Select(row=>new HolonWriteCondition(row.Id,initial?null:CosmicConcurrency.GetProviderRevisionId(row,ProviderType.DynamoDBOASIS)))),kind,new[]{current});
+        if(operation!=ConditionalHolonOperation.Save){var created=await provider.ExecuteConditionalHolonWriteAsync(RequestGraph(root,Guid.NewGuid(),ConditionalHolonOperation.Save,true));Assert.IsFalse(created.IsError,created.Exception?.ToString());root=(Holon)created.Result.Single();}
+        var request=RequestGraph(root,Guid.NewGuid(),operation,operation==ConditionalHolonOperation.Save);
+        var result=synchronous?provider.ExecuteConditionalHolonWrite(request):await provider.ExecuteConditionalHolonWriteAsync(request);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());var attempts=client.Writes;
+        var recovered=await provider.ExecuteConditionalHolonWriteAsync(request);Assert.IsFalse(recovered.IsError,recovered.Exception?.ToString());Assert.AreEqual(attempts,client.Writes);
+        foreach(var outcome in new[]{result,recovered}){
+            Assert.AreEqual(operation==ConditionalHolonOperation.Save?3:0,outcome.SavedCount);Assert.AreEqual(operation==ConditionalHolonOperation.Save?0:3,outcome.DeletedCount);
+            Assert.IsTrue(outcome.HasAnyHolonsChanged);var current=outcome.Result.Single();
+            Assert.IsFalse(current.IsNewHolon);Assert.IsFalse(current.Children.Single().IsNewHolon);Assert.IsFalse(current.Children.Single().Children.Single().IsNewHolon);
+        }
+    }
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task OrdinaryBatchPublishesCommittedRevisionForNextConditionalWrite(bool synchronous) {
         using var client=new Client();var (provider,original)=Setup(client);using var owned=original;

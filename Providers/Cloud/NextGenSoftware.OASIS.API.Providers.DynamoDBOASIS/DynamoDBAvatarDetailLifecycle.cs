@@ -55,7 +55,7 @@ public partial class DynamoDBOASIS
                 throw new InvalidDataException("DynamoDB AvatarDetail lifecycle lacks an authoritative acknowledgement.");
             result.Result = true;
             result.IsDeleted = true;
-            result.IsSaved = true;
+            result.IsSaved = !unchanged;
             result.DeletedCount = unchanged?0:1;
         }
         catch (TransactionCanceledException cause) when (cause.CancellationReasons?.Exists(reason => reason.Code == "ConditionalCheckFailed") == true
