@@ -6,6 +6,7 @@ These are working documents. Dated reports retain historical evidence; earlier c
 
 ## Documents
 
+- [CQL enum metadata: defined-value domains and native acceptance](CQL_ENUM_METADATA.md).
 - [CQL exact integer domains and compiler promotion rules](CQL_INTEGER_DOMAINS.md).
 - [SQLite karma history persistence and remaining representation gaps](SQLITE_KARMA_HISTORY_PERSISTENCE.md).
 - [SQLite avatar optional enum projection and additive presence upgrade](SQLITE_AVATAR_OPTIONAL_ENUMS.md).

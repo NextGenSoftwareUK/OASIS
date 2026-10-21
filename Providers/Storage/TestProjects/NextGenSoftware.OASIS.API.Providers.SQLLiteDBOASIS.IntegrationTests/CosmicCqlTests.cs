@@ -17,7 +17,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         query.IsError.Should().BeFalse(query.Message);
         var features = CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not |
             CosmicQueryFeatures.Metadata | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant;
-        var capability = overbroad ? new CosmicQueryCapabilities(features, new[] { typeof(string), typeof(int), typeof(bool), typeof(Guid), typeof(HolonType), typeof(DateTime) },
+        var capability = overbroad ? new CosmicQueryCapabilities(features, new[] { typeof(string), typeof(int), typeof(bool), typeof(Guid), typeof(HolonType), typeof(KarmaSourceType), typeof(DateTime) },
             System.Enum.GetValues<CosmicQueryComparisonOperator>()) : SQLLiteDBOASIS.CqlCapabilities;
         var plan = CosmicQueryPlanner.Plan(query.Result, ProviderType.SQLLiteDBOASIS, new[] { new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, capability) });
         plan.IsError.Should().BeFalse(plan.Message); return plan.Result;
@@ -246,7 +246,7 @@ public partial class SQLLiteDBOASISIntegrationTests
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
         var cutoff = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var metadata = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => CosmicQueryMetadata.Value<HolonType>(h, "score") == HolonType.Quest, overbroad: true));
+        var metadata = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => CosmicQueryMetadata.Value<KarmaSourceType>(h, "score") == KarmaSourceType.Game, overbroad: true));
         metadata.IsError.Should().BeTrue(); metadata.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
         var date = await provider.ExecuteCosmicQueryAsync(CqlPlan(h => h.CreatedDate > cutoff, overbroad: true));
         date.IsError.Should().BeTrue(); date.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
