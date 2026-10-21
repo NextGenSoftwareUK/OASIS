@@ -215,12 +215,21 @@ public partial class Neo4jOASIS
                                 row["snapshot"]=OasisJson.Serialize(record);
                             }
                         }
+                        // History stamping above changes the canonical snapshot. Derive
+                        // query values only after that final before/after preparation.
+                        foreach(var row in rows)
+                        {
+                            var projection=NeoCqlProjection.Build((string)row["snapshot"]);
+                            projection["ProviderRevisionId"]=row["revision"];
+                            row["cqlProjection"]=projection;
+                        }
                         var query="UNWIND $rows AS row MERGE (h:Holon {Id:row.id}) ";
                         if(archiveVersions && conditional==null)query+="ON CREATE SET h.__oasisCreatedBy=row.writeId "
                             + "SET h.__oasisHolonLock=true REMOVE h.__oasisHolonLock WITH h,row "
                             + "WHERE (row.expected IS NULL AND h.__oasisCreatedBy=row.writeId) OR h.SnapshotJson=row.expected REMOVE h.__oasisCreatedBy ";
                         query+="SET h.ProviderKey=row.id, h.Name=row.name, h.Description=row.description, h.HolonType=row.type, h.SnapshotJson=row.snapshot, h.MetaLookupTokens=row.metadataTokens, h.ProviderRevisionId=row.revision ";
                         if(conditional!=null)query+="REMOVE h.__cosmicCreatedBy ";
+                        query+="MERGE (h)-[p:HAS_CQL_PROJECTION]->(h) SET p=row.cqlProjection ";
                         query+="RETURN h";
                         var records=await(await transaction.RunAsync(query,new{rows}).ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
                         var acknowledged=records.Select(row=>ReadHolonNode(row["h"].As<Neo4j.Driver.INode>())).ToDictionary(record=>record.Id);
