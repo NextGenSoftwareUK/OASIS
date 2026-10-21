@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Solana service console ownership — scoped controlled closure
+
+Confirmed2/2 held-SDK-RPC failures showed NFT/collection mint replacing process-wide Console.Out while awaiting I/O. Removed all four provider console-redirection/save-restore scopes (38lines), reusing normal SDK ILogger ownership rather than adding a global lock/router or alternate SDK implementation. Installed dependency inspection confirms default RPC logger is null; SDK-owned V4 diagnostic whitespace may still appear, so this is NOT a blanket silent-SDK/CLI protocol claim.
+
+Actual3642 terminal0 **561/561 controlled passed**, zero skips9s, producer/consumer builds0errors. ReportSHA256 `DE55A7585ED73402A64B332E34485EA15DE40A3D5ADF01A4BCBA85FAB99AF2AF`; matched Core6635E34C/Shared5488D5AC. Native NFT/collection/program/legacy-service and full-interface gates remain OPEN; prior native3/Shared40F3 proof is not this service cohort. No download/runtime/native transaction/deployment. Full evidence/root cause in `SOLANA_SUBMISSION_CONCURRENCY.md`.
+
 ## Solana token transfers — expanded native3 green
 
 Actual97910 terminal0 **3/3 native passed**, zero skips3m24; real sync/async PUBLIC SPL and native SOL transfers now verified alongside create/mint/burn and existing storage/concurrency. Independent supply/holder/native-balance reads verify exact effects, including creation of the fresh recipient ATA. Per five-operation flow:30,000lamport fees +5,540,160rent funding +1,000,000transferred SOL =6,570,160exact payer debit. Neither rent nor transfer value is mislabeled gas; local test SOL only, no sponsored/hosted/fee-maximum claim.
