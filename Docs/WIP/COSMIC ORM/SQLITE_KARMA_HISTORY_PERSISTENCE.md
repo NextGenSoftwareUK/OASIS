@@ -12,8 +12,16 @@ The repository now includes history, replaces the owned collection in the same S
 
 Regression coverage exercises create/update through both sync and async methods, acknowledgements, reloads, duplicate entries, replacement, clearing, and rejection of foreign ownership without changing stored totals. Targeted verification passed 6/6 with zero skips (`karma-history-fix-current.trx`). The complete SQLite suite passed 1151/1151 with zero failures or skips (`karma-history-full-current.trx`, 2m27s). The provider build completed with zero errors. Both reports are retained in `TestResults/SQLiteCurrent/`.
 
-## Remaining representation audit
+## Verified representation follow-on
 
-The existing schema has no explicit sequence index, DateTime.Kind column, or nullable enum-presence representation for history records. Physical IDs currently provide read ordering. Explicit order persistence, nullable wrappers, exact date-kind round trips, migration compatibility, and guarded downgrade remain open and must be tested before claiming complete history fidelity.
+The follow-on adds an explicit SequenceIndex, DateKind and five enum-presence bits. The provider stores each supplied list position, retains duplicate entries, and orders by sequence then physical ID. Existing rows acquire sequence zero and retain physical-ID order. New dates retain exact ticks and Unspecified/UTC/Local kind; old dates remain Unspecified because their original kind cannot be recovered. Invalid persisted date-kind values fail explicitly.
+
+Absent wrappers retain absence independently of their physical enum slot. Legacy rows default to present, preserving all previously observable zero/nonzero enum values. Both formal EF migration `20261020070000_AddKarmaHistoryFidelity` and activation's atomic additive schema upgrade cover the seven columns. Downgrade rejects rows with nonzero sequence, non-Unspecified kind or any absent wrapper rather than discarding representation.
+
+The initial focused run passed 18 checks and failed six fixture-update cases after direct physical-ID rewriting invalidated the writer's tracked EF identities. The order/date/nullable assertions had passed; the test now reopens a provider before subsequent updates. Original report retained as `karma-history-fidelity-current.trx`. No production retry or concurrency suppression was added.
+
+Corrected focused verification passed 27/27 with zero failures/skips (`karma-history-fidelity-verified.trx`, SHA256 `7B93E255F2CF04D89DCE70A493A483DC181365DDB919C501C87CE817AE9E0B2D`). This includes actual SQLite round trips for sync/async and all three date kinds, explicit order after physical-ID reversal, nullable enum wrappers, legacy additive upgrade, lossy downgrade rejection, invalid persisted date-kind rejection and existing snapshot checks. Producer and consumer SQLite assemblies match SHA256 `F1A63CB6C42AB17EFD1B6588158852C637F6B8DA6C4340ED8E7FA56DAEF0AB39`.
+
+The complete SQLite suite passed 1164/1164 with zero failures/skips in 2m36s (`karma-history-fidelity-full.trx`, SHA256 `ADB41DC2A6313E7E68825C85928069DCADB57657C3626D6E3431F244F82F79DB`). The owned disposable integration database was absent after the run. These results close this SQLite history representation batch; they do not establish complete cross-provider history/replication acceptance.
 
 The separately retained AWS/SQLite native failure fixture is owned by the Hyperdrive session. This regression does not replay or modify it. Legacy Hyperdrive routing remains documentation-only.
