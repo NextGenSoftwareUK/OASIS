@@ -39,6 +39,6 @@ internal static class SqliteCqlContract
         };
         MetadataTypes = new ReadOnlyDictionary<Type, CosmicQueryMetadataCapability>(metadata.ToDictionary(m => m.ValueType));
         Capabilities = new CosmicQueryCapabilities(CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not |
-            CosmicQueryFeatures.Metadata | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith | CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists | CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.Membership | CosmicQueryFeatures.MixedNumericComparison, fields.Values.ToArray(), metadata);
+            CosmicQueryFeatures.Metadata | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith | CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists | CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.Membership | CosmicQueryFeatures.MixedNumericComparison | CosmicQueryFeatures.FieldComparison, fields.Values.ToArray(), metadata);
     }
 }

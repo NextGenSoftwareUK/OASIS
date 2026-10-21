@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Native CQL field comparisons — 20 October 2026
+
+Canonical and typed metadata operands now compare through the common immutable Core query representation and exact two-path admission. SQLite and MongoDB execute comparisons natively, preserving null/missing/type domains, exact integer/date precision and supported UUID representations. Regression tests exposed and fixed MongoDB hex-case normalization and SQLite JSON `id` shadowing of the outer holon identity. Final pinned Core1,558 / Shared925 / Mongo197 controls / native CQL3 / SQLite1,130 pass, zero skips; all17 declared producer/consumer copies match. Corec030926 is remotely verified and paired with the parent manifest. [Usage, scope, reviewed original failures and full acceptance evidence](CQL_FIELD_COMPARISONS.md). Ordering, paging, projection/aggregation, relationships, authorization-aware discovery/federation and other native adapters remain open.
+
 ## Shared save lifecycle across SQLite, MongoDB and Neo4j — 20 October 2026
 
 One shared rule now validates committed deletion timestamps/actors and inactive state against protected authoritative observations. SQLite conditional and ordinary graphs preflight every selected record before history/data/receipt changes. Mongo atomic graphs validate actual native audit fields before preparation, while single-record tombstone visibility remains RecordNotFound. Neo4j delegates to the same implementation. Original SQLite16 accepted-invalid failures/8 controls close in final SQLite1,121, Mongo88, Neo native265/controlled276 and Shared925, zero skips; exact provider/consumer hashes match. [Contract, reviewed fixture evidence, dependency commit and final reports](SHARED_SAVE_LIFECYCLE.md). Explicit restore, broader identity/provider/fault/security and full roadmap acceptance remain open.
