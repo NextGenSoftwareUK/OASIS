@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
@@ -34,6 +35,11 @@ internal sealed class NeoCqlTranslator
         string guard;
         if (type == typeof(string)) guard = kind + "='string'";
         else if (type == typeof(bool)) guard = kind + "='boolean'";
+        else if (type == typeof(HolonType) || type == typeof(ProviderType))
+        {
+            var defined=Enum.GetValues(type).Cast<object>().Select(item=>Convert.ToInt64(item,CultureInfo.InvariantCulture)).Distinct().ToArray();
+            guard=kind+"='integer' AND "+value+" IN "+Bind(defined);
+        }
         else if (NeoCqlIntegerDomain.TryBounds(type,out var bounds))
         {
             guard = kind + "='integer'";
