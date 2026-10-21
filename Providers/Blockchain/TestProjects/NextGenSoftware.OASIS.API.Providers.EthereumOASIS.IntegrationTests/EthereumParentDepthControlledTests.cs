@@ -9,6 +9,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 [TestClass]
 public class EthereumParentDepthControlledTests
 {
+    private sealed class FailedRecords:EthereumOASIS
+    {
+        public readonly IOException Cause=new("owned collection failure");
+        public int Reads;
+        public FailedRecords():base("http://127.0.0.1:18545","0x0000000000000000000000000000000000000000000000000000000000000001",31337,"0x0000000000000000000000000000000000000000"){}
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type=HolonType.All,bool loadChildren=true,bool recursive=true,int maxChildDepth=0,int curentChildDepth=0,bool continueOnError=true,bool loadChildrenFromProvider=false,int version=0)
+        {
+            Reads++;
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>{IsError=true,Exception=Cause,Message="owned message",ErrorCode="owned-code",
+                DetailedMessage="owned details",IsWarning=true,WarningCount=3,ErrorCount=2,MetaData=new(){["owned-evidence"]="retained"}});
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task CustomIdentityFailurePreservesOriginalDiagnosticEnvelope(bool parent,bool synchronous)
+    {
+        var provider=new FailedRecords();
+        void Check<T>(OASISResult<T> result){
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.AreSame(provider.Cause,result.Exception);
+            Assert.AreEqual("owned-code",result.ErrorCode);Assert.AreEqual("owned message",result.Message);
+            Assert.AreEqual("owned details",result.DetailedMessage);Assert.IsTrue(result.IsWarning);
+            Assert.AreEqual(3,result.WarningCount);Assert.AreEqual(2,result.ErrorCount);
+            Assert.AreEqual("retained",result.MetaData["owned-evidence"]);Assert.AreEqual(1,provider.Reads);
+        }
+        if(parent)Check(synchronous?provider.LoadHolonsForParentByCustomKey("owned-parent"):await provider.LoadHolonsForParentByCustomKeyAsync("owned-parent"));
+        else Check(synchronous?provider.LoadHolonByCustomKey("owned-parent"):await provider.LoadHolonByCustomKeyAsync("owned-parent"));
+    }
+
     private sealed class Records:EthereumOASIS
     {
         public readonly Holon Parent=new(){Id=Guid.NewGuid(),MetaData=new(){["CustomKey"]="owned-parent"}};
