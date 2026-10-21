@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Runnable CQL demos — 21 October 2026
+
+A real C# walkthrough and standalone loopback Swagger sample now exercise native typed metadata/field queries, ordering/paging, clean tracking, no-op saves, committed delta summaries and independent stale-client conflicts through HolonManager/Hyperdrive V2. Console assertions and all six HTTP/Swagger checks pass with host/fixture teardown verified. Core/Shared/SQLite demo runtime copies match their producers. [Run commands and demo script](CQL_DEMO_RUNBOOK.md); [dependency inventory](CQL_DEMO_DEPENDENCIES.md). No Core/provider product implementation changed in this increment. Production authenticated ONODE routing/admission and the full roadmap remain open.
+
 ## Neo4j GUID metadata — 21 October 2026
 
 Guid/Guid? metadata now execute natively with exact canonical text validation, GUID-only case normalization and shared null/invalid-domain semantics across predicates, membership, fields and ordering. Full Neo307/307 and expanded native64/64 pass, zero skips;20 declared producer/consumer copies match. Stable feature report and exact source/artifact hashes are retained; successful fixtures removed and container stopped. [Contract and evidence](CQL_SCALAR_METADATA.md#neo4j-guid-metadata--21-october-2026). No Core/Shared/pin/schema change or new environment. Date metadata, resource stress and the remaining original roadmap are still open.
