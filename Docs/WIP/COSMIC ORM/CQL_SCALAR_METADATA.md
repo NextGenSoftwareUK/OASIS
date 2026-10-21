@@ -12,13 +12,14 @@ The production profile and translator share `SqliteCqlContract.MetadataTypes`. U
 | `bool`, `bool?` | JSON true/false | `==`, `!=` | Exact scalar arrays | None |
 | `int`, `int?` | JSON integer within Int32 bounds | All six comparisons | Exact scalar arrays | None |
 | `byte/sbyte/short/ushort/uint` and nullable forms | JSON integer within the exact declared CLR range | All six comparisons | Exact scalar arrays | None |
+| `HolonType`, `ProviderType` and nullable forms | JSON integer defined by that declared enum | All six comparisons | Exact enum arrays | None |
 | `long`, `long?` | JSON integer represented exactly by SQLite Int64 | All six comparisons | Exact scalar arrays | None |
 | `Guid`, `Guid?` | Canonical 36-byte GUID D text, either hex case | `==`, `!=` | Exact GUID arrays, including nullable null | None |
 | `DateTime`, `DateTime?` | Valid UTC ISO JSON text, zero to seven fractional digits | All six comparisons | Exact date arrays, including nullable null | None |
 
 Nullable value types additionally admit explicit JSON null. The CLR width of the value originally serialized is not retained in JSON: a JSON integer within Int32 bounds can be queried as either int or long. JSON true/false, numeric text and fractional numbers are not integers. Oversized JSON integers surfaced as SQLite REAL are excluded from integer domains, preventing rounding into a matching value.
 
-Decimal, floating-point and enum metadata path types remain unsupported natively. Mixed numeric metadata comparisons are rejected; canonical Int32 field widening support does not grant metadata widening. These remain roadmap requirements rather than inferred capabilities.
+Decimal, floating-point and unregistered enum metadata path types remain unsupported natively. `HolonType`/`ProviderType` enrollment and its current acceptance evidence are documented in [the enum contract](CQL_ENUM_METADATA.md). Mixed numeric metadata comparisons are rejected; canonical Int32 field widening support does not grant metadata widening. Broader type support remains a roadmap requirement rather than an inferred capability.
 
 ### UTC dates
 

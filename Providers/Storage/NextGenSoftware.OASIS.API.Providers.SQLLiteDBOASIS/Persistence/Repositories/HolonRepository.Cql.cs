@@ -160,6 +160,15 @@ public partial class HolonRepository
         private static string MetadataTypeGuard(Type declaredType, string alias)
         {
             var type = Nullable.GetUnderlyingType(declaredType) ?? declaredType;
+            if(type.IsEnum)
+            {
+                // Only explicitly registered enum path types reach this translator.
+                // Values are trusted schema constants, never caller SQL fragments.
+                var defined=System.Enum.GetValues(type).Cast<object>().Select(value=>Convert.ToInt64(value))
+                    .Distinct().Select(value=>value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                var members=string.Join(",",defined);
+                return members.Length==0 ? "0" : alias+".type = 'integer' AND typeof("+alias+".value) = 'integer' AND "+alias+".value IN ("+members+")";
+            }
             if (type == typeof(string)) return alias + ".type = 'text'";
             if (type == typeof(DateTime)) return SqliteCqlDate.Guard(alias);
             if (type == typeof(Guid))

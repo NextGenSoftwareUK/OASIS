@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## CQL defined enum metadata on SQLite — 20 October 2026
+
+SQLite now explicitly admits HolonType/ProviderType and nullable metadata paths, using the enum's defined integer values as the native domain. Comparisons, membership, fields and ordering share that guard; undefined integers and wrong JSON types do not become typed matches. Original two absent-capability failures close in focused7/7 and full1,176/1,176, zero skips. Eight producer/consumer copies match. [Usage, limits and evidence](CQL_ENUM_METADATA.md). MongoDB enum enrollment and broader enum/schema registration remain open.
+
 ## CQL exact narrow integer domains — 20 October 2026
 
 MongoDB enrollment now adds the same exact narrow integer/nullable domains, with one native BSON guard reused by comparison, membership, field comparison and ordering. Original five admission failures close in full202 controls and expanded3 native CQL scenarios, zero skips; both dictionary layouts and Int32/Int64 storage representations pass, with12 declared producer/consumer copies matching. [Native evidence and hashes](CQL_INTEGER_DOMAINS.md#verified-mongodb-enrollment). Other adapters and decimal/double/enum/UInt64 domains remain open.

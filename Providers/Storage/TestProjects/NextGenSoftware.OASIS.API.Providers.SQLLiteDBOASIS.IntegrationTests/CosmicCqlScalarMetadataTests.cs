@@ -83,13 +83,13 @@ public partial class SQLLiteDBOASISIntegrationTests
         Expression<Func<Holon, bool>> predicate = selection switch {
             0 => h => CosmicQueryMetadata.Value<decimal>(h, "x") == 1.000000000000000000000000001m,
             1 => h => CosmicQueryMetadata.Value<double>(h, "x") == 1.1d,
-            4 => h => CosmicQueryMetadata.Value<NextGenSoftware.OASIS.API.Core.Enums.HolonType>(h, "x") == NextGenSoftware.OASIS.API.Core.Enums.HolonType.Quest,
+            4 => h => CosmicQueryMetadata.Value<NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType>(h, "x") == NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType.Game,
             _ => h => (decimal)CosmicQueryMetadata.Value<int>(h, "x") == 1.1m
         };
         var query = CosmicQuery<Holon>.Create().Where(predicate); query.IsError.Should().BeFalse(query.Message);
         SQLLiteDBOASIS.CqlCapabilities.Admit(query.Result).IsError.Should().BeTrue();
         var forged = new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata | CosmicQueryFeatures.MixedNumericComparison,
-            new[] { typeof(decimal), typeof(double), typeof(Guid), typeof(DateTime), typeof(NextGenSoftware.OASIS.API.Core.Enums.HolonType), typeof(int) },
+            new[] { typeof(decimal), typeof(double), typeof(Guid), typeof(DateTime), typeof(NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType), typeof(int) },
             System.Enum.GetValues<CosmicQueryComparisonOperator>());
         var plan = CosmicQueryPlanner.Plan(query.Result, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS,
             new[] { new CosmicQueryTarget(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS, forged) });
