@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations;
 
 [DbContext(typeof(DataContext))]
 [Migration("20261020050000_AddCosmicWritePreparation")]
-public sealed class AddCosmicWritePreparation : Migration
+public sealed partial class AddCosmicWritePreparation : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.Sql(CosmicSqliteSchema.CreatePreparationTable);
     protected override void Down(MigrationBuilder migrationBuilder)

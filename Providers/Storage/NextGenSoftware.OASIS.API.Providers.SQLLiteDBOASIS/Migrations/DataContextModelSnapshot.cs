@@ -581,6 +581,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("HasAvatarType")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasCreatedOASISType")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasCreatedProviderType")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
                     b.Property<int>("HolonType")
                         .HasColumnType("INTEGER");
 
