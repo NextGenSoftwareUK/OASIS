@@ -1,7 +1,8 @@
 [CmdletBinding()]
-param([Parameter(Mandatory)][switch]$ReviewedSyntheticFixture,[switch]$CosmosOffline,[switch]$InspectOnly)
+param([Parameter(Mandatory)][switch]$ReviewedSyntheticFixture,[switch]$CosmosOffline,[switch]$InspectOnly,[switch]$InspectOriginalGraph)
 $ErrorActionPreference='Stop'
 if(!$ReviewedSyntheticFixture){throw 'Review the failed synthetic fixture and retain compact failure evidence before cleanup.'}
+if($InspectOriginalGraph -and ($CosmosOffline -or $InspectOnly)){throw 'Original graph inspection is a distinct read-only mode; never combine cleanup/other inspection modes.'}
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent'
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),'OpenOrCreate','ReadWrite','None')
@@ -18,6 +19,25 @@ try {
         if($owned.HasExited -or [DateTime]::UtcNow -gt $deadline){throw 'Retained Mongo startup failed'}
         Start-Sleep -Milliseconds 100
     }while($true)
+    if($InspectOriginalGraph){
+        # Distinct read-only route exits BEFORE driver cleanup/projection/file/database mutation paths.
+        $project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests.csproj'
+        & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        if($LASTEXITCODE){throw 'Original-only inspector build failed; no original record was changed.'}
+        $priorUri=$env:SUBSCRIPTION_TEST_MONGODB_URI
+        try{
+            $env:SUBSCRIPTION_TEST_MONGODB_URI='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=5000'
+            $reportDirectory=Join-Path $taskRoot 'TestResults/Web3CoreCurrent'
+            $report=Join-Path $reportDirectory 'web3-original-dispatch-inspection-current.trx'
+            if(Test-Path -LiteralPath $report){throw 'Existing original dispatch inspection report requires preservation before another run.'}
+            & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~RetainedWeb3OutboxInspectionTests' --logger 'trx;LogFileName=web3-original-dispatch-inspection-current.trx' --results-directory $reportDirectory /m:2 /nr:false -v:q
+            if($LASTEXITCODE){throw 'Original read-only dispatch inspection failed; preserve all evidence.'}
+            [xml]$result=Get-Content -LiteralPath $report -Raw
+            $counts=$result.TestRun.ResultSummary.Counters
+            if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'Exactly one successful original-only inspection required.'}
+        }finally{$env:SUBSCRIPTION_TEST_MONGODB_URI=$priorUri}
+        return
+    }
     $dll=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests/bin/Debug/net10.0'
     $framework=Get-ChildItem -LiteralPath 'C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App' -Directory | Where-Object Name -Like '10.0.*' | Sort-Object { [version]$_.Name } | Select-Object -Last 1
     if(!$framework){throw 'Existing .NET10 ASP.NET runtime required; no install attempted.'}

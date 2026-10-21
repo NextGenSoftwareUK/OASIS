@@ -1,3 +1,4 @@
+param([switch]$NamedRoleDiagnostic)
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $runtime='C:\Users\david\.cache\oasis-runtimes\azurite-3.37.0\node_modules\azurite\dist\src\blob\main.js'
@@ -20,24 +21,32 @@ try {
         & dotnet build $producer --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE) {throw "Cached build failed: $producer"}
     }
+    & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests/bin/Debug/net10.0'
     $node=(Get-Command node.exe).Source
     $process=Start-Process -FilePath $node -ArgumentList @($runtime,'--blobHost','127.0.0.1','--blobPort','10000','--inMemoryPersistence','--extentMemoryLimit','64','--disableTelemetry','--silent') -WorkingDirectory $work -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'azurite.out.log') -RedirectStandardError (Join-Path $work 'azurite.err.log')
     $ready=$false
     for($i=0;$i -lt 60;$i++) {
         if($process.HasExited) {throw 'Owned Azurite exited before readiness.'}
-        if(Get-NetTCPConnection -LocalPort 10000 -State Listen -ErrorAction SilentlyContinue) {$ready=$true;break}
+        $listener=Get-NetTCPConnection -LocalPort 10000 -State Listen -ErrorAction SilentlyContinue
+        if($listener) {
+            if(@($listener | Where-Object OwningProcess -ne $process.Id).Count) {throw 'Azure readiness listener is not the owned Azurite process.'}
+            $ready=$true;break
+        }
         Start-Sleep -Milliseconds 250
     }
     if(!$ready) {throw 'Owned Azurite readiness timed out.'}
     $env:OASIS_AZURE_NATIVE_TEST='1'
     $started=[DateTime]::UtcNow
-    & dotnet test $project --no-build --no-restore --logger 'trx;LogFileName=azure-native-current.trx' --results-directory $work -v:q
+    $reportName=if($NamedRoleDiagnostic){'azure-named-role-before.trx'}else{'azure-native-current.trx'}
+    $selection=if($NamedRoleDiagnostic){@('--filter','FullyQualifiedName~NativeNamedRoleGraphHistoryAndRootOnlyObservation')}else{@()}
+    & dotnet test $project --no-build --no-restore @selection --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE) {throw 'Azure native test failed.'}
-    $reportFile=Get-Item -LiteralPath (Join-Path $work 'azure-native-current.trx') -ErrorAction Stop
+    $reportFile=Get-Item -LiteralPath (Join-Path $work $reportName) -ErrorAction Stop
     if($reportFile.LastWriteTimeUtc -lt $started){throw 'Azure native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 152 -or [int]$counts.passed -ne 152 -or [int]$counts.notExecuted -ne 0) {throw 'Expected152Azure tests including2partial-pair completion,4avatar tombstone identity,28standalone detail dispatch/fault/identity cases and prior concurrency schedules, no skips.'}
+    $expected=if($NamedRoleDiagnostic){2}else{160}
+    if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0) {throw "Expected$expected Azure tests, no skips."}
 }
 finally {
     $env:OASIS_AZURE_NATIVE_TEST=$previous

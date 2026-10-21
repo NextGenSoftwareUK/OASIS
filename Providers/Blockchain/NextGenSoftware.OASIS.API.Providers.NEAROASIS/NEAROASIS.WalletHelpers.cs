@@ -31,9 +31,9 @@ public partial class NEAROASIS
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var key = await _sdk.GenerateKeyPairAsync();
-            result.Result = (key.PublicKey, key.PrivateKey, string.Empty);
-            result.Message = $"Generated NEAR implicit account {key.ImplicitAccountId}; fund it before use. NEAR uses an Ed25519 secret key rather than a mnemonic.";
+            var generated = await _sdk.GenerateMnemonicAsync(cancellationToken);
+            result.Result = (generated.Key.PublicKey, generated.Key.PrivateKey, generated.SeedPhrase);
+            result.Message = $"Generated keys and mnemonic for NEAR implicit account {generated.Key.ImplicitAccountId}; no on-chain account was funded or created.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error generating NEAR account key: {ex.Message}", ex); }
         return result;
@@ -46,10 +46,12 @@ public partial class NEAROASIS
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (string.IsNullOrWhiteSpace(seedPhrase)) throw new ArgumentException("A NEAR Ed25519 secret key is required.", nameof(seedPhrase));
-            var key = await _sdk.DerivePublicKeyAsync(seedPhrase);
+            if (string.IsNullOrWhiteSpace(seedPhrase)) throw new ArgumentException("A NEAR mnemonic or explicitly prefixed Ed25519 secret key is required.", nameof(seedPhrase));
+            var key = seedPhrase.StartsWith("ed25519:",StringComparison.Ordinal)
+                ? await _sdk.DerivePublicKeyAsync(seedPhrase,cancellationToken)
+                : await _sdk.RestoreMnemonicAsync(seedPhrase,cancellationToken);
             result.Result = (key.PublicKey, key.PrivateKey);
-            result.Message = $"Restored NEAR implicit account {key.ImplicitAccountId} from its Ed25519 secret key.";
+            result.Message = $"Restored keys for NEAR implicit account {key.ImplicitAccountId}; no on-chain mutation occurred.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error restoring NEAR account key: {ex.Message}", ex); }
         return result;

@@ -57,6 +57,12 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         public DynamoDBOASIS(string accessKey,string secretKey,string region,string? serviceUrl,string? sessionToken,bool useDefaultCredentials)
         {
+            if(string.IsNullOrWhiteSpace(region))
+                throw new ArgumentException("A signing region is required.",nameof(region));
+            if(!useDefaultCredentials && (string.IsNullOrWhiteSpace(accessKey) || string.IsNullOrWhiteSpace(secretKey)))
+                throw new ArgumentException("Explicit credentials require an access key and secret key.");
+            if(sessionToken!=null && sessionToken.Length>0 && string.IsNullOrWhiteSpace(sessionToken))
+                throw new ArgumentException("A supplied session token must not be whitespace.",nameof(sessionToken));
             if(useDefaultCredentials && (!string.IsNullOrEmpty(accessKey) || !string.IsNullOrEmpty(secretKey) || !string.IsNullOrEmpty(sessionToken)))
                 throw new ArgumentException("Choose SDK default credentials or explicit credentials, not both.");
             if(!useDefaultCredentials && !string.IsNullOrEmpty(sessionToken)
@@ -170,16 +176,20 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             if (gsis != null) req.GlobalSecondaryIndexes = gsis;
             await _client.CreateTableAsync(req);
             }
-            await WaitForTableActiveAsync(() => _client.DescribeTableAsync(tableName), () => Task.Delay(1000));
+            var table=await WaitForTableActiveAsync(() => _client.DescribeTableAsync(tableName), () => Task.Delay(1000));
+            if(table.TableName!=tableName||table.KeySchema==null||table.KeySchema.Count!=1||
+                table.KeySchema[0].AttributeName!="id"||table.KeySchema[0].KeyType!=KeyType.HASH||
+                table.AttributeDefinitions==null||table.AttributeDefinitions.Count(attribute=>attribute.AttributeName=="id"&&attribute.AttributeType==ScalarAttributeType.S)!=1)
+                throw new System.IO.InvalidDataException($"DynamoDB table {tableName} requires the canonical string id partition key without a sort key.");
         }
 
-        private static async Task WaitForTableActiveAsync(Func<Task<DescribeTableResponse>> describe, Func<Task> delay)
+        private static async Task<TableDescription> WaitForTableActiveAsync(Func<Task<DescribeTableResponse>> describe, Func<Task> delay)
         {
             for (int i = 0; i < 30; i++)
             {
                 var desc = await describe();
                 if (desc?.Table == null) throw new InvalidOperationException("DynamoDB table description is missing.");
-                if (desc.Table.TableStatus == TableStatus.ACTIVE) return;
+                if (desc.Table.TableStatus == TableStatus.ACTIVE) return desc.Table;
                 if (desc.Table.TableStatus != TableStatus.CREATING && desc.Table.TableStatus != TableStatus.UPDATING)
                     throw new InvalidOperationException($"DynamoDB table is not available: {desc.Table.TableStatus}.");
                 if(i<29) await delay();
@@ -234,6 +244,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     MakeGsi("parentHolonId-index", "parentHolonId", "ALL")
                 });
 
+                await EnsureTableAsync(ConditionalReceiptTable,pkSchema,pkAttr);
+                await EnsureTableAsync(PreparationTable,pkSchema,pkAttr);
                 IsProviderActivated = true;
                 result.Result = true; result.IsError = false; result.Message = $"{ProviderName} activated — DynamoDB tables ready.";
             }
@@ -270,6 +282,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["data_json"] = new AttributeValue { S = Ser(avatar) }
                     })
                 },IsVersionControlEnabled,publication.ValidateUnchanged);
+                result.SavedCount=1;
                 ValidateAcknowledgedCaller(publication.ValidateUnchanged,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=avatar.Id;
@@ -277,7 +290,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 source.ProviderUniqueStorageKey[StorageProviderType]=avatar.Id.ToString();
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Avatar '{avatar.Username}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); if(ex is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode; }
             return result;
         }
 
@@ -470,6 +483,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["data_json"] = new AttributeValue { S = Ser(d) }
                     })
                 },IsVersionControlEnabled,publication.ValidateUnchanged);
+                result.SavedCount=1;
                 ValidateAcknowledgedCaller(publication.ValidateUnchanged,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=d.Id;
@@ -477,7 +491,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 source.ProviderUniqueStorageKey[StorageProviderType]=d.Id.ToString();
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); if(ex is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode; }
             return result;
         }
 
@@ -556,29 +570,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     if(!graph.IsError) converted.Result=holon;
                     return converted;
                 }
-                var source=holon;var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(source);
-                holon=publication.Proposal;
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[StorageProviderType] = holon.Id.ToString();
-                var committed=await WriteRecordAsync<Holon>(new PutItemRequest
-                {
-                    TableName = "OasisHolons",
-                    Item = new Dictionary<string, AttributeValue>
-                    {
-                        ["id"] = new AttributeValue { S = holon.Id.ToString() },
-                        ["parentHolonId"] = new AttributeValue { S = holon.ParentHolonId.ToString() },
-                        ["holon_type"] = new AttributeValue { N = ((int)holon.HolonType).ToString() },
-                        ["is_deleted"] = new AttributeValue { BOOL = holon.IsDeleted },
-                        ["data_json"] = new AttributeValue { S = Ser(holon) }
-                    }
-                },IsVersionControlEnabled,publication.ValidateUnchanged);
-                ValidateAcknowledgedCaller(publication.ValidateUnchanged,committed.Id);
-                source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
-                source.Id=holon.Id;
-                source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
-                source.ProviderUniqueStorageKey[StorageProviderType]=holon.Id.ToString();
-                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Holon '{holon.Name}' saved.";
+                return await SaveHolonRecordAsync(holon,null);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -590,6 +582,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>(); var failures=new List<Exception>();
+            var acknowledgedIds=new HashSet<Guid>();
             try {
                 var sourceGuards=new Dictionary<IHolon,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Core.Holons.Holon>>(ReferenceEqualityComparer.Instance);
                 var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,
@@ -600,7 +593,11 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     if(failedParents.Contains(node.Snapshot.ParentHolonId)) {
                         failedParents.Add(node.Snapshot.Id);failures.Add(new InvalidOperationException("Descendant skipped because its parent failed."));continue;
                     }
-                    var written=await SaveHolonAsync(node.Snapshot,false,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+                    var nativeIdentity=node.Snapshot.Id;
+                    var written=await SavePlannedHolonAsync(node);
+                    if(written==null||!written.IsError&&(!written.IsSaved||written.Result==null))
+                        throw new DynamoDBMutationReconciliationException("OasisHolons",nativeIdentity.ToString(),new System.IO.InvalidDataException("DynamoDB planned write returned no complete authoritative acknowledgement."));
+                    if(!written.IsError||written.SavedCount==1)acknowledgedIds.Add(nativeIdentity);
                     if(written.IsError || written.Result==null) {
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
@@ -613,20 +610,24 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         publication.ValidateUnchanged();
                         node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                         node.Source.Version=written.Result.Version;node.Source.VersionId=written.Result.VersionId;node.Source.PreviousVersionId=written.Result.PreviousVersionId;
+                        if(node.Source is Holon caller&&written.Result is Holon committed)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                         node.Source.ProviderUniqueStorageKey[StorageProviderType]=node.Snapshot.Id.ToString();
+                        var revision=CosmicConcurrency.GetProviderRevisionId(written.Result,StorageProviderType);
+                        if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(node.Source,StorageProviderType,revision.Value);
                     }
                 }
                 result.Result=failures.Count==0 ? plan.Roots:saved; result.IsSaved=failures.Count==0;
                 if(failures.Count>0) {
                     var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
-                    result.Exception=saved.Count>0 ? new DynamoDBPartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                    result.Exception=acknowledgedIds.Count>0 ? new DynamoDBPartialMutationException(acknowledgedIds,cause):cause;
                 }
             }
             catch(Exception cause) {
-                result.Exception=saved.Count>0 ? new DynamoDBPartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                result.Exception=acknowledgedIds.Count>0 ? new DynamoDBPartialMutationException(acknowledgedIds,cause):cause;
                 result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
             }
+            result.SavedCount=acknowledgedIds.Count;
             return result;
         }
 

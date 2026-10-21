@@ -70,7 +70,10 @@ public partial class IPFSOASISTests
             for(var kind=0;kind<5;kind++)
             {
                 Assert.Equal(OASISResultErrorCodes.RecordNotFound,(await Read(kind,key)).ErrorCode);
-                Assert.Equal(first.Id,(await Read(kind,key,1)).Result.Id);
+                var archived=await Read(kind,key,1);
+                Assert.True(archived.IsError);Assert.Null(archived.Result);
+                Assert.Equal("HYPERDRIVE_PAYLOAD_INVALID",archived.ErrorCode);
+                Assert.IsType<ArgumentOutOfRangeException>(archived.Exception);
                 var ambiguous=await Read(kind,newer);Assert.Equal(OASISResultErrorCodes.AmbiguousIdentity,ambiguous.ErrorCode);Assert.Null(ambiguous.Result);
             }
             var deleted=await provider.DeleteAvatarAsync(duplicate.Id,true);Assert.False(deleted.IsError,deleted.Message);

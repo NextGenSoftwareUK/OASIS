@@ -1,4 +1,5 @@
 using System.Net;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -14,6 +15,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests;
 /// <summary>Retained CSS server: anonymous encrypted storage and native private DPoP client-credentials tests.</summary>
 public class RetainedSolidPodTests
 {
+    private sealed class NamedGraphOwner:Holon
+    {
+        public List<Holon> Components{get;set;}=new();
+        public override List<IHolon> AllChildren=>base.AllChildren.Concat(Components).ToList();
+        public override IReadOnlyList<HolonChildCollection> CaptureChildCollections()=>base.CaptureChildCollections()
+            .Concat(new[]{new HolonChildCollection(nameof(Components),Components,rows=>Components=rows.Cast<Holon>().ToList())}).ToArray();
+    }
     [Fact]
     public async Task PrivateDpopPodDeniesAnonymousAndSupportsEncryptedProviderCrud()
     {
@@ -29,7 +37,8 @@ public class RetainedSolidPodTests
             var password=credentials.RootElement.GetProperty("secret").GetString()!;
             using var anonymous=new HttpClient{Timeout=TimeSpan.FromSeconds(10)};
             SolidDpopClientCredentialsHandler Handler()=>new(root,new Uri("http://localhost:13000/.oidc/token"),id,password);
-            using var client=new HttpClient(Handler()){Timeout=TimeSpan.FromSeconds(20)};
+            var credentialsHandler=Handler();
+            using var client=new HttpClient(credentialsHandler){Timeout=TimeSpan.FromSeconds(20)};
             // CSS deliberately publishes the new Pod root by default. Configure only this owned
             // synthetic Pod with an owner-only inheritable ACL before testing private storage.
             var podBytes=ProtectedData.Unprotect(await File.ReadAllBytesAsync(Path.Combine(work,"private-local-pod.dpapi")),null,DataProtectionScope.CurrentUser);
@@ -40,6 +49,20 @@ public class RetainedSolidPodTests
             var aclUri=new Uri(root,".acl");
             using var acl=await client.GetAsync(aclUri);Assert.True(acl.IsSuccessStatusCode,$"Authenticated ACL read status {(int)acl.StatusCode}; challenge {string.Join(";",acl.Headers.WwwAuthenticate)}: {await acl.Content.ReadAsStringAsync()}");
             var original=await acl.Content.ReadAsStringAsync();
+            // Corrupt only this client's cached token, NOT issuer credentials or server data.
+            // Real CSS must reject this request; only a subsequent explicit request may refresh.
+            var cachedToken=typeof(SolidDpopClientCredentialsHandler).GetField("_accessToken",BindingFlags.Instance|BindingFlags.NonPublic)!;
+            var originalAccess=(string?)cachedToken.GetValue(credentialsHandler);
+            Assert.False(string.IsNullOrWhiteSpace(originalAccess));
+            var parts=originalAccess!.Split('.');Assert.Equal(3,parts.Length);Assert.False(string.IsNullOrEmpty(parts[2]));
+            parts[2]=(parts[2][0]=='A'?"B":"A")+parts[2].Substring(1);
+            var invalidAccess=string.Join('.',parts);cachedToken.SetValue(credentialsHandler,invalidAccess);
+            using var rejectedToken=await client.GetAsync(aclUri);
+            Assert.Equal(HttpStatusCode.Unauthorized,rejectedToken.StatusCode);
+            using var recoveredToken=await client.GetAsync(aclUri);
+            Assert.True(recoveredToken.IsSuccessStatusCode,$"Explicit token recovery status {(int)recoveredToken.StatusCode}; rejection challenge {string.Join(";",rejectedToken.Headers.WwwAuthenticate)}; cached invalid token retained {Equals(invalidAccess,cachedToken.GetValue(credentialsHandler))}");
+            Assert.Equal(original,await recoveredToken.Content.ReadAsStringAsync());
+            Assert.NotEqual(invalidAccess,(string?)cachedToken.GetValue(credentialsHandler));
             var expected=$"@prefix acl: <http://www.w3.org/ns/auth/acl#>. <#owner> a acl:Authorization; acl:agent <{webId}>; acl:accessTo <{root.AbsoluteUri}>; acl:default <{root.AbsoluteUri}>; acl:mode acl:Read, acl:Write, acl:Control.";
             if(original!=expected){
                 var aclJournal=Path.Combine(work,"private-acl-pending.json");
@@ -54,7 +77,8 @@ public class RetainedSolidPodTests
             Assert.Contains(denied.StatusCode,new[]{HttpStatusCode.Unauthorized,HttpStatusCode.Forbidden});
             var journal=Path.Combine(work,"private-native-pending.json");
             Assert.False(File.Exists(journal),"Reconcile original private fixture before further writes.");
-            var holon=new Holon{Id=Guid.NewGuid(),Name="private-dpop-canary",Version=1};
+            const decimal exactMetadata=0.1234567890123456789012345678m;
+            var holon=new Holon{Id=Guid.NewGuid(),Name="private-dpop-canary",Version=1,MetaData=new(){["exact_decimal"]=exactMetadata}};
             var resource=new Uri(root,$"oasis/holons/{holon.Id}.ttl");
             await WriteJournalAsync(journal,new{root=root.AbsoluteUri,resource=resource.AbsoluteUri,state="before-private-native-write"});
             await EnsureContainersAsync(client,root.AbsoluteUri);
@@ -74,8 +98,12 @@ public class RetainedSolidPodTests
             var read=await provider.LoadHolonAsync(holon.Id,loadChildren:false);Assert.False(read.IsError,read.Exception?.ToString());Assert.Equal(holon.Name,read.Result.Name);
             Assert.Equal(2,read.Result.Version);
             var history=await provider.LoadHolonAsync(holon.Id,loadChildren:false,version:1);Assert.False(history.IsError,history.Exception?.ToString());Assert.Equal("private-dpop-canary",history.Result.Name);
+            Assert.Equal(exactMetadata,decimal.Parse(read.Result.MetaData["exact_decimal"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+            Assert.Equal(exactMetadata,decimal.Parse(history.Result.MetaData["exact_decimal"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
             provider.IsVersionControlEnabled=false;holon.Name="private-dpop-history-retained";
+            holon.MetaData=null!;
             var third=await provider.SaveHolonAsync(holon,saveChildren:false);Assert.False(third.IsError,third.Exception?.ToString());Assert.Equal(3,holon.Version);
+            var nullable=await provider.LoadHolonAsync(holon.Id,loadChildren:false);Assert.False(nullable.IsError,nullable.Exception?.ToString());Assert.Empty(nullable.Result.MetaData);
             Assert.Equal("private-dpop-updated",provider.LoadHolon(holon.Id.ToString(),loadChildren:false,version:2).Result.Name);
             var deleted=await provider.DeleteHolonAsync(holon.Id);Assert.False(deleted.IsError,deleted.Exception?.ToString());
             using var absent=await client.GetAsync(resource);Assert.Equal(HttpStatusCode.NotFound,absent.StatusCode);
@@ -158,8 +186,8 @@ public class RetainedSolidPodTests
             var owner=Guid.NewGuid();
             var grand=new Holon{Id=Guid.NewGuid(),Name="native-private-graph-grand",Version=9,CreatedByAvatarId=owner};
             var child=new Holon{Id=Guid.NewGuid(),Name="native-private-graph-child",Version=2,CreatedByAvatarId=owner,Children=new List<IHolon>{grand}};
-            IHolon graph=new Holon{Id=Guid.NewGuid(),Name="native-private-graph-root",Version=5,ParentHolonId=owner,CreatedByAvatarId=owner,
-                MetaData=new(){["tier"]="root"},Children=new List<IHolon>{child}};
+            IHolon graph=new NamedGraphOwner{Id=Guid.NewGuid(),Name="native-private-graph-root",Version=5,ParentHolonId=owner,CreatedByAvatarId=owner,
+                MetaData=new(){["tier"]="root"},Components=new(){child}};
             var rows=new IHolon[]{graph,child,grand};
             var resources=rows.Select(row=>new Uri(new Uri(root),$"oasis/holons/{row.Id}.ttl")).ToArray();
             await WriteJournalAsync(journal,new{root,synchronous,resources=resources.Select(uri=>uri.AbsoluteUri).ToArray(),state="before-native-graph"});
@@ -176,6 +204,15 @@ public class RetainedSolidPodTests
             Assert.False(linked.IsError,linked.Exception?.ToString());
             var linkedChild=Assert.Single(linked.Result.Children);Assert.Equal(child.Id,linkedChild.Id);Assert.Equal(2,linkedChild.Version);
             Assert.Equal(grand.Id,Assert.Single(linkedChild.Children).Id);
+            var roles=((Holon)graph).ChildRoleManifestJson;Assert.NotNull(roles);Assert.Contains("Components",roles);
+            Assert.Equal(roles,((Holon)linked.Result).ChildRoleManifestJson);
+            var childResource=resources[1];var originalChildRdf=await client.GetStringAsync(childResource);
+            graph.Description="native-root-only-role-preservation";
+            var rootOnly=synchronous?provider.SaveHolon(graph,saveChildren:false):await provider.SaveHolonAsync(graph,saveChildren:false);
+            Assert.False(rootOnly.IsError,rootOnly.Exception?.ToString());Assert.Equal(roles,((Holon)graph).ChildRoleManifestJson);
+            var observedRoot=await provider.LoadHolonAsync(graph.Id,loadChildren:false);
+            Assert.False(observedRoot.IsError,observedRoot.Exception?.ToString());Assert.Equal(roles,((Holon)observedRoot.Result).ChildRoleManifestJson);
+            Assert.Equal(originalChildRdf,await client.GetStringAsync(childResource));
             var limited=await provider.LoadHolonAsync(graph.Id,maxChildDepth:1,loadChildrenFromProvider:true);
             Assert.False(limited.IsError,limited.Message);Assert.Empty(Assert.Single(limited.Result.Children).Children);
             var metadata=synchronous?provider.LoadHolonsByMetaData("tier","root",loadChildrenFromProvider:true):await provider.LoadHolonsByMetaDataAsync("tier","root",loadChildrenFromProvider:true);
@@ -196,6 +233,15 @@ public class RetainedSolidPodTests
             var exported=synchronous?provider.ExportAllDataForAvatarById(owner):await provider.ExportAllDataForAvatarByIdAsync(owner);
             Assert.False(exported.IsError,exported.Exception?.ToString());Assert.Equal(3,exported.Result.Count());
             Assert.Contains(exported.Result,row=>row.Id==child.Id&&row.Name==child.Name);
+            var childAfterImport=await client.GetStringAsync(childResource);
+            ((NamedGraphOwner)graph).Components.Clear();
+            var unlinked=synchronous?provider.SaveHolon(graph):await provider.SaveHolonAsync(graph);
+            Assert.False(unlinked.IsError,unlinked.Exception?.ToString());
+            var empty=await provider.LoadHolonAsync(graph.Id,loadChildrenFromProvider:true);
+            Assert.False(empty.IsError,empty.Exception?.ToString());Assert.Empty(empty.Result.Children);
+            var retainedChild=await provider.LoadHolonAsync(child.Id,loadChildren:false);
+            Assert.False(retainedChild.IsError,retainedChild.Exception?.ToString());Assert.Equal(child.Name,retainedChild.Result.Name);
+            Assert.Equal(childAfterImport,await client.GetStringAsync(childResource));
             foreach(var row in rows.Reverse()){
                 var deleted=synchronous?provider.DeleteHolon(row.Id):await provider.DeleteHolonAsync(row.Id);
                 Assert.False(deleted.IsError,deleted.Exception?.ToString());Assert.True(deleted.IsDeleted);

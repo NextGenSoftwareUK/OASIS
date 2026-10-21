@@ -1,6 +1,16 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees,[switch]$CosmosRoutingFeeRecovery,[switch]$CosmosReviewedBank,[switch]$SuiCSharpHistory,[switch]$CosmosReviewedToken,[switch]$CosmosReviewedNFT,[switch]$CosmosRoutingVersions,[ValidateSet('Fees','DeployEscrow','LockEscrow')][string]$CosmosReviewScenario='Fees')
+param([switch]$CosmicLifecycleReconcile,[switch]$CosmicCqlReconcile,[switch]$CosmicCql,[switch]$CosmicTypedQueryCommittedReconcile,[switch]$CosmicTypedQueryReconcile,[switch]$CosmicNeo4jReplicasReconcile,[switch]$CosmicNeo4jReplicas,[switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$CosmicGraphTraversal,[switch]$CosmicConditionalWrites,[switch]$CosmicConditionalReconcile,[switch]$CosmicChildReconcile,[switch]$CosmicTransferReconcile,[switch]$MongoV2,[switch]$CosmicReplicaTransfers,[switch]$CosmicReplicaTransfersReconcile,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees,[switch]$CosmosRoutingFeeRecovery,[switch]$CosmosReviewedBank,[switch]$SuiCSharpHistory,[switch]$CosmosReviewedToken,[switch]$CosmosReviewedNFT,[switch]$CosmosRoutingVersions,[ValidateSet('Fees','DeployEscrow','LockEscrow')][string]$CosmosReviewScenario='Fees')
 $ErrorActionPreference='Stop'
+if($CosmicLifecycleReconcile){if($PSBoundParameters.Count -ne 1){throw 'Lifecycle reconciliation requires exclusive mode.'};$CosmicConditionalReconcile=$true}
+if(($CosmicTypedQueryReconcile -or $CosmicTypedQueryCommittedReconcile) -and $PSBoundParameters.Count -ne 1){throw 'Typed-query fixture reconciliation requires exclusive retained environment mode.'}
+if(($CosmicNeo4jReplicas -or $CosmicNeo4jReplicasReconcile) -and $PSBoundParameters.Count -ne 1){throw 'MongoDB/Neo4j delivery requires exclusive reusable environment mode.'}
+if($CosmicReplicaTransfersReconcile -and $PSBoundParameters.Count -ne 1){throw 'Exact cross-provider fixture reconciliation requires its exclusive reusable environment mode.'}
+if($CosmicReplicaTransfers -and $PSBoundParameters.Count -ne 1){throw 'Cross-provider replica verification requires its exclusive reusable environment mode.'}
+if($CosmicTransferReconcile -and $PSBoundParameters.Count -ne 1){throw 'Original-only COSMIC fixture reconciliation requires its exclusive reusable environment mode.'}
+if($CosmicConditionalReconcile -and $PSBoundParameters.Count -ne 1){throw 'Original conditional fixture reconciliation requires exclusive environment mode.'}
+if(($CosmicCqlReconcile -or $CosmicCql -or $CosmicConditionalWrites) -and $PSBoundParameters.Count -ne 1){throw 'COSMIC conditional verification requires exclusive environment mode.'}
+if($CosmicChildReconcile -and $PSBoundParameters.Count -ne 1){throw 'COSMIC child fixture reconciliation requires exclusive environment mode.'}
+if($CosmicGraphTraversal -and $PSBoundParameters.Count -ne 1){throw 'COSMIC graph verification requires its exclusive reusable environment mode.'}
 if($CosmosReviewScenario -ne 'Fees' -and (!$CosmosPreparedOwners -or !$CosmosReviewedFees -or $PSBoundParameters.Count -ne 3)){throw 'Escrow deployment requires exclusive existing-owner reviewed-fee mode.'}
 if($CosmosReviewedNFT -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Reviewed NFT interfaces require exclusive existing-owner environment mode.'}
 if($CosmosReviewedToken -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Reviewed token interfaces require exclusive existing-owner environment mode.'}
@@ -54,7 +64,18 @@ $owned=$null
 $prior=@{}
 foreach($name in 'OASIS_OWNED_RECOVERY_REPLICA_URI','SUBSCRIPTION_TEST_MONGODB_URI','OASIS_HEDERA_SDK_BRIDGE','OASIS_SUI_SDK_BRIDGE','OASIS_COSMOS_SDK_BRIDGE','OASIS_MONGO_REPLICA_SET_CONNECTION','OASIS_WEB3_PREPARED_OUTBOX_REQUIRED'){$prior[$name]=[Environment]::GetEnvironmentVariable($name)}
 try{
-    if($MongoV2){
+    if($CosmicCqlReconcile -or $CosmicCql -or $CosmicGraphTraversal -or $CosmicChildReconcile -or $CosmicConditionalWrites -or $CosmicConditionalReconcile -or $MongoTransactions){
+        foreach($relative in @(
+            'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj')){
+            & dotnet build (Join-Path $taskRoot $relative) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+            if($LASTEXITCODE){throw "COSMIC Mongo producer build failed: $relative"}
+        }
+    }
+    if($MongoV2 -or $CosmicTransferReconcile -or $CosmicReplicaTransfers -or $CosmicReplicaTransfersReconcile){
+        $cosmicCore=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj'
+        & dotnet build $cosmicCore -f net10.0 --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        if($LASTEXITCODE){throw 'Current Core producer build failed before native routing verification.'}
         foreach($relative in @(
             'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj',
@@ -70,7 +91,7 @@ try{
     New-Item -ItemType Directory -Force -Path $data | Out-Null
     Limit-OwnedMongoLog -WorkDirectory $work
     $mongoArguments=@('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $work 'mongo-current.log'),'--logappend')
-    if($MongoV2 -or $AuthorityLedger){$mongoArguments+=@('--setParameter','enableTestCommands=1')}
+    if($MongoV2 -or $AuthorityLedger -or $MongoTransactions -or $CosmicConditionalWrites -or $CosmicCql){$mongoArguments+=@('--setParameter','enableTestCommands=1')}
     $owned=Start-Process -FilePath $runtime -ArgumentList $mongoArguments -PassThru -WindowStyle Hidden
     $startupDeadline=[DateTime]::UtcNow.AddSeconds(30)
     do {
@@ -88,7 +109,23 @@ try{
     $project=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Tests/SubscriptionUsage/SubscriptionUsage.Tests.csproj'
     & dotnet test $project --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter FullyQualifiedName~OwnedReplicaInitializationTests --logger 'trx;LogFileName=owned-replica-init-current.trx' --results-directory $work -v:q -clp:ErrorsOnly
     if($LASTEXITCODE -ne 0){throw 'Owned replica initialization failed.'}
-    if($Web3PreparedOwners){
+    if($CosmicTypedQueryReconcile -or $CosmicTypedQueryCommittedReconcile){
+        $env:OASIS_MONGO_REPLICA_SET_CONNECTION=$env:SUBSCRIPTION_TEST_MONGODB_URI
+        $typedProject=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj'
+        $typedFilter=if($CosmicTypedQueryCommittedReconcile){'FullyQualifiedName~ReconcileExactCommittedTypedQueryFixture'}else{'FullyQualifiedName~ReconcileExactEmptyPreSubmissionTypedQueryFixture'}
+        $typedReport=if($CosmicTypedQueryCommittedReconcile){'mongo-typed-query-committed-reconciliation.trx'}else{'mongo-typed-query-empty-reconciliation.trx'}
+        & dotnet test $typedProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter $typedFilter --logger "trx;LogFileName=$typedReport" --results-directory $work -v:q
+        if($LASTEXITCODE){throw 'Exact typed-query empty fixture reconciliation failed.'}
+        [xml]$typedEvidence=Get-Content (Join-Path $work $typedReport)
+        $typedCounts=$typedEvidence.SelectSingleNode("//*[local-name()='Counters']")
+        if([int]$typedCounts.total -ne 1 -or [int]$typedCounts.passed -ne 1 -or [int]$typedCounts.notExecuted -ne 0){throw 'Exact fixture reconciliation must execute once without skips.'}
+    }elseif($CosmicNeo4jReplicasReconcile){
+        & (Join-Path $PSScriptRoot 'Run-ReusableNeo4jTests.ps1') -CosmicMongoOutboxReconcile
+        if($LASTEXITCODE){throw 'Reviewed MongoDB/Neo4j fixture reconciliation failed.'}
+    }elseif($CosmicNeo4jReplicas){
+        & (Join-Path $PSScriptRoot 'Run-ReusableNeo4jTests.ps1') -CosmicMongoOutboxDelivery
+        if($LASTEXITCODE){throw 'MongoDB/Neo4j native outbox worker verification failed.'}
+    }elseif($Web3PreparedOwners){
         $env:OASIS_WEB3_PREPARED_OUTBOX_REQUIRED='1'
         & (Join-Path $PSScriptRoot 'Run-ReusableEthereumTests.ps1')
         $proof=Join-Path $taskRoot 'TestResults/Web3CoreCurrent/web3-native-current.trx'
@@ -243,21 +280,24 @@ try{
                 }
             }
         }
-    }elseif($MongoV2){
+    }elseif($MongoV2 -or $CosmicTransferReconcile -or $CosmicReplicaTransfers -or $CosmicReplicaTransfersReconcile){
         $routingProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
         $routingStarted=[DateTime]::UtcNow
-        & dotnet test $routingProject --no-build --no-restore --filter 'FullyQualifiedName~IntegrationTests.MongoSqliteRealProviderRoutingTests.' --logger 'trx;LogFileName=mongo-sqlite-v2-current.trx' --results-directory $work -v:q
+        $routingFilter=if($CosmicReplicaTransfersReconcile){'FullyQualifiedName~CosmicCrossProviderFixtureReconciliationTests'}elseif($CosmicReplicaTransfers){'FullyQualifiedName~MongoSqliteRealProviderRoutingTests.CommittedReplicaCrossProvider'}elseif($CosmicTransferReconcile){'FullyQualifiedName~CosmicTransferFixtureReconciliationTests'}else{'FullyQualifiedName~IntegrationTests.MongoSqliteRealProviderRoutingTests.'}
+        $routingName=if($CosmicReplicaTransfersReconcile){'cosmic-cross-provider-reconciliation-current.trx'}elseif($CosmicReplicaTransfers){'cosmic-cross-provider-replicas-current.trx'}elseif($CosmicTransferReconcile){'cosmic-transfer-original-reconciliation.trx'}else{'mongo-sqlite-v2-current.trx'}
+        & dotnet test $routingProject --no-build --no-restore --filter $routingFilter --logger "trx;LogFileName=$routingName" --results-directory $work -v:q
         if($LASTEXITCODE -ne 0){throw 'Mongo/SQLite V2 routing verification failed.'}
-        $routingReport=Get-Item -LiteralPath (Join-Path $work 'mongo-sqlite-v2-current.trx') -ErrorAction Stop
+        $routingReport=Get-Item -LiteralPath (Join-Path $work $routingName) -ErrorAction Stop
         if($routingReport.LastWriteTimeUtc -lt $routingStarted){throw 'Mongo/SQLite V2 report is stale; no verification claim permitted.'}
         [xml]$routingEvidence=Get-Content -LiteralPath $routingReport.FullName
         $routingCounters=$routingEvidence.SelectSingleNode("//*[local-name()='Counters']")
-        if(!$routingCounters -or [int]$routingCounters.total -ne 4 -or [int]$routingCounters.passed -ne 4){throw 'All four sync/async, Mongo/SQLite-primary matrix cases must actually execute and pass.'}
-    }elseif($MongoProjection -or $MongoTransactions -or $MongoGraphReconcile){
+        $expectedRouting=if($CosmicReplicaTransfersReconcile){1}elseif($CosmicReplicaTransfers){4}elseif($CosmicTransferReconcile){1}else{16}
+        if(!$routingCounters -or [int]$routingCounters.total -ne $expectedRouting -or [int]$routingCounters.passed -ne $expectedRouting -or [int]$routingCounters.notExecuted -ne 0){throw 'The complete selected native routing/reconciliation matrix must actually execute and pass.'}
+    }elseif($CosmicCqlReconcile -or $CosmicCql -or $MongoProjection -or $MongoTransactions -or $MongoGraphReconcile -or $CosmicGraphTraversal -or $CosmicChildReconcile -or $CosmicConditionalWrites -or $CosmicConditionalReconcile){
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION=$env:SUBSCRIPTION_TEST_MONGODB_URI
         $mongoProject=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj'
-        $mongoFilter=if($MongoGraphReconcile){'FullyQualifiedName~ReconcileAcknowledgedRootOnlyFixture'}elseif($MongoTransactions){'Category!=ExternalPrimaryTermination&Category!=OwnedFixtureReconciliation&FullyQualifiedName!~AcknowledgedOperationRemainsIdempotentAcrossPrimaryElection'}else{'FullyQualifiedName~HostedMongoProjectionContractTests|FullyQualifiedName~DirectMongoAvatarDetailContractTests'}
-        $mongoReport=if($MongoGraphReconcile){'trx;LogFileName=mongo-graph-reconciliation-current.trx'}elseif($MongoTransactions){'trx;LogFileName=mongo-single-node-transactions-current.trx'}else{'trx;LogFileName=mongo-projection-current.trx'}
+        $mongoFilter=if($CosmicLifecycleReconcile){'FullyQualifiedName~MongoLifecycleFixtureReconciliation'}elseif($CosmicCqlReconcile){'FullyQualifiedName~CosmicCqlFixtureReconciliationTests'}elseif($CosmicCql){'FullyQualifiedName~CosmicCqlNativeTests'}elseif($CosmicConditionalReconcile){'FullyQualifiedName~CosmicConditionalFixtureReconciliationTests'}elseif($CosmicConditionalWrites){'FullyQualifiedName~CosmicConditionalWriteTests'}elseif($CosmicChildReconcile){'FullyQualifiedName~CosmicChildFixtureReconciliationTests'}elseif($CosmicGraphTraversal){'FullyQualifiedName~CosmicChildTraversalTests'}elseif($MongoGraphReconcile){'FullyQualifiedName~ReconcileAcknowledgedRootOnlyFixture'}elseif($MongoTransactions){'Category!=ExternalPrimaryTermination&Category!=OwnedFixtureReconciliation&FullyQualifiedName!~AcknowledgedOperationRemainsIdempotentAcrossPrimaryElection'}else{'FullyQualifiedName~HostedMongoProjectionContractTests|FullyQualifiedName~DirectMongoAvatarDetailContractTests'}
+        $mongoReport=if($CosmicLifecycleReconcile){'trx;LogFileName=mongo-lifecycle-reviewed-current.trx'}elseif($CosmicCqlReconcile){'trx;LogFileName=mongo-cql-rollback-reconciliation.trx'}elseif($CosmicCql){'trx;LogFileName=mongo-cql-native-current.trx'}elseif($CosmicConditionalReconcile){'trx;LogFileName=mongo-cosmic-conditional-reconciliation.trx'}elseif($CosmicConditionalWrites){'trx;LogFileName=mongo-cosmic-conditional-current.trx'}elseif($CosmicChildReconcile){'trx;LogFileName=mongo-cosmic-child-reconciliation.trx'}elseif($CosmicGraphTraversal){'trx;LogFileName=mongo-cosmic-children-current.trx'}elseif($MongoGraphReconcile){'trx;LogFileName=mongo-graph-reconciliation-current.trx'}elseif($MongoTransactions){'trx;LogFileName=mongo-single-node-transactions-current.trx'}else{'trx;LogFileName=mongo-projection-current.trx'}
         $mongoStarted=[DateTime]::UtcNow
         & dotnet test $mongoProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter $mongoFilter --logger $mongoReport --results-directory $work -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Mongo native verification failed.'}
@@ -265,7 +305,7 @@ try{
         if($mongoFile.LastWriteTimeUtc -lt $mongoStarted){throw 'Mongo native report is stale.'}
         [xml]$mongoEvidence=Get-Content -LiteralPath $mongoFile.FullName -Raw
         $mongoCounts=$mongoEvidence.TestRun.ResultSummary.Counters
-        $expectedMongo=if($MongoTransactions){48}elseif($MongoGraphReconcile){1}else{3}
+        $expectedMongo=if($CosmicCqlReconcile){1}elseif($CosmicCql){3}elseif($CosmicConditionalReconcile){1}elseif($CosmicConditionalWrites){16}elseif($CosmicChildReconcile){1}elseif($CosmicGraphTraversal){4}elseif($MongoTransactions){88}elseif($MongoGraphReconcile){1}else{3}
         if([int]$mongoCounts.total -ne $expectedMongo -or [int]$mongoCounts.passed -ne $expectedMongo -or [int]$mongoCounts.notExecuted -ne 0){throw 'Expected complete selected Mongo native suite without skips.'}
     }elseif($TronPreparedStorage){
         $tronProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj'

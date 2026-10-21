@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string CustomHolonType { get; set; }
 
         public AvatarType AvatarType { get; set;}
+        public bool HasAvatarType { get; set; } = true;
         public HolonType HolonType { get; set;}
 
         public string Name { get; set;}
@@ -59,16 +60,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public int XP { get; set;}
 
         public ProviderType CreatedProviderType { get; set;}
+        public bool HasCreatedProviderType { get; set; } = true;
         public OASISType CreatedOASISType { get; set;}
+        public bool HasCreatedOASISType { get; set; } = true;
 
         public int Version { get; set;}
         public bool IsActive { get; set;}
         public bool IsChanged { get; set;}
         public bool IsNewHolon { get; set;}
 
-        public DateTime CreatedDate { get; set;}
-        public DateTime ModifiedDate { get; set;}
-        public DateTime DeletedDate { get; set;}
+        private DateTime _createdDate;
+        public int CreatedDateKind { get; set; }
+        public DateTime CreatedDate
+        {
+            get => SqliteAuditDate.Restore(_createdDate,CreatedDateKind);
+            set { _createdDate=value; CreatedDateKind=(int)value.Kind; }
+        }
+        private DateTime _modifiedDate;
+        public int ModifiedDateKind { get; set; }
+        public DateTime ModifiedDate
+        {
+            get => SqliteAuditDate.Restore(_modifiedDate,ModifiedDateKind);
+            set { _modifiedDate=value; ModifiedDateKind=(int)value.Kind; }
+        }
+        private DateTime _deletedDate;
+        public int DeletedDateKind { get; set; }
+        public DateTime DeletedDate
+        {
+            get => SqliteAuditDate.Restore(_deletedDate,DeletedDateKind);
+            set { _deletedDate=value; DeletedDateKind=(int)value.Kind; }
+        }
 
         public String CreatedByAvatarId { get; set;}
         public String ModifiedByAvatarId { get; set;}
@@ -101,7 +122,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.Name = source.Name;
             this.Description = source.Description;
             this.HolonType = source.HolonType;
-            this.AvatarType = source.AvatarType.Value;
+            this.HasAvatarType=source.AvatarType!=null;
+            this.AvatarType=source.AvatarType?.Value ?? default;
 
             this.Username=source.Username;
             this.ProviderWalletsJson=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(source.ProviderWallets ?? new Dictionary<ProviderType,List<IProviderWallet>>());
@@ -120,8 +142,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.Verified = source.Verified;
 
 
-            this.CreatedOASISType=source.CreatedOASISType.Value;
-            this.CreatedProviderType = source.CreatedProviderType.Value;
+            this.HasCreatedOASISType=source.CreatedOASISType!=null;
+            this.CreatedOASISType=source.CreatedOASISType?.Value ?? default;
+            this.HasCreatedProviderType=source.CreatedProviderType!=null;
+            this.CreatedProviderType=source.CreatedProviderType?.Value ?? default;
             
             this.Version=source.Version;
             this.IsActive=source.IsActive;
@@ -184,7 +208,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
             item.Description = this.Description;
             item.HolonType = this.HolonType;
-            item.AvatarType = new EnumValue<AvatarType>(this.AvatarType);
+            item.AvatarType = this.HasAvatarType ? new EnumValue<AvatarType>(this.AvatarType) : null;
 
             item.Username=this.Username;
             item.Email=this.Email;
@@ -200,8 +224,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             item.Verified = this.Verified;
 
             
-            item.CreatedOASISType= new EnumValue<OASISType>(this.CreatedOASISType);
-            item.CreatedProviderType = new EnumValue<ProviderType>(this.CreatedProviderType);
+            item.CreatedOASISType= this.HasCreatedOASISType ? new EnumValue<OASISType>(this.CreatedOASISType) : null;
+            item.CreatedProviderType = this.HasCreatedProviderType ? new EnumValue<ProviderType>(this.CreatedProviderType) : null;
             
             item.Version=this.Version;
             item.IsActive=this.IsActive;

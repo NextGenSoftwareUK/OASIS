@@ -110,7 +110,7 @@ public partial class DynamoHistoryNativeTests
         if(row is IAvatar avatar){item["username"]=new(){S=avatar.Username};item["email"]=new(){S=avatar.Email};}
         else if(row is IAvatarDetail detail){item["username"]=new(){S=detail.Username};item["email"]=new(){S=detail.Email};}
         else if(row is IHolon holon){item["parentHolonId"]=new(){S=holon.ParentHolonId.ToString()};item["holon_type"]=new(){N=((int)holon.HolonType).ToString()};}
-        var task=(Task)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(row.GetType()).Invoke(provider,new object[]{new PutItemRequest{TableName=table,Item=item},true,(Action)(()=>{})})!;
+        var task=(Task)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(row.GetType()).Invoke(provider,new object?[]{new PutItemRequest{TableName=table,Item=item},true,(Action)(()=>{}),null})!;
         await task;return (IHolonBase)task.GetType().GetProperty("Result")!.GetValue(task)!;
     }
     private static async Task RemoveOwned(AmazonDynamoDBClient client,string table,Guid id,string expected)
@@ -135,7 +135,10 @@ public partial class DynamoHistoryNativeTests
         var useAws=kind>=3;kind%=3;
         var id=Guid.NewGuid();var name="history-"+id.ToString("N");
         IHolonBase row=kind==0?new Avatar{Id=id,Username=name,Email=name+"@example.invalid"}:kind==1?new AvatarDetail{Id=id,Username=name,Email=name+"@example.invalid"}:new Holon{Id=id,Name=name};
-        var owner=Guid.NewGuid();row.CreatedByAvatarId=owner;row.MetaData=new(){["owned_history_fixture"]="first"};
+        const decimal preciseMetadata=0.1234567890123456789012345678m;
+        const string numericText="0.1234567890123456789012345678";
+        var owner=Guid.NewGuid();row.CreatedByAvatarId=owner;row.MetaData=new(){["owned_history_fixture"]="first",
+            ["precise_decimal"]=preciseMetadata,["numeric_text"]=numericText};
         var child=kind==2?new Holon{Id=Guid.NewGuid(),ParentHolonId=id,CreatedByAvatarId=owner,Name="independent-current-child",Version=5}:null;
         var table=kind==0?"OasisAvatars":kind==1?"OasisAvatarDetails":"OasisHolons";
         DynamoDBOASIS provider=useAws
@@ -180,6 +183,15 @@ public partial class DynamoHistoryNativeTests
             else if(row is IHolon movedRoot)movedRoot.ParentHolonId=Guid.NewGuid();
             if(row is IAvatar rotatingCredentials)SetAdditionalCredentials(rotatingCredentials,"-new");
             await SavePublic(provider,row);Assert.AreEqual(2,row.Version);Assert.AreEqual(firstVersionId,row.PreviousVersionId);
+            foreach(var selectedVersion in new[]{0,1}){
+                IHolonBase selected;
+                if(kind==0){var loaded=await provider.LoadAvatarAsync(id,selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                else if(kind==1){var loaded=await provider.LoadAvatarDetailAsync(id,selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                else{var loaded=await provider.LoadHolonAsync(id,loadChildren:false,version:selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                Assert.AreEqual(preciseMetadata,Convert.ToDecimal(selected.MetaData["precise_decimal"],System.Globalization.CultureInfo.InvariantCulture),"Current and archived native records must retain decimal precision.");
+                Assert.IsInstanceOfType<string>(selected.MetaData["numeric_text"],"Numeric-looking strings must not become numbers.");
+                Assert.AreEqual(numericText,selected.MetaData["numeric_text"]);
+            }
             if(child!=null)await Write(provider,child,table);
             if(kind==0){
                 var selected=await provider.LoadAvatarAsync(id,1);Assert.IsFalse(selected.IsError,selected.Message);Assert.AreEqual("first",selected.Result.MetaData["owned_history_fixture"].ToString());
@@ -320,7 +332,7 @@ public partial class DynamoHistoryNativeTests
         var provider=new DynamoDBOASIS("ownedhistorytest","ownedhistorytest","us-east-1","http://127.0.0.1:18000");
         var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
         var original=(AmazonDynamoDBClient)field.GetValue(provider)!;
-        using var client=Client();using var verifier=Client();field.SetValue(provider,client);
+        using var client=new FaultClient();using var verifier=Client();field.SetValue(provider,client);
         var key=new Dictionary<string,AttributeValue>{{"id",new(){S=id.ToString()}}};
         try{
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
@@ -341,11 +353,18 @@ public partial class DynamoHistoryNativeTests
             }
             Assert.AreEqual(1,(await provider.LoadAvatarAsync(id,1)).Result.Version);
             Assert.AreEqual(1,(await provider.LoadAvatarDetailAsync(id,1)).Result.Version);
+            var originals=new Dictionary<string,string>();
+            foreach(var table in new[]{"OasisAvatars","OasisAvatarDetails"})originals[table]=(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item["data_json"].S;
+            Assert.AreEqual(1,client.Transactions);
+            var repeated=await provider.DeleteAvatarAsync(id,softDelete:true);Assert.IsFalse(repeated.IsError,repeated.Exception?.ToString());Assert.AreEqual(2,client.Transactions);
             foreach(var table in new[]{"OasisAvatars","OasisAvatarDetails"}){
                 var actual=(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item;
+                Assert.AreEqual(originals[table],actual["data_json"].S,"Observed paired tombstones must not gain another history revision.");
                 await RemoveOwned(verifier,table,id,actual["data_json"].S);
             }
             File.Delete(journal);
+            Assert.IsTrue(deleted.IsSaved);Assert.IsTrue(deleted.IsDeleted);Assert.AreEqual(1,deleted.DeletedCount,"One logical avatar aggregate was deleted.");
+            Assert.IsTrue(repeated.Result);Assert.IsTrue(repeated.IsDeleted);Assert.IsFalse(repeated.IsSaved);Assert.AreEqual(0,repeated.DeletedCount);
         }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
     }
 

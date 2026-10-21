@@ -29,7 +29,7 @@ public partial class MongoDBOASIS
                 // One native snapshot cursor supplies BOTH root and provider-linked descendants.
                 using var session=synchronous ? Database.MongoClient.StartSession(new ClientSessionOptions {Snapshot=true})
                     :await Database.MongoClient.StartSessionAsync(new ClientSessionOptions {Snapshot=true}).ConfigureAwait(false);
-                var query=Database.Holon.Find(session,Builders<NativeHolon>.Filter.Where(row=>row.DeletedDate==DateTime.MinValue));
+                var query=Database.Holon.Find(session,FilterDefinition<NativeHolon>.Empty);
                 var rows=synchronous ? query.ToList():await query.ToListAsync().ConfigureAwait(false);
                 records=rows.Select(row=>DataHelper.ConvertMongoEntityToOASISHolon(row,false)).ToList();
                 if(records.GroupBy(row=>row.Id).Any(group=>group.Count()>1)) throw new StorageIdentityAmbiguousException();

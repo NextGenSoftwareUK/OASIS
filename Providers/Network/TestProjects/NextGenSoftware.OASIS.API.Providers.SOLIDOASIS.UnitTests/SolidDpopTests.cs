@@ -7,6 +7,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests;
 
 public class SolidDpopTests
 {
+    private sealed class CallbackTransport(Func<HttpRequestMessage,CancellationToken,Task<HttpResponseMessage>> send):HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)=>send(request,token);
+    }
     private static readonly Uri Root=new("https://pod.invalid/private/");
     private static readonly Uri TokenEndpoint=new("https://issuer.invalid/token");
     private sealed class TokenTransport(string mode="valid"):HttpMessageHandler
@@ -41,7 +45,7 @@ public class SolidDpopTests
             return new HttpResponseMessage(mode=="rejected"?HttpStatusCode.Unauthorized:HttpStatusCode.OK){Content=new StringContent(body,Encoding.UTF8,"application/json")};
         }
     }
-    private sealed class Resources(TokenTransport issuer,bool challenge=false):HttpMessageHandler
+    private sealed class Resources(TokenTransport issuer,bool challenge=false,string? tokenChallenge=null,HttpStatusCode rejectedStatus=HttpStatusCode.Unauthorized):HttpMessageHandler
     {
         public int Calls;public System.Collections.Concurrent.ConcurrentDictionary<string,byte> ProofIds=new();
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
@@ -50,8 +54,9 @@ public class SolidDpopTests
             var proof=Verify(request,new Uri(request.RequestUri!.GetLeftPart(UriPartial.Path)),request.Method,"owned-token");
             Assert.Equal(issuer.PublicX,proof.X);Assert.True(ProofIds.TryAdd(proof.Jti,0));
             Assert.Equal(challenge&&Calls>1?"resource-nonce":null,proof.Nonce);
-            var response=new HttpResponseMessage(challenge&&Calls==1?HttpStatusCode.Unauthorized:HttpStatusCode.OK){Content=new StringContent("")};
+            var response=new HttpResponseMessage((challenge||tokenChallenge!=null)&&Calls==1?rejectedStatus:HttpStatusCode.OK){Content=new StringContent("")};
             if(challenge)response.Headers.Add("DPoP-Nonce","resource-nonce");
+            if(tokenChallenge!=null&&Calls==1)response.Headers.TryAddWithoutValidation("WWW-Authenticate",tokenChallenge);
             return Task.FromResult(response);
         }
     }
@@ -71,6 +76,74 @@ public class SolidDpopTests
         return(jwk.GetProperty("x").GetString()!,c.GetProperty("jti").GetString()!,c.TryGetProperty("nonce",out var nonce)?nonce.GetString():null);
     }
     private static byte[] Decode(string value)=>Convert.FromBase64String(value.Replace('-','+').Replace('_','/').PadRight((value.Length+3)/4*4,'='));
+
+    [Theory]
+    [InlineData("DPoP error=\"invalid_token\"",2)]
+    [InlineData("DPoP realm=\"private,pod\", error=\"invalid_token\"",2)]
+    [InlineData("DPoP error_description=\"invalid_token\"",2)]
+    [InlineData("DPoP realm=\"x,error=invalid_token,y\"",2)]
+    [InlineData("Bearer error=\"invalid_token\"",2)]
+    [InlineData("DPoP error=\"insufficient_scope\"",2)]
+    [InlineData("Bearer scope=\"openid webid\"",2)]
+    [InlineData("",2)]
+    public async Task RejectedTokenIsRefreshedOnlyForNextExplicitRequest(string challenge,int expectedTokens)
+    {
+        var issuer=new TokenTransport();var resources=new Resources(issuer,tokenChallenge:challenge);
+        using var client=new HttpClient(new SolidDpopClientCredentialsHandler(Root,TokenEndpoint,"client:id","secret value",resources,issuer));
+        using var rejected=await client.PutAsync(new Uri(Root,"record"),new StringContent("one mutation"));
+        Assert.Equal(HttpStatusCode.Unauthorized,rejected.StatusCode);Assert.Equal(1,resources.Calls);Assert.Equal(1,issuer.Calls);
+        using var next=await client.GetAsync(new Uri(Root,"record"));
+        Assert.Equal(HttpStatusCode.OK,next.StatusCode);Assert.Equal(2,resources.Calls);Assert.Equal(expectedTokens,issuer.Calls);
+    }
+
+    [Fact]
+    public async Task DelayedOldTokenRejectionDoesNotEvictNewToken()
+    {
+        var tokenCalls=0;var resourceCalls=0;
+        var slowEntered=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseOld=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var issuer=new CallbackTransport((request,token)=>{
+            Verify(request,TokenEndpoint,HttpMethod.Post,null);
+            var body=JsonSerializer.Serialize(new{access_token="token-"+Interlocked.Increment(ref tokenCalls),token_type="DPoP",expires_in=3600});
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(body)});
+        });
+        var resources=new CallbackTransport(async(request,token)=>{
+            Interlocked.Increment(ref resourceCalls);var access=request.Headers.Authorization!.Parameter!;
+            Verify(request,new Uri(request.RequestUri!.GetLeftPart(UriPartial.Path)),request.Method,access);
+            var name=request.RequestUri.Segments.Last();
+            if(name=="slow"){Assert.Equal("token-1",access);slowEntered.TrySetResult();await releaseOld.Task.WaitAsync(TimeSpan.FromSeconds(10),token);}
+            var rejected=name is "slow" or "reject";
+            if(!rejected)Assert.Equal("token-2",access);
+            var response=new HttpResponseMessage(rejected?HttpStatusCode.Unauthorized:HttpStatusCode.OK){Content=new StringContent("")};
+            if(rejected)response.Headers.WwwAuthenticate.Add(new("DPoP","error=\"invalid_token\""));return response;
+        });
+        using var client=new HttpClient(new SolidDpopClientCredentialsHandler(Root,TokenEndpoint,"client:id","secret value",resources,issuer));
+        var slow=client.GetAsync(new Uri(Root,"slow"));
+        try {
+            await slowEntered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            using var rejected=await client.PutAsync(new Uri(Root,"reject"),new StringContent("one mutation"));
+            Assert.Equal(HttpStatusCode.Unauthorized,rejected.StatusCode);Assert.Equal(2,resourceCalls);Assert.Equal(1,tokenCalls);
+            using var fresh=await client.GetAsync(new Uri(Root,"fresh"));Assert.Equal(HttpStatusCode.OK,fresh.StatusCode);Assert.Equal(2,tokenCalls);
+            releaseOld.TrySetResult();using var delayed=await slow;Assert.Equal(HttpStatusCode.Unauthorized,delayed.StatusCode);
+            using var next=await client.GetAsync(new Uri(Root,"next"));Assert.Equal(HttpStatusCode.OK,next.StatusCode);
+            Assert.Equal(2,tokenCalls);Assert.Equal(4,resourceCalls);
+        } finally {releaseOld.TrySetResult();}
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.OK)]
+    public async Task NonAuthenticationResponsesDoNotInvalidateCredentials(HttpStatusCode status)
+    {
+        var issuer=new TokenTransport();
+        var resources=new Resources(issuer,tokenChallenge:"Bearer scope=\"openid webid\"",rejectedStatus:status);
+        using var client=new HttpClient(new SolidDpopClientCredentialsHandler(Root,TokenEndpoint,"client:id","secret value",resources,issuer));
+        using var first=await client.PutAsync(new Uri(Root,"record"),new StringContent("one mutation"));
+        Assert.Equal(status,first.StatusCode);Assert.Equal(1,resources.Calls);Assert.Equal(1,issuer.Calls);
+        using var next=await client.GetAsync(new Uri(Root,"record"));
+        Assert.Equal(HttpStatusCode.OK,next.StatusCode);Assert.Equal(2,resources.Calls);Assert.Equal(1,issuer.Calls);
+    }
 
     [Fact]
     public async Task ConcurrentRequestsShareOneTokenButHaveDistinctSignedBoundProofs()
@@ -132,6 +205,6 @@ public class SolidDpopTests
         using var rejected=await client.PutAsync(new Uri(Root,"record"),new StringContent("one mutation"));
         Assert.Equal(HttpStatusCode.Unauthorized,rejected.StatusCode);Assert.Equal(1,resources.Calls);
         using var next=await client.GetAsync(new Uri(Root,"record"));
-        Assert.Equal(HttpStatusCode.OK,next.StatusCode);Assert.Equal(2,resources.Calls);Assert.Equal(1,issuer.Calls);
+        Assert.Equal(HttpStatusCode.OK,next.StatusCode);Assert.Equal(2,resources.Calls);Assert.Equal(2,issuer.Calls);
     }
 }

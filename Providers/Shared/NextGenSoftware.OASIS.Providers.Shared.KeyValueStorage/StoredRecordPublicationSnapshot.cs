@@ -18,13 +18,13 @@ public sealed class StoredRecordPublicationSnapshot<T> where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(source);_source=source;
         Proposal=Project(source);
-        _expected=JToken.Parse(StoredRecordJson.Serialize(Proposal));
+        _expected=StoredRecordJson.CaptureRuntimeToken(Proposal);
     }
     public static StoredRecordPublicationSnapshot<T> Capture(IHolonBase source)=>new(source);
     public void ValidateUnchanged()
     {
         var current=Project(_source);
-        if(!StoredRecordPayloadEquality.Equivalent(_expected,JToken.Parse(StoredRecordJson.Serialize(current))))
+        if(!StoredRecordPayloadEquality.Equivalent(_expected,StoredRecordJson.CaptureRuntimeToken(current)))
             throw new InvalidOperationException("Caller canonical record changed after its pre-write snapshot; do not publish over newer caller state.");
     }
     // Project requires a concrete DTO; interface-facing provider APIs use the same canonical record classes.

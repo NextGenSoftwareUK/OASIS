@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -275,10 +275,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         }
 
         public Task<OASISResult<Holon>> UpdateAsync(Holon holon)
-            => SaveNativeHolonAsync(holon,true,false);
+            => UpdateAsync(holon, false);
+
+        internal Task<OASISResult<Holon>> UpdateAsync(Holon holon, bool preserveChildren)
+            => SaveNativeHolonAsync(holon,true,false,preserveChildren);
 
         public OASISResult<Holon> Update(Holon holon)
-            => SaveNativeHolonAsync(holon,true,true).GetAwaiter().GetResult();
+            => Update(holon, false);
+
+        internal OASISResult<Holon> Update(Holon holon, bool preserveChildren)
+            => SaveNativeHolonAsync(holon,true,true,preserveChildren).GetAwaiter().GetResult();
 
         //public async Task<OASISResult<IHolon>> DeleteAsync(Guid id, Guid avatarId, bool softDelete = true)
         //{

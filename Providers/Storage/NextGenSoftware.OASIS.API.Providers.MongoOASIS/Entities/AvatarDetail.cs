@@ -84,6 +84,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public AvatarSuperPowers SuperPowers { get; set; } = new AvatarSuperPowers();
         public IList<Spell> Spells { get; set; } = new List<Spell>();
         public IList<Achievement> Achievements { get; set; } = new List<Achievement>();
+        [BsonSerializer(typeof(Infrastructure.Serializers.OwnedInventorySerializer))]
         public IList<InventoryItem> Inventory { get; set; } = new List<InventoryItem>();
         public IList<KarmaAkashicRecord> KarmaAkashicRecords { get; set; } = new List<KarmaAkashicRecord>();
 

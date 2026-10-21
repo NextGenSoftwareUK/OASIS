@@ -24,11 +24,10 @@ public partial class NEAROASIS
         return snapshot;
     }
 
-    private static void PublishRecordStamp(IHolonBase source, IHolonBase stored,Guid originalId,string transactionId)
+    private static void PublishRecordStamp(IHolonBase source, IHolonBase stored,Action validateCaller,string transactionId)
     {
-        if(source.Id!=originalId)
-            throw new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,transactionId,
-                new InvalidOperationException("Caller identity changed after the NEAR record snapshot; acknowledged storage must be reconciled without publishing to the changed caller."));
+        try{validateCaller();}
+        catch(Exception cause){throw new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,transactionId,cause);}
         source.Id = stored.Id;
         source.ProviderUniqueStorageKey = stored.ProviderUniqueStorageKey;
         source.Version = stored.Version;
@@ -39,7 +38,8 @@ public partial class NEAROASIS
     private static string HistoryPrefix(string key) => $"history:{key}:";
 
     // Mutates only the caller's already-detached proposed snapshot. No SDK/native writes occur here.
-    private static async Task<KeyValuePair<string,string>?> StageObservedRecordVersionAsync<T>(T proposed,NearSdkService.StoredSnapshot observed,bool history) where T:class,IHolonBase
+    private static async Task<KeyValuePair<string,string>?> StageObservedRecordVersionAsync<T>(T proposed,NearSdkService.StoredSnapshot observed,bool history,
+        PlannedHolonWrite plannedHolon=null) where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(proposed);ArgumentNullException.ThrowIfNull(observed);
         var prefix=typeof(T)==typeof(Avatar)?"avatar:":typeof(T)==typeof(AvatarDetail)?"avatar-detail:":typeof(T)==typeof(Holon)?"holon:":throw new ArgumentException("Unsupported native record kind.");
@@ -47,6 +47,10 @@ public partial class NEAROASIS
         if((observed.Ciphertext==null)!=(observed.Plaintext==null))throw new InvalidOperationException("Observed ciphertext/plaintext presence differs.");
         var previous=observed.Plaintext==null?null:OasisJson.DeserializeStored<T>(observed.Plaintext);
         if(previous!=null&&(previous.Id!=proposed.Id||previous.Version<0))throw new InvalidOperationException("Observed record identity/version is invalid.");
+        if(typeof(T)==typeof(Holon)&&proposed is Holon holon)
+            holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(
+                plannedHolon??new PlannedHolonWrite(holon,holon),HolonChildRoleWriteKind.SourceSave,
+                previous!=null,(previous as Holon)?.ChildRoleManifestJson);
         KeyValuePair<string,string>? archive=null;
         await StoredRecordVersions.StampAsync(proposed.Id,proposed,previous,history?stored=>{
             // Version zero denotes current, not an addressable historical version. Begin history at version one.
@@ -67,10 +71,10 @@ public partial class NEAROASIS
         });
     }
 
-    private async Task<string> WriteObservedRecordAsync<T>(string key,T entity,bool history) where T:class,IHolonBase
+    private async Task<string> WriteObservedRecordAsync<T>(string key,T entity,bool history,PlannedHolonWrite plannedHolon=null) where T:class,IHolonBase
     {
         var observed=await _sdk.ReadSnapshotAsync(key);
-        var archive=await StageObservedRecordVersionAsync(entity,observed,history);
+        var archive=await StageObservedRecordVersionAsync(entity,observed,history,plannedHolon);
         return await _sdk.PutRecordCheckedAsync(observed,OasisJson.Serialize(entity),archive?.Key,archive?.Value);
     }
 
@@ -139,12 +143,13 @@ public partial class NEAROASIS
         try
         {
             if (avatar == null) throw new ArgumentNullException(nameof(avatar));
-            var originalId=avatar.Id;
+            var publication=StoredRecordPublicationSnapshot<IAvatar>.Capture(avatar);
             var history=IsVersionControlEnabled;
-            var snapshot = PrepareRecordSnapshot<Avatar>(avatar);
+            var snapshot = PrepareRecordSnapshot<Avatar>(publication.Proposal);
             if (!await EnsureSdkActiveAsync(result)) return result;
+            publication.ValidateUnchanged();
             var tx=await WriteObservedRecordAsync($"avatar:{snapshot.Id:D}",snapshot,history);
-            PublishRecordStamp(avatar,snapshot,originalId,tx);
+            PublishRecordStamp(avatar,snapshot,publication.ValidateUnchanged,tx);
             result.Result = avatar;
             result.IsSaved=true;
             result.Message = $"Avatar saved to NEAR contract storage in transaction {tx}.";
@@ -212,19 +217,21 @@ public partial class NEAROASIS
         return result;
     }
 
-    private async Task<OASISResult<IHolon>> SaveHolonRecordAsync(IHolon holon,Action<string> recordAcknowledgement=null)
+    private async Task<OASISResult<IHolon>> SaveHolonRecordAsync(IHolon holon,Action<string> recordAcknowledgement=null,PlannedHolonWrite plannedHolon=null)
     {
         var result = new OASISResult<IHolon>();
         try
         {
             if (holon == null) throw new ArgumentNullException(nameof(holon));
-            var originalId=holon.Id;
+            var publication=StoredRecordPublicationSnapshot<IHolon>.Capture(holon);
             var history=IsVersionControlEnabled;
-            var snapshot = PrepareRecordSnapshot<Holon>(holon);
+            var snapshot = PrepareRecordSnapshot<Holon>(publication.Proposal);
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var tx=await WriteObservedRecordAsync($"holon:{snapshot.Id:D}",snapshot,history);
+            publication.ValidateUnchanged();
+            var tx=await WriteObservedRecordAsync($"holon:{snapshot.Id:D}",snapshot,history,plannedHolon);
             recordAcknowledgement?.Invoke(tx);
-            PublishRecordStamp(holon,snapshot,originalId,tx);
+            PublishRecordStamp(holon,snapshot,publication.ValidateUnchanged,tx);
+            if(holon is Holon source)source.ChildRoleManifestJson=snapshot.ChildRoleManifestJson;
             result.Result = holon;
             result.IsSaved=true;
             result.Message = $"Holon saved to NEAR contract storage in transaction {tx}.";
@@ -290,12 +297,13 @@ public partial class NEAROASIS
         try
         {
             if (detail == null) throw new ArgumentNullException(nameof(detail));
-            var originalId=detail.Id;
+            var publication=StoredRecordPublicationSnapshot<IAvatarDetail>.Capture(detail);
             var history=IsVersionControlEnabled;
-            var snapshot = PrepareRecordSnapshot<AvatarDetail>(detail);
+            var snapshot = PrepareRecordSnapshot<AvatarDetail>(publication.Proposal);
             if (!await EnsureSdkActiveAsync(result)) return result;
+            publication.ValidateUnchanged();
             var tx=await WriteObservedRecordAsync($"avatar-detail:{snapshot.Id:D}",snapshot,history);
-            PublishRecordStamp(detail,snapshot,originalId,tx);
+            PublishRecordStamp(detail,snapshot,publication.ValidateUnchanged,tx);
             result.Result = detail;
             result.IsSaved=true;
             result.Message = $"Avatar detail saved to NEAR contract storage in transaction {tx}.";

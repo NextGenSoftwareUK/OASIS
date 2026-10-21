@@ -79,7 +79,17 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                         .Should().BeFalse("a reported successful save must not silently replace the unsupported value with null");
                 }
                 result.IsError.Should().BeTrue();result.IsSaved.Should().BeFalse();result.Result.Should().BeNull();result.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
-                result.Exception.Should().BeAssignableTo<BsonSerializationException>();result.Exception!.GetBaseException().Should().BeOfType<NotSupportedException>();
+                if(kind=="holon")
+                {
+                    // Holon graph capture now rejects unsupported input before BSON dispatch.
+                    result.Exception.Should().BeOfType<Newtonsoft.Json.JsonSerializationException>();
+                    result.Exception!.Message.Should().Contain("System.Action");
+                }
+                else
+                {
+                    result.Exception.Should().BeAssignableTo<BsonSerializationException>();
+                    result.Exception!.GetBaseException().Should().BeOfType<NotSupportedException>();
+                }
                 Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception).Should().BeFalse("payload serialization fails before a native write is dispatched");
                 (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(sqlBefore);
                 if(!updating) keyAfter.Should().BeNull();

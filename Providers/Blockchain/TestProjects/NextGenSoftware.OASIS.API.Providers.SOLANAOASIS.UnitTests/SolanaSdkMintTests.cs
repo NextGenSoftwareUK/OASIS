@@ -12,6 +12,150 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaSdkMintTests
 {
+    [DataTestMethod][DataRow(-1,500)][DataRow(0,0)][DataRow(13,1300)][DataRow(100,10000)]
+    public async Task RequestedRoyaltyIsEncodedInActualSdkMetadata(int percentage,int expectedBasisPoints)
+    {
+        const string uri="https://example.invalid/royalty-proof-unique.json";
+        var owner=new Account();var rpc=DispatchProxy.Create<IRpcClient,MintProxy>();var proxy=(MintProxy)(object)rpc;proxy.Scenario="finalized";
+        var result=await new SolanaService(owner,rpc).MintNftAsync(new MintWeb3NFTRequest
+            {Title="royalty fixture",Symbol="OWN",JSONMetaDataURL=uri,RoyaltyPercentage=percentage<0?null:percentage});
+        Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(1,proxy.Sends);
+        var tx=Solnet.Rpc.Models.Transaction.Deserialize(proxy.SignedTransactions.Single());
+        var uriBytes=System.Text.Encoding.UTF8.GetBytes(uri);
+        var metadata=tx.Instructions.Where(instruction=>instruction.ProgramId.SequenceEqual(Solnet.Metaplex.NFT.Library.MetadataProgram.ProgramIdKey.KeyBytes))
+            .Select(instruction=>instruction.Data).Single(bytes=>FindUri(bytes,uriBytes)>=0);
+        var offset=FindUri(metadata,uriBytes)+uriBytes.Length;
+        Assert.IsTrue(offset+2<=metadata.Length);
+        // Canonical Token Metadata DataV2 Borsh layout: URI string, then u16 seller_fee_basis_points.
+        Assert.AreEqual(expectedBasisPoints,metadata[offset]|metadata[offset+1]<<8);
+    }
+
+    private static int FindUri(byte[] bytes,byte[] uri)
+    {
+        for(var index=0;index<=bytes.Length-uri.Length;index++)if(bytes.AsSpan(index,uri.Length).SequenceEqual(uri))return index;
+        return -1;
+    }
+
+    [DataTestMethod][DataRow(-1)][DataRow(101)]
+    public async Task OutOfRangeRoyaltyCannotBroadcast(int percentage)
+    {
+        var rpc=DispatchProxy.Create<IRpcClient,MintProxy>();var proxy=(MintProxy)(object)rpc;proxy.Scenario="finalized";
+        var result=await new SolanaService(new Account(),rpc).MintNftAsync(new MintWeb3NFTRequest
+            {Title="invalid royalty",Symbol="OWN",JSONMetaDataURL="https://example.invalid/invalid.json",RoyaltyPercentage=percentage});
+        Assert.IsTrue(result.IsError);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentOutOfRangeException));Assert.AreEqual(0,proxy.Sends);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task PublicMintKeepsCollectionVerificationWarningAndFinalizedMint(bool synchronous)
+    {
+        var owner=new Account();var rpc=DispatchProxy.Create<IRpcClient,MintProxy>();var proxy=(MintProxy)(object)rpc;
+        proxy.Scenario="finalized";proxy.FailFollowupSimulation=true;
+        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
+        typeof(SolanaOASIS).GetField("_solanaService",BindingFlags.NonPublic|BindingFlags.Instance)!
+            .SetValue(provider,new SolanaService(owner,rpc));
+        var request=new MintWeb3NFTRequest{Title="warning fixture",Symbol="OWN",JSONMetaDataURL="https://example.invalid/owned.json",
+            CollectionPublicKey=new Account().PublicKey.Key,WaitTillNFTVerified=false};
+        var result=synchronous?provider.MintNFT(request):await provider.MintNFTAsync(request);
+        Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsWarning);Assert.IsTrue(result.WarningCount>0);
+        Assert.IsTrue(result.IsSaved);Assert.AreEqual(1,proxy.Sends);Assert.AreEqual(proxy.Signature,result.Result.TransactionResult);
+        StringAssert.Contains(result.Message,"collection verification failed");
+    }
+
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task PublicMintAcceptsIndependentInterfaceAndPreservesOriginalOutcome(bool synchronous,bool lost)
+    {
+        var owner=new Account();var rpc=DispatchProxy.Create<IRpcClient,MintProxy>();var proxy=(MintProxy)(object)rpc;
+        proxy.Scenario=lost?"lost-reply":"finalized";
+        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
+        typeof(SolanaOASIS).GetField("_solanaService",BindingFlags.NonPublic|BindingFlags.Instance)!
+            .SetValue(provider,new SolanaService(owner,rpc));
+        var request=DispatchProxy.Create<NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests.IMintWeb3NFTRequest,IndependentMintRequest>();
+        request.Title="interface NFT";request.Symbol="OWN";request.JSONMetaDataURL="https://example.invalid/owned.json";
+        var result=synchronous?provider.MintNFT(request):await provider.MintNFTAsync(request);
+        Assert.AreEqual(lost,result.IsError,result.Exception?.ToString()??result.Message);Assert.AreEqual(1,proxy.Sends);
+        if(lost){Assert.IsFalse(result.IsSaved);Assert.IsInstanceOfType(result.Exception,typeof(SolanaTransactionReconciliationException));
+            Assert.AreEqual(proxy.Signature,((SolanaTransactionReconciliationException)result.Exception).OriginalTransactionId);}
+        else{Assert.IsTrue(result.IsSaved);Assert.AreEqual(proxy.Signature,result.Result.TransactionResult);
+            Assert.AreEqual("OWN",result.Result.Web3NFT.Symbol);Assert.IsFalse(string.IsNullOrWhiteSpace(result.Result.Web3NFT.NFTTokenAddress));}
+    }
+
+    public class IndependentMintRequest:DispatchProxy
+    {
+        private readonly Dictionary<string,object?> _values=new();
+        protected override object? Invoke(MethodInfo? method,object?[]? args)
+        {
+            if(method!.Name.StartsWith("set_",StringComparison.Ordinal)){_values[method.Name[4..]]=args![0];return null;}
+            if(method.Name.StartsWith("get_",StringComparison.Ordinal))return _values.TryGetValue(method.Name[4..],out var value)?value:
+                method.ReturnType.IsValueType?Activator.CreateInstance(method.ReturnType):null;
+            throw new NotSupportedException("Property-only independent request fixture.");
+        }
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)][DoNotParallelize]
+    public async Task AwaitingSdkMintMustNotReplaceProcessConsoleWriter(bool collection)
+    {
+        var original=Console.Out;var rpc=DispatchProxy.Create<IRpcClient,HeldBroadcastProxy>();
+        var proxy=(HeldBroadcastProxy)(object)rpc;proxy.Scenario="finalized";
+        var service=new SolanaService(new Account(),rpc);
+        Task operation=collection?service.CreateCollectionNftAsync("owned","OWN","https://example.invalid/collection.json")
+            :service.MintNftAsync(new MintWeb3NFTRequest{Title="owned",Symbol="OWN",JSONMetaDataURL="https://example.invalid/nft.json"});
+        var stable=false;
+        try {await proxy.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));stable=ReferenceEquals(original,Console.Out);}
+        finally {
+            proxy.Reply.TrySetException(new IOException("owned held SDK response"));
+            await operation.WaitAsync(TimeSpan.FromSeconds(10));
+            if(!ReferenceEquals(original,Console.Out))Console.SetOut(original); // Test isolation only.
+        }
+        Assert.IsTrue(stable,"An awaited SDK operation replaced the process-wide Console.Out writer.");
+    }
+
+    public class HeldBroadcastProxy:MintProxy
+    {
+        public int Broadcasts;
+        public readonly TaskCompletionSource<bool> Entered=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public readonly TaskCompletionSource<Solnet.Rpc.Core.Http.RequestResult<string>> Reply=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        protected override object? Invoke(MethodInfo? method,object?[]? args)
+        {
+            if(method!.Name=="SendTransactionAsync"){
+                var count=Interlocked.Increment(ref Broadcasts);Entered.TrySetResult(true);
+                if(count==1)return Reply.Task;
+            }
+            return base.Invoke(method,args);
+        }
+    }
+    [TestMethod]
+    public async Task QueuedSdkSubmissionFreezesBytesAndResumesAfterFinalizedPredecessor()
+    {
+        var rpc=DispatchProxy.Create<IRpcClient,HeldBroadcastProxy>();var proxy=(HeldBroadcastProxy)(object)rpc;proxy.Scenario="finalized";
+        var wrapped=((IRpcClient Client,FinalizedSolanaRpc State))typeof(FinalizedSolanaRpc).GetMethod("Wrap",BindingFlags.NonPublic|BindingFlags.Static)!
+            .Invoke(null,new object[]{rpc,new Account()})!;
+        var firstBytes=new byte[70];firstBytes[0]=1;firstBytes[1]=31;
+        var secondBytes=(byte[])firstBytes.Clone();secondBytes[1]=32;
+        var first=wrapped.Client.SendTransactionAsync(firstBytes);await proxy.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var second=wrapped.Client.SendTransactionAsync(secondBytes);secondBytes[1]=99;
+        Assert.AreEqual(1,proxy.Broadcasts);
+        var signature=Solnet.Wallet.Utilities.Encoders.Base58.EncodeData(firstBytes.AsSpan(1,64).ToArray());
+        using var response=new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+        proxy.Reply.SetResult(new Solnet.Rpc.Core.Http.RequestResult<string>(response,signature){WasRequestSuccessfullyHandled=true});
+        await Task.WhenAll(first,second);
+        Assert.AreEqual(2,proxy.Broadcasts);Assert.AreEqual((byte)32,proxy.Signed![1]);
+        Assert.AreEqual(2,wrapped.State.FinalizedSignatures.Count);Assert.IsNull(wrapped.State.SubmissionFailure);
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task ConcurrentSdkSubmissionsCannotBypassUnknownOutcomeFence(bool encoded)
+    {
+        var rpc=DispatchProxy.Create<IRpcClient,HeldBroadcastProxy>();var proxy=(HeldBroadcastProxy)(object)rpc;proxy.Scenario="finalized";
+        var wrapped=((IRpcClient Client,FinalizedSolanaRpc State))typeof(FinalizedSolanaRpc).GetMethod("Wrap",BindingFlags.NonPublic|BindingFlags.Static)!
+            .Invoke(null,new object[]{rpc,new Account()})!;
+        var bytes=new byte[70];bytes[0]=1;bytes[1]=31;
+        Task<Solnet.Rpc.Core.Http.RequestResult<string>> Send()=>encoded?wrapped.Client.SendTransactionAsync(Convert.ToBase64String(bytes)):wrapped.Client.SendTransactionAsync(bytes);
+        var first=Send();await proxy.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var second=Send();proxy.Reply.SetException(new IOException("owned held broadcast response loss"));
+        var firstFailure=await Assert.ThrowsExceptionAsync<SolanaTransactionReconciliationException>(()=>first);
+        var secondFailure=await Assert.ThrowsExceptionAsync<SolanaTransactionReconciliationException>(()=>second);
+        Assert.AreEqual(1,proxy.Broadcasts);Assert.AreSame(firstFailure,secondFailure);
+        Assert.AreSame(firstFailure,wrapped.State.SubmissionFailure);Assert.AreEqual(0,wrapped.State.FinalizedSignatures.Count);
+    }
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task ActualMetaplexSdkMintUsesFinalizedSubmissionAndKeepsLostReplyIdentity(bool lost)

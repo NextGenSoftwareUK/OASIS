@@ -56,7 +56,7 @@ public partial class MongoDBOASIS
             if(records.GroupBy(row=>row.Id).Any(group=>group.Count()>1)) throw new StorageIdentityAmbiguousException();
             var byId=records.ToDictionary(row=>row.Id);
             var project=HolonGraphProjection.Create(records,children,recursive,depth,initialDepth,fromProvider,
-                row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
+                row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)),rootsAreChildren:parent.HasValue);
             result.Result=roots.Select(root=>project(byId[root.HolonId])).ToList();result.IsLoaded=true;
         }
         catch(Exception cause)

@@ -39,11 +39,16 @@ public sealed partial class SolanaService
         return result;
     }
 
-    public async Task<OASISResult<MintNftResult>> MintNftAsync(MintWeb3NFTRequest mintNftRequest)
+    public async Task<OASISResult<MintNftResult>> MintNftAsync(IMintWeb3NFTRequest mintNftRequest)
     {
         FinalizedSolanaRpc submissionState=null;
         try
         {
+            ArgumentNullException.ThrowIfNull(mintNftRequest);
+            var royaltyPercentage=mintNftRequest.RoyaltyPercentage;
+            if(royaltyPercentage is <0 or >100)
+                throw new ArgumentOutOfRangeException(nameof(mintNftRequest.RoyaltyPercentage),"NFT royalty percentage must be between 0 and 100 inclusive.");
+            var royaltyBasisPoints=royaltyPercentage.HasValue?checked((uint)royaltyPercentage.Value*100):SellerFeeBasisPoints;
             string verifyTransaction = null;
             string verifyWarning = null;
             Account mintAccount = new();
@@ -52,17 +57,13 @@ public sealed partial class SolanaService
             {
                 name = mintNftRequest.Title,
                 symbol = mintNftRequest.Symbol,
-                sellerFeeBasisPoints = SellerFeeBasisPoints,
+                sellerFeeBasisPoints = royaltyBasisPoints,
                 uri = mintNftRequest.JSONMetaDataURL,
                 creators = _creators,
                 collection = string.IsNullOrEmpty(mintNftRequest.CollectionPublicKey) ? null : new Collection(new PublicKey(mintNftRequest.CollectionPublicKey))
             };
 
-            var originalConsoleOut = Console.Out;
-            try
             {
-                Console.SetOut(new NullTextWriter());
-
                 var finalized=FinalizedSolanaRpc.Wrap(rpcClient,oasisAccount);
                 submissionState=finalized.State;
                 RequestResult<string> createNftResult = await new MetadataClient(finalized.Client).CreateNFT(
@@ -149,10 +150,6 @@ public sealed partial class SolanaService
                 // FreezeMetadata is already encoded in the SDK creation instruction's isMutable.
 
                 return result;
-            }
-            finally
-            {
-                Console.SetOut(originalConsoleOut);
             }
         }
         catch (Exception ex)
@@ -317,11 +314,7 @@ public sealed partial class SolanaService
                 collection = null  // collection NFTs have no parent
             };
 
-            var originalConsoleOut = Console.Out;
-            try
             {
-                Console.SetOut(new NullTextWriter());
-
                 var finalized=FinalizedSolanaRpc.Wrap(rpcClient,oasisAccount);
                 submissionState=finalized.State;
                 RequestResult<string> createResult = await new MetadataClient(finalized.Client).CreateNFT(
@@ -363,10 +356,6 @@ public sealed partial class SolanaService
                         createResult.Result,
                         setSizeTxHash)
                 };
-            }
-            finally
-            {
-                Console.SetOut(originalConsoleOut);
             }
         }
         catch (Exception ex)

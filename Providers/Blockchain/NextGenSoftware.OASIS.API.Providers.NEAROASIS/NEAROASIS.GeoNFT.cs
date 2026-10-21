@@ -64,8 +64,8 @@ public partial class NEAROASIS
             var privateKey=request.OwnerPrivateKey;var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
             if (string.IsNullOrWhiteSpace(tokenId) || string.IsNullOrWhiteSpace(destination))
                 throw new ArgumentException("NEAR NFT token id and destination account are required.");
-            ValidateNearSigningInputs(seed);
-            if(!string.IsNullOrWhiteSpace(source)&&source!=_accountId&&string.IsNullOrWhiteSpace(privateKey))
+            var knownKey=await ResolveNearExplicitKeyAsync(privateKey,seed);
+            if(!string.IsNullOrWhiteSpace(source)&&source!=_accountId&&knownKey==null)
                 throw new ArgumentException("An independent NFT sender requires its own signing key.");
             if (!await EnsureSdkActiveAsync(result)) return result;
             var before = await LoadOnChainNFTDataAsync(tokenId);
@@ -73,7 +73,7 @@ public partial class NEAROASIS
                 throw before.Exception ?? new InvalidOperationException(before.Message);
             var owner=before.Result.SendToAddressAfterMinting;
             if(!string.IsNullOrWhiteSpace(source)&&source!=owner)throw new ArgumentException("The requested NFT sender differs from its on-chain owner.");
-            var signer=await ResolveNearSignerAsync(owner,privateKey,publicKey);
+            var signer=await ResolveNearSignerAsync(owner,privateKey,publicKey,knownKey);
             var tx = await _sdk.CallAsync("nft_transfer", new { token_id = tokenId, receiver_id = destination },
                 signerAccountId:signer.Account,signerPrivateKey:signer.Key);
             acknowledged=tx;

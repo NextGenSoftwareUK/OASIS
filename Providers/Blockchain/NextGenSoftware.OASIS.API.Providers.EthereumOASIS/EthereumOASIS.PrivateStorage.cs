@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         private static Newtonsoft.Json.Linq.JObject SerializeCanonicalEmbeddedRecord(IHolonBase record)
         {
-            var payload=Newtonsoft.Json.Linq.JObject.Parse(OasisJson.Serialize(record));
+            var payload=OasisJson.ParseStoredObject(OasisJson.Serialize(record));
             var links=record.ProviderUniqueStorageKey==null ? new System.Collections.Generic.Dictionary<Core.Enums.ProviderType,string>()
                 : new System.Collections.Generic.Dictionary<Core.Enums.ProviderType,string>(record.ProviderUniqueStorageKey);
             links[Core.Enums.ProviderType.EthereumOASIS]=record.Id.ToString();
@@ -76,7 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 throw new InvalidDataException("Encrypted Ethereum record identity does not match its storage key.");
             if (expectedId.HasValue && record.Id != expectedId.Value)
                 throw new InvalidDataException("Encrypted Ethereum record identity does not match the requested GUID; numeric storage key collision.");
-            var document=Newtonsoft.Json.Linq.JObject.Parse(json);
+            var document=OasisJson.ParseStoredObject(json);
             if(document["id"]!=null && (document["id"].Type!=Newtonsoft.Json.Linq.JTokenType.String || document["id"].Value<string>()!=record.Id.ToString()))
                 throw new InvalidDataException("Ethereum embedded history item identity differs from payload.");
             document["id"]=record.Id.ToString();

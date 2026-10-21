@@ -41,6 +41,7 @@ public class PublicMastodonAccountTests
         var result=synchronous?provider.LoadHolon(id,loadChildrenFromProvider:true)
             :await provider.LoadHolonAsync(id,loadChildrenFromProvider:true).WaitAsync(TimeSpan.FromSeconds(30));
         Assert.False(result.IsError,result.Exception?.ToString());
+        Assert.True(result.IsLoaded);Assert.Equal(1,result.LoadedCount);
         Assert.Equal(descendants.Select(status=>status.GetProperty("id").GetString()).OrderBy(value=>value),
             result.Result.Children.Select(status=>status.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]).OrderBy(value=>value));
         foreach(var child in result.Result.Children)
@@ -53,6 +54,7 @@ public class PublicMastodonAccountTests
         var direct=synchronous?provider.LoadHolonsForParent(id,loadChildren:false)
             :await provider.LoadHolonsForParentAsync(id,loadChildren:false).WaitAsync(TimeSpan.FromSeconds(30));
         Assert.False(direct.IsError,direct.Exception?.ToString());
+        Assert.True(direct.IsLoaded);Assert.Equal(descendants.Length,direct.LoadedCount);
         Assert.Equal(descendants.Select(status=>status.GetProperty("id").GetString()).OrderBy(value=>value),
             direct.Result.Select(status=>status.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]).OrderBy(value=>value));
         Assert.All(direct.Result,status=>{Assert.Equal(result.Result.Id,status.ParentHolonId);Assert.Empty(status.Children);});
