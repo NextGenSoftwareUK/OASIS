@@ -261,8 +261,10 @@ public class OracleObjectSdkTests
             var activated=synchronous?provider.ActivateProvider():await provider.ActivateProviderAsync();Assert.IsFalse(activated.IsError,activated.Message);
             var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar{Id=Guid.NewGuid(),Username="private-user",Email="private-user@example.invalid",IsActive=true};
             var saved=synchronous?provider.SaveAvatar(avatar):await provider.SaveAvatarAsync(avatar);Assert.IsFalse(saved.IsError,saved.Message);Assert.AreEqual(1,avatar.Version);
+            Assert.IsTrue(saved.IsSaved);Assert.AreEqual(1,saved.SavedCount);
             avatar.Description="private-update";
             var updated=synchronous?provider.SaveAvatar(avatar):await provider.SaveAvatarAsync(avatar);Assert.IsFalse(updated.IsError,updated.Message);Assert.AreEqual(2,avatar.Version);
+            Assert.IsTrue(updated.IsSaved);Assert.AreEqual(1,updated.SavedCount);
             var byId=synchronous?provider.LoadAvatar(avatar.Id):await provider.LoadAvatarAsync(avatar.Id);
             var byName=synchronous?provider.LoadAvatarByUsername(avatar.Username):await provider.LoadAvatarByUsernameAsync(avatar.Username);
             var byEmail=synchronous?provider.LoadAvatarByEmail(avatar.Email):await provider.LoadAvatarByEmailAsync(avatar.Email);
@@ -281,8 +283,10 @@ public class OracleObjectSdkTests
             var initialCreates=conditionalCreates;var initialReplacements=conditionalReplacements;var initialDeletes=conditionalDeletes;
             var detail=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=avatar.Id,Karma=111,XP=222};
             var detailCreated=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(detailCreated.IsError,detailCreated.Message);
+            Assert.IsTrue(detailCreated.IsSaved);Assert.AreEqual(1,detailCreated.SavedCount);
             detail.Karma=333;detail.XP=444;
             var detailUpdated=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(detailUpdated.IsError,detailUpdated.Message);
+            Assert.IsTrue(detailUpdated.IsSaved);Assert.AreEqual(1,detailUpdated.SavedCount);
             Assert.AreEqual(2,detail.Version);
             var previousDetail=await provider.LoadAvatarDetailAsync(avatar.Id,version:1);Assert.IsFalse(previousDetail.IsError,previousDetail.Message);
             Assert.AreEqual(111L,previousDetail.Result.Karma);Assert.AreEqual(222L,previousDetail.Result.XP);
@@ -291,8 +295,10 @@ public class OracleObjectSdkTests
             var originalParent=Guid.NewGuid();var nextParent=Guid.NewGuid();
             var holon=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),ParentHolonId=originalParent,Name="private-holon",CreatedByAvatarId=avatar.Id,MetaData=new(){["tag"]="private-tag"}};
             var stored=synchronous?provider.SaveHolon(holon,saveChildren:false):await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(stored.IsError,stored.Message);
+            Assert.IsTrue(stored.IsSaved);Assert.AreEqual(1,stored.SavedCount);
             holon.Name="private-updated-holon";holon.ParentHolonId=nextParent;
             var updatedHolon=synchronous?provider.SaveHolon(holon,saveChildren:false):await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(updatedHolon.IsError,updatedHolon.Message);
+            Assert.IsTrue(updatedHolon.IsSaved);Assert.AreEqual(1,updatedHolon.SavedCount);
             Assert.AreEqual(2,holon.Version);Assert.AreEqual(6,conditionalCreates-initialCreates);Assert.AreEqual(2,conditionalReplacements-initialReplacements);Assert.AreEqual(1,conditionalDeletes-initialDeletes);
             Assert.IsFalse((await provider.LoadHolonsForParentAsync(originalParent,loadChildren:false)).Result.Any());
             Assert.AreEqual(holon.Id,(await provider.LoadHolonsForParentAsync(nextParent,loadChildren:false)).Result.Single().Id);

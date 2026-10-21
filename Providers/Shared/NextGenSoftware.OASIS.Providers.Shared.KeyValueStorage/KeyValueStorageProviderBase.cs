@@ -333,7 +333,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 }
 
                 PublishSavedMetadata(source,avatar,publication.ValidateUnchanged);
-                return new OASISResult<IAvatar>(source) { IsSaved = true, Message = $"Avatar {avatar.Id} saved to {Name}." };
+                return new OASISResult<IAvatar>(source) { IsSaved = true, SavedCount = 1, Message = $"Avatar {avatar.Id} saved to {Name}." };
             }
             catch (Exception ex) { return Fail<IAvatar>($"Error saving avatar: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
@@ -529,7 +529,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if(conditional==null)await PutAcknowledgedAsync(key,OasisJson.Serialize(avatarDetail),acknowledged);
                 else await PutObservedAcknowledgedAsync(conditional,key,OasisJson.Serialize(avatarDetail),observed,acknowledged);
                 PublishSavedMetadata(source,avatarDetail,publication.ValidateUnchanged);
-                return new OASISResult<IAvatarDetail>(source) { IsSaved = true, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
+                return new OASISResult<IAvatarDetail>(source) { IsSaved = true, SavedCount = 1, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
             }
             catch (Exception ex) { return Fail<IAvatarDetail>($"Error saving avatar detail: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
@@ -684,13 +684,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
                 PublishSavedMetadata(source,holon,ValidateCaller);source.ParentHolonId=holon.ParentHolonId;
                 if(source is Holon caller)caller.ChildRoleManifestJson=((Holon)holon).ChildRoleManifestJson;
-                var result = new OASISResult<IHolon>(source) { IsSaved = true, Message = $"Holon {holon.Id} saved to {Name}." };
+                var result = new OASISResult<IHolon>(source) { IsSaved = true, SavedCount = 1, Message = $"Holon {holon.Id} saved to {Name}." };
                 if (node.SelectsChildren)
                 {
                     foreach (var childId in node.SelectedChildIds)
                     {
                         var child=forest.ById[childId].Source;
                         var saved = await SaveHolonInternalAsync(child, saveChildren, recursive, maxChildDepth, depth + 1, continueOnError,forest);
+                        result.SavedCount += saved.SavedCount;
                         if (saved.IsError)
                         {
                             var cause=NativeMutationReconciliation.IsRequired(saved.Exception) ? saved.Exception
@@ -764,6 +765,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             foreach (var holon in roots)
             {
                 var r = await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError,forest);
+                result.SavedCount += r.SavedCount;
                 if(r.IsSaved && r.Result!=null) acknowledged.Add(HolonKey(r.Result.Id));
                 CollectAcknowledgedKeyEvidence(r.Exception,acknowledged);
                 if (r.IsError)
