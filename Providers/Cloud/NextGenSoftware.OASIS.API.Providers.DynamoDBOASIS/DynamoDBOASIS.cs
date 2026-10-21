@@ -289,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 source.ProviderUniqueStorageKey[StorageProviderType]=avatar.Id.ToString();
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Avatar '{avatar.Username}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); if(ex is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode; }
             return result;
         }
 
@@ -489,7 +489,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 source.ProviderUniqueStorageKey[StorageProviderType]=d.Id.ToString();
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); if(ex is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode; }
             return result;
         }
 
