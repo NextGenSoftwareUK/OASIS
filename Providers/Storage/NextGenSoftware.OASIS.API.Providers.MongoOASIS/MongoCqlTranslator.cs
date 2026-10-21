@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 // BSON expressions only: user strings are literal values, never field/expression fragments.
-internal sealed class MongoCqlTranslator
+internal sealed partial class MongoCqlTranslator
 {
     private int nodes;
     internal BsonDocument Compile<T>(CosmicQuery<T> query) where T:Core.Interfaces.IHolon

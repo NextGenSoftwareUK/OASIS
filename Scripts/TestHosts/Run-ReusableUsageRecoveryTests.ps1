@@ -91,7 +91,7 @@ try{
     New-Item -ItemType Directory -Force -Path $data | Out-Null
     Limit-OwnedMongoLog -WorkDirectory $work
     $mongoArguments=@('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $work 'mongo-current.log'),'--logappend')
-    if($MongoV2 -or $AuthorityLedger -or $MongoTransactions -or $CosmicConditionalWrites){$mongoArguments+=@('--setParameter','enableTestCommands=1')}
+    if($MongoV2 -or $AuthorityLedger -or $MongoTransactions -or $CosmicConditionalWrites -or $CosmicCql){$mongoArguments+=@('--setParameter','enableTestCommands=1')}
     $owned=Start-Process -FilePath $runtime -ArgumentList $mongoArguments -PassThru -WindowStyle Hidden
     $startupDeadline=[DateTime]::UtcNow.AddSeconds(30)
     do {
