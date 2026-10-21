@@ -1,5 +1,19 @@
 # Solana SDK submission concurrency — staged verification
 
+## Public SPL and native SOL transfers verified — 2026-10-21
+
+Actual97910 terminal0 **3/3 native schedules passed**, zero skipped,3m24. Both sync/async token schedules now cover public CreateToken/MintToken/BurnToken/SendToken(SPL)/SendToken(SOL), using real native programs/receipts/state. New recipient ATA creation is exercised. Finalized independent reads prove unchanged mint supply3,000,000raw units, sender SPL2,500,000/recipient500,000 with correct mint/owner, and recipient native SOL increase1,000,000lamports. No production implementation change was needed.
+
+**Each five-operation flow:30,000lamports transaction fees +5,540,160lamports rent-exempt mint/two-ATA funding +1,000,000lamports transferred SOL =6,570,160lamports exact payer debit.** Transferred value is NOT a fee. Observed local test-SOL accounting only; no hosted pricing/max-fee/sponsorship/closure/refund claim. Prior20,000fee/3,500,880rent amounts below remain correct for the earlier THREE-operation flow, not this expanded schedule.
+
+NativeTRX SHA256 `597F15287EAB2A15C284386F635E0BF53243A7541D732D2E151C0E4808C72173`; current public async/sync cost receipts `D40933A42D2058D85EEF3AC4D9E03E1B62BBCA2FFABFE40B2140C6A7367ACB38` / `C7994A54D9F459BC6C3C726250842BFFE87CEC971FEF5454D39AD5921CF67D77`. Prior nativeF95D8DDA and cost46F22C9A/3D13D1CB artifacts were exact-hash checked and moved IN PLACE to `solana-validator-pre-transfer.trx`, `spl-token-async-pre-transfer.json`, `spl-token-sync-pre-transfer.json` before startup; no copied reports/DB. Native consumer Core6635E34C and Shared `40F3ED2DB1193FEBE834DCDEEA6F0B7C48C95EBE50C3972E65397A6D4A9EC670` match current producers. Earlier559controlled proof used Shared6E57826D, NOT this refreshed native assembly cohort; no relabelled controlled refresh.
+
+Same recovered ledger/runtime/keys/ports; pre-start snapshot703/root747 admitted. Independent postterminal checks: pending0, validator absent, active ledger870MiB/cold original130MiB. Free50,701,463,552→50,361,851,904bytes systemwide; target123GB still unmet. No reset/download/new environment/public funds/dev deployment. Auth still fixture-isolated at ONLY the existing KeyManager hook; full hosted auth, NFT/Token2022/uncertainty and all-providerV2 remain OPEN. Previous candidate note below is now superseded for these transfers.
+
+## Native transfer extension candidate — pending execution
+
+Extended both token schedules to invoke existing PUBLIC SendToken for legacy SPL0.5 to a fresh recipient (ATA created natively) and native SOL0.001. Proposed independent checks keep total mint supply3.0, sender SPL2.5/recipient0.5, native recipient+1,000,000lamports, and payer debit equal to measured receipt fees + mint/two-ATA rent + transferred SOL value. Transfer value must NOT be billed as a network fee. Pre-write intents and cost-artifact guards retained; no production SDK code changed. Compilation dispatch was correctly refused by the busy shared lease before any build/body/runtime action. Prior published3native result covers create/mint/burn and storage/concurrency only, NOT these new transfers. Do not overwrite prior cost reports when executing the extension; exact-hash move them in place first.
+
 ## Real public SPL create/mint/burn and exact cost acceptance — 2026-10-21
 
 Actual14236 terminal0: **3/3 native schedules passed**, zero skipped,2m31s. The two added sync/async cases invoke existing PUBLIC CreateToken/MintToken/BurnToken through actual Solnet/native programs/finality. Only avatar signing-key lookup is isolated using the existing protected fixture hook; real hosted KeyManager/auth/delegation is NOT proved. Each creates a six-decimal SPL mint with2.5 tokens, mints1.25, burns0.75, then independently reads supply/holder3,000,000raw units, owner/mint/authority/no freeze and finalized receipts. No provider implementation change was required: the existing native SDK operations passed.

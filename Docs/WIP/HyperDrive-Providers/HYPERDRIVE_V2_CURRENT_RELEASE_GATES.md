@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Solana token transfers — expanded native3 green
+
+Actual97910 terminal0 **3/3 native passed**, zero skips3m24; real sync/async PUBLIC SPL and native SOL transfers now verified alongside create/mint/burn and existing storage/concurrency. Independent supply/holder/native-balance reads verify exact effects, including creation of the fresh recipient ATA. Per five-operation flow:30,000lamport fees +5,540,160rent funding +1,000,000transferred SOL =6,570,160exact payer debit. Neither rent nor transfer value is mislabeled gas; local test SOL only, no sponsored/hosted/fee-maximum claim.
+
+NativeTRX `597F15287EAB2A15C284386F635E0BF53243A7541D732D2E151C0E4808C72173`; receipt hashes/prior evidence preservation in `SOLANA_SUBMISSION_CONCURRENCY.md`. Current native Core6635E34C/Shared40F3ED2D matched; earlier559controls belong to Shared6E57826D and are not relabelled. Pending0/validator stopped independently, same activeledger870MiB/coldoriginal130MiB, no install/reset/new environment/public funds/devdeploy. Full NFT/extensions/hostedauth/uncertain-outcome/V2 gates remain OPEN.
+
 ## Solana direct SPL interfaces — native3 green, fee/rent split proved
 
 Actual14236 terminal0 **3/3 native schedules passed**, zero skips2m31; added real sync/async PUBLIC create/mint/burn schedules verify independent finalized supply/holder/authority effects and exact wallet debit. Existing SDK implementation passed without production changes. Each flow:20,000lamports transaction fees +3,500,880lamports rent-exempt account funding =3,520,880lamports debit, all measured locally; rent is NOT gas/refund, no closure/refund claimed. Local test SOL only, not hosted pricing/sponsorship/max-fee certification. Auth fixture isolates only avatar key lookup; hosted KeyManager/delegation remains OPEN.

@@ -20,7 +20,7 @@ public sealed partial class SOLANAOASISIntegrationTests
     }
 
     [DataTestMethod][DataRow(false)][DataRow(true)]
-    public async Task LegacySplPublicCreateMintBurnVerifiesFinalizedEffectsAndCosts(bool synchronous)
+    public async Task PublicNativeAndSplTokenOperationsVerifyFinalizedEffectsAndCosts(bool synchronous)
     {
         var work=Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE") ?? throw new InvalidOperationException("Native evidence directory required.");
         Assert.IsTrue(Path.IsPathFullyQualified(work));Assert.IsTrue(Directory.Exists(work));
@@ -50,7 +50,20 @@ public sealed partial class SOLANAOASISIntegrationTests
             var burnRequest=new BurnWeb3TokenRequest{OwnerPublicKey=owner,OwnerPrivateKey=Environment.GetEnvironmentVariable("SOLANA_PRIVATE_KEY")!,OwnerSeedPhrase="",TokenAddress=mint,Amount=.75m};
             var burned=synchronous?provider.BurnToken(burnRequest):await provider.BurnTokenAsync(burnRequest);
             Assert.IsFalse(burned.IsError,burned.Exception?.ToString());Assert.IsTrue(burned.IsSaved);signatures.Add(burned.Result.TransactionResult);
-            intent["BurnSignature"]=signatures[2];intent["State"]="verify-effects";SaveIntent();
+            var recipient=new Account().PublicKey.Key;
+            intent["BurnSignature"]=signatures[2];intent["Recipient"]=recipient;intent["State"]="before-spl-transfer";SaveIntent();
+            var sendSplRequest=new SendWeb3TokenRequest{FromWalletAddress=owner,ToWalletAddress=recipient,FromTokenAddress=mint,Amount=.5m,
+                OwnerPublicKey=owner,OwnerPrivateKey=Environment.GetEnvironmentVariable("SOLANA_PRIVATE_KEY")!,OwnerSeedPhrase="",MemoText="owned-native-spl-transfer"};
+            var sentSpl=synchronous?provider.SendToken(sendSplRequest):await provider.SendTokenAsync(sendSplRequest);
+            Assert.IsFalse(sentSpl.IsError,sentSpl.Exception?.ToString());Assert.IsTrue(sentSpl.IsSaved);signatures.Add(sentSpl.Result.TransactionResult);
+            intent["SplTransferSignature"]=signatures[3];intent["State"]="before-sol-transfer";SaveIntent();
+            var recipientBefore=await rpc.GetBalanceAsync(recipient,Commitment.Finalized);Assert.IsTrue(recipientBefore.WasSuccessful);
+            const ulong transferredLamports=1_000_000;
+            var sendSolRequest=new SendWeb3TokenRequest{FromWalletAddress=owner,ToWalletAddress=recipient,Amount=.001m,
+                OwnerPublicKey=owner,OwnerPrivateKey=Environment.GetEnvironmentVariable("SOLANA_PRIVATE_KEY")!,OwnerSeedPhrase="",MemoText="owned-native-sol-transfer"};
+            var sentSol=synchronous?provider.SendToken(sendSolRequest):await provider.SendTokenAsync(sendSolRequest);
+            Assert.IsFalse(sentSol.IsError,sentSol.Exception?.ToString());Assert.IsTrue(sentSol.IsSaved);signatures.Add(sentSol.Result.TransactionResult);
+            intent["SolTransferSignature"]=signatures[4];intent["State"]="verify-effects";SaveIntent();
             var nativeMint=await rpc.GetAccountInfoAsync(mint,Commitment.Finalized);Assert.IsTrue(nativeMint.WasSuccessful);
             Assert.AreEqual(TokenProgram.ProgramIdKey.Key,nativeMint.Result.Value.Owner);
             var state=Solnet.Programs.Models.TokenProgram.TokenMint.Deserialize(Convert.FromBase64String(nativeMint.Result.Value.Data[0]));
@@ -58,12 +71,19 @@ public sealed partial class SOLANAOASISIntegrationTests
             var holder=AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(new PublicKey(owner),new PublicKey(mint));
             var nativeHolder=await rpc.GetAccountInfoAsync(holder.Key,Commitment.Finalized);Assert.IsTrue(nativeHolder.WasSuccessful);
             var account=Solnet.Programs.Models.TokenProgram.TokenAccount.Deserialize(Convert.FromBase64String(nativeHolder.Result.Value.Data[0]));
-            Assert.AreEqual(3_000_000UL,account.Amount);Assert.AreEqual(owner,account.Owner.Key);Assert.AreEqual(mint,account.Mint.Key);
+            Assert.AreEqual(2_500_000UL,account.Amount);Assert.AreEqual(owner,account.Owner.Key);Assert.AreEqual(mint,account.Mint.Key);
+            var recipientHolder=AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(new PublicKey(recipient),new PublicKey(mint));
+            var recipientAccount=await rpc.GetAccountInfoAsync(recipientHolder.Key,Commitment.Finalized);Assert.IsTrue(recipientAccount.WasSuccessful);
+            Assert.AreEqual(TokenProgram.ProgramIdKey.Key,recipientAccount.Result.Value.Owner);
+            var received=Solnet.Programs.Models.TokenProgram.TokenAccount.Deserialize(Convert.FromBase64String(recipientAccount.Result.Value.Data[0]));
+            Assert.AreEqual(500_000UL,received.Amount);Assert.AreEqual(recipient,received.Owner.Key);Assert.AreEqual(mint,received.Mint.Key);
+            var recipientAfter=await rpc.GetBalanceAsync(recipient,Commitment.Finalized);Assert.IsTrue(recipientAfter.WasSuccessful);
+            Assert.AreEqual(transferredLamports,checked(recipientAfter.Result.Value-recipientBefore.Result.Value));
             ulong fees=0;foreach(var signature in signatures){var transaction=await rpc.GetTransactionAsync(signature,Commitment.Finalized);Assert.IsTrue(transaction.WasSuccessful);Assert.IsNotNull(transaction.Result);Assert.IsNull(transaction.Result.Meta.Error);fees=checked(fees+Convert.ToUInt64(transaction.Result.Meta.Fee));}
             var after=await rpc.GetBalanceAsync(owner,Commitment.Finalized);Assert.IsTrue(after.WasSuccessful);Assert.IsTrue(fees>0);
-            var rent=checked(mintRent.Result+holderRent.Result);Assert.AreEqual(checked(rent+fees),checked(before.Result.Value-after.Result.Value));
+            var rent=checked(mintRent.Result+2*holderRent.Result);Assert.AreEqual(checked(rent+fees+transferredLamports),checked(before.Result.Value-after.Result.Value));
             Assert.AreEqual(2,provider.KeyLookups);Assert.AreEqual(avatar,provider.LastAvatar);
-            File.WriteAllText(costReport,System.Text.Json.JsonSerializer.Serialize(new{Mint=mint,Signatures=signatures,FeeLamports=fees,RentLamports=rent,TotalDebitLamports=rent+fees,LocalTestOnly=true}));
+            File.WriteAllText(costReport,System.Text.Json.JsonSerializer.Serialize(new{Mint=mint,Recipient=recipient,Signatures=signatures,FeeLamports=fees,RentLamports=rent,TransferredLamports=transferredLamports,TotalDebitLamports=rent+fees+transferredLamports,LocalTestOnly=true}));
             intent["State"]="effects-verified";SaveIntent();File.Delete(journal);
         } finally {await provider.DeActivateProviderAsync();}
     }
