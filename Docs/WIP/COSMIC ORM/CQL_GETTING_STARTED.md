@@ -2,6 +2,10 @@
 
 20 October 2026. CQL is the typed query layer for COSMIC ORM. It translates supported C# expression trees into a provider-independent query representation, checks the selected providers' capabilities, then executes native queries. SQLite and MongoDB have verified native adapters, including shared annotated scalar-property predicates. Neo4j now has an initial native predicate/projection adapter; its exact subset and selected native evidence are documented separately. Full roadmap completion is not claimed.
 
+## Run the demo
+
+The [console and Swagger walkthrough](CQL_DEMO_RUNBOOK.md) is runnable now. It uses real HolonManager/Hyperdrive V2 and native SQLite queries, then demonstrates clean tracking, no-op saves, committed deltas and cross-client conflict rejection. The HTTP host is a standalone loopback synthetic-data example; it is not a deployed authenticated ONODE endpoint.
+
 ## Current feature status
 
 | Area | Available now | Remaining |

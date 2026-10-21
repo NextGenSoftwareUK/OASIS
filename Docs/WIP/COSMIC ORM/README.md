@@ -6,6 +6,8 @@ These are working documents. Dated reports retain historical evidence; earlier c
 
 ## Documents
 
+- [Run the CQL console and Swagger demo](CQL_DEMO_RUNBOOK.md).
+
 - [Resource inventory, retrospective setup and cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
 - [Replication host shutdown: pre-execution cancellation ownership and regression evidence](REPLICATION_HOST_SHUTDOWN.md).
