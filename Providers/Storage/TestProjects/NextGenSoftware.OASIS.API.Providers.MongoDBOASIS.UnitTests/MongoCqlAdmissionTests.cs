@@ -10,6 +10,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
 [TestClass]
 public class MongoCqlAdmissionTests
 {
+    [DataTestMethod]
+    [DataRow("byte")] [DataRow("sbyte")] [DataRow("short")] [DataRow("ushort")] [DataRow("uint")]
+    public async Task NarrowIntegerComparisonAndNullableMembershipTranslateBeforeRepositoryAccess(string domain)
+    {
+        byte?[] bytes={null,1};sbyte?[] signed={null,1};short?[] shorts={null,1};ushort?[] unsigned={null,1};uint?[] uints={null,1};
+        Expression<Func<Holon,bool>> predicate=domain switch{
+            "byte"=>h=>CosmicQueryMetadata.Value<byte>(h,"x")>=0||bytes.Contains(CosmicQueryMetadata.Value<byte?>(h,"y")),
+            "sbyte"=>h=>CosmicQueryMetadata.Value<sbyte>(h,"x")>=0||signed.Contains(CosmicQueryMetadata.Value<sbyte?>(h,"y")),
+            "short"=>h=>CosmicQueryMetadata.Value<short>(h,"x")>=0||shorts.Contains(CosmicQueryMetadata.Value<short?>(h,"y")),
+            "ushort"=>h=>CosmicQueryMetadata.Value<ushort>(h,"x")>=0||unsigned.Contains(CosmicQueryMetadata.Value<ushort?>(h,"y")),
+            _=>h=>CosmicQueryMetadata.Value<uint>(h,"x")>=0||uints.Contains(CosmicQueryMetadata.Value<uint?>(h,"y"))};
+        var query=CosmicQuery<Holon>.Create().Where(predicate);Assert.IsFalse(query.IsError,query.Message);
+        var provider=new MongoDBOASIS("mongodb://127.0.0.1:1/?serverSelectionTimeoutMS=1","cql-admission-only");
+        var result=await provider.ExecuteCosmicQueryAsync(Plan(query.Result));
+        Assert.AreEqual("CQL_PROVIDER_NOT_READY",result.ErrorCode,result.Message+result.Exception);
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
     private static CosmicQueryPlan<Holon> Plan(CosmicQuery<Holon> query,ProviderType provider=ProviderType.MongoDBOASIS,CosmicQueryCapabilities? capabilities=null)
     {
         var result=CosmicQueryPlanner.Plan(query,provider,new[]{new CosmicQueryTarget(provider,capabilities??MongoDBOASIS.CqlCapabilities)});

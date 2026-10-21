@@ -78,10 +78,18 @@ internal sealed partial class MongoCqlTranslator
             Op("$gte",value,Literal(DateTime.MinValue.Ticks)),Op("$lte",value,Literal(DateTime.MaxValue.Ticks)));
         if(type==typeof(string)||type==typeof(Guid))return Op("$eq",Type(value),Literal("string"));
         if(type==typeof(bool))return Op("$eq",Type(value),Literal("bool"));
-        if(type==typeof(int)||type==typeof(long)||type.IsEnum)
+        if(type==typeof(byte)||type==typeof(sbyte)||type==typeof(short)||type==typeof(ushort)||type==typeof(uint)
+            ||type==typeof(int)||type==typeof(long)||type.IsEnum)
         {
             BsonValue guard=Op("$in",Type(value),Literal(new BsonArray{"int","long"}));
-            if(type!=typeof(long))guard=Op("$and",guard,Op("$gte",value,Literal(int.MinValue)),Op("$lte",value,Literal(int.MaxValue)));
+            if(type!=typeof(long))
+            {
+                long minimum=type==typeof(byte)||type==typeof(ushort)||type==typeof(uint)?0:
+                    type==typeof(sbyte)?sbyte.MinValue:type==typeof(short)?short.MinValue:int.MinValue;
+                long maximum=type==typeof(byte)?byte.MaxValue:type==typeof(sbyte)?sbyte.MaxValue:
+                    type==typeof(short)?short.MaxValue:type==typeof(ushort)?ushort.MaxValue:type==typeof(uint)?uint.MaxValue:int.MaxValue;
+                guard=Op("$and",guard,Op("$gte",value,Literal(minimum)),Op("$lte",value,Literal(maximum)));
+            }
             return guard;
         }
         throw new NotSupportedException("MongoDB CQL path type is not admitted.");
