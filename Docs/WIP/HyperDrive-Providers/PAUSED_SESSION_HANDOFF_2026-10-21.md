@@ -1,0 +1,65 @@
+# HyperDrive providers — paused handoff, 2026-10-21
+
+Goal is explicitly PAUSED at the user's request for token/cost reasons. This handoff is documentation only; do not resume builds, services, downloads, transactions or implementation until the user resumes. The full ALL-provider objective is incomplete; no completion percentage is substantiated.
+
+## Authoritative workspace and publication
+
+- Reuse `C:/Source/OASIS`, branch `fix/hyperdrive-v2-providers`. The goal's older checkout path is stale. Do not clone/create another environment or branch.
+- Observed HEAD `05e07f013` (peer Neo4j GUID commit); preceding `b5d1f4aa4` AWS native coverage, `e2112e2c9` peer Neo enum/resource ledger, `39af3884a` NEAR read-only recovery tooling. Our published commits were remotely verified and passed the Railway dependency/gitlink validator. No dev/main deployment by this session in these batches.
+- Shared checkout contains many other contributors' changes. Never stage everything or discard dirty files. Preserve unrelated Redis/NEAR README edits, shared release gates/cleanup ledger and submodule changes.
+- Serialize producer/consumer builds with `Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1`; coordinate shared index ownership. Batch verified dev integration once/twice daily, not every task commit. No `codex/` branch names.
+
+## Wrap-up checkpoint authorized after pause
+
+User requested finishing current tests and committing/pushing Redis and pending NEAR before pausing. Redis fresh producer build passed; final13/13controls passed224ms/zero skipped, including three old camelCase scalar compatibility cases. Final report redis-final-checkpoint.trx SHA2569AA059C9556ABCEDFC048BED78D1A5A750A7A381C9BAF42CC9D0B3124CA8F7FD. An intermediate added test incorrectly asserted stored Name for computed avatar display names; only that test expectation corrected, failed report retained. No native Redis test/runtime install or expanded programme work. Fresh NEAR build/220controls requested; first attempt refused busy shared lease BEFORE execution, awaiting owner handoff. Publication result is recorded below after actual push, not inferred from intent. Goal remains paused apart from this expressly authorized wrap-up.
+
+## Redis codec change
+
+Final authorized wrap-up: actual90068 terminal0; NEAR provider and integration candidate builds both0errors/2warnings; full220/220 controls passed13s/zero skipped. `TestResults/NearRuntime/near-pause-checkpoint.trx` SHA256 `87782700901D147534AF2558A47C90F42831A5BBB3E1C950B3F32DAC23AEA3B5`. No native startup, restore or download. This supersedes the earlier pending-lease status above. This scoped checkpoint includes Redis/NEAR source/tests and this handoff; obtain its exact commit using `git log -1 --format=%H -- Docs/WIP/HyperDrive-Providers/PAUSED_SESSION_HANDOFF_2026-10-21.md`. No dev merge. Native interruption remains unresolved.
+
+Peer wrap-up pushed parent47b84cebe2261b84fc6538efe855a3a7d3a014de; reported native64/64 and controls307/307, terminal teardown, index released and goal paused. Redis inventory backfill records exact paths/lifecycle: two restored packages13,339,404bytes; reports74,301bytes. Redis also includes three passing camelCase scalar compatibility cases (eight new cases total; final suite13). These supersede the earlier pending-inventory/compatibility notes below; native Redis remains unfinished.
+
+Files owned by this change:
+
+- `Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS/RedisOASIS.cs`: replace separate System.Text.Json record codec with existing Core StoredRecordJson; preserve null transport/not-found input separately from invalid stored JSON null; reject corrupt stored records explicitly. No replacement backend or new crypto.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/RedisCanonicalRecordTests.cs`: five new pure codec cases. Rich AvatarDetail previously failed on IAvatarChakras; hydrated navigation leaked; JSON null/unapproved type metadata were accepted; malformed JSON had wrong corruption classification.
+
+Executed red:5failed/0passed, `TestResults/RedisCurrent/redis-canonical-before.trx`, SHA256 `96F59D8E5A8F0497954E752376D7AF5C42C1C2DD925D56413E9A08975E8411B8`. After fix full10/10 controlled passed375ms, zero skipped, `redis-canonical-current.trx`, SHA256 `F13CE081ABB6CAFFFE68B77EB5F35ADAA8B4C31C339763FCDF321E66DB3732B0`. Red batch1961 and green batch both terminal0 at orchestration level (red test exit1 intentionally required). Builds0errors/3warnings. This is NOT live Redis or complete-provider acceptance.
+
+Two packages restored after user deleted shared cache: StackExchange.Redis2.8.16 and Pipelines.Sockets.Unofficial2.2.8, same shared NuGet/cache and existing projects. No Redis server/runtime installed. Inspected Ubuntu command paths/root Podman images had no Redis; Windows/other locations still need checking before any installation. No service, database, dataset, public funds or new environment used. Restore/red batch whole-drive free89337950208→89272754176bytes, not exact allocation attribution. Actual package/output sizes still need backfill into existing ENVIRONMENT_INVENTORY.md; planned entry already present. Do not modify unrelated dirty Redis README.
+
+Next after user resumes: review codec compatibility/relationship implications and add appropriate legacy-shape/metadata regressions; inventory restored packages and generated outputs; inspect all existing Redis installations before arranging ONE reusable live runtime if genuinely needed. Native CRUD, indexes, graphs, history/version options, deletion, partial/unknown outcomes and relevant interfaces need implementation/verification; current Redis graph/batch code has substantial unverified semantics. Do not publish ten pure tests as full Redis completion. Commit only a verified scoped batch.
+
+## NEAR — transfer repair checkpoint, interrupted full native gate
+
+Scoped checkpoint files: NEAROASIS.HelpersToken.cs; integration NEAROASISIntegrationTests.cs; unit NearTokenSendValidationTests.cs and Fixtures/nft-followup.mjs; NEAR_SIGNER_AND_RECEIPT_AUDIT.md. SendToken now honors mnemonic/public key through existing signer resolver, uses derived implicit sender when explicit signing material has no named sender, and retains acknowledged hash on bookkeeping failure using existing NativeTransactionFollowupException.
+
+Full220/220 controlled passed14s,0skip: `TestResults/NearRuntime/send-signer-controls-current.trx`, SHA256 `52CECF71FCEAA7699977C56B0462C0A01A39B4019BDD7346109E26517361124C`. Native43640 ended15passed/4failed after WSL disappeared during user cleanup/compaction. The custom-token lifecycle INCLUDING new independent mnemonic native/custom transfers passed, as did NFT lifecycle/bridge. Remaining status/search/nearby cases failed with fetch/unavailable-state errors. Failed native reportSHA256 `AA17152C617B8C49D9C52E2EE7D87FE11EF43C868E6A1C52A0463955D4690EF3`, still `near-provider-current.trx`; prior successful19report moved to `near-provider-pre-mnemonic-send.trx`. No full current-native PASS or blind replay.
+
+Published `39af3884a` adds existing runner `-InspectInterruptedRun`, preserving original report/node-current.log and using fixed node-inspect-current.log without signing/key reads. Actual read-only inspection succeeded: retained chain/code matched,1156rows/876280valuebytes, inventorySHA256 `05707c0e2a930f9c3f98e0f08dbb34512f3c0d495634077daa49c41ab09eeaa2`. This proves readability, NOT original uncertain-write closure or cleanup. Node stopped/process+ports3030/24567 independently absent; checked journal verified-fixtures-absent, negative journal verified-failed, no root pending marker. Original config retention5 restored, SHA256 `38B8B98C847CB8011E284FF230B742C066D908D1108D78BF87C1254C7997A9E2`. Need inspect original potentially interrupted ordinary writes before another full run; lack of pending marker is not certainty. Retain SAME ledger/runtime/contract/keys, no reset/redeploy.
+
+## Published Solana progress and funding gate
+
+- `6ccff15bf`: public mint accepts independent interface requests and forwards full existing result envelope/warnings;620controls passed.
+- `593d37c50`: requested royalty percentage now validated0..100 and encoded as basis points, omitted retains5percent;5genuine reds then626/626controls passed6s. Royalty metadata is not guaranteed marketplace enforcement or a fee policy.
+- Earlier scoped native avatar/detail storage, SPL/native transfers and read-only fee receipt tests passed; see SOLANA_SUBMISSION_CONCURRENCY.md for exact source cohorts/counts. None means full provider/hosted/V2 completion.
+- User approved free official Solana devnet testSOL for native NFT mint/transfer/burn, retaining wallet/SDK/local ledger. Devnet genesis `EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG`, canonical Metaplex executable verified. One1testSOL faucet request returned HTTP200/RPC-32603 Internal error, no signature. Subsequent balance0/signatures[] does not establish durable rejection. Preserve `TestResults/SolanaCurrent/devnet-funding.pending.json` (778bytes), no blind repeated funding, no NFT transaction submitted, no real funds/mainnet. Local ledger untouched. Native NFT gate remains open.
+
+## Latest priority-provider acceptance
+
+- AWS `b5d1f4aa4`: existing fixture strengthened with sync/async public provider-key avatar reads; fresh native134/134pass47s, begin1/cleanup1pass. Native reportSHA256 `97A5448DB28FBF40CAAF8A1A265B362A242EBA48D401444007A7C495437B726E`.65owned rows conditionally cleaned; pending0/Java0/ports18000+18001empty independently. Same DynamoDB Local/Java/data. Five restored pinned AWSSDK3.7.400.15 packages total51,450,185logical bytes. Full inventory/report/cohort in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md and ENVIRONMENT_INVENTORY.md. No hosted IAM/STS/SSO/TLS/billing or universal V2 claim.
+- Oracle current source already fixed the older standalone-detail no-op acknowledgement defect; do not reimplement a historical doc finding. Earlier main270native/235controls scoped proof remains documented, not re-certified current. Oracle Cloud Autonomous/Object Storage hosted credentials/client acceptance and missing-row lifecycle concurrency remain open; no unreviewed new mutex table/privileges.
+- Peer chat “Audit COSMIC ORM gaps”, thread01a1553b-9a22-7830-8cf2-2cc56deac16f: latest observed HEAD05e07f013 follows GUID domain work; peer reported nativeCQL64/64 and307controls, guarded exact fixture reconciliation, stopped container. Consult its own handoff for current state; do not infer it paused from our pause or send new work without user authority. Its docs under Docs/WIP/COSMIC ORM.
+- Historical scoped PostgreSQL, Azure, Google, CosmosDB, SOLID, ActivityPub and other-provider results have extensive qualifications in current release gates/provider reports. Read newest dated checkpoints, not old tail sections. All-provider full interfaces and real V2 failover/load balancing/replication remain unfinished.
+
+## Other protected gates
+
+EVM original failed native/SQLite routing/outbox evidence remains protected; no reset/replay approval inferred. Hedera additional contract acceptance awaits free testHBAR funding. Polkadot contract-runtime/ABI choice remains unresolved. Hosted OCI/AWS credentials absent at prior checks; no cloud account created. CoinGecko credential rotation/configuration is on user action list. See existing reports for original IDs/hashes; never replace unknown originals to make tests green.
+
+## Resources, cleanup and pause state
+
+Mandatory global ledger policy applies to every resource used, not just new installs. Reuse ENVIRONMENT_INVENTORY.md and WORKSPACE_CLEANUP_LEDGER.md; link peer ledger rather than duplicate. Backfill uncertain provenance explicitly. Exclude Piper/ML work from this task's deletion targets per user. Preserve source/uncommitted work/credentials/unknown evidence. Policy-denied deletions were NOT bypassed; this session claimed no successful mass cleanup. User subsequently performed cleanup.
+
+Observed free C:83.14GiB at handoff, not123GB target or explained historical loss. Read-only measurements earlier: old checkout9.77GiB (dirty and NEAR SDK dependency junction target), current bin/obj16.82GiB, artifacts2.79GiB, retained container storage about13GiB from peer. Do not sum nested storage/VHD/container figures or equate logical sizes with reclaimable allocated bytes. Old checkout must not be deleted wholesale. Windows Temp had fallen to0.07GiB after user cleanup. Miniforge/Piper/ML explicitly excluded; no ownership attribution.
+
+At handoff scan no dotnet/testhost/java Windows processes were returned; this is not an assertion about unrelated apps or every WSL service. This session's last native services were independently stopped. No new action should start while goal is paused. Resume from current files/HEAD and this document, preserving dirty work; do not repeat setup or assume remembered test output is current proof after source/dependency changes.
