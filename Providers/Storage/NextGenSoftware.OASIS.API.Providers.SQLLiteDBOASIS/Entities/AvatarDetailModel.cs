@@ -240,7 +240,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 this.Achievements.Add(new AchievementModel(item));
             }
 
-            foreach(KarmaAkashicRecord record in source.KarmaAkashicRecords){
+            foreach(var record in source.KarmaAkashicRecords ?? new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IKarmaAkashicRecord>()){
+                if(record == null || record.AvatarId.ToString()!=this.Id)
+                    throw new ArgumentException("Karma history records must belong to the avatar detail being saved.");
                 this.KarmaAkashicRecords.Add(new KarmaAkashicRecordModel(record));
             }
 
