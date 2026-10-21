@@ -106,3 +106,10 @@ Compact evidence is under `TestResults/CosmicCqlDemo`: `demo-result.json`, `demo
 The same fixed workspace owns demo.db, its sidecars and demo-manifest.json while running. Pre-existing fixtures cause refusal, never overwrite/reset. Failures preserve them for independent review. The manifest records actor and owned seed IDs before mutation. The successful run disposes providers before exact cleanup. See the [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) and [exact dependency inventory](CQL_DEMO_DEPENDENCIES.md) for reusable outputs/cache footprints and earlier reviewed setup failures. No user/production database is touched.
 
 Remaining work includes authenticated production WEB4 integration, broader generic HTTP expressions, provider discovery/policy routing, global federation, relationships/aggregates and all other open roadmap acceptance. This demo is useful evidence of the implemented subset, not a complete EF/IQueryable replacement.
+
+
+## Developer source walkthrough — 21 October 2026
+
+The demo sources now use a shared local `.editorconfig` (UTF-8, four-space indentation, separate statements) and teaching comments. Start with `Examples/CosmicCqlDemo/CoffeeWalkthrough.cs`: setup and the planning/execution helper lead into seven numbered query/save examples with expected results. `CoffeeApiHost.cs` explains the equivalent request-to-query pipeline; `Program.cs` explains host setup, two-client ownership and teardown. Demo assertions verify behavior and are not required application boilerplate.
+
+The final readability batch was rebuilt using the existing environment and build lease. Console query/tracking/no-op/delta/conflict checks and all six HTTP/Swagger checks passed. Formatting verification and the build lease contract check passed. No host or synthetic database was retained. Detailed evidence remains in the fixed `TestResults/CosmicCqlDemo` directory, including `readability-verification.log`.
