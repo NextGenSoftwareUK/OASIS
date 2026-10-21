@@ -14,6 +14,14 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.UnitTests
 [TestClass][DoNotParallelize]
 public class OracleObjectSdkTests
 {
+    private sealed class NamedOwner:NextGenSoftware.OASIS.API.Core.Holons.Holon
+    {
+        public List<NextGenSoftware.OASIS.API.Core.Holons.Holon> Components {get;set;}=new();
+        public override System.Collections.ObjectModel.ReadOnlyCollection<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> AllChildren
+            =>Children.Concat<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(Components).ToList().AsReadOnly();
+        public override IReadOnlyList<NextGenSoftware.OASIS.API.Core.Holons.HolonChildCollection> CaptureChildCollections()=>base.CaptureChildCollections()
+            .Concat(new[]{new NextGenSoftware.OASIS.API.Core.Holons.HolonChildCollection(nameof(Components),Components,rows=>Components=rows.Cast<NextGenSoftware.OASIS.API.Core.Holons.Holon>().ToList())}).ToArray();
+    }
     private const string Endpoint="http://127.0.0.1:18661/";
     private static ObjectStorageClient Client()
     {
@@ -253,8 +261,10 @@ public class OracleObjectSdkTests
             var activated=synchronous?provider.ActivateProvider():await provider.ActivateProviderAsync();Assert.IsFalse(activated.IsError,activated.Message);
             var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar{Id=Guid.NewGuid(),Username="private-user",Email="private-user@example.invalid",IsActive=true};
             var saved=synchronous?provider.SaveAvatar(avatar):await provider.SaveAvatarAsync(avatar);Assert.IsFalse(saved.IsError,saved.Message);Assert.AreEqual(1,avatar.Version);
+            Assert.IsTrue(saved.IsSaved);Assert.AreEqual(1,saved.SavedCount);
             avatar.Description="private-update";
             var updated=synchronous?provider.SaveAvatar(avatar):await provider.SaveAvatarAsync(avatar);Assert.IsFalse(updated.IsError,updated.Message);Assert.AreEqual(2,avatar.Version);
+            Assert.IsTrue(updated.IsSaved);Assert.AreEqual(1,updated.SavedCount);
             var byId=synchronous?provider.LoadAvatar(avatar.Id):await provider.LoadAvatarAsync(avatar.Id);
             var byName=synchronous?provider.LoadAvatarByUsername(avatar.Username):await provider.LoadAvatarByUsernameAsync(avatar.Username);
             var byEmail=synchronous?provider.LoadAvatarByEmail(avatar.Email):await provider.LoadAvatarByEmailAsync(avatar.Email);
@@ -273,8 +283,10 @@ public class OracleObjectSdkTests
             var initialCreates=conditionalCreates;var initialReplacements=conditionalReplacements;var initialDeletes=conditionalDeletes;
             var detail=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=avatar.Id,Karma=111,XP=222};
             var detailCreated=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(detailCreated.IsError,detailCreated.Message);
+            Assert.IsTrue(detailCreated.IsSaved);Assert.AreEqual(1,detailCreated.SavedCount);
             detail.Karma=333;detail.XP=444;
             var detailUpdated=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(detailUpdated.IsError,detailUpdated.Message);
+            Assert.IsTrue(detailUpdated.IsSaved);Assert.AreEqual(1,detailUpdated.SavedCount);
             Assert.AreEqual(2,detail.Version);
             var previousDetail=await provider.LoadAvatarDetailAsync(avatar.Id,version:1);Assert.IsFalse(previousDetail.IsError,previousDetail.Message);
             Assert.AreEqual(111L,previousDetail.Result.Karma);Assert.AreEqual(222L,previousDetail.Result.XP);
@@ -283,8 +295,10 @@ public class OracleObjectSdkTests
             var originalParent=Guid.NewGuid();var nextParent=Guid.NewGuid();
             var holon=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),ParentHolonId=originalParent,Name="private-holon",CreatedByAvatarId=avatar.Id,MetaData=new(){["tag"]="private-tag"}};
             var stored=synchronous?provider.SaveHolon(holon,saveChildren:false):await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(stored.IsError,stored.Message);
+            Assert.IsTrue(stored.IsSaved);Assert.AreEqual(1,stored.SavedCount);
             holon.Name="private-updated-holon";holon.ParentHolonId=nextParent;
             var updatedHolon=synchronous?provider.SaveHolon(holon,saveChildren:false):await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(updatedHolon.IsError,updatedHolon.Message);
+            Assert.IsTrue(updatedHolon.IsSaved);Assert.AreEqual(1,updatedHolon.SavedCount);
             Assert.AreEqual(2,holon.Version);Assert.AreEqual(6,conditionalCreates-initialCreates);Assert.AreEqual(2,conditionalReplacements-initialReplacements);Assert.AreEqual(1,conditionalDeletes-initialDeletes);
             Assert.IsFalse((await provider.LoadHolonsForParentAsync(originalParent,loadChildren:false)).Result.Any());
             Assert.AreEqual(holon.Id,(await provider.LoadHolonsForParentAsync(nextParent,loadChildren:false)).Result.Single().Id);
@@ -316,6 +330,38 @@ public class OracleObjectSdkTests
             var removed=synchronous?provider.DeleteAvatar(avatar.Id,softDelete:false):await provider.DeleteAvatarAsync(avatar.Id,softDelete:false);Assert.IsFalse(removed.IsError,removed.Message);
             Assert.AreEqual(5,conditionalDeletes-beforeAvatarDelete,"Avatar, both identity indexes and both archives must use native If-Match deletion.");
             Assert.IsTrue((await provider.LoadAvatarAsync(avatar.Id)).IsError);
+            var owner=new NamedOwner{Id=Guid.NewGuid(),Name="private-named-owner"};
+            var member=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),Name="private-named-member"};owner.Components.Add(member);
+            var manifest=NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                NextGenSoftware.OASIS.API.Core.Holons.HolonChildCollectionState.Capture(owner).CreateManifest(owner.Id,row=>row.Id));
+            var named=synchronous?provider.SaveHolon(owner):await provider.SaveHolonAsync(owner);Assert.IsFalse(named.IsError,named.Exception?.ToString());
+            Assert.AreEqual(manifest,owner.ChildRoleManifestJson);Assert.AreEqual(owner.Id,member.ParentHolonId);
+            var currentOwner=(await provider.LoadHolonAsync(owner.Id,loadChildren:false)).Result;
+            Assert.AreEqual(manifest,((NextGenSoftware.OASIS.API.Core.Holons.Holon)currentOwner).ChildRoleManifestJson);
+            var memberBefore=OasisJson.Serialize((await provider.LoadHolonAsync(member.Id,loadChildren:false)).Result);
+            var scalar=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=owner.Id,Name="private-named-scalar"};
+            var rootOnly=synchronous?provider.SaveHolon(scalar,saveChildren:false):await provider.SaveHolonAsync(scalar,saveChildren:false);Assert.IsFalse(rootOnly.IsError,rootOnly.Exception?.ToString());
+            Assert.AreEqual(manifest,scalar.ChildRoleManifestJson);
+            Assert.AreEqual(memberBefore,OasisJson.Serialize((await provider.LoadHolonAsync(member.Id,loadChildren:false)).Result));
+            var archivedOwner=(await provider.LoadHolonAsync(owner.Id,loadChildren:false,version:1)).Result;
+            Assert.AreEqual(manifest,((NextGenSoftware.OASIS.API.Core.Holons.Holon)archivedOwner).ChildRoleManifestJson);
+            owner.Components.Clear();var unlinked=synchronous?provider.SaveHolon(owner):await provider.SaveHolonAsync(owner);Assert.IsFalse(unlinked.IsError,unlinked.Exception?.ToString());
+            var beforeRead=objects.OrderBy(pair=>pair.Key).ToArray();
+            var noResurrection=synchronous?provider.LoadHolon(owner.Id):await provider.LoadHolonAsync(owner.Id);Assert.IsFalse(noResurrection.IsError,noResurrection.Message);Assert.AreEqual(0,noResurrection.Result.Children.Count);
+            Assert.IsFalse((await provider.LoadHolonAsync(member.Id,loadChildren:false)).IsError,"Unlinking must not delete the independent member.");
+            CollectionAssert.AreEqual(beforeRead,objects.OrderBy(pair=>pair.Key).ToArray(),"Reads must not repair/delete encrypted objects or indexes.");
+            foreach(var value in objects.Values)foreach(var marker in new[]{owner.Name,member.Name,scalar.Name,owner.Id.ToString(),member.Id.ToString()})Assert.IsFalse(value.Contains(marker,StringComparison.Ordinal));
+            Assert.IsFalse((await provider.DeleteHolonAsync(member.Id)).IsError);Assert.IsFalse((await provider.DeleteHolonAsync(owner.Id)).IsError);
+            var importRoot=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),Name="private-import-root"};
+            var importChild=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),Name="private-import-child"};
+            importRoot.Children.Add(importChild);
+            var imported=synchronous?provider.Import(new[]{importRoot}):await provider.ImportAsync(new[]{importRoot});
+            Assert.IsFalse(imported.IsError,imported.Exception?.ToString());Assert.IsTrue(imported.Result);
+            Assert.IsTrue(imported.IsSaved);Assert.AreEqual(2,imported.SavedCount);
+            var importedGraph=await provider.LoadHolonAsync(importRoot.Id);
+            Assert.IsFalse(importedGraph.IsError,importedGraph.Message);Assert.AreEqual(importChild.Id,importedGraph.Result.Children.Single().Id);
+            foreach(var value in objects.Values)foreach(var marker in new[]{importRoot.Name,importChild.Name,importRoot.Id.ToString(),importChild.Id.ToString()})Assert.IsFalse(value.Contains(marker,StringComparison.Ordinal));
+            Assert.IsTrue((await provider.LoadHolonAsync(member.Id,loadChildren:false)).IsError);Assert.IsTrue((await provider.LoadHolonAsync(owner.Id,loadChildren:false)).IsError);
             provider.Dispose();Assert.IsFalse(provider.IsProviderActivated);
             Assert.IsTrue((await provider.ActivateProviderAsync()).IsError);
             await new OracleObjectStorageBackend(client,"ns","bucket").VerifyAsync(); // borrowed client remains caller-owned

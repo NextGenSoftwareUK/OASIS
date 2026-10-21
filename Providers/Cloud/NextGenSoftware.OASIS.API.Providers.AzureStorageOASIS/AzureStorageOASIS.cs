@@ -128,7 +128,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
-        protected virtual async Task<OASISResult<IHolon>> SaveCapturedHolonAsync(IHolon source,Holon staged,Action validatePublication)
+        protected virtual Task<OASISResult<IHolon>> SaveCapturedHolonAsync(IHolon source,Holon staged,Action validatePublication)
+            =>SaveCapturedHolonRecordAsync(source,staged,validatePublication,null);
+
+        protected virtual Task<OASISResult<IHolon>> SavePlannedHolonAsync(PlannedHolonWrite write,Action validatePublication)
+            =>SaveCapturedHolonRecordAsync(write.Source,write.Snapshot,validatePublication,write);
+
+        private async Task<OASISResult<IHolon>> SaveCapturedHolonRecordAsync(IHolon source,Holon staged,Action validatePublication,PlannedHolonWrite? plan)
         {
             var result=new OASISResult<IHolon>();
             try{
@@ -138,9 +144,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 staged.ProviderUniqueStorageKey??=new Dictionary<Core.Enums.ProviderType,string>();
                 staged.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
                 var blob=_serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(key);
-                var committed=await WriteVersionedBlobAsync(blob,staged,IsVersionControlEnabled,validatePublication);
+                var committed=await WriteVersionedBlobAsync(blob,staged,IsVersionControlEnabled,validatePublication,plan);
                 source.Id=staged.Id;source.ParentHolonId=staged.ParentHolonId;
                 PublishBlobVersion(source,committed);
+                if(source is Holon caller)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                 source.ProviderUniqueStorageKey??=new Dictionary<Core.Enums.ProviderType,string>();
                 source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
                 result.Result=source;result.IsSaved=true;result.Message=$"AzureStorageOASIS: Saved holon blob '{key}'.";
@@ -164,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                     if(failedParents.Contains(node.Snapshot.ParentHolonId)) {
                         failedParents.Add(node.Snapshot.Id);failures.Add(new InvalidOperationException("Descendant skipped because its parent failed."));continue;
                     }
-                    var written=await SaveCapturedHolonAsync(node.Source,node.Snapshot,publications[node.Source].ValidateUnchanged);
+                    var written=await SavePlannedHolonAsync(node,publications[node.Source].ValidateUnchanged);
                     if(written.IsError || written.Result==null) {
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);

@@ -25,11 +25,13 @@ public partial class MongoDBOASIS
             if(synchronous)
             {
                 holons.EnsurePublicIdentityIndex();
+                holons.EnsurePrimaryOutboxIndexes();
                 avatars.EnsurePublicIdentityIndexes();
             }
             else
             {
                 await holons.EnsurePublicIdentityIndexAsync().ConfigureAwait(false);
+                await holons.EnsurePrimaryOutboxIndexesAsync().ConfigureAwait(false);
                 await avatars.EnsurePublicIdentityIndexesAsync().ConfigureAwait(false);
             }
             Database=database;

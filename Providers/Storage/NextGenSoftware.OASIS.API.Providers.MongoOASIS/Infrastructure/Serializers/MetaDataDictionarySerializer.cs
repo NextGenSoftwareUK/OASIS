@@ -6,6 +6,8 @@ using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Options;
 using MongoDB.Bson.Serialization.Serializers;
+using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serializers
 {
@@ -219,6 +221,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 return;
             }
 
+            if (value is JRaw raw)
+            {
+                using var document=JsonDocument.Parse(raw.ToString(Newtonsoft.Json.Formatting.None));
+                SerializeJsonElement(writer,document.RootElement);
+                return;
+            }
+            if (value is Newtonsoft.Json.Linq.JObject jsonObject)
+            {
+                writer.WriteStartDocument();
+                foreach (var property in jsonObject.Properties())
+                { writer.WriteName(property.Name); SerializeValue(writer, property.Value); }
+                writer.WriteEndDocument();
+                return;
+            }
+            if (value is Newtonsoft.Json.Linq.JArray jsonArray)
+            {
+                writer.WriteStartArray();
+                foreach (var item in jsonArray) SerializeValue(writer, item);
+                writer.WriteEndArray();
+                return;
+            }
+            if (value is Newtonsoft.Json.Linq.JValue jsonValue)
+            {
+                if (jsonValue.Type == Newtonsoft.Json.Linq.JTokenType.Undefined)
+                    throw new BsonSerializationException("Undefined metadata JSON is not a persistent value.");
+                SerializeValue(writer, jsonValue.Value);
+                return;
+            }
             var valueType = value.GetType();
 
             if (valueType == typeof(bool))
@@ -235,12 +265,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 writer.WriteString((string)value);
             else if (valueType == typeof(DateTime))
             {
-                var dt = ((DateTime)value).ToUniversalTime();
-                var ms = (long)(dt - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
-                writer.WriteDateTime(ms);
+                var date = (DateTime)value;
+                var utc = date.Kind == DateTimeKind.Local ? date.ToUniversalTime() : DateTime.SpecifyKind(date, DateTimeKind.Utc);
+                writer.WriteDateTime(new BsonDateTime(utc).MillisecondsSinceEpoch);
             }
             else if (valueType == typeof(Guid))
                 writer.WriteString(((Guid)value).ToString());
+            else if (value is byte[] bytes)
+                writer.WriteBinaryData(new BsonBinaryData(bytes));
             else if (valueType.IsArray)
             {
                 writer.WriteStartArray();
@@ -302,12 +334,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                         writer.WriteInt32(i32);
                     else if (je.TryGetInt64(out long i64))
                         writer.WriteInt64(i64);
-                    else if (je.TryGetDouble(out double d))
-                        writer.WriteDouble(d);
-                    else if (je.TryGetDecimal(out decimal dec))
+                    else if (je.TryGetDecimal(out decimal dec)
+                        && StoredRecordValueEquality.Equivalent(new JRaw(je.GetRawText()),new JValue(dec)))
                         writer.WriteDecimal128(dec);
+                    else if (je.TryGetDouble(out double d) && !double.IsNaN(d) && !double.IsInfinity(d)
+                        && StoredRecordValueEquality.Equivalent(new JRaw(je.GetRawText()),new JValue(d)))
+                        writer.WriteDouble(d);
                     else
-                        writer.WriteDouble(je.GetDouble());
+                        throw new BsonSerializationException("Metadata JSON number has no exact supported BSON/CLR round-trip representation.");
                     break;
                 case JsonValueKind.True:
                     writer.WriteBoolean(true);

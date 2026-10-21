@@ -101,8 +101,9 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         {
             var parent = new Holon { Id = Guid.NewGuid() };
             var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id };
-            Assert.IsFalse((await _provider.SaveHolonAsync(parent)).IsError);
-            Assert.IsFalse((await _provider.SaveHolonAsync(child)).IsError);
+            // These independently seeded legacy links deliberately have no selected role manifest.
+            Assert.IsFalse((await _provider.SaveHolonAsync(parent,saveChildren:false)).IsError);
+            Assert.IsFalse((await _provider.SaveHolonAsync(child,saveChildren:false)).IsError);
             _backend.FailGetKey = "oasis/holon/" + child.Id.ToString("N");
             _backend.FailGetException = kind switch {
                 "cancelled" => new OperationCanceledException("controlled cancellation"),
@@ -140,7 +141,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
             var parent = new Holon { Id = Guid.NewGuid(), Name = "parent" };
             var healthy = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id, Name = "healthy" };
             var unavailable = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id, Name = "unavailable" };
-            foreach (var holon in new[] { parent, healthy, unavailable }) Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            foreach (var holon in new[] { parent, healthy, unavailable }) Assert.IsFalse((await _provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
             _backend.FailGetKey = "oasis/holon/" + unavailable.Id.ToString("N");
             foreach (var result in new[] { await _provider.LoadHolonAsync(parent.Id, continueOnError: continueOnError),
                 _provider.LoadHolon(parent.Id, continueOnError: continueOnError) })
@@ -167,8 +168,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         {
             var parent = new Holon { Id = Guid.NewGuid() };
             var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id };
-            Assert.IsFalse((await _provider.SaveHolonAsync(parent)).IsError);
-            Assert.IsFalse((await _provider.SaveHolonAsync(child)).IsError);
+            Assert.IsFalse((await _provider.SaveHolonAsync(parent,saveChildren:false)).IsError);
+            Assert.IsFalse((await _provider.SaveHolonAsync(child,saveChildren:false)).IsError);
             _backend.Items["oasis/holon/" + child.Id.ToString("N")] = "{";
             var result = await _provider.LoadHolonAsync(parent.Id, continueOnError: true);
             Assert.IsTrue(result.IsError);
@@ -269,7 +270,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         {
             var cycle = new Holon { Id = Guid.NewGuid(), Name = "unrelated-cycle" }; cycle.ParentHolonId = cycle.Id;
             var selected = new Holon { Id = Guid.NewGuid(), Name = "selected", MetaData = new Dictionary<string, object> { ["selected"] = "yes" } };
-            foreach (var holon in new[] { cycle, selected }) Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            foreach (var holon in new[] { cycle, selected }) Assert.IsFalse((await _provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
             var single = await _provider.LoadHolonsByMetaDataAsync("selected", "yes");
             Assert.IsFalse(single.IsError, single.Message); Assert.AreEqual(selected.Id, single.Result.Single().Id);
             var pairs = _provider.LoadHolonsByMetaData(new Dictionary<string, string> { ["selected"] = "yes" }, MetaKeyValuePairMatchMode.All);
@@ -315,7 +316,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
             var parent = new Holon { Id = Guid.NewGuid(), Name = "parent", MetaData = new Dictionary<string, object> { ["owned"] = "tree" } };
             var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id, Name = "child" };
             var grandchild = new Holon { Id = Guid.NewGuid(), ParentHolonId = child.Id, Name = "grandchild" };
-            foreach (var item in new[] { parent, child, grandchild }) Assert.IsFalse((await _provider.SaveHolonAsync(item)).IsError);
+            foreach (var item in new[] { parent, child, grandchild }) Assert.IsFalse((await _provider.SaveHolonAsync(item,saveChildren:false)).IsError);
             var flat = await _provider.LoadAllHolonsAsync(loadChildren: false);
             Assert.IsFalse(flat.IsError); Assert.AreEqual(0, flat.Result.Single(value => value.Id == parent.Id).Children.Count());
             var recursive = await _provider.LoadAllHolonsAsync();
@@ -337,8 +338,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
             var first = new Holon { Id = Guid.NewGuid(), Name = "cycle-first" };
             var second = new Holon { Id = Guid.NewGuid(), Name = "cycle-second", ParentHolonId = first.Id };
             first.ParentHolonId = selfParent ? first.Id : second.Id;
-            Assert.IsFalse((await _provider.SaveHolonAsync(first)).IsError);
-            if (!selfParent) Assert.IsFalse((await _provider.SaveHolonAsync(second)).IsError);
+            Assert.IsFalse((await _provider.SaveHolonAsync(first,saveChildren:false)).IsError);
+            if (!selfParent) Assert.IsFalse((await _provider.SaveHolonAsync(second,saveChildren:false)).IsError);
             var cyclic = await _provider.LoadHolonAsync(first.Id, continueOnError: false);
             Assert.IsTrue(cyclic.IsError); Assert.IsNotNull(cyclic.Exception);
             StringAssert.Contains(cyclic.Message, "Cyclic holon parent relationship");

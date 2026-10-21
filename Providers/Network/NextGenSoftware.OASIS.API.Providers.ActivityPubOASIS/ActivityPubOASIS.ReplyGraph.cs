@@ -29,7 +29,7 @@ public partial class ActivityPubOASIS
             if(parent.IsError)return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(parent);
             if(parent.Result==null)throw new InvalidDataException("Native parent status read returned no record.");
             var selected=parent.Result.Children.Where(child=>type==Core.Enums.HolonType.All||child.HolonType==type).ToArray();
-            result.Result=selected;result.LoadedCount=selected.Length;
+            result.Result=selected;result.LoadedCount=selected.Length;result.IsLoaded=true;
         }
         catch(Exception error){OASISErrorHandling.HandleError(ref result,"Native Mastodon parent reply read failed.",error);}
         return result;

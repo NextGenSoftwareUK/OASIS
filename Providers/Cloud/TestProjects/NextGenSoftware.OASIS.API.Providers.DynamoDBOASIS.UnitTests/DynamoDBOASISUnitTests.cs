@@ -37,9 +37,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
             public int Writes;
             public readonly Exception Cause=new DynamoDBMutationReconciliationException("OasisHolons","owned-second-key",new System.IO.IOException("owned lost reply"));
             public PartialWriter():base("owned-key","owned-secret","us-east-1") {}
-            public override Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SaveHolonAsync(
-                NextGenSoftware.OASIS.API.Core.Interfaces.IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+            protected override Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SavePlannedHolonAsync(
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite write)
             {
+                var holon=write.Snapshot;
                 Writes++;
                 return Task.FromResult(Writes==1 ? new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {Result=holon,IsSaved=true}
                     :new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {IsError=true,Exception=Cause,Message="owned uncertain write"});

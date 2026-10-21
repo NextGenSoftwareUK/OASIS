@@ -1,0 +1,85 @@
+# CQL typed scalar metadata: SQLite contract
+
+20 October 2026. Native typed metadata comparisons, membership and ordinal string matching extend the existing presence/null markers. Full CQL authorization, other native adapters, graph queries and federation remain separate unfinished requirements.
+
+## Declared capabilities
+
+The production profile and translator share `SqliteCqlContract.MetadataTypes`. Unsupported types and operations reject before provider I/O, even if a caller supplies an overbroad plan.
+
+| Declared path type | JSON domain | Comparisons | Membership | String operations |
+|---|---|---|---|---|
+| `string` | JSON string; explicit null for nullable operations | `==`, `!=` | Exact scalar arrays, including null | Contains; StartsWith/EndsWith with explicit Ordinal |
+| `bool`, `bool?` | JSON true/false | `==`, `!=` | Exact scalar arrays | None |
+| `int`, `int?` | JSON integer within Int32 bounds | All six comparisons | Exact scalar arrays | None |
+| `byte/sbyte/short/ushort/uint` and nullable forms | JSON integer within the exact declared CLR range | All six comparisons | Exact scalar arrays | None |
+| `HolonType`, `ProviderType` and nullable forms | JSON integer defined by that declared enum | All six comparisons | Exact enum arrays | None |
+| `long`, `long?` | JSON integer represented exactly by SQLite Int64 | All six comparisons | Exact scalar arrays | None |
+| `Guid`, `Guid?` | Canonical 36-byte GUID D text, either hex case | `==`, `!=` | Exact GUID arrays, including nullable null | None |
+| `DateTime`, `DateTime?` | Valid UTC ISO JSON text, zero to seven fractional digits | All six comparisons | Exact date arrays, including nullable null | None |
+
+Nullable value types additionally admit explicit JSON null. The CLR width of the value originally serialized is not retained in JSON: a JSON integer within Int32 bounds can be queried as either int or long. JSON true/false, numeric text and fractional numbers are not integers. Oversized JSON integers surfaced as SQLite REAL are excluded from integer domains, preventing rounding into a matching value.
+
+Decimal, floating-point and unregistered enum metadata path types remain unsupported natively. `HolonType`/`ProviderType` enrollment and its current acceptance evidence are documented in [the enum contract](CQL_ENUM_METADATA.md). Mixed numeric metadata comparisons are rejected; canonical Int32 field widening support does not grant metadata widening. Broader type support remains a roadmap requirement rather than an inferred capability.
+
+### UTC dates
+
+SQLite's existing JSON codec stores UTC DateTime values as `yyyy-MM-ddTHH:mm:ss[.fffffff]Z`, with zero to seven fractional digits. Native comparison pads that fractional part to seven digits and compares fixed-width text in binary order. No floating-point, Julian-day or millisecond conversion can collapse distinct ticks. The guard checks ASCII/byte length, exact separators, uppercase T/Z, year1–9999, month/day including Gregorian leap rules, and hour/minute/second bounds before admitting a value. DateTime literals remain UTC-only under the shared compiler contract.
+
+JSON retains no CLR date-versus-string tag: canonical UTC date text shares the date domain, just as canonical D GUID text shares GUID identity. Ordinary string markers still compare original text ordinally. Offset strings, local/unspecified text, malformed dates, leap seconds, fractional precision beyond seven digits, embedded NUL, numeric epochs and arrays remain outside the domain. Missing, nullable null, inequality, membership and NOT follow the scalar rules below. MongoDB's date domain uses its native BSON date and exact companion representation; this difference remains explicit when selecting provider targets.
+
+The new18-case native gate first fails17/passes1 against the hash-verified prior SQLite provider `CB4EB5F6885ADDD568E09CCD87A29791FF73083C9EAE37485599F33719716E21`: date predicates reject absent capability and the ordinal-string control passes. Source was prepared while waiting for the shared lease; this red run explicitly builds only the test consumer with project-reference builds disabled, before rebuilding the provider. Focused date/scalar gate passes69/69. The first complete native run passes1,067/fails1: one older test still expected metadata dates to be unsupported. That assertion now retains unsupported enum metadata and canonical audit-date rejection; its focused gate passes1/1. Final full native regression passes1,068/1,068 in141 seconds, zero skips, with the fixed fixture absent after normal teardown. Reports are `TestResults/SQLiteCurrent/sqlite-cql-date-red.trx`, `sqlite-cql-date-red-provider.json`, `sqlite-cql-date-focused.trx`, `sqlite-cql-date-full.trx` (original failure), `sqlite-cql-date-admission.trx`, `sqlite-cql-date-final-full.trx` and `cql-date-artifacts.json`. The artifact report retains exact consumer Core/Shared/SQLite hashes and free disk space. No Core source, dependency pin or deployment change is included.
+
+GUID identity is case-insensitive only when the declared marker type is `Guid`/`Guid?`. String markers retain ordinal comparison. Native SQL checks the exact ASCII hex/hyphen shape and byte length before comparing bound canonical literals with NOCASE collation. Compact GUIDs, braces, whitespace, embedded NUL, non-hex text, arrays and numeric values stay outside the GUID domain. Missing and nullable semantics follow the rules below. MongoDB additionally supports its existing native UUID representations; see the [MongoDB contract and native evidence](CQL_MONGO_NATIVE.md#guid-metadata-increment).
+
+## Missing, null and type semantics
+
+A typed atomic predicate matches only a present path with an admitted JSON type. Missing paths, wrong types and out-of-range integers are false, including for inequality. Explicit JSON null matches `Value<T?> == null` and string null equality. Comparing an admitted nullable explicit null with a non-null literal using `!=` is true; ordered comparisons are false. `!= null` matches only present values in the requested non-null domain. Non-nullable value types do not admit JSON null.
+
+Membership matches only a present value in its declared domain, including explicit null when the captured nullable array contains null. Empty membership is false. NOT complements the complete two-valued predicate: negating equality also includes missing and wrong-type paths. Use Exists/IsNull or a positive typed condition when the application needs a narrower domain.
+
+Nested segments traverse JSON objects only. Arrays are not expanded, and strings containing JSON are not parsed as objects. Keys containing dots, quotes, Unicode or SQL-like text are bound literal labels. String matching uses shared binary operations to preserve embedded NUL and ordinal case-sensitive matching; it does not interpret LIKE syntax.
+
+## Example
+
+This uses the direct native adapter seam for an already authorized SQLite target. It does not implement the unfinished WEB4 policy boundary.
+
+```csharp
+var query = CosmicQuery<Holon>.Create()
+    .Where(h => CosmicQueryMetadata.Value<int>(h, "stats", "score") >= 7
+        && CosmicQueryMetadata.Value<string>(h, "category").StartsWith("coffee", StringComparison.Ordinal));
+if (query.IsError) throw new InvalidOperationException(query.Message);
+var target = new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, SQLLiteDBOASIS.CqlCapabilities);
+var plan = CosmicQueryPlanner.Plan(query.Result, ProviderType.SQLLiteDBOASIS, new[] { target });
+if (plan.IsError) throw new InvalidOperationException(plan.Message);
+var result = await provider.ExecuteCosmicQueryAsync(plan.Result, maximumResults: 100, cancellationToken: cancellationToken);
+```
+
+The complete query translates before EF opens a connection. Every key and literal contributes to the existing 900-parameter predicate budget; one separately bound result-limit parameter is reserved. Compiler, membership and result bounds remain enforced. Overflow returns an explicit error without a partial result or client evaluation. The adapter performs no writes.
+
+## Verification
+
+### SQLite GUID increment
+
+The GUID-specific red gate failed9/passed1: the existing ordinal-string control passed while GUID predicates rejected missing provider capability. Final GUID plus existing scalar/null gates pass52/52; the complete native SQLite suite passes1,051/1,051 in153 seconds, zero skips. The prior unsupported-GUID assertion was replaced by positive native coverage; decimal/double/date/enum/coercion rejection remains tested. Native rows include CLR GUIDs, uppercase D text, another GUID, missing/null, compact/braced/padded/NUL/nonhex text, numbers and arrays. Equality/reversed equality, inequality, nullable tests, membership, NOT and ordinal-string controls verify exact returned identities.
+
+Evidence: `TestResults/SQLiteCurrent/sqlite-cql-guid-red.trx`, `sqlite-cql-guid-focused.trx`, `sqlite-cql-guid-full.trx`, and `cql-guid-artifacts.json`. Consumer Core SHA256 is `51A35ED9BDC5C1A1A36CF132B8F8F9195175096698D7A4556278E0E0AAF60270`; SQLite is `CB4EB5F6885ADDD568E09CCD87A29791FF73083C9EAE37485599F33719716E21`. The artifact report also records Shared and free disk space. The fixed SQLite database is absent after normal teardown. No Core source, dependency pin or deployment change belongs to this increment.
+
+The reports below describe earlier checkpoints.
+
+The original 26-case red report is preserved: 25 cases rejected absent scalar metadata capability; one exposed missing built-in nullable boolean literal lifting in the compiler. The compiler now admits only a method-free built-in T-to-Nullable<T> scalar literal lift, preserving the boxed scalar without invoking conversion methods. One new Core case also verifies nullable GUID and UTC DateTime literal compilation; that does not enable their SQLite metadata translation.
+
+The 43-case focused native gate verifies typed predicates, null/missing distinctions, integer limits including UInt64 overflow, string NUL/Unicode/injection-like labels, nullable membership, reversed comparisons, object-only traversal, parameter-budget rejection and unsupported production/forged-plan rejection. Exact full-suite results and assembly hashes are recorded in [integration evidence](INTEGRATION_BOUNDARY.md).
+
+The first full 948-case run passed946 and failed two historical assertions that scalar metadata was unsupported. Those tests now retain unmapped/uncertified rejection and explicitly admit supported metadata strings. The original full report is retained as failed evidence; final acceptance is recorded separately.
+
+Final native regression: SQLite 948/948 passes125s, zero skips (`sqlite-cql-scalar-metadata-full-verified.trx`), with the fixture absent after normal teardown. Full Core1,353/1,353 and focused native43/43 belong to the recorded matching Core/provider epoch.
+
+## Neo4j GUID metadata — 21 October 2026
+
+Neo4j now explicitly admits Guid and Guid? metadata for equality/inequality, membership, field comparisons and ordering through the common CQL plan. The stored domain is exactly 36-character ASCII hexadecimal GUID D text, either hex case. Normalization applies only to declared GUID operands; string markers retain their original case-sensitive text. Compact/braced/padded/NUL/newline/nonhex/Unicode-hyphen values, objects, arrays, numbers, booleans and missing paths remain outside the typed domain. Explicit null keeps the shared nullable semantics. This enrollment does not add BSON binary UUID representations to Neo4j.
+
+One native operand owner validates the exact text shape and normalizes its value. CASE selects string operands before regex/lowercase functions, so wrong stored kinds never enter string-only operations. Keys, GUID literals and the trusted regex are bound parameters. Literal comparisons, membership, fields (including canonical Id versus metadata) and ordering share this guard/value pair; there is no deserialization-based filtering, caller callback or client predicate execution. Existing transactional projections already contain the required raw representation, so no schema/pin migration is needed.
+
+The original admission gate fails both cases (`TestResults/CoreCurrent/neo-cql-guid-red.trx`). Fixed final controls pass 307/307, zero skips (`neo-cql-guid-final-controls.trx`). Expanded native regression passes 64/64 in 23 seconds, zero skips; stable feature report `TestResults/Neo4jCurrent/cql-guid-native.trx` is retained independently of the reusable current report. Native assertions cover reversed equality, nullable inequality/null/membership/NOT, canonical/metadata and metadata/metadata comparisons, Guid.Empty, malformed representations, ordinal string controls and both ordering directions with invalid buckets. Existing enum and narrow-integer assertions also run in this cohort.
+
+`TestResults/Neo4jCurrent/cql-guid-final-artifacts.json` binds source/report hashes and 20 matching declared Core/Shared/Neo/SQLite/Mongo producer/consumer copies. Core SHA256 remains `97A343EF51A6A4BF8942250BB2995F5A4E37CD51E0129EEA07F5729B379CAD11`; Neo is `1B47CC8307C5EA8E7FE88170001A6E1382F9343669688BAAE502DA1270406B5D`. Copy equality is not renewed native certification of other adapters. Successful owned fixture manifest is absent, container stopped, Bolt listener absent. No download/install/restore/new environment belongs to this increment. Date metadata, broader scalar domains, native stress and the wider roadmap remain open.

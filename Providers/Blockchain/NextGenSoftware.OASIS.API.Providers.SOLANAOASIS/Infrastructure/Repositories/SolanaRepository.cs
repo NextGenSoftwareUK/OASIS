@@ -21,15 +21,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
     {
         ValidateStorageEntity(entity);
         var serializedEntity = EncodeEntity(entity);
-        var blockHash = await GetWritableBlockHashAsync();
-        var entityTransactionBytes = new TransactionBuilder()
-            .SetRecentBlockHash(blockHash)
-            .SetFeePayer(oasisAccount)
-            .AddInstruction(SetComputeUnitLimit(1_400_000))
-            .AddInstruction(MemoProgram.NewMemoV2(serializedEntity))
-            .Build(oasisAccount);
-
-        return await SubmitAndConfirmAsync(entityTransactionBytes);
+        return await WriteEncryptedRecordAsync(serializedEntity);
     }
 
     public async Task<string> UpdateAsync<T>(T entity)
@@ -37,20 +29,11 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
     {
         ValidateStorageEntity(entity);
         var nextVersion=checked(entity.Version + 1);
-        var snapshot=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(entity));
+        var snapshot=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.ParseStoredObject(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(entity));
         snapshot["Version"]=nextVersion;
         snapshot["PreviousVersionId"]=entity.Id;
         var serializedEntity = EncodeEntity(snapshot);
-        var blockHash = await GetWritableBlockHashAsync();
-
-        var entityUpdateTransactionBytes = new TransactionBuilder()
-            .SetRecentBlockHash(blockHash)
-            .SetFeePayer(oasisAccount)
-            .AddInstruction(SetComputeUnitLimit(1_400_000))
-            .AddInstruction(MemoProgram.NewMemoV2(serializedEntity))
-            .Build(oasisAccount);
-
-        var signature=await SubmitAndConfirmAsync(entityUpdateTransactionBytes);
+        var signature=await WriteEncryptedRecordAsync(serializedEntity);
         entity.Version=nextVersion;
         entity.PreviousVersionId=entity.Id;
         return signature;
@@ -65,8 +48,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
     public async Task<string> CreateTombstoneAsync(string transactionHashReference)
     {
         var transactionContent = await ReadStoredRecordAsync(transactionHashReference);
-        var deserializedEntity = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(transactionContent)
-            ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
+        var deserializedEntity = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.ParseStoredObject(transactionContent);
         if(deserializedEntity.Value<string>("RecordKind") is not ("oasis.avatar.v1" or "oasis.avatar-detail.v1" or "oasis.holon.v1"))
             throw new InvalidOperationException("Solana tombstone requires a canonical typed storage record.");
 
@@ -85,16 +67,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         deserializedEntity["Version"] = checked(version.Value + 1);
         deserializedEntity["PreviousVersionId"] = identity.Value;
         var serializedEntity = EncodeEntity(deserializedEntity);
-        var blockHash = await GetWritableBlockHashAsync();
-
-        var entityDeleteUpdateTransactionBytes = new TransactionBuilder()
-            .SetRecentBlockHash(blockHash)
-            .SetFeePayer(oasisAccount)
-            .AddInstruction(SetComputeUnitLimit(1_400_000))
-            .AddInstruction(MemoProgram.NewMemoV2(serializedEntity))
-            .Build(oasisAccount);
-
-        return await SubmitAndConfirmAsync(entityDeleteUpdateTransactionBytes);
+        return await WriteEncryptedRecordAsync(serializedEntity);
     }
 
     private async Task RequireCurrentTombstoneReferenceAsync<T>(Guid id,string signature) where T:SolanaBaseDto,new()
@@ -114,10 +87,10 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
 
     private static T DeserializeStoredRecord<T>(string content) where T : SolanaBaseDto,new()
     {
-        var document=Newtonsoft.Json.Linq.JObject.Parse(content);
+        var document=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.ParseStoredObject(content);
         if(document.Value<string>("RecordKind") != new T().RecordKind)
             throw new InvalidOperationException("Solana storage record kind does not match the requested type; untyped historical memos require explicit review.");
-        var record=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(content) ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
+        var record=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeMetadataRecord<T>(content) ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
         if(record.Id == Guid.Empty || record.Version < 0)
             throw new InvalidOperationException("Solana storage record has invalid identity/version.");
         if(!record.HasValidCreationOrigin())
@@ -139,7 +112,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         if (!queried.WasSuccessful || queried.HttpStatusCode != HttpStatusCode.OK)
             throw new InvalidOperationException("Solana finalized record lookup failed: " + queried.RawRpcResponse);
         var memo = ValidateStoredTransaction(queried.Result, signature, oasisAccount.PublicKey.Key);
-        return DecodeEntity(memo);
+        return await DecodeStoredMemoAsync(signature,memo);
     }
 
     private async Task<string> GetWritableBlockHashAsync()

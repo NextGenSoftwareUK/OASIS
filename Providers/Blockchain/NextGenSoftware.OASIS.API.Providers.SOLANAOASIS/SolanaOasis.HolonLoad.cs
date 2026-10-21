@@ -136,8 +136,9 @@ public partial class SolanaOASIS
         int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
     {
         var saved=await SavePlannedSolanaGraphAsync(new[] {holon},saveChildren,recursive,maxChildDepth,0,continueOnError);
-        return new OASISResult<IHolon> {Result=saved.Result?.Single(),IsSaved=saved.IsSaved,IsError=saved.IsError,
-            ErrorCode=saved.ErrorCode,ErrorCount=saved.ErrorCount,Message=saved.Message,Exception=saved.Exception};
+        var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(saved);
+        result.Result=saved.Result?.Single();
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons,

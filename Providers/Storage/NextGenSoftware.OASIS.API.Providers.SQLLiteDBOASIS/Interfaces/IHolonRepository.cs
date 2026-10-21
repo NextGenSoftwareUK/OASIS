@@ -7,8 +7,12 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
 {
-    public interface IHolonRepository
+    public interface IHolonRepository : IConditionalHolonStorageProvider
     {
+        OASISResult<HolonWritePreparation> ClaimHolonWritePreparation(HolonWritePreparation candidate, System.Threading.CancellationToken cancellationToken);
+        NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(
+            ConditionalHolonWriteRequest request, HolonReplicationEnrollment enrollment, System.Threading.CancellationToken cancellationToken);
+        OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request,System.Threading.CancellationToken cancellationToken);
         OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
 
         Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);

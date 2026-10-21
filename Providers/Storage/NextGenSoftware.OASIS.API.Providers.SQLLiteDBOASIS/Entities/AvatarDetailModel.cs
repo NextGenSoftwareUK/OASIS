@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -108,9 +109,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public bool IsChanged { get; set; }
         public bool IsNewHolon { get; set; }
 
-        public DateTime CreatedDate { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public DateTime DeletedDate { get; set; }
+        private DateTime _createdDate;
+        public int CreatedDateKind { get; set; }
+        public DateTime CreatedDate
+        {
+            get => SqliteAuditDate.Restore(_createdDate,CreatedDateKind);
+            set { _createdDate=value; CreatedDateKind=(int)value.Kind; }
+        }
+        private DateTime _modifiedDate;
+        public int ModifiedDateKind { get; set; }
+        public DateTime ModifiedDate
+        {
+            get => SqliteAuditDate.Restore(_modifiedDate,ModifiedDateKind);
+            set { _modifiedDate=value; ModifiedDateKind=(int)value.Kind; }
+        }
+        private DateTime _deletedDate;
+        public int DeletedDateKind { get; set; }
+        public DateTime DeletedDate
+        {
+            get => SqliteAuditDate.Restore(_deletedDate,DeletedDateKind);
+            set { _deletedDate=value; DeletedDateKind=(int)value.Kind; }
+        }
 
         public string CreatedByAvatarId { get; set; }
         public string ModifiedByAvatarId { get; set; }
@@ -240,8 +259,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 this.Achievements.Add(new AchievementModel(item));
             }
 
-            foreach(KarmaAkashicRecord record in source.KarmaAkashicRecords){
-                this.KarmaAkashicRecords.Add(new KarmaAkashicRecordModel(record));
+            foreach(var record in source.KarmaAkashicRecords ?? new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IKarmaAkashicRecord>()){
+                if(record == null || record.AvatarId.ToString()!=this.Id)
+                    throw new ArgumentException("Karma history records must belong to the avatar detail being saved.");
+                this.KarmaAkashicRecords.Add(new KarmaAkashicRecordModel(record){SequenceIndex=this.KarmaAkashicRecords.Count});
             }
 
             this.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(source.MetaData ?? new Dictionary<string, object>());
@@ -345,7 +366,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 item.Achievements.Add(model.GetAchievement());
             }
 
-            foreach(KarmaAkashicRecordModel model in this.KarmaAkashicRecords){
+            foreach(KarmaAkashicRecordModel model in this.KarmaAkashicRecords.OrderBy(record=>record.SequenceIndex).ThenBy(record=>record.Id)){
 
                 item.KarmaAkashicRecords.Add(model.GetKarmaAkashicRecord());
             }

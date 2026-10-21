@@ -18,9 +18,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.UnitTests
             public int Writes;
             public readonly System.Exception Cause=new AzureBlobMutationReconciliationException("owned-container","owned-key",new System.IO.IOException("owned lost reply"));
             public PartialWriter():base("UseDevelopmentStorage=true") {}
-            protected override System.Threading.Tasks.Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SaveCapturedHolonAsync(
-                NextGenSoftware.OASIS.API.Core.Interfaces.IHolon holon,NextGenSoftware.OASIS.API.Core.Holons.Holon staged,System.Action validatePublication)
+            protected override System.Threading.Tasks.Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SavePlannedHolonAsync(
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite write,System.Action validatePublication)
             {
+                var holon=write.Source;var staged=write.Snapshot;
                 validatePublication();
                 Writes++;
                 if(Writes==1){holon.Id=staged.Id;holon.ParentHolonId=staged.ParentHolonId;}

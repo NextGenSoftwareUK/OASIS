@@ -318,10 +318,12 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();foreach(var id in ids)Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));await AssertReceiptAbsent(verifier,operation);
             using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids,operation,actor=request.Write.ActorId,state="before-conditional-lost-commit"}));file.Flush(true);}
             var outcome=await provider.ExecuteConditionalHolonWriteAsync(request);Assert.IsTrue(outcome.IsError);Assert.IsFalse(outcome.IsSaved);Assert.IsNull(outcome.Result);Assert.IsInstanceOfType<OracleConditionalReconciliationException>(outcome.Exception);Assert.AreEqual(operation,((OracleConditionalReconciliationException)outcome.Exception).OperationId);Assert.AreSame(provider.Lost,outcome.Exception.InnerException);Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(outcome.Exception));Assert.AreEqual(1,provider.CommitCalls);Assert.AreEqual(0,root.Version);Assert.IsNull(CosmicConcurrency.GetProviderRevisionId(root,request.Write.Authority));
+            Assert.AreEqual(0,outcome.SavedCount);Assert.AreEqual(0,outcome.DeletedCount);
             foreach(var id in ids){var raw=await Read(verifier,"OASIS_HOLONS",id);Assert.IsNotNull(raw);using var parsed=JsonDocument.Parse(raw);Assert.AreEqual(1,parsed.RootElement.GetProperty("Version").GetInt32());}
             await using(var receipt=new OracleCommand("SELECT REQUEST_HASH,RESULT_JSON FROM OASIS_WRITE_RECEIPTS WHERE OPERATION_ID=:Id",verifier){BindByName=true}){receipt.Parameters.Add("Id",OracleDbType.Raw).Value=operation.ToByteArray();await using var reader=await receipt.ExecuteReaderAsync();Assert.IsTrue(await reader.ReadAsync());Assert.AreEqual(ConditionalHolonPlan.Create(request,request.Write.Authority).Fingerprint,reader.GetString(0));var acknowledged=ConditionalHolonReceipt.Read(reader.GetString(1));Assert.AreEqual(root.Id,acknowledged.Single().Id);Assert.AreEqual(1,acknowledged.Single().Children.Single().Version);}
             // Explicit original-receipt reconciliation after independent readback, not retrying native writes.
             var replay=await provider.ExecuteConditionalHolonWriteAsync(request);Assert.IsFalse(replay.IsError,replay.Exception?.ToString());Assert.AreEqual(1,replay.Result.Single().Version);Assert.AreEqual(1,provider.CommitCalls);
+            Assert.AreEqual(2,replay.SavedCount);Assert.AreEqual(0,replay.DeletedCount);Assert.IsTrue(replay.HasAnyHolonsChanged);
             foreach(var id in ids.Reverse()){var removed=await provider.DeleteHolonWithSoftDeleteAsync(id,false);Assert.IsFalse(removed.IsError,removed.Exception?.ToString());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));}
             await using(var cleanup=new OracleCommand("DELETE FROM OASIS_WRITE_RECEIPTS WHERE OPERATION_ID=:Id AND REQUEST_HASH=:Hash",verifier){BindByName=true}){cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=operation.ToByteArray();cleanup.Parameters.Add("Hash",OracleDbType.Varchar2).Value=ConditionalHolonPlan.Create(request,request.Write.Authority).Fingerprint;Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());}await AssertReceiptAbsent(verifier,operation);File.Delete(journal);
         }finally{await provider.DeActivateProviderAsync();}
@@ -355,22 +357,28 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();foreach(var id in ids)Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));
             using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids,operations,actor,state="before-conditional-native-graph"}));file.Flush(true);}
             var create=Request(root,0,NextGenSoftware.OASIS.API.Core.Interfaces.ConditionalHolonOperation.Save,true);var first=await provider.ExecuteConditionalHolonWriteAsync(create);Assert.IsFalse(first.IsError,first.Exception?.ToString());Assert.IsTrue(first.IsSaved);committed.Add(create);
+            Assert.AreEqual(2,first.SavedCount);Assert.AreEqual(0,first.DeletedCount);Assert.IsTrue(first.HasAnyHolonsChanged);
             Assert.AreEqual(0,root.Version);var ack1=first.Result.Single();Assert.AreEqual(1,ack1.Version);Assert.AreEqual(1,ack1.Children.Single().Version);
             var publishedRequest=new ConditionalHolonWriteRequest(create.Write,ConditionalHolonOperation.Save,new[]{Copy(ack1)});var publishedReplay=await provider.ExecuteConditionalHolonWriteAsync(publishedRequest);Assert.IsFalse(publishedReplay.IsError,publishedReplay.Exception?.ToString());Assert.AreEqual(ack1.VersionId,publishedReplay.Result.Single().VersionId);
             Assert.AreEqual(unicode,ack1.Description);
+            Assert.AreEqual(2,publishedReplay.SavedCount);Assert.AreEqual(0,publishedReplay.DeletedCount);Assert.IsTrue(publishedReplay.HasAnyHolonsChanged);
             await using(var receipt=new OracleCommand("SELECT RESULT_JSON FROM OASIS_WRITE_RECEIPTS WHERE OPERATION_ID=:Id",verifier){BindByName=true}){receipt.Parameters.Add("Id",OracleDbType.Raw).Value=operations[0].ToByteArray();var raw=(await receipt.ExecuteScalarAsync())!.ToString()!;Assert.IsTrue(raw.Length>32767);Assert.AreEqual(unicode,ConditionalHolonReceipt.Read(raw,ConditionalHolonPlan.Create(create,authority)).Single().Description);}
             var modified=Copy(ack1);modified.Name="owned-updated-conditional-root";modified.Description="newer compact payload";var update=Request(modified,1,NextGenSoftware.OASIS.API.Core.Interfaces.ConditionalHolonOperation.Save);
             var second=await provider.ExecuteConditionalHolonWriteAsync(update);Assert.IsFalse(second.IsError,second.Exception?.ToString());committed.Add(update);Assert.AreEqual(2,second.Result.Single().Version);
             var replay=await provider.ExecuteConditionalHolonWriteAsync(create);Assert.IsFalse(replay.IsError,replay.Exception?.ToString());Assert.AreEqual(1,replay.Result.Single().Version);Assert.AreEqual(root.Name,replay.Result.Single().Name);
             Assert.AreEqual(unicode,replay.Result.Single().Description);Assert.AreEqual("newer compact payload",second.Result.Single().Description);
+            foreach(var saved in new[]{second,replay}){Assert.AreEqual(2,saved.SavedCount);Assert.AreEqual(0,saved.DeletedCount);Assert.IsTrue(saved.HasAnyHolonsChanged);}
             var stale=await provider.ExecuteConditionalHolonWriteAsync(Request(Copy(ack1),2,NextGenSoftware.OASIS.API.Core.Interfaces.ConditionalHolonOperation.Save));Assert.IsTrue(stale.IsError);Assert.IsInstanceOfType<NextGenSoftware.OASIS.API.Core.Interfaces.CosmicConcurrencyException>(stale.Exception);
             var changed=Copy(root);changed.Name="different-intent";var reused=await provider.ExecuteConditionalHolonWriteAsync(Request(changed,0,NextGenSoftware.OASIS.API.Core.Interfaces.ConditionalHolonOperation.Save,true));Assert.IsTrue(reused.IsError);Assert.AreEqual("COSMIC_OPERATION_ID_REUSED",reused.ErrorCode);
             foreach(var id in ids){var raw=await Read(verifier,"OASIS_HOLONS",id);Assert.IsNotNull(raw);using var parsed=JsonDocument.Parse(raw);Assert.AreEqual(2,parsed.RootElement.GetProperty("Version").GetInt32());}
             var soft=Request(Copy(second.Result.Single()),3,NextGenSoftware.OASIS.API.Core.Interfaces.ConditionalHolonOperation.SoftDelete);var tombstone=await provider.ExecuteConditionalHolonWriteAsync(soft);Assert.IsFalse(tombstone.IsError,tombstone.Exception?.ToString());committed.Add(soft);Assert.IsTrue(tombstone.IsDeleted);Assert.AreEqual(3,tombstone.Result.Single().Version);
             foreach(var id in ids)Assert.IsNull((await provider.LoadHolonAsync(id,loadChildren:false)).Result);
+            Assert.AreEqual(0,tombstone.SavedCount);Assert.AreEqual(2,tombstone.DeletedCount);Assert.IsTrue(tombstone.HasAnyHolonsChanged);
             var hard=Request(Copy(tombstone.Result.Single()),4,NextGenSoftware.OASIS.API.Core.Interfaces.ConditionalHolonOperation.HardDelete);var removed=await provider.ExecuteConditionalHolonWriteAsync(hard);Assert.IsFalse(removed.IsError,removed.Exception?.ToString());committed.Add(hard);foreach(var id in ids)Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));
             var historicalReplay=await provider.ExecuteConditionalHolonWriteAsync(create);Assert.IsFalse(historicalReplay.IsError,historicalReplay.Exception?.ToString());Assert.AreEqual(1,historicalReplay.Result.Single().Version);foreach(var id in ids)Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));
             Assert.AreEqual(unicode,historicalReplay.Result.Single().Description);
+            Assert.AreEqual(0,removed.SavedCount);Assert.AreEqual(2,removed.DeletedCount);Assert.IsTrue(removed.HasAnyHolonsChanged);
+            Assert.AreEqual(2,historicalReplay.SavedCount);Assert.AreEqual(0,historicalReplay.DeletedCount);Assert.IsTrue(historicalReplay.HasAnyHolonsChanged);
             foreach(var request in committed){await using var cleanup=new OracleCommand("DELETE FROM OASIS_WRITE_RECEIPTS WHERE OPERATION_ID=:Id AND REQUEST_HASH=:Hash",verifier){BindByName=true};cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=request.Write.OperationId.ToByteArray();cleanup.Parameters.Add("Hash",OracleDbType.Varchar2).Value=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConditionalHolonPlan.Create(request,authority).Fingerprint;Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());await AssertReceiptAbsent(verifier,request.Write.OperationId);}
             await using(var absent=new OracleCommand("SELECT COUNT(*) FROM OASIS_WRITE_RECEIPTS WHERE OPERATION_ID=:Id",verifier){BindByName=true}){absent.Parameters.Add("Id",OracleDbType.Raw).Value=operations[2].ToByteArray();Assert.AreEqual(0,Convert.ToInt32(await absent.ExecuteScalarAsync()));}
             File.Delete(journal);
@@ -646,6 +654,27 @@ public sealed partial class OracleNativeAcceptanceTests
         }
         var avatar=new Avatar{Id=id,Username=name,Email=name+"@example.invalid",VerificationToken=name+"-original-token",ResetToken=name+"-original-reset",RefreshTokens=new(){new RefreshToken{Token=name+"-original-refresh",Expires=DateTime.UtcNow.AddDays(1)}}};
         var detail=new AvatarDetail{Id=id,Username=name,Email=avatar.Email,Karma=321,XP=456};
+        void AppendOwnedHistory()=>detail.KarmaAkashicRecords.Add(new KarmaAkashicRecord{
+            AvatarId=id,Date=new DateTime(2026,10,20,0,0,0,DateTimeKind.Utc).AddSeconds(detail.KarmaAkashicRecords.Count),
+            Karma=detail.KarmaAkashicRecords.Count==0?321:11,TotalKarma=detail.Karma,
+            KarmaSourceTitle="Oracle native",KarmaSourceDesc="owned Oracle history",WebLink="https://example.invalid/owned-history",
+            Provider=new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OracleDBOASIS),
+            KarmaSource=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType.Game),
+            KarmaEarntOrLost=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaEarntOrLost.Earnt),
+            KarmaTypePositive=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaTypePositive.Other),
+            KarmaTypeNegative=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaTypeNegative.None)});
+        void AssertOwnedHistory(IAvatarDetail actual,int count){
+            Assert.AreEqual(count,actual.KarmaAkashicRecords.Count);
+            for(var index=0;index<count;index++){
+                var expected=detail.KarmaAkashicRecords[index];var entry=actual.KarmaAkashicRecords[index];
+                Assert.AreEqual(id,entry.AvatarId);Assert.AreEqual(expected.Date,entry.Date);Assert.AreEqual(expected.Karma,entry.Karma);
+                Assert.AreEqual(expected.TotalKarma,entry.TotalKarma);Assert.AreEqual(expected.Provider.Value,entry.Provider.Value);
+                Assert.AreEqual(expected.KarmaSource.Value,entry.KarmaSource.Value);Assert.AreEqual(expected.KarmaEarntOrLost.Value,entry.KarmaEarntOrLost.Value);
+                Assert.AreEqual(expected.KarmaTypePositive.Value,entry.KarmaTypePositive.Value);Assert.AreEqual(expected.KarmaTypeNegative.Value,entry.KarmaTypeNegative.Value);
+                Assert.AreEqual(expected.KarmaSourceTitle,entry.KarmaSourceTitle);Assert.AreEqual(expected.KarmaSourceDesc,entry.KarmaSourceDesc);Assert.AreEqual(expected.WebLink,entry.WebLink);
+            }
+        }
+        AppendOwnedHistory();
         detail.Inventory.Add(new InventoryItem{Id=Guid.NewGuid(),Name="owned oak seed",Quantity=7,GameSource="Our World"});
         var holon=new Holon{Id=id,Name=name,ParentHolonId=Guid.NewGuid(),CreatedByAvatarId=id,
             MetaData=new(){["owned.fixture"]="literal-dot",["owner's key"]="literal-apostrophe",["quote\"key"]="literal-quote"}};
@@ -675,6 +704,7 @@ public sealed partial class OracleNativeAcceptanceTests
             foreach(var loaded in new[]{await provider.LoadAvatarDetailAsync(id),await provider.LoadAvatarDetailByUsernameAsync(name),await provider.LoadAvatarDetailByEmailAsync(avatar.Email)}){
                 Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());Assert.AreEqual(321L,loaded.Result.Karma);Assert.AreEqual(detail.XP,loaded.Result.XP);
                 Assert.AreEqual(7,loaded.Result.Inventory.Single().Quantity);
+                if(!resume)AssertOwnedHistory(loaded.Result,1);
             }
             var readHolon=await provider.LoadHolonAsync(id,loadChildren:false);Assert.IsFalse(readHolon.IsError,readHolon.Exception?.ToString());
             Assert.AreEqual(holon.ParentHolonId,readHolon.Result.ParentHolonId);Assert.AreEqual(0,readHolon.Result.Children.Count);
@@ -691,6 +721,7 @@ public sealed partial class OracleNativeAcceptanceTests
                     avatar.VerificationToken=avatar.Username+"-current-token";
                     avatar.ResetToken=avatar.Username+"-current-reset";avatar.RefreshTokens=new(){new RefreshToken{Token=avatar.Username+"-current-refresh",Expires=DateTime.UtcNow.AddDays(1)}};
                     detail.Username=avatar.Username;detail.Email=avatar.Email;detail.Karma+=11;detail.XP+=17;detail.Inventory[0].Quantity+=2;
+                    AppendOwnedHistory();
                     holon.Name=avatar.Username;holon.ParentHolonId=Guid.NewGuid();holon.CreatedByAvatarId=Guid.NewGuid();holon.MetaData["owned.fixture"]=avatar.Username;
                     var updateAvatar=synchronous?provider.SaveAvatar(avatar):await provider.SaveAvatarAsync(avatar);
                     var updateDetail=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);
@@ -705,6 +736,7 @@ public sealed partial class OracleNativeAcceptanceTests
                     Assert.IsNull((await provider.LoadAvatarByUsernameAsync(oldName)).Result);Assert.IsNull((await provider.LoadAvatarByEmailAsync(oldEmail)).Result);
                     foreach(var loaded in new[]{await provider.LoadAvatarDetailAsync(id),await provider.LoadAvatarDetailByUsernameAsync(detail.Username),await provider.LoadAvatarDetailByEmailAsync(detail.Email)}){
                         Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());Assert.AreEqual(detail.Karma,loaded.Result.Karma);Assert.AreEqual(detail.XP,loaded.Result.XP);Assert.AreEqual(detail.Inventory[0].Quantity,loaded.Result.Inventory.Single().Quantity);
+                        AssertOwnedHistory(loaded.Result,detail.KarmaAkashicRecords.Count);
                     }
                     Assert.IsNull((await provider.LoadAvatarDetailByUsernameAsync(oldName)).Result);Assert.IsNull((await provider.LoadAvatarDetailByEmailAsync(oldEmail)).Result);
                     var loadedHolon=await provider.LoadHolonAsync(id,loadChildren:false);Assert.IsFalse(loadedHolon.IsError,loadedHolon.Exception?.ToString());
@@ -712,6 +744,7 @@ public sealed partial class OracleNativeAcceptanceTests
                     var found=await provider.LoadHolonsByMetaDataAsync("owned.fixture",avatar.Username,holon.HolonType,loadChildren:false);Assert.IsFalse(found.IsError,found.Exception?.ToString());Assert.IsTrue(found.Result.Any(row=>row.Id==id));
                     var raw=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>((await Read(verifier,"OASIS_AVATAR_DETAILS",id))!);
                     Assert.AreEqual(detail.Karma,raw.Karma);Assert.AreEqual(detail.XP,raw.XP);Assert.AreEqual(detail.Inventory[0].Quantity,raw.Inventory.Single().Quantity);
+                    AssertOwnedHistory(raw,detail.KarmaAkashicRecords.Count);
                 }
                 foreach(var table in new[]{"OASIS_AVATARS","OASIS_AVATAR_DETAILS","OASIS_HOLONS"}){
                     using var history=JsonDocument.Parse((await Read(verifier,table,id))!);
@@ -728,6 +761,7 @@ public sealed partial class OracleNativeAcceptanceTests
                 }
                 foreach(var old in new[]{await provider.LoadAvatarDetailAsync(id,1),await provider.LoadAvatarDetailByUsernameAsync(name,1),await provider.LoadAvatarDetailByEmailAsync(name+"@example.invalid",1)}){
                     Assert.IsFalse(old.IsError,old.Exception?.ToString());Assert.AreEqual(1,old.Result.Version);Assert.AreEqual(321L,old.Result.Karma);Assert.AreEqual(456L,old.Result.XP);Assert.AreEqual(7,old.Result.Inventory.Single().Quantity);
+                    AssertOwnedHistory(old.Result,1);
                 }
                 var oldHolon=await provider.LoadHolonAsync(id,loadChildren:false,version:1);Assert.IsFalse(oldHolon.IsError,oldHolon.Exception?.ToString());Assert.AreEqual(name,oldHolon.Result.Name);
                 foreach(var selectedVersion in new[]{0,1})foreach(var mode in new[]{NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.Any})foreach(var sync in new[]{false,true}){
@@ -801,6 +835,7 @@ public sealed partial class OracleNativeAcceptanceTests
                 var trigger="OASIS_TEST_"+id.ToString("N")[..20];
                 await using(var create=new OracleCommand($"CREATE TRIGGER {trigger} BEFORE UPDATE ON OASIS_AVATAR_DETAILS FOR EACH ROW BEGIN IF :NEW.ID=HEXTORAW('{Convert.ToHexString(id.ToByteArray())}') THEN RAISE_APPLICATION_ERROR(-20001,'owned lifecycle rollback proof'); END IF; END;",verifier))await create.ExecuteNonQueryAsync();
                 var rejected=await provider.DeleteAvatarAsync(id,true);Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.Result);
+                Assert.IsFalse(rejected.IsSaved);Assert.IsFalse(rejected.IsDeleted);Assert.AreEqual(0,rejected.DeletedCount);
                 Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(rejected.Exception);
                 Assert.IsInstanceOfType<OracleException>(rejected.Exception.InnerException);Assert.AreEqual(20001,((OracleException)rejected.Exception.InnerException!).Number);
                 Assert.AreEqual(beforeAvatar,await Read(verifier,"OASIS_AVATARS",id),"First row update must roll back when second-row native update fails.");
@@ -810,6 +845,7 @@ public sealed partial class OracleNativeAcceptanceTests
             if(!resume){
                 var commits=provider.CommitCalls;provider.LoseNextCommit=true;
                 var lost=await provider.DeleteAvatarAsync(id,true);Assert.IsTrue(lost.IsError);Assert.IsFalse(lost.Result);
+                Assert.IsFalse(lost.IsSaved);Assert.IsFalse(lost.IsDeleted);Assert.AreEqual(0,lost.DeletedCount);
                 Assert.AreEqual(commits+1,provider.CommitCalls);Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(lost.Exception);Assert.AreSame(provider.Lost,lost.Exception.InnerException);
                 Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(lost.Exception));
                 var committedAvatar=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Avatar>((await Read(verifier,"OASIS_AVATARS",id))!);
@@ -1001,8 +1037,8 @@ public sealed partial class OracleNativeAcceptanceTests
                 await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids=rows.Select(row=>row.Id).ToArray(),import,state="before-native-batch-uncertainty"}));file.Flush(true);
             }
             Exception cause;
-            if(import){var result=await provider.ImportAsync(rows);Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);cause=result.Exception;}
-            else{var result=await provider.SaveHolonsAsync(rows,saveChildren:false,curentChildDepth:0,continueOnError:true);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,result.Result.Count());cause=result.Exception;}
+            if(import){var result=await provider.ImportAsync(rows);Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,result.SavedCount);cause=result.Exception;}
+            else{var result=await provider.SaveHolonsAsync(rows,saveChildren:false,curentChildDepth:0,continueOnError:true);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,result.SavedCount);Assert.AreEqual(1,result.Result.Count());cause=result.Exception;}
             Assert.IsInstanceOfType<OraclePartialMutationException>(cause);CollectionAssert.AreEqual(new[]{rows[0].Id},((OraclePartialMutationException)cause).AcknowledgedRecordIds.ToArray());
             Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(cause));Assert.AreSame(provider.Lost,cause.InnerException!.InnerException);
             Assert.AreEqual(2,provider.CommitCalls);Assert.AreEqual(1,rows[0].Version);Assert.AreEqual(0,rows[1].Version);Assert.AreEqual(0,rows[2].Version);Assert.IsNull(await Read(verifier,"OASIS_HOLONS",rows[2].Id));
@@ -1098,10 +1134,10 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();Assert.IsNull(await Read(verifier,table,id));Assert.IsNull(await Read(verifier,"OASIS_HOLONS",childId));
             using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,childId,editedId,table,kind,state="before-native-caller-publication"}));file.Flush(true);}
             provider.AfterCommit=()=>{if(kind==0)caller.Id=editedId;else if(caller is AvatarDetail d)d.Inventory[0].Quantity=2;else caller.Name=name+" edited";};
-            Exception cause;
-            if(caller is Avatar avatar){var saved=await provider.SaveAvatarAsync(avatar);Check(saved);cause=saved.Exception;}
-            else if(caller is AvatarDetail d){var saved=await provider.SaveAvatarDetailAsync(d);Check(saved);cause=saved.Exception;}
-            else{var saved=await provider.SaveHolonAsync((Holon)caller,saveChildren:kind==3);Check(saved);cause=saved.Exception;}
+            Exception cause;int acknowledgedCount;
+            if(caller is Avatar avatar){var saved=await provider.SaveAvatarAsync(avatar);Check(saved);cause=saved.Exception;acknowledgedCount=saved.SavedCount;}
+            else if(caller is AvatarDetail d){var saved=await provider.SaveAvatarDetailAsync(d);Check(saved);cause=saved.Exception;acknowledgedCount=saved.SavedCount;}
+            else{var saved=await provider.SaveHolonAsync((Holon)caller,saveChildren:kind==3);Check(saved);cause=saved.Exception;acknowledgedCount=saved.SavedCount;}
             Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(cause);Assert.AreEqual(id,((OracleLifecycleReconciliationException)cause).RecordId);Assert.IsInstanceOfType<InvalidOperationException>(cause.InnerException);Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(cause));
             Assert.AreEqual(1,provider.CommitCalls);Assert.AreEqual(kind==0?editedId:id,caller.Id);Assert.AreEqual(0,caller.Version);Assert.AreEqual(Guid.Empty,caller.VersionId);Assert.AreSame(keys,caller.ProviderUniqueStorageKey);Assert.AreEqual(0,keys.Count);
             if(caller is AvatarDetail changed)Assert.AreEqual(2,changed.Inventory[0].Quantity);else if(kind>=2)Assert.AreEqual(name+" edited",caller.Name);
@@ -1112,6 +1148,7 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.IsNull(await Read(verifier,"OASIS_HOLONS",childId));
             await using var cleanup=new OracleCommand($"DELETE FROM {table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",verifier){BindByName=true};cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=actual;
             Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(verifier,table,id));File.Delete(journal);
+            Assert.AreEqual(1,acknowledgedCount,"The native commit was acknowledged before caller publication failed.");
         }finally{await provider.DeActivateProviderAsync();}
         static void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);}
     }

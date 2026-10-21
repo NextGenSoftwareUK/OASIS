@@ -134,22 +134,22 @@ public partial class SolanaOASIS
     {
         ArgumentNullException.ThrowIfNull(transaction);
 
-        OASISResult<IWeb3NFTTransactionResponse> result = new(new Web3NFTTransactionResponse());
+        OASISResult<IWeb3NFTTransactionResponse> result = new();
 
         try
         {
             OASISResult<MintNftResult> solanaNftTransactionResult
-                = await _solanaService.MintNftAsync(transaction as MintWeb3NFTRequest);
+                = await _solanaService.MintNftAsync(transaction);
 
-            if (solanaNftTransactionResult.IsError ||
-                string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
+            result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<MintNftResult,IWeb3NFTTransactionResponse>(solanaNftTransactionResult);
+            if(result.IsError)return result;
+            if (string.IsNullOrEmpty(solanaNftTransactionResult.Result?.TransactionHash))
             {
-                OASISErrorHandling.HandleError(ref result,
-                    solanaNftTransactionResult.Message,
-                    solanaNftTransactionResult.Exception);
+                OASISErrorHandling.HandleError(ref result,"Solana mint returned no acknowledged transaction hash.");
                 return result;
             }
 
+            result.Result = new Web3NFTTransactionResponse();
             result.IsError = false;
             result.IsSaved = true;
 

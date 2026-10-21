@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo4j.Driver;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using Provider=NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS;
@@ -28,13 +29,14 @@ public partial class Neo4jNativeAvatarTests
             var second=new Avatar{Id=Guid.NewGuid(),Username=$"rollback-b-{marker}"};
             Assert.IsFalse((await provider.SaveAvatarAsync(first)).IsError);
             Assert.IsFalse((await provider.SaveAvatarAsync(second)).IsError);
+            Console.WriteLine("Owned Neo history rollback fixture: "+OasisJson.Serialize(new{marker,firstId=first.Id,secondId=second.Id,constraint}));
             var originalVersion=first.Version;var originalVersionId=first.VersionId;var originalUsername=first.Username;
             await(await inspection.RunAsync("CREATE CONSTRAINT "+constraint+" FOR (a:Avatar) REQUIRE a.Username IS UNIQUE")).ConsumeAsync();
             first.Username=second.Username;first.FirstName="must roll back";
             var rejected=synchronous?provider.SaveAvatar(first):await provider.SaveAvatarAsync(first);
             Assert.IsTrue(rejected.IsError);
-            Assert.IsTrue(NativeMutationReconciliation.IsRequired(rejected.Exception),"Keep conservative native uncertainty classification; inspect before any replay.");
-            var nativeError=rejected.Exception.InnerException as Neo4jException;
+            Assert.IsFalse(NativeMutationReconciliation.IsRequired(rejected.Exception),"Native rollback was acknowledged before reporting the constraint rejection.");
+            var nativeError=rejected.Exception as Neo4jException;
             Assert.IsNotNull(nativeError,"Rejection must reach the actual current-record constraint, not fail earlier in archival preparation.");
             StringAssert.Contains(nativeError.Code,"ConstraintValidationFailed");
             Assert.AreEqual(originalVersion,first.Version);Assert.AreEqual(originalVersionId,first.VersionId);

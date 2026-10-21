@@ -66,4 +66,24 @@ public class Neo4jNativeIdentityTests
         if(kind=="holon")values["HolonType"]=new Holon().HolonType.ToString();
         Assert.AreEqual(id,((IHolonBase)Read(kind,id,values)).Id);
     }
+    [DataTestMethod]
+    [DataRow("missing")] [DataRow("zero")] [DataRow("valid")] [DataRow("invalid")] [DataRow("number")]
+    public void ProviderRevisionComesFromTheNativeProperty(string state)
+    {
+        var id=Guid.NewGuid();var revision=Guid.NewGuid();
+        var values=new Dictionary<string,object> {{"Id",id.ToString()},{"HolonType",new Holon().HolonType.ToString()}};
+        if(state!="missing")values["ProviderRevisionId"]=state=="number" ? 42L : state=="invalid" ? "invalid-revision"
+            : state=="zero" ? Guid.Empty.ToString() : revision.ToString();
+        if(state=="invalid" || state=="number")
+        {
+            var error=Assert.ThrowsException<TargetInvocationException>(()=>Read("holon",id,values));
+            Assert.IsInstanceOfType(error.InnerException,typeof(InvalidDataException));
+        }
+        else
+        {
+            var read=(IHolon)Read("holon",id,values);
+            Assert.AreEqual(state=="valid" ? revision : Guid.Empty,
+                CosmicConcurrency.GetProviderRevisionId(read,NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Neo4jOASIS));
+        }
+    }
 }

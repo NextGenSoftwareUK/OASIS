@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
@@ -332,7 +333,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 }
 
                 PublishSavedMetadata(source,avatar,publication.ValidateUnchanged);
-                return new OASISResult<IAvatar>(source) { IsSaved = true, Message = $"Avatar {avatar.Id} saved to {Name}." };
+                return new OASISResult<IAvatar>(source) { IsSaved = true, SavedCount = 1, Message = $"Avatar {avatar.Id} saved to {Name}." };
             }
             catch (Exception ex) { return Fail<IAvatar>($"Error saving avatar: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
@@ -528,7 +529,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if(conditional==null)await PutAcknowledgedAsync(key,OasisJson.Serialize(avatarDetail),acknowledged);
                 else await PutObservedAcknowledgedAsync(conditional,key,OasisJson.Serialize(avatarDetail),observed,acknowledged);
                 PublishSavedMetadata(source,avatarDetail,publication.ValidateUnchanged);
-                return new OASISResult<IAvatarDetail>(source) { IsSaved = true, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
+                return new OASISResult<IAvatarDetail>(source) { IsSaved = true, SavedCount = 1, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
             }
             catch (Exception ex) { return Fail<IAvatarDetail>($"Error saving avatar detail: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
@@ -637,22 +638,24 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
 
-        private async Task<OASISResult<IHolon>> SaveHolonInternalAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int depth, bool continueOnError,Guid? parent=null)
+        private async Task<OASISResult<IHolon>> SaveHolonInternalAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int depth, bool continueOnError,SaveForest forest=null)
         {
             var source=holon;var acknowledged=new List<string>();
             try
             {
                 if (holon == null) return Fail<IHolon>("Holon is required.");
-                ValidateSaveForest(new[] {holon}, saveChildren, recursive, maxChildDepth, depth);
-                var publication=StoredRecordPublicationSnapshot<IHolon>.Capture(source);
-                holon=OasisJson.Deserialize<IHolon>(OasisJson.Serialize(source));
-                if(parent.HasValue) holon.ParentHolonId=parent.Value;
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
+                forest??=CaptureSaveForest(new[] {holon},saveChildren,recursive,maxChildDepth,depth);
+                var node=forest.BySource[source];var publication=forest.Publications[source];
+                void ValidateCaller(){publication.ValidateUnchanged();forest.ValidateMembership(source);}
+                ValidateCaller();
+                holon=node.Snapshot;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 holon.ProviderUniqueStorageKey[StorageType] = holon.Id.ToString();
 
                 var recordKey=HolonKey(holon.Id);var conditional=Backend as IConditionalKeyValueBackend;
                 var (previous,observed)=await ReadForMutationAsync<IHolon>(recordKey,conditional);
+                ((Holon)holon).ChildRoleManifestJson=HolonChildRolePersistence.Resolve(node,HolonChildRoleWriteKind.SourceSave,
+                    previous!=null,(previous as Holon)?.ChildRoleManifestJson);
                 var nextParentKey=holon.ParentHolonId==Guid.Empty?null:ParentKey(holon.ParentHolonId,holon.Id);
                 var oldParentKey=previous!=null&&previous.ParentHolonId!=Guid.Empty&&previous.ParentHolonId!=holon.ParentHolonId?ParentKey(previous.ParentHolonId,holon.Id):null;
                 KeyValueObservation nextParent=null,oldParent=null;
@@ -660,33 +663,35 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     if(nextParentKey!=null)nextParent=await ReadOwnedIndexAsync(conditional,nextParentKey,holon.Id);
                     if(oldParentKey!=null)oldParent=await ReadOwnedIndexAsync(conditional,oldParentKey,holon.Id);
                 }
-                publication.ValidateUnchanged();
+                ValidateCaller();
                 await StampVersionAsync(recordKey, holon, previous,acknowledged,conditional);
-                publication.ValidateUnchanged();
+                ValidateCaller();
                 if(conditional==null)await PutAcknowledgedAsync(recordKey,OasisJson.Serialize(holon),acknowledged);
                 else await PutObservedAcknowledgedAsync(conditional,recordKey,OasisJson.Serialize(holon),observed,acknowledged);
-                publication.ValidateUnchanged();
+                ValidateCaller();
                 if(nextParentKey!=null){
                     if(conditional==null)await PutAcknowledgedAsync(nextParentKey,holon.Id.ToString(),acknowledged);
                     else await PutObservedAcknowledgedAsync(conditional,nextParentKey,holon.Id.ToString(),nextParent,acknowledged);
-                    publication.ValidateUnchanged();
+                    ValidateCaller();
                 }
                 if(oldParentKey!=null){
                     if(conditional==null)await DeleteAcknowledgedAsync(oldParentKey,acknowledged);
                     else if(oldParent!=null){
                         await conditional.DeleteUnchangedAsync(oldParentKey,oldParent.Revision);acknowledged.Add(oldParentKey);
                     }
-                    publication.ValidateUnchanged();
+                    ValidateCaller();
                 }
 
-                PublishSavedMetadata(source,holon,publication.ValidateUnchanged);source.ParentHolonId=holon.ParentHolonId;
-                var result = new OASISResult<IHolon>(source) { IsSaved = true, Message = $"Holon {holon.Id} saved to {Name}." };
-                var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
-                if (saveChildren && source.Children != null && (depth == 0 || recursive) && !reachedDepth)
+                PublishSavedMetadata(source,holon,ValidateCaller);source.ParentHolonId=holon.ParentHolonId;
+                if(source is Holon caller)caller.ChildRoleManifestJson=((Holon)holon).ChildRoleManifestJson;
+                var result = new OASISResult<IHolon>(source) { IsSaved = true, SavedCount = 1, Message = $"Holon {holon.Id} saved to {Name}." };
+                if (node.SelectsChildren)
                 {
-                    foreach (var child in source.Children)
+                    foreach (var childId in node.SelectedChildIds)
                     {
-                        var saved = await SaveHolonInternalAsync(child, saveChildren, recursive, maxChildDepth, depth + 1, continueOnError,holon.Id);
+                        var child=forest.ById[childId].Source;
+                        var saved = await SaveHolonInternalAsync(child, saveChildren, recursive, maxChildDepth, depth + 1, continueOnError,forest);
+                        result.SavedCount += saved.SavedCount;
                         if (saved.IsError)
                         {
                             var cause=NativeMutationReconciliation.IsRequired(saved.Exception) ? saved.Exception
@@ -704,13 +709,38 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
 
-        private static void ValidateSaveForest(IEnumerable<IHolon> roots,bool saveChildren,bool recursive,int maxChildDepth,int depth)
+        private sealed class SaveForest
+        {
+            public readonly Dictionary<IHolon,PlannedHolonWrite> BySource=new(ReferenceEqualityComparer.Instance);
+            public readonly Dictionary<Guid,PlannedHolonWrite> ById=new();
+            public readonly Dictionary<IHolon,StoredRecordPublicationSnapshot<IHolon>> Publications=new(ReferenceEqualityComparer.Instance);
+            private readonly Dictionary<IHolon,HolonChildCollectionState> _memberships=new(ReferenceEqualityComparer.Instance);
+            public SaveForest(IEnumerable<PlannedHolonWrite> nodes)
+            {
+                foreach(var node in nodes){
+                    BySource.Add(node.Source,node);ById.Add(node.Snapshot.Id,node);
+                    Publications.Add(node.Source,StoredRecordPublicationSnapshot<IHolon>.Capture(node.Source));
+                    if(node.SelectsChildren)_memberships.Add(node.Source,HolonChildCollectionState.Capture(node.Source));
+                }
+            }
+            public void ValidateMembership(IHolon source)
+            {
+                if(!_memberships.TryGetValue(source,out var expected))return;
+                var current=HolonChildCollectionState.Capture(source);
+                if(expected.Collections.Count!=current.Collections.Count || expected.Collections.Where((role,index)=>
+                    role.Name!=current.Collections[index].Name || role.Members.Count!=current.Collections[index].Members.Count ||
+                    role.Members.Where((member,memberIndex)=>!ReferenceEquals(member,current.Collections[index].Members[memberIndex])).Any()).Any())
+                    throw new InvalidOperationException("Caller selected child membership changed after its pre-write snapshot.");
+            }
+        }
+
+        private static SaveForest CaptureSaveForest(IEnumerable<IHolon> roots,bool saveChildren,bool recursive,int maxChildDepth,int depth)
         {
             if(maxChildDepth<0 || depth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
-            var selected=roots.ToList();if(selected.Count==0) return;
+            var selected=roots.ToList();if(selected.Count==0) return new SaveForest(Array.Empty<PlannedHolonWrite>());
             // This provider's existing depth limit counts the root as level one.
             var children=saveChildren && (depth==0 || recursive) && (maxChildDepth==0 || depth+1<maxChildDepth);
-            try {HolonGraphWritePlan.Create(selected,children,recursive,maxChildDepth==0 ? 0:maxChildDepth-1,depth);}
+            try {return new SaveForest(HolonGraphWritePlan.Create(selected,children,recursive,maxChildDepth==0 ? 0:maxChildDepth-1,depth).Nodes);}
             catch(ArgumentException cause)
             {
                 // Preserve the existing terminal invalid-graph boundary while sharing one graph validator.
@@ -722,8 +752,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             if (holons == null) return Fail<IEnumerable<IHolon>>("Holons are required.");
-            List<IHolon> roots;
-            try {roots=holons.ToList();ValidateSaveForest(roots,saveChildren,recursive,maxChildDepth,curentChildDepth);}
+            List<IHolon> roots;SaveForest forest;
+            try {roots=holons.ToList();forest=CaptureSaveForest(roots,saveChildren,recursive,maxChildDepth,curentChildDepth);}
             catch(Exception cause) {return Fail<IEnumerable<IHolon>>($"Invalid holon batch: {cause.Message}",cause);}
             var saved = new List<IHolon>();
             var acknowledged=new HashSet<string>(StringComparer.Ordinal);var failures=new List<Exception>();
@@ -734,7 +764,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             }
             foreach (var holon in roots)
             {
-                var r = await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                var r = await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError,forest);
+                result.SavedCount += r.SavedCount;
                 if(r.IsSaved && r.Result!=null) acknowledged.Add(HolonKey(r.Result.Id));
                 CollectAcknowledgedKeyEvidence(r.Exception,acknowledged);
                 if (r.IsError)
@@ -774,7 +805,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 {
                     var failures = new List<string>();
                     var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, 0, 0,
-                        continueOnError: continueOnError, failures: failures);
+                        continueOnError: continueOnError, failures: failures,owner:holon);
                     holon.Children = children.Result?.ToList() ?? new List<IHolon>();
                     return MarkPartialRead(Ok(holon), failures);
                 }
@@ -794,14 +825,24 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth, int version, HashSet<Guid> ancestors = null, bool continueOnError = false, List<string> failures = null)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth, int version, HashSet<Guid> ancestors = null, bool continueOnError = false, List<string> failures = null,IHolon owner=null)
         {
             ValidateReadDepth(maxChildDepth, depth);
             failures ??= new List<string>();
             var path = ancestors == null ? new HashSet<Guid>() : new HashSet<Guid>(ancestors);
             if (!path.Add(parentId)) throw new System.IO.InvalidDataException("Cyclic holon parent relationship encountered during recursive child loading.");
             List<IHolon> children;
-            if (version > 0)
+            if(owner is Holon {ChildRoleManifestJson:not null} declared)
+            {
+                var manifest=HolonChildRoleManifestJson.Deserialize(declared.ChildRoleManifestJson);
+                if(manifest.ParentId!=parentId)throw new System.IO.InvalidDataException("Stored child-role manifest belongs to another owner.");
+                var selected=manifest.Roles.SelectMany(role=>role.ChildIds).Distinct().ToArray();
+                var readErrors=new List<Exception>();
+                children=await ReadAllAsync<IHolon>(selected.Select(HolonKey),continueOnError:continueOnError,failures:failures,readErrors:readErrors);
+                if(children.Count+readErrors.Count!=selected.Length || children.Any(child=>!selected.Contains(child.Id) || child.ParentHolonId!=parentId))
+                    throw new System.IO.InvalidDataException("A selected child-role member is absent or belongs to another parent.");
+            }
+            else if (version > 0)
             {
                 // Current parent indexes cannot represent a retained historical record's former parent.
                 var historicalKeys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
@@ -818,7 +859,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             {
                 foreach (var child in children)
                 {
-                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1, 0, path, continueOnError, failures);
+                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1, 0, path, continueOnError, failures,child);
                     child.Children = grandChildren.Result?.ToList() ?? new List<IHolon>();
                 }
             }
@@ -863,7 +904,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     foreach (var holon in selected)
                     {
                         var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, curentChildDepth, 0,
-                            continueOnError: continueOnError, failures: failures);
+                            continueOnError: continueOnError, failures: failures,owner:holon);
                         holon.Children = children.Result.ToList();
                     }
                 return MarkPartialRead(Ok<IEnumerable<IHolon>>(selected), failures);
@@ -956,8 +997,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            try {StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);}
-            catch(Exception ex) when(ex is ArgumentException || ex is NotSupportedException)
+            try {
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                searchParams=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+            }
+            catch(Exception ex)
             {return Fail<ISearchResults>($"Invalid search request: {ex.Message}",ex,"HYPERDRIVE_PAYLOAD_INVALID");}
             try
             {
@@ -1003,7 +1048,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var saved = await SaveHolonsAsync(holons, true, true, 0, 0, false);
-            return saved.IsError ? Fail<bool>(saved.Message, saved.Exception) : new OASISResult<bool>(true) { Message = $"Imported {saved.Result.Count()} holons into {Name}." };
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+            result.Result=!saved.IsError;
+            if(!saved.IsError)result.Message=$"Imported {saved.SavedCount} holons into {Name}.";
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).GetAwaiter().GetResult();

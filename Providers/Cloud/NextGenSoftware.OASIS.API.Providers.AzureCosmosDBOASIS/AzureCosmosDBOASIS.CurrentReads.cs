@@ -71,14 +71,14 @@ public partial class AzureCosmosDBOASIS
 
     private async Task<OASISResult<bool>> DeleteCurrentAvatarSelectorAsync(string selector,bool email,bool soft)
     {
-        var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,0);
+        var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,0).ConfigureAwait(false);
         if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(loaded);
         return await DeleteCurrentAvatarAsync(loaded.Result.Id.ToString(),soft);
     }
 
     private async Task<OASISResult<IHolon>> DeleteCurrentHolonAsync(string key)
     {
-        var result=await ReadCurrentKeyAsync<IHolon>(()=>holonRepository,key,0);
+        var result=await ReadCurrentKeyAsync<IHolon>(()=>holonRepository,key,0).ConfigureAwait(false);
         if(result.IsError) return result;
         var record=result.Result;
         result.Result=null;result.IsLoaded=false;
@@ -99,7 +99,7 @@ public partial class AzureCosmosDBOASIS
         try
         {
             if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonempty Cosmos identity selector is required.",nameof(selector));
-            var loaded=await ReadCurrentListAsync(repository,version);
+            var loaded=await ReadCurrentListAsync(repository,version).ConfigureAwait(false);
             if(loaded.IsError)
             {
                 result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,T>(loaded);
@@ -121,10 +121,10 @@ public partial class AzureCosmosDBOASIS
         try
         {
             if(owner==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.",nameof(owner));
-            var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version);
+            var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version).ConfigureAwait(false);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
-            var pool=await ReadGraphPoolAsync(loaded,version,true,true);
+            var pool=await ReadGraphPoolAsync(loaded,version,true,true).ConfigureAwait(false);
             if(pool.IsError)return pool;
             var project=HolonGraphProjection.Create(pool.Result,true,true,0,0,true,
                 source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
@@ -140,7 +140,7 @@ public partial class AzureCosmosDBOASIS
         var result=new OASISResult<IEnumerable<IHolon>>();
         try
         {
-            var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,version);
+            var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,version).ConfigureAwait(false);
             if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
             return await ExportCurrentOwnedAsync(loaded.Result.Id,version);
         }
@@ -158,7 +158,7 @@ public partial class AzureCosmosDBOASIS
             if(initialDepth<0) throw new ArgumentOutOfRangeException(nameof(initialDepth));
             var search=new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string>(pairs),MetaKeyValuePairMatchMode=mode};
             StoredRecordSearch.Validate(search,version,depth,supportsHistory:true);
-            var loaded=await ReadCurrentHolonsAsync(type,children,recursive,depth,initialDepth,fromProvider,version);
+            var loaded=await ReadCurrentHolonsAsync(type,children,recursive,depth,initialDepth,fromProvider,version).ConfigureAwait(false);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
             result.Result=records.Where(row=>StoredRecordSearch.Matches(row,false,search,records)).ToArray();
@@ -176,10 +176,10 @@ public partial class AzureCosmosDBOASIS
             if(!Guid.TryParse(key,out var id) || id==Guid.Empty) throw new ArgumentException("A nonempty Cosmos parent GUID key is required.",nameof(key));
             if(!Enum.IsDefined(typeof(HolonType),type))throw new ArgumentOutOfRangeException(nameof(type));
             if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
-            var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version);
+            var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version).ConfigureAwait(false);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
-            var pool=await ReadGraphPoolAsync(loaded,version,children,fromProvider);
+            var pool=await ReadGraphPoolAsync(loaded,version,children,fromProvider).ConfigureAwait(false);
             if(pool.IsError)return pool;
             var project=HolonGraphProjection.Create(pool.Result,children,recursive,depth,initialDepth,fromProvider,
                 source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)),rootsAreChildren:true);
@@ -197,10 +197,10 @@ public partial class AzureCosmosDBOASIS
         {
             if(!Enum.IsDefined(typeof(HolonType),type))throw new ArgumentOutOfRangeException(nameof(type));
             if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
-            var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version);
+            var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version).ConfigureAwait(false);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
-            var pool=await ReadGraphPoolAsync(loaded,version,children,fromProvider);
+            var pool=await ReadGraphPoolAsync(loaded,version,children,fromProvider).ConfigureAwait(false);
             if(pool.IsError)return pool;
             var project=HolonGraphProjection.Create(pool.Result,children,recursive,depth,initialDepth,fromProvider,
                 source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
@@ -216,14 +216,14 @@ public partial class AzureCosmosDBOASIS
 
     private async Task<OASISResult<IHolon>> ReadCurrentHolonAsync(Guid id,bool children,bool recursive,int depth,bool fromProvider,int version)
     {
-        var result=await ReadCurrentIdAsync<IHolon>(()=>holonRepository,id,version,depth);
+        var result=await ReadCurrentIdAsync<IHolon>(()=>holonRepository,id,version,depth).ConfigureAwait(false);
         if(result.IsError) return result;
         try
         {
             IEnumerable<IHolon> records=new[] {result.Result};
             if(children && fromProvider)
             {
-                var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,0);
+                var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,0).ConfigureAwait(false);
                 if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(loaded);
                 records=loaded.Result;
             }
@@ -255,7 +255,7 @@ public partial class AzureCosmosDBOASIS
                 if(!activation.Result) throw new InvalidOperationException("Cosmos activation did not acknowledge readiness.");
             }
             var store=repository() ?? throw new InvalidOperationException("Cosmos repository was not initialized.");
-            var rows=(version==0 ? store.GetList() : store.GetList(version)) ?? throw new System.IO.InvalidDataException("Cosmos collection read returned no collection.");
+            var rows=await store.GetListAsync(version).ConfigureAwait(false) ?? throw new System.IO.InvalidDataException("Cosmos collection read returned no collection.");
             result.Result=rows.Where(row=>row.IsActive).ToArray();
             result.IsLoaded=true;
         }
@@ -263,7 +263,8 @@ public partial class AzureCosmosDBOASIS
         return result;
     }
 
-    private async Task<OASISResult<T>> SaveCurrentRecordAsync<T>(T record,Func<IRepository<T>> repository) where T:class,IHolonBase
+    private async Task<OASISResult<T>> SaveCurrentRecordAsync<T>(T record,Func<IRepository<T>> repository,
+        Func<IRepository<T>,T,Task<T>> write=null) where T:class,IHolonBase
     {
         var result=new OASISResult<T>();
         try
@@ -278,14 +279,15 @@ public partial class AzureCosmosDBOASIS
             }
             var store=repository() ?? throw new InvalidOperationException("Cosmos repository was not initialized.");
             publication.ValidateUnchanged();
-            var saved=await store.UpsertAsync(publication.Proposal);
+            var saved=write==null ? await store.UpsertAsync(publication.Proposal):await write(store,publication.Proposal);
             if(saved==null) throw new CosmosMutationReconciliationException(record.Id.ToString(),new System.IO.InvalidDataException("Cosmos save returned no acknowledged record."));
             try{publication.ValidateUnchanged();}
             catch(Exception cause){throw new CosmosMutationReconciliationException(saved.Id.ToString(),cause,acknowledged:true);}
             record.Id=saved.Id;record.Version=saved.Version;record.VersionId=saved.VersionId;record.PreviousVersionId=saved.PreviousVersionId;
+            if(record is Core.Holons.Holon source && saved is Core.Holons.Holon committed)source.ChildRoleManifestJson=committed.ChildRoleManifestJson;
             record.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
             record.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=saved.Id.ToString();
-            result.Result=saved;result.IsSaved=true;
+            result.Result=saved;result.IsSaved=true;result.SavedCount=1;
         }
         catch(Exception cause) {
             OASISErrorHandling.HandleError(ref result,cause.Message,cause);

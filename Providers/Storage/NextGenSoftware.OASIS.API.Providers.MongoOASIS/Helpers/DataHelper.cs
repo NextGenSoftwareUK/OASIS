@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -17,6 +17,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 {
     public static class DataHelper
     {
+        private static Dictionary<ProviderType,Dictionary<string,string>> CopyProviderMetaData(Dictionary<ProviderType,Dictionary<string,string>> source)
+            => source == null ? new Dictionary<ProviderType,Dictionary<string,string>>()
+                : source.ToDictionary(pair => pair.Key, pair => pair.Value == null ? null : new Dictionary<string,string>(pair.Value));
+
         internal static InventoryItem CopyInventoryItem(IInventoryItem value)
             => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<InventoryItem>(value);
         private static EnumValue<T> CopyEnum<T>(EnumValue<T> value)=>value==null?null:new EnumValue<T>(value.Value);
@@ -769,6 +773,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             Core.Holons.Holon oasisHolon = new Core.Holons.Holon();
             oasisHolon.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
             oasisHolon.Id = holon.HolonId;
+            oasisHolon.ChildRoleManifestJson = holon.ChildRoleManifestJson;
             oasisHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>()
                 : new Dictionary<ProviderType,string>(holon.ProviderUniqueStorageKey);
 
@@ -776,9 +781,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisHolon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
 
             oasisHolon.PreviousVersionId = holon.PreviousVersionId;
-            oasisHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey;
+            oasisHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey == null ? null
+                : new Dictionary<ProviderType,string>(holon.PreviousVersionProviderUniqueStorageKey);
             oasisHolon.MetaData = holon.MetaData != null ? new Dictionary<string, object>(holon.MetaData) : new Dictionary<string, object>();
-            oasisHolon.ProviderMetaData = holon.ProviderMetaData;
+            oasisHolon.ProviderMetaData = CopyProviderMetaData(holon.ProviderMetaData);
+            Core.Holons.CosmicConcurrency.SetProviderRevisionId(oasisHolon, ProviderType.MongoDBOASIS, holon.ProviderRevisionId);
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
             oasisHolon.HolonType = holon.HolonType;
@@ -826,7 +833,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisHolon.ParentPlanet = holon.ParentPlanet;
             oasisHolon.ParentMoonId = holon.ParentMoonId;
             oasisHolon.ParentMoon = holon.ParentMoon;
-            //oasisHolon.CustomKey = holon.CustomKey;
+            oasisHolon.CustomKey = holon.CustomKey;
+            oasisHolon.ParentHolonId2 = holon.ParentHolonId2;
+            oasisHolon.ParentHolonId3 = holon.ParentHolonId3;
+            oasisHolon.ParentHolonIds = holon.ParentHolonIds == null ? null : new List<Guid>(holon.ParentHolonIds);
+            oasisHolon.ChildrenIds = holon.ChildrenIds == null ? null : new List<Guid>(holon.ChildrenIds);
 
             if (mapChildren)
                 oasisHolon.Children = holon.Children;
@@ -838,7 +849,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 
             if (holon.Nodes != null)
             {
-                oasisHolon.Nodes = new System.Collections.ObjectModel.ObservableCollection<INode>();
+                oasisHolon.Nodes = new List<INode>();
                 foreach (INode node in holon.Nodes)
                     oasisHolon.Nodes.Add(node);
             }
@@ -892,10 +903,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                 mongoHolon.Id = holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS];
 
             mongoHolon.HolonId = holon.Id;
-            mongoHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
+            mongoHolon.ChildRoleManifestJson = (holon as Core.Holons.Holon)?.ChildRoleManifestJson;
+            mongoHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>()
+                : new Dictionary<ProviderType,string>(holon.ProviderUniqueStorageKey);
             mongoHolon.PreviousVersionId = holon.PreviousVersionId;
-            mongoHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey;
-            mongoHolon.ProviderMetaData = holon.ProviderMetaData;
+            mongoHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey == null ? null
+                : new Dictionary<ProviderType,string>(holon.PreviousVersionProviderUniqueStorageKey);
+            mongoHolon.ProviderMetaData = CopyProviderMetaData(holon.ProviderMetaData);
             mongoHolon.MetaData = holon.MetaData != null ? new Dictionary<string, object>(holon.MetaData) : new Dictionary<string, object>();
             mongoHolon.CreatedOASISType = holon.CreatedOASISType;
             mongoHolon.CreatedProviderType = holon.CreatedProviderType;
@@ -948,7 +962,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.AllChildIdListCache = holon.AllChildIdListCache;
             mongoHolon.ChildIdListCache = holon.ChildIdListCache;
 
-            //mongoHolon.CustomKey = holon.CustomKey;
+            mongoHolon.CustomKey = (holon as Core.Holons.HolonBase)?.CustomKey;
+            mongoHolon.ParentHolonId2 = holon.ParentHolonId2;
+            mongoHolon.ParentHolonId3 = holon.ParentHolonId3;
+            mongoHolon.ParentHolonIds = holon.ParentHolonIds == null ? null : new List<Guid>(holon.ParentHolonIds);
+            mongoHolon.ChildrenIds = holon is Core.Holons.SemanticHolon semantic
+                ? semantic.ChildrenIds == null ? null : new List<Guid>(semantic.ChildrenIds) : new List<Guid>();
             //mongoHolon.Nodes = holon.Nodes;
 
             if (holon.Nodes != null)

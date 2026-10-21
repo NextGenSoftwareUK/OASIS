@@ -94,17 +94,19 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             ArgumentNullException.ThrowIfNull(source);
+            var publication=StoredRecordPublicationSnapshot<T>.Capture(source);
             var originalId=source.Id;
-            var snapshot=clone(source);
+            var snapshot=clone(publication.Proposal);
             snapshot.Id=originalId==Guid.Empty ? Guid.NewGuid():originalId;
             snapshot.IsNewHolon=false;
             snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             snapshot.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();
             var payload=Encoding.UTF8.GetBytes(EncodePrivateRecord(kind,snapshot));
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            publication.ValidateUnchanged();
             var committed=await submit((uint)HashUtility.GetNumericHash(snapshot.Id.ToString()),PrivateExternalId(snapshot.Id),payload);
             acknowledged=snapshot.Id;transaction=committed.Receipt.TransactionHash;
-            if(source.Id!=originalId) throw new InvalidOperationException("Caller profile identity changed during acknowledged Web3Core write.");
+            publication.ValidateUnchanged();
             source.Id=snapshot.Id;
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             source.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();source.IsNewHolon=false;
@@ -122,6 +124,15 @@ public partial class Web3CoreOASISBaseProvider
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
         =>SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
+
+    protected virtual async Task<(TransactionReceipt Receipt,Holon Record)> SavePlannedPrivateHolonAsync(PlannedHolonWrite write,bool createHistory)
+    {
+        Holon committed=null;
+        var receipt=await _web3CoreOASIS.UpsertPreparedAsync("holon",(uint)HashUtility.GetNumericHash(write.Snapshot.Id.ToString()),PrivateExternalId(write.Snapshot.Id),async previous=>{
+            var staged=await StagePrivateHistoryAsync("holon",write.Snapshot,previous,createHistory,write);committed=staged.Record;return staged.Info;
+        });
+        return(receipt,committed);
+    }
 
     public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
     {
@@ -154,17 +165,15 @@ public partial class Web3CoreOASISBaseProvider
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
             foreach(var node in writes)
             {
-                Holon committed=null;
-                var receipt=await _web3CoreOASIS.UpsertPreparedAsync("holon",(uint)HashUtility.GetNumericHash(node.Snapshot.Id.ToString()),PrivateExternalId(node.Snapshot.Id),async previous=>{
-                    var staged=await StagePrivateHistoryAsync("holon",node.Snapshot,previous,createHistory);committed=staged.Record;return staged.Info;
-                });
+                node.Publication.ValidateUnchanged();
+                var (receipt,committed)=await SavePlannedPrivateHolonAsync(node.Write,createHistory);
                 acknowledged.Add(committed);transactions.Add(receipt.TransactionHash);
-                if(node.Source.Id!=node.OriginalId || node.Source.ParentHolonId!=node.OriginalParent)
-                    throw new InvalidOperationException("Caller graph identity changed during acknowledged Web3Core write.");
+                node.Publication.ValidateUnchanged();
                 node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                 node.Source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
                 node.Source.ProviderUniqueStorageKey[ProviderType.Value]=node.Snapshot.Id.ToString();node.Source.IsNewHolon=false;
                 node.Source.Version=committed.Version;node.Source.VersionId=committed.VersionId;node.Source.PreviousVersionId=committed.PreviousVersionId;
+                if(node.Source is Holon source)source.ChildRoleManifestJson=committed.ChildRoleManifestJson;
             }
             result.Result=plan.Roots;result.IsSaved=true;
         }
@@ -188,6 +197,8 @@ public partial class Web3CoreOASISBaseProvider
         var maxDepth=maxChildDepth;
         var result=new OASISResult<ISearchResults>();
         try {
+            StoredRecordSearch.Validate(search,version,maxDepth,supportsHistory:true);
+            search=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(search);
             StoredRecordSearch.Validate(search,version,maxDepth,supportsHistory:true);
             var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
             var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);

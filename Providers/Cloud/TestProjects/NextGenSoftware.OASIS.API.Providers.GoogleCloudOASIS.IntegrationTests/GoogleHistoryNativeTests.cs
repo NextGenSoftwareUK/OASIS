@@ -19,6 +19,8 @@ public partial class GoogleHistoryNativeTests
         public Grpc.Core.RpcException? NativeFailure;
         public readonly IOException Lost=new("Owned native commit acknowledgement withheld after actual success.");
         public override Google.Cloud.Firestore.V1.FirestoreSettings Settings=>inner.Settings;
+        public override Task<Google.Cloud.Firestore.V1.BeginTransactionResponse> BeginTransactionAsync(Google.Cloud.Firestore.V1.BeginTransactionRequest request,Google.Api.Gax.Grpc.CallSettings settings=null)=>inner.BeginTransactionAsync(request,settings);
+        public override Task RollbackAsync(Google.Cloud.Firestore.V1.RollbackRequest request,Google.Api.Gax.Grpc.CallSettings settings=null)=>inner.RollbackAsync(request,settings);
         public override BatchGetDocumentsStream BatchGetDocuments(Google.Cloud.Firestore.V1.BatchGetDocumentsRequest request,Google.Api.Gax.Grpc.CallSettings callSettings=null)
             =>inner.BatchGetDocuments(request,callSettings);
         public override async Task<Google.Cloud.Firestore.V1.CommitResponse> CommitAsync(Google.Cloud.Firestore.V1.CommitRequest request,Google.Api.Gax.Grpc.CallSettings callSettings=null)
@@ -28,7 +30,13 @@ public partial class GoogleHistoryNativeTests
             else Assert.IsNotNull(request.Writes.Single().CurrentDocument.UpdateTime);
             if(mode is "conflict" or "create-race"){
                 // Deterministic real service interleaving: an independent writer wins the observed revision.
-                await inner.CommitAsync(request.Clone(),callSettings);CompetitorCommits++;
+                var competing=request.Clone();
+                if(!request.Transaction.IsEmpty){
+                    // Release this test's read locks, expire its original transaction, then let an independent native writer win.
+                    await inner.RollbackAsync(new Google.Cloud.Firestore.V1.RollbackRequest{Database=request.Database,Transaction=request.Transaction},callSettings);
+                    competing.Transaction=Google.Protobuf.ByteString.Empty;
+                }
+                await inner.CommitAsync(competing,callSettings);CompetitorCommits++;
             }
             Google.Cloud.Firestore.V1.CommitResponse actual;
             try{actual=await inner.CommitAsync(request,callSettings);}
@@ -77,11 +85,12 @@ public partial class GoogleHistoryNativeTests
                 else Check(await provider.SaveHolonAsync((IHolon)row,saveChildren:false),initial);
             }
             void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result,bool initial){
-                if(initial){Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);return;}
-                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
+                if(initial){Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);Assert.AreEqual(1,result.SavedCount);return;}
+                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);Assert.AreEqual(0,result.SavedCount,"Unknown/rejected acknowledgement cannot be counted as a successful write.");
                 if(mode is "conflict" or "create-race"){
                     Assert.IsInstanceOfType<Grpc.Core.RpcException>(result.Exception);
-                    Assert.AreEqual(mode=="create-race"?Grpc.Core.StatusCode.AlreadyExists:Grpc.Core.StatusCode.FailedPrecondition,((Grpc.Core.RpcException)result.Exception).StatusCode);
+                    var status=((Grpc.Core.RpcException)result.Exception).StatusCode;
+                    Assert.AreEqual(kind<2?Grpc.Core.StatusCode.Aborted:mode=="create-race"?Grpc.Core.StatusCode.AlreadyExists:Grpc.Core.StatusCode.FailedPrecondition,status);
                     Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
                 }else{
                     Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
@@ -221,7 +230,9 @@ public partial class GoogleHistoryNativeTests
         Assert.AreEqual(0,Directory.GetFiles(work,"*.pending.json").Length,"Reconcile original native intents before another fixture.");
         var id=Guid.NewGuid();var collection=kind==0?"avatars":kind==1?"avatarDetails":"holons";
         IHolonBase row=kind==0?new Avatar{Id=id,IsActive=true}:kind==1?new AvatarDetail{Id=id,IsActive=true}:new Holon{Id=id,IsActive=true};
-        row.MetaData=new(){["owned_history_native"]="first"};
+        const decimal exactMetadata=0.1234567890123456789012345678m;
+        const string numericText="0.1234567890123456789012345678";
+        row.MetaData=new(){["owned_history_native"]="first",["exact_decimal"]=exactMetadata,["numeric_text"]=numericText};
         var oldName="owned-history-"+id;var oldEmail=oldName+"@example.invalid";
         if(row is IAvatar profile){profile.Username=oldName;profile.Email=oldEmail;profile.VerificationToken=oldName;}
         if(row is IAvatarDetail identity){identity.Username=oldName;identity.Email=oldEmail;}
@@ -245,6 +256,15 @@ public partial class GoogleHistoryNativeTests
             if(row is IAvatar currentProfile){currentProfile.Username=oldName+"-changed";currentProfile.Email="changed-"+oldEmail;currentProfile.VerificationToken=oldName+"-changed";}
             if(row is IAvatarDetail currentIdentity){currentIdentity.Username=oldName+"-changed";currentIdentity.Email="changed-"+oldEmail;}
             await Save();Assert.AreEqual(2,row.Version);Assert.AreEqual(firstVersion,row.PreviousVersionId);
+            foreach(var selectedVersion in new[]{0,1}){
+                IHolonBase selected;
+                if(kind==0){var loaded=await provider.LoadAvatarAsync(id,selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                else if(kind==1){var loaded=await provider.LoadAvatarDetailAsync(id,selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                else{var loaded=await provider.LoadHolonAsync(id,loadChildren:false,version:selectedVersion);Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());selected=loaded.Result;}
+                Assert.AreEqual(exactMetadata,Convert.ToDecimal(selected.MetaData["exact_decimal"],System.Globalization.CultureInfo.InvariantCulture));
+                Assert.IsInstanceOfType<string>(selected.MetaData["numeric_text"]);
+                Assert.AreEqual(numericText,selected.MetaData["numeric_text"]);
+            }
             var actual=await reference.GetSnapshotAsync();Assert.IsTrue(actual.Exists);Assert.IsTrue(actual.UpdateTime.HasValue);
             var document=JObject.Parse(actual.GetValue<string>("data_json"));Assert.AreEqual(2,document["Version"]!.Value<int>());
             Assert.AreEqual(2L,actual.GetValue<long>("version"));Assert.AreEqual("second",document["MetaData"]!["owned_history_native"]!.Value<string>());

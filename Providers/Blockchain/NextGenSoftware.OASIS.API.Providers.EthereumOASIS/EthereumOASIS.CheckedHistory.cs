@@ -14,7 +14,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 
 public partial class EthereumOASIS
 {
-    private async Task<(TransactionReceipt Receipt,T Record)> UpsertStorageHistoryAsync<T>(string kind,T proposed,bool createHistory)
+    protected virtual async Task<(TransactionReceipt Receipt,T Record)> UpsertStorageHistoryAsync<T>(string kind,T proposed,bool createHistory)
+        where T:class,IHolonBase
+        =>await UpsertStorageHistoryCoreAsync(kind,proposed,createHistory,null);
+
+    protected virtual Task<(TransactionReceipt Receipt,Holon Record)> UpsertPlannedStorageHistoryAsync(PlannedHolonWrite write,bool createHistory)
+        =>UpsertStorageHistoryCoreAsync("holon",write.Snapshot,createHistory,write);
+
+    private async Task<(TransactionReceipt Receipt,T Record)> UpsertStorageHistoryCoreAsync<T>(string kind,T proposed,bool createHistory,PlannedHolonWrite planned)
         where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(proposed);
@@ -30,7 +37,7 @@ public partial class EthereumOASIS
         var observed=await ReadHistorySnapshotAsync(kind,key);
         var present=observed.EntityId!=0 || !string.IsNullOrEmpty(observed.Identity) || !string.IsNullOrEmpty(observed.Info);
         var hash=present?Sha3Keccack.Current.CalculateHash(Encoding.UTF8.GetBytes(observed.Info??string.Empty)):new byte[32];
-        var staged=await StageStorageHistoryAsync(kind,snapshot,observed.EntityId,observed.Identity,observed.Info,createHistory);
+        var staged=await StageStorageHistoryWithPlanAsync(kind,snapshot,observed.EntityId,observed.Identity,observed.Info,createHistory,planned);
         Contracts.CheckedStorageFunction request=kind switch {
             "avatar"=>new Contracts.CreateAvatarCheckedFunction(),
             "avatar-detail"=>new Contracts.CreateAvatarDetailCheckedFunction(),

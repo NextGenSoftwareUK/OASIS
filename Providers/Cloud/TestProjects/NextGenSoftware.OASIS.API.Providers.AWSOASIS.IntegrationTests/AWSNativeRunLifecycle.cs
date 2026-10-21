@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 
 // Explicit runner phases, excluded from the provider suite itself. A failed suite retains its marker/data.
 [TestClass][DoNotParallelize]
-public sealed class AWSNativeRunLifecycle
+public sealed partial class AWSNativeRunLifecycle
 {
     private static readonly string[] Tables={"OasisAvatars","OasisAvatarDetails","OasisHolons"};
     private static string Work()=>Environment.GetEnvironmentVariable("OASIS_DYNAMO_HISTORY_WORK")??throw new InvalidOperationException("Retained runner required.");

@@ -24,7 +24,8 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
         try{
             cancellationToken.ThrowIfCancellationRequested();var plan=ConditionalHolonPlan.Create(request,Core.Enums.ProviderType.OracleDBOASIS);
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync(cancellationToken);
-            await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync(cancellationToken);
+            await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted,cancellationToken);
+            await AcquireWriteOperationLockAsync(connection,transaction,request.Write.OperationId,cancellationToken);
             try{
                 await using var claim=CreateCommand("INSERT INTO OASIS_WRITE_RECEIPTS(OPERATION_ID,REQUEST_HASH) VALUES(:Id,:Hash)",connection);claim.Transaction=transaction;
                 claim.Parameters.Add("Id",OracleDbType.Raw).Value=request.Write.OperationId.ToByteArray();claim.Parameters.Add("Hash",OracleDbType.Varchar2).Value=plan.Fingerprint;
@@ -57,6 +58,9 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
             foreach(var node in plan.Nodes){
                 cancellationToken.ThrowIfCancellationRequested();var old=previous[node.Snapshot.Id];
                 var proposal=request.Operation==ConditionalHolonOperation.Save?node.Snapshot:Core.Serialization.StoredRecordJson.Project<Holon>(old!);
+                proposal.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(node,
+                    request.Operation==ConditionalHolonOperation.Save?HolonChildRoleWriteKind.SourceSave:HolonChildRoleWriteKind.SourceDelete,
+                    old!=null,old?.ChildRoleManifestJson);
                 proposal.Version=old==null?1:checked(old.Version+1);proposal.PreviousVersionId=old?.VersionId??Guid.Empty;proposal.VersionId=Guid.NewGuid();
                 var now=DateTime.UtcNow;
                 if(old==null){proposal.CreatedDate=now;proposal.CreatedByAvatarId=request.Write.ActorId;proposal.CreatedProviderType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.OracleDBOASIS);proposal.ModifiedDate=DateTime.MinValue;proposal.ModifiedByAvatarId=Guid.Empty;}
@@ -86,9 +90,16 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
                 receipt.Transaction=transaction;receipt.Parameters.Add("Json",OracleDbType.Clob).Value=receiptJson;receipt.Parameters.Add("Id",OracleDbType.Raw).Value=request.Write.OperationId.ToByteArray();receipt.Parameters.Add("Hash",OracleDbType.Varchar2).Value=plan.Fingerprint;
                 if(await receipt.ExecuteNonQueryAsync(cancellationToken)!=1)throw new InvalidDataException("Oracle conditional receipt claim changed unexpectedly.");
             }
+            // Keep the per-operation guard until receipt+graph are ready, then remove it
+            // in this SAME transaction. Waiters cannot observe absence before the receipt commits.
+            await using(var release=CreateCommand("DELETE FROM OASIS_WRITE_OPERATION_LOCKS WHERE OPERATION_ID=:Id",connection)) {
+                release.Transaction=transaction;release.Parameters.Add("Id",OracleDbType.Raw).Value=request.Write.OperationId.ToByteArray();
+                if(await release.ExecuteNonQueryAsync(cancellationToken)!=1)throw new InvalidDataException("Oracle operation guard changed before commit.");
+            }
             cancellationToken.ThrowIfCancellationRequested();commitEntered=true;await CommitLifecycleTransactionAsync(transaction);
             return ConditionalAcknowledgement(validated,request.Operation);
         }catch(CosmicConcurrencyException cause){return ConditionalFailure(CosmicConcurrencyException.Code,cause.Message,cause);}
+        catch(Core.Helpers.StorageLifecycleConflictException cause){return ConditionalFailure(Core.Helpers.StorageLifecycleConflictException.ErrorCode,cause.Message,cause);}
         catch(OracleException cause)when(!commitEntered&&cause.Number==1013&&cancellationToken.IsCancellationRequested){
             // ODP.NET can report caller cancellation as ORA-01013. Preserve the native cause,
             // but expose cancellation to the shared router rather than an eligible transport failure.
@@ -104,7 +115,7 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
         return roots;
     }
     private static OASISResult<IEnumerable<IHolon>> ConditionalAcknowledgement(IEnumerable<IHolon> roots,ConditionalHolonOperation operation)
-        =>new(){Result=roots,IsSaved=operation==ConditionalHolonOperation.Save,IsDeleted=operation!=ConditionalHolonOperation.Save};
+        =>ConditionalHolonAcknowledgement.Create(roots,operation);
     private static OASISResult<IEnumerable<IHolon>> ConditionalFailure(string code,string message,Exception? cause=null)
         =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
 }

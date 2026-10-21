@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -491,7 +491,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return incoming;
             }
             incoming.CreatedProviderType = existing.CreatedProviderType;
+            incoming.HasCreatedProviderType = existing.HasCreatedProviderType;
             incoming.CreatedOASISType = existing.CreatedOASISType;
+            incoming.HasCreatedOASISType = existing.HasCreatedOASISType;
             _dbContext.Entry(existing).CurrentValues.SetValues(incoming);
             foreach (var token in existing.RefreshTokens.ToList())
             {
@@ -532,7 +534,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 VersionId = avatar.VersionId,
                 PreviousVersionId = avatar.PreviousVersionId,
                 CustomHolonType = avatar.CustomHolonType,
+                HasCreatedProviderType = avatar.CreatedProviderType != null,
                 CreatedProviderType = avatar.CreatedProviderType?.Value ?? default,
+                HasCreatedOASISType = avatar.CreatedOASISType != null,
                 CreatedOASISType = avatar.CreatedOASISType?.Value ?? default,
                 IsVerified = avatar.IsVerified,
                 RefreshTokens = (avatar.RefreshTokens ?? new List<NextGenSoftware.OASIS.API.Core.Objects.RefreshToken>())
@@ -555,7 +559,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Username = avatar.Username,
                 VerificationToken = avatar.VerificationToken,
                 Verified = avatar.Verified,
-                AvatarType = avatar.AvatarType.Value,
+                HasAvatarType = avatar.AvatarType != null,
+                AvatarType = avatar.AvatarType?.Value ?? default,
                 Description = avatar.Description
             };
         }
@@ -581,8 +586,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 VersionId = avatar.VersionId,
                 PreviousVersionId = avatar.PreviousVersionId,
                 CustomHolonType = avatar.CustomHolonType,
-                CreatedProviderType = new NextGenSoftware.Utilities.EnumValue<ProviderType>(avatar.CreatedProviderType),
-                CreatedOASISType = new NextGenSoftware.Utilities.EnumValue<OASISType>(avatar.CreatedOASISType),
+                CreatedProviderType = avatar.HasCreatedProviderType ? new NextGenSoftware.Utilities.EnumValue<ProviderType>(avatar.CreatedProviderType) : null,
+                CreatedOASISType = avatar.HasCreatedOASISType ? new NextGenSoftware.Utilities.EnumValue<OASISType>(avatar.CreatedOASISType) : null,
                 RefreshTokens = avatar.RefreshTokens.Select(token => token.GetRefreshToken()).ToList(),
                 CreatedByAvatarId = avatar.CreatedByAvatarId == null ? Guid.Empty : Guid.Parse(avatar.CreatedByAvatarId),
                 ModifiedByAvatarId = avatar.ModifiedByAvatarId == null ? Guid.Empty : Guid.Parse(avatar.ModifiedByAvatarId),
@@ -602,7 +607,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 VerificationToken = avatar.VerificationToken,
                 Verified = avatar.Verified,
                 AvatarId = Guid.Parse(avatar.Id),
-                AvatarType = new EnumValue<AvatarType>(avatar.AvatarType),
+                AvatarType = avatar.HasAvatarType ? new EnumValue<AvatarType>(avatar.AvatarType) : null,
                 Description = avatar.Description
             };
         }

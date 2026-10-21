@@ -14,7 +14,8 @@ public partial class Web3CoreOASISBaseProvider
     private static readonly EmbeddedRecordHistory PrivateHistory=new();
 
     // Detached staging only. The existing checked native writer must own persistence and publication.
-    internal async Task<(T Record,byte[] Info)> StagePrivateHistoryAsync<T>(string kind,T proposal,EntityOASIS previous,bool createHistory) where T:class,IHolonBase
+    internal async Task<(T Record,byte[] Info)> StagePrivateHistoryAsync<T>(string kind,T proposal,EntityOASIS previous,bool createHistory,
+        PlannedHolonWrite plannedHolon=null) where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(proposal);
         var expected=kind switch{"avatar"=>typeof(Avatar),"detail"=>typeof(AvatarDetail),"holon"=>typeof(Holon),_=>null};
@@ -29,8 +30,15 @@ public partial class Web3CoreOASISBaseProvider
             if(decoded.Record.Id!=proposal.Id)throw new InvalidDataException("Web3Core prior record differs from proposed identity.");
             prior=decoded.Document;
         }
+        if(expected==typeof(Holon)&&detached is Holon holon){
+            if(plannedHolon!=null&&plannedHolon.Snapshot.Id!=holon.Id)
+                throw new InvalidDataException("Web3Core captured plan differs from the staged holon identity.");
+            var observed=prior==null?null:OasisJson.DeserializeStored<Holon>(PrivateHistory.CanonicalPayload(prior).ToString(Newtonsoft.Json.Formatting.None));
+            holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plannedHolon??new PlannedHolonWrite(holon,holon),
+                HolonChildRoleWriteKind.SourceSave,prior!=null,observed?.ChildRoleManifestJson);
+        }
         var document=createHistory || prior?.Property(EmbeddedRecordHistory.PropertyName)!=null
-            ?await PrivateHistory.StageAsync(detached,prior,OasisJson.Deserialize<T>):JObject.Parse(OasisJson.Serialize(detached));
+            ?await PrivateHistory.StageAsync(detached,prior,OasisJson.Deserialize<T>):OasisJson.ParseStoredObject(OasisJson.Serialize(detached));
         var staged=OasisJson.Deserialize<T>(document.ToString(Newtonsoft.Json.Formatting.None));
         var context=PrivateContext(kind,(uint)Core.Utilities.HashUtility.GetNumericHash(staged.Id.ToString()),PrivateExternalId(staged.Id));
         using var codec=OpenPrivateCodec();
