@@ -1,5 +1,9 @@
 # COSMIC source integration boundary
 
+## Neo4j delete transaction ownership — 20 October 2026
+
+Identity saves, paired avatar deletes and ordinary hard-holon deletes now share one private native transaction owner. Validated candidates publish only after acknowledged COMMIT/read-only rollback; definite rejected writes retain real errors, unknown outcomes have zero success flags/counts, and known commits survive cleanup as warnings. Avatar deletion reports one logical avatar; matching repeated soft deletion preserves its original evidence with zero changes/count/COMMIT. Original32 failures/6 missing controls close in full276 controls, focused34/full265 native and Shared917, zero skips. [Contract and exact evidence](NEO4J_DELETE_OWNERSHIP.md). No Core/Shared/pin change; broader lifecycle/restore/provider/default-CRUD and full roadmap acceptance remain open.
+
 ## Neo4j avatar/detail save ownership — 20 October 2026
 
 Both identity save routes now use one native owner for locked observations, lifecycle admission, optional history, exact observed-snapshot/creation-claim replacement, acknowledgement, COMMIT/rollback and disposal. History-off saves enforce the same tombstone preconditions. Definite rejected writes retain their real errors after acknowledged rollback; known commits survive cleanup as saved warnings. Original lifecycle32 failures/16 controls close in full238 controls, focused20/full231 native and Shared917, zero skips. [Contract, original broad-run certification corrections and exact inspected fixture/artifact evidence](NEO4J_IDENTITY_SAVE.md). Delete ownership, related-kind lifecycle coordination, explicit authorized restore and the full roadmap remain open.

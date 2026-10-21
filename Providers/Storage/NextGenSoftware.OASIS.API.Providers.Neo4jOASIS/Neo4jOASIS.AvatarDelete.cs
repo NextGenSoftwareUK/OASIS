@@ -56,19 +56,17 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
 
     private async Task<OASISResult<bool>> DeleteAvatarRecordAsync(string field, string value, bool softDelete, Core.Objects.AvatarTombstone supplied = null)
     {
-        var response = new OASISResult<bool>();
-        var dispatched = false;
-        var archiveVersions = IsVersionControlEnabled;
-        Core.Objects.AvatarTombstone tombstone = null;
         try
         {
-            if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Avatar deletion selector is required.");
-            if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
-            using (var session = _driver.AsyncSession())
+            if(string.IsNullOrWhiteSpace(value))throw new ArgumentException("Avatar deletion selector is required.");
+            _=AvatarSelectionQuery(field);
+            var archiveVersions=IsVersionControlEnabled;
+            return await ExecuteOwnedNeoMutationAsync<bool>(async transaction=>
             {
-                var found = await (await session.RunAsync(AvatarSelectionQuery(field), new { value })).ToListAsync();
+                Core.Objects.AvatarTombstone tombstone=null;
+                var found = await (await transaction.RunAsync(AvatarSelectionQuery(field), new { value })).ToListAsync();
                 if (found.Count == 0)
-                    return new OASISResult<bool>(false) { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar not found in Neo4j." };
+                    return (new OASISResult<bool>(false) { IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar not found in Neo4j." },false);
                 if (found.Count != 1) throw new StorageLifecycleConflictException("Neo4j avatar selector is not unique.");
                 var node = found[0]["a"].As<Neo4j.Driver.INode>();
                 if (!node.Properties.TryGetValue("SnapshotJson", out var json)) throw new InvalidDataException("Neo4j avatar canonical snapshot is missing.");
@@ -83,7 +81,7 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
                     patched.DeletedByAvatarId = supplied.DeletedByAvatarId;
                     plan.Parameters["snapshot"] = OasisJson.Serialize(patched);
                 }
-                var detailRows = await (await session.RunAsync("MATCH (a:AvatarDetail {Id:$id}) RETURN a", new { id = indexedId })).ToListAsync();
+                var detailRows = await (await transaction.RunAsync("MATCH (a:AvatarDetail {Id:$id}) RETURN a", new { id = indexedId })).ToListAsync();
                 if (detailRows.Count > 1) throw new StorageLifecycleConflictException("Neo4j avatar-detail identity is not unique.");
                 if (supplied != null && detailRows.Count == 0) throw new StorageLifecycleConflictException("Committed tombstone requires an existing avatar-detail record.");
                 Dictionary<string, object> detailParameters = null;
@@ -106,8 +104,14 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
                         detailParameters["snapshot"] = OasisJson.Serialize(detail);
                     }
                 }
-                using var transaction = await session.BeginTransactionAsync();
-                dispatched = true;
+
+                if(softDelete&&original.IsDeleted&&!original.IsActive
+                    &&(detailParameters==null||ReadDetailNode(detailRows[0]["a"].As<Neo4j.Driver.INode>()).IsDeleted
+                        &&!ReadDetailNode(detailRows[0]["a"].As<Neo4j.Driver.INode>()).IsActive))
+                {
+                    var unchanged=new OASISResult<bool>(true){IsDeleted=true,Message="Avatar tombstone already matches Neo4j."};
+                    AvatarTombstoneEvidence.Attach(unchanged,tombstone);return(unchanged,false);
+                }
                 if(softDelete && archiveVersions)
                 {
                     if(!original.IsDeleted)
@@ -128,7 +132,6 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
                 var changed = await (await transaction.RunAsync(plan.Query, plan.Parameters)).ToListAsync();
                 if (changed.Count == 0)
                 {
-                    if(!softDelete || !archiveVersions)dispatched = false; // History-enabled transaction may already have archive writes.
                     throw new StorageLifecycleConflictException("Neo4j avatar changed before deletion.");
                 }
                 if (changed.Count != 1 || changed[0]["affected"].As<int>() != 1)
@@ -143,22 +146,13 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
                 if(!softDelete)
                     await (await transaction.RunAsync("MATCH (v:OasisRecordVersion {RecordId:$id}) WHERE v.Kind IN ['Avatar','AvatarDetail'] DETACH DELETE v",
                         new{id=indexedId})).ConsumeAsync();
-                await transaction.CommitAsync();
-            }
-            response.Result = true;
-            response.IsSaved = true;
-            response.IsDeleted = true;
-            if (tombstone != null) AvatarTombstoneEvidence.Attach(response, tombstone);
-            response.Message = softDelete ? "Avatar soft deleted in Neo4j." : "Avatar hard deleted in Neo4j.";
+
+                var response=new OASISResult<bool>(true){IsSaved=true,IsDeleted=true,DeletedCount=1,HasAnyHolonsChanged=true,
+                    Message=softDelete?"Avatar soft deleted in Neo4j.":"Avatar hard deleted in Neo4j."};
+                if(tombstone!=null)AvatarTombstoneEvidence.Attach(response,tombstone);
+                return(response,true);
+            }).ConfigureAwait(false);
         }
-        catch (Exception cause)
-        {
-            response.IsError = true;
-            response.Result = false;
-            response.Exception = dispatched ? new Neo4jMutationReconciliationException(cause) : cause;
-            response.Message = response.Exception.Message;
-            if (cause is StorageLifecycleConflictException) response.ErrorCode = StorageLifecycleConflictException.ErrorCode;
-        }
-        return response;
+        catch(Exception cause){return NeoMutationAdmissionFailure<bool>(cause);}
     }
 }

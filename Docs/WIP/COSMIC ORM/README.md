@@ -6,6 +6,8 @@ These are working documents. Dated reports retain historical evidence; earlier c
 
 ## Documents
 
+- [Neo4j delete ownership, acknowledgement counts and repeated soft deletes](NEO4J_DELETE_OWNERSHIP.md).
+
 - [Neo4j avatar/detail save lifecycle and transaction ownership](NEO4J_IDENTITY_SAVE.md).
 
 - [Neo4j save lifecycle: tombstone admission and verification](NEO4J_SAVE_LIFECYCLE.md).

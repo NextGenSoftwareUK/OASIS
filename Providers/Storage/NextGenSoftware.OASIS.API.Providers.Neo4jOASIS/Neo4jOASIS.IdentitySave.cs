@@ -25,12 +25,8 @@ public partial class Neo4jOASIS
     private async Task<OASISResult<T>> WriteIdentitySnapshotAsync<T>(string kind,T staged,Func<INode,T> readCurrent,
         string assignments,Func<T,Dictionary<string,object>> nativeFields,bool archiveVersions) where T:class,IHolonBase
     {
-        var result=new OASISResult<T>();var state=new NeoHolonTransactionState();
-        IAsyncSession session=null;IAsyncTransaction transaction=null;Exception failure=null,operationFailure=null;
-        try
+        return await ExecuteOwnedNeoMutationAsync<T>(async transaction=>
         {
-            if(!IsProviderActivated||_driver==null)throw new InvalidOperationException("Neo4j provider is not activated.");
-            session=_driver.AsyncSession();transaction=await session.BeginTransactionAsync().ConfigureAwait(false);
             var observed=await ReadLockedIdentityAsync(transaction,kind,staged.Id,readCurrent).ConfigureAwait(false);
             RequireSaveLifecycle(observed.Previous,staged);
             if(archiveVersions)await StoredRecordVersions.StampAsync(staged.Id,staged,observed.Previous,stored=>ArchiveRecordVersionAsync(transaction,kind,stored)).ConfigureAwait(false);
@@ -42,35 +38,7 @@ public partial class Neo4jOASIS
             if(rows.Count!=1)throw new InvalidDataException("Neo4j identity save did not acknowledge exactly one record.");
             var acknowledged=readCurrent(rows[0]["a"].As<INode>());
             RequireAcknowledgedRecord(staged,acknowledged);
-            state.CommitDispatched=true;await transaction.CommitAsync().ConfigureAwait(false);state.KnownCommitted=true;
-            result.Result=acknowledged;result.IsSaved=true;result.SavedCount=1;result.HasAnyHolonsChanged=true;
-        }
-        catch(Exception cause)
-        {
-            failure=cause;operationFailure=cause;
-            if(transaction!=null&&!state.CommitDispatched&&!state.KnownCommitted)
-            {
-                try{await transaction.RollbackAsync().ConfigureAwait(false);}
-                catch(Exception rollback){state.RollbackFailed=true;failure=new AggregateException(cause,rollback);}
-            }
-        }
-        finally
-        {
-            foreach(var resource in new IDisposable[]{transaction,session})
-            {
-                try{resource?.Dispose();}
-                catch(Exception cleanup){failure=failure==null?cleanup:new AggregateException(failure,cleanup);}
-            }
-        }
-        if(failure==null)return result;
-        result.Exception=failure;result.Message=failure.Message;
-        if(state.KnownCommitted){result.IsWarning=true;result.WarningCount++;return result;}
-        var uncertain=state.CommitDispatched||state.RollbackFailed;
-        result.IsError=true;result.ErrorCount++;result.Result=null;result.IsSaved=false;result.SavedCount=0;result.HasAnyHolonsChanged=false;
-        if(uncertain)result.Exception=new Neo4jMutationReconciliationException(failure);
-        var reason=operationFailure??failure;
-        result.ErrorCode=uncertain?"COSMIC_WRITE_RECONCILIATION_REQUIRED":reason is StorageLifecycleConflictException?StorageLifecycleConflictException.ErrorCode
-            :reason is ArgumentException or InvalidDataException?"HYPERDRIVE_PAYLOAD_INVALID":"COSMIC_WRITE_FAILED";
-        result.Message=result.Exception.Message;return result;
+            return (new OASISResult<T>{Result=acknowledged,IsSaved=true,SavedCount=1,HasAnyHolonsChanged=true},true);
+        }).ConfigureAwait(false);
     }
 }
