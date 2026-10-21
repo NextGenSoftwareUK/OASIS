@@ -20,7 +20,7 @@ using Provider=NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
-public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
+public sealed partial class CosmicCqlNativeTests(ITestOutputHelper output)
 {
     public sealed class RatedCoffee:Holon
     {
@@ -296,6 +296,7 @@ public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
                 await Check(root=>!(CosmicQueryMetadata.Value<Guid>(root,"guid.probe")==target),vector.Equal?new[]{b,c,d}:roots);
             }
             await rows.UpdateOneAsync(new BsonDocument("_id",originalA["_id"]),new BsonDocument("$set",new BsonDocument("MetaData",originalA["MetaData"])));
+            await CheckNarrowIntegerDomains(rows,arrayDictionary,a,b,baseQuery,Check,Window);
             var limited=await manager.ExecuteQueryAsync(Plan(root=>true),new[]{adapter},maximumResults:1);
             Assert.True(limited.IsError);Assert.Null(limited.Result);Assert.Equal("CQL_QUERY_LIMIT",limited.ErrorCode);
             using var cancelled=new CancellationTokenSource();cancelled.Cancel();

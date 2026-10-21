@@ -2,6 +2,8 @@
 
 ## CQL exact narrow integer domains — 20 October 2026
 
+MongoDB enrollment now adds the same exact narrow integer/nullable domains, with one native BSON guard reused by comparison, membership, field comparison and ordering. Original five admission failures close in full202 controls and expanded3 native CQL scenarios, zero skips; both dictionary layouts and Int32/Int64 storage representations pass, with12 declared producer/consumer copies matching. [Native evidence and hashes](CQL_INTEGER_DOMAINS.md#verified-mongodb-enrollment). Other adapters and decimal/double/enum/UInt64 domains remain open.
+
 The common compiler now admits whole-domain lossless integer promotions, fixing ordinary C# byte/short comparisons while rejecting narrowing and nullable erasure. SQLite adds exact byte/sbyte/short/ushort/uint and nullable metadata domains for comparisons, membership, field comparisons and ordering. Full pinned Core1,611/1,611 and SQLite1,174/1,174 pass, zero skips; six declared producer/consumer assemblies match. [Usage and exact verification evidence](CQL_INTEGER_DOMAINS.md). Other native adapters and broader numeric/enum domains remain open.
 
 ## SQLite karma history fidelity — 20 October 2026
