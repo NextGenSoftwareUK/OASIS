@@ -1619,6 +1619,41 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.KarmaAkashicRecordModel", b =>
                 {
+                    b.Property<int>("SequenceIndex")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("DateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasKarmaSource")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasKarmaEarntOrLost")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasKarmaTypePositive")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasKarmaTypeNegative")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasProvider")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");

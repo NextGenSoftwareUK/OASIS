@@ -581,7 +581,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         private void SetKarmaHistory(AvatarDetailModel existing,IAvatarDetail source)
         {
             var incoming=(source.KarmaAkashicRecords ?? new List<Core.Interfaces.Avatar.IKarmaAkashicRecord>())
-                .Select(record=>new KarmaAkashicRecordModel(record)).ToList();
+                .Select((record,index)=>new KarmaAkashicRecordModel(record){SequenceIndex=index}).ToList();
             if(incoming.Any(record=>record.AvatarId!=existing.Id))
                 throw new ArgumentException("Karma history records must belong to the avatar detail being saved.");
             _dbContext.RemoveRange(existing.KarmaAkashicRecords);
@@ -631,7 +631,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Email = avatarDetailEntity.Email,
                 Id = Guid.Parse(avatarDetailEntity.Id),
                 Karma = avatarDetailEntity.Karma,
-                KarmaAkashicRecords = avatarDetailEntity.KarmaAkashicRecords.OrderBy(row=>row.Id)
+                KarmaAkashicRecords = avatarDetailEntity.KarmaAkashicRecords.OrderBy(row=>row.SequenceIndex).ThenBy(row=>row.Id)
                     .Select(row=>(Core.Interfaces.Avatar.IKarmaAkashicRecord)row.GetKarmaAkashicRecord()).ToList(),
                 Landline = avatarDetailEntity.Landline,
                 Mobile = avatarDetailEntity.Mobile,

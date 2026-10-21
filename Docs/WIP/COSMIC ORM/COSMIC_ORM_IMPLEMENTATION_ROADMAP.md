@@ -10,7 +10,7 @@ User direction: implement and certify Hyperdrive V2 only. Record legacy Hyperdri
 
 ## Current acceptance checkpoint — 20 October 2026
 
-SQLite karma history: [root-cause repair and verification](SQLITE_KARMA_HISTORY_PERSISTENCE.md) covers missing history loading, update reconciliation and save acknowledgement projection. Explicit sequence, nullable enum and DateTime.Kind persistence remain follow-on acceptance work.
+SQLite karma history: [root-cause repair and verification](SQLITE_KARMA_HISTORY_PERSISTENCE.md) covers history loading, update reconciliation, save acknowledgement projection, explicit sequence, nullable enums and DateTime.Kind persistence, with guarded migration and full SQLite1164 acceptance. Cross-provider durable history/restart acceptance remains open.
 
 The complete scope below remains active. [Implementation status](IMPLEMENTATION_STATUS.md) summarizes verified foundations and remaining work for all eight stages. Selected tracking/concurrency, graph ownership and search fixes have native evidence; they do not close the full roadmap. Per-save committed deltas and complete CQL have not been delivered; the initial predicate compiler is documented in Stage 8.
 
