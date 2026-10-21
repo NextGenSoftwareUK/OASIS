@@ -96,7 +96,8 @@ public partial class SQLLiteDBOASISIntegrationTests
     public async Task RecoveryEvidenceMigrationPreservesLegacyStateAndGuardsRetainedEvidence(bool evidencePresent)
     {
         using(var initial=new DataContext(TestConnectionString))await initial.Database.MigrateAsync();
-        await SeedOrderedOutboxAsync();var store=new SqliteHolonReplicationOutbox(TestConnectionString,new OutboxClock());
+        await SeedOrderedOutboxAsync();await SeedLegacyHolonAuditRepresentationAsync();
+        var store=new SqliteHolonReplicationOutbox(TestConnectionString,new OutboxClock());
         if(evidencePresent)
         {
             var claim=(await store.ClaimNextAsync("a","worker",TimeSpan.FromMinutes(1))).Result;

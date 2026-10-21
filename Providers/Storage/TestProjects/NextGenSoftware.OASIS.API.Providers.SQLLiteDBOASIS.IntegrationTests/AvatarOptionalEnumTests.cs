@@ -35,7 +35,7 @@ public partial class SQLLiteDBOASISIntegrationTests
             Func<Task> down=()=>migrator.MigrateAsync(previous);
             await down.Should().ThrowAsync<SqliteException>();
             (await context.Database.GetAppliedMigrationsAsync()).Should().Contain(current);
-            context.Avatars.AsNoTracking().Single().HasAvatarType.Should().BeFalse();
+            context.Avatars.AsNoTracking().Select(row=>row.HasAvatarType).Single().Should().BeFalse();
         }
         else
         {

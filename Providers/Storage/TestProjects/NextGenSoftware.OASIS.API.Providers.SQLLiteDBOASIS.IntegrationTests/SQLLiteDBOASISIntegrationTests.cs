@@ -88,6 +88,10 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         var detail=control.AvatarDetails.AsNoTracking().Single(row=>row.Id==id.ToString());
         avatar.Email.Should().Be("preserved@test.invalid"); detail.XP.Should().Be(73); detail.Karma.Should().Be(19);
         avatar.DeletedDate.Should().Be(tombstone.DeletedAtUtc); detail.DeletedDate.Should().Be(tombstone.DeletedAtUtc);
+        avatar.DeletedDate.Kind.Should().Be(DateTimeKind.Utc);detail.DeletedDate.Kind.Should().Be(DateTimeKind.Utc);
+        tracked.DeletedDate.Kind.Should().Be(DateTimeKind.Utc);
+        context.Entry(tracked).Property("DeletedDateKind").OriginalValue.Should().Be((int)DateTimeKind.Utc);
+        context.Entry(tracked).Property("DeletedDateKind").IsModified.Should().BeFalse();
         avatar.DeletedByAvatarId.Should().Be(tombstone.DeletedByAvatarId.ToString()); detail.DeletedByAvatarId.Should().Be(avatar.DeletedByAvatarId);
         control.Avatars.AsNoTracking().Single(row=>row.Id==unrelatedId.ToString()).Email.Should().Be("preserved@test.invalid");
         context.Entry(unrelated).State.Should().Be(EntityState.Modified);

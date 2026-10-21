@@ -49,12 +49,13 @@ public partial class SQLLiteDBOASISIntegrationTests
                 CreatedProviderType=absent ? null:new NextGenSoftware.Utilities.EnumValue<ProviderType>(ProviderType.Neo4jOASIS),
                 CreatedOASISType=new NextGenSoftware.Utilities.EnumValue<OASISType>((OASISType)0)},saveChildren:false)).IsError.Should().BeFalse();
         }
+        await SeedLegacyHolonAuditRepresentationAsync();
         using var control=new DataContext(TestConnectionString);var migrator=control.GetService<IMigrator>();
         if(absent)
         {
             Func<Task> down=()=>migrator.MigrateAsync(previous);await down.Should().ThrowAsync<SqliteException>();
             (await control.Database.GetAppliedMigrationsAsync()).Should().Contain(current);
-            control.Holons.AsNoTracking().Single().HasCreatedProviderType.Should().BeFalse();
+            control.Holons.AsNoTracking().Select(row=>row.HasCreatedProviderType).Single().Should().BeFalse();
         }
         else
         {
