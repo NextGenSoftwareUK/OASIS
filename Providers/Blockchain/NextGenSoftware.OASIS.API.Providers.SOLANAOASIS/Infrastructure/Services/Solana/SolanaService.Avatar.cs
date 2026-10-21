@@ -123,9 +123,6 @@ public sealed partial class SolanaService
     {
         var response = new OASISResult<SendTransactionResult>();
 
-        // Save the original Console.Out
-        var originalConsoleOut = Console.Out;
-
         try
         {
             (bool success, string res) = sendTransactionRequest.IsRequestValid();
@@ -161,9 +158,6 @@ public sealed partial class SolanaService
                 //.Build(oasisAccount);
                 .Build(signer);
 
-            // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
-            Console.SetOut(new NullTextWriter());
-
             RequestResult<string> sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
             {
@@ -182,11 +176,6 @@ public sealed partial class SolanaService
             response.IsError = true;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
-        finally
-        {
-            // Restore the original Console.Out
-            Console.SetOut(originalConsoleOut);
-        }
 
         return response;
     }
@@ -196,14 +185,8 @@ public sealed partial class SolanaService
     {
         OASISResult<GetNftResult> response = new();
         
-        // Save the original Console.Out
-        var originalConsoleOut = Console.Out;
-
         try
         {
-            // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
-            Console.SetOut(new NullTextWriter());
-
             PublicKey nftAccount = new(address);
             MetadataAccount metadataAccount = await MetadataAccount.GetAccount(rpcClient, nftAccount);
 
@@ -228,11 +211,6 @@ public sealed partial class SolanaService
             response.IsError = true;
             response.Message = e.Message;
             OASISErrorHandling.HandleError(ref response, e.Message);
-        }
-        finally
-        {
-            // Restore the original Console.Out
-            Console.SetOut(originalConsoleOut);
         }
 
         return response;
