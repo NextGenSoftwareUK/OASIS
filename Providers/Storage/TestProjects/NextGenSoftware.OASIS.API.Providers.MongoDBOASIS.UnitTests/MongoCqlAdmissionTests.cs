@@ -10,6 +10,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
 [TestClass]
 public class MongoCqlAdmissionTests
 {
+    [TestMethod]
+    public async Task CallerCapabilityProfileCannotEnableUnregisteredEnumMetadataExecution()
+    {
+        var query=CosmicQuery<Holon>.Create().Where(h=>CosmicQueryMetadata.Value<KarmaSourceType>(h,"source")==KarmaSourceType.Game);
+        Assert.IsFalse(query.IsError,query.Message);
+        var broad=new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata,Array.Empty<CosmicQueryFieldCapability>(),
+            new[]{new CosmicQueryMetadataCapability(typeof(KarmaSourceType),Enum.GetValues<CosmicQueryComparisonOperator>())});
+        var provider=new MongoDBOASIS("mongodb://127.0.0.1:1/?serverSelectionTimeoutMS=1","cql-admission-only");
+        var result=await provider.ExecuteCosmicQueryAsync(Plan(query.Result,capabilities:broad));
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",result.ErrorCode);Assert.IsFalse(provider.IsProviderActivated);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task RegisteredEnumComparisonAndNullableMembershipTranslateBeforeRepositoryAccess(bool providerEnum)
+    {
+        HolonType?[] kinds={null,HolonType.Quest};ProviderType?[] providers={null,ProviderType.MongoDBOASIS};
+        Expression<Func<Holon,bool>> predicate=providerEnum
+            ?h=>CosmicQueryMetadata.Value<ProviderType>(h,"x")==ProviderType.MongoDBOASIS||providers.Contains(CosmicQueryMetadata.Value<ProviderType?>(h,"y"))
+            :h=>CosmicQueryMetadata.Value<HolonType>(h,"x")==HolonType.Quest||kinds.Contains(CosmicQueryMetadata.Value<HolonType?>(h,"y"));
+        var query=CosmicQuery<Holon>.Create().Where(predicate);Assert.IsFalse(query.IsError,query.Message);
+        var provider=new MongoDBOASIS("mongodb://127.0.0.1:1/?serverSelectionTimeoutMS=1","cql-admission-only");
+        var result=await provider.ExecuteCosmicQueryAsync(Plan(query.Result));
+        Assert.AreEqual("CQL_PROVIDER_NOT_READY",result.ErrorCode,result.Message+result.Exception);Assert.IsFalse(provider.IsProviderActivated);
+    }
+
     [DataTestMethod]
     [DataRow("byte")] [DataRow("sbyte")] [DataRow("short")] [DataRow("ushort")] [DataRow("uint")]
     public async Task NarrowIntegerComparisonAndNullableMembershipTranslateBeforeRepositoryAccess(string domain)
