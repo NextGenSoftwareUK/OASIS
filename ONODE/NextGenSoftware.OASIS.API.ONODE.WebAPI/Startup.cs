@@ -401,6 +401,16 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             }
             services.AddSingleton<Services.HyperDrive.HyperDriveHostedProviderAccessor>();
             services.AddHostedService<Services.HyperDrive.OASISInitializationHostedService>();
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConfiguredHolonReplicationRegistration.AddConfiguredCosmicHolonReplicationFromServices(
+                services, Configuration["COSMIC_HOLON_REPLICATION_JSON"], provider =>
+                    new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationProviderResolver(
+                        authority => NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetStorageProvider(authority),
+                        async cancellation => {
+                            var initialized = await provider.GetRequiredService<Services.HyperDrive.HyperDriveHostedProviderAccessor>().GetAsync().ConfigureAwait(false);
+                            cancellation.ThrowIfCancellationRequested();
+                            if (initialized == null || initialized.IsError || initialized.IsWarning || initialized.Result == null)
+                                throw new InvalidOperationException("Enabled COSMIC replication requires successful shared OASIS initialization.", initialized?.Exception);
+                        }));
             services.AddHostedService<Services.HyperDrive.HyperDriveCommandHostedService>();
             services.AddHostedService<Services.HyperDrive.HyperDriveFanOutHostedService>();
             services.AddHostedService<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>();
@@ -671,6 +681,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             {
                 endpoints.MapGraphQL();
                 endpoints.MapControllers();
+                Services.HyperDrive.CosmicHolonReplicationEndpoints.MapCosmicHolonReplicationReadiness(endpoints);
                 endpoints.MapGrpcService<AvatarGrpcService>();
                 endpoints.MapGrpcService<KarmaGrpcService>();
                 endpoints.MapGrpcService<DataGrpcService>();

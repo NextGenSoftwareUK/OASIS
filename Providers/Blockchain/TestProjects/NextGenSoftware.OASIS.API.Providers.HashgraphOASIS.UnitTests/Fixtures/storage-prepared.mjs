@@ -53,7 +53,7 @@ try {
   if(!process.env.OASIS_NATIVE_PREPARATION_PIPE)throw new Error('Missing preparation owner.');
   const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
   await persistSignedSubmission(signed,request,preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE));
-  await appendFile(process.env.OASIS_HEDERA_STORAGE_TEST_SUBMISSIONS,JSON.stringify({transactionId:request.transactionId})+'\n');
+  await appendFile(process.env.OASIS_HEDERA_STORAGE_TEST_SUBMISSIONS,JSON.stringify({transactionId:request.transactionId,action,key:request.key,value:request.value})+'\n');
   result={transactionId:request.transactionId,status:'SUCCESS'};
  }else throw new Error('Unexpected controlled action.');
  if(sequence)await sequence.complete();

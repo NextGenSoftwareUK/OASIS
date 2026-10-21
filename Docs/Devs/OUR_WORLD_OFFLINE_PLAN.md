@@ -202,7 +202,7 @@ fixed in the shared Edge path rather than bypassed through a remote-only runtime
 - This is packaging/build evidence, not physical-device runtime evidence. Flight-mode, process-kill, frame-time,
   memory, storage, radio and battery acceptance still require an Android device and production grant configuration.
   The latest local evidence, including the AOT-safe JSON changes and current APK hash, is recorded in
-  `Docs/Devs/OUR_WORLD_OFFLINE_MVP_VERIFICATION.md`.
+  `Docs/WIP/Our World/OUR_WORLD_OFFLINE_MVP_VERIFICATION.md`.
 
 The release validator has two explicit profiles from the same codebase:
 

@@ -1,0 +1,8 @@
+{
+  "Web4Mode": "OASISHyperDrive2",
+  "Web5Mode": "Legacy",
+  "SameMongoConnection": true,
+  "SameMongoDatabase": true,
+  "Web4AutoReplication": false,
+  "Web5AutoReplication": false
+}
