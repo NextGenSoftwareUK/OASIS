@@ -51,6 +51,17 @@ public class Neo4jNativeCqlTests
             records[0].MetaData["score"] = 7; records[0].MetaData["a.b"] = "literal' quoted";
             records[1].MetaData["score"] = "7"; records[1].MetaData["a"] = new Dictionary<string, object> { ["b"] = "nested" };
             records[2].MetaData["score"] = null!; records[4].MetaData["score"] = 7.0m;
+            records[0].MetaData["left"]=7; records[0].MetaData["right"]=7; records[0].MetaData["minimum"]=0;
+            records[1].MetaData["left"]=7; records[1].MetaData["right"]=9; records[1].MetaData["minimum"]=0;
+            records[2].MetaData["left"]=null!; records[2].MetaData["right"]=null!; records[2].MetaData["minimum"]=null!;
+            records[3].MetaData["left"]=null!; records[3].MetaData["right"]=7; records[3].MetaData["minimum"]="0";
+            records[4].MetaData["left"]="7"; records[4].MetaData["right"]=7; records[4].MetaData["minimum"]=0.0m;
+            records[0].MetaData["approved"]=true; records[1].MetaData["approved"]=false;
+            records[2].MetaData["approved"]=null!; records[3].MetaData["approved"]="true";
+            records[0].MetaData["wide"]=9007199254740993L; records[1].MetaData["wide"]=9007199254740992L;
+            records[2].MetaData["wide"]="9007199254740993";
+            records[0].MetaData["alias"]=records[0].Name; records[1].MetaData["alias"]="different";
+            records[2].MetaData["alias"]=null!; records[3].MetaData["alias"]=42;
             for (var i = 0; i < records.Length; i++)
             {
                 var saved = await provider.SaveHolonAsync(records[i], saveChildren: false);
@@ -66,6 +77,18 @@ public class Neo4jNativeCqlTests
             await Matches(h => CosmicQueryMetadata.Value<string>(h, "a.b") == "literal' quoted", 0);
             await Matches(h => CosmicQueryMetadata.Value<string>(h, "a", "b").StartsWith("nest", StringComparison.Ordinal), 1);
             await Matches(h => h.Name.Contains("Coffee ☕", StringComparison.Ordinal), 0, 1, 2, 3, 4);
+            await Matches(h => CosmicQueryMetadata.Value<int?>(h,"left")==CosmicQueryMetadata.Value<int?>(h,"right"),0,2);
+            await Matches(h => CosmicQueryMetadata.Value<int?>(h,"left")!=CosmicQueryMetadata.Value<int?>(h,"right"),1,3);
+            await Matches(h => CosmicQueryMetadata.Value<int?>(h,"left")<CosmicQueryMetadata.Value<int?>(h,"right"),1);
+            await Matches(h => h.Version>CosmicQueryMetadata.Value<int>(h,"minimum"),0,1);
+            await Matches(h => h.Name!=h.Description && h.IsActive!=h.IsPublic,0,1,2,3,4);
+            await Matches(h => h.ParentHolonId==Guid.Empty,0,1,2,3,4);
+            await Matches(h => CosmicQueryMetadata.Value<bool>(h,"approved")==true,0);
+            await Matches(h => CosmicQueryMetadata.Value<bool?>(h,"approved")!=true,1,2);
+            await Matches(h => CosmicQueryMetadata.Value<long>(h,"wide")>9007199254740992L,0);
+            await Matches(h => CosmicQueryMetadata.Value<int>(h,"left")<CosmicQueryMetadata.Value<long>(h,"wide"),0,1);
+            await Matches(h => h.Name==CosmicQueryMetadata.Value<string>(h,"alias"),0);
+            await Matches(h => h.Name!=CosmicQueryMetadata.Value<string>(h,"alias"),1,2);
             records[0].MetaData.Remove("score");
             var update = await provider.SaveHolonAsync(records[0], saveChildren: false); Assert.IsFalse(update.IsError, update.Message + update.Exception);
             records[0] = (Holon)update.Result;

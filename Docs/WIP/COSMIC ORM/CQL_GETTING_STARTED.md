@@ -31,7 +31,7 @@ Use `page.Result` with the same planner/executor below. Chaining preserves the f
 
 ## Neo4j subset
 
-The selected Neo4jOASIS provider now implements the same ICosmicQueryStorageProvider contract and exposes CqlCapabilities. Use it with the same planner/executor and an explicitly authorized Neo4j target. The initial profile admits Name/Description predicates, Version comparisons, canonical bool/Guid equality, string/bool/int/long metadata with nullable forms, membership and metadata Exists/IsNull. Explicit ordering/paging, field comparisons and wider scalar domains remain unsupported. Activation upgrades stored query projections without changing logical snapshots/revisions. [Native acceptance, migration behavior and limits](CQL_NEO4J_NATIVE.md).
+The selected Neo4jOASIS provider now implements the same ICosmicQueryStorageProvider contract and exposes CqlCapabilities. Use it with the same planner/executor and an explicitly authorized Neo4j target. The initial profile admits Name/Description predicates, Version comparisons, canonical bool/Guid equality, string/bool/int/long metadata with nullable forms, membership and metadata Exists/IsNull. Field-to-field comparisons preserve typed guards and nullable semantics, including lossless integer promotions. Guid.Empty is recognized as a known framework literal without evaluating arbitrary statics. Explicit ordering/paging and wider scalar domains remain unsupported. Activation upgrades stored query projections without changing logical snapshots/revisions. [Native acceptance, migration behavior and limits](CQL_NEO4J_NATIVE.md).
 
 ## Build a query
 

@@ -60,6 +60,19 @@ internal sealed class NeoCqlTranslator
             case CosmicQueryLogical logical:
                 return "(" + Translate(logical.Left) + (logical.IsAnd ? " AND " : " OR ") + Translate(logical.Right) + ")";
             case CosmicQueryNot not: return "(NOT " + Translate(not.Operand) + ")";
+            case CosmicQueryFieldComparison fields:
+                var left = Operand(fields.Left); var right = Operand(fields.Right);
+                var leftValid = NullablePath(fields.Left) ? "(" + left.Guard + " OR " + left.Null + ")" : left.Guard;
+                var rightValid = NullablePath(fields.Right) ? "(" + right.Guard + " OR " + right.Null + ")" : right.Guard;
+                string fieldTest;
+                if (fields.Operator == CosmicQueryComparisonOperator.Equal || fields.Operator == CosmicQueryComparisonOperator.NotEqual)
+                {
+                    var equal = "(" + Total(left.Null + " AND " + right.Null) + " OR "
+                        + Total(left.Value + "=" + right.Value) + ")";
+                    fieldTest = fields.Operator == CosmicQueryComparisonOperator.Equal ? equal : "NOT " + equal;
+                }
+                else fieldTest = Total(left.Value + Symbol(fields.Operator) + right.Value);
+                return Total(leftValid + " AND " + rightValid + " AND (" + fieldTest + ")");
             case CosmicQueryMetadataTest test:
                 var kind = "p[" + Bind(NeoCqlProjection.PathKey(test.Segments) + "_kind") + "]";
                 return test.Kind == CosmicQueryMetadataTestKind.Exists ? "(" + kind + " IS NOT NULL)" : Total(kind + "='null'");

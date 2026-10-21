@@ -38,10 +38,10 @@ public class CosmicFieldComparisonQueryTests
     }
 
     [Fact]
-    public void MixedFieldPrecisionRequiresAnExplicitlySupportedContract()
+    public void NonIntegerMixedFieldPrecisionRequiresAnExplicitlySupportedContract()
     {
         var result = CosmicQueryExpression.Compile<Holon>(h =>
-            CosmicQueryMetadata.Value<long>(h, "expected") == h.Version);
+            CosmicQueryMetadata.Value<decimal>(h, "expected") == h.Version);
         Assert.True(result.IsError);
     }
 
