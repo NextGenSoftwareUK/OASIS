@@ -63,6 +63,7 @@ public partial class HolonRepository
                 var uncertain=commitEntered || rollbackFailed;
                 if(result?.IsError==true && !uncertain)result.Exception=failure;
                 else result=ConditionalError(uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED"
+                    : failure is NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException ? NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode
                     : failure is SqliteConditionalReceiptInvalidException ? "COSMIC_RECEIPT_INVALID"
                     : failure is SqliteReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"
                     : failure is OperationCanceledException ? replicaRequest!=null ? "COSMIC_REPLICA_WRITE_CANCELLED":"COSMIC_CONDITIONAL_WRITE_CANCELLED"
@@ -149,6 +150,7 @@ public partial class HolonRepository
             if (conflicts.Length != 0)
                 return ConditionalError(CosmicConcurrencyException.Code, "The persisted revisions changed; reload and resolve the conflict.", new CosmicConcurrencyException(conflicts));
             token.ThrowIfCancellationRequested();
+            if(replica==null&&operation==ConditionalHolonOperation.Save)ValidateSaveLifecycle(graph.Models,persisted);
             if(replica!=null)PrepareReplicaModels(connection,native,graph,persisted,replica);
             var now = DateTime.UtcNow;
             var archiveRevisions=_versionControlEnabled();

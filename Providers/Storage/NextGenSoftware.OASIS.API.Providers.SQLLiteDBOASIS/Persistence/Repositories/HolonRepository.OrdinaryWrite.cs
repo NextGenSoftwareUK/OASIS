@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -26,6 +27,9 @@ public partial class HolonRepository
             var connection=(SqliteConnection)_dbContext.Database.GetDbConnection();
             native=connection.BeginTransaction(deferred:false);
             enlisted=_dbContext.Database.UseTransaction(native);
+            var ids=graph.Models.Select(model=>model.Id).ToArray();
+            var observed=_dbContext.Holons.AsNoTracking().Where(row=>ids.Contains(row.Id)).ToDictionary(row=>row.Id);
+            ValidateSaveLifecycle(graph.Models,observed);
             var history=_versionControlEnabled();
             for(var index=0;index<graph.Models.Count;index++)
                 graph.Models[index]=AddOrUpdateHolon(graph.Models[index],false,
@@ -50,7 +54,7 @@ public partial class HolonRepository
             {
                 if(admitted)failure=HolonSaveFailure(graph?.Models ?? new(),commitEntered || rollbackFailed,failure,true);
                 result=new OASISResult<IEnumerable<IHolon>> {IsError=true,ErrorCount=1,IsSaved=false,Exception=failure,
-                    ErrorCode=commitEntered || rollbackFailed ? "SQLITE_WRITE_RECONCILIATION_REQUIRED":"SQLITE_GRAPH_WRITE_FAILED",
+                    ErrorCode=commitEntered || rollbackFailed ? "SQLITE_WRITE_RECONCILIATION_REQUIRED":failure is NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException?NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode:"SQLITE_GRAPH_WRITE_FAILED",
                     Message=commitEntered || rollbackFailed ? "Reconcile the original graph write before another mutation.":"The graph write did not commit."};
             }
         }

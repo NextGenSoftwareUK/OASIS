@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Shared save lifecycle across SQLite, MongoDB and Neo4j — 20 October 2026
+
+One shared rule now validates committed deletion timestamps/actors and inactive state against protected authoritative observations. SQLite conditional and ordinary graphs preflight every selected record before history/data/receipt changes. Mongo atomic graphs validate actual native audit fields before preparation, while single-record tombstone visibility remains RecordNotFound. Neo4j delegates to the same implementation. Original SQLite16 accepted-invalid failures/8 controls close in final SQLite1,121, Mongo88, Neo native265/controlled276 and Shared925, zero skips; exact provider/consumer hashes match. [Contract, reviewed fixture evidence, dependency commit and final reports](SHARED_SAVE_LIFECYCLE.md). Explicit restore, broader identity/provider/fault/security and full roadmap acceptance remain open.
+
 ## Neo4j delete transaction ownership — 20 October 2026
 
 Identity saves, paired avatar deletes and ordinary hard-holon deletes now share one private native transaction owner. Validated candidates publish only after acknowledged COMMIT/read-only rollback; definite rejected writes retain real errors, unknown outcomes have zero success flags/counts, and known commits survive cleanup as warnings. Avatar deletion reports one logical avatar; matching repeated soft deletion preserves its original evidence with zero changes/count/COMMIT. Original32 failures/6 missing controls close in full276 controls, focused34/full265 native and Shared917, zero skips. [Contract and exact evidence](NEO4J_DELETE_OWNERSHIP.md). No Core/Shared/pin change; broader lifecycle/restore/provider/default-CRUD and full roadmap acceptance remain open.
