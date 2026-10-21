@@ -1,5 +1,17 @@
 # Firestore record history — integration in progress
 
+## Canonical karma-history field coverage — scoped native158/control265 closure
+
+Expanded the existing `GoogleNativeDetailTests` case without adding cases: two ordered earned/lost entries, complete owner/date/amount/running-total/provider/source/type/text/link checks, sync update after async creation, GUID/username/email reads and independent Firestore SDK `data_json` readback. Existing scalar/inventory/duplicate-selector and routing assertions remain. Source audit confirmed Import already forwards save outcome/counts through the shared result-copy helper; no provider implementation change was warranted for that finding.
+
+Actual67315 terminal0: **79/79 history native passed8s +79/79 regression native passed26s**, zero skips, over official SDK and retained Firestore emulator1.22.0. Reports under `TestResults/GoogleCurrent/`: history SHA256 `EF5A71160E80063C07E26840542915F50D66FD622EEB76555BAF50C22C2134AE`; regression `A10CE8D9C8016B8B645A44457643CC8C5E935580A1828217FACFDEF2C426BAA2`. Matched **265/265 controlled passed1s**,0skip, `google-karma-history-matched-controls.trx` `DB220D6ED6145F34E3B898A6D547E9343F784DFF6E11199A8F8C747B67607DD4`.
+
+Actual Core `EB9EFAD0C29B70A546ADD34AD651F9EB21F7A86341CD30693251729EBD0759AC` / Shared `0D2BB0D178BCCF66F7B14CBFA46E45A9371418AF4AE4E048C471D415C5C5151A` match both consumers. Google provider producer/native/control copies independently SHA-matched `3B07FF1BB2990D5E3FB344ABFC073368CBE9DF92362BF64AE9E1F63F0157A1DA`. Core/Shared/SQLite production sources stayed unchanged throughout. This158 count excludes the additional encrypted/preparation/atomic-graph/batch schedules in earlier177 evidence; those were not silently relabelled as refreshed.
+
+The existing completed checkpoint export was reimported, exact known proof identity/revision read back, and the fixture conditionally deleted through the documented Commit protocol before tests. No replay/reset of an uncertain application write. Native suite ended with pending0 and owned emulator stopped; ports18080–18083 independently absent. Previous history1D72F0/regression784959 reports SHA-verified and moved in place to `google-history-native-pre-karma-fields.trx` / `google-native-pre-karma-fields.trx`, not overwritten/copied. Added main-run preflight refusing those two existing current reports before builds/startup; parser/whitespace and a controlled path-existence refusal test passed.
+
+Same jar/export/caches/environment reused, no download/install/new cloud account/resources/spend/deployment. FreeC60,550,488,064bytes;123GBcleanup target unmet. This proves the scoped SDK/emulator schedules, not hosted Google Cloud IAM/TLS/billing, complete field/options/interface adversarial coverage, every advanced suite or universal V2 provider completion. All such gates remain open.
+
 ## Shared acknowledgement reuse — Google native177 refreshed, 2026-10-20
 
 Google's existing conditional result owner now delegates to `ConditionalHolonAcknowledgement.Create` in the existing Shared provider library, together with Oracle. Removed the provider-local graph count/flag implementation; one reusable implementation handles owned acknowledged graphs, with thirteen new pure controls. No Google SDK/write/receipt/history/format changes. **Shared917/917**, **Google265/265**, **Oracle229/229** controlled all passed, zero skipped. The shared contract and controlled hashes are recorded in [Oracle client priority](ORACLE_CLIENT_PRIORITY.md).

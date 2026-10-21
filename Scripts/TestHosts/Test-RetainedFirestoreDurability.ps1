@@ -3,6 +3,11 @@ param([switch]$RunBatchRevisions,[switch]$RunEncryptedReplay,[switch]$RunPrepara
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/GoogleCurrent'
+if($RunHistoryTests -and $RunRegressionTests -and !$ContinueOwnedEmulatorId){
+    foreach($reportName in @('google-history-native-current.trx','google-native-current.trx')){
+        if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve and hash-verify previous Google history/regression reports before a fresh verification run.'}
+    }
+}
 $jar='C:\Users\david\.cache\firebase\emulators\cloud-firestore-emulator-v1.22.0.jar'
 $export=Join-Path $work 'retained-export'
 $metadata=Join-Path $export 'firestore_export/firestore_export.overall_export_metadata'
