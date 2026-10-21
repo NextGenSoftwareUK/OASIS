@@ -41,6 +41,7 @@ public class ActivityPubStatusReadTests
         var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
         var result=sync?provider.LoadHolon("123"):await provider.LoadHolonAsync("123");
         Assert.False(result.IsError,result.Exception?.ToString());Assert.NotEqual(Guid.Empty,result.Result.Id);Assert.NotEqual(Guid.Empty,result.Result.ParentHolonId);
+        Assert.True(result.IsLoaded);Assert.Equal(1,result.LoadedCount);
         Assert.Equal("123",result.Result.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);Assert.Equal("<p>Hello</p>",result.Result.MetaData["MastodonContentHtml"]);
         Assert.False(result.Result.MetaData.ContainsKey("secret"));Assert.Equal(new DateTime(2026,1,2,3,4,5,DateTimeKind.Utc),result.Result.CreatedDate);
         var repeated=await provider.LoadHolonAsync("123");Assert.Equal(result.Result.Id,repeated.Result.Id);
@@ -50,6 +51,7 @@ public class ActivityPubStatusReadTests
     {
         var transport=new Transport{Body=body};using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
         var result=await provider.LoadHolonAsync("123");Assert.True(result.IsError);Assert.Null(result.Result);Assert.NotNull(result.Exception);
+        Assert.False(result.IsLoaded);Assert.Equal(0,result.LoadedCount);
     }
     [Theory][InlineData(" ",0,0,false)][InlineData("123",1,0,false)][InlineData("123",0,-1,false)]
     public async Task InvalidOrUnverifiedOptionsCannotSilentlySucceed(string key,int version,int depth,bool children)

@@ -291,7 +291,7 @@ public class IPFSNativeStorageTests
                 var healthyClient=provider.IPFSClient;
                 try
                 {
-                    provider.IPFSClient=new Ipfs.Http.IpfsClient("http://127.0.0.1:18549");
+                    typeof(IPFSOASIS).GetField("_ipfsClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,new Ipfs.Http.IpfsClient("http://127.0.0.1:18549"));
                     foreach(var asynchronous in new[] {false,true})
                     {
                         var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=id,PreferredProvider=ProviderType.IPFSOASIS};
@@ -300,7 +300,7 @@ public class IPFSNativeStorageTests
                         Assert.Equal(ProviderType.LocalFileOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
                     }
                 }
-                finally {provider.IPFSClient=healthyClient;}
+                finally {typeof(IPFSOASIS).GetField("_ipfsClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,healthyClient);}
                 Assert.False((await local.SaveHolonAsync(new Holon {Id=missingId,Name="must-not-return-stale-local-copy"},saveChildren:false)).IsError);
                 var localBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests;
                 foreach(var asynchronous in new[] {false,true})
@@ -426,11 +426,13 @@ public class IPFSNativeStorageTests
             var deleteKeyField=typeof(IPFSOASIS).GetField("_storageKeyResolver",BindingFlags.Instance|BindingFlags.NonPublic)!;
             var deletePrior=deleteKeyField.GetValue(provider); var deleteCalls=0;
             var deleteCause=new System.IO.IOException("owned holon delete index encryption failure");
-            deleteKeyField.SetValue(provider,new Func<byte[]>(()=>++deleteCalls==5 ? throw deleteCause:Convert.FromBase64String(Environment.GetEnvironmentVariable("OASIS_IPFS_STORAGE_ENCRYPTION_KEY")!)));
+            // The canonical writer now decrypts the observed current record before encrypting
+            // the proposal. The sixth key use remains the post-record-ack index encryption.
+            deleteKeyField.SetValue(provider,new Func<byte[]>(()=>++deleteCalls==6 ? throw deleteCause:Convert.FromBase64String(Environment.GetEnvironmentVariable("OASIS_IPFS_STORAGE_ENCRYPTION_KEY")!)));
             NextGenSoftware.OASIS.Common.OASISResult<IHolon> failedDelete;
             try {failedDelete=await provider.DeleteHolonAsync(deleteFaultFixture.Id);}
             finally {deleteKeyField.SetValue(provider,deletePrior);}
-            Assert.True(failedDelete.IsError); Assert.Equal(5,deleteCalls);
+            Assert.True(failedDelete.IsError); Assert.Equal(6,deleteCalls);
             var deleteFailure=Assert.IsType<IPFSRecordPublicationException>(failedDelete.Exception);
             Assert.Same(deleteCause,deleteFailure.InnerException); ownedCids.Add(deleteFailure.RecordCid);
             Assert.Equal(deleteBefore,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);

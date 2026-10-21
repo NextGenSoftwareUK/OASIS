@@ -13,6 +13,31 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 [TestClass]
 public class DynamoHistoryWriteTests
 {
+    [TestMethod]
+    public Task ConditionalHistoryWriterReturnsExactCurrentAndArchivedMetadata()=>Use(new HistoryClient(),async provider=>{
+        var initial=1.0000000000000000000000000001m;var later=1.0000000000000000000000000002m;
+        var row=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=initial}};
+        var first=await Write(provider,Request(row));
+        Assert.AreEqual(initial,decimal.Parse(first.MetaData["precise"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+        row.MetaData["precise"]=later;
+        var second=await Write(provider,Request(row));
+        Assert.AreEqual(later,decimal.Parse(second.MetaData["precise"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+        var client=(HistoryClient)typeof(DynamoDBOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(provider)!;
+        var archived=(Holon)typeof(DynamoDBOASIS).GetMethod("ReadStoredVersion",BindingFlags.NonPublic|BindingFlags.Static)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object[]{client.Stored!,row.Id,1})!;
+        Assert.AreEqual(initial,decimal.Parse(archived.MetaData["precise"].ToString()!,System.Globalization.CultureInfo.InvariantCulture));
+        Assert.AreEqual(1,first.Version);Assert.AreEqual(2,second.Version);Assert.AreEqual(0,row.Version);
+    });
+
+    [TestMethod]
+    public Task UnversionedStagingPreservesExactMetadata()=>Use(new HistoryClient(),async provider=>{
+        var value=1.0000000000000000000000000001m;
+        var row=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=value}};
+        var staged=await Stage(provider,row,null);
+        using var json=System.Text.Json.JsonDocument.Parse(staged.ToString());
+        Assert.AreEqual(value,json.RootElement.GetProperty("MetaData").GetProperty("precise").GetDecimal());
+        Assert.AreEqual(0,row.Version);Assert.AreEqual(value,row.MetaData["precise"]);
+    });
+
     private static Task<JObject> Stage(DynamoDBOASIS provider,Holon row,JObject? previous)
         =>(Task<JObject>)typeof(DynamoDBOASIS).GetMethod("StageRecordAsync",BindingFlags.NonPublic|BindingFlags.Instance)!.MakeGenericMethod(typeof(Holon)).Invoke(provider,new object?[]{row,previous})!;
 
@@ -67,7 +92,7 @@ public class DynamoHistoryWriteTests
         ["id"]=new(){S=row.Id.ToString()},["parentHolonId"]=new(){S=row.ParentHolonId.ToString()},
         ["holon_type"]=new(){N=((int)row.HolonType).ToString()},["is_deleted"]=new(){BOOL=row.IsDeleted},["data_json"]=new(){S=OasisJson.Serialize(row)}}};
     private static Task<Holon> Write(DynamoDBOASIS provider,PutItemRequest request)
-        =>(Task<Holon>)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.NonPublic|BindingFlags.Instance)!.MakeGenericMethod(typeof(Holon)).Invoke(provider,new object[]{request,true,(Action)(()=>{})})!;
+        =>(Task<Holon>)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.NonPublic|BindingFlags.Instance)!.MakeGenericMethod(typeof(Holon)).Invoke(provider,new object?[]{request,true,(Action)(()=>{}),null})!;
     private static async Task Use(HistoryClient client,Func<DynamoDBOASIS,Task> test)
     {
         var provider=new DynamoDBOASIS("owned","owned","us-east-1");var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!;

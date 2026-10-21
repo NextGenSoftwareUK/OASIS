@@ -67,7 +67,7 @@ public partial class Web3CoreOASISBaseProvider
         if(record==null || record.Id==Guid.Empty || entity.EntityId!=(uint)HashUtility.GetNumericHash(record.Id.ToString())
             || !CryptographicOperations.FixedTimeEquals(entity.ExternalId,PrivateExternalId(record.Id)))
             throw new InvalidDataException("Enumerated Web3Core payload identity differs from its storage identity.");
-        var document=Newtonsoft.Json.Linq.JObject.Parse(json);
+        var document=OasisJson.ParseStoredObject(json);
         if(document["id"]!=null && document["id"].Value<string>()!=record.Id.ToString())
             throw new InvalidDataException("Web3Core embedded history identity differs from payload.");
         document["id"]=record.Id.ToString();

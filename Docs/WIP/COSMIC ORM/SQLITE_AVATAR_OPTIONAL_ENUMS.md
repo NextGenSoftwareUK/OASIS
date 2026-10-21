@@ -1,0 +1,19 @@
+# SQLite avatar optional enum projection
+
+The concurrent cross-provider karma acceptance test exposed a native SQLite save failure before any karma mutation: a valid newly constructed avatar has a null AvatarType wrapper, but the mapper unconditionally dereferenced `.Value`. Its original fixture is preserved and independently reconciled by the provider session.
+
+The same presence invariant applies to AvatarType, CreatedProviderType and CreatedOASISType. Four production files now represent each nullable wrapper with an explicit persisted presence bit, matching the existing Holon enum-presence approach. The physical enum slot remains a non-null enum; the presence bit owns whether the public wrapper exists. A null is no longer replaced with a public default-valued wrapper during loading.
+
+Both the repository mapping and AvatarModel constructor/GetAvatar projection use that representation. AvatarType can be set and cleared. Existing creation-provider/OASIS metadata ownership remains unchanged: updates preserve both the original value and its original presence bit.
+
+The owned additive schema upgrade creates missing presence columns with default1, preserving existing defined values, including enum zero. It does not guess whether a historically stored default once originated from a null that older code lost. EF explicitly writes false presence values instead of treating them as generated defaults.
+
+Original native sync/async baseline: **2 failures**, both NullReferenceException (`TestResults/SQLiteCurrent/avatar-optional-enum-red.trx`). After the root fix, those same two save/load/update cases pass (`avatar-optional-enum-current.trx`). Additional entity-projection and old-schema upgrade cases pass inside the first complete run; they were not selected by the focused method-name filter.
+
+That complete run records1,124 passes/19 failures/zero skips out of1,143. All19 failures identify the three new columns missing from the EF model snapshot/migration contract; no warning suppression is appropriate. The original report is preserved at `TestResults/SQLiteCurrent/cql-window-full-original-failure.trx` (SHA256 `07C8C81406FFDC881034B9734687EAD08171F1932298AD5698827E31007531FC`). The proper `20261020060000_AddAvatarEnumPresence` migration, its exact target model and updated snapshot are now added. Downgrade explicitly refuses when any stored presence bit is false, because removing that bit would invent a defined enum. Separate native tests cover both safe defined-value downgrade/re-upgrade and refused lossy downgrade. Their execution and the corrected complete cohort remain pending.
+
+The first seven-case migration gate then exposed a second real migration contract gap: the preceding WritePreparation migration had no target model, so EF could not generate a supported DropColumn operation when downgrading to it. Its SQL Up/Down remains unchanged; its exact historical pre-presence target model is now supplied. The corrected seven-case gate passes7/7, zero skips, including both downgrade outcomes and runtime/snapshot equality. The corrected complete SQLite suite passes **1,145/1,145**, zero failures/skips (`TestResults/SQLiteCurrent/cql-window-full-current.trx`).
+
+The scoped avatar fix is published independently of the pending CQL ordering/resource changes. This is working-tree acceptance: immutable Core publication and the wider query cohort are still pending. Core1853304C62B6F5A3F43E129F1D2CCC9EB2D18686C2C6D1D48357074C81F85CA0 and SQLiteAC4C384E82394D5E0F6C65544E11EC03ABF48C2325F0B0350CF10660CA37DB6D exactly match their complete-test consumer copies. This cohort includes the separate uncommitted Core karma/query and SQLite CQL work; it must not be relabelled as an immutable deployment proof. The fixed disposable database is absent after execution.
+
+No original peer fixture was modified or removed by this change. No legacy Hyperdrive routing code is changed.

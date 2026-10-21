@@ -8,6 +8,34 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 public sealed class ImportGraphSnapshotTests
 {
     [Fact]
+    public void DeepImportRetainsDepthFirstOrderStableIdentitiesAndDetachedAttempts()
+    {
+        const int count = 10000;
+        var source = new List<IHolon>();
+        for (var index = 0; index < count; index++)
+        {
+            var node = new Holon { Name = index.ToString() };
+            if (index != 0) source[index - 1].Children.Add(node);
+            source.Add(node);
+        }
+        var plan = ImportGraphSnapshot.Create(new[] { source[0] });
+        var flat = plan.CreateFlatAttempt();
+        flat.Count.Should().Be(count);
+        var current = plan.CreateAttempt().Single();
+        for (var index = 0; index < count; index++)
+        {
+            flat[index].Name.Should().Be(index.ToString());
+            current.Id.Should().Be(flat[index].Id);
+            flat[index].Children.Should().BeEmpty();
+            source[index].Id.Should().BeEmpty();
+            source[index].ParentHolonId.Should().BeEmpty();
+            if (index > 0) flat[index].ParentHolonId.Should().Be(flat[index - 1].Id);
+            if (index < count - 1) current = current.Children.Single();
+            else current.Children.Should().BeEmpty();
+        }
+    }
+
+    [Fact]
     public void FlatAttemptsPublishOnlyAcknowledgedIdentityAndPerProviderKeys()
     {
         var root=new Holon {Name="caller root"};var child=new Holon {Name="caller child"};root.Children.Add(child);

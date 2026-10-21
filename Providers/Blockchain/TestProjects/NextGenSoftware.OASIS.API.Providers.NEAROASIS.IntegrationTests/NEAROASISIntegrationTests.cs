@@ -16,6 +16,14 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
     [DoNotParallelize]
     public class NEAROASISIntegrationTests
     {
+        private sealed class NamedGraphOwner:Holon
+        {
+            public System.Collections.Generic.List<Holon> Components {get;set;}=new();
+            public override System.Collections.ObjectModel.ReadOnlyCollection<IHolon> AllChildren=>Children.Concat<IHolon>(Components).ToList().AsReadOnly();
+            public override System.Collections.Generic.IReadOnlyList<HolonChildCollection> CaptureChildCollections()=>base.CaptureChildCollections()
+                .Concat(new[]{new HolonChildCollection(nameof(Components),Components,rows=>Components=rows.Cast<Holon>().ToList())}).ToArray();
+        }
+
         private NEAROASIS _provider = null!;
 
         [TestInitialize]
@@ -207,7 +215,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
         {
             var marker = Guid.NewGuid().ToString("N");
             var owner = Guid.NewGuid();
-            var parent = new Holon { Id = Guid.NewGuid(), Name = $"parent-{marker}" };
+            var parent = new NamedGraphOwner { Id = Guid.NewGuid(), Name = $"parent-{marker}" };
             var child = new Holon
             {
                 Id = Guid.NewGuid(), Name = $"child-{marker}", CreatedByAvatarId = owner,
@@ -215,7 +223,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             };
             var grandchild = new Holon { Id = Guid.NewGuid(), Name = $"grandchild-{marker}" };
             child.Children.Add(grandchild);
-            parent.Children.Add(child);
+            parent.Components.Add(child);
+            var expectedRoles=NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                HolonChildCollectionState.Capture(parent).CreateManifest(parent.Id,row=>row.Id));
             var saved = await _provider.SaveHolonAsync(parent, saveChildren: true, recursive: true);
             Assert.IsFalse(saved.IsError, saved.Message);
 
@@ -223,6 +233,16 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse(loadedParent.IsError, loadedParent.Message);
             Assert.IsNotNull(loadedParent.Result, loadedParent.Message);
             Assert.IsTrue(loadedParent.Result.Children.Any(item => item.Id == child.Id));
+            Assert.AreEqual(expectedRoles,parent.ChildRoleManifestJson);
+            Assert.AreEqual(expectedRoles,((Holon)loadedParent.Result).ChildRoleManifestJson);
+            var childBefore=await _provider.LoadHolonAsync(child.Id,loadChildren:false);Assert.IsFalse(childBefore.IsError,childBefore.Message);Assert.IsNotNull(childBefore.Result);
+            var scalar=new Holon{Id=parent.Id,Name=parent.Name,Version=parent.Version};
+            var rootOnly=await _provider.SaveHolonAsync(scalar,saveChildren:false);Assert.IsFalse(rootOnly.IsError,rootOnly.Message);
+            var persistedRoot=await _provider.LoadHolonAsync(parent.Id,loadChildren:false);Assert.IsFalse(persistedRoot.IsError,persistedRoot.Message);
+            Assert.AreEqual(expectedRoles,scalar.ChildRoleManifestJson);Assert.AreEqual(expectedRoles,((Holon)persistedRoot.Result).ChildRoleManifestJson);
+            var childAfter=await _provider.LoadHolonAsync(child.Id,loadChildren:false);Assert.IsFalse(childAfter.IsError,childAfter.Message);Assert.IsNotNull(childAfter.Result);
+            Assert.AreEqual(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(childBefore.Result),
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(childAfter.Result),"Root-only write must leave the independently loaded child unchanged.");
             var byKey = await _provider.LoadHolonAsync(parent.Id.ToString("D"), loadChildren: true,
                 recursive: true, loadChildrenFromProvider: true);
             Assert.IsFalse(byKey.IsError, byKey.Message);
@@ -309,11 +329,17 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
         public async Task OfficialContract_PerformsCustomTokenLifecycle()
         {
             var symbol = $"NEAR-{Guid.NewGuid():N}";
-            var independent = await _provider.GenerateKeyPairAsync();
+            var independent = await _provider.CreateAccountAsync();
             Assert.IsFalse(independent.IsError,independent.Message);
-            var recipient = independent.Result.WalletAddressLegacy;
+            var recipient = Convert.ToHexString(NBitcoin.DataEncoders.Encoders.Base58.DecodeData(independent.Result.PublicKey[8..])).ToLowerInvariant();
             var funded=await _provider.SendTokenAsync(new SendWeb3TokenRequest{ToWalletAddress=recipient,Amount=0.1m});
             Assert.IsFalse(funded.IsError,funded.Message);
+            var nativeReturn=await _provider.SendTokenAsync(new SendWeb3TokenRequest{
+                FromWalletAddress=recipient,ToWalletAddress=Required("NEAROASIS_ACCOUNTID"),Amount=0.001m,
+                OwnerPublicKey=independent.Result.PublicKey,OwnerPrivateKey="",OwnerSeedPhrase=independent.Result.SeedPhrase});
+            Assert.IsFalse(nativeReturn.IsError,nativeReturn.Message);
+            await AssertOriginalMnemonicTransferAsync(nativeReturn.Result.TransactionResult,recipient,independent.Result.PublicKey,
+                Required("NEAROASIS_ACCOUNTID"),System.Numerics.BigInteger.Pow(10,21).ToString(System.Globalization.CultureInfo.InvariantCulture));
             var minted = await _provider.MintTokenAsync(new MintWeb3TokenRequest
                 { Symbol = symbol, Title = "NEAR runtime token", Amount = 100m });
             Assert.IsFalse(minted.IsError, minted.Message);
@@ -328,11 +354,13 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual(10m, (await _provider.GetCustomTokenBalanceAsync(symbol, recipient)).Result);
             var independentSend=await _provider.SendTokenAsync(new SendWeb3TokenRequest
             {
-                FromTokenAddress=symbol,FromWalletAddress=recipient,OwnerPrivateKey=independent.Result.PrivateKey,
+                FromTokenAddress=symbol,FromWalletAddress=recipient,OwnerPrivateKey="",OwnerPublicKey=independent.Result.PublicKey,OwnerSeedPhrase=independent.Result.SeedPhrase,
                 ToWalletAddress=Required("NEAROASIS_ACCOUNTID"),Amount=2m
             });
             Assert.IsFalse(independentSend.IsError,independentSend.Message);
             Assert.IsFalse(string.IsNullOrWhiteSpace(independentSend.Result.TransactionResult));
+            await AssertOriginalMnemonicTransferAsync(independentSend.Result.TransactionResult,recipient,independent.Result.PublicKey,
+                Required("NEAROASIS_CONTRACTADDRESS"));
             Assert.AreEqual(92m,(await _provider.GetCustomTokenBalanceAsync(symbol,Required("NEAROASIS_ACCOUNTID"))).Result);
             Assert.AreEqual(8m,(await _provider.GetCustomTokenBalanceAsync(symbol,recipient)).Result);
             Assert.IsFalse((await _provider.LockTokenAsync(new LockWeb3TokenRequest { TokenAddress = symbol })).IsError);
@@ -343,7 +371,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             })).IsError);
             Assert.IsFalse((await _provider.UnlockTokenAsync(new UnlockWeb3TokenRequest { TokenAddress = symbol })).IsError);
             var holderBurn=await _provider.BurnTokenAsync(new BurnWeb3TokenRequest{TokenAddress=symbol,Amount=1.25m,
-                OwnerPrivateKey=independent.Result.PrivateKey,OwnerPublicKey=independent.Result.PublicKey,OwnerSeedPhrase=""});
+                OwnerPrivateKey="",OwnerPublicKey=independent.Result.PublicKey,OwnerSeedPhrase=independent.Result.SeedPhrase});
             Assert.IsFalse(holderBurn.IsError,holderBurn.Message);
             Assert.AreEqual(6.75m,(await _provider.GetCustomTokenBalanceAsync(symbol,recipient)).Result);
             Assert.IsFalse((await _provider.BurnTokenAsync(new BurnWeb3TokenRequest
@@ -354,6 +382,25 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                 OwnerPrivateKey=Required("NEAROASIS_PRIVATEKEY"),OwnerPublicKey="",OwnerSeedPhrase=""},Required("NEAROASIS_ACCOUNTID"));
             Assert.IsFalse(namedBurn.IsError,namedBurn.Message);
             Assert.AreEqual(91.5m,(await _provider.GetCustomTokenBalanceAsync(symbol,Required("NEAROASIS_ACCOUNTID"))).Result);
+        }
+
+        private static async Task AssertOriginalMnemonicTransferAsync(string hash,string sender,string publicKey,string receiver,string? nativeDeposit=null)
+        {
+            // Independent public native RPC observation, not another signing/submission path.
+            using var client=new System.Net.Http.HttpClient{Timeout=TimeSpan.FromSeconds(10)};
+            using var body=new System.Net.Http.StringContent(System.Text.Json.JsonSerializer.Serialize(new{
+                jsonrpc="2.0",id="original-mnemonic-transfer",method="tx",@params=new{tx_hash=hash,sender_account_id=sender,wait_until="FINAL"}
+            }),System.Text.Encoding.UTF8,"application/json");
+            using var response=await client.PostAsync(Required("NEAROASIS_RPCENDPOINT"),body);response.EnsureSuccessStatusCode();
+            using var document=System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.IsFalse(document.RootElement.TryGetProperty("error",out _));
+            var outcome=document.RootElement.GetProperty("result");Assert.AreEqual("FINAL",outcome.GetProperty("final_execution_status").GetString());
+            Assert.IsTrue(outcome.GetProperty("status").TryGetProperty("SuccessValue",out _));
+            var transaction=outcome.GetProperty("transaction");Assert.AreEqual(hash,transaction.GetProperty("hash").GetString());
+            Assert.AreEqual(sender,transaction.GetProperty("signer_id").GetString());Assert.AreEqual(publicKey,transaction.GetProperty("public_key").GetString());
+            Assert.AreEqual(receiver,transaction.GetProperty("receiver_id").GetString());
+            if(nativeDeposit!=null){var actions=transaction.GetProperty("actions");Assert.AreEqual(1,actions.GetArrayLength());
+                Assert.AreEqual(nativeDeposit,actions[0].GetProperty("Transfer").GetProperty("deposit").GetString());}
         }
 
         [TestMethod]
@@ -374,16 +421,16 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual("True", locked.Result.Web3NFT.MetaData["near:locked"]);
             var unlocked = await _provider.UnlockNFTAsync(new UnlockWeb3NFTRequest { NFTTokenAddress = tokenId });
             Assert.IsFalse(unlocked.IsError, unlocked.Message);
-            var independentOwner=await _provider.GenerateKeyPairAsync();
+            var independentOwner=await _provider.CreateAccountAsync();
             Assert.IsFalse(independentOwner.IsError,independentOwner.Message);
-            var recipient=independentOwner.Result.WalletAddressLegacy;
+            var recipient=Convert.ToHexString(NBitcoin.DataEncoders.Encoders.Base58.DecodeData(independentOwner.Result.PublicKey[8..])).ToLowerInvariant();
             var funding=await _provider.SendTokenAsync(new SendWeb3TokenRequest{ToWalletAddress=recipient,Amount=0.1m});
             Assert.IsFalse(funding.IsError,funding.Message);
             var sent = await _provider.SendNFTAsync(new SendWeb3NFTRequest { TokenId = tokenId, ToWalletAddress = recipient });
             Assert.IsFalse(sent.IsError, sent.Message);
             Assert.AreEqual(recipient, sent.Result.Web3NFT.SendToAddressAfterMinting);
             var returned=await _provider.SendNFTAsync(new SendWeb3NFTRequest{TokenId=tokenId,FromWalletAddress=recipient,
-                ToWalletAddress=Required("NEAROASIS_ACCOUNTID"),OwnerPrivateKey=independentOwner.Result.PrivateKey,OwnerPublicKey=independentOwner.Result.PublicKey});
+                ToWalletAddress=Required("NEAROASIS_ACCOUNTID"),OwnerPrivateKey="",OwnerPublicKey=independentOwner.Result.PublicKey,OwnerSeedPhrase=independentOwner.Result.SeedPhrase});
             Assert.IsFalse(returned.IsError,returned.Message);
             Assert.AreEqual(Required("NEAROASIS_ACCOUNTID"),(await _provider.LoadOnChainNFTDataAsync(tokenId)).Result.SendToAddressAfterMinting);
             var burnMint = await _provider.MintNFTAsync(new MintWeb3NFTRequest
@@ -391,7 +438,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse(burnMint.IsError, burnMint.Message);
             var burnTokenId = burnMint.Result.Web3NFT.NFTTokenAddress;
             var burned = await _provider.BurnNFTAsync(new BurnWeb3NFTRequest
-                { TokenId = burnTokenId, OwnerPublicKey = independentOwner.Result.PublicKey, OwnerPrivateKey = independentOwner.Result.PrivateKey, OwnerSeedPhrase = "" });
+                { TokenId = burnTokenId, OwnerPublicKey = independentOwner.Result.PublicKey, OwnerPrivateKey = "", OwnerSeedPhrase = independentOwner.Result.SeedPhrase });
             Assert.IsFalse(burned.IsError, burned.Message);
             Assert.IsNull((await _provider.LoadOnChainNFTDataAsync(burnTokenId)).Result);
         }

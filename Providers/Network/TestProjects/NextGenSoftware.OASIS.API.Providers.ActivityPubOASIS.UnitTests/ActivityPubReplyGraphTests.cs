@@ -74,6 +74,7 @@ public class ActivityPubReplyGraphTests
         var result=sync?provider.LoadHolonsForParent("123",loadChildren:children,recursive:recursive,maxChildDepth:depth,curentChildDepth:initialDepth,loadChildrenFromProvider:providerChildren)
             :await provider.LoadHolonsForParentAsync("123",loadChildren:children,recursive:recursive,maxChildDepth:depth,curentChildDepth:initialDepth,loadChildrenFromProvider:providerChildren);
         Assert.False(result.IsError,result.Exception?.ToString());Assert.Equal(2,result.Result.Count());Assert.Equal(2,result.LoadedCount);Assert.Equal(1,transport.ContextReads);
+        Assert.True(result.IsLoaded);
         var first=Assert.Single(result.Result.Where(child=>child.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]=="124"));
         if(grandchild)Assert.Equal("126",Assert.Single(first.Children).ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);else Assert.Empty(first.Children);
     }

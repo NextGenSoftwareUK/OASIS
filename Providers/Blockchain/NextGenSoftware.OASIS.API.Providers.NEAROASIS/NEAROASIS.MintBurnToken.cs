@@ -87,11 +87,9 @@ public partial class NEAROASIS
             var amount = ToTokenUnits(request.Amount);
             if(string.IsNullOrWhiteSpace(symbol))throw new ArgumentException("Token address is required.");
             if(explicitAccount&&string.IsNullOrWhiteSpace(ownerAccountId))throw new ArgumentException("An explicit NEAR account scope must be nonblank.");
-            ValidateNearSigningInputs(seed);
-            NearKeyPair knownKey=null;
-            if(!explicitAccount&&!string.IsNullOrWhiteSpace(privateKey))
+            var knownKey=await ResolveNearExplicitKeyAsync(privateKey,seed);
+            if(!explicitAccount&&knownKey!=null)
             {
-                knownKey=await _sdk.DerivePublicKeyAsync(privateKey);
                 ownerAccountId=knownKey.ImplicitAccountId;
             }
             ownerAccountId??=_accountId;

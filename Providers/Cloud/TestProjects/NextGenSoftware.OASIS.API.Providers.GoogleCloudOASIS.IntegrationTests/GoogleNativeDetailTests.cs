@@ -56,8 +56,35 @@ public class GoogleNativeDetailTests
             var detail=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,Username="owned-user",Email="owned@example.invalid",XP=321,Karma=29,
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
             detail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="owned seed"});ids.Add(detail.Id);
+            for(var index=0;index<2;index++)detail.KarmaAkashicRecords.Add(new KarmaAkashicRecord{
+                AvatarId=detail.Id,Date=new DateTime(2026,10,20,0,0,0,DateTimeKind.Utc).AddSeconds(index),
+                Karma=index==0?39:10,TotalKarma=index==0?39:29,KarmaSourceTitle="Firestore native",KarmaSourceDesc="owned history",
+                WebLink="https://example.invalid/owned-history",
+                Provider=new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.GoogleCloudOASIS),
+                KarmaSource=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType.Game),
+                KarmaEarntOrLost=new(index==0?NextGenSoftware.OASIS.API.Core.Enums.KarmaEarntOrLost.Earnt:NextGenSoftware.OASIS.API.Core.Enums.KarmaEarntOrLost.Lost),
+                KarmaTypePositive=new(index==0?NextGenSoftware.OASIS.API.Core.Enums.KarmaTypePositive.Other:NextGenSoftware.OASIS.API.Core.Enums.KarmaTypePositive.None),
+                KarmaTypeNegative=new(index==0?NextGenSoftware.OASIS.API.Core.Enums.KarmaTypeNegative.None:NextGenSoftware.OASIS.API.Core.Enums.KarmaTypeNegative.Other)});
+            void CheckHistory(NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail actual){
+                Assert.AreEqual(2,actual.KarmaAkashicRecords.Count);
+                for(var index=0;index<2;index++){
+                    var expected=detail.KarmaAkashicRecords[index];var entry=actual.KarmaAkashicRecords[index];
+                    Assert.AreEqual(detail.Id,entry.AvatarId);Assert.AreEqual(expected.Date,entry.Date);Assert.AreEqual(expected.Karma,entry.Karma);Assert.AreEqual(expected.TotalKarma,entry.TotalKarma);
+                    Assert.AreEqual(expected.Provider.Value,entry.Provider.Value);Assert.AreEqual(expected.KarmaSource.Value,entry.KarmaSource.Value);
+                    Assert.AreEqual(expected.KarmaEarntOrLost.Value,entry.KarmaEarntOrLost.Value);Assert.AreEqual(expected.KarmaTypePositive.Value,entry.KarmaTypePositive.Value);Assert.AreEqual(expected.KarmaTypeNegative.Value,entry.KarmaTypeNegative.Value);
+                    Assert.AreEqual(expected.KarmaSourceTitle,entry.KarmaSourceTitle);Assert.AreEqual(expected.KarmaSourceDesc,entry.KarmaSourceDesc);Assert.AreEqual(expected.WebLink,entry.WebLink);
+                }
+            }
             var saved=await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(saved.IsError,saved.Message);Assert.IsTrue(saved.IsSaved);
             var loaded=await provider.LoadAvatarDetailAsync(detail.Id);Assert.IsFalse(loaded.IsError,loaded.Message);
+            CheckHistory(loaded.Result);
+            detail.KarmaAkashicRecords[1].KarmaSourceDesc="owned updated history";
+            var updatedHistory=provider.SaveAvatarDetail(detail);Assert.IsFalse(updatedHistory.IsError,updatedHistory.Message);
+            foreach(var selectedDetail in new[]{await provider.LoadAvatarDetailAsync(detail.Id),await provider.LoadAvatarDetailByUsernameAsync(detail.Username),provider.LoadAvatarDetailByEmail(detail.Email)}){
+                Assert.IsFalse(selectedDetail.IsError,selectedDetail.Message);CheckHistory(selectedDetail.Result);
+            }
+            var storedHistory=await db.Collection("avatarDetails").Document(detail.Id.ToString()).GetSnapshotAsync();
+            CheckHistory(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<AvatarDetail>(storedHistory.GetValue<string>("data_json")));
             Assert.AreEqual(321,loaded.Result.XP);Assert.AreEqual(29L,loaded.Result.Karma);
             Assert.AreEqual(detail.Inventory[0].Id,loaded.Result.Inventory.Single().Id);Assert.AreEqual("owned-value",loaded.Result.MetaData["owned-field"]);
             Assert.AreEqual(detail.Id,(await provider.LoadAvatarDetailByUsernameAsync(detail.Username)).Result.Id);
@@ -393,10 +420,10 @@ public class GoogleNativeDetailTests
         public int Writes;
         public InterruptAfterFirstWriteProvider(FirestoreDb loseReply):base(projectId:"oasis-google-native",enableStorage:false,enableFirestore:true,enableBigQuery:false)
             =>_loseReply=loseReply;
-        public override async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SaveHolonAsync(NextGenSoftware.OASIS.API.Core.Interfaces.IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+        protected override async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SavePlannedHolonAsync(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite write)
         {
             Writes++;
-            var result=await base.SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+            var result=await base.SavePlannedHolonAsync(write);
             if(Writes==1 && !result.IsError)
                 typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(this,_loseReply);
             return result;

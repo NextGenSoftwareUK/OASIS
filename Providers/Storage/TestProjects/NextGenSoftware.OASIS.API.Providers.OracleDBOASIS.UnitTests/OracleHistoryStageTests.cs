@@ -54,5 +54,5 @@ public sealed class OracleHistoryStageTests
         =>await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>Stage(new OracleDBOASIS("unused"),new Holon{Id=Guid.NewGuid()},"{broken"));
 
     private static async Task<string> Stage(OracleDBOASIS provider,Holon proposal,string? previous)
-        =>await (Task<string>)typeof(OracleDBOASIS).GetMethod("StageRecordHistoryAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(provider,new object?[]{proposal,previous})!;
+        =>await (Task<string>)typeof(OracleDBOASIS).GetMethod("StageRecordHistoryAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(provider,new object?[]{proposal,previous,null,null})!;
 }

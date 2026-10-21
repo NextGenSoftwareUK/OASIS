@@ -33,7 +33,7 @@ public partial class AzureCosmosDBOASIS
     }
     private async Task<OASISResult<bool>> DeleteDetailSelectorAsync(string selector,bool email,bool soft)
     {
-        var loaded=await ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,selector,row=>email?row.Email:row.Username,0);
+        var loaded=await ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,selector,row=>email?row.Email:row.Username,0).ConfigureAwait(false);
         if(loaded.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatarDetail,bool>(loaded);
         return await DeleteAvatarDetailAsync(loaded.Result.Id,soft);
     }

@@ -88,6 +88,10 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         var detail=control.AvatarDetails.AsNoTracking().Single(row=>row.Id==id.ToString());
         avatar.Email.Should().Be("preserved@test.invalid"); detail.XP.Should().Be(73); detail.Karma.Should().Be(19);
         avatar.DeletedDate.Should().Be(tombstone.DeletedAtUtc); detail.DeletedDate.Should().Be(tombstone.DeletedAtUtc);
+        avatar.DeletedDate.Kind.Should().Be(DateTimeKind.Utc);detail.DeletedDate.Kind.Should().Be(DateTimeKind.Utc);
+        tracked.DeletedDate.Kind.Should().Be(DateTimeKind.Utc);
+        context.Entry(tracked).Property("DeletedDateKind").OriginalValue.Should().Be((int)DateTimeKind.Utc);
+        context.Entry(tracked).Property("DeletedDateKind").IsModified.Should().BeFalse();
         avatar.DeletedByAvatarId.Should().Be(tombstone.DeletedByAvatarId.ToString()); detail.DeletedByAvatarId.Should().Be(avatar.DeletedByAvatarId);
         control.Avatars.AsNoTracking().Single(row=>row.Id==unrelatedId.ToString()).Email.Should().Be("preserved@test.invalid");
         context.Entry(unrelated).State.Should().Be(EntityState.Modified);
@@ -325,9 +329,8 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_graph BEFORE INSERT ON Holon WHEN NEW.Name = 'graph-rejection-grandchild' BEGIN SELECT RAISE(ABORT,'owned graph rejection'); END;");
         var saved = synchronous ? provider.SaveHolon(parent,saveChildren:true,recursive:true) : await provider.SaveHolonAsync(parent,saveChildren:true,recursive:true);
         saved.IsError.Should().BeTrue();
-        var failure = saved.Exception.Should().BeOfType<SqliteMutationReconciliationException>().Which;
-        failure.InnerException.Should().BeOfType<DbUpdateException>();
-        failure.RecordIds.Should().BeEquivalentTo(new[] {parent.Id,child.Id,grandchild.Id});
+        saved.IsSaved.Should().BeFalse();saved.ErrorCode.Should().Be("SQLITE_GRAPH_WRITE_FAILED");
+        saved.Exception.Should().BeOfType<DbUpdateException>(); // Explicit transaction rollback is known.
         control.Holons.Should().BeEmpty();
         control.Database.ExecuteSqlRaw("DROP TRIGGER reject_graph;");
         var unrelated = new Holon { Id = Guid.NewGuid(), Name = "unrelated-graph-check" };
@@ -448,9 +451,7 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         var rejected = synchronous ? provider.Import(new[] { first, second }) : await provider.ImportAsync(new[] { first, second });
         rejected.IsError.Should().BeTrue();
         rejected.Result.Should().BeFalse();
-        var failure = rejected.Exception.Should().BeOfType<SqliteMutationReconciliationException>().Which;
-        failure.InnerException.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
-        failure.RecordIds.Should().BeEquivalentTo(new[] {first.Id,second.Id});
+        rejected.Exception.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
         control.Database.ExecuteSqlRaw("DROP TRIGGER reject_import;");
         var unrelated = new Holon { Id = Guid.NewGuid(), Name = "unrelated-import-check" };
         (await provider.SaveHolonAsync(unrelated,saveChildren:false)).IsError.Should().BeFalse();
@@ -1605,7 +1606,7 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
     public async Task ParentSelectorsIsolateChildrenAndRespectTypeAndVersion(bool synchronous)
     {
         using var context = new DataContext(TestConnectionString);
-        context.Database.EnsureCreated();
+        context.Database.Migrate();
         var repository = new HolonRepository(context);
         var parent = new Holon { Id = Guid.NewGuid() };
         parent.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "local-parent";
@@ -1616,6 +1617,7 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         var byId = synchronous ? repository.LoadHolonsForParent(parent.Id, HolonType.Quest, loadChildren:false) : await repository.LoadHolonsForParentAsync(parent.Id, HolonType.Quest, loadChildren:false);
         byId.Result.Select(row => row.Id).Should().Equal(child.Id);
         var byKey = synchronous ? repository.LoadHolonsForParent("local-parent", HolonType.Quest, loadChildren:false, version:3) : await repository.LoadHolonsForParentAsync("local-parent", HolonType.Quest, loadChildren:false, version:3);
+        byKey.IsError.Should().BeFalse(byKey.Message+byKey.Exception);
         byKey.Result.Select(row => row.Id).Should().Equal(child.Id);
         repository.LoadHolonsForParent("foreign-parent", loadChildren:false).Result.Should().BeEmpty();
         repository.LoadHolonsForParent(parent.Id, HolonType.Quest, loadChildren:false, version:2).Result.Should().BeEmpty();
@@ -1638,9 +1640,8 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
             ? (synchronous ? repository.DeleteHolon(id.ToString(), false) : await repository.DeleteHolonAsync(id.ToString(), false))
             : (synchronous ? repository.DeleteHolon(id, false) : await repository.DeleteHolonAsync(id, false));
         rejected.IsError.Should().BeTrue();
-        var failure=rejected.Exception.Should().BeOfType<SqliteMutationReconciliationException>().Which;
-        failure.RecordId.Should().Be(id);
-        failure.InnerException.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        rejected.ErrorCode.Should().Be("SQLITE_DELETE_FAILED");
+        rejected.Exception.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
         rejected.IsDeleted.Should().BeFalse();
         context.Database.ExecuteSqlRaw("DROP TRIGGER reject_delete;");
         repository.SaveHolon(new Holon { Id = Guid.NewGuid() }).IsError.Should().BeFalse();

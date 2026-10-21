@@ -11,6 +11,34 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 [TestClass]
 public class DynamoVersionTests
 {
+    [DataTestMethod]
+    [DataRow(false,-1)] [DataRow(true,-1)]
+    [DataRow(false,1)] [DataRow(true,1)]
+    [DataRow(false,int.MaxValue)] [DataRow(true,int.MaxValue)]
+    public async Task CredentialVersionsRejectHistoryBeforeAnySdkRead(bool synchronous,int version)
+    {
+        var provider=new DynamoDBOASIS("owned","owned","us-east-1");
+        var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var original=(AmazonDynamoDBClient)field.GetValue(provider)!;
+        using var probe=new ReadProbe();field.SetValue(provider,probe);
+        try
+        {
+            void Check(OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> result)
+            {
+                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);
+                Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);
+                Assert.IsInstanceOfType(result.Exception,version<0 ? typeof(ArgumentOutOfRangeException):typeof(NotSupportedException));
+            }
+            Check(synchronous ? provider.LoadAvatarByVerificationToken("owned",version):await provider.LoadAvatarByVerificationTokenAsync("owned",version));
+            Check(synchronous ? provider.LoadAvatarByResetToken("owned",version):await provider.LoadAvatarByResetTokenAsync("owned",version));
+            Check(synchronous ? provider.LoadAvatarByRefreshToken("owned",version):await provider.LoadAvatarByRefreshTokenAsync("owned",version));
+            Check(synchronous ? provider.LoadAvatarByPublicKey("owned",version):await provider.LoadAvatarByPublicKeyAsync("owned",version));
+            Check(synchronous ? provider.LoadAvatarByPrivateKey("owned",version):await provider.LoadAvatarByPrivateKeyAsync("owned",version));
+            Assert.AreEqual(0,probe.Reads);
+        }
+        finally {field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
+    }
+
     private sealed class ReadProbe : AmazonDynamoDBClient
     {
         public int Reads;

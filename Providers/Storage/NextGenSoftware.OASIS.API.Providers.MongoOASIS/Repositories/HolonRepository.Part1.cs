@@ -129,11 +129,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         private static void PrepareNativeHolonIdentity(Holon holon)
             => MongoNativeRecordWriter.PrepareIdentity(holon);
 
+        // Identity lookup resolves the retained current record, including a tombstone.
+        // Discovery queries own active-row filtering; identity resolution also serves save-state audit ownership.
         public async Task<Holon> GetHolonAsync(Guid id)
-            => await ReadNativeHolonAsync(Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue));
+            => await ReadNativeHolonAsync(Builders<Holon>.Filter.Where(x => x.HolonId == id));
 
         public Holon GetHolon(Guid id)
-            => ReadNativeHolon(Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue));
+            => ReadNativeHolon(Builders<Holon>.Filter.Where(x => x.HolonId == id));
 
         //public T GetHolon<T>(Guid id) where T : IHolon
         //{
@@ -149,10 +151,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         //}
 
         public async Task<Holon> GetHolonAsync(string providerKey)
-            => await ReadNativeHolonAsync(Builders<Holon>.Filter.Where(x => x.Id == providerKey && x.DeletedDate == DateTime.MinValue));
+            => await ReadNativeHolonAsync(Builders<Holon>.Filter.Where(x => x.Id == providerKey));
 
         public Holon GetHolon(string providerKey)
-            => ReadNativeHolon(Builders<Holon>.Filter.Where(x => x.Id == providerKey && x.DeletedDate == DateTime.MinValue));
+            => ReadNativeHolon(Builders<Holon>.Filter.Where(x => x.Id == providerKey));
 
         //public async Task<Holon> GetHolonByMetaDataAsync(string metaKey, string metaValue)
         //{

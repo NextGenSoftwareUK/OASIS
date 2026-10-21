@@ -7,6 +7,37 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests;
 
 public class SolidGraphWriteTests
 {
+    private sealed class NamedOwner:Holon
+    {
+        public List<Holon> Components {get;set;}=new();
+        public override System.Collections.ObjectModel.ReadOnlyCollection<IHolon> AllChildren=>Children.Concat<IHolon>(Components).ToList().AsReadOnly();
+        public override IReadOnlyList<HolonChildCollection> CaptureChildCollections()=>base.CaptureChildCollections()
+            .Concat(new[]{new HolonChildCollection(nameof(Components),Components,rows=>Components=rows.Cast<Holon>().ToList())}).ToArray();
+    }
+
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task CapturedNamedRolesPersistAndRootOnlyPreservesObservedNullAndHistory(bool sync)
+    {
+        var transport=new SolidRecordHttpTests.Transport();using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport){IsVersionControlEnabled=true};
+        Assert.False((await provider.ActivateProviderAsync()).IsError);
+        var owner=new NamedOwner{Id=Guid.NewGuid(),Name="owned named owner"};var child=new Holon{Id=Guid.NewGuid(),Name="owned named child"};owner.Components.Add(child);
+        var expected=NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(HolonChildCollectionState.Capture(owner).CreateManifest(owner.Id,row=>row.Id));
+        var saved=sync?provider.SaveHolon(owner):await provider.SaveHolonAsync(owner);Assert.False(saved.IsError,saved.Exception?.ToString());
+        using var codec=new SolidPrivateRecordCodec(Root,Key());var rootKey=codec.Resource<IHolon>(owner.Id).AbsoluteUri;var childKey=codec.Resource<IHolon>(child.Id).AbsoluteUri;
+        var initial=((Holon)codec.Decode<IHolon>(transport.Records[rootKey],owner.Id)).ChildRoleManifestJson;var published=owner.ChildRoleManifestJson;var childBefore=transport.Records[childKey];
+        transport.RequireConditionalWrites=true;
+        var scalar=new Holon{Id=owner.Id,Name="owned scalar update"};var updated=sync?provider.SaveHolon(scalar,saveChildren:false):await provider.SaveHolonAsync(scalar,saveChildren:false);Assert.False(updated.IsError,updated.Exception?.ToString());
+        var preserved=((Holon)codec.Decode<IHolon>(transport.Records[rootKey],owner.Id)).ChildRoleManifestJson;
+        var history=await codec.DecodeVersionAsync<IHolon>(transport.Records[rootKey],owner.Id,1);
+        var legacy=(Holon)codec.Decode<IHolon>(transport.Records[rootKey],owner.Id);legacy.ChildRoleManifestJson=null;
+        transport.Records[rootKey]=(await codec.StageVersionAsync<IHolon>(legacy,transport.Records[rootKey])).Turtle;
+        scalar.ChildRoleManifestJson=expected;var legacySaved=sync?provider.SaveHolon(scalar,saveChildren:false):await provider.SaveHolonAsync(scalar,saveChildren:false);Assert.False(legacySaved.IsError,legacySaved.Exception?.ToString());
+        var legacyAfter=(Holon)codec.Decode<IHolon>(transport.Records[rootKey],owner.Id);
+        Assert.Equal(childBefore,transport.Records[childKey]);Assert.Equal(4,transport.Writes);
+        Assert.Equal(expected,initial);Assert.Equal(expected,published);Assert.Equal(expected,preserved);Assert.Equal(expected,((Holon)history).ChildRoleManifestJson);
+        Assert.Null(legacyAfter.ChildRoleManifestJson);Assert.Null(scalar.ChildRoleManifestJson);
+    }
+
     private static readonly Uri Root=new("https://pod.invalid/private/");
     private static byte[] Key()=>Enumerable.Range(1,32).Select(x=>(byte)x).ToArray();
     [Theory][InlineData(false)][InlineData(true)]

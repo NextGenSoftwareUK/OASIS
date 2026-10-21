@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -411,46 +411,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         //    throw new NotImplementedException();
         //}
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
-                        result.ErrorCode = activateResult.ErrorCode;
-                        return result;
-                    }
-                }
-
-                // Load holons by metadata from SQLite - using LoadAllHolons and filter
-                var allHolons = await _holonRepository.LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,version);
-                var holons = new OASISResult<IEnumerable<IHolon>>();
-                if (allHolons.IsError)
-                {
-                    return allHolons;
-                }
-                else
-                {
-                    var filtered = allHolons.Result?.Where(h => h.MetaData != null && h.MetaData.ContainsKey(metaKey) && h.MetaData[metaKey]?.ToString() == metaValue) ?? Enumerable.Empty<IHolon>();
-                    holons.Result = filtered;
-                    holons.IsError = false;
-                }
-
-                result.Result = holons.Result;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Result?.Count() ?? 0} holons by metadata from SQLite";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from SQLite: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            =>LoadHolonsByMetaDataAsync(metaKey==null ? null:new Dictionary<string,string>{{metaKey,metaValue}},
+                MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -460,6 +423,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
+            Dictionary<string,string> filter;
+            try
+            {
+                ArgumentNullException.ThrowIfNull(metaKeyValuePairs);
+                if(metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.All && metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.Any)
+                    throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                if(maxChildDepth<0)throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                if(curentChildDepth<0)throw new ArgumentOutOfRangeException(nameof(curentChildDepth));
+                filter=new Dictionary<string,string>(metaKeyValuePairs,StringComparer.Ordinal);
+            }
+            catch(ArgumentException cause)
+            {
+                OASISErrorHandling.HandleError(ref result,"Invalid SQLite metadata query: "+cause.Message,cause);
+                result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";return result;
+            }
             try
             {
                 if (!IsProviderActivated)
@@ -475,33 +454,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
                 // Load holons by multiple metadata pairs from SQLite - using LoadAllHolons and filter
                 var allHolons = await _holonRepository.LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,version);
-                var holons = new OASISResult<IEnumerable<IHolon>>();
                 if (allHolons.IsError)
                 {
                     return allHolons;
                 }
-                else
-                {
-                    var filtered = allHolons.Result?.Where(h => 
-                    {
-                        if (h.MetaData == null) return false;
-                        
-                        if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
-                        {
-                            return metaKeyValuePairs.All(kvp => h.MetaData.ContainsKey(kvp.Key) && h.MetaData[kvp.Key]?.ToString() == kvp.Value);
-                        }
-                        else // Or
-                        {
-                            return metaKeyValuePairs.Any(kvp => h.MetaData.ContainsKey(kvp.Key) && h.MetaData[kvp.Key]?.ToString() == kvp.Value);
-                        }
-                    }) ?? Enumerable.Empty<IHolon>();
-                    holons.Result = filtered;
-                    holons.IsError = false;
-                }
-
-                result.Result = holons.Result;
+                if(allHolons.Result==null)throw new System.IO.InvalidDataException("SQLite metadata candidate collection is missing.");
+                var filtered=allHolons.Result.Where(h =>
+                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(h.MetaData,filter,metaKeyValuePairMatchMode)).ToList();
+                result.Result = filtered;
                 result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Result?.Count() ?? 0} holons by metadata pairs from SQLite";
+                result.IsLoaded = true;
+                result.Message = $"Successfully loaded {filtered.Count} holons by metadata pairs from SQLite";
             }
             catch (Exception ex)
             {

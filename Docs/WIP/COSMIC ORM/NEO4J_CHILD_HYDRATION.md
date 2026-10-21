@@ -1,0 +1,18 @@
+# Neo4j child hydration and depth frontiers
+
+Working checkpoint, 19 October 2026. Final 190 native and 130 unit cases pass, zero failures/skips. See VERIFICATION.md for completed results and hashes.
+
+The native parent query previously added one to a 32-bit current depth without widening it. At int.MaxValue, current reads selected grandchildren beyond a finite frontier and historical queries rejected the wrapped negative value. Private current/historical offsets and hydration counters are now 64-bit; public nonnegative parameters retain their existing types and zero maximum remains unlimited.
+
+The existing `HydrateNativeChildrenAsync` owner now checks the requested frontier before issuing a child query, including collection and metadata entry points. Previously those routes could fetch one additional level when current depth already equaled/exceeded the maximum. The guard is centralized at hydration, serving both current roots and historical root selection.
+
+Hydration uses explicit frames containing native result rows, the next child position and the selected result list. It processes children in the previous depth-first order and publishes each parent's selected list when that frame finishes. Driver calls no longer recursively invoke hydration. Native repeated-identity/cycle and parent-edge/snapshot validation remain unchanged. The same explicitly supported descendant I/O failures can produce partial-read evidence when continueOnError is enabled; corrupt data and lifecycle conflicts still fail visibly. No alternate store, retry, cap or silent truncation is added. Query batching/performance is not changed: selected parents still require their existing native child queries.
+
+Eight boundary cases cover sync/async, ID/key parent selection, current/historical roots, both child-source hints, load/recursion flags, finite/unlimited maxima and current depth int.MaxValue. Collection/metadata checks exercise current positions 1 and int.MaxValue with maxima 0,1 and int.MaxValue. Two further native cases save and load 1024 linked nodes through sync/async identity reads. The eight boundary cases first failed against the old producer: four current cases returned an extra level, four historical cases failed after arithmetic overflow.
+
+Test fixtures use unique owned identities. Setup must be acknowledged before cleanup is enabled; remaining operations are reads. Cleanup removes only those known fixture nodes/archives, including after an expected red assertion. Uncertain setup writes remain retained. Native service and build windows use the existing coordinated owner; no new runtime or store is installed.
+
+Historical roots still use the existing current-descendant policy. These depth corrections do not establish a coherent historical graph snapshot, historical relationship reconstruction or migration/backfill guarantees. Generic DTO/manager tracking, visibility/query policy, all parameter routes and all-provider conformance remain open. Legacy Hyperdrive is unchanged.
+
+
+The initial full run also exposed one older test expecting a child beyond an exhausted frontier. Its retained three-node graph blocked 48 later empty-store guards. The failed report and exact 9,302-byte graph/edge archive are retained; a guarded reconciliation case verified known IDs, metadata, kinds, parents and unchanged properties/edges before atomic removal. The old assertion now expects zero children, and acknowledged setup followed only by reads has explicit owned cleanup in finally. Uncertain setup writes remain preserved. Final full 190 passes after that correction; this is test ownership repair, not a production fallback or general recovery endpoint.

@@ -15,13 +15,13 @@ public partial class CosmosDbClient
     public async Task DeleteUnchangedDocumentAsync(string documentId,object expected,PartitionKey? partitionKey,CancellationToken cancellationToken=default)
     {
         ArgumentNullException.ThrowIfNull(expected);
-        var proposal=JObject.Parse(OasisJson.Serialize(expected));
+        var proposal=OasisJson.ParseStoredObject(OasisJson.Serialize(expected));
         if(!Guid.TryParse(documentId,out var id)||id==Guid.Empty||proposal["Id"]?.ToString()!=documentId)
             throw new ArgumentException("Conditional delete requires matching nonempty Cosmos identity.");
         cancellationToken.ThrowIfCancellationRequested();
         var json=await ReadDocumentAsync(documentId,partitionKey,cancellationToken);
         if(json==null)throw new StorageLifecycleConflictException("Cosmos record disappeared before conditional deletion.");
-        var observed=JObject.Parse(json);
+        var observed=OasisJson.ParseStoredObject(json);
         if(observed["id"]?.ToString()!=documentId||observed["Id"]?.ToString()!=documentId)
             throw new InvalidDataException("Cosmos observed identity differs from deletion target.");
         var etag=observed["_etag"]?.Type==JTokenType.String?observed["_etag"].Value<string>():null;

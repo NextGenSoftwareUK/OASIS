@@ -83,8 +83,19 @@ public partial class DynamoHistoryNativeTests
                     Assert.AreEqual(name,json[EmbeddedRecordHistory.PropertyName]!["records"]![0]!["Username"]!.Value<string>());}
                 else Assert.AreEqual(0,actual.Item.Count);
             }
+            OASISResult<bool>? repeated=null;
+            if(soft&&mode!=3){
+                // The original post-commit state above has been independently reconciled before testing another request.
+                client.LoseTransactionReturn=false;repeated=await storage.DeleteAvatarDetailAsync(id);
+                Assert.IsFalse(repeated.IsError,repeated.Exception?.ToString());Assert.AreEqual(2,client.Transactions);
+                Assert.AreEqual(actual.Item["data_json"].S,(await Read("OasisAvatarDetails")).Item["data_json"].S);
+                Assert.AreEqual(avatarJson,(await Read("OasisAvatars")).Item["data_json"].S);
+            }
             if(actual.Item.Count>0)await RemoveOwned(verifier,"OasisAvatarDetails",id,actual.Item["data_json"].S);
             await RemoveOwned(verifier,"OasisAvatars",id,avatarJson);File.Delete(journal);
+            // Metadata assertions follow exact native cleanup so a result-only red does not leave an abandoned fixture.
+            Assert.AreEqual(mode<3,result.IsSaved);Assert.AreEqual(mode<3?1:0,result.DeletedCount);
+            if(repeated!=null){Assert.IsTrue(repeated.Result);Assert.IsTrue(repeated.IsDeleted);Assert.IsFalse(repeated.IsSaved);Assert.AreEqual(0,repeated.DeletedCount);}
         }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
     }
 }

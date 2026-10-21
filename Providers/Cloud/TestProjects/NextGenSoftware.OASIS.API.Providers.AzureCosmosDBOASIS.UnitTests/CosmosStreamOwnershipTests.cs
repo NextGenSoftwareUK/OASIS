@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.Azure.Cosmos;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Moq.Protected;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
@@ -10,6 +11,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 [TestClass]
 public class CosmosStreamOwnershipTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task CollectionReadsAwaitEverySdkPageAndDisposeOnSuccessOrFailure(bool failLaterPage)
+    {
+        var first=new TrackedResponse(HttpStatusCode.OK);first.SetContent("{\"Documents\":[{\"id\":\"owned-first\"}]}");
+        var second=new TrackedResponse(failLaterPage?HttpStatusCode.BadRequest:HttpStatusCode.OK);second.SetContent("{\"Documents\":[{\"id\":\"owned-second\"}]}");
+        var firstGate=new TaskCompletionSource<ResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);var secondGate=new TaskCompletionSource<ResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);var secondRequested=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var iterator=new Mock<FeedIterator>();iterator.SetupSequence(i=>i.HasMoreResults).Returns(true).Returns(true).Returns(false);var calls=0;
+        iterator.Setup(i=>i.ReadNextAsync(It.IsAny<CancellationToken>())).Returns(()=>{if(++calls==1)return firstGate.Task;secondRequested.TrySetResult(true);return secondGate.Task;});
+        var container=new Mock<Container>();container.Setup(c=>c.GetItemQueryStreamIterator(It.IsAny<QueryDefinition>(),It.IsAny<string>(),It.IsAny<QueryRequestOptions>())).Returns(iterator.Object);
+        var pending=new CosmosDbClient(container.Object).ReadAllDocumentsAsync();Assert.IsFalse(pending.IsCompleted);firstGate.SetResult(first);
+        await secondRequested.Task.WaitAsync(TimeSpan.FromSeconds(5));Assert.IsFalse(pending.IsCompleted);Assert.IsTrue(first.Disposed);secondGate.SetResult(second);
+        if(failLaterPage){var error=await Assert.ThrowsExceptionAsync<CosmosException>(()=>pending);Assert.AreEqual(HttpStatusCode.BadRequest,error.StatusCode);}
+        else {var rows=await pending;Assert.AreEqual(2,rows.Count);StringAssert.Contains(rows[0],"owned-first");StringAssert.Contains(rows[1],"owned-second");}
+        Assert.AreEqual(2,calls);Assert.IsTrue(second.Disposed);iterator.Protected().Verify("Dispose",Times.Once(),new object[]{true});
+    }
+
     [DataTestMethod]
     [DataRow("create",false)][DataRow("create",true)]
     [DataRow("upsert",false)][DataRow("upsert",true)]

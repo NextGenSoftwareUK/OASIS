@@ -15,6 +15,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaHolonAdapterTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task EmptyBatchAcknowledgesNoRecordsAndDoesNotWrite(bool synchronous)
+    {
+        var repository=new RecordsRepository();var provider=new ActiveProvider(repository);
+        var result=synchronous?provider.SaveHolons(Array.Empty<IHolon>()):await provider.SaveHolonsAsync(Array.Empty<IHolon>());
+        Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsSaved);Assert.AreEqual(0,result.SavedCount);
+        Assert.AreEqual(0,result.Result.Count());Assert.AreEqual(0,repository.WriteCalls);
+    }
+
     [DataTestMethod]
     [DataRow(false,false)]
     [DataRow(false,true)]
@@ -31,6 +40,7 @@ public class SolanaHolonAdapterTests
         var third=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
         var result=synchronous ? provider.Import(new[] {first,second,third}):await provider.ImportAsync(new[] {first,second,third});
         Assert.IsTrue(result.IsError); Assert.IsFalse(result.Result); Assert.IsFalse(result.IsSaved);
+        Assert.AreEqual(1,result.SavedCount);
         var failure=(SolanaPartialMutationException)result.Exception!;
         Assert.AreSame(cause,failure.InnerException); Assert.AreEqual("owned-first-committed-signature",failure.CommittedSignatures.Single());
         Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
@@ -108,6 +118,7 @@ public class SolanaHolonAdapterTests
         Assert.IsFalse(dependent.ProviderUniqueStorageKey.ContainsKey(ProviderType.SolanaOASIS));
         Assert.IsFalse(failed.ProviderUniqueStorageKey.ContainsKey(ProviderType.SolanaOASIS));
         Assert.AreEqual(continues ? 2:1,((SolanaPartialMutationException)result.Exception!).CommittedSignatures.Count);
+        Assert.AreEqual(continues ? 2:1,result.SavedCount,"Only acknowledged finalized records are counted.");
     }
 
     [DataTestMethod]
@@ -124,6 +135,7 @@ public class SolanaHolonAdapterTests
         root.Children=new List<IHolon> {first,second};
         var result=await provider.SaveHolonAsync(root,recursive:recursive,maxChildDepth:depth);
         Assert.IsFalse(result.IsError,result.Message); Assert.IsTrue(result.IsSaved);
+        Assert.AreEqual(expected,result.SavedCount);
         Assert.AreEqual(expected,repository.WriteCalls); Assert.AreNotEqual(Guid.Empty,root.Id);
         Assert.AreEqual(root.Id,first.ParentHolonId); Assert.AreEqual(root.Id,second.ParentHolonId);
         Assert.AreEqual(expected,repository.Written.Select(record=>record.Id).Distinct().Count());
@@ -155,6 +167,7 @@ public class SolanaHolonAdapterTests
         }
         var result=await provider.SaveHolonsAsync(Source());
         Assert.IsTrue(result.IsError); Assert.AreEqual(0,repository.WriteCalls); Assert.AreEqual(scenario=="reference" ? 1:0,repository.Reads);
+        Assert.AreEqual(0,result.SavedCount);
         Assert.IsFalse(root.ProviderUniqueStorageKey.ContainsKey(ProviderType.SolanaOASIS));
     }
 
@@ -175,6 +188,7 @@ public class SolanaHolonAdapterTests
         Assert.IsTrue(result.IsError); Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
         var partial=result.Exception as SolanaPartialMutationException;
         Assert.IsNotNull(partial); Assert.AreEqual("owned-first-committed-signature",partial.CommittedSignatures.Single());
+        Assert.AreEqual(1,result.SavedCount);
         Assert.AreSame(repository.WriteCause,partial.InnerException);
         Assert.AreEqual("owned-first-committed-signature",first.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
         Assert.IsFalse(second.ProviderUniqueStorageKey.ContainsKey(ProviderType.SolanaOASIS));

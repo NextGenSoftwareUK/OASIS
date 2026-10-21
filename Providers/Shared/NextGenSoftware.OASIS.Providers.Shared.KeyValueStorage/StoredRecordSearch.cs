@@ -168,7 +168,19 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private static JObject SearchDocument(IHolonBase record)
             => JObject.FromObject(record,Newtonsoft.Json.JsonSerializer.Create(new Newtonsoft.Json.JsonSerializerSettings {
+                ContractResolver=new SearchValueContractResolver(),
                 Converters={new SearchJsonElementConverter()}}));
+
+        private sealed class SearchValueContractResolver:Newtonsoft.Json.Serialization.DefaultContractResolver
+        {
+            protected override Newtonsoft.Json.Serialization.JsonProperty CreateProperty(MemberInfo member,Newtonsoft.Json.MemberSerialization serialization)
+            {
+                var property=base.CreateProperty(member,serialization);
+                if(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.IsNavigationMember(property.PropertyType))
+                    property.Ignored=true;
+                return property;
+            }
+        }
 
         // Project JSON-backed metadata as JSON values, not JsonElement.ValueKind descriptors.
         // Do not infer DateTime from strings: only actual typed CLR dates are date candidates.

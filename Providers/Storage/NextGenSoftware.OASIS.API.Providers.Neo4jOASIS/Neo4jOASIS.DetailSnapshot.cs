@@ -28,46 +28,28 @@ public partial class Neo4jOASIS
 
     public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail source)
     {
-        var result = new OASISResult<IAvatarDetail>();
-        var dispatched = false;
-        var archiveVersions = IsVersionControlEnabled;
+        var result=new OASISResult<IAvatarDetail>();var archiveVersions=IsVersionControlEnabled;
         try
         {
             ArgumentNullException.ThrowIfNull(source);
-            if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
-            var staged = OasisJson.Project<AvatarDetail>(source);
-            if (staged == null) throw new InvalidDataException("Neo4j detail snapshot is null.");
-            if (staged.Id == Guid.Empty) staged.Id = Guid.NewGuid();
-            staged.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = staged.Id.ToString();
-            staged.IsNewHolon = false;
-            AvatarDetail acknowledged;
-            using (var session = _driver.AsyncSession())
-            {
-                using var transaction = await session.BeginTransactionAsync();
-                dispatched = true;
-                var expected=archiveVersions ? await StampRecordHistoryAsync(transaction,"AvatarDetail",staged,ReadDetailNode):null;
-                var query=SnapshotWritePrefix("AvatarDetail",archiveVersions)
-                    + "SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot RETURN a";
-                var rows = await (await transaction.RunAsync(query, new { id = staged.Id.ToString(), username = staged.Username,
-                    email = staged.Email, snapshot = OasisJson.Serialize(staged),expected,writeId=Guid.NewGuid().ToString("N") })).ToListAsync();
-                if (rows.Count != 1) throw new InvalidDataException("Neo4j detail save did not acknowledge exactly one record.");
-                acknowledged = ReadDetailNode(rows[0]["a"].As<Neo4j.Driver.INode>());
-                if (acknowledged.Id != staged.Id) throw new InvalidDataException("Neo4j detail save acknowledged another identity.");
-                RequireAcknowledgedRecord(staged,acknowledged);
-                await transaction.CommitAsync();
-            }
-            source.Id = acknowledged.Id;
-            source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
-            source.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = acknowledged.Id.ToString();
-            source.IsNewHolon = false;
+            var staged=OasisJson.Project<AvatarDetail>(source);
+            if(staged==null)throw new InvalidDataException("Neo4j detail snapshot is null.");
+            if(staged.Id==Guid.Empty)staged.Id=Guid.NewGuid();
+            staged.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS]=staged.Id.ToString();staged.IsNewHolon=false;
+            result=await WriteIdentitySnapshotAsync<IAvatarDetail>("AvatarDetail",staged,ReadDetailNode,
+                "SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot RETURN a",row=>new System.Collections.Generic.Dictionary<string,object>{{"username",row.Username},{"email",row.Email}},archiveVersions).ConfigureAwait(false);
+            if(result.IsError)return result;
+            var acknowledged=result.Result;
+            source.Id=acknowledged.Id;
+            source.ProviderUniqueStorageKey??=new System.Collections.Generic.Dictionary<Core.Enums.ProviderType,string>();
+            source.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS]=acknowledged.Id.ToString();source.IsNewHolon=false;
             if(archiveVersions){source.Version=acknowledged.Version;source.VersionId=acknowledged.VersionId;source.PreviousVersionId=acknowledged.PreviousVersionId;}
-            result.Result = acknowledged; result.IsSaved = true;
         }
-        catch (Exception cause)
+        catch(Exception cause)
         {
-            result.IsError = true;
-            result.Exception = dispatched ? new Neo4jMutationReconciliationException(cause) : cause;
-            result.Message = result.Exception.Message;
+            result.Exception=result.Exception==null?cause:new AggregateException(result.Exception,cause);result.Message=result.Exception.Message;
+            if(result.IsSaved){result.IsWarning=true;result.WarningCount++;}
+            else {result.IsError=true;result.ErrorCount++;result.ErrorCode=cause is ArgumentException or InvalidDataException?"HYPERDRIVE_PAYLOAD_INVALID":"COSMIC_WRITE_FAILED";}
         }
         return result;
     }

@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
 
 [TestClass]
 [DoNotParallelize]
-public class CosmosNativeStorageTests
+public partial class CosmosNativeStorageTests
 {
     public TestContext TestContext {get;set;}=null!;
     [TestMethod][TestCategory("Reconciliation")]
@@ -80,6 +80,30 @@ public class CosmosNativeStorageTests
                 using var query=database.GetContainer(container.Id).GetItemQueryIterator<long>("SELECT VALUE COUNT(1) FROM c");
                 long count=0;while(query.HasMoreResults)count+=(await query.ReadNextAsync()).Single();
                 TestContext.WriteLine("Retained fixture container={0}; records={1}; partition={2}",container.Id,count,container.PartitionKeyPath);
+                if(container.Id=="holonItems")
+                {
+                    using var owned=database.GetContainer(container.Id).GetItemQueryIterator<JObject>(new QueryDefinition("SELECT * FROM c WHERE c.Name = @name").WithParameter("@name","owned delete"));
+                    while(owned.HasMoreResults)foreach(var row in await owned.ReadNextAsync())
+                    {
+                        var canonical=Infrastructure.CosmosEmbeddedHistory.CanonicalPayload(row);
+                        var decoded=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeStored<Holon>(canonical.ToString());
+                        var projected=JObject.Parse(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize((object)decoded));
+                        if(canonical.Property("$type")==null)projected.Remove("$type");
+                        var differences=canonical.Properties().Where(p=>!projected.TryGetValue(p.Name,out var value)||!NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPayloadEquality.Equivalent(p.Value,value)).Select(p=>p.Name).ToArray();
+                        TestContext.WriteLine("Owned delete identity={0}; ETag={1}; bodySHA256={2}; differingFields={3}; roleToken={4}",row["Id"],row["_etag"],Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(row.ToString(Newtonsoft.Json.Formatting.None)))),string.Join(",",differences),row["ChildRoleManifestJson"]?.Type);
+                        using var point=await database.GetContainer(container.Id).ReadItemStreamAsync(row["id"]!.Value<string>(),new PartitionKey(row["id"]!.Value<string>()));point.EnsureSuccessStatusCode();
+                        using var pointReader=new StreamReader(point.Content);var pointBody=JObject.Parse(await pointReader.ReadToEndAsync());
+                        TestContext.WriteLine("Owned point bodySHA256={0}; ETag={1}; feedPointDifferences={2}",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(pointBody.ToString(Newtonsoft.Json.Formatting.None)))),point.Headers.ETag,string.Join(",",row.Properties().Where(p=>!pointBody.TryGetValue(p.Name,out var value)||!NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPayloadEquality.Equivalent(p.Value,value)).Select(p=>p.Name)));
+                        var names=row.Properties().Select(p=>p.Name).Union(pointBody.Properties().Select(p=>p.Name),StringComparer.Ordinal).ToArray();
+                        TestContext.WriteLine("Feed-only fields={0}; point-only fields={1}; strictDeepEquals={2}",
+                            string.Join(",",names.Where(name=>pointBody.Property(name)==null)),
+                            string.Join(",",names.Where(name=>row.Property(name)==null)),JToken.DeepEquals(row,pointBody));
+                        foreach(var name in names.Where(name=>!JToken.DeepEquals(row[name],pointBody[name])))
+                            TestContext.WriteLine("Strict difference field={0}; feedType={1}; pointType={2}; semanticEquivalent={3}",
+                                name,row[name]?.Type.ToString()??"absent",pointBody[name]?.Type.ToString()??"absent",
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPayloadEquality.Equivalent(row[name],pointBody[name]));
+                    }
+                }
             }
         var credentialIntent="C:/Source/OASIS/TestResults/CosmosDBCurrent/credentials.pending.json";
         if(File.Exists(credentialIntent)){
@@ -377,8 +401,10 @@ public class CosmosNativeStorageTests
         public Task<string> ReadDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)=>healthy.ReadDocumentAsync(id,key,token);
         public string ReadDocumentByField(string field,string value,int version=0)=>healthy.ReadDocumentByField(field,value,version);
         public List<string> ReadAllDocuments()=>healthy.ReadAllDocuments();
+        public Task<List<string>> ReadAllDocumentsAsync()=>healthy.ReadAllDocumentsAsync();
         public Task<string> CreateDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>failed.CreateDocumentAsync(doc,key,token);
         public Task<string> UpsertDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>failed.UpsertDocumentAsync(doc,key,token);
+        public Task<string> UpsertPlannedDocumentAsync(object doc,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite plan,PartitionKey? key,CancellationToken token=default)=>failed.UpsertPlannedDocumentAsync(doc,plan,key,token);
         public Task<string> ReplaceDocumentAsync(string id,object doc,PartitionKey? key,CancellationToken token=default)=>failed.ReplaceDocumentAsync(id,doc,key,token);
         public Task<string> ReplaceUnchangedDocumentAsync(string id,object expected,object doc,PartitionKey? key,CancellationToken token=default)=>failed.ReplaceUnchangedDocumentAsync(id,expected,doc,key,token);
         public Task DeleteDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)=>failed.DeleteDocumentAsync(id,key,token);
@@ -392,8 +418,10 @@ public class CosmosNativeStorageTests
         public Task<string> ReadDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.ReadDocumentAsync(id,key,t),token);
         public string ReadDocumentByField(string field,string value,int version=0)=>inner.ReadDocumentByField(field,value,version);
         public List<string> ReadAllDocuments()=>inner.ReadAllDocuments();
+        public Task<List<string>> ReadAllDocumentsAsync()=>inner.ReadAllDocumentsAsync();
         public Task<string> CreateDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.CreateDocumentAsync(doc,key,t),token);
         public Task<string> UpsertDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.UpsertDocumentAsync(doc,key,t),token);
+        public Task<string> UpsertPlannedDocumentAsync(object doc,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite plan,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.UpsertPlannedDocumentAsync(doc,plan,key,t),token);
         public Task<string> ReplaceDocumentAsync(string id,object doc,PartitionKey? key,CancellationToken token=default)
             =>Bound(t=>inner.ReplaceDocumentAsync(id,doc,key,t),token);
         public Task<string> ReplaceUnchangedDocumentAsync(string id,object expected,object doc,PartitionKey? key,CancellationToken token=default)

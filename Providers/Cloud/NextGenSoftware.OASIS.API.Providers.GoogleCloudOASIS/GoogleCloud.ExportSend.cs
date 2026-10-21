@@ -54,12 +54,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         failures.Add(new InvalidOperationException("Firestore descendant skipped because its parent failed."));
                         continue;
                     }
-                    var written=await SaveHolonAsync(node.Snapshot,false,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
-                    if(written.IsError || written.Result==null) {
+                    var written=await SavePlannedHolonAsync(node);
+                    if(written.IsError || written.Result==null || !written.IsSaved) {
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
                         result.IsError=true;
-                        failures.Add(written.Exception ?? new InvalidOperationException(written.Message ?? "Firestore item returned no acknowledgement."));
+                        failures.Add(written.Exception ?? new InvalidDataException(written.Message ?? "Firestore item returned no acknowledged save."));
                         if(!continueOnError || NativeMutationReconciliation.IsRequired(written.Exception)) break;
                     }
                     else {
@@ -67,8 +67,11 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         publication.ValidateUnchanged();
                         node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                         node.Source.Version=written.Result.Version;node.Source.VersionId=written.Result.VersionId;node.Source.PreviousVersionId=written.Result.PreviousVersionId;
+                        if(node.Source is NextGenSoftware.OASIS.API.Core.Holons.Holon caller && written.Result is NextGenSoftware.OASIS.API.Core.Holons.Holon committed)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                         node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                         node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=node.Snapshot.Id.ToString();
+                        var revision=CosmicConcurrency.GetProviderRevisionId(written.Result,Core.Enums.ProviderType.GoogleCloudOASIS);
+                        if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(node.Source,Core.Enums.ProviderType.GoogleCloudOASIS,revision.Value);
                     }
                 }
                 result.Result=failures.Count==0 ? plan.Roots:saved;result.IsSaved=failures.Count==0;
@@ -82,6 +85,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 result.Exception=saved.Count>0 ? new GoogleFirestorePartialMutationException(saved.Select(row=>row.Id),cause):cause;
                 result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
             }
+            result.SavedCount=saved.Select(row=>row.Id).Concat(KnownFirestoreAcknowledgements(result.Exception)).Distinct().Count();
+            if(result.IsError)result.ErrorCount=Math.Max(1,result.ErrorCount);
             return result;
         }
 

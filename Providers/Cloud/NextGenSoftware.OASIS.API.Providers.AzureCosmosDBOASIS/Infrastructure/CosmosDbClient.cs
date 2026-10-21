@@ -106,17 +106,20 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         }
 
         public List<string> ReadAllDocuments()
+            =>ReadAllDocumentsAsync().GetAwaiter().GetResult();
+
+        public async Task<List<string>> ReadAllDocumentsAsync()
         {
             var list = new List<string>();
             var query = new QueryDefinition("SELECT * FROM c");
             using var iterator = _container.GetItemQueryStreamIterator(query);
             while (iterator.HasMoreResults)
             {
-                using var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
+                using var response = await iterator.ReadNextAsync().ConfigureAwait(false);
                 if (!response.IsSuccessStatusCode)
                     throw CreateServiceException(response,"Query failed");
                 using var reader = new StreamReader(response.Content);
-                var content = reader.ReadToEnd();
+                var content = await reader.ReadToEndAsync().ConfigureAwait(false);
                 foreach (var doc in DecodeQueryDocuments(content))
                     list.Add(doc.ToString());
             }

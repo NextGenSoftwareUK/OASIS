@@ -19,9 +19,21 @@ public partial class GoogleCloudOASIS
     private static void HandleFirestoreSaveError<T>(ref NextGenSoftware.OASIS.Common.OASISResult<T> result,string message,Exception cause)
     {
         NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,message,cause);
+        result.SavedCount=KnownFirestoreAcknowledgements(cause).Distinct().Count();
         // A definite create/revision rejection is not provider unavailability. Keep the original SDK cause.
-        if(cause is Grpc.Core.RpcException rpc && rpc.StatusCode is Grpc.Core.StatusCode.AlreadyExists or Grpc.Core.StatusCode.FailedPrecondition or Grpc.Core.StatusCode.NotFound)
+        if(cause is Core.Helpers.StorageLifecycleConflictException || cause is Grpc.Core.RpcException rpc && rpc.StatusCode is Grpc.Core.StatusCode.AlreadyExists or Grpc.Core.StatusCode.FailedPrecondition or Grpc.Core.StatusCode.NotFound or Grpc.Core.StatusCode.Aborted)
             result.ErrorCode=NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode;
+        if(cause is Grpc.Core.RpcException invalid && invalid.StatusCode==Grpc.Core.StatusCode.InvalidArgument)
+            result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
+    }
+    private static IEnumerable<Guid> KnownFirestoreAcknowledgements(Exception cause)
+    {
+        if(cause==null)yield break;
+        if(cause is GoogleFirestorePartialMutationException partial)
+            foreach(var id in partial.AcknowledgedRecordIds)if(id!=Guid.Empty)yield return id;
+        if(cause is AggregateException aggregate){
+            foreach(var inner in aggregate.InnerExceptions)foreach(var id in KnownFirestoreAcknowledgements(inner))yield return id;
+        }else foreach(var id in KnownFirestoreAcknowledgements(cause.InnerException))yield return id;
     }
     private static readonly EmbeddedRecordHistory FirestoreHistory=new();
 
@@ -34,7 +46,7 @@ public partial class GoogleCloudOASIS
             throw new InvalidDataException("Firestore lifecycle stage requires the matching soft-deleted record.");
         var staged=createHistory||current.Property(EmbeddedRecordHistory.PropertyName)!=null
             ? await StageFirestoreHistoryAsync(proposed,previous,documentId)
-            : JObject.Parse(OasisJson.Serialize(proposed));
+            : OasisJson.ParseStoredObject(OasisJson.Serialize(proposed));
         var record=OasisJson.DeserializeStored<T>(staged.ToString(Newtonsoft.Json.Formatting.None));
         var update=new Dictionary<string,object>{["isActive"]=false,["isDeleted"]=true,["data_json"]=staged.ToString(Newtonsoft.Json.Formatting.None)};
         if(previous.ContainsKey("version") || staged.Property(EmbeddedRecordHistory.PropertyName)!=null)update["version"]=record.Version;
@@ -44,7 +56,7 @@ public partial class GoogleCloudOASIS
     }
 
     // One conditional writer; callers publish state only after native acknowledgement.
-    private static async Task<T> WriteFirestoreRecordAsync<T>(DocumentReference reference,Dictionary<string,object> proposal,bool createHistory,Action validateCaller) where T:class,IHolonBase
+    private static async Task<T> WriteFirestoreRecordAsync<T>(DocumentReference reference,Dictionary<string,object> proposal,bool createHistory,Action validateCaller,PlannedHolonWrite plannedHolon=null) where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(reference);ArgumentNullException.ThrowIfNull(proposal);
         ArgumentNullException.ThrowIfNull(validateCaller);validateCaller();
@@ -62,18 +74,16 @@ public partial class GoogleCloudOASIS
         }
         _=CanonicalFirestoreHistoryDocument<T>(fields,reference.Id);
         var proposed=OasisJson.DeserializeStored<T>((string)fields["data_json"]);
+        if(collection is "avatars" or "avatarDetails")
+            return await WriteFirestoreIdentityAsync(reference,fields,proposed,createHistory,validateCaller);
         var snapshot=await reference.GetSnapshotAsync();
         var previous=snapshot.Exists?snapshot.ToDictionary():null;
-        if(previous!=null)await ReadFirestoreHistoryAsync<T>(previous,reference.Id,0);
-        var hasHistory=previous!=null && JObject.Parse((string)previous["data_json"]).Property(EmbeddedRecordHistory.PropertyName)!=null;
-        var staged=createHistory||hasHistory
-            ? await StageFirestoreHistoryAsync(proposed,previous,reference.Id)
-            : JObject.Parse(OasisJson.Serialize(proposed));
-        var committed=OasisJson.DeserializeStored<T>(staged.ToString(Newtonsoft.Json.Formatting.None));
-        fields["data_json"]=staged.ToString(Newtonsoft.Json.Formatting.None);
-        fields["version"]=committed.Version;
-        if(fields.ContainsKey("previousVersionId"))fields["previousVersionId"]=committed.PreviousVersionId.ToString();
-        if(fields.ContainsKey("nextVersionId"))fields["nextVersionId"]=committed.VersionId.ToString();
+        T observedRecord=null;
+        if(previous!=null)observedRecord=await ReadFirestoreHistoryAsync<T>(previous,reference.Id,0);
+        if(collection=="holons" && proposed is Core.Holons.Holon holon)
+            holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plannedHolon??new PlannedHolonWrite(holon,holon),
+                HolonChildRoleWriteKind.SourceSave,previous!=null,(observedRecord as Core.Holons.Holon)?.ChildRoleManifestJson);
+        var committed=await StageFirestoreFieldsAsync(proposed,previous,reference.Id,createHistory,fields);
         Dictionary<FieldPath,object> replacement=null;
         if(snapshot.Exists){
             if(!snapshot.UpdateTime.HasValue || snapshot.UpdateTime.Value.Equals(default(Timestamp)))
@@ -98,6 +108,29 @@ public partial class GoogleCloudOASIS
     {
         if(database?.Client.Settings?.CommitSettings?.Retry?.MaxAttempts!=1)
             throw new InvalidOperationException("Conditional Firestore writes require explicit single-attempt Commit settings before native I/O.");
+    }
+
+    private static async Task<T> StageFirestoreFieldsAsync<T>(T proposed,Dictionary<string,object> previous,string id,bool history,Dictionary<string,object> fields) where T:class,IHolonBase
+    {
+        var staged=await StageFirestoreDocumentAsync(proposed,previous,id,history);
+        var committed=OasisJson.DeserializeStored<T>(staged.ToString(Newtonsoft.Json.Formatting.None));
+        fields["data_json"]=staged.ToString(Newtonsoft.Json.Formatting.None);
+        fields["version"]=committed.Version;
+        if(fields.ContainsKey("previousVersionId"))fields["previousVersionId"]=committed.PreviousVersionId.ToString();
+        if(fields.ContainsKey("nextVersionId"))fields["nextVersionId"]=committed.VersionId.ToString();
+        return committed;
+    }
+
+    private static async Task<JObject> StageFirestoreDocumentAsync<T>(T proposed,Dictionary<string,object> previous,string id,bool createHistory) where T:class,IHolonBase
+    {
+        if(previous!=null){
+            var current=await ReadFirestoreHistoryAsync<T>(previous,id,0);
+            if(current.IsDeleted&&!proposed.IsDeleted)
+                throw new Core.Helpers.StorageLifecycleConflictException("Active save cannot overwrite a committed Firestore tombstone.");
+        }
+        if(proposed is IHolon holon)Core.Holons.CosmicConcurrency.SetProviderRevisionId(holon,Core.Enums.ProviderType.GoogleCloudOASIS,Guid.NewGuid());
+        var hasHistory=previous!=null&&OasisJson.ParseStoredObject((string)previous["data_json"]).Property(EmbeddedRecordHistory.PropertyName)!=null;
+        return createHistory||hasHistory?await StageFirestoreHistoryAsync(proposed,previous,id):OasisJson.ParseStoredObject(OasisJson.Serialize(proposed));
     }
 
     private static Google.Cloud.Firestore.V1.FirestoreSettings CreateFirestoreSettings()
@@ -143,7 +176,18 @@ public partial class GoogleCloudOASIS
             throw new InvalidDataException("Firestore native active projection differs from canonical record.");
         if(fields.TryGetValue("isDeleted",out var deleted) && (deleted is not bool deletedValue || deletedValue!=record.IsDeleted))
             throw new InvalidDataException("Firestore native deletion projection differs from canonical record.");
-        var document=JObject.Parse(json);
+        (string Username,string Email)? canonicalIdentity=record switch{
+            IAvatar avatar=>(avatar.Username,avatar.Email),
+            IAvatarDetail detail=>(detail.Username,detail.Email),
+            _=>null
+        };
+        if(canonicalIdentity.HasValue){
+            if(fields.TryGetValue("username",out var username)&&!Equals(username,canonicalIdentity.Value.Username))
+                throw new InvalidDataException("Firestore native username projection differs from canonical record.");
+            if(fields.TryGetValue("email",out var email)&&!Equals(email,canonicalIdentity.Value.Email))
+                throw new InvalidDataException("Firestore native email projection differs from canonical record.");
+        }
+        var document=OasisJson.ParseStoredObject(json);
         if(document["id"]!=null&&document["id"].Value<string>()!=documentId)
             throw new InvalidDataException("Firestore embedded identity differs from document key.");
         document["id"]=documentId;

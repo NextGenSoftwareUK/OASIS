@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 public partial class Neo4jOASIS
 {
     private async Task<OASISResult<IEnumerable<IHolon>>> ReadHistoricalHolonQueryAsync(int version,
-        Func<IHolon,bool> predicate,bool children,bool recursive,int maximumDepth,int currentDepth,bool continueOnError)
+        Func<IHolon,bool> predicate,bool children,bool recursive,int maximumDepth,long currentDepth,bool continueOnError)
     {
         var response=new OASISResult<IEnumerable<IHolon>>();
         var failures=new List<string>();

@@ -21,7 +21,7 @@ public class CosmosIdentityTests
         var client=new Mock<ICosmosDbClient>();
         client.Setup(c=>c.ReadDocumentAsync(It.IsAny<string>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).ReturnsAsync(json);
         client.Setup(c=>c.ReadDocumentByField(It.IsAny<string>(),It.IsAny<string>(),0)).Returns(json);
-        client.Setup(c=>c.ReadAllDocuments()).Returns(new List<string> {json});
+        client.Setup(c=>c.ReadAllDocumentsAsync()).ReturnsAsync(new List<string> {json});
         var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient(It.IsAny<string>())).Returns(client.Object);
         async Task Probe<T>(CosmosDbRepository<T> repository) where T:class,NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase
         {
@@ -30,7 +30,8 @@ public class CosmosIdentityTests
                 else if(reader=="field") repository.GetByField("Username","owned");
                 else repository.GetList();
             });
-            Assert.IsInstanceOfType(error.InnerException,typeof(Newtonsoft.Json.JsonException));
+            Assert.IsInstanceOfType(error.InnerException,corruption=="malformed"
+                ?typeof(System.Text.Json.JsonException):typeof(Newtonsoft.Json.JsonException));
         }
         await Probe(new AvatarRepository(factory.Object));
         await Probe(new AvatarDetailRepository(factory.Object));

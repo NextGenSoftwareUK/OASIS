@@ -1,0 +1,25 @@
+# Neo4j identity save ownership
+
+20 October 2026. Implementation and selected verification pass. This extends the holon [save lifecycle fix](NEO4J_SAVE_LIFECYCLE.md) to avatar and avatar-detail snapshots.
+
+Both identity Save routes previously skipped authoritative lifecycle observations when history was disabled, and failed to validate existing tombstones with history enabled. Their transaction-begun flag also classified errors before COMMIT as uncertain mutations, while post-COMMIT disposal could hide an acknowledged save.
+
+One generic native identity transaction owner now reads and locks the canonical previous record, validates deletion state, optionally stamps/archives history from that same observation, writes with an exact original-snapshot/creation-claim predicate, verifies the native acknowledgement, and owns COMMIT/rollback/disposal. History-disabled saves use the same lifecycle/concurrency predicate; they retain the configured history behavior. A failed creation predicate does not overwrite a concurrent creator.
+
+Failures before COMMIT are definite after successful rollback. Lost COMMIT or rollback acknowledgements require reconciliation. An acknowledged commit survives transaction/session cleanup failures as a saved result with a warning. Original failure classification remains independent of aggregated cleanup details. Caller publication occurs only after acknowledgement; arbitrary publication callback atomicity remains a separate open requirement.
+
+Forty-eight controlled cases cover both kinds, sync/async, history on/off and active/cleared/retimed/reattributed tombstones, with compatible tombstones and live edits as controls. Twenty native cases cover paired tombstone rejection and real SDK read/rollback/COMMIT/disposal acknowledgement faults. The hash-bound original Neo producer `A069BEE4BAF13A7A0ECEA98372EA3BACF2D7672EF01CB0E94F3EC99278991D31` fails32/passes16 in `TestResults/Neo4jCurrent/neo-identity-lifecycle-red.trx`, without native I/O. The new full controlled suite passes238/238, zero skips (`neo-identity-save-controls-full.trx`). Focused native20/20 passes, zero skips (`neo-identity-save-current.trx`), including real SDK read/rollback/COMMIT/disposal acknowledgement failures. The broad run discovered231 cases:20 new cases plus211 existing cases (the old default count guard was stale at202). Final full native231/231 and paired Shared917/917 pass with zero skips; the focused20 cases are a subset of231. No Core or Shared source change is required.
+
+Delete-route transaction ownership, related-kind identity lifecycle coordination, explicit authorized restore, wider provider parity and the full roadmap remain open.
+
+## Broad-run certification follow-up
+
+`neo-identity-full-before-certification.trx` retains213 passes/18 failures. Five failures were original tests expecting uncertain mutation after pre-COMMIT payload/constraint rejection. Four payload cases had already independently verified zero native rows before that outdated assertion. One constraint case stopped before its cleanup, leaving its two original creation records and owned unique constraint;13 later cases refused their preflight because this evidence remained. The assertions now require acknowledged rollback and direct original SDK/integrity exceptions, retaining the unchanged-record/no-archive checks. No production failure handling was weakened.
+
+The explicit `-ReconcileIdentityRollback` gate binds that exact report SHA256, checks the only two identity records are the original version1 `rollback-a/b` pair sharing one synthetic marker, verifies original first-name values, no historical rows or relationships and the exact owned uniqueness constraint, and archives all native properties before property-matched removal. Reconciliation passes1/1 (`neo-identity-reviewed-rollback-current.trx`); `TestResults/Neo4jCurrent/neo-identity-reviewed-rollback-fixture.json` preserves the exact inspected state. The corrected full native231/231 passes, zero skips. A missing test import was corrected after a compile-only rejection, before runtime start.
+
+## Final artifact boundary
+
+The terminal owning batch runs at parent `da979c64a`, with unchanged Core `aa209f94418d5f11280345ceebd411c912717858`. `TestResults/Neo4jCurrent/neo-identity-final-artifacts.json` verifies identical Core/Shared copies across Neo controlled/native and Shared consumers, matching Neo producers, the stopped retained runtime and free disk65.4GB. Core SHA256 `7B8680F86B797D84CAE0120D167F0BFA36E72B2BC4B7E9EFB22A379DC17620CC`; Shared `4CAA3F95C9A5C7DBCD26B4E6C7E086E130E8FF18CCD1F8A363B54BF0B5A3F411`; Neo `CFE15726A9B8CFBD6C53B069C1B7CC6BFDC29EC20336C978FE70F048274F366A`.
+
+Final reports: `neo-identity-save-controls-full.trx` (238), `neo-identity-save-current.trx` (20), `neo4j-native-current.trx` (231) under `TestResults/Neo4jCurrent`, plus `TestResults/SharedCurrent/shared-neo-identity-paired.trx` (917). Successful synthetic fixtures are removed by their owners. No Core/Shared source or dependency-pin change, environment duplication, download, Development/master merge or deployment is included.

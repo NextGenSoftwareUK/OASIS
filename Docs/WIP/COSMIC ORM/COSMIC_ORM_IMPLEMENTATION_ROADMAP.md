@@ -1,0 +1,294 @@
+# COSMIC ORM implementation roadmap
+
+Date: 19 October 2026. Design and acceptance plan. The first tracking/save-ownership batch is implemented and locally verified; see [current status and test evidence](IMPLEMENTATION_STATUS.md). Later stages remain open.
+
+Read with the [audit](COSMIC_ORM_AUDIT_2026-10-19.md) and [evidence inventory](COSMIC_ORM_SOURCE_EVIDENCE.md). This plan deliberately reuses shared graph planning, provider checked writes and hosted/Edge synchronization rather than adding competing persistence paths.
+
+## Scope clarification — 19 October 2026
+
+User direction: implement and certify Hyperdrive V2 only. Record legacy Hyperdrive gaps in [the legacy inventory](LEGACY_HYPERDRIVE_GAPS.md); do not repair or refactor legacy routing/fan-out as part of this goal. Shared COSMIC ORM and provider contracts remain in scope where required by V2. Historical legacy test evidence is retained, but additional legacy certification is not an acceptance gate.
+
+## Current acceptance checkpoint — 20 October 2026
+
+SQLite karma history: [root-cause repair and verification](SQLITE_KARMA_HISTORY_PERSISTENCE.md) covers history loading, update reconciliation, save acknowledgement projection, explicit sequence, nullable enums and DateTime.Kind persistence, with guarded migration and full SQLite1164 acceptance. Cross-provider durable history/restart acceptance remains open.
+
+The complete scope below remains active. [Implementation status](IMPLEMENTATION_STATUS.md) summarizes verified foundations and remaining work for all eight stages. Selected tracking/concurrency, graph ownership and search fixes have native evidence; they do not close the full roadmap. Per-save committed deltas and complete CQL have not been delivered; the initial predicate compiler is documented in Stage 8.
+
+Detailed sections preserve dated checkpoints. Treat earlier counts and remaining-work notes as historical where superseded by [integration evidence](INTEGRATION_BOUNDARY.md). Legacy implementation is excluded by user direction; shared provider fixes needed for V2 remain in scope.
+
+## Required invariants
+
+1. One logical edit produces one acknowledged logical revision. Replicas preserve that revision's identity; retries do not invent edits.
+2. An unchanged tracked aggregate produces no provider write, audit/version change or replication event.
+3. Failed preparation or a definitely rejected write does not publish committed state into the caller. Unknown outcomes retain the original operation identity and reconciliation evidence.
+4. Conditional save/delete atomically checks the expected persisted revision at the authoritative store.
+5. When durable replication is promised, primary state and its outbox obligation commit together. Replica acknowledgement is idempotent and target-specific.
+6. Reads satisfy a declared freshness/authority policy before latency/cost ranking.
+7. Authorization, tenant and data-placement requirements constrain every route and retry.
+8. Every requested guarantee is supported explicitly or rejected before mutation.
+
+## Stage 1 — Repair entity lifecycle and tracking
+
+Manager preparation follow-on: [ordered enter/exit frames](CORE_GRAPH_PREPARATION.md) remove mutual recursion, preserve encryption/context order and check revision overflow. Core1079/Shared732/SQLite705 pass with deep public V2 routes. Later [typed ownership and encryption-context evidence](TYPED_CHILD_OWNERSHIP.md) advances local collection/acknowledgement correctness, with latest Core1128 passing. Save publication now retains submitted effective encryption settings across configuration mutation during I/O. Persisted key context, generic-load decryption, role hydration and declared arbitrary callback/constructor failure semantics remain open; earlier checkpoints below are historical.
+
+Lifecycle follow-on: [Core graph lifecycle](CORE_GRAPH_LIFECYCLE.md) now uses heap traversal and single child/source captures, with Core1073/Shared732/SQLite701 passing and both Core TFMs building. Remaining concrete owners: mutually recursive manager audit/encryption preparation and physical Children versus typed semantic AllChildren tracking/undo. These must be fixed before closing universal graph lifecycle acceptance.
+
+Owners: HolonBase, Holon partials, HolonManager preparation/save/load and canonical serialization helpers.
+
+- Define a persistent projection, excluding runtime services/events, Original, temporary caches and cyclic navigations. Include declared custom properties and graph membership according to the aggregate boundary.
+- Add a detached tracking entry: original committed snapshot, current instance, original revision token and state (`Detached`, `Unchanged`, `Added`, `Modified`, `Deleted`). State is local; persisted existence is resolved by the authoritative provider.
+- Capture the baseline after successful hydration and commit. Do not serialize tracking state or persist snapshots recursively.
+- Detect changes before audit/version preparation. Cover mutable nested values, equal-value replacements and child membership. Reject cycles where unsupported; avoid unbounded traversal.
+- Correct notification timing. Suppress dirty notifications during hydration and baseline acceptance without hiding user edits made during a pending save.
+- Replace mutation-and-restore preparation with an operation-local write plan. Preserve original caller values on failure. Publish acknowledged values through a full explicit mapping contract.
+- Remove the manager's unconditional change-detection returns once tests establish correct behavior. Keep an explicit opt-in force-write operation separate from ordinary Save.
+
+Acceptance: a load is clean; no-op save issues zero I/O; editing any persistent scalar/custom field/nested value is detected; reverting values becomes clean; child add/remove/reparent follows declared rules; checkChildren=false excludes child-only edits. New empty-ID metadata-only objects save correctly. Preparation, encryption, provider rejection and cancellation leave caller state correct. Notifications expose the new value. Original never aliases the live graph.
+
+Regression matrix: sync/async, generic/non-generic, object convenience/manager entry points, single/batch, Hyperdrive V2. No need to reproduce every permutation in every provider suite: centralize pure tracking tests and use representative route contract cases.
+
+## Stage 2 — Specify undo, concurrency and transactions
+
+Proposed APIs below are names for discussion, not existing methods:
+
+| Operation | Meaning | Required behavior |
+|---|---|---|
+| RejectChanges | Discard local unsaved edits | Restore tracked baseline including collection membership; no remote writes |
+| AcceptChanges | Accept an acknowledged baseline | Normally internal after verified commit; never imply a remote write |
+| Reload | Fetch authoritative state | Explicit conflict behavior if local edits exist |
+| RestoreVersion | Restore historical content | Conditional new revision, audit actor/reason, history retained |
+| SaveChanges | Save tracked aggregate/unit of work | Declared provider-local atomicity or structured partial outcomes |
+| Compensate | Counteract a committed external action | Separate durable business operation with its own status |
+
+Introduce expected revision and stable logical operation ID in the write contract. Reuse native CAS/checks where implemented; unsupported providers must return a precise unsupported-guarantee error. Separate logical revision from native transaction hash and provider key. Return conflict data sufficient to choose reject, reload, merge or authorized overwrite; never silently merge money, balances or ownership.
+
+Define transaction capabilities per provider and operation. Start with atomic writes within one authoritative store; add distributed sagas for multi-provider business processes. Keep transaction scopes bounded. No global rollback promise across heterogeneous chains.
+
+Acceptance: two clients load revision N; one commits N+1 and the other receives conflict without overwrite. Conditional delete cannot remove a newer record. Same operation replay returns the same commit. A failed atomic batch commits nothing; best-effort mode returns exact per-item acknowledgements. Restoring version N creates a newer revision and preserves all prior retained versions.
+
+## Stage 3 — Certify history, mapping and graph semantics
+
+### Child-holon load/save/query certification — added 19 October 2026
+
+Typed semantic ownership checkpoint (20 October): [explicit collection capture and restoration](TYPED_CHILD_OWNERSHIP.md) now aligns tracking, save planning and Shared write planning. Core1,092, STAR8 and SQLite709 tests pass at their recorded checkpoints, including native V2 typed-child saves and local STAR body/core/space membership and subscription restoration. Durable relationship-role hydration, Mongo/Neo typed native cases and broader query certification remain open.
+
+Neo4j native follow-on: [hydration and depth frontiers](NEO4J_CHILD_HYDRATION.md) now use explicit query frames,64-bit current/history offsets and a centralized pre-query frontier. Final190 native/130 unit cases pass. Historical graph coherence, broader manager/generic/query/visibility/cancellation routes and all-provider conformance remain open.
+
+SQLite native follow-on: [repository hydration](SQLITE_CHILD_HYDRATION.md) now uses heap traversal and64-bit parent offsets, accepting the full nonnegative current-depth range. Full701 native cases pass with42 new boundary/deep graph/cycle/visibility cases. Neo4j-specific hydration/depth and broader manager/generic/history/query/all-provider certification remain open.
+
+Shared traversal checkpoint: [write planning/read projection](SHARED_GRAPH_TRAVERSAL.md) now use explicit heap stacks and64-bit internal depth arithmetic. Full Shared723 passes with deep graph/cycle/frontier/order tests. Provider-specific hydration/mapping/history/manager recursion and native parent-depth offsets remain open; this is not end-to-end unlimited-depth certification.
+
+Audit and fix child loading, saving and querying in every storage provider, beginning with **MongoDB, SQLite and Neo4j**. Identify the BootLoader-selected implementation when several adapters exist; do not certify an unused implementation by mistake. Extend the same conformance suite and evidence matrix to the remaining providers after these three.
+
+Define traversal once at the WEB4 contract boundary and test native provider behavior against it. Cover `loadChildren`, `saveChildren`, `recursive`, `maxChildDepth` (including zero/unlimited and invalid negative values), `currentChildDepth`/legacy spelling aliases, `continueOnError`, `loadChildrenFromProvider`/`ChildrenFromProvider`, and `saveChildrenOnProvider`. Verify direct provider calls as well as HolonManager using Hyperdrive V2, generic/non-generic and sync/async overloads. Each advertised parameter must affect behavior as specified or fail explicitly before I/O if unsupported.
+
+Use graphs with multiple roots, siblings, children and grandchildren, mixed holon types and metadata, empty collections and records beyond the selected depth. Verify inclusive/exclusive depth boundaries, immediate children when recursion is disabled, no unintended descendants in results or writes, stable parent identity, selected graph acknowledgements, and no changes to unselected descendants. Exercise parent-ID/provider-key and metadata/query routes, filtering/order/pagination over children, deleted children, missing references, corrupt records, duplicate identities, cycles and reparenting. Distinguish unlinking a child from deleting it.
+
+For saving, verify create/update/mixed graphs, parent-before-child identity allocation, transaction/partial-failure behavior, selected-child concurrency conditions and rollback. For loading, verify clean tracking only after the requested graph is hydrated, cancellation, bounded traversal, and current versus coherent historical graph semantics. Include CQL relationship traversal and predicates in the same matrix when CQL is implemented. Query limits must apply to declared graph/query semantics, not silently truncate descendants.
+
+The [retained tombstone identity contract](SOFT_DELETE_READ_CONTRACT.md) now aligns MongoDB with SQLite/Neo4j: ID/key reads and linked graph snapshots resolve retained tombstones. Mongo unit140/native64 and four selected MongoDB/Neo4j worker cases pass. Explicit visibility for discovery/parent/metadata/CQL queries and broader mixed-state/historical graphs still requires implementation and certification before closing this stage.
+
+Acceptance: MongoDB, SQLite and Neo4j each have an explicit parameter/operation capability table with native test evidence; every supported combination matches the shared contract, unsupported combinations produce precise errors, and the same suite is applied to all remaining providers. Source inspection or mocked calls alone do not count as native-provider certification.
+
+Build a maintained machine-readable provider capability matrix covering create/update/read/delete, exact history, metadata queries, parent traversal, graph atomicity, export/import, conditional writes, deduplication, cancellation and durable fan-out support. Include active BootLoader-selected implementation, runtime/configuration flags and native contract/ABI version.
+
+Use explicit capability values: implemented and verified, implemented but unverified, unsupported, and not applicable. Store evidence pointers and test dates. Provider count is not a substitute for route coverage.
+
+Unify typed codecs; cache descriptors only after correctness. Distinguish current aggregate reads from coherent historical graph snapshots. Define version retention and what happens when history settings change. Use UTC consistently for audit and delivery timestamps.
+
+Acceptance: deterministic cross-provider round trips including precision, nulls, byte arrays, nested collections and custom types; exact-version misses never return latest; unsupported history fails clearly; parent/child version policy is explicit; soft/hard delete respects declared history and chain limits; corrupt data fails visibly.
+
+## Stage 4 — Close durable delivery gaps
+
+Wire admission checkpoint: the [committed graph decoder](COMMITTED_GRAPH_WIRE_CONTRACT.md) now rejects coercible scalar types, alternate GUID forms and incorrectly cased fields before typed conversion or native I/O. Existing producer format, receipt fingerprints and empty-actor host-policy semantics are retained. Full Shared713 passes; native configured-host2 passes with the initial strict decoder. Payload/graph/queue resource bounds and authenticated admission remain open.
+
+Current startup/security checkpoint: [strict ONODE catalog configuration](ONODE_COSMIC_REPLICATION_CONFIGURATION.md) is implemented and native-tested. Shared initialization is awaited before registry lookup, exact capabilities/grants are checked, native stores captured and workers joined on shutdown. Authorization freezes the entire envelope before policy invocation; asynchronous replacement cannot change the authorized write. Full Shared692, configured native-host2 and full ONODE build pass. Earlier paragraph counts below are historical checkpoints. Default CRUD enrollment, authenticated tenant/record/encryption admission, physical binding verification, manifests/migration, crash recovery and queue limits remain open.
+
+Current receiver prerequisite: MongoDB, SQLite and Neo4j now implement explicit committed-replica intents under their existing native transaction owners. [MongoDB receiver](MONGO_COMMITTED_REPLICAS.md) includes exact embedded audit precision, captured graph routing, source/local head checks and causal-majority uncertain-commit verification. Actual SQLite/MongoDB receiver directions and the explicit [hosted graph adapter](HOSTED_COMMITTED_GRAPH_DELIVERY.md) now pass four native combinations. All six directed MongoDB/SQLite/Neo4j [explicit outbox-worker paths](OUTBOX_PROVIDER_DIRECTIONS.md) now have native sync/async evidence. Provider-wide/default CRUD enrollment and crash/retention/security acceptance below remain open. Receiver implementation alone does not complete this stage.
+
+SQLite now implements explicit [primary/outbox enrollment](ATOMIC_HOLON_OUTBOX.md) under its existing graph transaction, including manager/V2 routing. SQLite [delivery leases](HOLON_OUTBOX_DELIVERY_LEASES.md) now implement ordered per-target claims and token-fenced outcomes. The explicit [bounded dispatcher](HOLON_OUTBOX_DISPATCHER.md) consumes SQLite claims with renewal and native SQLite-to-MongoDB completion proof. MongoDB now implements [atomic primary enrollment](MONGO_PRIMARY_OUTBOX.md) under its existing transaction owner. MongoDB [delivery leasing/inspection](MONGO_OUTBOX_DELIVERY.md) now implements the recovery-capable store and actual MongoDB-to-SQLite worker path. Neo4j now implements [atomic primary enrollment](NEO4J_PRIMARY_OUTBOX.md), with 117 unit and 170 native cases passing. Neo4j [delivery leasing/inspection](NEO4J_OUTBOX_DELIVERY.md) now passes its four focused native cases, the full 174-case native regression and actual Neo4j-to-SQLite worker path (128 unit cases also pass). ONODE host configuration/readiness, durable target/catalog resolution and crash/security acceptance remain open.
+
+Explicit [Generic Host/catalog integration](COSMIC_HOLON_REPLICATION_HOST.md) now automatically schedules configured routes, preserves independent target progress and joins shutdown. Versioned route IDs bind source/store/endpoint/policy descriptors; every target requires an explicit authorization policy. Shared 653 and two native host cases pass, including expired-grant blocking without target writes. ONODE configuration/factory/readiness, persisted catalog manifests, tenant/record/encryption authorization, default/global enrollment and operator target/grant migration remain open.
+
+[Native-head readiness](COSMIC_REPLICATION_READINESS.md) is now implemented for the three selected stores and configured host. A durable reconciliation head cannot appear healthy merely because claim returns no work, including after service restart. Shared656/SQLite658/Mongo141-unit+64-native/Neo129-unit+6-delivery+2-host cases pass. The ONODE-specific readiness endpoint is now [wired and HTTP-tested](ONODE_COSMIC_REPLICATION_STARTUP.md), and the application builds. Enabled configuration/provider factory, initialization/lifetime and default enrollment remain open.
+
+Choose one authoritative commit/outbox owner for each durable mode. Reuse IHyperDriveSyncStateStore, hosted fan-out stores, leases and target idempotency contracts. Connect ordinary CRUD only where primary+outbox atomicity can actually be enforced. Avoid a second post-write enqueue that leaves a crash window.
+
+SQLite now persists [typed native recovery evidence](HOLON_OUTBOX_RECOVERY_EVIDENCE.md) atomically with fenced outcomes and supports read-only inspection; actual crash-before-outcome journaling and authenticated reconciliation remain open.
+
+Persist operation ID, logical version, payload/schema version, target set, target acknowledgements, attempt/lease state and reconciliation evidence. Require ordered application for the same record; do not allow an older queued update to overwrite a newer one. Retain tombstones until the replay horizon is safe. Define poison-operation handling and repair tooling. Configuration changes need target-set versioning and a backfill strategy.
+
+Expose `CommittedPrimary`, `PendingReplication`, `Replicated`, `SubmittedOnChain`, `Confirmed`, `Finalized`, `Conflict`, `ReconciliationRequired` and terminal failure as appropriate. These are proposed semantic states; map them onto existing contracts rather than duplicating state machines unnecessarily.
+
+Acceptance: crash immediately after primary commit, worker restart, lease expiry, duplicate delivery, out-of-order updates, target outage, target-set change, expired offline grant, deletion versus delayed edit, and accepted native write with lost response. Original transaction must be reconciled without an unsafe second spend.
+
+## Stage 5 — Deliver controlled migration
+
+Build a migration job over existing import/export and domain backfill primitives. Explicitly distinguish logical data copy from value transfer or smart-contract migration.
+
+Stages: preflight/capability and permission checks → snapshot → target transform → paged copy → normalized content/hash/count verification → incremental catch-up → controlled cutover → observation → explicit source retirement. Keep durable checkpoints, rejects and per-record audit evidence. Preserve identities and define version/key lineage. Define how direct legacy writes are captured during migration and how rollback of the cutover works before irreversible source retirement.
+
+Acceptance: resume after interruption without duplication; detect incompatible schemas and unsupported fields before cutover; retain consistent relationships; prove deletion catch-up; reconcile live writes; compare source/target semantic data; reverse direction using the same verified process. Existing Mongo backfill CLI is a building block, not proof of this full workflow.
+
+## Stage 6 — Add gas-aware and user-aware placement
+
+Prerequisite: Stage 4 durable intent handling, plus exact distinction between a data record and a settlement command.
+
+Policy inputs: supported operation and asset/contract context, permitted providers/chains, trust/finality requirements, data residency, replica freshness, live fee quote age/currency, maximum cost, latest execution deadline, user consent and latency SLO. Use measured request-path latency and explicit endpoint identity; report unknown metrics instead of ranking defaults as measured facts.
+
+For deferred settlement, persist the authorized intent atomically with its local business record, reserve funds or enforce an explicit credit-risk model, and queue execution. Revalidate quote, nonce, balance, deadline and authorization before signing/submission. Track native identity through finality and reorg handling. Chain selection must be limited to semantically equivalent permitted execution targets. Moving JSON to a cheaper database does not execute the original transaction.
+
+Acceptance: high fees cause durable deferral; fee drop resumes; prolonged high fees hit a visible deadline; budget change/authorization revocation prevents execution; native timeout triggers reconciliation; duplicate worker does not double-submit; failed/reverted transactions retain fee evidence; stale pricing cannot approve an oversized spend.
+
+## Release and operational gates
+
+Start with a deliberately small certified set: one authoritative transactional Web2 provider, one durable Edge store, and one specifically chosen chain/provider pair. Select from current maintained environments and release gates rather than installing new copies. Expand only after equivalent contract suites pass.
+
+Measure p50/p95/p99 latency by operation/provider, source-to-replica lag, oldest pending operation, recovery duration, stale/conflicting reads, uncertain commits, fees actually incurred, and data verification failures. Define read/write availability separately and publish the tested failure model.
+
+Run focused pure tests first, then controlled route tests, then native integration/fault tests using existing reusable environments. Bound .NET workers with `/m:2 /nr:false /p:UseSharedCompilation=false`; retain compact evidence and clean owned fixtures only after processes stop and targets are verified. Respect the current provider release-gate ledger; do not sweep concurrent unverified changes into a release.
+
+Done means the declared guarantees pass through the real public route and active provider implementation, including restart/failure cases. A TODO removed, a mock pass or a version field populated is not sufficient acceptance evidence.
+
+## Stage 7 — Per-save deltas
+
+First atomic capture owner is implemented: [Core reusable immutable capture plus SQLite conditional commit/replay](COMMITTED_DELTAS.md). Authoritative before/after values, physical/logical revision binding, descriptor summaries and history-policy storage are persisted in the primary receipt transaction. Core1,546 / Shared895 / SQLite1,089 pass, zero skips; focused11 includes pending edits, encryption/no-op, rollback, soft/hard deletion and original replay. MongoDB also adopts this contract ([native evidence](MONGO_COMMITTED_DELTAS.md)); Neo4j adoption passes conditional13/replica6/primary-outbox2 and Shared904, with [final evidence here](NEO4J_COMMITTED_DELTAS.md). Wider provider adoption, unconditional CRUD/replica enrollment, authorized historical values/decryption, retention/operator workflows and full restore/fault acceptance remain open. This is not completed Stage7.
+
+Prior prerequisite: [SQLite primary receipt integrity](SQLITE_RECEIPT_INTEGRITY.md) replaces an unbound decoded acknowledgement with a versioned operation/intent-bound envelope and the existing Shared graph codec. The original native gate exposes7 accepted-corruption cases with1 rejecting control. Final focused integrity/replay checks pass20/20 and full native1,078/1,078, zero skips, including checksum-valid semantic mismatch and historical admission. The newer capture checkpoint above extends this boundary.
+
+Prerequisite checkpoint: [relationship membership comparison](RELATIONSHIP_DELTA_PREREQUISITE.md) now compares immutable manifests without inferring deletion from unlinking. Core1,135 passes. This is not committed Save evidence; all transaction, revision, authorization, persistence and replay acceptance below remains open.
+
+Requested 19 October 2026. Expose immutable, version-linked change sets for each acknowledged Save: added/removed/modified fields and metadata entries, nested value changes, child additions/removals/reparenting, soft/hard deletion and restoration. Distinguish a collection removal from deletion of a persisted entity. Include previous/new values where authorized, logical operation ID, actor, authoritative provider and previous/committed revision. Do not include unsaved edits made while a write is pending in that write's committed delta.
+
+Generate deltas from the same canonical before/after commit values that own concurrency and history; do not infer them from UI notifications. No-op saves have empty deltas and perform no write. Persist durable deltas atomically with the authoritative commit when history/audit is requested, with explicit redaction/encryption and retention policy. Replayed operation IDs return the original delta, not a new change event. Provide preview of local pending changes separately from committed evidence.
+
+Acceptance: scalar/custom/metadata/nested/graph edits, explicit null versus missing, collection order, delete versus unlink, concurrent edits, rejected writes, uncertain acknowledgement and idempotent replay all produce the correct authorized result. A failed conditional write must never advertise a committed delta.
+
+## Stage 8 — CQL (COSMIC Query Language)
+
+20 October ordering/window increment: native SQLite/MongoDB and common fluent composition pass the clean Corefe492b2 pinned cohort: Core1,606, Shared925, Mongo197 controls/3 native, SQLite1,145, zero skips;17 declared consumer copies match. Exact type/domain ordering, identity ties, Take/Skip algebra, native work/payload/record bounds, real sort-memory exhaustion and timeout classification are covered. [Contract, examples, original fixture reconciliation and hashes](CQL_ORDERING_PAGING.md). Complete CQL/global federation/subquery/snapshot and the separate SQLite Akashic persistence scope remain open.
+
+20 October field-comparison increment: common immutable two-path predicates and independent capability admission now execute natively on SQLite/MongoDB. Final pinned Corec030926 cohort passes Core1,558, Shared925, Mongo197 controls/3 native and SQLite1,130, zero skips, with17 matching declared consumer copies. Native UUID hex-case and SQLite outer-ID binding defects found by regression tests are fixed; the original Mongo fixture was independently archived/re-read before exact cleanup. [Contract, examples, failure reconciliation, reports and hashes](CQL_FIELD_COMPARISONS.md). The full Stage8 authorization/discovery, ordering/paging, projections/aggregates, relationships, federation and wider adapter scope remain open.
+
+20 October scalar follow-on: SQLite and MongoDB now admit GUID metadata equality/membership, and exact UTC DateTime/nullable-date comparisons/membership over each declared storage representation. SQLite validates canonical UTC JSON calendar text and preserves seven fractional digits; MongoDB reads native BSON dates plus the existing exact-tick companion. Latest affected gates: SQLite full1,068/1,068; Mongo controlled193/193 and expanded CQL native3/3, zero skips. See [SQLite scalar contract](CQL_SCALAR_METADATA.md) and [Mongo native evidence](CQL_MONGO_NATIVE.md). Canonical audit dates, portable date representation policy, remaining numeric/enum types and all broader CQL acceptance below remain open.
+
+20 October native bridge increment: [MongoDB CQL](CQL_MONGO_NATIVE.md) now reuses the shared planner/executor and translates supported predicates natively, with count/query/streamed-payload bounds and a native deadline. Core also compiles trusted annotated scalar members to metadata paths; both SQLite and MongoDB verify these direct member queries, clean hydration and conditional write-back. Final Core1,536 / Shared895 / Mongo188 controlled and84 selected native / SQLite1,042 pass. Automatic authorization/routing, wider scalar/default/schema semantics, relationships, paging/order/projection, aggregates/federation, other adapters and the complete scope below remain open.
+
+Initial implementation: [the CQL predicate compiler](CQL_EXPRESSION_CONTRACT.md) now freezes typed scalar/metadata comparisons and boolean composition into an immutable representation without provider I/O or arbitrary client execution. Typed immutable query composition and explicit current/named/all-eligible scope are also implemented; pure scope/capability planning is implemented; exact field capabilities are verified; metadata presence/null predicates are implemented; shared native adapter execution is implemented; thirty-one CQL cases pass in Core1,320. The first SQLite parameterized native leaf-row adapter passes full833/833, including its exact production capability profile, literal nested metadata presence/null and the shared execution contract. Security/manager integration, scalar metadata execution, other native adapters and all remaining acceptance below are still required.
+
+Requested 19 October 2026. Build a typed LINQ/EF-style query API over WEB4, with a provider-neutral expression/AST contract suitable for later textual CQL. Support composed predicates (AND/OR/NOT, equality/ranges/inclusion/null tests and metadata paths), ordering, projection, paging, aggregates and relationship queries according to explicitly declared capabilities. Replace the limits of exact metadata selectors without concatenating provider-native query strings from user input.
+
+Provider scope is explicit: current default, named provider(s), or all eligible providers. Default to the current provider to avoid surprising cross-network scans; applications may configure all-provider scope deliberately. Apply actor/tenant/visibility, residency, encryption-query limitations, cost limits and timeouts before choosing execution targets. Plan pushdown against adapter capabilities; bounded client evaluation must be an explicit opt-in with visible limits, never a silent substitute for unsupported server execution.
+
+For federated execution define identity/version deduplication, provenance, authority/freshness selection, global sort/paging, partial failures and cancellation. Return a query plan/explanation describing targets and pushdown/client work. Do not call a union of independently paged stores globally ordered or snapshot-consistent. No implicit writes, settlement or cross-provider joins with hidden unbounded work.
+
+Acceptance: equivalent supported queries produce equivalent typed results on certified adapters; unsupported expressions fail before provider I/O; hostile predicates cannot inject native queries; multi-provider duplicate/conflicting revisions and partial failures are explicit; pagination is stable under the declared consistency policy; ownership filtering cannot be removed by projections or client evaluation. Document runnable examples and the capability matrix before declaring CQL complete.
+
+V2 hydration ownership checkpoint: existing MapMetaData now protects canonical Holon properties from metadata overrides, preserving persisted identity/audit/visibility/provider/runtime state. FullCore1,328 and SQLite834 pass with new direct/native cases. Existing swallowed custom-conversion failures and complete typed manager CQL integration remain required; legacy mapper behavior is unchanged and documented in LEGACY_HYPERDRIVE_GAPS.md.
+
+V2 conversion-error checkpoint: the old swallowed-value failure is replaced by canonical declared-type conversion and explicit public typed-load OASISResult errors; ID/key/all/search sync/async native cases pass. Default search routing now honors its instance-injected provider. FullCore1,334 and SQLite842 pass. Remaining runtime/schema/callback/resource policies and full typed CQL/security/federation acceptance are retained; legacy mapper/selection behavior is unchanged.
+
+Typed CQL manager checkpoint: V2 ExecuteQueryAsync<T> now materializes clean tracked leaf entities from admitted plans and explicit query adapters; provider provenance remains grouped. FullCore1,337 and SQLite845 pass with native typed/no-op-save/failure/cancellation evidence. Actor/tenant/visibility/cost admission, provider discovery/routing, scalar metadata, relationship options, entity-kind/runtime schema mapping, paging/aggregates/federation and the original roadmap acceptance remain required.
+
+CQL conditional write-back/leaf ownership acceptance: separate-client SQLite CQL reads carry native revisions into sync/async conditional saves; stale rejection preserves pending caller state and the winner, while a fresh query recovers correctly. Root-only save from a CQL leaf retains unselected child links and unchanged child revision. Focused3 and fullSQLite848 pass. Selected SQLite bridge evidence does not close broader provider/CQL/security/graph parameter acceptance. No production implementation/pin changes in this acceptance batch.
+
+Ordinal string query checkpoint: Contains and explicit StringComparison.Ordinal StartsWith/EndsWith now compile/admit/execute natively for selected SQLite fields. Bound BLOB operations preserve valid Unicode and NUL; unsupported culture/case modes and paths reject before I/O. FullCore1,341 and SQLite874 pass. Additional operators, scalar metadata, other adapters, policy/routing, graph queries and full original roadmap remain required.
+
+Membership/admission checkpoint: immutable scalar-array membership (max128, exact path types), native null-safe IN, SDK normalization and depth accounting pass fullCore1,347 and SQLite900. Arbitrary enumerable/comparer execution remains rejected. Precision review uncovered unsafe implicit mixed numeric coercion; adapters must now explicitly declare those semantics and SQLite now implements certified exact decimal/double comparisons against canonical Int32 fields and Int32-backed enum storage. Broader numeric path types, collection forms, scalar metadata, other adapters and all original CQL/security/graph/federation acceptance remain required.
+
+
+## Exact SQLite mixed numeric comparisons — 20 October 2026
+
+SQLite now declares MixedNumericComparison for its admitted canonical Int32 fields (Version and Int32-backed HolonType storage). Decimal/double literals are compared in their original precision against Int32 boundaries, then translated to exact integer bounds using floor/ceiling. Fractional equality is false; fractional inequality matches non-null values. Out-of-range literals reduce to the correct constant/non-null predicate. Only exact integer parameters reach SQLite, preventing REAL affinity from rounding a high-precision decimal into a false match. Unsupported numeric path types still reject explicitly.
+
+Six focused native cases pass, covering 420 comparisons against separately compiled CLR predicates plus the decimal equality regression. Cases include six operators, reversed operands, fractional/negative values, floating-point neighbors, Int32 boundaries and enum storage. Full SQLite regression passes 905/905 with zero skips; the owned fixture is absent after teardown. This does not certify arbitrary numeric metadata, undefined enum literals, other adapters or the unfinished security/graph/federation roadmap.
+
+
+## Exact scalar metadata capability admission — 20 October 2026
+
+`CosmicQueryMetadataCapability` declares an exact CLR metadata path type, its comparison and string operators, and separate membership/mixed-numeric semantics. The exact `CosmicQueryCapabilities(features, canonicalFields, metadataTypes)` profile freezes these declarations and rejects duplicate/null descriptors. Canonical and metadata capabilities cannot grant operations to one another. Nullable types remain distinct; global feature gates still apply. Existing exact field-only profiles declare no scalar metadata support. The broad type-based constructor remains a declaration mechanism and does not certify native adapters.
+
+Five new cases verify operator/type separation, metadata-only profiles, nullable admission, membership/string/mixed-numeric gates and immutable descriptor ownership. Full Core 1,352/1,352 passes with zero skips, and both target frameworks build with zero errors. This is admission groundwork: SQLite scalar metadata translation is not enabled by this checkpoint. Native missing/null/type semantics and the full original roadmap remain required.
+
+Native compatibility verification on the new Core contract: SQLite 905/905 passes in117s, zero skips, with fixture absent after teardown (`sqlite-cql-metadata-profile-full.trx`). No scalar metadata native support is claimed.
+
+
+## Native SQLite scalar metadata checkpoint — 20 October 2026
+
+The [typed scalar metadata contract](CQL_SCALAR_METADATA.md) adds native comparisons, membership and ordinal string matching for string, boolean, Int32 and Int64 metadata, including nullable value types. The production profile and translator share exact type/operator declarations. Missing and wrong-type paths remain distinct from explicit JSON null; integer bounds and SQLite runtime types are checked before comparison. Arrays and JSON-encoded strings are not traversed as objects. Shared native string/membership helpers preserve existing canonical field behavior. Unsupported metadata types and mixed numeric metadata comparisons reject before I/O, including with overbroad caller plans.
+
+The compiler also handles method-free built-in nullable scalar literal lifting, fixing the nullable boolean comparison exposed by the original red fixture. Full Core 1,353/1,353 and focused native 43/43 pass with zero skips. The original 26-case failure report is retained. Native decimal/double/GUID/date/enum metadata, authenticated WEB4 policy/routing, broader adapters, graph queries, paging/aggregates/federation and all unfinished original roadmap stages remain required.
+
+Final native regression: SQLite 948/948 passes125s, zero skips (`sqlite-cql-scalar-metadata-full-verified.trx`), with the fixture absent after normal teardown. Full Core1,353/1,353 and focused native43/43 belong to the recorded matching Core/provider epoch.
+
+
+## Bounded query snapshots — 20 October 2026
+
+Planning and execution now share one internal indexed snapshot owner. Authorized target and adapter lists validate a nonnegative count of at most64 before allocating/copying. Provider rows validate their count against the remaining result budget before allocating/copying. No external collection enumerator is used to build these snapshots. A count change detected after copying rejects the snapshot with an explicit plan/registry/provider-result error and no result publication. The executor checks cancellation during indexed copying and canonical row detachment, including after the last row.
+
+The old executor used ToArray before checking the row budget, and the planner enumerated targets after checking only their declared count. Six executor cases and two planner cases fail against those old paths; all eight pass within full Core1,361/1,361, zero skips. They cover index-only collections, excessive/negative counts, changing counts, no provider I/O for invalid registries, and cancellation during copying. The original red reports are retained.
+
+This bounds entry count and removes enumeration from snapshot admission. It does not establish atomic consistency for arbitrary same-count mutations, bound arbitrary indexer/getter duration, implement native scan deadlines, or limit serialized bytes per record. Provider-owned query scans/deadlines, payload-size admission and the complete security/federation/graph roadmap remain required.
+
+Final compatibility gate: fullSQLite948/948 passes123s, zero skips (`sqlite-cql-snapshot-full-verified.trx`), with fixture absent after teardown. This uses the final shared planner/executor helper and matching Core unit/native copies; the earlier executor-only native report remains a separate interim epoch.
+
+
+## Exact local numeric snapshots — 20 October 2026
+
+Decimal review exposed a correctness gap in the delta prerequisite: default JObject JSON parsing converts fractional object values to double, so nearby high-precision decimals could appear unchanged. Local tracking now captures canonical tokens directly, and save staging, local clones, rollback and concrete projection use those tokens without a text-reader round trip. `StoredRecordJson.CaptureRuntimeToken` is the shared trusted-runtime capture owner. `CaptureInputToken<T>` performs one validated input capture with the declared root contract and existing delegate/cycle rejection, preserving exact scalar values for downstream graph staging.
+
+Mutable byte-array token values need explicit copying: Newtonsoft token DeepClone can retain byte[] references. Capture detaches those values, and private-baseline restoration clones tokens and byte scalars before conversion. This preserves both high-precision decimals and full double range without choosing a lossy global numeric parser policy.
+
+Nine Core cases cover JSON value kinds, tiny custom/nested decimal edits and exact previews, rollback, raw JsonElement numeric values, projection, byte-array ownership and validated input rules. Original five decimal failures and two byte ownership failures are preserved. The first broader run exposed remaining save-staging reparsing; that layer now consumes the same token representation. Final Core1,370/1,370 passes, zero skips, and both targets build with zero errors. Native precision acceptance is recorded separately; local tests alone do not prove external JSON/ciphertext readers or persisted delta correctness.
+
+The provider session owns companion shared graph-planning/publication guard changes using these APIs. Stage7 remains open for atomic committed delta persistence, operation/revision/actor binding, authorization/redaction/encryption, history, deletion/restoration and idempotent original-delta replay. This fixes prerequisite ownership and precision, not the complete committed Save delta API.
+
+JSON element follow-on: strings, booleans, null and containers now retain structural value kinds when captured as tokens; numeric raw lexemes remain exact. Metadata encryption serializes its payload through the same canonical serializer so raw numeric tokens are encoded as numbers. The first native950 run had948pass/2encrypted-publication failures; the original encryption assertions remain intact. Focused final6/6 passes across decimal sync/async plaintext/encrypted variants plus independent root/child key contexts. Final native regression is recorded separately.
+
+Final precision/ownership acceptance: Core1,370/1,370 passes9s; Shared847/847 passes on matching Core/Shared copies; focused native6/6 passes2s; fullSQLite952/952 passes121s, zero skips. The owned fixture is absent after normal teardown. Native cases exercise actual sync/async saves, reloads, exact decimal edits and plaintext/encrypted metadata. Generic text/ciphertext/receipt numeric parsing and decimal-safe conditional fingerprints remain explicit follow-on gates; this does not close committed delta persistence/replay or the full roadmap.
+
+
+## Exact stored receipt metadata — 20 October 2026
+
+`StoredRecordJson.DeserializeStoredHolon(string)` reads canonical holon metadata through its raw JSON-value codec, excluding that field before restricted typed decoding of the remaining record. Metadata therefore has one decoder owner and never becomes a rounded temporary double. Metadata values use the same JsonElement domain as native SQLite reads, preserving numbers beyond decimal precision/range, wide floating-point lexemes, strings, nested containers and explicit null. Root type binding remains restricted; metadata type-name text remains data. Missing metadata keeps the normal empty dictionary. Ambiguous case-insensitive metadata fields and non-object metadata reject as corrupt data.
+
+SQLite conditional receipt replay now uses this decoder for each stored root/child record. Receipt format1 and its original record JSON are retained; no schema rewrite or alternative receipt fallback is added. Two native restart/replay cases originally fail on precise decimal metadata, then pass unchanged: replay returns original root/child values and original logical/provider revisions while the current database keeps its later update. Wide-double/null/string controls remain intact. Four new codec cases pass in full Core1,374/1,374, zero skips; both Core targets build with zero errors.
+
+This certifies the selected SQLite receipt boundary, not every provider/replica/text reader. Shared replica receipt adoption is coordinated with the provider session. Full committed delta generation, atomic persistence, authorization/redaction and replay remain unfinished, together with the complete original roadmap.
+
+Final receipt gate: Core1,374/1,374 passes11s, focused native2/2 passes2s and fullSQLite954/954 passes117s, zero skips (`receipt-precision-core-full.trx`, `sqlite-receipt-precision-focused.trx`, `sqlite-receipt-precision-full.trx`). Fixture absent after normal teardown. These reports certify the captured SQLite receipt epoch; other decoders and the full roadmap remain open.
+
+
+## SQLite exact intent fingerprints — 20 October 2026
+
+Precision audit found that SQLite still reparsed captured intent through the default double reader and omitted every provider's keys/revisions. The conditional owner now fingerprints the already captured canonical Holon snapshot and uses the shared exact-number hash owner, without recapturing live inputs. Only this authority's assigned current key/revision and persistence-assigned audit/version fields are excluded. Foreign provider keys/revisions and previous-version keys remain persisted write intent. Equivalent numeric scale and JsonElement/CLR representations normalize without double conversion; strings remain strings.
+
+The corrected hash has explicit fingerprint domain3 (plain intent) or4 (submitted relationship intent), distinct from historical rounded hashes. New SQLite primary receipts retain acknowledgement format1 and add a fingerprintFormat marker. An unmarked/obsolete receipt returns COSMIC_RECEIPT_FINGERPRINT_RECONCILIATION_REQUIRED before another mutation; there is no rounded-hash fallback or automatic second write. Operators must reconcile the original committed operation before retrying with a new intent. This compatibility gate remains an operational rollout requirement before deployment.
+
+Nine native regressions cover changed tiny decimals, nested values, foreign keys/revisions/prior keys, equivalent numeric/local-observation controls and historical receipt refusal without mutation. The original gate fails6/passes3, establishing the defects and controls. Final native acceptance is recorded separately.
+
+Final fingerprint acceptance: focused9/9 passes2s and fullSQLite963/963 passes122s, zero skips, with fixture absent after teardown. Shared exact-hash API dependency83d6523cc has its own856/856 report on matching recorded Core/Shared hashes. No Core source/pin change or deployment is included in this SQLite caller batch.
+
+
+## Exact archived metadata and physical-observation comparison — 20 October 2026
+
+SQLite archived-record decoding now uses the canonical stored-Holon reader, preserving raw metadata numeric precision rather than converting untyped fractions to double. Current/archive observations of one native revision are compared through the shared exact payload-equivalence owner on canonical tokens. No double-based text reparsing remains in this merge check. Numeric scale-equivalent representations remain equal; a checksum-valid tiny decimal change under the same physical revision remains corrupt data.
+
+Four native red-before cases fail against the old reader/merge. Six new cases now cover sync/async versioned reads, point/collection conflicts and same-value/different-scale controls. Combined with the existing physical-conflict/rollover cases, focused12/12 passes3s, zero skips. Final full native acceptance is recorded separately. This fixes selected historical before-value precision prerequisites; coherent historical graphs, retention/restore policy, committed delta persistence and broader roadmap requirements remain open.
+
+Final history precision gate: focused12/12 passes3s and fullSQLite969/969 passes128s, zero skips, with owned database/wal/shm absent after teardown (`sqlite-history-precision-focused.trx`, `sqlite-history-precision-full.trx`). Shared equality dependency9f345ff4a has its recorded866/866 gate on C82/F2E6; subsequent Oracle0071 evidence is a separate build epoch. No Core source/pin change or deployment is included.
+
+
+## One exact numeric-value owner for pending state — 20 October 2026
+
+Core.Serialization.StoredRecordValueEquality now owns logical JSON-value comparison, numeric classification and coefficient/exponent normalization. Tracking, pending value previews and save-publication edit checks use the same owner; the provider-session Shared wrapper delegates instead of keeping a second algorithm. Equivalent raw/CLR numeric values and decimal scales do not create artificial pending changes. Numeric text remains text; distinct precise numbers, missing/null distinctions and ordered arrays retain their existing meaning.
+
+Normalization uses coefficient text and BigInteger exponents, without double conversion or allocating powers; valid JSON exponents beyond Int64 do not overflow this comparison. Finite canonical fingerprint bytes are unchanged, verified by the provider-session compatibility gate. This is logical numeric value equivalence, not a general CLR runtime-type identity guarantee or completed CQL scalar conversion policy. Serialized nonnumeric scalar representation equivalence remains follow-on review.
+
+Four initial Core cases have2fail/2controls against the old comparer. Six final new cases pass within fullCore1,380/1,380, zero skips, including unbounded exponent/zero controls. Native sync/async cases verify an equivalent metadata edit yields an empty pending preview, a no-op Save and unchanged stored logical/provider revisions. Final native regression is recorded separately. Generic raw-metadata reader expansion and atomic authorized committed deltas remain open.
+
+Final equality acceptance: Core1,380/1,380 passes10s, Shared883/883 passes on matching recorded dependencies, native no-op2/2 passes2s and fullSQLite971/971 passes122s, zero skips. The fixed fixture database/wal/shm are absent. Existing finite fingerprint bytes remain unchanged; generic metadata reader expansion and committed delta persistence remain separate open gates.
+
+### Stage7 MongoDB adoption checkpoint — 20 October 2026
+
+MongoDB now implements atomic committed-delta capture using the shared Core model and Shared receipt codec. SQLite and MongoDB expose the conditional-delta capability; authorized stored-value access, wider provider rollout, ordinary CRUD/replicas and retention/operator workflows remain required. See [MongoDB acceptance and scope](MONGO_COMMITTED_DELTAS.md).

@@ -53,6 +53,7 @@ try {
         & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Retained NEAR producer/consumer build failed; no dependency restore attempted.'}
     }
+    & (Join-Path $RepositoryRoot 'Scripts/TestHosts/Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $RepositoryRoot -ConsumerOutput (Join-Path (Split-Path $tests) 'bin/Debug/net10.0')
     $started=[DateTime]::UtcNow
     & dotnet test $tests --no-build --no-restore --nologo --logger 'trx;LogFileName=near-provider-current.trx' --results-directory $results /m:2 /nr:false --verbosity quiet
     if ($LASTEXITCODE -ne 0) {

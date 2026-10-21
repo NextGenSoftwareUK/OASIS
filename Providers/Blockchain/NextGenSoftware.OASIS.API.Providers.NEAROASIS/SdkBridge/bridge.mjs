@@ -1,4 +1,6 @@
 import { Account, JsonRpcProvider, KeyPair, actions, teraToGas } from "near-api-js";
+import nearSeedPhrase from "near-seed-phrase";
+import bip39 from "bip39-light";
 import { collectEntries } from "./entries-page.mjs";
 import { submitCheckedRecord } from "./checked-write.mjs";
 
@@ -45,6 +47,18 @@ async function execute(input) {
       if (!accountId) throw new Error("targetAccountId is required");
       const state = await provider.viewAccount({ accountId, blockQuery: { finality: "final" } });
       return { amount: state.amount.toString(), locked: state.locked.toString(), storageUsage: state.storage_usage };
+    }
+    case "generateMnemonic":
+    case "deriveMnemonic": {
+      const phrase = input.operation === "generateMnemonic"
+        ? nearSeedPhrase.generateSeedPhrase().seedPhrase
+        : typeof input.seedPhrase === "string" ? nearSeedPhrase.normalizeSeedPhrase(input.seedPhrase) : "";
+      if (!bip39.validateMnemonic(phrase)) throw new Error("A valid NEAR BIP39 mnemonic with a valid checksum is required");
+      const derived = nearSeedPhrase.parseSeedPhrase(phrase);
+      const publicKey = KeyPair.fromString(derived.secretKey).getPublicKey();
+      if (publicKey.toString() !== derived.publicKey) throw new Error("NEAR mnemonic SDK key identity differs");
+      return { seedPhrase: phrase, privateKey: derived.secretKey, publicKey: derived.publicKey,
+        implicitAccountId: Buffer.from(publicKey.data).toString("hex") };
     }
     case "generateKey": {
       const keyPair = KeyPair.fromRandom("ed25519");

@@ -9,6 +9,65 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public sealed class ConditionalHolonPlanTests
 {
+    [TestMethod]
+    public void CanonicalFingerprintBindsEquivalentJsonNumbersWithoutMutatingInput()
+    {
+        var original=new Newtonsoft.Json.Linq.JObject{["number"]=1m,["other"]="kept"};var before=original.DeepClone();
+        var equivalent=new Newtonsoft.Json.Linq.JObject{["other"]="kept",["number"]=new Newtonsoft.Json.Linq.JRaw("1.00")};
+        Assert.AreEqual(ConditionalHolonPlan.ComputeFingerprint(original),ConditionalHolonPlan.ComputeFingerprint(equivalent));
+        Assert.IsTrue(Newtonsoft.Json.Linq.JToken.DeepEquals(before,original));
+    }
+    [TestMethod]
+    public void CanonicalFingerprintRequiresCapturedContent()
+        =>Assert.ThrowsException<ArgumentNullException>(()=>ConditionalHolonPlan.ComputeFingerprint(null));
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void DistinctExactDecimalMetadataMustBindDifferentIntent(bool child)
+    {
+        var root=new Holon{Id=Guid.NewGuid()};var nested=new Holon{Id=Guid.NewGuid()};root.Children.Add(nested);
+        var source=child?nested:root;source.MetaData["precise"]=1.0000000000000000000000000001m;
+        var authority=ProviderType.OracleDBOASIS;
+        var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),Guid.NewGuid(),authority,
+            new[]{new HolonWriteCondition(root.Id,null),new HolonWriteCondition(nested.Id,null)}),ConditionalHolonOperation.Save,new[]{root});
+        var original=ConditionalHolonPlan.Create(request,authority);
+        source.MetaData["precise"]=1.0000000000000000000000000002m;
+        Assert.AreNotEqual(original.Fingerprint,ConditionalHolonPlan.Create(request,authority).Fingerprint,
+            "Different decimal intents must never match an existing operation receipt.");
+        Assert.AreEqual(1.0000000000000000000000000001m,Convert.ToDecimal(original.Nodes[child?1:0].Snapshot.MetaData["precise"]));
+    }
+    [TestMethod]
+    public void DecimalScaleDoesNotChangeLogicalIntent()
+    {
+        var root=new Holon{Id=Guid.NewGuid(),MetaData=new(){["amount"]=1.0m}};var request=Request(root,Guid.NewGuid());
+        var original=ConditionalHolonPlan.Create(request,ProviderType.OracleDBOASIS).Fingerprint;
+        root.MetaData["amount"]=1.00m;
+        Assert.AreEqual(original,ConditionalHolonPlan.Create(request,ProviderType.OracleDBOASIS).Fingerprint);
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void JsonElementAndClrNumericValuesBindTheSameIntent(bool wide)
+    {
+        using var json=System.Text.Json.JsonDocument.Parse(wide?"1e100":"1.00");
+        var root=new Holon{Id=Guid.NewGuid(),MetaData=new(){["amount"]=wide?(object)1e100:1.0m}};
+        var request=Request(root,Guid.NewGuid());var original=ConditionalHolonPlan.Create(request,ProviderType.OracleDBOASIS).Fingerprint;
+        root.MetaData["amount"]=json.RootElement.Clone();
+        Assert.AreEqual(original,ConditionalHolonPlan.Create(request,ProviderType.OracleDBOASIS).Fingerprint);
+    }
+    [TestMethod]
+    public void WideDoubleDifferenceIsStillBoundWithoutDecimalOverflow()
+    {
+        var root=new Holon{Id=Guid.NewGuid(),MetaData=new(){["amount"]=1e100}};var request=Request(root,Guid.NewGuid());
+        var original=ConditionalHolonPlan.Create(request,ProviderType.OracleDBOASIS).Fingerprint;
+        root.MetaData["amount"]=double.BitIncrement(1e100);
+        Assert.AreNotEqual(original,ConditionalHolonPlan.Create(request,ProviderType.OracleDBOASIS).Fingerprint);
+    }
+    [TestMethod]
+    public void PreciseMetadataReorderingDoesNotChangeBoundIntent()
+    {
+        var root=new Holon{Id=Guid.NewGuid(),MetaData=new(){["amount"]=1.0000000000000000000000000001m,["note"]="same"}};
+        var request=Request(root,Guid.NewGuid());var original=ConditionalHolonPlan.Create(request,ProviderType.OracleDBOASIS).Fingerprint;
+        root.MetaData=new(){["note"]="same",["amount"]=1.0000000000000000000000000001m};
+        Assert.AreEqual(original,ConditionalHolonPlan.Create(request,ProviderType.OracleDBOASIS).Fingerprint);
+    }
     [DataTestMethod]
     [DataRow("source")] [DataRow("target")] [DataRow("plain")] [DataRow("reordered")]
     public void CapablePlanBindsReplicationEnrollmentWithoutChangingUnenrolledIntent(string changed)

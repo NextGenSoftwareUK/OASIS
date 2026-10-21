@@ -68,6 +68,12 @@ public sealed class SolidDpopClientCredentialsHandler : DelegatingHandler
         {
             var nonce=ReadNonce(response);
             if(nonce!=null)Volatile.Write(ref _resourceNonce,nonce);
+            // HTTP 401 rejects the credentials sent on this request. CSS can return only
+            // Bearer scope="openid webid", without an invalid_token error parameter.
+            // Return the original failure; obtain credentials only for the next explicit call.
+            if(response.StatusCode==HttpStatusCode.Unauthorized)
+                // A late rejection for an older token must not clear a newer cached token.
+                Interlocked.CompareExchange(ref _accessToken,null,token);
             return response;
         }
         catch{response.Dispose();throw;}
@@ -78,7 +84,8 @@ public sealed class SolidDpopClientCredentialsHandler : DelegatingHandler
         await _tokenGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            if(_accessToken!=null&&DateTimeOffset.UtcNow<_refreshAt)return _accessToken;
+            var cached=Volatile.Read(ref _accessToken);
+            if(cached!=null&&DateTimeOffset.UtcNow<_refreshAt)return cached;
             // RFC9449 token-endpoint nonce challenge: at most one answered challenge,
             // before any resource request. This never retries a Pod mutation.
             for(var challenge=0;challenge<2;challenge++)

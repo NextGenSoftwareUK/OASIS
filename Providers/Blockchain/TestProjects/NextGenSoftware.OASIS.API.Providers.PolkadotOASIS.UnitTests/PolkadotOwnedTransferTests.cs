@@ -59,6 +59,13 @@ public class PolkadotOwnedTransferTests
 
     [DataTestMethod][DataRow("accepted", false)][DataRow("accepted", true)][DataRow("dispatch-failed", false)][DataRow("read-error", false)][DataRow("wait-for-cancellation", false)]
     public async Task OrdinarySendUsesOwnerAndRequiresFinalizedDispatch(string outcome, bool synchronous)
+        => await VerifyOwnedSend(outcome,synchronous,false);
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task ConstructorSignerFacadeUsesSameOwnerAndFinalityPipeline(bool synchronous)
+        => await VerifyOwnedSend("accepted",synchronous,true);
+
+    private async Task VerifyOwnedSend(string outcome,bool synchronous,bool configuredSignerFacade)
     {
         // Controlled fixture covers orchestration/physical pipe only, NOT SDK signatures, Mongo durability or ledger execution.
         var priorBridge = Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE");
@@ -78,8 +85,9 @@ public class PolkadotOwnedTransferTests
                 PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
             Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_FINALITY_PIPE", OperatingSystem.IsWindows()
                 ? @"\\.\pipe\" + pipeName : Path.Combine(Path.GetTempPath(), "CoreFxPipe_" + pipeName));
-            var pending = provider.ExecutePreparedNativeOperationAsync(() => synchronous
-                ? Task.FromResult(provider.SendToken(new SendWeb3TokenRequest())) : provider.SendTokenAsync(new SendWeb3TokenRequest()),
+            var pending = provider.ExecutePreparedNativeOperationAsync(() => configuredSignerFacade
+                ? synchronous?Task.FromResult(provider.SendTransaction("sender","recipient",1m,"memo")):provider.SendTransactionAsync("sender","recipient",1m,"memo")
+                : synchronous?Task.FromResult(provider.SendToken(new SendWeb3TokenRequest())):provider.SendTokenAsync(new SendWeb3TokenRequest()),
                 Handle(store), "owned-original", "sender", cancellation.Token);
             if (outcome == "wait-for-cancellation")
             {

@@ -22,7 +22,13 @@ public class NearRecordPublicationTests
     public async Task PublicSaveRetainsControlledAcknowledgementAndChangedCaller(int kind,bool generated)
         =>await RunPublicationSchedule(kind,generated,false);
 
-    private async Task RunPublicationSchedule(int kind,bool generated,bool abortBeforeMutation)
+    [DataTestMethod]
+    [DataRow(0,false)][DataRow(1,false)][DataRow(2,false)][DataRow(3,false)]
+    [DataRow(0,true)][DataRow(1,true)][DataRow(2,true)][DataRow(3,true)]
+    public async Task PublicSaveCannotPublishOverChangedCanonicalCaller(int kind,bool metadata)
+        =>await RunPublicationSchedule(kind,true,false,metadata?2:1);
+
+    private async Task RunPublicationSchedule(int kind,bool generated,bool abortBeforeMutation,int edit=0)
     {
         var root=Path.Combine(AppContext.BaseDirectory,"TestResults","NearPublication");
         Directory.CreateDirectory(root);
@@ -54,7 +60,10 @@ public class NearRecordPublicationTests
             Assert.AreEqual(1,File.ReadAllLines(Path.Combine(root,"writes.ndjson")).Length);
             if(!generated)StringAssert.EndsWith(key,original.ToString("D"));
             if(abortBeforeMutation)throw new FixtureScheduleAbortedException();
-            var changed=Guid.NewGuid();source.Id=changed;
+            var changed=Guid.NewGuid();
+            if(edit==0)source.Id=changed;
+            else if(edit==1)source.Description="newer local description";
+            else source.MetaData["caller-edit"]="newer local metadata";
             await File.WriteAllTextAsync(Path.Combine(root,"release"),"release controlled acknowledgement");
             var saved=await save.WaitAsync(TimeSpan.FromSeconds(10));
             Assert.IsTrue(saved.IsError);Assert.IsFalse(saved.IsSaved);
@@ -62,7 +71,10 @@ public class NearRecordPublicationTests
             var cause=saved.Cause;
             Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(cause));
             CollectionAssert.Contains(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.OriginalTransactionIds(cause).ToArray(),"controlled-record-acknowledgement");
-            Assert.AreEqual(changed,source.Id);Assert.AreEqual(7,source.Version);Assert.IsFalse(source.ProviderUniqueStorageKey.ContainsKey(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.NEAROASIS));
+            Assert.AreEqual(edit==0?changed:original,source.Id);
+            if(edit==1)Assert.AreEqual("newer local description",source.Description);
+            if(edit==2)Assert.AreEqual("newer local metadata",source.MetaData["caller-edit"]);
+            Assert.AreEqual(7,source.Version);Assert.IsFalse(source.ProviderUniqueStorageKey.ContainsKey(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.NEAROASIS));
             Assert.AreEqual(1,File.ReadAllLines(Path.Combine(root,"writes.ndjson")).Length);
             Assert.AreEqual(Guid.Empty,child.Id);Assert.AreEqual(0,child.Version);
         }
@@ -81,9 +93,13 @@ public class NearRecordPublicationTests
         IHolonBase source=kind==0?new Avatar():kind==1?new AvatarDetail():new Holon();
         var original=generated?Guid.Empty:Guid.NewGuid();source.Id=original;
         var stored=new Holon{Id=generated?Guid.NewGuid():original,Version=4,VersionId=Guid.NewGuid()};
-        var changed=Guid.NewGuid();source.Id=changed;source.Version=7;var versionId=source.VersionId;
+        source.Version=7;var versionId=source.VersionId;
+        Action validate=kind==0?StoredRecordPublicationSnapshot<IAvatar>.Capture(source).ValidateUnchanged
+            :kind==1?StoredRecordPublicationSnapshot<IAvatarDetail>.Capture(source).ValidateUnchanged
+            :StoredRecordPublicationSnapshot<IHolon>.Capture(source).ValidateUnchanged;
+        var changed=Guid.NewGuid();source.Id=changed;
         var method=typeof(NEAROASIS).GetMethod("PublishRecordStamp",BindingFlags.Static|BindingFlags.NonPublic)!;
-        var error=Assert.ThrowsException<TargetInvocationException>(()=>method.Invoke(null,new object[]{source,stored,original,"acknowledged-fixture-receipt"}));
+        var error=Assert.ThrowsException<TargetInvocationException>(()=>method.Invoke(null,new object[]{source,stored,validate,"acknowledged-fixture-receipt"}));
         var followup=(NativeTransactionFollowupException)error.InnerException!;
         Assert.AreEqual("acknowledged-fixture-receipt",followup.OriginalTransactionId);
         Assert.AreEqual(changed,source.Id);Assert.AreEqual(7,source.Version);Assert.AreEqual(versionId,source.VersionId);
@@ -93,8 +109,9 @@ public class NearRecordPublicationTests
     {
         var source=new Holon{Id=generated?Guid.Empty:Guid.NewGuid()};
         var stored=new Holon{Id=generated?Guid.NewGuid():source.Id,Version=4,VersionId=Guid.NewGuid()};
+        Action validate=StoredRecordPublicationSnapshot<IHolon>.Capture(source).ValidateUnchanged;
         typeof(NEAROASIS).GetMethod("PublishRecordStamp",BindingFlags.Static|BindingFlags.NonPublic)!
-            .Invoke(null,new object[]{source,stored,source.Id,"acknowledged-fixture-receipt"});
+            .Invoke(null,new object[]{source,stored,validate,"acknowledged-fixture-receipt"});
         Assert.AreEqual(stored.Id,source.Id);Assert.AreEqual(stored.Version,source.Version);Assert.AreEqual(stored.VersionId,source.VersionId);
     }
 }

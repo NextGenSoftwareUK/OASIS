@@ -61,13 +61,14 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
             var reference=_firestoreDb.Collection("avatars").Document(id.ToString());
             var detailReference=_firestoreDb.Collection("avatarDetails").Document(id.ToString());
             paths=reference.Path+";"+detailReference.Path;
-            var exists=await _firestoreDb.RunTransactionAsync(async transaction=>
+            var exists=await RunFirestoreIdentityTransactionAsync<bool>(_firestoreDb,paths,async transaction=>
             {
-                var snapshot=await transaction.GetSnapshotAsync(reference);
-                var detailSnapshot=await transaction.GetSnapshotAsync(detailReference);
-                if(!snapshot.Exists) return false;
-                var avatar=DecodeAvatar(snapshot.ConvertTo<Dictionary<string,object>>(),snapshot.Id);
-                var detail=detailSnapshot.Exists ? DecodeAvatarDetail(detailSnapshot.ConvertTo<Dictionary<string,object>>(),detailSnapshot.Id):null;
+                var snapshot=await ReadFirestoreIdentityDocumentAsync(reference,transaction);
+                var detailSnapshot=await ReadFirestoreIdentityDocumentAsync(detailReference,transaction);
+                if(snapshot==null) return (false,Array.Empty<Google.Cloud.Firestore.V1.Write>());
+                var avatar=await ReadFirestoreHistoryAsync<Avatar>(DecodeFirestoreIdentityFields(snapshot),id.ToString(),0);
+                var detail=detailSnapshot!=null ? await ReadFirestoreHistoryAsync<AvatarDetail>(DecodeFirestoreIdentityFields(detailSnapshot),id.ToString(),0):null;
+                var writes=new List<Google.Cloud.Firestore.V1.Write>();
                 if(softDelete)
                 {
                     var patch=supplied ?? (avatar.IsDeleted
@@ -76,26 +77,26 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
                     if(avatar.IsDeleted && !MatchesTombstone(avatar,patch) || detail!=null && detail.IsDeleted && !MatchesTombstone(detail,patch))
                         throw new StorageLifecycleConflictException("Firestore stored tombstone differs from requested committed lifecycle state.");
                     committed=patch;
-                    if(MatchesTombstone(avatar,patch) && (detail==null || MatchesTombstone(detail,patch))) return true;
+                    if(MatchesTombstone(avatar,patch) && (detail==null || MatchesTombstone(detail,patch))) return (true,Array.Empty<Google.Cloud.Firestore.V1.Write>());
                     avatar.IsActive=false;avatar.DeletedDate=patch.DeletedAtUtc;avatar.DeletedByAvatarId=patch.DeletedByAvatarId;
-                    var avatarUpdate=await StageFirestoreLifecycleUpdateAsync(avatar,snapshot.ToDictionary(),snapshot.Id,createHistory);
+                    var avatarUpdate=await StageFirestoreLifecycleUpdateAsync(avatar,DecodeFirestoreIdentityFields(snapshot),id.ToString(),createHistory);
                     Dictionary<string,object> detailUpdate=null;
                     if(detail!=null)
                     {
                         detail.IsActive=false;detail.DeletedDate=patch.DeletedAtUtc;detail.DeletedByAvatarId=patch.DeletedByAvatarId;
-                        detailUpdate=await StageFirestoreLifecycleUpdateAsync(detail,detailSnapshot.ToDictionary(),detailSnapshot.Id,createHistory);
+                        detailUpdate=await StageFirestoreLifecycleUpdateAsync(detail,DecodeFirestoreIdentityFields(detailSnapshot),id.ToString(),createHistory);
                     }
-                    transaction.Update(reference,avatarUpdate);
-                    if(detailUpdate!=null) transaction.Update(detailReference,detailUpdate);
+                    writes.Add(FirestoreLifecyclePatch(snapshot,avatarUpdate));
+                    if(detailUpdate!=null) writes.Add(FirestoreLifecyclePatch(detailSnapshot,detailUpdate));
                 }
                 else
                 {
-                    transaction.Delete(reference);
-                    if(detailSnapshot.Exists) transaction.Delete(detailReference);
+                    writes.Add(new(){Delete=reference.Path,CurrentDocument=new(){UpdateTime=snapshot.UpdateTime}});
+                    if(detailSnapshot!=null) writes.Add(new(){Delete=detailReference.Path,CurrentDocument=new(){UpdateTime=detailSnapshot.UpdateTime}});
                 }
                 mutationPrepared=true;
-                return true;
-            },Google.Cloud.Firestore.TransactionOptions.ForMaxAttempts(1));
+                return (true,writes);
+            });
             if(!exists) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore avatar not found.";return result;}
             result.Result=true;result.IsSaved=mutationPrepared;
             result.IsDeleted=true;result.DeletedCount=1;
@@ -108,11 +109,17 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
         }
         catch(Exception cause)
         {
-            var error=mutationPrepared ? new GoogleFirestoreMutationReconciliationException(paths,cause):cause;
-            OASISErrorHandling.HandleError(ref result,error.Message,error);
-            if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
+            HandleFirestoreSaveError(ref result,cause.Message,cause);
         }
         return result;
+    }
+
+    private static Google.Cloud.Firestore.V1.Write FirestoreLifecyclePatch(Google.Cloud.Firestore.V1.Document original,Dictionary<string,object> fields)
+    {
+        var document=new Google.Cloud.Firestore.V1.Document{Name=original.Name};
+        var mask=new Google.Cloud.Firestore.V1.DocumentMask();
+        foreach(var field in fields){document.Fields.Add(field.Key,EncodeFirestoreIdentityValue(field.Value));mask.FieldPaths.Add(field.Key);}
+        return new(){Update=document,UpdateMask=mask,CurrentDocument=new(){UpdateTime=original.UpdateTime}};
     }
 
     private static Avatar DecodeAvatar(Dictionary<string,object> fields,string documentId)

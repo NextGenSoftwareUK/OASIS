@@ -159,105 +159,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
-        {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
-
-                // Convert decimal amount to planck (1 DOT = 10^10 planck)
-                var amountInPlanck = (long)(amount * 10000000000);
-
-                // Get account info for balance check
-                var accountResponse = await _httpClient.GetAsync($"/accounts/{fromWalletAddress}");
-                if (!accountResponse.IsSuccessStatusCode)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to get account info for Polkadot address {fromWalletAddress}: {accountResponse.StatusCode}");
-                    return result;
-                }
-
-                var accountContent = await accountResponse.Content.ReadAsStringAsync();
-                var accountData = JsonSerializer.Deserialize<JsonElement>(accountContent);
-
-                var balance = accountData.GetProperty("data").GetProperty("free").GetInt64();
-                if (balance < amountInPlanck)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Insufficient balance. Available: {balance} planck, Required: {amountInPlanck} planck");
-                    return result;
-                }
-
-                // Create Polkadot transfer transaction
-                var transferRequest = new
-                {
-                    id = 1,
-                    jsonrpc = "2.0",
-                    method = "author_submitExtrinsic",
-                    @params = new[]
-                    {
-                        new
-                        {
-                            call = new
-                            {
-                                module = "Balances",
-                                method = "transfer",
-                                args = new
-                                {
-                                    dest = toWalletAddress,
-                                    value = amountInPlanck
-                                }
-                            },
-                            signature = new
-                            {
-                                signer = fromWalletAddress,
-                                signature = "", // Would be filled by actual signing
-                                era = new
-                                {
-                                    immortal = true
-                                },
-                                nonce = 0,
-                                tip = 0
-                            }
-                        }
-                    }
-                };
-
-                // Submit transaction to Polkadot network
-                var jsonContent = JsonSerializer.Serialize(transferRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var submitResponse = await _httpClient.PostAsync("", content);
-                if (submitResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    result.Result = new PolkadotTransactionResponse
-                    {
-                        TransactionResult = responseData.GetProperty("result").GetString(),
-                        MemoText = memoText
-                    };
-                    result.IsError = false;
-                    result.Message = $"Polkadot transaction sent successfully. Extrinsic Hash: {result.Result.TransactionResult}";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to submit Polkadot transaction: {submitResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"Error sending Polkadot transaction: {ex.Message}");
-            }
-
-            return result;
-        }
+        // This constructor-configured signer facade shares the SAME admitted execution,
+        // exact-unit SDK preparation, durable original submission and finalized receipt owner.
+        public Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+            => SendOwnedNativeTransferAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest {
+                FromWalletAddress=fromWalletAddress,ToWalletAddress=toWalletAddress,Amount=amount,
+                MemoText=memoText,OwnerPrivateKey=_privateKey
+            });
 
 
 

@@ -42,10 +42,15 @@ public class SolanaCredentialSelectorTests
         Assert.AreEqual(first.ResetTokenExpires,loaded.Result.ResetTokenExpires);Assert.AreEqual(first.RefreshToken,loaded.Result.RefreshToken);
         Assert.AreEqual(first.ProviderWallets[ProviderType.SolanaOASIS][0].Id,loaded.Result.ProviderWallets[ProviderType.SolanaOASIS][0].Id);
         repository.Records[0].Version=2;
-        var historical=await Read(key,2);
-        Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(2,historical.Result.Version);
-        Assert.AreEqual(2,repository.LastVersion);
-        Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await Read(key,1)).ErrorCode);
+        var readsBeforeHistorical=repository.Reads;
+        foreach(var version in new[]{1,2}){
+            var historical=await Read(key,version);
+            Assert.IsTrue(historical.IsError);Assert.IsNull(historical.Result);
+            Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",historical.ErrorCode);
+        }
+        Assert.AreEqual(readsBeforeHistorical,repository.Reads,"Archived credentials must reject before provider I/O.");
+        var latest=await Read(key);Assert.IsFalse(latest.IsError,latest.Message);
+        Assert.AreEqual(2,latest.Result.Version);Assert.AreEqual(0,repository.LastVersion);
         Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await Read(key+"missing")).ErrorCode);
         repository.Records.Add(Create("duplicate").GetSolanaAvatarDto());
         var duplicate=await Read(key);Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,duplicate.ErrorCode);Assert.IsNull(duplicate.Result);

@@ -41,16 +41,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         && (deleted != tombstone.DeletedAtUtc || TombstoneActor(by) != tombstone.DeletedByAvatarId);
                     if(Conflicts(avatar.DeletedDate,avatar.DeletedByAvatarId) || detail != null && Conflicts(detail.DeletedDate,detail.DeletedByAvatarId))
                         throw new StorageLifecycleConflictException("SQLite replica has a conflicting committed tombstone.");
-                    var already=avatar.DeletedDate==tombstone.DeletedAtUtc && TombstoneActor(avatar.DeletedByAvatarId)==tombstone.DeletedByAvatarId && !avatar.IsActive
-                        && (detail == null || detail.DeletedDate==tombstone.DeletedAtUtc && TombstoneActor(detail.DeletedByAvatarId)==tombstone.DeletedByAvatarId && !detail.IsActive);
+                    var already=avatar.DeletedDate==tombstone.DeletedAtUtc && avatar.DeletedDateKind==(int)DateTimeKind.Utc && TombstoneActor(avatar.DeletedByAvatarId)==tombstone.DeletedByAvatarId && !avatar.IsActive
+                        && (detail == null || detail.DeletedDate==tombstone.DeletedAtUtc && detail.DeletedDateKind==(int)DateTimeKind.Utc && TombstoneActor(detail.DeletedByAvatarId)==tombstone.DeletedByAvatarId && !detail.IsActive);
                     if(!already)
                     {
                         persistenceEntered=true;
                         if(await _dbContext.Avatars.Where(row=>row.Id==id).ExecuteUpdateAsync(set=>set
-                            .SetProperty(row=>row.DeletedDate,tombstone.DeletedAtUtc).SetProperty(row=>row.DeletedByAvatarId,actor).SetProperty(row=>row.IsActive,false)) != 1)
+                            .SetProperty(row=>row.DeletedDate,tombstone.DeletedAtUtc).SetProperty(row=>row.DeletedDateKind,(int)DateTimeKind.Utc).SetProperty(row=>row.DeletedByAvatarId,actor).SetProperty(row=>row.IsActive,false)) != 1)
                             throw new InvalidOperationException("SQLite avatar changed during tombstone application.");
                         if(hasDetail && await _dbContext.AvatarDetails.Where(row=>row.Id==id).ExecuteUpdateAsync(set=>set
-                            .SetProperty(row=>row.DeletedDate,tombstone.DeletedAtUtc).SetProperty(row=>row.DeletedByAvatarId,actor).SetProperty(row=>row.IsActive,false)) != 1)
+                            .SetProperty(row=>row.DeletedDate,tombstone.DeletedAtUtc).SetProperty(row=>row.DeletedDateKind,(int)DateTimeKind.Utc).SetProperty(row=>row.DeletedByAvatarId,actor).SetProperty(row=>row.IsActive,false)) != 1)
                             throw new InvalidOperationException("SQLite avatar detail changed during tombstone application.");
                         changed=true;
                     }
@@ -74,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     if(entry.Entity is not AvatarModel && (!hasDetail || entry.Entity is not AvatarDetailModel)) continue;
                     if((string)entry.Property("Id").CurrentValue != id) continue;
-                    foreach(var field in new[] {("DeletedDate",(object)tombstone.DeletedAtUtc),("DeletedByAvatarId",(object)actor),("IsActive",(object)false)})
+                    foreach(var field in new[] {("DeletedDate",(object)tombstone.DeletedAtUtc),("DeletedDateKind",(object)(int)DateTimeKind.Utc),("DeletedByAvatarId",(object)actor),("IsActive",(object)false)})
                     {
                         var property=entry.Property(field.Item1); property.CurrentValue=field.Item2; property.OriginalValue=field.Item2; property.IsModified=false;
                     }

@@ -50,7 +50,7 @@ public sealed class DynamoStandaloneDetailLifecycleTests
     {
         var provider=new DynamoDBOASIS("owned","owned","us-east-1");var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
         var original=(AmazonDynamoDBClient)field.GetValue(provider)!;using var probe=new Probe(lost?4:0,true){ExistingTombstone=true};field.SetValue(provider,probe);provider.IsProviderActivated=true;
-        try{var result=synchronous?provider.DeleteAvatarDetail(Guid.NewGuid()):await provider.DeleteAvatarDetailAsync(Guid.NewGuid());Assert.AreEqual(lost,result.IsError,result.Exception?.ToString());Assert.AreEqual(!lost,result.Result);Assert.AreEqual(0,result.DeletedCount);Assert.IsFalse(NativeMutationReconciliation.IsRequired(result.Exception));if(lost)Assert.IsInstanceOfType<IOException>(result.Exception);Assert.AreEqual(1,probe.Reads);Assert.AreEqual(1,probe.Transactions);}
+        try{var result=synchronous?provider.DeleteAvatarDetail(Guid.NewGuid()):await provider.DeleteAvatarDetailAsync(Guid.NewGuid());Assert.AreEqual(lost,result.IsError,result.Exception?.ToString());Assert.AreEqual(!lost,result.Result);Assert.IsFalse(result.IsSaved,"A condition-only transaction acknowledges observation, not a new mutation.");Assert.AreEqual(0,result.DeletedCount);Assert.IsFalse(NativeMutationReconciliation.IsRequired(result.Exception));if(lost)Assert.IsInstanceOfType<IOException>(result.Exception);Assert.AreEqual(1,probe.Reads);Assert.AreEqual(1,probe.Transactions);}
         finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
     }
     [DataTestMethod][DynamicData(nameof(Cases),DynamicDataSourceType.Method)]

@@ -54,10 +54,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public EnumValue<OASISType> CreatedOASISType { get; set; }
 
         [BsonRepresentation(BsonType.DateTime)]
-        public DateTime CreatedDate { get; set; }
+        public DateTime CreatedDate
+        {
+            get => _createdDate;
+            set
+            {
+                _createdDate = value;
+                if (_readingBson) _readCreatedDate = true;
+                else _readCreatedTicks = null;
+            }
+        }
 
         [BsonRepresentation(BsonType.DateTime)]
-        public DateTime ModifiedDate { get; set; }
+        public DateTime ModifiedDate
+        {
+            get => _modifiedDate;
+            set
+            {
+                _modifiedDate = value;
+                if (_readingBson) _readModifiedDate = true;
+                else _readModifiedTicks = null;
+            }
+        }
 
         [BsonRepresentation(BsonType.DateTime)]
         public DateTime DeletedDate

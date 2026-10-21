@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -41,37 +41,37 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => ReadCurrentListAsync<IAvatarDetail>(()=>avatarDetailRepository,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-            => await ReadCurrentListAsync<IAvatarDetail>(()=>avatarDetailRepository,version);
+            => await ReadCurrentListAsync<IAvatarDetail>(()=>avatarDetailRepository,version).ConfigureAwait(false);
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
             => ReadCurrentListAsync<IAvatar>(()=>avatarRepository,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-            => await ReadCurrentListAsync<IAvatar>(()=>avatarRepository,version);
+            => await ReadCurrentListAsync<IAvatar>(()=>avatarRepository,version).ConfigureAwait(false);
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => ReadCurrentHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadCurrentHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
+            => await ReadCurrentHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).ConfigureAwait(false);
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
             => ReadCurrentIdAsync<IAvatar>(()=>avatarRepository,id,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
-            => await ReadCurrentIdAsync<IAvatar>(()=>avatarRepository,Id,version);
+            => await ReadCurrentIdAsync<IAvatar>(()=>avatarRepository,Id,version).ConfigureAwait(false);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
             => ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,avatarEmail,row=>row.Email,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-            => await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,avatarEmail,row=>row.Email,version);
+            => await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,avatarEmail,row=>row.Email,version).ConfigureAwait(false);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
             => ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,avatarUsername,row=>row.Username,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-            => await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,avatarUsername,row=>row.Username,version);
+            => await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,avatarUsername,row=>row.Username,version).ConfigureAwait(false);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
@@ -79,25 +79,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public async override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-            => await ReadCurrentIdAsync<IAvatarDetail>(()=>avatarDetailRepository,id,version);
+            => await ReadCurrentIdAsync<IAvatarDetail>(()=>avatarDetailRepository,id,version).ConfigureAwait(false);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
             => ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,avatarEmail,row=>row.Email,version).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-            => await ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,avatarEmail,row=>row.Email,version);
+            => await ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,avatarEmail,row=>row.Email,version).ConfigureAwait(false);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
             => ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,avatarUsername,row=>row.Username,version).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-            => await ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,avatarUsername,row=>row.Username,version);
+            => await ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,avatarUsername,row=>row.Username,version).ConfigureAwait(false);
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
             => ReadCurrentKeyAsync<IAvatar>(()=>avatarRepository,providerKey,version).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-            => await ReadCurrentKeyAsync<IAvatar>(()=>avatarRepository,providerKey,version);
+            => await ReadCurrentKeyAsync<IAvatar>(()=>avatarRepository,providerKey,version).ConfigureAwait(false);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => ReadCurrentHolonAsync(id,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
@@ -106,10 +106,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => ReadCurrentHolonKeyAsync(providerKey,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadCurrentHolonAsync(id,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version);
+            => await ReadCurrentHolonAsync(id,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version).ConfigureAwait(false);
 
         public async override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadCurrentHolonKeyAsync(providerKey,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version);
+            => await ReadCurrentHolonKeyAsync(providerKey,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version).ConfigureAwait(false);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => ReadCurrentParentAsync(id.ToString(),type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
@@ -118,10 +118,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => ReadCurrentParentAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadCurrentParentAsync(id.ToString(),type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
+            => await ReadCurrentParentAsync(id.ToString(),type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).ConfigureAwait(false);
 
         public async override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadCurrentParentAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
+            => await ReadCurrentParentAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).ConfigureAwait(false);
 
     }
 }

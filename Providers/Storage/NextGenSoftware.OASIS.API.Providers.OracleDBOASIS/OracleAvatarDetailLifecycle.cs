@@ -36,14 +36,14 @@ public partial class OracleDBOASIS
             await using var transaction = (OracleTransaction)await connection.BeginTransactionAsync();
             AvatarDetail row; string original;
             // Only fixed internal column names enter this query; selector values are bound.
-            await using (var select = CreateCommand($"SELECT ID,DATA_JSON FROM OASIS_AVATAR_DETAILS WHERE {column}=:Selector AND ROWNUM<=2 FOR UPDATE", connection))
+            await using (var select = CreateCommand($"SELECT ID,DATA_JSON,USERNAME,EMAIL FROM OASIS_AVATAR_DETAILS WHERE {column}=:Selector AND ROWNUM<=2 FOR UPDATE", connection))
             {
                 select.Transaction = transaction; select.Parameters.Add("Selector", type).Value = value;
                 await using var reader = await select.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
                     return new OASISResult<bool> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Oracle AvatarDetail was not found." };
                 id = new Guid((byte[])reader.GetValue(0)); original = reader.GetString(1);
-                row = await ReadRecordVersionAsync<AvatarDetail>(id, original, 0)
+                row = await ReadRecordVersionAsync<AvatarDetail>(id, original, 0,null,ReadNativeIdentityProjection(reader,2))
                     ?? throw new InvalidDataException("Oracle locked detail is missing its current version.");
                 if (row.Id != id || column != "ID" && !CanonicalIdentityMatches(row, column, value))
                     throw new InvalidDataException("Oracle detail indexed identity differs from its canonical record.");
@@ -63,11 +63,13 @@ public partial class OracleDBOASIS
                 dispatched = true;
                 if (await command.ExecuteNonQueryAsync() != 1) throw new InvalidDataException("Oracle locked detail changed unexpectedly.");
                 await CommitLifecycleTransactionAsync(transaction);
+                result.IsSaved = true;
             }
-            result.Result = true; result.IsSaved = true; result.IsDeleted = true; result.DeletedCount = 1;
+            result.Result = true; result.IsDeleted = true; result.DeletedCount = 1;
         }
         catch (Exception cause)
         {
+            result.Result = false; result.IsSaved = false; result.IsDeleted = false; result.DeletedCount = 0;
             var failure = dispatched ? new OracleLifecycleReconciliationException(id, cause) : cause;
             OASISErrorHandling.HandleError(ref result, "Oracle AvatarDetail lifecycle failed; inspect the original exception.", failure);
             if (!dispatched && cause is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";

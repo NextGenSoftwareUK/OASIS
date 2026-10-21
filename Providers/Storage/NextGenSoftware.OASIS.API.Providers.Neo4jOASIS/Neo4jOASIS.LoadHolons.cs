@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 if (version < 0 || maxChildDepth < 0 || curentChildDepth < 0 || !Enum.IsDefined(typeof(HolonType), type))
                     throw new ArgumentException("Defined holon type and nonnegative read depths are required.");
                 if(version>0)return await ReadHistoricalHolonQueryAsync(version,h=>h.ParentHolonId==id && (type==HolonType.All || h.HolonType==type),
-                    loadChildren && recursive && (maxChildDepth==0 || curentChildDepth+1<maxChildDepth),true,maxChildDepth,curentChildDepth+1,continueOnError);
+                    loadChildren && recursive && (maxChildDepth==0 || ((long)curentChildDepth+1)<maxChildDepth),true,maxChildDepth,((long)curentChildDepth+1),continueOnError);
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
@@ -66,8 +66,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                         var child = ReadHolonNode(node);
                         if (child.Id == id || child.ParentHolonId != id || holons.Any(existing => existing.Id == child.Id))
                             throw new StorageLifecycleConflictException("Neo4j native child identity or parent edge is inconsistent.");
-                        if (loadChildren && recursive && (maxChildDepth == 0 || curentChildDepth + 1 < maxChildDepth))
-                            await HydrateNativeChildrenAsync(session, child, true, maxChildDepth, curentChildDepth + 1, new HashSet<Guid> { id, child.Id }, continueOnError, failures);
+                        if (loadChildren && recursive && (maxChildDepth == 0 || ((long)curentChildDepth + 1) < maxChildDepth))
+                            await HydrateNativeChildrenAsync(session, child, true, maxChildDepth, ((long)curentChildDepth + 1), new HashSet<Guid> { id, child.Id }, continueOnError, failures);
                         holons.Add(child);
                     }
                     

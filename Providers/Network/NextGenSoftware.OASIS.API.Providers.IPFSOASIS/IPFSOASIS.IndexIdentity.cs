@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 
@@ -8,6 +10,15 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 public partial class IPFSOASIS
 {
+    private static void ValidateCanonicalSelector(IHolonBase record,string kind,Func<HolonResume,bool> selector)
+    {
+        var canonical=new HolonResume{Id=record.Id,RecordKind=kind,HolonType=record.HolonType,
+            ProviderUniqueStorageKey=record.ProviderUniqueStorageKey,
+            ParentHolonId=record is IHolon holon?holon.ParentHolonId:Guid.Empty,
+            login=record is IAvatar avatar?avatar.Username:record is IAvatarDetail detail?detail.Username:null,
+            email=record is IAvatar profile?profile.Email:record is IAvatarDetail identity?identity.Email:null};
+        if(!selector(canonical))throw new InvalidDataException("IPFS index selector differs from the canonical current record.");
+    }
     private KeyValuePair<string,HolonResume> FindIndexEntry(string kind,Func<HolonResume,bool> predicate,bool allowMissing=false)
     {
         var matches=_idLookup.Where(entry=>entry.Value?.RecordKind==kind && predicate(entry.Value)).Take(2).ToList();

@@ -10,6 +10,49 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class EmbeddedRecordHistoryTests
 {
+    [DataTestMethod]
+    [DataRow("1",true)][DataRow("1.0",false)][DataRow("1e0",false)][DataRow("\"1\"",false)]
+    public async Task ExactObjectParserRetainsStrictIntegerSchemaContract(string schema,bool valid)
+    {
+        var codec=new EmbeddedRecordHistory();var source=new Holon{Id=Guid.NewGuid()};
+        var staged=await codec.StageAsync(source,null,Decode);
+        var parsed=OasisJson.ParseStoredObject(staged.ToString());
+        parsed[EmbeddedRecordHistory.PropertyName]["schema"]=new JRaw(schema);
+        if(valid)Assert.AreEqual(1,(await codec.ReadAsync(source.Id,parsed,0,Decode)).Version);
+        else await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>codec.ReadAsync(source.Id,parsed,0,Decode));
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task StagingAndArchiveRetainExactNumericMetadata(bool customEncode,bool wide)
+    {
+        var codec=new EmbeddedRecordHistory();var id=Guid.NewGuid();
+        var firstValue=wide?(object)1e100:1.0000000000000000000000000001m;
+        var nextValue=wide?(object)double.BitIncrement(1e100):1.0000000000000000000000000002m;
+        var source=new Holon{Id=id,MetaData=new(){["precise"]=firstValue}};
+        Holon Exact(string json)=>NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStoredHolon(json);
+        Task<JObject> Stage(JObject previous)=>customEncode
+            ?codec.StageAsync(source,previous,Exact,row=>OasisJson.Serialize(row))
+            :codec.StageAsync(source,previous,Exact);
+        var first=await Stage(null);
+        source.MetaData["precise"]=nextValue;
+        var second=await Stage(first);
+        var historical=await codec.ReadAsync(id,second,1,Exact);
+        var current=await codec.ReadAsync(id,second,0,Exact);
+        Assert.AreEqual(0,source.Version);
+        Assert.AreEqual(1,historical.Version);Assert.AreEqual(2,current.Version);
+        AssertNumber(firstValue,historical.MetaData["precise"],wide);
+        AssertNumber(nextValue,current.MetaData["precise"],wide);
+        current.MetaData["precise"]="local edit";
+        AssertNumber(nextValue,(await codec.ReadAsync(id,second,0,Exact)).MetaData["precise"],wide);
+    }
+
+    private static void AssertNumber(object expected,object actual,bool wide)
+    {
+        if(wide)Assert.AreEqual((double)expected,double.Parse(actual.ToString(),System.Globalization.CultureInfo.InvariantCulture));
+        else Assert.AreEqual((decimal)expected,decimal.Parse(actual.ToString(),System.Globalization.CultureInfo.InvariantCulture));
+    }
+
     private static Holon Decode(string json)=>OasisJson.DeserializeStored<Holon>(json);
     [TestMethod]
     public async Task SharedCodecRetainsIndependentVersionsWithoutPublishingCallerState()

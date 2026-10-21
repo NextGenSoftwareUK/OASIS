@@ -208,6 +208,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 
                 result.Result = avatar;
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.IsError = false;
                 result.Message = "Avatar saved successfully to Google Cloud Firestore with full property mapping";
             }

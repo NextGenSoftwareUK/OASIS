@@ -114,6 +114,18 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
     RESULT_JSON CLOB,
     COMMITTED_AT TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL
   )';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
+                    @"BEGIN
+  EXECUTE IMMEDIATE 'CREATE TABLE OASIS_WRITE_OPERATION_LOCKS (
+    OPERATION_ID RAW(16) NOT NULL PRIMARY KEY
+  )';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
+                    @"BEGIN
+  EXECUTE IMMEDIATE 'CREATE TABLE OASIS_WRITE_PREPARATIONS (
+    OPERATION_ID RAW(16) NOT NULL PRIMARY KEY,
+    ACTOR_ID RAW(16) NOT NULL,
+    PAYLOAD_JSON CLOB NOT NULL
+  )';
 EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 };
 
@@ -123,6 +135,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     await cmd.ExecuteNonQueryAsync();
                 }
 
+                await ValidateStorageSchemaAsync(conn);
                 result.Result = true;
                 result.IsError = false;
                 result.Message = "OracleDBOASIS activated — tables created/verified.";
@@ -161,6 +174,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=stored.Id.ToString();
             source.Version=stored.Version;source.VersionId=stored.VersionId;source.PreviousVersionId=stored.PreviousVersionId;
             if(source is IHolon caller&&stored is IHolon committed){
+                if(source is Holon sourceHolon&&stored is Holon storedHolon)sourceHolon.ChildRoleManifestJson=storedHolon.ChildRoleManifestJson;
                 var revision=CosmicConcurrency.GetProviderRevisionId(committed,Core.Enums.ProviderType.OracleDBOASIS);
                 if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(caller,Core.Enums.ProviderType.OracleDBOASIS,revision.Value);
             }
@@ -196,11 +210,12 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS] = avatar.Id.ToString();
 
                 var stored=await WriteCanonicalRecordAsync((Avatar)avatar,"OASIS_AVATARS");
+                result.SavedCount=1;
                 PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
                 result.Result = source; result.IsSaved=true; result.IsError = false;
                 result.Message = $"OracleDBOASIS: Avatar '{avatar.Username}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar: {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar: {ex.Message}");if(ex is StorageLifecycleConflictException)result.ErrorCode=StorageLifecycleConflictException.ErrorCode; }
             return result;
         }
 
@@ -222,7 +237,11 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
             // Table/column are internal constants, never caller-supplied SQL identifiers.
             var historicalIdentity=version>0&&column!="ID";
-            string sql = $"SELECT ID,DATA_JSON FROM {table}" + (historicalIdentity?"":$" WHERE {column}=:val" + (excludeDeleted&&version==0?" AND IS_DELETED=0":""));
+            var validateAvatar=typeof(T)==typeof(Avatar);
+            var validateIdentity=validateAvatar||typeof(T)==typeof(AvatarDetail);
+            // Validate current native/canonical agreement before deletion filtering or
+            // historical selection; an inconsistent SQL flag must not hide the record.
+            string sql = $"SELECT ID,DATA_JSON{(validateAvatar?",IS_DELETED":"")}{(validateIdentity?",USERNAME,EMAIL":"")} FROM {table}" + (historicalIdentity?"":$" WHERE {column}=:val"+(excludeDeleted&&!validateAvatar&&version==0?" AND IS_DELETED=0":""));
             await using var conn = new OracleConnection(_connectionString);
             await conn.OpenAsync();
             await using var cmd = CreateCommand(sql, conn);
@@ -230,7 +249,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             await using var reader=await cmd.ExecuteReaderAsync();
             T? selected=null;
             while(await reader.ReadAsync()){
-                var id=new Guid((byte[])reader.GetValue(0));var record=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version);
+                var id=new Guid((byte[])reader.GetValue(0));var record=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version,validateAvatar?reader.GetInt32(2):null,validateIdentity?ReadNativeIdentityProjection(reader,validateAvatar?3:2):null);
                 if(record==null||record.IsDeleted)continue;
                 if(column!="ID"){
                     if(!CanonicalIdentityMatches(record,column,value)){
@@ -332,10 +351,11 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 avatarDetail.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
                 avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=avatarDetail.Id.ToString();
                 var stored=await WriteCanonicalRecordAsync((AvatarDetail)avatarDetail,"OASIS_AVATAR_DETAILS");
+                result.SavedCount=1;
                 PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "OracleDBOASIS: AvatarDetail saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar detail: {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar detail: {ex.Message}");if(ex is StorageLifecycleConflictException)result.ErrorCode=StorageLifecycleConflictException.ErrorCode; }
             return result;
         }
 
@@ -417,17 +437,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     var projected=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(graph);
                     if(!graph.IsError)projected.Result=holon;return projected;
                 }
-                var source=holon;
-                var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(source);
-                holon=publication.Proposal;
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null)
-                    holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS] = holon.Id.ToString();
-
-                var stored=await WriteCanonicalRecordAsync((Holon)holon,"OASIS_HOLONS");
-                PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
-                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"OracleDBOASIS: Holon '{holon.Name}' saved.";
+                return await SaveHolonRecordAsync(holon,null);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -520,6 +530,8 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                searchParams=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
                 var groups=searchParams.SearchGroups??new List<ISearchGroupBase>();
                 var wantsAvatars=groups.Count==0||groups.Any(group=>group.SearchAvatars||!group.SearchHolons);
                 var wantsHolons=groups.Count==0||groups.Any(group=>group.SearchHolons||!group.SearchAvatars);
@@ -558,7 +570,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-                if (avatarResult.IsError) { result.IsError=true;result.Exception=avatarResult.Exception;result.ErrorCode=avatarResult.ErrorCode;result.Message=avatarResult.Message;return result; }
+                if (avatarResult.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 if (avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar with email '{avatarEmailAddress}' not found."); return result; }
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }
@@ -603,7 +615,11 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            try { var r = await SaveHolonsAsync(holons); result.IsError = r.IsError; result.Result = !r.IsError; result.Message = r.Message;result.Exception=r.Exception;result.ErrorCode=r.ErrorCode; }
+            try {
+                var saved=await SaveHolonsAsync(holons,curentChildDepth:0);
+                result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+                result.Result=!saved.IsError&&saved.IsSaved;
+            }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
@@ -734,7 +750,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername,version);
-                if (avatarResult.IsError) { result.IsError=true;result.Exception=avatarResult.Exception;result.ErrorCode=avatarResult.ErrorCode;result.Message=avatarResult.Message;return result; }
+                if (avatarResult.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 if (avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar '{avatarUsername}' not found."); return result; }
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }

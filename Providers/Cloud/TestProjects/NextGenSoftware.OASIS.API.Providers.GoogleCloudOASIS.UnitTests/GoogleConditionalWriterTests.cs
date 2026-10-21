@@ -12,7 +12,7 @@ using Value=Google.Cloud.Firestore.V1.Value;
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests;
 
 [TestClass]
-public class GoogleConditionalWriterTests
+public partial class GoogleConditionalWriterTests
 {
     private sealed class Reader(BatchGetDocumentsResponse response):IAsyncStreamReader<BatchGetDocumentsResponse>
     {
@@ -26,11 +26,13 @@ public class GoogleConditionalWriterTests
     }
     private sealed class Client:FirestoreClient
     {
-        public Document? Stored;public CommitRequest? Submitted;public int Writes,Reads;public string Mode="normal";public bool RetryCapable;
+        public Document? Stored;public CommitRequest? Submitted;public int Writes,Reads,Transactions,Rollbacks;public string Mode="normal";public bool RetryCapable;
         public Action? OnRead,OnCommit;
         public readonly IOException Lost=new("owned controlled response loss after simulated commit");
         public RpcException? Rejection;
         public override FirestoreSettings Settings=>RetryCapable?FirestoreSettings.GetDefault():(FirestoreSettings)typeof(GoogleCloudOASIS).GetMethod("CreateFirestoreSettings",BindingFlags.Static|BindingFlags.NonPublic)!.Invoke(null,null)!;
+        public override Task<BeginTransactionResponse> BeginTransactionAsync(BeginTransactionRequest request,CallSettings callSettings=null){Transactions++;return Task.FromResult(new BeginTransactionResponse{Transaction=Google.Protobuf.ByteString.CopyFromUtf8("owned-controlled-transaction")});}
+        public override Task RollbackAsync(RollbackRequest request,CallSettings callSettings=null){Rollbacks++;return Task.CompletedTask;}
         public override BatchGetDocumentsStream BatchGetDocuments(BatchGetDocumentsRequest request,CallSettings callSettings=null)
         {Reads++;OnRead?.Invoke();return new SnapshotStream(Stored==null||Stored.Name!=request.Documents.Single()?new(){Missing=request.Documents.Single(),ReadTime=Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow)}:new(){Found=Stored.Clone(),ReadTime=Stored.UpdateTime});}
         public override Task<CommitResponse> CommitAsync(CommitRequest request,CallSettings callSettings=null)
@@ -69,7 +71,7 @@ public class GoogleConditionalWriterTests
     {
         var db=FirestoreDb.Create("owned-controlled-history",client);var reference=db.Collection("holons").Document(row.Id.ToString());
         var fields=new Dictionary<string,object>{["id"]=row.Id.ToString(),["data_json"]=OasisJson.Serialize(row)};
-        return (Task<Holon>)typeof(GoogleCloudOASIS).GetMethod("WriteFirestoreRecordAsync",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object[]{reference,fields,history,(Action)(()=>{})})!;
+        return (Task<Holon>)typeof(GoogleCloudOASIS).GetMethod("WriteFirestoreRecordAsync",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon)).Invoke(null,new object?[]{reference,fields,history,(Action)(()=>{}),null})!;
     }
     [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
     public async Task BatchRejectsNewerOriginalVersionAndDoesNotSubmitLaterEditedNode(bool synchronous,bool later)

@@ -74,6 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 
                 result.Result = avatarDetail;
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.IsError = false;
                 result.Message = "Avatar detail saved successfully to Google Cloud Firestore with full property mapping";
             }
@@ -119,6 +120,18 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     if(!graph.IsError) converted.Result=holon;
                     return converted;
                 }
+                return await SaveHolonRecordAsync(holon,null);
+            }
+            catch(Exception cause){HandleFirestoreSaveError(ref result,$"Error saving holon to Google Cloud: {cause.Message}",cause);return result;}
+        }
+
+        protected virtual Task<OASISResult<IHolon>> SavePlannedHolonAsync(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite write)
+            =>SaveHolonRecordAsync(write.Snapshot,write);
+
+        private async Task<OASISResult<IHolon>> SaveHolonRecordAsync(IHolon holon,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite plan)
+        {
+            var result=new OASISResult<IHolon>();
+            try{
                 var source=holon;
                 var publication=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(source);
                 if (!IsProviderActivated)
@@ -144,46 +157,20 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 
                 // Save holon to Firestore with FULL property mapping
                 var docRef = _firestoreDb.Collection("holons").Document(holon.Id.ToString());
-                var holonData = new Dictionary<string, object>
-                {
-                    ["id"] = holon.Id.ToString(),
-                    ["name"] = holon.Name,
-                    ["description"] = holon.Description,
-                    ["holonType"] = holon.HolonType.ToString(),
-                    ["createdDate"] = ToFirestoreTimestamp(holon.CreatedDate),
-                    ["modifiedDate"] = ToFirestoreTimestamp(holon.ModifiedDate),
-                    ["version"] = holon.Version,
-                    ["isActive"] = holon.IsActive,
-                    // Map ALL Holon properties to Google Cloud fields
-                    ["parentId"] = holon.ParentHolonId.ToString(),
-                    ["providerKey"] = holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.GoogleCloudOASIS) ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS] : "",
-                    ["previousVersionId"] = holon.PreviousVersionId.ToString(),
-                    ["nextVersionId"] = holon.VersionId.ToString(),
-                    ["isChanged"] = holon.IsChanged,
-                    ["isNew"] = holon.IsNewHolon,
-                    ["isDeleted"] = holon.IsDeleted,
-                    ["deletedByAvatarId"] = holon.DeletedByAvatarId.ToString(),
-                    ["deletedDate"] = ToFirestoreTimestamp(holon.DeletedDate),
-                    ["createdByAvatarId"] = holon.CreatedByAvatarId.ToString(),
-                    ["modifiedByAvatarId"] = holon.ModifiedByAvatarId.ToString(),
-                    // Map Google Cloud specific metadata
-                    ["googleCloudProjectId"] = _projectId,
-                    ["googleCloudBucketName"] = _bucketName,
-                    ["googleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
-                    ["googleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
-                    ["savedAt"] = Timestamp.GetCurrentTimestamp()
-                };
-                
-                holonData["data_json"]=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(holon);
-                var committed=await WriteFirestoreRecordAsync<Holon>(docRef,holonData,IsVersionControlEnabled,publication.ValidateUnchanged);
+                var holonData=CreateFirestoreHolonFields(holon,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(holon));
+                var committed=await WriteFirestoreRecordAsync<Holon>(docRef,holonData,IsVersionControlEnabled,publication.ValidateUnchanged,plan);
                 ValidateFirestoreCallerPublication(publication.ValidateUnchanged,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
+                if(source is Holon caller)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                 source.Id=holon.Id;
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 source.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=holon.Id.ToString();
+                var revision=CosmicConcurrency.GetProviderRevisionId(committed,Core.Enums.ProviderType.GoogleCloudOASIS);
+                if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(source,Core.Enums.ProviderType.GoogleCloudOASIS,revision.Value);
                 
                 result.Result = source;
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.IsError = false;
                 result.Message = "Holon saved successfully to Google Cloud Firestore with full property mapping";
             }

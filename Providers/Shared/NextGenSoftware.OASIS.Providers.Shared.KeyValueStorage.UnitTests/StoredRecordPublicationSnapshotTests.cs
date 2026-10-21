@@ -8,6 +8,40 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public sealed class StoredRecordPublicationSnapshotTests
 {
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public void HighPrecisionMetadataCannotBeRoundedOrHiddenFromPublicationGuard(bool detail,bool edit)
+    {
+        const decimal original=1.0000000000000000000000000001m;
+        const decimal newer=1.0000000000000000000000000002m;
+        void Check<T>(T source)where T:class,NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase{
+            source.MetaData["precise"]=original;
+            var snapshot=StoredRecordPublicationSnapshot<T>.Capture(source);
+            if(edit){source.MetaData["precise"]=newer;Assert.ThrowsException<InvalidOperationException>(snapshot.ValidateUnchanged);}
+            else{Assert.AreEqual(original,Convert.ToDecimal(snapshot.Proposal.MetaData["precise"]));snapshot.ValidateUnchanged();}
+        }
+        if(detail)Check<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(new AvatarDetail());
+        else Check<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(new Holon());
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void LargeFiniteDoubleMetadataRetainsItsRangeAndDetectsEdits(bool edit)
+    {
+        var source=new Holon{MetaData=new(){["wide"]=1e100}};var snapshot=StoredRecordPublicationSnapshot<Holon>.Capture(source);
+        Assert.AreEqual(1e100,Convert.ToDouble(snapshot.Proposal.MetaData["wide"]));
+        if(edit){source.MetaData["wide"]=double.BitIncrement(1e100);Assert.ThrowsException<InvalidOperationException>(snapshot.ValidateUnchanged);}
+        else snapshot.ValidateUnchanged();
+    }
+    [TestMethod]
+    public void MutableOwnedBytesCannotAliasCallerProposalOrExpectedSnapshot()
+    {
+        var source=new AvatarDetail();source.Inventory.Add(new InventoryItem{Image2D=new byte[]{1,2,3}});
+        var snapshot=StoredRecordPublicationSnapshot<AvatarDetail>.Capture(source);
+        Assert.AreNotSame(source.Inventory[0].Image2D,snapshot.Proposal.Inventory[0].Image2D);
+        snapshot.Proposal.Inventory[0].Image2D[0]=9;
+        CollectionAssert.AreEqual(new byte[]{1,2,3},source.Inventory[0].Image2D);snapshot.ValidateUnchanged();
+        source.Inventory[0].Image2D[1]=8;
+        Assert.ThrowsException<InvalidOperationException>(snapshot.ValidateUnchanged);
+    }
+
     [TestMethod]
     public void InterfaceContractsUseCanonicalConcreteDtosAndDetectCallerEdits()
     {

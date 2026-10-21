@@ -72,10 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 async ()=>snapshot=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version),StringComparison.Ordinal);
             if(parent.IsError)
             {
-                var result=new OASISResult<IEnumerable<IHolon>>();
-                OASISErrorHandling.HandleError(ref result,parent.Message,parent.Exception);
-                result.ErrorCode=parent.ErrorCode;
-                return result;
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(parent);
             }
             return ProjectParentSnapshot(snapshot,parent.Result.Id,type,loadChildren,recursive,maxChildDepth,curentChildDepth);
         }

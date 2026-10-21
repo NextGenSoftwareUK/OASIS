@@ -53,6 +53,7 @@ public sealed class DynamoIdentityLifecycleRaceTests
                 :email?sync?provider.DeleteAvatarByEmail("owned-original@example.invalid",false):await provider.DeleteAvatarByEmailAsync("owned-original@example.invalid",false)
                 :sync?provider.DeleteAvatarByUsername("owned-original",false):await provider.DeleteAvatarByUsernameAsync("owned-original",false);
             Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.Result);Assert.AreEqual(1,probe.Transactions);
+            Assert.IsTrue(result.IsSaved);Assert.IsTrue(result.IsDeleted);Assert.AreEqual(1,result.DeletedCount,"A hard deletion acknowledges one logical record or avatar aggregate.");
         }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
     }
     [DataTestMethod][DynamicData(nameof(Cases),DynamicDataSourceType.Method)]

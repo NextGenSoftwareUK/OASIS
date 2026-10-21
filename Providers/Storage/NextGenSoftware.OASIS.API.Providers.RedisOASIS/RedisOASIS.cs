@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -43,15 +41,13 @@ namespace NextGenSoftware.OASIS.API.Providers.RedisOASIS
         private IDatabase _db = null!;
         private ConnectionMultiplexer _mux = null!;
 
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
+        private static string Ser(object obj) => Core.Serialization.StoredRecordJson.Serialize(obj);
+        private static T? Des<T>(string? json)
         {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+            if(json==null)return default;
+            return Core.Serialization.StoredRecordJson.DeserializeStored<T>(json)
+                ?? throw new System.IO.InvalidDataException("Redis stored record JSON must contain a record, not null.");
+        }
 
         public RedisOASIS(string configuration = "localhost:6379")
         {
