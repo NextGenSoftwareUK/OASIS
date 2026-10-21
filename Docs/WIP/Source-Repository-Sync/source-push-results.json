@@ -1,0 +1,373 @@
+[
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB5",
+    "branch": "master",
+    "before": "c5080a449fca72494e5a50f1de9d1ff794ffb621",
+    "commit": "af4bee2c54b4650dbf6d561bc63c1b4c95b39fa6",
+    "files": [
+      "docs/idempotency.md",
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src/core/httpClient.js",
+      "src/core/routeHelper.js",
+      "src/core/types.d.ts",
+      "src/modules/Auth.d.ts",
+      "src/modules/Avatar.d.ts",
+      "src/modules/CelestialBodies.d.ts",
+      "src/modules/CelestialBodiesMetaData.d.ts",
+      "src/modules/CelestialSpaces.d.ts",
+      "src/modules/Chapters.d.ts",
+      "src/modules/Competition.d.ts",
+      "src/modules/Cosmic.d.ts",
+      "src/modules/Games.d.ts",
+      "src/modules/GeoHotSpots.d.ts",
+      "src/modules/GeoNFTs.d.ts",
+      "src/modules/Health.d.ts",
+      "src/modules/Holons.d.ts",
+      "src/modules/HolonsMetaData.d.ts",
+      "src/modules/InventoryItems.d.ts",
+      "src/modules/Libraries.d.ts",
+      "src/modules/Missions.d.ts",
+      "src/modules/NFTs.d.ts",
+      "src/modules/OAPPs.d.ts",
+      "src/modules/Parks.d.ts",
+      "src/modules/Plugins.d.ts",
+      "src/modules/Quests.d.ts",
+      "src/modules/Runtimes.d.ts",
+      "src/modules/STAR.d.ts",
+      "src/modules/Templates.d.ts",
+      "src/modules/Zomes.d.ts",
+      "src/modules/ZomesMetaData.d.ts",
+      "test/idempotency.test.js"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB6",
+    "branch": "master",
+    "before": "643aa8df18d119baca4511fc02c388d4cfd175c9",
+    "commit": "a414bd20b950f11789cc458175cce5fa0d7e311a",
+    "files": [
+      "docs/idempotency.md",
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src/core/httpClient.js",
+      "src/core/routeHelper.js",
+      "src/core/types.d.ts",
+      "src/modules/A2A.d.ts",
+      "src/modules/Completion.d.ts",
+      "src/modules/Did.d.ts",
+      "src/modules/ExternalMemory.d.ts",
+      "src/modules/FahrnSolve.d.ts",
+      "src/modules/HolonicBraid.d.ts",
+      "src/modules/HolonicMemory.d.ts",
+      "src/modules/Images.d.ts",
+      "src/modules/MLNet.d.ts",
+      "src/modules/Orchestrator.d.ts",
+      "src/modules/Providers.d.ts",
+      "src/modules/ReasoningNetwork.d.ts",
+      "src/modules/Telemetry.d.ts",
+      "src/modules/Usage.d.ts",
+      "test/idempotency.test.js"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB7",
+    "branch": "master",
+    "before": "028b026631e90dafa2939051800431d5f747d3ea",
+    "commit": "49a950af445d22e6bb7997f84ea9d0a38f814620",
+    "files": [
+      "docs/idempotency.md",
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src/core/httpClient.js",
+      "src/core/routeHelper.js",
+      "src/core/types.d.ts",
+      "src/modules/CollectiveConsciousness.d.ts",
+      "src/modules/Symbiosis.d.ts",
+      "test/idempotency.test.js"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB8",
+    "branch": "master",
+    "before": "6777b519ba4388e2dbcf4ef99926fd8b33c21b37",
+    "commit": "7b1ce0379c14f22e0c1946114848ec736b9baf05",
+    "files": [
+      "docs/idempotency.md",
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src/core/httpClient.js",
+      "src/core/routeHelper.js",
+      "src/core/types.d.ts",
+      "src/modules/Mesh.d.ts",
+      "src/modules/ProtocolBridge.d.ts",
+      "test/idempotency.test.js"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB9",
+    "branch": "master",
+    "before": "2b41b1fee86e408e08d5fef4b321e50c9cc05cdd",
+    "commit": "f964e784c4d54643976b3986939cf67fe2e260a7",
+    "files": [
+      "docs/idempotency.md",
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src/core/httpClient.js",
+      "src/core/routeHelper.js",
+      "src/core/types.d.ts",
+      "src/modules/Singularity.d.ts",
+      "test/idempotency.test.js"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB10",
+    "branch": "master",
+    "before": "84c20aeca4c7b41fd84d4b18ede50b14933bb634",
+    "commit": "9026fab1a6bbfabe4742d256c538ed74e1bd7137",
+    "files": [
+      "docs/idempotency.md",
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src/core/httpClient.js",
+      "src/core/routeHelper.js",
+      "src/core/types.d.ts",
+      "src/modules/Source.d.ts",
+      "test/idempotency.test.js"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS/ONODE/ONODEManager",
+    "branch": "Development",
+    "before": "789df4c6ce6d98a1efdc824227b933faa4415df5",
+    "commit": "7d909cabf7e849ad2efec7b05e25677c0c2e29b0",
+    "files": [
+      "NextGenSoftware.OASIS.ONODE.Client/README.md"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS/STAR ODK",
+    "branch": "Development",
+    "before": "5e359d50efd78f0b43e511c4e6db7c9e05273815",
+    "commit": "a4188d447492a5d2b6286a388a4d8c25be4ea162",
+    "files": [
+      "NextGenSoftware.OASIS.STAR.CLI.Lib/README.md",
+      "NextGenSoftware.OASIS.STAR.STARDNA/README.md",
+      "NextGenSoftware.OASIS.STAR/README.md"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6",
+    "branch": "Development",
+    "before": "d0e627aa33bab3c29522e433904fca8e6d6dda42",
+    "commit": "b7f4d7aa7768e7d5af9edec55708a7f4b9d9a552",
+    "files": [
+      "NextGenSoftware.OASIS.MCP.Server/README.md",
+      "NextGenSoftware.OASIS.Web6.Core/README.md",
+      "npm/README.md"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/HoloNET-API",
+    "branch": "main",
+    "before": "a9c87b73f6846c8dc8c87be422229c47cbb3eedd",
+    "commit": "a068a44438caebd3323ba2da9e6a6dffcae6db85",
+    "files": [
+      "NextGenSoftware.Holochain.HoloNET.API/NextGenSoftware.Holochain.HoloNET.API.csproj",
+      "README.md"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/trust",
+    "branch": "main",
+    "before": "d06aa41a9d1af78ce132b3b9cab8e278b3da89ff",
+    "commit": "15fe85add5616ad1e1f4cc9c7d612e8565007625",
+    "files": [
+      "api/leela-chat.js"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/piper-ui",
+    "branch": "main",
+    "before": "19082ce74dd6f082afa3944a24d1c4e7bf32763a",
+    "commit": "6fecc900c3a18fc8ec480b988656cb7be80ff618",
+    "files": [
+      "scripts/process_train_era_assets.py"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/ODOOM",
+    "branch": "trunk",
+    "before": "919a05187b48312a7d1ad60bdab1e8ab7ea4d4e1",
+    "commit": "37da62169079b2710182051b77d054188dd733ec",
+    "files": [
+      "src/odoom_version_generated.h",
+      "src/ogengine.h",
+      "src/ogengine_sync.c",
+      "src/ogengine_sync.h",
+      "src/oglib.h",
+      "src/oglib_beamin.h",
+      "src/oglib_config.h",
+      "src/oglib_crossgame.h",
+      "src/oglib_edge.h",
+      "src/oglib_game.h",
+      "src/oglib_json.h",
+      "src/oglib_log.h",
+      "src/oglib_monster.h",
+      "src/oglib_session.h",
+      "src/oglib_str.h",
+      "src/uzdoom_ogengine_integration.cpp",
+      "src/uzdoom_ogengine_integration.h",
+      "wadsrc/static/about.txt",
+      "wadsrc/static/menudef.txt"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OQuake3",
+    "branch": "main",
+    "before": "623982900a132e5c812dcb5231a430f28fafabeb",
+    "commit": "8e6702d67e0ee3e0ab5a1a6b3f768f1d0c19aeee",
+    "files": [
+      "code/game/ogengine.h",
+      "code/game/ogengine_sync.h",
+      "code/game/oglib_edge.h",
+      "code/game/oglib_json.h"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/quake-rerelease-qc",
+    "branch": "main",
+    "before": "41359327db37af9dce32784bde65c380fd05325b",
+    "commit": "8d49fbe995787f0eb5dbaa3cd6350e10f4c57006",
+    "files": [
+      "WINDOWS_INTEGRATION.md",
+      "ogengine.h",
+      "ogengine_sync.h",
+      "oquake_ogengine_integration.c",
+      "oquake_ogengine_integration.h",
+      "oquake_version.h"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/Our-World",
+    "branch": "Dev",
+    "before": "e022443971fd03775b00aef1871b4e3ef436f95b",
+    "commit": "56ebfb591ed21c52e0dd88b834d2a8598f221f0c",
+    "files": [
+      "Assets/NFTFetchController.cs",
+      "Assets/Plugins/Android/WalkingRoutes.androidlib/AndroidManifest.xml",
+      "Assets/Plugins/Android/WalkingRoutes.androidlib/project.properties",
+      "Assets/Plugins/Android/WalkingRoutes.androidlib/src/one/oasis/ourworld/routes/RouteShareProvider.java",
+      "Assets/Plugins/iOS/WalkingRouteShare.mm",
+      "Assets/RandomTextGenerator.cs",
+      "Assets/Tests/Editor/QuestEffectsRuntimeTests.cs",
+      "Assets/UMA/InternalDataStore/InGame/Resources/AssetIndexer.asset",
+      "Assets/_Game/Editor/WalkingQuestRuntimeProbe.cs",
+      "Assets/_Game/Scripts/AR Seeds Spawner/SeedSpawner.cs",
+      "Assets/_Game/Scripts/NFTHotspot/EnhancedNFTHotspotManager.cs",
+      "Assets/_Game/Scripts/NFTHotspot/NFTHotspot.cs",
+      "Assets/_Game/Scripts/OASIS API/OASISManagerBase.cs",
+      "Assets/_Game/Scripts/OASIS API/Quests.cs",
+      "Assets/_Game/Scripts/OASISIntegration/AvatarTrackerContract.cs",
+      "Assets/_Game/Scripts/OASISIntegration/LocationKarmaSystem.cs",
+      "Assets/_Game/Scripts/OASISIntegration/NaturePickupDiscoveryUI.cs",
+      "Assets/_Game/Scripts/OASISIntegration/QuestHUDOverlay.cs",
+      "Assets/_Game/Scripts/OASISIntegration/QuestSystemIntegration.cs",
+      "Assets/_Game/Scripts/OASISIntegration/SharedQuestPopupController.cs",
+      "Assets/_Game/Scripts/OASISIntegration/TrackedQuestNavigation.cs",
+      "Assets/_Game/Scripts/OASISIntegration/UnifiedGeoDisplaySystem.cs",
+      "Assets/_Game/Scripts/OASISIntegration/WalkingProgress.cs",
+      "Assets/_Game/Scripts/OASISIntegration/WalkingRouteRecorder.cs",
+      "Assets/_Game/Scripts/Tree Detection/TreeFaceController.cs",
+      "Docs/GAMEPLAY_TUNING.md",
+      "Docs/OASIS_COMPATIBILITY_AUDIT_2026-10-15.md",
+      "Docs/WIP/walking-routes-quest-verification.md",
+      "Scripts/Invoke-CompatibilityLedgerAudit.ps1",
+      "Scripts/Invoke-DevCompatibilityAudit.ps1",
+      "Scripts/Test-DevReadAvailability.ps1",
+      "Scripts/Test-DevReadSurface.ps1",
+      "Scripts/Test-QuestBackendPerformance.ps1",
+      "Scripts/Test-QuestMongoPerformance.ps1",
+      "Scripts/Test-WalkingQuestDev.ps1",
+      "Scripts/WalkingVerification.targets",
+      "Tools/QuestPerformance/LocalMongoComparison.cs",
+      "Tools/QuestPerformance/Program.cs",
+      "Tools/WalkingVerification/Program.cs"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OGEngineClient",
+    "branch": "main",
+    "before": "fe38f0d3f5cae058171338e3bb112f52b8c807de",
+    "commit": "8dca1baf55e70edb6564b1b59dd6c49f526d5896",
+    "files": [
+      "OGEngineClient.Quests.Map.cs",
+      "TestProjects/OGEngine.Client.Tests/HttpOperationIdentityTests.cs"
+    ],
+    "status": "pushed-after-clean-main-merge",
+    "publishedMerge": "1b6cc69355ce73f941d12ec28b7c5946c59964b0"
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "branch": "codex/hyperdrive-dual-mode-route-matrix",
+    "before": "a972131924f00dc50e2581bff3eccc5ca65bf29f",
+    "commit": "765e3657ded1619127365fcc4d4c6183c9cfd815",
+    "files": [
+      "Services/Subscriptions/UsageRequestClassification.cs",
+      "Services/Subscriptions/Web4UsageLedgerMiddleware.cs"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6/.claude/worktrees/agent-a0e0bfdbdfa93e2a4",
+    "branch": "worktree-agent-a0e0bfdbdfa93e2a4",
+    "before": "4ef0f832e6ae311b931dff3e782bfd77408d4fc0",
+    "commit": "280edbd40ed54c512ac1cfb345a96f2bbe1e3fd4",
+    "files": [
+      "WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/Web4ToolsBatchD.cs"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6/.claude/worktrees/agent-a5708ca8a984c4340",
+    "branch": "worktree-agent-a5708ca8a984c4340",
+    "before": "4ef0f832e6ae311b931dff3e782bfd77408d4fc0",
+    "commit": "26dc0e62c33e05aeeb6dee18aba51c45fe5ed631",
+    "files": [
+      "NextGenSoftware.OASIS.MCP.Server/Tools/Web4ToolsBatchC.cs"
+    ],
+    "status": "pushed"
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6/.claude/worktrees/agent-ae6cb813f900c021a",
+    "branch": "worktree-agent-ae6cb813f900c021a",
+    "before": "1286ca9ae199de8aa254ed6a00316fd0d339a7c0",
+    "commit": "b0ad318cc516b251a8fc0664325ab724836f6b89",
+    "files": [
+      "WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/Web4ToolsBatchE.cs"
+    ],
+    "status": "pushed"
+  }
+]

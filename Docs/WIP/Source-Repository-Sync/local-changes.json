@@ -1,0 +1,164 @@
+[
+  {
+    "path": "C:/Source/holochain-client-csharp",
+    "branch": "main",
+    "status": "m HoloNET-API",
+    "stat": "HoloNET-API | 0\n 1 file changed, 0 insertions(+), 0 deletions(-)"
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/HoloNET-API",
+    "branch": "main",
+    "status": "M NextGenSoftware.Holochain.HoloNET.API/NextGenSoftware.Holochain.HoloNET.API.csproj\n M README.md",
+    "stat": ".../NextGenSoftware.Holochain.HoloNET.API.csproj                    | 6 ++++--\n README.md                                                           | 2 +-\n 2 files changed, 5 insertions(+), 3 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS",
+    "branch": "fix/hyperdrive-v2-providers",
+    "status": "m ONODE/ONODEManager\n m \"STAR ODK\"\n m WEB6\n?? Docs/WIP/Source-Repository-Sync/",
+    "stat": "ONODE/ONODEManager | 0\n STAR ODK           | 0\n WEB6               | 0\n 3 files changed, 0 insertions(+), 0 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS/ONODE/ONODEManager",
+    "branch": "Development",
+    "status": "M NextGenSoftware.OASIS.ONODE.Client/README.md",
+    "stat": "NextGenSoftware.OASIS.ONODE.Client/README.md | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+  },
+  {
+    "path": "C:/Source/OASIS/STAR ODK",
+    "branch": "Development",
+    "status": "M NextGenSoftware.OASIS.STAR.CLI.Lib/README.md\n M NextGenSoftware.OASIS.STAR.STARDNA/README.md\n M NextGenSoftware.OASIS.STAR/README.md",
+    "stat": "NextGenSoftware.OASIS.STAR.CLI.Lib/README.md | 2 +-\n NextGenSoftware.OASIS.STAR.STARDNA/README.md | 2 +-\n NextGenSoftware.OASIS.STAR/README.md         | 2 +-\n 3 files changed, 3 insertions(+), 3 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6",
+    "branch": "Development",
+    "status": "M NextGenSoftware.OASIS.MCP.Server/README.md\n M NextGenSoftware.OASIS.Web6.Core/README.md\n M npm/README.md",
+    "stat": "NextGenSoftware.OASIS.MCP.Server/README.md | 2 +-\n NextGenSoftware.OASIS.Web6.Core/README.md  | 2 +-\n npm/README.md                              | 2 +-\n 3 files changed, 3 insertions(+), 3 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6/.claude/worktrees/agent-a0e0bfdbdfa93e2a4",
+    "branch": "worktree-agent-a0e0bfdbdfa93e2a4",
+    "status": "D npm/bin/oasis-mcp.js\n?? WEB6/",
+    "stat": "npm/bin/oasis-mcp.js | 21 ---------------------\n 1 file changed, 21 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6/.claude/worktrees/agent-a5708ca8a984c4340",
+    "branch": "worktree-agent-a5708ca8a984c4340",
+    "status": "D npm/bin/oasis-mcp.js\n?? NextGenSoftware.OASIS.MCP.Server/Tools/Web4ToolsBatchC.cs",
+    "stat": "npm/bin/oasis-mcp.js | 21 ---------------------\n 1 file changed, 21 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6/.claude/worktrees/agent-ae6cb813f900c021a",
+    "branch": "worktree-agent-ae6cb813f900c021a",
+    "status": "D npm/bin/oasis-mcp.js\n?? WEB6/",
+    "stat": "npm/bin/oasis-mcp.js | 21 ---------------------\n 1 file changed, 21 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB10",
+    "branch": "master",
+    "status": "M index.d.ts\n M package.json\n M scripts/generate-types.js\n M src/core/httpClient.js\n M src/core/routeHelper.js\n M src/core/types.d.ts\n M src/modules/Source.d.ts\n?? docs/idempotency.md\n?? test/idempotency.test.js",
+    "stat": "package.json              |  2 +-\n scripts/generate-types.js |  4 +++-\n src/core/httpClient.js    | 26 ++++++++++++++++++++------\n src/core/routeHelper.js   |  4 ++--\n src/core/types.d.ts       |  2 ++\n src/modules/Source.d.ts   |  2 +-\n 6 files changed, 29 insertions(+), 11 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB5",
+    "branch": "master",
+    "status": "M index.d.ts\n M package.json\n M scripts/generate-types.js\n M src/core/httpClient.js\n M src/core/routeHelper.js\n M src/core/types.d.ts\n M src/modules/Auth.d.ts\n M src/modules/Avatar.d.ts\n M src/modules/CelestialBodies.d.ts\n M src/modules/CelestialBodiesMetaData.d.ts\n M src/modules/CelestialSpaces.d.ts\n M src/modules/Chapters.d.ts\n M src/modules/Competition.d.ts\n M src/modules/Cosmic.d.ts\n M src/modules/Games.d.ts\n M src/modules/GeoHotSpots.d.ts\n M src/modules/GeoNFTs.d.ts\n M src/modules/Health.d.ts\n M src/modules/Holons.d.ts\n M src/modules/HolonsMetaData.d.ts\n M src/modules/InventoryItems.d.ts\n M src/modules/Libraries.d.ts\n M src/modules/Missions.d.ts\n M src/modules/NFTs.d.ts\n M src/modules/OAPPs.d.ts\n M src/modules/Parks.d.ts\n M src/modules/Plugins.d.ts\n M src/modules/Quests.d.ts\n M src/modules/Runtimes.d.ts\n M src/modules/STAR.d.ts\n M src/modules/Templates.d.ts\n M src/modules/Zomes.d.ts\n M src/modules/ZomesMetaData.d.ts\n?? docs/idempotency.md\n?? test/idempotency.test.js",
+    "stat": "package.json                             |   2 +-\n scripts/generate-types.js                |   4 +-\n src/core/httpClient.js                   |  26 ++++--\n src/core/routeHelper.js                  |   4 +-\n src/core/types.d.ts                      |   2 +\n src/modules/Avatar.d.ts                  |  26 +++---\n src/modules/CelestialBodies.d.ts         |  44 +++++-----\n src/modules/CelestialBodiesMetaData.d.ts |  42 ++++-----\n src/modules/CelestialSpaces.d.ts         |  44 +++++-----\n src/modules/Chapters.d.ts                |  40 ++++-----\n src/modules/Competition.d.ts             |  18 ++--\n src/modules/Cosmic.d.ts                  | 144 +++++++++++++++----------------\n src/modules/Games.d.ts                   | 110 +++++++++++------------\n src/modules/GeoHotSpots.d.ts             |  40 ++++-----\n src/modules/GeoNFTs.d.ts                 |  44 +++++-----\n src/modules/Health.d.ts                  |   4 +-\n src/modules/Holons.d.ts                  |  48 +++++------\n src/modules/HolonsMetaData.d.ts          |  42 ++++-----\n src/modules/InventoryItems.d.ts          |  42 ++++-----\n src/modules/Libraries.d.ts               |  44 +++++-----\n src/modules/Missions.d.ts                |  54 ++++++------\n src/modules/NFTs.d.ts                    |  42 ++++-----\n src/modules/OAPPs.d.ts                   |  42 ++++-----\n src/modules/Parks.d.ts                   |  44 +++++-----\n src/modules/Plugins.d.ts                 |  48 +++++------\n src/modules/Quests.d.ts                  |  82 +++++++++---------\n src/modules/Runtimes.d.ts                |  50 +++++------\n src/modules/STAR.d.ts                    |   8 +-\n src/modules/Templates.d.ts               |  44 +++++-----\n src/modules/Zomes.d.ts                   |  44 +++++-----\n src/modules/ZomesMetaData.d.ts           |  42 ++++-----\n 31 files changed, 644 insertions(+), 626 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB6",
+    "branch": "master",
+    "status": "M index.d.ts\n M package.json\n M scripts/generate-types.js\n M src/core/httpClient.js\n M src/core/routeHelper.js\n M src/core/types.d.ts\n M src/modules/A2A.d.ts\n M src/modules/Completion.d.ts\n M src/modules/Did.d.ts\n M src/modules/ExternalMemory.d.ts\n M src/modules/FahrnSolve.d.ts\n M src/modules/HolonicBraid.d.ts\n M src/modules/HolonicMemory.d.ts\n M src/modules/Images.d.ts\n M src/modules/MLNet.d.ts\n M src/modules/Orchestrator.d.ts\n M src/modules/Providers.d.ts\n M src/modules/ReasoningNetwork.d.ts\n M src/modules/Telemetry.d.ts\n M src/modules/Usage.d.ts\n?? docs/idempotency.md\n?? test/idempotency.test.js",
+    "stat": "package.json                      |  2 +-\n scripts/generate-types.js         |  4 +++-\n src/core/httpClient.js            | 26 ++++++++++++++++++++------\n src/core/routeHelper.js           |  4 ++--\n src/core/types.d.ts               |  2 ++\n src/modules/A2A.d.ts              |  6 +++---\n src/modules/Completion.d.ts       |  8 ++++----\n src/modules/Did.d.ts              |  8 ++++----\n src/modules/ExternalMemory.d.ts   |  8 ++++----\n src/modules/FahrnSolve.d.ts       |  4 ++--\n src/modules/HolonicBraid.d.ts     |  4 ++--\n src/modules/HolonicMemory.d.ts    | 14 +++++++-------\n src/modules/Images.d.ts           |  2 +-\n src/modules/MLNet.d.ts            |  8 ++++----\n src/modules/Orchestrator.d.ts     |  6 +++---\n src/modules/Providers.d.ts        |  2 +-\n src/modules/ReasoningNetwork.d.ts |  8 ++++----\n src/modules/Telemetry.d.ts        |  2 +-\n src/modules/Usage.d.ts            |  2 +-\n 19 files changed, 69 insertions(+), 51 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB7",
+    "branch": "master",
+    "status": "M index.d.ts\n M package.json\n M scripts/generate-types.js\n M src/core/httpClient.js\n M src/core/routeHelper.js\n M src/core/types.d.ts\n M src/modules/CollectiveConsciousness.d.ts\n M src/modules/Symbiosis.d.ts\n?? docs/idempotency.md\n?? test/idempotency.test.js",
+    "stat": "package.json                             |  2 +-\n scripts/generate-types.js                |  4 +++-\n src/core/httpClient.js                   | 26 ++++++++++++++++++++------\n src/core/routeHelper.js                  |  4 ++--\n src/core/types.d.ts                      |  2 ++\n src/modules/CollectiveConsciousness.d.ts |  6 +++---\n src/modules/Symbiosis.d.ts               |  8 ++++----\n 7 files changed, 35 insertions(+), 17 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB8",
+    "branch": "master",
+    "status": "M index.d.ts\n M package.json\n M scripts/generate-types.js\n M src/core/httpClient.js\n M src/core/routeHelper.js\n M src/core/types.d.ts\n M src/modules/Mesh.d.ts\n M src/modules/ProtocolBridge.d.ts\n?? docs/idempotency.md\n?? test/idempotency.test.js",
+    "stat": "package.json                    |  2 +-\n scripts/generate-types.js       |  4 +++-\n src/core/httpClient.js          | 26 ++++++++++++++++++++------\n src/core/routeHelper.js         |  4 ++--\n src/core/types.d.ts             |  2 ++\n src/modules/Mesh.d.ts           | 12 ++++++------\n src/modules/ProtocolBridge.d.ts |  4 ++--\n 7 files changed, 36 insertions(+), 18 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB9",
+    "branch": "master",
+    "status": "M index.d.ts\n M package.json\n M scripts/generate-types.js\n M src/core/httpClient.js\n M src/core/routeHelper.js\n M src/core/types.d.ts\n M src/modules/Singularity.d.ts\n?? docs/idempotency.md\n?? test/idempotency.test.js",
+    "stat": "package.json                 |  2 +-\n scripts/generate-types.js    |  4 +++-\n src/core/httpClient.js       | 26 ++++++++++++++++++++------\n src/core/routeHelper.js      |  4 ++--\n src/core/types.d.ts          |  2 ++\n src/modules/Singularity.d.ts |  2 +-\n 6 files changed, 29 insertions(+), 11 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps",
+    "branch": "codex/hyperdrive-dual-mode-route-matrix",
+    "status": "M Docs/Devs/WEB4_SUBSCRIPTION_USAGE_LEDGER.md\n m \"OASIS Architecture/NextGenSoftware.OASIS.API.Core\"\n M \"STAR ODK\"\n M WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/SubscriptionMiddleware.cs\n M WEB6\n M WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Middleware/SubscriptionMiddleware.cs\n M WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/SubscriptionMiddleware.cs\n M WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/SubscriptionMiddleware.cs",
+    "stat": "Docs/Devs/WEB4_SUBSCRIPTION_USAGE_LEDGER.md                         | 6 ++++++\n OASIS Architecture/NextGenSoftware.OASIS.API.Core                   | 0\n STAR ODK                                                            | 2 +-\n .../Middleware/SubscriptionMiddleware.cs                            | 1 +\n WEB6                                                                | 2 +-\n .../Middleware/SubscriptionMiddleware.cs                            | 1 +\n .../Middleware/SubscriptionMiddleware.cs                            | 1 +\n .../Middleware/SubscriptionMiddleware.cs                            | 1 +\n 8 files changed, 12 insertions(+), 2 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "branch": "codex/hyperdrive-dual-mode-route-matrix",
+    "status": "M Services/Subscriptions/Web4UsageLedgerMiddleware.cs\n?? Services/Subscriptions/UsageRequestClassification.cs",
+    "stat": "Services/Subscriptions/Web4UsageLedgerMiddleware.cs | 5 ++++-\n 1 file changed, 4 insertions(+), 1 deletion(-)"
+  },
+  {
+    "path": "C:/Source/ODOOM",
+    "branch": "trunk",
+    "status": "M src/odoom_version_generated.h\n M src/ogengine.h\n M src/ogengine_sync.c\n M src/ogengine_sync.h\n M src/oglib.h\n M src/oglib_beamin.h\n M src/oglib_config.h\n M src/oglib_crossgame.h\n M src/oglib_edge.h\n M src/oglib_json.h\n M src/oglib_log.h\n M src/oglib_monster.h\n M src/oglib_session.h\n M src/oglib_str.h\n M src/uzdoom_ogengine_integration.cpp\n M src/uzdoom_ogengine_integration.h\n M wadsrc/static/about.txt\n M wadsrc/static/menudef.txt\n M wadsrc/static/zscript/ui/statusbar/odoom_inventory_popup.zs\n?? src/oglib_game.h",
+    "stat": "src/odoom_version_generated.h       |  2 +-\n src/ogengine.h                      | 51 +++++++++++++++++++++++++++++++++++--\n src/oglib_monster.h                 |  7 ++---\n src/oglib_str.h                     | 12 +++++++++\n src/uzdoom_ogengine_integration.cpp | 50 +++++++++++++++++++++++++++++++++++-\n wadsrc/static/about.txt             | 26 ++++++++++++++++++-\n wadsrc/static/menudef.txt           |  4 +++\n 7 files changed, 142 insertions(+), 10 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OGEngineClient",
+    "branch": "main",
+    "status": "M OGEngineClient.Quests.Map.cs\n?? TestProjects/OGEngine.Client.Tests/HttpOperationIdentityTests.cs",
+    "stat": "OGEngineClient.Quests.Map.cs | 13 ++++++++-----\n 1 file changed, 8 insertions(+), 5 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OPORTAL-JS",
+    "branch": "codex/subscription-admin-ui",
+    "status": "M assets/js/oasis-web4-sdk.js\n M assets/js/oasis-web5-sdk.js\n M assets/js/oasis-web6-sdk.js",
+    "stat": ""
+  },
+  {
+    "path": "C:/Source/OQUAKE",
+    "branch": "Development",
+    "status": "?? Quake/ogengine.lib",
+    "stat": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/zlib",
+    "branch": "",
+    "status": "D zconf.h",
+    "stat": "zconf.h | 543 ----------------------------------------------------------------\n 1 file changed, 543 deletions(-)"
+  },
+  {
+    "path": "C:/Source/OQuake3",
+    "branch": "main",
+    "status": "?? code/game/ogengine.h\n?? code/game/ogengine_sync.h\n?? code/game/oglib_edge.h\n?? code/game/oglib_json.h\n?? ogengine.dll\n?? ogengine.lib",
+    "stat": ""
+  },
+  {
+    "path": "C:/Source/Our-World",
+    "branch": "Dev",
+    "status": "M Assembly-CSharp-Editor.csproj\n M Assembly-CSharp.csproj\n M Assets/NFTFetchController.cs\n M Assets/RandomTextGenerator.cs\n M Assets/Tests/Editor/QuestEffectsRuntimeTests.cs\n M Assets/UMA/InternalDataStore/InGame/Resources/AssetIndexer.asset\n M \"Assets/_Game/Scripts/AR Seeds Spawner/SeedSpawner.cs\"\n M Assets/_Game/Scripts/NFTHotspot/EnhancedNFTHotspotManager.cs\n M Assets/_Game/Scripts/NFTHotspot/NFTHotspot.cs\n M \"Assets/_Game/Scripts/OASIS API/OASISManagerBase.cs\"\n M \"Assets/_Game/Scripts/OASIS API/Quests.cs\"\n M Assets/_Game/Scripts/OASISIntegration/LocationKarmaSystem.cs\n M Assets/_Game/Scripts/OASISIntegration/NaturePickupDiscoveryUI.cs\n M Assets/_Game/Scripts/OASISIntegration/QuestHUDOverlay.cs\n M Assets/_Game/Scripts/OASISIntegration/QuestSystemIntegration.cs\n M Assets/_Game/Scripts/OASISIntegration/SharedQuestPopupController.cs\n M Assets/_Game/Scripts/OASISIntegration/UnifiedGeoDisplaySystem.cs\n M \"Assets/_Game/Scripts/Tree Detection/TreeFaceController.cs\"\n M Docs/GAMEPLAY_TUNING.md\n M UserSettings/EditorUserSettings.asset\n?? Assets/Plugins/Android/WalkingRoutes.androidlib/\n?? Assets/Plugins/iOS/\n?? Assets/_Game/Editor/WalkingQuestRuntimeProbe.cs\n?? Assets/_Game/Scripts/OASISIntegration/AvatarTrackerContract.cs\n?? Assets/_Game/Scripts/OASISIntegration/TrackedQuestNavigation.cs\n?? Assets/_Game/Scripts/OASISIntegration/WalkingProgress.cs\n?? Assets/_Game/Scripts/OASISIntegration/WalkingRouteRecorder.cs\n?? BuildLogs/collection-fonts.log\n?? BuildLogs/compatibility-audit/\n?? BuildLogs/creator-mode.log\n?? BuildLogs/creator-rules-validation.log\n?? BuildLogs/dynamic-quest-effects.log\n?? BuildLogs/editor-test-compilation.log\n?? BuildLogs/geohotspot-content-build.log\n?? BuildLogs/geohotspot-events-build.log\n?? BuildLogs/geohotspot-full-build.log\n?? BuildLogs/geonft-detail-spacing-dotnet.log\n?? BuildLogs/karma-backend.patch\n?? BuildLogs/kashiffinal-recovery-validation.log\n?? BuildLogs/metric-frame.log\n?? BuildLogs/oasis-edge-integration.log\n?? BuildLogs/ogengine-shared.log\n?? BuildLogs/popup-polish.log\n?? BuildLogs/portal-location-dedupe-dotnet.log\n?? BuildLogs/portal-location-dedupe-validation.log\n?? BuildLogs/quest-button-wiring.log\n?? BuildLogs/reset-all-avatar-inventory.ps1\n?? BuildLogs/session-coordination.log\n?? BuildLogs/shared-ui-build.log\n?? BuildLogs/startup-reconciliation.log\n?? BuildLogs/talking-tree-backend-tests.log\n?? BuildLogs/talking-tree-recognition-tests.log\n?? BuildLogs/talking-tree-unity-build.log\n?? BuildLogs/tree-inventory-validation.log\n?? BuildLogs/web4-web5-geonft-tests.log\n?? BuildLogs/web4-web5-geonft-tests.xml\n?? BuildLogs/welcome-female-source.wav\n?? BuildLogs/welcome-waveform.png\n?? BuildLogs/world-startup-creator.log\n?? Docs/OASIS_COMPATIBILITY_AUDIT_2026-10-15.md\n?? Docs/WIP/\n?? Scripts/Invoke-CompatibilityLedgerAudit.ps1\n?? Scripts/Invoke-DevCompatibilityAudit.ps1\n?? Scripts/Test-DevReadAvailability.ps1\n?? Scripts/Test-DevReadSurface.ps1\n?? Scripts/Test-QuestBackendPerformance.ps1\n?? Scripts/Test-QuestMongoPerformance.ps1\n?? Scripts/Test-WalkingQuestDev.ps1\n?? Scripts/WalkingVerification.targets\n?? Tools/QuestPerformance/\n?? Tools/WalkingVerification/",
+    "stat": "Assembly-CSharp-Editor.csproj                      |   1 +\n Assembly-CSharp.csproj                             |   4 +\n Assets/NFTFetchController.cs                       |  89 +++++++++-\n Assets/RandomTextGenerator.cs                      |  15 +-\n Assets/Tests/Editor/QuestEffectsRuntimeTests.cs    |   4 +-\n .../InGame/Resources/AssetIndexer.asset            | Bin 790708 -> 832500 bytes\n .../_Game/Scripts/AR Seeds Spawner/SeedSpawner.cs  |  52 +++++-\n .../NFTHotspot/EnhancedNFTHotspotManager.cs        |   7 +-\n Assets/_Game/Scripts/NFTHotspot/NFTHotspot.cs      |   5 +-\n Assets/_Game/Scripts/OASIS API/OASISManagerBase.cs |  63 ++++++-\n Assets/_Game/Scripts/OASIS API/Quests.cs           |  17 +-\n .../OASISIntegration/LocationKarmaSystem.cs        | 179 +++++++++++++-------\n .../OASISIntegration/NaturePickupDiscoveryUI.cs    | 188 +++++++++++++++++++--\n .../Scripts/OASISIntegration/QuestHUDOverlay.cs    |  23 +--\n .../OASISIntegration/QuestSystemIntegration.cs     | 102 +++++++++--\n .../OASISIntegration/SharedQuestPopupController.cs |   6 +-\n .../OASISIntegration/UnifiedGeoDisplaySystem.cs    |  19 ++-\n .../Scripts/Tree Detection/TreeFaceController.cs   |  23 ++-\n Docs/GAMEPLAY_TUNING.md                            |  35 +++-\n UserSettings/EditorUserSettings.asset              |  10 +-\n 20 files changed, 689 insertions(+), 153 deletions(-)"
+  },
+  {
+    "path": "C:/Source/piper-ui",
+    "branch": "main",
+    "status": "?? public/train.zip\n?? scripts/\n?? tsconfig.tsbuildinfo",
+    "stat": ""
+  },
+  {
+    "path": "C:/Source/quake-rerelease-qc",
+    "branch": "main",
+    "status": "M WINDOWS_INTEGRATION.md\n M oquake_version.h\n?? ogengine.dll\n?? ogengine.h\n?? ogengine.lib\n?? ogengine_sync.h\n?? oquake_ogengine_integration.c\n?? oquake_ogengine_integration.h",
+    "stat": "WINDOWS_INTEGRATION.md | 48 +++++++++++++++++++++++++++++++++---------------\n oquake_version.h       |  2 +-\n 2 files changed, 34 insertions(+), 16 deletions(-)"
+  },
+  {
+    "path": "C:/Source/trust",
+    "branch": "main",
+    "status": "M api/leela-chat.js",
+    "stat": "api/leela-chat.js | 5 +++++\n 1 file changed, 5 insertions(+)"
+  }
+]

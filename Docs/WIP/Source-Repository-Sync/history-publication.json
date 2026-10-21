@@ -1,0 +1,21 @@
+[
+  {
+    "path": "C:/Source/OASIS/OASIS Omniverse/OGEngineClient",
+    "status": "divergent-local-history-published-as-tag",
+    "tag": "source-sync-2026-10-21-main-47f46580",
+    "commit": "47f46580d96777cded8ad4b12003ff91c365259e",
+    "previouslyUnpublishedCommits": 9
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/HoloNET-ORM",
+    "status": "divergent-local-history-published-as-tag",
+    "tag": "source-sync-2026-10-21-main-eca29a69",
+    "commit": "eca29a693f5526fc6bb837e10b7b9e743c7636f7",
+    "previouslyUnpublishedCommits": 1
+  },
+  {
+    "path": "C:/Source/OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "status": "Development-fast-forward-pushed",
+    "commit": "c4a89b193aff419d1e5cf0f9b979ff56f2f80f4e"
+  }
+]

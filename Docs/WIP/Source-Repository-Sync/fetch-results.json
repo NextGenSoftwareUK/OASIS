@@ -1,0 +1,672 @@
+[
+  {
+    "path": "C:/Source/android-service-runtime",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/AnyRPGCore",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/BeMindful",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/celestial-cyberspace",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/dhewm3-libs",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Global-Healing-Network",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Global-Healing-Network-Angular",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/GraceBook",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/HoloNET-API",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/HoloNET-Manager",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.HDK",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.HyperNET",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.ORM",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/HoloNETSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Justice-League-Academy",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Justice-League-Academy-Svelte",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/lightseed.online",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/MemoryLaneSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Metabricks",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/MindfulCrosswordsSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/NextGenCrosswordsSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/NextGenSoftware-Libraries",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/NFTFoundersLandingPage",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/NoahsArkAnimalRescueNetwork",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/NoahsArkAnimalRescueNetwork-Vue",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/NRD-Sample",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/NRD-Sample/External/NRD",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/NRD-Sample/External/NRIFramework",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/NRD-Sample/External/NRIFramework/External/MathLib",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/NRD-Sample/External/NRIFramework/External/NRI",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS/HoloNET-ORM",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS/OASIS Omniverse/OASIS Hub",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS/OASIS Omniverse/OGEngineClient",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS/ONODE/ONODEManager",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS/STAR ODK",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Angular-UI-Component-Library",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascipt-Package-WEB4",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB10",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB5",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB6",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB7",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB8",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB9",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Unity-Package",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Holochain-hApp",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-HyperDrive-Client",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/HoloNET-ORM",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-JS-UI-Component-Library",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-NextJS-UI-Component-Library",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-PureJS-UI-Component-Library",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-React-UI-Component-Library",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Security",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Svelte-UI-Component-Library",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Vue-UI-Component-Library",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Web-Component-SDKs",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASISDocsWebsite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASISLearnWebsite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OASISOmniverseSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/oasisweb4.com",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODAO",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOM",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOM-Editor",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-BFG",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-BFG/neo/extern/nvrhi",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-BFG/neo/extern/nvrhi/rtxmu",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-BFG/neo/extern/nvrhi/thirdparty/Vulkan-Headers",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-BFG/neo/extern/ShaderMake",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-Editor",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOM64",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODOOMSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODuke3D",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ODuke3D-RT",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OGEngineClient",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OGEngineSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OHexen2",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OIDE",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OMorrowWind",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OneWorldSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OPORTAL-JS",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OPORTAL-React",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQUAKE",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/curl",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/glslang",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/openal-soft",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/SDL2",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/stb",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/tinyobjloader-c",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/Vulkan-Headers",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/zlib",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake3",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuake3Editor",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuakeEditor",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OQuakeSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OShadowWarrior",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OShadowWarrior-RT",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Our-World",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OurWorldSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/OWolf3D",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/piper-ml",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/piper-server",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/piper-ui",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/quake-rerelease-qc",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/session-plan",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/ShadowFighterSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/SilverLining",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Snake3000Site",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/SOP",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/spaceportal",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/STARNET",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/STARNETSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/STARWebsite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/trust",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/UnityMMO",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/UnityMMO/Server/lsocket",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/UnityMMO/Server/skynet",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/UnityMMO/Server/skynet/3rd/jemalloc",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Web10Site",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Web4Site",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Web6Site",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Web7Site",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Web8Site",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Web9Site",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/WhatsThatSoundSite",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Yoga4Autism",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "path": "C:/Source/Your2ndChanceSite",
+    "ok": true,
+    "details": ""
+  }
+]
