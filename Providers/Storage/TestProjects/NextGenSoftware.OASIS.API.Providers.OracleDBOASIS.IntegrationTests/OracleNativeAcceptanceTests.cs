@@ -654,6 +654,27 @@ public sealed partial class OracleNativeAcceptanceTests
         }
         var avatar=new Avatar{Id=id,Username=name,Email=name+"@example.invalid",VerificationToken=name+"-original-token",ResetToken=name+"-original-reset",RefreshTokens=new(){new RefreshToken{Token=name+"-original-refresh",Expires=DateTime.UtcNow.AddDays(1)}}};
         var detail=new AvatarDetail{Id=id,Username=name,Email=avatar.Email,Karma=321,XP=456};
+        void AppendOwnedHistory()=>detail.KarmaAkashicRecords.Add(new KarmaAkashicRecord{
+            AvatarId=id,Date=new DateTime(2026,10,20,0,0,0,DateTimeKind.Utc).AddSeconds(detail.KarmaAkashicRecords.Count),
+            Karma=detail.KarmaAkashicRecords.Count==0?321:11,TotalKarma=detail.Karma,
+            KarmaSourceTitle="Oracle native",KarmaSourceDesc="owned Oracle history",WebLink="https://example.invalid/owned-history",
+            Provider=new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OracleDBOASIS),
+            KarmaSource=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType.Game),
+            KarmaEarntOrLost=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaEarntOrLost.Earnt),
+            KarmaTypePositive=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaTypePositive.Other),
+            KarmaTypeNegative=new(NextGenSoftware.OASIS.API.Core.Enums.KarmaTypeNegative.None)});
+        void AssertOwnedHistory(IAvatarDetail actual,int count){
+            Assert.AreEqual(count,actual.KarmaAkashicRecords.Count);
+            for(var index=0;index<count;index++){
+                var expected=detail.KarmaAkashicRecords[index];var entry=actual.KarmaAkashicRecords[index];
+                Assert.AreEqual(id,entry.AvatarId);Assert.AreEqual(expected.Date,entry.Date);Assert.AreEqual(expected.Karma,entry.Karma);
+                Assert.AreEqual(expected.TotalKarma,entry.TotalKarma);Assert.AreEqual(expected.Provider.Value,entry.Provider.Value);
+                Assert.AreEqual(expected.KarmaSource.Value,entry.KarmaSource.Value);Assert.AreEqual(expected.KarmaEarntOrLost.Value,entry.KarmaEarntOrLost.Value);
+                Assert.AreEqual(expected.KarmaTypePositive.Value,entry.KarmaTypePositive.Value);Assert.AreEqual(expected.KarmaTypeNegative.Value,entry.KarmaTypeNegative.Value);
+                Assert.AreEqual(expected.KarmaSourceTitle,entry.KarmaSourceTitle);Assert.AreEqual(expected.KarmaSourceDesc,entry.KarmaSourceDesc);Assert.AreEqual(expected.WebLink,entry.WebLink);
+            }
+        }
+        AppendOwnedHistory();
         detail.Inventory.Add(new InventoryItem{Id=Guid.NewGuid(),Name="owned oak seed",Quantity=7,GameSource="Our World"});
         var holon=new Holon{Id=id,Name=name,ParentHolonId=Guid.NewGuid(),CreatedByAvatarId=id,
             MetaData=new(){["owned.fixture"]="literal-dot",["owner's key"]="literal-apostrophe",["quote\"key"]="literal-quote"}};
@@ -683,6 +704,7 @@ public sealed partial class OracleNativeAcceptanceTests
             foreach(var loaded in new[]{await provider.LoadAvatarDetailAsync(id),await provider.LoadAvatarDetailByUsernameAsync(name),await provider.LoadAvatarDetailByEmailAsync(avatar.Email)}){
                 Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());Assert.AreEqual(321L,loaded.Result.Karma);Assert.AreEqual(detail.XP,loaded.Result.XP);
                 Assert.AreEqual(7,loaded.Result.Inventory.Single().Quantity);
+                if(!resume)AssertOwnedHistory(loaded.Result,1);
             }
             var readHolon=await provider.LoadHolonAsync(id,loadChildren:false);Assert.IsFalse(readHolon.IsError,readHolon.Exception?.ToString());
             Assert.AreEqual(holon.ParentHolonId,readHolon.Result.ParentHolonId);Assert.AreEqual(0,readHolon.Result.Children.Count);
@@ -699,6 +721,7 @@ public sealed partial class OracleNativeAcceptanceTests
                     avatar.VerificationToken=avatar.Username+"-current-token";
                     avatar.ResetToken=avatar.Username+"-current-reset";avatar.RefreshTokens=new(){new RefreshToken{Token=avatar.Username+"-current-refresh",Expires=DateTime.UtcNow.AddDays(1)}};
                     detail.Username=avatar.Username;detail.Email=avatar.Email;detail.Karma+=11;detail.XP+=17;detail.Inventory[0].Quantity+=2;
+                    AppendOwnedHistory();
                     holon.Name=avatar.Username;holon.ParentHolonId=Guid.NewGuid();holon.CreatedByAvatarId=Guid.NewGuid();holon.MetaData["owned.fixture"]=avatar.Username;
                     var updateAvatar=synchronous?provider.SaveAvatar(avatar):await provider.SaveAvatarAsync(avatar);
                     var updateDetail=synchronous?provider.SaveAvatarDetail(detail):await provider.SaveAvatarDetailAsync(detail);
@@ -713,6 +736,7 @@ public sealed partial class OracleNativeAcceptanceTests
                     Assert.IsNull((await provider.LoadAvatarByUsernameAsync(oldName)).Result);Assert.IsNull((await provider.LoadAvatarByEmailAsync(oldEmail)).Result);
                     foreach(var loaded in new[]{await provider.LoadAvatarDetailAsync(id),await provider.LoadAvatarDetailByUsernameAsync(detail.Username),await provider.LoadAvatarDetailByEmailAsync(detail.Email)}){
                         Assert.IsFalse(loaded.IsError,loaded.Exception?.ToString());Assert.AreEqual(detail.Karma,loaded.Result.Karma);Assert.AreEqual(detail.XP,loaded.Result.XP);Assert.AreEqual(detail.Inventory[0].Quantity,loaded.Result.Inventory.Single().Quantity);
+                        AssertOwnedHistory(loaded.Result,detail.KarmaAkashicRecords.Count);
                     }
                     Assert.IsNull((await provider.LoadAvatarDetailByUsernameAsync(oldName)).Result);Assert.IsNull((await provider.LoadAvatarDetailByEmailAsync(oldEmail)).Result);
                     var loadedHolon=await provider.LoadHolonAsync(id,loadChildren:false);Assert.IsFalse(loadedHolon.IsError,loadedHolon.Exception?.ToString());
@@ -720,6 +744,7 @@ public sealed partial class OracleNativeAcceptanceTests
                     var found=await provider.LoadHolonsByMetaDataAsync("owned.fixture",avatar.Username,holon.HolonType,loadChildren:false);Assert.IsFalse(found.IsError,found.Exception?.ToString());Assert.IsTrue(found.Result.Any(row=>row.Id==id));
                     var raw=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>((await Read(verifier,"OASIS_AVATAR_DETAILS",id))!);
                     Assert.AreEqual(detail.Karma,raw.Karma);Assert.AreEqual(detail.XP,raw.XP);Assert.AreEqual(detail.Inventory[0].Quantity,raw.Inventory.Single().Quantity);
+                    AssertOwnedHistory(raw,detail.KarmaAkashicRecords.Count);
                 }
                 foreach(var table in new[]{"OASIS_AVATARS","OASIS_AVATAR_DETAILS","OASIS_HOLONS"}){
                     using var history=JsonDocument.Parse((await Read(verifier,table,id))!);
@@ -736,6 +761,7 @@ public sealed partial class OracleNativeAcceptanceTests
                 }
                 foreach(var old in new[]{await provider.LoadAvatarDetailAsync(id,1),await provider.LoadAvatarDetailByUsernameAsync(name,1),await provider.LoadAvatarDetailByEmailAsync(name+"@example.invalid",1)}){
                     Assert.IsFalse(old.IsError,old.Exception?.ToString());Assert.AreEqual(1,old.Result.Version);Assert.AreEqual(321L,old.Result.Karma);Assert.AreEqual(456L,old.Result.XP);Assert.AreEqual(7,old.Result.Inventory.Single().Quantity);
+                    AssertOwnedHistory(old.Result,1);
                 }
                 var oldHolon=await provider.LoadHolonAsync(id,loadChildren:false,version:1);Assert.IsFalse(oldHolon.IsError,oldHolon.Exception?.ToString());Assert.AreEqual(name,oldHolon.Result.Name);
                 foreach(var selectedVersion in new[]{0,1})foreach(var mode in new[]{NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.Any})foreach(var sync in new[]{false,true}){

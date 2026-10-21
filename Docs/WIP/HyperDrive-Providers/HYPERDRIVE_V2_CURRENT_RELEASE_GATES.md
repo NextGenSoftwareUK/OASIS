@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Oracle Database native karma-history field coverage
+
+Actual74518 terminal0 **270/270 native passed**,0skip,1m14, after strengthening the existing canonical-record case to preserve ordered karma entries/full fields through current selectors, sync/async updates, direct SDK payload readback and archived version1. No new production logic/case count. NativeTRX SHA256 `0364266131D8EB79F9CA879762A0305B5A3B66DEA11927CD806D442BF5294ECF`; matched235controls passed0skip579ms, `50507480F74AB8F6059D4BC7282D63607624763A31ADBB672605C3263C9AA803`. CoreEB9EFAD0/Shared0D2BB0D1 consumers verified matching. Same retained pinnedOracleFree runtime, exactfixturecleanup/journals0 and independentlyexited afterward; previous270 report0D0DE5 hash-verified/movedinplace, no overwrite/backupDB.
+
+This is native Oracle Database field-family acceptance, not complete KarmaManager, all date kinds, hosted OCI/Autonomous/IAM/TLS/billing or all-provider100% certification. StandardOCI profile and processconfiguration absent on scoped read-only check; other profiles/settings not exhaustively searched. No account/resources/download/install/environment/deployment created. Detailed scope and evidence in `ORACLE_CLIENT_PRIORITY.md`. FreeC60,555,149,312bytes;123GBtarget unmet.
+
 ## Shared Import result forwarding / OCI graph import — scoped closure
 
 Four genuine controlled failures exposed Import discarding underlying save flags/completed counts. Reused the existing result-copy helper in the single shared import owner (4insertions/1deletion); bool success is false on partial failure and original counts/error evidence survive. No new persistence operation, retry or alternate implementation.
