@@ -2,6 +2,29 @@
 
 Status: partial provider verification; not hosted AWS or full HyperDrive certification.
 
+## Native interface acceptance refresh — scoped closure
+
+Actual retained-runtime batch40622 completed terminal0: begin1/1, strengthened full **130/130 native acceptance cases**, cleanup1/1, zero skips; native duration45s. Current suite passes after ordinary lifecycle/acknowledgement changes, including new sync/async positive email/username/ID export and dictionary metadata All/Any assertions. This does not certify every storage-interface overload, hosted AWS IAM/fees or all-provider V2 routing. Existing acceptance includes bounded real V2 routing/replication scenarios, not a universal routing matrix.
+
+Measured native consumer: Core `FFCA17BE7D605DB8911ABBB596B1EC5F27E99BAC04E6E09FA7F4900952FC022D`, Shared `3AC292EA0D33F82BD2E380BFD73AF7EBE779A6BF5F6333ADE7A4B524EB236FEA`, Dynamo `5283E7F2C562F35873F9B3352A98C6E84A42ACBB0B3F76945AE581EBA55D3ACC`, AWS `F8CEA668E3B2E39EE35BFE7FD653EC4CBF302FFE82A890AD6D0A1480C6C5D77E`. Core output stayed frozen while the peer committed CQL sources; a new pinned Core rebuild/deployment cohort is not claimed.
+
+| Evidence under TestResults/DynamoHistoryCurrent | SHA256 |
+| --- | --- |
+| aws-full-begin-current.trx | 869CA40EBDC6B8EE875AA3C8B70E473C7B44C8A03BD1F30C7F9D30A3CF108300 |
+| aws-full-native-current.trx | 7FE3DE652A0A44E9897C47D4AD0DFFC39650594B518452F94AF554AB2FAF440E |
+| aws-full-cleanup-current.trx | 7BC341E05DE6DEE275B2282001C5DEAB653C1691B37205E2971D05CFEEAEE586 |
+| aws-full-suite-cleanup-current.json | FEEF5710055A5A12A5F86025269AF032A4D0A0B1537FF772833B7D61799B1FA7 |
+
+Cleanup verified all three synthetic tables empty using exact observed canonical-body conditional deletes and absence readback. Pending journals0, reserved listeners18000/18001 absent afterward. Reused pinned JAR/data/cache; no new environment/download, hosted spend, production change or dev deployment. Additional assertions issue local SDK reads/scans and one synthetic avatar save; equivalent hosted scans/writes can incur capacity charges. Hosted costs are not measured, and result counts are not billing counters. C free64,865,624,064bytes;123GB target unmet. Producer window released to the peer's reserved final CQL transition after actual terminal.
+
+### Preparation record (superseded by executed closure above)
+
+Next acceptance-inventory work: a static public-method-name scan finds no direct call in this AWS acceptance project for avatar provider-key reads, email deletion, synchronous username deletion, synchronous Import/Search and async ExportAll. Standalone detail deletion names also lack direct calls here, but the separate Dynamo native lifecycle suite DOES exercise standalone detail deletion; nearby calls can be routed rather than literal method calls. This scan is a review queue, NOT proof of missing production implementation or absent coverage across all suites; resolve actual dispatch/overload coverage before claiming full interface completion. No remaining production TODO/NotImplementedException was found in AWS/Dynamo C# by the bounded scan; the explicit historical-credential rejection is a security contract, not a stub. Absence of TODO text does not prove behavior.
+
+Read-only interface-to-test review identified missing positive native assertions for avatar exports by email/username and dictionary metadata All/Any matching. Expanded the existing `HolonRoundTripAndSearch_UseOfficialDynamoDbApi` fixture with sync/async exports by ID/username/email, exact owned-root and descendant checks, missing-email rejection, and numeric metadata matching with both fully and partly matching dictionaries. This remains 130 acceptance cases, with stronger assertions—not 130 distinct API endpoints or complete interface certification. Production behavior is unchanged; no green claim until compilation and actual native execution.
+
+Before the planned run, verified SHA256 and moved the prior four fixed artifacts in place to `TestResults/DynamoHistoryCurrent/*-pre-interface-refresh.*`; no duplicate backups, fixture reset, service start or download. Original successful130 report: `2A14650395BFDDD2C1BCA41CFDF15B60FE3BE151F2BA41F52E40198AFC50C6DB`; begin `BDB2AB1AC85CB14539F05F544B9DB1E229B39D505C88FA06A019E8A30F957726`; cleanup `CD1CF0C794A0D1EEC0C1E3E057BC6662497BEEA7339BEA785440796A22888D14`; cleanup inventory `6EA02351D0B07E75AC1C09F5653F6E4B837D31D770BA5E2B243E5FE618ED76A0`. Pending journals absent. Shared producer window remains reserved for the peer's CQL batch; no competing build. C free64,861,163,520bytes;123GB target remains unmet.
+
 ## Ordinary acknowledgement count follow-up — scoped closure, 2026-10-20
 
 Final **396/396 scoped controlled +159/159 native history/lifecycle +8/8 native conditional**, zero skipped, outer batch terminal0. Focused12native scalar ACK schedules and4batch ACK schedules are SUBSETS of main159 (prior143+12+4), not additional native totals. Six unrelated credential-version cases remain preserved/unstaged and excluded; no claim of402executed controls here. Native rows/receipts exactly cleaned/journals0, owned Java stopped/listeners18000/18001empty. No download/install/newenvironment/reset/hosted spend/deployment. Free C65,161,056,256bytes;123GBtarget unmet.
