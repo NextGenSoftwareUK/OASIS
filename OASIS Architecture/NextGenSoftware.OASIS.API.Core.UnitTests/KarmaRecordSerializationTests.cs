@@ -18,5 +18,14 @@ public sealed class KarmaRecordSerializationTests
         Assert.Single(loaded.KarmaAkashicRecords);
         Assert.Equal(source.Id,loaded.KarmaAkashicRecords[0].AvatarId);
         Assert.Equal(500,loaded.KarmaAkashicRecords[0].TotalKarma);
+        using var metadata=System.Text.Json.JsonDocument.Parse("[{\"Amount\":500}]");
+        var history=Assert.IsType<Newtonsoft.Json.Linq.JArray>(StoredRecordJson.CaptureRuntimeToken(metadata.RootElement));
+        Assert.Single(history);
+        Assert.Equal(500,(int)history[0]["Amount"]!);
+        var typedHistory=new List<Dictionary<string,object>> {new() {{"amount",500L}}};
+        using var storedMetadata=System.Text.Json.JsonDocument.Parse(StoredRecordJson.Serialize<object>(typedHistory));
+        var decoded=StoredRecordJson.Deserialize<List<Dictionary<string,object>>>(StoredRecordJson.Serialize(storedMetadata.RootElement));
+        Assert.Single(decoded);
+        Assert.Equal(500L,Convert.ToInt64(decoded[0]["amount"]));
     }
 }

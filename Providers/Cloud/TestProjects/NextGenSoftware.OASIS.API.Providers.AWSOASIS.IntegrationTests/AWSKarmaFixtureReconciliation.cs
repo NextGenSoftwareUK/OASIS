@@ -14,27 +14,40 @@ public sealed partial class AWSNativeRunLifecycle
     [TestMethod]
     public async Task ReadOnlyInspectSqliteKarmaHistoryFailure()
     {
-        const string reportSha="79CA2FF579FA41B593A16BA200350776DDC469360363AA4FBD81B80FE4063288";
-        const string sqliteSha="8DE63ADEDB312A112A5E3F3106C265496D91C37C6667E513C34E76CE753EB8F5";
+        await InspectHistoryOriginal("79CA2FF579FA41B593A16BA200350776DDC469360363AA4FBD81B80FE4063288",
+            "8DE63ADEDB312A112A5E3F3106C265496D91C37C6667E513C34E76CE753EB8F5","2026-10-21T03:21:23.0794497Z",
+            "23b3fe4a-d424-46c4-b94b-b57f3e9cc16c","1c7f6742-ec69-421b-ad0e-9527f5c866b5",0,"aws-sqlite-karma-history-inspection.json");
+    }
+
+    [TestMethod]
+    public async Task ReadOnlyInspectCanonicalHistoryAssertionFailure()
+    {
+        await InspectHistoryOriginal("D8A61675424C62F07554634E969BF225B92F9806138113838D4A389383CB33EA",
+            "7A174ABBC33CACE6EF6355E65F035328489945D9A3689F504EEDDB7F74B2ADF6","2026-10-21T03:41:15.6015493Z",
+            "9962ecf1-17d7-43f3-a1ae-a5a9251b7e22","4d516ebe-49a3-4e7e-85d2-fda2bcb5e522",2,"aws-canonical-history-inspection.json");
+    }
+
+    private static async Task InspectHistoryOriginal(string reportSha,string sqliteSha,string started,
+        string initialId,string selectedId,long expectedHistoryCount,string proofName)
+    {
         var report=Path.Combine(Work(),"aws-full-native-current.trx");
         var sqlite=Path.GetFullPath(Path.Combine(Work(),"aws-karma-affinity.db"));
         Assert.AreEqual(reportSha,Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(report))));
         Assert.AreEqual(sqliteSha,Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(sqlite))));
         foreach(var suffix in new[] {"-wal","-shm","-journal"})Assert.IsFalse(File.Exists(sqlite+suffix));
         using var intent=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Work(),"aws-full-suite.pending.json")));
-        Assert.AreEqual("2026-10-21T03:21:23.0794497Z",intent.RootElement.GetProperty("startedUtc").GetString());
+        Assert.AreEqual(started,intent.RootElement.GetProperty("startedUtc").GetString());
         Assert.AreEqual("verified-empty-before-exclusive-native-suite",intent.RootElement.GetProperty("state").GetString());
         Assert.AreEqual("http://127.0.0.1:18000",intent.RootElement.GetProperty("endpoint").GetString());
         CollectionAssert.AreEqual(Tables,intent.RootElement.GetProperty("tables").EnumerateArray().Select(x=>x.GetString()!).ToArray());
         var details=new List<object>();
         var expectedDetails=new Dictionary<string,(long Karma,long Xp)> {
-            ["23b3fe4a-d424-46c4-b94b-b57f3e9cc16c"]=(10,111),
-            ["1c7f6742-ec69-421b-ad0e-9527f5c866b5"]=(500,222)};
+            [initialId]=(10,111),[selectedId]=(500,222)};
         using(var connection=new SqliteConnection($"Data Source={sqlite};Mode=ReadOnly;Pooling=False"))
         {
             await connection.OpenAsync();
             using var count=connection.CreateCommand();count.CommandText="SELECT COUNT(*) FROM KarmaAkashicRecord";
-            Assert.AreEqual(0L,(long)(await count.ExecuteScalarAsync())!);
+            Assert.AreEqual(expectedHistoryCount,(long)(await count.ExecuteScalarAsync())!);
             using var query=connection.CreateCommand();query.CommandText="SELECT Id,Karma,XP FROM AvatarDetail ORDER BY Id";
             using var reader=await query.ExecuteReaderAsync();
             while(await reader.ReadAsync())
@@ -54,8 +67,8 @@ public sealed partial class AWSNativeRunLifecycle
         }
         Assert.AreEqual(sqliteSha,Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(sqlite))));
         Assert.AreEqual(reportSha,Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(report))));
-        await DurableJson(Path.Combine(Work(),"aws-sqlite-karma-history-inspection.json"),new {
-            readOnly=true,reportSha,sqliteSha,sqliteHistoryCount=0,details,inventory});
+        await DurableJson(Path.Combine(Work(),proofName),new {
+            readOnly=true,reportSha,sqliteSha,sqliteHistoryCount=expectedHistoryCount,details,inventory});
     }
 
     [TestMethod]
