@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Queries;
 
@@ -33,10 +34,11 @@ internal sealed class NeoCqlTranslator
         string guard;
         if (type == typeof(string)) guard = kind + "='string'";
         else if (type == typeof(bool)) guard = kind + "='boolean'";
-        else if (type == typeof(int) || type == typeof(long))
+        else if (NeoCqlIntegerDomain.TryBounds(type,out var bounds))
         {
             guard = kind + "='integer'";
-            if (type == typeof(int)) guard += " AND " + value + ">=-2147483648 AND " + value + "<=2147483647";
+            if (type != typeof(long)) guard += " AND " + value + ">="+bounds.Minimum.ToString(CultureInfo.InvariantCulture)+
+                " AND " + value + "<="+bounds.Maximum.ToString(CultureInfo.InvariantCulture);
         }
         else throw new NotSupportedException("Neo4j CQL metadata scalar domain is unsupported.");
         return (value, "(" + guard + ")", kind + "='null'");

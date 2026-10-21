@@ -238,6 +238,49 @@ public class HolonReplicationHostingTests
         finally{release.TrySetResult(true);using var stop=new CancellationTokenSource(TimeSpan.FromSeconds(5));await host.StopAsync(stop.Token);}
     }
     [TestMethod]
+    public async Task CancellationBeforeWorkerExecutionIsAJoinedSuccessfulStop()
+    {
+        var receiver=new Receiver();var store=new Store();
+        using var service=new HolonReplicationHostedService(new[]{Catalog(store,receiver)},Options(),NullLogger<HolonReplicationHostedService>.Instance);
+        using var startup=new CancellationTokenSource();startup.Cancel();
+        await service.StartAsync(startup.Token);
+        Assert.IsTrue(service.ExecuteTask.IsCanceled);
+        await service.StopAsync(CancellationToken.None);
+        Assert.AreEqual(0,receiver.Calls);Assert.AreEqual(0,store.Finishes);
+        Assert.IsTrue(service.State.Snapshot().All(route=>route.Availability==HolonReplicationRouteAvailability.Stopped));
+    }
+
+    [TestMethod]
+    public async Task PreExecutionCancellationDoesNotHideAnExpiredShutdownDeadline()
+    {
+        using var service=new HolonReplicationHostedService(new[]{Catalog(new Store(),new Receiver())},Options(),NullLogger<HolonReplicationHostedService>.Instance);
+        using var cancellation=new CancellationTokenSource();cancellation.Cancel();
+        await service.StartAsync(cancellation.Token);
+        await Assert.ThrowsExceptionAsync<TaskCanceledException>(()=>service.StopAsync(cancellation.Token));
+    }
+
+    private sealed class CancellingLogger : ILogger<HolonReplicationHostedService>
+    {
+        public IDisposable BeginScope<TState>(TState state)=>null;
+        public bool IsEnabled(LogLevel level)=>true;
+        public void Log<TState>(LogLevel level,EventId id,TState state,Exception error,Func<TState,Exception,string> formatter)
+            =>throw new OperationCanceledException("owned unexpected observer cancellation");
+    }
+
+    [TestMethod]
+    public async Task UnexpectedCancellationAfterWorkerEntryRemainsAStopFailure()
+    {
+        var receiver=new Receiver{Rejection=new OASISResult<IEnumerable<IHolon>>{IsError=true,ErrorCode="TEST_REJECT"}};
+        using var service=new HolonReplicationHostedService(new[]{Catalog(new Store(),receiver)},Options(),new CancellingLogger());
+        await service.StartAsync(CancellationToken.None);
+        try{await service.ExecuteTask.WaitAsync(TimeSpan.FromSeconds(5));Assert.Fail("Unexpected worker cancellation must remain observable.");}
+        catch(OperationCanceledException cause){StringAssert.Contains(cause.Message,"owned unexpected observer cancellation");}
+        try{await service.StopAsync(CancellationToken.None);Assert.Fail("Stop must retain the unexpected worker cancellation.");}
+        catch(OperationCanceledException cause){StringAssert.Contains(cause.Message,"owned unexpected observer cancellation");}
+        Assert.IsTrue(service.State.Snapshot().All(route=>route.Availability==HolonReplicationRouteAvailability.Faulted));
+    }
+
+    [TestMethod]
     public async Task HostCancellationObservesActiveReceiverWithoutFinishingItsClaim()
     {
         var started=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);var stopped=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
