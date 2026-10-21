@@ -17,6 +17,10 @@ foreach($pendingName in @('private-native-pending.json','private-acl-pending.jso
 foreach($requiredName in @('private-local-client.dpapi','private-local-pod.dpapi')){
     if(!(Test-Path -LiteralPath (Join-Path $work $requiredName))){throw 'Provision the retained synthetic identity once with Initialize-ReusableSolidIdentity.ps1 before running private authentication tests.'}
 }
+$keyPath=Join-Path $work 'storage-key.dpapi'
+if(!(Test-Path -LiteralPath $keyPath -PathType Leaf)){
+    throw 'Original retained Solid storage key required; restore the protected key, never generate a replacement over existing data.'
+}
 $project=Join-Path $taskRoot 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.csproj'
 if(!(Test-Path -LiteralPath (Join-Path (Split-Path $project) 'obj/project.assets.json'))){throw 'Restore this existing test project once using bounded workers; no per-run restore.'}
 foreach($build in @((Join-Path $taskRoot 'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj'),$project)){
@@ -25,18 +29,6 @@ foreach($build in @((Join-Path $taskRoot 'Providers/Network/NextGenSoftware.OASI
 }
 New-Item -ItemType Directory -Path $work -Force | Out-Null
 Add-Type -AssemblyName System.Security
-$keyPath=Join-Path $work 'storage-key.dpapi'
-if(!(Test-Path -LiteralPath $keyPath)){
-    $key=New-Object byte[] 32
-    $random=[Security.Cryptography.RandomNumberGenerator]::Create()
-    try{$random.GetBytes($key)}finally{$random.Dispose()}
-    try{
-        $protected=[Security.Cryptography.ProtectedData]::Protect($key,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
-        $created=[IO.File]::Open($keyPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
-        try{$created.Write($protected,0,$protected.Length)}finally{$created.Dispose()}
-    }
-    finally{[Array]::Clear($key,0,$key.Length)}
-}
 $names=@('OASIS_SOLID_NATIVE_ROOT','OASIS_SOLID_NATIVE_KEY_PATH','OASIS_SOLID_NATIVE_JOURNAL');$prior=@{}
 foreach($name in $names){$prior[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try{

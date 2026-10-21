@@ -170,18 +170,17 @@ public partial class HederaPreparationTests
                 var query="query."+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(parent))).ToLowerInvariant()+".1";
                 await execution.BeginProviderAttemptAsync("HashgraphOASIS",null,query,deadline.Token);
             }
+            var firstId=Guid.NewGuid();var secondId=Guid.NewGuid();
             async Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> SavePair(){
-                var one=await Save(new Holon {Id=Guid.NewGuid(),Name="owned secret one"});
+                var one=await Save(new Holon {Id=firstId,Name="owned secret one"});
                 if(one.IsError)return one;
-                return await Save(new Holon {Id=Guid.NewGuid(),Name="owned secret two"});
+                return await Save(new Holon {Id=secondId,Name="owned secret two"});
             }
             var result=routed?await admitted.RunAsync(async()=>{
                 var before=(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count;
                 var secretsBefore=secretResolutions;
-                // Invoke the existing injected-runtime constructor, avoiding process-global test state.
-                holonManager=(HolonManager)Activator.CreateInstance(typeof(HolonManager),
-                    System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic,null,
-                    new object[]{provider,manager.OASISDNA,manager},null)!;
+                // Use the public injected-runtime constructor; keep its signature compile-time checked.
+                holonManager=new HolonManager(provider,manager.OASISDNA,manager);
                 Assert.IsFalse(provider.IsProviderActivated,"Constructor must leave activation to admitted routing.");
                 Assert.AreEqual(secretsBefore,secretResolutions,"Constructor must not resolve a paid-query signing secret.");
                 Assert.AreEqual(before,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
@@ -214,20 +213,31 @@ public partial class HederaPreparationTests
             }
             Assert.AreEqual(rejectPersistence,result.IsError,result.Message);
             var submissions=File.ReadAllLines(log);
-            Assert.AreEqual(rejectPersistence?0:2,submissions.Length);
+            var expectedWrites=routed?4:2;
+            Assert.AreEqual(rejectPersistence?0:expectedWrites,submissions.Length);
             var durable=await store.GetAsync(execution.OperationId,deadline.Token);
             // First routed activation performs a paid probe and private index listing before the save's read/write.
-            Assert.AreEqual(rejectPersistence?1:routed?6:4,durable.ProviderAttempts.Count);
+            Assert.AreEqual(rejectPersistence?1:routed?8:4,durable.ProviderAttempts.Count);
             var writes=durable.ProviderAttempts.Where(attempt=>attempt.NativePreparation?.SigningAuthority?.Scheme=="hedera-payer-public-key-v1").ToArray();
-            if(!rejectPersistence)for(var index=0;index<2;index++){
-                var attempt=writes[index];Assert.AreEqual(routed?"storage.route."+(index+1)+".storage."+(index==0?4:2):"storage.storage."+(2*(index+1)),attempt.ClientRequestId);
+            var logicalKeys=new List<string>();
+            if(!rejectPersistence)for(var index=0;index<expectedWrites;index++){
+                var route=index/2+1;
+                var sequence=(route==1?4:2)+index%2;
+                var attempt=writes[index];Assert.AreEqual(routed?"storage.route."+route+".storage."+sequence:"storage.storage."+(2*(index+1)),attempt.ClientRequestId);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(attempt.NativePreparation.SignedTransactionBase64));
                 Assert.AreEqual(price,attempt.NativePreparation.PriceQuotes.Single());
                 Assert.IsNull(attempt.AcknowledgedAtUtc);
                 using var entry=System.Text.Json.JsonDocument.Parse(submissions[index]);
                 Assert.AreEqual(attempt.ProviderRequestId,entry.RootElement.GetProperty("transactionId").GetString());
+                Assert.AreEqual("storagePut",entry.RootElement.GetProperty("action").GetString());
+                using var codec=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.EncryptedRecordCodec(new byte[32]);
+                using var payload=System.Text.Json.JsonDocument.Parse(codec.Decrypt(entry.RootElement.GetProperty("key").GetString()!,entry.RootElement.GetProperty("value").GetString()!));
+                logicalKeys.Add(payload.RootElement.GetProperty("key").GetString()!);
             }
             if(!rejectPersistence){
+                var expectedKeys=new List<string>{"oasis/holon/"+firstId.ToString("N"),"oasis/holon/"+secondId.ToString("N")};
+                if(routed)foreach(var id in new[]{firstId,secondId})expectedKeys.Add("oasis/holon-parent/"+Guid.Parse(user).ToString("N")+"/"+id.ToString("N"));
+                CollectionAssert.AreEquivalent(expectedKeys,logicalKeys,"Every submission must map to one distinct record or required parent index.");
                 var queries=durable.ProviderAttempts.Where(attempt=>attempt.NativePreparation.SigningAuthority.Scheme=="hedera-query-payment-v1").ToArray();
                 Assert.AreEqual(routed?4:2,queries.Length);
                 foreach(var query in queries){Assert.AreEqual(price,query.NativePreparation.PriceQuotes.Single());Assert.IsNull(query.AcknowledgedAtUtc);}
@@ -240,7 +250,7 @@ public partial class HederaPreparationTests
                     Assert.IsNull(read.Result); // A missing logical record still incurs the admitted paid read.
                     var afterRead=await store.GetAsync(execution.OperationId,deadline.Token);
                     Assert.AreEqual(durable.ProviderAttempts.Count+1,afterRead.ProviderAttempts.Count,"Standalone routed read must retain its paid query.");
-                    Assert.AreEqual(2,File.ReadAllLines(log).Length,"Standalone read must not submit a mutation.");
+                    Assert.AreEqual(submissions.Length,File.ReadAllLines(log).Length,"Standalone read must not submit a mutation.");
                     var retainedRead=afterRead.ProviderAttempts.Last();
                     Assert.AreEqual("hedera-query-payment-v1",retainedRead.NativePreparation.SigningAuthority.Scheme);
                     Assert.AreEqual(price,retainedRead.NativePreparation.PriceQuotes.Single());
@@ -248,7 +258,7 @@ public partial class HederaPreparationTests
             }
             if(acceptAggregateBudget){
                 var all=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,deadline.Token);
-                Assert.AreEqual(routed?7:4,all.ProviderAttempts.Count);
+                Assert.AreEqual(durable.ProviderAttempts.Count+(routed?1:0),all.ProviderAttempts.Count);
                 var expectedExposure=all.ProviderAttempts.Sum(attempt=>NativeFeeMaximumAccounting.ValueUsd(attempt.NativePreparation.FeeMaximums,attempt.NativePreparation.PriceQuotes));
                 Assert.AreEqual(expectedExposure,all.NativeFeeExposureUsd);Assert.IsTrue(expectedExposure>0m&&expectedExposure<=10m);
                 Assert.AreEqual(0,all.Receipts.Count);Assert.IsNull(all.Settlement);

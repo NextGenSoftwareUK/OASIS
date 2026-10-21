@@ -90,4 +90,4 @@ Physical Android/iOS runs, two-device convergence and Linux/macOS Unity IL2CPP e
 - Synchronization failure: check advertised Full-node service availability and underlying Edge status/errors.
 - Offline grants: see the [Edge Runtime usage and security guide](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/OASIS%20Architecture/NextGenSoftware.OASIS.Edge.Runtime/README.md).
 
-[Release inventory](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/OASIS_RELEASE_STATUS.md) lists verified publications and outstanding gates. Current-source documentation may contain functionality not present in older published versions.
+[Release inventory](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/OASIS_RELEASE_STATUS.md) lists verified publications and outstanding gates. Current-source documentation may contain functionality not present in older published versions.

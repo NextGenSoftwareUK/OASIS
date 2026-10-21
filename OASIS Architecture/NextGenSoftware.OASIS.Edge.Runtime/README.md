@@ -92,4 +92,4 @@ Managed target-framework compatibility does not establish native SQLite, Unity I
 
 ## Related packages and release status
 
-[Edge ONET Runtime](https://www.nuget.org/packages/NextGenSoftware.OASIS.Edge.ONET.Runtime) adds authenticated ONET composition. [Release inventory](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/OASIS_RELEASE_STATUS.md) separates published versions from pending builds and records verification limits. This README describes current source; consult the selected package version's release notes before assuming every feature is in an older package.
+[Edge ONET Runtime](https://www.nuget.org/packages/NextGenSoftware.OASIS.Edge.ONET.Runtime) adds authenticated ONET composition. [Release inventory](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/OASIS_RELEASE_STATUS.md) separates published versions from pending builds and records verification limits. This README describes current source; consult the selected package version's release notes before assuming every feature is in an older package.

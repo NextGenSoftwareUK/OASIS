@@ -1,0 +1,854 @@
+[
+  {
+    "path": "C:/Source/android-service-runtime",
+    "branch": "oasis/holochain-0.7",
+    "head": "41ce98808c2a65050ea8433a4a5f839082ed7bbf",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/AnyRPGCore",
+    "branch": "master",
+    "head": "6b4a75f4e6c13bf858b195213107ecc79e8e8b9d",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/BeMindful",
+    "branch": "main",
+    "head": "4270160eb8d5885d850e717fdcb2d7b9b690ac7f",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/celestial-cyberspace",
+    "branch": "main",
+    "head": "6702baba3578f011bfc64dd0c0bc2b5e3c340cfd",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/dhewm3-libs",
+    "branch": "master",
+    "head": "57c565984c41356e8b1c4d31f182e763b6ea210a",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Global-Healing-Network",
+    "branch": "main",
+    "head": "b97228fb96f569f95e6678d0086932a406c74889",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Global-Healing-Network-Angular",
+    "branch": "main",
+    "head": "47e1601b4abf4ea5b1605bafa63d4d2bf9d22bd1",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/GraceBook",
+    "branch": "main",
+    "head": "db418b005708bc432537ecb78dfed62d03c61e58",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp",
+    "branch": "main",
+    "head": "4e422ba89f4724c19aa78e7c31db35476bdc0f77",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/HoloNET-API",
+    "branch": "main",
+    "head": "a068a44438caebd3323ba2da9e6a6dffcae6db85",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/HoloNET-Manager",
+    "branch": "main",
+    "head": "a9fa934131d53ddcda6375591ca56489ae16f30b",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.HDK",
+    "branch": "main",
+    "head": "555d89c63f627cbbed9d76f3b422f3592d69e585",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.HyperNET",
+    "branch": "main",
+    "head": "552ffc719dca385da336a1fb47415e15cb429774",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.ORM",
+    "branch": "main",
+    "head": "534cd788f892b4402a3753d926e62e7cad4189bf",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/HoloNETSite",
+    "branch": "main",
+    "head": "d667eaa637a7b8e763004649f8882d6039517232",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Justice-League-Academy",
+    "branch": "main",
+    "head": "8f5b1fc0525f004061f9a087396c8604ab19de6d",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Justice-League-Academy-Svelte",
+    "branch": "main",
+    "head": "a5e1a6336cd3b40b33889b6f0aaec02ffc7ebf8b",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/lightseed.online",
+    "branch": "main",
+    "head": "be67aca3030bea35414e87c2fdeeede30ecd3c26",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/MemoryLaneSite",
+    "branch": "main",
+    "head": "896608f53204457325b74bdfed4965420ced5655",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Metabricks",
+    "branch": "oasis-integration-clean",
+    "head": "d4dcfeb53d043aa79f07cec2f1e9c89fd24052f3",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/MindfulCrosswordsSite",
+    "branch": "main",
+    "head": "ab48cc5607d3054fad29ae7daa712687455785e2",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/NextGenCrosswordsSite",
+    "branch": "main",
+    "head": "a6e87b746533f8d07a4465ba11c076ed5f2c3f1f",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/NextGenSoftware-Libraries",
+    "branch": "main",
+    "head": "e91f10635c5c79e484b06322a6c0c60d392a46ce",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/NFTFoundersLandingPage",
+    "branch": "main",
+    "head": "a34c94e1d815e5a08429262439c0c61f2a20159a",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/NoahsArkAnimalRescueNetwork",
+    "branch": "main",
+    "head": "0a815e8c113a478e97df44717a6058d9b840a526",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/NoahsArkAnimalRescueNetwork-Vue",
+    "branch": "main",
+    "head": "53edb34f29e27c268eda9b9e2f5f0f4239e0650c",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/NRD-Sample",
+    "branch": "",
+    "head": "e35ab5b7f5ab809e66efae91bd1c64e1704d6ceb",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/NRD-Sample/External/NRD",
+    "branch": "",
+    "head": "2cd553031abec76bc4e109f20ef40a23ef0645c7",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/NRD-Sample/External/NRIFramework",
+    "branch": "",
+    "head": "0b973f51fde8a3a97ba4e8676008579d82aa27f4",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/NRD-Sample/External/NRIFramework/External/MathLib",
+    "branch": "",
+    "head": "b663cb8bba41b0a8fb2f991291b43e72a730aee5",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/NRD-Sample/External/NRIFramework/External/NRI",
+    "branch": "",
+    "head": "f48f1b33ae960c2bc294761870e4346febbe1b81",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS",
+    "branch": "fix/hyperdrive-v2-providers",
+    "head": "395be2b2bb2d028c90d02ac389d6d5c22a43149c",
+    "status": "M ONODE/ONODEManager\n M \"STAR ODK\"\n M WEB6\n?? Docs/WIP/Source-Repository-Sync/"
+  },
+  {
+    "path": "C:/Source/OASIS/.claude/worktrees/dreamy-goldstine-7c7161",
+    "branch": "claude/dreamy-goldstine-7c7161",
+    "head": "1a9edeb6ce01619fa2091b09f14e04250392626e",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS/HoloNET-ORM",
+    "branch": "Development",
+    "head": "307b0a53a67cedfbd4c2113186a2a172da6bfbb2",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "branch": "fix/hyperdrive-v2-providers",
+    "head": "c4a89b193aff419d1e5cf0f9b979ff56f2f80f4e",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS/OASIS Omniverse/OASIS Hub",
+    "branch": "Development",
+    "head": "c099bd99d85ba81cbd6856bb6e8076d5cabb4eab",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS/OASIS Omniverse/OGEngineClient",
+    "branch": "Development",
+    "head": "63a337acfb59360a9b53babb51aa2f7bcaea4833",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
+    "branch": "Development",
+    "head": "fa911ee5036565cd4b7a7ca77c5f24c00bd2cfad",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS/ONODE/ONODEManager",
+    "branch": "Development",
+    "head": "7d909cabf7e849ad2efec7b05e25677c0c2e29b0",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS/STAR ODK",
+    "branch": "Development",
+    "head": "a4188d447492a5d2b6286a388a4d8c25be4ea162",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6",
+    "branch": "Development",
+    "head": "b7f4d7aa7768e7d5af9edec55708a7f4b9d9a552",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6/.claude/worktrees/agent-a0e0bfdbdfa93e2a4",
+    "branch": "worktree-agent-a0e0bfdbdfa93e2a4",
+    "head": "280edbd40ed54c512ac1cfb345a96f2bbe1e3fd4",
+    "status": "D npm/bin/oasis-mcp.js"
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6/.claude/worktrees/agent-a5708ca8a984c4340",
+    "branch": "worktree-agent-a5708ca8a984c4340",
+    "head": "26dc0e62c33e05aeeb6dee18aba51c45fe5ed631",
+    "status": "D npm/bin/oasis-mcp.js"
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6/.claude/worktrees/agent-ae6cb813f900c021a",
+    "branch": "worktree-agent-ae6cb813f900c021a",
+    "head": "b0ad318cc516b251a8fc0664325ab724836f6b89",
+    "status": "D npm/bin/oasis-mcp.js"
+  },
+  {
+    "path": "C:/Source/OASIS-Angular-UI-Component-Library",
+    "branch": "main",
+    "head": "aea1532d2574bf5bc97bfbe4cbd79a7df91423c6",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/oasis-api-core-main-promotion",
+    "branch": "",
+    "head": "06e244e8a44ce86d746a1744c986144d7d9625a5",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascipt-Package-WEB4",
+    "branch": "main",
+    "head": "fd6c291172ea5c6c0dbdf637445983cf9ea6abbe",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB10",
+    "branch": "master",
+    "head": "9026fab1a6bbfabe4742d256c538ed74e1bd7137",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB5",
+    "branch": "master",
+    "head": "af4bee2c54b4650dbf6d561bc63c1b4c95b39fa6",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB6",
+    "branch": "master",
+    "head": "a414bd20b950f11789cc458175cce5fa0d7e311a",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB7",
+    "branch": "master",
+    "head": "49a950af445d22e6bb7997f84ea9d0a38f814620",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB8",
+    "branch": "master",
+    "head": "7b1ce0379c14f22e0c1946114848ec736b9baf05",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB9",
+    "branch": "master",
+    "head": "f964e784c4d54643976b3986939cf67fe2e260a7",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-API-Unity-Package",
+    "branch": "main",
+    "head": "d10264aef5688b65d1f8352ce4b612bb2a15309f",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Holochain-hApp",
+    "branch": "main",
+    "head": "e6f9badc6173e7a82b9f23d41ae2d3b4af8a53a6",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-HyperDrive-Client",
+    "branch": "feat/ci-smoke-shared",
+    "head": "c232821c4443a0530debca53ef05ae14c7273399",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps",
+    "branch": "codex/hyperdrive-dual-mode-route-matrix",
+    "head": "39b5909012ac82d1251690a9f547cb05fa46aad8",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/HoloNET-ORM",
+    "branch": "codex/holochain-0.7-wire-mapping",
+    "head": "757fdade547dca4fad7f48d5cfc5f5de4da1aa59",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "branch": "codex/hyperdrive-dual-mode-route-matrix",
+    "head": "765e3657ded1619127365fcc4d4c6183c9cfd815",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
+    "branch": "fix/hyperdrive-v2-nft-api",
+    "head": "fa911ee5036565cd4b7a7ca77c5f24c00bd2cfad",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-JS-UI-Component-Library",
+    "branch": "main",
+    "head": "7d9d21a1fd6186d72d35c67ad2dfdb77101e7a31",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-NextJS-UI-Component-Library",
+    "branch": "main",
+    "head": "90536f5aabddaa9bbef3442cacf9481855fdb0a2",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-PureJS-UI-Component-Library",
+    "branch": "main",
+    "head": "872b1350ed4228958a42a6eff113ed1a1d93f2ec",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-React-UI-Component-Library",
+    "branch": "main",
+    "head": "6565d45a472f845d37e99ce456ad30dd4d18246e",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Security",
+    "branch": "main",
+    "head": "2e486fa701a4514ff7a26fe0bab5abcfd762e2cf",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Svelte-UI-Component-Library",
+    "branch": "main",
+    "head": "f81db82371f09ce772d49f667f39a8bf64e61740",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Vue-UI-Component-Library",
+    "branch": "main",
+    "head": "5f9994f121f61f5b1282fb0006ccb44604699fcc",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-Web-Component-SDKs",
+    "branch": "main",
+    "head": "e5c67b95490751507537ae7b94e5faa6ee126b4e",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASIS-WEB6-promotion",
+    "branch": "codex/fix-mcp-karma-contract",
+    "head": "19a38388f5872e82c76b2b0a237ac17bfd09b9e2",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASISDocsWebsite",
+    "branch": "main",
+    "head": "448dd68bf5957465e09c6e6d1657cc0320f2b050",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASISLearnWebsite",
+    "branch": "main",
+    "head": "f44c5a38ddd29205692c628c4324b8fe1d535ea1",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OASISOmniverseSite",
+    "branch": "main",
+    "head": "3361aa15c3bbfc522966457ddbb3e4820bceac45",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/oasisweb4.com",
+    "branch": "main",
+    "head": "c33a82879047ab6187163b271850de73bf13e31a",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODAO",
+    "branch": "main",
+    "head": "a64b9010e082f07f81b5872b5a2f84f4ad50f15a",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODOOM",
+    "branch": "trunk",
+    "head": "37da62169079b2710182051b77d054188dd733ec",
+    "status": "M wadsrc/static/zscript/ui/statusbar/odoom_inventory_popup.zs"
+  },
+  {
+    "path": "C:/Source/ODOOM-Editor",
+    "branch": "master",
+    "head": "8c933eb5f8504ffe8c5125942dbe040545e521c3",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3",
+    "branch": "master",
+    "head": "90cd366447c849d5e29f3a072deb64c8efc8e754",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-BFG",
+    "branch": "master",
+    "head": "8f036c58f0d5940b7c925c079a7bd0b950799793",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-BFG/neo/extern/nvrhi",
+    "branch": "",
+    "head": "dafbd407f6fb8b91078da72ca1712dbbd6ac2496",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-BFG/neo/extern/nvrhi/rtxmu",
+    "branch": "",
+    "head": "0c9ce1177000d5923e2cc6a35ae9cb7ff03748d2",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-BFG/neo/extern/nvrhi/thirdparty/Vulkan-Headers",
+    "branch": "",
+    "head": "39f924b810e561fd86b2558b6711ca68d4363f68",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-BFG/neo/extern/ShaderMake",
+    "branch": "",
+    "head": "13867771f6142f35690a5e2103c1e1efdd90cb0e",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODOOM3-Editor",
+    "branch": "master",
+    "head": "240e85006784015ec1807b946c4b70cc3b3e5bd6",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODOOM64",
+    "branch": "main",
+    "head": "08345fb0dad3f70d043e6f157508228a371bfe45",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODOOMSite",
+    "branch": "main",
+    "head": "24f18896ed356313718f651bfe6ca49a75eb1503",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODuke3D",
+    "branch": "main",
+    "head": "aa7154297f616e6274857f3b7f34cf7e24ae4802",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ODuke3D-RT",
+    "branch": "master",
+    "head": "015dfed37605f5cc4740b3aedc656ca7a0374978",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OGEngineClient",
+    "branch": "main",
+    "head": "1b6cc69355ce73f941d12ec28b7c5946c59964b0",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OGEngineSite",
+    "branch": "main",
+    "head": "51bf4793251e06a87fdf042203ab52657ba991ec",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OHexen2",
+    "branch": "master",
+    "head": "700113f3dc5612e3e4e141ff999cfd42f210d627",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OIDE",
+    "branch": "main",
+    "head": "e53e844c7659187477eb513a5a43977f27cf602f",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OMorrowWind",
+    "branch": "master",
+    "head": "f852fa40d38c330b22235988c2dad6f4e9b7ee81",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OneWorldSite",
+    "branch": "main",
+    "head": "5909d3371a7a0ee1bdbc8bde883a456978b8bb7c",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OPORTAL-JS",
+    "branch": "codex/subscription-admin-ui",
+    "head": "97d1f9ac753f80bad6b2f0c6753b7f85ed689fde",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OPORTAL-React",
+    "branch": "main",
+    "head": "0ffcf0a7d40c39cae5c7c3cdfeae47999e916717",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQUAKE",
+    "branch": "Development",
+    "head": "642a9eb68c844ca07b12eb955ea5fcc9d861874c",
+    "status": "?? Quake/ogengine.lib"
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX",
+    "branch": "master",
+    "head": "afc3067ee9494aff6b8e2583f2aa411f54f8f5a1",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/curl",
+    "branch": "",
+    "head": "de7b3e89218467159a7af72d58cea8425946e97d",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/glslang",
+    "branch": "",
+    "head": "99ee11b0106b48f06fb9e2a324ba928b8316cc33",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/openal-soft",
+    "branch": "",
+    "head": "90191edd20bb877c5cbddfdac7ec0fe49ad93727",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/SDL2",
+    "branch": "",
+    "head": "5d249570393f7a37e037abf22cd6012a4cc56a71",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/stb",
+    "branch": "",
+    "head": "5c205738c191bcb0abc65c4febfa9bd25ff35234",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/tinyobjloader-c",
+    "branch": "",
+    "head": "46d333d0165427b22895d05e278736bc9ef84365",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/Vulkan-Headers",
+    "branch": "",
+    "head": "d4a196d8c84e032d27f999adcea3075517c1c97f",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQuake2-RTX/extern/zlib",
+    "branch": "",
+    "head": "51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf",
+    "status": "D zconf.h"
+  },
+  {
+    "path": "C:/Source/OQuake3",
+    "branch": "main",
+    "head": "8e6702d67e0ee3e0ab5a1a6b3f768f1d0c19aeee",
+    "status": "?? ogengine.dll\n?? ogengine.lib"
+  },
+  {
+    "path": "C:/Source/OQuake3Editor",
+    "branch": "master",
+    "head": "447b6ce94c2bc9b4d8a3b8f28ca957e9a5ff2f7e",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQuakeEditor",
+    "branch": "master",
+    "head": "8d9ac9c396998fe8635fc2e752ecda550010d3cd",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OQuakeSite",
+    "branch": "main",
+    "head": "62a6fca9c464e453dd28ed8205f60a4b941cd8e6",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OShadowWarrior",
+    "branch": "master",
+    "head": "13a8b2613b9f69757662ef4253cd39ed99c53052",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OShadowWarrior-RT",
+    "branch": "master",
+    "head": "6cc0c2fa97ecef9f94d5bd135240207120888d79",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Our-World",
+    "branch": "Dev",
+    "head": "4b7e0f6a765c15d3e16ac741793066319be31379",
+    "status": "M UserSettings/EditorUserSettings.asset\n?? BuildLogs/collection-fonts.log\n?? BuildLogs/compatibility-audit/\n?? BuildLogs/creator-mode.log\n?? BuildLogs/creator-rules-validation.log\n?? BuildLogs/dynamic-quest-effects.log\n?? BuildLogs/editor-test-compilation.log\n?? BuildLogs/geohotspot-content-build.log\n?? BuildLogs/geohotspot-events-build.log\n?? BuildLogs/geohotspot-full-build.log\n?? BuildLogs/geonft-detail-spacing-dotnet.log\n?? BuildLogs/karma-backend.patch\n?? BuildLogs/kashiffinal-recovery-validation.log\n?? BuildLogs/metric-frame.log\n?? BuildLogs/oasis-edge-integration.log\n?? BuildLogs/ogengine-shared.log\n?? BuildLogs/popup-polish.log\n?? BuildLogs/portal-location-dedupe-dotnet.log\n?? BuildLogs/portal-location-dedupe-validation.log\n?? BuildLogs/quest-button-wiring.log\n?? BuildLogs/reset-all-avatar-inventory.ps1\n?? BuildLogs/session-coordination.log\n?? BuildLogs/shared-ui-build.log\n?? BuildLogs/startup-reconciliation.log\n?? BuildLogs/talking-tree-backend-tests.log\n?? BuildLogs/talking-tree-recognition-tests.log\n?? BuildLogs/talking-tree-unity-build.log\n?? BuildLogs/tree-inventory-validation.log\n?? BuildLogs/web4-web5-geonft-tests.log\n?? BuildLogs/web4-web5-geonft-tests.xml\n?? BuildLogs/welcome-female-source.wav\n?? BuildLogs/welcome-waveform.png\n?? BuildLogs/world-startup-creator.log\n?? Docs/WIP/geonft-respawn-validation.log\n?? Docs/WIP/quest-backend-performance.json\n?? Docs/WIP/quest-mongo-performance-compressed.json\n?? Docs/WIP/quest-mongo-performance-history.json\n?? Docs/WIP/quest-mongo-performance-local-comparison.json\n?? Docs/WIP/quest-mongo-performance-traffic.json\n?? Docs/WIP/quest-mongo-performance.json\n?? Docs/WIP/tracked-quest-editor-build.log\n?? Docs/WIP/tracked-quest-navigation-build.log\n?? Docs/WIP/walking-android-share-build.log\n?? Docs/WIP/walking-contract-tests.log\n?? Docs/WIP/walking-dev-backend-tests.log\n?? Docs/WIP/walking-dev-core-build.log\n?? Docs/WIP/walking-karma-backend-build.log\n?? Docs/WIP/walking-quest-dev-acceptance.json\n?? Docs/WIP/walking-quest-runtime.json\n?? Docs/WIP/walking-unity-build.log\n?? Docs/WIP/walking-web4-queue-cleanup.json"
+  },
+  {
+    "path": "C:/Source/OurWorldSite",
+    "branch": "main",
+    "head": "e9f95ce83dc94c4383fa1a3e1786c67d265d0831",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/OWolf3D",
+    "branch": "master",
+    "head": "e2c71af0ae8e1e2fe328e955ceccb7b68c3e646c",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/piper-ml",
+    "branch": "main",
+    "head": "6e65553a9fa61881a7e3fe2d13a46977127e6922",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/piper-server",
+    "branch": "main",
+    "head": "a4697b31b85293817a6e571c91bf6bd18711786e",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/piper-ui",
+    "branch": "main",
+    "head": "6fecc900c3a18fc8ec480b988656cb7be80ff618",
+    "status": "?? public/train.zip\n?? tsconfig.tsbuildinfo"
+  },
+  {
+    "path": "C:/Source/quake-rerelease-qc",
+    "branch": "main",
+    "head": "8d49fbe995787f0eb5dbaa3cd6350e10f4c57006",
+    "status": "?? ogengine.dll\n?? ogengine.lib"
+  },
+  {
+    "path": "C:/Source/session-plan",
+    "branch": "main",
+    "head": "0ba6182e16fb344892303117853bed5c1191eade",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/ShadowFighterSite",
+    "branch": "main",
+    "head": "79dda0438aed93288bc4a406143705f37519c096",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/SilverLining",
+    "branch": "main",
+    "head": "2768755f291d2013cddb09ec62f7a0dad5549974",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Snake3000Site",
+    "branch": "main",
+    "head": "14af683e6399ba282623fe52505d06bda6f964dc",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/SOP",
+    "branch": "main",
+    "head": "248b487bc7fd1a65f013dc34c5154973da79934b",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/spaceportal",
+    "branch": "main",
+    "head": "5cbe440c8f1f4bd5e665a91be973c7a239f3204d",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/star-main-promote",
+    "branch": "main",
+    "head": "380e67b00d3d5c92465c4ad094e3a4f7db766b45",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/STARNET",
+    "branch": "main",
+    "head": "1f87803b172033be7f06811c2e5d1c2cfa7d8d91",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/STARNETSite",
+    "branch": "main",
+    "head": "1b9ce6065bcb204788fa6c97d71bcb1ccd424b65",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/STARWebsite",
+    "branch": "main",
+    "head": "d3cc579a4d7c6f2b1153572e7c9105b5784ab969",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/trust",
+    "branch": "main",
+    "head": "15fe85add5616ad1e1f4cc9c7d612e8565007625",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/UnityMMO",
+    "branch": "master",
+    "head": "91890b5d40f37860e606660ac3bc0ddaaccdebb7",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/UnityMMO/Server/lsocket",
+    "branch": "",
+    "head": "8e7752c5b06b889e2d7f91ebff769e0b2b70574d",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/UnityMMO/Server/skynet",
+    "branch": "",
+    "head": "7e42653f80dfeb8d8aef044cb78e85cced125eb5",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/UnityMMO/Server/skynet/3rd/jemalloc",
+    "branch": "",
+    "head": "b0b3e49a54ec29e32636f4577d9d5a896d67fd20",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Web10Site",
+    "branch": "main",
+    "head": "0c610bd41326bc67471911bf6b0900abcb1fdba7",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Web4Site",
+    "branch": "main",
+    "head": "84b585924b0b9c0ebce6c4d7b3e3514a9bb21da7",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Web6Site",
+    "branch": "Development",
+    "head": "ddf0f7a0e574213045f66b3a6e246c3e122c787a",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Web7Site",
+    "branch": "main",
+    "head": "583d45341b73eb692069f53d056c69e8b366e601",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Web8Site",
+    "branch": "main",
+    "head": "758566b84224fa1c28fe3f182c5990bdfe9885f7",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Web9Site",
+    "branch": "main",
+    "head": "df4d41b4c6e412d0b9e9c4999d96af8e4eacc38f",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/WhatsThatSoundSite",
+    "branch": "main",
+    "head": "61de7b8344b159263b1045e347cc99057e9e9b04",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Yoga4Autism",
+    "branch": "main",
+    "head": "30d67e8a4e727cdd26824ec9a19822a147fe1148",
+    "status": ""
+  },
+  {
+    "path": "C:/Source/Your2ndChanceSite",
+    "branch": "main",
+    "head": "a46c5a0898c98da41c4a27417a6a4f6f26993286",
+    "status": ""
+  }
+]
