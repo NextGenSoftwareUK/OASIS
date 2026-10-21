@@ -267,6 +267,30 @@ public partial class AWSOASISIntegrationTests
         Assert.IsFalse(metadata.IsError,metadata.Message);
         Assert.AreEqual(children[0].Id,metadata.Result.Single().Id);
         Assert.AreEqual(grandchild.Id,metadata.Result.Single().Children.Single().Id);
+        // Exercise both dictionary overloads against actual stored scalar metadata,
+        // not a fake SDK result or a separate per-test database.
+        var pairs=new Dictionary<string,string> {{"owned-marker",marker},{"amount","1.5"}};
+        foreach(var synchronous in new[] {false,true})
+        {
+            foreach(var mode in new[] {Core.Enums.MetaKeyValuePairMatchMode.All,Core.Enums.MetaKeyValuePairMatchMode.Any})
+            {
+                var matched=synchronous
+                    ? _provider.LoadHolonsByMetaData(pairs,mode,loadChildren:false)
+                    : await _provider.LoadHolonsByMetaDataAsync(pairs,mode,loadChildren:false);
+                Assert.IsFalse(matched.IsError,matched.Message);
+                CollectionAssert.AreEquivalent(new[] {children[0].Id},matched.Result.Select(row=>row.Id).ToArray());
+            }
+            var partlyMissing=new Dictionary<string,string> {{"owned-marker",marker},{"amount","missing"}};
+            var allMissing=synchronous
+                ? _provider.LoadHolonsByMetaData(partlyMissing,Core.Enums.MetaKeyValuePairMatchMode.All,loadChildren:false)
+                : await _provider.LoadHolonsByMetaDataAsync(partlyMissing,Core.Enums.MetaKeyValuePairMatchMode.All,loadChildren:false);
+            Assert.IsFalse(allMissing.IsError,allMissing.Message);Assert.AreEqual(0,allMissing.Result.Count());
+            var anyMatched=synchronous
+                ? _provider.LoadHolonsByMetaData(partlyMissing,Core.Enums.MetaKeyValuePairMatchMode.Any,loadChildren:false)
+                : await _provider.LoadHolonsByMetaDataAsync(partlyMissing,Core.Enums.MetaKeyValuePairMatchMode.Any,loadChildren:false);
+            Assert.IsFalse(anyMatched.IsError,anyMatched.Message);
+            CollectionAssert.AreEquivalent(new[] {children[0].Id},anyMatched.Result.Select(row=>row.Id).ToArray());
+        }
         var invalid=_provider.LoadHolonsByMetaData("owned-marker",marker,version:1);
         Assert.IsFalse(invalid.IsError,invalid.Message);Assert.IsFalse(invalid.Result.Any(row=>row.Id==children[0].Id));
         var filtered=await _provider.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string> {{"owned-marker",marker}}});
@@ -282,6 +306,32 @@ public partial class AWSOASISIntegrationTests
         Assert.IsFalse(owned.IsError,owned.Message);
         Assert.AreEqual(children[0].Id,owned.Result.Single().Id);
         Assert.AreEqual(grandchild.Id,owned.Result.Single().Children.Single().Id);
+        var ownerAvatar=new Avatar {Id=owner,Username="owned-export-"+marker,Email=marker+"@example.invalid"};
+        var savedOwner=await _provider.SaveAvatarAsync(ownerAvatar);
+        Assert.IsFalse(savedOwner.IsError,savedOwner.Message);
+        foreach(var synchronous in new[] {false,true})
+        {
+            var byUsername=synchronous
+                ? _provider.ExportAllDataForAvatarByUsername(ownerAvatar.Username)
+                : await _provider.ExportAllDataForAvatarByUsernameAsync(ownerAvatar.Username);
+            var byEmail=synchronous
+                ? _provider.ExportAllDataForAvatarByEmail(ownerAvatar.Email)
+                : await _provider.ExportAllDataForAvatarByEmailAsync(ownerAvatar.Email);
+            var byId=synchronous
+                ? _provider.ExportAllDataForAvatarById(owner)
+                : await _provider.ExportAllDataForAvatarByIdAsync(owner);
+            foreach(var exported in new[] {byUsername,byEmail,byId})
+            {
+                Assert.IsFalse(exported.IsError,exported.Message);
+                CollectionAssert.AreEquivalent(new[] {children[0].Id},exported.Result.Select(row=>row.Id).ToArray());
+                Assert.AreEqual(grandchild.Id,exported.Result.Single().Children.Single().Id);
+            }
+            var missing=synchronous
+                ? _provider.ExportAllDataForAvatarByEmail("missing-"+ownerAvatar.Email)
+                : await _provider.ExportAllDataForAvatarByEmailAsync("missing-"+ownerAvatar.Email);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missing.ErrorCode);
+            Assert.IsNull(missing.Result);
+        }
         var historicalExport=_provider.ExportAll(version:1);Assert.IsFalse(historicalExport.IsError,historicalExport.Message);Assert.IsFalse(historicalExport.Result.Any(row=>row.Id==children[0].Id));
         Assert.IsTrue(_provider.ExportAllDataForAvatarById(Guid.Empty).IsError);
         var importedRows=new[] {new Holon {Id=Guid.NewGuid(),Name="owned-import-one"},new Holon {Id=Guid.NewGuid(),Name="owned-import-two"}};
