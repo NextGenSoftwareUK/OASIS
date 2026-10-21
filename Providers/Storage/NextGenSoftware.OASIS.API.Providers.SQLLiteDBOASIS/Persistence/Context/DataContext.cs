@@ -95,6 +95,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             modelBuilder.Entity<InventoryItemModel>().Property(x=>x.ExtendedValueJson).IsRequired().HasDefaultValue("{}");
             modelBuilder.Entity<HolonModel>().Property(x=>x.PersistentValueJson).IsRequired().HasDefaultValue("{}");
             modelBuilder.Entity<AvatarModel>().Property(x=>x.HasAvatarType).HasDefaultValue(true).ValueGeneratedNever();
+            modelBuilder.Entity<KarmaAkashicRecordModel>().Property(x=>x.SequenceIndex).HasDefaultValue(0).ValueGeneratedNever();
+            modelBuilder.Entity<KarmaAkashicRecordModel>().Property(x=>x.DateKind).HasDefaultValue(0).ValueGeneratedNever();
+            foreach(var property in new[]{"HasKarmaSource","HasKarmaEarntOrLost","HasKarmaTypePositive","HasKarmaTypeNegative","HasProvider"})
+                modelBuilder.Entity<KarmaAkashicRecordModel>().Property<bool>(property).HasDefaultValue(true).ValueGeneratedNever();
             modelBuilder.Entity<AvatarModel>().Property(x=>x.HasCreatedProviderType).HasDefaultValue(true).ValueGeneratedNever();
             modelBuilder.Entity<AvatarModel>().Property(x=>x.HasCreatedOASISType).HasDefaultValue(true).ValueGeneratedNever();
             modelBuilder.Entity<HolonModel>().Property(x=>x.HasCreatedProviderType).HasDefaultValue(true).ValueGeneratedNever();

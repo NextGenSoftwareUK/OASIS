@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -243,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             foreach(var record in source.KarmaAkashicRecords ?? new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IKarmaAkashicRecord>()){
                 if(record == null || record.AvatarId.ToString()!=this.Id)
                     throw new ArgumentException("Karma history records must belong to the avatar detail being saved.");
-                this.KarmaAkashicRecords.Add(new KarmaAkashicRecordModel(record));
+                this.KarmaAkashicRecords.Add(new KarmaAkashicRecordModel(record){SequenceIndex=this.KarmaAkashicRecords.Count});
             }
 
             this.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(source.MetaData ?? new Dictionary<string, object>());
@@ -347,7 +348,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 item.Achievements.Add(model.GetAchievement());
             }
 
-            foreach(KarmaAkashicRecordModel model in this.KarmaAkashicRecords){
+            foreach(KarmaAkashicRecordModel model in this.KarmaAkashicRecords.OrderBy(record=>record.SequenceIndex).ThenBy(record=>record.Id)){
 
                 item.KarmaAkashicRecords.Add(model.GetKarmaAkashicRecord());
             }
