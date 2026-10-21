@@ -82,3 +82,19 @@ All gates have zero failures/skips. Native fixtures are removed, Mongo27029 is s
 | SQLite | `EDA4B7F6330A5AB8D03C74094F368B24F4EE24A9F5C36C9107D7960B349F2D86` |
 
 Complete Stage8 remains open: authenticated discovery/routing, relationships, other adapters, richer numeric/schema domains, projections/aggregates, global federation, subqueries and snapshot/continuation semantics. Offset-page behavior remains explicitly live rather than a cross-request snapshot guarantee.
+
+## Neo4j ordering/paging candidate — 21 October 2026
+
+The initial Neo profile correctly rejects ordering/paging in two reproduced controls (TestResults/CoreCurrent/neo-cql-window-red.trx). The current candidate adds exact per-path ordering permission, the existing missing/null/valid/invalid metadata buckets, canonical null ranking, direction per key and an ascending normalized logical-ID tie-breaker. Skip/Take uses the common immutable window algebra and fetches at most the smaller of the requested page and the result budget plus one. A zero-length window completes after admission/translation without opening a native session.
+
+Projection validation is outside the page branch in a single native CALL/UNION ALL query. It must produce an error even when an invalid record lies outside the user predicate or beyond the requested offset. Windowing the previous invalid-first result directly would incorrectly hide corruption; the native candidate explicitly tests Skip(1000) after removing a projection.
+
+String order follows binary Unicode scalar/codepoint order, consistent with the existing SQLite UTF-8 binary and MongoDB simple native ordering domains; it does not promise CLR culture or UTF-16 StringComparer.Ordinal sort order for supplementary characters. The native candidate distinguishes U+E000 from U+10000. Neo4j documents [Unicode codepoint comparisons](https://neo4j.com/docs/cypher-manual/5/functions/string/) and [post-union CALL subqueries](https://neo4j.com/docs/cypher-manual/4.4/clauses/call-subquery/). These source statements guide the implementation; native tests must still verify the retained server's actual behavior.
+
+Producer/control dispatch was rejected by the occupied shared lease before execution. Tests now include composed order/page admission, empty-window no-I/O, canonical and metadata buckets/directions, tie identity, sequential windows, explicit page budget and offset-independent validity. Current implementation remains uncommitted and unverified pending the peer's live native run.
+
+### Verified Neo4j window gate
+
+The candidate now passes completeNeo300/300 controls, pairedShared943/943 and the expanded nativeNeo64/64, zero failures/skips. Reports are TestResults/CoreCurrent/neo-cql-window-final-controls.trx, TestResults/SharedCurrent/neo-cql-window-final-shared.trx and TestResults/Neo4jCurrent/neo4j-cql-regression-current.trx. Native execution takes31seconds and covers all new window assertions plus existing conditional/preparation/ordinary/delete gates. Unicode codepoint order, exact domain buckets/directions, identity ties, sequential window algebra, explicit page budgets and offset-independent invalid projection detection are proved against the retained server.
+
+Twenty-three declared producer/consumer copies match (TestResults/Neo4jCurrent/cql-window-final-artifacts.json). Core remains97A343EF51A6A4BF8942250BB2995F5A4E37CD51E0129EEA07F5729B379CAD11 from unchanged committed c4a89b1; native Shared914CD096FC9A73F8A24C68B3B4B9CCB1EE37A7E37B56BFF4FFC0EF75FDFE0184. The fixture manifest is absent and the exact retained container is stopped. No migration/schema change is needed for these sort keys, and no new runtime/environment/download/deployment is included. Broader numeric/enum/date profiles, resource stress, global ordered federation and snapshot continuation remain open.

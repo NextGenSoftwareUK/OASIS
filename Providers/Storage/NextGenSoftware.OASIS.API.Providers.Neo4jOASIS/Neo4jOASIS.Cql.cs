@@ -34,20 +34,33 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             if (admission.IsError) return CqlFailure(admission.ErrorCode, admission.Message);
             var translator = new NeoCqlTranslator();
             var predicate = plan.Query.Predicates.Count == 0 ? "true" : string.Join(" AND ", plan.Query.Predicates.Select(translator.Translate));
+            var keys=translator.TranslateOrdering(plan.Query.Orderings);
+            var fetch=plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,maximumResults+1):maximumResults+1;
             translator.Parameters.Add("schema", NeoCqlProjection.SchemaVersion);
-            translator.Parameters.Add("limit", maximumResults + 1);
+            translator.Parameters.Add("limit", fetch);
+            translator.Parameters.Add("offset",plan.Query.Offset);
             cancellationToken.ThrowIfCancellationRequested();
+            if(fetch==0)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
             if (!IsProviderActivated || _driver == null) return CqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
-            // Invalid projections sort first and cannot silently disappear behind the
-            // predicate/result window. Query predicates execute entirely in Cypher.
-            var query = "MATCH (h:Holon) OPTIONAL MATCH (h)-[p:HAS_CQL_PROJECTION]->(h) "
+            // Validation is outside the page branch: SKIP must never hide an invalid
+            // projection. Both branches execute inside one native read query.
+            var source = "MATCH (h:Holon) OPTIONAL MATCH (h)-[p:HAS_CQL_PROJECTION]->(h) "
                 + "WITH h,collect(p) AS projections WITH h,head(projections) AS p,size(projections)=1 AS uniqueProjection "
                 + "WITH h,p,coalesce(uniqueProjection AND p.SchemaVersion=$schema AND p.f_Id=toLower(h.Id) AND h.SnapshotJson IS NOT NULL "
-                + "AND coalesce(p.ProviderRevisionId,'')=coalesce(h.ProviderRevisionId,''),false) AS valid "
-                + "WHERE NOT valid OR (" + predicate + ") "
-                + "RETURN h.Id AS id,h.ProviderRevisionId AS revision,valid, "
+                + "AND coalesce(p.ProviderRevisionId,'')=coalesce(h.ProviderRevisionId,''),false) AS valid ";
+            var aliases=keys.Select((_,index)=>"cqlSort"+index).ToArray();
+            var directions=keys.Select((key,index)=>aliases[index]+(key.Descending?" DESC":" ASC")).ToArray();
+            var project=string.Concat(keys.Select((key,index)=>","+key.Expression+" AS "+aliases[index]));
+            var returnKeys=string.Concat(aliases.Select(alias=>","+alias));
+            var nullKeys=string.Concat(aliases.Select(alias=>",null AS "+alias));
+            var pageOrder=string.Join(",",directions.Concat(new[]{"p.f_Id ASC"}));
+            var finalOrder=string.Join(",",new[]{"valid ASC"}.Concat(directions).Concat(new[]{"toLower(id) ASC"}));
+            var query="CALL { "+source+"WHERE NOT valid RETURN h.Id AS id,h.ProviderRevisionId AS revision,false AS valid,null AS snapshot"+
+                nullKeys+" LIMIT 1 UNION ALL "+source+"WHERE valid AND ("+predicate+") "+
+                "WITH h,p"+project+" ORDER BY "+pageOrder+" SKIP $offset LIMIT $limit "+
+                "RETURN h.Id AS id,h.ProviderRevisionId AS revision,true AS valid, "
                 + "CASE WHEN size(h.SnapshotJson)<=2097152 THEN h.SnapshotJson ELSE null END AS snapshot "
-                + "ORDER BY valid ASC,id ASC LIMIT $limit";
+                + returnKeys+" } RETURN id,revision,valid,snapshot ORDER BY "+finalOrder;
             using var session = _driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read));
             using var transaction = await session.BeginTransactionAsync(config => config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
             var cursor = await transaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);

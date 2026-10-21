@@ -52,6 +52,22 @@ internal sealed class NeoCqlTranslator
         _ => throw new NotSupportedException("Neo4j CQL literal domain is unsupported.") };
     private static string Total(string predicate) => "coalesce((" + predicate + "),false)";
 
+    internal IReadOnlyList<(string Expression,bool Descending)> TranslateOrdering(IReadOnlyList<CosmicQueryOrdering> orderings)
+    {
+        var keys=new List<(string,bool)>();
+        foreach(var ordering in orderings)
+        {
+            var operand=Operand(ordering.Path);
+            var rank=ordering.Path.IsMetadata
+                ? "CASE WHEN p["+Bind(NeoCqlProjection.PathKey(ordering.Path.Segments)+"_kind")+"] IS NULL THEN 0 WHEN "+operand.Null+
+                    " THEN 1 WHEN "+operand.Guard+" THEN 2 ELSE 3 END"
+                : "CASE WHEN "+operand.Null+" THEN 1 ELSE 2 END";
+            keys.Add((rank,ordering.Descending));
+            keys.Add(("CASE WHEN "+operand.Guard+" THEN "+operand.Value+" ELSE null END",ordering.Descending));
+        }
+        return keys;
+    }
+
     internal string Translate(CosmicQueryPredicate predicate)
     {
         switch (predicate)

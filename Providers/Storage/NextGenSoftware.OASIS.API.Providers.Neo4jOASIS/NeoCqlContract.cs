@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Queries;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
@@ -24,6 +25,11 @@ internal static class NeoCqlContract
         return new(CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not | CosmicQueryFeatures.Metadata |
             CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists |
             CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith |
-            CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.Membership | CosmicQueryFeatures.FieldComparison, fields.ToArray(), metadata.ToArray());
+            CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.Membership | CosmicQueryFeatures.FieldComparison |
+            CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging,
+            fields.Select(field=>new CosmicQueryFieldCapability(field.Name,field.ValueType,field.Comparisons.ToArray(),
+                field.StringOperations.ToArray(),supportsOrdering:true)).ToArray(),
+            metadata.Select(type=>new CosmicQueryMetadataCapability(type.ValueType,type.Comparisons.ToArray(),
+                type.StringOperations.ToArray(),type.SupportsMembership,type.SupportsMixedNumericComparison,supportsOrdering:true)).ToArray());
     }
 }
