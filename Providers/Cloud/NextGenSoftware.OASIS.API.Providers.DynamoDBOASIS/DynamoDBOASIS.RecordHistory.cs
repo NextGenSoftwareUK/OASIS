@@ -81,6 +81,7 @@ public partial class DynamoDBOASIS
             if(previousDocument["id"]!=null&&previousDocument["id"].Value<string>()!=id.ToString())throw new InvalidDataException("Embedded native identity differs from its item key.");
             previousDocument["id"]=id.ToString();
         }
+        HolonSaveLifecycle.RequireCompatibleSave(observedRecord,proposed);
         if(table=="OasisHolons"&&proposed is Core.Holons.Holon holon){
             var write=plannedHolon??new PlannedHolonWrite(holon,holon);
             holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(write,HolonChildRoleWriteKind.SourceSave,previous!=null,(observedRecord as Core.Holons.Holon)?.ChildRoleManifestJson);

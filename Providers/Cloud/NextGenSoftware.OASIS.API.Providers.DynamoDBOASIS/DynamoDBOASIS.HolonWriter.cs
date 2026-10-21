@@ -38,7 +38,7 @@ public partial class DynamoDBOASIS
             if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(source,StorageProviderType,revision.Value);
             if(source is Holon caller)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
             result.Result=source;result.IsSaved=true;result.Message=$"DynamoDBOASIS: Holon '{holon.Name}' saved.";
-        }catch(Exception cause){result.Exception=cause;OASISErrorHandling.HandleError(ref result,$"DynamoDBOASIS: {cause.Message}");}
+        }catch(Exception cause){result.Exception=cause;OASISErrorHandling.HandleError(ref result,$"DynamoDBOASIS: {cause.Message}");if(cause is StorageLifecycleConflictException)result.ErrorCode=StorageLifecycleConflictException.ErrorCode;}
         return result;
     }
 }
