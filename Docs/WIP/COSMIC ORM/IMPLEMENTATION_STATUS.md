@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Neo4j GUID metadata — 21 October 2026
+
+Guid/Guid? metadata now execute natively with exact canonical text validation, GUID-only case normalization and shared null/invalid-domain semantics across predicates, membership, fields and ordering. Full Neo307/307 and expanded native64/64 pass, zero skips;20 declared producer/consumer copies match. Stable feature report and exact source/artifact hashes are retained; successful fixtures removed and container stopped. [Contract and evidence](CQL_SCALAR_METADATA.md#neo4j-guid-metadata--21-october-2026). No Core/Shared/pin/schema change or new environment. Date metadata, resource stress and the remaining original roadmap are still open.
+
 ## Neo4j enum metadata — 21 October 2026
 
 Exact HolonType/ProviderType metadata and nullable domains now execute through the common CQL pipeline with one native defined-value guard for comparisons, membership, fields and ordering. Complete Neo controls pass 305/305 and the expanded native regression passes 64/64, zero skips; 20 declared producer/consumer copies match. A prior interrupted five-record fixture was independently reviewed and reconciled with locked exact snapshot hashes before the fresh native run. [Acceptance and limitations](CQL_ENUM_METADATA.md#verified-neo4j-enrollment--21-october-2026); [resource/cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). No Core/Shared source or pin change; broader types, native stress, relationships and federation remain open.
