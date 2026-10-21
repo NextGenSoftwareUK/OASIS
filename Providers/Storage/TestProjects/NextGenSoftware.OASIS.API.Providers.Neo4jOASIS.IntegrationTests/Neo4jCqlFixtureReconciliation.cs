@@ -24,6 +24,23 @@ public class Neo4jCqlFixtureReconciliation
             "field comparisons require the same underlying CLR scalar type", "cql-integer-field-original-failure.trx",
             "cql-reviewed-fixture.json", "cql-preserved-inspection.csv");
 
+    [TestMethod]
+    public async Task ReviewedInterruptedEnumFixtureIsUnchangedBeforeExactCleanup()
+    {
+        Assert.AreEqual("bolt://127.0.0.1:17687",Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        var work=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_WORK")!;
+        var reviewPath=Path.Combine(work,"cql-enum-interrupted-reviewed-fixture.json");
+        Assert.AreEqual("AC8C07837842A0F5997B1F3AE72D9CB7DF8657D5090CFCF771D3335DCC31F25E",Hash(await File.ReadAllBytesAsync(reviewPath)));
+        using var review=JsonDocument.Parse(await File.ReadAllTextAsync(reviewPath));var root=review.RootElement;
+        Assert.AreEqual("interrupted-run-no-fresh-native-report",root.GetProperty("reason").GetString());
+        var manifestPath=Path.Combine(work,"cql-native-fixture.json");
+        Assert.AreEqual(root.GetProperty("manifestSha256").GetString(),Hash(await File.ReadAllBytesAsync(manifestPath)));
+        Assert.AreEqual(root.GetProperty("inspectionSha256").GetString(),Hash(await File.ReadAllBytesAsync(Path.Combine(work,"cql-enum-interrupted-inspection.csv"))));
+        Assert.AreEqual(root.GetProperty("runnerLogSha256").GetString(),Hash(await File.ReadAllBytesAsync(Path.Combine(work,"../CoreCurrent/neo-cql-enum-native-final-runner.log"))));
+        Assert.IsTrue(File.GetLastWriteTimeUtc(Path.Combine(work,"neo4j-cql-regression-current.trx"))<File.GetLastWriteTimeUtc(manifestPath),"No fresh original completion report was published.");
+        await CleanupReviewedFixture(work,manifestPath,root);
+    }
+
     private async Task Reconcile(string reportHash,string expectedFailure,string reportFile,string reviewFile,string inspectionFile)
     {
         const string uri="bolt://127.0.0.1:17687";
@@ -41,6 +58,12 @@ public class Neo4jCqlFixtureReconciliation
         var failed=report.Descendants().Where(node=>node.Name.LocalName=="UnitTestResult" && (string?)node.Attribute("outcome")=="Failed").Single();
         Assert.AreEqual("NativeCosmicCqlPredicatesProjectionUpdatesAndHistoricalUpgrade",(string?)failed.Attribute("testName"));
         StringAssert.Contains(failed.Descendants().Single(node=>node.Name.LocalName=="Message").Value,expectedFailure);
+        await CleanupReviewedFixture(work,manifestPath,root);
+    }
+
+    private static async Task CleanupReviewedFixture(string work,string manifestPath,JsonElement root)
+    {
+        const string uri="bolt://127.0.0.1:17687";
         var expected=root.GetProperty("records").EnumerateArray().ToDictionary(row=>row.GetProperty("id").GetString()!);
         Assert.AreEqual(5,expected.Count);
         using var manifest=JsonDocument.Parse(await File.ReadAllTextAsync(manifestPath));

@@ -77,6 +77,7 @@ public partial class Neo4jNativeCqlTests
             records[0].MetaData["unicode"]="\uE000";records[1].MetaData["unicode"]="\U00010000";
             records[2].MetaData["unicode"]="A";records[3].MetaData["unicode"]=null!;
             AddNarrowIntegerFixtures(records);
+            AddEnumFixtures(records);
             for (var i = 0; i < records.Length; i++)
             {
                 var saved = await provider.SaveHolonAsync(records[i], saveChildren: false);
@@ -105,6 +106,7 @@ public partial class Neo4jNativeCqlTests
             await Matches(h => h.Name==CosmicQueryMetadata.Value<string>(h,"alias"),0);
             await Matches(h => h.Name!=CosmicQueryMetadata.Value<string>(h,"alias"),1,2);
             await VerifyNarrowIntegerDomains(provider,records);
+            await VerifyEnumDomains(provider,records);
             await Ordered(CosmicQuery<Holon>.Create().OrderBy(h=>h.Name).Skip(1).Take(2),1,2);
             await Ordered(CosmicQuery<Holon>.Create().OrderBy(h=>h.IsActive).ThenByDescending(h=>h.Name).Take(3).Skip(1).Take(1),3);
             var invalidOrder=new[]{1,4}.OrderBy(i=>records[i].Id.ToString("D"),StringComparer.Ordinal).ToArray();

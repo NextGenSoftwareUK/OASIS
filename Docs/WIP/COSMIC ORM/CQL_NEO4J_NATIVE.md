@@ -81,3 +81,7 @@ The second reviewed fixture cleanup passes1/1 in2seconds (neo4j-integer-field-re
 ## Final field comparison evidence
 
 Reports: TestResults/CoreCurrent/cql-integer-fields-pinned-full.trx; TestResults/CoreCurrent/neo-cql-fields-final-controls.trx; TestResults/SharedCurrent/neo-cql-fields-final-shared.trx; TestResults/SQLiteCurrent/cql-fields-pinned-full.trx; TestResults/Neo4jCurrent/neo4j-cql-regression-current.trx. Exact copies are recorded in TestResults/Neo4jCurrent/cql-fields-final-artifacts.json: Core10, Shared8, Neo3, SQLite3, Mongo2. CoreSHA25697A343EF51A6A4BF8942250BB2995F5A4E37CD51E0129EEA07F5729B379CAD11; SharedSHA2562ED69B1B59DD8FF78BB563ED5F875FCEBD41978E62177C764A0B7ACFDAEFF723. Mongo copy equality is a cohort check, not renewed native Mongo certification. The source pin and parent gitlink advance together in this scoped batch; no Development/master deployment is included.
+
+## Enum metadata checkpoint — 21 October 2026
+
+HolonType/ProviderType and nullable metadata domains now use defined integer identities across all admitted operations. Full305 controls and expanded native64 regression pass, zero skips;20 declared copies match. [Exact domain/fixture reconciliation evidence](CQL_ENUM_METADATA.md#verified-neo4j-enrollment--21-october-2026). GUID/date metadata, canonical audit-date/holon-type enrollment, native resource fault/stress and the full CQL/ORM roadmap remain open.

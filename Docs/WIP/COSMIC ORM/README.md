@@ -6,6 +6,8 @@ These are working documents. Dated reports retain historical evidence; earlier c
 
 ## Documents
 
+- [Resource inventory, retrospective setup and cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
 - [Replication host shutdown: pre-execution cancellation ownership and regression evidence](REPLICATION_HOST_SHUTDOWN.md).
 
 - [Neo4j native CQL: source gaps, transactional projection and acceptance](CQL_NEO4J_NATIVE.md).
