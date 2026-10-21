@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Google canonical karma-history fields — scoped native158/control265 closure
+
+Actual67315 terminal0: **79history native +79regression native passed**,0skip,8s/26s; matched265controls passed0skip1s. Strengthened one existing regression case with two ordered earned/lost entries, full fields, sync update after async creation, GUID/username/email selectors and independent SDK payload readback. No provider code change/case count increase; Import audit found existing correct result forwarding and was left unchanged. Native report hashes EF5A7116/A10CE8D9; controlled DB220D6E, full hashes/scope in `FIRESTORE_RECORD_HISTORY.md`.
+
+CoreEB9EFAD0/Shared0D2BB0 copies matched both consumers; Google provider producer/native/control all3B07FF1B. Sources stayed stable during builds/tests. Same retainedFirestore1.22/checkpoint export; exact known checkpoint revision readback/conditional cleanup succeeded, pending0 and owned runtime stopped/ports18080–83 absent independently. Prior current reports hash-verified/movedinplace, main-run overwrite preflight added and controlled refusal verified. No download/install/new environment/account/remote spend/deployment. FreeC60,550,488,064bytes;123GBtarget unmet. Native158 does NOT refresh all earlier177 advanced schedules or certify hosted IAM/TLS/billing/full interface/V2 completion. Programme remains open.
+
 ## Oracle Database native karma-history field coverage
 
 Actual74518 terminal0 **270/270 native passed**,0skip,1m14, after strengthening the existing canonical-record case to preserve ordered karma entries/full fields through current selectors, sync/async updates, direct SDK payload readback and archived version1. No new production logic/case count. NativeTRX SHA256 `0364266131D8EB79F9CA879762A0305B5A3B66DEA11927CD806D442BF5294ECF`; matched235controls passed0skip579ms, `50507480F74AB8F6059D4BC7282D63607624763A31ADBB672605C3263C9AA803`. CoreEB9EFAD0/Shared0D2BB0D1 consumers verified matching. Same retained pinnedOracleFree runtime, exactfixturecleanup/journals0 and independentlyexited afterward; previous270 report0D0DE5 hash-verified/movedinplace, no overwrite/backupDB.
