@@ -153,6 +153,7 @@ public partial class AWSOASISIntegrationTests
     public async Task PopulatedAvatarDetailRoundTrip_UsesOfficialDynamoDbApi()
     {
         var detail=new AvatarDetail {Id=Guid.NewGuid(),Username=$"owned-{Guid.NewGuid():N}",XP=321,Karma=29};
+        detail.Email=detail.Username+"@example.invalid";
         var item=new InventoryItem {Id=Guid.NewGuid(),Name="owned seed"};
         detail.Inventory.Add(item);
         var saved=await _provider.SaveAvatarDetailAsync(detail);
@@ -165,6 +166,15 @@ public partial class AWSOASISIntegrationTests
         Assert.AreEqual(detail.Id.ToString(),loaded.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.AWSOASIS]);
         Assert.AreEqual(321,loaded.Result.XP); Assert.AreEqual(29L,loaded.Result.Karma);
         Assert.IsNotNull(loaded.Result.Stats); Assert.IsNotNull(loaded.Result.Skills);
+        // Provider-key aliases are a public interface, not just a GUID lookup implementation detail.
+        var profile=await _provider.SaveAvatarAsync(new Avatar{Id=detail.Id,Username=detail.Username,Email=detail.Username+"@example.invalid"});
+        Assert.IsFalse(profile.IsError,profile.Message);
+        foreach(var avatarRead in new[]{await _provider.LoadAvatarByProviderKeyAsync(detail.Id.ToString()),_provider.LoadAvatarByProviderKey(detail.Id.ToString())}){
+            Assert.IsFalse(avatarRead.IsError,avatarRead.Message);Assert.IsTrue(avatarRead.IsLoaded);
+            Assert.AreEqual(detail.Id,avatarRead.Result.Id);Assert.AreEqual(detail.Username,avatarRead.Result.Username);
+            Assert.AreEqual(detail.Username+"@example.invalid",avatarRead.Result.Email);
+            Assert.AreEqual(detail.Id.ToString(),avatarRead.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.AWSOASIS]);
+        }
     }
 
     [TestMethod]
