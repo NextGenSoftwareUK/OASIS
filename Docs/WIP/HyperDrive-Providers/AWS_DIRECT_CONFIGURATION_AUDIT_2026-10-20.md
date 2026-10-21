@@ -2,6 +2,25 @@
 
 Status: partial provider verification; not hosted AWS or full HyperDrive certification.
 
+## Direct interface overload follow-up — scoped closure
+
+Batch99874 terminal0: full **132/132 native passed**, zero skips,45s; begin1/cleanup1 also passed. New2cases are sync/async parameterizations of direct `IOASISStorageProvider` dispatch with multiple verified operations, not two API endpoints. No production code changed. Prior130 reports/inventory were SHA-verified and moved in place to `*-pre-direct-interface.*`, not duplicated or overwritten. Exact declared rows conditionally cleaned after the successful132 gate; all three native tables verified empty, pending journals0 and listeners18000/18001 absent afterward. Same retained JAR/data/cache, no download/new environment/reset/hosted spend/deployment.
+
+Native consumer Core `CE5575CE5E499E60FC7C0A445F408F9A3310C5AFFFE8B85B76EF94B32A1E7723`, Shared `7A8552450F59F740CEF6A9B1065B7FAFE87AB3D59B9F918ACA24136C2967C53E`. Core includes the peer's UNCOMMITTED ordering/paging APIs with native query profiles disabled, not an immutable deployment cohort or native CQL certification. The suite proves the listed storage calls only. Hosted IAM/capacity/fees, remaining per-overload inventory (including inherited karma helpers), advanced recovery and universal V2 routing remain OPEN. Added local operations use real SDK scans/reads/writes/transactions; equivalent hosted operations incur capacity charges, which this localhost test does not price. C free64,870,297,600bytes;123GB target unmet.
+
+| Evidence under TestResults/DynamoHistoryCurrent | SHA256 |
+| --- | --- |
+| aws-full-begin-current.trx | D10F20A367988DE5D1A292CEA0C28CD2F9E78FEEFA7BD9006BAE2D0EE6783DE3 |
+| aws-full-native-current.trx | 5613A325C7B8BC3FA97253DE3ED2270D1AAAD3FC30E87D207B0BE6F7FAA697CA |
+| aws-full-cleanup-current.trx | 3B4A3681145B4555869896EC9C5EE4EE4D80DCEB954B3DE2B9E7ECA01AE02FA4 |
+| aws-full-suite-cleanup-current.json | 489226E43723524F1D60F4C8815FA1A370E1C5CD5DD4CEFE7BFAA4920075DB9F |
+
+### Preparation record (superseded by closure above)
+
+Cross-suite review resolved several apparent omissions: separate Dynamo native history tests cover provider-key historical reads/async export; native identity lifecycle/race tests cover email/username deletion; native snapshot tests cover synchronous search; nearby acceptance calls route through V2 rather than literal methods. These are evidence locations, not claims they ran in the preceding130 cohort.
+
+Added2 new native sync/async cases through `IOASISStorageProvider`: latest provider-key hit/absence, avatar/detail collections, positive detail email/username reads, import/search/export roundtrip, positive email/username paired deletion in soft/hard modes with direct SDK tombstone/absence verification and preserved profile/XP. Same suite-wide durable intent and exact verified-success cleanup, no new runtime or per-case database. Full runner/current-report recovery now require132cases (prior130+2); previous130 proof remains valid only for its prior source assertions. New cases are not compiled or executed yet. Production untouched; peer's announced Core ordering/paging producer transition owns the next window.
+
 ## Native interface acceptance refresh — scoped closure
 
 Actual retained-runtime batch40622 completed terminal0: begin1/1, strengthened full **130/130 native acceptance cases**, cleanup1/1, zero skips; native duration45s. Current suite passes after ordinary lifecycle/acknowledgement changes, including new sync/async positive email/username/ID export and dictionary metadata All/Any assertions. This does not certify every storage-interface overload, hosted AWS IAM/fees or all-provider V2 routing. Existing acceptance includes bounded real V2 routing/replication scenarios, not a universal routing matrix.
