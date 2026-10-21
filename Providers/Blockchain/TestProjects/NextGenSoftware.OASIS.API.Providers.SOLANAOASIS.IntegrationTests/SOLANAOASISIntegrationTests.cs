@@ -11,7 +11,8 @@ using System.Text;
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests;
 
 [TestClass]
-public sealed class SOLANAOASISIntegrationTests
+[DoNotParallelize]
+public sealed partial class SOLANAOASISIntegrationTests
 {
     private SolanaOASIS _provider = null!;
 

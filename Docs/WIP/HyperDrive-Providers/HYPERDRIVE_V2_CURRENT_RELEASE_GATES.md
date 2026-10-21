@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Solana direct SPL interfaces — native3 green, fee/rent split proved
+
+Actual14236 terminal0 **3/3 native schedules passed**, zero skips2m31; added real sync/async PUBLIC create/mint/burn schedules verify independent finalized supply/holder/authority effects and exact wallet debit. Existing SDK implementation passed without production changes. Each flow:20,000lamports transaction fees +3,500,880lamports rent-exempt account funding =3,520,880lamports debit, all measured locally; rent is NOT gas/refund, no closure/refund claimed. Local test SOL only, not hosted pricing/sponsorship/max-fee certification. Auth fixture isolates only avatar key lookup; hosted KeyManager/delegation remains OPEN.
+
+NativeTRX SHA256 `F95D8DDA16327330DDAF61A1D2E2BAC3C5E99E44074F8F8022C31A24D1E4FEA6`; exact cost receipt identities/hashes and scope in `SOLANA_SUBMISSION_CONCURRENCY.md`. Core6635E34C/Shared6E57826D match559 controls and prior native cohort. Pending0/validator stopped independently, sameledger540MiB/coldoriginal130MiB; no reset/download/environment/public funds/devdeployment. Full relevant NFT/extensions/hosted/uncertain-outcome/V2 programme remains OPEN.
+
 ## Solana approved recovery and SDK submission concurrency — scoped closure
 
 Approved one-time SAME-environment recovery preserved the original130MiB ledger by one cold rename, hash unchanged, no copy/reset/replay. Same pinnedAgave4.3.0/runtime/keys/fixed loopback; fresh consensus finalized0→101, snapshot100/root102 independently admitted offline after clean stop. New genesis explicitly pinned; original uncertain post505 outcomes remain unresolved, not certified by fresh consensus.
