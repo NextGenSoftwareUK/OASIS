@@ -9,6 +9,35 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CosmicQueryExpressionTests
 {
     [Fact]
+    public void IntegerPromotionsRequireWholeDomainContainmentAndRetainOriginalPathTypes()
+    {
+        Expression<Func<Holon,bool>>[] allowed={
+            h=>CosmicQueryMetadata.Value<byte>(h,"x")>=0,
+            h=>CosmicQueryMetadata.Value<sbyte>(h,"x")>=0,
+            h=>CosmicQueryMetadata.Value<short>(h,"x")>=0,
+            h=>CosmicQueryMetadata.Value<ushort>(h,"x")>=0,
+            h=>(ushort)CosmicQueryMetadata.Value<byte>(h,"x")>=0,
+            h=>(short)CosmicQueryMetadata.Value<sbyte>(h,"x")>=0,
+            h=>(float)CosmicQueryMetadata.Value<ushort>(h,"x")>=0f,
+            h=>(double)CosmicQueryMetadata.Value<uint>(h,"x")>=0d};
+        Type[] types={typeof(byte),typeof(sbyte),typeof(short),typeof(ushort),typeof(byte),typeof(sbyte),typeof(ushort),typeof(uint)};
+        for(var index=0;index<allowed.Length;index++)
+        {
+            var result=CosmicQueryExpression.Compile(allowed[index]);Assert.False(result.IsError,result.Message);
+            Assert.Equal(types[index],Assert.IsType<CosmicQueryComparison>(result.Result).Path.ValueType);
+        }
+        Expression<Func<Holon,bool>>[] rejected={
+            h=>(byte)CosmicQueryMetadata.Value<sbyte>(h,"x")>=0,
+            h=>(sbyte)CosmicQueryMetadata.Value<byte>(h,"x")>=0,
+            h=>(int)CosmicQueryMetadata.Value<uint>(h,"x")>=0,
+            h=>(ushort)CosmicQueryMetadata.Value<short>(h,"x")>=0,
+            h=>(float)CosmicQueryMetadata.Value<int>(h,"x")>=0f,
+            h=>(double)CosmicQueryMetadata.Value<long>(h,"x")>=0d,
+            h=>(int)CosmicQueryMetadata.Value<short?>(h,"x")>=0};
+        foreach(var expression in rejected)Assert.True(CosmicQueryExpression.Compile(expression).IsError);
+    }
+
+    [Fact]
     public void BuiltInNullableLiteralLiftsPreserveBooleanGuidAndUtcValues()
     {
         var id = Guid.NewGuid(); var utc = new DateTime(2026, 10, 20, 0, 0, 0, DateTimeKind.Utc);
