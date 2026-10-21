@@ -77,6 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 _driver ??= _driverFactory();
                 await _driver.VerifyConnectivityAsync().ConfigureAwait(false);
                 await EnsureHolonWriteSchemaAsync().ConfigureAwait(false);
+                await UpgradeCqlProjectionsAsync().ConfigureAwait(false);
                 IsProviderActivated = true;
                 return new OASISResult<bool>(true);
             }
