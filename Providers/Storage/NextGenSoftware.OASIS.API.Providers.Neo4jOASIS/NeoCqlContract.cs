@@ -24,6 +24,6 @@ internal static class NeoCqlContract
         return new(CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not | CosmicQueryFeatures.Metadata |
             CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists |
             CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith |
-            CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.Membership, fields.ToArray(), metadata.ToArray());
+            CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.Membership | CosmicQueryFeatures.FieldComparison, fields.ToArray(), metadata.ToArray());
     }
 }
