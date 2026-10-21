@@ -55,18 +55,53 @@ public partial class HolonRepository
             if (Parameters.Count >= 900) throw new CqlTranslationLimitException();
             var name = "$cql" + Parameters.Count; Parameters.Add(new SqliteParameter(name, value)); return name;
         }
-        private string MetadataPredicate(IReadOnlyList<string> segments, Func<string, string> condition)
+        private string MetadataPredicate(IReadOnlyList<string> segments, Func<string, string> condition, string prefix = "m")
         {
             var sources = new List<string>(); var conditions = new List<string>();
             for (var i = 0; i < segments.Count; i++)
             {
-                var alias = "m" + i;
-                var document = i == 0 ? "\"MetaDataJson\"" : "CASE WHEN m" + (i - 1) + ".type = 'object' THEN m" + (i - 1) + ".value ELSE json_object() END";
+                var alias = prefix + i;
+                var document = i == 0 ? CanonicalColumn("MetaDataJson") : "CASE WHEN " + prefix + (i - 1) + ".type = 'object' THEN " + prefix + (i - 1) + ".value ELSE json_object() END";
                 sources.Add("json_each(" + document + ") AS " + alias);
                 conditions.Add(alias + ".key COLLATE BINARY = " + Bind(segments[i]));
             }
-            conditions.Add(condition("m" + (segments.Count - 1)));
+            conditions.Add(condition(prefix + (segments.Count - 1)));
             return "EXISTS (SELECT 1 FROM " + string.Join(", ", sources) + " WHERE " + string.Join(" AND ", conditions) + ")";
+        }
+        // json_each exposes its own `id` column. Every canonical operand must
+        // remain bound to the outer record, including inside a correlated path.
+        private static string CanonicalColumn(string name) => "\"Holon\".\"" + name + "\"";
+        private string FieldOperand(CosmicQueryPath path, string prefix, Func<string, string, string> condition)
+        {
+            if (path.IsMetadata)
+                return MetadataPredicate(path.Segments, alias => {
+                    var guard = MetadataTypeGuard(path.ValueType, alias);
+                    if (MetadataNullable(path.ValueType)) guard = "(" + guard + " OR " + alias + ".type = 'null')";
+                    return condition(MetadataColumn(alias, path.ValueType), guard);
+                }, prefix);
+            var name = path.Segments.Single();
+            if (!SqliteCqlContract.Fields.TryGetValue(name, out var field) || field.ValueType != path.ValueType)
+                throw new NotSupportedException("SQLite CQL field comparison path is unsupported.");
+            var column = CanonicalColumn(name);
+            if (field.ValueType == typeof(Guid))
+            {
+                if (name == "CreatedByAvatarId" || name == "ModifiedByAvatarId")
+                    column = "COALESCE(" + column + ", '00000000-0000-0000-0000-000000000000')";
+                column += " COLLATE NOCASE";
+            }
+            else if (field.ValueType == typeof(string)) column += " COLLATE BINARY";
+            return condition(column, "1");
+        }
+        private string FieldComparison(CosmicQueryFieldComparison fields)
+        {
+            var operation = fields.Operator switch {
+                CosmicQueryComparisonOperator.Equal => "IS", CosmicQueryComparisonOperator.NotEqual => "IS NOT",
+                CosmicQueryComparisonOperator.GreaterThan => ">", CosmicQueryComparisonOperator.GreaterThanOrEqual => ">=",
+                CosmicQueryComparisonOperator.LessThan => "<", CosmicQueryComparisonOperator.LessThanOrEqual => "<=",
+                _ => throw new NotSupportedException("SQLite CQL comparison operator is unsupported.") };
+            return FieldOperand(fields.Left, "cqlleft", (left, leftGuard) =>
+                FieldOperand(fields.Right, "cqlright", (right, rightGuard) =>
+                    "(" + leftGuard + " AND " + rightGuard + " AND COALESCE((" + left + " " + operation + " " + right + "), 0))"));
         }
         private string MetadataTest(CosmicQueryMetadataTest test)
             => MetadataPredicate(test.Segments, alias => test.Kind == CosmicQueryMetadataTestKind.IsNull ? alias + ".type = 'null'" : "1");
@@ -219,7 +254,7 @@ public partial class HolonRepository
                 if (membership.Path.IsMetadata || membership.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(membership.Path.Segments[0], out var memberField)
                     || memberField.ValueType != membership.Path.ValueType || !memberField.Comparisons.Contains(CosmicQueryComparisonOperator.Equal))
                     throw new NotSupportedException("SQLite CQL membership path is unsupported.");
-                var memberColumn = "\"" + memberField.Name + "\"";
+                var memberColumn = CanonicalColumn(memberField.Name);
                 if (memberField.ValueType == typeof(Guid))
                 {
                     if (memberField.Name == "CreatedByAvatarId" || memberField.Name == "ModifiedByAvatarId") memberColumn = "COALESCE(" + memberColumn + ", '00000000-0000-0000-0000-000000000000')";
@@ -239,12 +274,13 @@ public partial class HolonRepository
                 if (match.Path.IsMetadata || match.Path.Segments.Count != 1 || !SqliteCqlContract.Fields.TryGetValue(match.Path.Segments[0], out var stringField)
                     || stringField.ValueType != typeof(string) || !stringField.StringOperations.Contains(match.Operator))
                     throw new NotSupportedException("SQLite CQL string path/operator is unsupported.");
-                return StringMatch("\"" + stringField.Name + "\"", match);
+                return StringMatch(CanonicalColumn(stringField.Name), match);
             }
             if (predicate is CosmicQueryMetadataTest test) return MetadataTest(test);
             if (predicate is CosmicQueryBoolean boolean) return boolean.Value ? "1" : "0";
             if (predicate is CosmicQueryLogical logical)
                 return "(" + Translate(logical.Left) + (logical.IsAnd ? " AND " : " OR ") + Translate(logical.Right) + ")";
+            if (predicate is CosmicQueryFieldComparison fields) return FieldComparison(fields);
             if (predicate is CosmicQueryNot not) return "(NOT " + Translate(not.Operand) + ")";
             if (predicate is CosmicQueryComparison metadataComparison && metadataComparison.Path.IsMetadata) return MetadataComparison(metadataComparison);
             if (predicate is not CosmicQueryComparison comparison || comparison.Path.Segments.Count != 1)
@@ -254,7 +290,7 @@ public partial class HolonRepository
                 throw new NotSupportedException("SQLite CQL field/operator is unsupported: " + name + "/" + comparison.Operator);
             var text = field.ValueType == typeof(string); var booleanField = field.ValueType == typeof(bool); var guid = field.ValueType == typeof(Guid);
             // Identifiers originate only in the fixed column whitelist, never in caller text.
-            var column = "\"" + name + "\"";
+            var column = CanonicalColumn(name);
             if (guid)
             {
                 // Nullable legacy audit strings materialize as Guid.Empty, so the SQL operand must agree.
