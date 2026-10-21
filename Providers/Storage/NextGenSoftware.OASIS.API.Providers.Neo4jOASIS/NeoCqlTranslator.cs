@@ -35,6 +35,12 @@ internal sealed class NeoCqlTranslator
         string guard;
         if (type == typeof(string)) guard = kind + "='string'";
         else if (type == typeof(bool)) guard = kind + "='boolean'";
+        else if (type == typeof(Guid))
+        {
+            var text="CASE WHEN "+kind+"='string' THEN "+value+" ELSE null END";
+            guard=kind+"='string' AND "+text+" =~ "+Bind(@"\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z");
+            value="toLower("+text+")";
+        }
         else if (type == typeof(HolonType) || type == typeof(ProviderType))
         {
             var defined=Enum.GetValues(type).Cast<object>().Select(item=>Convert.ToInt64(item,CultureInfo.InvariantCulture)).Distinct().ToArray();

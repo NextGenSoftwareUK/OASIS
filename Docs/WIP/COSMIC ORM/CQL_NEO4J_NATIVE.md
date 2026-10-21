@@ -85,3 +85,7 @@ Reports: TestResults/CoreCurrent/cql-integer-fields-pinned-full.trx; TestResults
 ## Enum metadata checkpoint — 21 October 2026
 
 HolonType/ProviderType and nullable metadata domains now use defined integer identities across all admitted operations. Full305 controls and expanded native64 regression pass, zero skips;20 declared copies match. [Exact domain/fixture reconciliation evidence](CQL_ENUM_METADATA.md#verified-neo4j-enrollment--21-october-2026). GUID/date metadata, canonical audit-date/holon-type enrollment, native resource fault/stress and the full CQL/ORM roadmap remain open.
+
+## GUID metadata checkpoint — 21 October 2026
+
+Guid/Guid? canonical text domains now use one safe native guard/value owner for equality, membership, fields and ordering. Full307 controls and expanded native64 regression pass, zero skips;20 declared copies match. [Detailed contract and stable feature evidence](CQL_SCALAR_METADATA.md#neo4j-guid-metadata--21-october-2026). This cohort also renews the existing enum/narrow assertions. Date metadata and native resource/fault acceptance remain open.

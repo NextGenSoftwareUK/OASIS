@@ -26,6 +26,7 @@ internal static class NeoCqlContract
         foreach(var type in new[]{typeof(byte),typeof(sbyte),typeof(short),typeof(ushort),typeof(uint),typeof(HolonType),typeof(ProviderType)})
             foreach(var declared in new[]{type,typeof(Nullable<>).MakeGenericType(type)})
                 metadata.Add(new(declared,ordered,supportsMembership:true));
+        foreach(var type in new[]{typeof(Guid),typeof(Guid?)}) metadata.Add(new(type,equality,supportsMembership:true));
         return new(CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not | CosmicQueryFeatures.Metadata |
             CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists |
             CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith |

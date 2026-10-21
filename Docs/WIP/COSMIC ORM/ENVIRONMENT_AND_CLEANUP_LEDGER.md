@@ -59,6 +59,14 @@ Next action: verify the existing cross-process build-lease contract (fixed compa
 
 Fresh full native CQL regression passes 64/64 in 22 seconds, zero skips, terminal 0. Successful native fixtures removed by the existing owned teardown; `cql-native-fixture.json` absent and container stopped. Final complete Neo controls pass 305/305, zero skips. `cql-enum-final-artifacts.json` binds report hashes and 20 matching producer/consumer copies. No additional runtime, environment or download. Resource footprint remains the same reusable cache/container/output directories. Earlier interrupted-run evidence and exact reviewed cleanup proof remain retained. Core/Shared source is unchanged by this enum increment.
 
+## GUID metadata increment resource reservation
+
+21 October: reuse existing unit/native producers, global package cache and the same pinned Neo4j container/lease for GUID metadata admission and native predicates. Fixed reports are `TestResults/CoreCurrent/neo-cql-guid-red.trx`, `neo-cql-guid-controls.trx`, and the existing native CQL regression report. New GUID vectors will be metadata on the same five-ID owned native fixture, not another database/environment. No download/install/restore/new environment planned. Preserve failures and unknown outcomes; successful owned teardown must be verified before recording removal.
+
+## GUID increment outcome
+
+GUID producer and final complete controls pass 307/307; native full CQL regression passes 64/64 in 23 seconds. Same retained container, cache, runtime and five-row native fixture were reused; no download/install/restore/new environment. Successful fixture teardown removed exact owned test data, active manifest absent, runner terminal 0, container stopped and port 17687 has no listener. A compact stable feature copy `TestResults/Neo4jCurrent/cql-guid-native.trx` preserves this report independently of the reusable current report (same original bytes, digest checked before writing, existing differing evidence must not be overwritten). `cql-guid-final-artifacts.json` binds reports/source hashes and 20 matching copies. Both are retained evidence, not disposable databases. End-of-cohort C free 89,320,558,592 bytes is a whole-machine observation, not attribution of net task growth.
+
 ## Ongoing recording contract
 
 For every future action add date/session, exact path/resource/version, created/downloaded/restored/reused status, measured bytes or unmeasured, process/ports, purpose and retention, and cleanup/recreation outcome. At completion reconcile actual resources with both this ledger and shared inventories. Credentials/private keys must never be copied into this document. Unknown outcomes remain protected until reviewed reconciliation.
