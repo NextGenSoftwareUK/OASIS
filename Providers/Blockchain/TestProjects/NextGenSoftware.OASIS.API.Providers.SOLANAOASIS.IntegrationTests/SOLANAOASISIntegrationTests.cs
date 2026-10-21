@@ -19,6 +19,8 @@ public sealed partial class SOLANAOASISIntegrationTests
     [TestInitialize]
     public async Task Setup()
     {
+        var evidence=Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE") ?? throw new InvalidOperationException("Native evidence directory required.");
+        Assert.IsFalse(Directory.EnumerateFiles(evidence,"*.pending.json").Any(),"Inspect original native intent; do not dispatch another test after an unresolved outcome.");
         // Refuse to reach a validator without the separately persisted private-storage key.
         var storageKey = PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_SOLANA_STORAGE_ENCRYPTION_KEY");
         CryptographicOperations.ZeroMemory(storageKey);
@@ -48,6 +50,7 @@ public sealed partial class SOLANAOASISIntegrationTests
 
         var save = await _provider.SaveHolonAsync(holon, saveChildren: false);
         Assert.IsFalse(save.IsError, $"{save.Message} {save.Exception}");
+        Assert.AreEqual(1,save.SavedCount);
         Assert.IsNotNull(save.Result);
         Assert.IsTrue(save.Result.ProviderUniqueStorageKey.TryGetValue(ProviderType.SolanaOASIS, out string? signature));
         Assert.IsFalse(string.IsNullOrWhiteSpace(signature));
@@ -75,6 +78,7 @@ public sealed partial class SOLANAOASISIntegrationTests
         holon.Description = "Updated payload must replace old DTO fields";
         var update = await _provider.SaveHolonAsync(holon, saveChildren:false);
         Assert.IsFalse(update.IsError, update.Message);
+        Assert.AreEqual(1,update.SavedCount);
         var updatedSignature = holon.ProviderUniqueStorageKey[ProviderType.SolanaOASIS];
         Assert.AreNotEqual(signature, updatedSignature);
         var updated = await _provider.LoadHolonAsync(updatedSignature,loadChildren:false);

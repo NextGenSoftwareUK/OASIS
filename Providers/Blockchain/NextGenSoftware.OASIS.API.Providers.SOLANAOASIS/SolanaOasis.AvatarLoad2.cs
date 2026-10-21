@@ -112,8 +112,11 @@ public partial class SolanaOASIS
             {
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
                 PublishSolanaCreationOrigin(avatar,solanaAvatarDto);
+                avatar.Version=solanaAvatarDto.Version;
+                avatar.PreviousVersionId=solanaAvatarDto.PreviousVersionId;
 
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.IsError = false;
                 result.Result = avatar;
             }
@@ -165,8 +168,11 @@ public partial class SolanaOASIS
             {
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
                 PublishSolanaCreationOrigin(avatar,solanaAvatarDetailDto);
+                avatar.Version=solanaAvatarDetailDto.Version;
+                avatar.PreviousVersionId=solanaAvatarDetailDto.PreviousVersionId;
 
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.IsError = false;
                 result.Result = avatar;
             }

@@ -21,15 +21,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
     {
         ValidateStorageEntity(entity);
         var serializedEntity = EncodeEntity(entity);
-        var blockHash = await GetWritableBlockHashAsync();
-        var entityTransactionBytes = new TransactionBuilder()
-            .SetRecentBlockHash(blockHash)
-            .SetFeePayer(oasisAccount)
-            .AddInstruction(SetComputeUnitLimit(1_400_000))
-            .AddInstruction(MemoProgram.NewMemoV2(serializedEntity))
-            .Build(oasisAccount);
-
-        return await SubmitAndConfirmAsync(entityTransactionBytes);
+        return await WriteEncryptedRecordAsync(serializedEntity);
     }
 
     public async Task<string> UpdateAsync<T>(T entity)
@@ -41,16 +33,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         snapshot["Version"]=nextVersion;
         snapshot["PreviousVersionId"]=entity.Id;
         var serializedEntity = EncodeEntity(snapshot);
-        var blockHash = await GetWritableBlockHashAsync();
-
-        var entityUpdateTransactionBytes = new TransactionBuilder()
-            .SetRecentBlockHash(blockHash)
-            .SetFeePayer(oasisAccount)
-            .AddInstruction(SetComputeUnitLimit(1_400_000))
-            .AddInstruction(MemoProgram.NewMemoV2(serializedEntity))
-            .Build(oasisAccount);
-
-        var signature=await SubmitAndConfirmAsync(entityUpdateTransactionBytes);
+        var signature=await WriteEncryptedRecordAsync(serializedEntity);
         entity.Version=nextVersion;
         entity.PreviousVersionId=entity.Id;
         return signature;
@@ -84,16 +67,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         deserializedEntity["Version"] = checked(version.Value + 1);
         deserializedEntity["PreviousVersionId"] = identity.Value;
         var serializedEntity = EncodeEntity(deserializedEntity);
-        var blockHash = await GetWritableBlockHashAsync();
-
-        var entityDeleteUpdateTransactionBytes = new TransactionBuilder()
-            .SetRecentBlockHash(blockHash)
-            .SetFeePayer(oasisAccount)
-            .AddInstruction(SetComputeUnitLimit(1_400_000))
-            .AddInstruction(MemoProgram.NewMemoV2(serializedEntity))
-            .Build(oasisAccount);
-
-        return await SubmitAndConfirmAsync(entityDeleteUpdateTransactionBytes);
+        return await WriteEncryptedRecordAsync(serializedEntity);
     }
 
     private async Task RequireCurrentTombstoneReferenceAsync<T>(Guid id,string signature) where T:SolanaBaseDto,new()
@@ -138,7 +112,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         if (!queried.WasSuccessful || queried.HttpStatusCode != HttpStatusCode.OK)
             throw new InvalidOperationException("Solana finalized record lookup failed: " + queried.RawRpcResponse);
         var memo = ValidateStoredTransaction(queried.Result, signature, oasisAccount.PublicKey.Key);
-        return DecodeEntity(memo);
+        return await DecodeStoredMemoAsync(signature,memo);
     }
 
     private async Task<string> GetWritableBlockHashAsync()
