@@ -36,8 +36,8 @@ try{
         [xml]$verifiedTrx=Get-Content -LiteralPath $verifiedReport -Raw
         $counts=$verifiedTrx.TestRun.ResultSummary.Counters
         $originalIntent=Get-Content -LiteralPath $pending[0].FullName -Raw | ConvertFrom-Json
-        if([int]$counts.total -ne 130 -or [int]$counts.passed -ne 130 -or [int]$counts.notExecuted -ne 0 -or
-            [DateTimeOffset]$verifiedTrx.TestRun.Times.start -lt [DateTimeOffset]$originalIntent.startedUtc){throw 'Complete original130/130 report newer than the pending intent required.'}
+        if([int]$counts.total -ne 132 -or [int]$counts.passed -ne 132 -or [int]$counts.notExecuted -ne 0 -or
+            [DateTimeOffset]$verifiedTrx.TestRun.Times.start -lt [DateTimeOffset]$originalIntent.startedUtc){throw 'Complete original132/132 report newer than the pending intent required.'}
     }
     if($FullAwsSuite -or $ReconcileAwsPreRead -or $CleanupKnownAwsRun -or $CleanupVerifiedAwsRun){
         $project=Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests.csproj'
@@ -111,7 +111,7 @@ try{
         & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName!~AWSNativeRunLifecycle' --logger 'trx;LogFileName=aws-full-native-current.trx' --results-directory $work -v:q
         if($LASTEXITCODE -ne 0){throw 'Full AWS suite failed; preserve original persistent data/intent. No cleanup/retry.'}
         $report=Get-Item (Join-Path $work 'aws-full-native-current.trx');[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
-        if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 130 -or [int]$counts.passed -ne 130 -or [int]$counts.notExecuted -ne 0){throw 'Fresh full130/130 suite required before cleanup.'}
+        if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 132 -or [int]$counts.passed -ne 132 -or [int]$counts.notExecuted -ne 0){throw 'Fresh full132/132 suite required before cleanup.'}
         $env:OASIS_AWS_CLEANUP_AUTHORITY='verified-full-suite-pass'
         & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~AWSNativeRunLifecycle.CleanupOnlyAfterVerifiedFullSuitePass' --logger 'trx;LogFileName=aws-full-cleanup-current.trx' --results-directory $work -v:q
         if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Native exact cleanup incomplete; preserve remaining originals.'}
