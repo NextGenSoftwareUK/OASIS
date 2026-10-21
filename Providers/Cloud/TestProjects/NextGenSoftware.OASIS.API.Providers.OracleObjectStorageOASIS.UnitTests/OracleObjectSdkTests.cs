@@ -352,6 +352,15 @@ public class OracleObjectSdkTests
             CollectionAssert.AreEqual(beforeRead,objects.OrderBy(pair=>pair.Key).ToArray(),"Reads must not repair/delete encrypted objects or indexes.");
             foreach(var value in objects.Values)foreach(var marker in new[]{owner.Name,member.Name,scalar.Name,owner.Id.ToString(),member.Id.ToString()})Assert.IsFalse(value.Contains(marker,StringComparison.Ordinal));
             Assert.IsFalse((await provider.DeleteHolonAsync(member.Id)).IsError);Assert.IsFalse((await provider.DeleteHolonAsync(owner.Id)).IsError);
+            var importRoot=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),Name="private-import-root"};
+            var importChild=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),Name="private-import-child"};
+            importRoot.Children.Add(importChild);
+            var imported=synchronous?provider.Import(new[]{importRoot}):await provider.ImportAsync(new[]{importRoot});
+            Assert.IsFalse(imported.IsError,imported.Exception?.ToString());Assert.IsTrue(imported.Result);
+            Assert.IsTrue(imported.IsSaved);Assert.AreEqual(2,imported.SavedCount);
+            var importedGraph=await provider.LoadHolonAsync(importRoot.Id);
+            Assert.IsFalse(importedGraph.IsError,importedGraph.Message);Assert.AreEqual(importChild.Id,importedGraph.Result.Children.Single().Id);
+            foreach(var value in objects.Values)foreach(var marker in new[]{importRoot.Name,importChild.Name,importRoot.Id.ToString(),importChild.Id.ToString()})Assert.IsFalse(value.Contains(marker,StringComparison.Ordinal));
             Assert.IsTrue((await provider.LoadHolonAsync(member.Id,loadChildren:false)).IsError);Assert.IsTrue((await provider.LoadHolonAsync(owner.Id,loadChildren:false)).IsError);
             provider.Dispose();Assert.IsFalse(provider.IsProviderActivated);
             Assert.IsTrue((await provider.ActivateProviderAsync()).IsError);

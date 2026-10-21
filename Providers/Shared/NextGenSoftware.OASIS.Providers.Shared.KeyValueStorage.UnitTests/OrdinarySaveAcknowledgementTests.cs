@@ -10,6 +10,21 @@ public sealed class OrdinarySaveAcknowledgementTests
 {
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task ImportPreservesCompletedCountsAndSaveOutcome(bool synchronous,bool fail)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);
+        var first=new Holon {Id=Guid.NewGuid()};var second=new Holon {Id=Guid.NewGuid()};
+        if(fail)backend.FailPutKey="oasis/holon/"+second.Id.ToString("N");
+        var result=synchronous?provider.Import(new[] {first,second}):await provider.ImportAsync(new[] {first,second});
+        Assert.AreEqual(fail,result.IsError);Assert.AreEqual(!fail,result.Result);
+        Assert.AreEqual(!fail,result.IsSaved);Assert.AreEqual(fail?1:2,result.SavedCount);
+        Assert.IsTrue(backend.Items.ContainsKey("oasis/holon/"+first.Id.ToString("N")));
+        Assert.AreEqual(!fail,backend.Items.ContainsKey("oasis/holon/"+second.Id.ToString("N")));
+        if(fail)Assert.IsNotNull(result.Exception);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task FailedGraphOrBatchCountsOnlyCompletedRecords(bool synchronous,bool batch)
     {
         var backend=new InMemoryBackend();var provider=new TestProvider(backend);

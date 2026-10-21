@@ -1048,7 +1048,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var saved = await SaveHolonsAsync(holons, true, true, 0, 0, false);
-            return saved.IsError ? Fail<bool>(saved.Message, saved.Exception) : new OASISResult<bool>(true) { Message = $"Imported {saved.Result.Count()} holons into {Name}." };
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+            result.Result=!saved.IsError;
+            if(!saved.IsError)result.Message=$"Imported {saved.SavedCount} holons into {Name}.";
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).GetAwaiter().GetResult();
