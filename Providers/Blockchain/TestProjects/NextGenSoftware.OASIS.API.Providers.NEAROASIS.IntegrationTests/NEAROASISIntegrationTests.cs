@@ -334,6 +334,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             var recipient = Convert.ToHexString(NBitcoin.DataEncoders.Encoders.Base58.DecodeData(independent.Result.PublicKey[8..])).ToLowerInvariant();
             var funded=await _provider.SendTokenAsync(new SendWeb3TokenRequest{ToWalletAddress=recipient,Amount=0.1m});
             Assert.IsFalse(funded.IsError,funded.Message);
+            var nativeReturn=await _provider.SendTokenAsync(new SendWeb3TokenRequest{
+                FromWalletAddress=recipient,ToWalletAddress=Required("NEAROASIS_ACCOUNTID"),Amount=0.001m,
+                OwnerPublicKey=independent.Result.PublicKey,OwnerPrivateKey="",OwnerSeedPhrase=independent.Result.SeedPhrase});
+            Assert.IsFalse(nativeReturn.IsError,nativeReturn.Message);
+            await AssertOriginalMnemonicTransferAsync(nativeReturn.Result.TransactionResult,recipient,independent.Result.PublicKey,
+                Required("NEAROASIS_ACCOUNTID"),System.Numerics.BigInteger.Pow(10,21).ToString(System.Globalization.CultureInfo.InvariantCulture));
             var minted = await _provider.MintTokenAsync(new MintWeb3TokenRequest
                 { Symbol = symbol, Title = "NEAR runtime token", Amount = 100m });
             Assert.IsFalse(minted.IsError, minted.Message);
@@ -348,11 +354,13 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual(10m, (await _provider.GetCustomTokenBalanceAsync(symbol, recipient)).Result);
             var independentSend=await _provider.SendTokenAsync(new SendWeb3TokenRequest
             {
-                FromTokenAddress=symbol,FromWalletAddress=recipient,OwnerPrivateKey=independent.Result.PrivateKey,
+                FromTokenAddress=symbol,FromWalletAddress=recipient,OwnerPrivateKey="",OwnerPublicKey=independent.Result.PublicKey,OwnerSeedPhrase=independent.Result.SeedPhrase,
                 ToWalletAddress=Required("NEAROASIS_ACCOUNTID"),Amount=2m
             });
             Assert.IsFalse(independentSend.IsError,independentSend.Message);
             Assert.IsFalse(string.IsNullOrWhiteSpace(independentSend.Result.TransactionResult));
+            await AssertOriginalMnemonicTransferAsync(independentSend.Result.TransactionResult,recipient,independent.Result.PublicKey,
+                Required("NEAROASIS_CONTRACTADDRESS"));
             Assert.AreEqual(92m,(await _provider.GetCustomTokenBalanceAsync(symbol,Required("NEAROASIS_ACCOUNTID"))).Result);
             Assert.AreEqual(8m,(await _provider.GetCustomTokenBalanceAsync(symbol,recipient)).Result);
             Assert.IsFalse((await _provider.LockTokenAsync(new LockWeb3TokenRequest { TokenAddress = symbol })).IsError);
@@ -374,6 +382,25 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                 OwnerPrivateKey=Required("NEAROASIS_PRIVATEKEY"),OwnerPublicKey="",OwnerSeedPhrase=""},Required("NEAROASIS_ACCOUNTID"));
             Assert.IsFalse(namedBurn.IsError,namedBurn.Message);
             Assert.AreEqual(91.5m,(await _provider.GetCustomTokenBalanceAsync(symbol,Required("NEAROASIS_ACCOUNTID"))).Result);
+        }
+
+        private static async Task AssertOriginalMnemonicTransferAsync(string hash,string sender,string publicKey,string receiver,string? nativeDeposit=null)
+        {
+            // Independent public native RPC observation, not another signing/submission path.
+            using var client=new System.Net.Http.HttpClient{Timeout=TimeSpan.FromSeconds(10)};
+            using var body=new System.Net.Http.StringContent(System.Text.Json.JsonSerializer.Serialize(new{
+                jsonrpc="2.0",id="original-mnemonic-transfer",method="tx",@params=new{tx_hash=hash,sender_account_id=sender,wait_until="FINAL"}
+            }),System.Text.Encoding.UTF8,"application/json");
+            using var response=await client.PostAsync(Required("NEAROASIS_RPCENDPOINT"),body);response.EnsureSuccessStatusCode();
+            using var document=System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.IsFalse(document.RootElement.TryGetProperty("error",out _));
+            var outcome=document.RootElement.GetProperty("result");Assert.AreEqual("FINAL",outcome.GetProperty("final_execution_status").GetString());
+            Assert.IsTrue(outcome.GetProperty("status").TryGetProperty("SuccessValue",out _));
+            var transaction=outcome.GetProperty("transaction");Assert.AreEqual(hash,transaction.GetProperty("hash").GetString());
+            Assert.AreEqual(sender,transaction.GetProperty("signer_id").GetString());Assert.AreEqual(publicKey,transaction.GetProperty("public_key").GetString());
+            Assert.AreEqual(receiver,transaction.GetProperty("receiver_id").GetString());
+            if(nativeDeposit!=null){var actions=transaction.GetProperty("actions");Assert.AreEqual(1,actions.GetArrayLength());
+                Assert.AreEqual(nativeDeposit,actions[0].GetProperty("Transfer").GetProperty("deposit").GetString());}
         }
 
         [TestMethod]

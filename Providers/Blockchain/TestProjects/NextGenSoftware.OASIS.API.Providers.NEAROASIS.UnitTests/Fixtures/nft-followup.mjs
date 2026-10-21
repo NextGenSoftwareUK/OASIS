@@ -10,6 +10,11 @@ else if(input.operation==='deriveMnemonic'){
   result={publicKey:'fixture-public-key',privateKey:'controlled-owner-key',implicitAccountId:'1'.repeat(64)};
 }
 else if(input.operation==='view'&&input.methodName==='token_balance')result=process.env.OASIS_NEAR_TOKEN_TEST_ZERO==='1'?'0':'1000000000';
+else if(input.operation==='transfer'||input.operation==='call'&&input.methodName==='token_transfer'){
+  if(input.accountId!==process.env.OASIS_NEAR_TOKEN_TEST_ACCOUNT||input.privateKey!=='controlled-owner-key')throw new Error('Transfer signer was not forwarded.');
+  if(input.operation==='call'&&input.args.from_id!==input.accountId)throw new Error('Transfer source differs from signer account.');
+  result={transactionHash:'controlled-original-send-transaction'};
+}
 else if(input.operation==='call'&&input.methodName==='token_burn'){
   if(process.env.OASIS_NEAR_TOKEN_TEST_ZERO==='1')throw new Error('Insufficient balance must stop before mutation.');
   if(input.accountId!==process.env.OASIS_NEAR_TOKEN_TEST_ACCOUNT||input.privateKey!=='controlled-owner-key')throw new Error('Owner signer was not forwarded.');

@@ -93,6 +93,7 @@ public partial class NEAROASIS
     public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
     {
         var result = new OASISResult<ITransactionResponse>();
+        string acknowledged=null;
         try
         {
             if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress) || request.Amount <= 0)
@@ -100,35 +101,39 @@ public partial class NEAROASIS
             // Freeze all used caller fields before activation or any SDK await.
             var destination=request.ToWalletAddress;var source=request.FromWalletAddress;
             var tokenAddress=request.FromTokenAddress;var ownerKey=request.OwnerPrivateKey;var amount=request.Amount;
+            var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
             var native=string.IsNullOrWhiteSpace(tokenAddress)||string.Equals(tokenAddress,"NEAR",StringComparison.OrdinalIgnoreCase);
             var units=native?NearNativeAmount.ToYocto(amount):ToTokenUnits(amount);
-            var signer=string.IsNullOrWhiteSpace(source)?null:source;
-            var signerKey=string.IsNullOrWhiteSpace(ownerKey)?null:ownerKey;
-            if(signer!=null&&!string.Equals(signer,_accountId,StringComparison.Ordinal)&&signerKey==null)
-                throw new ArgumentException("An explicit independent NEAR sender requires its own signing key; the service key cannot substitute for it.");
+            var knownKey=await ResolveNearExplicitKeyAsync(ownerKey,seed);
+            var owner=string.IsNullOrWhiteSpace(source)?knownKey?.ImplicitAccountId??_accountId:source;
+            var signer=await ResolveNearSignerAsync(owner,ownerKey,publicKey,knownKey);
             if (!await EnsureSdkActiveAsync(result)) return result;
             string tx;
             if (native)
             {
-                tx = await _sdk.TransferAsync(destination, units,signer,signerKey);
+                tx = await _sdk.TransferAsync(destination, units,signer.Account,signer.Key);
             }
             else
             {
                 tx = await _sdk.CallAsync("token_transfer", new
                 {
                     symbol = tokenAddress,
-                    from_id = signer??_accountId,
+                    from_id = signer.Account,
                     receiver_id = destination,
                     amount = units
-                },signerAccountId:signer,signerPrivateKey:signerKey);
+                },signerAccountId:signer.Account,signerPrivateKey:signer.Key);
             }
+            acknowledged=tx;
             await RecordWalletTransactionAsync(tx,
-                signer??_accountId,destination,amount,
+                signer.Account,destination,amount,
                 native ? "Native NEAR transfer" : $"NEAR token transfer {tokenAddress}");
             result.Result = new TransactionResponse { TransactionResult = tx };
             result.Message = "Token transferred through the official NEAR SDK.";
         }
-        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error sending NEAR token: {ex.Message}", ex); }
+        catch (Exception ex) {
+            if(!string.IsNullOrWhiteSpace(acknowledged))ex=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,acknowledged,ex);
+            OASISErrorHandling.HandleError(ref result, $"Error sending NEAR token: {ex.Message}", ex);
+        }
         return result;
     }
 }
