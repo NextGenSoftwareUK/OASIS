@@ -34,7 +34,9 @@ public class Neo4jOrdinaryWriteFaultProxy : DispatchProxy
         if(result is Task<IAsyncTransaction> transaction)return WrapTransaction(transaction);
         if(Target is IAsyncTransaction)
         {
-            if(method!.Name=="RunAsync" && State.Mode is "rollback" or "rollbackLost")
+            if(method!.Name=="RunAsync" && (State.Mode is "rollback" or "rollbackLost"
+                || State.Mode=="pairRejected" && args![0] is string query && query.Contains("(a:AvatarDetail {Id:",StringComparison.Ordinal)
+                    && query.Contains("RETURN 1 AS affected",StringComparison.Ordinal)))
                 return LoseQuery((Task<IResultCursor>)result!);
             if(method.Name=="RollbackAsync")
             {State.Rollbacks++;return LoseAcknowledgement((Task)result!,State.Mode=="rollbackLost" ? State.Rollback:null);}
