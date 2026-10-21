@@ -2,7 +2,7 @@
 
 20 October 2026. Common compilation/admission and SQLite/MongoDB native execution pass the first corrected cohort. Core `c0309262de5e704c2a78d73499346379761a2193` is committed, pushed and remotely verified; its parent gitlink and deployment manifest are paired. The final immutable-source cohort is verified below. No Development deployment is included.
 
-Core now represents comparisons between two canonical or typed metadata paths using an immutable `CosmicQueryFieldComparison`. Compilation requires the same underlying CLR scalar type; nullable lifting is allowed, mixed numeric field precision is rejected. Capability admission requires the new `FieldComparison` feature and independently validates both exact paths, types and operators. Existing adapters therefore reject the new node until they explicitly implement and declare it.
+Core now represents comparisons between two canonical or typed metadata paths using an immutable `CosmicQueryFieldComparison`. Compilation accepts the same underlying CLR scalar type and lossless integral promotions such as int-to-long; nullable lifting is allowed. Every conversion must preserve the whole source domain, and each original path type remains available to its provider guard. Noninteger mixed precision, enum mixing, narrowing and nullable erasure remain rejected. Capability admission requires the new `FieldComparison` feature and independently validates both exact paths, types and operators. Existing adapters therefore reject the new node until they explicitly implement and declare it.
 
 Examples:
 
@@ -15,7 +15,7 @@ var belowLimit = CosmicQuery<Holon>.Create()
 if (belowLimit.IsError) throw new InvalidOperationException(belowLimit.Message);
 ```
 
-Pass `belowLimit.Result` through the same explicit-scope planner and HolonManager execution pipeline shown in [getting started](CQL_GETTING_STARTED.md). `Where` returns an `OASISResult` containing a new immutable query; it does not mutate an earlier query. Canonical-to-metadata comparisons also work when the underlying type matches, for example `CosmicQueryMetadata.Value<int>(h,"expectedVersion") == h.Version`.
+Pass `belowLimit.Result` through the same explicit-scope planner and HolonManager execution pipeline shown in [getting started](CQL_GETTING_STARTED.md). `Where` returns an `OASISResult` containing a new immutable query; it does not mutate an earlier query. Canonical-to-metadata comparisons also work when the underlying type matches or an admitted lossless integral promotion applies, for example `CosmicQueryMetadata.Value<int>(h,"expectedVersion") == h.Version`.
 
 The original baseline produced three failures and one passing mixed-precision rejection against the unchanged Core producer (`TestResults/CoreCurrent/cql-field-comparison-red.trx`). After the Core changes, both Core targets build and the full Core suite passes **1,557/1,557**, zero skips (`cql-field-comparison-core-current.trx`). These results prove compiler/admission behavior; they do not prove native execution. Both native provider projects also build successfully.
 
@@ -74,3 +74,7 @@ All have zero failures/skips. The final cases include mirrored UUID operands, bo
 | Shared | `7DD0C09B7528768EF570B3F472D4EF3FA62FDE9F8BA5065DDDCE5BAA908BD414` |
 | MongoDB | `C027DA468D3B8480B1A66BFDA8DB1EA96FE3A8B26C0F600779CC9B4C073B7C66` |
 | SQLite | `D82D2ED2DCDC915BC19B87C22FF7D9DACFAED71F42A751183D6AB5C5EDAC70FA` |
+
+## Neo4j and integral promotion follow-on — 21 October 2026
+
+Neo4j now implements field comparisons with independent operand guards and explicit nullable equality/inequality. Its expanded native64-case regression passes after fixing two shared compiler gaps: the known Guid.Empty constant and lossless int-versus-long field comparison. The compiled paths keep their original types; admission still requires each exact provider domain. Common fullCore1,635/1,635 passes against committed c4a89b1, and both Core targets build. Final provider gates passNeo298/298, Shared943/943 and SQLite1,203/1,203, zero skips;26 declared assembly copies match. The parent gitlink and manifest advance together. [Native evidence, preserved failures and reconciliation](CQL_NEO4J_NATIVE.md).

@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Neo4j fields and shared integer/Guid literals — 21 October 2026
+
+Native field comparisons now preserve independent type guards and nullable semantics. Shared Corec4a89b193aff419d1e5cf0f9b979ff56f2f80f4e recognizes Guid.Empty safely and admits whole-domain lossless integral field promotions while rejecting narrowing/nullable erasure and requiring both exact provider domains. FullCore1,635, Neo298, Shared943, SQLite1,203 and selected nativeNeo64 all pass, zero skips;26 declared copies match. Two original native compiler failures were preserved, independently reconciled and cleaned with fresh locked snapshot hashes. [Exact evidence and remaining scope](CQL_NEO4J_NATIVE.md). Native ordering/paging, broader domains, routing and the remaining roadmap remain open.
+
 ## Neo4j native CQL foundation — 21 October 2026
 
 The selected Neo4j provider now implements the common CQL execution contract with native parameterized predicates, typed metadata presence/null/integer/string/boolean domains and a bounded execution path. A transactional self-relationship projection and restartable activation upgrade preserve final snapshots and revisions; the native lock-observed concurrent writer test passes. Selected native64/64, fullNeo297/297 and pairedShared943/943 pass, zero skips;23 declared assembly copies match. [Scope, usage constraints and remaining gates](CQL_NEO4J_NATIVE.md). Broader scalar/field/order/page execution, native resource stress and complete Stage8 remain open.
