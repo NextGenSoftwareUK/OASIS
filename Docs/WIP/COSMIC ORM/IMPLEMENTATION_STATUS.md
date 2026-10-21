@@ -1,10 +1,14 @@
 # COSMIC ORM implementation status
 
+## SQLite audit timestamp fidelity — 20 October 2026
+
+Committed619c38ff5 preserves audit timestamp ticks and DateTime.Kind across Holon, Avatar and AvatarDetail reads, saves and atomic tombstone updates. Additive activation and formal migration preserve old Unspecified values; downgrade rejects retained kind information. Focused43/43 and completeSQLite1,203/1,203 pass, zero skips. [Evidence and remaining date policy](SQLITE_AUDIT_DATE_KINDS.md). Coref4d1623c7afdc4999e4704c71d7ff33312ff16b4 separately fixes the reproduced Local-minimum audit absence conversion. ExpandedCore1,629/1,629, Shared943/943 and SQLite1,203/1,203 pass, zero skips; both Core targets build and12 declared assembly copies match. Other provider native suites and audit-date CQL policy remain open.
+
 ## CQL defined enum metadata on SQLite — 20 October 2026
 
 MongoDB now enrolls the same defined HolonType/ProviderType domains, with native Int32/Int64 admission and rejection of undefined integers and integral-looking Double/Decimal128 values. Full205 controls and expanded3 native scenarios pass, zero skips, across both dictionary layouts;12 producer/consumer copies match. Explicit forged-enum-profile rejection remains covered. [MongoDB native evidence](CQL_ENUM_METADATA.md#mongodb-native-acceptance).
 
-SQLite now explicitly admits HolonType/ProviderType and nullable metadata paths, using the enum's defined integer values as the native domain. Comparisons, membership, fields and ordering share that guard; undefined integers and wrong JSON types do not become typed matches. Original two absent-capability failures close in focused7/7 and full1,176/1,176, zero skips. Eight producer/consumer copies match. [Usage, limits and evidence](CQL_ENUM_METADATA.md). MongoDB enum enrollment and broader enum/schema registration remain open.
+SQLite now explicitly admits HolonType/ProviderType and nullable metadata paths, using the enum's defined integer values as the native domain. Comparisons, membership, fields and ordering share that guard; undefined integers and wrong JSON types do not become typed matches. Original two absent-capability failures close in focused7/7 and full1,176/1,176, zero skips. Eight producer/consumer copies match. [Usage, limits and evidence](CQL_ENUM_METADATA.md). Broader enum/schema registration and other provider enrollment remain open.
 
 ## CQL exact narrow integer domains — 20 October 2026
 
