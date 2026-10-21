@@ -95,6 +95,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             modelBuilder.Entity<InventoryItemModel>().Property(x=>x.ExtendedValueJson).IsRequired().HasDefaultValue("{}");
             modelBuilder.Entity<HolonModel>().Property(x=>x.PersistentValueJson).IsRequired().HasDefaultValue("{}");
             modelBuilder.Entity<AvatarModel>().Property(x=>x.HasAvatarType).HasDefaultValue(true).ValueGeneratedNever();
+            modelBuilder.Entity<HolonModel>().Property(x=>x.CreatedDateKind).HasDefaultValue(0).ValueGeneratedNever();
+            modelBuilder.Entity<HolonModel>().Property(x=>x.CreatedDate).HasField("_createdDate").UsePropertyAccessMode(PropertyAccessMode.Field);
+            modelBuilder.Entity<HolonModel>().Property(x=>x.ModifiedDateKind).HasDefaultValue(0).ValueGeneratedNever();
+            modelBuilder.Entity<HolonModel>().Property(x=>x.ModifiedDate).HasField("_modifiedDate").UsePropertyAccessMode(PropertyAccessMode.Field);
+            modelBuilder.Entity<HolonModel>().Property(x=>x.DeletedDateKind).HasDefaultValue(0).ValueGeneratedNever();
+            modelBuilder.Entity<HolonModel>().Property(x=>x.DeletedDate).HasField("_deletedDate").UsePropertyAccessMode(PropertyAccessMode.Field);
+            modelBuilder.Entity<AvatarModel>().Property(x=>x.CreatedDateKind).HasDefaultValue(0).ValueGeneratedNever();
+            modelBuilder.Entity<AvatarModel>().Property(x=>x.CreatedDate).HasField("_createdDate").UsePropertyAccessMode(PropertyAccessMode.Field);
+            modelBuilder.Entity<AvatarModel>().Property(x=>x.ModifiedDateKind).HasDefaultValue(0).ValueGeneratedNever();
+            modelBuilder.Entity<AvatarModel>().Property(x=>x.ModifiedDate).HasField("_modifiedDate").UsePropertyAccessMode(PropertyAccessMode.Field);
+            modelBuilder.Entity<AvatarModel>().Property(x=>x.DeletedDateKind).HasDefaultValue(0).ValueGeneratedNever();
+            modelBuilder.Entity<AvatarModel>().Property(x=>x.DeletedDate).HasField("_deletedDate").UsePropertyAccessMode(PropertyAccessMode.Field);
+            modelBuilder.Entity<AvatarDetailModel>().Property(x=>x.CreatedDateKind).HasDefaultValue(0).ValueGeneratedNever();
+            modelBuilder.Entity<AvatarDetailModel>().Property(x=>x.CreatedDate).HasField("_createdDate").UsePropertyAccessMode(PropertyAccessMode.Field);
+            modelBuilder.Entity<AvatarDetailModel>().Property(x=>x.ModifiedDateKind).HasDefaultValue(0).ValueGeneratedNever();
+            modelBuilder.Entity<AvatarDetailModel>().Property(x=>x.ModifiedDate).HasField("_modifiedDate").UsePropertyAccessMode(PropertyAccessMode.Field);
+            modelBuilder.Entity<AvatarDetailModel>().Property(x=>x.DeletedDateKind).HasDefaultValue(0).ValueGeneratedNever();
+            modelBuilder.Entity<AvatarDetailModel>().Property(x=>x.DeletedDate).HasField("_deletedDate").UsePropertyAccessMode(PropertyAccessMode.Field);
             modelBuilder.Entity<KarmaAkashicRecordModel>().Property(x=>x.SequenceIndex).HasDefaultValue(0).ValueGeneratedNever();
             modelBuilder.Entity<KarmaAkashicRecordModel>().Property(x=>x.DateKind).HasDefaultValue(0).ValueGeneratedNever();
             foreach(var property in new[]{"HasKarmaSource","HasKarmaEarntOrLost","HasKarmaTypePositive","HasKarmaTypeNegative","HasProvider"})

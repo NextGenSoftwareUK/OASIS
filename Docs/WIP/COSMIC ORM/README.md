@@ -6,6 +6,7 @@ These are working documents. Dated reports retain historical evidence; earlier c
 
 ## Documents
 
+- [SQLite audit timestamp kind fidelity and regression evidence](SQLITE_AUDIT_DATE_KINDS.md).
 - [CQL enum metadata: defined-value domains and native acceptance](CQL_ENUM_METADATA.md).
 - [CQL exact integer domains and compiler promotion rules](CQL_INTEGER_DOMAINS.md).
 - [SQLite karma history persistence and remaining representation gaps](SQLITE_KARMA_HISTORY_PERSISTENCE.md).

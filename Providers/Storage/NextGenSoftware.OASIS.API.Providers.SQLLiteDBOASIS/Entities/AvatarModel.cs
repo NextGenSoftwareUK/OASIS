@@ -69,9 +69,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public bool IsChanged { get; set;}
         public bool IsNewHolon { get; set;}
 
-        public DateTime CreatedDate { get; set;}
-        public DateTime ModifiedDate { get; set;}
-        public DateTime DeletedDate { get; set;}
+        private DateTime _createdDate;
+        public int CreatedDateKind { get; set; }
+        public DateTime CreatedDate
+        {
+            get => SqliteAuditDate.Restore(_createdDate,CreatedDateKind);
+            set { _createdDate=value; CreatedDateKind=(int)value.Kind; }
+        }
+        private DateTime _modifiedDate;
+        public int ModifiedDateKind { get; set; }
+        public DateTime ModifiedDate
+        {
+            get => SqliteAuditDate.Restore(_modifiedDate,ModifiedDateKind);
+            set { _modifiedDate=value; ModifiedDateKind=(int)value.Kind; }
+        }
+        private DateTime _deletedDate;
+        public int DeletedDateKind { get; set; }
+        public DateTime DeletedDate
+        {
+            get => SqliteAuditDate.Restore(_deletedDate,DeletedDateKind);
+            set { _deletedDate=value; DeletedDateKind=(int)value.Kind; }
+        }
 
         public String CreatedByAvatarId { get; set;}
         public String ModifiedByAvatarId { get; set;}

@@ -62,6 +62,10 @@ public partial class SQLLiteDBOASIS
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"AvatarGifts",
             new Dictionary<string,string> {{"SequenceIndex","INTEGER NOT NULL DEFAULT 0"}}).ConfigureAwait(false);
         await EnsureOptionalGiftChakraAsync(connection,transaction.GetDbTransaction()).ConfigureAwait(false);
+        foreach(var table in new[]{"Holon","Avatar","AvatarDetail"})
+            await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),table,new Dictionary<string,string>{
+                {"CreatedDateKind","INTEGER NOT NULL DEFAULT 0"},{"ModifiedDateKind","INTEGER NOT NULL DEFAULT 0"},
+                {"DeletedDateKind","INTEGER NOT NULL DEFAULT 0"}}).ConfigureAwait(false);
         await transaction.CommitAsync().ConfigureAwait(false);
     }
 
