@@ -23,6 +23,8 @@ internal static class SqliteCqlContract
         foreach (var name in new[] { "IsActive", "IsPublic" }) fields.Add(name, new(name, typeof(bool), equality));
         foreach (var name in new[] { "Id", "ParentHolonId", "VersionId", "PreviousVersionId", "CreatedByAvatarId", "ModifiedByAvatarId" })
             fields.Add(name, new(name, typeof(Guid), equality));
+        fields=fields.ToDictionary(pair=>pair.Key,pair=>new CosmicQueryFieldCapability(pair.Value.Name,pair.Value.ValueType,
+            pair.Value.Comparisons.ToArray(),pair.Value.StringOperations.ToArray(),supportsOrdering:true),StringComparer.Ordinal);
         Fields = new ReadOnlyDictionary<string, CosmicQueryFieldCapability>(fields);
         var metadata = new[] {
             new CosmicQueryMetadataCapability(typeof(string), equality, System.Enum.GetValues<CosmicQueryStringOperator>(), supportsMembership: true),
@@ -37,8 +39,10 @@ internal static class SqliteCqlContract
             new CosmicQueryMetadataCapability(typeof(long), ordered, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(long?), ordered, supportsMembership: true)
         };
+        metadata=metadata.Select(m=>new CosmicQueryMetadataCapability(m.ValueType,m.Comparisons.ToArray(),m.StringOperations.ToArray(),
+            m.SupportsMembership,m.SupportsMixedNumericComparison,supportsOrdering:true)).ToArray();
         MetadataTypes = new ReadOnlyDictionary<Type, CosmicQueryMetadataCapability>(metadata.ToDictionary(m => m.ValueType));
         Capabilities = new CosmicQueryCapabilities(CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not |
-            CosmicQueryFeatures.Metadata | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith | CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists | CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.Membership | CosmicQueryFeatures.MixedNumericComparison | CosmicQueryFeatures.FieldComparison, fields.Values.ToArray(), metadata);
+            CosmicQueryFeatures.Metadata | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith | CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists | CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.Membership | CosmicQueryFeatures.MixedNumericComparison | CosmicQueryFeatures.FieldComparison | CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging, fields.Values.ToArray(), metadata);
     }
 }

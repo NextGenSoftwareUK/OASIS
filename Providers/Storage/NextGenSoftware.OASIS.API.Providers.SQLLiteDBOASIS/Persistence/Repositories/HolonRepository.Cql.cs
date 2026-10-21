@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data;
+using System.Text;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -23,23 +26,67 @@ public partial class HolonRepository
                 return CqlError("CQL_PLAN_INVALID", "SQLite execution requires an exclusively SQLite plan.");
             if (maximumResults < 1 || maximumResults > 10000)
                 return CqlError("CQL_QUERY_LIMIT", "SQLite CQL result limit must be between one and 10,000.");
+            var admission=SqliteCqlContract.Capabilities.Admit(plan.Query);
+            if(admission.IsError)return CqlError(admission.ErrorCode,admission.Message);
             // Translate completely before EF can open the connection. Never evaluate a predicate on fetched rows.
             var translator = new CqlSqlTranslator();
             var predicate = plan.Query.Predicates.Count == 0 ? "1" : string.Join(" AND ", plan.Query.Predicates.Select(translator.Translate));
-            translator.Parameters.Add(new SqliteParameter("$limit", maximumResults + 1));
+            var ordering=translator.TranslateOrdering(plan.Query.Orderings);
+            var fetch=plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,maximumResults+1):maximumResults+1;
+            translator.Parameters.Add(new SqliteParameter("$limit", fetch));
+            translator.Parameters.Add(new SqliteParameter("$offset",plan.Query.Offset));
             cancellationToken.ThrowIfCancellationRequested();
-            var rows = await _dbContext.Holons.FromSqlRaw("SELECT * FROM Holon WHERE " + predicate + " ORDER BY Id COLLATE BINARY LIMIT $limit",
-                translator.Parameters.Cast<object>().ToArray()).AsNoTracking().ToListAsync(cancellationToken);
-            if (rows.Count > maximumResults)
-                return CqlError("CQL_QUERY_LIMIT", "Query exceeds the declared result limit; no partial result was returned.");
-            IReadOnlyList<IHolon> result = rows.Select(GetHolonFromEntity).ToList().AsReadOnly();
-            return new OASISResult<IReadOnlyList<IHolon>>(result) { IsLoaded = true };
+            if(fetch==0)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
+            // Own the EF concurrency scope before changing any connection-local
+            // native hook/limit. Nested EF enumeration uses the same logical scope.
+            using var exclusive=_dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
+            var connection=(SqliteConnection)_dbContext.Database.GetDbConnection();
+            var opened=connection.State!=ConnectionState.Open;
+            if(opened)await _dbContext.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                using var budget=new SqliteCqlReadBudget(connection,cancellationToken);
+                var rows=new List<IHolon>();long bytes=0;
+                try
+                {
+                    budget.Check();
+                    var query=_dbContext.Holons.FromSqlRaw("SELECT * FROM Holon WHERE "+predicate+" ORDER BY "+ordering+" LIMIT $limit OFFSET $offset",
+                        translator.Parameters.Cast<object>().ToArray()).AsNoTracking();
+                    await foreach(var row in query.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
+                    {
+                        budget.Check();
+                        if(rows.Count>=maximumResults)throw new SqliteCqlResourceException("Query exceeds the declared result limit.");
+                        bytes+=1024;
+                        foreach(var property in CqlStringColumns)
+                        {
+                            var value=(string)property.GetValue(row);
+                            if(value!=null)bytes+=Encoding.UTF8.GetByteCount(value);
+                        }
+                        if(bytes>SqliteCqlReadBudget.MaximumPayloadBytes)
+                            throw new SqliteCqlResourceException("SQLite CQL exceeds its streamed payload budget.");
+                        rows.Add(GetHolonFromEntity(row));budget.Check();
+                    }
+                    budget.Check();
+                    return new OASISResult<IReadOnlyList<IHolon>>(rows.AsReadOnly()){IsLoaded=true};
+                }
+                catch(SqliteException cause) when(cause.SqliteErrorCode==9){budget.Check();throw;}
+            }
+            finally
+            {
+                if(opened)await _dbContext.Database.CloseConnectionAsync().ConfigureAwait(false);
+            }
         }
+        catch (SqliteCqlDeadlineException cause){return CqlError("CQL_QUERY_TIMEOUT",cause.Message,cause);}
+        catch (SqliteCqlResourceException cause){return CqlError("CQL_QUERY_LIMIT",cause.Message,cause);}
+        catch (SqliteException cause) when(cause.SqliteErrorCode==18){return CqlError("CQL_QUERY_LIMIT","SQLite CQL exceeds its native record-size budget.",cause);}
         catch (CqlTranslationLimitException cause) { return CqlError("CQL_QUERY_LIMIT", cause.Message, cause); }
         catch (NotSupportedException cause) { return CqlError("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
         catch (OperationCanceledException cause) { return CqlError("CQL_QUERY_CANCELLED", "SQLite CQL execution was cancelled.", cause); }
         catch (Exception cause) { return CqlError("CQL_QUERY_FAILED", "SQLite CQL execution failed: " + cause.Message, cause); }
     }
+
+    private static readonly System.Reflection.PropertyInfo[] CqlStringColumns=typeof(Entities.HolonModel).GetProperties()
+        .Where(property=>property.PropertyType==typeof(string) && property.GetMethod!=null).ToArray();
 
     private static OASISResult<IReadOnlyList<IHolon>> CqlError(string code, string message, Exception cause = null)
         => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = cause };
@@ -47,7 +94,7 @@ public partial class HolonRepository
     private sealed class CqlTranslationLimitException : Exception
     { internal CqlTranslationLimitException() : base("SQLite CQL exceeds its 900-bound-parameter translation budget.") { } }
 
-    private sealed class CqlSqlTranslator
+    private sealed partial class CqlSqlTranslator
     {
         internal readonly List<SqliteParameter> Parameters = new();
         private string Bind(object value)
@@ -56,6 +103,9 @@ public partial class HolonRepository
             var name = "$cql" + Parameters.Count; Parameters.Add(new SqliteParameter(name, value)); return name;
         }
         private string MetadataPredicate(IReadOnlyList<string> segments, Func<string, string> condition, string prefix = "m")
+            => "EXISTS (" + MetadataSubquery(segments, _ => "1", condition, prefix) + ")";
+        private string MetadataSubquery(IReadOnlyList<string> segments, Func<string,string> projection,
+            Func<string,string> condition, string prefix)
         {
             var sources = new List<string>(); var conditions = new List<string>();
             for (var i = 0; i < segments.Count; i++)
@@ -65,8 +115,9 @@ public partial class HolonRepository
                 sources.Add("json_each(" + document + ") AS " + alias);
                 conditions.Add(alias + ".key COLLATE BINARY = " + Bind(segments[i]));
             }
-            conditions.Add(condition(prefix + (segments.Count - 1)));
-            return "EXISTS (SELECT 1 FROM " + string.Join(", ", sources) + " WHERE " + string.Join(" AND ", conditions) + ")";
+            var terminal=prefix + (segments.Count - 1);
+            conditions.Add(condition(terminal));
+            return "SELECT " + projection(terminal) + " FROM " + string.Join(", ", sources) + " WHERE " + string.Join(" AND ", conditions);
         }
         // json_each exposes its own `id` column. Every canonical operand must
         // remain bound to the outer record, including inside a correlated path.

@@ -35,6 +35,11 @@ public sealed class CosmicCqlFixtureReconciliationTests
         var rowCount=await database.GetCollection<BsonDocument>("Holon").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty);
         if(rowCount!=0)
         {
+            if(rowCount==14)
+            {
+                await InspectResourceFixture(client,database,collections,workspace);
+                return;
+            }
             var comparisonFixture=await database.GetCollection<BsonDocument>("Holon").Find(new BsonDocument("HolonId","14cfbaa0-335a-49f4-aa7f-f7fb5278a080")).SingleOrDefaultAsync();
             if(comparisonFixture!=null && comparisonFixture["MetaData"] is BsonDocument comparisonMetadata && comparisonMetadata.Contains("guid.reference"))
             {
@@ -57,6 +62,54 @@ public sealed class CosmicCqlFixtureReconciliationTests
             Reason="Original native code 388 seed transaction rolled back; no rows, receipts or preparations committed."}));
         // Only the exact empty owned fixture is removed, after every collection was checked.
         await client.DropDatabaseAsync(name);
+    }
+
+    private static async Task InspectResourceFixture(MongoClient client,IMongoDatabase database,List<string> collections,string workspace)
+    {
+        var report=Path.Combine(workspace,"TestResults/CosmicMongoCurrent/cql-timeout-original-failure.trx");
+        Assert.Equal("A513E8EB09F79280FCE35E2477C3041A66DDEA67E6F1A5D4BE133266D5CC4A3B",
+            Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(report))));
+        var images=new SortedDictionary<string,BsonDocument[]>(StringComparer.Ordinal);
+        foreach(var name in collections)
+        {
+            Assert.Contains(name,new[]{"CosmicOwnedFixture","Holon","Avatar","AvatarDetail","SearchData","CosmicHolonOutbox"});
+            images.Add(name,(await database.GetCollection<BsonDocument>(name).Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("_id",1)).ToListAsync()).ToArray());
+            if(name!="Holon")Assert.Empty(images[name]);
+        }
+        var rows=images["Holon"];Assert.Equal(14,rows.Length);
+        var expected=Enumerable.Range(0,9).Select(i=>"owned CQL bounded payload "+i)
+            .Concat(Enumerable.Range(9,5).Select(i=>"owned CQL bounded sort "+i)).OrderBy(name=>name,StringComparer.Ordinal);
+        Assert.Equal(expected,rows.Select(row=>row["Name"].AsString).OrderBy(name=>name,StringComparer.Ordinal));
+        Assert.Equal(14,rows.Select(row=>Guid.Parse(row["HolonId"].AsString)).Distinct().Count());
+        foreach(var row in rows)
+        {
+            Assert.Equal(Guid.Empty.ToString("D"),row["ParentHolonId"].AsString);
+            Assert.True(row["Children"].IsBsonNull);Assert.Empty(row["ChildrenIds"].AsBsonArray);
+            Assert.True(row["IsActive"].AsBoolean);Assert.False(row["IsPublic"].AsBoolean);
+            Assert.Null(row["Description"].IsBsonNull?null:row["Description"].AsString);
+            var entry=Assert.Single(row["MetaData"].AsBsonDocument);
+            Assert.Equal("payload",entry.Name);Assert.Equal(8*1024*1024,entry.Value.AsString.Length);
+            Assert.Equal(-1,entry.Value.AsString.AsSpan().IndexOfAnyExcept('x'));
+            Assert.Equal(Guid.Empty.ToString("D"),row["CreatedByAvatarId"].AsString);
+            Assert.Equal(Guid.Empty.ToString("D"),row["VersionId"].AsString);
+            Assert.True(Guid.TryParse(row["ProviderRevisionId"].AsString,out var revision) && revision!=Guid.Empty);
+            Assert.Equal(Guid.Empty.ToString("D"),row["PreviousVersionId"].AsString);
+            Assert.Equal(DateTime.MinValue.Ticks,row["DeletedDate"].ToUniversalTime().Ticks);
+            Assert.Equal(Guid.Empty.ToString("D"),row["DeletedByAvatarId"].AsString);
+        }
+        string Hash(BsonDocument row)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(row.ToBson()));
+        var inventory=images.ToDictionary(pair=>pair.Key,pair=>pair.Value.Select(row=>new{Id=row["_id"].ToString(),Sha256=Hash(row)}).ToArray());
+        await File.WriteAllTextAsync(Path.Combine(workspace,"TestResults/CosmicMongoCurrent/cql-timeout-fixture-reviewed.json"),
+            JsonSerializer.Serialize(new{Database="cosmic_cql_fixture",Rows=14,Payload="Exactly8MiBASCIIxInEachRow",Collections=inventory}));
+        using var names=await database.ListCollectionNamesAsync();
+        Assert.Equal(images.Keys,(await names.ToListAsync()).OrderBy(name=>name,StringComparer.Ordinal));
+        foreach(var pair in images)
+        {
+            var current=await database.GetCollection<BsonDocument>(pair.Key).Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("_id",1)).ToListAsync();
+            Assert.Equal(pair.Value.Select(Hash),current.Select(Hash));
+        }
+        Assert.Equal("cosmic_cql_fixture",database.DatabaseNamespace.DatabaseName);
+        await client.DropDatabaseAsync("cosmic_cql_fixture");
     }
 
     private static async Task InspectFieldComparisonFixture(MongoClient client,IMongoDatabase database,List<string> collections,string workspace)
