@@ -9,10 +9,12 @@ $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenO
 $owned=$null
 $nativeId=$null
 $secret=$null
-$names=@('SOLANA_RPC_URL','SOLANA_PRIVATE_KEY','SOLANA_PUBLIC_KEY','OASIS_SOLANA_STORAGE_ENCRYPTION_KEY')
+$names=@('SOLANA_RPC_URL','SOLANA_PRIVATE_KEY','SOLANA_PUBLIC_KEY','OASIS_SOLANA_STORAGE_ENCRYPTION_KEY','OASIS_SOLANA_NATIVE_EVIDENCE')
 $previous=@{}
 foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
 try {
+    if(!$InspectRecent -and (Test-Path -LiteralPath (Join-Path $work 'sdk-concurrent.pending.json'))){throw 'Inspect original concurrent Solana submissions; do not replay or reset.'}
+    if(!$InspectRecent -and (Test-Path -LiteralPath (Join-Path $work 'solana-validator-current.trx'))){throw 'Preserve and hash-verify the existing native report before another run.'}
     $freeBefore=(Get-PSDrive C).Free
     $prerequisites='test -x /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator && test -f /var/tmp/oasis-solana/ledger/genesis.bin'
     if(!$InspectRecent){$prerequisites+=' && test -f /var/tmp/oasis-solana/fixture-keypair.json && test -f /var/tmp/oasis-solana/storage-key'}
@@ -42,7 +44,9 @@ try {
     } while((!$ready -or !$nativeId) -and [DateTime]::UtcNow -lt $deadline)
     if(!$ready -or !$nativeId){throw 'Validator did not become healthy; original process will not be restarted.'}
     $genesis=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"getGenesisHash"}' -TimeoutSec 3
-    if($genesis.result -ne 'HXfgJ8CoRQ7RcgETc178DX2FwbSQQK6nCCTNc5YwGRi2'){throw 'Retained ledger genesis differs; refusing writes.'}
+    # Approved one-time recovery: original ledger/uncertain outcomes remain cold and unresolved.
+    # New identity independently observed with finalized0->101 and offline snapshot100/root102 admission.
+    if($genesis.result -ne 'F22uw23o1HuahQiQVfd7Lfi6Q51fv4KNoYAvDnDDpEvj'){throw 'Retained ledger genesis differs; refusing writes.'}
     $slotBody='{"jsonrpc":"2.0","id":1,"method":"getSlot","params":[{"commitment":"finalized"}]}'
     $initialRoot=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
     if($null -eq $initialRoot.result -or $initialRoot.error){throw 'Finalized slot lookup failed; refusing writes.'}
@@ -95,6 +99,7 @@ try {
     $env:SOLANA_PRIVATE_KEY=[Solnet.Wallet.Utilities.Encoders]::Base58.EncodeData($secret)
     $env:SOLANA_PUBLIC_KEY=[Solnet.Wallet.Utilities.Encoders]::Base58.EncodeData([byte[]]$secret[32..63])
     $env:SOLANA_RPC_URL='http://127.0.0.1:18899'
+    $env:OASIS_SOLANA_NATIVE_EVIDENCE=$work
     $env:OASIS_SOLANA_STORAGE_ENCRYPTION_KEY=(Get-Content -LiteralPath '\\wsl.localhost\Ubuntu\var\tmp\oasis-solana\storage-key' -Raw).Trim()
     $testStarted=[DateTime]::UtcNow
     $testArguments=@('test',$project,'--no-build','--no-restore','/m:2','/nr:false','--logger','trx;LogFileName=solana-validator-current.trx','--results-directory',$work,'-v:q')

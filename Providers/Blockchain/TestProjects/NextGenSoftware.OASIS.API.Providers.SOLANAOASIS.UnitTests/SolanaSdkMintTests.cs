@@ -12,6 +12,53 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaSdkMintTests
 {
+    public class HeldBroadcastProxy:MintProxy
+    {
+        public int Broadcasts;
+        public readonly TaskCompletionSource<bool> Entered=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public readonly TaskCompletionSource<Solnet.Rpc.Core.Http.RequestResult<string>> Reply=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        protected override object? Invoke(MethodInfo? method,object?[]? args)
+        {
+            if(method!.Name=="SendTransactionAsync"){
+                var count=Interlocked.Increment(ref Broadcasts);Entered.TrySetResult(true);
+                if(count==1)return Reply.Task;
+            }
+            return base.Invoke(method,args);
+        }
+    }
+    [TestMethod]
+    public async Task QueuedSdkSubmissionFreezesBytesAndResumesAfterFinalizedPredecessor()
+    {
+        var rpc=DispatchProxy.Create<IRpcClient,HeldBroadcastProxy>();var proxy=(HeldBroadcastProxy)(object)rpc;proxy.Scenario="finalized";
+        var wrapped=((IRpcClient Client,FinalizedSolanaRpc State))typeof(FinalizedSolanaRpc).GetMethod("Wrap",BindingFlags.NonPublic|BindingFlags.Static)!
+            .Invoke(null,new object[]{rpc,new Account()})!;
+        var firstBytes=new byte[70];firstBytes[0]=1;firstBytes[1]=31;
+        var secondBytes=(byte[])firstBytes.Clone();secondBytes[1]=32;
+        var first=wrapped.Client.SendTransactionAsync(firstBytes);await proxy.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var second=wrapped.Client.SendTransactionAsync(secondBytes);secondBytes[1]=99;
+        Assert.AreEqual(1,proxy.Broadcasts);
+        var signature=Solnet.Wallet.Utilities.Encoders.Base58.EncodeData(firstBytes.AsSpan(1,64).ToArray());
+        using var response=new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+        proxy.Reply.SetResult(new Solnet.Rpc.Core.Http.RequestResult<string>(response,signature){WasRequestSuccessfullyHandled=true});
+        await Task.WhenAll(first,second);
+        Assert.AreEqual(2,proxy.Broadcasts);Assert.AreEqual((byte)32,proxy.Signed![1]);
+        Assert.AreEqual(2,wrapped.State.FinalizedSignatures.Count);Assert.IsNull(wrapped.State.SubmissionFailure);
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task ConcurrentSdkSubmissionsCannotBypassUnknownOutcomeFence(bool encoded)
+    {
+        var rpc=DispatchProxy.Create<IRpcClient,HeldBroadcastProxy>();var proxy=(HeldBroadcastProxy)(object)rpc;proxy.Scenario="finalized";
+        var wrapped=((IRpcClient Client,FinalizedSolanaRpc State))typeof(FinalizedSolanaRpc).GetMethod("Wrap",BindingFlags.NonPublic|BindingFlags.Static)!
+            .Invoke(null,new object[]{rpc,new Account()})!;
+        var bytes=new byte[70];bytes[0]=1;bytes[1]=31;
+        Task<Solnet.Rpc.Core.Http.RequestResult<string>> Send()=>encoded?wrapped.Client.SendTransactionAsync(Convert.ToBase64String(bytes)):wrapped.Client.SendTransactionAsync(bytes);
+        var first=Send();await proxy.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var second=Send();proxy.Reply.SetException(new IOException("owned held broadcast response loss"));
+        var firstFailure=await Assert.ThrowsExceptionAsync<SolanaTransactionReconciliationException>(()=>first);
+        var secondFailure=await Assert.ThrowsExceptionAsync<SolanaTransactionReconciliationException>(()=>second);
+        Assert.AreEqual(1,proxy.Broadcasts);Assert.AreSame(firstFailure,secondFailure);
+        Assert.AreSame(firstFailure,wrapped.State.SubmissionFailure);Assert.AreEqual(0,wrapped.State.FinalizedSignatures.Count);
+    }
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task ActualMetaplexSdkMintUsesFinalizedSubmissionAndKeepsLostReplyIdentity(bool lost)

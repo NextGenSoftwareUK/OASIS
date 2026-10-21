@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## Solana approved recovery and SDK submission concurrency — scoped closure
+
+Approved one-time SAME-environment recovery preserved the original130MiB ledger by one cold rename, hash unchanged, no copy/reset/replay. Same pinnedAgave4.3.0/runtime/keys/fixed loopback; fresh consensus finalized0→101, snapshot100/root102 independently admitted offline after clean stop. New genesis explicitly pinned; original uncertain post505 outcomes remain unresolved, not certified by fresh consensus.
+
+Actual17372 terminal0 expanded native1/1 passed0skip1m7: encrypted create/update/history/tombstone checks plus two concurrent calls through ONE actual SDK adapter, exact prepared signatures journaled before broadcast, both independent finalized payloads verified and intent closed only afterward. NativeTRX SHA256 `A26529912A153F4FAE93C21FAD7A82BCDBE312656F28849F713F264B62DB8EE3`. Actual54369 terminal0 fullcontrolled559/559passed0skip10s (`25256B68F5A808553DA67E8CC8226C042340B6EFE150E69DF32CFDA3004F8E9D`), matching Core6635E34C/Shared6E57826D and Solana56FD7A03 producer/native/control copies. Native1 is not559native cases; native unknown-response fencing still not proved by controlled equivalents. Full scope/hashes/fees/recovery receipt in `SOLANA_SUBMISSION_CONCURRENCY.md`.
+
+Original ledger/keys/evidence retained, sameactiveledger285MiB, validator independently absent/pending0; no download/new SDK/environment/public spend/devdeploy. Missing consumer assets restored from existing NuGet cache only. Local test fees apply but exact lamport fee/hosted sponsorship not asserted. Full relevant interfaces/assets/hosted and universalV2 gates remain OPEN. Scope is a truthful direct-provider improvement, not global completion.
+
 ## Cosmos native-history closure and Ethereum diagnostic fix — 2026-10-20
 
 Ethereum follow-up actual81956 terminal0: broader **108/108 controlled pass**, zero skips2s, native class explicitly excluded. Report SHA256 `EF8931FADE9D6458ECCEB269055E5157FF0998EA9024B84C8B019CF98CC25A4B`; Ethereum producer/consumer8D9264FF, Core6635E34C/Shared6E57826D matched. Does not clear original native284+Web3 recovery gate. Full hashes, prior red4/green12 and source-cohort qualifications in `EVM_FINALIZED_STATUS.md`; no download/native transaction/deployment.
