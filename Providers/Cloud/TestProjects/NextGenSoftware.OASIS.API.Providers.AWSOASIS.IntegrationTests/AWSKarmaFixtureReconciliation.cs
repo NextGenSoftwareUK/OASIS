@@ -170,6 +170,26 @@ public sealed partial class AWSNativeRunLifecycle
             reportSha,sqliteSha,"reportSha",46,"aws-karma-mutation-cleanup.json");
     }
 
+    [TestMethod]
+    public async Task CleanupOnlyReviewedSqliteKarmaHistoryFailure()
+    {
+        Assert.AreEqual("known-sqlite-karma-history-reconciled",Environment.GetEnvironmentVariable("OASIS_AWS_CLEANUP_AUTHORITY"));
+        const string reportSha="79CA2FF579FA41B593A16BA200350776DDC469360363AA4FBD81B80FE4063288";
+        const string sqliteSha="8DE63ADEDB312A112A5E3F3106C265496D91C37C6667E513C34E76CE753EB8F5";
+        Assert.AreEqual(reportSha,Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(Path.Combine(Work(),"aws-full-native-current.trx")))));
+        using var intent=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Work(),"aws-full-suite.pending.json")));
+        Assert.AreEqual("2026-10-21T03:21:23.0794497Z",intent.RootElement.GetProperty("startedUtc").GetString());
+        Assert.AreEqual("verified-empty-before-exclusive-native-suite",intent.RootElement.GetProperty("state").GetString());
+        Assert.AreEqual("http://127.0.0.1:18000",intent.RootElement.GetProperty("endpoint").GetString());
+        CollectionAssert.AreEqual(Tables,intent.RootElement.GetProperty("tables").EnumerateArray().Select(x=>x.GetString()!).ToArray());
+        var original=Path.GetFullPath(Path.Combine(Work(),"aws-karma-affinity.db"));
+        Assert.AreEqual(sqliteSha,Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(original))));
+        foreach(var suffix in new[] {"-wal","-shm","-journal"})Assert.IsFalse(File.Exists(original+suffix));
+        await CleanupReviewedInventory(original,"aws-sqlite-karma-history-inspection.json",
+            "4B77447725DA054EFC9342B836E191B0F46D87F18AA8E0767A66E485199BD85D",
+            reportSha,sqliteSha,"reportSha",54,"aws-sqlite-karma-history-cleanup.json");
+    }
+
     private static async Task CleanupReviewedInventory(string original,string proofName,string proofSha,
         string reportSha,string sqliteSha,string reportProperty,int expectedCount,string cleanupName)
     {
