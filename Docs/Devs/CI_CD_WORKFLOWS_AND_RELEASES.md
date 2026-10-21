@@ -3,7 +3,7 @@
 The repeatable monthly process for releasing all NuGet packages, runtimes, OGEngineClient, Native Endpoint and MCP distributions is documented in [GLOBAL_RELEASE_AUTOMATION.md](GLOBAL_RELEASE_AUTOMATION.md).
 
 The complete Edge package, test, artifact and publication map is documented in
-[EDGE_RUNTIME_RELEASES.md](EDGE_RUNTIME_RELEASES.md).
+[EDGE_RUNTIME_RELEASES.md](<../WIP/Edge and Games/EDGE_RUNTIME_RELEASES.md>).
 
 That guide also defines the required standalone component workflows, automatic and explicit SemVer modes, non-publishing previews, release-preparation PRs and publish-time drift checks. Existing and planned workflows must be described accurately; unavailable game binary pipelines must remain explicit blockers.
 

@@ -9,7 +9,7 @@ This is the complete **OGEngineClient + Edge + Unity** distribution: the compile
 `Runtime/Plugins/Managed`, alongside Unity integration scripts and platform plugins.
 Do not install a separate OGEngineClient GitHub ZIP into the same Unity project.
 The GitHub tag family is `OASIS-Edge-Unity-vX.Y.Z`; the NuGet delivery wrapper is
-`NextGenSoftware.OASIS.Edge.Unity`. See the [four-distribution comparison](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/EDGE_DISTRIBUTIONS.md)
+`NextGenSoftware.OASIS.Edge.Unity`. See the [four-distribution comparison](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Edge and Games/EDGE_DISTRIBUTIONS.md)
 for standalone Edge and non-Unity OGEngineClient alternatives.
 
 ## Supported platforms
