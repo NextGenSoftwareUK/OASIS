@@ -74,11 +74,11 @@ public class NearNftSigningTests
     }
 
     [DataTestMethod][DataRow(false)][DataRow(true)]
-    public async Task UnsupportedSeedCannotBeIgnoredInFavorOfServiceSigner(bool burn)
+    public async Task InvalidSeedCannotBeIgnoredInFavorOfServiceSigner(bool burn)
     {
         var provider=new NEAROASIS("http://127.0.0.1:1","fixture","fixture","contract.near","service.near","controlled-fixture-key");
-        if(burn){var result=await provider.BurnNFTAsync(new BurnWeb3NFTRequest{TokenId="owned-id",OwnerPublicKey="",OwnerPrivateKey="",OwnerSeedPhrase="unsupported mnemonic"});Assert.IsTrue(result.IsError);Assert.IsInstanceOfType(result.Exception,typeof(NotSupportedException));}
-        else {var result=await provider.SendNFTAsync(new SendWeb3NFTRequest{TokenId="owned-id",ToWalletAddress="receiver.near",OwnerSeedPhrase="unsupported mnemonic"});Assert.IsTrue(result.IsError);Assert.IsInstanceOfType(result.Exception,typeof(NotSupportedException));}
+        if(burn){var result=await provider.BurnNFTAsync(new BurnWeb3NFTRequest{TokenId="owned-id",OwnerPublicKey="",OwnerPrivateKey="",OwnerSeedPhrase="unsupported mnemonic"});Assert.IsTrue(result.IsError);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));}
+        else {var result=await provider.SendNFTAsync(new SendWeb3NFTRequest{TokenId="owned-id",ToWalletAddress="receiver.near",OwnerSeedPhrase="unsupported mnemonic"});Assert.IsTrue(result.IsError);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));}
         Assert.IsFalse(provider.IsProviderActivated);
     }
 }
