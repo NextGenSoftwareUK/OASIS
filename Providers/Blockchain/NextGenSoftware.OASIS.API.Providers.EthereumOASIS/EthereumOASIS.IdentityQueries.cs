@@ -44,9 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var stored = await load();
                 if (stored.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result,stored.Message,stored.Exception);
-                    result.ErrorCode = stored.ErrorCode;
-                    return result;
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,T>(stored);
                 }
                 if (stored.Result == null) throw new InvalidOperationException("Native identity collection returned no result.");
                 // Equality matches account identity semantics, not substring/search matching.
