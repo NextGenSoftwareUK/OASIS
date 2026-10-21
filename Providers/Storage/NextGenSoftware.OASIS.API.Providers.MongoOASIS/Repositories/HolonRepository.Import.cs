@@ -69,6 +69,7 @@ public partial class HolonRepository
                 var staged=new List<(BsonDocument Body,bool New)>();
                 var bodies=new Dictionary<Guid,BsonDocument>();
                 var observations=new Dictionary<Guid,BsonDocument>();
+                var observedEntities=new Dictionary<Guid,Holon>();
                 var conflicts = new List<CosmicConcurrencyConflict>();
                 foreach(var holon in entries)
                 {
@@ -78,7 +79,7 @@ public partial class HolonRepository
                     if(matches.Count>1) throw new StorageIdentityAmbiguousException();
                     var observed=matches.SingleOrDefault();
                     var existing=observed==null ? null:BsonSerializer.Deserialize<Holon>(observed);
-                    if(observed!=null) observations.Add(holon.HolonId,observed);
+                    if(observed!=null){observations.Add(holon.HolonId,observed);observedEntities.Add(holon.HolonId,existing);}
                     if(edit!=null)
                     {
                         var expected=edit.ExpectedRevisions[holon.HolonId];
@@ -88,13 +89,17 @@ public partial class HolonRepository
                     }
                 }
                 if(conflicts.Count!=0) throw new CosmicConcurrencyException(conflicts);
+                if(replica==null&&(edit==null||edit.Operation==ConditionalHolonOperation.Save))
+                    foreach(var proposal in entries)
+                        if(observedEntities.TryGetValue(proposal.HolonId,out var previous))
+                            HolonSaveLifecycle.RequireCompatibleSave(previous.DeletedDate,previous.DeletedByAvatarId,proposal.IsActive,proposal.DeletedDate,proposal.DeletedByAvatarId);
                 if(replica!=null)
                     await PrepareCommittedReplicaEntitiesAsync(session, entries, observations, replica, cancellation).ConfigureAwait(false);
                 var now=DateTime.UtcNow;
                 for(var index=0;index<entries.Count;index++)
                 {
                     var holon=entries[index];
-                    var existing=observations.TryGetValue(holon.HolonId,out var original) ? BsonSerializer.Deserialize<Holon>(original) : null;
+                    observedEntities.TryGetValue(holon.HolonId,out var existing);
                     if(edit!=null && edit.Operation!=ConditionalHolonOperation.Save)
                         entries[index]=holon=existing;
                     prepareMembership?.Invoke(holon,existing);
@@ -188,6 +193,7 @@ public partial class HolonRepository
                 result.Exception=commitAttempted ? new MongoTransactionReconciliationException(sessionId,transactionNumber,cause):cause;
                 result.Message="Mongo holon import transaction failed.";
                 if(cause is CosmicConcurrencyException) result.ErrorCode=CosmicConcurrencyException.Code;
+                else if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
                 else if(cause is MongoConditionalIntentException) result.ErrorCode="COSMIC_OPERATION_ID_REUSED";
                 else if(cause is MongoReplicaConflictException) result.ErrorCode="COSMIC_REPLICA_LINEAGE_CONFLICT";
                 else if(cause is MongoReplicaHeadException) result.ErrorCode="COSMIC_REPLICA_HEAD_INVALID";
