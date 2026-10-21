@@ -5,6 +5,10 @@ let result;
 if(input.operation==='probe')result={};
 else if(input.operation==='generateKey')result={publicKey:'ed25519:fixture-public',privateKey:'ed25519:fixture-private',implicitAccountId:'1'.repeat(64)};
 else if(input.operation==='derivePublicKey')result={publicKey:'fixture-public-key',implicitAccountId:'1'.repeat(64)};
+else if(input.operation==='deriveMnemonic'){
+  if(input.seedPhrase!=='abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about')throw new Error('Unexpected synthetic mnemonic input.');
+  result={publicKey:'fixture-public-key',privateKey:'controlled-owner-key',implicitAccountId:'1'.repeat(64)};
+}
 else if(input.operation==='view'&&input.methodName==='token_balance')result=process.env.OASIS_NEAR_TOKEN_TEST_ZERO==='1'?'0':'1000000000';
 else if(input.operation==='call'&&input.methodName==='token_burn'){
   if(process.env.OASIS_NEAR_TOKEN_TEST_ZERO==='1')throw new Error('Insufficient balance must stop before mutation.');

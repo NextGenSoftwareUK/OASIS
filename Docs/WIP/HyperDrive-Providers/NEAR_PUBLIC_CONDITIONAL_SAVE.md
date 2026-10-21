@@ -1,5 +1,9 @@
 # NEAR public conditional record saves
 
+## Latest native checkpoint — 2026-10-21
+
+Full19/19 native pass7m26, zero skipped, actual81763terminal0; current report SHA2568A0D29486FC40E8B060340B3FCD468B73FDAFF5AD7BD6007B22A84F5E4923D0E. Strengthened token/NFT cases now prove real mnemonic-owned token burn, NFT return and NFT burn, alongside existing storage/graph/history/checked-write/status cases. Matched full210controls and providerBB9B4A8D/Core97A343EF/Shared5E6F3626; details/limits/fees and original report archival in NEAR_SIGNER_AND_RECEIPT_AUDIT.md. Same retained chain/runtime/keys, no reset/install/download. Node/ports/pending absent; retention restored5 and exact config hash checked. Broader relevant-interface/hosted/recovery/fee/V2 gates remain open; no deployment or whole-provider100% claim. Historical checkpoints below retain their own measured cohorts.
+
 ## Current dependency native refresh — 2026-10-20
 
 Retained original launcher session52770 terminal0: **19/19 actual native tests passed5m26s,0skip**. Producer/native builds0errors2warnings each and dependency identity guard passed. Actual consumer CoreD4909562A46E3A44A1E9C88C6E09DC79D1235CFD7E36561F2503A70DCEE49C83 / Shared1C35EE624DE22877EE450BE3EFC3930B1EBE960FF7EE2C127861ED28BF7CDDD6, SAME dependency cohort as current202controlled refresh. Report TestResults/NearRuntime/near-provider-current.trx SHA25684A248705938B04D7CE0F566971BC9E36907073A8B93D6496535AD073D5A83B1. Prior C6FD2ED97BF00459E7AF0F24A803836866D66F5AD61EF50BA8BE7C7EF1430A0A SHAverified/moved in place to near-provider-pre-current-core.trx before run.
