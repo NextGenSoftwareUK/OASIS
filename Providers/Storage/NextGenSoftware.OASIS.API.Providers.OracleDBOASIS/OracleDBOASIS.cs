@@ -210,6 +210,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS] = avatar.Id.ToString();
 
                 var stored=await WriteCanonicalRecordAsync((Avatar)avatar,"OASIS_AVATARS");
+                result.SavedCount=1;
                 PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
                 result.Result = source; result.IsSaved=true; result.IsError = false;
                 result.Message = $"OracleDBOASIS: Avatar '{avatar.Username}' saved.";
@@ -350,6 +351,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 avatarDetail.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
                 avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=avatarDetail.Id.ToString();
                 var stored=await WriteCanonicalRecordAsync((AvatarDetail)avatarDetail,"OASIS_AVATAR_DETAILS");
+                result.SavedCount=1;
                 PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
                 result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "OracleDBOASIS: AvatarDetail saved.";
             }

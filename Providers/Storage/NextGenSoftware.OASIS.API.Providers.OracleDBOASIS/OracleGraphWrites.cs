@@ -26,15 +26,16 @@ public partial class OracleDBOASIS
             proposal.ProviderUniqueStorageKey??=new Dictionary<Core.Enums.ProviderType,string>();
             proposal.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS]=proposal.Id.ToString();
             var stored=await WriteCanonicalRecordAsync(proposal,"OASIS_HOLONS",write);
+            result.SavedCount=1;
             PublishSavedIdentity(source,stored,publication.ValidateUnchanged);
-            result.Result=source;result.IsSaved=true;result.SavedCount=1;result.Message=$"OracleDBOASIS: Holon '{proposal.Name}' saved.";
+            result.Result=source;result.IsSaved=true;result.Message=$"OracleDBOASIS: Holon '{proposal.Name}' saved.";
         }catch(Exception cause){result.Exception=cause;OASISErrorHandling.HandleError(ref result,$"OracleDBOASIS: Error saving holon: {cause.Message}");if(cause is StorageLifecycleConflictException)result.ErrorCode=StorageLifecycleConflictException.ErrorCode;}
         return result;
     }
 
     private async Task<OASISResult<IEnumerable<IHolon>>> WriteHolonGraphAsync(IEnumerable<IHolon> roots,bool children,bool recursive,int maxDepth,int initialDepth,bool continueOnError,bool onProvider)
     {
-        var result=new OASISResult<IEnumerable<IHolon>>();var saved=new List<IHolon>();var failures=new List<Exception>();
+        var result=new OASISResult<IEnumerable<IHolon>>();var saved=new List<IHolon>();var failures=new List<Exception>();var acknowledgedIds=new HashSet<Guid>();
         try{
             var plan=HolonGraphWritePlan.Create(roots,children,recursive,maxDepth,initialDepth);var failedParents=new HashSet<Guid>();
             var publications=new Dictionary<IHolon,StoredRecordPublicationSnapshot<Core.Holons.Holon>>(ReferenceEqualityComparer.Instance);
@@ -44,11 +45,14 @@ public partial class OracleDBOASIS
                     failedParents.Add(node.Snapshot.Id);failures.Add(new InvalidOperationException("Oracle descendant skipped because its parent failed."));continue;
                 }
                 publications[node.Source].ValidateUnchanged();
+                var selectedId=node.Snapshot.Id;
                 var written=await SavePlannedHolonAsync(node);
-                if(written.IsError||written.Result==null){
-                    var cause=written.Exception??new InvalidOperationException(written.Message);failures.Add(cause);failedParents.Add(node.Snapshot.Id);
+                if(written.SavedCount==1)acknowledgedIds.Add(selectedId);
+                if(written.IsError||!written.IsSaved||written.Result==null){
+                    var cause=written.Exception??new OracleLifecycleReconciliationException(selectedId,new System.IO.InvalidDataException("Oracle node save returned no complete save acknowledgement."));failures.Add(cause);failedParents.Add(node.Snapshot.Id);
                     if(!continueOnError||NativeMutationReconciliation.IsRequired(cause))break;
                 }else{
+                    acknowledgedIds.Add(selectedId);
                     try{PublishSavedIdentity(node.Source,written.Result,publications[node.Source].ValidateUnchanged);node.Source.ParentHolonId=written.Result.ParentHolonId;saved.Add(node.Source);}
                     catch(Exception cause){failures.Add(cause);break;}
                 }
@@ -56,14 +60,14 @@ public partial class OracleDBOASIS
             result.Result=failures.Count==0?plan.Roots:saved;result.IsSaved=failures.Count==0;
             if(failures.Count>0){
                 var cause=failures.Count==1?failures[0]:new AggregateException(failures);
-                result.Exception=saved.Count>0?new OraclePartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                result.Exception=saved.Count>0?new OraclePartialMutationException(acknowledgedIds,cause):cause;
                 OASISErrorHandling.HandleError(ref result,"Oracle graph save failed; inspect acknowledged records and original exception.");
             }
         }catch(Exception cause){
-            result.Exception=saved.Count>0?new OraclePartialMutationException(saved.Select(row=>row.Id),cause):cause;
+            result.Exception=saved.Count>0?new OraclePartialMutationException(acknowledgedIds,cause):cause;
             OASISErrorHandling.HandleError(ref result,"Oracle graph admission or write failed.");
         }
-        result.SavedCount=saved.Count;
+        result.SavedCount=acknowledgedIds.Count;
         if(result.Exception is StorageLifecycleConflictException)result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
         return result;
     }
