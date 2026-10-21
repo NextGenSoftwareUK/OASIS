@@ -103,7 +103,7 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
             requestToken=request.ClientRequestToken;dispatched=writes.Any(write=>write.Update!=null||write.Delete!=null);
             var response=await _client.TransactWriteItemsAsync(request);
             if(response?.HttpStatusCode!=HttpStatusCode.OK) throw new InvalidDataException("DynamoDB lifecycle transaction lacks an authoritative acknowledgement.");
-            result.Result=true;result.IsSaved=true;result.IsDeleted=true;
+            result.Result=true;result.IsSaved=dispatched;result.IsDeleted=true;result.DeletedCount=dispatched?1:0;
             if(tombstone!=null) AvatarTombstoneEvidence.Attach(result,tombstone);
         }
         catch(TransactionCanceledException cause) when(cause.CancellationReasons?.Any(r=>r.Code=="ConditionalCheckFailed")==true

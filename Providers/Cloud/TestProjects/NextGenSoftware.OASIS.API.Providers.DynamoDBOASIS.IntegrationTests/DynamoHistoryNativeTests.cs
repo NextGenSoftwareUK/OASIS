@@ -332,7 +332,7 @@ public partial class DynamoHistoryNativeTests
         var provider=new DynamoDBOASIS("ownedhistorytest","ownedhistorytest","us-east-1","http://127.0.0.1:18000");
         var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
         var original=(AmazonDynamoDBClient)field.GetValue(provider)!;
-        using var client=Client();using var verifier=Client();field.SetValue(provider,client);
+        using var client=new FaultClient();using var verifier=Client();field.SetValue(provider,client);
         var key=new Dictionary<string,AttributeValue>{{"id",new(){S=id.ToString()}}};
         try{
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
@@ -353,11 +353,18 @@ public partial class DynamoHistoryNativeTests
             }
             Assert.AreEqual(1,(await provider.LoadAvatarAsync(id,1)).Result.Version);
             Assert.AreEqual(1,(await provider.LoadAvatarDetailAsync(id,1)).Result.Version);
+            var originals=new Dictionary<string,string>();
+            foreach(var table in new[]{"OasisAvatars","OasisAvatarDetails"})originals[table]=(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item["data_json"].S;
+            Assert.AreEqual(1,client.Transactions);
+            var repeated=await provider.DeleteAvatarAsync(id,softDelete:true);Assert.IsFalse(repeated.IsError,repeated.Exception?.ToString());Assert.AreEqual(2,client.Transactions);
             foreach(var table in new[]{"OasisAvatars","OasisAvatarDetails"}){
                 var actual=(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item;
+                Assert.AreEqual(originals[table],actual["data_json"].S,"Observed paired tombstones must not gain another history revision.");
                 await RemoveOwned(verifier,table,id,actual["data_json"].S);
             }
             File.Delete(journal);
+            Assert.IsTrue(deleted.IsSaved);Assert.IsTrue(deleted.IsDeleted);Assert.AreEqual(1,deleted.DeletedCount,"One logical avatar aggregate was deleted.");
+            Assert.IsTrue(repeated.Result);Assert.IsTrue(repeated.IsDeleted);Assert.IsFalse(repeated.IsSaved);Assert.AreEqual(0,repeated.DeletedCount);
         }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
     }
 
