@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         // Load independent collections without a cartesian inventory × heart-rate × gift join.
         // One-to-one components are centrally AutoIncluded.
         private IQueryable<AvatarDetailModel> DetailState() => _dbContext.AvatarDetails.AsSplitQuery()
-            .Include(a=>a.InventoryItems).Include(a=>a.HeartRates).Include(a=>a.Gifts);
+            .Include(a=>a.InventoryItems).Include(a=>a.HeartRates).Include(a=>a.Gifts).Include(a=>a.KarmaAkashicRecords);
 
         private IAvatarDetail MapUniqueAvatarDetail(List<AvatarDetailModel> rows)
         {
@@ -352,6 +352,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.CelestialParentIdsJson = AvatarDetailCelestialLinks.Encode(avatarDetailEntity);
                     SetComponents(existing, avatarDetailEntity);
                     SetHeartRates(existing, avatarDetailEntity);
+                    SetKarmaHistory(existing, avatarDetailEntity);
                     SetStandaloneGifts(existing,avatarDetailEntity);
                     existing.Model3D = avatarDetailEntity.Model3D;
                     existing.Portrait = avatarDetailEntity.Portrait;
@@ -459,6 +460,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.CelestialParentIdsJson = AvatarDetailCelestialLinks.Encode(AvatarDetailEntity);
                     SetComponents(existing, AvatarDetailEntity);
                     SetHeartRates(existing, AvatarDetailEntity);
+                    SetKarmaHistory(existing, AvatarDetailEntity);
                     SetStandaloneGifts(existing,AvatarDetailEntity);
                     existing.Model3D = AvatarDetailEntity.Model3D;
                     existing.Portrait = AvatarDetailEntity.Portrait;
@@ -576,6 +578,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             existing.Gifts.AddRange(incoming);
         }
 
+        private void SetKarmaHistory(AvatarDetailModel existing,IAvatarDetail source)
+        {
+            var incoming=(source.KarmaAkashicRecords ?? new List<Core.Interfaces.Avatar.IKarmaAkashicRecord>())
+                .Select(record=>new KarmaAkashicRecordModel(record)).ToList();
+            if(incoming.Any(record=>record.AvatarId!=existing.Id))
+                throw new ArgumentException("Karma history records must belong to the avatar detail being saved.");
+            _dbContext.RemoveRange(existing.KarmaAkashicRecords);
+            existing.KarmaAkashicRecords.Clear();
+            existing.KarmaAkashicRecords.AddRange(incoming);
+        }
+
         private void SetHeartRates(AvatarDetailModel existing,IAvatarDetail source)
         {
             // Stage the complete replacement before mutating tracked rows.
@@ -618,6 +631,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Email = avatarDetailEntity.Email,
                 Id = Guid.Parse(avatarDetailEntity.Id),
                 Karma = avatarDetailEntity.Karma,
+                KarmaAkashicRecords = avatarDetailEntity.KarmaAkashicRecords.OrderBy(row=>row.Id)
+                    .Select(row=>(Core.Interfaces.Avatar.IKarmaAkashicRecord)row.GetKarmaAkashicRecord()).ToList(),
                 Landline = avatarDetailEntity.Landline,
                 Mobile = avatarDetailEntity.Mobile,
                 Postcode = avatarDetailEntity.Postcode,

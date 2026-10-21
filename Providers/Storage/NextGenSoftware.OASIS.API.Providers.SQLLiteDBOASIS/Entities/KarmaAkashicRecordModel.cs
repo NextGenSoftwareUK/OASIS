@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public ProviderType Provider { get; set; } 
 
         public KarmaAkashicRecordModel(){}
-        public KarmaAkashicRecordModel(KarmaAkashicRecord source){
+        public KarmaAkashicRecordModel(NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IKarmaAkashicRecord source){
 
             this.AvatarId=source.AvatarId.ToString();
             this.Date = source.Date;
