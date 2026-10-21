@@ -172,13 +172,27 @@ internal sealed class NearSdkService
             response.RootElement.GetProperty("implicitAccountId").GetString());
     }
 
-    public async Task<NearKeyPair> DerivePublicKeyAsync(string secretKey)
+    public async Task<NearKeyPair> DerivePublicKeyAsync(string secretKey,CancellationToken cancellationToken=default)
     {
-        using var response = await InvokeAsync("derivePublicKey", new { secretKey });
+        using var response = await InvokeAsync("derivePublicKey", new { secretKey },cancellationToken);
         return new NearKeyPair(
             response.RootElement.GetProperty("publicKey").GetString(),
             secretKey,
             response.RootElement.GetProperty("implicitAccountId").GetString());
+    }
+
+    public async Task<(NearKeyPair Key,string SeedPhrase)> GenerateMnemonicAsync(CancellationToken cancellationToken=default)
+    {
+        using var response=await InvokeAsync("generateMnemonic",cancellationToken:cancellationToken);
+        var row=response.RootElement;
+        return (new NearKeyPair(row.GetProperty("publicKey").GetString(),row.GetProperty("privateKey").GetString(),row.GetProperty("implicitAccountId").GetString()),row.GetProperty("seedPhrase").GetString());
+    }
+
+    public async Task<NearKeyPair> RestoreMnemonicAsync(string seedPhrase,CancellationToken cancellationToken=default)
+    {
+        using var response=await InvokeAsync("deriveMnemonic",new{seedPhrase},cancellationToken);
+        var row=response.RootElement;
+        return new NearKeyPair(row.GetProperty("publicKey").GetString(),row.GetProperty("privateKey").GetString(),row.GetProperty("implicitAccountId").GetString());
     }
 
     public async Task<string> GetBalanceYoctoAsync(string accountId)
@@ -303,7 +317,7 @@ internal sealed class NearSdkService
         try{await process.WaitForExitAsync(cancellationToken);}
         catch(OperationCanceledException)
         {
-            // Only status observations supply cancellation. Never cancel/replay a submitted mutation.
+            // Only observations/local key operations supply cancellation. Never cancel/replay a submitted mutation.
             if(!process.HasExited)process.Kill(entireProcessTree:true);
             await process.WaitForExitAsync();
             await Task.WhenAll(stdoutTask,stderrTask);
