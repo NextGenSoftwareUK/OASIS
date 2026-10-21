@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Shared ordinary save counts / OCI client-priority follow-up
+
+Found and fixed one shared result-count defect affecting inherited KV providers, including Oracle Object Storage: scalar saves now acknowledge one completed logical record, graph/batch result owners sum completed records, and partial failures retain only completed counts. Actual14/14 regression failures before fix (all zero counts); final fullShared939/939 passed0skip6s. OCI official-SDK signed loopback52/52 passed0skip11s with six additional count assertions in its existing encrypted sync/async schedules; request-count assertions still pass, so no extra backend I/O was introduced. Details, red hash and limits in `ORACLE_CLIENT_PRIORITY.md`.
+
+Four strengthened partial-failure flag checks passed before any flag change: suspected extra success-flag defect was DISPROVED; central error handling already clears `IsSaved`. Only count publication/accumulation changed. Counts represent logical records, not fees or underlying index/history SDK requests. MeasuredCoreEB9EFAD0/Shared942F1FDD matched shared andOCI consumers. Hosted OCI/IAM/billing, other inherited-provider native refreshes and full interface/options/V2 matrices remain OPEN; AWS134 earliergreen belongs to previousShared802AAF cohort, not942F. No new environment/download/install/public spending/deployment.
+
 ## Priority-provider checkpoint — 2026-10-20, latest scoped work
 
 ### Shared V2 karma provider affinity — controlled fix, native acceptance pending
