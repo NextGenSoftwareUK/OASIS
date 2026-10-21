@@ -1,13 +1,15 @@
 #Requires -Version 7.0
-param([switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2)
+param([switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[switch]$StorageTokenOnly,[switch]$FeeReceiptOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2)
 $ErrorActionPreference='Stop'
 if($CloseReviewedAvatarRejection -and !$InspectAvatarFailure){throw 'Reviewed closure requires exact original avatar inspection.'}
 if($InspectAvatarFailure){$InspectRecent=$true}
+if($StorageTokenOnly -and ($AvatarOnly -or $InspectRecent)){throw 'Storage/token regression must be selected without avatar or inspection modes.'}
+if($FeeReceiptOnly -and ($AvatarOnly -or $StorageTokenOnly -or $InspectRecent)){throw 'Native fee receipt reads require their own selected scope.'}
 if(!$InspectRecent -and $ObservationSeconds -ne 2){throw 'ObservationSeconds is only supported for keyless InspectRecent mode.'}
 if($InspectRecent -and $AvatarOnly){throw 'Select keyless inspection or avatar acceptance, not both.'}
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/SolanaCurrent'
-$nativeReport=if($AvatarOnly){'solana-avatar-native-current.trx'}else{'solana-validator-current.trx'}
+$nativeReport=if($AvatarOnly){'solana-avatar-native-current.trx'}elseif($StorageTokenOnly){'solana-storage-token-current.trx'}elseif($FeeReceiptOnly){'solana-native-fee-current.trx'}else{'solana-validator-current.trx'}
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
@@ -172,6 +174,9 @@ try {
     $testStarted=[DateTime]::UtcNow
     $testArguments=@('test',$project,'--no-build','--no-restore','/m:2','/nr:false','--logger',"trx;LogFileName=$nativeReport",'--results-directory',$work,'-v:q')
     if($AvatarOnly){$testArguments+=@('--filter','TestCategory=AvatarNative')}
+    elseif($StorageTokenOnly){$testArguments+=@('--filter','TestCategory!=AvatarNative&TestCategory!=NativeFeeReadOnly')}
+    elseif($FeeReceiptOnly){$testArguments+=@('--filter','TestCategory=NativeFeeReadOnly')}
+    else{$testArguments+=@('--filter','TestCategory!=NativeFeeReadOnly')}
     if($Diagnostics){$testArguments+=@('--diag',(Join-Path $work 'validator-test-current.diag.log'))}
     & dotnet @testArguments
     if($LASTEXITCODE){throw 'Real Solana integration failed; inspect fixed report.'}
@@ -179,7 +184,7 @@ try {
     if($report.LastWriteTimeUtc -lt $testStarted){throw 'Integration report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($AvatarOnly){2}else{5}
+    $expected=if($AvatarOnly){2}elseif($StorageTokenOnly){3}elseif($FeeReceiptOnly){1}else{5}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected $expected passing native schedules for the selected scope, no skips."}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
