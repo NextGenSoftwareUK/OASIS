@@ -24,6 +24,28 @@ public class NearMnemonicWalletTests
     private static NEAROASIS Provider()=>new("http://127.0.0.1:1","fixture","fixture","contract.near","service.near","");
 
     [TestMethod]
+    public async Task MnemonicSignerMustMatchSuppliedPublicKeyBeforeActivation()
+    {
+        var provider=Provider();var request=new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.BurnWeb3TokenRequest{
+            TokenAddress="owned-symbol",Amount=1,OwnerPrivateKey="",OwnerPublicKey="wrong-public-key",
+            OwnerSeedPhrase="abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"};
+        var rejected=await provider.BurnTokenAsync(request,"explicit-owner.near");
+        Assert.IsTrue(rejected.IsError);Assert.IsInstanceOfType<ArgumentException>(rejected.Exception);
+        Assert.IsFalse(provider.IsProviderActivated);Assert.IsNull(rejected.Result);
+    }
+
+    [TestMethod]
+    public async Task MixedMnemonicAndSecretNeverSelectsEitherSigner()
+    {
+        var provider=Provider();var request=new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.BurnWeb3TokenRequest{
+            TokenAddress="owned-symbol",Amount=1,OwnerPrivateKey="explicit-secret",OwnerPublicKey="",
+            OwnerSeedPhrase="abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"};
+        var rejected=await provider.BurnTokenAsync(request,"explicit-owner.near");
+        Assert.IsTrue(rejected.IsError);Assert.IsInstanceOfType<ArgumentException>(rejected.Exception);
+        Assert.IsFalse(provider.IsProviderActivated);Assert.IsNull(rejected.Result);
+    }
+
+    [TestMethod]
     public async Task GeneratedMnemonicAndExplicitSecretRestoreTheSameKeysWithoutNetwork()
     {
         var provider=Provider();var created=await provider.CreateAccountAsync();

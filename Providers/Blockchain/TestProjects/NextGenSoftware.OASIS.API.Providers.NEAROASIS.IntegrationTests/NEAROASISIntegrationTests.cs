@@ -329,9 +329,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
         public async Task OfficialContract_PerformsCustomTokenLifecycle()
         {
             var symbol = $"NEAR-{Guid.NewGuid():N}";
-            var independent = await _provider.GenerateKeyPairAsync();
+            var independent = await _provider.CreateAccountAsync();
             Assert.IsFalse(independent.IsError,independent.Message);
-            var recipient = independent.Result.WalletAddressLegacy;
+            var recipient = Convert.ToHexString(NBitcoin.DataEncoders.Encoders.Base58.DecodeData(independent.Result.PublicKey[8..])).ToLowerInvariant();
             var funded=await _provider.SendTokenAsync(new SendWeb3TokenRequest{ToWalletAddress=recipient,Amount=0.1m});
             Assert.IsFalse(funded.IsError,funded.Message);
             var minted = await _provider.MintTokenAsync(new MintWeb3TokenRequest
@@ -363,7 +363,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             })).IsError);
             Assert.IsFalse((await _provider.UnlockTokenAsync(new UnlockWeb3TokenRequest { TokenAddress = symbol })).IsError);
             var holderBurn=await _provider.BurnTokenAsync(new BurnWeb3TokenRequest{TokenAddress=symbol,Amount=1.25m,
-                OwnerPrivateKey=independent.Result.PrivateKey,OwnerPublicKey=independent.Result.PublicKey,OwnerSeedPhrase=""});
+                OwnerPrivateKey="",OwnerPublicKey=independent.Result.PublicKey,OwnerSeedPhrase=independent.Result.SeedPhrase});
             Assert.IsFalse(holderBurn.IsError,holderBurn.Message);
             Assert.AreEqual(6.75m,(await _provider.GetCustomTokenBalanceAsync(symbol,recipient)).Result);
             Assert.IsFalse((await _provider.BurnTokenAsync(new BurnWeb3TokenRequest
@@ -394,16 +394,16 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual("True", locked.Result.Web3NFT.MetaData["near:locked"]);
             var unlocked = await _provider.UnlockNFTAsync(new UnlockWeb3NFTRequest { NFTTokenAddress = tokenId });
             Assert.IsFalse(unlocked.IsError, unlocked.Message);
-            var independentOwner=await _provider.GenerateKeyPairAsync();
+            var independentOwner=await _provider.CreateAccountAsync();
             Assert.IsFalse(independentOwner.IsError,independentOwner.Message);
-            var recipient=independentOwner.Result.WalletAddressLegacy;
+            var recipient=Convert.ToHexString(NBitcoin.DataEncoders.Encoders.Base58.DecodeData(independentOwner.Result.PublicKey[8..])).ToLowerInvariant();
             var funding=await _provider.SendTokenAsync(new SendWeb3TokenRequest{ToWalletAddress=recipient,Amount=0.1m});
             Assert.IsFalse(funding.IsError,funding.Message);
             var sent = await _provider.SendNFTAsync(new SendWeb3NFTRequest { TokenId = tokenId, ToWalletAddress = recipient });
             Assert.IsFalse(sent.IsError, sent.Message);
             Assert.AreEqual(recipient, sent.Result.Web3NFT.SendToAddressAfterMinting);
             var returned=await _provider.SendNFTAsync(new SendWeb3NFTRequest{TokenId=tokenId,FromWalletAddress=recipient,
-                ToWalletAddress=Required("NEAROASIS_ACCOUNTID"),OwnerPrivateKey=independentOwner.Result.PrivateKey,OwnerPublicKey=independentOwner.Result.PublicKey});
+                ToWalletAddress=Required("NEAROASIS_ACCOUNTID"),OwnerPrivateKey="",OwnerPublicKey=independentOwner.Result.PublicKey,OwnerSeedPhrase=independentOwner.Result.SeedPhrase});
             Assert.IsFalse(returned.IsError,returned.Message);
             Assert.AreEqual(Required("NEAROASIS_ACCOUNTID"),(await _provider.LoadOnChainNFTDataAsync(tokenId)).Result.SendToAddressAfterMinting);
             var burnMint = await _provider.MintNFTAsync(new MintWeb3NFTRequest
@@ -411,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse(burnMint.IsError, burnMint.Message);
             var burnTokenId = burnMint.Result.Web3NFT.NFTTokenAddress;
             var burned = await _provider.BurnNFTAsync(new BurnWeb3NFTRequest
-                { TokenId = burnTokenId, OwnerPublicKey = independentOwner.Result.PublicKey, OwnerPrivateKey = independentOwner.Result.PrivateKey, OwnerSeedPhrase = "" });
+                { TokenId = burnTokenId, OwnerPublicKey = independentOwner.Result.PublicKey, OwnerPrivateKey = "", OwnerSeedPhrase = independentOwner.Result.SeedPhrase });
             Assert.IsFalse(burned.IsError, burned.Message);
             Assert.IsNull((await _provider.LoadOnChainNFTDataAsync(burnTokenId)).Result);
         }

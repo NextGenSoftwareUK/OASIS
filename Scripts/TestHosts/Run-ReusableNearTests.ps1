@@ -1,5 +1,8 @@
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+if(Test-Path -LiteralPath (Join-Path $root 'TestResults/NearRuntime/near-provider-current.trx')){
+    throw 'Preserve and hash-verify the original NEAR native report before another run; no node or mutation started.'
+}
 $rootWsl=(& wsl.exe -d Ubuntu -- wslpath -a ($root -replace '\\','/')).Trim()
 if($LASTEXITCODE -ne 0 -or $rootWsl -ne '/mnt/c/Source/OASIS'){throw 'Unexpected retained NEAR repository root.'}
 # No downloads, dependency installs, compilation/deployment of the contract or chain reset.

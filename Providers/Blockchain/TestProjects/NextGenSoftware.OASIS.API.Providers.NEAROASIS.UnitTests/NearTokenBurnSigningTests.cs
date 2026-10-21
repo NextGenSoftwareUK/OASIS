@@ -8,8 +8,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class NearTokenBurnSigningTests
 {
-    [DataTestMethod][DataRow(false)][DataRow(true)]
-    public async Task OwnerSignerIsForwardedAndFailedBalanceFollowupRetainsReceipt(bool named)
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task OwnerSignerIsForwardedAndFailedBalanceFollowupRetainsReceipt(bool named,bool mnemonic)
     {
         var bridge=Environment.GetEnvironmentVariable("OASIS_NEAR_SDK_BRIDGE");var owner=Environment.GetEnvironmentVariable("OASIS_NEAR_TOKEN_TEST_ACCOUNT");
         try
@@ -17,7 +17,7 @@ public class NearTokenBurnSigningTests
             Environment.SetEnvironmentVariable("OASIS_NEAR_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-followup.mjs"));
             Environment.SetEnvironmentVariable("OASIS_NEAR_TOKEN_TEST_ACCOUNT",named?"named.near":new string('1',64));
             var provider=new NEAROASIS("http://127.0.0.1:1","fixture","fixture","contract.near","service.near","controlled-service-key");
-            var request=new BurnWeb3TokenRequest{TokenAddress="symbol",Amount=1m,OwnerPrivateKey="controlled-owner-key",OwnerPublicKey="fixture-public-key",OwnerSeedPhrase=""};
+            var request=new BurnWeb3TokenRequest{TokenAddress="symbol",Amount=1m,OwnerPrivateKey=mnemonic?"":"controlled-owner-key",OwnerPublicKey="fixture-public-key",OwnerSeedPhrase=mnemonic?"abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about":""};
             var result=named?await provider.BurnTokenAsync(request,"named.near"):await provider.BurnTokenAsync(request);
             Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
             var failure=result.Exception as NativeTransactionFollowupException;Assert.IsNotNull(failure);
@@ -50,7 +50,7 @@ public class NearTokenBurnSigningTests
         var request=new BurnWeb3TokenRequest{TokenAddress="symbol",Amount=1m,OwnerPrivateKey="",OwnerPublicKey="",OwnerSeedPhrase=mode==0?"unsupported mnemonic":""};
         var result=mode==0?await provider.BurnTokenAsync(request):await provider.BurnTokenAsync(request,mode==1?" ":"independent.near");
         Assert.IsTrue(result.IsError);Assert.IsFalse(provider.IsProviderActivated);
-        if(mode==0)Assert.IsInstanceOfType(result.Exception,typeof(NotSupportedException));else Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
+        Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
     }
 
     [TestMethod]
