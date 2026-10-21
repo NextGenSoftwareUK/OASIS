@@ -94,6 +94,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
                     modelBuilder.Entity<InventoryItemModel>().Ignore(property.Name);
             modelBuilder.Entity<InventoryItemModel>().Property(x=>x.ExtendedValueJson).IsRequired().HasDefaultValue("{}");
             modelBuilder.Entity<HolonModel>().Property(x=>x.PersistentValueJson).IsRequired().HasDefaultValue("{}");
+            modelBuilder.Entity<AvatarModel>().Property(x=>x.HasAvatarType).HasDefaultValue(true).ValueGeneratedNever();
+            modelBuilder.Entity<AvatarModel>().Property(x=>x.HasCreatedProviderType).HasDefaultValue(true).ValueGeneratedNever();
+            modelBuilder.Entity<AvatarModel>().Property(x=>x.HasCreatedOASISType).HasDefaultValue(true).ValueGeneratedNever();
             modelBuilder.Entity<HolonModel>().Property(x=>x.HasCreatedProviderType).HasDefaultValue(true).ValueGeneratedNever();
             modelBuilder.Entity<HolonModel>().Property(x=>x.HasCreatedOASISType).HasDefaultValue(true).ValueGeneratedNever();
             modelBuilder.Entity<InventoryItemModel>().Property(x=>x.Image2DURI)
