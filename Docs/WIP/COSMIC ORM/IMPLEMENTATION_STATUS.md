@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Neo4j native ordering/paging — 21 October 2026
+
+Native window execution preserves shared missing/null/valid/invalid buckets, per-key direction, normalized logical-ID ties and sequential Skip/Take algebra. A separate guard branch within the same native query prevents offsets from hiding invalid projections. Empty windows perform no native I/O. FullNeo300/300, Shared943/943 and expanded nativeNeo64/64 pass, zero skips;23 declared assembly copies match. [Semantics and acceptance](CQL_ORDERING_PAGING.md#verified-neo4j-window-gate). Existing Core pin is unchanged; broader scalar domains, native resource stress, global federation and snapshot continuation remain open.
+
 ## Neo4j fields and shared integer/Guid literals — 21 October 2026
 
 Native field comparisons now preserve independent type guards and nullable semantics. Shared Corec4a89b193aff419d1e5cf0f9b979ff56f2f80f4e recognizes Guid.Empty safely and admits whole-domain lossless integral field promotions while rejecting narrowing/nullable erasure and requiring both exact provider domains. FullCore1,635, Neo298, Shared943, SQLite1,203 and selected nativeNeo64 all pass, zero skips;26 declared copies match. Two original native compiler failures were preserved, independently reconciled and cleaned with fresh locked snapshot hashes. [Exact evidence and remaining scope](CQL_NEO4J_NATIVE.md). Native ordering/paging, broader domains, routing and the remaining roadmap remain open.

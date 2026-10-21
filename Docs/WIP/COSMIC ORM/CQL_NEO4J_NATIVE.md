@@ -1,6 +1,10 @@
 # Neo4j native CQL implementation
 
-## Current verified checkpoint — 21 October 2026
+## Current verified ordering/paging checkpoint — 21 October 2026
+
+Native OrderBy/ThenBy/Skip/Take now pass300/300 Neo controls,943/943 Shared controls and64/64 native cases, zero skips. A single CALL/UNION query keeps projection validation outside the page, so offsets cannot hide invalid data. Shared rank buckets, normalized logical-ID ties, sequential windows and Unicode scalar ordering are verified; an empty window opens no session. Twenty-three declared copies match and the fixture/container are clean/stopped. [Exact window evidence and semantics](CQL_ORDERING_PAGING.md#verified-neo4j-window-gate). Core/source pin remains unchanged. Broader domains, native resource stress, routing/federation and complete Stage8 remain open.
+
+## Verified field-comparison checkpoint — 21 October 2026
 
 Neo4j native field comparisons now pass with committed Corec4a89b193aff419d1e5cf0f9b979ff56f2f80f4e, which includes safe Guid.Empty literals and lossless integral field promotion. FullCore1,635/1,635, Neo298/298, Shared943/943, SQLite1,203/1,203 and expanded nativeNeo64/64 pass, zero skips. Twenty-six declared assembly copies match; the retained native fixture is clean and container stopped. Field guard/null/large-integer and actual upgrade-lock tests are included. Ordering/paging, wider native domains and remaining Stage8 acceptance stay open.
 

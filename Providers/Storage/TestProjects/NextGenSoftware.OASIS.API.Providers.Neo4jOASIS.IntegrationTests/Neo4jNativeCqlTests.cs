@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Core.Serialization;
+using NextGenSoftware.OASIS.Common;
 using Provider = NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
@@ -35,9 +36,20 @@ public class Neo4jNativeCqlTests
         {
             var built = CosmicQuery<Holon>.Create().Where(expression);
             Assert.IsFalse(built.IsError, built.Message);
-            var planned = CosmicQueryPlanner.Plan(built.Result, ProviderType.Neo4jOASIS,
+            return PlanQuery(built.Result);
+        }
+        CosmicQueryPlan<Holon> PlanQuery(CosmicQuery<Holon> query)
+        {
+            var planned = CosmicQueryPlanner.Plan(query, ProviderType.Neo4jOASIS,
                 new[] { new CosmicQueryTarget(ProviderType.Neo4jOASIS, Provider.CqlCapabilities) });
             Assert.IsFalse(planned.IsError, planned.Message); return planned.Result;
+        }
+        async Task Ordered(OASISResult<CosmicQuery<Holon>> built,params int[] expected)
+        {
+            Assert.IsFalse(built.IsError,built.Message);
+            var result=await provider.ExecuteCosmicQueryAsync(PlanQuery(built.Result));
+            Assert.IsFalse(result.IsError,result.Message+result.Exception);
+            CollectionAssert.AreEqual(expected.Select(i=>records[i].Id).ToArray(),result.Result.Select(row=>row.Id).ToArray());
         }
         async Task Matches(Expression<Func<Holon, bool>> expression, params int[] expected)
         {
@@ -62,6 +74,8 @@ public class Neo4jNativeCqlTests
             records[2].MetaData["wide"]="9007199254740993";
             records[0].MetaData["alias"]=records[0].Name; records[1].MetaData["alias"]="different";
             records[2].MetaData["alias"]=null!; records[3].MetaData["alias"]=42;
+            records[0].MetaData["unicode"]="\uE000";records[1].MetaData["unicode"]="\U00010000";
+            records[2].MetaData["unicode"]="A";records[3].MetaData["unicode"]=null!;
             for (var i = 0; i < records.Length; i++)
             {
                 var saved = await provider.SaveHolonAsync(records[i], saveChildren: false);
@@ -89,6 +103,15 @@ public class Neo4jNativeCqlTests
             await Matches(h => CosmicQueryMetadata.Value<int>(h,"left")<CosmicQueryMetadata.Value<long>(h,"wide"),0,1);
             await Matches(h => h.Name==CosmicQueryMetadata.Value<string>(h,"alias"),0);
             await Matches(h => h.Name!=CosmicQueryMetadata.Value<string>(h,"alias"),1,2);
+            await Ordered(CosmicQuery<Holon>.Create().OrderBy(h=>h.Name).Skip(1).Take(2),1,2);
+            await Ordered(CosmicQuery<Holon>.Create().OrderBy(h=>h.IsActive).ThenByDescending(h=>h.Name).Take(3).Skip(1).Take(1),3);
+            var invalidOrder=new[]{1,4}.OrderBy(i=>records[i].Id.ToString("D"),StringComparer.Ordinal).ToArray();
+            await Ordered(CosmicQuery<Holon>.Create().OrderBy(h=>CosmicQueryMetadata.Value<int?>(h,"score")),new[]{3,2,0}.Concat(invalidOrder).ToArray());
+            await Ordered(CosmicQuery<Holon>.Create().OrderByDescending(h=>CosmicQueryMetadata.Value<int?>(h,"score")),invalidOrder.Concat(new[]{0,2,3}).ToArray());
+            await Ordered(CosmicQuery<Holon>.Create().OrderBy(h=>CosmicQueryMetadata.Value<string>(h,"unicode")),4,3,2,0,1);
+            await Ordered(CosmicQuery<Holon>.Create().OrderBy(h=>h.Name).Take(2).Skip(5));
+            var one=await provider.ExecuteCosmicQueryAsync(PlanQuery(CosmicQuery<Holon>.Create().OrderBy(h=>h.Name).Take(1).Result),1);
+            Assert.IsFalse(one.IsError,one.Message);Assert.AreEqual(records[0].Id,one.Result.Single().Id);
             records[0].MetaData.Remove("score");
             var update = await provider.SaveHolonAsync(records[0], saveChildren: false); Assert.IsFalse(update.IsError, update.Message + update.Exception);
             records[0] = (Holon)update.Result;
@@ -104,6 +127,8 @@ public class Neo4jNativeCqlTests
             var targetId = records[0].Id;
             var invalid = await provider.ExecuteCosmicQueryAsync(Plan(h => h.Id == targetId));
             Assert.AreEqual("CQL_DATA_INVALID", invalid.ErrorCode, invalid.Message); Assert.IsNull(invalid.Result);
+            invalid=await provider.ExecuteCosmicQueryAsync(PlanQuery(CosmicQuery<Holon>.Create().OrderBy(h=>h.Name).Skip(1000).Take(1).Result));
+            Assert.AreEqual("CQL_DATA_INVALID",invalid.ErrorCode,"An offset must not hide an invalid projection outside its page.");
             Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
             activation = await provider.ActivateProviderAsync(); Assert.IsFalse(activation.IsError, activation.Message + activation.Exception);
             var after = (await (await inspection.RunAsync("MATCH (h:Holon {Id:$id}) RETURN h.SnapshotJson AS snapshot", new { id = ids[1] })).SingleAsync())["snapshot"].As<string>();
