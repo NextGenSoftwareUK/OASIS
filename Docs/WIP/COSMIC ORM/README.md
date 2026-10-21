@@ -7,6 +7,9 @@ These are working documents. Dated reports retain historical evidence; earlier c
 ## Documents
 
 - [SQLite avatar optional enum projection and additive presence upgrade](SQLITE_AVATAR_OPTIONAL_ENUMS.md).
+- [SQLite CQL native work, deadline and streamed payload bounds](SQLITE_CQL_RESOURCE_BOUNDS.md).
+
+- [CQL ordering and paging: common contract and remaining native work](CQL_ORDERING_PAGING.md).
 
 - [CQL field comparisons: current implementation and native acceptance work](CQL_FIELD_COMPARISONS.md).
 

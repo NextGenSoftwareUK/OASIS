@@ -44,7 +44,8 @@ public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
         const string name="cosmic_cql_fixture";var client=new MongoClient(uri);
         using var names=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await names.ToListAsync());
         var database=client.GetDatabase(name);await database.CreateCollectionAsync("CosmicOwnedFixture");
-        var provider=new Provider(uri,name);var complete=false;
+        const string app="CosmicCqlResources";
+        var provider=new Provider(uri+"&appName="+app,name);var complete=false;
         try
         {
             Assert.False((await provider.ActivateProviderAsync()).IsError);
@@ -63,6 +64,41 @@ public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
             var result=await provider.ExecuteCosmicQueryAsync(plan.Result,maximumResults:100);
             Assert.True(result.IsError);Assert.Equal("CQL_QUERY_LIMIT",result.ErrorCode);Assert.Null(result.Result);Assert.False(result.IsLoaded);
             Assert.Equal(9,await database.GetCollection<BsonDocument>("Holon").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            // Force a real blocking sort above MongoDB's native in-memory limit.
+            // The wrapper's computed Name keys prevent an index-only sort; spilling
+            // must remain disabled rather than moving unbounded work onto disk.
+            foreach(var index in Enumerable.Range(9,5))
+            {
+                var saved=await provider.SaveHolonAsync(new Holon{Id=Guid.NewGuid(),Name="owned CQL bounded sort "+index,
+                    MetaData=new(){["payload"]=payload}},saveChildren:false);
+                Assert.False(saved.IsError,saved.Message+saved.Exception);
+            }
+            var ordered=CosmicQuery<Holon>.Create().OrderBy(root=>root.Name).Result.Take(14);
+            Assert.False(ordered.IsError,ordered.Message);
+            var sortPlan=CosmicQueryPlanner.Plan(ordered.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            Assert.False(sortPlan.IsError,sortPlan.Message);
+            var bounded=await provider.ExecuteCosmicQueryAsync(sortPlan.Result);
+            Assert.Equal("CQL_QUERY_LIMIT",bounded.ErrorCode);Assert.Null(bounded.Result);Assert.False(bounded.IsLoaded);
+            Assert.Equal(292,Assert.IsType<MongoCommandException>(bounded.Exception).Code);
+            Assert.Equal(14,await database.GetCollection<BsonDocument>("Holon").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            var small=CosmicQueryPlanner.Plan(ordered.Result.Take(1).Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            var recovered=await provider.ExecuteCosmicQueryAsync(small.Result);
+            Assert.False(recovered.IsError,recovered.Message+recovered.Exception);Assert.Single(recovered.Result);
+            var admin=client.GetDatabase("admin");
+            await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode",new BsonDocument("times",1)},
+                {"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},{"appName",app},{"errorCode",50}}}});
+            try
+            {
+                var expired=await provider.ExecuteCosmicQueryAsync(small.Result);
+                Assert.Equal("CQL_QUERY_TIMEOUT",expired.ErrorCode);Assert.Null(expired.Result);Assert.False(expired.IsLoaded);
+                Assert.IsType<MongoExecutionTimeoutException>(expired.Exception);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+            }
             complete=true;
         }
         finally
@@ -135,6 +171,24 @@ public sealed class CosmicCqlNativeTests(ITestOutputHelper output)
                 Assert.Equal(expected.Select(root=>root.Id).OrderBy(id=>id),values.Select(root=>root.Id).OrderBy(id=>id));
                 Assert.All(values,value=>{Assert.Empty(value.Children);Assert.False(value.HasHolonChanged());});return values;
             }
+            var baseQuery=CosmicQuery<Holon>.Create().Where(root=>ids.Contains(root.Id)).Result;
+            async Task Window(CosmicQuery<Holon> query,params Holon[] expected)
+            {
+                var plan=CosmicQueryPlanner.Plan(query,ProviderType.MongoDBOASIS,new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+                Assert.False(plan.IsError,plan.Message);
+                var result=await manager.ExecuteQueryAsync(plan.Result,new[]{adapter});Assert.False(result.IsError,result.Message+result.Exception);
+                Assert.Equal(expected.Select(root=>root.Id),result.Result.Providers.Single().Rows.Select(root=>root.Id));
+            }
+            var orderedNames=baseQuery.OrderBy(root=>root.Name).Result;
+            await Window(orderedNames,d,a,c,b);
+            await Window(orderedNames.Skip(1).Result.Take(2).Result,a,c);
+            await Window(orderedNames.Take(2).Result.Skip(1).Result,a);
+            await Window(orderedNames.Skip(100).Result.Take(3).Result);
+            await Window(baseQuery.Take(0).Result);
+            await Window(baseQuery.OrderBy(root=>root.IsPublic).Result,roots.OrderBy(root=>root.Id.ToString("D"),StringComparer.Ordinal).ToArray());
+            await Window(baseQuery.OrderBy(root=>CosmicQueryMetadata.Value<long?>(root,"left","a.b'; $x")).Result,d,b,a,c);
+            await Window(baseQuery.OrderByDescending(root=>CosmicQueryMetadata.Value<long?>(root,"left","a.b'; $x")).Result,c,a,b,d);
+            await Window(baseQuery.OrderBy(root=>CosmicQueryMetadata.Value<DateTime?>(root,"when/~")).Result,d,c,a,b);
             await Check(root=>root.Name.StartsWith("$where",StringComparison.Ordinal)&&root.Description.Contains("%_"),a);
             await Check(root=>root.Name.EndsWith("\0end",StringComparison.Ordinal),a);
             await Check(root=>root.Name==root.Description,d);

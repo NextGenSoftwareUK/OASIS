@@ -33,10 +33,13 @@ internal static class MongoCqlContract
             new CosmicQueryMetadataCapability(typeof(long),ordered,supportsMembership:true),
             new CosmicQueryMetadataCapability(typeof(long?),ordered,supportsMembership:true)
         };
+        fields=fields.Select(f=>new CosmicQueryFieldCapability(f.Name,f.ValueType,f.Comparisons.ToArray(),f.StringOperations.ToArray(),supportsOrdering:true)).ToList();
+        metadata=metadata.Select(m=>new CosmicQueryMetadataCapability(m.ValueType,m.Comparisons.ToArray(),m.StringOperations.ToArray(),
+            m.SupportsMembership,m.SupportsMixedNumericComparison,supportsOrdering:true)).ToArray();
         return new CosmicQueryCapabilities(CosmicQueryFeatures.And|CosmicQueryFeatures.Or|CosmicQueryFeatures.Not
             |CosmicQueryFeatures.Metadata|CosmicQueryFeatures.NullLiteral|CosmicQueryFeatures.BooleanConstant
             |CosmicQueryFeatures.MetadataExists|CosmicQueryFeatures.MetadataNull|CosmicQueryFeatures.Membership
-            |CosmicQueryFeatures.FieldComparison|CosmicQueryFeatures.StringContains|CosmicQueryFeatures.StringStartsWith|CosmicQueryFeatures.StringEndsWith,
+            |CosmicQueryFeatures.Ordering|CosmicQueryFeatures.Paging|CosmicQueryFeatures.FieldComparison|CosmicQueryFeatures.StringContains|CosmicQueryFeatures.StringStartsWith|CosmicQueryFeatures.StringEndsWith,
             fields.ToArray(),metadata);
     }
 }

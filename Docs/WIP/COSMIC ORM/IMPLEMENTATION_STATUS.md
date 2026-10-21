@@ -1,5 +1,15 @@
 # COSMIC ORM implementation status
 
+## SQLite nullable avatar enums and CQL resource gate — 20 October 2026
+
+Scoped avatar/schema commit351fa086d preserves null-versus-defined AvatarType and creation-provider/OASIS wrappers across repository/entity mappings and updates. Both owned-schema and EF migrations preserve prior values, and downgrade refuses loss of absence evidence. Required historical migration target metadata and the current snapshot are aligned. Final complete SQLite1,145/1,145 and focused migration7/7 pass, zero skips. [Original failures, root fix and exact working-tree cohort](SQLITE_AVATAR_OPTIONAL_ENUMS.md).
+
+The same complete run also covers the still-uncommitted [CQL native resource owner](SQLITE_CQL_RESOURCE_BOUNDS.md): native work/deadline/cancellation/record-size interruption, streamed payload bounds and exact connection-state restoration. Its original oversized-query regression and five focused cases pass. CQL ordering/resource publication and immutable combined Core acceptance remain pending; this is not a deployment or full-roadmap completion claim.
+
+## Native CQL ordering, paging and resource bounds — 20 October 2026
+
+Fluent Where/OrderBy/ThenBy/Skip/Take composition uses immutable common Core plans and exact ordering capabilities. SQLite/MongoDB execute typed ordering and windows natively with unique-ID ties, explicit missing/null/invalid domains and preserved integer/date/UUID precision. Native work/deadline/record/payload bounds, real MongoDB sort exhaustion and scoped timeout classification pass. Final clean Corefe492b2 cohort passes Core1,606 / Shared925 / Mongo197 controls+3 native / SQLite1,145, zero skips;17 declared consumer copies match, and the Core gitlink/manifest are paired. [Usage, original failure reconciliation, scope and exact hashes](CQL_ORDERING_PAGING.md). Global federation, subqueries, projections/aggregates, snapshots/continuations, authenticated discovery and wider adapters remain open. SQLite Akashic persistence is a separate acknowledged provider gap.
+
 ## Native CQL field comparisons — 20 October 2026
 
 Canonical and typed metadata operands now compare through the common immutable Core query representation and exact two-path admission. SQLite and MongoDB execute comparisons natively, preserving null/missing/type domains, exact integer/date precision and supported UUID representations. Regression tests exposed and fixed MongoDB hex-case normalization and SQLite JSON `id` shadowing of the outer holon identity. Final pinned Core1,558 / Shared925 / Mongo197 controls / native CQL3 / SQLite1,130 pass, zero skips; all17 declared producer/consumer copies match. Corec030926 is remotely verified and paired with the parent manifest. [Usage, scope, reviewed original failures and full acceptance evidence](CQL_FIELD_COMPARISONS.md). Ordering, paging, projection/aggregation, relationships, authorization-aware discovery/federation and other native adapters remain open.

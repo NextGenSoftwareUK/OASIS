@@ -9,11 +9,25 @@
 | Expressions | Where, AND/OR/NOT, scalar comparisons, null tests, ordinal string matching, bounded scalar-array membership; annotated scalar member paths; [native field-to-field comparisons](CQL_FIELD_COMPARISONS.md) | Wider expression forms |
 | Metadata | Nested literal paths, Exists, IsNull; SQLite/MongoDB string/bool/int/long comparisons, membership and supported strings; Guid/Guid? equality and membership; UTC DateTime/DateTime? comparisons and membership over each provider's declared storage domain | Native decimal/double/enum metadata predicates |
 | Scope | Current default, named providers, all eligible targets; capability admission before I/O | Automatic authenticated WEB4 target discovery and policy routing |
+| Ordering/paging | [Fluent OrderBy/ThenBy, Skip/Take](CQL_ORDERING_PAGING.md); native SQLite/MongoDB scalar/domain ordering, identity ties and resource bounds | Subquery composition, global federated pages and snapshot/continuation semantics |
 | Native execution | SQLite SQL and MongoDB BSON expressions, cancellation and result/query budgets; MongoDB scan deadline and streamed payload budget | Neo4j/other adapters, wider deadline/cost policy |
 | Returned entities | V2 typed leaf entities, metadata hydration/decryption, clean tracking, conditional save integration | Child loading options, relationship predicates, broader entity-kind mapping |
 | Federation | Provider-grouped results with provenance and errors | Deduplication, freshness/conflict policy, paging/order/projection/aggregates |
 
 This is currently a fluent expression API, not a textual SQL-like parser or a complete EF IQueryable implementation. Query compilation can represent more scalar types than any particular adapter can execute. Capability checks distinguish the two.
+
+Ordering and paging use the same capability-aware pipeline:
+
+```csharp
+var page = CosmicQuery<Holon>.Create()
+    .Where(h => h.IsActive && h.Version >= 2)
+    .OrderBy(h => h.Name)
+    .ThenByDescending(h => h.Version)
+    .Skip(20).Take(10);
+if (page.IsError) throw new InvalidOperationException(page.Message);
+```
+
+Use `page.Result` with the same planner/executor below. Chaining preserves the first error. Offset pages read the current data on each request; they do not promise a snapshot across concurrent writes. Multi-provider global pages reject until the federation implementation can preserve their meaning.
 
 ## Build a query
 

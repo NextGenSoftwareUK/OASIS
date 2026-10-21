@@ -1,5 +1,7 @@
 # COSMIC source integration boundary
 
+20 October ordering/window increment: native SQLite/MongoDB and common fluent composition pass the clean Corefe492b2 pinned cohort: Core1,606, Shared925, Mongo197 controls/3 native, SQLite1,145, zero skips;17 declared consumer copies match. Exact type/domain ordering, identity ties, Take/Skip algebra, native work/payload/record bounds, real sort-memory exhaustion and timeout classification are covered. [Contract, examples, original fixture reconciliation and hashes](CQL_ORDERING_PAGING.md). Complete CQL/global federation/subquery/snapshot and the separate SQLite Akashic persistence scope remain open.
+
 20 October field-comparison increment: common immutable two-path predicates and independent capability admission now execute natively on SQLite/MongoDB. Final pinned Corec030926 cohort passes Core1,558, Shared925, Mongo197 controls/3 native and SQLite1,130, zero skips, with17 matching declared consumer copies. Native UUID hex-case and SQLite outer-ID binding defects found by regression tests are fixed; the original Mongo fixture was independently archived/re-read before exact cleanup. [Contract, examples, failure reconciliation, reports and hashes](CQL_FIELD_COMPARISONS.md). The full Stage8 authorization/discovery, ordering/paging, projections/aggregates, relationships, federation and wider adapter scope remain open.
 
 ## Shared save lifecycle across SQLite, MongoDB and Neo4j — 20 October 2026
