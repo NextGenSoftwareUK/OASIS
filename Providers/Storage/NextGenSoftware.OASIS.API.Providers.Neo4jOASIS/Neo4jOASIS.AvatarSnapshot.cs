@@ -13,43 +13,24 @@ public partial class Neo4jOASIS
 {
     public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar source)
     {
-        var result = new OASISResult<IAvatar>();
-        var dispatched = false;
-        var archiveVersions = IsVersionControlEnabled;
+        var result=new OASISResult<IAvatar>();var archiveVersions=IsVersionControlEnabled;
         try
         {
-            var staged = StageAvatar(source);
-            if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
-            Avatar acknowledged;
-            using (var session = _driver.AsyncSession())
-            {
-                using var transaction = await session.BeginTransactionAsync();
-                dispatched = true;
-                var expected=archiveVersions ? await StampRecordHistoryAsync(transaction,"Avatar",staged,ReadAvatarNode):null;
-                var query=SnapshotWritePrefix("Avatar",archiveVersions);
-                query+="SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot, a.CreatedDate=$createdDate, a.ModifiedDate=$modifiedDate RETURN a";
-                var rows = await (await transaction.RunAsync(query, new { id = staged.Id.ToString(), username = staged.Username,
-                    email = staged.Email, snapshot = OasisJson.Serialize(staged), createdDate = staged.CreatedDate, modifiedDate = staged.ModifiedDate,
-                    expected,writeId=Guid.NewGuid().ToString("N") })).ToListAsync();
-                if (rows.Count != 1) throw new InvalidDataException("Neo4j avatar save did not acknowledge exactly one record.");
-                acknowledged = ReadAvatarNode(rows[0]["a"].As<Neo4j.Driver.INode>());
-                if (acknowledged.Id != staged.Id) throw new InvalidDataException("Neo4j avatar save acknowledged another identity.");
-                RequireAcknowledgedRecord(staged,acknowledged);
-                await transaction.CommitAsync();
-            }
-            source.Id = acknowledged.Id;
-            source.ProviderUniqueStorageKey ??= new System.Collections.Generic.Dictionary<Core.Enums.ProviderType,string>();
-            source.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = acknowledged.Id.ToString();
-            source.IsNewHolon = false;
+            var staged=StageAvatar(source);
+            result=await WriteIdentitySnapshotAsync<IAvatar>("Avatar",staged,ReadAvatarNode,
+                "SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot, a.CreatedDate=$createdDate, a.ModifiedDate=$modifiedDate RETURN a",row=>new System.Collections.Generic.Dictionary<string,object>{{"username",row.Username},{"email",row.Email},{"createdDate",row.CreatedDate},{"modifiedDate",row.ModifiedDate}},archiveVersions).ConfigureAwait(false);
+            if(result.IsError)return result;
+            var acknowledged=result.Result;
+            source.Id=acknowledged.Id;
+            source.ProviderUniqueStorageKey??=new System.Collections.Generic.Dictionary<Core.Enums.ProviderType,string>();
+            source.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS]=acknowledged.Id.ToString();source.IsNewHolon=false;
             if(archiveVersions){source.Version=acknowledged.Version;source.VersionId=acknowledged.VersionId;source.PreviousVersionId=acknowledged.PreviousVersionId;}
-            result.Result = acknowledged; result.IsSaved = true;
         }
-        catch (Exception cause)
+        catch(Exception cause)
         {
-            result.IsError = true;
-            result.Exception = dispatched ? new Neo4jMutationReconciliationException(cause) : cause;
-            result.Message = result.Exception.Message;
-            if (!dispatched && (cause is ArgumentException || cause is InvalidDataException)) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
+            result.Exception=result.Exception==null?cause:new AggregateException(result.Exception,cause);result.Message=result.Exception.Message;
+            if(result.IsSaved){result.IsWarning=true;result.WarningCount++;}
+            else {result.IsError=true;result.ErrorCount++;result.ErrorCode=cause is ArgumentException or InvalidDataException?"HYPERDRIVE_PAYLOAD_INVALID":"COSMIC_WRITE_FAILED";}
         }
         return result;
     }

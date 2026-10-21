@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Neo4j avatar/detail save ownership — 20 October 2026
+
+Both identity save routes now use one native owner for locked observations, lifecycle admission, optional history, exact observed-snapshot/creation-claim replacement, acknowledgement, COMMIT/rollback and disposal. History-off saves enforce the same tombstone preconditions. Definite rejected writes retain their real errors after acknowledged rollback; known commits survive cleanup as saved warnings. Original lifecycle32 failures/16 controls close in full238 controls, focused20/full231 native and Shared917, zero skips. [Contract, original broad-run certification corrections and exact inspected fixture/artifact evidence](NEO4J_IDENTITY_SAVE.md). Delete ownership, related-kind lifecycle coordination, explicit authorized restore and the full roadmap remain open.
+
 ## Neo4j save lifecycle and acknowledgement parity — 20 October 2026
 
 Neo4j now validates committed tombstones at locked observations before any conditional history stamp or ordinary graph write. Save cannot clear/retime/reattribute deletion or make the tombstone active; compatible tombstone edits and live saves remain allowed. The explicit lifecycle error is preserved. Conditional/replica acknowledgement assembly delegates to the existing Shared helper, fixing missing changed-state flags without duplicating graph/count logic. Original baseline12 failures/4 controls and two receipt-flag failures close in full Neo190, native conditional13, ordinary-outcome16 and Shared917, all zero skips. [Contract, native evidence and remaining lifecycle scope](NEO4J_SAVE_LIFECYCLE.md). Avatar/detail/all-provider parity and explicit authorized restore remain open.
