@@ -1,7 +1,11 @@
-param([switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
-    [switch]$CleanupVerifiedAwsRun,[ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$VerifiedReportSha256)
+param([switch]$InspectSqliteKarmaHistory,[switch]$ReconcileKarmaSeed,[switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
+    [switch]$CleanupKarmaMutation,[switch]$InspectKarmaMutation,[switch]$CleanupKarmaSeed,[switch]$CleanupVerifiedAwsRun,[ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$VerifiedReportSha256)
 $ErrorActionPreference='Stop'
-if(([int]$OrdinarySaveAcknowledgements.IsPresent+[int]$OrdinarySaveLifecycle.IsPresent+[int]$DetailDeletionResults.IsPresent+[int]$BatchRevisions.IsPresent+[int]$EncryptedProcess.IsPresent+[int]$EncryptedReplay.IsPresent+[int]$PreparationClaims.IsPresent+[int]$ReconcileConditionalInitial.IsPresent+[int]$ConditionalGraphs.IsPresent+[int]$ReconcileKnownReadFixture.IsPresent+[int]$FullAwsSuite.IsPresent+[int]$ReconcileAwsPreRead.IsPresent+[int]$CleanupKnownAwsRun.IsPresent+[int]$ReconcileValidationFixtures.IsPresent+[int]$ReconcileReflectionFixtures.IsPresent+[int]$CleanupVerifiedAwsRun.IsPresent) -gt 1){throw 'Choose one explicit runner mode.'}
+$selectedModes=@($InspectSqliteKarmaHistory,$CleanupKarmaMutation,$InspectKarmaMutation,$CleanupKarmaSeed,$ReconcileKarmaSeed,$OrdinarySaveAcknowledgements,$OrdinarySaveLifecycle,$DetailDeletionResults,
+    $BatchRevisions,$EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileConditionalInitial,$ConditionalGraphs,
+    $ReconcileKnownReadFixture,$FullAwsSuite,$ReconcileAwsPreRead,$CleanupKnownAwsRun,$ReconcileValidationFixtures,
+    $ReconcileReflectionFixtures,$CleanupVerifiedAwsRun).Where({$_.IsPresent})
+if($selectedModes.Count -gt 1){throw 'Choose one explicit runner mode.'}
 if($CleanupVerifiedAwsRun -ne [bool]$VerifiedReportSha256){throw 'Verified cleanup requires its explicit original full-suite report SHA256, exclusively.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runtime='C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\runtime'
@@ -27,7 +31,7 @@ try{
         if($pending.Count -ne 7 -or (Get-FileHash -LiteralPath $originalReport -Algorithm SHA256).Hash -ne '339A00426E80869F82FA8EBE1273A490BA40D94B6829791A35AA04AEABB95E53'){throw 'Exactly the reviewed validation-rejection run is required.'}
     }
     elseif($ReconcileKnownReadFixture){if($pending.Count -ne 1 -or $pending[0].Name -ne 'record-history-2.pending.json'){throw 'Exactly the reviewed read-fixture journal is required.'}}
-    elseif($ReconcileAwsPreRead -or $CleanupKnownAwsRun -or $CleanupVerifiedAwsRun){if($pending.Count -ne 1 -or $pending[0].Name -ne 'aws-full-suite.pending.json'){throw 'Exactly the known full-suite intent is required.'}}
+    elseif($InspectSqliteKarmaHistory -or $CleanupKarmaMutation -or $InspectKarmaMutation -or $CleanupKarmaSeed -or $ReconcileKarmaSeed -or $ReconcileAwsPreRead -or $CleanupKnownAwsRun -or $CleanupVerifiedAwsRun){if($pending.Count -ne 1 -or $pending[0].Name -ne 'aws-full-suite.pending.json'){throw 'Exactly the known full-suite intent is required.'}}
     elseif($pending.Count){throw 'Reconcile retained native originals before another run.'}
     $project=Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.IntegrationTests.csproj'
     if($CleanupVerifiedAwsRun){
@@ -36,14 +40,18 @@ try{
         [xml]$verifiedTrx=Get-Content -LiteralPath $verifiedReport -Raw
         $counts=$verifiedTrx.TestRun.ResultSummary.Counters
         $originalIntent=Get-Content -LiteralPath $pending[0].FullName -Raw | ConvertFrom-Json
-        if([int]$counts.total -ne 132 -or [int]$counts.passed -ne 132 -or [int]$counts.notExecuted -ne 0 -or
-            [DateTimeOffset]$verifiedTrx.TestRun.Times.start -lt [DateTimeOffset]$originalIntent.startedUtc){throw 'Complete original132/132 report newer than the pending intent required.'}
+        if([int]$counts.total -ne 134 -or [int]$counts.passed -ne 134 -or [int]$counts.notExecuted -ne 0 -or
+            [DateTimeOffset]$verifiedTrx.TestRun.Times.start -lt [DateTimeOffset]$originalIntent.startedUtc){throw 'Complete original134/134 report newer than the pending intent required.'}
     }
-    if($FullAwsSuite -or $ReconcileAwsPreRead -or $CleanupKnownAwsRun -or $CleanupVerifiedAwsRun){
+    if($InspectSqliteKarmaHistory -or $CleanupKarmaMutation -or $InspectKarmaMutation -or $CleanupKarmaSeed -or $ReconcileKarmaSeed -or $FullAwsSuite -or $ReconcileAwsPreRead -or $CleanupKnownAwsRun -or $CleanupVerifiedAwsRun){
         $project=Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests.csproj'
+        # Read-only reconciliation uses the pinned Sqlite SDK directly, not either
+        # storage adapter. Preserve their frozen outputs while their owners edit.
+        if(!($InspectSqliteKarmaHistory -or $CleanupKarmaMutation -or $InspectKarmaMutation -or $ReconcileKarmaSeed -or $CleanupKarmaSeed)){
         foreach($dependency in @('Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj')){
             & dotnet build (Join-Path $root $dependency) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
             if($LASTEXITCODE -ne 0){throw 'Cached AWS native dependency build failed.'}
+        }
         }
     }
     foreach($build in @((Join-Path $root 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj'),(Join-Path $root 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj'),(Join-Path $root 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj'),$project)){
@@ -105,13 +113,42 @@ try{
         if($LASTEXITCODE -ne 0){throw 'Original read-only reconciliation failed; preserve all evidence.'}
         return
     }
+    if($CleanupKarmaMutation){
+        if(Test-Path -LiteralPath (Join-Path $work 'aws-karma-mutation-cleanup-current.trx')){throw 'Preserve original cleanup report.'}
+        $env:OASIS_AWS_CLEANUP_AUTHORITY='known-karma-mutation-reconciled'
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~AWSNativeRunLifecycle.CleanupOnlyReviewedKarmaMutationFailure' --logger 'trx;LogFileName=aws-karma-mutation-cleanup-current.trx' --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Reviewed mutation cleanup incomplete; preserve originals.'}
+        return
+    }
+    if($InspectSqliteKarmaHistory){
+        if(Test-Path -LiteralPath (Join-Path $work 'aws-sqlite-karma-history-inspection-current.trx')){throw 'Preserve original history inspection.'}
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~AWSNativeRunLifecycle.ReadOnlyInspectSqliteKarmaHistoryFailure' --logger 'trx;LogFileName=aws-sqlite-karma-history-inspection-current.trx' --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0){throw 'Read-only history inspection failed; preserve originals.'}
+        return
+    }
+    if($InspectKarmaMutation){
+        if(Test-Path -LiteralPath (Join-Path $work 'aws-karma-mutation-inspection-current.trx')){throw 'Preserve original mutation inspection evidence.'}
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~AWSNativeRunLifecycle.ReadOnlyInspectKarmaMutationFailure' --logger 'trx;LogFileName=aws-karma-mutation-inspection-current.trx' --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0){throw 'Read-only mutation inspection failed; preserve original data, no replay.'}
+        return
+    }
+    if($ReconcileKarmaSeed -or $CleanupKarmaSeed){
+        $recoveryReport=if($CleanupKarmaSeed){'aws-karma-seed-cleanup-current.trx'}else{'aws-karma-seed-reconciliation-current.trx'}
+        $recoveryMethod=if($CleanupKarmaSeed){'CleanupOnlyReviewedKarmaSeedFailure'}else{'ReadOnlyReconcileKnownKarmaSeedFailure'}
+        if(Test-Path -LiteralPath (Join-Path $work $recoveryReport)){throw 'Preserve the original karma recovery report before another phase.'}
+        if($CleanupKarmaSeed){$env:OASIS_AWS_CLEANUP_AUTHORITY='known-karma-seed-reconciled'}
+        & dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~AWSNativeRunLifecycle.$recoveryMethod" --logger "trx;LogFileName=$recoveryReport" --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0){throw 'Karma fixture recovery failed; preserve remaining originals, no replay.'}
+        if($CleanupKarmaSeed -and (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Reviewed cleanup incomplete; preserve remaining originals.'}
+        return
+    }
     if($FullAwsSuite){
         & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~AWSNativeRunLifecycle.BeginFromVerifiedEmptyRetainedTables' --logger 'trx;LogFileName=aws-full-begin-current.trx' --results-directory $work -v:q
         if($LASTEXITCODE -ne 0){throw 'Native empty-baseline/intent gate failed; do not start suite.'}
         & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName!~AWSNativeRunLifecycle' --logger 'trx;LogFileName=aws-full-native-current.trx' --results-directory $work -v:q
         if($LASTEXITCODE -ne 0){throw 'Full AWS suite failed; preserve original persistent data/intent. No cleanup/retry.'}
         $report=Get-Item (Join-Path $work 'aws-full-native-current.trx');[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
-        if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 132 -or [int]$counts.passed -ne 132 -or [int]$counts.notExecuted -ne 0){throw 'Fresh full132/132 suite required before cleanup.'}
+        if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 134 -or [int]$counts.passed -ne 134 -or [int]$counts.notExecuted -ne 0){throw 'Fresh full134/134 suite required before cleanup.'}
         $env:OASIS_AWS_CLEANUP_AUTHORITY='verified-full-suite-pass'
         & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~AWSNativeRunLifecycle.CleanupOnlyAfterVerifiedFullSuitePass' --logger 'trx;LogFileName=aws-full-cleanup-current.trx' --results-directory $work -v:q
         if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Native exact cleanup incomplete; preserve remaining originals.'}
