@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Shared Import result forwarding / OCI graph import — scoped closure
+
+Four genuine controlled failures exposed Import discarding underlying save flags/completed counts. Reused the existing result-copy helper in the single shared import owner (4insertions/1deletion); bool success is false on partial failure and original counts/error evidence survive. No new persistence operation, retry or alternate implementation.
+
+Actual92963 terminal0: fullShared943/943 passed0skip6s (`import-result-full943.trx`, SHA256 `68223F11280489557CDAA07B79C33BD36DF292527ADC73E65F5860164D88C685`) plusOCI officialSDK signedloopback52/52 passed0skip11s (`oracle-object-import-result-current.trx`, `980A8F0BB40B8572CC544BEBA6904DEE08FB3A7136AD9D5B3C5B9F5F9EC49197`). Existing encrypted SDK schedules additionally exercise graphImport/count2/readback and plaintext exclusion. Identity verifier confirmed CoreEB9EFAD0 / SharedA8440E6F producer/consumer matching. Details/red evidence/fees and limits in `ORACLE_CLIENT_PRIORITY.md`. Hosted OCI and all-provider certification remain OPEN; previous nativeAWS134 was Shared802AAF, not this new A844 cohort. No download/install/duplicate environment/deployment; freeC60,574,494,720bytes,123GBtarget unmet.
+
 ## Shared ordinary save counts / OCI client-priority follow-up
 
 Found and fixed one shared result-count defect affecting inherited KV providers, including Oracle Object Storage: scalar saves now acknowledge one completed logical record, graph/batch result owners sum completed records, and partial failures retain only completed counts. Actual14/14 regression failures before fix (all zero counts); final fullShared939/939 passed0skip6s. OCI official-SDK signed loopback52/52 passed0skip11s with six additional count assertions in its existing encrypted sync/async schedules; request-count assertions still pass, so no extra backend I/O was introduced. Details, red hash and limits in `ORACLE_CLIENT_PRIORITY.md`.

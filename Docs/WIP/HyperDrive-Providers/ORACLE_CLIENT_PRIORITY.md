@@ -1,5 +1,15 @@
 # Oracle client readiness — top priority
 
+## Import result forwarding — shared/OCI controlled closure
+
+Shared `ImportAsync` created a new bool result and discarded underlying save flags/counts (and error code metadata). Four sync/async success/partial-failure controls genuinely failed: successes had `IsSaved=false`, partial failures lost the one completed record. `TestResults/SharedCurrent/import-result-forwarding-red.trx` SHA256 `271A1BC89B5B91A394E171C76CCC553A6F0459B623BCEFEDCF4313072BD39A71`.
+
+The existing shared import owner now uses `OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult`, then sets only its bool outcome and success message. No second persistence path, additional SDK request, retry, schema or encryption change. Success messages/counts describe completed logical records including descendants, not fees or physical requests. Partial imports remain errors with `Result=false`, preserve completed-record counts and original exception/evidence, and are not replayed automatically.
+
+Actual92963 terminal0: **shared943/943 passed**,0skip,6s, report `import-result-full943.trx` SHA256 `68223F11280489557CDAA07B79C33BD36DF292527ADC73E65F5860164D88C685`. **OCI SDK loopback52/52 passed**,0skip,11s, report `TestResults/OracleCurrent/oracle-object-import-result-current.trx` `980A8F0BB40B8572CC544BEBA6904DEE08FB3A7136AD9D5B3C5B9F5F9EC49197`. Existing private sync/async schedules now additionally import a graph, require `IsSaved/count2`, reload its child and inspect encrypted transport values for absence of plaintext names/IDs. This uses the actual official SDK and signed loopback HTTP, not a live OCI account. Measured consumer identity CoreEB9EFAD0 / Shared `A8440E6F13B301DB9A89AFE167096B6819919AA1AF7F4B0AE9B9EE05A18D37B9` matched current producers.
+
+Same output directories, pinned dependencies and synthetic loopback environment reused; no download/install/new environment/cloud fees/deployment. FreeC60,574,494,720bytes;123GBtarget unmet and unrelated environments were not deleted. Hosted OCI/IAM/billing, native acceptance for other inherited KV providers and broader interface/V2 gates remain open. Prior939/942F and AWS134/802AAF results below are historical distinct binary cohorts, not relabelled as this A844 build.
+
 ## OCI inherited ordinary save acknowledgement counts — scoped controlled closure
 
 Final939 report SHA256 `C77682890F22855B6798A2D388E4B68E5F3F08700A9DD443CC533A568541344E`; separate four passing flag controls (`ordinary-partial-save-flags-red.trx`, despite its diagnostic filename, all4 passed) `5A5D9FFFAECD80CF098CA5B94E44AFDF67A266C5F7997C63A2D9F57CC16D1254`. Compact reports retained in the existing output directories; no database copies. FreeC63,681,425,408bytes;123GBcleanup target not met.
