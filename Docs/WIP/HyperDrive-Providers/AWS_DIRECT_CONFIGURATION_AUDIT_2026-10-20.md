@@ -1,6 +1,16 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+Latest karma acceptance status is maintained in `HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`, section “Shared V2 karma provider affinity.” Shared Core4 manager fixes are committed/pushed as `fe492b2291513002652aa6ac8c81cd5d71f187fb`; full Core1605 and scoped Dynamo400 passed before three added serialization controls (all3 separately passed). Fresh native134 still reports132passed/2failed: SQLite history persistence fails, followed by the intentional preserved-fixture fence. Read-only SQLite proves zero history rows despite correct total; canonical and controlled Dynamo history round trips pass. No all-provider/native completion claim, dev deployment, or fixture replay. Original failed report79CA2F and SQLite8DE63A remain retained for exact reconciliation; the preceding reviewed46-row cleanup succeeded with hashes recorded in the release gates. SQLite owner will address that separate provider gap after coordinated immutable CQL publication.
+
 Status: partial provider verification; not hosted AWS or full HyperDrive certification.
+
+Latest follow-up: scoped Dynamo **404/404 passed**,0skip,2s; `TestResults/DynamoHistoryCurrent/dynamo-karma-history-manager-current.trx`, SHA256 `22F2F07E92843B7579D779924F1F42B3FB33DBCEA9CEB8C193BFF5582BA92581`. Includes high-level manager and direct provider history controls, not a native SQLite fix. Read-only original-fixture inspection passed1/1, inventory54 exact-key/body-hash rows, both SQLite identities/totals and zero history rows verified; original report/database/intent unchanged. Compact proof SHA256 `4B77447725DA054EFC9342B836E191B0F46D87F18AA8E0767A66E485199BD85D`. Native134 remains132pass/2fail; peer owns the independent SQLite persistence/hydration correction. Corefe492 pinned in parentb797513; no devdeploy, download or new environment. Full evidence and remaining gates in `HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
+
+## Latest shared karma/native follow-up — not yet certified
+
+Shared V2 manager-affinity and record-source metadata fixes pass32focused/1602full Core controls (focus subset). Native suite expanded to134, but first attempt was131pass/3fail BEFORE any new karma mutation: SQLite dereferenced optional null AvatarType; retained-fixture fences correctly stopped the other new case and older routing test. No invented avatar type was added to hide this input-contract defect. Peer owns the schema/presence fix and its full SQLite gate.
+
+Original failure was independently reconciled read-only, then all42 exact synthetic Dynamo rows and the hash-verified692224byte SQLite fixture were conditionally cleaned with absence checks; reports and compact SHA evidence retained. No reset/replay, new environment/download or hosted spend. Native134 retry waits for SQLite's required gate; private Core changes/pins/dev deployment remain unpublished. Exact original/cleanup hashes, controlled regressions, corrected cold-settings expectation and current gate are in [current release gates](HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md), section “Shared V2 karma provider affinity.” Earlier132proof below remains only its earlier source/cohort, not native karma completion.
 
 ## Direct interface overload follow-up — scoped closure
 
