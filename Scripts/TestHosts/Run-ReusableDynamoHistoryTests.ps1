@@ -10,6 +10,11 @@ if($CleanupVerifiedAwsRun -ne [bool]$VerifiedReportSha256){throw 'Verified clean
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runtime='C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\runtime'
 $work=Join-Path $root 'TestResults/DynamoHistoryCurrent'
+if($FullAwsSuite){
+    foreach($reportName in @('aws-full-begin-current.trx','aws-full-native-current.trx')){
+        if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve and hash-verify the previous full-suite reports before another native run.'}
+    }
+}
 if($FullAwsSuite -and (Test-Path -LiteralPath (Join-Path $work 'aws-full-suite-cleanup-current.json'))){throw 'Review and preserve prior cleanup inventory BEFORE starting another native suite.'}
 $data=Join-Path (Split-Path $runtime) 'retained-history-data'
 if(!(Test-Path -LiteralPath (Join-Path $runtime 'DynamoDBLocal.jar')) -or (Get-Content (Join-Path $runtime 'runtime-source-sha256.txt') -Raw).Trim() -ne 'A3CB28740EA3875A7B0E14CFB13CED686F36CE27BC00F13F8A7D72DDEEE6C9B1'){throw 'Reviewed retained DynamoDB runtime/provenance required; no download/install.'}
