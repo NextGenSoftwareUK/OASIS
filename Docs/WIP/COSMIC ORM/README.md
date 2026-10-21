@@ -6,6 +6,8 @@ These are working documents. Dated reports retain historical evidence; earlier c
 
 ## Documents
 
+- [Neo4j native CQL: source gaps, transactional projection and acceptance](CQL_NEO4J_NATIVE.md).
+
 - [SQLite audit timestamp kind fidelity and regression evidence](SQLITE_AUDIT_DATE_KINDS.md).
 - [CQL enum metadata: defined-value domains and native acceptance](CQL_ENUM_METADATA.md).
 - [CQL exact integer domains and compiler promotion rules](CQL_INTEGER_DOMAINS.md).

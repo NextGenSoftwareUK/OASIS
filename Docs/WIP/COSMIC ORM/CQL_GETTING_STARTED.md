@@ -1,6 +1,6 @@
 # CQL getting started
 
-20 October 2026. CQL is the typed query layer for COSMIC ORM. It translates supported C# expression trees into a provider-independent query representation, checks the selected providers' capabilities, then executes native queries. SQLite and MongoDB have verified native adapters, including shared annotated scalar-property predicates. Full roadmap completion is not claimed.
+20 October 2026. CQL is the typed query layer for COSMIC ORM. It translates supported C# expression trees into a provider-independent query representation, checks the selected providers' capabilities, then executes native queries. SQLite and MongoDB have verified native adapters, including shared annotated scalar-property predicates. Neo4j now has an initial native predicate/projection adapter; its exact subset and selected native evidence are documented separately. Full roadmap completion is not claimed.
 
 ## Current feature status
 
@@ -10,7 +10,7 @@
 | Metadata | Nested literal paths, Exists, IsNull; SQLite/MongoDB string/bool/int/long comparisons, membership and supported strings; [exact byte/sbyte/short/ushort/uint domains](CQL_INTEGER_DOMAINS.md); [defined HolonType/ProviderType enums](CQL_ENUM_METADATA.md), including nullable forms; Guid/Guid? equality/membership; UTC DateTime/DateTime? comparisons/membership over each provider's declared storage domain | Native decimal/double/UInt64, unregistered enums, broader schema registration and canonical audit-date policy |
 | Scope | Current default, named providers, all eligible targets; capability admission before I/O | Automatic authenticated WEB4 target discovery and policy routing |
 | Ordering/paging | [Fluent OrderBy/ThenBy, Skip/Take](CQL_ORDERING_PAGING.md); native SQLite/MongoDB scalar/domain ordering, identity ties and resource bounds | Subquery composition, global federated pages and snapshot/continuation semantics |
-| Native execution | SQLite SQL and MongoDB BSON expressions, cancellation and result/query budgets; SQLite native work/deadline/record bounds and MongoDB native deadline/sort/payload bounds | Neo4j/other adapters, broader admission/cost policy |
+| Native execution | SQLite SQL, MongoDB BSON expressions and initial Neo4j Cypher predicates; cancellation and result/query budgets; SQLite native work/deadline/record bounds and MongoDB native deadline/sort/payload bounds | Broader Neo4j domains/order/page and native resource stress; other adapters, broader admission/cost policy |
 | Returned entities | V2 typed leaf entities, metadata hydration/decryption, clean tracking, conditional save integration | Child loading options, relationship predicates, broader entity-kind mapping |
 | Federation | Provider-grouped results with provenance and errors | Deduplication, freshness/conflict policy, paging/order/projection/aggregates |
 
@@ -28,6 +28,10 @@ if (page.IsError) throw new InvalidOperationException(page.Message);
 ```
 
 Use `page.Result` with the same planner/executor below. Chaining preserves the first error. Offset pages read the current data on each request; they do not promise a snapshot across concurrent writes. Multi-provider global pages reject until the federation implementation can preserve their meaning.
+
+## Neo4j subset
+
+The selected Neo4jOASIS provider now implements the same ICosmicQueryStorageProvider contract and exposes CqlCapabilities. Use it with the same planner/executor and an explicitly authorized Neo4j target. The initial profile admits Name/Description predicates, Version comparisons, canonical bool/Guid equality, string/bool/int/long metadata with nullable forms, membership and metadata Exists/IsNull. Explicit ordering/paging, field comparisons and wider scalar domains remain unsupported. Activation upgrades stored query projections without changing logical snapshots/revisions. [Native acceptance, migration behavior and limits](CQL_NEO4J_NATIVE.md).
 
 ## Build a query
 

@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Neo4j native CQL foundation — 21 October 2026
+
+The selected Neo4j provider now implements the common CQL execution contract with native parameterized predicates, typed metadata presence/null/integer/string/boolean domains and a bounded execution path. A transactional self-relationship projection and restartable activation upgrade preserve final snapshots and revisions; the native lock-observed concurrent writer test passes. Selected native64/64, fullNeo297/297 and pairedShared943/943 pass, zero skips;23 declared assembly copies match. [Scope, usage constraints and remaining gates](CQL_NEO4J_NATIVE.md). Broader scalar/field/order/page execution, native resource stress and complete Stage8 remain open.
+
 ## SQLite audit timestamp fidelity — 20 October 2026
 
 Committed619c38ff5 preserves audit timestamp ticks and DateTime.Kind across Holon, Avatar and AvatarDetail reads, saves and atomic tombstone updates. Additive activation and formal migration preserve old Unspecified values; downgrade rejects retained kind information. Focused43/43 and completeSQLite1,203/1,203 pass, zero skips. [Evidence and remaining date policy](SQLITE_AUDIT_DATE_KINDS.md). Coref4d1623c7afdc4999e4704c71d7ff33312ff16b4 separately fixes the reproduced Local-minimum audit absence conversion. ExpandedCore1,629/1,629, Shared943/943 and SQLite1,203/1,203 pass, zero skips; both Core targets build and12 declared assembly copies match. Other provider native suites and audit-date CQL policy remain open.
