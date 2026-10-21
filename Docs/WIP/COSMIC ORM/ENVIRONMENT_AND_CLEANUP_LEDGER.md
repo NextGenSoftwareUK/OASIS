@@ -70,3 +70,9 @@ GUID producer and final complete controls pass 307/307; native full CQL regressi
 ## Ongoing recording contract
 
 For every future action add date/session, exact path/resource/version, created/downloaded/restored/reused status, measured bytes or unmeasured, process/ports, purpose and retention, and cleanup/recreation outcome. At completion reconcile actual resources with both this ledger and shared inventories. Credentials/private keys must never be copied into this document. Unknown outcomes remain protected until reviewed reconciliation.
+
+## Requested wrap-up verification — 21 October 2026
+
+User requested finishing and pushing the current GUID batch, then pausing again. Reuse the existing committed-source producers/cache/container and fixed fixture; no installs/downloads/restores/new environments. Retained GUID report/source hashes verified before starting. Planned final committed-source controls use `TestResults/CoreCurrent/neo-cql-guid-wrapup-controls.trx`; native verification reuses the current CQL regression report with a separate compact wrap-up runner log. Preserve the earlier stable `cql-guid-native.trx`. Native runner owns successful exact fixture cleanup and container stop; interrupted evidence must remain preserved. Outcome pending.
+
+Wrap-up outcome: committed GUID source `05e07f013` passes native 64/64 (23 seconds) and controls 307/307, zero skips. Runner terminal 0; successful fixture manifest absent and container stopped by runner teardown. Compact stable `TestResults/Neo4jCurrent/cql-guid-wrapup-native.trx` plus `cql-guid-wrapup-artifacts.json` preserve report hashes, committed source identity and 20 matching declared assembly copies. No download/install/restore/new environment occurred. Ledger/report evidence retained for resume; the full roadmap remains unfinished and the goal is paused again after task-branch publication.
