@@ -13,7 +13,7 @@ $names=@('SOLANA_RPC_URL','SOLANA_PRIVATE_KEY','SOLANA_PUBLIC_KEY','OASIS_SOLANA
 $previous=@{}
 foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
 try {
-    if(!$InspectRecent -and (Test-Path -LiteralPath (Join-Path $work 'sdk-concurrent.pending.json'))){throw 'Inspect original concurrent Solana submissions; do not replay or reset.'}
+    if(!$InspectRecent -and (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Inspect original Solana submissions; do not replay or reset.'}
     if(!$InspectRecent -and (Test-Path -LiteralPath (Join-Path $work 'solana-validator-current.trx'))){throw 'Preserve and hash-verify the existing native report before another run.'}
     $freeBefore=(Get-PSDrive C).Free
     $prerequisites='test -x /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator && test -f /var/tmp/oasis-solana/ledger/genesis.bin'
@@ -110,7 +110,7 @@ try {
     if($report.LastWriteTimeUtc -lt $testStarted){throw 'Integration report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly one passing real test and no skips.'}
+    if([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0){throw 'Expected three passing native schedules (storage/concurrency plus sync/async SPL tokens), no skips.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     if($secret){[Security.Cryptography.CryptographicOperations]::ZeroMemory($secret)}
