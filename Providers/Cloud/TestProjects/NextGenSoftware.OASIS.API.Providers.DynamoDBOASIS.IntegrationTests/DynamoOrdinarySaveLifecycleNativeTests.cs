@@ -38,7 +38,7 @@ public partial class DynamoHistoryNativeTests
             await SavePublic(provider,source);var before=(await Read()).Item["data_json"].S;
             if(change==0){source.IsActive=true;source.DeletedDate=DateTime.MinValue;}else if(change==1)source.DeletedDate=source.DeletedDate.AddTicks(1);else if(change==2)source.DeletedByAvatarId=Guid.NewGuid();else source.Name=marker+"-compatible";
             var proposed=OasisJson.Serialize(source);var writes=client.Writes;
-            (bool Error,bool Saved,string? Code,Exception? Failure) outcome=kind==0?Capture(await provider.SaveAvatarAsync((IAvatar)source)):kind==1?Capture(await provider.SaveAvatarDetailAsync((IAvatarDetail)source)):Capture(await provider.SaveHolonAsync((IHolon)source,saveChildren:false));
+            (bool Error,bool Saved,int Count,string? Code,Exception? Failure) outcome=kind==0?Capture(await provider.SaveAvatarAsync((IAvatar)source)):kind==1?Capture(await provider.SaveAvatarDetailAsync((IAvatarDetail)source)):Capture(await provider.SaveHolonAsync((IHolon)source,saveChildren:false));
             Assert.IsFalse(NativeMutationReconciliation.IsRequired(outcome.Failure),"Preserve the original intent on native uncertainty; do not replay or infer cleanup authority.");
             var observed=(await Read()).Item["data_json"].S;var document=JObject.Parse(observed);
             Assert.AreEqual(id,Guid.Parse(document["Id"]!.Value<string>()!));Assert.AreEqual(marker,document["MetaData"]!["owned_lifecycle"]!.Value<string>());
@@ -46,9 +46,10 @@ public partial class DynamoHistoryNativeTests
             await RemoveOwned(verifier,table,id,observed);Assert.AreEqual(0,(await Read()).Item.Count);File.Delete(journal);
             // A semantic red follows independently inspected exact cleanup, not an abandoned native fixture.
             Assert.AreEqual(change!=3,outcome.Error,outcome.Failure?.ToString());Assert.AreEqual(change==3,outcome.Saved);Assert.AreEqual(change==3?1:0,actualWrites);
+            Assert.AreEqual(change==3?1:0,outcome.Count,"Count only acknowledged mutations, including compatible tombstone edits.");
             if(change!=3){Assert.IsInstanceOfType<StorageLifecycleConflictException>(outcome.Failure);Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,outcome.Code);Assert.AreEqual(before,observed);Assert.AreEqual(proposed,callerAfter);}
             else{var prior=JObject.Parse(before);Assert.AreEqual(prior["DeletedDate"]!.Value<DateTime>(),document["DeletedDate"]!.Value<DateTime>());Assert.AreEqual(prior["DeletedByAvatarId"]!.Value<string>(),document["DeletedByAvatarId"]!.Value<string>());}
         }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
-        static (bool Error,bool Saved,string? Code,Exception? Failure) Capture<T>(OASISResult<T> result)=>(result.IsError,result.IsSaved,result.ErrorCode,result.Exception);
+        static (bool Error,bool Saved,int Count,string? Code,Exception? Failure) Capture<T>(OASISResult<T> result)=>(result.IsError,result.IsSaved,result.SavedCount,result.ErrorCode,result.Exception);
     }
 }

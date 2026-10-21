@@ -282,6 +282,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["data_json"] = new AttributeValue { S = Ser(avatar) }
                     })
                 },IsVersionControlEnabled,publication.ValidateUnchanged);
+                result.SavedCount=1;
                 ValidateAcknowledgedCaller(publication.ValidateUnchanged,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=avatar.Id;
@@ -482,6 +483,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["data_json"] = new AttributeValue { S = Ser(d) }
                     })
                 },IsVersionControlEnabled,publication.ValidateUnchanged);
+                result.SavedCount=1;
                 ValidateAcknowledgedCaller(publication.ValidateUnchanged,committed.Id);
                 source.Version=committed.Version;source.VersionId=committed.VersionId;source.PreviousVersionId=committed.PreviousVersionId;
                 source.Id=d.Id;
@@ -580,6 +582,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>(); var failures=new List<Exception>();
+            var acknowledgedIds=new HashSet<Guid>();
             try {
                 var sourceGuards=new Dictionary<IHolon,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Core.Holons.Holon>>(ReferenceEqualityComparer.Instance);
                 var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,
@@ -590,7 +593,11 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     if(failedParents.Contains(node.Snapshot.ParentHolonId)) {
                         failedParents.Add(node.Snapshot.Id);failures.Add(new InvalidOperationException("Descendant skipped because its parent failed."));continue;
                     }
+                    var nativeIdentity=node.Snapshot.Id;
                     var written=await SavePlannedHolonAsync(node);
+                    if(written==null||!written.IsError&&(!written.IsSaved||written.Result==null))
+                        throw new DynamoDBMutationReconciliationException("OasisHolons",nativeIdentity.ToString(),new System.IO.InvalidDataException("DynamoDB planned write returned no complete authoritative acknowledgement."));
+                    if(!written.IsError||written.SavedCount==1)acknowledgedIds.Add(nativeIdentity);
                     if(written.IsError || written.Result==null) {
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
@@ -613,13 +620,14 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 result.Result=failures.Count==0 ? plan.Roots:saved; result.IsSaved=failures.Count==0;
                 if(failures.Count>0) {
                     var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
-                    result.Exception=saved.Count>0 ? new DynamoDBPartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                    result.Exception=acknowledgedIds.Count>0 ? new DynamoDBPartialMutationException(acknowledgedIds,cause):cause;
                 }
             }
             catch(Exception cause) {
-                result.Exception=saved.Count>0 ? new DynamoDBPartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                result.Exception=acknowledgedIds.Count>0 ? new DynamoDBPartialMutationException(acknowledgedIds,cause):cause;
                 result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
             }
+            result.SavedCount=acknowledgedIds.Count;
             return result;
         }
 
