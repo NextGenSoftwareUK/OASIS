@@ -73,6 +73,11 @@ internal sealed partial class MongoCqlTranslator
     private static BsonValue Domain(BsonValue value,Type declared,bool metadata=false)
     {
         var type=Nullable.GetUnderlyingType(declared)??declared;
+        if(metadata&&type.IsEnum)
+        {
+            var defined=new BsonArray(Enum.GetValues(type).Cast<object>().Select(value=>Convert.ToInt64(value)).Distinct().Select(value=>(BsonValue)new BsonInt64(value)));
+            return Op("$and",Op("$in",Type(value),Literal(new BsonArray{"int","long"})),Op("$in",value,Literal(defined)));
+        }
         if(metadata&&type==typeof(Guid))return GuidDomain(value);
         if(type==typeof(DateTime))return Op("$and",Op("$eq",Type(value),Literal("long")),
             Op("$gte",value,Literal(DateTime.MinValue.Ticks)),Op("$lte",value,Literal(DateTime.MaxValue.Ticks)));

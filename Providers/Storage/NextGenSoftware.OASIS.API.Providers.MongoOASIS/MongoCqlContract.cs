@@ -33,7 +33,7 @@ internal static class MongoCqlContract
             new CosmicQueryMetadataCapability(typeof(long),ordered,supportsMembership:true),
             new CosmicQueryMetadataCapability(typeof(long?),ordered,supportsMembership:true)
         };
-        metadata=metadata.Concat(new[]{typeof(byte),typeof(sbyte),typeof(short),typeof(ushort),typeof(uint)}
+        metadata=metadata.Concat(new[]{typeof(byte),typeof(sbyte),typeof(short),typeof(ushort),typeof(uint),typeof(HolonType),typeof(ProviderType)}
             .SelectMany(type=>new[]{type,typeof(Nullable<>).MakeGenericType(type)})
             .Select(type=>new CosmicQueryMetadataCapability(type,ordered,supportsMembership:true))).ToArray();
         fields=fields.Select(f=>new CosmicQueryFieldCapability(f.Name,f.ValueType,f.Comparisons.ToArray(),f.StringOperations.ToArray(),supportsOrdering:true)).ToList();
