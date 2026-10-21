@@ -19,24 +19,20 @@ public partial class Neo4jOASIS
     private static string HistoryRecordKind(string kind) => kind is "Avatar" or "AvatarDetail" or "Holon" ? kind
         : throw new ArgumentException("Unknown Neo4j versioned record kind.",nameof(kind));
 
-    private static string SnapshotWritePrefix(string kind,bool history)
+    private static string SnapshotWritePrefix(string kind)
     {
         HistoryRecordKind(kind);
-        return history ? "MERGE (a:"+kind+" {Id:$id}) ON CREATE SET a.__oasisCreatedBy=$writeId "
+        return "MERGE (a:"+kind+" {Id:$id}) ON CREATE SET a.__oasisCreatedBy=$writeId "
             + "SET a.__oasisAvatarLock=true REMOVE a.__oasisAvatarLock WITH a "
             + "WHERE ($expected IS NULL AND a.__oasisCreatedBy=$writeId) OR a.SnapshotJson=$expected REMOVE a.__oasisCreatedBy "
-            : "MERGE (a:"+kind+" {Id:$id}) ";
+            ;
     }
 
     private async Task<string> StampRecordHistoryAsync<T>(IAsyncTransaction transaction,string kind,T staged,Func<INode,T> readCurrent)
         where T:class,IHolonBase
     {
-        HistoryRecordKind(kind);
-        var rows=await (await transaction.RunAsync("MATCH (a:"+kind+" {Id:$id}) "
-            + "SET a.__oasisAvatarLock=true REMOVE a.__oasisAvatarLock RETURN a",new{id=staged.Id.ToString()})).ToListAsync();
-        if(rows.Count>1)throw new StorageIdentityAmbiguousException();
-        var previous=rows.Count==0 ? null:readCurrent(rows[0]["a"].As<INode>());
-        var expected=rows.Count==0 ? null:(string)rows[0]["a"].As<INode>()["SnapshotJson"];
+        var observed=await ReadLockedIdentityAsync(transaction,kind,staged.Id,readCurrent);
+        var previous=observed.Previous;var expected=observed.Expected;
         await StoredRecordVersions.StampAsync(staged.Id,staged,previous,stored=>ArchiveRecordVersionAsync(transaction,kind,stored));
         return expected;
     }

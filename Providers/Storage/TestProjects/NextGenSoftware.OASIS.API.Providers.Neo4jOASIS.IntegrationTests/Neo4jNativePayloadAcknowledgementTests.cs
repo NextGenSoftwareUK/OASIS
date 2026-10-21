@@ -66,9 +66,8 @@ public partial class Neo4jNativeAvatarTests
                 await(await check.RunAsync("MATCH (n {Id:$id}) WHERE n:Avatar OR n:AvatarDetail OR n:Holon DETACH DELETE n",new{id=id.ToString()})).ConsumeAsync();
             }
             Assert.IsTrue(failed);Assert.IsFalse(saved);
-            Assert.AreEqual(kind!=2,NativeMutationReconciliation.IsRequired(cause),
-                "Holon writes explicitly await pre-commit rollback; avatar-specific owners remain a separate certification gate.");
-            Assert.IsInstanceOfType<InvalidDataException>(kind==2 ? cause:cause!.InnerException);
+            Assert.IsFalse(NativeMutationReconciliation.IsRequired(cause),"All snapshot owners acknowledge rollback before reporting a rejected payload.");
+            Assert.IsInstanceOfType<InvalidDataException>(cause);
             Assert.AreEqual(0,rows.Count,"Mismatch is detected before commit; native transaction must roll back.");
         }
         finally{field.SetValue(provider,healthy);await provider.DeActivateProviderAsync();}
