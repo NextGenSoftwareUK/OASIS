@@ -85,11 +85,25 @@ public partial class AWSOASISIntegrationTests
                     Assert.AreEqual(expectedTotals[stage],selected.Result.Karma);Assert.AreEqual(222L,selected.Result.XP);
                     Assert.AreEqual(stage+1,selected.Result.KarmaAkashicRecords.Count,
                         $"History projection missing: provider={requestedType}, synchronous={synchronous}, stage={stage}, avatar={id}.");
+                    for(var historyIndex=0;historyIndex<=stage;historyIndex++)
+                    {
+                        var entry=selected.Result.KarmaAkashicRecords[historyIndex];
+                        Assert.AreEqual(id,entry.AvatarId);Assert.AreEqual(requestedType,entry.Provider.Value);
+                        Assert.AreEqual(expectedTotals[historyIndex],entry.TotalKarma);
+                        Assert.AreEqual(KarmaSourceType.Game,entry.KarmaSource.Value);
+                        Assert.AreEqual("owned",entry.KarmaSourceTitle);Assert.AreEqual("native affinity",entry.KarmaSourceDesc);
+                        Assert.AreEqual(historyIndex<2?KarmaEarntOrLost.Earnt:KarmaEarntOrLost.Lost,entry.KarmaEarntOrLost.Value);
+                        Assert.AreEqual(historyIndex<2?KarmaTypePositive.ContributingToTheOASISWithCode:KarmaTypePositive.None,entry.KarmaTypePositive.Value);
+                        Assert.AreEqual(historyIndex<2?KarmaTypeNegative.None:KarmaTypeNegative.DropLitter,entry.KarmaTypeNegative.Value);
+                    }
                     Assert.AreEqual(37L,untouched.Result.Karma);Assert.AreEqual(111L,untouched.Result.XP);
                     var ledger=await requested.LoadHolonAsync(ledgerId,loadChildren:false);
                     Assert.IsFalse(ledger.IsError,ledger.Message);Assert.IsNotNull(ledger.Result);
                     Assert.AreEqual(expectedTotals[stage].ToString(System.Globalization.CultureInfo.InvariantCulture),ledger.Result.MetaData["totalKarma"].ToString());
-                    Assert.AreEqual(stage+1,JArray.FromObject(ledger.Result.MetaData["history"]).Count);
+                    var history=Core.Serialization.StoredRecordJson.Deserialize<List<Dictionary<string,object>>>(
+                        Core.Serialization.StoredRecordJson.Serialize(ledger.Result.MetaData["history"]));
+                    Assert.IsNotNull(history);
+                    Assert.AreEqual(stage+1,history.Count);
                     Assert.AreEqual(0,(await initial.LoadAvatarDetailAsync(id)).Result.KarmaAkashicRecords.Count);
                     Assert.IsNull((await initial.LoadHolonAsync(ledgerId,loadChildren:false)).Result);
                     Assert.AreSame(initial,providers.CurrentStorageProvider);
