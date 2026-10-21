@@ -12,6 +12,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaSdkMintTests
 {
+    [DataTestMethod][DataRow(false)][DataRow(true)][DoNotParallelize]
+    public async Task AwaitingSdkMintMustNotReplaceProcessConsoleWriter(bool collection)
+    {
+        var original=Console.Out;var rpc=DispatchProxy.Create<IRpcClient,HeldBroadcastProxy>();
+        var proxy=(HeldBroadcastProxy)(object)rpc;proxy.Scenario="finalized";
+        var service=new SolanaService(new Account(),rpc);
+        Task operation=collection?service.CreateCollectionNftAsync("owned","OWN","https://example.invalid/collection.json")
+            :service.MintNftAsync(new MintWeb3NFTRequest{Title="owned",Symbol="OWN",JSONMetaDataURL="https://example.invalid/nft.json"});
+        var stable=false;
+        try {await proxy.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));stable=ReferenceEquals(original,Console.Out);}
+        finally {
+            proxy.Reply.TrySetException(new IOException("owned held SDK response"));
+            await operation.WaitAsync(TimeSpan.FromSeconds(10));
+            if(!ReferenceEquals(original,Console.Out))Console.SetOut(original); // Test isolation only.
+        }
+        Assert.IsTrue(stable,"An awaited SDK operation replaced the process-wide Console.Out writer.");
+    }
+
     public class HeldBroadcastProxy:MintProxy
     {
         public int Broadcasts;
