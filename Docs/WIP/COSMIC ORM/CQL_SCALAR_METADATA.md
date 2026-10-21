@@ -11,6 +11,7 @@ The production profile and translator share `SqliteCqlContract.MetadataTypes`. U
 | `string` | JSON string; explicit null for nullable operations | `==`, `!=` | Exact scalar arrays, including null | Contains; StartsWith/EndsWith with explicit Ordinal |
 | `bool`, `bool?` | JSON true/false | `==`, `!=` | Exact scalar arrays | None |
 | `int`, `int?` | JSON integer within Int32 bounds | All six comparisons | Exact scalar arrays | None |
+| `byte/sbyte/short/ushort/uint` and nullable forms | JSON integer within the exact declared CLR range | All six comparisons | Exact scalar arrays | None |
 | `long`, `long?` | JSON integer represented exactly by SQLite Int64 | All six comparisons | Exact scalar arrays | None |
 | `Guid`, `Guid?` | Canonical 36-byte GUID D text, either hex case | `==`, `!=` | Exact GUID arrays, including nullable null | None |
 | `DateTime`, `DateTime?` | Valid UTC ISO JSON text, zero to seven fractional digits | All six comparisons | Exact date arrays, including nullable null | None |

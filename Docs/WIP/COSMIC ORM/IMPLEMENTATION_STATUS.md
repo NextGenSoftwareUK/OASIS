@@ -1,14 +1,22 @@
 # COSMIC ORM implementation status
 
+## CQL exact narrow integer domains — 20 October 2026
+
+The common compiler now admits whole-domain lossless integer promotions, fixing ordinary C# byte/short comparisons while rejecting narrowing and nullable erasure. SQLite adds exact byte/sbyte/short/ushort/uint and nullable metadata domains for comparisons, membership, field comparisons and ordering. Full pinned Core1,611/1,611 and SQLite1,174/1,174 pass, zero skips; six declared producer/consumer assemblies match. [Usage and exact verification evidence](CQL_INTEGER_DOMAINS.md). Other native adapters and broader numeric/enum domains remain open.
+
+## SQLite karma history fidelity — 20 October 2026
+
+Published root fix2b0eb51e2 and representation follow-onbbb176134 restore history loading, updates and acknowledgements, ordered duplicate entries, nullable enum values and exact DateTime.Kind/ticks. Both activation upgrades and formal migrations preserve legacy values; guarded downgrade refuses representation loss. Full SQLite1,164/1,164 and focused27/27 pass, zero skips. [Contract and original failure evidence](SQLITE_KARMA_HISTORY_PERSISTENCE.md). Broader cross-provider durable history/restart acceptance remains open.
+
 ## SQLite nullable avatar enums and CQL resource gate — 20 October 2026
 
 Scoped avatar/schema commit351fa086d preserves null-versus-defined AvatarType and creation-provider/OASIS wrappers across repository/entity mappings and updates. Both owned-schema and EF migrations preserve prior values, and downgrade refuses loss of absence evidence. Required historical migration target metadata and the current snapshot are aligned. Final complete SQLite1,145/1,145 and focused migration7/7 pass, zero skips. [Original failures, root fix and exact working-tree cohort](SQLITE_AVATAR_OPTIONAL_ENUMS.md).
 
-The same complete run also covers the still-uncommitted [CQL native resource owner](SQLITE_CQL_RESOURCE_BOUNDS.md): native work/deadline/cancellation/record-size interruption, streamed payload bounds and exact connection-state restoration. Its original oversized-query regression and five focused cases pass. CQL ordering/resource publication and immutable combined Core acceptance remain pending; this is not a deployment or full-roadmap completion claim.
+That historical complete run also covered the [CQL native resource owner](SQLITE_CQL_RESOURCE_BOUNDS.md): native work/deadline/cancellation/record-size interruption, streamed payload bounds and exact connection-state restoration. Ordering/resource publication and immutable combined Core acceptance subsequently completed inb7975134c, as recorded below. This is not a deployment or full-roadmap completion claim.
 
 ## Native CQL ordering, paging and resource bounds — 20 October 2026
 
-Fluent Where/OrderBy/ThenBy/Skip/Take composition uses immutable common Core plans and exact ordering capabilities. SQLite/MongoDB execute typed ordering and windows natively with unique-ID ties, explicit missing/null/invalid domains and preserved integer/date/UUID precision. Native work/deadline/record/payload bounds, real MongoDB sort exhaustion and scoped timeout classification pass. Final clean Corefe492b2 cohort passes Core1,606 / Shared925 / Mongo197 controls+3 native / SQLite1,145, zero skips;17 declared consumer copies match, and the Core gitlink/manifest are paired. [Usage, original failure reconciliation, scope and exact hashes](CQL_ORDERING_PAGING.md). Global federation, subqueries, projections/aggregates, snapshots/continuations, authenticated discovery and wider adapters remain open. SQLite Akashic persistence is a separate acknowledged provider gap.
+Fluent Where/OrderBy/ThenBy/Skip/Take composition uses immutable common Core plans and exact ordering capabilities. SQLite/MongoDB execute typed ordering and windows natively with unique-ID ties, explicit missing/null/invalid domains and preserved integer/date/UUID precision. Native work/deadline/record/payload bounds, real MongoDB sort exhaustion and scoped timeout classification pass. Final clean Corefe492b2 cohort passes Core1,606 / Shared925 / Mongo197 controls+3 native / SQLite1,145, zero skips;17 declared consumer copies match, and the Core gitlink/manifest are paired. [Usage, original failure reconciliation, scope and exact hashes](CQL_ORDERING_PAGING.md). Global federation, subqueries, projections/aggregates, snapshots/continuations, authenticated discovery and wider adapters remain open. SQLite Akashic persistence has since been repaired with the evidence above.
 
 ## Native CQL field comparisons — 20 October 2026
 

@@ -170,11 +170,16 @@ public partial class HolonRepository
                 return alias + ".type = 'text' AND length(CAST(" + alias + ".value AS BLOB)) = 36 AND " + alias + ".value GLOB '" + pattern + "'";
             }
             if (type == typeof(bool)) return alias + ".type IN ('true','false')";
-            if (type == typeof(int) || type == typeof(long))
+            if (type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort)
+                || type == typeof(uint) || type == typeof(int) || type == typeof(long))
             {
                 // JSON integers outside Int64 are surfaced as REAL by SQLite; never round them into this typed domain.
                 var guard = alias + ".type = 'integer' AND typeof(" + alias + ".value) = 'integer'";
-                return type == typeof(int) ? guard + " AND " + alias + ".value BETWEEN -2147483648 AND 2147483647" : guard;
+                if(type==typeof(long))return guard;
+                var bounds=type==typeof(byte)?"0 AND 255":type==typeof(sbyte)?"-128 AND 127":
+                    type==typeof(short)?"-32768 AND 32767":type==typeof(ushort)?"0 AND 65535":
+                    type==typeof(uint)?"0 AND 4294967295":"-2147483648 AND 2147483647";
+                return guard+" AND "+alias+".value BETWEEN "+bounds;
             }
             throw new NotSupportedException("SQLite CQL scalar metadata type is unsupported.");
         }

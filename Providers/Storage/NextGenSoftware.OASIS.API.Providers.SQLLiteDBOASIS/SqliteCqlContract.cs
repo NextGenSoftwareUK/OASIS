@@ -39,6 +39,9 @@ internal static class SqliteCqlContract
             new CosmicQueryMetadataCapability(typeof(long), ordered, supportsMembership: true),
             new CosmicQueryMetadataCapability(typeof(long?), ordered, supportsMembership: true)
         };
+        metadata=metadata.Concat(new[]{typeof(byte),typeof(sbyte),typeof(short),typeof(ushort),typeof(uint)}
+            .SelectMany(type=>new[]{type,typeof(Nullable<>).MakeGenericType(type)})
+            .Select(type=>new CosmicQueryMetadataCapability(type,ordered,supportsMembership:true))).ToArray();
         metadata=metadata.Select(m=>new CosmicQueryMetadataCapability(m.ValueType,m.Comparisons.ToArray(),m.StringOperations.ToArray(),
             m.SupportsMembership,m.SupportsMixedNumericComparison,supportsOrdering:true)).ToArray();
         MetadataTypes = new ReadOnlyDictionary<Type, CosmicQueryMetadataCapability>(metadata.ToDictionary(m => m.ValueType));
