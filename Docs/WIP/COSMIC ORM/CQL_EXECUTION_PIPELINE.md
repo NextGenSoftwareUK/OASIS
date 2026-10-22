@@ -1,5 +1,7 @@
 # CQL native execution pipeline
 
+Current entry points: [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demos](CQL_DEMO_RUNBOOK.md), [WEB4 v1 contract](CQL_V1_HTTP_CONTRACT.md). Historical checkpoints retain their original scope and counts.
+
 Latest native bridge (20 October 2026): MongoDB now implements the existing shared adapter contract with BSON predicate pushdown, native deadline, streamed count/byte budgets and leaf mapping. Shared annotated scalar-property predicates execute through HolonManager on both MongoDB and SQLite, preserving typed hydration, clean tracking and conditional write-back. Final Core 1,536, Shared 895, Mongo 188 controlled/84 selected native and SQLite 1,042 pass, zero skips; [exact cohort, fixture reconciliation and remaining security/routing/query scope](CQL_MONGO_NATIVE.md).
 
 The shared adapter contract and executor are implemented. Core verification passes1,320/1,320; SQLite native full833/833 regression also passes, zero skips. This is a provider orchestration seam, not an authenticated WEB4 endpoint or complete federated query engine.

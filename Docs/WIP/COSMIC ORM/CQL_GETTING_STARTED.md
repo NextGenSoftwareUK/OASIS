@@ -1,20 +1,22 @@
 # CQL getting started
 
-20 October 2026. CQL is the typed query layer for COSMIC ORM. It translates supported C# expression trees into a provider-independent query representation, checks the selected providers' capabilities, then executes native queries. SQLite and MongoDB have verified native adapters, including shared annotated scalar-property predicates. Neo4j now has an initial native predicate/projection adapter; its exact subset and selected native evidence are documented separately. Full roadmap completion is not claimed.
+**Current v1 — 22 October 2026:** [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demo](CQL_DEMO_RUNBOOK.md). Bounded authenticated WEB4 v1 is verified on MongoDB, SQLite and Neo4j. Local SDK features are broader than the HTTP DTO. Earlier checkpoints below retain historical scope; “Neo4j” is not current v1 status.
+
+CQL translates supported C# expression trees into a provider-independent query representation, checks selected providers capabilities, then executes native queries. MongoDB, SQLite and Neo4j now have verified native adapters and a bounded authenticated WEB4 v1 boundary. Local SDK features remain broader than that transport; full CQL/ORM roadmap completion is not claimed.
 
 ## Run the demo
 
-The [console and Swagger walkthrough](CQL_DEMO_RUNBOOK.md) is runnable now. It uses real HolonManager/Hyperdrive V2 and native SQLite queries, then demonstrates clean tracking, no-op saves, committed deltas and cross-client conflict rejection. The HTTP host is a standalone loopback synthetic-data example; it is not a deployed authenticated ONODE endpoint.
+The [three-provider v1 walkthrough](CQL_DEMO_RUNBOOK.md) runs identical annotated C# SDK and HTTP queries on MongoDB, SQLite and Neo4j, with a guided browser page and Swagger. It exercises shipping query/authentication/admission code with synthetic identities and accounting authority over real databases. The separate SQLite coffee example also demonstrates clean tracking, no-op saves, committed deltas and cross-client conflict rejection.
 
-## Current feature status
+## Local SDK feature overview (HTTP v1 is narrower)
 
 | Area | Available now | Remaining |
 |---|---|---|
 | Expressions | Where, AND/OR/NOT, scalar comparisons, null tests, ordinal string matching, bounded scalar-array membership; annotated scalar member paths; [native field-to-field comparisons](CQL_FIELD_COMPARISONS.md) | Wider expression forms |
 | Metadata | Nested literal paths, Exists, IsNull; SQLite/MongoDB string/bool/int/long comparisons, membership and supported strings; [exact byte/sbyte/short/ushort/uint domains](CQL_INTEGER_DOMAINS.md); [defined HolonType/ProviderType enums](CQL_ENUM_METADATA.md), including nullable forms; Guid/Guid? equality/membership; UTC DateTime/DateTime? comparisons/membership over each provider's declared storage domain | Native decimal/double/UInt64, unregistered enums, broader schema registration and canonical audit-date policy |
-| Scope | Current default, named providers, all eligible targets; capability admission before I/O | Automatic authenticated WEB4 target discovery and policy routing |
-| Ordering/paging | [Fluent OrderBy/ThenBy, Skip/Take](CQL_ORDERING_PAGING.md); native SQLite/MongoDB and initial Neo4j scalar/domain ordering, identity ties and resource bounds | Subquery composition, global federated pages and snapshot/continuation semantics |
-| Native execution | SQLite SQL, MongoDB BSON expressions and initial Neo4j Cypher predicates; cancellation and result/query budgets; SQLite native work/deadline/record bounds and MongoDB native deadline/sort/payload bounds | Broader Neo4j scalar domains and native resource stress; other adapters, broader admission/cost policy |
+| Scope | Current default, named providers, all eligible targets; capability admission before I/O | HTTP v1 resolves one active named/default provider; broader policy placement/federation remains separate |
+| Ordering/paging | [Fluent OrderBy/ThenBy, Skip/Take](CQL_ORDERING_PAGING.md); native SQLite/MongoDB and Neo4j scalar/domain ordering, identity ties and resource bounds | Subquery composition, global federated pages and snapshot/continuation semantics |
+| Native execution | SQLite SQL, MongoDB BSON expressions and Neo4j Cypher predicates; cancellation and result/query budgets; SQLite native work/deadline/record bounds and MongoDB native deadline/sort/payload bounds | Additional scalar/resource certification and other adapters; v1 authenticated admission/accounting is implemented |
 | Returned entities | V2 typed leaf entities, metadata hydration/decryption, clean tracking, conditional save integration | Child loading options, relationship predicates, broader entity-kind mapping |
 | Federation | Provider-grouped results with provenance and errors | Deduplication, freshness/conflict policy, paging/order/projection/aggregates |
 

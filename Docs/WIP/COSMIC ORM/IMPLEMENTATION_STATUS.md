@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## Three-provider CQL v1 developer demos — 22 October 2026
+
+Annotated C# SDK and HTTP walkthroughs now run against MongoDB, SQLite and Neo4j, with a spacious guided browser page and working prefilled Swagger. Nine SDK queries, nine HTTP examples, 11 grouped API checks, the normal native 65/65 cohort and the existing coffee console/six API checks pass. Owned services stopped and fixture cleanup verified. [Run it](CQL_DEMO_RUNBOOK.md), [developer manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [verification evidence](CQL_V1_DEMO_VERIFICATION.md). Examples use real shipping query/authentication/admission code with controlled fixture authority; production contract scope and broader roadmap are unchanged.
+
 ## CQL v1 native acceptance complete — 22 October 2026
 
 The defined Mongo/SQLite/Neo4j WEB4 v1 implementation and automated acceptance are complete. Shipping JWT validation/HTTP/admission code executes against real native providers and a Mongo usage outbox, with controlled avatar-directory/authority fixtures. Full Core 1,679/1,679; native cohort 65/65 (one HTTP matrix: 97 durable native attempts, 98 settled operations); existing real-Mongo accounting 312/312. All zero skips. WEB4 builds; source/runtime hashes and verified teardown retained. Prefix/suffix transport expressions now use the generic CQL engine's required ordinal semantics. [Exact acceptance, limitations and remaining scope](CQL_V1_MILESTONE_3.md), [C# HTTP example/operator guide](CQL_V1_OPERATIONS.md). No production deployment/price approval or larger-roadmap completion is claimed.

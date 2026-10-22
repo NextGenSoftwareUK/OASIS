@@ -1,5 +1,7 @@
 # Neo4j native CQL implementation
 
+Current documentation: [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demos](CQL_DEMO_RUNBOOK.md), [WEB4 v1 contract](CQL_V1_HTTP_CONTRACT.md). Historical checkpoints retain their original scope/counts.
+
 ## Current verified ordering/paging checkpoint — 21 October 2026
 
 Native OrderBy/ThenBy/Skip/Take now pass300/300 Neo controls,943/943 Shared controls and64/64 native cases, zero skips. A single CALL/UNION query keeps projection validation outside the page, so offsets cannot hide invalid data. Shared rank buckets, normalized logical-ID ties, sequential windows and Unicode scalar ordering are verified; an empty window opens no session. Twenty-three declared copies match and the fixture/container are clean/stopped. [Exact window evidence and semantics](CQL_ORDERING_PAGING.md#verified-neo4j-window-gate). Core/source pin remains unchanged. Broader domains, native resource stress, routing/federation and complete Stage8 remain open.
