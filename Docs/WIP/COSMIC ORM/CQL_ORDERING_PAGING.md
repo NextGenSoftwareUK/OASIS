@@ -1,5 +1,7 @@
 # CQL ordering and paging
 
+Current documentation: [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demos](CQL_DEMO_RUNBOOK.md), [WEB4 v1 contract](CQL_V1_HTTP_CONTRACT.md). Historical checkpoints retain their original scope/counts.
+
 20 October 2026. Common query composition and native SQLite/MongoDB ordering/paging are implemented and verified against clean immutable Core `fe492b2291513002652aa6ac8c81cd5d71f187fb`, which includes query commit2c37117 and the coordinated shared-manager corrections. The parent gitlink and deployment manifest are paired. Publication targets only the existing task branch; no Development deployment is included.
 
 Implemented in Core:

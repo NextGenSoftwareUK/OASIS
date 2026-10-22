@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using CosmicCqlDemo;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,8 +54,18 @@ public sealed partial class CqlV1Web4NativeTests
         var tag = Guid.NewGuid().ToString("D");
         var ids = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid()).ToArray();
         var journal = new List<object>();
-        Task Journal(string stage) => File.WriteAllTextAsync(manifest,
-            JsonSerializer.Serialize(new { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids, tag, requests = journal }));
+        using var journalGate = new SemaphoreSlim(1);
+        async Task Journal(string stage, object? request = null)
+        {
+            await journalGate.WaitAsync();
+            try
+            {
+                if (request != null) journal.Add(request);
+                await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new
+                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids, tag, requests = journal }));
+            }
+            finally { journalGate.Release(); }
+        }
         await Journal("before-create");
 
         var providers = new Dictionary<ProviderType, IOASISStorageProvider>
@@ -101,8 +112,22 @@ public sealed partial class CqlV1Web4NativeTests
             var authority = new Authority();
             var secret = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
             var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret));
-            foreach (var actor in new[] { alice, bob, outsider }) authority.Tokens.Add(Token(actor, key), actor);
-            await using (var app = Host(providers, outbox, authority, secret))
+            var mode = Environment.GetEnvironmentVariable("OASIS_CQL_V1_DEMO_MODE");
+            Assert.IsTrue(mode == null || mode is "console" or "serve", "Explicit demo mode required.");
+            foreach (var actor in new[] { alice, bob, outsider })
+                authority.Tokens.Add(Token(actor, key, lifetimeMinutes: mode == null ? 5 : 60), actor);
+            var demo = mode == null ? null : new V1DemoSession
+            {
+                FixtureTag = tag, Ids = ids,
+                Tokens = new Dictionary<string, string>
+                {
+                    ["Alice"] = authority.Tokens.Single(pair => pair.Value == alice).Key,
+                    ["Bob"] = authority.Tokens.Single(pair => pair.Value == bob).Key,
+                    ["Visitor"] = authority.Tokens.Single(pair => pair.Value == outsider).Key
+                }
+            };
+            await using (var app = Host(providers, outbox, authority, secret, demo,
+                (actor, operation) => Journal("before-http-request", new { actor, operation })))
             {
                 await app.StartAsync();
                 try
@@ -113,8 +138,7 @@ public sealed partial class CqlV1Web4NativeTests
                     async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null)
                     {
                         var operation = operationKey ?? Guid.NewGuid().ToString("D");
-                        journal.Add(new { actor, operation });
-                        await Journal("before-http-request");
+                        await Journal("before-http-request", new { actor, operation });
                         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/data/query-cql")
                         {
                             Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
@@ -249,7 +273,7 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.AreEqual(beforeInvalid + 1, authority.Started.Count);
                     Assert.AreEqual(authority.Started.Count, authority.Settlements.Count, "All initiated operations settled durably.");
                     var nativeQueryAttempts = 0;
-                    foreach (var operationId in authority.Started)
+                    foreach (var operationId in authority.Started.Keys)
                     {
                         var operation = await outbox.GetAsync(operationId, CancellationToken.None);
                         Assert.AreEqual("settled", operation.State);
@@ -266,8 +290,49 @@ public sealed partial class CqlV1Web4NativeTests
                             settledOperations = authority.Settlements.Count,
                             nativeDatabaseQueryAttempts = nativeQueryAttempts, ids, tag,
                             actorVisibilityBeforePaging = true, signedJwt = true, duplicateDispatchPrevented = true }));
+
+                    if (demo != null)
+                    {
+                        var demoWork = Path.GetFullPath(Path.Combine(work, "../CosmicCqlDemo"));
+                        Directory.CreateDirectory(demoWork);
+
+                        // These examples are the same readable C# client code developers
+                        // can copy. They execute against this actual three-provider host.
+                        await using (var transcript = new StreamWriter(Path.Combine(demoWork, "v1-walkthrough.txt")))
+                        {
+                            foreach (var provider in providers.Values)
+                                await V1NativeQueries.RunAsync(new Sources(providers).CreateManager(provider),
+                                    (NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicQueryStorageProvider)provider, alice, tag, transcript);
+                            await V1Walkthrough.RunAsync(client, demo.Tokens["Alice"], tag, transcript);
+                        }
+
+                        if (mode == "serve")
+                        {
+                            demo.Ready = true;
+                            await File.WriteAllTextAsync(Path.Combine(demoWork, "v1-session.json"),
+                                JsonSerializer.Serialize(new { url = address + "/demo", swagger = address + "/swagger" }));
+                            await demo.Finished.Task;
+                        }
+                    }
                 }
                 finally { await app.StopAsync(); }
+            }
+            if (mode != null)
+            {
+                // Shutdown waits for in-flight requests. Never erase an unsettled
+                // interactive request merely because the presenter clicked Finish.
+                var operations = await mongo.GetDatabase(usageDb)
+                    .GetCollection<UsageOutboxOperation>("subscription_usage_outbox_v1")
+                    .Find(Builders<UsageOutboxOperation>.Filter.Empty).ToListAsync();
+                Assert.IsTrue(operations.All(operation => operation.State == "settled"), "Preserve any uncertain demo operation.");
+                var demoWork = Path.GetFullPath(Path.Combine(work, "../CosmicCqlDemo"));
+                await File.WriteAllTextAsync(Path.Combine(demoWork, "v1-demo-result.json"), JsonSerializer.Serialize(new
+                {
+                    status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
+                    walkthroughRequests = 9, localSdkQueries = 9, settledOperations = operations.Count,
+                    providerAttempts = operations.Sum(operation => operation.ProviderAttempts.Count)
+                }));
+                File.Delete(Path.Combine(demoWork, "v1-session.json"));
             }
             complete = true;
         }

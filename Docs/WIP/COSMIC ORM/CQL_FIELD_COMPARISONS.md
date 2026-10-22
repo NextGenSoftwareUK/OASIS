@@ -1,5 +1,7 @@
 # CQL field comparisons
 
+Current documentation: [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demos](CQL_DEMO_RUNBOOK.md), [WEB4 v1 contract](CQL_V1_HTTP_CONTRACT.md). Historical checkpoints retain their original scope/counts.
+
 20 October 2026. Common compilation/admission and SQLite/MongoDB native execution pass the first corrected cohort. Core `c0309262de5e704c2a78d73499346379761a2193` is committed, pushed and remotely verified; its parent gitlink and deployment manifest are paired. The final immutable-source cohort is verified below. No Development deployment is included.
 
 Core now represents comparisons between two canonical or typed metadata paths using an immutable `CosmicQueryFieldComparison`. Compilation accepts the same underlying CLR scalar type and lossless integral promotions such as int-to-long; nullable lifting is allowed. Every conversion must preserve the whole source domain, and each original path type remains available to its provider guard. Noninteger mixed precision, enum mixing, narrowing and nullable erasure remain rejected. Capability admission requires the new `FieldComparison` feature and independently validates both exact paths, types and operators. Existing adapters therefore reject the new node until they explicitly implement and declare it.

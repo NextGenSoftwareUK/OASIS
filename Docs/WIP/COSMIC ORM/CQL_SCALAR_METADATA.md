@@ -1,5 +1,7 @@
 # CQL typed scalar metadata: SQLite contract
 
+Current documentation: [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demos](CQL_DEMO_RUNBOOK.md), [WEB4 v1 contract](CQL_V1_HTTP_CONTRACT.md). Historical checkpoints retain their original scope/counts.
+
 20 October 2026. Native typed metadata comparisons, membership and ordinal string matching extend the existing presence/null markers. Full CQL authorization, other native adapters, graph queries and federation remain separate unfinished requirements.
 
 ## Declared capabilities
