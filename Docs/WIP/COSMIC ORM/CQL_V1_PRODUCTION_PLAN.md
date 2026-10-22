@@ -11,4 +11,6 @@ Report after milestone 1 before taking on milestone 2. Keep changes focused, use
 
 Milestone 1 completed: [results and resume handoff](CQL_V1_MILESTONE_1.md). Full Core 1,651 passed, including 16 new cases. User subsequently resumed the work.
 
-Milestone 2 completed: [WEB4 boundary and evidence](CQL_V1_MILESTONE_2.md). Full Core 1,676 passed; existing real-Mongo accounting 312 passed plus initialization. [Published HTTP subset/configuration](CQL_V1_HTTP_CONTRACT.md). Milestone 3 native HTTP acceptance remains open; v1 is not yet certified production-ready.
+Milestone 2 completed: [WEB4 boundary and evidence](CQL_V1_MILESTONE_2.md). Full Core 1,676 passed; existing real-Mongo accounting 312 passed plus initialization. [Published HTTP subset/configuration](CQL_V1_HTTP_CONTRACT.md). Milestone 3 results follow below.
+
+Milestone 3 completed after resumption: [native acceptance and exact scope](CQL_V1_MILESTONE_3.md). Final Core 1,679 passed; native cohort 65 passed, including the signed-HTTP matrix over all three real providers with 97 durable query attempts and 98 settled operations. The transport string compiler's ordinal semantics were corrected at the root. [Developer/operator guide](CQL_V1_OPERATIONS.md). Implementation/automated acceptance of the defined v1 subset is complete; actual production rollout, commercial rates and application-specific tenancy/sharing policy are not implied. The larger CQL/ORM roadmap remains open.

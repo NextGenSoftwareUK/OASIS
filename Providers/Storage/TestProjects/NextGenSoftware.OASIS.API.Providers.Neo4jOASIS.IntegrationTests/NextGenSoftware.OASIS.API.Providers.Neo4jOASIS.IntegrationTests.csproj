@@ -7,10 +7,20 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Exercise the shipping boundary, rather than maintaining a parallel HTTP implementation. -->
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Models\Data\CqlV1Request.cs" Link="Web4\CqlV1Request.cs" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlV1Compiler.cs" Link="Web4\CqlV1Compiler.cs" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlV1Endpoint.cs" Link="Web4\CqlV1Endpoint.cs" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Controllers\CqlV1Controller.cs" Link="Web4\CqlV1Controller.cs" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Helpers\AuthorizeAttribute.cs" Link="Web4\AuthorizeAttribute.cs" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Middleware\OasisJwtValidation.cs" Link="Web4\OasisJwtValidation.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
