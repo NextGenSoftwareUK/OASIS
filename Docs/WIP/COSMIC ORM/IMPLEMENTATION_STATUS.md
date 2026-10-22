@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## CQL v1 provider admission — 22 October 2026
+
+Shared hosted query execution now honors inherited server-created storage admission and durable provider-attempt accounting. All-target identity binding, post-persistence lifetime/cancellation checks and explicit rejection prevent bypassing the admitted provider boundary. Full Core 1,651/1,651 passes (16 new cases); both targets build. [Milestone evidence and resume point](CQL_V1_MILESTONE_1.md). HTTP authorization/visibility, native v1 acceptance and remaining roadmap are open. Work stops at this milestone at the user's request to conserve tokens.
+
 ## Runnable CQL demos — 21 October 2026
 
 A real C# walkthrough and standalone loopback Swagger sample now exercise native typed metadata/field queries, ordering/paging, clean tracking, no-op saves, committed delta summaries and independent stale-client conflicts through HolonManager/Hyperdrive V2. Console assertions and all six HTTP/Swagger checks pass with host/fixture teardown verified. Core/Shared/SQLite demo runtime copies match their producers. [Run commands and demo script](CQL_DEMO_RUNBOOK.md); [dependency inventory](CQL_DEMO_DEPENDENCIES.md). No Core/provider product implementation changed in this increment. Production authenticated ONODE routing/admission and the full roadmap remain open.
