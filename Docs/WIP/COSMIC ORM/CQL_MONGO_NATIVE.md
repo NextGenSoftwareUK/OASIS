@@ -1,5 +1,7 @@
 # MongoDB native CQL implementation checkpoint
 
+Current documentation: [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demos](CQL_DEMO_RUNBOOK.md), [WEB4 v1 contract](CQL_V1_HTTP_CONTRACT.md). Historical checkpoints retain their original scope/counts.
+
 20 October 2026. Final acceptance passes **Core 1,536/1,536; Shared 895/895; MongoDB unit 188/188 and selected native 84/84; SQLite native 1,042/1,042**, zero skips. MongoDB's three CQL cases are included in its selected native suite. Core and Shared hashes match across all consumers. Core a6d0865 is paired with the parent gitlink/manifest in this batch. Both retained fixtures were independently reconciled before removal. The full CQL roadmap remains open.
 
 ## Shared entry point
