@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## CQL v1 authenticated WEB4 boundary — 22 October 2026
+
+Bounded POST `/api/data/query-cql` now reuses generic Core planning and native adapters, with server-owned selection, authenticated reservation binding, native owner/public predicates before paging and explicit durable query-tariff receipts. Full Core 1,676/1,676 and configured real-Mongo accounting 312/312 pass, zero skips; WEB4 builds. [Milestone 2 evidence and remaining acceptance](CQL_V1_MILESTONE_2.md), [request/configuration examples](CQL_V1_HTTP_CONTRACT.md). Native HTTP/JWT/outbox acceptance remains open; production-ready v1 is not yet claimed.
+
 ## CQL v1 provider admission — 22 October 2026
 
 Shared hosted query execution now honors inherited server-created storage admission and durable provider-attempt accounting. All-target identity binding, post-persistence lifetime/cancellation checks and explicit rejection prevent bypassing the admitted provider boundary. Full Core 1,651/1,651 passes (16 new cases); both targets build. [Milestone evidence and resume point](CQL_V1_MILESTONE_1.md). HTTP authorization/visibility, native v1 acceptance and remaining roadmap are open. Work stops at this milestone at the user's request to conserve tokens.
