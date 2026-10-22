@@ -1,5 +1,7 @@
 # CQL enum metadata
 
+Current documentation: [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demos](CQL_DEMO_RUNBOOK.md), [WEB4 v1 contract](CQL_V1_HTTP_CONTRACT.md). Historical checkpoints retain their original scope/counts.
+
 ## Contract
 
 SQLite, MongoDB and Neo4j explicitly register `HolonType`, `ProviderType` and their nullable forms as metadata scalar domains. These declarations support comparisons, membership, field comparisons and ordering through the common Core query model. Other enum types remain unsupported by the production profiles; a caller-supplied broader profile cannot enable their native execution. Broader enum enrollment and application schema registration remain roadmap work.
