@@ -1,5 +1,7 @@
 # CQL demo dependency inventory
 
+22 October v1 extension: the three-provider walkthrough reuses the existing native integration project, MongoDB/Neo4j services and shared SDK/package cache. Its optional UI links the existing example sources and reuses cached Swashbuckle 6.4.0. No additional runtime, database installation, container image or environment was created. The table below is the original SQLite demo dependency snapshot; native service identities, ownership and lifecycle remain in the [shared resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
 21 October 2026. Generated from the demo project assets and actual shared cache after restore. Entries are used by this sample; reused/inherited packages are not claimed as newly installed by this chat. Shared dependencies must not be deleted solely because this demo ends. See [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
 | Package | Version | Exact cache path | Logical bytes | Origin at Swagger increment |

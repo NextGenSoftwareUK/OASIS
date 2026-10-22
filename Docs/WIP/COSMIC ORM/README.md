@@ -6,6 +6,9 @@ These are working documents. Dated reports retain historical evidence; earlier c
 
 ## Documents
 
+- [CQL developer manual: C# SDK, WEB4 v1, examples and supported limits](CQL_MANUAL.md).
+- [CQL architecture: generic Core, native adapters, authorization and accounting](CQL_ARCHITECTURE.md).
+
 - [Run the CQL console and Swagger demo](CQL_DEMO_RUNBOOK.md).
 
 - [Resource inventory, retrospective setup and cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

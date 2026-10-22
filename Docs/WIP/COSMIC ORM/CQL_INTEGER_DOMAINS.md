@@ -1,5 +1,7 @@
 # CQL exact integer domains
 
+Current documentation: [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demos](CQL_DEMO_RUNBOOK.md), [WEB4 v1 contract](CQL_V1_HTTP_CONTRACT.md). Historical checkpoints retain their original scope/counts.
+
 ## Scope
 
 The SQLite adapter extends its existing Int32/Int64 metadata domains with `byte`, `sbyte`, `short`, `ushort`, `uint` and their nullable forms. Native predicates admit only JSON integers represented exactly as SQLite INTEGER, within the declared CLR type's complete range. Strings, booleans, real numbers, arrays, missing paths and integers outside that range do not satisfy typed comparisons. Explicit null follows the existing nullable contract. No numeric casts coerce invalid persisted values into the domain.

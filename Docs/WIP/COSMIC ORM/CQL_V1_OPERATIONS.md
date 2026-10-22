@@ -1,5 +1,7 @@
 # CQL v1 developer and operator notes
 
+[Complete manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [native v1 console/browser demo](CQL_DEMO_RUNBOOK.md). The demo reuses the owned environment and shipping endpoint; it is not a production deployment.
+
 The WEB4 v1 transport runs the existing generic HolonManager/Core query pipeline against one active MongoDB, SQLite or Neo4j provider. [Request language and pricing configuration](CQL_V1_HTTP_CONTRACT.md); [local C# and Swagger demonstrations](CQL_DEMO_RUNBOOK.md).
 
 ## Calling from C#
