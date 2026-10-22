@@ -117,7 +117,10 @@ public static class CqlV1Compiler
         if (filter.Operator is CqlV1Operator.Contains or CqlV1Operator.StartsWith or CqlV1Operator.EndsWith)
         {
             if (path.Type != typeof(string)) throw new ArgumentException("String operation requires a string field.");
-            return Expression.Call(path, filter.Operator.ToString(), null, literal);
+            // Prefix/suffix single-argument overloads use the current culture. CQL's
+            // portable native contract requires ordinal semantics explicitly.
+            var method = typeof(string).GetMethod(filter.Operator.ToString(), new[] { typeof(string), typeof(StringComparison) });
+            return Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
         }
         var node = filter.Operator switch
         {

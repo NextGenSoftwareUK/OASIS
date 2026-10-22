@@ -33,6 +33,22 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class CqlV1Web4Tests
 {
+    [Theory]
+    [InlineData(CqlV1Operator.Contains)]
+    [InlineData(CqlV1Operator.StartsWith)]
+    [InlineData(CqlV1Operator.EndsWith)]
+    public void TransportStringOperatorsCompileWithPortableOrdinalSemantics(CqlV1Operator operation)
+    {
+        var request = new CqlV1Request
+        {
+            Filters = new[] { new CqlV1Filter
+            {
+                Field = "Name", Operator = operation, Value = JsonSerializer.SerializeToElement("coffee")
+            }}
+        };
+        var query = CqlV1Compiler.Compile(request, Guid.NewGuid(), ProviderType.SQLLiteDBOASIS);
+        Assert.Equal(2, query.Predicates.Count); // Mandatory access predicate plus the native string predicate.
+    }
     private static readonly Guid Actor = Guid.Parse("b1c6016e-f31c-47cc-8ba7-cf1811d4b872");
     private static CosmicQueryCapabilities Capabilities
     {
