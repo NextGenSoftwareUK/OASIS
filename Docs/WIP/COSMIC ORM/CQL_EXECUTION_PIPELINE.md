@@ -92,3 +92,8 @@ Five new public CQL tests initially failed (`TestResults/CosmicMongoCurrent/cql-
 SQLite native selected acceptance: **23/23 passed**, zero skipped, terminal exit 0 (`TestResults/SQLiteCurrent/cql-encryption-native.trx`). Four additional malformed-envelope CQL cases and a durable encrypted custom-decimal CQL case pass alongside point-load admission and existing typed-query regression cases. Successful query values start clean, while direct stored reads retain ciphertext and identical committed content.
 
 This certifies selected typed collection/CQL roots. Untyped collection decryption, encrypted descendants/typed roles, key identity/rotation, authenticated/versioned envelopes, authorization/cost admission and complete query/provider conformance remain open. Private encrypted fields do not become provider-queryable merely because returned roots are decrypted. The full roadmap remains active.
+
+
+## Hosted provider admission — 22 October 2026
+
+The .NET 10 executor now applies inherited PreparedStorageExecution to actual native invocations, matching storage/query identities and waiting for durable provider-attempt admission before I/O. It rechecks lifetime and identity after persistence; cancellation or expired scopes cannot turn a pending admitted read into unmetered execution. Native error/result behavior remains explicit. Full Core 1,651 passes; [scope, tests and remaining HTTP/visibility gates](CQL_V1_MILESTONE_1.md). Trusted local and portable use is not automatically authenticated by this seam.
