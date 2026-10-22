@@ -1,5 +1,7 @@
 # CQL SQLite native execution — work in progress
 
+Current documentation: [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demos](CQL_DEMO_RUNBOOK.md), [WEB4 v1 contract](CQL_V1_HTTP_CONTRACT.md). Historical checkpoints retain their original scope/counts.
+
 This is a native leaf-row adapter milestone, not complete CQL or WEB4 authorization. Current metadata-extended acceptance is focused17/17 and full SQLite832/832, zero skips; prior cohorts below retain their own epochs.
 
 `SQLLiteDBOASIS.ExecuteCosmicQueryAsync(plan, maximumResults, cancellationToken)` requires a single-target SQLite plan. It translates the complete immutable predicate before database access, uses fixed column identifiers and separately bound SQLite parameters, and materializes through the existing repository converter. It never fetches all rows for client predicate evaluation.

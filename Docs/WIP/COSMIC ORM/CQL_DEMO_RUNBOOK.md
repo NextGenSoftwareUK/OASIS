@@ -1,4 +1,29 @@
-# CQL demo: console and Swagger
+# CQL demos: native v1 and typed coffee ORM
+
+## Three-provider v1 walkthrough — 22 October 2026
+
+```powershell
+.\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1
+.\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -Serve
+```
+
+The first command runs nine annotated SDK queries and nine HTTP examples on MongoDB, SQLite and Neo4j. With Serve, open **http://127.0.0.1:5088/demo** once `TestResults/CosmicCqlDemo/v1-session.json` appears. Transcript: `v1-walkthrough.txt`; result: `v1-demo-result.json`. Swagger `/swagger` is prefilled, authorized as synthetic Alice and documents Idempotency-Key.
+
+### Five-minute presenter script
+
+1. Alice + MongoDB + Visibility before paging returns **C-public**: access filtering precedes Skip/Take.
+2. Repeat on SQLite and Neo4j: same semantics, actual native execution and explicit provenance.
+3. Nested metadata + protected OR returns **D-owned**, not A-private. Visitor sees public data; Anonymous rejects.
+4. Show prefix/suffix, null/existence, GUID, Boolean and numeric-string examples. Exact Int64 preserves **9007199254740993** without JavaScript rounding.
+5. Repeat the last key: **409**, no second execution. A new intent gets a new key. Show settlement status.
+6. Execute Swagger's example. Change Idempotency-Key for a new intent/provider. Swagger defaults to Alice.
+7. **Finish demo & clean up** waits, verifies settlement, stops services and removes only owned fixtures.
+
+Shipping CQL/JWT/admission code runs over real providers and a Mongo outbox. Avatar-directory/reservation authority are controlled synthetic fixtures; no production account/charge. Tokens last one hour and are not recorded in transcripts/readiness/ledger. Run one leased demo at a time. Interrupted/failed fixtures require inspection, not reset/replay.
+
+Read `Examples/CosmicCqlDemo/V1NativeQueries.cs`, then `V1Walkthrough.cs`: spaced, numbered examples with expected results. [Manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md). The original SQLite coffee demo below additionally covers Save/tracking/deltas/conflicts.
+
+## Original SQLite coffee walkthrough
 
 For the authenticated production WEB4 v1 route over MongoDB, SQLite and Neo4j, see [request examples and operator setup](CQL_V1_OPERATIONS.md) and [native acceptance](CQL_V1_MILESTONE_3.md). The examples below remain isolated runnable demonstrations.
 

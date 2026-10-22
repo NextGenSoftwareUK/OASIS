@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
@@ -15,6 +16,10 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Exercise the shipping boundary, rather than maintaining a parallel HTTP implementation. -->
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1Walkthrough.cs" Link="Demo\V1Walkthrough.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1NativeQueries.cs" Link="Demo\V1NativeQueries.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1SwaggerExample.cs" Link="Demo\V1SwaggerExample.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1DemoPresentation.cs" Link="Demo\V1DemoPresentation.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Models\Data\CqlV1Request.cs" Link="Web4\CqlV1Request.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlV1Compiler.cs" Link="Web4\CqlV1Compiler.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlV1Endpoint.cs" Link="Web4\CqlV1Endpoint.cs" />
