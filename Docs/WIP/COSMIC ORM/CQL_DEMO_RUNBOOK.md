@@ -1,5 +1,7 @@
 # CQL demo: console and Swagger
 
+For the authenticated production WEB4 v1 route over MongoDB, SQLite and Neo4j, see [request examples and operator setup](CQL_V1_OPERATIONS.md) and [native acceptance](CQL_V1_MILESTONE_3.md). The examples below remain isolated runnable demonstrations.
+
 21 October 2026. Two runnable demonstrations use real WEB4/Core HolonManager, Hyperdrive V2 and the native SQLite CQL adapter. Five synthetic coffee records live only in a dedicated owned fixture. These examples do not register a production ONODE route or implement its authentication, billing admission or provider discovery.
 
 ## Quick start
