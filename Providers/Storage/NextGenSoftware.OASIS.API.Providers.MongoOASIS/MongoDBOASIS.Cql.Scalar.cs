@@ -12,8 +12,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
 {
-    public static CosmicScalarCapabilities CqlScalarCapabilities { get; } = new(
-        CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any);
+    private static class ScalarContract
+    {
+        internal static readonly CosmicScalarCapabilities Capabilities = new(
+            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any },
+            new[]
+            {
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities)
+            });
+    }
+    public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
     public CosmicScalarCapabilities ScalarCapabilities => CqlScalarCapabilities;
 
     public async Task<OASISResult<TResult>> ExecuteCosmicScalarAsync<T, TResult>(CosmicScalarPlan<T, TResult> plan,
@@ -24,9 +33,16 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
             cancellationToken.ThrowIfCancellationRequested();
             var admission = CosmicScalarPlanner.Admit(plan, Core.Enums.ProviderType.MongoDBOASIS, CqlCapabilities, CqlScalarCapabilities);
             if (admission.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, TResult>(admission);
-            var command = new MongoCqlTranslator().CompileCount(plan.Query.Source);
             if (!IsProviderActivated || _holonRepository is not HolonRepository repository)
                 return ScalarCqlFailure<TResult>("CQL_PROVIDER_NOT_READY", "Activate MongoDB before native scalar execution.");
+            var translator = new MongoCqlTranslator();
+            if (plan.Query.Selector != null)
+            {
+                var selected = await repository.ExecuteNativeCqlExtremumAsync(translator.CompileExtremum(plan.Query),
+                    plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false);
+                return CosmicSelectedScalarResults.FromValue(plan.Query, selected.Value, selected.HasValue);
+            }
+            var command = translator.CompileCount(plan.Query.Source);
             var count = await repository.ExecuteNativeCqlCountAsync(command, cancellationToken).ConfigureAwait(false);
             return CosmicScalarResults.FromCount(plan.Query, count);
         }

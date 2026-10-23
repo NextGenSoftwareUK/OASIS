@@ -59,3 +59,22 @@ Exact matching Mongo unit/native artifacts are in `TestResults/CosmicMongoCurren
 The subsequent unified regression cohort supersedes that initial Mongo-only artifact epoch. `TestResults/CosmicMongoCurrent/cql-final-regression-artifacts.json` records Core `51A35ED9BDC5C1A1A36CF132B8F8F9195175096698D7A4556278E0E0AAF60270`, Shared `7D6254118220A8438B0458FCDF72A6B31FC582EFE8CC2B3750FDFEA132BF9A4A`, MongoDB `73B2055C9A91183826D447BC4FD22ACD724BED72CAEF28CC9271BD8F3660767E`, SQLite `64255797DD8B403E2AFF92102DE2CAD6414592E3EE2B8FF534385BC5452AB6F2`. Core/Shared match across Core, Shared, Mongo unit/native and SQLite native consumers. Final additional reports: `TestResults/SharedCurrent/cql-custom-property-shared-full.trx` (895), `TestResults/CosmicMongoCurrent/mongo-cql-regression-paired-unit-full.trx` (188), `TestResults/SubscriptionUsageCurrent/mongo-single-node-transactions-current.trx` (84), and `TestResults/SQLiteCurrent/cql-custom-property-committed-native-full.trx` (1,042). Mongo's selected gate explicitly excludes primary-termination schedules and owned-fixture reconciliation, which retain their separate scope; test discovery independently confirmed all 84 selected cases, including CQL and no reconciliation cases.
 
 Earlier failures are retained in place: the initial two-case report, oversized atomic seed rejection (native code 388), and direct typed-property compiler rejection. Independent majority reads first proved all activation collections empty after the rejected seed, then separately verified the five-row synthetic graph, full business/system metadata, native parent link, original version-3 root receipt/checksum and operation fence after the compiler failure. Declared ChildrenIds was validated as its separate DTO value, not mistaken for the native ParentHolonId graph owner. Only after complete checks were the exact owned fixtures removed. Evidence is in `mongo-cql-oversized-seed-reconciliation.json`, `mongo-cql-typed-compiler-reconciliation.json` and the reconciliation TRX under TestResults/SubscriptionUsageCurrent. Successful final tests removed their own fixtures and stopped the owned runtime. No blind reset or mutation replay was used.
+
+
+## Native selected Min/Max
+
+The typed SDK scalar API now supports Min and Max over admitted canonical or metadata paths. It reuses projection cell/domain compilation and the exact decoder, including nullable underlying types. Native `$min`/`$max` preserve the normalized comparison key and original typed value together; separate invalid/present reductions inspect every participating input. A malformed value cannot hide behind a valid winning value. Mandatory traversal errors stay outside source paging. Count and extrema use one cursor owner for membership snapshots, cancellation, remaining MaxTime and no-spill limits.
+
+Final verification passes **124 native CQL tests and all 237 provider unit tests, zero skips**. The 33 new extrema cases cover all 19 reference vectors plus exact/empty/window/no-hydration, graph-output-cap independence, snapshot reparenting, actual-aggregate cancellation/reuse, traversal errors outside the window, UUID representations, duplicate metadata and ambiguous UTC precision. [Full contract and evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-minmax-slice).
+
+Run the fixed reusable native CQL matrix under the shared build lease:
+
+```powershell
+& ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 `
+    -Owner cosmic-mongo-cql `
+    -Operation {
+        & ./Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1 -CosmicCql
+    }
+```
+
+The runner requires the existing pinned MongoDB runtime and owns its fixed 27029 environment lifecycle. It requires all 124 selected tests without skips, refuses occupied fixtures and retains uncertain write outcomes. Acknowledged fixtures are dropped by their existing owner; shared runtime/data caches are retained. Selected-scalar HTTP/demos and later aggregate operators remain separate roadmap gates.

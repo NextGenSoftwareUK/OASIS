@@ -12,8 +12,9 @@ internal sealed class MongoCqlScalarCommand
     internal bool RequiresMembership { get; }
     internal bool RequiresSnapshot { get; }
     internal bool IsEmpty { get; }
-    internal MongoCqlScalarCommand(BsonDocument[] pipeline, bool membership, bool snapshot, bool empty)
-    { Pipeline = pipeline; RequiresMembership = membership; RequiresSnapshot = snapshot; IsEmpty = empty; }
+    internal bool HasTraversalEnvelope { get; }
+    internal MongoCqlScalarCommand(BsonDocument[] pipeline, bool membership, bool snapshot, bool empty, bool traverses = false)
+    { Pipeline = pipeline; RequiresMembership = membership; RequiresSnapshot = snapshot; IsEmpty = empty; HasTraversalEnvelope = traverses; }
 }
 
 internal sealed partial class MongoCqlTranslator
