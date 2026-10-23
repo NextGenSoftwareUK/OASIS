@@ -6,6 +6,8 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/ConditionalObjectTransportAcceptance.cs" Link="Shared/ConditionalObjectTransportAcceptance.cs" />
+    <Compile Include="../../../Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests/AwsS3LiveTransportAcceptance.cs" Link="Shared/AwsS3LiveTransportAcceptance.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
