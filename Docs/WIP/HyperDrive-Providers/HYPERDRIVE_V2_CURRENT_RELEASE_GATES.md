@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Shared export identity/history invariant — 23 October 2026
+
+Shared1019/S3 SDK55/OCI SDK107 passed, zero skips, after four expected red independent-history failures. Current identity lookup no longer requires an avatar version matching the exported holon Version; negative versions fail before storage. Core109677/SharedB753D1D6 source/copies verified; compact evidence and resources in ENVIRONMENT_INVENTORY.md. Separate OracleDB implementation has the same source defect and remains next native work. Oracle Cloud Autonomous Database/OCI bucket acceptance and provider-specific V2 matrices remain OPEN; local/controlled evidence is not 100% readiness or a dev deployment gate.
+
 ## GUID-key deletion guard adopted by40 adapters — 23 October 2026
 
 All40 confirmed GUID-keyed adapters now use the shared Core validator rather than reinterpret malformed native keys as usernames. Actual32689 terminal0 compiled all40 with0errors; Core723025AB1D5 source/copies and each provider PDB/source identity verified. The earlier helper32/full2091 and AWS134/Dynamo163 native proofs remain separately scoped. This closes the audited unsafe dispatch implementation/compile gap, not vendor-native/cloud/whole-interface/global V2 gates.64 missing pinned cache versions recovered once in the existing shared cache (233339391 measured bytes), no new environment or paid service call. Exact resource identities, hashes, compatibility notes and open scope in provider-I/O coverage and ENVIRONMENT_INVENTORY.md. No deployment/overall100% claim.

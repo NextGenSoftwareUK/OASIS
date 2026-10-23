@@ -1080,7 +1080,9 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var avatar = await LoadAvatarByUsernameAsync(avatarUsername, version);
+            if(version<0)return InvalidVersion<IEnumerable<IHolon>>(version);
+            // Identity and exported holon histories have independent version counters.
+            var avatar = await LoadAvatarByUsernameAsync(avatarUsername);
             return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
         }
 
@@ -1088,7 +1090,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            var avatar = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+            if(version<0)return InvalidVersion<IEnumerable<IHolon>>(version);
+            var avatar = await LoadAvatarByEmailAsync(avatarEmailAddress);
             return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
         }
 
