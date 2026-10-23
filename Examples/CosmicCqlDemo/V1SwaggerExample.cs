@@ -24,12 +24,17 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
     {
         if (context.Type.Name == "CqlScalarV1Request")
         {
-            // Deliberately omit take: this counts the complete visible source.
+            // Deliberately omit take: Min reduces the complete visible source.
             // The response tags Int64 and returns its value as a decimal string.
             schema.Example = new OpenApiObject
             {
                 ["provider"] = new OpenApiString("MongoDBOASIS"),
-                ["operation"] = new OpenApiString("LongCount"),
+                ["operation"] = new OpenApiString("Min"),
+                ["selection"] = new OpenApiObject
+                {
+                    ["metadataPath"] = new OpenApiArray { new OpenApiString("extremum") },
+                    ["valueType"] = new OpenApiString("Int64")
+                },
                 ["filters"] = new OpenApiArray
                 {
                     new OpenApiObject

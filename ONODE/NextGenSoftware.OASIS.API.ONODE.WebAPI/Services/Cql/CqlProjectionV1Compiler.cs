@@ -25,7 +25,23 @@ public static partial class CqlV1Compiler
         return selected.Result;
     }
 
+    internal interface ISelectionConsumer<TResult>
+    {
+        TResult Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector);
+    }
+
+    private sealed class ProjectionSelectionConsumer : ISelectionConsumer<CosmicProjectionSelection<Holon>>
+    {
+        public CosmicProjectionSelection<Holon> Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector)
+            => Required(CosmicProjectionSelection<Holon>.Create(alias, selector));
+    }
+
     private static CosmicProjectionSelection<Holon> ProjectionColumn(CqlProjectionV1Column column)
+        => CompileSelection(column, new ProjectionSelectionConsumer());
+
+    // Both HTTP shapes bind one bounded typed expression. No delegate is compiled
+    // or invoked; the Core selector compiler remains the path authority.
+    internal static TResult CompileSelection<TResult>(CqlProjectionV1Column column, ISelectionConsumer<TResult> consumer)
     {
         if (column == null || string.IsNullOrEmpty(column.Alias) || column.Alias.Length > 64
             || !AsciiLetter(column.Alias[0]) || column.Alias.Any(c => !AsciiLetter(c) && c is not (>= '0' and <= '9') && c != '_'))
@@ -37,18 +53,18 @@ public static partial class CqlV1Compiler
                 throw new ArgumentException("Canonical column types are inferred and cannot be overridden.");
             return column.Field switch
             {
-                "Id" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.Id)),
-                "Name" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.Name)),
-                "Description" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.Description)),
-                "Version" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.Version)),
-                "HolonType" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.HolonType)),
-                "IsActive" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.IsActive)),
-                "IsPublic" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.IsPublic)),
-                "ParentHolonId" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.ParentHolonId)),
-                "VersionId" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.VersionId)),
-                "PreviousVersionId" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.PreviousVersionId)),
-                "CreatedByAvatarId" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.CreatedByAvatarId)),
-                "ModifiedByAvatarId" => Required(CosmicProjectionSelection<Holon>.Create(alias, h => h.ModifiedByAvatarId)),
+                "Id" => consumer.Bind(alias, (Expression<Func<Holon, Guid>>)(h => h.Id)),
+                "Name" => consumer.Bind(alias, (Expression<Func<Holon, string>>)(h => h.Name)),
+                "Description" => consumer.Bind(alias, (Expression<Func<Holon, string>>)(h => h.Description)),
+                "Version" => consumer.Bind(alias, (Expression<Func<Holon, int>>)(h => h.Version)),
+                "HolonType" => consumer.Bind(alias, (Expression<Func<Holon, HolonType>>)(h => h.HolonType)),
+                "IsActive" => consumer.Bind(alias, (Expression<Func<Holon, bool>>)(h => h.IsActive)),
+                "IsPublic" => consumer.Bind(alias, (Expression<Func<Holon, bool>>)(h => h.IsPublic)),
+                "ParentHolonId" => consumer.Bind(alias, (Expression<Func<Holon, Guid>>)(h => h.ParentHolonId)),
+                "VersionId" => consumer.Bind(alias, (Expression<Func<Holon, Guid>>)(h => h.VersionId)),
+                "PreviousVersionId" => consumer.Bind(alias, (Expression<Func<Holon, Guid>>)(h => h.PreviousVersionId)),
+                "CreatedByAvatarId" => consumer.Bind(alias, (Expression<Func<Holon, Guid>>)(h => h.CreatedByAvatarId)),
+                "ModifiedByAvatarId" => consumer.Bind(alias, (Expression<Func<Holon, Guid>>)(h => h.ModifiedByAvatarId)),
                 _ => throw new ArgumentException("Unsupported canonical projection field.")
             };
         }
@@ -59,37 +75,39 @@ public static partial class CqlV1Compiler
         if (column.ValueType == "String")
         {
             if (column.Nullable == false) throw new ArgumentException("String projection retains the nullable string contract.");
-            return MetadataSelection<string>(alias, path);
+            return MetadataSelection<string, TResult>(alias, path, consumer);
         }
         var nullable = column.Nullable == true;
         return column.ValueType switch
         {
-            "Boolean" => MetadataSelection<bool>(alias, path, nullable),
-            "Int32" => MetadataSelection<int>(alias, path, nullable),
-            "Int64" => MetadataSelection<long>(alias, path, nullable),
-            "Byte" => MetadataSelection<byte>(alias, path, nullable),
-            "SByte" => MetadataSelection<sbyte>(alias, path, nullable),
-            "Int16" => MetadataSelection<short>(alias, path, nullable),
-            "UInt16" => MetadataSelection<ushort>(alias, path, nullable),
-            "UInt32" => MetadataSelection<uint>(alias, path, nullable),
-            "Guid" => MetadataSelection<Guid>(alias, path, nullable),
-            "DateTime" => MetadataSelection<DateTime>(alias, path, nullable),
-            "HolonType" => MetadataSelection<HolonType>(alias, path, nullable),
-            "ProviderType" => MetadataSelection<ProviderType>(alias, path, nullable),
+            "Boolean" => MetadataSelection<bool, TResult>(alias, path, nullable, consumer),
+            "Int32" => MetadataSelection<int, TResult>(alias, path, nullable, consumer),
+            "Int64" => MetadataSelection<long, TResult>(alias, path, nullable, consumer),
+            "Byte" => MetadataSelection<byte, TResult>(alias, path, nullable, consumer),
+            "SByte" => MetadataSelection<sbyte, TResult>(alias, path, nullable, consumer),
+            "Int16" => MetadataSelection<short, TResult>(alias, path, nullable, consumer),
+            "UInt16" => MetadataSelection<ushort, TResult>(alias, path, nullable, consumer),
+            "UInt32" => MetadataSelection<uint, TResult>(alias, path, nullable, consumer),
+            "Guid" => MetadataSelection<Guid, TResult>(alias, path, nullable, consumer),
+            "DateTime" => MetadataSelection<DateTime, TResult>(alias, path, nullable, consumer),
+            "HolonType" => MetadataSelection<HolonType, TResult>(alias, path, nullable, consumer),
+            "ProviderType" => MetadataSelection<ProviderType, TResult>(alias, path, nullable, consumer),
             _ => throw new ArgumentException("Unsupported exact metadata projection type.")
         };
     }
 
     private static bool AsciiLetter(char value) => value is >= 'A' and <= 'Z' or >= 'a' and <= 'z';
-    private static CosmicProjectionSelection<Holon> MetadataSelection<TValue>(string alias, string[] segments, bool nullable)
-        where TValue : struct
-        => nullable ? MetadataSelection<TValue?>(alias, segments) : MetadataSelection<TValue>(alias, segments);
-    private static CosmicProjectionSelection<Holon> MetadataSelection<TValue>(string alias, string[] segments)
+    private static TResult MetadataSelection<TValue, TResult>(string alias, string[] segments, bool nullable,
+        ISelectionConsumer<TResult> consumer) where TValue : struct
+        => nullable ? MetadataSelection<TValue?, TResult>(alias, segments, consumer)
+            : MetadataSelection<TValue, TResult>(alias, segments, consumer);
+
+    private static TResult MetadataSelection<TValue, TResult>(string alias, string[] segments, ISelectionConsumer<TResult> consumer)
     {
         var parameter = Expression.Parameter(typeof(Holon), "holon");
         var path = Expression.NewArrayInit(typeof(string), segments.Select(segment => Expression.Constant(segment)));
         var value = Expression.Call(typeof(CosmicQueryMetadata), "Value", new[] { typeof(TValue) }, parameter, path);
-        return Required(CosmicProjectionSelection<Holon>.Create(alias, Expression.Lambda<Func<Holon, TValue>>(value, parameter)));
+        return consumer.Bind(alias, Expression.Lambda<Func<Holon, TValue>>(value, parameter));
     }
     private static CosmicProjectionSelection<Holon> Required(OASISResult<CosmicProjectionSelection<Holon>> selection)
     {

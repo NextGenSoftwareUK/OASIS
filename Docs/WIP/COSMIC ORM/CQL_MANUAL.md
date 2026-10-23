@@ -551,3 +551,22 @@ The typed Min/Max example above also applies to the MongoDB adapter. Plan with t
 Use the same typed Min/Max SDK example above with the Neo4j adapter's actual QueryCapabilities and ScalarCapabilities. Integers, Boolean, string, GUID and admitted enum paths use native reduction; no entities are loaded for aggregation. Nullable/string empty input returns null; required empty input reports CQL_EMPTY_SEQUENCE. Wrong participating values report CQL_DATA_INVALID even when they would not win. Source paging and protected traversal validation retain their established semantics.
 
 The expanded CQL matrix passes 111 tests and the full provider unit suite passes 328, with zero skips. UTC DateTime selectors remain unsupported; query admission rejects them. Neo4j's read-committed behavior and existing strict-I/O limitations remain unchanged. [Native semantics, coverage and limits](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#neo4j-native-minmax-slice). HTTP selected extrema, Sum/Average/GroupBy and later CQL phases remain pending.
+
+
+### Selected scalar HTTP request (verification checkpoint)
+
+Use `/api/data/query-cql/scalar` with Operation Min or Max and exactly one Selection. Canonical fields infer their type; metadata requires a bounded path and exact type. The host still supplies actor/eligibility. Example:
+
+```json
+{
+  "provider": "MongoDBOASIS",
+  "operation": "Min",
+  "selection": {
+    "metadataPath": ["stock"],
+    "valueType": "Int64",
+    "nullable": true
+  }
+}
+```
+
+Int64 results remain decimal strings; a nullable empty sequence returns null. Unit/HTTP controls pass2,117; final native and36/36demo certification is pending exact retained-fixture reconciliation after a stale Swagger assertion. [Current evidence and remaining gate](CQL_SCALAR_HTTP_CONTRACT.md#selected-minmax-http-checkpoint--23-october-2026).

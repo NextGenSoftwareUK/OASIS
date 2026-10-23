@@ -72,3 +72,12 @@ Content-Type: application/json
 No `take` means count the complete matching visible input, subject to native execution budgets. Explicit `take: 0` produces zero/false. Optional `skip` is 0–1,000 and optional `take` is 0–10,000. Source predicates, independent `anyChildren`/`anyDescendants` conditions and requested consistency use the same compiler as rows. The JSON example above shows the `result` payload inside the normal `OASISResult` envelope.
 
 The startup tariff validator covers both exact routes; a nonzero scalar query tariff requires a sufficient reservation before serving traffic. Units represent one physical query attempt, including an empty result, rather than the returned count.
+
+
+## Selected Min/Max HTTP checkpoint — 23 October 2026
+
+Implemented bounded Selection for Min/Max on the existing scalar route. Count/LongCount/Any reject Selection; Min/Max require it. Projection and scalar HTTP share one typed bounded selector compiler through a generic consumer, without reflection/dynamic invocation or executable delegates. Actual adapter selection/read permissions remain authoritative. Selected values reuse the existing exact projection wire encoder (Int64 decimal text, Guid D, UTC O, nullable null), five-second response checks, one-attempt receipt owner and atomic1MiB output limit.
+
+Full Core/HTTP tests pass **2,117, zero skips**, including11new selected endpoint controls. Browser JS syntax passes. SDK/HTTP walkthrough source now has12 spaced/commented examples/provider, with Min/Max over signed exact Int64 data; the runner requires fresh36SDK/36HTTP. Browser presets and Swagger include selected extrema.
+
+Native verification is **not complete**: combined175case run passed172/failed3. Signed all-store test failed at a late stale Swagger assertion (expected LongCount; sample now Min), after the new signed selected-query checks. Two later tests encountered retained fixture data. Assertion now checks Min plus typed metadata selection. Walkthroughs were not reached, so36/36 is NOT certified. Retained marker SHA256 AC9E6BCCD1AF2A90133F85E32DB7DFD1A7CEA31E28C79EAA90E2908F3ADB2565, stage before-http-request,9graphIDs+137scalarIDs,396journalentries. Do not reset/replay. Existing six-entry no-execution reconciliation does not fit: add an exact reviewed reconciliation that verifies terminal usage outcomes, all146 owned records and scalar-write receipts before cleanup, then rerun broad175 and fresh36/36.

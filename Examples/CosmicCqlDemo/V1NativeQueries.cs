@@ -179,6 +179,18 @@ public static class V1NativeQueries
         await output.WriteLineAsync("10. Native Select / detached typed values");
         await output.WriteLineAsync($"\n  {summary.Label}\n  Exact Int64: {summary.Precision}\n  Optional: null\n  City: {summary.City}\n");
 
+        // 11. Min reads every visible value natively. Hidden roots deliberately
+        // contain stronger extrema, so this also demonstrates actor isolation.
+        await ShowScalarAsync("11. Native Min / exact signed Int64",
+            Value(visible.Min(h => CosmicQueryMetadata.Value<long>(h, "extremum"))),
+            -9007199254740991L);
+
+        // 12. Max uses the same typed terminal and capability/read owner.
+        // No entity is loaded and the manager does not calculate a client maximum.
+        await ShowScalarAsync("12. Native Max / exact signed Int64",
+            Value(visible.Max(h => CosmicQueryMetadata.Value<long>(h, "extremum"))),
+            -9007199254740989L);
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(
