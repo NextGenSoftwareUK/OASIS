@@ -4,7 +4,7 @@
 
 ## Native graph execution checkpoint — 23 October
 
-Core owns immutable graph intent, capability readmission, detached publication and typed selection ownership. Shared `HolonGraphQueryExpansion` assembles provider-owned native rows with cumulative node/UTF-8 bounds and persisted role ordering. SQLite owns one deferred Serializable native read transaction for roots and children, native parent/type/member predicates, pre-materialization row/byte bounds and the existing instruction/deadline hook. Caller Serializable transactions are reused without committing them. MongoDB and Neo4j graph readers remain pending. HTTP v1 remains leaf-only until authoritative graph access and accounting are implemented. [Contract and native evidence](CQL_GRAPH_LOADING.md).
+Core owns immutable graph intent, capability readmission, detached publication and typed selection ownership. Shared `HolonGraphQueryExpansion` assembles provider-owned native rows with cumulative node/UTF-8 bounds and persisted role ordering. SQLite owns one deferred Serializable native read transaction for roots and children, native parent/type/member predicates, pre-materialization row/byte bounds and the existing instruction/deadline hook. Caller Serializable transactions are reused without committing them. MongoDB now owns a snapshot session plus one cumulative native deadline for roots and child commands; its native104-case/admission31-case matrices pass, including cumulative-deadline and concurrent-write snapshot cases. Neo4j graph loading remains pending. HTTP v1 remains leaf-only until authoritative graph access and accounting are implemented. [Contract and native evidence](CQL_GRAPH_LOADING.md).
 
 ## Layers and ownership
 

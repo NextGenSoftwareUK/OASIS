@@ -2,13 +2,42 @@
 
 22 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
 
-## SQLite SDK child graphs
+## SQLite and MongoDB SDK child graphs
 
-SQLite now supports immutable `WithChildren(options)` query composition. Create options with `CosmicQueryGraphOptions.Create(recursive: true, maxChildDepth: 2, childType: HolonType.All, maximumNodes: 1000)` and check its OASISResult before passing Result to WithChildren. Check the resulting query/plan before executing through the usual generic HolonManager pipeline. Apply root Where/OrderBy/Skip/Take as usual: expansion occurs after the root page is selected.
+SQLite and MongoDB support immutable `WithChildren(options)` query composition. Both native SDK graph readers are certified; MongoDB104 native and31 admission cases pass, including16 graph cases. Create options with `CosmicQueryGraphOptions.Create(recursive: true, maxChildDepth: 2, childType: HolonType.All, maximumNodes: 1000)` and check its OASISResult before passing Result to WithChildren. Check the resulting query/plan before executing through the usual generic HolonManager pipeline. Apply root Where/OrderBy/Skip/Take as usual: expansion occurs after the root page is selected.
+
+For example, with the selected root IDs already stored in a local `rootIds` array:
+
+```csharp
+// One bounded graph shape, retained through filtering, ordering and paging.
+var graph = CosmicQueryGraphOptions.Create(
+    recursive: true,
+    maxChildDepth: 2,
+    childType: HolonType.All,
+    maximumNodes: 1000,
+    maximumPayloadBytes: 8 * 1024 * 1024);
+
+if (graph.IsError)
+    throw new InvalidOperationException(graph.Message);
+
+// Select the root page first. Descendants do not consume the ten-root limit;
+// they do consume the shared graph node and byte budgets above.
+var query = CosmicQuery<Holon>.Create()
+    .Where(holon => rootIds.Contains(holon.Id))
+    .OrderBy(holon => holon.Name)
+    .Take(10)
+    .WithChildren(graph.Result);
+
+if (query.IsError)
+    throw new InvalidOperationException(query.Message);
+
+// Plan with the actual selected provider's capabilities, then execute through
+// HolonManager as shown below. A leaf adapter cannot be upgraded by the caller.
+```
 
 Roots are depth zero. Depth one includes immediate children; zero means recursion within the explicit node/payload budgets. `recursive: false` reads immediate children only. `WithoutChildren()` restores leaf shape. Node and byte limits apply to the whole selected graph; exceeding them rejects the query rather than truncating it. Filtered/depth-boundary results retain omitted membership and cannot replace unobserved relationships on a child-selecting save. Use `saveChildren: false` for root-only edits.
 
-SQLite reads roots/children from one deferred Serializable snapshot. Existing caller transactions must also be Serializable and remain caller-owned. MongoDB/Neo4j graph capabilities and HTTP graph transport are still pending; the three-provider v1 examples below continue to demonstrate the certified leaf API. [Graph details and evidence](CQL_GRAPH_LOADING.md).
+SQLite reads roots/children from one deferred Serializable snapshot. Existing caller transactions must also be Serializable and remain caller-owned. MongoDB uses one snapshot session across root/child commands; the tested environment is Mongo8.3.11 replica set with driver3.12.0. Neo4j graph capability and HTTP graph transport are still pending; the three-provider v1 examples below continue to demonstrate the certified leaf API. [Graph details and evidence](CQL_GRAPH_LOADING.md).
 
 ## Run a demonstration
 
@@ -85,7 +114,7 @@ The full runnable source handles errors and verifies returned rows. A local SDK 
 
 ## WEB4 v1 request
 
-Child graph work is in progress: [Core publication, certified SQLite SDK expansion and remaining Mongo/Neo work](CQL_GRAPH_LOADING.md). Mongo/Neo native adapters and v1 HTTP remain leaf-only.
+Child graph work is in progress: [Core publication, certified SQLite SDK expansion and remaining Mongo/Neo work](CQL_GRAPH_LOADING.md). Neo4j native execution and v1 HTTP remain leaf-only.
 
 ```json
 {

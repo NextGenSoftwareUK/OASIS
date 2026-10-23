@@ -1,5 +1,12 @@
 # COSMIC ORM implementation status
 
+## 23 October — MongoDB native CQL graphs certified
+
+MongoDB now expands root pages and child membership inside one snapshot session with one cumulative30-second deadline. Native parent/type/member predicates use the existing translator,128-ID batches and pre-decode BSON/node bounds; Shared owns ordered graph assembly and Core owns detached/typed publication and partial-save ownership. No Core/Shared source change in this increment. Native104/104 and admission31/31 pass, zero skips, including16 graph cases covering a concurrent child update, in-flight cancellation, cumulative deadline across two commands, depth/type limits, root paging,150-member batching and malformed links. Producer and both consumer copies match. [Exact contract/evidence](CQL_GRAPH_LOADING.md).
+
+SQLite/Mongo SDK graph expansion is implemented. Neo4j graph loading, relationship predicates, aggregates/projections, joins, federation and new hosted graph policy/transport remain open. HTTP v1 remains leaf-only; no broad CQL completion claim.
+
+
 ## 23 October — SQLite native CQL graph expansion
 
 Implemented bounded native SQLite child queries after root paging, reusing one deferred Serializable snapshot and native work budget. Added reusable Shared expansion, persisted membership ordering/batching, read-only and caller-transaction support. Fixed private incomplete-selection ownership for manifest-free raw/typed query results, including forged-manifest/AcceptChanges attempts. Root-only saves preserve omitted links.

@@ -29,10 +29,17 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
             var command=new MongoCqlTranslator().CompileExecution(plan.Query,maximumResults);
             if(!IsProviderActivated||_holonRepository is not HolonRepository repository)
                 return CqlFailure("CQL_PROVIDER_NOT_READY","Activate MongoDB before native CQL execution.");
+            if(plan.Query.GraphOptions!=null)
+            {
+                var graph=await repository.ExecuteNativeCqlGraphAsync(command,maximumResults,plan.Query.GraphOptions,cancellationToken).ConfigureAwait(false);
+                graph.IsLoaded=!graph.IsError;
+                return graph;
+            }
             var rows=await repository.ExecuteNativeCqlAsync(command,maximumResults,cancellationToken).ConfigureAwait(false);
             return new OASISResult<IReadOnlyList<IHolon>>(rows){IsLoaded=true};
         }
         catch(MongoCqlLimitException cause){return CqlFailure("CQL_QUERY_LIMIT",cause.Message,cause);}
+        catch(Repositories.MongoCqlGraphTimeoutException cause){return CqlFailure("CQL_QUERY_TIMEOUT",cause.Message,cause);}
         catch(NotSupportedException cause){return CqlFailure("CQL_CAPABILITY_UNSUPPORTED",cause.Message,cause);}
         catch(OperationCanceledException cause){return CqlFailure("CQL_QUERY_CANCELLED","MongoDB CQL was cancelled.",cause);}
         catch(MongoCommandException cause) when(cause.Code==292){return CqlFailure("CQL_QUERY_LIMIT","MongoDB exceeded its native in-memory query budget.",cause);}
