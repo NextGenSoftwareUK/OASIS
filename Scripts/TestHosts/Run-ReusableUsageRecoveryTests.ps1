@@ -264,23 +264,26 @@ try{
             if($routingCombinations.Count -ne $expectedCosmos){throw 'Every selected provider-order/sync combination must be represented.'}
         }
     }elseif($SuiPreparedLedger -or $SuiPreparedInspect){
+        $suiEvidence=if($env:OASIS_SUI_TEST_PROVIDER_EVIDENCE_ROOT){[IO.Path]::GetFullPath($env:OASIS_SUI_TEST_PROVIDER_EVIDENCE_ROOT)}else{Join-Path $taskRoot 'TestResults/SuiCurrent'}
+        if(!(Test-Path -LiteralPath $suiEvidence -PathType Container)){throw 'Existing Sui evidence directory required; no replacement permitted.'}
+        if($env:OASIS_SUI_TEST_PROVIDER_EVIDENCE_ROOT -and !$SuiCSharpNft){throw 'Alternate Sui mutation evidence paths are reviewed only for admitted CSharp NFT/assets mode.'}
         $suiProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'
         $suiFilter=if($SuiCSharpHistory){'FullyQualifiedName~RetainedCSharpHistoryUsesCheckpointBoundsWithoutNativeMutation'}elseif($SuiCSharpEscrow){'FullyQualifiedName~AdmittedCSharpIdBoundTokenFacadeUsesEncryptedWalletAndOriginalReceipts'}elseif($SuiCSharpAssets){'FullyQualifiedName~SuiAdmittedNftFacadeTests&FullyQualifiedName!~AdmittedCSharpIdBoundTokenFacadeUsesEncryptedWalletAndOriginalReceipts&FullyQualifiedName!~RetainedCSharpHistoryUsesCheckpointBoundsWithoutNativeMutation'}elseif($SuiCSharpNft){'FullyQualifiedName~AdmittedCSharpNftFacadeMintsReadsEscrowsTransfersAndBurns'}elseif($ArchiveSuiPrepared){'FullyQualifiedName~ArchiveConfirmedRetainedLocalFixtureWithoutResubmission'}elseif($SuiPreparedInspect){'FullyQualifiedName~InspectRetainedPreparedAttemptsWithoutMutation'}else{'FullyQualifiedName~PreparedLocalWriteRetainsOriginalSignedEvidenceAndConfirmsLedger|FullyQualifiedName~NativeHttpReservesExecutesAndRecoversWithoutReplay'}
         $suiReport=if($SuiCSharpHistory){'trx;LogFileName=sui-retained-history-range-current.trx'}elseif($SuiCSharpEscrow){'trx;LogFileName=sui-csharp-escrow-live-current.trx'}elseif($SuiCSharpAssets){'trx;LogFileName=sui-csharp-assets-live-current.trx'}elseif($SuiCSharpNft){'trx;LogFileName=sui-csharp-nft-live-current.trx'}elseif($ArchiveSuiPrepared){'trx;LogFileName=sui-prepared-original-archive-current.trx'}elseif($SuiPreparedInspect){'trx;LogFileName=sui-prepared-inspection-current.trx'}else{'trx;LogFileName=sui-prepared-ledger-current.trx'}
         $suiStarted=[DateTime]::UtcNow
-        & dotnet test $suiProject --no-build --no-restore --filter $suiFilter --logger $suiReport --results-directory (Join-Path $taskRoot 'TestResults/SuiCurrent') -v:q
+        & dotnet test $suiProject --no-build --no-restore --filter $suiFilter --logger $suiReport --results-directory $suiEvidence -v:q
         if($LASTEXITCODE -ne 0){throw 'Sui native verification failed; retain original ownership journals.'}
         if($SuiPreparedLedger -or $SuiPreparedInspect){
-            $report=Get-Item -LiteralPath (Join-Path $taskRoot ('TestResults/SuiCurrent/'+($suiReport -replace '^trx;LogFileName=','')))
+            $report=Get-Item -LiteralPath (Join-Path $suiEvidence ($suiReport -replace '^trx;LogFileName=',''))
             if($report.LastWriteTimeUtc -lt $suiStarted){throw 'Sui prepared report is stale.'}
             [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
             $counts=$evidence.TestRun.ResultSummary.Counters
-            $expectedSui=if($SuiCSharpAssets){5}elseif($SuiCSharpNft){2}elseif($SuiCSharpEscrow -or $SuiPreparedInspect -or $SuiCSharpHistory){1}else{5}
+            $expectedSui=if($SuiCSharpAssets){6}elseif($SuiCSharpNft){2}elseif($SuiCSharpEscrow -or $SuiPreparedInspect -or $SuiCSharpHistory){1}else{5}
             if(!$counts -or [int]$counts.total -ne $expectedSui -or [int]$counts.executed -ne $expectedSui -or [int]$counts.passed -ne $expectedSui -or [int]$counts.notExecuted -ne 0){throw "All $expectedSui selected Sui native cases must execute and pass."}
             if($SuiCSharpNft){
                 $originalIds=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
                 foreach($scenario in @('nft','nft-sync')){
-                    $receiptFile=Get-Item -LiteralPath (Join-Path $taskRoot "TestResults/SuiCurrent/sui-csharp-$scenario-receipts-current.json")
+                    $receiptFile=Get-Item -LiteralPath (Join-Path $suiEvidence "sui-csharp-$scenario-receipts-current.json")
                     if($receiptFile.LastWriteTimeUtc -lt $suiStarted){throw 'Native NFT receipt report is stale.'}
                     $receiptData=Get-Content -LiteralPath $receiptFile.FullName -Raw | ConvertFrom-Json
                     if($receiptData.scenario -ne $scenario -or [bool]$receiptData.synchronous -ne ($scenario -eq 'nft-sync') -or !$receiptData.burned -or @($receiptData.receipts).Count -ne 5){throw 'Both NFT call modes require their own completed lifecycle and five original receipts.'}

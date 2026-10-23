@@ -16,9 +16,9 @@ public class SuiAdmittedNftFacadeTests
     [DataRow(false)] [DataRow(true)]
     public async Task AdmittedCSharpNftFacadeMintsReadsEscrowsTransfersAndBurns(bool synchronous)
         =>await RunNativeFacade(false,synchronous:synchronous);
-    [TestMethod]
-    public async Task AdmittedCSharpTokenFacadeBalancesEscrowsPartialBurnAndSupply()
-        =>await RunNativeFacade(true);
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task AdmittedCSharpTokenFacadeBalancesEscrowsPartialBurnAndSupply(bool synchronous)
+        =>await RunNativeFacade(true,synchronous:synchronous);
     [TestMethod]
     public async Task AdmittedCSharpIdBoundTokenFacadeUsesEncryptedWalletAndOriginalReceipts()
         =>await RunNativeFacade(true,idBound:true);
@@ -57,10 +57,14 @@ public class SuiAdmittedNftFacadeTests
         var directory=new DirectoryInfo(AppContext.BaseDirectory);
         while(directory!=null&&!File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/Run-ReusableSuiV2Tests.ps1")))directory=directory.Parent;
         var assetKind=idBound?"escrow":token?"token":"nft";
-        Assert.IsNotNull(directory);var journalPath=Path.Combine(directory!.FullName,$"TestResults/SuiCurrent/csharp-{assetKind}-live-pending.jsonl");
+        Assert.IsNotNull(directory);
+        var evidenceRoot=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_PROVIDER_EVIDENCE_ROOT")
+            ??Path.Combine(directory!.FullName,"TestResults/SuiCurrent");
+        Assert.IsTrue(Path.IsPathFullyQualified(evidenceRoot));Assert.IsTrue(Directory.Exists(evidenceRoot),"Reuse the retained evidence directory; do not create a replacement.");
+        var journalPath=Path.Combine(evidenceRoot,$"csharp-{assetKind}-live-pending.jsonl");
         Assert.IsFalse(File.Exists(journalPath),"Retained facade ownership must be reconciled before rerun.");
-        var scenario=token?assetKind:offChain?"nft-offchain":nftCount>1?"nft-batch":synchronous?"nft-sync":assetKind;
-        var reportPath=Path.Combine(directory.FullName,$"TestResults/SuiCurrent/sui-csharp-{scenario}-receipts-current.json");
+        var scenario=token?(synchronous?assetKind+"-sync":assetKind):offChain?"nft-offchain":nftCount>1?"nft-batch":synchronous?"nft-sync":assetKind;
+        var reportPath=Path.Combine(evidenceRoot,$"sui-csharp-{scenario}-receipts-current.json");
         // Compact original financial evidence must survive a later native refresh.
         if(!retainedOnly && !idBound && File.Exists(reportPath)){
             Assert.IsTrue(new FileInfo(reportPath).Length<=1024*1024,"Review oversized prior evidence before copying.");
@@ -68,7 +72,7 @@ public class SuiAdmittedNftFacadeTests
             using var prior=JsonDocument.Parse(priorBytes);
             Assert.IsTrue(prior.RootElement.GetProperty("burned").GetBoolean());
             var hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(priorBytes));
-            var archive=Path.Combine(directory.FullName,$"TestResults/SuiCurrent/receipts-proof-{hash}.json");
+            var archive=Path.Combine(evidenceRoot,$"receipts-proof-{hash}.json");
             if(!File.Exists(archive))File.Copy(reportPath,archive,false);
             CollectionAssert.AreEqual(priorBytes,File.ReadAllBytes(archive));
         }
@@ -142,23 +146,29 @@ public class SuiAdmittedNftFacadeTests
         void Record(object value){var bytes=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value)+"\n");journal.Write(bytes);journal.Flush(true);}
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(90));
         API.Providers.LocalFileOASIS.LocalFileOASIS? walletStorage=null;FileStream? walletLease=null;
-        var walletAvatar=Guid.Parse("478e4ef2-b442-459f-93e0-fec53c7de2f1");string? walletFile=null,encrypted=null;
+        var walletAvatar=Guid.Parse("478e4ef2-b442-459f-93e0-fec53c7de2f1");string? walletFile=null,encrypted=null,walletBodyHash=null;
         Core.Managers.WalletManager? walletManager=null;
+        Core.Interfaces.IProviderWallet? managedWallet=null;
+        var previousActor=Core.OASISRequestContext.CurrentAvatar;
         try {
             var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(deadline.Token);
-            var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new SuiPreparedLedgerTests.TestAuthority(user));
+            var user=walletAvatar.ToString("D");using var http=new HttpClient(new SuiPreparedLedgerTests.TestAuthority(user));
+            Core.OASISRequestContext.CurrentAvatar=new Core.Holons.Avatar{Id=walletAvatar};
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://test-authority.invalid","WEB6","test-key");
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions {Service="WEB6"})
                 .BeginAsync("test-only",user,"sui-csharp-"+assetKind,new string('a',64),"POST /local-facade-test",new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1},deadline.Token);
             Record(new {database,operationId=execution.OperationId,chainId=settings.GetProperty("chainId").GetString(),assetKind,fixture="admitted CSharp facade",recovery="Inspect original signed attempts; no automatic cleanup/replay on failed assertion."});
-            if(idBound){
-                var walletRoot=Path.Combine(directory.FullName,"TestResults/HederaCurrent/wallet-failure-files");Directory.CreateDirectory(walletRoot);
+            if(!retainedOnly){
+                var walletRoot=Path.Combine(Directory.GetParent(evidenceRoot)!.FullName,"HederaCurrent/wallet-failure-files");
+                Assert.IsTrue(Directory.Exists(walletRoot),"Existing reusable wallet fixture directory required.");
                 walletLease=new FileStream(Path.Combine(walletRoot,"fixture.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
                 walletFile=Path.GetFullPath(Path.Combine(walletRoot,"wallets_"+walletAvatar+".json"));Assert.IsFalse(File.Exists(walletFile));
                 walletStorage=new(filePath:walletRoot+Path.DirectorySeparatorChar,storageDirectory:walletRoot);Assert.IsFalse((await walletStorage.ActivateProviderAsync()).IsError);
                 encrypted=Rijndael256.Rijndael.Encrypt(ownerKey,new string('k',32),Rijndael256.KeySize.Aes256);
+                var walletId=Guid.NewGuid();
+                Record(new{state="before-wallet-store",walletAvatar,walletId,walletFile});
                 Assert.IsFalse((await walletStorage.SaveProviderWalletsForAvatarByIdAsync(walletAvatar,new(){[Core.Enums.ProviderType.SuiOASIS]=new(){
-                    new Core.Objects.ProviderWallet{Id=Guid.NewGuid(),AvatarId=walletAvatar,ProviderType=Core.Enums.ProviderType.SuiOASIS,IsDefaultWallet=true,
+                    new Core.Objects.ProviderWallet{Id=walletId,AvatarId=walletAvatar,ProviderType=Core.Enums.ProviderType.SuiOASIS,IsDefaultWallet=true,
                         WalletAddress=ownerIdentity.Result.WalletAddressLegacy,PublicKey=ownerIdentity.Result.PublicKey,PrivateKey=encrypted}}})).IsError);
                 var dna=new API.DNA.OASISDNA();dna.OASIS.HyperDriveMode=API.DNA.HyperDriveModes.V2;dna.OASIS.StorageProviders=new(){LogSwitchingProviders=false};
                 dna.OASIS.Security=new(){OASISProviderPrivateKeys=new(){Rijndael256EncryptionEnabled=true,Rijndael256Key=new string('k',32)}};
@@ -166,7 +176,10 @@ public class SuiAdmittedNftFacadeTests
                 Assert.IsFalse(providers.SetAndActivateCurrentStorageProvider(walletStorage).IsError);
                 var ctor=typeof(Core.Managers.WalletManager).GetConstructors(System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance).Single(c=>c.GetParameters().Length==4);
                 walletManager=(Core.Managers.WalletManager)ctor.Invoke(new object?[]{walletStorage,dna,providers,null});owner.WalletManager=walletManager;
-                Record(new{walletAvatar,walletFile,depositId,escrowObjectId=settings.GetProperty("escrowObjectId").GetString()});
+                var loaded=await walletManager.LoadProviderWalletsForAvatarByIdAsync(walletAvatar);
+                Assert.IsFalse(loaded.IsError,loaded.Message);managedWallet=loaded.Result[Core.Enums.ProviderType.SuiOASIS].Single(x=>x.WalletId==walletId);
+                walletBodyHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(walletFile)));
+                Record(new{walletAvatar,walletFile,walletId,walletBodyHash,depositId,escrowObjectId=idBound?settings.GetProperty("escrowObjectId").GetString():null});
             }
             async Task<OASISResult<T>> Owned<T>(SuiOASIS provider,string signer,string stage,Func<Task<OASISResult<T>>> action) where T:ITransactionResponse {
                 Record(new {stage,state="before-operation"});
@@ -231,7 +244,9 @@ public class SuiAdmittedNftFacadeTests
             var unlockRequest=new UnlockWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,Web3NFTId=nft.Id};
             await Owned(owner,ownerAddress,Stage("unlock"),()=>Call(()=>owner.UnlockNFT(unlockRequest),()=>owner.UnlockNFTAsync(unlockRequest)));
             var sendRequest=new SendWeb3NFTRequest {TokenId=nft.NFTTokenAddress,FromWalletAddress=ownerAddress,ToWalletAddress=recipientAddress,Amount=1};
-            var sent=await Owned(owner,ownerAddress,Stage("send"),()=>Call(()=>owner.SendNFT(sendRequest),()=>owner.SendNFTAsync(sendRequest)));
+            var sent=await Owned(owner,ownerAddress,Stage("send"),()=>Call(()=>managedWallet!.SendNFT(sendRequest),()=>managedWallet!.SendNFTAsync(sendRequest)));
+            Assert.IsTrue(string.IsNullOrEmpty(sendRequest.OwnerPrivateKey),"SDK dispatch must not rewrite caller credentials.");
+            Assert.IsTrue((await File.ReadAllTextAsync(walletFile!)).Contains(encrypted!),"Native send must retain encrypted stored credentials.");
             Assert.AreEqual(recipientAddress,sent.Result.Web3NFT.SendToAddressAfterMinting);
             await RejectNonOwner(owner,ownerAddress,recipientAddress,"former-owner-after-transfer");
             var burnRequest=new BurnWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,
@@ -281,7 +296,10 @@ public class SuiAdmittedNftFacadeTests
                 Assert.IsTrue(invalid.IsError);Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
                 await Owned(owner,ownerAddress,"mint",()=>owner.MintTokenAsync(new MintWeb3TokenRequest {Amount=4m,MetaData=new() {{"TokenAddress",coinType},{"MintToWalletAddress",ownerAddress}}}));
                 Assert.AreEqual(4m,await Balance(owner,ownerAddress));
-                await Owned(owner,ownerAddress,"send",()=>owner.SendTokenAsync(new SendWeb3TokenRequest {FromTokenAddress=coinType,FromWalletAddress=ownerAddress,ToWalletAddress=recipientAddress,Amount=1m}));
+                var sendRequest=new SendWeb3TokenRequest {FromTokenAddress=coinType,FromWalletAddress=ownerAddress,ToWalletAddress=recipientAddress,Amount=1m};
+                await Owned(owner,ownerAddress,"send",()=>Call(()=>managedWallet!.SendToken(sendRequest),()=>managedWallet!.SendTokenAsync(sendRequest)));
+                Assert.IsTrue(string.IsNullOrEmpty(sendRequest.OwnerPrivateKey),"SDK dispatch must not rewrite caller credentials.");
+                Assert.IsTrue((await File.ReadAllTextAsync(walletFile!)).Contains(encrypted!),"Native send must retain encrypted stored credentials.");
                 Assert.AreEqual(3m,await Balance(owner,ownerAddress));Assert.AreEqual(1m,await Balance(recipient,recipientAddress));
                 await Owned(recipient,recipientAddress,"lock",()=>recipient.LockTokenAsync(new LockWeb3TokenRequest {TokenAddress=coinType,FromWalletAddress=recipientAddress}));
                 Assert.AreEqual(0m,await Balance(recipient,recipientAddress));Assert.AreEqual(1m,await Balance(recipient,recipientAddress,true));
@@ -314,12 +332,13 @@ public class SuiAdmittedNftFacadeTests
             }
             using(var report=JsonDocument.Parse(File.ReadAllBytes(reportPath)))Assert.AreEqual(stages.Length,report.RootElement.GetProperty("receipts").GetArrayLength());
             Console.WriteLine($"Native CSharp {assetKind} facade passed with{stages.Length} original signed attempts and bound native receipts; no external billing claim.");
-            if(idBound){
+            if(walletStorage!=null){
+                Assert.AreEqual(walletBodyHash,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(walletFile!))),"Owned credential file changed; preserve it instead of clearing/replaying.");
                 Assert.IsFalse((await walletStorage!.SaveProviderWalletsForAvatarByIdAsync(walletAvatar,new())).IsError);
                 Assert.AreEqual("{}",(await File.ReadAllTextAsync(walletFile!)).Trim());File.Delete(walletFile!);
             }
             await mongo.DropDatabaseAsync(database);journal.Dispose();File.Delete(journalPath);
         } catch {Console.WriteLine("Retained exact facade journal/outbox for original-outcome reconciliation; no automatic mutation cleanup.");throw;}
-        finally {if(walletStorage!=null)await walletStorage.DeActivateProviderAsync();walletLease?.Dispose();}
+        finally {Core.OASISRequestContext.CurrentAvatar=previousActor;if(walletStorage!=null)await walletStorage.DeActivateProviderAsync();walletLease?.Dispose();}
     }
 }
