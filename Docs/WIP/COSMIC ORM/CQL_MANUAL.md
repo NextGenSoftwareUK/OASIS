@@ -85,7 +85,7 @@ The full runnable source handles errors and verifies returned rows. A local SDK 
 
 ## WEB4 v1 request
 
-Child graph work is in progress: [Core composition, detached/typed publication and remaining native work](CQL_GRAPH_LOADING.md). Existing native adapters and v1 HTTP remain leaf-only until native graph acceptance is complete.
+Child graph work is in progress: [Core publication, certified SQLite SDK expansion and remaining Mongo/Neo work](CQL_GRAPH_LOADING.md). Mongo/Neo native adapters and v1 HTTP remain leaf-only.
 
 ```json
 {
@@ -153,7 +153,7 @@ Ordinary query tariffs are explicit server-owned service prices, not vendor invo
 
 ## Saving queried holons
 
-Local typed CQL hydration returns clean tracked leaf entities. A change can be saved through HolonManager's conditional-write path; stale-client conflicts reject without overwriting the winner. A no-op Save does not create a new version, and an acknowledged write can expose its committed delta. These are shown in the seven-step CoffeeWalkthrough, not by a v1 query endpoint that writes data. [Demo runbook](CQL_DEMO_RUNBOOK.md).
+Local typed CQL hydration returns clean tracked entities in the admitted leaf or graph shape. A change can be saved through HolonManager's conditional-write path; stale-client conflicts reject without overwriting the winner. A no-op Save does not create a new version, and an acknowledged write can expose its committed delta. These are shown in the seven-step CoffeeWalkthrough; the v1 query endpoint itself reads data. [Demo runbook](CQL_DEMO_RUNBOOK.md).
 
 ## Documentation map
 
