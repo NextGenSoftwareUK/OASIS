@@ -28,7 +28,10 @@ public sealed partial class OracleNativeAcceptanceTests
         void Check<T>(string label,OASISResult<T> result,bool failure=false)
         {
             if(failure){if(!result.IsError||result.IsLoaded||result.LoadedCount!=0)bad.Add(label+": failed read claimed loaded data");return;}
-            if(result.IsError||result.Result is null){bad.Add(label+": missing successful payload");return;}
+            if(result.IsError||result.Result is null){
+                bad.Add($"{label}: missing successful payload; code={result.ErrorCode}; exception={result.Exception?.GetType().Name}; message={result.Message}; cause={result.Exception?.Message}");
+                return;
+            }
             var expected=result.Result is ISearchResults search?search.NumberOfResults:
                 result.Result is System.Collections.IEnumerable values&&result.Result is not string?values.Cast<object>().Count():1;
             if(!result.IsLoaded||result.LoadedCount!=expected||result.IsSaved)
@@ -48,6 +51,7 @@ public sealed partial class OracleNativeAcceptanceTests
                 Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);Assert.IsFalse((await provider.SaveAvatarDetailAsync(detail)).IsError);
                 Assert.IsFalse((await provider.SaveHolonAsync(root,saveChildren:false)).IsError);Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
             }
+            Console.WriteLine(JsonSerializer.Serialize(new{synchronous,avatarVersion=avatar.Version,detailVersion=detail.Version,rootVersion=root.Version,childVersion=child.Version}));
             foreach(var row in rows)originals[row]=(await Read(native,row.Item1,row.Item2))!;
             foreach(var version in new[]{0,1}){
                 var tag=$"version{version}/";
@@ -107,5 +111,20 @@ public sealed partial class OracleNativeAcceptanceTests
         }
         finally{await provider.DeActivateProviderAsync();}
         Assert.AreEqual(0,bad.Count,string.Join(Environment.NewLine,bad));
+    }
+}
+
+// Explicit diagnostic mode only; excluded from the main acceptance-class filter.
+[TestClass][DoNotParallelize]
+public sealed class OracleReadAckStressNativeTests
+{
+    [TestMethod]
+    public async Task TwentyFreshReadAcknowledgementFixturesExposeIntermittentFailures()
+    {
+        for(var pair=0;pair<10;pair++){
+            Console.WriteLine($"Fresh read acknowledgement pair {pair+1}/10 (async then sync)");
+            await new OracleNativeAcceptanceTests().NativeReadAcknowledgementsReportActualSuccessAndRootCounts(false);
+            await new OracleNativeAcceptanceTests().NativeReadAcknowledgementsReportActualSuccessAndRootCounts(true);
+        }
     }
 }
