@@ -1,5 +1,10 @@
 # COSMIC ORM implementation status
 
+## 23 October — Authorized partial saves verified on all three stores
+
+Mongo25, SQLite21 and joint88 pass, zero skips. Both type-selected and access-selected views, with/without stored manifests, survive AcceptChanges without gaining replacement rights. A root-only conditional save advances the root once and leaves all child versions/provider revisions unchanged. The ownership roadmap gate is checked. A flaky HTTP fixture now explicitly declares its promised child ordering; the retained failed fixture was hash/identity/settlement-verified before cleanup. [Evidence](CQL_GRAPH_LOADING.md).
+
+
 ## 23 October — Public access-bound CQL graphs
 
 Core0ca01b9 adds explicit GraphReadAccess capability admission and opens immutable graph/policy composition. WEB4 validates optional graph shape before paging and returns safe bounded DTOs. All three signed native HTTP providers pass child ownership/public visibility, private-branch privacy, metadata non-grant and settled receipt checks. Full Core1,781/Shared960/Mongo23/SQLite19/joint86 pass, zero skips;711Core/54Shared source/PDB checks match. C#/HTTP/browser/Swagger graph demos updated; dedicated executable C#/HTTP demo99646 passes1/1 across all three providers. Remaining relationships/aggregates/federation and full roadmap remain open. [Evidence](CQL_GRAPH_LOADING.md).
