@@ -36,10 +36,7 @@ internal sealed partial class MongoCqlTranslator
 
     internal MongoCqlCommand CompileExecution<T>(CosmicQuery<T> query,int maximumResults) where T:IHolon
     {
-        var filter=CompileRootPredicates(query);
-        var pipeline=new List<BsonDocument>{new("$match",filter)};
-        AddChildExistence(pipeline,query);
-        var traverses=AddDescendantExistence(pipeline,query);
+        var pipeline=CompileSource(query,out var traverses);
         var source=pipeline;pipeline=new List<BsonDocument>();
         pipeline.Add(new("$project",new BsonDocument("Children",0)));
         if(query.Orderings.Count!=0)
@@ -65,6 +62,19 @@ internal sealed partial class MongoCqlTranslator
         if(query.Orderings.Count!=0)pipeline.Add(new("$replaceRoot",new BsonDocument("newRoot","$row")));
         if(traverses)FinishDescendantEnvelope(source,pipeline);else source.AddRange(pipeline);
         pipeline=source;
+        ValidatePipeline(pipeline);
+        return new MongoCqlCommand(pipeline.ToArray(),fetch,query.Predicates.Any(predicate=>predicate is CosmicQueryAnyChild || predicate is CosmicQueryAnyDescendant),traverses);
+    }
+    private List<BsonDocument> CompileSource<T>(CosmicQuery<T> query,out bool traverses) where T:IHolon
+    {
+        var pipeline=new List<BsonDocument>{new("$match",CompileRootPredicates(query))};
+        AddChildExistence(pipeline,query);
+        traverses=AddDescendantExistence(pipeline,query);
+        return pipeline;
+    }
+
+    private static void ValidatePipeline(List<BsonDocument> pipeline)
+    {
         var envelope=new BsonDocument("pipeline",new BsonArray(pipeline));
         var pending=new Stack<(BsonValue Value,int Depth)>();pending.Push((envelope,0));
         while(pending.Count!=0)
@@ -74,6 +84,6 @@ internal sealed partial class MongoCqlTranslator
             else if(entry.Value is BsonArray array)foreach(var value in array)pending.Push((value,entry.Depth+1));
         }
         if(pipeline.Count>1000 || envelope.ToBson().Length>1024*1024)throw new MongoCqlLimitException();
-        return new MongoCqlCommand(pipeline.ToArray(),fetch,query.Predicates.Any(predicate=>predicate is CosmicQueryAnyChild || predicate is CosmicQueryAnyDescendant),traverses);
     }
+
 }

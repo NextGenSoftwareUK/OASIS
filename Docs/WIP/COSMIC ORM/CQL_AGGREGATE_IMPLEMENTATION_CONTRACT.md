@@ -1,6 +1,6 @@
 # CQL projection and aggregate implementation contract
 
-23 October 2026. Implementation design for the unchecked second phase of the completion roadmap. Core scalar intent/admission/execution contracts are now implemented in d71eebd; SQLite Count/LongCount/Any now have native verification; MongoDB/Neo4j aggregate adapters, transport and the remaining aggregate operations remain pending. The remaining items below are acceptance requirements, not shipped native aggregate support. Count/LongCount/Any are the first implementation slice; Select, Min/Max, Sum/Average and GroupBy remain required in the same programme.
+23 October 2026. Implementation design for the unchecked second phase of the completion roadmap. Core scalar intent/admission/execution contracts are now implemented in d71eebd; SQLite and MongoDB Count/LongCount/Any now have native verification; Neo4j scalar verification, transport and the remaining aggregate operations remain pending. The remaining items below are acceptance requirements, not shipped native aggregate support. Count/LongCount/Any are the first implementation slice; Select, Min/Max, Sum/Average and GroupBy remain required in the same programme.
 
 ## Query and result ownership
 
@@ -72,3 +72,14 @@ SQLite now implements Count, LongCount and Any through the additive scalar inter
 Full SQLite **1,269** tests pass, zero skips, including 12 new scalar controls. The initial selected gate passed44 cases before adding actual-reader cancellation; full verification includes empty/nonempty windows, offsets beyond the input, Count/LongCount/Any and generic manager execution with a throwing entity constructor, invalid unselected typed metadata, actor/public denial, 137 inputs above default row/graph-publication limits, zero-window/pre-cancel no-open, descendant-budget error/no publication/fresh reuse, read-only storage, retained caller transaction/connection and cancellation after an actual native reader with later reuse. Core716/Shared55 consumer source identities match the frozen producers.
 
 MongoDB/Neo4j native scalar adapters, scalar WEB4 transport and the remaining Select/Min/Max/Sum/Average/GroupBy/join/federation/policy phases remain open. SQLite's gate is not three-provider or full aggregate completion.
+
+
+## MongoDB native scalar gate — 23 October
+
+MongoDB now implements Count/LongCount/Any using the same generic Core interface and result domains as SQLite. Row and scalar compilation share root predicates, child/descendant translation and pipeline size/depth/stage guards. Native scalar reduction counts valid roots and collects cycle/limit outcomes before applying exact window arithmetic; it does not retain entity arrays, sort whole stored snapshots, or truncate input to row/graph-publication limits. Controlled result fields cannot be forged by stored user field names.
+
+The reader preserves a single snapshot across canonical membership validation and counting where required, with one linked cancellation/deadline budget, remaining native maxTime, simple collation and disabled spilling. Native output decoding accepts one nonnegative Int32/Int64 value and typed error flags; numeric strings, binary64, Decimal128, malformed/extra fields and invalid outcomes are rejected without coercion. Core performs checked requested-domain conversion.
+
+Mongo unit **229** and native **76** pass unskipped, including9new unit and12new native cases. Native cases prove windows/empty input, Count/LongCount/Any and manager execution with a throwing typed constructor, invalid unselected typed metadata, actor/public access, 137 inputs above row/graph-publication bounds, descendant overflow/no publication/fresh reuse, pre-cancel/zero-window behavior and actual count snapshot consistency across an acknowledged concurrent reparent. Consumer Core716/Shared55 PE/PDB/source identities match the frozen producers. Initial native compile failed a missing test import before fixture mutations; the corrected native run passed.
+
+Neo4j scalar source is being prepared separately and remains uncompiled/uncertified. No scalar WEB4 transport, Select/Min/Max/Sum/Average/GroupBy, join/federation or broader policy completion is claimed by these two native count gates.
