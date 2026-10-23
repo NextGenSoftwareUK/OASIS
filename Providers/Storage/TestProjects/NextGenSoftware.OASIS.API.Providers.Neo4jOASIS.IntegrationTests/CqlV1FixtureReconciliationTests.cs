@@ -26,6 +26,16 @@ public sealed class CqlV1FixtureReconciliationTests
         =>Reconcile("F056FAEB238F379C3F43D6DAB25CA7E1E5259B3BAC6E76E504A6D72E906F0262",true,
             "successful-awaiting-runner-cleanup");
 
+    [TestMethod]
+    public Task ReviewedCompletedNeoDescendantFixtureVerifiesNativeCleanupAndSQLiteOwnership()
+        =>Reconcile("BAC72E9C4A834B24375682EE1A3D30A57B49E03AFB31AFFEB405CF5C5254DE6E",true,
+            "successful-awaiting-runner-cleanup");
+
+    [TestMethod]
+    public Task ReviewedCompletedQuantifiedTraversalFixtureVerifiesNativeCleanupAndSQLiteOwnership()
+        =>Reconcile("E18D14C5DDB14930DB521F8383C9943D7662DD6A9E0F86C63EA7D03A91261947",true,
+            "successful-awaiting-runner-cleanup");
+
     private static async Task Reconcile(string expectedHash,bool graphFixture,string expectedStage="before-http-request")
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";

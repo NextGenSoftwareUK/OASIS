@@ -33,7 +33,14 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             var admission = CqlCapabilities.Admit(plan.Query);
             if (admission.IsError) return CqlFailure(admission.ErrorCode, admission.Message);
             var translator = new NeoCqlTranslator(plan.Query.ReadAccess);
-            var predicate = plan.Query.Predicates.Count == 0 ? "true" : string.Join(" AND ", plan.Query.Predicates.Select(translator.Translate));
+            var predicates=plan.Query.Predicates.Select(node=>(Node:node,Sql:translator.Translate(node))).ToArray();
+            var parentPredicate=predicates.Any(item=>item.Node is not CosmicQueryAnyDescendant)
+                ?string.Join(" AND ",predicates.Where(item=>item.Node is not CosmicQueryAnyDescendant).Select(item=>item.Sql)):"true";
+            var descendantPredicate=predicates.Any(item=>item.Node is CosmicQueryAnyDescendant)
+                ?string.Join(" AND ",predicates.Where(item=>item.Node is CosmicQueryAnyDescendant).Select(item=>item.Sql)):"true";
+            var traversals=string.Concat(translator.TraversalClauses);
+            var cycle=translator.TraversalCycles.Count==0?"false":"("+string.Join(" OR ",translator.TraversalCycles)+")";
+            var traversalLimit=translator.TraversalLimits.Count==0?"false":"("+string.Join(" OR ",translator.TraversalLimits)+")";
             var keys=translator.TranslateOrdering(plan.Query.Orderings);
             var rootBudget=plan.Query.GraphOptions==null?maximumResults:Math.Min(maximumResults,plan.Query.GraphOptions.MaximumNodes);
             var fetch=plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,rootBudget+1):rootBudget+1;
@@ -56,12 +63,19 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             var nullKeys=string.Concat(aliases.Select(alias=>",null AS "+alias));
             var pageOrder=string.Join(",",directions.Concat(new[]{"p.f_Id ASC"}));
             var finalOrder=string.Join(",",new[]{"valid ASC"}.Concat(directions).Concat(new[]{"toLower(id) ASC"}));
-            var query="CALL { "+source+"WHERE NOT valid RETURN h.Id AS id,h.ProviderRevisionId AS revision,false AS valid,null AS snapshot"+
-                nullKeys+" LIMIT 1 UNION ALL "+source+"WHERE valid AND ("+predicate+") "+
+            var eligibleSource=source+"WHERE valid AND ("+parentPredicate+") WITH h,p "+traversals+
+                "WITH h,p"+string.Concat(translator.TraversalStates.Select(state=>","+state))+" ";
+            var traversalError=translator.TraversalClauses.Count==0?"":
+                " UNION ALL "+eligibleSource+"WHERE "+cycle+" OR "+traversalLimit+
+                " RETURN h.Id AS id,h.ProviderRevisionId AS revision,false AS valid,null AS snapshot,"+
+                cycle+" AS traversalCycle,"+traversalLimit+" AS traversalLimit"+nullKeys+" LIMIT 1";
+            var query="CALL { "+source+"WHERE NOT valid RETURN h.Id AS id,h.ProviderRevisionId AS revision,false AS valid,null AS snapshot,"+
+                "false AS traversalCycle,false AS traversalLimit"+nullKeys+" LIMIT 1"+traversalError+" UNION ALL "+
+                eligibleSource+"WHERE ("+descendantPredicate+") AND NOT("+cycle+" OR "+traversalLimit+") "+
                 "WITH h,p"+project+" ORDER BY "+pageOrder+" SKIP $offset LIMIT $limit "+
                 "RETURN h.Id AS id,h.ProviderRevisionId AS revision,true AS valid, "
-                + "CASE WHEN size(h.SnapshotJson)<=2097152 THEN h.SnapshotJson ELSE null END AS snapshot "
-                + returnKeys+" } RETURN id,revision,valid,snapshot ORDER BY "+finalOrder;
+                + "CASE WHEN size(h.SnapshotJson)<=2097152 THEN h.SnapshotJson ELSE null END AS snapshot,"
+                + "false AS traversalCycle,false AS traversalLimit"+returnKeys+" } RETURN id,revision,valid,snapshot,traversalCycle,traversalLimit ORDER BY "+finalOrder;
             var budget=new NeoCqlReadBudget(plan.Query.GraphOptions?.MaximumPayloadBytes??32*1024*1024,cancellationToken);
             budget.Check();
             using var session = _driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read));

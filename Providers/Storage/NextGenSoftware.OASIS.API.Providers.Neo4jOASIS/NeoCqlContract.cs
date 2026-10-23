@@ -32,10 +32,11 @@ internal static class NeoCqlContract
             CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists |
             CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith |
             CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.Membership | CosmicQueryFeatures.FieldComparison |
-            CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.GraphReadAccess|CosmicQueryFeatures.ChildExists,
+            CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.GraphReadAccess|CosmicQueryFeatures.ChildExists|CosmicQueryFeatures.DescendantExists,
             fields.Select(field=>new CosmicQueryFieldCapability(field.Name,field.ValueType,field.Comparisons.ToArray(),
                 field.StringOperations.ToArray(),supportsOrdering:true)).ToArray(),
             metadata.Select(type=>new CosmicQueryMetadataCapability(type.ValueType,type.Comparisons.ToArray(),
-                type.StringOperations.ToArray(),type.SupportsMembership,type.SupportsMixedNumericComparison,supportsOrdering:true)).ToArray());
+                type.StringOperations.ToArray(),type.SupportsMembership,type.SupportsMixedNumericComparison,supportsOrdering:true)).ToArray(),
+            new CosmicQueryTraversalCapability(32,10000));
     }
 }
