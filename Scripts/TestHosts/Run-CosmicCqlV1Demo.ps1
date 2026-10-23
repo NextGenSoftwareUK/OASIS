@@ -1,7 +1,8 @@
 #Requires -Version 7.0
-param([switch]$Serve)
+param([switch]$Serve,[switch]$IncludeRegression)
 
 $ErrorActionPreference = 'Stop'
+if ($Serve -and $IncludeRegression) { throw 'Choose interactive serve or bounded regression verification.' }
 $taskRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work = Join-Path $taskRoot 'TestResults/CosmicCqlDemo'
 $priorMode = $env:OASIS_CQL_V1_DEMO_MODE
@@ -30,13 +31,17 @@ try {
         # Dependencies are already restored in the retained provider environment.
         # The reusable runner builds with --no-restore and verifies producer copies.
         $started = [DateTime]::UtcNow
-        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CqlV1Demo
+        if ($IncludeRegression) {
+            & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CqlV1Web4
+        } else {
+            & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CqlV1Demo
+        }
         if ($LASTEXITCODE) { throw 'Native CQL v1 walkthrough failed.' }
 
         $proof = Get-Item -LiteralPath (Join-Path $work 'v1-demo-result.json') -ErrorAction Stop
         if ($proof.LastWriteTimeUtc -lt $started) { throw 'Demo result is stale; no verification claim permitted.' }
         $report = Get-Content -LiteralPath (Join-Path $work 'v1-demo-result.json') -Raw | ConvertFrom-Json
-        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 27 -or $report.localSdkQueries -ne 27) {
+        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 30 -or $report.localSdkQueries -ne 30) {
             throw 'Three-provider demo proof is incomplete.'
         }
 

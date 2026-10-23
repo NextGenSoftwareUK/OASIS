@@ -96,7 +96,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 options.SchemaFilter<V1SwaggerExample>();
                 options.OperationFilter<V1SwaggerExample>();
-                options.DocInclusionPredicate((_, description) => description.RelativePath is "api/data/query-cql" or "api/data/query-cql/scalar");
+                options.DocInclusionPredicate((_, description) => description.RelativePath is "api/data/query-cql" or "api/data/query-cql/scalar" or "api/data/query-cql/projection");
                 options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
                 {
                     Title = "CQL v1 · MongoDB / SQLite / Neo4j", Version = "v1",
@@ -154,7 +154,7 @@ public sealed partial class CqlV1Web4NativeTests
                       return (async () => {
                         const target = new URL(request.url, window.location.origin);
                         if (target.origin === window.location.origin &&
-                            ['/api/data/query-cql', '/api/data/query-cql/scalar'].includes(target.pathname) && !request.headers.Authorization) {
+                            ['/api/data/query-cql', '/api/data/query-cql/scalar', '/api/data/query-cql/projection'].includes(target.pathname) && !request.headers.Authorization) {
                             const response = await fetch('/demo/session');
                             if (!response.ok) throw new Error('Demo session is not ready.');
                             const session = await response.json();
@@ -203,7 +203,7 @@ public sealed partial class CqlV1Web4NativeTests
     }
 
     private static bool IsQueryRoute(HttpContext http)
-        => http.Request.Path == "/api/data/query-cql" || http.Request.Path == "/api/data/query-cql/scalar";
+        => http.Request.Path == "/api/data/query-cql" || http.Request.Path == "/api/data/query-cql/scalar" || http.Request.Path == "/api/data/query-cql/projection";
 
     private static string Token(Guid actor, SymmetricSecurityKey key, string issuer = "owned-cql-v1-fixture",
         bool expired = false, Guid? claimId = null, int lifetimeMinutes = 5) =>
