@@ -1,6 +1,6 @@
-param([switch]$InspectScalarFixture,[switch]$InspectRetainedFixture,[switch]$ReconcileRetainedRoutingFixture,[switch]$ReconcileCredentialFixture,[switch]$ReconcileRoleFixture)
+param([switch]$ReconcileScalarFixture,[switch]$InspectScalarFixture,[switch]$InspectRetainedFixture,[switch]$ReconcileRetainedRoutingFixture,[switch]$ReconcileCredentialFixture,[switch]$ReconcileRoleFixture)
 $ErrorActionPreference='Stop'
-$diagnosticModes=@($InspectScalarFixture,$InspectRetainedFixture,$ReconcileRetainedRoutingFixture,$ReconcileCredentialFixture,$ReconcileRoleFixture) | Where-Object {$_}
+$diagnosticModes=@($ReconcileScalarFixture,$InspectScalarFixture,$InspectRetainedFixture,$ReconcileRetainedRoutingFixture,$ReconcileCredentialFixture,$ReconcileRoleFixture) | Where-Object {$_}
 if(@($diagnosticModes).Count -gt 1){throw 'Select only one explicit Cosmos DB diagnostic mode.'}
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $work=Join-Path $root 'TestResults/CosmosDBCurrent'
@@ -16,7 +16,7 @@ try {
         if($originals.Count -ne 1 -or $originals[0].Name -ne 'credentials.pending.json'){throw 'Exactly the reviewed original credential intent is required.'}
         $InspectRetainedFixture=$true;$env:OASIS_COSMOS_CREDENTIAL_RECONCILE='1'
     }
-    if($InspectScalarFixture){
+    if($InspectScalarFixture -or $ReconcileScalarFixture){
         $originals=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
         if($originals.Count -ne 1 -or $originals[0].Name -ne 'cosmos-query-scalar.pending.json' -or
             (Get-FileHash -LiteralPath $originals[0].FullName).Hash -ne '1E63DBEC39F0466F2CC2BC0487E8F93EF780F0D2A37D0CD5853BF51F85990BA8' -or
@@ -24,8 +24,8 @@ try {
             throw 'Exactly the original failed scalar fixture/report required; no replay.'
         }
     }
-    if(!$InspectScalarFixture -and !$InspectRetainedFixture -and (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Reconcile original Cosmos fixture journals before another run; do not replay or reset.'}
-    $reportName=if($InspectScalarFixture){'cosmos-scalar-inspection-current.trx'}elseif($ReconcileRoleFixture){'cosmos-role-reconciliation-current.trx'}elseif($ReconcileCredentialFixture){'cosmos-credential-reconciliation-current.trx'}elseif($InspectRetainedFixture){'cosmos-retained-inspection-current.trx'}elseif($ReconcileRetainedRoutingFixture){'cosmos-routing-reconciliation-current.trx'}else{'cosmos-native-current.trx'}
+    if(!$ReconcileScalarFixture -and !$InspectScalarFixture -and !$InspectRetainedFixture -and (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Reconcile original Cosmos fixture journals before another run; do not replay or reset.'}
+    $reportName=if($ReconcileScalarFixture){'cosmos-scalar-reconciliation-current.trx'}elseif($InspectScalarFixture){'cosmos-scalar-inspection-current.trx'}elseif($ReconcileRoleFixture){'cosmos-role-reconciliation-current.trx'}elseif($ReconcileCredentialFixture){'cosmos-credential-reconciliation-current.trx'}elseif($InspectRetainedFixture){'cosmos-retained-inspection-current.trx'}elseif($ReconcileRetainedRoutingFixture){'cosmos-routing-reconciliation-current.trx'}else{'cosmos-native-current.trx'}
     if(Test-Path -LiteralPath (Join-Path $work $reportName)) {throw 'Preserve and hash-verify the existing Cosmos DB report before another run; refusing to overwrite verification evidence.'}
     if(Get-NetTCPConnection -LocalPort 8082 -State Listen -ErrorAction SilentlyContinue) {throw 'Reserved Cosmos SDK outage endpoint8082 occupied.'}
     $state=(& wsl.exe -d Ubuntu -u root -- podman inspect oasis-cosmos --format '{{.State.Status}} {{.Image}}') -join ''
@@ -60,14 +60,14 @@ try {
     $env:OASIS_COSMOSDB_NATIVE='1'
     $env:OASIS_COSMOSDB_WORK=$work
     $testsStarted=[DateTime]::UtcNow
-    $filter=if($InspectScalarFixture){'TestCategory=ScalarInspection'}elseif($ReconcileRoleFixture){'TestCategory=RoleReconciliation'}elseif($InspectRetainedFixture){'TestCategory=Inspection'}elseif($ReconcileRetainedRoutingFixture){'TestCategory=Reconciliation'}else{'TestCategory!=Inspection&TestCategory!=Reconciliation&TestCategory!=RoleReconciliation&TestCategory!=ScalarInspection'}
+    $filter=if($ReconcileScalarFixture){'TestCategory=ScalarReconciliation'}elseif($InspectScalarFixture){'TestCategory=ScalarInspection'}elseif($ReconcileRoleFixture){'TestCategory=RoleReconciliation'}elseif($InspectRetainedFixture){'TestCategory=Inspection'}elseif($ReconcileRetainedRoutingFixture){'TestCategory=Reconciliation'}else{'TestCategory!=Inspection&TestCategory!=Reconciliation&TestCategory!=RoleReconciliation&TestCategory!=ScalarInspection&TestCategory!=ScalarReconciliation'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE) {throw 'Cosmos DB native test failed.'}
     $reportFile=Get-Item -LiteralPath (Join-Path $work $reportName) -ErrorAction Stop
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'Cosmos DB native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    $expected=if($InspectScalarFixture -or $InspectRetainedFixture -or $ReconcileRetainedRoutingFixture -or $ReconcileRoleFixture){1}else{62}
+    $expected=if($ReconcileScalarFixture -or $InspectScalarFixture -or $InspectRetainedFixture -or $ReconcileRetainedRoutingFixture -or $ReconcileRoleFixture){1}else{62}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0) {throw 'Exact expected native Cosmos DB case count with no skips required.'}
 }
 finally {
