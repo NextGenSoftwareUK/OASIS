@@ -31,7 +31,7 @@ public partial class GoogleHistoryNativeTests
             var result=await task;
             foreach(var row in rows){var reference=verifier.Collection("holons").Document(row.Id.ToString());var actual=await reference.GetSnapshotAsync();Assert.AreEqual(before[row.Id].UpdateTime,actual.UpdateTime);Assert.AreEqual(before[row.Id].GetValue<string>("data_json"),actual.GetValue<string>("data_json"));await reference.DeleteAsync(Precondition.LastUpdated(actual.UpdateTime!.Value));Assert.IsFalse((await reference.GetSnapshotAsync()).Exists);}
             File.Delete(journal);
-            Assert.IsTrue(suspended,"Native search must be observed incomplete before the caller edit; do not retry a completed schedule.");Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.Result.NumberOfResults);Assert.AreEqual(first.Id,result.Result.SearchResultHolons.Single().Id);
+            Assert.IsTrue(suspended,"Native search must be observed incomplete before the caller edit; do not retry a completed schedule.");Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.Result.NumberOfResults);Assert.AreEqual(1,result.LoadedCount);Assert.AreEqual(first.Id,result.Result.SearchResultHolons.Single().Id);
         }finally{await provider.DeActivateProviderAsync();}
     }
 }

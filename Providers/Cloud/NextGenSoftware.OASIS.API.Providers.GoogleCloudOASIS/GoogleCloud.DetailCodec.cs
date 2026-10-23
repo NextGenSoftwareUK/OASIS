@@ -55,7 +55,7 @@ public partial class GoogleCloudOASIS
             var document=await _firestoreDb.Collection("avatarDetails").Document(id.ToString()).GetSnapshotAsync();
             var detail=document.Exists ? await ReadFirestoreHistoryAsync<AvatarDetail>(document.ToDictionary(),document.Id,version):null;
             if(detail==null || !detail.IsActive) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore detail not found.";}
-            else {result.Result=detail;result.IsLoaded=true;}
+            else {result.Result=detail;result.LoadedCount=1;result.IsLoaded=true;}
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -69,7 +69,7 @@ public partial class GoogleCloudOASIS
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<IAvatarDetail>>(ready);
             var snapshot=await _firestoreDb.Collection("avatarDetails").GetSnapshotAsync();
             result.Result=snapshot.Documents.Select(doc=>ReadFirestoreHistoryAsync<AvatarDetail>(doc.ToDictionary(),doc.Id,version).GetAwaiter().GetResult()).Where(row=>row!=null&&row.IsActive).Cast<IAvatarDetail>().ToList();
-            result.IsLoaded=true;
+            result.LoadedCount=result.Result.Count();result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -87,7 +87,7 @@ public partial class GoogleCloudOASIS
             var matches=loaded.Result.Where(row=>string.Equals(field=="email" ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToList();
             if(matches.Count>1) throw new StorageIdentityAmbiguousException();
             if(matches.Count==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="No Firestore detail matches selector.";}
-            else {result.Result=matches[0];result.IsLoaded=true;}
+            else {result.Result=matches[0];result.LoadedCount=1;result.IsLoaded=true;}
         }
         catch(Exception cause) {
             OASISErrorHandling.HandleError(ref result,cause.Message,cause);
