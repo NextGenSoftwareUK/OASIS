@@ -9,6 +9,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public partial class Neo4jNativeCqlTests
 {
+    [TestMethod]
+    public Task NativeCqlDescendantCertifiesTheActualDepth32AndNodeBoundary()
+        =>WithNativeGraph(fixture=>global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyAsync(fixture.Provider,fixture.Root),
+            width:0,configure:global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.Configure);
+
     private static CosmicQueryPlan<Holon> DescendantPlan(GraphFixture fixture, int depth = 4, int nodes = 10,
         CosmicQueryReadAccess? access = null, string name = "owned CQL grandchild")
     {

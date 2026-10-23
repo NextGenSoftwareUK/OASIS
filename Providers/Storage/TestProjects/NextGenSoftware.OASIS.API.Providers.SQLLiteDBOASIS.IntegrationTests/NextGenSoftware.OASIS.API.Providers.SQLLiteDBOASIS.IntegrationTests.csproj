@@ -30,4 +30,5 @@
   </ItemGroup>
 
   <ItemGroup><Compile Include="../../../../Scripts/TestHosts/Fixtures/CqlCustomRoleGraph.cs" Link="Fixtures/CqlCustomRoleGraph.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../../../Scripts/TestHosts/Fixtures/CqlDescendantAcceptance.cs" Link="Fixtures/CqlDescendantAcceptance.cs" /></ItemGroup>
 </Project>

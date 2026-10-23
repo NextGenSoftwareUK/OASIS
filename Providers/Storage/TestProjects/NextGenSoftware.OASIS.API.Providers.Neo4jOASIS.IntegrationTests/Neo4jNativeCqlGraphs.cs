@@ -166,6 +166,8 @@ public partial class Neo4jNativeCqlTests
                 Assert.IsFalse(read.IsError,read.Message+read.Exception);
                 Assert.AreEqual(parent==other.Id&&!declaredEmpty?1:0,read.Result.Count);
             }
+            await global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyMovedSubtreeAsync(
+                fixture.Provider,fixture.Root.Id,other.Id,declaredEmpty,"owned CQL grandchild");
         },configure:root=>root.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
             new HolonChildRoleManifest(1,root.Id,new[]{new HolonChildRole("Children",root.Children.Select(child=>child.Id))})));
 

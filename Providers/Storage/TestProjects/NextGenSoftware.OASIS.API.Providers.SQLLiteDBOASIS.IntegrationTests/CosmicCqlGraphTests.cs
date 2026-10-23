@@ -34,6 +34,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         var old=new Holon{Id=Guid.NewGuid(),Name="old",IsPublic=true};
         var next=new Holon{Id=Guid.NewGuid(),Name="next",IsPublic=true};
         var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=old.Id,Name="match",IsPublic=true};
+        child.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="moved grandchild",IsPublic=true});
         old.Children.Add(child);
         old.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
             1,old.Id,new[]{new HolonChildRole("Children",new[]{child.Id})}));
@@ -55,6 +56,8 @@ public partial class SQLLiteDBOASISIntegrationTests
         var read=await provider.ExecuteCosmicQueryAsync(plan.Result);
         read.IsError.Should().BeFalse(read.Message+read.Exception);
         read.Result.Select(row=>row.Id).Should().Equal(declaredNewOwner?Array.Empty<Guid>():new[]{next.Id});
+        await global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyMovedSubtreeAsync(
+            provider,old.Id,next.Id,declaredNewOwner,"moved grandchild");
     }
 
     [Fact]
