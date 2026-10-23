@@ -277,7 +277,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             {
                 var avatar = await LoadAvatarByColumnAsync("ID", OracleDbType.Raw, GuidToRaw(id),version);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar found with ID '{id}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"OracleDBOASIS: Avatar loaded for ID '{id}'.";
+                RecordLoaded(result,avatar); result.Message = $"OracleDBOASIS: Avatar loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar by ID '{id}': {ex.Message}"); }
             return result;
@@ -292,7 +292,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             {
                 var avatar = await LoadAvatarByColumnAsync("USERNAME", OracleDbType.Varchar2, username,version);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar found with username '{username}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"OracleDBOASIS: Avatar loaded for username '{username}'.";
+                RecordLoaded(result,avatar); result.Message = $"OracleDBOASIS: Avatar loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
             return result;
@@ -316,7 +316,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var avatars = await ReadRecordCollectionAsync<Avatar>("OASIS_AVATARS",version);
-                result.Result = avatars; result.IsError = false; result.Message = $"OracleDBOASIS: Loaded {avatars.Count} avatar(s).";
+                RecordsLoaded(result,avatars); result.Message = $"OracleDBOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading all avatars: {ex.Message}"); }
             return result;
@@ -378,7 +378,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             {
                 var detail = await LoadAvatarDetailByColumnAsync("ID", OracleDbType.Raw, GuidToRaw(id),version);
                 if (detail == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar detail found for ID '{id}'."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = $"OracleDBOASIS: AvatarDetail loaded for ID '{id}'.";
+                RecordLoaded(result,detail); result.Message = $"OracleDBOASIS: AvatarDetail loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar detail for '{id}': {ex.Message}"); }
             return result;
@@ -393,7 +393,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             {
                 var detail = await LoadAvatarDetailByColumnAsync("USERNAME", OracleDbType.Varchar2, username,version);
                 if (detail == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar detail found for username '{username}'."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = $"OracleDBOASIS: AvatarDetail loaded for username '{username}'.";
+                RecordLoaded(result,detail); result.Message = $"OracleDBOASIS: AvatarDetail loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
             return result;
@@ -408,7 +408,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             {
                 var detail = await LoadAvatarDetailByColumnAsync("EMAIL", OracleDbType.Varchar2, email,version);
                 if (detail == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar detail found for email '{email}'."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = $"OracleDBOASIS: AvatarDetail loaded for email '{email}'.";
+                RecordLoaded(result,detail); result.Message = $"OracleDBOASIS: AvatarDetail loaded for email '{email}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
             return result;
@@ -422,7 +422,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var details = await ReadRecordCollectionAsync<AvatarDetail>("OASIS_AVATAR_DETAILS",version);
-                result.Result = details; result.IsError = false; result.Message = $"OracleDBOASIS: Loaded {details.Count} avatar detail(s).";
+                RecordsLoaded(result,details); result.Message = $"OracleDBOASIS: Loaded {details.Count} avatar detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading all avatar details: {ex.Message}"); }
             return result;
@@ -471,7 +471,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 ValidateGraphRead(maxChildDepth,0,version);
                 var stored=await LoadIdentityByColumnAsync<Holon>("OASIS_HOLONS","ID",OracleDbType.Raw,GuidToRaw(id),true,version);
                 if(stored==null){OASISErrorHandling.HandleError(ref result,$"OracleDBOASIS: No holon found with ID '{id}'.");return result;}
-                result.Result=(await ProjectHolonRootsAsync(new[]{stored},loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider)).Single();result.IsError=false;
+                RecordLoaded(result,(await ProjectHolonRootsAsync(new[]{stored},loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider)).Single());
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading holon '{id}': {ex.Message}"); }
             return result;
@@ -549,7 +549,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     found.SearchResultAvatars.AddRange(avatars.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,holons)));
                 }
                 if(wantsHolons)found.SearchResultHolons.AddRange(await ProjectHolonRootsAsync(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,holons)),loadChildren,recursive,maxChildDepth,0,true));
-                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;result.Result=found;result.IsLoaded=true;
+                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;RecordLoaded<ISearchResults>(result,found,found.NumberOfResults);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -594,7 +594,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var avatar = await LoadAvatarByColumnAsync("EMAIL", OracleDbType.Varchar2, avatarEmail,version);
-                if (avatar != null) result.Result = avatar;
+                if (avatar != null) RecordLoaded(result,avatar);
                 else OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar with email '{avatarEmail}' not found.");
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
@@ -611,7 +611,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 if(metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.All&&metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.Any)throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
                 if(metaKeyValuePairs==null||metaKeyValuePairs.Count==0)return await LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
                 var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
-                result.Result=await ProjectHolonRootsAsync(selected.Where(row=>(type==HolonType.All||row.HolonType==type)&&NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(row.MetaData,metaKeyValuePairs,metaKeyValuePairMatchMode)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
+                RecordsLoaded(result,await ProjectHolonRootsAsync(selected.Where(row=>(type==HolonType.All||row.HolonType==type)&&NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(row.MetaData,metaKeyValuePairs,metaKeyValuePairMatchMode)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider));
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -647,7 +647,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 ValidateGraphRead(maxChildDepth,curentChildDepth,version,type);
                 if(version>0){
                     var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
-                    result.Result=await ProjectHolonRootsAsync(selected.Where(row=>row.ParentHolonId==id&&(type==HolonType.All||row.HolonType==type)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true);return result;
+                    RecordsLoaded(result,await ProjectHolonRootsAsync(selected.Where(row=>row.ParentHolonId==id&&(type==HolonType.All||row.HolonType==type)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true));return result;
                 }
                 string sql = "SELECT ID,DATA_JSON,HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID FROM OASIS_HOLONS WHERE "+(id==Guid.Empty?"PARENT_HOLON_ID IS NULL":"PARENT_HOLON_ID=:ParentId");
                 if (type != HolonType.All) sql += " AND HOLON_TYPE=:HType";
@@ -659,7 +659,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = await ReadRecordVersionAsync<Holon>(new Guid((byte[])reader.GetValue(0)),reader.GetString(1),0,nativeHolon:ReadNativeHolonProjection(reader,2)); if (h != null&&!h.IsDeleted) {ValidateSelectedHolon(h,type,id);holons.Add(h);} }
-                result.Result = await ProjectHolonRootsAsync(holons,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true); result.IsError = false;
+                RecordsLoaded(result,await ProjectHolonRootsAsync(holons,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true));
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -674,7 +674,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 ValidateGraphRead(maxChildDepth,curentChildDepth,version,type);
                 if(version>0){
                     var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
-                    result.Result=await ProjectHolonRootsAsync(selected.Where(row=>type==HolonType.All||row.HolonType==type),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);return result;
+                    RecordsLoaded(result,await ProjectHolonRootsAsync(selected.Where(row=>type==HolonType.All||row.HolonType==type),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider));return result;
                 }
                 string sql = "SELECT ID,DATA_JSON,HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID FROM OASIS_HOLONS";
                 if (type != HolonType.All) sql += " WHERE HOLON_TYPE=:HType";
@@ -685,7 +685,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = await ReadRecordVersionAsync<Holon>(new Guid((byte[])reader.GetValue(0)),reader.GetString(1),0,nativeHolon:ReadNativeHolonProjection(reader,2)); if (h != null&&!h.IsDeleted) {ValidateSelectedHolon(h,type);holons.Add(h);} }
-                result.Result = await ProjectHolonRootsAsync(holons,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider); result.IsError = false;
+                RecordsLoaded(result,await ProjectHolonRootsAsync(holons,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider));
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -734,7 +734,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 if(version>0){
                     var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
-                    result.Result=await ProjectHolonRootsAsync(selected.Where(row=>row.CreatedByAvatarId==avatarId),true,true,0,0,true);return result;
+                    RecordsLoaded(result,await ProjectHolonRootsAsync(selected.Where(row=>row.CreatedByAvatarId==avatarId),true,true,0,0,true));return result;
                 }
                 const string sql = "SELECT ID,DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND JSON_VALUE(DATA_JSON,'$.CreatedByAvatarId')=:AvatarId";
                 await using var conn = new OracleConnection(_connectionString);
@@ -744,7 +744,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = await ReadRecordVersionAsync<Holon>(new Guid((byte[])reader.GetValue(0)),reader.GetString(1),0); if (h != null&&!h.IsDeleted) holons.Add(h); }
-                result.Result = await ProjectHolonRootsAsync(holons,true,true,0,0,true); result.IsError = false;
+                RecordsLoaded(result,await ProjectHolonRootsAsync(holons,true,true,0,0,true));
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;

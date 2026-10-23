@@ -11,6 +11,17 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS;
 
 public partial class OracleDBOASIS
 {
+    private static void RecordLoaded<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result,T value,int count=1)
+    {
+        result.Result=value;result.IsError=false;result.IsLoaded=true;result.LoadedCount=count;
+    }
+
+    private static void RecordsLoaded<T>(NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<T>> result,IEnumerable<T> values)
+    {
+        var rows=values as IReadOnlyCollection<T>??values.ToArray();
+        RecordLoaded<IEnumerable<T>>(result,rows,rows.Count);
+    }
+
     private readonly record struct NativeHolonProjection(int Type,int Deleted,Guid Parent);
     private static NativeHolonProjection ReadNativeHolonProjection(System.Data.Common.DbDataReader reader,int offset)
         =>new(reader.GetInt32(offset),reader.GetInt32(offset+1),reader.IsDBNull(offset+2)?Guid.Empty:new Guid((byte[])reader.GetValue(offset+2)));
