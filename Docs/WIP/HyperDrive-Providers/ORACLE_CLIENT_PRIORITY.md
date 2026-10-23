@@ -2,6 +2,33 @@
 
 ## Resume — 2026-10-23
 
+### Identity character capacity — native mismatch repaired and locally verified
+
+Final provisioning safety gate: explicit test-only opt-in is now required BEFORE any connection is read; existing runner supplies/restores that flag only for -UpgradeIdentityCharacters. Two separate no-I/O controls passed31ms (actual command terminal0): absent opt-in and a synthetic foreign endpoint both fail before connection/service access. Report oracle-schema-upgrade-admission.trx SHA256ED124FF6218F2550341A990C741EBB5A5F4769262302144D68FE25FBD3DE060F,4391bytes. This was a short integration-consumer build with BuildProjectReferences=false; no Core/Shared rebuild, native restart or completed-DDL replay. Positive widening proof below records the original one-time operation; late guard checks do not relabel it as a second migration or a new main346 case. Concurrent Core changes after handoff are NOT native-certified by the earlier346 result, regardless of dependencies copied during the late guard-only build. Runner's multi-mode rejection was also exercised before environment/build/service access. Explicit provisioning is not enabled by a generic unfiltered test command merely finding an empty local database.
+
+Actual84201 TERMINAL0: guarded local schema provisioning1/1passed540ms, ASCII/CJK capacity4/4passed2s, full346/346native passed91s, full281/281controlled passed633ms; zero skipped. Focused4 INCLUDED in346; provisioning1 is separate, not part of ordinary suite. Final consumer/producer identity and source checks passed710Core/54Shared documents: Core39618322D816E56DF5559945210CEE01637ED54BFC9D333EBA4493DFED67D5F5 / Shared73E1B43DDCBB4C46B99B0FBEC994A87CA0553AFEC640285B82D4D7B893CA2552. No certification of subsequent concurrent Core source changes is inferred. Exact hashes:
+
+| Evidence | SHA256 |
+|---|---|
+| oracle-identity-character-native-red.trx | 7041A9B845A330DD3041550949C9561D1FD0CB8F6EAA6CC24422D4A3466151DD |
+| oracle-identity-character-upgrade.trx | 54A8254C81DBA1AC33D1CA76D259AD91735E712201E3C4328C0FB455DF22D8CB |
+| identity-character-upgrade.verified.json | D4CD7326EA0A924F04B96A758CB43865BE953D5C95E5BE447EFE04E9D73CF6EF |
+| oracle-identity-character-native-current.trx | 24896472079033BD2CDEDE39B26E5BB370642FBA509E5BBD6340EDE4E9CC18B5 |
+| oracle-native-current.trx | 75E52AF7E187B67CC15354336B79C8C6AF82E3ED4919088C94A480F32C591876 |
+| oracle-identity-character-final-controls.trx | 6E38DAE7A6839B3151B3A8CCF0408851C84FA770C5732378AEEC942730A0C73F |
+
+Before/after proof confirms ONLY four identity columns changed:256BYTE/CHAR_USED B to256CHAR/CHAR_USED C (max1024bytes in this AL32UTF8 database); both identity tables verified empty around DDL. Same retained database, no new environment/charset change/row deletion. Afterwards native fixtures exactly cleaned, pending0, independently container exited and11521listeners0. Retained volume logical size5074753879bytes is unchanged from prior measurement, no physical-reclaim claim. Whole-drive free84231737344bytes is concurrent-machine observation. Earlier advanced14 were not rerun in this identity-length tranche and remain earlier-source evidence, not added to346. No download/restore/deployment/cloud spend. Core source/producer slot handed to existing CQL owner after actual terminal; scoped Oracle publication only.
+
+Existing-schema review is now in ACTIONS-FOR-DAVID and the maintained provider README. Source/bootstrap/schema-capacity closure does not certify hosted wallets/IAM/least-privilege DDL, every legacy charset or universal V2. A conservative original ORA-12899 reconciliation wrapper was observed in red; oversized-identity rejection classification remains a follow-up audit candidate, not a claim of general unknown-write closure.
+
+Actual47083TERMINAL0: ASCII256 profile/detail cases passed;256-character CJK profile/detail cases both failed with original ORA-12899 (704bytes,max256). Activation had accepted CHAR_LENGTH256 but native CHAR_USED was B. This was a real byte-versus-character provisioning mismatch, not permission failure or lost acknowledgement. Original single-statement server rejections and independent declared-ID absence were reconciled without replay; accepted own ASCII rows exactly cleaned. Statement rejection reasoning is bounded to these original responses and Oracle's [statement-level atomicity](https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/transactions.html), not absence alone or a rule allowing unknown writes to be retried.
+
+New table DDL specifies VARCHAR2(256 CHAR) for both profile/detail USERNAME and EMAIL. Existing schema validation now reads CHAR_USED and refuses byte-semantic identity columns with a clear provisioning-review error; production activation does NOT ALTER existing tables or change database charset. Ten new controlled schema cases plus previous271:281/281passed604ms. Charset representability is distinct from length semantics; this native environment is AL32UTF8, not certification of every legacy Oracle character set.
+
+Explicit TEST-ONLY -UpgradeIdentityCharacters mode targets only retained loopback11521/FREEPDB1 SYSTEM, requires both identity tables EMPTY, exact four original VARCHAR2(256 BYTE) columns, AL32UTF8 and no pending journals, then widens only those columns on the SAME database. It persists before/after proof and retains partial-DDL intent on failure; no database clone, row deletion, implicit hosted repair or migration retry. Oracle DDL commits independently, so this is reviewed provisioning, not a rollback-safe data transaction. Actual84201 is verifying provisioning1+Unicode4+main346+controls281. Results must not be claimed until actual terminal. Main346 includes Unicode4; provisioning1 is separate and excluded from ordinary runs.
+
+Hosted/existing schemas require DBA review before this stricter contract is deployed. A wider existing byte column or identity values longer than256characters must NOT be blindly narrowed with the local empty-schema procedure. Oracle/OCI live access and complete V2/security/fees gates remain open; AWS still second.
+
 ### Root-parent selection parity — native red/green and full local closure
 
 Actual9983 TERMINAL0:16/16focused passed7s;342/342main native passed89s;271/271controlled passed617ms; zero skipped. Focused16 is INCLUDED in342. Existing identity verifier with -VerifySourceDocuments passed710Core/54Shared source checks and matching consumer/producer hashes: Core39618322D816E56DF5559945210CEE01637ED54BFC9D333EBA4493DFED67D5F5 / Shared884759DC609A5B4DB096DF411867A49808B830B1861FBB5482E51E7E6BABE09C. Exact report hashes:

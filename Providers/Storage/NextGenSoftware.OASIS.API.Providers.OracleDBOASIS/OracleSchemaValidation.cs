@@ -21,13 +21,14 @@ public partial class OracleDBOASIS
             ["OASIS_WRITE_PREPARATIONS"]=new(){{"OPERATION_ID","RAW"},{"ACTOR_ID","RAW"},{"PAYLOAD_JSON","CLOB"}}
         };
         foreach(var table in expected){
-            await using var command=CreateCommand("SELECT COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE,DATA_PRECISION,DATA_SCALE,CHAR_LENGTH,DEFAULT_LENGTH FROM USER_TAB_COLUMNS WHERE TABLE_NAME=:TableName",connection);
+            await using var command=CreateCommand("SELECT COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE,DATA_PRECISION,DATA_SCALE,CHAR_LENGTH,DEFAULT_LENGTH,CHAR_USED FROM USER_TAB_COLUMNS WHERE TABLE_NAME=:TableName",connection);
             command.Parameters.Add("TableName",OracleDbType.Varchar2).Value=table.Key;
             var missing=new HashSet<string>(table.Value.Keys,StringComparer.Ordinal);
             await using var reader=await command.ExecuteReaderAsync();
             while(await reader.ReadAsync()){
                 var column=reader.GetString(0);
                 if(!table.Value.TryGetValue(column,out var required))continue;
+                ValidateIdentityCharacterSemantics(table.Key,column,reader.IsDBNull(8)?null:reader.GetString(8));
                 ValidateStorageColumn(table.Key,column,required,reader.GetString(1),reader.GetInt32(2));
                 ValidateStorageColumnProperties(table.Key,column,required,reader.GetString(3),
                     reader.IsDBNull(4)?null:reader.GetInt32(4),reader.IsDBNull(5)?null:reader.GetInt32(5),
@@ -52,6 +53,12 @@ WHERE c.TABLE_NAME=:TableName AND c.CONSTRAINT_TYPE='P' ORDER BY cc.POSITION",co
             }
             ValidateStoragePrimaryKey(table,key,columns,status,validated,deferrable,indexStatus);
         }
+    }
+
+    private static void ValidateIdentityCharacterSemantics(string table,string column,string? semantics)
+    {
+        if((table=="OASIS_AVATARS"||table=="OASIS_AVATAR_DETAILS")&&(column=="USERNAME"||column=="EMAIL")&&semantics!="C")
+            throw new InvalidDataException($"Oracle schema {table}.{column} requires explicit character length semantics; review provisioning before activation. No automatic schema alteration is performed.");
     }
 
     private static void ValidateStorageInsertDefault(string table,string column,string required,int? defaultLength)
