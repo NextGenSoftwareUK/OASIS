@@ -1,5 +1,5 @@
-param([switch]$DetailDeletionResults,[switch]$AvatarDeletionResults,[switch]$SaveAcknowledgements,[switch]$AvatarProjection,[switch]$LifecycleGuards,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileOriginal,[switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,[switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions)
-if(([int]$DetailDeletionResults.IsPresent+[int]$AvatarDeletionResults.IsPresent+[int]$SaveAcknowledgements.IsPresent+[int]$AvatarProjection.IsPresent+[int]$LifecycleGuards.IsPresent+[int]$EncryptedProcess.IsPresent+[int]$EncryptedReplay.IsPresent+[int]$PreparationClaims.IsPresent+[int]$ReconcileOriginal.IsPresent+[int]$ReconcileAmbiguity.IsPresent+[int]$ReconcileHistoricalExport.IsPresent+[int]$ReconcileCorruptAvatar.IsPresent+[int]$ReconcileProjectionAssertions.IsPresent) -gt 1){throw 'Choose one original reconciliation mode.'}
+param([switch]$IdentityRaces,[switch]$DetailDeletionResults,[switch]$AvatarDeletionResults,[switch]$SaveAcknowledgements,[switch]$AvatarProjection,[switch]$LifecycleGuards,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileOriginal,[switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,[switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions)
+if(([int]$IdentityRaces.IsPresent+[int]$DetailDeletionResults.IsPresent+[int]$AvatarDeletionResults.IsPresent+[int]$SaveAcknowledgements.IsPresent+[int]$AvatarProjection.IsPresent+[int]$LifecycleGuards.IsPresent+[int]$EncryptedProcess.IsPresent+[int]$EncryptedReplay.IsPresent+[int]$PreparationClaims.IsPresent+[int]$ReconcileOriginal.IsPresent+[int]$ReconcileAmbiguity.IsPresent+[int]$ReconcileHistoricalExport.IsPresent+[int]$ReconcileCorruptAvatar.IsPresent+[int]$ReconcileProjectionAssertions.IsPresent) -gt 1){throw 'Choose one original reconciliation mode.'}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/OracleCurrent'
@@ -70,13 +70,14 @@ try{
     if($SaveAcknowledgements){$report='oracle-save-ack-native-current.trx';$filter='FullyQualifiedName~NativeOrdinaryIdentitySaveCountsOnlyAcknowledgedCommit|FullyQualifiedName~AcknowledgedSaveCannotOverwriteChangedCallerContract'}
     if($AvatarDeletionResults){$report='oracle-avatar-delete-result-native-current.trx';$filter='FullyQualifiedName~NativeAvatarDeletionResultMetadataDefinesKnownOutcome'}
     if($DetailDeletionResults){$report='oracle-detail-delete-result-native-current.trx';$filter='FullyQualifiedName~NativeStandaloneDetailLifecyclePreservesAvatarAndReportsLostCommit'}
+    if($IdentityRaces){$report='oracle-identity-races-native-current.trx';$filter='FullyQualifiedName~NativeIdentitySaveAndPairDeleteSerialize'}
     if(Test-Path -LiteralPath (Join-Path $work $report)){throw 'Preserve the original native report before another run.'}
     $testStarted=[DateTime]::UtcNow
     & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter $filter --logger "trx;LogFileName=$report" --results-directory $work /m:2 /nr:false
     if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
     $reportFile=Get-Item -LiteralPath (Join-Path $work $report)
     [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{270}
+    $expected=if($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{278}
     if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}
     $passed=$true
 }finally{
