@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## GUID-key deletion guard adopted by40 adapters — 23 October 2026
+
+All40 confirmed GUID-keyed adapters now use the shared Core validator rather than reinterpret malformed native keys as usernames. Actual32689 terminal0 compiled all40 with0errors; Core723025AB1D5 source/copies and each provider PDB/source identity verified. The earlier helper32/full2091 and AWS134/Dynamo163 native proofs remain separately scoped. This closes the audited unsafe dispatch implementation/compile gap, not vendor-native/cloud/whole-interface/global V2 gates.64 missing pinned cache versions recovered once in the existing shared cache (233339391 measured bytes), no new environment or paid service call. Exact resource identities, hashes, compatibility notes and open scope in provider-I/O coverage and ENVIRONMENT_INVENTORY.md. No deployment/overall100% claim.
+
 ## Shared GUID-key deletion prerequisite — 23 October 2026
 
 Core8d45d35 adds an opt-in GUID-native-key validator/one-shot dispatch helper.32 focused/full2091 Core units and dual-TFM build passed; no external mutations, downloads or new environments. Paired manifest/gitlink advance is a prerequisite only:29 confirmed GUID-key adapters still contain unsafe username fallback wrappers pending adoption/build/acceptance. Opaque native-key providers must not be forced through this helper. Source audit, tested-cohort caveat and evidence hashes are in HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md and ENVIRONMENT_INVENTORY.md. No all-provider completion or deployment gate is closed by this prerequisite.
