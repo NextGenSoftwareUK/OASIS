@@ -2,6 +2,26 @@
 
 ## Resume — 2026-10-23
 
+### Coherent published-source Oracle cohort refreshed
+
+Actual6082 TERMINAL0, zero skips: main374/374 native passed91s, replay4/4 passed2s, preparation6/6 passed2s, separate process write2/2 passed956ms and recovery2/2 passed843ms (388 native test cases total, NOT388 API routes). Controls281/281 passed583ms; signed official OCI SDK loopback72/72 passed10s. This brings the previously separate main/advanced/OCI evidence onto one frozen source cohort: published/pinned Core20709771bc09d40f8d8b99c7b1d22c889b138f9f, DLLBAB2B0EF08E3536712B7617012842449AAD45357F0A3FC83C60836FBC04C656C / SharedD2EA733F1DC5BFDAD5A995655B4773A51FA9BFE2D211A3B063FCC58A2D8A49B0. Both integration and OCI consumers matched producers;711Core/54Shared source/PDB documents verified under the exclusive lease and peer source hold. Later source changes are a different cohort, not silently recertified.
+
+| Report in TestResults/OracleCurrent | Bytes | SHA256 |
+|---|---:|---|
+| oracle-native-current.trx | 594471 | 48A5E06585E62ED846E3EE39EDC2A89807ABCA2900C7E22C060EE84F7D05626C |
+| oracle-encrypted-replay-native-current.trx | 7661 | E06D356E475C5EFED0CEA2C798C4F87A017CCFD6C27351CD9003C29B8D101A40 |
+| oracle-preparation-native-current.trx | 10469 | ADA385D606808E16A2A432AAC43A9927A4503B7FAEBB891FC3A54FAF4FA84C80 |
+| oracle-encrypted-process-write.trx | 4199 | FBAA19AF0CDBD9A1B9CBB299FBCB0F5326A3D0496850475D673CEF7D2CC05C69 |
+| oracle-encrypted-process-recover.trx | 4205 | 11BB8745D118C1D287A92623C876A7FF0978BCA4C87C184F9A0A7973ECAE0135 |
+| oracle-stable-cohort-controls.trx | 433144 | 197EEB03DD6A08A8F8FCDE626B930C1BD75258DB96835708689E84C087AA324B |
+| oracle-object-stable-cohort.trx | 115699 | 1466E04B3FAF8B23F55E303B1DBA2F5182E7471E46391C13492528DD3764B85A |
+
+Old main/replay/preparation/process reports and four process proof JSONs were hash-verified MOVED to their fixed .pre-stable-cohort suffixes before any native run, not overwritten/copied. Same runtime started once for this whole test batch, stopped after success; pending0 and both11521/18661listeners absent. Volume logical5,284,334,423bytes unchanged by this batch; no new installation/download/environment. SQL*Plus version23.26.0.0.0 independently observed in that retained image.
+
+Added the maintained [OCI provider configuration/operation guide](../../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS/README.md), derived from actual DNA/factory/backend settings. Its eight-field JSON fragment parses; that is documentation/config-shape validation, not a live profile test. It documents separate persistent32-byte storage key, profile/bucket ownership, opaque revisions/checksum acknowledgements, uncertain mutations, request/scan/egress costs and cloud verification limits.
+
+Archive catalog inventory67151 also independently confirms all six canonical tables empty and seven active, not-backed-up archived logs totaling1,107,965,440bytes. These remain recovery resources, not silently purged temp files; details and retention uncertainty in ENVIRONMENT_INVENTORY.md. This local cohort is NOT real Autonomous/wallet/least-privilege or OCI IAM/billing acceptance, and does NOT certify all HyperDrive failover/load-balancing/replication routes. Those gates remain; Oracle is not100%, AWS still follows Oracle.
+
 ### Permanent-table admission — real native regression
 
 Actual53947 red: four temporary-table cases wrongly accepted, two permanent cases passed. Actual25828 green TERMINAL0: focused6/6 passed1s, full374/374 passed89s,281/281 controls passed604ms, zero skips. Focused6 are INCLUDED in374. The schema validator now joins USER_TABLES in its EXISTING column query and requires TEMPORARY=N plus null DURATION; no additional metadata round trip, automatic conversion, new provider backend or crypto. Oracle documents transaction/session duration and permanent-table metadata here: https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/ALL_TABLES.html .
