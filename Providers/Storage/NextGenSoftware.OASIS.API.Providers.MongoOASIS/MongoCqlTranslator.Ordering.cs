@@ -51,7 +51,8 @@ internal sealed partial class MongoCqlTranslator
         }
         else pipeline.Add(new("$sort",new BsonDocument("HolonId",1)));
         if(query.Offset!=0)pipeline.Add(new("$skip",query.Offset));
-        var fetch=query.Limit.HasValue?Math.Min(query.Limit.Value,maximumResults+1):maximumResults+1;
+        var resultBudget=query.GraphOptions==null?maximumResults:Math.Min(maximumResults,query.GraphOptions.MaximumNodes);
+        var fetch=query.Limit.HasValue?Math.Min(query.Limit.Value,resultBudget+1):resultBudget+1;
         pipeline.Add(new("$limit",Math.Max(1,fetch)));
         if(query.Orderings.Count!=0)pipeline.Add(new("$replaceRoot",new BsonDocument("newRoot","$row")));
         var envelope=new BsonDocument("pipeline",new BsonArray(pipeline));

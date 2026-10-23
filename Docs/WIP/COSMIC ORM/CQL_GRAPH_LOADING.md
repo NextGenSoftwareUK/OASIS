@@ -1,6 +1,6 @@
 # CQL child graphs — implementation checkpoint
 
-23 October 2026. Core graph composition/publication and native SQLite SDK expansion are implemented. MongoDB and Neo4j graph readers remain open and reject graph requests before adapter I/O. Relationship predicates and authenticated HTTP graph transport remain open.
+23 October 2026. Core graph composition/publication and native SQLite SDK expansion are certified. MongoDB snapshot-native expansion is certified by104 native and31 admission cases, including16 graph cases. Neo4j graph expansion remains open and rejects graph requests before adapter I/O. Relationship predicates and authenticated HTTP graph transport remain open.
 
 ## Implemented contract
 
@@ -8,7 +8,7 @@
 
 `WithChildren(options)` returns a new query. Filtering, scope changes, ordering and Skip/Take retain that exact immutable shape; the source query is unchanged. Loading children after selecting a root page is valid. `WithoutChildren()` explicitly returns leaf shape. Fluent error propagation preserves the original error rather than replacing it with a successful graph query.
 
-Graph requests require GraphExpansion capability at planning and again against the actual execution adapter. A caller-supplied capability profile cannot bypass that check. SQLite now advertises it; MongoDB and Neo4j do not. v1 HTTP DTO/behavior remains leaf-only.
+Graph requests require GraphExpansion capability at planning and again against the actual execution adapter. A caller-supplied capability profile cannot bypass that check. SQLite and MongoDB now advertise it; Neo4j does not. MongoDB final native/deadline evidence is recorded below. v1 HTTP DTO/behavior remains leaf-only.
 
 ## Detached and typed publication
 
@@ -58,3 +58,15 @@ Reports under `C:/Source/OASIS/TestResults/CosmicCqlDemo/`: `graph-publication-r
 ## Frozen SQLite increment certification
 
 Core38d8696, parent implementation77dacb531. Both Core targets build; frozen consumers pass Core graph43, Shared graph8 and SQLite graph15 tests. Existing native three-provider v1 cohort65/65 also passes, zero skips. Core producer/unit/Shared-unit/SQLite-unit/native consumer SHA25639618322D816E56DF5559945210CEE01637ED54BFC9D333EBA4493DFED67D5F5; native Shared producerF6D1FADE18A56D77126F564093F2409F57ADC1722469C49E0FE02FAC55A27F2F. Dependency manifest/gitlinks validate. Additional fixed logs graph-certified-{portable,core-tests,shared-tests,sqlite-tests}.log and sqlite-graph-certified-native.log retain evidence. Owned fixtures and native listeners are absent after teardown. The full pre-freeze suites remain Core1,722/Shared954/SQLite1,218; frozen focused runs are repeated evidence, not additional distinct tests.
+
+## MongoDB snapshot-native checkpoint — certified
+
+Implemented snapshot-session root/descendant reads using the retained Mongo3.12.0 driver and Mongo8.3.11 replica-set environment. The first native aggregate pins atClusterTime; child commands reuse that same session. No public reloads, transaction writes/commits or alternate consistency path are used. This topology/version is the tested deployment; other Mongo topologies have not been certified for graph execution.
+
+One linked cancellation owner and Stopwatch deadline cover session creation, root cursor and all child commands. Every command receives the remaining native maxTimeMS, rounding positive submillisecond values up so zero cannot disable the server deadline. Caller cancellation remains CQL_QUERY_CANCELLED; expiration is CQL_QUERY_TIMEOUT. Empty pages avoid opening a session.
+
+Native root limits include graph node limits. Child reads use the existing native translator for parent/type/member predicates, 128-ID batches, a remaining-node overflow probe, simple collation, no disk spill and bounded cursor batches. Native BSON bytes are charged across the entire session before DTO decoding; the common assembler separately charges canonical UTF-8 output at discovery. Stored role ordering and full/partial ownership use the same Core/Shared owners as SQLite.
+
+First native cohort18/18 passed: existing3 CQL cases and15 graph cases, including a real child write during a blocked descendant command, in-flight cancellation, depth/recursion, filtered write ownership, root paging, 150-member batching, node/payload limits, missing members and cycles. Admission31/31 passes. Initial admission red proves the missing capability; a subsequent paging failure proved an incorrect fixture assumption (manager roots can belong to the actor), corrected to select the intended root IDs. That failure was not a production sort defect. Final wider native104/104 and admission31/31 pass, zero skips. The whole-expansion deadline case forces two individually17-second native commands, verifies both actually entered the failpoint and observes the shared30-second timeout without publishing rows. No three-provider graph or HTTP graph completion claim.
+
+Mongo final evidence: TestResults/CosmicCqlDemo/mongo-cql-graph-full-native.log, mongo-cql-graph-admission.log and TestResults/SubscriptionUsageCurrent/mongo-single-node-transactions-current.trx. Mongo producer/native-test/unit-test copies match SHA2565F466008E1257165AD25E06A790AA31AC1E45F00C7D71CAAB7DB6A1A8AF190D8. Core38d8696/Shared are unchanged from the SQLite checkpoint. Native104 includes the19-case CQL cohort (existing3 plus16 graph cases); repeated prior18-case runs are not additional distinct coverage. SDK graphs are now native on SQLite/MongoDB; Neo4j, relationships and hosted graph policy/accounting remain open.

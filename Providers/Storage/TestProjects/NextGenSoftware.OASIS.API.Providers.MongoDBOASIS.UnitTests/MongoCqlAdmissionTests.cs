@@ -11,6 +11,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
 public class MongoCqlAdmissionTests
 {
     [TestMethod]
+    public async Task NativeGraphShapeReachesTheActivatedRepositoryBoundary()
+    {
+        var options=CosmicQueryGraphOptions.Create(maxChildDepth:2);
+        Assert.IsFalse(options.IsError,options.Message);
+        var query=CosmicQuery<Holon>.Create().WithChildren(options.Result);
+        Assert.IsFalse(query.IsError,query.Message);
+        var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,MongoDBOASIS.CqlCapabilities)});
+        Assert.IsFalse(plan.IsError,plan.Message);
+        var provider=new MongoDBOASIS("mongodb://127.0.0.1:1/?serverSelectionTimeoutMS=1","cql-admission-only");
+        var result=await provider.ExecuteCosmicQueryAsync(plan.Result);
+        Assert.AreEqual("CQL_PROVIDER_NOT_READY",result.ErrorCode);
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
+    [TestMethod]
     public async Task CallerCapabilityProfileCannotEnableUnregisteredEnumMetadataExecution()
     {
         var query=CosmicQuery<Holon>.Create().Where(h=>CosmicQueryMetadata.Value<KarmaSourceType>(h,"source")==KarmaSourceType.Game);
