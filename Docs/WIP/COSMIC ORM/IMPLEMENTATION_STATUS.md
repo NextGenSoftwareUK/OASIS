@@ -1,5 +1,11 @@
 # COSMIC ORM implementation status
 
+## 23 October — Scalar plans and common query attempt ownership
+
+Core d71eebd adds immutable typed Count/LongCount/Any intents, independent scalar capability admission/readmission, checked native count conversion, detached per-provider results and the generic V2 HolonManager scalar entry point. Existing row execution and new scalar execution share one inherited admission/durable-attempt owner. Native aggregate adapters and WEB4 scalar transport remain pending; current row-only providers reject scalar calls before I/O.
+
+The committed cohort passes Core **1,956**, MongoDB **64**, joint Neo4j/WEB4 **114**, and SQLite native **205**, all unskipped. Twenty-two new Core cases include exact overflow, source/access/graph/window retention, all-target preflight, no partial publication and durable scalar attempt/receipt sequencing. Native Unicode ordering boundaries now pass on all three stores. All three consumers match Core716/Shared55 source documents and producer hashes; owned fixtures are absent and test ports stopped. [Aggregate contract and remaining work](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md).
+
 ## 23 October — Concurrent reads and pre-admission HTTP errors
 
 SQLite snapshot and Mongo snapshot controls retain the original path during an acknowledged concurrent reparent, then fresh reads see current membership. Neo4j read committed controls permit an already-fetched old row and require fresh-path correctness. Post-read cancellation/expiry never publishes partial results and permits a fresh read. Strict interruption of an outstanding Neo4j driver await remains open.

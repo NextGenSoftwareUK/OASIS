@@ -142,6 +142,9 @@ public sealed partial class CosmicCqlNativeTests(ITestOutputHelper output)
         c.MetaData["right"]=new Dictionary<string,object>{{"a.b'; $x",2L}};
         d.MetaData["left"]=new Dictionary<string,object>{{"a.b'; $x",null}};
         d.MetaData["right"]=new Dictionary<string,object>{{"a.b'; $x",null}};
+        // Native string order is Unicode scalar order, not UTF-16 code-unit order.
+        a.MetaData["unicode"]="\uE000"; b.MetaData["unicode"]="\U00010000";
+        c.MetaData["unicode"]="A"; d.MetaData["unicode"]=null;
         var child=Row("owned unselected child",1);a.Children.Add(child);
         var roots=new[]{a,b,c,d};var ids=roots.Select(root=>root.Id).ToArray();
         CosmicQueryPlan<Holon> Plan(Expression<Func<Holon,bool>> predicate)
@@ -181,6 +184,9 @@ public sealed partial class CosmicCqlNativeTests(ITestOutputHelper output)
             }
             var orderedNames=baseQuery.OrderBy(root=>root.Name).Result;
             await Window(orderedNames,d,a,c,b);
+            await Window(baseQuery.OrderBy(root=>CosmicQueryMetadata.Value<string>(root,"unicode")).Result,d,c,a,b);
+            await Window(baseQuery.OrderByDescending(root=>CosmicQueryMetadata.Value<string>(root,"unicode")).Result,b,a,c,d);
+            await Window(baseQuery.OrderByDescending(root=>CosmicQueryMetadata.Value<string>(root,"unicode")).Result.Skip(1).Result.Take(2).Result,a,c);
             await Window(orderedNames.Skip(1).Result.Take(2).Result,a,c);
             await Window(orderedNames.Take(2).Result.Skip(1).Result,a);
             await Window(orderedNames.Skip(100).Result.Take(3).Result);

@@ -290,3 +290,22 @@ Use WhereAnyChild(child=>child.Name=="match") before root ordering/Skip/Take. Th
 HTTP child existence uses up to four anyChildren groups; the twelve-filter budget is shared with roots. Server actor visibility applies before relationship matching and root paging. See [complete JSON example and limits](CQL_V1_HTTP_CONTRACT.md#direct-child-existence-over-http). The numbered SDK/HTTP demos now include example5 for independent visible siblings on every provider.
 
 WhereAnyDescendant has a generic bounded contract with explicit traversal limits. MongoDB, SQLite and Neo4j declare DescendantExists (depth 32/nodes 10000). Mongo retains snapshot semantics with flat native breadth traversal (certified Mongo8.3). Neo descendant execution requires Neo4j5.9+ (certified5.26.12) and retains read-committed semantics. Scope overflow returns CQL_QUERY_LIMIT without partial rows. Descendant intent does not load child graphs; HTTP exposes bounded anyDescendants groups, sharing four relationship groups and twelve filters with roots/direct children; see [JSON contract](CQL_V1_HTTP_CONTRACT.md#bounded-descendant-existence-over-http). [Contract](CQL_DESCENDANT_CONTRACT.md).
+
+
+## Scalar intent preview — native execution pending
+
+Core now supports immutable typed terminal construction. These statements perform no storage I/O:
+
+```csharp
+// Keep the source window, access policy and provider scope intact.
+var source = CosmicQuery<Holon>.Create()
+    .Where(holon => holon.Version == 1)
+    .Skip(10)
+    .Take(20);
+
+var count = source.Count();         // Int32 result domain.
+var longCount = source.LongCount(); // Int64 result domain.
+var any = source.Any();             // Boolean result domain.
+```
+
+Execution uses `CosmicScalarPlanner` and the generic V2 `HolonManager.ExecuteScalarQueryAsync` entry point. Current MongoDB, SQLite and Neo4j row adapters do not yet advertise the additive scalar interface, so they reject scalar execution before native I/O. This preview does not claim native counts, WEB4 scalar requests or aggregate demos are ready. [Progress and native acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md).
