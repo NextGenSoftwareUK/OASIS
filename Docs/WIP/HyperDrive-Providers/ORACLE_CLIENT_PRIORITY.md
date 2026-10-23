@@ -2,6 +2,14 @@
 
 ## Resume — 2026-10-23
 
+### Preserve originals on the next unexplained read failure
+
+Audit found the semantic read-ack fixture deleted all four owned native rows before its final aggregate assertion, destroying evidence of a failing version/collection path. It now writes a create-new/write-through compact failure inventory BEFORE asserting, and leaves original rows plus the existing pending intent untouched. Inventory includes exact table/GUID/UTF8 byte length/SHA256 and error diagnostics, not copied canonical row bodies. No retry, data repair or production-provider behavior change. A subsequent run remains gated by the original pending marker; reviewed reconciliation is required, not automatic reset/cleanup.
+
+Actual66940 terminal0: pure inventory control1/1pass validates original-byte hash/Unicode byte length/identity/error fields and excludes the private canonical payload. Focused native2/2pass8seconds verifies unchanged successful read matrix and exact cleanup, not a deliberately induced native failure/recovery. The original intermittent cause remains UNKNOWN and OPEN. Main492 count/filter unchanged; no new full492 certification. Final source/PDB check26ee5b matched CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733/source712 and SharedA71A6E384BFCCECA6599C46694D50E8686B51541F32D433EDA74B9E65627FB44/source54 (runner rebuilt existing Shared at parentb8; no Shared source edit). The pure control's earlier F51B cohort is not relabelled A71A. Same retained environment/SDK/cache, no restore/download/cloud request; Oracle stopped, pending0/listener11521zero, no failure artifact on successful run. Prior focused report SHA3D252CF... moved `.pre-failure-evidence`, not overwritten.
+
+Evidence: C:/Source/OASIS/TestResults/OracleCurrent/oracle-read-ack-evidence-controls.trx2,787bytes SHA97804BC193AED1236A9FD73DD8E9132D7A48A1656F6C21FB7935932FEF9C9395; oracle-read-ack-native-current.trx4,684bytes SHA45C1A474005D437B1502260CCAC48E285DDA60E86A70D7B86306AAF577D7B0CB. Required Oracle cloud access/remaining interface/route/cost gates still OPEN; no100% or dev deployment claim.
+
 Latest local checkpoint: Oracle native492 and scalar-codec301 remain green at their documented cohorts; the original intermittent missing-payload failure is STILL unresolved, not closed by diagnostic passes. Owner cloud access remains pending in [Actions for David](<../Release and Status/ACTIONS-FOR-DAVID.md>). During that cloud gate, retained AWS local acceptance was refreshed134/134 on Core23 with exact cleanup; [AWS checkpoint](AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md) records its boundaries and test-host readiness repair. No cloud spending/download/new database copy; Oracle is NOT marked100% or superseded as priority. Resume Oracle live gates once access arrives and retain detailed original-failure diagnostics for next occurrence.
 
 ### Original predecessor order isolated — no reproduction, intermittent gate NOT closed
