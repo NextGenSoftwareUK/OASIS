@@ -551,7 +551,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var avatar = await LoadAvatarByUsernameAsync(avatarUsername, version);
+            if(version<0)return InvalidVersion<IAvatarDetail>(version);
+            // Resolve the current identity, then select ONLY the detail root's version.
+            // Profile and detail histories have independent version counters.
+            var avatar = await LoadAvatarByUsernameAsync(avatarUsername);
             return avatar.IsError ? Fail<IAvatarDetail>(avatar.Message, avatar.Exception, avatar.ErrorCode) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
         }
 
@@ -559,7 +562,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            var avatar = await LoadAvatarByEmailAsync(avatarEmail, version);
+            if(version<0)return InvalidVersion<IAvatarDetail>(version);
+            var avatar = await LoadAvatarByEmailAsync(avatarEmail);
             return avatar.IsError ? Fail<IAvatarDetail>(avatar.Message, avatar.Exception, avatar.ErrorCode) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
         }
 
