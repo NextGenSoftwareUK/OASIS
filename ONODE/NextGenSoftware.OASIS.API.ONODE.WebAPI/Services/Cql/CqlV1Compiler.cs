@@ -60,7 +60,9 @@ public static class CqlV1Compiler
 
     private static CosmicQuery<Holon> Add(CosmicQuery<Holon> query, Guid actor)
     {
-        var secured = query.Where(h => h.IsPublic || h.CreatedByAvatarId == actor);
+        var access=CosmicQueryReadAccess.OwnerOrPublic(actor);
+        if(access.IsError)throw new ArgumentException(access.Message);
+        var secured = query.WithReadAccess(access.Result);
         if (secured.IsError) throw new ArgumentException(secured.Message);
         return secured.Result;
     }

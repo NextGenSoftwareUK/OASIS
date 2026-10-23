@@ -88,7 +88,7 @@ public static class CqlV1Endpoint
 
             // Return bounded leaf DTOs. Never expose provider keys/revisions or runtime/relationship objects.
             var rows = result.Result.Providers.Single().Rows;
-            if (rows.Any(h => !h.IsPublic && h.CreatedByAvatarId != actor))
+            if (query.ReadAccess==null || query.ReadAccess.ActorId!=actor || rows.Any(h => !query.ReadAccess.CanRead(h)))
                 return Failure(503, "CQL_VISIBILITY_VIOLATION", "Provider results violated the mandatory visibility restriction.");
             var response = new OASISResult<object>(new
             {

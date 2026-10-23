@@ -11,6 +11,27 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class CosmicQueryAdmissionTests
 {
+    [Fact]
+    public async Task AccessActorMustMatchTheAdmittedExecutionBeforeAnyProviderAttempt()
+    {
+        var store=new Mock<IUsageOutboxStore>(MockBehavior.Strict);
+        var adapter=Adapter(ProviderType.MongoDBOASIS);
+        var query=CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
+        var capabilities=new CosmicQueryCapabilities(CosmicQueryFeatures.Or|CosmicQueryFeatures.And,
+            new[]{new CosmicQueryFieldCapability("IsPublic",typeof(bool),new[]{CosmicQueryComparisonOperator.Equal}),
+                new CosmicQueryFieldCapability("CreatedByAvatarId",typeof(Guid),new[]{CosmicQueryComparisonOperator.Equal})},
+            Array.Empty<CosmicQueryMetadataCapability>());
+        var planned=CosmicQueryPlanner.Plan(query,ProviderType.MongoDBOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,capabilities)});
+        Assert.False(planned.IsError,planned.Message);
+        var result=await Policy(store,ProviderType.MongoDBOASIS).RunAsync(()=>CosmicQueryExecutor.ExecuteAsync(
+            planned.Result,new[]{adapter.Query.Object}));
+        Assert.Equal("CQL_ACTOR_MISMATCH",result.ErrorCode);
+        Assert.Null(result.Result);
+        NeverRead(adapter.Query);
+        store.VerifyNoOtherCalls();
+    }
+
     private static CosmicQueryCapabilities Capabilities => new(CosmicQueryFeatures.None,
         new CosmicQueryFieldCapability("Name", typeof(string), CosmicQueryComparisonOperator.Equal));
 

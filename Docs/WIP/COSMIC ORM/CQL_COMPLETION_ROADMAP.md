@@ -10,7 +10,7 @@ Scope: generic Core/HolonManager contracts, native execution on these three prov
 - [ ] Expand graphs beneath admitted provider execution, preserving root paging. No unmetered manager reload loop after execution or silent provider substitution.
 - [ ] Preserve selected/omitted child ownership through detached snapshots, typed hydration, tracking and conditional save. Partial queries must not delete unselected children on write-back.
 - [x] Add explicit portable graph consistency requests/admission. Neo4j read committed must not satisfy a requested repeatable snapshot; ProviderSnapshot is admitted for SQLite/Mongo, rejected by Neo at planning/readmission before I/O, and native race tests request it explicitly. Cross-provider common snapshots remain outside this certified guarantee.
-- [ ] Enforce authoritative access on traversed nodes/edges before inclusion or relationship matching. Inaccessible children must not leak through Any/Count or nested output.
+- [ ] Enforce authoritative access on traversed nodes/edges before inclusion or relationship matching. Core now carries immutable owner/public actor identity, preserves its native root predicate through composition, binds WEB4 JWT/admission and rejects foreign rows before typed publication. Visibility-scoped graphs remain explicitly rejected until native child/partial-role enforcement is implemented. Inaccessible children must not leak through Any/Count or nested output.
 - [ ] Implement native direct-child/descendant existence predicates, with defined cycle, duplicate, missing-parent and reparent behavior.
 - [ ] Verify all three stores: root-only/direct/recursive/bounded depth, cancellation, excessive graphs, custom child roles, cycles, visibility and later Save behavior.
 
