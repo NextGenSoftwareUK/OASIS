@@ -36,10 +36,15 @@ public class OracleObjectSdkTests
         Assert.AreEqual("127.0.0.1",actual.Host);Assert.AreEqual(18661,actual.Port);Assert.AreEqual("http",actual.Scheme);
         return client;
     }
-    private static async Task Reply(HttpListenerContext context,int status,string body)
+    private static async Task Reply(HttpListenerContext context,int status,string body,bool acknowledgePut=true)
     {
         context.Response.StatusCode=status;
         context.Response.ContentType="application/json";
+        // Controlled service acknowledgement; the primitive test independently checks body/hash.
+        if(acknowledgePut&&status==200&&context.Request.HttpMethod=="PUT"){
+            context.Response.Headers["ETag"]="\"controlled-opaque-revision\"";
+            context.Response.Headers["opc-content-md5"]=context.Request.Headers["Content-MD5"];
+        }
         var bytes=Encoding.UTF8.GetBytes(body);context.Response.ContentLength64=bytes.Length;
         await context.Response.OutputStream.WriteAsync(bytes);
     }
@@ -79,6 +84,69 @@ public class OracleObjectSdkTests
             }
             if(operation=="get")context.Response.Headers["ETag"]="\"observed-read\"";
             await Reply(context,operation=="delete"?204:200,operation=="get"?"tree 🌳":"");
+        });
+    }
+
+    [DataTestMethod]
+    [DataRow("put","missing-md5")][DataRow("create","missing-md5")][DataRow("replace","missing-md5")]
+    [DataRow("put","malformed-md5")][DataRow("create","malformed-md5")][DataRow("replace","malformed-md5")]
+    [DataRow("put","mismatched-md5")][DataRow("create","mismatched-md5")][DataRow("replace","mismatched-md5")]
+    [DataRow("put","missing-etag")][DataRow("create","missing-etag")][DataRow("replace","missing-etag")]
+    [DataRow("put","blank-etag")][DataRow("create","blank-etag")][DataRow("replace","blank-etag")]
+    [DataRow("put","valid")][DataRow("create","valid")][DataRow("replace","valid")]
+    public async Task UploadAcknowledgementRequiresMatchingServerDigestAndOpaqueRevision(string operation,string acknowledgement)
+    {
+        await Exchange(async backend=>{
+            Task Write()=>operation switch {
+                "create"=>backend.CreateOnlyAsync("oasis/upload-ack","tree 🌳"),
+                "replace"=>backend.ReplaceUnchangedAsync("oasis/upload-ack","tree 🌳","previous-revision"),
+                _=>backend.PutAsync("oasis/upload-ack","tree 🌳")
+            };
+            if(acknowledgement=="valid"){await Write();return;}
+            var cause=await Assert.ThrowsExceptionAsync<OracleObjectMutationReconciliationException>(Write);
+            Assert.AreEqual("oasis/upload-ack",cause.ObjectName);
+            Assert.IsInstanceOfType<InvalidDataException>(cause.InnerException);
+            Assert.IsTrue(NativeMutationReconciliation.IsRequired(cause));
+        },async context=>{
+            Assert.AreEqual("PUT",context.Request.HttpMethod);
+            Assert.AreEqual(operation=="create"?"*":null,context.Request.Headers["If-None-Match"]);
+            Assert.AreEqual(operation=="replace"?"previous-revision":null,context.Request.Headers["If-Match"]);
+            using var reader=new StreamReader(context.Request.InputStream);var body=await reader.ReadToEndAsync();
+            Assert.AreEqual("tree 🌳",body);
+            var digest=Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(body)));
+            Assert.AreEqual(digest,context.Request.Headers["Content-MD5"]);
+            if(acknowledgement!="missing-etag")context.Response.Headers["ETag"]=acknowledgement=="blank-etag"?"   ":"\"opaque-not-an-md5-or-uuid\"";
+            if(acknowledgement!="missing-md5")context.Response.Headers["opc-content-md5"]=acknowledgement switch {
+                "malformed-md5"=>"not-base64",
+                "mismatched-md5"=>Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes("different-body"))),
+                _=>digest
+            };
+            await Reply(context,200,"",acknowledgePut:false);
+        });
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task PublicSaveDoesNotPublishProposalAfterMalformedSuccessfulUpload(bool synchronous)
+    {
+        await Exchange(async _=>{
+            using var client=Client();var key=RandomNumberGenerator.GetBytes(32);
+            try{
+                using var provider=new OracleObjectStorageOASIS(client,"ns","bucket",()=>key.ToArray());
+                var caller=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Name="private-unacknowledged-proposal",Version=9};
+                var originalKeys=caller.ProviderUniqueStorageKey;
+                var result=synchronous?provider.SaveHolon(caller,saveChildren:false):await provider.SaveHolonAsync(caller,saveChildren:false);
+                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
+                Assert.AreEqual(Guid.Empty,caller.Id);Assert.AreEqual(9,caller.Version);Assert.AreSame(originalKeys,caller.ProviderUniqueStorageKey);
+                Assert.IsInstanceOfType<OracleObjectMutationReconciliationException>(result.Exception);
+                Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception));
+            }finally{CryptographicOperations.ZeroMemory(key);}
+        },context=>Reply(context,404,"{\"code\":\"ObjectNotFound\",\"message\":\"controlled\"}"),async context=>{
+            Assert.AreEqual("PUT",context.Request.HttpMethod);Assert.AreEqual("*",context.Request.Headers["If-None-Match"]);
+            using var reader=new StreamReader(context.Request.InputStream);
+            Assert.IsFalse((await reader.ReadToEndAsync()).Contains("private-unacknowledged-proposal",StringComparison.Ordinal));
+            context.Response.Headers["ETag"]="\"opaque-revision\"";
+            context.Response.Headers["opc-content-md5"]="wrong-checksum";
+            await Reply(context,200,"",acknowledgePut:false);
         });
     }
 
