@@ -1,5 +1,5 @@
 param(
-    [switch]$WriteRejections,[switch]$IdentityCapacity,[switch]$UpgradeIdentityCharacters,
+    [switch]$ExistingSchema,[switch]$WriteRejections,[switch]$IdentityCapacity,[switch]$UpgradeIdentityCharacters,
     [switch]$RootParent,[switch]$HolonProjection,[switch]$IdentityRaces,
     [switch]$DetailDeletionResults,[switch]$AvatarDeletionResults,[switch]$SaveAcknowledgements,
     [switch]$AvatarProjection,[switch]$LifecycleGuards,[switch]$EncryptedProcess,
@@ -7,7 +7,7 @@ param(
     [switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,
     [switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions
 )
-$selectedModes=@($WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
+$selectedModes=@($ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions).Where({$_.IsPresent}).Count
@@ -90,13 +90,14 @@ try{
     if($IdentityCapacity){$report='oracle-identity-character-native-current.trx';$filter='FullyQualifiedName~NativeIdentityDeclaredCharacterCapacityPreservesUnicode'}
     if($UpgradeIdentityCharacters){$report='oracle-identity-character-upgrade.trx';$filter='FullyQualifiedName~OracleIdentitySchemaUpgradeNativeTests'}
     if($WriteRejections){$report='oracle-write-rejections-native-current.trx';$filter='FullyQualifiedName~NativeIdentityColumnRejectionDoesNotBecomeUnknown|FullyQualifiedName~NativeCommitPhaseCapacityErrorRemainsUncertain'}
+    if($ExistingSchema){$report='oracle-existing-schema-native-current.trx';$filter='FullyQualifiedName~NativeExistingSchemaActivationValidatesWithoutProvisioning'}
     if(Test-Path -LiteralPath (Join-Path $work $report)){throw 'Preserve the original native report before another run.'}
     $testStarted=[DateTime]::UtcNow
     & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter $filter --logger "trx;LogFileName=$report" --results-directory $work /m:2 /nr:false
     if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
     $reportFile=Get-Item -LiteralPath (Join-Path $work $report)
     [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){48}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{366}
+    $expected=if($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){48}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{368}
     if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}
     $passed=$true
 }finally{

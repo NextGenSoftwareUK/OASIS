@@ -2,6 +2,23 @@
 
 ## Resume — 2026-10-23
 
+### Existing-schema activation avoids provisioning DDL
+
+Actual98508 TERMINAL0: focused2/2 native passed1s, full368/368 passed89s,281/281 controls passed612ms, zero skips. Focused2 are INCLUDED in368. Previous behavior, after a mechanical provisioning-method extraction, failed both focused cases because activation unconditionally entered DDL provisioning. The regression uses a provisioning-method fence plus REAL local connection/catalog validation; no synthetic account, schema, altered privileges or new runtime. Complete schemas now bypass provisioning but still run the existing column/primary-key validator. Missing-table initialization retains its original DDL statements. Table names/definitions are shared between existence lookup and validation, not separately maintained lists. No new configuration, crypto/backend implementation or extra per-record query.
+
+This adds one bound USER_TABLES query per activation and avoids repeated provisioning attempts for complete schemas. Secondary tuning indexes are no longer silently recreated on this path; DBA review remains necessary. This is NOT proof of restricted-account/Autonomous privileges, hosted IAM, cost or native query plans. No claim that every old activation necessarily failed for every restricted account. The provisioning fence demonstrates the call path; it is not a network DDL trace or a fresh-schema bootstrap acceptance test.
+
+Current pinned/published Core638b70aa63a82c9c1c4844aca0d7467245e93396 / producer9595402690F684F154EC711290936E079191815C7B989796FA8761C600A98D78 and Shared20DA1D333AC87DF2ED93032E713E6F561F910A5F4B9C2666E0469B2F5AE4AFC7 matched consumer outputs, with711Core/54Shared source/PDB documents verified under the exclusive lease. This refreshes the main OracleDB cohort only. Advanced14 and OCI72 retain their earlier actual hashes/cohorts below; they are NOT relabelled by this run.
+
+| Report in TestResults/OracleCurrent | Bytes | SHA256 |
+|---|---:|---|
+| oracle-existing-schema-native-red.trx | 5608 | A02AA775E6C98338CB42EA65DD56428775CA4248E02D1FB4715CDB003A84BD86 |
+| oracle-existing-schema-native-current.trx | 4343 | 37BED04EBAF3BF39628A0F7FB87E18075C1B17AA7247BE4454D71883505CB8F2 |
+| oracle-native-current.trx | 584611 | 9E40C85660954BE8AD3174C8EC43E35534722A689F1874D280731F21AD094224 |
+| oracle-existing-schema-controls.trx | 433144 | A135A36F3E0BB8AF889D0557D776F54CD294937FE52447DBF2CD4C9F38394121 |
+
+OracleDB producer and integration-consumer DLLs also matched SHA256 D8C3BD6BDE08CF4E242F52E5339A226188F16D91C2C61BE1BE0DD968CC689043 after the run. Prior366 report was hash-verified MOVED to oracle-native-pre-existing-schema.trx, not overwritten/copied. Red evidence was likewise hash-verified moved before green. Owned runtime stopped; native listener11521 absent; pending journals0; retained volume logical5,074,753,879bytes unchanged. Hosted Oracle/access gates remain; AWS still follows Oracle, not a replacement for its pending acceptance.
+
 ### OCI upload acknowledgement validation — local signed-SDK proof
 
 Newer-Core baseline52/52 passed10s. Added20 controls: old production code reproduced17 failures/3passes; corrected production code passed the full72/72 suite6s, zero skips, actual process80433 TERMINAL0. Successful PutObject previously ignored its acknowledgement headers. The existing writer now requires a nonblank opaque ETag and compares the server `OpcContentMd5` to the already-calculated request MD5. Response disposal is guaranteed in `finally`. No ETag-as-checksum assumption, additional SDK call, new storage implementation, download, or automatic replay. HTTP200 with missing/malformed/mismatched digest or missing/blank ETag may already have committed, so it uses the EXISTING mutation-reconciliation marker, never a known rejection. Sync/async public SaveHolon controls verify failed proposals do not publish Id/Version/provider keys or report success. Existing native412/404/503 classifications remain covered. MD5 here is OCI's transport-integrity contract, not encryption or a privacy algorithm; existing private-record encryption is unchanged. Official typed response contract: https://docs.oracle.com/en-us/iaas/tools/dotnet/latest/api/Oci.ObjectstorageService.Responses.PutObjectResponse.html .

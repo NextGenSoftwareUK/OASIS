@@ -55,6 +55,25 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
 
+                // Existing complete schemas need validation, not repeated DDL attempts.
+                if(!await StorageSchemaExistsAsync(conn))await ProvisionStorageSchemaAsync(conn);
+                await ValidateStorageSchemaAsync(conn);
+                result.Result = true;
+                result.IsError = false;
+                result.Message = "OracleDBOASIS activated — tables created/verified.";
+                IsProviderActivated = true;
+            }
+            catch (Exception ex)
+            {
+                IsProviderActivated = false;
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error activating provider — {ex.Message}");
+            }
+            return result;
+        }
+
+        protected virtual async Task ProvisionStorageSchemaAsync(OracleConnection conn)
+        {
                 // Create tables only if they do not exist (PL/SQL anonymous block)
                 string[] ddlBlocks = new[]
                 {
@@ -135,19 +154,6 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     await cmd.ExecuteNonQueryAsync();
                 }
 
-                await ValidateStorageSchemaAsync(conn);
-                result.Result = true;
-                result.IsError = false;
-                result.Message = "OracleDBOASIS activated — tables created/verified.";
-                IsProviderActivated = true;
-            }
-            catch (Exception ex)
-            {
-                IsProviderActivated = false;
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error activating provider — {ex.Message}");
-            }
-            return result;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;

@@ -20,7 +20,9 @@ An original ORA-12899 returned by the canonical DML statement before its row ack
 
 Configure `OASIS.StorageProviders.OracleDBOASIS.ConnectionString` through the host's secure configuration. `IsVersionControlEnabled` defaults to false; enabling it creates version archives. Existing archives are preserved when creation is disabled. Historical profile reads do not authorize historical credentials: verification/reset/refresh token selectors require version zero.
 
-Activation currently initializes/verifies SQL tables and indexes. Use only a database/schema where that provisioning is explicitly authorized. Real SQL tests reuse one retained local Oracle Free instance; they do not certify hosted Autonomous Database or every provider/HyperDrive interface. Current scoped evidence and remaining gates are tracked in [the working verification report](../../../Docs/WIP/HyperDrive-Providers/ORACLE_CLIENT_PRIORITY.md).
+Activation first checks the six required table names in the current owner's `USER_TABLES`, using the same schema definitions as validation. If all exist, activation validates their column and primary-key invariants without entering provisioning or issuing DDL. Secondary tuning indexes are not silently recreated or certified on this path; a DBA should review their suitability. This adds one catalog query per activation, not per record operation.
+
+If any table is absent, the existing initialization path still creates missing tables/indexes before validating. Use only a database/schema where that provisioning is explicitly authorized; Oracle DDL is not an ordinary rollback-safe data transaction. A validation-only activation is not proof that a particular least-privilege account can perform every storage operation. Real SQL tests reuse one retained local Oracle Free instance; they do not certify hosted Autonomous Database or every provider/HyperDrive interface. Current scoped evidence and remaining gates are tracked in [the working verification report](../../../Docs/WIP/HyperDrive-Providers/ORACLE_CLIENT_PRIORITY.md).
 
 Initial Release targeting OASIS API v2.0.0: \
 https://api.oasisweb4.one
