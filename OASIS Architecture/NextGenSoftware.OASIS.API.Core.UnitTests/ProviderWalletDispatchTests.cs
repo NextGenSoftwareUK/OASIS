@@ -79,6 +79,72 @@ public sealed class ProviderWalletDispatchTests
     private sealed record Observed(bool Error,string Code,Exception? Cause,object Container,string? Receipt);
 
     [Theory][InlineData(false)][InlineData(true)]
+    public async Task Web4SummaryCannotInventSuccessWithoutNativeReceipt(bool nft)
+    {
+        var f=new Fixture();
+        if(nft)
+        {
+            f.NftOutcome!.Result.TransactionResult="";
+            var result=await f.Manager.SendNFTAsync(f.AvatarId,new SendWeb4NFTRequest{FromProvider=new(ProviderType.SuiOASIS),ToProvider=new(ProviderType.SuiOASIS),
+                FromWalletAddress="sender",ToWalletAddress="recipient",TokenAddress="collection",TokenId="7",Amount=1,OwnerPrivateKey="explicit-key"});
+            Assert.True(result.IsError);Assert.True(string.IsNullOrWhiteSpace(result.Result?.SendTransactionResult));
+        }
+        else
+        {
+            f.TokenOutcome!.Result.TransactionResult="";
+            var result=await f.Manager.SendTokenAsync(f.AvatarId,new SendWeb4TokenRequest{FromProvider=new(ProviderType.SuiOASIS),ToProvider=new(ProviderType.SuiOASIS),
+                FromWalletAddress="sender",ToWalletAddress="recipient",Amount=1,OwnerPrivateKey="explicit-key"});
+            Assert.True(result.IsError);Assert.True(string.IsNullOrWhiteSpace(result.Result?.SendTransactionResult));
+        }
+        Assert.Equal(1,f.Calls);
+    }
+
+    [Theory]
+    [InlineData(false,"success")][InlineData(true,"success")]
+    [InlineData(false,"warning")][InlineData(true,"warning")]
+    [InlineData(false,"error")][InlineData(true,"error")]
+    public async Task Web4SummaryRetainsOriginalNativeReceiptAndEnvelope(bool nft,string outcome)
+    {
+        var f=new Fixture();var cause=new IOException("original receipt-bearing native uncertainty");
+        void Prepare<T>(OASISResult<T> result)
+        {
+            result.IsSaved=true;result.SavedCount=1;result.ResultsCount=1;
+            result.IsError=outcome=="error";result.ErrorCount=result.IsError?1:0;
+            result.IsWarning=outcome=="warning";result.WarningCount=result.IsWarning?3:0;
+            result.ErrorCode=result.IsError?"ORIGINAL_NATIVE_UNCERTAINTY":"ORIGINAL_NATIVE_STATUS";
+            result.Exception=result.IsError?cause:null;result.Message="original-native-status";
+            result.DetailedMessage="original native reconciliation detail";
+            result.MetaData=new(){["OriginalNativeId"]="original-operation-42"};
+        }
+        static void Check<TFrom,TTo>(OASISResult<TFrom> original,OASISResult<TTo> summary)
+        {
+            Assert.Equal(original.IsError,summary.IsError);Assert.Equal(original.ErrorCode,summary.ErrorCode);
+            Assert.Equal(original.IsSaved,summary.IsSaved);Assert.Equal(original.SavedCount,summary.SavedCount);
+            Assert.Equal(original.ResultsCount,summary.ResultsCount);Assert.Equal(original.ErrorCount,summary.ErrorCount);
+            Assert.Equal(original.IsWarning,summary.IsWarning);Assert.Equal(original.WarningCount,summary.WarningCount);
+            Assert.Same(original.Exception,summary.Exception);Assert.Equal(original.Message,summary.Message);
+            Assert.Equal(original.DetailedMessage,summary.DetailedMessage);Assert.Same(original.MetaData,summary.MetaData);
+        }
+        if(nft)
+        {
+            Prepare(f.NftOutcome!);
+            var result=await f.Manager.SendNFTAsync(f.AvatarId,new SendWeb4NFTRequest{FromProvider=new(ProviderType.SuiOASIS),ToProvider=new(ProviderType.SuiOASIS),
+                FromWalletAddress="sender",ToWalletAddress="recipient",TokenAddress="collection",TokenId="7",Amount=1,OwnerPrivateKey="explicit-key"});
+            Assert.Equal(f.NftOutcome!.Result.TransactionResult,result.Result?.SendTransactionResult);
+            Check(f.NftOutcome,result);
+        }
+        else
+        {
+            Prepare(f.TokenOutcome!);
+            var result=await f.Manager.SendTokenAsync(f.AvatarId,new SendWeb4TokenRequest{FromProvider=new(ProviderType.SuiOASIS),ToProvider=new(ProviderType.SuiOASIS),
+                FromWalletAddress="sender",ToWalletAddress="recipient",Amount=1,OwnerPrivateKey="explicit-key"});
+            Assert.Equal(f.TokenOutcome!.Result.TransactionResult,result.Result?.SendTransactionResult);
+            Check(f.TokenOutcome,result);
+        }
+        Assert.Equal(1,f.Calls);Assert.Same(f.Storage.Object,f.Providers.CurrentStorageProvider);
+    }
+
+    [Theory][InlineData(false)][InlineData(true)]
     public async Task LoadedWalletRetainsItsOwningManagerInsteadOfGlobalRouting(bool synchronous)
     {
         var f=new Fixture();var actor=OASISRequestContext.CurrentAvatar;
