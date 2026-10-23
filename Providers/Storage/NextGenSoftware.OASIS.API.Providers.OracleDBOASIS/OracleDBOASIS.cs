@@ -514,7 +514,8 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
         public async Task<OASISResult<bool>> DeleteHolonWithSoftDeleteAsync(Guid id, bool softDelete = true)
         {
             var deleted=await DeleteHolonRecordAsync(id,softDelete);
-            return new OASISResult<bool>{Result=!deleted.IsError&&deleted.Result!=null,IsError=deleted.IsError,Exception=deleted.Exception,Message=deleted.Message,ErrorCode=deleted.ErrorCode};
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,bool>(deleted);
+            result.Result=!deleted.IsError&&deleted.IsDeleted&&deleted.Result!=null;return result;
         }
 
         public OASISResult<bool> DeleteHolonWithSoftDelete(Guid id, bool softDelete = true) => DeleteHolonWithSoftDeleteAsync(id, softDelete).Result;

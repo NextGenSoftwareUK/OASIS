@@ -8,6 +8,8 @@ This provider uses the real Oracle.ManagedDataAccess.Core client with indexed lo
 
 Successful storage reads set `IsLoaded=true`. Point reads count one returned record; collection/export reads count returned roots, not recursively nested children. A successful empty collection has `LoadedCount=0` and remains loaded. Search counts its returned avatar/holon roots. Missing-record and failed reads do not claim loaded records. These response annotations do not change the query, persisted data, logical history or encryption policy.
 
+Holon deletion sets `IsDeleted=true` and `DeletedCount=1` only after an acknowledged commit. Repeating a soft delete on an existing inactive tombstone acknowledges that state with `DeletedCount=0` and no new mutation. An uncertain commit does not claim deletion success or a count. The provider's boolean soft/hard-delete helpers preserve the native operation's result metadata through the existing result-copy helper; they are distinct from the legacy `IOASISStorageProvider.DeleteHolon` aliases, which use soft deletion.
+
 ### Identity column compatibility
 
 `USERNAME` and `EMAIL` in `OASIS_AVATARS` and `OASIS_AVATAR_DETAILS` require explicit character length semantics with capacity of at least 256 characters. New tables use `VARCHAR2(256 CHAR)`. Existing byte-semantic identity columns fail activation with a provisioning-review error; activation does not silently alter them or change the database character set.
