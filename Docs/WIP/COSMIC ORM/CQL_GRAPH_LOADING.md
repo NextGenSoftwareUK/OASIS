@@ -191,3 +191,10 @@ One source-linked fixture now exercises the same custom owner/Extras role on Mon
 Mongo27, joint90 and SQLite23 pass, zero skips;53079 completed terminal0. The first attempted build rejected an unqualified namespace reference before fixture execution; references now use global qualification, with no runtime behavior workaround. No Core/Shared source or dependency changes.
 
 Source identity certification matches Core6E531CACD3A034FD42E1DE47C85982C07F00CB78BF057CD4CDAAFD4F81221BC7/711 source documents and SharedBF23BAC44E412B1F56BD40BE4EEE7CF5D2497BBB1876538E15706699315C263B/54. Owned fixtures/SQLite DB/listeners absent after teardown. Full graph-matrix gate remains open for the explicitly missing native SQLite cancellation/cycle and Neo cycle corruption controls; existing Shared/Core validation is not substituted for those native proofs.
+
+
+## 23 October — Native graph verification matrix complete
+
+SQLite25/25 passes: a controlled owned self-parent cycle with no stored membership rejects CQL_DATA_INVALID without rows, and cancellation at native child-command dispatch returns CQL_QUERY_CANCELLED. The latter releases its transaction/connection/progress owner, and the same repository successfully runs the graph again with a fresh token. Neo joint91/91 passes: one owned legacy snapshot/native parent projection/self-edge is corrupted coherently and rejected as a cycle without publishing a partial graph. Mongo's existing native cycle/in-flight cancellation proofs remain in its unchanged27-case cohort. Zero skips.
+
+Together with prior native depth/type/recursion/page/snapshot/budget/custom-role/access/conditional-save controls, this closes the explicit graph-loading verification matrix on these three stores. It does not implement relationship Any/Count/existence predicates, aggregation, joins or federated paging. Those roadmap gates stay open. Source/PDB711Core/54Shared identity matches; Core6E531CACD3A034FD42E1DE47C85982C07F00CB78BF057CD4CDAAFD4F81221BC7, Shared3CAC8670A9777CC34FA9717F9A5D335524F9EBCC6A168F7A1CED97D33499176D. Owned fixtures/SQLite DB/listeners absent after terminal53765.

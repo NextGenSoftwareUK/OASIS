@@ -25,6 +25,48 @@ public partial class SQLLiteDBOASISIntegrationTests
         return root;
     }
 
+    [Fact]
+    public async Task NativeCqlGraphRejectsACorruptParentLinkCycle()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source=new Holon{Id=Guid.NewGuid(),Name="owned cyclic fixture"};
+        (await provider.SaveHolonAsync(source,saveChildren:false)).IsError.Should().BeFalse();
+        var id=source.Id.ToString("D");
+        using var context=new DataContext(TestConnectionString);
+        await context.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET ParentHolonId={id}, PersistentValueJson=json_remove(PersistentValueJson,'$.ChildRoleManifestJson') WHERE Id={id}");
+        var repository=new HolonRepository(context,()=>false);
+        var read=await repository.ExecuteCosmicQueryAsync(NativeGraphPlan(source,CosmicQueryGraphOptions.Create().Result),100,default);
+        read.IsError.Should().BeTrue();read.ErrorCode.Should().Be("CQL_DATA_INVALID");
+        read.Result.Should().BeNull();read.IsLoaded.Should().BeFalse();
+        context.Database.GetDbConnection().State.Should().Be(ConnectionState.Closed);
+    }
+
+    [Fact]
+    public async Task NativeCqlGraphCancellationAtChildCommandReleasesItsReadOwner()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source=NativeQueryGraph();
+        (await provider.SaveHolonAsync(source)).IsError.Should().BeFalse();
+        using var cancellation=new CancellationTokenSource();
+        var intercepted=false;
+        using var context=new GraphReadContext(TestConnectionString,new GraphReadInterceptor(()=>
+        {
+            intercepted=true;cancellation.Cancel();return Task.CompletedTask;
+        }));
+        var repository=new HolonRepository(context,()=>false);
+        var plan=NativeGraphPlan(source,CosmicQueryGraphOptions.Create().Result);
+        var read=await repository.ExecuteCosmicQueryAsync(plan,100,cancellation.Token);
+        intercepted.Should().BeTrue();read.ErrorCode.Should().Be("CQL_QUERY_CANCELLED");
+        read.Result.Should().BeNull();read.IsLoaded.Should().BeFalse();
+        context.Database.CurrentTransaction.Should().BeNull();
+        context.Database.GetDbConnection().State.Should().Be(ConnectionState.Closed);
+        var retry=await repository.ExecuteCosmicQueryAsync(plan,100,default);
+        retry.IsError.Should().BeFalse(retry.Message+retry.Exception);
+        retry.Result.Single().Children.Should().HaveCount(2);
+    }
+
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public async Task NativeCqlGraphHydratesNamedTypedRoles(bool accessBound)

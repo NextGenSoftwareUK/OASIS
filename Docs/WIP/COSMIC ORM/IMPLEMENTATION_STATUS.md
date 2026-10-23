@@ -1,5 +1,10 @@
 # COSMIC ORM implementation status
 
+## 23 October — Native graph-loading matrix verified
+
+SQLite25/Neo joint91 pass with the final native cycle/cancellation controls, zero skips; unchanged Mongo27 includes its cycle/in-flight cancellation proofs. SQLite also reuses the same repository after cancellation. Alongside prior shape/policy/custom-role/conditional-save gates, the graph-loading verification matrix is checked for all three providers. Core711/Shared54 source identity matches and owned fixture resources are absent. Relationship predicates, aggregates, joins/federation and the full roadmap remain open. [Evidence](CQL_GRAPH_LOADING.md).
+
+
 ## 23 October — Native named typed child roles
 
 One source-linked fixture now verifies registered Extras role materialization, typed metadata, accepted baseline/local change tracking, and hidden-role omission/full store observation across all three providers. Mongo27/Neo joint90/SQLite23 pass, zero skips; Core711/Shared54 source/PDB identity matches. No production Core/Shared change or new environment. The full graph matrix remains open for its remaining explicit native corruption/cancellation controls. [Evidence](CQL_GRAPH_LOADING.md).
