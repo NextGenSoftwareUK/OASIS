@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## CQL child graph composition/admission — 23 October 2026
+
+Core now carries immutable child depth/type/node/payload options through scope/filter/order/page composition and rechecks graph capability against actual adapters before I/O. Focused19/19, full Core1,698/1,698 and existing three-provider native v1 cohort65/65 pass, zero skips; both Core targets build and consumer copies match. [Source contract, evidence and next owners](CQL_GRAPH_LOADING.md). Native graph expansion/publication/ownership remain unfinished and no adapter advertises GraphExpansion yet. v1 stays leaf-only. The full goal is active; next work is bounded coherent native graph reads and detached typed publication, then relationship predicates.
+
 ## Three-provider CQL v1 developer demos — 22 October 2026
 
 Annotated C# SDK and HTTP walkthroughs now run against MongoDB, SQLite and Neo4j, with a spacious guided browser page and working prefilled Swagger. Nine SDK queries, nine HTTP examples, 11 grouped API checks, the normal native 65/65 cohort and the existing coffee console/six API checks pass. Owned services stopped and fixture cleanup verified. [Run it](CQL_DEMO_RUNBOOK.md), [developer manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [verification evidence](CQL_V1_DEMO_VERIFICATION.md). Examples use real shipping query/authentication/admission code with controlled fixture authority; production contract scope and broader roadmap are unchanged.

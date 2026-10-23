@@ -6,7 +6,7 @@ Scope: generic Core/HolonManager contracts, native execution on these three prov
 
 ## 1. Child loading and relationships — first priority
 
-- [ ] Define immutable graph options: loadChildren, recursive behavior, maxChildDepth, child type selection and explicit node/payload/work limits. Reconcile existing depth semantics rather than inventing conflicting meanings for zero/negative depth.
+- [x] Define immutable leaf/graph shape, recursive behavior, maxChildDepth, child type and node/payload limits; preserve provider-native work limits. [Core contract and pending native work](CQL_GRAPH_LOADING.md). Runtime graph budget enforcement remains in the following gates.
 - [ ] Expand graphs beneath admitted provider execution, preserving root paging. No unmetered manager reload loop after execution or silent provider substitution.
 - [ ] Preserve selected/omitted child ownership through detached snapshots, typed hydration, tracking and conditional save. Partial queries must not delete unselected children on write-back.
 - [ ] Enforce authoritative access on traversed nodes/edges before inclusion or relationship matching. Inaccessible children must not leak through Any/Count or nested output.
@@ -52,6 +52,6 @@ Source checkpoint: `HolonManager-Cql.V2.cs` explicitly materializes with loadChi
 
 ## Continuation checkpoint
 
-Reviewed the saved goal, v1 evidence, generic query composition/execution/materialization and SQLite/Neo query entry points. No new implementation or acceptance test result is claimed at this checkpoint. Next: inspect existing graph readers/selection manifests and add failing graph-option/publication contract tests before changing native readers.
+Core graph composition and capability readmission are implemented; focused 19/19 and full Core 1,698/1,698 pass, zero skips. [Exact boundary, source owners and next implementation steps](CQL_GRAPH_LOADING.md). Native expansion, graph detachment/publication and relationship predicates remain open; no provider advertises graph capability yet.
 
-The existing long-running app goal is paused. The user must use Resume goal for automatic continued turns; no new goal/environment is needed. Active-turn work remains possible. [Status](IMPLEMENTATION_STATUS.md), [manual](CQL_MANUAL.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+The existing long-running app goal is active after user resumption. No new environment is needed. [Status](IMPLEMENTATION_STATUS.md), [manual](CQL_MANUAL.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
