@@ -37,6 +37,13 @@ if($container.Image -ne $image -or $container.Config.Labels.'one.oasis.provider-
 }
 if($Stop){
     if($container.State.Running){& wsl -d Ubuntu -u root -- podman stop -t 20 $name|Out-Null;if($LASTEXITCODE){throw 'Owned Dynamo teardown failed.'}}
+    # Native stop acknowledgement can precede release of Windows/WSL forwarding
+    # listeners. Observe actual vacancy; never kill a shared relay or adopt a port.
+    $deadline=[DateTime]::UtcNow.AddSeconds(30)
+    while(Get-NetTCPConnection -State Listen -LocalPort 18000,18001 -ErrorAction SilentlyContinue){
+        if([DateTime]::UtcNow -ge $deadline){throw 'Retained Dynamo stopped, but reserved listeners remain; no shared process will be killed.'}
+        Start-Sleep -Milliseconds 200
+    }
     return
 }
 if($container.State.Running){throw 'Retained Dynamo already running; do not adopt another run.'}
