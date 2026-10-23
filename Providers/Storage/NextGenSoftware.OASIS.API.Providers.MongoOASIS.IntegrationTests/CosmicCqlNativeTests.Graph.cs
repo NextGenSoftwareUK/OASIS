@@ -203,6 +203,8 @@ public sealed partial class CosmicCqlNativeTests
             Assert.False(plan.IsError,plan.Message);
             var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
             Assert.False(read.IsError,read.Message+read.Exception);Assert.Equal(declaredEmpty?0:1,read.Result.Count);
+            await global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyMovedSubtreeAsync(
+                fixture.Provider,fixture.Root.Id,other.Id,declaredEmpty,"owned CQL graph grandchild");
         });
 
     [Theory]
