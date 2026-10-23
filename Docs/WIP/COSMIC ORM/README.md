@@ -6,6 +6,8 @@ These are working documents. Dated reports retain historical evidence; earlier c
 
 ## Documents
 
+- [Remaining CQL completion roadmap: MongoDB, SQLite and Neo4j](CQL_COMPLETION_ROADMAP.md).
+
 - [CQL developer manual: C# SDK, WEB4 v1, examples and supported limits](CQL_MANUAL.md).
 - [CQL architecture: generic Core, native adapters, authorization and accounting](CQL_ARCHITECTURE.md).
 

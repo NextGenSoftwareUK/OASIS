@@ -174,3 +174,7 @@ Final lifecycle, owner **CQL v1 developer demo task, 22 October 2026**: all leas
 | `C:/Users/david/AppData/Local/Programs/Python/Python312/python.exe` | Existing Python3.12, reused | Unmeasured existing runtime | Link/report/manifest verification; no packages installed. Retain shared runtime. |
 
 Existing .NET SDK10.0.401/runtime10.0.12 and `C:/Users/david/.nuget/packages` were reused; package restoration used the pinned existing cache. No new package/version installation is claimed. Native image identity and full shared runtime inventory remain in earlier entries. Final sampled C: free=90,390,171,648 bytes; whole-drive variation includes shared/OS writes and is not attributed solely to these logical artifact sizes. [Exact verification](CQL_V1_DEMO_VERIFICATION.md).
+
+### 2026-10-23 — Remaining CQL programme resumption checkpoint
+
+Owner: existing CQL task/session. Reused C:/Source/OASIS task checkout on fix/hyperdrive-v2-providers, its existing Core submodule and this ledger for read-only source/roadmap inspection. Added source documentation C:/Source/OASIS/Docs/WIP/COSMIC ORM/CQL_COMPLETION_ROADMAP.md (size unmeasured, retained in Git; recreate from committed history). No downloads, dependency restores, new environments, builds, test processes, temporary databases, containers or ports introduced. Existing foreign Mongo-Test-Traffic documents remain untouched. The app goal is still paused pending user Resume; no new implementation/test certification claimed.
