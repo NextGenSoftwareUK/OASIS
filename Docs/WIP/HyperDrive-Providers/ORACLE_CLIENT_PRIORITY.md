@@ -2,6 +2,25 @@
 
 ## Resume — 2026-10-23
 
+### Delete aliases and domain-delegation audit closed locally
+
+Actual21866 red TERMINAL1:28 native cases,12 incorrect successful delete envelopes failed/16 passed, all owned fixtures retired before final metadata assertions. An initial test compile used the provider-only WithSoftDelete helper through IOASISStorageProvider; corrected receiver to concrete provider before any database access. Legacy DeleteHolon and detail aliases remain tested through their real storage interface. Native deletion already committed correctly; its response lacked flags/counts, and the bool wrapper manually dropped result metadata.
+
+Actual18640 TERMINAL0: focused28/28 passed5s, main420/420 passed102s, controls289/289 passed607ms, zero skips. Focused28 are INCLUDED in420. Fix reuses existing result-copy helper, marks IsDeleted/count1 only AFTER original commit acknowledgement, and marks existing soft tombstone state/count0 without another commit. Native tests cover GUID/key, sync/async, legacy aliases, explicit soft/hard helpers, repeat tombstone/no new commit, lost ORIGINAL post-commit response with independent readback and NO replay. Four detail interface cases verify hard/soft selectors and preserve exact avatar profile JSON. No query/crypto/schema/DDL change.
+
+The extra eight controls verify four inherited Karma interface methods at a memory-only IAvatarDetail DispatchProxy boundary, for success/error envelopes and exact argument/default forwarding. No real KarmaManager, AvatarManager, provider connection, account or funds are used. This proves provider-to-domain delegation, NOT native Karma persistence/rates/fees or authority-routing correctness. Production continues to use centralized business logic, not a fake implementation.
+
+Core8f057e0424d23577dbff4cc31f811f3adfd01807 / DLL1D076CE53F4D2ABB405F0F29546290B08078497DE83747B9D7EC3FD3EB528026 and Shared98C0F1DEED82745746B883473E5CA7150CB3E2FDE6560F58557608B5B75BEC29 matched consumer/producer,711Core/54Shared source/PDB documents under lease/source hold. Advanced14/OCI72 retain prior actual cohorts; they are NOT recertified by this Oracle-only batch.
+
+| Report in TestResults/OracleCurrent | Bytes | SHA256 |
+|---|---:|---|
+| oracle-delete-alias-native-red.trx | 59446 | 4CE54185C9A5D61691E9330E7E81583387643E122ADA48CEE11783DA533B0773 |
+| oracle-delete-alias-native-current.trx | 45924 | F11758EF4D3144A9F1B304C8499319D8FD8A7733F24D89105F3111DA6AC4865F |
+| oracle-native-current.trx | 667901 | 49D7FCACE3AAC6F201AD8D853FE319D8A58731167FADC93E84CB7709C9309740 |
+| oracle-delete-alias-controls.trx | 445688 | 19F0B40631667F9F904B749982B476F76DB0746D759FFCE8A92B6BFEDCC8118F |
+
+Previous392 report verified MOVED to oracle-native-pre-delete-alias.trx, red likewise MOVED before green, no evidence overwrite/copies. Runtime stopped,11521listener0,pending0, volume logical5,284,334,423bytes unchanged. Source heuristic now finds explicit calls to all74 unique storage-interface method NAMES across native+unit sources (70native,4domain delegates); this is NOT overload/branch/transport/business completeness. Actual manager routing and hosted endpoint dispatch, cloud Autonomous/OCI IAM/wallet/cost, and hosted HyperDrive gates remain. Oracle is NOT100%; AWS remains after Oracle.
+
 ### Read metadata repair full local gate closed on published Core8f
 
 Actual51378 TERMINAL0: main392/392 passed99s, replay4/4 passed2s, preparation6/6 passed2s, separate write2/2 passed957ms/recover2/2 passed871ms (406 native test cases total), Oracle controls281/281 passed983ms, Shared960/960 passed6s, official signed OCI SDK loopback72/72 passed12s, zero skips. Main392 INCLUDES the two100-response read-ack cases and64 projection-corruption cases; advanced14 are separate. The16 newly explicit creator-export corruption checks pass through the existing child-pool validator; no production bypass was found or new export query added. Failure projections also remain not-loaded/count0. The read annotation repair2314408 and Shared count fixd9231 now have this full scoped local regression; earlier pending-full-gate notes below describe the previous checkpoint, not this current result.
