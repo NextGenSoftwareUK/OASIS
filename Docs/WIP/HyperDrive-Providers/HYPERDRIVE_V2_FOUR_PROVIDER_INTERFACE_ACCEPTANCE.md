@@ -1,5 +1,21 @@
 # Four-provider interface acceptance audit
 
+## Neo canonical acknowledgement fidelity — 23 October 2026
+
+Actual private guard used by identity saves and holon snapshot writes falsely accepted changed untyped metadata. Six direct cases (Avatar/AvatarDetail/Holon × number/date-string) FIRST accept unchanged detached canonical clones, then reproduce false acceptance of9007199254740993.125 vs9007199254740994.0 and lexically different date strings representing the same instant. Both sides were normalized by default JObject.Parse BEFORE the strict equality owner. Red6/6failed (no expected rejection), not a simulated network/native corruption event.
+
+TWO parser calls now use EXISTING OasisJson.ParseStoredObject; same Core-owned StoredRecordPayloadEquality, no wire format/SDK/API/config/serializer/Core/Shared change or fallback. Full322/322Neo controls passed0skip799ms (316prior+6), unitCoreE6E7/source712 Shared9AB8A4F9/source55 verified. Six cases now reject changed metadata while unchanged clones still pass. This closes the demonstrated comparison false-success defect, not every provider/interface/hosted/V2 gate.
+
+Native97614 actualterminal0 full265/265PASS0skip90s. Existing sync/async avatar-history cases now prove raw current/v1 SnapshotJson stores exact date string2030-01-02T03:04:05.0000000+05:30 and numeric9007199254740993.125 plus archived API values; case count unchanged. Durable before-write scalar-avatar-history-{bool}.pending.json retires only after existing hard-delete/history absence checks. No native number wire codec is enabled for Neo; canonical snapshots are stored as strings. Final source/PDB check1b353a validates CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733/712 and Shared453F2B8A0C54A5048D138FA3DB95B21CB7A29351ED39F1E15AF3A48BA72610D2/55 (not relabelled unit cohort). Same retained runtime stopped/pending0/listeners17687+17474zero; no download/restore/new environment/database clone or cloud request.
+
+| Existing Neo4jCurrent report | Bytes | SHA256 |
+| --- | ---: | --- |
+| neo-scalar-ack-red.trx |15995|AEC926A79955F6623A811ACEBA8D91919848B6A2C9C01004B2DD3592B2E1C077|
+| neo-scalar-ack-controls.trx |491153|247A45D3689CFD240A975ADC5BE382244168EB0ED968F0FC730AD799C8ACD71E|
+| neo4j-native-current.trx |454568|64E4606CB4D650E5368A661EBCDF508BD5DEF18C9FDA3D02882327789D569F5B|
+
+Prior full native reportD543F91C... SHA-verified MOVED `.pre-scalar-ack`, no overwrite/reset/replay. Source/build slot explicitly handed off before touching named NeoUnit/provider paths and returned only after actual completion/final identity check. Resource ledger records shared free-space observations, not task attribution/reclaim. Remaining full-interface/hosted/transport/fees/cross-provider/V2 gates remain OPEN; no dev deployment claim.
+
 ## Shared caller-publication guard — 2026-10-20, scoped regression proof
 
 `KeyValueStorageProviderBase` now reuses `StoredRecordPublicationSnapshot` around existing record/history/index mutation boundaries and before publishing caller ID/version/provider keys. Existing write serialization is retained; capture/comparison adds local CPU work, not native calls. A read-time caller edit stops mutation; a post-ack edit stops further publication and retains acknowledged keys in the existing partial-mutation exception. Nonconditional retired username/email and old-parent deletions now use the existing acknowledged-delete helper so completed deletions are included in reconciliation evidence. No retry/rollback/new persistence engine.
