@@ -18,9 +18,9 @@ Source checkpoint: Core now materializes the admitted graph shape. SQLite expand
 
 ## 2. Projections, aggregates and grouping
 
-[Implementation contract and native acceptance invariants](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md). This is planned work, not a claim of shipped aggregate APIs.
+[Implementation contract and native acceptance invariants](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md). Count/LongCount/Any are shipped and verified as recorded below; projections, non-count aggregates and grouping remain planned.
 
-- [ ] Complete immutable result shapes and capability admission before native I/O. Count/LongCount/Any Core intent, actual-adapter readmission, detached per-provider execution and the common row/scalar attempt owner are implemented in d71eebd (full Core 1,956 passes). Native adapters and projection/grouped shapes remain required.
+- [ ] Complete immutable result shapes and capability admission before native I/O. Count/LongCount/Any Core intent, actual-adapter readmission, detached per-provider execution and the common row/scalar attempt owner are implemented in d71eebd (full Core 1,956 passes). All3 native count/existence adapters and scalar HTTP are now verified; projection/grouped shapes remain required.
 - [ ] Implement supported Select, Count/LongCount, Any, Min/Max, Sum/Average and GroupBy shapes natively. SQLite Count/LongCount/Any pass full1,269 tests, including12new native controls; Mongo scalar count passes unit229/native76, including9new unit/12new native cases. Neo scalar now passes unit322/jointnative129, including15new controls. Count/LongCount/Any native slices are verified on all3; scalar transport now passes signed joint native129 on all3 (exact137 input each); annotated scalar demos pass27SDK/27HTTP,182settled/181attempts, scalar no-replay3stores, generatedSwaggerbothroutes and finalCore1982/demo1. Projections and remaining aggregate operations are still required.
 - [ ] Specify missing/null/empty-set semantics, overflow, precision, collation and grouping-key equality; reject unsupported shapes explicitly.
 - [ ] Apply access predicates before aggregation; publish detached DTO/scalar results without accidental tracked-entity behavior.
@@ -53,7 +53,13 @@ Source checkpoint: Core now materializes the admitted graph shape. SQLite expand
 - [ ] Reconcile the resource ledger and remove owned disposable fixtures after teardown; preserve shared environments.
 - [ ] Commit/push verified task batches; integrate into Development at the agreed cadence or explicit user request.
 
-## Continuation checkpoint
+## Current continuation checkpoint — 23 October 2026
+
+Published parent `f5f65cd75`, Core `af6aed5`, task branch `fix/hyperdrive-v2-providers`. Scalar HTTP and annotated demos are complete for all three priority stores: Core1982, prior jointnative129 and final dedicateddemo1 pass without skips. Fresh27SDK/27HTTP,182settled/181attempts; signed137-input counts and scalar no-replay each pass on all3. Manifest/gitlinks and192changed-document local links validate. Build slot released; no owned live CQL runtime or retained failed fixture. Existing peer Oracle failure evidence remains outside this batch.
+
+Next implementation gate: immutable bounded `Select` result shapes and native provider capability admission, followed by all3native projection execution without entity hydration or manager-side evaluation. Preserve source operation order, visibility, exact domains, detached results and the existing prepared-attempt owner. Non-count aggregates/grouping, joins, federation, authoritative sharing/tenant policy, extended scalar coverage and strict blocked Neo4j driver-I/O interruption remain unchecked. No100% completion claim. The broad COSMIC ORM goal remains active; no manual resume is required.
+
+## Historical graph checkpoint
 
 Core graph publication and SQLite native SDK expansion pass full Core1,722, Shared954 and SQLite1,218 tests, zero skips. SQLite's 15 native graph cases prove snapshot consistency, read ownership, depth/type budgets, partial save ownership and 150-member batching. [Exact boundary and next steps](CQL_GRAPH_LOADING.md). MongoDB snapshot-native expansion is also certified (native104/admission31, including16 graph cases). Neo4j native expansion is now implemented with explicit read-committed semantics (native81/unit31/scoped18 pass); final hosted82/unit31 gate also passes. Explicit per-provider consistency admission is now implemented in Core d548e55 (Core1730/Mongo19/SQLite15/Neo32/hosted82 pass; final refreshed consumer/source audit passed). Owner/public graph policy and safe HTTP graph transport are implemented in Core0ca01b9 with Core1781/Shared960/Mongo23/SQLite19/joint86 passing; graph demos are being verified. Next: remaining graph coverage/relationship predicates and later phases above.
 
