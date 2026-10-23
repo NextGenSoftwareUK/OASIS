@@ -115,6 +115,8 @@ public partial class Neo4jNativeCqlTests
             await Ordered(CosmicQuery<Holon>.Create().OrderBy(h=>CosmicQueryMetadata.Value<int?>(h,"score")),new[]{3,2,0}.Concat(invalidOrder).ToArray());
             await Ordered(CosmicQuery<Holon>.Create().OrderByDescending(h=>CosmicQueryMetadata.Value<int?>(h,"score")),invalidOrder.Concat(new[]{0,2,3}).ToArray());
             await Ordered(CosmicQuery<Holon>.Create().OrderBy(h=>CosmicQueryMetadata.Value<string>(h,"unicode")),4,3,2,0,1);
+            await Ordered(CosmicQuery<Holon>.Create().OrderByDescending(h=>CosmicQueryMetadata.Value<string>(h,"unicode")),1,0,2,3,4);
+            await Ordered(CosmicQuery<Holon>.Create().OrderByDescending(h=>CosmicQueryMetadata.Value<string>(h,"unicode")).Skip(1).Take(2),0,2);
             await Ordered(CosmicQuery<Holon>.Create().OrderBy(h=>h.Name).Take(2).Skip(5));
             var one=await provider.ExecuteCosmicQueryAsync(PlanQuery(CosmicQuery<Holon>.Create().OrderBy(h=>h.Name).Take(1).Result),1);
             Assert.IsFalse(one.IsError,one.Message);Assert.AreEqual(records[0].Id,one.Result.Single().Id);

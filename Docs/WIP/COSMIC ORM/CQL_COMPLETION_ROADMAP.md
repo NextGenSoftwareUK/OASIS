@@ -20,7 +20,7 @@ Source checkpoint: Core now materializes the admitted graph shape. SQLite expand
 
 [Implementation contract and native acceptance invariants](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md). This is planned work, not a claim of shipped aggregate APIs.
 
-- [ ] Add immutable result shapes and capability admission before native I/O.
+- [ ] Complete immutable result shapes and capability admission before native I/O. Count/LongCount/Any Core intent, actual-adapter readmission, detached per-provider execution and the common row/scalar attempt owner are implemented in d71eebd (full Core 1,956 passes). Native adapters and projection/grouped shapes remain required.
 - [ ] Implement supported Select, Count/LongCount, Any, Min/Max, Sum/Average and GroupBy shapes natively.
 - [ ] Specify missing/null/empty-set semantics, overflow, precision, collation and grouping-key equality; reject unsupported shapes explicitly.
 - [ ] Apply access predicates before aggregation; publish detached DTO/scalar results without accidental tracked-entity behavior.
