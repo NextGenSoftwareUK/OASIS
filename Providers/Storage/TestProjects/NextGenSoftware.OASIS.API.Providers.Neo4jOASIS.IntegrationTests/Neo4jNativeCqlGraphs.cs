@@ -24,6 +24,7 @@ public partial class Neo4jNativeCqlTests
         internal string Manifest=null!;
         internal Func<Task>? BeforeChild;
         internal Func<Task>? AfterRootRow;
+        internal Action<IRecord>? InspectRootRow;
         internal List<Guid> Ids=new();
         internal List<Guid> Operations=new();
         internal Task Record(string stage)=>File.WriteAllTextAsync(Manifest,JsonSerializer.Serialize(new{ids=Ids,operations=Operations,stage}));
@@ -42,12 +43,14 @@ public partial class Neo4jNativeCqlTests
         private object target=null!;
         private Func<Task> before=null!;
         private Func<Task>? afterRootRow;
-        public static T Wrap<T>(T value,Func<Task> action,Func<Task>? afterRoot=null) where T:class
+        private Action<IRecord>? inspectRootRow;
+        public static T Wrap<T>(T value,Func<Task> action,Func<Task>? afterRoot=null,Action<IRecord>? inspect=null) where T:class
         {
             var proxy=Create<T,GraphNativeHook>();
             ((GraphNativeHook)(object)proxy).target=value;
             ((GraphNativeHook)(object)proxy).before=action;
             ((GraphNativeHook)(object)proxy).afterRootRow=afterRoot;
+            ((GraphNativeHook)(object)proxy).inspectRootRow=inspect;
             return proxy;
         }
         protected override object? Invoke(MethodInfo? method,object?[]? args)
@@ -56,19 +59,20 @@ public partial class Neo4jNativeCqlTests
             if(method.Name=="RunAsync" && args?.FirstOrDefault() is string text && text.Contains("MATCH (parent:Holon)-[edge:HAS_CHILD]"))
                 return ReadAfterHook(method,args);
             var result=method.Invoke(target,args);
-            if(result is IAsyncSession session)return Wrap(session,before,afterRootRow);
+            if(result is IAsyncSession session)return Wrap(session,before,afterRootRow,inspectRootRow);
             if(result is Task<IAsyncTransaction> transaction)return WrapTransaction(transaction);
             if(result is Task<IResultCursor> cursor && args?.FirstOrDefault() is string query && query.Contains("AS traversalCycle"))
                 return WrapRootCursor(cursor);
             return result;
         }
         private async Task<IAsyncTransaction> WrapTransaction(Task<IAsyncTransaction> transaction)
-            =>Wrap(await transaction,before,afterRootRow);
+            =>Wrap(await transaction,before,afterRootRow,inspectRootRow);
         private async Task<IResultCursor> WrapRootCursor(Task<IResultCursor> cursor)
-            =>Wrap(await cursor,before,afterRootRow);
+            =>Wrap(await cursor,before,afterRootRow,inspectRootRow);
         private async Task<bool> FetchAfterRoot(MethodInfo method,object?[]? args)
         {
             var found=await (Task<bool>)method.Invoke(target,args)!;
+            if(found)inspectRootRow?.Invoke(((IResultCursor)target).Current);
             if(found && afterRootRow!=null)await afterRootRow();
             return found;
         }
@@ -116,7 +120,7 @@ public partial class Neo4jNativeCqlTests
         {
             var action=fixture.AfterRootRow;fixture.AfterRootRow=null;
             if(action!=null)await action();
-        });
+        },record=>fixture.InspectRootRow?.Invoke(record));
         fixture.Provider=new Provider(uri,"neo4j","oasis-local-test-only",()=>hooked){IsVersionControlEnabled=false};
         await File.WriteAllTextAsync(manifest,JsonSerializer.Serialize(new{ids=fixture.Ids,operations=fixture.Operations,stage="before-create"}));
         try

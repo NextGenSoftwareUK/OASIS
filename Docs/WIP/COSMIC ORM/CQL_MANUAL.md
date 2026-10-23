@@ -386,7 +386,7 @@ See the [complete scalar contract](CQL_SCALAR_HTTP_CONTRACT.md) for limits and a
 
 ## Native Select — SQLite SDK
 
-SQLite supports detached scalar, anonymous and flat DTO projections through the generic V2 manager. MongoDB now also implements the same projection contract (see below); Neo4j and the projection HTTP route remain pending. Existing row/scalar APIs are unchanged. This SDK code runs within a trusted host: bind the actor from your authoritative application identity.
+SQLite supports detached scalar, anonymous and flat DTO projections through the generic V2 manager. MongoDB now also implements the same projection contract (see below); Neo4j also implements the SDK projection contract as described below; the projection HTTP route remains pending. Existing row/scalar APIs are unchanged. This SDK code runs within a trusted host: bind the actor from your authoritative application identity.
 
 ```csharp
 ICosmicQueryProjectionStorageProvider adapter = sqlite;
@@ -443,4 +443,14 @@ Requested source snapshot consistency is retained; graph output node caps do not
 
 The same generic SDK projection code above is implemented for MongoDB: bind `ICosmicQueryProjectionStorageProvider adapter` to the activated MongoDB instance and use its own query/projection capabilities. Source eligibility, ordering and paging run in the native BSON pipeline; the driver receives scalar cells, never a fetched holon graph for client-side selection. Required relationship validation and column reads share one native snapshot. Graph output limits do not cap projected roots. UUID text/standard/legacy representations and exact UTC tick companions retain their stored semantics; ambiguous dictionary paths or precision companions error. Native row/byte/deadline limits fail without partial results.
 
-Initial unit236/native81 and expanded unit237/native91 gates pass with zero skips. The expanded native cases include snapshot reparenting, actual-aggregate cancellation/reuse, large projections, both UUID layouts and ambiguity rejection. Neo4j projection and projection HTTP support remain pending. See [MongoDB projection contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-projection-slice--23-october-2026).
+Initial unit236/native81 and expanded unit237/native91 gates pass with zero skips. The expanded native cases include snapshot reparenting, actual-aggregate cancellation/reuse, large projections, both UUID layouts and ambiguity rejection. Neo4j SDK projection is described below; authenticated projection HTTP support remains pending. See [MongoDB projection contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-projection-slice--23-october-2026).
+
+Projection results contain detached selected values. Use an entity-row query when you intend to edit a holon and call `SaveHolonAsync` with its tracked state and provider revision.
+
+### Neo4j Select availability
+
+Bind the same generic SDK example to the activated Neo4j provider and its own `QueryCapabilities`/`ProjectionCapabilities`. Root access, direct-child/descendant predicates and ordering/paging execute before selected columns. Only native scalar cells are returned; neither entity snapshots nor children are hydrated. Scalar, anonymous and flat DTO shapes all use Core's existing detached validation and prepared-attempt owner.
+
+Neo4j preserves its admitted GUID, Boolean, signed/narrow integer and defined-enum metadata domains; missing/null string or nullable leaves become null, while required or wrong-domain leaves error. DateTime metadata remains explicitly unsupported. Graph output caps do not cap projected roots; source traversal budgets still apply. This provider supplies read committed, and rejects a requested `ProviderSnapshot` guarantee even when a caller claims a more permissive profile.
+
+Output limits reject the operation rather than return a shortened list. A native row-size lower bound removes impossible string rows before transfer; one-row fetches bound driver buffering, and the existing read-budget owner then checks exact UTF-8 bytes. Cancellation/deadline checks surround native awaits and publication. Prompt interruption of an already blocked driver await remains an open limitation. Final unit328/joint native-WEB4 147 acceptance passes with zero skips, including18new native projection controls and two actual cursor-buffer inspections. [Native contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#neo4j-native-projection-slice--23-october-2026).

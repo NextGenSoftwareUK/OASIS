@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — Neo4j native Select acceptance
+
+Native SDK selection now reuses the generic V2 projection executor and Neo4j's existing source, operand and read-budget owners. Initial fullunit328/native81 pass unskipped, after5new cases proved the missing interface. Final fullunit328/joint native-WEB4 147 pass unskipped on the updated production binary, including18new native projection controls and actual cursor-buffer inspections. Authenticated projection transport/demos, non-count aggregates/grouping and the remaining CQL/ORM gates are still open. [Contract/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#neo4j-native-projection-slice--23-october-2026).
+
 ## 23 October — native MongoDB Select
 
 MongoDB now executes native scalar/anonymous/flat DTO projections through the generic Core/V2 manager. Native pipeline retains protected source filters/order/window, error branches outside paging, snapshot membership ownership and exact BSON decoding. Duplicate dictionary paths/UTC precision companions reject, UUID layouts and exact Int64/ticks retain their domains. Unit **237** / native **91** pass unskipped (8newunit/15newnative controls). Producer/unit/native-consumer DLL04CD09A3 matches. Core720/Shared55 source unchanged; owned Mongo graph fixtures clean and runner runtime stopped normally. Next Neo4j native Select, then authenticated projection transport/demos. [SDK example availability](CQL_MANUAL.md#mongodb-select-availability), [contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-projection-slice--23-october-2026).
