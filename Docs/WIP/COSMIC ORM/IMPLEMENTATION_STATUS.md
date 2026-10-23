@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — Mongo canonical relationship write state
+
+Central final-BSON writer now derives schema1 canonical membership state for ordinary/conditional/replica record replacements. Unit213/native29 pass unskipped, including stale-projection replacement and unchanged children during root-only conditional saves. Hash-bound preparation-fixture reconciliation1 passed; Core711/Shared54 source identity verified. Mongo ChildExists stays closed pending migration, snapshot validation and native lookup. [Contract](CQL_RELATIONSHIPS.md).
+
 ## 23 October — Neo4j native child existence verified
 
 Neo4j now implements WhereAnyChild with native HAS_CHILD correlation, schema3 canonical role membership, current parent/revision and child visibility checks before root paging. Existing activation migration upgrades projections without changing canonical snapshots. Unit314/joint96 pass unskipped, completed-fixture reconciliation1 passed; source/PDB711Core/54Shared match. Owned fixtures removed and reusable services stopped. Mongo native direct-child support, descendant predicates and the full roadmap remain open. See [relationship contract](CQL_RELATIONSHIPS.md).

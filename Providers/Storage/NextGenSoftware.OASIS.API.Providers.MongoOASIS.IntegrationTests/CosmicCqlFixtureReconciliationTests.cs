@@ -21,6 +21,61 @@ public sealed class CosmicCqlFixtureReconciliationTests
 {
     [Fact]
     [Trait("Category","OwnedFixtureReconciliation")]
+    public async Task ReviewedCanonicalMembershipPreparationFixtureMatchesInspectionBeforeCleanup()
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        var path=Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/mongo-membership-preparation-inspection.json");
+        var bytes=await File.ReadAllBytesAsync(path);
+        Assert.Equal("776F992DE3B7FFFD1B502BA9360989FC08FD5FD57A0CAE99A7AD3322394F9A88",
+            Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)));
+        using var inspected=JsonDocument.Parse(bytes);
+        var client=new MongoClient(uri);var db=client.GetDatabase("cosmic_cql_fixture");
+        var names=(await(await db.ListCollectionNamesAsync()).ToListAsync()).OrderBy(name=>name).ToArray();
+        Assert.Equal(inspected.RootElement.EnumerateArray().Select(entry=>entry.GetProperty("collection").GetString()).ToArray(),names);
+        foreach(var entry in inspected.RootElement.EnumerateArray())
+        {
+            var name=entry.GetProperty("collection").GetString()!;
+            var rows=await db.GetCollection<BsonDocument>(name).Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+            Assert.Equal(entry.GetProperty("count").GetInt64(),rows.Count);
+            foreach(var raw in entry.GetProperty("rows").EnumerateArray())
+            {
+                var expected=BsonDocument.Parse(raw.GetString());
+                Assert.Equal(expected,Assert.Single(rows.Where(row=>row["_id"]==expected["_id"])));
+            }
+        }
+        // The reviewed observation contains exactly the four owned fixture nodes,
+        // empty auxiliary collections, and no conditional write or outbox operation.
+        await File.WriteAllTextAsync(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/mongo-membership-preparation-cleanup.json"),
+            JsonSerializer.Serialize(new{inspectionSha256=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)),records=4,operations=0}));
+        await client.DropDatabaseAsync("cosmic_cql_fixture");
+    }
+
+    [Fact]
+    [Trait("Category","OwnedFixtureReconciliation")]
+    public async Task InspectCanonicalMembershipPreparationFixtureWithoutCleanup()
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        var db=new MongoClient(uri).GetDatabase("cosmic_cql_fixture");
+        var inventory=new List<object>();
+        foreach(var name in (await(await db.ListCollectionNamesAsync()).ToListAsync()).OrderBy(value=>value))
+        {
+            var rows=await db.GetCollection<BsonDocument>(name).Find(FilterDefinition<BsonDocument>.Empty).Limit(20).ToListAsync();
+            var count=await db.GetCollection<BsonDocument>(name).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty);
+            Assert.True(count<=20,"Preserve an unexpectedly large fixture.");
+            inventory.Add(new{collection=name,count,rows=rows.Select(row=>row.ToJson()).ToArray()});
+        }
+        await File.WriteAllTextAsync(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/mongo-membership-preparation-inspection.json"),
+            JsonSerializer.Serialize(inventory));
+    }
+
+    [Fact]
+    [Trait("Category","OwnedFixtureReconciliation")]
     public async Task IndependentlyReconcileOwnedCqlFixtureBeforeCleanup()
     {
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";

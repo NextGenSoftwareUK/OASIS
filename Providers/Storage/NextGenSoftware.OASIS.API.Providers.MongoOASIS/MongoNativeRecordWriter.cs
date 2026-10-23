@@ -118,7 +118,12 @@ internal static class MongoNativeRecordWriter
     }
 
     internal static BsonDocument SerializePayload<T>(IMongoCollection<T> collection,T record) where T:HolonBase
-        => record.ToBsonDocument(collection.DocumentSerializer);
+    {
+        var body=record.ToBsonDocument(collection.DocumentSerializer);
+        if(record is Holon holon)
+            body[MongoCqlMembership.Field]=MongoCqlMembership.Build(holon.HolonId,holon.ChildRoleManifestJson);
+        return body;
+    }
 
     internal static void RetainUnknownFields<T>(BsonDocument replacement,BsonDocument observed) where T:HolonBase
     {
