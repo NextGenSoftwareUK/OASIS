@@ -1,5 +1,11 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Redis GUID-key guard — native proof, 23 October 2026
+
+Actual55434 terminal0: the same retained official Redis8.2.2 container and real StackExchange.Redis2.8.16 SDK passed2/2 sync/async invalid-provider-key cases, zero skips490ms. Protected mode remains enabled; one reusable current-user DPAPI test credential is sent by private stdin, never argv. Exact raw avatar/detail/four-index bytes and global-set membership survive rejected username-shaped provider keys; XP321/karma29/inventory readback remains intact. Conditional native cleanup deletes only owned byte-matching fixture rows and owned set members, preserving foreign members. Follow-up67893 terminal0 authenticated native DBSIZE0; same container stopped/listener18679absent. Core723109677 source/copy and producer3/consumer5 source documents verified. Original pre-auth failed report is hash-preserved, not relabelled green. Paths/hashes and resource lifecycle in ENVIRONMENT_INVENTORY.md.
+
+Scope is this invariant and reusable test setup only—not Redis historical versions, all interface/result flags, durability/cluster/Sentinel/TLS/cloud readiness, KeyDB-native behavior or full V2 failover/replication/load-balancing certification. Existing unsafe legacy four integration tests were not dispatched. No new runtime/container/SDK installation, data migration or public spend.
+
 ## Cross-provider native-key dispatch audit — 23 October 2026,40 adapters adopted and compiled
 
 Actual32689 TERMINAL0: all40 confirmed GUID-native-key adapters now delegate invalid-key admission/exact single dispatch to Core.Helpers.GuidProviderKeyDeletion and compile0errors. Every Core copy/source and each provider PDB/source document identity verified against the fresh committed Corecf4a5abe0a601962d5184ea5ab1423d055984184 cohort723 SHA025AB1D5A9AEC3D30BA78168B1FFE22DAF514AF981AA15697B6F33630A430474.64 absent pinned package versions were restored once into the existing shared cache, measured233339391 bytes, no csproj/version/runtime/environment changes. Provider DLL hashes and bin-tree sizes in ENVIRONMENT_INVENTORY.md. Prior helper32/full2091 tests and AWS134/Dynamo163 native gates are separate scoped evidence, not40-native certification. Vendor service/SDK operations, cloud spending and all-interface/native/global V2 acceptance remain open for each unverified adapter.
