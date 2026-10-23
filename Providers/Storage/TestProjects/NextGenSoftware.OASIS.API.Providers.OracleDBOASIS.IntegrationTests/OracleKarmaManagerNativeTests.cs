@@ -10,11 +10,59 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 
 public sealed partial class OracleNativeAcceptanceTests
 {
+    private sealed class KarmaProjectionOwner(string connection):OracleDBOASIS(connection)
+    {
+        public Func<IHolon,Task>? BeforeHolonSave;
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+        {
+            if(BeforeHolonSave!=null)await BeforeHolonSave(holon);
+            return await base.SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+        }
+    }
+
+    private static async Task<List<(Guid Id,string Json)>> KarmaScopeHolons(OracleConnection connection)
+    {
+        var rows=new List<(Guid,string)>();await using var command=new OracleCommand("SELECT ID,DATA_JSON FROM OASIS_HOLONS",connection);
+        await using var reader=await command.ExecuteReaderAsync();while(await reader.ReadAsync())rows.Add((new Guid((byte[])reader.GetValue(0)),reader.GetString(1)));
+        return rows;
+    }
+
+    private static void VerifyKarmaProjection(string json,IReadOnlyDictionary<Guid,long> actors,bool current=true)
+    {
+        var document=Newtonsoft.Json.Linq.JObject.Parse(json);
+        var versions=new[]{document}.Concat((document["_oasis_record_history"]?["records"] as Newtonsoft.Json.Linq.JArray)?.OfType<Newtonsoft.Json.Linq.JObject>()??Enumerable.Empty<Newtonsoft.Json.Linq.JObject>());
+        var first=true;
+        foreach(var version in versions){
+            var row=Core.Serialization.StoredRecordJson.DeserializeStored<Holon>(new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.EmbeddedRecordHistory().CanonicalPayload(version).ToString())!;
+            var prefix=$"settings_avatar_{row.CreatedByAvatarId}_";Assert.IsTrue(row.Name.StartsWith(prefix,StringComparison.Ordinal));
+            var category=row.Name[prefix.Length..];Assert.AreEqual(new Guid(MD5.HashData(Encoding.UTF8.GetBytes($"settings:{row.CreatedByAvatarId}:{category}"))),row.Id);
+            if(row.CreatedByAvatarId==Guid.Empty){
+                Assert.IsTrue(category.StartsWith("leaderboard:Karma:",StringComparison.Ordinal));
+                if(row.MetaData.TryGetValue("entries",out var value)){
+                    var entries=Core.Serialization.StoredRecordJson.Deserialize<List<LeaderboardEntry>>(value.ToString())!;
+                    Assert.AreEqual(entries.Count,entries.Select(entry=>entry.AvatarId).Distinct().Count());
+                    if(first&&current)Assert.AreEqual(actors.Count,entries.Count);
+                    foreach(var entry in entries){Assert.IsTrue(actors.ContainsKey(entry.AvatarId));Assert.AreEqual(CompetitionType.Karma,entry.CompetitionType);
+                        if(first&&current)Assert.AreEqual(actors[entry.AvatarId],entry.Score);
+                        else Assert.IsTrue(new long[]{0,10,500,1000}.Contains(entry.Score));}
+                }else Assert.AreEqual(1,row.Version,"Only initial empty settings version may omit entries.");
+            }else{
+                Assert.IsTrue(actors.ContainsKey(row.CreatedByAvatarId));Assert.AreEqual("leaderboard",category);
+                if(row.MetaData.TryGetValue("totalScore",out var score)){
+                    Assert.AreEqual("Karma",row.MetaData["competitionType"].ToString());
+                    if(first&&current)Assert.AreEqual(actors[row.CreatedByAvatarId],Convert.ToInt64(score));
+                    else Assert.IsTrue(new long[]{0,10,500,1000}.Contains(Convert.ToInt64(score)));
+                }else Assert.AreEqual(1,row.Version);
+            }
+            first=false;
+        }
+    }
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task NativeV2KarmaManagerPersistsLedgerAndDetailHistory(bool synchronous)
     {
@@ -24,12 +72,14 @@ public sealed partial class OracleNativeAcceptanceTests
         var journal=Path.Combine(work,"v2-karma-manager.pending.json");
         Assert.IsFalse(File.Exists(journal));var id=Guid.NewGuid();var name="owned-native-karma-"+id.ToString("N");
         var ledgerId=new Guid(MD5.HashData(Encoding.UTF8.GetBytes($"settings:{id}:karma")));
-        var provider=new OracleDBOASIS(connection){IsVersionControlEnabled=true};
+        var provider=new KarmaProjectionOwner(connection){IsVersionControlEnabled=true};
         await using var native=new OracleConnection(connection);await native.OpenAsync();
         await using(var privileges=new OracleCommand("SELECT COUNT(*) FROM SESSION_PRIVS WHERE PRIVILEGE<>'CREATE SESSION'",native))
             Assert.AreEqual(0,Convert.ToInt32(await privileges.ExecuteScalarAsync()));
         var identities=new[]{(Table:"OASIS_AVATARS",Id:id),(Table:"OASIS_AVATAR_DETAILS",Id:id),(Table:"OASIS_HOLONS",Id:ledgerId)};
         foreach(var row in identities)Assert.IsNull(await Read(native,row.Table,row.Id));
+        Assert.AreEqual(0,(await KarmaScopeHolons(native)).Count,"Preserve prior projections before another award.");
+        var writes=new HashSet<Guid>();
         try
         {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
@@ -39,6 +89,10 @@ public sealed partial class OracleNativeAcceptanceTests
                 providerType:ProviderType.OracleDBOASIS,allowMissing:true);
             Assert.IsFalse(absent.IsError,absent.Message);Assert.IsNull(absent.Result);
             await File.WriteAllTextAsync(journal,JsonSerializer.Serialize(new{state="before-owned-v2-karma-manager",schema=RestrictedSchema,id,ledgerId,name,synchronous}));
+            provider.BeforeHolonSave=async holon=>{
+                Assert.AreNotEqual(Guid.Empty,holon.Id);writes.Add(holon.Id);
+                await File.WriteAllTextAsync(journal,JsonSerializer.Serialize(new{state="before-owned-v2-karma-manager",schema=RestrictedSchema,id,ledgerId,name,synchronous,holonIds=writes.Order().ToArray()}));
+            };
             Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar{Id=id,Username=name,Email=name+"@example.invalid",IsActive=true})).IsError);
             Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=id,Username=name,Email=name+"@example.invalid",Karma=0,XP=222,IsActive=true})).IsError);
             var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2,StorageProviders=new(),SubscriptionConfig=new(){PlanType="Gold"}}};
@@ -93,16 +147,64 @@ public sealed partial class OracleNativeAcceptanceTests
             var finalDetail=await provider.LoadAvatarDetailAsync(id);Assert.IsFalse(finalDetail.IsError,finalDetail.Message);
             Assert.AreEqual(10L,finalDetail.Result.Karma);Assert.AreEqual(222L,finalDetail.Result.XP);Assert.AreEqual(5,finalDetail.Result.KarmaAkashicRecords.Count);
             Assert.AreSame(provider,providers.CurrentStorageProvider);
-            foreach(var row in identities){
+            var projections=await KarmaScopeHolons(native);
+            CollectionAssert.AreEquivalent(writes.ToArray(),projections.Select(row=>row.Id).ToArray());Assert.IsTrue(writes.Contains(ledgerId));
+            foreach(var projection in projections.Where(row=>row.Id!=ledgerId))VerifyKarmaProjection(projection.Json,new Dictionary<Guid,long>{{id,10}});
+            var cleanupTargets=identities.Concat(projections.Where(row=>row.Id!=ledgerId).Select(row=>(Table:"OASIS_HOLONS",Id:row.Id))).ToArray();
+            foreach(var row in cleanupTargets){
                 var expected=await Read(native,row.Table,row.Id);Assert.IsNotNull(expected);
                 using(var parsed=JsonDocument.Parse(expected))Assert.AreEqual(row.Id,parsed.RootElement.GetProperty("Id").GetGuid());
                 await using var cleanup=new OracleCommand($"DELETE FROM {row.Table} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",native){BindByName=true};
                 cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=row.Id.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=expected;
                 Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());Assert.IsNull(await Read(native,row.Table,row.Id));
             }
+            Assert.AreEqual(0,(await KarmaScopeHolons(native)).Count);
+            Console.WriteLine(JsonSerializer.Serialize(new{verifiedKarmaActor=id,ledgerId,synchronous,retiredHolonIds=writes.Order().ToArray()}));
             File.Delete(journal);
         }
         finally{await provider.DeActivateProviderAsync();}
+    }
+
+    [TestMethod]
+    public async Task ReconcileKnownKarmaLeaderboardProjectionFixtures()
+    {
+        var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
+        Assert.AreEqual(0,Directory.GetFiles(work,"*.pending.json").Length);
+        var reports=new[]{("oracle-karma-manager-history-shape-assertion.trx","4F20A71B1FE484F1A9B9ACC4C08AB7ABAE92B87CC5EAE902BA598F2FE2E5F494"),
+            ("oracle-karma-manager-native-current.trx.pre-projection-cleanup","2FAA9BAC0DEF4E96E3EDA695709ABE104C77C2BAFAFA9A1D79D923C6B41F42A2"),
+            ("oracle-native-current.trx.pre-missing-delete","CA9A31A945BD1C87E232554C9D25962870F56B8934379BCA8F06E57A26283113")};
+        foreach(var report in reports)Assert.AreEqual(report.Item2,Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(Path.Combine(work,report.Item1)))));
+        var actors=new Dictionary<Guid,long>{{Guid.Parse("d70ba50f-f2fa-43d9-b10b-4a50afde823c"),500},
+            {Guid.Parse("503aeb25-8fc2-4452-b479-5d551e37c056"),10},{Guid.Parse("ac0930f9-5d2f-4bcf-bfe8-cf13798369af"),10},
+            {Guid.Parse("95db9c12-13cf-4dd3-ae5e-1f03f4522fe6"),10},{Guid.Parse("d4ef336c-a839-4b0e-882c-8a56a1fd4e43"),10}};
+        await using var admin=new OracleConnection(Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING"));await admin.OpenAsync();
+        await using var native=new OracleConnection(await RestrictedConnectionAsync(admin,work));await native.OpenAsync();
+        foreach(var table in new[]{"OASIS_AVATARS","OASIS_AVATAR_DETAILS","OASIS_WRITE_RECEIPTS","OASIS_WRITE_PREPARATIONS","OASIS_WRITE_OPERATION_LOCKS"}){
+            await using var count=new OracleCommand($"SELECT COUNT(*) FROM {table}",native);Assert.AreEqual(0,Convert.ToInt32(await count.ExecuteScalarAsync()));
+        }
+        var rows=await KarmaScopeHolons(native);Assert.AreEqual(10,rows.Count);
+        var categories=new[]{"Daily:20261023","Weekly:20261018","Monthly:20261001","Quarterly:20261001","Yearly:20260101"};
+        var expectedIds=actors.Keys.Select(actor=>new Guid(MD5.HashData(Encoding.UTF8.GetBytes($"settings:{actor}:leaderboard"))))
+            .Concat(categories.Select(category=>new Guid(MD5.HashData(Encoding.UTF8.GetBytes($"settings:{Guid.Empty}:leaderboard:Karma:{category}"))))).ToArray();
+        CollectionAssert.AreEquivalent(expectedIds,rows.Select(row=>row.Id).ToArray());
+        foreach(var row in rows){
+            VerifyKarmaProjection(row.Json,actors);
+            var parsed=Core.Serialization.StoredRecordJson.DeserializeStored<Holon>(row.Json)!;Assert.AreEqual(row.Id,parsed.Id);
+            Assert.AreEqual(new DateTime(2026,10,23),parsed.CreatedDate.Date);
+        }
+        // Preserve compact exact-content ownership evidence, not another copy of record bodies.
+        var inventory=Path.Combine(work,"oracle-karma-projection-reconciliation.json");Assert.IsFalse(File.Exists(inventory));
+        await File.WriteAllTextAsync(inventory,JsonSerializer.Serialize(new{schema=RestrictedSchema,actors,
+            rows=rows.Select(row=>new{row.Id,SHA256=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(row.Json)))}).ToArray()}));
+        await using(var transaction=(OracleTransaction)await native.BeginTransactionAsync()){
+            foreach(var row in rows){
+                await using var cleanup=new OracleCommand("DELETE FROM OASIS_HOLONS WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",native){BindByName=true,Transaction=transaction};
+                cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=row.Id.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=row.Json;
+                Assert.AreEqual(1,await cleanup.ExecuteNonQueryAsync());
+            }
+            await transaction.CommitAsync();
+        }
+        Assert.AreEqual(0,(await KarmaScopeHolons(native)).Count);
     }
 
     [TestMethod]
