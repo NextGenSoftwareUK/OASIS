@@ -99,6 +99,31 @@ public static class V1Walkthrough
 
                 take = 10
             });
+            // EXAMPLE 4 — selected child graphs over the same WEB4 route.
+            // Alice sees the public child and her owned child. A private branch
+            // and its otherwise-public grandchild stay outside the selected view.
+            await ShowAsync("4. Public graph / native child visibility", new
+            {
+                provider,
+
+                filters = new object[]
+                {
+                    new { metadataPath = new[] { "fixture" }, scalar = "String", @operator = "Equal", value = fixtureTag },
+                    new { field = "Name", @operator = "Equal", value = "C-public" }
+                },
+
+                take = 1,
+
+                graph = new
+                {
+                    recursive = true,
+                    maxChildDepth = 2,
+                    childType = "All",
+                    maximumNodes = 3,
+                    maximumPayloadBytes = 1048576,
+                    consistency = "ProviderDefault"
+                }
+            });
         }
 
         async Task ShowAsync(string title, object query)

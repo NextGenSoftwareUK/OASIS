@@ -17,6 +17,7 @@ public sealed class CqlV1Request
     public int Skip { get; set; }
     public int Take { get; set; } = 25;
     public bool IncludeMetadata { get; set; }
+    public CqlV1Graph? Graph { get; set; }
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<CqlV1Scalar>))]
@@ -34,4 +35,16 @@ public sealed class CqlV1Filter
     public CqlV1Scalar Scalar { get; set; }
     public CqlV1Operator Operator { get; set; }
     public JsonElement Value { get; set; }
+}
+
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlV1Graph
+{
+    public bool Recursive { get; set; } = true;
+    public int MaxChildDepth { get; set; } = 2;
+    public string ChildType { get; set; } = "All";
+    public int MaximumNodes { get; set; } = 256;
+    public int MaximumPayloadBytes { get; set; } = 1024 * 1024;
+    public string Consistency { get; set; } = "ProviderDefault";
 }

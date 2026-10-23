@@ -33,6 +33,24 @@ public static class CqlV1Compiler
         // and paging. Shared-index metadata cannot grant access; Wizard does not bypass this.
         var query = Add(CosmicQuery<Holon>.Create(provider.HasValue ? CosmicQueryScope.Named(provider.Value).Result : CosmicQueryScope.CurrentDefault),
             actor);
+        if(request.Graph!=null)
+        {
+            var graph=request.Graph;
+            if(graph.MaxChildDepth is <1 or >CqlV1Projection.MaximumDepth ||
+                graph.MaximumNodes is <1 or >1000 || graph.MaximumPayloadBytes is <1 or >CqlV1Endpoint.MaximumResponseBytes ||
+                graph.ChildType==null || graph.ChildType.Length>64 ||
+                !Enum.TryParse<HolonType>(graph.ChildType,false,out var childType) || childType.ToString()!=graph.ChildType || !Enum.IsDefined(childType) ||
+                graph.Consistency==null || graph.Consistency.Length>32 ||
+                !Enum.TryParse<CosmicQueryGraphConsistency>(graph.Consistency,false,out var consistency) ||
+                consistency.ToString()!=graph.Consistency || !Enum.IsDefined(consistency))
+                throw new ArgumentException("Graph requires depth1–8, nodes1–1000, payload1–1048576 and canonical child type/consistency names.");
+            var options=CosmicQueryGraphOptions.Create(consistency,graph.Recursive,graph.MaxChildDepth,
+                childType,graph.MaximumNodes,graph.MaximumPayloadBytes);
+            if(options.IsError)throw new ArgumentException(options.Message);
+            var expanded=query.WithChildren(options.Result);
+            if(expanded.IsError)throw new ArgumentException(expanded.Message);
+            query=expanded.Result;
+        }
         var parameter = Expression.Parameter(typeof(Holon), "h");
         foreach (var filter in request.Filters)
             query = Add(query, parameter, Predicate(filter, parameter));

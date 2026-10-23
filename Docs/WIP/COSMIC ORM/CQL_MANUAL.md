@@ -6,7 +6,7 @@
 
 Type-filtered loads now hydrate registered child-role collections with the selected typed members. Persisted role order and the full stored membership remain intact; omitted members are not passed to factories. Registered factories receive admitted/decrypted metadata before tracking. A partial view supports root-only edits (`saveChildren: false`); local AcceptChanges cannot grant permission to replace hidden or unloaded membership.
 
-For trusted custom materializers, `HolonChildRoleHydration.ApplySelectedView(owner, fullStoredManifest, selectedIds, resolveSelected)` explicitly hydrates a partial view. Supply exact selected IDs; a missing selected record is an error, not an empty role. Keep the owner unpublished until success and discard it after any failure. This method does not authorize the selected data or read storage. The owner must retain its full `ChildRoleManifestJson` observation before `ApplySelectedView`; the API rejects a missing observation before factories or callbacks. `ApplyFullySelected` remains the complete-membership operation. Visibility-scoped SDK/HTTP graph composition stays gated pending safe public graph transport. Native child predicates and detached/typed policy checks are implemented; full stored relationship observations remain internal state and must not be serialized as public graph output.
+For trusted custom materializers, `HolonChildRoleHydration.ApplySelectedView(owner, fullStoredManifest, selectedIds, resolveSelected)` explicitly hydrates a partial view. Supply exact selected IDs; a missing selected record is an error, not an empty role. Keep the owner unpublished until success and discard it after any failure. This method does not authorize the selected data or read storage. The owner must retain its full `ChildRoleManifestJson` observation before `ApplySelectedView`; the API rejects a missing observation before factories or callbacks. `ApplyFullySelected` remains the complete-membership operation. Visibility-scoped graph composition now requires GraphReadAccess capability at planning and actual-adapter admission; Mongo, SQLite and Neo declare it. HTTP uses explicit bounded graph DTOs. Native child predicates and detached/typed policy checks are implemented; full stored relationship observations remain internal state and must not be serialized as public graph output.
 
 ## Mandatory read access in trusted server code
 
@@ -162,7 +162,7 @@ The full runnable source handles errors and verifies returned rows. A local SDK 
 
 ## WEB4 v1 request
 
-Child graph work is in progress: [Core publication, certified SQLite SDK expansion and remaining Mongo/Neo work](CQL_GRAPH_LOADING.md). All three native SDK adapters support graphs; v1 HTTP remains leaf-only.
+All three SDK/native adapters and WEB4 HTTP v1 now support access-bound child graphs; see [graph guarantees/evidence](CQL_GRAPH_LOADING.md) and [HTTP graph contract](CQL_V1_HTTP_CONTRACT.md). Relationship predicates such as child Any/Count remain separate roadmap work.
 
 ```json
 {
@@ -247,3 +247,27 @@ Local typed CQL hydration returns clean tracked entities in the admitted leaf or
 | [Demo verification](CQL_V1_DEMO_VERIFICATION.md) | Current walkthrough, browser/API checks and cleanup evidence |
 
 The bounded v1 implementation is verified. Joins/relationships, aggregates, global federation/pages, broader transport scalar families and application-specific shared/tenant policies remain separate roadmap work. Automatic migration/replication and HyperDrive placement are related ORM capabilities, not features invented by this query endpoint.
+
+
+## Access-bound graph example
+
+Bind a trusted host-selected actor with the immutable policy; a plain root Where expression does not propagate child authorization. The same query works against eligible Mongo, SQLite and Neo adapters. Plan against the actual adapter capabilities and check every OASISResult before execution.
+
+```csharp
+var access = CosmicQueryReadAccess.OwnerOrPublic(authenticatedActorId);
+var shape = CosmicQueryGraphOptions.Create(
+    recursive: true,
+    maxChildDepth: 2,
+    maximumNodes: 256);
+
+// Check access.IsError and shape.IsError before using their Result values.
+var query = CosmicQuery<Holon>.Create()
+    .WithReadAccess(access.Result)
+    .Where(holon => holon.Name == "C-public")
+    .WithChildren(shape.Result)
+    .Take(1);
+```
+
+The actor comes from trusted authentication/admission; SDK policy creation does not authenticate someone. The normal planner/manager pipeline checks native GraphReadAccess and rechecks detached/typed nodes before publication. Hidden intermediate children are not traversed. Selected/depth-limited views cannot replace unloaded children on Save; use saveChildren:false for root-only edits. SDK models retain private store observations for correct save ownership; public JSON should use the WEB4 graph DTOs instead of serializing raw holons.
+
+HTTP graph defaults/limits, safe fields, parent IDs and consistency are documented in the [HTTP contract](CQL_V1_HTTP_CONTRACT.md). Public depth is1–8; SDK depth0 retains bounded unbounded recursion. C#/HTTP/browser/Swagger demo files include the new graph example. Native certification is being refreshed; current exact evidence is in the graph loading log.

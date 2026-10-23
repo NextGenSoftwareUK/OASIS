@@ -53,6 +53,7 @@ public sealed partial class CqlV1Web4NativeTests
         var outsider = Guid.NewGuid();
         var tag = Guid.NewGuid().ToString("D");
         var ids = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid()).ToArray();
+        var childIds = Enumerable.Range(0,4).Select(_=>Guid.NewGuid()).ToArray();
         var journal = new List<object>();
         using var journalGate = new SemaphoreSlim(1);
         async Task Journal(string stage, object? request = null)
@@ -62,7 +63,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 if (request != null) journal.Add(request);
                 await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new
-                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids, tag, requests = journal }));
+                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).ToArray(), tag, requests = journal }));
             }
             finally { journalGate.Release(); }
         }
@@ -102,7 +103,17 @@ public sealed partial class CqlV1Web4NativeTests
                             ["SHARED_WITH"] = alice.ToString("D")
                         }
                     };
-                    var seeded = await provider.SaveHolonAsync(holon, saveChildren: false);
+                    if(i==3)
+                    {
+                        holon.Children.Add(new Holon{Id=childIds[0],ParentHolonId=holon.Id,Name="public child",IsPublic=true,
+                            CreatedByAvatarId=bob,HolonType=HolonType.Quest});
+                        var hidden=new Holon{Id=childIds[1],ParentHolonId=holon.Id,Name="private child",CreatedByAvatarId=bob,HolonType=HolonType.Quest};
+                        hidden.MetaData["SHARED_WITH"]=alice.ToString("D");
+                        hidden.Children.Add(new Holon{Id=childIds[3],ParentHolonId=hidden.Id,Name="public behind private",IsPublic=true,CreatedByAvatarId=bob});
+                        holon.Children.Add(hidden);
+                        holon.Children.Add(new Holon{Id=childIds[2],ParentHolonId=holon.Id,Name="owned child",CreatedByAvatarId=alice,HolonType=HolonType.Cafe});
+                    }
+                    var seeded = await provider.SaveHolonAsync(holon, saveChildren: i==3);
                     Assert.IsFalse(seeded.IsError, seeded.Message + seeded.Exception);
                 }
             }
@@ -150,7 +161,7 @@ public sealed partial class CqlV1Web4NativeTests
                         return await client.SendAsync(request);
                     }
 
-                    async Task<string[]> Read(object body, Guid actor, string? operationKey = null)
+                    async Task<string[]> Read(object body, Guid actor, string? operationKey = null,Action<JsonElement>? inspect=null)
                     {
                         using var response = await Send(body, actor, operationKey);
                         var text = await response.Content.ReadAsStringAsync();
@@ -166,6 +177,7 @@ public sealed partial class CqlV1Web4NativeTests
                         using var json = JsonDocument.Parse(text);
                         Assert.IsFalse(json.RootElement.GetProperty("isError").GetBoolean());
                         Assert.AreEqual(operation.Receipts.Single().Provider, json.RootElement.GetProperty("result").GetProperty("provider").GetString());
+                        inspect?.Invoke(json.RootElement.GetProperty("result"));
                         return json.RootElement.GetProperty("result").GetProperty("rows").EnumerateArray()
                             .Select(row => row.GetProperty("name").GetString()!).ToArray();
                     }
@@ -185,6 +197,26 @@ public sealed partial class CqlV1Web4NativeTests
                     foreach (var provider in providers.Keys)
                     {
                         var fixture = new { MetadataPath = new[] { "fixture" }, Operator = "Equal", Scalar = "String", Value = tag };
+                        foreach(var graphActor in new[]{alice,outsider})
+                        {
+                            var expected=graphActor==alice?new[]{childIds[0],childIds[2]}:new[]{childIds[0]};
+                            await Read(new{Provider=provider.ToString(),Take=1,
+                                Filters=new[]{new{Field="Id",Operator="Equal",Value=ids[3]}},
+                                Graph=new{MaxChildDepth=2,MaximumNodes=expected.Length+1}},graphActor,
+                                inspect:result=>
+                                {
+                                    var row=result.GetProperty("rows").EnumerateArray().Single();
+                                    Assert.AreEqual(Guid.Empty,row.GetProperty("parentHolonId").GetGuid());
+                                    var children=row.GetProperty("children").EnumerateArray().ToArray();
+                                    CollectionAssert.AreEqual(expected,children.Select(child=>child.GetProperty("id").GetGuid()).ToArray());
+                                    Assert.IsTrue(children.All(child=>child.GetProperty("children").GetArrayLength()==0));
+                                    var text=result.GetRawText();
+                                    Assert.IsFalse(text.Contains(childIds[1].ToString()) || text.Contains(childIds[3].ToString()));
+                                    Assert.IsFalse(text.Contains("childRoleManifest",StringComparison.OrdinalIgnoreCase));
+                                    Assert.IsFalse(text.Contains("providerUniqueStorageKey",StringComparison.OrdinalIgnoreCase));
+                                });
+                        }
+
                         var page = new { Provider = provider.ToString(), Filters = new[] { fixture }, Skip = 1, Take = 1 };
                         var operationKey = Guid.NewGuid().ToString("D");
                         CollectionAssert.AreEqual(new[] { "C-public" }, await Read(page, alice, operationKey), provider.ToString());
@@ -346,7 +378,7 @@ public sealed partial class CqlV1Web4NativeTests
             if (complete)
             {
                 // These exact IDs/databases were absent at preflight and journalled before creation.
-                var ownedIds = ids.Select(id => id.ToString("D")).ToArray();
+                var ownedIds = ids.Concat(childIds).Select(id => id.ToString("D")).ToArray();
                 await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids DETACH DELETE v", new { ids = ownedIds })).ConsumeAsync();
                 await mongo.DropDatabaseAsync(storageDb);
