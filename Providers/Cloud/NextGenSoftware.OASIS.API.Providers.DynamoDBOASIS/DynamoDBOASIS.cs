@@ -455,7 +455,14 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override OASISResult<bool> DeleteAvatarByUsername(string u, bool softDelete = true) => DeleteAvatarByUsernameAsync(u, softDelete).GetAwaiter().GetResult();
         public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadSelectedAvatarAsync("email",e,0,includeDeleted:true),softDelete,row=>string.Equals(row.Email,e,StringComparison.OrdinalIgnoreCase));
         public override OASISResult<bool> DeleteAvatarByEmail(string e, bool softDelete = true) => DeleteAvatarByEmailAsync(e, softDelete).GetAwaiter().GetResult();
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteAvatarAsync(id, softDelete); return await DeleteAvatarByUsernameAsync(pk, softDelete); }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string pk, bool softDelete = true)
+        {
+            if (Guid.TryParse(pk, out Guid id) && id != Guid.Empty) return DeleteAvatarAsync(id, softDelete);
+            var result = new OASISResult<bool>();
+            var cause = new ArgumentException("A nonempty GUID DynamoDB avatar provider key is required.", nameof(pk));
+            OASISErrorHandling.HandleError(ref result, cause.Message, cause);
+            return Task.FromResult(result);
+        }
         public override OASISResult<bool> DeleteAvatar(string pk, bool softDelete = true) => DeleteAvatarAsync(pk, softDelete).Result;
 
         // ─── AvatarDetail ─────────────────────────────────────────────────────────

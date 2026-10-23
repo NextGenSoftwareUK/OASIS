@@ -97,7 +97,10 @@ public partial class AWSOASISIntegrationTests
     public async Task PairLifecycleAndIncomingTombstoneAreAtomicAndPreserveData(bool synchronous)
     {
         var id=Guid.NewGuid();await SeedPair(id);
-        var deleted=synchronous ? _provider.DeleteAvatar(id):await _provider.DeleteAvatarAsync(id);
+        var invalid=synchronous ? _provider.DeleteAvatar("owned-pair-"+id.ToString("N"),false):await _provider.DeleteAvatarAsync("owned-pair-"+id.ToString("N"),false);
+        Assert.IsTrue(invalid.IsError);Assert.IsInstanceOfType<ArgumentException>(invalid.Exception);Assert.IsFalse(invalid.Result);Assert.AreEqual(0,invalid.DeletedCount);
+        var untouched=await ReadPair(id);Assert.IsTrue(untouched.Profile.IsActive);Assert.IsTrue(untouched.Detail.IsActive);Assert.AreEqual(321L,untouched.Detail.XP);Assert.AreEqual(29L,untouched.Detail.Karma);Assert.AreEqual(1,untouched.Detail.Inventory.Count);
+        var deleted=synchronous ? _provider.DeleteAvatar(id.ToString()):await _provider.DeleteAvatarAsync(id.ToString());
         Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsTrue(deleted.IsSaved);Assert.IsTrue(deleted.IsDeleted);
         Assert.IsTrue(AvatarTombstoneEvidence.TryGet(deleted,out var committed));
         var pair=await ReadPair(id);
