@@ -9,8 +9,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 public partial class SQLLiteDBOASIS : ICosmicQueryScalarStorageProvider
 {
-    public static CosmicScalarCapabilities CqlScalarCapabilities { get; } = new(
-        CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any);
+    public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Value;
+    private static class ScalarContract
+    {
+        internal static readonly CosmicScalarCapabilities Value = new(
+            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any },
+            new[] { new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities) });
+    }
 
     public CosmicScalarCapabilities ScalarCapabilities => CqlScalarCapabilities;
 
