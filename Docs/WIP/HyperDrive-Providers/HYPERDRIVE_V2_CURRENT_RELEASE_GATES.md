@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## GoogleCloud scoped read-count fix — 23 October 2026
+
+Fresh controlled44/full297 unit and retained Firestore79 history+79 regression cases pass, zero skips (actual terminals86418/75219), after twelve red cases proved successful reads incorrectly reported LoadedCount0. Existing codecs now map root/filtered/search counts and clear copied nearby count on failure. Same committed Core945c65/721 and Shared55 source cohort; current-source/copy identities verified. See HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md and ENVIRONMENT_INVENTORY.md for hashes, resource lifecycle and bounded scope. No new environment/download, cloud request or dev deployment. Google Cloud credentials/live billing and full V2 routing remain open, not implied by this emulator result. Oracle Cloud owner-access gates remain unchanged; local Oracle492 and OCI controlled107 are not cloud acceptance. AWS local134+163 and controlled443 likewise do not certify client account access or billing.
+
 ## OCI object-name transport coverage — 23 October 2026
 
 New12 actual SDK loopback GET/PUT/DELETE name-fidelity controls all pass; full controlled OCI suite107/107PASS0skip10s. Existing SDK correctly preserves dot/backslash/query/fragment-looking object names inside the configured namespace. No production workaround/change required. This does NOT establish live OCI credentials/IAM/TLS/bucket or Oracle Cloud readiness; SQL full491/492 and listener trigger remain open, originals preserved. [Exact cohort and report hashes](ORACLE_CLIENT_PRIORITY.md). Cached environment reused, listener/synthetic profile teardown verified, no restore/download/cloud calls or dev deployment.

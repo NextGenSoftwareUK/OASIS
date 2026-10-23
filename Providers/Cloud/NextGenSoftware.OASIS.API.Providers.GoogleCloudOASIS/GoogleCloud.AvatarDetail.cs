@@ -209,7 +209,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     source => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Holon>(
                         NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(source)));
                 result.Result = records.Where(row => type == HolonType.All || row.HolonType == type).Select(project).ToList();
-                result.IsLoaded = true;
+                result.LoadedCount=result.Result.Count();result.IsLoaded = true;
             }
             catch (Exception cause) { OASISErrorHandling.HandleError(ref result, cause.Message, cause); }
             return result;

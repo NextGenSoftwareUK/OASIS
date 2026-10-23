@@ -61,7 +61,7 @@ public partial class GoogleCloudOASIS
             if(current.IsError)return current;
             var project=HolonGraphProjection.Create(current.Result,true,true,0,0,true,source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
             result.Result=records.Where(row=>row.CreatedByAvatarId==owner).Select(project).ToList();
-            result.IsLoaded=true;
+            result.LoadedCount=result.Result.Count();result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -90,7 +90,7 @@ public partial class GoogleCloudOASIS
             if(loaded.IsError) return loaded;
             var rows=loaded.Result.ToList();
             result.Result=rows.Where(row=>StoredRecordSearch.Matches(row,false,search,rows)).ToList();
-            result.IsLoaded=true;
+            result.LoadedCount=result.Result.Count();result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -122,7 +122,7 @@ public partial class GoogleCloudOASIS
             var project = HolonGraphProjection.Create(current.Result,children,recursive,depth,initialDepth,fromProvider,
                 source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)),rootsAreChildren:true);
             result.Result = records.Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).Select(project).ToList();
-            result.IsLoaded = true;
+            result.LoadedCount=result.Result.Count();result.IsLoaded = true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -152,7 +152,7 @@ public partial class GoogleCloudOASIS
                 var project = HolonGraphProjection.Create(records,children,recursive,depth,0,fromProvider,
                     source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
                 result.Result=project(holon);
-                result.IsLoaded=true;
+                result.LoadedCount=1;result.IsLoaded=true;
             }
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
