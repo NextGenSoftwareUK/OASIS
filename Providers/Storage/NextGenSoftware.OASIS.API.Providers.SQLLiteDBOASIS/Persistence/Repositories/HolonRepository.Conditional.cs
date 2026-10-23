@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Serialization;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
 using NextGenSoftware.OASIS.Common;
 
@@ -181,13 +182,13 @@ public partial class HolonRepository
                 }
                 if(replica==null && operation==ConditionalHolonOperation.Save)
                 {
-                    var extension=JObject.Parse(model.PersistentValueJson);
+                    var extension=OasisJson.ParseStoredObject(model.PersistentValueJson);
                     var field=nameof(Holon.ChildRoleManifestJson);
                     if(request.SubmittedRelationships.TryGetValue(Guid.Parse(model.Id),out var manifest))
                         extension[field]=HolonChildRoleManifestJson.Serialize(manifest);
                     else
                     {
-                        var stored=previous==null ? null:JObject.Parse(previous.PersistentValueJson).Property(field);
+                        var stored=previous==null ? null:OasisJson.ParseStoredObject(previous.PersistentValueJson).Property(field);
                         if(stored==null)extension.Remove(field);else extension[field]=stored.Value.DeepClone();
                     }
                     model.PersistentValueJson=extension.ToString(Formatting.None);
