@@ -215,12 +215,13 @@ public class OracleObjectSdkTests
         });
     }
 
-    [TestMethod]
-    public async Task NativeListingFollowsEveryCursorWithoutDroppingPrefix()
+    [DataTestMethod][DataRow("oasis/b")][DataRow("oasis/tree 🌳 +&?=/#")]
+    public async Task NativeListingFollowsEveryCursorWithoutDroppingPrefix(string nextName)
     {
-        await Exchange(async backend=>CollectionAssert.AreEqual(new[]{"oasis/a","oasis/b"},(await backend.ListKeysAsync("oasis/")).ToArray()),
-            async context=>{Assert.AreEqual("oasis/",context.Request.QueryString["prefix"]);Assert.IsNull(context.Request.QueryString["start"]);await Reply(context,200,"{\"objects\":[{\"name\":\"oasis/a\"}],\"nextStartWith\":\"cursor-b\"}");},
-            async context=>{Assert.AreEqual("oasis/",context.Request.QueryString["prefix"]);Assert.AreEqual("cursor-b",context.Request.QueryString["start"]);await Reply(context,200,"{\"objects\":[{\"name\":\"oasis/b\"}]}");});
+        // OCI continuation is the next object NAME, not an opaque paging token.
+        await Exchange(async backend=>CollectionAssert.AreEqual(new[]{"oasis/a",nextName},(await backend.ListKeysAsync("oasis/")).ToArray()),
+            async context=>{Assert.AreEqual("oasis/",context.Request.QueryString["prefix"]);Assert.IsNull(context.Request.QueryString["start"]);await Reply(context,200,System.Text.Json.JsonSerializer.Serialize(new{objects=new[]{new{name="oasis/a"}},nextStartWith=nextName}));},
+            async context=>{Assert.AreEqual("oasis/",context.Request.QueryString["prefix"]);Assert.AreEqual(nextName,context.Request.QueryString["start"]);await Reply(context,200,System.Text.Json.JsonSerializer.Serialize(new{objects=new[]{new{name=nextName}}}));});
     }
 
     [TestMethod]
@@ -326,7 +327,7 @@ public class OracleObjectSdkTests
         Func<HttpListenerContext,Task> first=context=>Reply(context,200,corruption switch {
             "duplicate"=>"{\"objects\":[{\"name\":\"oasis/a\"},{\"name\":\"oasis/a\"}]}",
             "outside"=>"{\"objects\":[{\"name\":\"foreign/a\"}]}",
-            _=>"{\"objects\":[],\"nextStartWith\":\"same-cursor\"}"});
+            _=>"{\"objects\":[],\"nextStartWith\":\"oasis/same-cursor\"}"});
         var responses=corruption=="cursor"?new[]{first,first}:new[]{first};
         await Exchange(backend=>Assert.ThrowsExceptionAsync<InvalidDataException>(()=>backend.ListKeysAsync("oasis/")),responses);
     }
