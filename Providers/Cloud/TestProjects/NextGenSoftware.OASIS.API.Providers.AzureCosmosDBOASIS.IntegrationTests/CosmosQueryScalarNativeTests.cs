@@ -48,6 +48,42 @@ public partial class AzureCosmosDBOASISIntegrationTests
 
 public partial class CosmosNativeStorageTests
 {
+    [TestMethod][TestCategory("ScalarReconciliation")]
+    public async Task RemoveOnlyReviewedCommittedScalarFixtureByOriginalEtag()
+    {
+        var work=Environment.GetEnvironmentVariable("OASIS_COSMOSDB_WORK")??throw new InvalidOperationException("Retained runner required.");
+        string Hash(byte[] bytes)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes));
+        var journal=Path.Combine(work,"cosmos-query-scalar.pending.json");
+        Assert.AreEqual("1E63DBEC39F0466F2CC2BC0487E8F93EF780F0D2A37D0CD5853BF51F85990BA8",Hash(await File.ReadAllBytesAsync(journal)));
+        var inventory=Path.Combine(work,"cosmos-query-scalar-inspection.json");
+        Assert.AreEqual("3DBE4BDF106385A1C9BC88983BA0E6903016DCBDE1D3903C219AC3770A7B1803",Hash(await File.ReadAllBytesAsync(inventory)));
+        var id="b8de3c86-356f-4db8-a0f9-28df785c3daa";const string etag="47f5b6a9-aed5-45bb-971f-e3f908843a8b",bodyHash="8D09887823FB75466EEE89F29C6AEFEEAD13E23230B60736F962ADBADF89F8BC";
+        using var client=new CosmosClient("https://127.0.0.1:8081",EmulatorKey,new CosmosClientOptions{ConnectionMode=ConnectionMode.Gateway,RequestTimeout=TimeSpan.FromSeconds(10),MaxRetryAttemptsOnRateLimitedRequests=0,
+            HttpClientFactory=()=>new HttpClient(new HttpClientHandler{ServerCertificateCustomValidationCallback=HttpClientHandler.DangerousAcceptAnyServerCertificateValidator})});
+        var database=client.GetDatabase("oasis-cosmos-crud");
+        async Task Counts(bool removed){
+            foreach(var table in new[]{"avatarItems","avatarDetailItems","holonItems"}){
+                using var query=database.GetContainer(table).GetItemQueryIterator<long>("SELECT VALUE COUNT(1) FROM c");long count=0;
+                while(query.HasMoreResults)count+=(await query.ReadNextAsync()).Single();
+                Assert.AreEqual(!removed&&table=="holonItems"?1L:0L,count,"Only the reviewed single fixture is disposable.");
+            }
+        }
+        await Counts(false);var container=database.GetContainer("holonItems");var key=new PartitionKey(id);
+        using(var point=await container.ReadItemStreamAsync(id,key)){
+            Assert.AreEqual(HttpStatusCode.OK,point.StatusCode);Assert.AreEqual(etag,point.Headers.ETag);
+            using var reader=new StreamReader(point.Content);var raw=await reader.ReadToEndAsync();Assert.AreEqual(bodyHash,Hash(System.Text.Encoding.UTF8.GetBytes(raw)));
+            using var value=JsonDocument.Parse(raw);Assert.AreEqual(id,value.RootElement.GetProperty("Id").GetString());
+            Assert.AreEqual("owned-query-scalar-b8de3c86356f4db8a0f928df785c3daa",value.RootElement.GetProperty("Name").GetString());
+        }
+        using(var deleted=await container.DeleteItemStreamAsync(id,key,new ItemRequestOptions{IfMatchEtag=etag}))Assert.AreEqual(HttpStatusCode.NoContent,deleted.StatusCode);
+        using(var absent=await container.ReadItemStreamAsync(id,key))Assert.AreEqual(HttpStatusCode.NotFound,absent.StatusCode);
+        await Counts(true);
+        using(var file=new FileStream(Path.Combine(work,"cosmos-query-scalar-cleanup.json"),FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+            await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,etag,bodyHash,originalReplayed=false,conditionalDeleteAcknowledged=true,independentAbsenceVerified=true,allThreeFixtureContainersEmpty=true}));file.Flush(true);
+        }
+        File.Delete(journal);
+    }
+
     [TestMethod][TestCategory("ScalarInspection")]
     public async Task InspectOriginalQueryScalarFixtureWithoutReplayingSave()
     {
