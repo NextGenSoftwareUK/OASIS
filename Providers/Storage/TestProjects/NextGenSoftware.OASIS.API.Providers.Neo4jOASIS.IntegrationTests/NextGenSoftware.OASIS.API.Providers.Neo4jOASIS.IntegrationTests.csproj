@@ -21,8 +21,10 @@
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1SwaggerExample.cs" Link="Demo\V1SwaggerExample.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1DemoPresentation.cs" Link="Demo\V1DemoPresentation.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Models\Data\CqlV1Request.cs" Link="Web4\CqlV1Request.cs" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Models\Data\CqlScalarV1Request.cs" Link="Web4\CqlScalarV1Request.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlV1Compiler.cs" Link="Web4\CqlV1Compiler.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlV1Endpoint.cs" Link="Web4\CqlV1Endpoint.cs" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlScalarV1Endpoint.cs" Link="Web4\CqlScalarV1Endpoint.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Controllers\CqlV1Controller.cs" Link="Web4\CqlV1Controller.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Helpers\AuthorizeAttribute.cs" Link="Web4\AuthorizeAttribute.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Middleware\OasisJwtValidation.cs" Link="Web4\OasisJwtValidation.cs" />

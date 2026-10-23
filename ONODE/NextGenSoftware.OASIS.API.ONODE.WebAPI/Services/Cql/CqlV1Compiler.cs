@@ -25,12 +25,29 @@ public static class CqlV1Compiler
 
     public static CosmicQuery<Holon> Compile(CqlV1Request request, Guid actor, ProviderType? provider)
     {
+        if (request == null || request.Take is < 1 or > 100)
+            throw new ArgumentException("Row queries require Take 1–100.");
+        return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take);
+    }
+
+    public static CosmicQuery<Holon> CompileScalarSource(CqlScalarV1Request request, Guid actor, ProviderType? provider)
+    {
+        if (request == null) throw new ArgumentException("A scalar query description is required.");
+        return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take);
+    }
+
+    private static CosmicQuery<Holon> CompileSource(Guid actor, ProviderType? provider, CqlV1Filter[] filters,
+        CqlV1Filter[] anyOf, CqlV1ChildExists[] anyChildren, CqlV1DescendantExists[] anyDescendants,
+        CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take)
+    {
         if (actor == Guid.Empty || provider.HasValue && !Supported(provider.Value)) throw new ArgumentException("Authenticated actor and concrete v1 provider required.");
-        if (request == null || request.Filters == null || request.AnyOf == null || request.AnyChildren == null || request.AnyDescendants == null ||
-            request.AnyChildren.Length + (long)request.AnyDescendants.Length > 4 ||
-            request.Filters.Length + request.AnyOf.Length > 12 || request.Skip is < 0 or > 1000 || request.Take is < 1 or > 100)
-            throw new ArgumentException("Use at most 12 filters, Skip 0–1000 and Take 1–100.");
-        var filterCount = request.Filters.Length + request.AnyOf.Length;
+        if (filters == null || anyOf == null || anyChildren == null || anyDescendants == null ||
+            anyChildren.Length + (long)anyDescendants.Length > 4 ||
+            filters.Length + anyOf.Length > 12 || skip is < 0 or > 1000 || take is < 0 or > 10000)
+            throw new ArgumentException("Use at most 12 filters, Skip 0–1000 and optional Take 0–10000.");
+        var filterCount = filters.Length + anyOf.Length;
         void CountGroup(CqlV1Filter[] filters,CqlV1Filter[] anyOf)
         {
             if(filters==null || anyOf==null || filters.Length+(long)anyOf.Length is <1 or >12)
@@ -38,12 +55,12 @@ public static class CqlV1Compiler
             filterCount+=filters.Length+anyOf.Length;
             if(filterCount>12)throw new ArgumentException("Use at most twelve filters across roots and relationship groups.");
         }
-        foreach(var group in request.AnyChildren)
+        foreach(var group in anyChildren)
         {
             if(group==null)throw new ArgumentException("Child-existence groups cannot be null.");
             CountGroup(group.Filters,group.AnyOf);
         }
-        foreach(var group in request.AnyDescendants)
+        foreach(var group in anyDescendants)
         {
             if(group==null)throw new ArgumentException("Descendant-existence groups cannot be null.");
             CountGroup(group.Filters,group.AnyOf);
@@ -55,9 +72,9 @@ public static class CqlV1Compiler
         // and paging. Shared-index metadata cannot grant access; Wizard does not bypass this.
         var query = Add(CosmicQuery<Holon>.Create(provider.HasValue ? CosmicQueryScope.Named(provider.Value).Result : CosmicQueryScope.CurrentDefault),
             actor);
-        if(request.Graph!=null)
+        if(graphDescription!=null)
         {
-            var graph=request.Graph;
+            var graph=graphDescription;
             if(graph.MaxChildDepth is <1 or >CqlV1Projection.MaximumDepth ||
                 graph.MaximumNodes is <1 or >1000 || graph.MaximumPayloadBytes is <1 or >CqlV1Endpoint.MaximumResponseBytes ||
                 graph.ChildType==null || graph.ChildType.Length>64 ||
@@ -74,24 +91,24 @@ public static class CqlV1Compiler
             query=expanded.Result;
         }
         var parameter = Expression.Parameter(typeof(Holon), "h");
-        foreach (var filter in request.Filters)
+        foreach (var filter in filters)
             query = Add(query, parameter, Predicate(filter, parameter));
 
         Expression alternatives = null;
-        foreach (var filter in request.AnyOf)
+        foreach (var filter in anyOf)
         {
             var condition = Predicate(filter, parameter);
             alternatives = alternatives == null ? condition : Expression.OrElse(alternatives, condition);
         }
         if (alternatives != null) query = Add(query, parameter, alternatives);
 
-        foreach(var group in request.AnyChildren)
+        foreach(var group in anyChildren)
         {
             var related=query.WhereAnyChild(RelationshipPredicate(group.Filters,group.AnyOf));
             if(related.IsError)throw new ArgumentException(related.Message);
             query=related.Result;
         }
-        foreach(var group in request.AnyDescendants)
+        foreach(var group in anyDescendants)
         {
             var limits=CosmicQueryTraversalOptions.Create(group.MaximumDepth,group.MaximumNodes);
             if(limits.IsError)throw new ArgumentException(limits.Message);
@@ -100,15 +117,16 @@ public static class CqlV1Compiler
             query=related.Result;
         }
 
-        var ordered = request.OrderBy switch
+        var ordered = orderBy switch
         {
-            "Name" => request.Descending ? query.OrderByDescending(h => h.Name) : query.OrderBy(h => h.Name),
-            "Version" => request.Descending ? query.OrderByDescending(h => h.Version) : query.OrderBy(h => h.Version),
-            "Id" => request.Descending ? query.OrderByDescending(h => h.Id) : query.OrderBy(h => h.Id),
+            "Name" => descending ? query.OrderByDescending(h => h.Name) : query.OrderBy(h => h.Name),
+            "Version" => descending ? query.OrderByDescending(h => h.Version) : query.OrderBy(h => h.Version),
+            "Id" => descending ? query.OrderByDescending(h => h.Id) : query.OrderBy(h => h.Id),
             _ => throw new ArgumentException("OrderBy accepts Name, Version or Id.")
         };
         if (ordered.IsError) throw new ArgumentException(ordered.Message);
-        var page = ordered.ThenBy(h => h.Id).Skip(request.Skip).Take(request.Take);
+        var page = ordered.ThenBy(h => h.Id).Skip(skip);
+        if (take.HasValue) page = page.Take(take.Value);
         if (page.IsError) throw new ArgumentException(page.Message);
         return page.Result;
     }

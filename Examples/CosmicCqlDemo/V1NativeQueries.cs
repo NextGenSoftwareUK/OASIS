@@ -120,7 +120,47 @@ public static class V1NativeQueries
 
         await ShowAsync("6. Bounded native descendant existence", parentsWithDescendants, "C-public");
 
+        // 7. A terminal builds an immutable intent; it does not run a row query
+        // or hydrate entities. Omitted Take counts the complete visible source.
+        await ShowScalarAsync("7. Native LongCount / complete visible source",
+            Value(visible.LongCount()), 3L);
+
+        // 8. Window algebra belongs to the source: Skip/Take happen before Count.
+        await ShowScalarAsync("8. Count after an explicit source window",
+            Value(visible.Skip(1).Take(1).Count()), 1);
+
+        // 9. Access is applied before Any, too. An inaccessible match is false.
+        await ShowScalarAsync("9. Any cannot reveal a private root",
+            Value(visible.Where(holon => holon.Name == "A-private").Any()), false);
+
         return completedQueries;
+
+        async Task ShowScalarAsync<TResult>(
+            string title,
+            CosmicScalarQuery<Holon, TResult> query,
+            TResult expected)
+        {
+            // Scalar capability is additive; row support alone does not grant it.
+            if (adapter is not ICosmicQueryScalarStorageProvider scalarAdapter)
+                throw new InvalidOperationException("This provider has no scalar contract.");
+
+            var plan = Value(CosmicScalarPlanner.Plan(
+                query,
+                provider,
+                new[] { new CosmicScalarTarget(provider,
+                    adapter.QueryCapabilities, scalarAdapter.ScalarCapabilities) }));
+
+            var execution = Value(await manager.ExecuteScalarQueryAsync(plan, new[] { adapter }));
+            var result = execution.Providers.Single().Value;
+
+            if (!EqualityComparer<TResult>.Default.Equals(result, expected))
+                throw new InvalidOperationException(title + " returned an unexpected scalar.");
+
+            completedQueries++;
+
+            await output.WriteLineAsync(title);
+            await output.WriteLineAsync($"\n  {typeof(TResult).Name}: {result}\n");
+        }
 
         async Task ShowAsync(string title, CosmicQuery<Holon> query, params string[] expected)
         {

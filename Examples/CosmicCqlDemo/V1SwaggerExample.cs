@@ -22,6 +22,28 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
 
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {
+        if (context.Type.Name == "CqlScalarV1Request")
+        {
+            // Deliberately omit take: this counts the complete visible source.
+            // The response tags Int64 and returns its value as a decimal string.
+            schema.Example = new OpenApiObject
+            {
+                ["provider"] = new OpenApiString("MongoDBOASIS"),
+                ["operation"] = new OpenApiString("LongCount"),
+                ["filters"] = new OpenApiArray
+                {
+                    new OpenApiObject
+                    {
+                        ["metadataPath"] = new OpenApiArray { new OpenApiString("location"), new OpenApiString("city") },
+                        ["scalar"] = new OpenApiString("String"),
+                        ["operator"] = new OpenApiString("Equal"),
+                        ["value"] = new OpenApiString("London")
+                    }
+                }
+            };
+            return;
+        }
+
         if (context.Type.Name != "CqlV1Request") return;
 
         schema.Example = new OpenApiObject

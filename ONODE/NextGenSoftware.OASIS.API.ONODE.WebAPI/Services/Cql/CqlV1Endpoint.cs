@@ -44,22 +44,14 @@ public sealed class CqlV1ResourceFilter : IAsyncResourceFilter
     }
 }
 
-public static class CqlV1Endpoint
+public static partial class CqlV1Endpoint
 {
     public const int MaximumResponseBytes = 1024 * 1024;
 
     public static async Task<IActionResult> ExecuteAsync(HttpContext http, CqlV1Request request, ICqlV1Providers providers)
     {
-        // The JWT-derived avatar and the server's exact reservation must agree. A DTO cannot supply an actor.
-        var actor = (http.Items["Avatar"] as IAvatar)?.Id ?? Guid.Empty;
-        if (actor == Guid.Empty || http.User.Identity?.IsAuthenticated != true)
-            return Failure(401, "CQL_AUTHENTICATION_REQUIRED", "Authenticate with a WEB4 bearer token.");
-
-        var admission = PreparedStorageExecution.Current;
-        if (admission == null || !admission.IsForAvatar(actor) ||
-            !http.Items.TryGetValue(Web4UsageMeasurement.ExecutionKey, out var handle) ||
-            handle is not UsageExecutionHandle execution || !admission.IsBoundTo(execution))
-            return Failure(503, "CQL_ADMISSION_REQUIRED", "Configure the CQL route's authenticated storage admission and query tariffs.");
+        var rejected = CaptureAdmission(http, out var actor, out var admission);
+        if (rejected != null) return rejected;
 
         try
         {
@@ -67,10 +59,7 @@ public static class CqlV1Endpoint
             var requested = CqlV1Compiler.RequestedProvider(request?.Provider);
             // Validate the complete request before provider lookup or manager acquisition.
             var query = CqlV1Compiler.Compile(request, actor, requested);
-            var storage = providers.Resolve(requested);
-            var selected = storage?.ProviderType?.Value ?? ProviderType.None;
-            if (!CqlV1Compiler.Supported(selected) || storage is not ICosmicQueryStorageProvider adapter ||
-                selected != adapter.QueryProviderType || requested.HasValue && requested.Value != selected || !admission.HasQueryTariff(selected))
+            if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected))
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The selected provider is not eligible for this admitted v1 query.");
 
             query = query.WithScope(CosmicQueryScope.Named(selected).Result);
@@ -84,8 +73,7 @@ public static class CqlV1Endpoint
             var result = await manager.ExecuteQueryAsync(plan.Result, new[] { adapter }, maximumResults: request.Take, cancellationToken: deadline.Token);
             if (result.IsError)
             {
-                var status = result.ErrorCode == "CQL_QUERY_CANCELLED" ? (http.RequestAborted.IsCancellationRequested ? 499 : 504) : 503;
-                return Failure(status, result.ErrorCode, "The query did not complete. Retain the usage operation ID for reconciliation.");
+                return QueryFailure(http, result.ErrorCode);
             }
 
             // Return bounded leaf DTOs. Never expose provider keys/revisions or runtime/relationship objects.
@@ -99,10 +87,7 @@ public static class CqlV1Endpoint
                 rows = CqlV1Projection.Create(rows,query.ReadAccess,request.IncludeMetadata,
                     query.GraphOptions,deadline.Token)
             }) { IsLoaded = true };
-            using var buffer = new ResponseBuffer();
-            using (var writer = new Utf8JsonWriter(buffer))
-                JsonSerializer.Serialize(writer, response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-            return new FileContentResult(buffer.ToArray(), "application/json");
+            return JsonResponse(response);
         }
         catch (ArgumentException) when (!http.Items.ContainsKey(CqlV1ResourceFilter.DispatchedKey))
         { return Failure(400, "CQL_REQUEST_INVALID", "Invalid bounded CQL v1 query description."); }
@@ -113,6 +98,45 @@ public static class CqlV1Endpoint
         catch (ResponseLimitException) { return Failure(413, "CQL_RESPONSE_LIMIT", "Query response exceeds the one MiB limit; narrow the query."); }
         catch (OperationCanceledException) { return Failure(http.RequestAborted.IsCancellationRequested ? 499 : 504, "CQL_QUERY_CANCELLED", "The query was cancelled."); }
         catch (Exception) { return Failure(503, "CQL_EXECUTION_FAILED", "The query did not complete. Retain the usage operation ID for reconciliation."); }
+    }
+
+    private static IActionResult CaptureAdmission(HttpContext http, out Guid actor, out PreparedStorageExecution admission)
+    {
+        actor = (http.Items["Avatar"] as IAvatar)?.Id ?? Guid.Empty;
+        admission = null;
+        if (actor == Guid.Empty || http.User.Identity?.IsAuthenticated != true)
+            return Failure(401, "CQL_AUTHENTICATION_REQUIRED", "Authenticate with a WEB4 bearer token.");
+        admission = PreparedStorageExecution.Current;
+        if (admission == null || !admission.IsForAvatar(actor) ||
+            !http.Items.TryGetValue(Web4UsageMeasurement.ExecutionKey, out var handle) ||
+            handle is not UsageExecutionHandle execution || !admission.IsBoundTo(execution))
+            return Failure(503, "CQL_ADMISSION_REQUIRED", "Configure the CQL route's authenticated storage admission and query tariffs.");
+        return null;
+    }
+
+    private static bool TryResolveEligible(ICqlV1Providers providers, ProviderType? requested, PreparedStorageExecution admission,
+        out IOASISStorageProvider storage, out ICosmicQueryStorageProvider adapter, out ProviderType selected)
+    {
+        storage = providers.Resolve(requested);
+        adapter = storage as ICosmicQueryStorageProvider;
+        selected = storage?.ProviderType?.Value ?? ProviderType.None;
+        return CqlV1Compiler.Supported(selected) && adapter != null && selected == adapter.QueryProviderType
+            && (!requested.HasValue || requested.Value == selected) && admission.HasQueryTariff(selected);
+    }
+
+    private static IActionResult QueryFailure(HttpContext http, string code)
+    {
+        var status = code == "CQL_QUERY_CANCELLED" ? (http.RequestAborted.IsCancellationRequested ? 499 : 504)
+            : code == "CQL_QUERY_TIMEOUT" ? 504 : 503;
+        return Failure(status, code, "The query did not complete. Retain the usage operation ID for reconciliation.");
+    }
+
+    private static IActionResult JsonResponse(object response)
+    {
+        using var buffer = new ResponseBuffer();
+        using (var writer = new Utf8JsonWriter(buffer))
+            JsonSerializer.Serialize(writer, response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        return new FileContentResult(buffer.ToArray(), "application/json");
     }
 
     private static IActionResult Failure(int status, string code, string message) => new ObjectResult(

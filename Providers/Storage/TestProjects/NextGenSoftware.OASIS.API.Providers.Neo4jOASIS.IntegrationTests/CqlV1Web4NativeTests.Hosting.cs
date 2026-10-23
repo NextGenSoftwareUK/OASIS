@@ -96,7 +96,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 options.SchemaFilter<V1SwaggerExample>();
                 options.OperationFilter<V1SwaggerExample>();
-                options.DocInclusionPredicate((_, description) => description.RelativePath == "api/data/query-cql");
+                options.DocInclusionPredicate((_, description) => description.RelativePath is "api/data/query-cql" or "api/data/query-cql/scalar");
                 options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
                 {
                     Title = "CQL v1 · MongoDB / SQLite / Neo4j", Version = "v1",
@@ -122,7 +122,7 @@ public sealed partial class CqlV1Web4NativeTests
         builder.Services.AddSingleton<IUsageReservationAuthority>(authority);
         builder.Services.AddSingleton(new Web4UsageLedgerOptions
         {
-            Service = "WEB4", EndpointPolicy = http => http.Request.Path == "/api/data/query-cql" ? new UsageEndpointPolicy
+            Service = "WEB4", EndpointPolicy = http => IsQueryRoute(http) ? new UsageEndpointPolicy
             {
                 MeterCategory = "cql.query", ReservedUnits = 1, EstimatedCostUsd = 0.002m,
                 PricingCatalogueVersion = "owned-fixture-v1", RequiresProviderMeasurement = true,
@@ -154,7 +154,7 @@ public sealed partial class CqlV1Web4NativeTests
                       return (async () => {
                         const target = new URL(request.url, window.location.origin);
                         if (target.origin === window.location.origin &&
-                            target.pathname === '/api/data/query-cql' && !request.headers.Authorization) {
+                            ['/api/data/query-cql', '/api/data/query-cql/scalar'].includes(target.pathname) && !request.headers.Authorization) {
                             const response = await fetch('/demo/session');
                             if (!response.ok) throw new Error('Demo session is not ready.');
                             const session = await response.json();
@@ -188,7 +188,7 @@ public sealed partial class CqlV1Web4NativeTests
                     http.User = new ClaimsPrincipal();
                 }
             }
-            if (demo != null && journalRequest != null && http.Request.Path == "/api/data/query-cql")
+            if (demo != null && journalRequest != null && IsQueryRoute(http))
             {
                 var actor = Guid.TryParse(http.User.FindFirstValue("sub"), out var id) ? id : Guid.Empty;
                 await journalRequest(actor, http.Request.Headers["Idempotency-Key"].ToString());
@@ -196,11 +196,14 @@ public sealed partial class CqlV1Web4NativeTests
             await next();
         });
         app.UseMiddleware<Web4UsageLedgerMiddleware>();
-        app.UseWhen(http => http.Request.Path == "/api/data/query-cql",
+        app.UseWhen(http => IsQueryRoute(http),
             branch => branch.UseMiddleware<PreparedStorageAdmissionMiddleware>());
         app.MapControllers();
         return app;
     }
+
+    private static bool IsQueryRoute(HttpContext http)
+        => http.Request.Path == "/api/data/query-cql" || http.Request.Path == "/api/data/query-cql/scalar";
 
     private static string Token(Guid actor, SymmetricSecurityKey key, string issuer = "owned-cql-v1-fixture",
         bool expired = false, Guid? claimId = null, int lifetimeMinutes = 5) =>
