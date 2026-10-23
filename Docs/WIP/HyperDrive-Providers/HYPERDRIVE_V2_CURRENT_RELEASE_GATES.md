@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Shared GUID-key deletion prerequisite — 23 October 2026
+
+Core8d45d35 adds an opt-in GUID-native-key validator/one-shot dispatch helper.32 focused/full2091 Core units and dual-TFM build passed; no external mutations, downloads or new environments. Paired manifest/gitlink advance is a prerequisite only:29 confirmed GUID-key adapters still contain unsafe username fallback wrappers pending adoption/build/acceptance. Opaque native-key providers must not be forced through this helper. Source audit, tested-cohort caveat and evidence hashes are in HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md and ENVIRONMENT_INVENTORY.md. No all-provider completion or deployment gate is closed by this prerequisite.
+
 ## AWS native-key deletion repair — 23 October 2026
 
 Invalid DynamoDB provider keys no longer fall through to username deletion. Existing explicit username API is unchanged; nonempty GUID keys preserve ID/soft/hard routing. Baseline20/24 failures corrected;24 focused/full467 units and retained AWS134/Dynamo163 native cases passed with zero skips. Native cases confirm invalid-key rejection leaves avatar/detail/XP/karma/inventory untouched. Same retained service/data, pending0/listeners0 after verified teardown. Current-source/copy proof and hashes in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md and ENVIRONMENT_INVENTORY.md. This closes the scoped routing defect, not hosted IAM/billing, all AWS services or all-provider V2 acceptance. No dev merge/deployment is implied.
