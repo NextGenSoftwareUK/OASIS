@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.API.Core.Serialization;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -98,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 if (entries.Any(entry => !Enum.IsDefined(typeof(ProviderType), entry.Provider)
                     || (entry.Wallet.ProviderType != NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default && entry.Wallet.ProviderType != entry.Provider)))
                     throw new ArgumentException("Wallet provider types must match their dictionary provider.");
-                var json = JsonConvert.SerializeObject(wallets, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.None });
+                var json = StoredRecordJson.SerializeInput(wallets);
                 row = await _appDataContext.AvatarWalletStores.SingleOrDefaultAsync(value => value.AvatarId == avatarId.ToString());
                 if (row == null)
                 {
@@ -129,7 +131,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 .SingleOrDefaultAsync(value => value.AvatarId == avatarId.ToString());
             var result = new Dictionary<ProviderType, List<IProviderWallet>>();
             if (row == null) return result;
-            var json = JObject.Parse(row.WalletsJson);
+            // Keep metadata JSON values exact and date-looking strings uninterpreted.
+            // Canonical projection admits exact typed numeric tokens for the concrete
+            // wallet/transaction reader without narrowing untyped metadata numbers.
+            JObject json;
+            try { json = StoredRecordJson.Project<JObject>(OasisJson.ParseStoredObject(row.WalletsJson)); }
+            catch (System.IO.InvalidDataException cause)
+            { throw new JsonSerializationException("Stored wallet JSON must be a valid object.",cause); }
             var serializer = JsonSerializer.Create(new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.None,
