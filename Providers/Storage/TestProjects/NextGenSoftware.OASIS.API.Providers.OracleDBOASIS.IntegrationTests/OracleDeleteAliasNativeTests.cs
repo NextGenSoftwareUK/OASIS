@@ -25,7 +25,7 @@ public sealed partial class OracleNativeAcceptanceTests
     public static IEnumerable<object[]> DeleteAliasCases()
     {
         foreach(var legacy in new[]{false,true})foreach(var key in new[]{false,true})
-        foreach(var sync in new[]{false,true})foreach(var soft in legacy?new[]{true}:new[]{false,true})
+        foreach(var sync in new[]{false,true})foreach(var soft in legacy?new[]{false}:new[]{false,true})
         foreach(var lost in new[]{false,true})yield return new object[]{legacy,key,sync,soft,lost};
     }
 
@@ -59,7 +59,7 @@ public sealed partial class OracleNativeAcceptanceTests
                 Assert.IsNotNull(after);using var parsed=JsonDocument.Parse(after);Assert.AreEqual(id,parsed.RootElement.GetProperty("Id").GetGuid());
                 Assert.AreEqual(name,parsed.RootElement.GetProperty("Name").GetString());Assert.IsFalse(parsed.RootElement.GetProperty("IsActive").GetBoolean());
                 Assert.AreNotEqual(DateTime.MinValue,parsed.RootElement.GetProperty("DeletedDate").GetDateTime());
-            }else Assert.IsNull(after);
+            }else if(after!=null)bad.Add("Hard-delete storage interface retained a physical row instead of removing it.");
             if(result.IsError!=lost||result.IsDeleted==lost||result.DeletedCount!=(lost?0:1)||result.IsSaved||result.SavedCount!=0)
                 bad.Add($"first acknowledgement: error={result.IsError},deleted={result.IsDeleted},count={result.DeletedCount}");
             Assert.AreEqual(lost,NativeMutationReconciliation.IsRequired(result.Exception));

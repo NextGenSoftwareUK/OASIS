@@ -695,7 +695,9 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            return await DeleteHolonRecordAsync(id,true);
+            // The shared storage contract dispatches hard deletion here. Soft deletion
+            // is a tombstone Save in HolonManager, or the explicit provider helper.
+            return await DeleteHolonRecordAsync(id,false);
         }
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
