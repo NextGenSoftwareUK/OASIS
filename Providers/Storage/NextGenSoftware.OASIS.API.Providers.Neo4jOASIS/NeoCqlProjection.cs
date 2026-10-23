@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 
@@ -10,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 // persisted snapshot rather than from caller objects or stringified lookup tokens.
 internal static class NeoCqlProjection
 {
-    internal const long SchemaVersion = 2;
+    internal const long SchemaVersion = 3;
 
     internal static string PathKey(IReadOnlyList<string> segments)
         => "m_" + Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(segments)))
@@ -75,6 +76,16 @@ internal static class NeoCqlProjection
         // historical JSON fields must query like their materialized CLR values.
         var record = Core.Serialization.StoredRecordJson.DeserializeStoredHolon(snapshot);
         result["f_Id"] = record.Id.ToString("D");
+        var manifest=(record as Core.Holons.Holon)?.ChildRoleManifestJson;
+        result["f_HasChildManifest"]=manifest!=null;
+        var members=Array.Empty<string>();
+        if(manifest!=null)
+        {
+            var observed=Core.Serialization.HolonChildRoleManifestJson.Deserialize(manifest);
+            if(observed.ParentId!=record.Id)throw new System.IO.InvalidDataException("CQL membership belongs to another owner.");
+            members=observed.Roles.SelectMany(role=>role.ChildIds).Select(id=>id.ToString("D")).ToArray();
+        }
+        result["f_ChildIds"]=members;
         if (record.Name != null) result["f_Name"] = record.Name;
         if (record.Description != null) result["f_Description"] = record.Description;
         result["f_Version"] = (long)record.Version;

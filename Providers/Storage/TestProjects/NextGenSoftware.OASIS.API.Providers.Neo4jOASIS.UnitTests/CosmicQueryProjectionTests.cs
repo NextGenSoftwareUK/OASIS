@@ -5,6 +5,38 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 [TestClass]
 public class CosmicQueryProjectionTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public void DeclaredEmptyMembershipIsDistinctFromParentLinkRepresentation(bool declared)
+    {
+        var owner=new Core.Holons.Holon{Id=Guid.NewGuid()};
+        if(declared)owner.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
+            new Core.Holons.HolonChildRoleManifest(1,owner.Id,new[]{new Core.Holons.HolonChildRole("Children",Array.Empty<Guid>())}));
+        var map=NeoCqlProjection.Build(Core.Serialization.StoredRecordJson.Serialize(owner));
+        Assert.AreEqual(3L,map["SchemaVersion"]);Assert.AreEqual(declared,map["f_HasChildManifest"]);
+        Assert.AreEqual(0,((string[])map["f_ChildIds"]).Length);
+    }
+
+    [TestMethod]
+    public void MembershipProjectionUsesCanonicalRolesRatherThanMetadataLabels()
+    {
+        var owner=new Core.Holons.Holon{Id=Guid.NewGuid()};var member=Guid.NewGuid();
+        owner.MetaData["f_ChildIds"]=new[]{Guid.NewGuid().ToString()};
+        owner.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
+            new Core.Holons.HolonChildRoleManifest(1,owner.Id,new[]{new Core.Holons.HolonChildRole("Extras",new[]{member})}));
+        var map=NeoCqlProjection.Build(Core.Serialization.StoredRecordJson.Serialize(owner));
+        CollectionAssert.AreEqual(new[]{member.ToString("D")},(string[])map["f_ChildIds"]);
+    }
+
+    [TestMethod]
+    public void AForeignRoleObservationCannotBecomeANativeMembershipProjection()
+    {
+        var owner=new Core.Holons.Holon{Id=Guid.NewGuid()};
+        owner.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
+            new Core.Holons.HolonChildRoleManifest(1,Guid.NewGuid(),new[]{new Core.Holons.HolonChildRole("Children",Array.Empty<Guid>())}));
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>NeoCqlProjection.Build(Core.Serialization.StoredRecordJson.Serialize(owner)));
+    }
+
     [TestMethod]
     public void HistoricalDefaultsAndGuidCasingMatchCanonicalMaterialization()
     {
