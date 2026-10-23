@@ -13,6 +13,9 @@
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Models\Data\CqlProjectionV1Request.cs" Link="Web4\CqlProjectionV1Request.cs" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlProjectionV1Compiler.cs" Link="Web4\CqlProjectionV1Compiler.cs" />
+    <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlProjectionV1Endpoint.cs" Link="Web4\CqlProjectionV1Endpoint.cs" />
   </ItemGroup>
   <ItemGroup>
     <!-- Exercise the shipping boundary, rather than maintaining a parallel HTTP implementation. -->

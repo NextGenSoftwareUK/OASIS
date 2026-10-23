@@ -386,7 +386,7 @@ See the [complete scalar contract](CQL_SCALAR_HTTP_CONTRACT.md) for limits and a
 
 ## Native Select — SQLite SDK
 
-SQLite supports detached scalar, anonymous and flat DTO projections through the generic V2 manager. MongoDB now also implements the same projection contract (see below); Neo4j also implements the SDK projection contract as described below; the projection HTTP route remains pending. Existing row/scalar APIs are unchanged. This SDK code runs within a trusted host: bind the actor from your authoritative application identity.
+SQLite supports detached scalar, anonymous and flat DTO projections through the generic V2 manager. MongoDB now also implements the same projection contract (see below); Neo4j also implements the SDK projection contract as described below; the projection HTTP route is described below. Existing row/scalar APIs are unchanged. This SDK code runs within a trusted host: bind the actor from your authoritative application identity.
 
 ```csharp
 ICosmicQueryProjectionStorageProvider adapter = sqlite;
@@ -443,7 +443,7 @@ Requested source snapshot consistency is retained; graph output node caps do not
 
 The same generic SDK projection code above is implemented for MongoDB: bind `ICosmicQueryProjectionStorageProvider adapter` to the activated MongoDB instance and use its own query/projection capabilities. Source eligibility, ordering and paging run in the native BSON pipeline; the driver receives scalar cells, never a fetched holon graph for client-side selection. Required relationship validation and column reads share one native snapshot. Graph output limits do not cap projected roots. UUID text/standard/legacy representations and exact UTC tick companions retain their stored semantics; ambiguous dictionary paths or precision companions error. Native row/byte/deadline limits fail without partial results.
 
-Initial unit236/native81 and expanded unit237/native91 gates pass with zero skips. The expanded native cases include snapshot reparenting, actual-aggregate cancellation/reuse, large projections, both UUID layouts and ambiguity rejection. Neo4j SDK projection is described below; authenticated projection HTTP support remains pending. See [MongoDB projection contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-projection-slice--23-october-2026).
+Initial unit236/native81 and expanded unit237/native91 gates pass with zero skips. The expanded native cases include snapshot reparenting, actual-aggregate cancellation/reuse, large projections, both UUID layouts and ambiguity rejection. Neo4j SDK projection is described below; authenticated projection HTTP uses the shared endpoint described below. See [MongoDB projection contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-projection-slice--23-october-2026).
 
 Projection results contain detached selected values. Use an entity-row query when you intend to edit a holon and call `SaveHolonAsync` with its tracked state and provider revision.
 
@@ -476,4 +476,24 @@ var selection = source.SelectColumns(new[] { label.Result, stock.Result });
 // Each resulting record exposes record["label"] and record["stock"].
 ```
 
-Core2,018 unit cases and both framework targets pass for the runtime-record extension. Authenticated projection HTTP and native-to-record transport/demos remain separate pending acceptance gates. [HTTP contract in progress](CQL_PROJECTION_HTTP_CONTRACT.md).
+Core2,018 unit cases and both framework targets pass for the runtime-record extension. Authenticated projection HTTP and native runtime-record execution now pass signed three-store acceptance. Expanded annotated30SDK/30HTTP demo verification and broad147 native regression pass unskipped, with195settled operations/190physical attempts. [HTTP contract in progress](CQL_PROJECTION_HTTP_CONTRACT.md).
+
+### HTTP selected columns
+
+Send `POST /api/data/query-cql/projection` with the existing bearer token and one new idempotency key per logical intent. Omit Provider for the admitted current default, or select MongoDBOASIS, SQLLiteDBOASIS or Neo4jOASIS. The host supplies actor access and eligibility. Take defaults to25 and is bounded0–100. Fields infer their types; metadata declares an exact read type and optional value-type nullability.
+
+```json
+{
+  "provider": "Neo4jOASIS",
+  "orderBy": "Name",
+  "take": 10,
+  "columns": [
+    { "alias": "label", "field": "Name" },
+    { "alias": "stock", "metadataPath": ["stock"], "valueType": "Int64", "nullable": true }
+  ]
+}
+```
+
+The `cql-projection-v1` result contains provider provenance, ordered column schema and matching row arrays. Int64 cells use decimal strings, so browsers retain values above2^53; GUIDs use D strings, UTC dates preserve seven tick digits, enums use defined names and null remains null. Selected values are detached. Native privacy/ordering/paging precede selection. Source limits and response limits reject excessive output without a partial result. Repeating a logical key produces a conflict without another dispatch.
+
+FullCore2,059 and signed three-store acceptance pass. Neo4j DateTime metadata is rejected before execution. Prompt interruption of an already blocked Neo4j4.2 driver await remains open. [Complete request/wire limits and evidence](CQL_PROJECTION_HTTP_CONTRACT.md).

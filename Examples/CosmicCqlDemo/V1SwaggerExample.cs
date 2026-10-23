@@ -44,6 +44,37 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
             return;
         }
 
+        if (context.Type.Name == "CqlProjectionV1Request")
+        {
+            // Select only native scalar columns; Int64 remains exact JSON text.
+            schema.Example = new OpenApiObject
+            {
+                ["provider"] = new OpenApiString("MongoDBOASIS"),
+                ["orderBy"] = new OpenApiString("Name"),
+                ["take"] = new OpenApiInteger(3),
+                ["filters"] = new OpenApiArray
+                {
+                    new OpenApiObject
+                    {
+                        ["metadataPath"] = new OpenApiArray { new OpenApiString("location"), new OpenApiString("city") },
+                        ["scalar"] = new OpenApiString("String"), ["operator"] = new OpenApiString("Equal"),
+                        ["value"] = new OpenApiString("London")
+                    }
+                },
+                ["columns"] = new OpenApiArray
+                {
+                    new OpenApiObject { ["alias"] = new OpenApiString("label"), ["field"] = new OpenApiString("Name") },
+                    new OpenApiObject
+                    {
+                        ["alias"] = new OpenApiString("precision"),
+                        ["metadataPath"] = new OpenApiArray { new OpenApiString("precision") },
+                        ["valueType"] = new OpenApiString("Int64")
+                    }
+                }
+            };
+            return;
+        }
+
         if (context.Type.Name != "CqlV1Request") return;
 
         schema.Example = new OpenApiObject

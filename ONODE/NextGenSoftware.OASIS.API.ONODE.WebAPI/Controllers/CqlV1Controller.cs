@@ -22,4 +22,8 @@ public sealed class CqlV1Controller : ControllerBase
     [HttpPost("scalar")]
     [RequestSizeLimit(32768)]
     public Task<IActionResult> Scalar(CqlScalarV1Request request) => CqlV1Endpoint.ExecuteScalarAsync(HttpContext, request, providers);
+
+    [HttpPost("projection")]
+    [RequestSizeLimit(32768)]
+    public Task<IActionResult> Projection(CqlProjectionV1Request request) => CqlV1Endpoint.ExecuteProjectionAsync(HttpContext, request, providers);
 }
