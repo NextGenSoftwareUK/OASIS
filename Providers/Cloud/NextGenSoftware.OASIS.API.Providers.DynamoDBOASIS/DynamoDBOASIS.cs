@@ -309,7 +309,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if (resp.Item.Count==0) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var avatar = ReadStoredIdentity<Avatar>(resp.Item,id,version);
                 if(avatar==null||avatar.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
-                result.Result = avatar; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsLoaded=true; result.LoadedCount=1; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -346,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private async Task<OASISResult<IAvatar>> LoadSelectedAvatarAsync(string keyName,string value,int version,bool includeDeleted=false)
         {
             var result = new OASISResult<IAvatar>();
-            try { ValidateRecordVersion(version); var a = await ReadAvatarSelectorAsync(keyName,value,version,includeDeleted); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for {keyName} '{value}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
+            try { ValidateRecordVersion(version); var a = await ReadAvatarSelectorAsync(keyName,value,version,includeDeleted); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for {keyName} '{value}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; } result.Result = a; result.IsLoaded=true; result.LoadedCount=1; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
             catch (StorageIdentityAmbiguousException ex) { result.Exception=ex; OASISErrorHandling.HandleError(ref result,ex.Message); result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -374,7 +374,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
                     return result;
                 }
-                result.Result=avatar;result.IsLoaded=true;
+                result.Result=avatar;result.IsLoaded=true;result.LoadedCount=1;
             }
             catch(StorageIdentityAmbiguousException ex)
             {
@@ -424,7 +424,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 var items=await ReadScanItemsAsync(request=>_client.ScanAsync(request),"OasisAvatars");
 
                 var avatars = items.Select(i => ReadStoredIdentity<Avatar>(i,version)).Where(row=>row!=null&&!row.IsDeleted).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsLoaded=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsLoaded=true; result.LoadedCount=avatars.Count; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -508,7 +508,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if (resp.Item.Count==0) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var d = ReadStoredIdentity<AvatarDetail>(resp.Item,id,version);
                 if(d==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
-                result.Result = d; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail loaded.";
+                result.Result = d; result.IsLoaded=true; result.LoadedCount=1; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -526,7 +526,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 ValidateRecordVersion(version);
                 var detail=await ReadDetailSelectorAsync(key,value,version,includeDeleted);
                 if(detail==null) {OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: No matching detail.");result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
-                result.Result=detail;result.IsLoaded=true;
+                result.Result=detail;result.IsLoaded=true;result.LoadedCount=1;
             }
             catch(Exception cause) {
                 result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);
@@ -546,7 +546,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 ValidateRecordVersion(version);
                 var items=await ReadScanItemsAsync(request=>_client.ScanAsync(request),"OasisAvatarDetails");
                 var details=items.Select(item=>ReadStoredIdentity<AvatarDetail>(item,version)).Where(row=>row!=null).Cast<IAvatarDetail>().ToList();
-                result.Result=details;result.IsLoaded=true;result.Message=$"DynamoDBOASIS: Loaded {details.Count} detail(s).";
+                result.Result=details;result.IsLoaded=true;result.LoadedCount=details.Count;result.Message=$"DynamoDBOASIS: Loaded {details.Count} detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -649,7 +649,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if(holon==null||holon.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result;}
                 var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():new List<IHolon> {holon};
                 result.Result = CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider)(holon);
-                result.IsLoaded=true;
+                result.IsLoaded=true;result.LoadedCount=1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -687,7 +687,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 var childPool=loadChildren&&loadChildrenFromProvider&&version>0?await ScanHolonsAsync():records;
                 var project=CreateGraphProjection(childPool,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
                 result.Result = records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();
-                result.IsLoaded=true;
+                result.IsLoaded=true;result.LoadedCount=result.Result.Count();
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -705,7 +705,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     .Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).ToList();
                 var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():holons;
                 var project=CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true);
-                result.Result = holons.Select(project).ToList(); result.IsLoaded=true;
+                result.Result = holons.Select(project).ToList(); result.IsLoaded=true;result.LoadedCount=holons.Count;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -792,7 +792,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 found.SearchResultAvatars.AddRange(avatars.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,holons)));
                 if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,holons)));
                 found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
-                result.Result=found;result.IsLoaded=true;
+                result.Result=found;result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -820,8 +820,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     && string.Equals(stored==null ? null:Convert.ToString(stored,System.Globalization.CultureInfo.InvariantCulture),pair.Value,StringComparison.Ordinal);
                 result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
                 result.Result=loaded.Result.Where(row=>mode==MetaKeyValuePairMatchMode.All ? requested.All(pair=>Matches(row,pair)):requested.Any(pair=>Matches(row,pair))).ToList();
+                result.LoadedCount=result.Result.Count();
             }
-            catch(Exception cause) {result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);}
+            catch(Exception cause) {result.Result=null;result.IsLoaded=false;result.LoadedCount=0;result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);}
             return result;
         }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKvp, mode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -841,8 +842,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if(loaded.IsError) return loaded;
                 result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
                 result.Result=loaded.Result.Where(row=>row.CreatedByAvatarId==avatarId).ToList();
+                result.LoadedCount=result.Result.Count();
             }
-            catch(Exception cause) {result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);}
+            catch(Exception cause) {result.Result=null;result.IsLoaded=false;result.LoadedCount=0;result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);}
             return result;
         }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;

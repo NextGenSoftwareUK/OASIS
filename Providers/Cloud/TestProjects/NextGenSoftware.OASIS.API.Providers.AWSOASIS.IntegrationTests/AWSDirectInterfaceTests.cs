@@ -25,12 +25,15 @@ public partial class AWSOASISIntegrationTests
 
         var byKey=synchronous?storage.LoadAvatarByProviderKey(avatar.Id.ToString()):await storage.LoadAvatarByProviderKeyAsync(avatar.Id.ToString());
         Assert.IsFalse(byKey.IsError,byKey.Message);Assert.IsTrue(byKey.IsLoaded);
+        Assert.AreEqual(1,byKey.LoadedCount);
         Assert.AreEqual(avatar.Id,byKey.Result.Id);Assert.AreEqual("complete profile",byKey.Result.FirstName);
         var absentKey=synchronous?storage.LoadAvatarByProviderKey(Guid.NewGuid().ToString()):await storage.LoadAvatarByProviderKeyAsync(Guid.NewGuid().ToString());
         Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,absentKey.ErrorCode);Assert.IsNull(absentKey.Result);
+        Assert.AreEqual(0,absentKey.LoadedCount);Assert.IsFalse(absentKey.IsLoaded);
         var allProfiles=synchronous?storage.LoadAllAvatars():await storage.LoadAllAvatarsAsync();
         var allDetails=synchronous?storage.LoadAllAvatarDetails():await storage.LoadAllAvatarDetailsAsync();
         Assert.IsFalse(allProfiles.IsError,allProfiles.Message);Assert.IsFalse(allDetails.IsError,allDetails.Message);
+        Assert.AreEqual(allProfiles.Result.Count(),allProfiles.LoadedCount);Assert.AreEqual(allDetails.Result.Count(),allDetails.LoadedCount);
         Assert.AreEqual(avatar.Username,allProfiles.Result.Single(row=>row.Id==avatar.Id).Username);
         Assert.AreEqual(4321L,allDetails.Result.Single(row=>row.Id==avatar.Id).XP);
         var selectedDetails=new[] {
@@ -39,6 +42,7 @@ public partial class AWSOASISIntegrationTests
         foreach(var selected in selectedDetails)
         {
             Assert.IsFalse(selected.IsError,selected.Message);Assert.IsTrue(selected.IsLoaded);
+            Assert.AreEqual(1,selected.LoadedCount);
             Assert.AreEqual(avatar.Id,selected.Result.Id);Assert.AreEqual(4321L,selected.Result.XP);Assert.AreEqual(123L,selected.Result.Karma);
         }
 
@@ -48,9 +52,11 @@ public partial class AWSOASISIntegrationTests
         var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=[new SearchTextGroup {SearchQuery=marker}]};
         var searched=synchronous?storage.Search(query,loadChildren:false):await storage.SearchAsync(query,loadChildren:false);
         Assert.IsFalse(searched.IsError,searched.Message);
+        Assert.AreEqual(searched.Result.NumberOfResults,searched.LoadedCount);
         CollectionAssert.AreEquivalent(rows.Select(row=>row.Id).ToArray(),searched.Result.SearchResultHolons.Select(row=>row.Id).ToArray());
         var exported=synchronous?storage.ExportAll():await storage.ExportAllAsync();
         Assert.IsFalse(exported.IsError,exported.Message);
+        Assert.AreEqual(exported.Result.Count(),exported.LoadedCount);
         foreach(var row in rows)Assert.AreEqual(row.Name,exported.Result.Single(value=>value.Id==row.Id).Name);
 
         foreach(var email in new[] {false,true})foreach(var soft in new[] {false,true})

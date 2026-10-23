@@ -37,6 +37,7 @@ public partial class AWSOASISIntegrationTests
             {
                 var result=synchronous ? router.RouteRequest<IEnumerable<IHolonBase>>(request):await router.RouteRequestAsync<IEnumerable<IHolonBase>>(request);
                 Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);var found=result.Result.Single();Assert.AreEqual(records[0].Id,found.Id);
+                Assert.AreEqual(1,result.LoadedCount,"Only the returned nearby root counts, not every scanned candidate.");
                 Assert.AreEqual("preserved",found.MetaData["proof"].ToString());
                 if(avatars) Assert.AreEqual("complete profile",((IAvatar)found).FirstName);else Assert.AreEqual("complete record",found.Description);
             }
@@ -45,6 +46,7 @@ public partial class AWSOASISIntegrationTests
             else Assert.IsFalse((await _provider.SaveHolonAsync((IHolon)records[0],saveChildren:false)).IsError);
             var corrupt=await router.RouteRequestAsync<IEnumerable<IHolonBase>>(request);
             Assert.IsTrue(corrupt.IsError);Assert.IsNull(corrupt.Result);Assert.IsFalse(corrupt.IsLoaded);Assert.IsInstanceOfType(corrupt.Exception,typeof(InvalidDataException));
+            Assert.AreEqual(0,corrupt.LoadedCount,"Failed filtering must not retain the source scan count.");
         }
         finally {System.Globalization.CultureInfo.CurrentCulture=prior;}
     }
