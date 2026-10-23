@@ -2,6 +2,8 @@
 
 ## Resume — 2026-10-23
 
+Latest local checkpoint: Oracle native492 and scalar-codec301 remain green at their documented cohorts; the original intermittent missing-payload failure is STILL unresolved, not closed by diagnostic passes. Owner cloud access remains pending in [Actions for David](<../Release and Status/ACTIONS-FOR-DAVID.md>). During that cloud gate, retained AWS local acceptance was refreshed134/134 on Core23 with exact cleanup; [AWS checkpoint](AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md) records its boundaries and test-host readiness repair. No cloud spending/download/new database copy; Oracle is NOT marked100% or superseded as priority. Resume Oracle live gates once access arrives and retain detailed original-failure diagnostics for next occurrence.
+
 ### Original predecessor order isolated — no reproduction, intermittent gate NOT closed
 
 Failed TRX confirms the exact preceding sequence: ordinary identity-save fixtures(detail,sync,loseAck) FFF,TFF,FTF,TTF,FFT,TFT,FTT,TTT, then async read-ack, then failing sync read-ack. Added exclusive -ReadAcknowledgementOrder diagnostic to reuse those EXISTING fixture bodies on fresh owned IDs in precisely that order for THREE fixed cycles. One testcase/30fixture invocations, not30endpoints or retry-until-green; stops first failure. Original -ReadAcknowledgementStress filter narrowed to its original method so the new diagnostic does not silently change its1case behavior. Main492 still excludes the diagnostic class, no production behavior/assertion change.
