@@ -25,6 +25,98 @@ public partial class SQLLiteDBOASISIntegrationTests
         return root;
     }
 
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task NativeCqlAnyChildReparentingRespectsCurrentParentAndNewMembership(bool declaredNewOwner)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var old=new Holon{Id=Guid.NewGuid(),Name="old",IsPublic=true};
+        var next=new Holon{Id=Guid.NewGuid(),Name="next",IsPublic=true};
+        var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=old.Id,Name="match",IsPublic=true};
+        old.Children.Add(child);
+        old.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
+            1,old.Id,new[]{new HolonChildRole("Children",new[]{child.Id})}));
+        next.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
+            1,next.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>())}));
+        (await provider.SaveHolonAsync(old)).IsError.Should().BeFalse();
+        (await provider.SaveHolonAsync(next)).IsError.Should().BeFalse();
+        using(var context=new DataContext(TestConnectionString))
+        {
+            var childId=child.Id.ToString("D");var nextId=next.Id.ToString("D");
+            await context.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET ParentHolonId={nextId} WHERE Id={childId}");
+            if(!declaredNewOwner)await context.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET PersistentValueJson=json_remove(PersistentValueJson,'$.ChildRoleManifestJson') WHERE Id={nextId}");
+        }
+        var ids=new[]{old.Id,next.Id};
+        var query=CosmicQuery<Holon>.Create().Where(root=>ids.Contains(root.Id)).WhereAnyChild(item=>item.Name=="match");
+        var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.SQLLiteDBOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS,SQLLiteDBOASIS.CqlCapabilities)});
+        plan.IsError.Should().BeFalse(plan.Message);
+        var read=await provider.ExecuteCosmicQueryAsync(plan.Result);
+        read.IsError.Should().BeFalse(read.Message+read.Exception);
+        read.Result.Select(row=>row.Id).Should().Equal(declaredNewOwner?Array.Empty<Guid>():new[]{next.Id});
+    }
+
+    [Fact]
+    public async Task NativeCqlAnyChildSeparatesCorrelatedAliasesAndPreservesExactMetadata()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var root=new Holon{Id=Guid.NewGuid(),Name="parent",IsPublic=true};
+        root.MetaData["precision"]=0L;
+        root.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="match",IsPublic=true});
+        var extra=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="different child",IsPublic=true};
+        extra.MetaData["precision"]=9007199254740993L;
+        extra.MetaData["location"]=new Dictionary<string,object>{{"city","London"}};
+        root.Children.Add(extra);
+        (await provider.SaveHolonAsync(root)).IsError.Should().BeFalse();
+        var id=root.Id;
+        var query=CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result)
+            .Where(row=>row.Id==id).WhereAnyChild(item=>item.Name=="match")
+            .WhereAnyChild(item=>CosmicQueryMetadata.Value<long>(item,"precision")==9007199254740993L &&
+                CosmicQueryMetadata.Value<string>(item,"location","city")=="London");
+        query.IsError.Should().BeFalse(query.Message);
+        var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.SQLLiteDBOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS,SQLLiteDBOASIS.CqlCapabilities)});
+        plan.IsError.Should().BeFalse(plan.Message);
+        var read=await provider.ExecuteCosmicQueryAsync(plan.Result);
+        read.IsError.Should().BeFalse(read.Message+read.Exception);
+        read.Result.Single().Id.Should().Be(root.Id);
+    }
+
+    [Fact]
+    public async Task NativeCqlAnyChildUsesMembershipAndVisibilityBeforeRootPaging()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var actor=Guid.NewGuid();var other=Guid.NewGuid();
+        var roots=Enumerable.Range(0,4).Select(index=>new Holon{Id=Guid.NewGuid(),Name=((char)('A'+index)).ToString(),IsPublic=true}).ToArray();
+        for(var index=0;index<roots.Length;index++)
+        {
+            var root=roots[index];
+            root.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Name=index==3?"no":"match",
+                IsPublic=index is 1 or 3,CreatedByAvatarId=index==2?actor:other});
+            root.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
+                1,root.Id,new[]{new HolonChildRole("Children",root.Children.Select(child=>child.Id))}));
+            var saved=await provider.SaveHolonAsync(root);saved.IsError.Should().BeFalse(saved.Message+saved.Exception);
+        }
+        // A physical parent link outside the canonical role membership cannot
+        // turn D into a matching parent. No hidden child can make A match.
+        var orphan=new Holon{Id=Guid.NewGuid(),ParentHolonId=roots[3].Id,Name="match",IsPublic=true};
+        (await provider.SaveHolonAsync(orphan,saveChildren:false)).IsError.Should().BeFalse();
+        var ids=roots.Select(root=>root.Id).ToArray();
+        var query=CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
+            .Where(root=>ids.Contains(root.Id)).WhereAnyChild(child=>child.Name=="match")
+            .OrderBy(root=>root.Name).Skip(1).Take(1);
+        query.IsError.Should().BeFalse(query.Message);
+        var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.SQLLiteDBOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS,SQLLiteDBOASIS.CqlCapabilities)});
+        plan.IsError.Should().BeFalse(plan.Message);
+        var read=await provider.ExecuteCosmicQueryAsync(plan.Result);
+        read.IsError.Should().BeFalse(read.Message+read.Exception);
+        read.Result.Single().Name.Should().Be("C");
+    }
+
     [Fact]
     public async Task NativeCqlGraphRejectsACorruptParentLinkCycle()
     {

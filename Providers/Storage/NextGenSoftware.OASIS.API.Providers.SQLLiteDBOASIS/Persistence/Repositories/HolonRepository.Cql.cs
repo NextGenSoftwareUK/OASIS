@@ -31,7 +31,7 @@ public partial class HolonRepository
             var admission=SqliteCqlContract.Capabilities.Admit(plan.Query);
             if(admission.IsError)return CqlError(admission.ErrorCode,admission.Message);
             // Translate completely before EF can open the connection. Never evaluate a predicate on fetched rows.
-            var translator = new CqlSqlTranslator();
+            var translator = new CqlSqlTranslator(plan.Query.ReadAccess);
             var predicate = plan.Query.Predicates.Count == 0 ? "1" : string.Join(" AND ", plan.Query.Predicates.Select(translator.Translate));
             var ordering=translator.TranslateOrdering(plan.Query.Orderings);
             var fetch=plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,maximumResults+1):maximumResults+1;
@@ -118,7 +118,12 @@ public partial class HolonRepository
 
     private sealed partial class CqlSqlTranslator
     {
-        internal readonly List<SqliteParameter> Parameters = new();
+        internal readonly List<SqliteParameter> Parameters;
+        private readonly string _table;
+        private readonly CosmicQueryReadAccess _access;
+        internal CqlSqlTranslator(CosmicQueryReadAccess access=null):this("Holon",new List<SqliteParameter>(),access){}
+        private CqlSqlTranslator(string table,List<SqliteParameter> parameters,CosmicQueryReadAccess access)
+        { _table=table;Parameters=parameters;_access=access; }
         private string Bind(object value)
         {
             if (Parameters.Count >= 900) throw new CqlTranslationLimitException();
@@ -143,7 +148,7 @@ public partial class HolonRepository
         }
         // json_each exposes its own `id` column. Every canonical operand must
         // remain bound to the outer record, including inside a correlated path.
-        private static string CanonicalColumn(string name) => "\"Holon\".\"" + name + "\"";
+        private string CanonicalColumn(string name) => "\""+_table+"\".\"" + name + "\"";
         private string FieldOperand(CosmicQueryPath path, string prefix, Func<string, string, string> condition)
         {
             if (path.IsMetadata)
@@ -326,6 +331,28 @@ public partial class HolonRepository
 
         internal string Translate(CosmicQueryPredicate predicate)
         {
+            if(predicate is CosmicQueryAnyChild child)
+            {
+                var alias="c"+Parameters.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var inner=new CqlSqlTranslator(alias,Parameters,_access);
+                var parent=CanonicalColumn("Id");
+                var childId=inner.CanonicalColumn("Id");
+                var manifest="json_extract("+CanonicalColumn("PersistentValueJson")+",'$.ChildRoleManifestJson')";
+                var membershipSql="("+manifest+" IS NULL OR (json_extract("+manifest+",'$.schemaVersion')=1 AND "
+                    +"json_extract("+manifest+",'$.parentId')=lower("+parent+") AND EXISTS (SELECT 1 FROM json_each("
+                    +manifest+",'$.roles') AS role, json_each(role.value,'$.childIds') AS member "
+                    +"WHERE member.type='text' AND member.value=lower("+childId+"))))";
+                var visibility="1";
+                if(_access!=null)
+                {
+                    var secured=CosmicQuery<Core.Holons.Holon>.Create().WithReadAccess(_access);
+                    if(secured.IsError)throw new NotSupportedException(secured.Message);
+                    visibility=inner.Translate(secured.Result.Predicates.Single());
+                }
+                return "EXISTS (SELECT 1 FROM Holon AS \""+alias+"\" WHERE lower("+inner.CanonicalColumn("ParentHolonId")
+                    +")=lower("+parent+") AND lower("+childId+")<>lower("+parent+") AND "+membershipSql
+                    +" AND ("+visibility+") AND ("+inner.Translate(child.Predicate)+"))";
+            }
             if (predicate is CosmicQueryMembership membership)
             {
                 if (membership.Path.IsMetadata)
