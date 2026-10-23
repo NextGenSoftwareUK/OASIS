@@ -17,11 +17,11 @@ public sealed class TronNearbyTests
             MetaData = new() { ["Latitude"] = "30.0005", ["Longitude"] = "20", ["proof"] = "preserved" } };
         public Records() { IsProviderActivated = true; }
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
-            => new() { Result = new[] { Avatar }, IsLoaded = true };
+            => new() { Result = new[] { Avatar,new Avatar{Id=Guid.NewGuid(),IsActive=true,MetaData=new(){{"Latitude","40"},{"Longitude","20"}}} }, IsLoaded = true,LoadedCount=2 };
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true,
             bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
-            => new() { Result = new[] { Holon }, IsLoaded = true };
+            => new() { Result = new[] { Holon,new Holon{Id=Guid.NewGuid(),IsActive=true,HolonType=HolonType.Park,MetaData=new(){{"Latitude","40"},{"Longitude","20"}}} }, IsLoaded = true,LoadedCount=2 };
     }
 
     [Theory]
@@ -35,11 +35,14 @@ public sealed class TronNearbyTests
                 var result = provider.GetAvatarsNearMe(30000000, 20000000, 100);
                 Assert.False(result.IsError, result.Message); Assert.True(result.IsLoaded);
                 Assert.Same(provider.Avatar, Assert.Single(result.Result));
+                Assert.Equal(1,result.LoadedCount);
+                provider.Avatar.IsActive=false;var empty=provider.GetAvatarsNearMe(30000000,20000000,100);Assert.Empty(empty.Result);Assert.Equal(0,empty.LoadedCount);
             } else {
                 var result = provider.GetHolonsNearMe(30000000, 20000000, 100, HolonType.Park);
                 Assert.False(result.IsError, result.Message); Assert.True(result.IsLoaded);
                 Assert.Same(provider.Holon, Assert.Single(result.Result));
-                Assert.Empty(provider.GetHolonsNearMe(30000000, 20000000, 100, HolonType.Holon).Result);
+                Assert.Equal(1,result.LoadedCount);
+                var empty=provider.GetHolonsNearMe(30000000,20000000,100,HolonType.Holon);Assert.Empty(empty.Result);Assert.Equal(0,empty.LoadedCount);
             }
         } finally { CultureInfo.CurrentCulture = prior; }
     }
