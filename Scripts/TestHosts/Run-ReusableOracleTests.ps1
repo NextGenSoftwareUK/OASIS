@@ -1,5 +1,6 @@
 param(
     [switch]$InspectReadConnections,
+    [ValidateRange(1,400)][int]$ReadConnectionIterations=50,
     [switch]$ReadAcknowledgementOrder,
     [switch]$ReadAcknowledgementStress,
     [switch]$ExtraColumns,
@@ -16,6 +17,7 @@ $selectedModes=@($InspectReadConnections,$ReadAcknowledgementOrder,$ReadAcknowle
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions).Where({$_.IsPresent}).Count
 if($selectedModes -gt 1){throw 'Choose one original reconciliation mode.'}
+if(!$InspectReadConnections -and $ReadConnectionIterations -ne 50){throw 'A custom read workload requires the explicitly read-only inspection mode.'}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/OracleCurrent'
@@ -24,6 +26,7 @@ $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenO
 $previousConnection=$env:ORACLEDBOASIS_CONNECTIONSTRING;$previousWork=$env:OASIS_ORACLE_TEST_WORK;$previousResume=$env:OASIS_ORACLE_RESUME_CANONICAL
 $previousAmbiguity=$env:OASIS_ORACLE_RECONCILE_AMBIGUITY
 $previousSchemaUpgrade=$env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE
+$previousReadIterations=$env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS
 $startedHere=$false;$passed=$false
 try{
     $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
@@ -68,6 +71,7 @@ try{
     if([string]::IsNullOrWhiteSpace($secret)){throw 'Retained secret unavailable.'}
     $env:ORACLEDBOASIS_CONNECTIONSTRING="User Id=SYSTEM;Password=$secret;Data Source=127.0.0.1:11521/FREEPDB1;Connection Timeout=10;Pooling=false"
     $env:OASIS_ORACLE_TEST_WORK=$work;$env:OASIS_ORACLE_RESUME_CANONICAL=if($ReconcileOriginal){'1'}else{$null}
+    $env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS=if($InspectReadConnections){$ReadConnectionIterations.ToString([Globalization.CultureInfo]::InvariantCulture)}else{$null}
     $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=if($ReconcileAmbiguity){'1'}else{$null}
     $env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE=if($UpgradeIdentityCharacters){'1'}else{$null}
     if($EncryptedProcess){
@@ -133,6 +137,7 @@ try{
     $env:ORACLEDBOASIS_CONNECTIONSTRING=$previousConnection;$env:OASIS_ORACLE_TEST_WORK=$previousWork;$env:OASIS_ORACLE_RESUME_CANONICAL=$previousResume;$secret=$null
     $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=$previousAmbiguity
     $env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE=$previousSchemaUpgrade
+    $env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS=$previousReadIterations
     if($startedHere -and $passed){& wsl -d Ubuntu -u root -- podman stop --time 30 oasis-oracle-free}
     $lease.Dispose()
 }
