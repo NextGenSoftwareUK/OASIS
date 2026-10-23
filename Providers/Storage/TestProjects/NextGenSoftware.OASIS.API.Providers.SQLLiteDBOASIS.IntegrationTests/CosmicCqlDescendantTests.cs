@@ -13,6 +13,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
 public partial class SQLLiteDBOASISIntegrationTests
 {
+    [Fact]
+    public async Task NativeCqlDescendantCertifiesTheActualDepth32AndNodeBoundary()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var root=new Holon{Id=Guid.NewGuid(),Name="owned deep boundary root"};
+        global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.Configure(root);
+        var saved=await provider.SaveHolonAsync(root,saveChildren:true);
+        saved.IsError.Should().BeFalse(saved.Message+saved.Exception);
+        await global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyAsync(provider,root);
+    }
+
     private static CosmicQueryPlan<Holon> DescendantPlan(Holon root, int depth = 4, int nodes = 10,
         CosmicQueryReadAccess? access = null, string name = "grandchild")
     {

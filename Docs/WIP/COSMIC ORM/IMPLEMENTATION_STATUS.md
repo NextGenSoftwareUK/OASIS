@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — Actual depth boundary and moved subtrees
+
+A shared test-only33-edge chain now proves actual depth31/32 selection, exclusion of node33 and31-node overflow on all3 native stores. Existing acknowledged reparent fixtures also prove that a moved grandchild leaves its old path and requires new-owner membership. FullSQLite1249/focused46, Mongo62 and jointNeo110 pass0skip; all3source/PDB consumers match Core712/Shared55. No production Core/Shared/provider change was needed. Broader cancellation/concurrent-reparent and aggregate phases remain open. [Native contract](CQL_DESCENDANT_CONTRACT.md#exact-boundary-and-moved-subtree-certification).
+
 ## 23 October — Bounded descendant WEB4 transport
 
 Optional anyDescendants compiles through generic immutable CQL with server actor binding, depth1–32/nodes1–10000 and four combined relationship groups/twelve total filters. FullCore1830/joint109 pass, including owner/outsider signed native privacy/denial-budget controls on all3stores. Core/Shared production unchanged. Sixth spaced/commented SDK/HTTP examples pass fresh actual18/18 counts (152 settled/151 attempts) in terminal78364. [HTTP contract](CQL_V1_HTTP_CONTRACT.md#bounded-descendant-existence-over-http).

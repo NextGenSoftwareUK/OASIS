@@ -32,6 +32,11 @@ public sealed partial class CosmicCqlNativeTests
         Assert.False(plan.IsError,plan.Message);return plan.Result;
     }
 
+    [Fact]
+    public Task NativeDescendantCertifiesTheActualDepth32AndNodeBoundary()
+        =>WithMongoGraph(fixture=>global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyAsync(fixture.Provider,fixture.Root),
+            width:0,configure:global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.Configure);
+
     [Theory]
     [InlineData(1,false)] [InlineData(2,true)] [InlineData(32,true)]
     public Task NativeDescendantDepthUsesTheCompleteFlatNativeScope(int depth,bool matches)
