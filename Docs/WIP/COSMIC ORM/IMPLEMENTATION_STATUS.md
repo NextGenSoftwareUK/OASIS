@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — SQLite native Count/LongCount/Any
+
+SQLite now executes native scalar terminals through generic Core/HolonManager, with exact window cardinality and existing access/snapshot/traversal/deadline ownership. Count does not hydrate entities or inherit row/graph-publication limits. Full SQLite **1,269** passes unskipped, including12new scalar controls and actual-reader cancellation/reuse. Consumer identities match Core716/Shared55; fixed owned DB is removed. MongoDB/Neo4j scalar execution and WEB4 scalar transport remain open. [Manual example](CQL_MANUAL.md#scalar-terminals--sqlite-native-execution), [acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-scalar-gate--23-october).
+
 ## 23 October — Scalar plans and common query attempt ownership
 
 Core d71eebd adds immutable typed Count/LongCount/Any intents, independent scalar capability admission/readmission, checked native count conversion, detached per-provider results and the generic V2 HolonManager scalar entry point. Existing row execution and new scalar execution share one inherited admission/durable-attempt owner. Native aggregate adapters and WEB4 scalar transport remain pending; current row-only providers reject scalar calls before I/O.

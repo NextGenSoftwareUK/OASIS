@@ -292,7 +292,7 @@ HTTP child existence uses up to four anyChildren groups; the twelve-filter budge
 WhereAnyDescendant has a generic bounded contract with explicit traversal limits. MongoDB, SQLite and Neo4j declare DescendantExists (depth 32/nodes 10000). Mongo retains snapshot semantics with flat native breadth traversal (certified Mongo8.3). Neo descendant execution requires Neo4j5.9+ (certified5.26.12) and retains read-committed semantics. Scope overflow returns CQL_QUERY_LIMIT without partial rows. Descendant intent does not load child graphs; HTTP exposes bounded anyDescendants groups, sharing four relationship groups and twelve filters with roots/direct children; see [JSON contract](CQL_V1_HTTP_CONTRACT.md#bounded-descendant-existence-over-http). [Contract](CQL_DESCENDANT_CONTRACT.md).
 
 
-## Scalar intent preview — native execution pending
+## Scalar terminals — SQLite native execution
 
 Core now supports immutable typed terminal construction. These statements perform no storage I/O:
 
@@ -308,4 +308,47 @@ var longCount = source.LongCount(); // Int64 result domain.
 var any = source.Any();             // Boolean result domain.
 ```
 
-Execution uses `CosmicScalarPlanner` and the generic V2 `HolonManager.ExecuteScalarQueryAsync` entry point. Current MongoDB, SQLite and Neo4j row adapters do not yet advertise the additive scalar interface, so they reject scalar execution before native I/O. This preview does not claim native counts, WEB4 scalar requests or aggregate demos are ready. [Progress and native acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md).
+Execution uses `CosmicScalarPlanner` and the generic V2 `HolonManager.ExecuteScalarQueryAsync` entry point. SQLite now advertises native Count/LongCount/Any, verified by full1,269 tests. MongoDB and Neo4j do not yet advertise scalar support and reject it before I/O. WEB4 scalar requests and the later aggregate shapes remain pending. [Progress and native acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md).
+
+
+With an activated SQLite provider `sqlite` and its V2 `manager`, execute a scalar through the same generic Core contract:
+
+```csharp
+ICosmicQueryScalarStorageProvider adapter = sqlite;
+
+// This is the authorized eligible target snapshot for this SDK operation.
+var targets = new[]
+{
+    new CosmicScalarTarget(
+        adapter.QueryProviderType,
+        adapter.QueryCapabilities,
+        adapter.ScalarCapabilities)
+};
+
+// Count the composed source window, without constructing tracked holons.
+var intent = CosmicQuery<Holon>.Create()
+    .Where(holon => holon.IsActive)
+    .LongCount();
+
+if (intent.IsError)
+    throw new InvalidOperationException(intent.Message);
+
+var planned = CosmicScalarPlanner.Plan(
+    intent.Result,
+    adapter.QueryProviderType,
+    targets);
+
+if (planned.IsError)
+    throw new InvalidOperationException(planned.Message);
+
+var result = await manager.ExecuteScalarQueryAsync(
+    planned.Result,
+    new ICosmicQueryStorageProvider[] { adapter });
+
+if (result.IsError)
+    throw new InvalidOperationException(result.Message, result.Exception);
+
+long count = result.Result.Providers.Single().Value;
+```
+
+Count uses checked Int32 and reports `CQL_AGGREGATE_OVERFLOW`; LongCount preserves exact Int64. Empty input/window returns zero, and Any returns false. Source access and relationship predicates apply before participation. A graph output request does not expand children or limit scalar input, while its requested snapshot consistency remains enforced. Counts remain per provider; replicas are not summed into a logical global count. These SDK intents do not grant authentication or access by themselves.
