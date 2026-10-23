@@ -21,6 +21,25 @@ public class CosmicQueryGraphExecutionTests
         return root;
     }
 
+    [Fact]
+    public async Task ActualAdapterCannotBorrowPlannedGraphAccessCapability()
+    {
+        var source=Graph();var adapter=new Adapter(source,enforceGraphAccess:false);
+        var query=CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result)
+            .WithChildren(CosmicQueryGraphOptions.Create().Result).Result;
+        var plan=CosmicQueryPlanner.Plan(query,adapter.QueryProviderType,
+            new[]{new CosmicQueryTarget(adapter.QueryProviderType,new Adapter(source).QueryCapabilities)});
+        Assert.False(plan.IsError,plan.Message);
+        var read=await CosmicQueryExecutor.ExecuteAsync(plan.Result,new[]{adapter});
+        Assert.True(read.IsError);Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",read.ErrorCode);
+        Assert.Equal(0,adapter.Calls);
+    }
+
+    [Fact]
+    public void GraphAccessCannotBeDeclaredWithoutGraphExpansion()
+        =>Assert.Throws<ArgumentException>(()=>new CosmicQueryCapabilities(CosmicQueryFeatures.GraphReadAccess,
+            Array.Empty<CosmicQueryFieldCapability>()));
+
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public void BothBaseMappersPreserveStoredVisibility(bool isPublic)
@@ -35,12 +54,12 @@ public class CosmicQueryGraphExecutionTests
         Assert.Equal(source.CreatedByAvatarId,typed.CreatedByAvatarId);
     }
 
-    // Boundary fixture while public SDK/HTTP access-graph admission stays closed.
     private static CosmicQuery<T> BindGraphPolicy<T>(CosmicQuery<T> query, CosmicQueryReadAccess policy) where T:IHolon
-        => (CosmicQuery<T>)typeof(CosmicQuery<T>).GetConstructors(
-            System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Single()
-            .Invoke(new object?[]{query.Scope,query.Predicates.ToArray(),query.Orderings.ToArray(),
-                query.Offset,query.Limit,query.GraphOptions,policy});
+    {
+        var bound=query.WithReadAccess(policy);
+        Assert.False(bound.IsError,bound.Message);
+        return bound.Result;
+    }
 
     [Theory]
     [InlineData(1)] [InlineData(2)]
@@ -459,16 +478,21 @@ public class CosmicQueryGraphExecutionTests
     private sealed class Adapter : ICosmicQueryStorageProvider
     {
         private readonly IHolon _root;
-        public Adapter(IHolon root, ProviderType provider = ProviderType.SQLLiteDBOASIS)
-        { _root = root; QueryProviderType = provider; }
+        private readonly bool _readAccess;
+        public int Calls { get; private set; }
+        public Adapter(IHolon root, ProviderType provider = ProviderType.SQLLiteDBOASIS,bool enforceGraphAccess=true)
+        { _root = root; QueryProviderType = provider;_readAccess=enforceGraphAccess; }
 
         public ProviderType QueryProviderType { get; }
-        public CosmicQueryCapabilities QueryCapabilities => new(CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.Or|CosmicQueryFeatures.And,
+        public CosmicQueryCapabilities QueryCapabilities => new(CosmicQueryFeatures.GraphExpansion|(_readAccess?CosmicQueryFeatures.GraphReadAccess:CosmicQueryFeatures.None)|CosmicQueryFeatures.Or|CosmicQueryFeatures.And,
             new[]{new CosmicQueryFieldCapability("IsPublic",typeof(bool),CosmicQueryComparisonOperator.Equal),
                 new CosmicQueryFieldCapability("CreatedByAvatarId",typeof(Guid),CosmicQueryComparisonOperator.Equal)});
 
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
             int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
-            => Task.FromResult(new OASISResult<IReadOnlyList<IHolon>>(new[] { _root }));
+        {
+            Calls++;
+            return Task.FromResult(new OASISResult<IReadOnlyList<IHolon>>(new[] { _root }));
+        }
     }
 }

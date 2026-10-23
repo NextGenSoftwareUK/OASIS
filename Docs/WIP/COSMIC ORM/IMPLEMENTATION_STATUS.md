@@ -1,5 +1,10 @@
 # COSMIC ORM implementation status
 
+## 23 October — Public access-bound CQL graphs
+
+Core0ca01b9 adds explicit GraphReadAccess capability admission and opens immutable graph/policy composition. WEB4 validates optional graph shape before paging and returns safe bounded DTOs. All three signed native HTTP providers pass child ownership/public visibility, private-branch privacy, metadata non-grant and settled receipt checks. Full Core1,781/Shared960/Mongo23/SQLite19/joint86 pass, zero skips;711Core/54Shared source/PDB checks match. C#/HTTP/browser/Swagger graph demos updated; dedicated executable C#/HTTP demo99646 passes1/1 across all three providers. Remaining relationships/aggregates/federation and full roadmap remain open. [Evidence](CQL_GRAPH_LOADING.md).
+
+
 ## 23 October — Safe graph DTO projection
 
 An explicit iterative WEB4 row projector now serves leaf responses and defines bounded public graph output without stored manifests/provider state/unselected ancestor IDs. Eight new controls pass in full1,770 linked Core/WEB4 units. Native/hosted86/86 passes, zero skips;48957 completed terminal0; no Core/Shared source change. Graph request composition/capability admission remains gated. [Contract](CQL_GRAPH_LOADING.md).

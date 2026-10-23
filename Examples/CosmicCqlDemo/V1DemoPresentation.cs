@@ -75,7 +75,7 @@ public static class V1DemoPresentation
       <label>Walkthrough<br><select id="example">
         <option value="page">Visibility before paging</option><option value="nested">Nested metadata + protected OR</option>
         <option value="strings">Ordinal prefix / suffix</option><option value="null">Explicit null / existence</option>
-        <option value="precision">Exact Int64 beyond 2^53</option><option value="guid">Typed GUID metadata</option>
+        <option value="graph">Access-bound child graph</option><option value="precision">Exact Int64 beyond 2^53</option><option value="guid">Typed GUID metadata</option>
         <option value="types">Numeric strings are not integers</option><option value="boolean">Typed Boolean metadata</option><option value="invalid">Unsupported provider rejected</option>
       </select></label>
     </div>
@@ -99,6 +99,7 @@ public static class V1DemoPresentation
 let session, last;
 const el = id => document.getElementById(id);
 const notes = {
+  graph: 'The server applies owner/public access to every child. Alice sees public + owned children; the private branch and its public grandchild are omitted. Parent IDs/role manifests outside the selected view are not public output.',
   page: 'Alice: Skip 1 / Take 1 returns C-public. Her private-inaccessible rows are removed BEFORE paging. Switch provider without changing query semantics.',
   nested: 'London AND stock >= 7 AND (A-private OR D-owned). Alice receives only D-owned: OR cannot escape the server access predicate.',
   strings: 'Ordinal StartsWith("B-") AND EndsWith("owned"). Alice receives B-owned. No culture-dependent evaluation.',
@@ -116,6 +117,11 @@ function preset() {
   const body = { provider: el('provider').value, filters: [], orderBy: 'Name', take: 10 };
   const metadata = (path, scalar, operator, value) => ({ metadataPath: path, scalar, operator, value });
   body.filters.push(metadata(['fixture'], 'String', 'Equal', session.fixtureTag));
+  if (name === 'graph') {
+    body.filters.push({ field: 'Name', operator: 'Equal', value: 'C-public' });
+    body.take = 1;
+    body.graph = { recursive: true, maxChildDepth: 2, childType: 'All', maximumNodes: 8, maximumPayloadBytes: 1048576, consistency: 'ProviderDefault' };
+  }
   if (name === 'page') { body.skip = 1; body.take = 1; }
   if (name === 'nested') {
     body.filters.push(metadata(['location', 'city'], 'String', 'Equal', 'London'), metadata(['stock'], 'Integer', 'GreaterThanOrEqual', 7));

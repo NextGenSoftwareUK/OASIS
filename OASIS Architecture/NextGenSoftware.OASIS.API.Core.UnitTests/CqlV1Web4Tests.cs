@@ -34,6 +34,35 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CqlV1Web4Tests
 {
     [Fact]
+    public void GraphRequestBindsImmutablePolicyAndShapeBeforeBusinessPaging()
+    {
+        var actor=Guid.NewGuid();
+        var request=new CqlV1Request{Take=1,Graph=new CqlV1Graph{MaxChildDepth=3,ChildType="Quest",MaximumNodes=12}};
+        var query=CqlV1Compiler.Compile(request,actor,ProviderType.MongoDBOASIS);
+        Assert.Equal(actor,query.ReadAccess.ActorId);Assert.Equal(3,query.GraphOptions.MaxChildDepth);
+        Assert.Equal(HolonType.Quest,query.GraphOptions.ChildType);Assert.Equal(12,query.GraphOptions.MaximumNodes);
+        Assert.Equal(1,query.Limit);
+        request.Graph.MaxChildDepth=8;request.Graph.ChildType="All";
+        Assert.Equal(3,query.GraphOptions.MaxChildDepth);Assert.Equal(HolonType.Quest,query.GraphOptions.ChildType);
+    }
+
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)]
+    [InlineData(4)] [InlineData(5)] [InlineData(6)] [InlineData(7)]
+    public void GraphRequestRejectsUnboundedOrNoncanonicalShape(int fault)
+    {
+        var shape=new CqlV1Graph();
+        switch(fault)
+        {
+            case 0:shape.MaxChildDepth=0;break;case 1:shape.MaxChildDepth=9;break;
+            case 2:shape.MaximumNodes=0;break;case 3:shape.MaximumNodes=1001;break;
+            case 4:shape.MaximumPayloadBytes=0;break;case 5:shape.MaximumPayloadBytes=1048577;break;
+            case 6:shape.ChildType="0";break;case 7:shape.Consistency="snapshot";break;
+        }
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.Compile(new CqlV1Request{Graph=shape},Guid.NewGuid(),ProviderType.MongoDBOASIS));
+    }
+
+    [Fact]
     public void GraphProjectionContainsSelectedFieldsWithoutPrivateMembershipOrProviderState()
     {
         var hidden=Guid.NewGuid();var ancestor=Guid.NewGuid();

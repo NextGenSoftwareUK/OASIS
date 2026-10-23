@@ -25,8 +25,10 @@ public static class V1NativeQueries
 
         // Local SDK queries run inside the host's trust boundary. We supply the
         // access policy explicitly here; HTTP v1 always adds it on the server.
+        var access = Value(CosmicQueryReadAccess.OwnerOrPublic(actor));
+
         var visible = Value(CosmicQuery<Holon>.Create(scope)
-            .Where(holon => holon.IsPublic || holon.CreatedByAvatarId == actor)
+            .WithReadAccess(access)
             .Where(holon => CosmicQueryMetadata.Value<string>(holon, "fixture") == fixtureTag));
 
         await output.WriteLineAsync($"\n===== C# / LINQ-style CQL: {provider} =====\n");
@@ -59,6 +61,36 @@ public static class V1NativeQueries
             .Take(10));
 
         await ShowAsync("3. Exact Int64 metadata", precise, "B-owned", "C-public", "D-owned");
+
+        // 4. The SAME policy applies to every selected child before native limits.
+        // A plain root Where(...) cannot express this child-access guarantee.
+        var shape = Value(CosmicQueryGraphOptions.Create(
+            recursive: true,
+            maxChildDepth: 2,
+            maximumNodes: 8));
+
+        var graphQuery = Value(visible
+            .Where(holon => holon.Name == "C-public")
+            .WithChildren(shape));
+
+        var graphPlan = Value(CosmicQueryPlanner.Plan(
+            graphQuery,
+            provider,
+            new[] { new CosmicQueryTarget(provider, adapter.QueryCapabilities) }));
+
+        var graph = Value(await manager.ExecuteQueryAsync(graphPlan, new[] { adapter }));
+        var root = graph.Providers.Single().Rows.Single();
+        var children = root.Children.Select(child => child.Name).ToArray();
+
+        if (!children.SequenceEqual(new[] { "public child", "owned child" }))
+            throw new InvalidOperationException("Child visibility or persisted membership ordering changed.");
+
+        await output.WriteLineAsync("4. Access-bound graph: public root / selected children");
+        await output.WriteLineAsync("\n  " + root.Name + "\n    " + string.Join("\n    ", children) + "\n");
+
+        // This is a selected view. For a root-only edit use saveChildren: false;
+        // AcceptChanges() cannot authorize replacement of hidden children.
+        // For public JSON use WEB4's graph DTOs, which omit private store state.
 
         async Task ShowAsync(string title, CosmicQuery<Holon> query, params string[] expected)
         {

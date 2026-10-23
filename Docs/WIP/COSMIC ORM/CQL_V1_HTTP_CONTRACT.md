@@ -76,3 +76,32 @@ Duplicate operation identities follow the existing durable protocol: they do not
 ## Acceptance status
 
 See [native acceptance](CQL_V1_MILESTONE_3.md) and [developer/operator instructions](CQL_V1_OPERATIONS.md). The shipping JWT validator and HTTP boundary execute against all three actual native databases and a real Mongo usage outbox. Avatar-directory resolution and reservation/settlement authority are controlled fixture components; existing accounting regression is verified separately. These checks do not boot the entire production application, approve commercial prices, create production accounts or deploy the route. The larger CQL roadmap remains separate from this deliberately bounded v1 contract.
+
+
+## Optional access-bound child graph
+
+Omit `graph` for the existing leaf response. An explicit graph applies the server-selected owner/public policy to every native child command before limits. The three adapters must declare `GraphReadAccess` as well as `GraphExpansion`; the actual adapter is re-admitted before dispatch. Root filtering/sort/page precede expansion.
+
+```json
+{
+  "provider": "SQLLiteDBOASIS",
+  "filters": [{ "field": "Name", "operator": "Equal", "value": "C-public" }],
+  "take": 1,
+  "graph": {
+    "recursive": true,
+    "maxChildDepth": 2,
+    "childType": "All",
+    "maximumNodes": 256,
+    "maximumPayloadBytes": 1048576,
+    "consistency": "ProviderDefault"
+  }
+}
+```
+
+Graph defaults: recursive=true, depth2, typeAll, nodes256, payload1MiB, ProviderDefault. Public limits are depth1–8, nodes1–1000 and payload1–1048576 bytes; exact enum names are required. SDK depth0 retains its bounded unbounded-recursion meaning, but is rejected by this public transport. Root depth is0; recursive=false selects immediate children only. Budgets reject the whole result rather than silently truncate it. The serialized response still has a one-MiB bound and five-second cooperative endpoint deadline.
+
+Graph rows add `children` arrays containing only visible selected child DTOs. Stored role manifests, provider keys/revisions, hidden child counts and runtime objects are omitted. Graph roots use empty ParentHolonId for ancestors outside the returned view; child ParentHolonId points to the visible parent. Leaf shape remains unchanged. Inaccessible intermediate children are not traversed even when a descendant is public. Metadata sharing labels do not grant access. Optional metadata has the same business-data meaning as the existing leaf contract.
+
+ProviderSnapshot is explicitly supported by SQLite/Mongo within one provider; Neo rejects it before I/O. ProviderDefault preserves each provider's documented guarantee and never promises a distributed common snapshot. One provider query attempt/receipt includes its bounded native child reads under the configured service-query attempt tariff; it is not a per-child fee or an assertion about external provider billing.
+
+Signed route acceptance passes on Mongo, SQLite and Neo: Core1781/Shared960/Mongo23/SQLite19/joint86 and executable demo1, zero skips. See dated graph evidence for exact scope and hashes.

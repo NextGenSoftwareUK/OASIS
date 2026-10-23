@@ -88,14 +88,21 @@ public class CosmicQueryReadAccessTests
 
     [Theory]
     [InlineData(false)] [InlineData(true)]
-    public void RootAuthorizationCannotPretendToProtectChildren(bool graphFirst)
+    public void NativeGraphPolicyRequiresExplicitAdapterCapability(bool graphFirst)
     {
         var access=CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
         var graph=CosmicQueryGraphOptions.Create().Result;
         var result=graphFirst
             ?CosmicQuery<Holon>.Create().WithChildren(graph).Result.WithReadAccess(access)
             :CosmicQuery<Holon>.Create().WithReadAccess(access).Result.WithChildren(graph);
-        Assert.True(result.IsError);Assert.Equal("CQL_GRAPH_ACCESS_UNSUPPORTED",result.ErrorCode);
+        Assert.False(result.IsError,result.Message);
+        var caps=new CosmicQueryCapabilities(CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.Or|CosmicQueryFeatures.And,
+            new[]{new CosmicQueryFieldCapability("IsPublic",typeof(bool),CosmicQueryComparisonOperator.Equal),
+                new CosmicQueryFieldCapability("CreatedByAvatarId",typeof(Guid),CosmicQueryComparisonOperator.Equal)});
+        var rejected=caps.Admit(result.Result);
+        Assert.True(rejected.IsError);Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",rejected.ErrorCode);
+        var supported=new CosmicQueryCapabilities(caps.Features|CosmicQueryFeatures.GraphReadAccess,caps.CanonicalFields.ToArray());
+        Assert.False(supported.Admit(result.Result).IsError);
     }
 
     private sealed class Adapter(params IHolon[] rows):ICosmicQueryStorageProvider

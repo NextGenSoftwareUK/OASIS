@@ -1,6 +1,6 @@
 # CQL getting started
 
-**Current v1 — 22 October 2026:** [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demo](CQL_DEMO_RUNBOOK.md). Bounded authenticated WEB4 v1 is verified on MongoDB, SQLite and Neo4j. Local SDK features are broader than the HTTP DTO. Earlier checkpoints below retain historical scope; “Neo4j” is not current v1 status.
+**Current v1 — 23 October 2026:** [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demo](CQL_DEMO_RUNBOOK.md). Bounded authenticated WEB4 v1 is verified on MongoDB, SQLite and Neo4j. Local SDK features are broader than the HTTP DTO. Earlier checkpoints below retain historical scope; “Neo4j” is not current v1 status.
 
 CQL translates supported C# expression trees into a provider-independent query representation, checks selected providers capabilities, then executes native queries. MongoDB, SQLite and Neo4j now have verified native adapters and a bounded authenticated WEB4 v1 boundary. Local SDK features remain broader than that transport; full CQL/ORM roadmap completion is not claimed.
 
@@ -182,3 +182,6 @@ Reserved system metadata and explicitly configured AdditionalQueryableKeys remai
 - [Current implementation status](IMPLEMENTATION_STATUS.md) and [exact verification epochs](INTEGRATION_BOUNDARY.md).
 
 Executable native examples live in Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests: CosmicCqlTests.cs, CosmicCqlScalarMetadataTests.cs, CosmicCqlConcurrencyTests.cs and CosmicAuthenticatedMetadataTests.cs. These are fixture-backed tests, not production deployment examples. Historical test totals in the linked checkpoint documents describe those specific runs, not a CQL completion percentage.
+
+
+Optional child graphs now use WithReadAccess + WithChildren in the SDK, or the bounded graph object on the same authenticated HTTP route. The three native adapters enforce access before child limits; public DTOs omit hidden membership/provider state. See the manual/HTTP contract for shape, consistency, budgets and safe root-only edits, and example4 in the C#/HTTP demos.
