@@ -1,6 +1,6 @@
 # CQL projection and aggregate implementation contract
 
-23 October 2026. Implementation design for the unchecked second phase of the completion roadmap. These are acceptance requirements, not shipped aggregate APIs. Count/LongCount/Any are the first implementation slice; Select, Min/Max, Sum/Average and GroupBy remain required in the same programme.
+23 October 2026. Implementation design for the unchecked second phase of the completion roadmap. Core scalar intent/admission/execution contracts are now implemented in d71eebd; native aggregate adapters and transport remain unimplemented and uncertified. The remaining items below are acceptance requirements, not shipped native aggregate support. Count/LongCount/Any are the first implementation slice; Select, Min/Max, Sum/Average and GroupBy remain required in the same programme.
 
 ## Query and result ownership
 
@@ -38,3 +38,28 @@ Native controls must exercise the operation itself, including datasets larger th
 5. Complete the separate join/federation and scalar/policy phases; do not mark the full roadmap complete after this phase alone.
 
 [Roadmap](CQL_COMPLETION_ROADMAP.md), [architecture](CQL_ARCHITECTURE.md), [descendant contract](CQL_DESCENDANT_CONTRACT.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+
+## Count execution design checkpoint — 23 October
+
+The first scalar intent will be immutable and typed: Count returns Int32, LongCount Int64 and Any Boolean. It retains the original source query rather than recreating predicates or stripping its actor, scope, window or consistency request. A separate additive scalar-provider interface preserves the existing row-provider ABI. Scalar capability admission must run both during planning and against every actual adapter before dispatch; an adapter that supports row queries alone must receive zero scalar calls.
+
+Rows and scalars must share the existing prepared-storage attempt owner. `PreparedStorageExecution.ExecuteQueryAsync<T>` already supports a generic result and binds its receipt to the durable physical attempt. Extracting common adapter binding/admission/lifetime checks is preferable to copying a second orchestration path. The scalar result exposes per-provider values with provenance, without an automatic summed total or tracked entity factories.
+
+Native count implementations must reuse each provider's predicate/relationship compiler and read owner. SQLite will count a native ordered/windowed subquery while retaining connection-local traversal guards and snapshot ownership. MongoDB will replace row publication with a native count branch while retaining snapshot membership validation, protected traversal-error envelopes, native limits and simple collation. Neo4j will retain projection/traversal validation outside paging and return a scalar count from the eligible window in its single read transaction. The scalar path must not download snapshots and call LINQ Count in the manager.
+
+Any must not short-circuit a required relationship/projection error. A native existence optimization is admissible only when all mandatory validation still completes; deriving Boolean from the native count is the initial safe implementation. Empty windows are admitted and return zero/false without native dispatch only where the existing empty-window contract permits it. Count overflow is checked explicitly and cannot wrap or become a rounded floating-point value.
+
+Graph output expansion is not aggregate participation. Count does not count children or invoke output factories. A requested provider snapshot must nevertheless remain enforced; relationship predicates still traverse their independently bounded scopes. Aggregate input is not truncated by the row-publication maximum, and no implicit ten-thousand-root cap may masquerade as the complete count.
+
+Existing string sorting uses Unicode scalar/codepoint order, not CLR UTF-16 ordinal ordering. The native U+E000/U+10000 boundary is already proved on Neo4j; additional candidate SQLite/Mongo controls now cover ascending/descending windows and metadata buckets. They are unverified until the next leased native batch. Invalid UTF-16 inputs and broader scalar/aggregate domains remain separate acceptance work; these candidates do not declare aggregate APIs shipped.
+
+
+## Implemented Core foundation
+
+Core `d71eebd7dda6d46d0192ae179d7461c6da842842` adds typed Count/LongCount/Any intent, immutable scalar target/plan capabilities, actual-adapter readmission, exact checked conversion from native Int64 counts, per-provider detached values and `HolonManager.ExecuteScalarQueryAsync`. The existing row executor and new scalar executor share `CosmicQueryAttemptOwner`; neither creates another storage-admission or receipt path. Unsupported row-only adapters reject before any earlier target dispatch.
+
+Full Core **1,956** tests pass, including 22 new scalar cases: source/access/graph/window preservation, capability borrowing, exact values beyond 2^53, Int32 overflow, per-provider counts above the row-publication bound, all-target preflight, cancellation and no partial publication. Three hosted scalar controls verify durable attempt completion before native invocation and the normal completed-query receipt afterward; a denied inherited provider has zero native calls. No provider advertises the scalar interface yet. Native store implementations, WEB4 scalar transport, annotated demos and later aggregate/projection phases remain required.
+
+
+Committed-foundation native regression now passes Core1,956/Mongo64/jointNeo114/SQLite205 with zero skips. All three consumer PE/PDB/source identities match Core716/Shared55 documents. The supplementary-character ordering candidates described above are now verified, including both Mongo metadata representations, Neo descending pages and SQLite canonical/metadata sorting. This is regression/collation evidence for the foundation, not native aggregate execution certification.
