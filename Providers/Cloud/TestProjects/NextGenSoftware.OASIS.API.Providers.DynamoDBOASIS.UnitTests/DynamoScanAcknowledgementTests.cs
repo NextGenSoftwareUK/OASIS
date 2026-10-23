@@ -24,6 +24,17 @@ public sealed class DynamoScanAcknowledgementTests
             if(mode==0)return Task.FromResult<ScanResponse>(null!);
             var json=request.TableName=="OasisAvatars"?OasisJson.Serialize(new Avatar{Id=Id,Username="selected",Email="selected@example.invalid"}):request.TableName=="OasisAvatarDetails"?OasisJson.Serialize(new AvatarDetail{Id=Id,Username="selected",Email="selected@example.invalid"}):OasisJson.Serialize(new Holon{Id=Id,ParentHolonId=Parent});
             var items=new List<Dictionary<string,AttributeValue>>{new(){{"id",new AttributeValue{S=Id.ToString()}},{"data_json",new AttributeValue{S=json}}}};
+            if(mode==7&&request.TableName=="OasisHolons")
+            {
+                items.Clear();
+                foreach(var index in new[]{0,1,2})
+                {
+                    var row=new Holon{Id=index==0?Id:Guid.NewGuid(),ParentHolonId=index==1?Guid.Empty:Parent,
+                        CreatedByAvatarId=index==1?Guid.Empty:Parent,IsActive=true,HolonType=Core.Enums.HolonType.Park,
+                        MetaData=new(){{"owned",index==1?"no":"yes"},{"Latitude",index==0?"0":"10"},{"Longitude","0"}}};
+                    items.Add(new(){{"id",new AttributeValue{S=row.Id.ToString()}},{"data_json",new AttributeValue{S=OasisJson.Serialize(row)}}});
+                }
+            }
             return Task.FromResult(new ScanResponse{
                 HttpStatusCode=mode==1||mode==5&&Reads==2?HttpStatusCode.BadGateway:HttpStatusCode.OK,
                 Items=mode==2?null!:mode==3||mode==4?new():items,
@@ -31,6 +42,45 @@ public sealed class DynamoScanAcknowledgementTests
         }
     }
     public static IEnumerable<object[]> Cases(){foreach(var kind in new[]{0,1,2,3,4,5})foreach(var mode in new[]{0,1,2,3,4,5})foreach(var sync in new[]{false,true})yield return new object[]{kind,mode,sync};}
+
+    public static IEnumerable<object[]> SuccessfulCases(){foreach(var kind in new[]{0,1,2,3,4,5})foreach(var sync in new[]{false,true})yield return new object[]{kind,sync};}
+
+    public static IEnumerable<object[]> FilteredCases(){foreach(var kind in new[]{0,1,2,3,4,5})foreach(var sync in kind==5?new[]{false}:new[]{false,true})yield return new object[]{kind,sync};}
+
+    [DataTestMethod][DynamicData(nameof(FilteredCases),DynamicDataSourceType.Method)]
+    public async Task FilteredReadCountsOnlyReturnedRoots(int kind,bool synchronous)
+    {
+        var provider=new DynamoDBOASIS("owned","owned","us-east-1");var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var original=(AmazonDynamoDBClient)field.GetValue(provider)!;using var probe=new Probe(7);field.SetValue(provider,probe);
+        try
+        {
+            void Check<T>(OASISResult<T> result,int expected){Assert.IsFalse(result.IsError,result.Message);Assert.IsNotNull(result.Result);Assert.IsTrue(result.IsLoaded);Assert.AreEqual(expected,result.LoadedCount);Assert.IsFalse(result.IsSaved);}
+            if(kind==0)Check(synchronous?provider.LoadAllHolons(loadChildren:false):await provider.LoadAllHolonsAsync(loadChildren:false),3);
+            else if(kind==1)Check(synchronous?provider.LoadHolonsForParent(probe.Parent,loadChildren:false):await provider.LoadHolonsForParentAsync(probe.Parent,loadChildren:false),2);
+            else if(kind==2)Check(synchronous?provider.LoadHolonsByMetaData("owned","yes",loadChildren:false):await provider.LoadHolonsByMetaDataAsync("owned","yes",loadChildren:false),2);
+            else if(kind==3)Check(synchronous?provider.LoadHolonsByMetaData("owned","absent",loadChildren:false):await provider.LoadHolonsByMetaDataAsync("owned","absent",loadChildren:false),0);
+            else if(kind==4)Check(synchronous?provider.ExportAllDataForAvatarById(probe.Parent):await provider.ExportAllDataForAvatarByIdAsync(probe.Parent),2);
+            else Check(provider.GetHolonsNearMe(0,0,100,Core.Enums.HolonType.All),1);
+        }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
+    }
+
+    [DataTestMethod][DynamicData(nameof(SuccessfulCases),DynamicDataSourceType.Method)]
+    public async Task SuccessfulScanOrSelectorReportsReturnedRootCount(int kind,bool synchronous)
+    {
+        var provider=new DynamoDBOASIS("owned","owned","us-east-1");var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var original=(AmazonDynamoDBClient)field.GetValue(provider)!;using var probe=new Probe(6);field.SetValue(provider,probe);
+        try
+        {
+            void Check<T>(OASISResult<T> result){Assert.IsFalse(result.IsError,result.Message);Assert.IsNotNull(result.Result);Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);Assert.IsFalse(result.IsSaved);}
+            if(kind==0)Check(synchronous?provider.LoadAllAvatars():await provider.LoadAllAvatarsAsync());
+            else if(kind==1)Check(synchronous?provider.LoadAllAvatarDetails():await provider.LoadAllAvatarDetailsAsync());
+            else if(kind==2)Check(synchronous?provider.LoadAllHolons(loadChildren:false):await provider.LoadAllHolonsAsync(loadChildren:false));
+            else if(kind==3)Check(synchronous?provider.LoadHolonsForParent(probe.Parent,loadChildren:false):await provider.LoadHolonsForParentAsync(probe.Parent,loadChildren:false));
+            else if(kind==4)Check(synchronous?provider.LoadAvatarByUsername("selected"):await provider.LoadAvatarByUsernameAsync("selected"));
+            else Check(synchronous?provider.LoadAvatarDetailByEmail("selected@example.invalid"):await provider.LoadAvatarDetailByEmailAsync("selected@example.invalid"));
+            Assert.AreEqual(1,probe.Reads);
+        }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
+    }
     [DataTestMethod][DynamicData(nameof(Cases),DynamicDataSourceType.Method)]
     public async Task EveryPageNeedsAcknowledgementAndProgressWithoutPartialSuccess(int kind,int mode,bool synchronous)
     {

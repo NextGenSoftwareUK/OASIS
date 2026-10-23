@@ -28,6 +28,23 @@ public sealed class DynamoPointReadAcknowledgementTests
     }
     public static IEnumerable<object[]> Cases(){foreach(var kind in new[]{0,1,2})foreach(var mode in new[]{0,1,2,3})foreach(var sync in new[]{false,true})yield return new object[]{kind,mode,sync};}
 
+    [DataTestMethod]
+    [DataRow(0,false)][DataRow(0,true)][DataRow(1,false)][DataRow(1,true)][DataRow(2,false)][DataRow(2,true)]
+    public async Task SuccessfulPointReadReportsOneReturnedRoot(int kind,bool synchronous)
+    {
+        var provider=new DynamoDBOASIS("owned","owned","us-east-1");var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var original=(AmazonDynamoDBClient)field.GetValue(provider)!;using var probe=new Probe(4);field.SetValue(provider,probe);
+        try
+        {
+            void Check<T>(OASISResult<T> result){Assert.IsFalse(result.IsError,result.Message);Assert.IsNotNull(result.Result);Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);Assert.IsFalse(result.IsSaved);}
+            var id=Guid.NewGuid();
+            if(kind==0)Check(synchronous?provider.LoadAvatar(id):await provider.LoadAvatarAsync(id));
+            else if(kind==1)Check(synchronous?provider.LoadAvatarDetail(id):await provider.LoadAvatarDetailAsync(id));
+            else Check(synchronous?provider.LoadHolon(id,loadChildren:false):await provider.LoadHolonAsync(id,loadChildren:false));
+            Assert.AreEqual(1,probe.Reads);
+        }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
+    }
+
     [DataTestMethod][DynamicData(nameof(Cases),DynamicDataSourceType.Method)]
     public async Task OnlyAuthoritativeEmptyItemCanBecomeNotFound(int kind,int mode,bool synchronous)
     {

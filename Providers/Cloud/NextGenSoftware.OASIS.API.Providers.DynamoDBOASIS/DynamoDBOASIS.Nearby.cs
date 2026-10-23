@@ -28,9 +28,9 @@ public partial class DynamoDBOASIS
             var loaded=await load();if(loaded.IsError) return loaded;
             result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,IEnumerable<T>>(loaded);
             result.Result=query.Select(loaded.Result,row=>row.IsActive && !row.IsDeleted && (type==HolonType.All || row.HolonType==type));
-            result.IsLoaded=true;
+            result.IsLoaded=true;result.LoadedCount=System.Linq.Enumerable.Count(result.Result);
         }
-        catch(Exception cause) {result.Result=null;result.IsLoaded=false;OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        catch(Exception cause) {result.Result=null;result.IsLoaded=false;result.LoadedCount=0;OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
     }
 }
