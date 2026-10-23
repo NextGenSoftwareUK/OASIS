@@ -2,6 +2,12 @@
 
 22 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
 
+## Partial typed child roles
+
+Type-filtered loads now hydrate registered child-role collections with the selected typed members. Persisted role order and the full stored membership remain intact; omitted members are not passed to factories. Registered factories receive admitted/decrypted metadata before tracking. A partial view supports root-only edits (`saveChildren: false`); local AcceptChanges cannot grant permission to replace hidden or unloaded membership.
+
+For trusted custom materializers, `HolonChildRoleHydration.ApplySelectedView(owner, fullStoredManifest, selectedIds, resolveSelected)` explicitly hydrates a partial view. Supply exact selected IDs; a missing selected record is an error, not an empty role. Keep the owner unpublished until success and discard it after any failure. This method does not authorize the selected data or read storage. The owner must retain its full `ChildRoleManifestJson` observation before `ApplySelectedView`; the API rejects a missing observation before factories or callbacks. `ApplyFullySelected` remains the complete-membership operation. Visibility-scoped CQL graphs stay gated until native child authorization is implemented.
+
 ## Mandatory read access in trusted server code
 
 WEB4 v1 binds owner/public visibility from the authenticated avatar and matching usage admission. Clients cannot supply an actor in the DTO. Trusted SDK/service code can bind the same immutable restriction before filters/order/pages:

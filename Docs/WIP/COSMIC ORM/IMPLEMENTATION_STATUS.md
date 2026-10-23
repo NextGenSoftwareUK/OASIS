@@ -1,5 +1,12 @@
 # COSMIC ORM implementation status
 
+## 23 October — Partial typed child-role ownership
+
+Core a242d0e publishes one common full/selected hydration owner. Type-filtered manager loads materialize registered child types; selected IDs resolve in persisted order while omitted IDs are untouched. Full stored membership must remain on the owner and unchanged by callbacks. A partial view supersedes previous complete observation, so AcceptChanges cannot authorize child replacement; root-only saves remain available. Full Core 1,755/1,755 passes, zero skips. Published certification completed terminal0: full Core1,755/1,755 and joint native/hosted82/82, zero skips;711Core/54Shared source documents and producer/unit/native identity match. Core SHA25630184FD575D51431261ABAD651A50CE8A275F0224915EDC8A3437C8E094235E2; Shared CBF1CBF39985A02A251C948D642CE3B57B435A516EA958D1B3740A8F8C394BF3.
+
+Access-bound graph queries remain gated pending native child access, partial membership validation and safe graph DTO transport. This checkpoint does not complete the full CQL roadmap.
+
+
 ## 23 October — Immutable mandatory read-access identity
 
 Published Core638b70a gives the WEB4 owner/public rule an immutable actor/predicate binding. Native predicates precede business paging; scope/order/fluent composition preserves the rule without duplication. Actor replacement and admitted-actor mismatch reject, metadata labels cannot grant access, and foreign rows reject before typed constructors. WEB4 v1 uses that same policy owner from its JWT/admission identity. SDK policy creation itself is not authentication or a grant of credentials.
