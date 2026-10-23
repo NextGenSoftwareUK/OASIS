@@ -2,6 +2,20 @@
 
 ## Resume — 2026-10-23
 
+### OCI upload acknowledgement validation — local signed-SDK proof
+
+Newer-Core baseline52/52 passed10s. Added20 controls: old production code reproduced17 failures/3passes; corrected production code passed the full72/72 suite6s, zero skips, actual process80433 TERMINAL0. Successful PutObject previously ignored its acknowledgement headers. The existing writer now requires a nonblank opaque ETag and compares the server `OpcContentMd5` to the already-calculated request MD5. Response disposal is guaranteed in `finally`. No ETag-as-checksum assumption, additional SDK call, new storage implementation, download, or automatic replay. HTTP200 with missing/malformed/mismatched digest or missing/blank ETag may already have committed, so it uses the EXISTING mutation-reconciliation marker, never a known rejection. Sync/async public SaveHolon controls verify failed proposals do not publish Id/Version/provider keys or report success. Existing native412/404/503 classifications remain covered. MD5 here is OCI's transport-integrity contract, not encryption or a privacy algorithm; existing private-record encryption is unchanged. Official typed response contract: https://docs.oracle.com/en-us/iaas/tools/dotnet/latest/api/Oci.ObjectstorageService.Responses.PutObjectResponse.html .
+
+These are official SDK149.0.0 signed requests to the EXISTING in-process loopback fixture, NOT real OCI service acceptance. Current uncommitted Core source711/PDB matched C56E91C39478401A52BE2D78C0308E48319E0253195257123BF230FF88776555; green Shared source54/PDB matched A8D9ADBD4BC71A10AF8F80FD3ED7EC96BF391291CBA92CE663EAED06EF8A191A. Baseline Shared was3B2AE69BE062BE5AE77E97BCFE3F8BDCBDDFDFBE2E90B44D03588B49232DCB22. This is explicitly NOT immutable d548-pin proof; refresh after peer Core publication. OracleDB366+advanced14 proof below remains its earlier pinned-Core cohort, not silently recertified by this OCI change.
+
+| Report in TestResults/OracleCurrent | Bytes | SHA256 |
+|---|---:|---|
+| oracle-object-new-core-baseline.trx | 83267 | 3912054F35020C3EB1169DF317FB9ADDB9B4D95B9F0C6EA2EA3B9EF12FBF6203 |
+| oracle-object-upload-ack-red.trx | 56883 | 876C6A333697D7B466422FC4B6977A25A349CCF71061758CBDD2154892B7C291 |
+| oracle-object-upload-ack-green.trx | 115699 | 6C9FA7F8344EBCE8C9EB2AFF6790E1F124CAEA7A7C27E7362403B65946A1759F |
+
+Remaining gates unchanged: real Autonomous Database/wallet/least-privilege and OCI profile/bucket/IAM/cost acceptance, followed by hosted HyperDriveV2 cross-provider failover/load balancing/replication proof. David will arrange cloud access24Oct; requirements remain in ../Release%20and%20Status/ACTIONS-FOR-DAVID.md. Oracle is NOT100%; AWS remains next only after Oracle.
+
 ### Known statement rejection versus lost commit acknowledgement
 
 Actual93741 TERMINAL0:20/20focused passed4s, full366/366native passed94s, encrypted replay4/4passed2s, preparation6/6passed2s, process write2/2passed1s and separate-process recovery2/2passed904ms;281/281controls passed604ms, zero skips. Focused20 is INCLUDED in366; advanced14 are separate. Current controls matched producer hashes and710Core/54Shared source documents under the exclusive lease: published/pinned Core d548e550448138442a4ecc6434cd5535011cd552, DLL7F02C567646A3414A441F0730641ABB2EB17C3763655C585405C8BCEFFAAFFE7 / Shared3B2AE69BE062BE5AE77E97BCFE3F8BDCBDDFDFBE2E90B44D03588B49232DCB22. This is fresh OracleDB proof on the newer Core; earlier OCI52 is NOT silently recertified by it.

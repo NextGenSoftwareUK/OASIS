@@ -83,7 +83,12 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
             IfMatch=etag,IfNoneMatch=createOnly?"*":null};
         try {
             var response=await _client.PutObject(request,Once(),token);
-            response.httpResponseMessage?.Dispose();
+            try{
+                // A 2xx with a malformed acknowledgement may already have stored the object.
+                // ETag is an opaque revision, not an MD5; compare only the server's MD5 header.
+                if(string.IsNullOrWhiteSpace(response.ETag)||!string.Equals(response.OpcContentMd5,request.ContentMD5,StringComparison.Ordinal))
+                    throw new InvalidDataException("Oracle upload acknowledgement omitted its revision or did not match the request checksum.");
+            }finally{response.httpResponseMessage?.Dispose();}
         }catch(OciException cause)when(cause.StatusCode==HttpStatusCode.PreconditionFailed||(etag!=null&&IsMissingObject(cause))){
             throw PreconditionConflict(cause);
         }catch(OciException cause)when((int)cause.StatusCode>=400&&(int)cause.StatusCode<500&&cause.StatusCode!=HttpStatusCode.RequestTimeout){throw;}
