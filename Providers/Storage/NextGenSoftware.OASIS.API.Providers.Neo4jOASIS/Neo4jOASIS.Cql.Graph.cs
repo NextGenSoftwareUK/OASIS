@@ -112,6 +112,20 @@ public partial class Neo4jOASIS
             cancellation.ThrowIfCancellationRequested();
             if(elapsed.Elapsed>=TimeSpan.FromSeconds(30))throw new NeoCqlTimeoutException();
         }
+        private static readonly Encoding ProjectionUtf8 = new UTF8Encoding(false, true);
+        internal void ReserveProjection(IReadOnlyList<object> cells)
+        {
+            Check();
+            bytes += 16;
+            foreach (var value in cells)
+            {
+                Check();
+                try { bytes += 16 + (value is string text ? ProjectionUtf8.GetByteCount(text) : 16); }
+                catch (EncoderFallbackException cause) { throw new InvalidDataException("Projection string is not valid UTF-8.", cause); }
+                if (bytes > maximumBytes) throw new NeoCqlLimitException("Neo4j projection exceeds its detached payload budget.");
+            }
+        }
+
         internal void Reserve(string snapshot)
         {
             Check();
