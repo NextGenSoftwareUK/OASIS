@@ -1,5 +1,7 @@
 # HyperDrive providers — paused handoff, 2026-10-21
 
+Historical checkpoint: user explicitly resumed Oracle-first work on23October2026, with AWS after Oracle and cloud access to be supplied later. See ORACLE_CLIENT_PRIORITY.md, section Resume —2026-10-23, for current results/gates. The pause and pending-source descriptions below describe21October only; Redis/NEAR checkpoint6721da39a was subsequently pushed and verified. Reuse the same environment; do not recreate the old goal checkout.
+
 Goal is explicitly PAUSED at the user's request for token/cost reasons. This handoff is documentation only; do not resume builds, services, downloads, transactions or implementation until the user resumes. The full ALL-provider objective is incomplete; no completion percentage is substantiated.
 
 ## Authoritative workspace and publication

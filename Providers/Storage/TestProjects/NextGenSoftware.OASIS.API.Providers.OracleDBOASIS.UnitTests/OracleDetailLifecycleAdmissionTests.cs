@@ -6,6 +6,27 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 [TestClass]
 public sealed class OracleDetailLifecycleAdmissionTests
 {
+    [DataTestMethod]
+    [DataRow(0,false)][DataRow(1,false)][DataRow(2,false)][DataRow(3,false)][DataRow(4,false)][DataRow(5,false)]
+    [DataRow(0,true)][DataRow(1,true)][DataRow(2,true)][DataRow(3,true)][DataRow(4,true)][DataRow(5,true)]
+    public async Task PairedAvatarInvalidSelectorFailsBeforeOpeningConnection(int kind,bool softDelete)
+    {
+        IOASISStorageProvider provider=new OracleDBOASIS("UnsupportedOracleOptionForOwnedTest=true");
+        var result=kind switch {
+            0=>await provider.DeleteAvatarAsync(Guid.Empty,softDelete),
+            1=>provider.DeleteAvatar(Guid.Empty,softDelete),
+            2=>await provider.DeleteAvatarByEmailAsync(" ",softDelete),
+            3=>provider.DeleteAvatarByEmail("",softDelete),
+            4=>await provider.DeleteAvatarByUsernameAsync("",softDelete),
+            _=>provider.DeleteAvatarByUsername(" ",softDelete)
+        };
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsSaved);Assert.IsFalse(result.IsDeleted);
+        Assert.AreEqual(0,result.DeletedCount);
+        Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);
+        Assert.IsInstanceOfType<ArgumentException>(result.Exception);
+        StringAssert.Contains(result.Exception.Message,"selector");
+    }
+
     [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)][DataRow(4)][DataRow(5)]
     public async Task StandaloneDetailInvalidSelectorFailsBeforeOpeningConnection(int kind)
     {
