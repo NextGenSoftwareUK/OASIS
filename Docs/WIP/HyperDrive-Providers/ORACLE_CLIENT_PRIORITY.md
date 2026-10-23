@@ -2,6 +2,28 @@
 
 ## Resume — 2026-10-23
 
+### Known statement rejection versus lost commit acknowledgement
+
+Actual93741 TERMINAL0:20/20focused passed4s, full366/366native passed94s, encrypted replay4/4passed2s, preparation6/6passed2s, process write2/2passed1s and separate-process recovery2/2passed904ms;281/281controls passed604ms, zero skips. Focused20 is INCLUDED in366; advanced14 are separate. Current controls matched producer hashes and710Core/54Shared source documents under the exclusive lease: published/pinned Core d548e550448138442a4ecc6434cd5535011cd552, DLL7F02C567646A3414A441F0730641ABB2EB17C3763655C585405C8BCEFFAAFFE7 / Shared3B2AE69BE062BE5AE77E97BCFE3F8BDCBDDFDFBE2E90B44D03588B49232DCB22. This is fresh OracleDB proof on the newer Core; earlier OCI52 is NOT silently recertified by it.
+
+| Report | SHA256 |
+|---|---|
+| oracle-write-rejections-native-current.trx | B81275E9A9A01A49E482970E159F705A5BE4AF2B2D35672ABB9B9BF5D4EB0223 |
+| oracle-native-current.trx | 72C4DB6C6C1A8E0B54C80D3906D7805922F7CD2C2FAB14B1455FA2C6FD16713E |
+| oracle-encrypted-replay-native-current.trx | FD347F1413A033EFD803A1C283A40C040217AD9E0159034511D5821A83717B36 |
+| oracle-preparation-native-current.trx | 71FCA407FD886C31D58C7C4B6E82AFE6AD0F82A10C4F688B412E3575260031F6 |
+| oracle-encrypted-process-write.trx | 6EEBB3E5B910999F9F02A70BD723643B829AA86564AFE02D76181F879CD5CE06 |
+| oracle-encrypted-process-recover.trx | 689D2D081F93398718ECEA28B58CBFE682A98B83CB9BC1AB7F3EBA440B1BCAC1 |
+| oracle-write-rejections-controls.trx | 65AD0A00D2AF5EFCC9C95EB5C60F59789F426F37C1EFF0D462BE13CFA9F6222D |
+
+Same retained CHAR-schema instance started once for closure and stopped after exact fixture reconciliation/pending0; independent exited/listeners0. No original unknown operation was replayed: postcommit fault controls used distinct declared operations and independently reconciled their committed original results. Prior reports/proofs preserved by exact-hash MOVE, no environment/database copy/download/restore/new schema/cloud spend. Whole-drive free83869863936bytes is concurrent-machine observation. Core source hold and next producer slot released to CQL owner after actual terminal; future concurrent Core changes are not certified by this frozen cohort. Scoped task-branch commit only, no dev deployment. Next Oracle-local gate: refresh OCI signed-SDK controls against the newer published Core, retaining hosted OCI/IAM/billing/API acceptance as separate pending work. Oracle is NOT100%, AWS remains second.
+
+Native red73051TERMINAL0:16/20failed,4/20passed. Sixteen profile/detail create/update x sync/async x ASCII/CJK257 cases received original ORA-12899 and independently confirmed exact prior JSON/history or absence, but the provider marked them uncertain. Four controls capture a genuine12899 and inject the SAME exception object after a real commit on a DISTINCT operation; these correctly required reconciliation. Original failed statement is never replayed. Exact declared fixtures/committed rows were observed, conditionally cleaned and independently absent before final assertions; pending0, owned runtime stopped. Red reportA8D82D8A001DB9147BE09E74A257174711293247BF5935265BF8F68F6827784E.
+
+Existing scalar writer now records when DML returns its expected one-row acknowledgement. Only an original received12899 AFTER dispatch but BEFORE that acknowledgement is wrapped as explicit InvalidDataException with original OracleException retained. Existing terminal-invalid-data policy prevents treating this as availability failover; no new Core policy/helper/SDK adapter introduced. The identical number after DML acknowledgement remains OracleLifecycleReconciliationException, correlated to the actual possibly committed record. No retry, second persistence path/read/write, schema/encryption change or suppression of original causes. Rejected updates preserve existing karma/XP/history bytes; caller version/save flags remain unacknowledged.
+
+Focused20/20native passed4s after repair. Actual93741 is refreshing full366+advanced14+281controls on newly pinned Core d548e550448138442a4ecc6434cd5535011cd552, not relabelling earlier Core396 tests. Focused20 is INCLUDED in366; advanced14 remain separate. Costs: native rejection does not imply zero compute/I/O/locking or hosted fees. This scope covers12899 at the precise canonical DML boundary, not all Oracle errors, arbitrary triggers/procedures, caller cancellation or every failure/failover/replication policy. Hosted Cloud/API/IAM/fees and full-provider gates stay OPEN; AWS still second.
+
 ### Identity character capacity — native mismatch repaired and locally verified
 
 Final provisioning safety gate: explicit test-only opt-in is now required BEFORE any connection is read; existing runner supplies/restores that flag only for -UpgradeIdentityCharacters. Two separate no-I/O controls passed31ms (actual command terminal0): absent opt-in and a synthetic foreign endpoint both fail before connection/service access. Report oracle-schema-upgrade-admission.trx SHA256ED124FF6218F2550341A990C741EBB5A5F4769262302144D68FE25FBD3DE060F,4391bytes. This was a short integration-consumer build with BuildProjectReferences=false; no Core/Shared rebuild, native restart or completed-DDL replay. Positive widening proof below records the original one-time operation; late guard checks do not relabel it as a second migration or a new main346 case. Concurrent Core changes after handoff are NOT native-certified by the earlier346 result, regardless of dependencies copied during the late guard-only build. Runner's multi-mode rejection was also exercised before environment/build/service access. Explicit provisioning is not enabled by a generic unfiltered test command merely finding an empty local database.
