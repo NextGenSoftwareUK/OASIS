@@ -9,11 +9,12 @@ Scope: generic Core/HolonManager contracts, native execution on these three prov
 - [x] Define immutable leaf/graph shape, recursive behavior, maxChildDepth, child type and node/payload limits; preserve provider-native work limits. [Core contract and pending native work](CQL_GRAPH_LOADING.md). Runtime graph budget enforcement remains in the following gates.
 - [ ] Expand graphs beneath admitted provider execution, preserving root paging. No unmetered manager reload loop after execution or silent provider substitution.
 - [ ] Preserve selected/omitted child ownership through detached snapshots, typed hydration, tracking and conditional save. Partial queries must not delete unselected children on write-back.
+- [ ] Add explicit portable graph consistency requests/admission. Neo4j read committed must not satisfy a requested repeatable snapshot; prove opt-in/rejection and concurrency behavior before certifying that stronger guarantee.
 - [ ] Enforce authoritative access on traversed nodes/edges before inclusion or relationship matching. Inaccessible children must not leak through Any/Count or nested output.
 - [ ] Implement native direct-child/descendant existence predicates, with defined cycle, duplicate, missing-parent and reparent behavior.
 - [ ] Verify all three stores: root-only/direct/recursive/bounded depth, cancellation, excessive graphs, custom child roles, cycles, visibility and later Save behavior.
 
-Source checkpoint: Core now materializes the admitted graph shape. SQLite expands root pages inside one bounded native read owner using the reusable Shared assembler. MongoDB now uses one bounded snapshot session and advertises GraphExpansion; native104/admission31 pass, including16 graph cases. Neo4j still returns leaf rows and does not advertise GraphExpansion. Three-provider gates above remain unchecked until all three pass their native acceptance matrix.
+Source checkpoint: Core now materializes the admitted graph shape. SQLite expands root pages inside one bounded native read owner using the reusable Shared assembler. MongoDB now uses one bounded snapshot session and advertises GraphExpansion; native104/admission31 pass, including16 graph cases. Neo4j now advertises GraphExpansion and expands under one bounded read-committed transaction; native81/unit31 and scoped18 pass. Its native consistency differs from SQLite/Mongo snapshots. The corrected hosted82-case runner gate passes terminal0 with fresh consumers and successful teardown. Three-provider gates above remain unchecked until all three pass their native acceptance matrix.
 
 ## 2. Projections, aggregates and grouping
 
@@ -52,6 +53,6 @@ Source checkpoint: Core now materializes the admitted graph shape. SQLite expand
 
 ## Continuation checkpoint
 
-Core graph publication and SQLite native SDK expansion pass full Core1,722, Shared954 and SQLite1,218 tests, zero skips. SQLite's 15 native graph cases prove snapshot consistency, read ownership, depth/type budgets, partial save ownership and 150-member batching. [Exact boundary and next steps](CQL_GRAPH_LOADING.md). MongoDB snapshot-native expansion is also certified (native104/admission31, including16 graph cases). Next: Neo4j coherent native expansion with explicitly defined native consistency, then relationship predicates and the remaining phases above. HTTP v1 remains leaf-only.
+Core graph publication and SQLite native SDK expansion pass full Core1,722, Shared954 and SQLite1,218 tests, zero skips. SQLite's 15 native graph cases prove snapshot consistency, read ownership, depth/type budgets, partial save ownership and 150-member batching. [Exact boundary and next steps](CQL_GRAPH_LOADING.md). MongoDB snapshot-native expansion is also certified (native104/admission31, including16 graph cases). Neo4j native expansion is now implemented with explicit read-committed semantics (native81/unit31/scoped18 pass); final hosted82/unit31 gate also passes. Next: explicit consistency admission, authoritative child/relationship policy, native relationship predicates and the remaining phases above. HTTP v1 remains leaf-only.
 
 The user resumed the existing goal and automatic continuation is active. The full objective and unchecked gates remain intact. No new environment is needed. [Status](IMPLEMENTATION_STATUS.md), [manual](CQL_MANUAL.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

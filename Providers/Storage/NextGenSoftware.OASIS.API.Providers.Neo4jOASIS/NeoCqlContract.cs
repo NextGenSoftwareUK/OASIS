@@ -17,6 +17,7 @@ internal static class NeoCqlContract
         var fields = new List<CosmicQueryFieldCapability>();
         foreach (var name in new[] { "Name", "Description" }) fields.Add(new(name, typeof(string), equality, strings));
         fields.Add(new("Version", typeof(int), ordered));
+        fields.Add(new("HolonType",typeof(HolonType),ordered));
         foreach (var name in new[] { "IsActive", "IsPublic" }) fields.Add(new(name, typeof(bool), equality));
         foreach (var name in new[] { "Id", "ParentHolonId", "VersionId", "PreviousVersionId", "CreatedByAvatarId", "ModifiedByAvatarId" })
             fields.Add(new(name, typeof(Guid), equality));
@@ -31,7 +32,7 @@ internal static class NeoCqlContract
             CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists |
             CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith |
             CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.Membership | CosmicQueryFeatures.FieldComparison |
-            CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging,
+            CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.GraphExpansion,
             fields.Select(field=>new CosmicQueryFieldCapability(field.Name,field.ValueType,field.Comparisons.ToArray(),
                 field.StringOperations.ToArray(),supportsOrdering:true)).ToArray(),
             metadata.Select(type=>new CosmicQueryMetadataCapability(type.ValueType,type.Comparisons.ToArray(),

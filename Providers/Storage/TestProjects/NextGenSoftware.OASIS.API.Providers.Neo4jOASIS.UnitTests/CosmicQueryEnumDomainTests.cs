@@ -11,6 +11,18 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 public class CosmicQueryEnumDomainTests
 {
     [TestMethod]
+    public void CanonicalHolonTypeHasNativeAdmissionAndProjection()
+    {
+        var built=CosmicQuery<Holon>.Create().Where(holon=>holon.HolonType==HolonType.Quest);
+        Assert.IsFalse(built.IsError,built.Message);
+        Assert.IsFalse(Neo4jOASIS.CqlCapabilities.Admit(built.Result).IsError);
+        var projection=NeoCqlProjection.Build(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(
+            new Holon{Id=Guid.NewGuid(),HolonType=HolonType.Quest}));
+        Assert.AreEqual((long)HolonType.Quest,projection["f_HolonType"]);
+        Assert.AreEqual(2L,projection["SchemaVersion"]);
+    }
+
+    [TestMethod]
     public void DefinedHolonTypeMetadataHasExactAdmission()
     {
         var built=CosmicQuery<Holon>.Create().Where(h=>CosmicQueryMetadata.Value<HolonType>(h,"kind")==HolonType.Holon);

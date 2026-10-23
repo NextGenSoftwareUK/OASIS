@@ -22,7 +22,7 @@ internal sealed class NeoCqlTranslator
         if (!path.IsMetadata)
         {
             var name = path.Segments.Single();
-            if (!new[] { "Id", "Name", "Description", "Version", "IsActive", "IsPublic", "ParentHolonId", "VersionId",
+            if (!new[] { "Id", "Name", "Description", "Version", "HolonType", "IsActive", "IsPublic", "ParentHolonId", "VersionId",
                 "PreviousVersionId", "CreatedByAvatarId", "ModifiedByAvatarId" }.Contains(name, StringComparer.Ordinal))
                 throw new NotSupportedException("Neo4j CQL canonical path is unsupported.");
             var column = "p[" + Bind("f_" + name) + "]";

@@ -35,7 +35,8 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             var translator = new NeoCqlTranslator();
             var predicate = plan.Query.Predicates.Count == 0 ? "true" : string.Join(" AND ", plan.Query.Predicates.Select(translator.Translate));
             var keys=translator.TranslateOrdering(plan.Query.Orderings);
-            var fetch=plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,maximumResults+1):maximumResults+1;
+            var rootBudget=plan.Query.GraphOptions==null?maximumResults:Math.Min(maximumResults,plan.Query.GraphOptions.MaximumNodes);
+            var fetch=plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,rootBudget+1):rootBudget+1;
             translator.Parameters.Add("schema", NeoCqlProjection.SchemaVersion);
             translator.Parameters.Add("limit", fetch);
             translator.Parameters.Add("offset",plan.Query.Offset);
@@ -61,35 +62,32 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 "RETURN h.Id AS id,h.ProviderRevisionId AS revision,true AS valid, "
                 + "CASE WHEN size(h.SnapshotJson)<=2097152 THEN h.SnapshotJson ELSE null END AS snapshot "
                 + returnKeys+" } RETURN id,revision,valid,snapshot ORDER BY "+finalOrder;
+            var budget=new NeoCqlReadBudget(plan.Query.GraphOptions?.MaximumPayloadBytes??32*1024*1024,cancellationToken);
+            budget.Check();
             using var session = _driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read));
             using var transaction = await session.BeginTransactionAsync(config => config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
+            budget.Check();
             var cursor = await transaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);
-            var rows = new List<IHolon>(); long bytes = 0;
-            while (await cursor.FetchAsync().ConfigureAwait(false))
+            var rows=await ReadCqlRowsAsync(cursor,rootBudget,budget).ConfigureAwait(false);
+            if(plan.Query.GraphOptions!=null)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var row = cursor.Current;
-                if (!row["valid"].As<bool>()) throw new InvalidDataException("Neo4j CQL projection is missing, stale or has invalid ownership/schema.");
-                if (rows.Count >= maximumResults) return CqlFailure("CQL_QUERY_LIMIT", "Neo4j query exceeds its declared result limit.");
-                var snapshot = row["snapshot"].As<string>();
-                if (snapshot == null || Encoding.UTF8.GetByteCount(snapshot) > 8 * 1024 * 1024)
-                    return CqlFailure("CQL_QUERY_LIMIT", "Neo4j CQL record exceeds its payload budget.");
-                bytes += Encoding.UTF8.GetByteCount(snapshot);
-                if (bytes > 32 * 1024 * 1024) return CqlFailure("CQL_QUERY_LIMIT", "Neo4j CQL results exceed their payload budget.");
-                var holon = StoredRecordJson.DeserializeStoredHolon(snapshot);
-                if (!Guid.TryParse(row["id"].As<string>(), out var id) || holon.Id != id)
-                    throw new InvalidDataException("Neo4j CQL snapshot identity differs from its native identity.");
-                var physical = row["revision"].As<string>();
-                var revision = Guid.Empty;
-                if (physical != null && !Guid.TryParse(physical, out revision)) throw new InvalidDataException("Neo4j CQL native revision is invalid.");
-                CosmicConcurrency.SetProviderRevisionId(holon, Core.Enums.ProviderType.Neo4jOASIS, revision);
-                holon.IsNewHolon = false; rows.Add(holon);
+                var graph=await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphQueryExpansion.ExpandAsync(
+                    rows,plan.Query.GraphOptions,(selection,_)=>ReadCqlChildrenAsync(selection,transaction,budget),
+                    cancellationToken,budget.Check).ConfigureAwait(false);
+                if(graph.IsError)return graph;
+                rows=graph.Result;
             }
-            cancellationToken.ThrowIfCancellationRequested();
+            budget.Check();
             await transaction.CommitAsync().ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
+            budget.Check();
             return new OASISResult<IReadOnlyList<IHolon>>(rows) { IsLoaded = true };
         }
+        catch (NeoCqlLimitException cause) { return CqlFailure("CQL_QUERY_LIMIT",cause.Message,cause); }
+        catch (NeoCqlTimeoutException cause) { return CqlFailure("CQL_QUERY_TIMEOUT",cause.Message,cause); }
+        catch (Neo4jException cause) when(cause.Code=="Neo.ClientError.Transaction.TransactionTimedOut"
+            || cause.Code=="Neo.TransientError.Transaction.TransactionTimedOut"
+            || cause.Code=="Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration")
+        { return CqlFailure(cancellationToken.IsCancellationRequested?"CQL_QUERY_CANCELLED":"CQL_QUERY_TIMEOUT",cause.Message,cause); }
         catch (OperationCanceledException cause) { return CqlFailure("CQL_QUERY_CANCELLED", cause.Message, cause); }
         catch (NotSupportedException cause) { return CqlFailure("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
         catch (InvalidDataException cause) { return CqlFailure("CQL_DATA_INVALID", cause.Message, cause); }

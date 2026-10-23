@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 // persisted snapshot rather than from caller objects or stringified lookup tokens.
 internal static class NeoCqlProjection
 {
-    internal const long SchemaVersion = 1;
+    internal const long SchemaVersion = 2;
 
     internal static string PathKey(IReadOnlyList<string> segments)
         => "m_" + Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(segments)))
@@ -78,6 +78,7 @@ internal static class NeoCqlProjection
         if (record.Name != null) result["f_Name"] = record.Name;
         if (record.Description != null) result["f_Description"] = record.Description;
         result["f_Version"] = (long)record.Version;
+        result["f_HolonType"] = (long)record.HolonType;
         result["f_IsActive"] = record.IsActive; result["f_IsPublic"] = record.IsPublic;
         result["f_ParentHolonId"] = record.ParentHolonId.ToString("D");
         result["f_VersionId"] = record.VersionId.ToString("D");
