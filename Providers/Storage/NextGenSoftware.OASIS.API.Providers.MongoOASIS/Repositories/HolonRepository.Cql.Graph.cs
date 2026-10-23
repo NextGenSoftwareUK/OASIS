@@ -16,7 +16,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 public partial class HolonRepository
 {
     internal async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteNativeCqlGraphAsync(
-        MongoCqlCommand command,int maximumResults,CosmicQueryGraphOptions graph,CancellationToken cancellationToken)
+        MongoCqlCommand command,int maximumResults,CosmicQueryGraphOptions graph,CancellationToken cancellationToken,
+        CosmicQueryReadAccess readAccess)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if(command.FetchCount==0)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
@@ -52,8 +53,11 @@ public partial class HolonRepository
                 new ClientSessionOptions{Snapshot=true,CausalConsistency=false},deadline.Token).ConfigureAwait(false);
             var roots=await ReadNativeCqlRowsAsync(command,Math.Min(maximumResults,graph.MaximumNodes),
                 graph.MaximumPayloadBytes,session,Options,deadline.Token,Reserve).ConfigureAwait(false);
-            var result=await HolonGraphQueryExpansion.ExpandAsync(roots,graph,
-                (selection,token)=>ReadCqlGraphChildrenAsync(selection,session,Options,Reserve,token),deadline.Token,Check).ConfigureAwait(false);
+            Task<IReadOnlyList<IHolon>> ReadChildren(CosmicQueryChildSelection selection,CancellationToken token)
+                => ReadCqlGraphChildrenAsync(selection,session,Options,Reserve,token);
+            var result=readAccess==null
+                ? await HolonGraphQueryExpansion.ExpandAsync(roots,graph,ReadChildren,deadline.Token,Check).ConfigureAwait(false)
+                : await HolonGraphQueryExpansion.ExpandAsync(roots,graph,readAccess,ReadChildren,deadline.Token,Check).ConfigureAwait(false);
             Check();
             return result;
         }
@@ -74,6 +78,7 @@ public partial class HolonRepository
         {
             token.ThrowIfCancellationRequested();
             var query=CosmicQuery<Core.Holons.Holon>.Create().Where(child=>child.ParentHolonId==parent);
+            if(selection.ReadAccess!=null)query=query.WithReadAccess(selection.ReadAccess);
             if(childType!=HolonType.All)query=query.Where(child=>child.HolonType==childType);
             if(members!=null)
             {

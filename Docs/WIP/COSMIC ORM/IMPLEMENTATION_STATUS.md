@@ -1,5 +1,12 @@
 # COSMIC ORM implementation status
 
+## 23 October — Native child read-access policy
+
+Mongo, SQLite and Neo now carry the immutable owner/public rule into native child predicates before limits, using the existing translator and transaction/deadline owners. Twelve new adapter boundary cases cover selected/all-hidden children with and without stored membership and tight node budgets. Mongo23, SQLite19 and Neo joint86 pass, zero skips; source/PDB checks match711Core/54Shared. No Core/Shared source changes in this increment.
+
+SDK/HTTP access-bound graph gates remain closed: detached graph validation must enforce policy throughout the graph, typed publication must retain partial ownership, and public transport must omit hidden store membership. Native tests use test-only private query construction to isolate this layer. [Evidence](CQL_GRAPH_LOADING.md).
+
+
 ## 23 October — Shared access-bound assembly and monotonic save restriction
 
 The shared native expansion contract now propagates mandatory read policy to each selection, rejects unauthorized returned nodes and retains hidden store membership while budgeting selected nodes. Core2070977 supplies the monotonic incomplete-child marker, which cannot inherit or regain complete replacement permission through AcceptChanges. Full Shared958 and Core1,756 pass with zero skips. Native reader wiring, Core graph admission and safe public transport remain open; no existing graph gate is relaxed. See [graph evidence](CQL_GRAPH_LOADING.md).

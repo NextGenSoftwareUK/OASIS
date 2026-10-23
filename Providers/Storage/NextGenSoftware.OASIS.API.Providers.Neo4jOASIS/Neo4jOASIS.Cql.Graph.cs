@@ -32,6 +32,7 @@ public partial class Neo4jOASIS
         {
             budget.Check();
             var query=CosmicQuery<Holon>.Create().Where(child=>child.ParentHolonId==parent);
+            if(selection.ReadAccess!=null)query=query.WithReadAccess(selection.ReadAccess);
             if(type!=HolonType.All)query=query.Where(child=>child.HolonType==type);
             if(members!=null)
             {

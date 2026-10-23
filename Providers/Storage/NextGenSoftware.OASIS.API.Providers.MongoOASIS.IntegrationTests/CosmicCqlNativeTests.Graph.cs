@@ -27,7 +27,7 @@ public sealed partial class CosmicCqlNativeTests
         public IMongoCollection<BsonDocument> Records=>Database.GetCollection<BsonDocument>("Holon");
     }
 
-    private async Task WithMongoGraph(Func<MongoGraphFixture,Task> verify,bool manifest=true,int width=2,bool largeChild=false)
+    private async Task WithMongoGraph(Func<MongoGraphFixture,Task> verify,bool manifest=true,int width=2,bool largeChild=false,Action<Holon>? configure=null)
     {
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
@@ -56,6 +56,7 @@ public sealed partial class CosmicCqlNativeTests
                 quest.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=quest.Id,
                     HolonType=HolonType.Quest,Name="owned CQL graph grandchild"});
             }
+            configure?.Invoke(fixture.Root);
             var nodes=new List<IHolon>{fixture.Root};
             for(var index=0;index<nodes.Count;index++)nodes.AddRange(nodes[index].Children);
             if(manifest)
@@ -85,12 +86,38 @@ public sealed partial class CosmicCqlNativeTests
         }
     }
 
-    private static CosmicQueryPlan<Holon> MongoGraphPlan(Holon root,CosmicQueryGraphOptions options)
+    [Theory]
+    [InlineData(true,true)] [InlineData(false,true)]
+    [InlineData(true,false)] [InlineData(false,false)]
+    public Task NativeGraphAccessFiltersBeforeChildBudget(bool visible,bool manifested)
+        =>WithMongoGraph(async fixture=>
+        {
+            var policy=CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
+            var plan=MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create(maximumNodes:visible?2:1).Result,policy);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan);
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var root=Assert.Single(read.Result);
+            Assert.Equal(visible?1:0,root.Children.Count());
+            Assert.All(root.Children,child=>{Assert.True(child.IsPublic);Assert.Empty(child.Children);});
+            if(manifested)Assert.Equal(2,Core.Serialization.HolonChildRoleManifestJson.Deserialize(((Holon)root).ChildRoleManifestJson).Roles.Single().ChildIds.Count);
+        },manifest:manifested,configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=visible;});
+
+    private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query, CosmicQueryReadAccess policy)
+    {
+        // Exercise the adapter contract while public SDK/HTTP graph admission is
+        // still closed. Reflection is confined to this test fixture, not runtime.
+        var constructor=typeof(CosmicQuery<Holon>).GetConstructors(
+            System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Single();
+        return (CosmicQuery<Holon>)constructor.Invoke(new object?[]{query.Scope,query.Predicates.ToArray(),
+            query.Orderings.ToArray(),query.Offset,query.Limit,query.GraphOptions,policy});
+    }
+
+    private static CosmicQueryPlan<Holon> MongoGraphPlan(Holon root,CosmicQueryGraphOptions options,CosmicQueryReadAccess? access=null)
     {
         var id=root.Id;
         var query=CosmicQuery<Holon>.Create().Where(row=>row.Id==id).WithChildren(options);
         Assert.False(query.IsError,query.Message);
-        var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+        var plan=CosmicQueryPlanner.Plan(access==null ? query.Result : BindNativeGraphPolicy(query.Result,access),ProviderType.MongoDBOASIS,
             new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
         Assert.False(plan.IsError,plan.Message);
         return plan.Result;

@@ -73,7 +73,7 @@ public partial class Neo4jNativeCqlTests
         return new HolonManager(provider,dna,registry);
     }
 
-    private static async Task WithNativeGraph(Func<GraphFixture,Task> test,bool manifested=true,int width=2,bool largeChild=false)
+    private static async Task WithNativeGraph(Func<GraphFixture,Task> test,bool manifested=true,int width=2,bool largeChild=false,Action<Holon>? configure=null)
     {
         const string uri="bolt://127.0.0.1:17687";
         Assert.AreEqual(uri,Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -90,6 +90,7 @@ public partial class Neo4jNativeCqlTests
             var child=fixture.Root.Children.First();
             child.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="owned CQL grandchild",HolonType=HolonType.Quest});
         }
+        configure?.Invoke(fixture.Root);
         var nodes=new List<IHolon>{fixture.Root};
         for(var index=0;index<nodes.Count;index++)nodes.AddRange(nodes[index].Children);
         fixture.Ids.AddRange(nodes.Select(node=>node.Id));
@@ -134,12 +135,38 @@ public partial class Neo4jNativeCqlTests
         }
     }
 
-    private static CosmicQueryPlan<Holon> GraphPlan(GraphFixture fixture,CosmicQueryGraphOptions options)
+    [DataTestMethod]
+    [DataRow(true,true)] [DataRow(false,true)]
+    [DataRow(true,false)] [DataRow(false,false)]
+    public Task NativeGraphAccessFiltersBeforeChildBudget(bool visible,bool manifested)
+        =>WithNativeGraph(async fixture=>
+        {
+            var policy=CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
+            var plan=GraphPlan(fixture,CosmicQueryGraphOptions.Create(maximumNodes:visible?2:1).Result,policy);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan);
+            Assert.IsFalse(read.IsError,read.Message+read.Exception);
+            var root=read.Result.Single();
+            Assert.AreEqual(visible?1:0,root.Children.Count());
+            Assert.IsTrue(root.Children.All(child=>child.IsPublic && !child.Children.Any()));
+            if(manifested)Assert.AreEqual(2,Core.Serialization.HolonChildRoleManifestJson.Deserialize(((Holon)root).ChildRoleManifestJson).Roles.Single().ChildIds.Count);
+        },manifested:manifested,configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=visible;});
+
+    private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query, CosmicQueryReadAccess policy)
+    {
+        // Exercise the adapter contract while public SDK/HTTP graph admission is
+        // still closed. Reflection is confined to this test fixture, not runtime.
+        var constructor=typeof(CosmicQuery<Holon>).GetConstructors(
+            System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Single();
+        return (CosmicQuery<Holon>)constructor.Invoke(new object?[]{query.Scope,query.Predicates.ToArray(),
+            query.Orderings.ToArray(),query.Offset,query.Limit,query.GraphOptions,policy});
+    }
+
+    private static CosmicQueryPlan<Holon> GraphPlan(GraphFixture fixture,CosmicQueryGraphOptions options,CosmicQueryReadAccess? access=null)
     {
         var id=fixture.Root.Id;
         var query=CosmicQuery<Holon>.Create().Where(row=>row.Id==id).WithChildren(options);
         Assert.IsFalse(query.IsError,query.Message);
-        var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.Neo4jOASIS,
+        var plan=CosmicQueryPlanner.Plan(access==null ? query.Result : BindNativeGraphPolicy(query.Result,access),ProviderType.Neo4jOASIS,
             new[]{new CosmicQueryTarget(ProviderType.Neo4jOASIS,Provider.CqlCapabilities)});
         Assert.IsFalse(plan.IsError,plan.Message);return plan.Result;
     }
