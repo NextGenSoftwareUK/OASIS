@@ -20,6 +20,62 @@ public class HolonGraphQueryExpansionTests
         => owner.ChildRoleManifestJson = HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
             1, owner.Id, new[] { new HolonChildRole("Children", children) }));
 
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task AccessBoundAssemblyRejectsForeignNodesWithoutFilteringThem(bool foreignRoot)
+    {
+        var actor = Guid.NewGuid();
+        var policy = CosmicQueryReadAccess.OwnerOrPublic(actor).Result;
+        var root = new Holon { Id = Guid.NewGuid(), IsPublic = !foreignRoot };
+        var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id };
+        Manifest(root, child.Id);
+        var reads = 0;
+        var result = await HolonGraphQueryExpansion.ExpandAsync(new[] { root },
+            CosmicQueryGraphOptions.Create().Result, policy, (selection, _) =>
+            {
+                reads++;
+                Assert.AreSame(policy, selection.ReadAccess);
+                return Task.FromResult<IReadOnlyList<IHolon>>(new[] { child });
+            });
+        Assert.IsTrue(result.IsError);
+        Assert.AreEqual("CQL_VISIBILITY_VIOLATION", result.ErrorCode);
+        Assert.IsNull(result.Result);
+        Assert.AreEqual(foreignRoot ? 0 : 1, reads);
+    }
+
+    [TestMethod]
+    public async Task AccessBoundAssemblyKeepsHiddenMembershipButBudgetsOnlySelectedNodes()
+    {
+        var actor = Guid.NewGuid();
+        var policy = CosmicQueryReadAccess.OwnerOrPublic(actor).Result;
+        var root = new Holon { Id = Guid.NewGuid(), IsPublic = true };
+        var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, CreatedByAvatarId = actor };
+        Manifest(root, Guid.NewGuid(), child.Id, Guid.NewGuid());
+        Manifest(child);
+        var observation = root.ChildRoleManifestJson;
+        var result = await HolonGraphQueryExpansion.ExpandAsync(new[] { root },
+            CosmicQueryGraphOptions.Create(maximumNodes: 2).Result, policy, (selection, _) =>
+            {
+                Assert.AreSame(policy, selection.ReadAccess);
+                Assert.AreEqual(3, selection.MemberIds.Count);
+                Assert.AreEqual(1, selection.MaximumNodes);
+                return Task.FromResult<IReadOnlyList<IHolon>>(new[] { child });
+            });
+        Assert.IsFalse(result.IsError, result.Message);
+        Assert.AreEqual(observation, root.ChildRoleManifestJson);
+        CollectionAssert.AreEqual(new[] { child.Id }, root.Children.Select(value => value.Id).ToArray());
+    }
+
+    [TestMethod]
+    public async Task AccessBoundOverloadCannotSilentlyBecomeUnrestricted()
+    {
+        var result = await HolonGraphQueryExpansion.ExpandAsync(Array.Empty<IHolon>(),
+            CosmicQueryGraphOptions.Create().Result, null,
+            (_, _) => throw new InvalidOperationException("No native read is permitted."));
+        Assert.IsTrue(result.IsError);
+        Assert.AreEqual("CQL_ACCESS_INVALID", result.ErrorCode);
+    }
+
     [TestMethod]
     public async Task NativeResultsAreReassembledInPersistedRoleOrder()
     {
