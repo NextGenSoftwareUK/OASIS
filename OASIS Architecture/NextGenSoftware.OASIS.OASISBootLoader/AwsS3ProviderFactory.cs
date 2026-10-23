@@ -18,6 +18,8 @@ internal static class AwsS3ProviderFactory
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.BucketName);
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.KeyPrefix);
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.StorageEncryptionKeyEnvironmentVariable);
+        if (!string.IsNullOrEmpty(settings.SessionToken) && string.IsNullOrWhiteSpace(settings.SessionToken))
+            throw new ArgumentException("A supplied session token must not be whitespace.", nameof(settings));
         if (settings.UseDefaultCredentials)
         {
             if (!string.IsNullOrEmpty(settings.AccessKey) || !string.IsNullOrEmpty(settings.SecretKey) || !string.IsNullOrEmpty(settings.SessionToken))
