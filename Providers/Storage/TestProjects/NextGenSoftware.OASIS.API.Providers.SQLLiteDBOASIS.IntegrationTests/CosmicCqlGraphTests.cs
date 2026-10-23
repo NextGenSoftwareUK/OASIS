@@ -179,7 +179,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         using var context = new GraphReadContext(TestConnectionString, interceptor);
         var repository = new HolonRepository(context, () => false);
         var result = await repository.ExecuteCosmicQueryAsync(
-            NativeGraphPlan(source, CosmicQueryGraphOptions.Create().Result), 100, default);
+            NativeGraphPlan(source, CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot).Result), 100, default);
 
         changed.Should().BeTrue("the concurrent write must commit before native child enumeration");
         result.IsError.Should().BeFalse(result.Message + result.Exception);

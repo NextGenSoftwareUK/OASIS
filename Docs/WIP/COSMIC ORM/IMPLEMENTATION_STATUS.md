@@ -1,5 +1,12 @@
 # COSMIC ORM implementation status
 
+## 23 October — Explicit graph consistency requests and admission
+
+Core d548e55 adds immutable ProviderDefault/ProviderSnapshot requests, preserving the original factory binary signature. Snapshot capability is declared by SQLite/Mongo and rechecked against the actual adapter; Neo rejects stronger requests before I/O. Native race tests now request the guarantee explicitly. No weaker fallback or silent provider substitution occurs; per-provider snapshots do not create a distributed common snapshot.
+
+Verified full Core1,730, Mongo19, SQLite15, Neo32, hosted82 cases; all pass, zero skips. Final consumers match the published Core hash and710 Core/54 Shared source documents. Informational version now matches the published commit after a bounded nonincremental refresh. [Contract/evidence](CQL_GRAPH_LOADING.md). Next: authoritative child access and relationship predicates, then remaining query shapes. The full goal remains active.
+
+
 ## 23 October — Neo4j native CQL graph reader and type projection
 
 Added bounded native HAS_CHILD expansion after root paging, persisted membership ordering/batching, graph budgets, partial-save ownership and native snapshot/revision consistency checks. Neo4j uses one read-committed transaction; it does not offer the SQLite/Mongo cross-command snapshot guarantee. Cooperative driver cancellation is checked around awaits and before publication. Canonical HolonType projection/translation/capability is now implemented under schema2, using the existing activation migration owner.

@@ -218,7 +218,7 @@ public sealed partial class CosmicCqlNativeTests
             Task<NextGenSoftware.OASIS.Common.OASISResult<IReadOnlyList<IHolon>>>? pending=null;
             try
             {
-                pending=fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result));
+                pending=fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot).Result));
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"waitForFailPoint","failCommand"},
                     {"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",10000}});
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
