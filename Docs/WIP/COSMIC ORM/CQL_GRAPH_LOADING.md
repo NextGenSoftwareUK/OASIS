@@ -182,3 +182,12 @@ The first joint88 run also exposed a flaky signed graph fixture: direct legacy p
 The conditional-save ownership gate is now checked on the roadmap. Custom role/native matrix completion and relationship predicates remain open; this does not close the whole child/relationship phase. Ordered-fixture executable demo64257 completed terminal0,1/1 passes; Core711/Shared54 source/PDB checks match.
 
 Final frozen hashes: Core6E531CACD3A034FD42E1DE47C85982C07F00CB78BF057CD4CDAAFD4F81221BC7, SharedFB6A4FDFA042CA55203A6EE3AEF6933AC80089C804C94305B082B0F3687877DE. Failed-fixture reconciliation retained27 record snapshots and35 settled operation summaries before cleanup. Final fixture manifests/SQLite DB/listeners are absent.
+
+
+## 23 October — Named typed-role native coverage
+
+One source-linked fixture now exercises the same custom owner/Extras role on Mongo, Neo and SQLite. The owner declares CaptureChildCollections/AllChildren/GetChildRoleBindings; its registered factory projects a typed child and maps its CustomOASISProperty metadata. Complete queries verify typed role population, accepted tracking and detection of local typed-field edits. Access-bound queries verify the hidden role remains empty while the full stored role observation is retained. Fixture enumeration uses AllChildren so exact create-only preconditions, journals and cleanup include named-role records.
+
+Mongo27, joint90 and SQLite23 pass, zero skips;53079 completed terminal0. The first attempted build rejected an unqualified namespace reference before fixture execution; references now use global qualification, with no runtime behavior workaround. No Core/Shared source or dependency changes.
+
+Source identity certification matches Core6E531CACD3A034FD42E1DE47C85982C07F00CB78BF057CD4CDAAFD4F81221BC7/711 source documents and SharedBF23BAC44E412B1F56BD40BE4EEE7CF5D2497BBB1876538E15706699315C263B/54. Owned fixtures/SQLite DB/listeners absent after teardown. Full graph-matrix gate remains open for the explicitly missing native SQLite cancellation/cycle and Neo cycle corruption controls; existing Shared/Core validation is not substituted for those native proofs.
