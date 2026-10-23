@@ -12,6 +12,10 @@ This provider uses the real Oracle.ManagedDataAccess.Core client with indexed lo
 
 Before upgrading an existing schema, have its DBA inspect data lengths, character representability, indexes and maintenance requirements. Do not blindly narrow wider columns. Oracle DDL commits independently, so a schema change is not an ordinary rollback-safe data transaction. The guarded local empty-test-schema procedure is not a general production migration. Unicode acceptance was tested on AL32UTF8; other database character sets and hosted configurations require their own verification.
 
+### Write outcomes
+
+An original ORA-12899 returned by the canonical DML statement before its row acknowledgement is an explicit capacity rejection, retaining the original Oracle exception. A matching error number after DML acknowledgement is not treated as proof of rejection: commit/transport uncertainty still requires reconciliation before replay. Rejected work can consume database resources even when it commits no record.
+
 ### Connection settings
 
 Configure `OASIS.StorageProviders.OracleDBOASIS.ConnectionString` through the host's secure configuration. `IsVersionControlEnabled` defaults to false; enabling it creates version archives. Existing archives are preserved when creation is disabled. Historical profile reads do not authorize historical credentials: verification/reset/refresh token selectors require version zero.
