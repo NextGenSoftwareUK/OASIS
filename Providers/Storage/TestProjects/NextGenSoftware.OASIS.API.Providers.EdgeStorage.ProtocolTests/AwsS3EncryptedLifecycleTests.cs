@@ -21,16 +21,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
 [TestClass]
 public class AwsS3EncryptedLifecycleTests
 {
-    private sealed class Store : IDisposable
+    internal sealed class Store : IDisposable
     {
         public readonly Dictionary<string, string> Objects = new(StringComparer.Ordinal);
         public readonly AmazonS3Client Client;
         private readonly FakeService _http;
         public int Requests, Pages;
+        public bool LoseCreateAcknowledgement;
+        public int Writes, Deletes;
         private static string Revision(string value) => "\"" + Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant() + "\"";
         private static HttpResponseMessage Failure(HttpStatusCode status, string code) => new(status)
         { Content = new StringContent($"<Error><Code>{code}</Code><Message>controlled</Message></Error>", Encoding.UTF8, "application/xml") };
-        public Store()
+        public Store(string allowedPrefix = "scope/")
         {
             _http = new FakeService((request, body) =>
             {
@@ -55,7 +57,7 @@ public class AwsS3EncryptedLifecycleTests
                             + (more ? $"<NextContinuationToken>{offset + page.Length}</NextContinuationToken>" : "") + "</ListBucketResult>";
                         return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(xml, Encoding.UTF8, "application/xml") };
                     }
-                    Assert.IsTrue(path.StartsWith("test-bucket/scope/", StringComparison.Ordinal));
+                    Assert.IsTrue(path.StartsWith("test-bucket/" + allowedPrefix, StringComparison.Ordinal));
                     var key = path["test-bucket/".Length..];
                     var present = Objects.TryGetValue(key, out var existing);
                     var match = request.Headers.TryGetValues("If-Match", out var values) ? values.Single() : null;
@@ -64,16 +66,18 @@ public class AwsS3EncryptedLifecycleTests
                         return Failure(HttpStatusCode.PreconditionFailed, "PreconditionFailed");
                     if (request.Method == HttpMethod.Put)
                     {
+                        Writes++;
                         var value = TigrisS3ProtocolTests.DecodeAwsChunked(request, body);
                         var checksum = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
                         Assert.AreEqual(checksum, request.Headers.GetValues("x-amz-checksum-sha256").Single());
                         Objects[key] = value;
+                        if (LoseCreateAcknowledgement && Writes == 1) return Failure(HttpStatusCode.ServiceUnavailable, "ServiceUnavailable");
                         var response = FakeService.Status(HttpStatusCode.OK);
                         response.Headers.TryAddWithoutValidation("ETag", Revision(value));
                         response.Headers.TryAddWithoutValidation("x-amz-checksum-sha256", checksum);
                         return response;
                     }
-                    if (request.Method == HttpMethod.Delete) { Objects.Remove(key); return FakeService.Status(HttpStatusCode.NoContent); }
+                    if (request.Method == HttpMethod.Delete) { Deletes++; Objects.Remove(key); return FakeService.Status(HttpStatusCode.NoContent); }
                     Assert.AreEqual(HttpMethod.Get, request.Method);
                     if (!present) return Failure(HttpStatusCode.NotFound, "NoSuchKey");
                     var get = FakeService.Text(existing); get.Content.Headers.ContentLength = Encoding.UTF8.GetByteCount(existing);
