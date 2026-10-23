@@ -162,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
         }
 
         // The SDK streams uploads as aws-chunked ("<hex-size>[;ext]\r\n<data>\r\n ... 0\r\n[trailers]"); S3 servers decode it.
-        private static string DecodeAwsChunked(HttpRequestMessage req, string body)
+        internal static string DecodeAwsChunked(HttpRequestMessage req, string body)
         {
             var encoding = req.Content?.Headers.ContentEncoding;
             var sha = req.Headers.TryGetValues("x-amz-content-sha256", out var v) ? v.FirstOrDefault() : null;
