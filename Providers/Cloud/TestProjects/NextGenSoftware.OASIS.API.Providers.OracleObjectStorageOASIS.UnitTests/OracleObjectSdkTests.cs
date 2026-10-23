@@ -70,7 +70,7 @@ public class OracleObjectSdkTests
         finally{listener.Stop();}
     }
 
-    [DataTestMethod][DataRow("success")][DataRow("create")][DataRow("replace")][DataRow("delete")][DataRow("occupied")]
+    [DataTestMethod][DataRow("success")][DataRow("create")][DataRow("replace")][DataRow("delete")][DataRow("occupied")][DataRow("list-create")][DataRow("list-delete")]
     public async Task LiveTransportDriverKeepsOriginalUncertainJournalWithoutCleanupOrReplay(string outcome)
     {
         var root=new DirectoryInfo(AppContext.BaseDirectory);
@@ -81,11 +81,18 @@ public class OracleObjectSdkTests
         var pending=Path.Combine(work,"oci-live-transport.pending.json");var report=Path.Combine(work,"oci-live-transport.current.json");
         Assert.IsFalse(File.Exists(pending)||File.Exists(report),"Review original controlled fixture before reuse.");
         string? value=outcome=="occupied"?"foreign object":null;var revision="\"v1\"";var requests=0;var deletes=0;var puts=0;
-        var expected=outcome switch{"occupied"=>2,"create"=>3,"replace"=>5,"delete"=>9,_=>10};
+        var expected=outcome switch{"occupied"=>2,"create"=>3,"replace"=>6,"delete"=>10,"list-create"=>5,_=>12};
         async Task Service(HttpListenerContext context)
         {
             requests++;var method=context.Request.HttpMethod;
             if(method=="HEAD"){await Reply(context,200,"");return;}
+            if(method=="GET"&&context.Request.Url!.AbsolutePath.EndsWith("/o",StringComparison.Ordinal)){
+                Assert.AreEqual("oasis-acceptance/transport-probe",context.Request.QueryString["prefix"]);
+                if(outcome==(value==null?"list-delete":"list-create")){
+                    await Reply(context,403,"{\"code\":\"NotAuthorized\",\"message\":\"controlled listing denied\"}");return;
+                }
+                await Reply(context,200,value==null?"{\"objects\":[]}":"{\"objects\":[{\"name\":\"oasis-acceptance/transport-probe\"}]}");return;
+            }
             StringAssert.EndsWith(Uri.UnescapeDataString(context.Request.Url!.AbsolutePath),"/o/oasis-acceptance/transport-probe");
             if(method=="GET"){
                 if(value==null)await Reply(context,404,"{\"code\":\"ObjectNotFound\",\"message\":\"controlled\"}");
@@ -106,16 +113,20 @@ public class OracleObjectSdkTests
         await ExchangeClient(async client=>{
             if(outcome=="success")await OracleLiveTransportAcceptance.RunAsync(client,"ns","bucket","oasis-acceptance/",work);
             else if(outcome=="occupied")await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>OracleLiveTransportAcceptance.RunAsync(client,"ns","bucket","oasis-acceptance/",work));
+            else if(outcome.StartsWith("list-",StringComparison.Ordinal))await Assert.ThrowsExceptionAsync<OciException>(()=>OracleLiveTransportAcceptance.RunAsync(client,"ns","bucket","oasis-acceptance/",work));
             else await Assert.ThrowsExceptionAsync<OracleObjectMutationReconciliationException>(()=>OracleLiveTransportAcceptance.RunAsync(client,"ns","bucket","oasis-acceptance/",work));
         },Enumerable.Repeat<Func<HttpListenerContext,Task>>(Service,expected).ToArray());
-        Assert.AreEqual(expected,requests);Assert.AreEqual(outcome is "success" or "delete"?1:0,deletes);
+        Assert.AreEqual(expected,requests);Assert.AreEqual(outcome is "success" or "delete" or "list-delete"?1:0,deletes);
         if(outcome=="occupied"){Assert.AreEqual(0,puts);Assert.AreEqual("foreign object",value);Assert.IsFalse(File.Exists(pending)||File.Exists(report));return;}
         var evidence=outcome=="success"?report:pending;
         using(var document=System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(evidence))){
             var state=document.RootElement;Assert.AreEqual("ns",state.GetProperty("namespaceName").GetString());Assert.AreEqual("bucket",state.GetProperty("bucket").GetString());
             Assert.AreEqual("oasis-acceptance/transport-probe",state.GetProperty("objectName").GetString());
-            Assert.AreEqual(outcome switch{"create"=>"before-create","replace"=>"before-replace","delete"=>"before-conditional-delete",_=>"verified"},state.GetProperty("state").GetString());
-            if(outcome=="success"){Assert.IsFalse(state.GetProperty("fullProviderVerified").GetBoolean());Assert.AreEqual(10,state.GetProperty("logicalSdkCalls").GetInt32());}
+            Assert.AreEqual(outcome switch{"create"=>"before-create","replace"=>"before-replace","delete"=>"before-conditional-delete","list-create"=>"create-acknowledged","list-delete"=>"delete-acknowledged",_=>"verified"},state.GetProperty("state").GetString());
+            if(outcome=="success"){
+                Assert.IsFalse(state.GetProperty("fullProviderVerified").GetBoolean());Assert.AreEqual(12,state.GetProperty("nominalSdkCalls").GetInt32());
+                Assert.IsTrue(state.GetProperty("listPaginationMayIncreaseRequests").GetBoolean());
+            }
         }
         Assert.AreEqual(outcome!="success",File.Exists(pending));Assert.AreEqual(outcome=="success",File.Exists(report));
         File.Delete(evidence); // Verified synthetic LOOPBACK fixture only; real runner never auto-cleans errors.

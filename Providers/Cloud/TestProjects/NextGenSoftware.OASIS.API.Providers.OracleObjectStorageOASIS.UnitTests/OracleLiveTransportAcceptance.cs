@@ -38,6 +38,7 @@ public static class OracleLiveTransportAcceptance
         await backend.CreateOnlyAsync(key,first,token);await Journal("create-acknowledged");
         var created=await backend.GetWithEntityTagAsync(key,token);
         Require(created?.Value==first,"Created object readback does not match this operation.");
+        Require((await backend.ListKeysAsync(key,token)).Contains(key,StringComparer.Ordinal),"Created object is missing from its scoped native listing.");
         await Journal("before-replace",created!.EntityTag);
         await backend.ReplaceUnchangedAsync(key,replacement,created.EntityTag,token);await Journal("replace-acknowledged");
         var updated=await backend.GetWithEntityTagAsync(key,token);
@@ -52,10 +53,11 @@ public static class OracleLiveTransportAcceptance
         await Journal("before-conditional-delete",updated.EntityTag);
         await backend.DeleteUnchangedAsync(key,updated.EntityTag,token);await Journal("delete-acknowledged");
         Require(await backend.GetWithEntityTagAsync(key,token)==null,"Acknowledged deletion did not read back as explicit absence.");
+        Require(!(await backend.ListKeysAsync(key,token)).Contains(key,StringComparer.Ordinal),"Deleted object remains in its scoped native listing.");
         await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new{
             state="verified",operation,namespaceName,bucket,objectName=prefix+key,
             scope="native signed SDK transport only",fullProviderVerified=false,hyperDriveVerified=false,
-            logicalSdkCalls=10,cloudCostMeasured=false,completedUtc=DateTime.UtcNow
+            nominalSdkCalls=12,listPaginationMayIncreaseRequests=true,cloudCostMeasured=false,completedUtc=DateTime.UtcNow
         }),token);
         File.Delete(pending);
     }
