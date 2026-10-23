@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -21,6 +22,12 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
     private readonly string _objectPrefix;
     private static readonly UTF8Encoding Utf8=new(false,true);
     private static RetryConfiguration Once()=>new(){MaxAttempts=1,RetryableErrors=new(),RetryableStatusCodeFamilies=new()};
+
+    private static void RequireCompletedResponse(HttpResponseMessage? response,HttpStatusCode expected,string operation)
+    {
+        if(response?.StatusCode!=expected)
+            throw new InvalidDataException($"OCI {operation} requires native HTTP {(int)expected} completion, not an asynchronous or partial acknowledgement.");
+    }
 
     public OracleObjectStorageBackend(ObjectStorageClient client,string namespaceName,string bucketName,string objectPrefix="")
     {
@@ -50,10 +57,13 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
         try {
             var response=await _client.GetObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=_objectPrefix+key},Once(),cancellationToken);
             try {
+                RequireCompletedResponse(response.httpResponseMessage,HttpStatusCode.OK,"object GET");
+                if(response.ContentRange is not null||response.IsNotModified)
+                    throw new InvalidDataException("OCI whole-record GET cannot publish a ranged or not-modified response.");
                 using var stream=response.InputStream??throw new InvalidDataException("OCI object response has no content stream.");
                 using var reader=new StreamReader(stream,Utf8,detectEncodingFromByteOrderMarks:false);
                 var value=await reader.ReadToEndAsync(cancellationToken);
-                if(string.IsNullOrWhiteSpace(response.ETag)||response.IsNotModified)
+                if(string.IsNullOrWhiteSpace(response.ETag))
                     throw new InvalidDataException("OCI object GET must return its observed ETag and complete value.");
                 return new OracleObjectSnapshot(value,response.ETag);
             }finally{response.httpResponseMessage?.Dispose();}
@@ -86,6 +96,7 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
             try{
                 // A 2xx with a malformed acknowledgement may already have stored the object.
                 // ETag is an opaque revision, not an MD5; compare only the server's MD5 header.
+                RequireCompletedResponse(response.httpResponseMessage,HttpStatusCode.OK,"object PUT");
                 if(string.IsNullOrWhiteSpace(response.ETag)||!string.Equals(response.OpcContentMd5,request.ContentMD5,StringComparison.Ordinal))
                     throw new InvalidDataException("Oracle upload acknowledgement omitted its revision or did not match the request checksum.");
             }finally{response.httpResponseMessage?.Dispose();}
@@ -109,7 +120,8 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
         ValidateKey(key);cancellationToken.ThrowIfCancellationRequested();
         try {
             var response=await _client.DeleteObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=_objectPrefix+key,IfMatch=etag},Once(),cancellationToken);
-            response.httpResponseMessage?.Dispose();
+            try{RequireCompletedResponse(response.httpResponseMessage,HttpStatusCode.NoContent,"object DELETE");}
+            finally{response.httpResponseMessage?.Dispose();}
         }catch(OciException cause)when(cause.StatusCode==HttpStatusCode.PreconditionFailed||(etag!=null&&IsMissingObject(cause))){
             throw PreconditionConflict(cause);
         }catch(OciException cause)when(etag==null&&IsMissingObject(cause)){}
@@ -127,6 +139,7 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
             cancellationToken.ThrowIfCancellationRequested();
             var response=await _client.ListObjects(new(){NamespaceName=_namespace,BucketName=_bucket,Prefix=physicalPrefix,Start=start},Once(),cancellationToken);
             try {
+                RequireCompletedResponse(response.httpResponseMessage,HttpStatusCode.OK,"object LIST");
                 var page=response.ListObjects??throw new InvalidDataException("OCI object listing is missing its payload.");
                 foreach(var item in page.Objects??throw new InvalidDataException("OCI object listing is missing its objects.")) {
                     if(string.IsNullOrWhiteSpace(item?.Name)||!item.Name.StartsWith(physicalPrefix,StringComparison.Ordinal)||!seen.Add(item.Name))
@@ -144,7 +157,8 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
     {
         cancellationToken.ThrowIfCancellationRequested();
         var response=await _client.HeadBucket(new(){NamespaceName=_namespace,BucketName=_bucket},Once(),cancellationToken);
-        response.httpResponseMessage?.Dispose();
+        try{RequireCompletedResponse(response.httpResponseMessage,HttpStatusCode.OK,"bucket HEAD");}
+        finally{response.httpResponseMessage?.Dispose();}
     }
 
     private static bool IsMissingObject(OciException cause)=>cause.StatusCode==HttpStatusCode.NotFound&&cause.ServiceCode=="ObjectNotFound";

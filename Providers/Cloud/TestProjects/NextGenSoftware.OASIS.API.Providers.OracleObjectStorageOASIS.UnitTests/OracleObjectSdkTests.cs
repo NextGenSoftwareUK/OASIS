@@ -245,6 +245,50 @@ public class OracleObjectSdkTests
         },context=>Reply(context,200,"owned-value"));
     }
 
+    [DataTestMethod]
+    [DataRow("get",200,false)][DataRow("get",206,true)][DataRow("get",200,true)][DataRow("get",206,false)]
+    [DataRow("observe",206,true)]
+    [DataRow("put",200,false)][DataRow("put",202,false)][DataRow("create",202,false)][DataRow("replace",202,false)]
+    [DataRow("delete",204,false)][DataRow("delete",202,false)]
+    [DataRow("verify",200,false)][DataRow("verify",202,false)]
+    [DataRow("list",200,false)][DataRow("list",206,false)]
+    public async Task NativeHttpAcknowledgementMustDescribeCompletedWholeOperation(string operation,int status,bool ranged)
+    {
+        var mutation=operation is "put" or "create" or "replace" or "delete";
+        var accepted=status==(operation=="delete"?204:200)&&!ranged;
+        await Exchange(async backend=>{
+            async Task Invoke(){
+                switch(operation){
+                    case "get":await backend.GetAsync("oasis/http-ack");break;
+                    case "observe":await backend.ReadObservedAsync("oasis/http-ack");break;
+                    case "put":await backend.PutAsync("oasis/http-ack","one");break;
+                    case "create":await backend.CreateOnlyAsync("oasis/http-ack","one");break;
+                    case "replace":await backend.ReplaceUnchangedAsync("oasis/http-ack","one","\"previous\"");break;
+                    case "delete":await backend.DeleteAsync("oasis/http-ack");break;
+                    case "verify":await backend.VerifyAsync();break;
+                    case "list":await backend.ListKeysAsync("oasis/");break;
+                    default:throw new ArgumentOutOfRangeException(nameof(operation));
+                }
+            }
+            if(accepted){await Invoke();return;}
+            if(mutation){
+                var cause=await Assert.ThrowsExceptionAsync<OracleObjectMutationReconciliationException>(Invoke);
+                Assert.IsInstanceOfType<InvalidDataException>(cause.InnerException);Assert.IsTrue(NativeMutationReconciliation.IsRequired(cause));
+            }else{
+                var cause=await Assert.ThrowsExceptionAsync<InvalidDataException>(Invoke);
+                Assert.IsFalse(NativeMutationReconciliation.IsRequired(cause));
+            }
+        },async context=>{
+            context.Response.Headers["ETag"]="\"opaque-native-revision\"";
+            if(context.Request.HttpMethod=="PUT"){
+                using var reader=new StreamReader(context.Request.InputStream);Assert.AreEqual("one",await reader.ReadToEndAsync());
+                context.Response.Headers["opc-content-md5"]=context.Request.Headers["Content-MD5"];
+            }
+            if(ranged)context.Response.Headers["Content-Range"]="bytes 0-2/9";
+            await Reply(context,status,operation=="list"?"{\"objects\":[]}":operation is "get" or "observe"?"one":"",acknowledgePut:false);
+        });
+    }
+
     [DataTestMethod][DataRow(204)][DataRow(412)][DataRow(404)][DataRow(403)][DataRow(503)]
     public async Task ConditionalDeleteUsesObservedEtagAndPreservesOutcomeClassification(int status)
     {

@@ -2,6 +2,19 @@
 
 ## Resume — 2026-10-23
 
+### OCI native completion acknowledgement repaired — genuine15-case red/full94 green
+
+Real signed-SDK loopback matrix15 exposed10 false successes (all expected exceptions missing),5 valid controls passed. Backend previously trusted generic SDK2xx success: ranged206 GET/observations,200+Content-Range GET and206 LIST could return incomplete records/collections;202 PUT/create/replace/delete/HEAD could publish completed mutation/bucket readiness without that contract. One native RequireCompletedResponse helper now checks200 for GET/PUT/LIST/HEAD,204 for DELETE; whole-record GET also rejects ContentRange/IsNotModified before reading/publishing. Existing ETag/server-digest/precondition/strict UTF8 checks and single-attempt policy retained. Mutating invalid acknowledgements use EXISTING OracleObjectMutationReconciliationException/INativeMutationReconciliationRequired with original object identity; read protocol errors are InvalidDataException and NOT uncertain mutation. Responses disposed even on rejection, no fallback/second writer/retry or new provider framework.
+
+Red32c17e terminal1:10fail/5pass15,1s; all10 failures explicitly say no exception thrown, not fixture/compilation errors. Green65922 ACTUAL TERMINAL0: full94/94pass0skip8s, includes prior79 plus all15 new status/range cases. Source/PDB711Core/54Shared verified, CoreBFB99852BE111503F20F12702BD622192BA1D528D0AD693BDF70E3942B20F57D/Shared02E8AF5E2B182CE8D8F4B2ACC192C004AEA288814BB53A6FDB883CFBAE313679. No SQL492/advanced14/Shared968 rerun implied by this OCI-only native transport repair. Guarded live probe inherits this single adapter fix, nominal request count unchanged. No real Oracle Cloud access, IAM/cost/full-provider or deployment certification.
+
+| Existing C:/Source/OASIS/TestResults/OracleObjectCurrent evidence | Bytes | SHA256 |
+| --- | ---: | --- |
+| oracle-native-http-ack-red.trx |41920|76A3906842AF243E0737E78179BF21E15E2E153D5982C1DB7833293317D465D7|
+| oracle-native-http-ack-current.trx |151061|79C3DCDECF6DD8D25851CEB33BBC79D64FF06D8E69219521ACD82B4B0620E192|
+
+Same SDK149/cache/outputs/loopback18661/source lease reused, no restore/download/install/profile/DB service/cloud requests. Green first lease attempt refused BEFORE body while peer91179 owned it; resumed after actual-terminal handoff. Listener18661zero/controlled JSON0 verified, no pending native ledger/object data; fixed synthetic loopback evidence cleaned only by exact case assertions. Producer/source hold released only after actual terminal; resource ledger updated. Cfree79,750,770,688bytes shared observation, no exclusive attribution/reclamation claim. GET byte-range request semantics are documented by [Oracle SDK](https://docs.oracle.com/en-us/iaas/tools/typescript/2.68.0/interfaces/_objectstorage_lib_request_get_object_request_.getobjectrequest.html); this whole-record adapter deliberately never requests ranges. Cloud request/egress/storage fees still require owner confirmation; no change to sponsorship/fee policy. Oracle cloud access and other open interface/route gates remain pending, NOT100%.
+
 ### OCI live probe now includes native listing —79 SDK controls passed
 
 The prepared driver previously exercised GET/PUT/DELETE but omitted LIST, which the provider's query/index paths require. It now uses the EXISTING backend ListKeysAsync after acknowledged creation and after acknowledged deletion: own key must appear/disappear. No duplicate transport, new client, alternate query path or cloud access. Signed loopback cases now also return LIST403 after create/delete and verify original pending stage retained, no report/no cleanup/retry/replay. Read failures remain real SDK OciException, not mislabeled uncertain mutations; create-acknowledged/delete-acknowledged are preserved for review.

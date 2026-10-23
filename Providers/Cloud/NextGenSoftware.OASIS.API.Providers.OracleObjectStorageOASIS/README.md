@@ -27,6 +27,8 @@ The named environment variable must contain canonical base64 encoding of exactly
 
 ## Storage and mutation behavior
 
+Native completion is checked at the transport boundary: GET, PUT, LIST and bucket HEAD require HTTP 200; DELETE requires HTTP 204. Whole-record GET rejects ranged/partial and not-modified responses, including HTTP 200 carrying Content-Range. An unexpected success acknowledgement after a dispatched mutation is an uncertain outcome requiring original-object reconciliation, not an automatic retry or success. Read protocol failures do not imply that a mutation occurred. Existing native ETag and upload-checksum checks still apply.
+
 Private record envelopes and keyed indexes use the existing shared private backend. Metadata queries are OASIS-level selections, not an OCI SQL/search service: some operations enumerate pages and decrypt records. Account for request count, storage, egress and scan cost when accepting a cloud deployment. Logical history increases retained payload and can increase request work; it is not a promise that an entire multi-object operation is one native transaction.
 
 Conditional writes/deletes use native `If-Match`/`If-None-Match` headers. ETags are opaque revisions, never interpreted as MD5 hashes. A successful single-object upload must return a nonblank ETag and the matching server `opc-content-md5` acknowledgement. MD5 here is OCI transport-integrity metadata, not record encryption.
