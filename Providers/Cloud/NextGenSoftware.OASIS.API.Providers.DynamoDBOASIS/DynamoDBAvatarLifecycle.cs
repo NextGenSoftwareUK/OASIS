@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
-using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS;
 
@@ -81,7 +81,7 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
                 if(supplied!=null) profile.DeletedByAvatarId=supplied.DeletedByAvatarId;
                 tombstone=new AvatarTombstone(id,date,profile.DeletedByAvatarId);
             }
-            var updatedProfile=softDelete&&profileNeedsChange ? await StageRecordAsync(profile,JObject.Parse(profileJson)):null;
+            var updatedProfile=softDelete&&profileNeedsChange ? await StageRecordAsync(profile,OasisJson.ParseStoredObject(profileJson)):null;
             var writes=new List<TransactWriteItem> {softDelete&&!profileNeedsChange?LifecycleCheck("OasisAvatars",id,profileJson):LifecycleWrite("OasisAvatars",id,profileJson,updatedProfile?.ToString(Newtonsoft.Json.Formatting.None))};
             if(detailItem.Count==0)
                 writes.Add(new TransactWriteItem {ConditionCheck=new ConditionCheck {TableName="OasisAvatarDetails",Key=LifecycleKey(id),ConditionExpression="attribute_not_exists(id)"}});
@@ -96,7 +96,7 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
                         throw new StorageLifecycleConflictException("Avatar/detail committed tombstones conflict.");
                     detail.IsActive=false;detail.DeletedDate=tombstone.DeletedAtUtc;detail.DeletedByAvatarId=tombstone.DeletedByAvatarId;
                 }
-                var updatedDetail=softDelete&&detailNeedsChange ? await StageRecordAsync(detail,JObject.Parse(detailJson)):null;
+                var updatedDetail=softDelete&&detailNeedsChange ? await StageRecordAsync(detail,OasisJson.ParseStoredObject(detailJson)):null;
                 writes.Add(softDelete&&!detailNeedsChange?LifecycleCheck("OasisAvatarDetails",id,detailJson):LifecycleWrite("OasisAvatarDetails",id,detailJson,updatedDetail?.ToString(Newtonsoft.Json.Formatting.None)));
             }
             var request=new TransactWriteItemsRequest{TransactItems=writes,ClientRequestToken=Guid.NewGuid().ToString("N")};
