@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## SQLite extension scalar corruption — 23 October 2026
+
+Proved and fixed default-parser corruption in holon extension capture/restore, conditional relationship patch, and inventory nested DNA. Eight existing cases reproduced date-text mutation/receipt rejection; two overlapping inventory cases also prove exact raw/API numeric narrowing. Seven carrying parses reuse existing lossless parser; receipt checks/relational ownership unchanged, no schema/Core/Shared/SDK edit. Actual full **1,251/1,251 native SQLite integration PASS, zero skipped**, final source/producer identity verified and fixed owned DB/sidecars absent. [Exact scope, cohorts and report hashes](HYPERDRIVE_V2_FOUR_PROVIDER_INTERFACE_ACCEPTANCE.md). Does not certify every interface/hosted provider/V2 scenario or repair previously corrupted values; wallet-store parsing remains a separate audit candidate. Oracle cloud access and original intermittent Oracle readback root cause remain open.
+
 ## Neo acknowledgement scalar false-success gate — 23 October 2026
 
 Actual identity/graph-write comparison guard normalized both payloads through default JSON parsing and could accept different metadata. Six actual-guard cases reproduced false acceptance (Avatar/detail/holon ×date/number); TWO parses now use existing lossless parser and same canonical equality. Full322controls/native265 PASS0skip, unchanged exact-payload clones accepted, altered values rejected; native raw current/v1 snapshots/API archive scalars verified, pending0/service stopped. [Scope/cohorts/exact proof](HYPERDRIVE_V2_FOUR_PROVIDER_INTERFACE_ACCEPTANCE.md). No format/Core/Shared/config change or blanket all-interface/hosted/V2 certification.

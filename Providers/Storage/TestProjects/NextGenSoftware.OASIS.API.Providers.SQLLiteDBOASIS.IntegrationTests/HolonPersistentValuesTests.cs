@@ -21,7 +21,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         ChildrenIds=new List<Guid>{Guid.NewGuid()},ChildIdListCache="owned-direct-cache",AllChildIdListCache="owned-all-cache",
         PreviousVersionProviderUniqueStorageKey=new Dictionary<ProviderType,string>{{ProviderType.Neo4jOASIS,"owned-previous-key"}},
         ProviderMetaData=new Dictionary<ProviderType,Dictionary<string,string>>{
-            [ProviderType.Neo4jOASIS]=new(){{"origin-note","retained"}},
+            [ProviderType.Neo4jOASIS]=new(){{"origin-note","retained"},{"date-looking-string","2030-01-02T03:04:05.0000000+05:30"}},
             [ProviderType.SQLLiteDBOASIS]=new(){{"local-note","retained"},{CosmicConcurrency.ProviderRevisionMetadataKey,Guid.NewGuid().ToString()}}},
         MetaData=new Dictionary<string,object>{{"exact",9007199254740993L},{"nested",JsonDocument.Parse("{\"labels\":[\"one\",\"two\"],\"flag\":true}").RootElement.Clone()}}};
     private static void AssertPersistentValues(IHolon expected,IHolon actual)
@@ -62,6 +62,9 @@ public partial class SQLLiteDBOASISIntegrationTests
         read.IsError.Should().BeFalse(read.Message+read.Exception);AssertPersistentValues(root,read.Result);read.Result.Children.Should().BeEmpty();
         using var control=new DataContext(TestConnectionString);var row=control.Holons.AsNoTracking().Single();
         var extension=JObject.Parse(row.PersistentValueJson);
+        using var nativeExtension=JsonDocument.Parse(row.PersistentValueJson);
+        nativeExtension.RootElement.GetProperty("ProviderMetaData").GetProperty(ProviderType.Neo4jOASIS.ToString())
+            .GetProperty("date-looking-string").GetString().Should().Be(root.ProviderMetaData[ProviderType.Neo4jOASIS]["date-looking-string"]);
         foreach(var field in new[]{"Id","Name","VersionId","MetaData","ProviderUniqueStorageKey","Children","ParentHolon","IsNewHolon"})extension.Property(field).Should().BeNull();
         extension["ProviderMetaData"]![ProviderType.SQLLiteDBOASIS.ToString()]![CosmicConcurrency.ProviderRevisionMetadataKey].Should().BeNull();
         CosmicConcurrency.GetProviderRevisionId(read.Result,ProviderType.SQLLiteDBOASIS).Should().Be(row.ProviderRevisionId);
