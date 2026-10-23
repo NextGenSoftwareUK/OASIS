@@ -7,6 +7,25 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CosmicChildHydrationTests
 {
     [Fact]
+    public void AProviderSelectionRestrictionSurvivesAcceptChangesAndPriorCompleteness()
+    {
+        var owner=new Owner{Id=Guid.NewGuid()};
+        var child=new SpecialChild{Id=Guid.NewGuid(),ParentHolonId=owner.Id};
+        var manifest=new HolonChildRoleManifest(1,owner.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>()),new HolonChildRole("Extras",new[]{child.Id})});
+        owner.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(manifest);
+        HolonChildRoleHydration.ApplyFullySelected(owner,manifest,_=>child).IsError.Should().BeFalse();
+        owner.AcceptChanges();
+
+        HolonChangeTracking.MarkIncompleteChildSelection(owner);
+        owner.Extras.Clear();
+        owner.AcceptChanges();
+
+        Action save=()=>{using var plan=Core.Managers.HolonSavePlan.Create(new[]{owner},true,true,0);};
+        save.Should().Throw<InvalidOperationException>();
+        using var rootOnly=Core.Managers.HolonSavePlan.Create(new[]{owner},false,false,0);
+    }
+
+    [Fact]
     public void APartialViewRequiresTheOwnerToRetainItsCompleteStoredManifest()
     {
         var owner=new Owner{Id=Guid.NewGuid()};var child=Guid.NewGuid();

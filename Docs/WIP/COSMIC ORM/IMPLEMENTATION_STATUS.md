@@ -1,5 +1,10 @@
 # COSMIC ORM implementation status
 
+## 23 October — Shared access-bound assembly and monotonic save restriction
+
+The shared native expansion contract now propagates mandatory read policy to each selection, rejects unauthorized returned nodes and retains hidden store membership while budgeting selected nodes. Core2070977 supplies the monotonic incomplete-child marker, which cannot inherit or regain complete replacement permission through AcceptChanges. Full Shared958 and Core1,756 pass with zero skips. Native reader wiring, Core graph admission and safe public transport remain open; no existing graph gate is relaxed. See [graph evidence](CQL_GRAPH_LOADING.md).
+
+
 ## 23 October — Partial typed child-role ownership
 
 Core a242d0e publishes one common full/selected hydration owner. Type-filtered manager loads materialize registered child types; selected IDs resolve in persisted order while omitted IDs are untouched. Full stored membership must remain on the owner and unchanged by callbacks. A partial view supersedes previous complete observation, so AcceptChanges cannot authorize child replacement; root-only saves remain available. Full Core 1,755/1,755 passes, zero skips. Published certification completed terminal0: full Core1,755/1,755 and joint native/hosted82/82, zero skips;711Core/54Shared source documents and producer/unit/native identity match. Core SHA25630184FD575D51431261ABAD651A50CE8A275F0224915EDC8A3437C8E094235E2; Shared CBF1CBF39985A02A251C948D642CE3B57B435A516EA958D1B3740A8F8C394BF3.
