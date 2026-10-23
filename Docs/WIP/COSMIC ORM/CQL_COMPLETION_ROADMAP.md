@@ -52,6 +52,6 @@ Source checkpoint: `HolonManager-Cql.V2.cs` explicitly materializes with loadChi
 
 ## Continuation checkpoint
 
-Core graph composition and capability readmission are implemented; focused 19/19 and full Core 1,698/1,698 pass, zero skips. [Exact boundary, source owners and next implementation steps](CQL_GRAPH_LOADING.md). Native expansion, graph detachment/publication and relationship predicates remain open; no provider advertises graph capability yet.
+Core graph composition/readmission and bounded detached/typed publication are implemented. Composition19 and execution/ownership22 tests pass in full Core1,720/1,720; native leaf regression65/65 also passes, zero skips. [Exact boundary, source owners and next steps](CQL_GRAPH_LOADING.md). Native expansion and relationship predicates remain open; no provider advertises graph capability yet. Next implementation priority is the bounded native SQLite/Mongo/Neo graph reader, not further API-only completion claims.
 
 The existing long-running app goal is active after user resumption. No new environment is needed. [Status](IMPLEMENTATION_STATUS.md), [manual](CQL_MANUAL.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
