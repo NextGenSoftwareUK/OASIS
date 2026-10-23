@@ -4,6 +4,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests;
 
@@ -22,17 +23,29 @@ public partial class AzureCosmosDBOASISIntegrationTests
                 await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,name,container="holonItems",state="before-owned-query-scalar"}));file.Flush(true);
             }
             using var precise=JsonDocument.Parse(number);
+            _provider.IsVersionControlEnabled=true;
             var saved=await _provider.SaveHolonAsync(new Holon{Id=id,Name=name,MetaData=new(){["date"]=date,["number"]=precise.RootElement.Clone()}},saveChildren:false);
             Assert.IsFalse(saved.IsError,saved.Message+"; cause="+saved.Exception);
+            saved.Result.Description="owned-second-version";
+            var updated=await _provider.SaveHolonAsync(saved.Result,saveChildren:false);
+            Assert.IsFalse(updated.IsError,updated.Message+"; cause="+updated.Exception);
             var container=_client.GetContainer(DatabaseName,"holonItems");var key=new PartitionKey(id.ToString());
             using var point=await container.ReadItemStreamAsync(id.ToString(),key);Assert.AreEqual(HttpStatusCode.OK,point.StatusCode);
             var etag=point.Headers.ETag;Assert.IsFalse(string.IsNullOrWhiteSpace(etag));
-            using var reader=new StreamReader(point.Content);using var raw=JsonDocument.Parse(await reader.ReadToEndAsync());
+            using var reader=new StreamReader(point.Content);var pointText=await reader.ReadToEndAsync();using var raw=JsonDocument.Parse(pointText);
             var metadata=raw.RootElement.GetProperty("MetaData");Assert.AreEqual(date,metadata.GetProperty("date").GetString());
-            var nativeNumber=metadata.GetProperty("number").GetDecimal();
-            // Native representation is independently observed, not assumed to offer
-            // arbitrary precision merely because our client decoder preserves it.
-            Console.WriteLine(JsonSerializer.Serialize(new{sourceNumber=number,nativeNumber=metadata.GetProperty("number").GetRawText()}));
+            Assert.AreEqual(JsonValueKind.String,metadata.GetProperty("number").ValueKind);
+            Assert.AreEqual(number,metadata.GetProperty("number").GetString(),"Native wire string must preserve the exact source literal.");
+            Assert.AreEqual("binary64-v1",raw.RootElement.GetProperty(Binary64JsonNumberCodec.PropertyName).GetProperty("schema").GetString());
+            using var canonical=JsonDocument.Parse(Binary64JsonNumberCodec.Decode(OasisJson.ParseStoredObject(pointText)).ToString(Newtonsoft.Json.Formatting.None));
+            var nativeNumber=canonical.RootElement.GetProperty("MetaData").GetProperty("number").GetDecimal();
+            Assert.AreEqual(decimal.Parse(number,System.Globalization.CultureInfo.InvariantCulture),nativeNumber);
+            var archive=await _provider.LoadHolonAsync(id,loadChildren:false,version:1);Assert.IsFalse(archive.IsError,archive.Message);
+            using var historical=JsonDocument.Parse(OasisJson.Serialize(archive.Result));
+            Assert.AreEqual(nativeNumber,historical.RootElement.GetProperty("MetaData").GetProperty("number").GetDecimal());
+            var selected=await _provider.LoadHolonsByMetaDataAsync("number",number,loadChildren:false);
+            Assert.IsFalse(selected.IsError,selected.Message);Assert.AreEqual(id,selected.Result.Single().Id);
+            Console.WriteLine(JsonSerializer.Serialize(new{sourceNumber=number,nativeWireNumber=metadata.GetProperty("number").GetString(),restoredNumericValue=nativeNumber}));
             var client=new CosmosDbClient(container);
             foreach(var document in new[]{client.ReadDocumentByField("Name",name),client.ReadAllDocuments().Single(),(await client.ReadAllDocumentsAsync()).Single()}){
                 using var query=JsonDocument.Parse(document);var values=query.RootElement.GetProperty("MetaData");
