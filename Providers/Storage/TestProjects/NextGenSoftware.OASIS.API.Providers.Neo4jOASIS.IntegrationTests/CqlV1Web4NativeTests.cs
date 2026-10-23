@@ -223,6 +223,20 @@ public sealed partial class CqlV1Web4NativeTests
                                 });
                         }
 
+                        // Child predicates run under the signed actor before root paging.
+                        // SHARED_WITH metadata on a private child is not an access grant.
+                        foreach(var childActor in new[]{alice,outsider})
+                        {
+                            var childFilter=new{Field="Name",Operator="Equal",Value="owned child"};
+                            var request=new{Provider=provider.ToString(),Filters=new[]{fixture},
+                                AnyChildren=new[]{new{Filters=new[]{childFilter}}},Take=1};
+                            CollectionAssert.AreEqual(childActor==alice?new[]{"C-public"}:Array.Empty<string>(),
+                                await Read(request,childActor),provider+" child ownership");
+                            var privateRequest=new{Provider=provider.ToString(),Filters=new[]{fixture},
+                                AnyChildren=new[]{new{Filters=new[]{new{Field="Name",Operator="Equal",Value="private child"}}}},Take=1};
+                            CollectionAssert.AreEqual(Array.Empty<string>(),await Read(privateRequest,childActor),provider+" private child");
+                        }
+
                         var page = new { Provider = provider.ToString(), Filters = new[] { fixture }, Skip = 1, Take = 1 };
                         var operationKey = Guid.NewGuid().ToString("D");
                         CollectionAssert.AreEqual(new[] { "C-public" }, await Read(page, alice, operationKey), provider.ToString());
@@ -367,7 +381,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await File.WriteAllTextAsync(Path.Combine(demoWork, "v1-demo-result.json"), JsonSerializer.Serialize(new
                 {
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
-                    walkthroughRequests = 9, localSdkQueries = 9, settledOperations = operations.Count,
+                    walkthroughRequests = 15, localSdkQueries = 15, settledOperations = operations.Count,
                     providerAttempts = operations.Sum(operation => operation.ProviderAttempts.Count)
                 }));
                 File.Delete(Path.Combine(demoWork, "v1-session.json"));

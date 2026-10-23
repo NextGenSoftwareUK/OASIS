@@ -19,7 +19,7 @@ var query = CosmicQuery<Holon>.Create(
 // Check query, plan against the actual adapter, then execute through HolonManager.
 ```
 
-`ChildExists` capability524288 is required at planning and actual-adapter re-admission. An access-bound query also requires native GraphReadAccess. SQLite implements correlated SELECT EXISTS. Neo4j implements a parameterized native EXISTS subquery over HAS_CHILD and the canonical membership projection. Mongo implements bounded native $lookup correlation in a snapshot session. All three providers declare ChildExists. The operator is not yet part of the bounded WEB4 HTTP DTO. Existing HTTP child graph loading is independent and remains supported on all three stores.
+`ChildExists` capability524288 is required at planning and actual-adapter re-admission. An access-bound query also requires native GraphReadAccess. SQLite implements correlated SELECT EXISTS. Neo4j implements a parameterized native EXISTS subquery over HAS_CHILD and the canonical membership projection. Mongo implements bounded native $lookup correlation in a snapshot session. All three providers declare ChildExists. HTTP exposes the same operator through at most four anyChildren groups sharing the twelve-filter budget with roots. Existing HTTP child graph loading is independent and remains supported on all three stores.
 
 ## Membership and visibility
 
@@ -59,4 +59,6 @@ Neo certification28074 terminal0: Neo unit314 and joint native/WEB4 96 pass, zer
 
 Published certification10773 completed terminal0: Core1,785, Shared968, joint91 and SQLite29 pass, zero skips. Native controls cover hidden/public/actor-owned matching before root paging, unlisted physical orphans, declared vs absent new-owner membership after reparenting, independent sibling EXISTS aliases, nested child metadata and exact Int64 beyond2^53. Core tests cover frozen literals, post-window rejection and a planned capability that the actual adapter cannot borrow (zero dispatches).
 
-Published source/PDB checks match711Core/54Shared documents: CoreBFB99852BE111503F20F12702BD622192BA1D528D0AD693BDF70E3942B20F57D, SharedD7FA2D058B6DEB9323392D4FD652AB37FE4184FC3CDD0354F5D061C4458A46FC. Expression-syntax nested Any, descendant existence, relation Count, Boolean OR/NOT composition, public HTTP relation descriptions and later aggregates/joins/federation remain roadmap work.
+Published source/PDB checks match711Core/54Shared documents: CoreBFB99852BE111503F20F12702BD622192BA1D528D0AD693BDF70E3942B20F57D, SharedD7FA2D058B6DEB9323392D4FD652AB37FE4184FC3CDD0354F5D061C4458A46FC. Expression-syntax nested Any, descendant existence, relation Count, Boolean OR/NOT composition, descendant/nested transport and later aggregates/joins/federation remain roadmap work.
+
+HTTP certification1604/23487: full Core1799 and signed native joint96 pass, zero skips. Signed Alice matches owned child, Visitor cannot, and neither can match Bob's private child via SHARED_WITH metadata. A matching later root survives Take1, proving relationship filtering precedes paging on all three stores. Dedicated fresh console demo proves15SDK/15HTTP examples with131settled operations. Child interface reflection binds inherited declared contract members; unit tests cover all six public canonical fields.

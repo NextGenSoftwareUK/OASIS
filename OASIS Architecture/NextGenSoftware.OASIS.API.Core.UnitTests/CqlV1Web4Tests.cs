@@ -33,6 +33,57 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class CqlV1Web4Tests
 {
+    [Theory]
+    [InlineData("Id")] [InlineData("Name")] [InlineData("Description")]
+    [InlineData("Version")] [InlineData("IsActive")] [InlineData("ParentHolonId")]
+    public void ChildCanonicalFieldsBindTheirDeclaredInheritedInterfaceMember(string field)
+    {
+        object value=field switch{"Id" or "ParentHolonId"=>Guid.NewGuid().ToString("D"),"Version"=>3,"IsActive"=>true,_=>"value"};
+        var request=new CqlV1Request{AnyChildren=new[]{new CqlV1ChildExists{Filters=new[]{
+            new CqlV1Filter{Field=field,Value=JsonSerializer.SerializeToElement(value)}}}}};
+        var query=CqlV1Compiler.Compile(request,Guid.NewGuid(),ProviderType.SQLLiteDBOASIS);
+        var child=Assert.Single(query.Predicates.OfType<CosmicQueryAnyChild>());
+        Assert.Equal(field,Assert.Single(Assert.IsType<CosmicQueryComparison>(child.Predicate).Path.Segments));
+    }
+
+    [Fact]
+    public void ChildExistenceGroupsFreezePredicatesAndRetainServerActorBeforePaging()
+    {
+        var actor=Guid.NewGuid();
+        var first=new CqlV1Filter{Field="Name",Operator=CqlV1Operator.Equal,Value=JsonSerializer.SerializeToElement("public child")};
+        var request=new CqlV1Request{Skip=1,Take=2,AnyChildren=new[]{
+            new CqlV1ChildExists{Filters=new[]{first}},
+            new CqlV1ChildExists{AnyOf=new[]{new CqlV1Filter{MetadataPath=new[]{"stock"},Scalar=CqlV1Scalar.Integer,
+                Operator=CqlV1Operator.GreaterThan,Value=JsonSerializer.SerializeToElement(9007199254740993L)}}}}};
+        var query=CqlV1Compiler.Compile(request,actor,ProviderType.MongoDBOASIS);
+        Assert.Equal(actor,query.ReadAccess.ActorId);Assert.Equal(1,query.Offset);Assert.Equal(2,query.Limit);
+        var clauses=query.Predicates.OfType<CosmicQueryAnyChild>().ToArray();Assert.Equal(2,clauses.Length);
+        first.Value=JsonSerializer.SerializeToElement("edited after compilation");
+        Assert.Equal("public child",Assert.IsType<CosmicQueryComparison>(clauses[0].Predicate).Literal.Value);
+        Assert.Equal(9007199254740993L,Assert.IsType<CosmicQueryComparison>(clauses[1].Predicate).Literal.Value);
+    }
+
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)]
+    [InlineData(4)] [InlineData(5)] [InlineData(6)]
+    public void ChildExistenceRejectsInvalidOrUnboundedDescriptions(int fault)
+    {
+        var filter=new CqlV1Filter{Field="Name",Value=JsonSerializer.SerializeToElement("match")};
+        var group=new CqlV1ChildExists{Filters=new[]{filter}};
+        var request=new CqlV1Request{AnyChildren=new[]{group}};
+        switch(fault)
+        {
+            case 0:request.AnyChildren=null!;break;
+            case 1:request.AnyChildren=new CqlV1ChildExists[]{null!};break;
+            case 2:group.Filters=null!;break;
+            case 3:group.Filters=Array.Empty<CqlV1Filter>();break;
+            case 4:request.AnyChildren=Enumerable.Repeat(group,5).ToArray();break;
+            case 5:request.Filters=Enumerable.Repeat(filter,12).ToArray();break;
+            case 6:filter.Field="CreatedByAvatarId";break;
+        }
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.Compile(request,Guid.NewGuid(),ProviderType.MongoDBOASIS));
+    }
+
     [Fact]
     public void GraphRequestBindsImmutablePolicyAndShapeBeforeBusinessPaging()
     {

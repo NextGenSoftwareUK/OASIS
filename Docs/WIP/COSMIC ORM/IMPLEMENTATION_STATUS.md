@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — Bounded HTTP child predicates and demo examples
+
+HTTP anyChildren groups now compile to generic WhereAnyChild with server actor policy before paging; twelve total root/child filters, at most four independent nonempty groups. Full Core1799/joint96 pass unskipped. Fresh console demo verifies15SDK and15HTTP examples across all three providers,131settled operations; browser/Swagger presets updated. Dedicated runner reuses dependencies and requires a fresh report/counts. Descendants and other unchecked roadmap gates remain open. [HTTP contract](CQL_V1_HTTP_CONTRACT.md).
+
 ## 23 October — Native direct-child predicates on all three providers
 
 Mongo now declares ChildExists: canonical final-write membership, whole-record CAS upgrade, same-snapshot validation/lookup, actor visibility and independent matches before paging. Unit216/native37/joint96 pass, zero skips; Core711/Shared54 source identity verified. SQLite/Neo native direct-child owners remain implemented. Descendants, extended relationship controls, HTTP relation descriptions, aggregates/joins/federation and full roadmap completion remain open. [Contract and evidence](CQL_RELATIONSHIPS.md).

@@ -92,6 +92,17 @@ public static class V1NativeQueries
         // AcceptChanges() cannot authorize replacement of hidden children.
         // For public JSON use WEB4's graph DTOs, which omit private store state.
 
+        // 5. Match parents by a VISIBLE direct child without loading a graph.
+        // Each WhereAnyChild is a separate native EXISTS condition. Two clauses
+        // may match different siblings; the same actor policy protects both.
+        var parentsWithChildren = Value(visible
+            .WhereAnyChild(child => child.Name == "public child")
+            .WhereAnyChild(child => child.Name == "owned child")
+            .OrderBy(parent => parent.Name)
+            .Take(1));
+
+        await ShowAsync("5. Native child existence / independent siblings", parentsWithChildren, "C-public");
+
         async Task ShowAsync(string title, CosmicQuery<Holon> query, params string[] expected)
         {
             // Planning checks this concrete provider's actual capabilities
