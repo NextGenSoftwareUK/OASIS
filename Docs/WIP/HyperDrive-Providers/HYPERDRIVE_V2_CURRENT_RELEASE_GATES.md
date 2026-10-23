@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## OCI object-name transport coverage — 23 October 2026
+
+New12 actual SDK loopback GET/PUT/DELETE name-fidelity controls all pass; full controlled OCI suite107/107PASS0skip10s. Existing SDK correctly preserves dot/backslash/query/fragment-looking object names inside the configured namespace. No production workaround/change required. This does NOT establish live OCI credentials/IAM/TLS/bucket or Oracle Cloud readiness; SQL full491/492 and listener trigger remain open, originals preserved. [Exact cohort and report hashes](ORACLE_CLIENT_PRIORITY.md). Cached environment reused, listener/synthetic profile teardown verified, no restore/download/cloud calls or dev deployment.
+
 ## Oracle listener failure preserved and read-only control — 23 October 2026
 
 Sustained follow-up actual81871 TERMINAL0:6400read attempts,0failures, original hashes unchanged. Unpooled3200reads caused3200logons in89699ms; SDKpooled3200reads caused4logons in3907ms. Matching the earlier full suite's connection volume still did not reproduce refusal: volume alone is not a demonstrated cause and pooling is not a proven fix. Safe optional workload is bounded1..400iterations and restricted to explicit readonly mode;3misuse cases reject before runtime. Full Oracle remains491/492, cloud/trigger gates OPEN. Exact cohorts/hashes in the linked Oracle report; no server/config changes or dev deployment.
