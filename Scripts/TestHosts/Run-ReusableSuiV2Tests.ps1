@@ -7,8 +7,8 @@ $providerEvidenceRoot=if($ProviderEvidenceRoot){[IO.Path]::GetFullPath($Provider
 foreach($existingRoot in @($fixtureRoot,$providerEvidenceRoot)){
     if(!(Test-Path -LiteralPath $existingRoot -PathType Container)){throw 'Existing retained Sui evidence directory required; no replacement will be created.'}
 }
-if($providerEvidenceRoot -ne $defaultProviderRoot -and $Mode -ne 'Balance'){
-    throw 'Nondefault provider evidence selection is currently verified only for read-only Balance; child mutation runners require explicit path review first.'
+if($providerEvidenceRoot -ne $defaultProviderRoot -and $Mode -notin @('Balance','CSharpNFT','CSharpAssets')){
+    throw 'Alternate retained evidence paths are reviewed only for Balance and admitted CSharp NFT/assets; other child modes require their own path review.'
 }
 $deploymentPath = '\\wsl.localhost\Ubuntu\var\tmp\oasis-sui\deployment.json'
 $fullnodeConfig='\\wsl.localhost\Ubuntu\var\tmp\oasis-sui\network\fullnode.yaml'
@@ -44,9 +44,10 @@ foreach($sourceProject in @((Join-Path $taskRoot 'Providers/Blockchain/NextGenSo
     & dotnet build $sourceProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if ($LASTEXITCODE -ne 0) { throw 'Current Sui producer/consumer build failed; do not substitute stale assemblies.' }
 }
+& (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $taskRoot -ConsumerOutput (Join-Path (Split-Path $project -Parent) 'bin/Debug/net10.0') -VerifySourceDocuments
 $outputBridge=if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT','CSharpAssets','CSharpEscrow','History','Balance')){'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}else{'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}
 & (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Sui -OutputBridge $outputBridge
-$names = @('OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_SUI_SDK_BRIDGE','OASIS_SUI_SUCCESSFUL_FEE_RECEIPT','OASIS_SUI_TEST_NFT_JOURNAL','OASIS_SUI_TEST_FAUCET','OASIS_SUI_TEST_TOKEN_JOURNAL','OASIS_SUI_TEST_ESCROW_JOURNAL','OASIS_SUI_TEST_ESCROW_CACHE')
+$names = @('OASIS_SUI_TEST_PROVIDER_EVIDENCE_ROOT','OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_SUI_SDK_BRIDGE','OASIS_SUI_SUCCESSFUL_FEE_RECEIPT','OASIS_SUI_TEST_NFT_JOURNAL','OASIS_SUI_TEST_FAUCET','OASIS_SUI_TEST_TOKEN_JOURNAL','OASIS_SUI_TEST_ESCROW_JOURNAL','OASIS_SUI_TEST_ESCROW_CACHE')
 $prior = @{}
 foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 $ownedPid = $null
@@ -94,6 +95,7 @@ try {
     $env:OASIS_SUI_TEST_OWNED_PID = $ownedPid
     $env:OASIS_SUI_TEST_STOP_SCRIPT = $linuxStopScript
     $env:OASIS_HYPERDRIVE_TEST_ROOT = $fixtureRoot
+    if($Mode -in @('CSharpNFT','CSharpAssets')){$env:OASIS_SUI_TEST_PROVIDER_EVIDENCE_ROOT=$providerEvidenceRoot}
     if($Mode -eq 'Escrow'){
         $env:OASIS_SUI_TEST_ESCROW_JOURNAL=Join-Path $providerEvidenceRoot 'escrow-live-pending.jsonl'
         $env:OASIS_SUI_TEST_ESCROW_CACHE=Join-Path $providerEvidenceRoot 'sui-escrow-deployment.json'
