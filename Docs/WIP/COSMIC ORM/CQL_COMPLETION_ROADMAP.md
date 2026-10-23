@@ -13,7 +13,7 @@ Scope: generic Core/HolonManager contracts, native execution on these three prov
 - [ ] Implement native direct-child/descendant existence predicates, with defined cycle, duplicate, missing-parent and reparent behavior.
 - [ ] Verify all three stores: root-only/direct/recursive/bounded depth, cancellation, excessive graphs, custom child roles, cycles, visibility and later Save behavior.
 
-Source checkpoint: Core now materializes the admitted graph shape. SQLite expands root pages inside one bounded native read owner using the reusable Shared assembler. MongoDB and Neo4j still return leaf rows and do not advertise GraphExpansion. Three-provider gates above remain unchecked until all three pass their native acceptance matrix.
+Source checkpoint: Core now materializes the admitted graph shape. SQLite expands root pages inside one bounded native read owner using the reusable Shared assembler. MongoDB now uses one bounded snapshot session and advertises GraphExpansion; native104/admission31 pass, including16 graph cases. Neo4j still returns leaf rows and does not advertise GraphExpansion. Three-provider gates above remain unchecked until all three pass their native acceptance matrix.
 
 ## 2. Projections, aggregates and grouping
 
@@ -52,6 +52,6 @@ Source checkpoint: Core now materializes the admitted graph shape. SQLite expand
 
 ## Continuation checkpoint
 
-Core graph publication and SQLite native SDK expansion pass full Core1,722, Shared954 and SQLite1,218 tests, zero skips. SQLite's 15 native graph cases prove snapshot consistency, read ownership, depth/type budgets, partial save ownership and 150-member batching. [Exact boundary and next steps](CQL_GRAPH_LOADING.md). Next: MongoDB snapshot-native expansion and Neo4j coherent native expansion, then relationship predicates and the remaining phases above. HTTP v1 remains leaf-only.
+Core graph publication and SQLite native SDK expansion pass full Core1,722, Shared954 and SQLite1,218 tests, zero skips. SQLite's 15 native graph cases prove snapshot consistency, read ownership, depth/type budgets, partial save ownership and 150-member batching. [Exact boundary and next steps](CQL_GRAPH_LOADING.md). MongoDB snapshot-native expansion is also certified (native104/admission31, including16 graph cases). Next: Neo4j coherent native expansion with explicitly defined native consistency, then relationship predicates and the remaining phases above. HTTP v1 remains leaf-only.
 
-At this checkpoint the app reports the existing goal blocked; the user can resume it for automatic continuation. Authorized implementation continues in the current turn. No new environment is needed. [Status](IMPLEMENTATION_STATUS.md), [manual](CQL_MANUAL.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+The user resumed the existing goal and automatic continuation is active. The full objective and unchecked gates remain intact. No new environment is needed. [Status](IMPLEMENTATION_STATUS.md), [manual](CQL_MANUAL.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
