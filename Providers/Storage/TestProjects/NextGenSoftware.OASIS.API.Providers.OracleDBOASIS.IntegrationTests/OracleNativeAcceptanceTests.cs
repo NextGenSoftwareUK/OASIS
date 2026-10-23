@@ -560,8 +560,8 @@ public sealed partial class OracleNativeAcceptanceTests
             for(var version=1;version<=3;version++){
                 var historical=await provider.LoadHolonAsync(id,loadChildren:false,version:version);Assert.IsFalse(historical.IsError,historical.Exception?.ToString());Assert.AreEqual(payloads[version-1],historical.Result.Description);
             }
-            var deleted=await provider.DeleteHolonAsync(id);Assert.IsFalse(deleted.IsError,deleted.Exception?.ToString());Assert.IsTrue(deleted.Result.IsDeleted);Assert.AreEqual(4,deleted.Result.Version);
-            var tombstoneRaw=await Read(verifier,"OASIS_HOLONS",id);Assert.IsNotNull(tombstoneRaw);using(var tombstone=JsonDocument.Parse(tombstoneRaw)){Assert.AreEqual(payloads[2],tombstone.RootElement.GetProperty("Description").GetString());Assert.AreEqual(3,tombstone.RootElement.GetProperty("_oasis_record_history").GetProperty("records").GetArrayLength());}
+            var deleted=await provider.DeleteHolonWithSoftDeleteAsync(id,true);Assert.IsFalse(deleted.IsError,deleted.Exception?.ToString());Assert.IsTrue(deleted.Result);
+            var tombstoneRaw=await Read(verifier,"OASIS_HOLONS",id);Assert.IsNotNull(tombstoneRaw);using(var tombstone=JsonDocument.Parse(tombstoneRaw)){Assert.AreEqual(4,tombstone.RootElement.GetProperty("Version").GetInt32());Assert.AreNotEqual(DateTime.MinValue,tombstone.RootElement.GetProperty("DeletedDate").GetDateTime());Assert.AreEqual(payloads[2],tombstone.RootElement.GetProperty("Description").GetString());Assert.AreEqual(3,tombstone.RootElement.GetProperty("_oasis_record_history").GetProperty("records").GetArrayLength());}
             Assert.IsNull((await provider.LoadHolonAsync(id,loadChildren:false)).Result);
             for(var version=1;version<=3;version++){var historical=await provider.LoadHolonAsync(id,loadChildren:false,version:version);Assert.IsFalse(historical.IsError,historical.Exception?.ToString());Assert.AreEqual(payloads[version-1],historical.Result.Description);}
             var removed=await provider.DeleteHolonWithSoftDeleteAsync(id,false);Assert.IsFalse(removed.IsError,removed.Exception?.ToString());Assert.IsNull(await Read(verifier,"OASIS_HOLONS",id));File.Delete(journal);
@@ -875,16 +875,15 @@ public sealed partial class OracleNativeAcceptanceTests
             provider.IsVersionControlEnabled=true;
             if(!resume){
                 var commits=provider.CommitCalls;provider.LoseNextCommit=true;
-                var lost=await provider.DeleteHolonAsync(id);Assert.IsTrue(lost.IsError);Assert.IsNull(lost.Result);Assert.AreEqual(commits+1,provider.CommitCalls);
+                var lost=await provider.DeleteHolonWithSoftDeleteAsync(id,true);Assert.IsTrue(lost.IsError);Assert.IsFalse(lost.Result);Assert.AreEqual(commits+1,provider.CommitCalls);
                 Assert.IsInstanceOfType<OracleLifecycleReconciliationException>(lost.Exception);Assert.AreSame(provider.Lost,lost.Exception.InnerException);
                 Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(lost.Exception));
                 var committed=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>((await Read(verifier,"OASIS_HOLONS",id))!);
                 Assert.IsTrue(committed.IsDeleted);Assert.IsFalse(committed.IsActive);Assert.AreEqual(holon.ParentHolonId,committed.ParentHolonId);
             }
-            var holonDelete=await provider.DeleteHolonAsync(id);Assert.IsFalse(holonDelete.IsError,holonDelete.Exception?.ToString());
-            Assert.IsTrue(holonDelete.Result.IsDeleted);Assert.IsFalse(holonDelete.Result.IsActive);
+            var holonDelete=await provider.DeleteHolonWithSoftDeleteAsync(id,true);Assert.IsFalse(holonDelete.IsError,holonDelete.Exception?.ToString());Assert.IsTrue(holonDelete.Result);
             var tombstone=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>((await Read(verifier,"OASIS_HOLONS",id))!);
-            Assert.IsTrue(tombstone.IsDeleted);Assert.IsFalse(tombstone.IsActive);Assert.AreEqual(holonDelete.Result.DeletedDate,tombstone.DeletedDate);
+            Assert.IsTrue(tombstone.IsDeleted);Assert.IsFalse(tombstone.IsActive);Assert.AreNotEqual(DateTime.MinValue,tombstone.DeletedDate);
             Assert.AreEqual(holon.ParentHolonId,tombstone.ParentHolonId);Assert.IsNull((await provider.LoadHolonAsync(id)).Result);
             var repeatHolon=provider.DeleteHolonWithSoftDelete(id.ToString(),true);Assert.IsFalse(repeatHolon.IsError,repeatHolon.Exception?.ToString());Assert.IsTrue(repeatHolon.Result);
             var repeatedHolon=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Holon>((await Read(verifier,"OASIS_HOLONS",id))!);
