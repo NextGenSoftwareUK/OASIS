@@ -2,6 +2,33 @@
 
 ## Resume — 2026-10-23
 
+### Read metadata repair full local gate closed on published Core8f
+
+Actual51378 TERMINAL0: main392/392 passed99s, replay4/4 passed2s, preparation6/6 passed2s, separate write2/2 passed957ms/recover2/2 passed871ms (406 native test cases total), Oracle controls281/281 passed983ms, Shared960/960 passed6s, official signed OCI SDK loopback72/72 passed12s, zero skips. Main392 INCLUDES the two100-response read-ack cases and64 projection-corruption cases; advanced14 are separate. The16 newly explicit creator-export corruption checks pass through the existing child-pool validator; no production bypass was found or new export query added. Failure projections also remain not-loaded/count0. The read annotation repair2314408 and Shared count fixd9231 now have this full scoped local regression; earlier pending-full-gate notes below describe the previous checkpoint, not this current result.
+
+Published/pinned Core8f057e0424d23577dbff4cc31f811f3adfd01807 DLL1D076CE53F4D2ABB405F0F29546290B08078497DE83747B9D7EC3FD3EB528026 / Shared85DE6CE432BE386D95B5FF22191B96F073F3A0E148D804A2F4E5DE6A58F6692B matched both integration/OCI consumers and711Core/54Shared source/PDB documents under exclusive lease/source hold. Main consumer hashes were independently captured during execution and remained the same across later modes. Parent pin published0e29a38f1; later changes require their own verification, not relabelling this cohort.
+
+| Report in TestResults/OracleCurrent | Bytes | SHA256 |
+|---|---:|---|
+| oracle-native-current.trx | 623189 | FA5B35623731C7FCD577375304D4111C6562C9A25E5D70FF890F48676270E902 |
+| oracle-encrypted-replay-native-current.trx | 7661 | C03652D1684CD51E82C63678BE0DC6788978B7768BE09F598E67EEC89D920AF9 |
+| oracle-preparation-native-current.trx | 10469 | E3F7BF9E3F5DE7212A9D1F1AAE3F37FBCE8F9EAEA708E4F2256699E49BD3FA32 |
+| oracle-encrypted-process-write.trx | 4199 | F4AB4A366BDC38CE3576070FFECAD4F4CC34CE51C94B7A01711516CE8FD96886 |
+| oracle-encrypted-process-recover.trx | 4205 | CEE5F4C4CC40A0E2DEE6DE69CD7D7C20EE287884022E24B20FC9E75BB5286710 |
+| oracle-read-ack-closure-controls.trx | 433144 | 8B2483485E31C2BCC31DE5DB29E37906FE57A01FFE1689BACDE99AAFCB131FA9 |
+| shared-read-ack-closure.trx | 1460276 | 1537B21740EC4FCCCF1444E26F7937E085F78B33DAAD2495A5F1B53E2253721B |
+| oracle-object-read-ack-closure.trx | 115699 | 3431EE4049B27BDF9DFFDD4EBB06B452AFDD02FFD302B7015CCF5D9DF56C6388 |
+
+Old five native reports and four process proof files SHA256-verified MOVED to .pre-read-ack-closure, not copied/overwritten. Same retained runtime started once for the whole batch, verified exited after success; pending0 and11521/18661listeners0. Logical volume5,284,334,423bytes unchanged, no install/download/restore/new environment or archive pruning. Exact resource accounting remains in ENVIRONMENT_INVENTORY.md.
+
+Remaining scope is explicit: interface-name candidates below need targeted alias/domain-delegate acceptance (name absence alone is not a bug); OCI/Autonomous real cloud access, least privilege/wallet/IAM/cost and hosted HyperDrive cross-provider routes remain unproven. Oracle is NOT100%; AWS follows Oracle. This green local cohort does not authorize a dev merge/deployment while those required gates remain.
+
+### Interface-name coverage audit — not a completeness certificate
+
+Read-only source heuristic found74 unique declared IOASISStorageProvider method names;67 have explicit provider/storage/owner-named calls in Oracle integration sources. Remaining candidates: AddKarmaToAvatar/Async, RemoveKarmaFromAvatar/Async, DeleteAvatarDetailByEmail (sync), DeleteAvatarDetailByUsernameAsync, DeleteHolon (sync). This is a name-only source index, not overload/runtime/branch coverage; indirect calls or other receiver names may already exercise them. Do NOT label these implementations missing based on this heuristic or equate a green case count with every endpoint verified.
+
+Inspection confirms legacy DeleteHolon aliases are implemented, not placeholders. Karma methods are existing Core/domain delegates: OASISStorageProviderBase invokes IAvatarDetail.KarmaEarnt/Lost, which delegates to KarmaManager/AvatarManager routing. Do not execute those with machine-default routing as an Oracle-only test: isolate authority/auto-routing first so no hosted/avatar data is touched. Next targeted acceptance should verify these aliases/delegates and distinguish provider storage from centralized business behavior. Export review found no new production bypass: existing provider-linked child-pool materialization validates current projections;16 explicit latest/history creator-export corruption cases were added to protect that behavior and false-success flags.
+
 ### Oracle read metadata repair checkpoint — full regression still pending
 
 Oracle read annotations are checkpointed after the real focused100-response matrix passed (two sync/async cases). Reused private RecordLoaded/RecordsLoaded annotations cover point, collection, metadata, parent, export and search success paths, without another query; collection inputs already materialized are reused rather than copied. Existing failure paths are not marked loaded. The separate Shared wallet count fix was published at d9231e090 with960 controls green. Native flags/projection tests below establish this scoped change, NOT the full376+advanced14+OCI72 regression. The coherent published Core gate is reserved once the peer's graph-boundary repair is published; no dev merge/deployment is authorized by this checkpoint. Earlier statement that Oracle code was local describes the preceding Shared-only checkpoint, not this later source checkpoint.

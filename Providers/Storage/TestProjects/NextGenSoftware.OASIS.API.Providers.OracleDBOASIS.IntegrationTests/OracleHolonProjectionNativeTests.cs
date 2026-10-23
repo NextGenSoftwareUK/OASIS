@@ -12,7 +12,7 @@ public sealed partial class OracleNativeAcceptanceTests
     public static IEnumerable<object[]> HolonProjectionCases()
     {
         for(var corruption=0;corruption<4;corruption++)
-        for(var route=0;route<6;route++)
+        for(var route=0;route<8;route++)
         foreach(var synchronous in new[]{false,true})yield return new object[]{corruption,route,synchronous};
     }
 
@@ -43,7 +43,7 @@ public sealed partial class OracleNativeAcceptanceTests
             using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
                 await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,parent,name,corruption,route,synchronous,state="before-owned-holon-projection"}));file.Flush(true);
             }
-            var holon=new Holon{Id=id,ParentHolonId=parent,Name=name,IsActive=true};
+            var holon=new Holon{Id=id,ParentHolonId=parent,CreatedByAvatarId=parent,Name=name,IsActive=true};
             for(var version=0;version<2;version++){
                 var save=await provider.SaveHolonAsync(holon,saveChildren:false);
                 Assert.IsFalse(save.IsError,save.Exception?.ToString());
@@ -63,7 +63,8 @@ public sealed partial class OracleNativeAcceptanceTests
             OASISResult<bool> result=route<2
                 ?Envelope(synchronous?provider.LoadHolon(id,loadChildren:false,version:versionSelector):await provider.LoadHolonAsync(id,loadChildren:false,version:versionSelector))
                 :route<4?Envelope(synchronous?provider.LoadAllHolons(loadChildren:false,version:versionSelector):await provider.LoadAllHolonsAsync(loadChildren:false,version:versionSelector))
-                :Envelope(synchronous?provider.LoadHolonsForParent(selectedParent,loadChildren:false,version:versionSelector):await provider.LoadHolonsForParentAsync(selectedParent,loadChildren:false,version:versionSelector));
+                :route<6?Envelope(synchronous?provider.LoadHolonsForParent(selectedParent,loadChildren:false,version:versionSelector):await provider.LoadHolonsForParentAsync(selectedParent,loadChildren:false,version:versionSelector))
+                :Envelope(synchronous?provider.ExportAllDataForAvatarById(parent,versionSelector):await provider.ExportAllDataForAvatarByIdAsync(parent,versionSelector));
             Assert.IsFalse(NativeMutationReconciliation.IsRequired(result.Exception),result.Exception?.ToString());
             Assert.AreEqual(original,await Observe(),"Read must not repair or alter canonical/native data.");
             // Retire only this fully observed fixture BEFORE final red/green assertions.
@@ -76,6 +77,7 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.IsTrue(result.IsError,"Native projection corruption must not disappear as empty/not-found or return a canonical record as if consistent.");
             Assert.IsInstanceOfType<InvalidDataException>(result.Exception);
             Assert.IsFalse(result.IsSaved);Assert.IsFalse(result.IsDeleted);Assert.AreEqual(0,result.SavedCount);Assert.AreEqual(0,result.DeletedCount);
+            Assert.IsFalse(result.IsLoaded);Assert.AreEqual(0,result.LoadedCount);
         }
         finally
         {
