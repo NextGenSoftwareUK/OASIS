@@ -622,3 +622,10 @@ Corecf4a5ab preserves helper8d45 and adds typed Min/Max intent plus exact select
 ## SQLite native Min/Max implementation
 
 Existing scalar ownership now executes native extrema with whole-input domain validation, exact UTC/numeric/string handling and caller/snapshot retention. Initial5 pass; expanded32/33 plus the corrected UTF8 fixture1 pass on unchanged production. Full SQLite regression passes1,318tests with zero skips (2m9s), including all33new Min/Max cases. MongoDB/Neo4j Min/Max, selected-scalar HTTP, Sum/Average/GroupBy and later CQL/ORM gates remain open. [Evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-minmax-slice).
+
+
+## MongoDB native Min/Max — 2026-10-23
+
+Implemented in the existing scalar owner, sharing projection cells/windows and exact decoding. Native reduction validates all participating values without entity hydration or a second input sort. Final fresh native matrix: **124 passed, zero skipped**; full provider unit suite: **237 passed, zero skipped**. All 33 new cases pass, including the shared 19-vector matrix, snapshot reparenting, actual aggregate cancellation/reuse, traversal errors outside paging and standard/legacy/mixed UUID ordering. [Implementation and exact evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-minmax-slice).
+
+SQLite and MongoDB selected extrema are verified. Next: Neo4j selected extrema, then selected-scalar HTTP/demos. Sum/Average/GroupBy and subsequent CQL/ORM roadmap gates remain open; this is not 100% completion.
