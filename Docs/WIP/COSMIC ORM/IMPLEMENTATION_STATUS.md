@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — SQLite native bounded descendants
+
+SQLite now executes WhereAnyDescendant via a bounded recursive CTE (depth32/nodes10000), with native membership/access before each hop, scope budgets/cycles, typed errors and leaf output before root paging. Full1248/focused45 native checks pass unskipped. Empty-parent malformed-manifest red2 found a common direct/descendant omission; validation now precedes existence. Mongo/Neo descendants and further descendant controls remain open. [Contract](CQL_DESCENDANT_CONTRACT.md).
+
 ## 23 October — Bounded descendant contract
 
 Core23da2dc adds immutable WhereAnyDescendant, depth/node bounds and certified traversal limits. Core1815/Shared968/joint98 pass unskipped; net10/netstandard2.1 build, source/PDB712Core/54Shared verified. All adapters still reject native descendant execution pending implementation. [Contract](CQL_DESCENDANT_CONTRACT.md).

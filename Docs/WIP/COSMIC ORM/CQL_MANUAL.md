@@ -289,4 +289,4 @@ Use WhereAnyChild(child=>child.Name=="match") before root ordering/Skip/Take. Th
 
 HTTP child existence uses up to four anyChildren groups; the twelve-filter budget is shared with roots. Server actor visibility applies before relationship matching and root paging. See [complete JSON example and limits](CQL_V1_HTTP_CONTRACT.md#direct-child-existence-over-http). The numbered SDK/HTTP demos now include example5 for independent visible siblings on every provider.
 
-WhereAnyDescendant has a generic bounded contract with explicit traversal limits. No adapter yet declares DescendantExists, so requests reject before I/O. Use supported WhereAnyChild for current execution. [Contract](CQL_DESCENDANT_CONTRACT.md).
+WhereAnyDescendant has a generic bounded contract with explicit traversal limits. SQLite declares DescendantExists (depth32/nodes10000); Mongo/Neo reject until their native owners are implemented. Scope overflow returns CQL_QUERY_LIMIT without partial rows. Descendant intent does not load child graphs; HTTP descendant groups remain pending. [Contract](CQL_DESCENDANT_CONTRACT.md).

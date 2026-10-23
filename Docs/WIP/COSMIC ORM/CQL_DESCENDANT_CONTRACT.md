@@ -1,6 +1,6 @@
 # Bounded native descendant existence
 
-23 October 2026. Generic contract checkpoint; native implementations and the full roadmap are not complete.
+23 October 2026. SQLite native checkpoint; Mongo/Neo native descendants and the full roadmap are not complete.
 
 ## SDK and admission
 
@@ -20,15 +20,15 @@ The immutable node freezes the child expression with the existing scalar compile
 
 Options require depth1-32 and nodes1-10000; defaults are depth8/nodes1000. Adapters declare DescendantExists1048576 together with ChildExists and an immutable CosmicQueryTraversalCapability. Its explicit certified bounds can be smaller than the generic absolute maxima. Missing capability or excessive requested bounds rejects at planning and actual-adapter readmission, before dispatch. A supplied plan cannot lend its traversal budget to the executing adapter. Existing public capability constructor signatures are preserved; new overloads carry traversal limits.
 
-No current provider declares DescendantExists at this checkpoint. MongoDB, SQLite and Neo4j therefore explicitly reject descendant requests before physical I/O. Direct-child SDK/HTTP queries remain supported. Native execution is the next implementation step; there is no client evaluator or manager reload loop.
+SQLite now declares DescendantExists with depth32/nodes10000. MongoDB and Neo4j still reject descendant requests before I/O pending native implementations. Direct-child SDK/HTTP queries remain supported on all three stores; descendant HTTP transport is pending.
 
 ## Required native semantics
 
 - Roots match if at least one qualifying canonical descendant is reached within MaximumDepth. Direct children have depth1; the root never matches itself.
 - Each traversed edge requires current ParentHolonId and declared canonical role membership, or the explicit absent-manifest parent-link representation. Reparenting must invalidate an old path. Dangling declarations do not manufacture nodes.
 - Mandatory trusted access applies before visiting/inclusion and before traversal through an intermediate node. An inaccessible branch cannot make a match or increase the logical visited-node count.
-- MaximumNodes limits distinct visited visible canonical descendants for each root and relationship condition, independently of native whole-command work/deadline/byte budgets. A provider may stop once existence is established. If another node is required after the budget is exhausted, return CQL_QUERY_LIMIT; never truncate into false.
-- A depth boundary deliberately limits the question; unvisited descendants beyond it are not an error. Duplicate equivalent physical edges are deduplicated. Conflicting canonical identities or an encountered identity repeated on the same path produce CQL_DATA_INVALID, rather than infinite traversal. No inspection beyond an already conclusive existence result is required.
+- MaximumNodes limits distinct visited visible canonical descendants for each root and relationship condition, independently of native whole-command work/deadline/byte budgets. The bounded reachable scope must satisfy the node budget before a result is published; overflow returns CQL_QUERY_LIMIT even when a matching node was encountered earlier. Never publish a positive or negative match from a truncated scope.
+- A depth boundary deliberately limits the question; unvisited descendants beyond it are not an error. Duplicate equivalent physical edges are deduplicated. Conflicting canonical identities or an encountered identity repeated on the same path produce CQL_DATA_INVALID, rather than infinite traversal.
 - Native traversal/filtering precedes root sorting/Skip/Take, under the provider's declared consistency owner. GraphSnapshot must not be inferred for Neo4j. No cross-provider common snapshot is implied.
 - Cancellation/deadlines and invalid data publish no partial rows. All root/relationship work belongs to the admitted physical attempt and accounting receipt.
 
@@ -38,4 +38,14 @@ Core tests cover bounds, immutable expression/actor binding, independent output 
 
 See [completion roadmap](CQL_COMPLETION_ROADMAP.md) and [direct-child semantics](CQL_RELATIONSHIPS.md).
 
-Core23da2dcb5fc44d2bcbc447aaca5d7cec4a963840 verification39427 terminal0: fullCore1815/Shared968/joint98 pass unskipped. net10.0 and netstandard2.1 build cleanly. Final consumer source/PDB712Core/54Shared match CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733 / Shared64C24839C7AD46FD710D5DB6DB32610374DC55B1A57B984E8C81A44469E19980. Native descendants remain unsupported on all three adapters until their execution gates pass.
+Core23da2dcb5fc44d2bcbc447aaca5d7cec4a963840 verification39427 terminal0: fullCore1815/Shared968/joint98 pass unskipped. net10.0 and netstandard2.1 build cleanly. Final consumer source/PDB712Core/54Shared match CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733 / Shared64C24839C7AD46FD710D5DB6DB32610374DC55B1A57B984E8C81A44469E19980. At that earlier contract-only checkpoint all adapters rejected native descendants; SQLite is implemented in the newer section below.
+
+## SQLite native execution
+
+One correlated recursive CTE traverses canonical membership/current-parent edges and trusted visibility at every hop, tracks depth/path/cycles and caps materialization at nodes+1. It validates the bounded scope before matching the scalar predicate, then roots are sorted/paged. Independent clauses share the existing900-binding/native VM/deadline owner. WithChildren remains independent; descendant queries alone return leaf rows. A deferred Serializable read owner supports read-only connections and reuses caller Serializable transactions without committing them.
+
+Connection-local provider functions record explicit cycle/node/manifest outcomes; the owning reader propagates typed errors before any result publication and unregisters both functions before releasing the connection. Business predicates/traversal stay in SQL. Canonical manifest validation uses the single strict Core parser under the native read budget, with only one cached parent observation. Both direct-child and descendant queries validate a parent's observation before testing child existence, including empty parents. Malformed source cannot silently become a negative match.
+
+FullSQLite1248 and focused45 native relationship/graph controls pass, zero skips. A genuine empty-parent malformed-manifest red2 proved the omission and green controls prove the common-owner fix. Tests cover depth1/2, partial graph-independent output, exact Int64, independent clauses, root paging, hidden intermediate pruning, unlisted branches, node overflow/reuse, cycles/function teardown, read-only storage and caller transaction rollback. Broader concurrency, cancellation and all-provider descendant certification remain roadmap work.
+
+Final SQLite58545/joint96796 terminal0: full1248/focused45/joint98 pass unskipped. Consumers match712Core/54Shared source/PDB: CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733 / Shared45E098A99A5308A7DC78B9ECD8CCD3EC969A45DCCC97F09CC9F3846DE7A93617. Fixed SQLite fixture and owned HTTP/native resources are absent; reusable services stopped.
