@@ -2,6 +2,36 @@
 
 ## Resume — 2026-10-23
 
+### Core23 compatibility: later green, original intermittent native failure STILL OPEN
+
+Published clean Core23da2dcb5fc44d2bcbc447aaca5d7cec4a963840/DLLE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733 and Shared45E098A99A5308A7DC78B9ECD8CCD3EC969A45DCCC97F09CC9F3846DE7A93617/source712+54 validated. SDK94274:95/95pass0skip8s. Native46301 TERMINAL1:491pass/1fail492,125s; synchronous read-ack matrix reported26 missing payloads (version0 creator exports/search and all version1 families), async case immediately before it passed. Old aggregate labels omitted ErrorCode/Exception/Message; failed-case stdout/stderr empty. Cause UNKNOWN: do not label it proven Core regression, transient infrastructure or data corruption without evidence.
+
+Failing case's four exact-ID/JSON fixture deletions/absence checks completed BEFORE final semantic assertion; pending0 independently verified. Failed report SHA2CD3E5... preserved by MOVE to oracle-native-core23-failed.trx, no overwrite/reset/replay of uncertain operations. Test now includes native error-code/type/message/cause and four source-version diagnostics, with unchanged assertions/production behavior. ONE bounded full reproduction26262 passed492/4920skip123s with NO production fix; this does NOT explain/close the failure. Recovery53065 separately passed preparation6/encrypted-replay4/separate-client-write2+recover2/Oracle289 controls0skip, same source cohort. These are not additional main endpoints.
+
+Read-only SQLPlus41702 attempted original owned-profile Flashback Versions metadata for13:26:28–13:26:39UTC (failure13:26:32.714–34.309). Session FREEPDB1/+00:00 confirmed, but SQLPlusEXIT19/ORA01555+ORA22924: old CLOB undo unavailable. No original row bodies/keys were output or copied; this evidence limit does NOT prove the original failure was caused by undo loss. No recovery mutation, table/schema/retention changes or original-operation replay. Same runtime stopped in finally.
+
+Explicit bounded stress58137 then passed ONE testcase comprising TEN fresh async→sync pairs/20 fixture invocations57s,0skip; TRX independently contains10 pair markers/20 source-version lines. Reuses existing native fixture body and exact cleanup, stops first failure; NOT retry-until-green and NOT20 distinct endpoints. Main492 filter excludes this diagnostic class. A pass DOES NOT close original intermittent failure. Next investigation must use captured failure envelopes or bounded order-aware isolation (immediate preceding cases were async read-ack, then NativeOrdinaryIdentitySaveCountsOnlyAcknowledgedCommit variants); do not manufacture a production fix from a passing reproduction. Original issue remains an explicit release gate alongside cloud access/IAM/wallet/TLS/cost/interface/HTTP gates; Oracle is NOT100%, no dev merge/deploy or AWS-completion implication.
+
+Same retained Oracle started once for initial main/reproduction/recovery, stopped after completed recovery; separately resumed/stopped for read-only Flashback and bounded stress. No new runtime/environment/account/download/restore/cloud requests. Final runtime exited/listeners11521+18661zero/pending0 verified. Volume5,842,510,679bytes (+219,552,256): archive9=198,580,736 plus PDBSYSAUX+20,971,520 (now461,381,632) exactly explain growth; archive1–8/rootSYSTEM/rootSYSAUX unchanged. Preserve archive9 for reviewed Oracle-native retention/forensics, no file prune/shrink. Cfree78,531,981,312bytes shared-machine observation, no full host-attribution/reclamation claim. Original nine main/recovery/proof artifacts hash-verified MOVED to fixed `.pre-core23`, prior failure retained; these are compact evidence, not database/environment copies.
+
+Evidence below relative to C:/Source/OASIS/TestResults (first12 artifacts total2,200,590bytes; stress adds5,368):
+
+| Resource | Bytes | SHA256 |
+| --- | ---: | --- |
+| OracleObjectCurrent/oracle-core23-controls.trx |152698|A12C10C2C0FB6A7A245DAC3AAD8B82CEFB95EB1DAC3D49E906AA6EA3C8FFAFE4|
+| OracleCurrent/oracle-native-core23-failed.trx |788059|2CD3E5FD3C0C71861C31BCB4DE842D60B7EB9E8DA90520D8DDB90501397C4108|
+| OracleCurrent/oracle-native-current.trx |786091|77B847E25B615B57922C1125AA9428EF50FB3FD0E287C94C6205F8536D49808F|
+| OracleCurrent/oracle-preparation-native-current.trx |10469|E6800E8FF25F0C20C39F016FE0EEDD39FC02A43469F1A37331680F01CD09C5E5|
+| OracleCurrent/oracle-encrypted-replay-native-current.trx |7661|CB8073390A4311DFE0F304887CDCD926104B0FCD746C14E2C7748B0E7B638C6C|
+| OracleCurrent/oracle-encrypted-process-write.trx |4199|C70C9188E9F8D717813E490D67810D36DA43168632621FF8BBB4FD55023B4C6C|
+| OracleCurrent/oracle-encrypted-process-recover.trx |4205|74DBA00972A5D60BE43DE0492FC88D2BDCFA33F9F056CF1094B03E64C73B9798|
+| OracleCurrent/oracle-native-core23-controls.trx |445688|6D43F96E4EF01771FA602A309B091234EFCE74ADF70F08480B1449294B926CEE|
+| OracleCurrent/encrypted-process-False.written.json |540|9BEC153FCFCBC8D87689C32768BED15B9FF41FDC1DA9F0DC8758C907260103B9|
+| OracleCurrent/encrypted-process-True.written.json |540|CA5B041AC4FE42948283F2753BD314E796816562675ACE323D18C556434AFD4F|
+| OracleCurrent/encrypted-process-False.verified.json |220|1ED8F46462775FC207E40B1B126B84E0A838F2C0473458A1EBBF75DF1024DCB0|
+| OracleCurrent/encrypted-process-True.verified.json |220|5D9984F13AB4B021153E99940D4EA071B5D6FDA2DBA1308CDA1CF00060C8EC19|
+| OracleCurrent/oracle-read-ack-stress-current.trx |5368|DBD28D264B2A1C4E29F4C2AA20A23A0E3786295869BB1EC108CAA60937226B38|
+
 ### OCI continuation fixture aligned with native contract —95 controls passed
 
 Oracle documents nextStartWith as the next object NAME, not a generic opaque page token ([official SDK reference](https://docs.oracle.com/en-us/iaas/tools/java/latest/com/oracle/bmc/objectstorage/model/ListObjects.Builder.html)). Corrected the old artificial cursor-b/same-cursor fixture values to actual object names. Added a second real-signed-SDK pagination case with Unicode/spaces/+&?=/# in the continuation name: the SDK must preserve the exact decoded name in start and retain prefix across both requests; returned names must remain exact. Repeated-name continuation rejection remains covered. No production restriction, sorting, token parsing/normalization or speculative prefix-validation rule was added; an unverified assumption must not become a new runtime constraint.
