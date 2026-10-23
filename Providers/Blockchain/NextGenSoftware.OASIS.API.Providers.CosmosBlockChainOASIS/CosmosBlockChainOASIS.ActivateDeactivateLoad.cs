@@ -31,6 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 response.Result = nearby;
                 response.IsError = false;
                 response.IsLoaded = true;
+                response.LoadedCount = nearby.Count;
                 response.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
@@ -66,6 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 response.Result = nearby;
                 response.IsError = false;
                 response.IsLoaded = true;
+                response.LoadedCount = nearby.Count;
                 response.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
             }
             catch (Exception ex)
