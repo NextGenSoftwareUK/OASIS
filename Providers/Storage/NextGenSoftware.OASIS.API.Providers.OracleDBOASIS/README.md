@@ -6,6 +6,8 @@ This provider uses the real Oracle.ManagedDataAccess.Core client with indexed lo
 
 ## Configuration and verification
 
+Successful storage reads set `IsLoaded=true`. Point reads count one returned record; collection/export reads count returned roots, not recursively nested children. A successful empty collection has `LoadedCount=0` and remains loaded. Search counts its returned avatar/holon roots. Missing-record and failed reads do not claim loaded records. These response annotations do not change the query, persisted data, logical history or encryption policy.
+
 ### Identity column compatibility
 
 `USERNAME` and `EMAIL` in `OASIS_AVATARS` and `OASIS_AVATAR_DETAILS` require explicit character length semantics with capacity of at least 256 characters. New tables use `VARCHAR2(256 CHAR)`. Existing byte-semantic identity columns fail activation with a provisioning-review error; activation does not silently alter them or change the database character set.
