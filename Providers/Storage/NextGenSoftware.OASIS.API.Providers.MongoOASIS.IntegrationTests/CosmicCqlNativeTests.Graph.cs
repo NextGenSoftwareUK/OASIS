@@ -86,6 +86,125 @@ public sealed partial class CosmicCqlNativeTests
         }
     }
 
+    private static CosmicQueryPlan<Holon> AnyChildRacePlan(MongoGraphFixture fixture,CosmicQueryReadAccess? access=null)
+    {
+        var id=fixture.Root.Id;var query=CosmicQuery<Holon>.Create();
+        if(access!=null)query=query.WithReadAccess(access).Result;
+        var filtered=query.Where(root=>root.Id==id).WhereAnyChild(child=>child.Name=="owned CQL graph child 0");
+        Assert.False(filtered.IsError,filtered.Message);
+        var planned=CosmicQueryPlanner.Plan(filtered.Result,ProviderType.MongoDBOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+        Assert.False(planned.IsError,planned.Message);return planned.Result;
+    }
+
+    [Fact]
+    public Task NativeAnyChildValidationAndLookupShareTheSnapshotDuringAccessMutation()
+        =>WithMongoGraph(async fixture=>
+        {
+            var plan=AnyChildRacePlan(fixture,CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result);
+            var admin=fixture.Client.GetDatabase("admin");
+            var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},
+                {"mode",new BsonDocument("skip",1)},{"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},
+                    {"appName","CosmicCqlGraph"},{"blockConnection",true},{"blockTimeMS",5000}}}});
+            Task<NextGenSoftware.OASIS.Common.OASISResult<IReadOnlyList<IHolon>>>? pending=null;
+            try
+            {
+                // Validation completes first and pins the read snapshot. The next
+                // aggregate owns correlation/access matching, before the root page.
+                pending=fixture.Provider.ExecuteCosmicQueryAsync(plan);
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"waitForFailPoint","failCommand"},
+                    {"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",10000}});
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+                fixture.KnownOutcome=false;
+                await fixture.Records.UpdateOneAsync(new BsonDocument("HolonId",fixture.Root.Children.First().Id.ToString("D")),
+                    new BsonDocument("$set",new BsonDocument("IsPublic",false)));
+                fixture.KnownOutcome=true;
+                var admitted=await pending;Assert.False(admitted.IsError,admitted.Message+admitted.Exception);Assert.Single(admitted.Result);
+                var fresh=await fixture.Provider.ExecuteCosmicQueryAsync(plan);
+                Assert.False(fresh.IsError,fresh.Message+fresh.Exception);Assert.Empty(fresh.Result);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+                if(pending!=null)await pending;
+            }
+        },configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=true;});
+
+    [Fact]
+    public Task NativeAnyChildDeadlineCoversValidationAndLookupTogether()
+        =>WithMongoGraph(async fixture=>
+        {
+            var admin=fixture.Client.GetDatabase("admin");
+            var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","alwaysOn"},
+                {"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},{"appName","CosmicCqlGraph"},
+                    {"blockConnection",true},{"blockTimeMS",17000}}}});
+            BsonDocument? disabled=null;
+            try
+            {
+                var read=await fixture.Provider.ExecuteCosmicQueryAsync(AnyChildRacePlan(fixture));
+                Assert.Equal("CQL_QUERY_TIMEOUT",read.ErrorCode);Assert.Null(read.Result);Assert.False(read.IsLoaded);
+            }
+            finally{disabled=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});}
+            Assert.True(disabled["count"].ToInt64()>=configured["count"].ToInt64()+2,
+                "Both validation and lookup must start before the shared deadline expires.");
+        });
+
+    [Fact]
+    public Task NativeAnyChildCancellationDuringValidationDoesNotPublishRows()
+        =>WithMongoGraph(async fixture=>
+        {
+            var admin=fixture.Client.GetDatabase("admin");
+            var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","alwaysOn"},
+                {"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},{"appName","CosmicCqlGraph"},
+                    {"blockConnection",true},{"blockTimeMS",3000}}}});
+            using var cancellation=new CancellationTokenSource();
+            Task<NextGenSoftware.OASIS.Common.OASISResult<IReadOnlyList<IHolon>>>? pending=null;
+            try
+            {
+                pending=fixture.Provider.ExecuteCosmicQueryAsync(AnyChildRacePlan(fixture),cancellationToken:cancellation.Token);
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"waitForFailPoint","failCommand"},
+                    {"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",10000}});
+                cancellation.Cancel();var read=await pending;
+                Assert.Equal("CQL_QUERY_CANCELLED",read.ErrorCode);Assert.Null(read.Result);Assert.False(read.IsLoaded);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+                if(pending!=null)await pending;
+            }
+        });
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public Task NativeAnyChildReparentingRequiresCurrentParentAndNewOwnerMembership(bool declaredEmpty)
+        =>WithMongoGraph(async fixture=>
+        {
+            var other=new Holon{Id=Guid.NewGuid(),Name="owned CQL second parent"};
+            if(declaredEmpty)other.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                new HolonChildRoleManifest(1,other.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>())}));
+            fixture.KnownOutcome=false;
+            var created=await fixture.Provider.SaveHolonAsync(other,saveChildren:false);
+            fixture.KnownOutcome=!created.IsError;Assert.False(created.IsError,created.Message+created.Exception);
+            var childId=fixture.Root.Children.First().Id;
+            var loaded=await fixture.Provider.LoadHolonAsync(childId,loadChildren:false);
+            Assert.False(loaded.IsError,loaded.Message+loaded.Exception);
+            loaded.Result.ParentHolonId=other.Id;
+            fixture.KnownOutcome=false;
+            var moved=await fixture.Provider.SaveHolonAsync(loaded.Result,saveChildren:false);
+            fixture.KnownOutcome=!moved.IsError;Assert.False(moved.IsError,moved.Message+moved.Exception);
+            var old=await fixture.Provider.ExecuteCosmicQueryAsync(AnyChildRacePlan(fixture));
+            Assert.False(old.IsError,old.Message+old.Exception);Assert.Empty(old.Result);
+            var id=other.Id;
+            var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==id)
+                .WhereAnyChild(child=>child.Name=="owned CQL graph child 0");
+            Assert.False(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            Assert.False(plan.IsError,plan.Message);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.False(read.IsError,read.Message+read.Exception);Assert.Equal(declaredEmpty?0:1,read.Result.Count);
+        });
+
     [Theory]
     [InlineData(0)] [InlineData(1)] [InlineData(2)]
     public Task NativeAnyChildUsesVisibilityExactMetadataAndIndependentSiblings(int visibility)
