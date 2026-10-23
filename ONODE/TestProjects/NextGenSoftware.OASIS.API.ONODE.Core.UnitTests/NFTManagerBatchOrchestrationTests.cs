@@ -55,8 +55,7 @@ public sealed class NFTManagerBatchOrchestrationTests
         var registry = new CoreManagers.ProviderManager(null!, dna);
         registry.RegisterProvider(storage.Object);
         var manager = new NFTManager((IOASISStorageProvider)null!, Guid.NewGuid(), dna);
-        manager.Data = (CoreManagers.HolonManager)Activator.CreateInstance(typeof(CoreManagers.HolonManager),
-            BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { storage.Object, dna, registry }, null)!;
+        manager.Data = new CoreManagers.HolonManager(storage.Object, dna, registry);
         var minted = 0;
         var sent = 0;
         var provider = new Mock<IOASISNFTProvider>(MockBehavior.Strict);
