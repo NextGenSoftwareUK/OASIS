@@ -2,6 +2,23 @@
 
 ## Resume — 2026-10-23
 
+### Extra required-column readiness gap — real red/green, full492 passed
+
+Native78575 TERMINAL1 exposed a genuine activation bug:4fail/8pass12. Existing schema admission ignored extra user columns and advertised activation success even when the canonical INSERT omitted a required visible/invisible column with no default. Native capability checks now explicitly log ORA01400 for both cases. The one schema validator now reads user-generated columns from USER_TAB_COLS (including invisible columns, excluding system-generated internals) and rejects omitted required stored extras without defaults; nullable, defaulted, identity-generated and virtual extras remain accepted. No fallback, schema repair, second writer or changed record format. This is structural compatibility, NOT a guarantee for arbitrary default expressions/triggers/extra constraints. Metadata definitions: [Oracle ALL_TAB_COLS](https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/ALL_TAB_COLS.html).
+
+Green68919 ACTUAL TERMINAL0: focused12/12 (1s), full492/492 (126s), Oracle289/289 controls (596ms),0skip. Focused12 are INCLUDED in492, not additive. Core6c689689/DLLBFB99852BE111503F20F12702BD622192BA1D528D0AD693BDF70E3942B20F57D and Shared3AD0F98F831B9CBF2EB01576E12B8F128BDC6728D7ED1E9B85B7C210FC72579C/source-PDB identity matched under producer/source hold. Prior advanced14/OCI77/Shared968 were separately refreshed above/below, NOT rerun by this SQL-only schema batch. No dev merge/deploy or Oracle100% claim; hosted Autonomous/OCI access/IAM/wallet/TLS/fees and remaining route/interface gates still need acceptance.
+
+Fixtures reuse ONE fixed OASIS_EXTRA_COLUMN_PROBE table name and existing environment. Test-only expected-schema extension drives the real activation path without touching canonical tables or entering provisioning. All native probe INSERTs rollback; exact acknowledged OBJECT_ID/zero rows required before owned-table DROP PURGE, followed by independent table/identity-sequence absence. Focused retired sequence/table identities73225/73228 (`ISEQ$$_73225`, `ISEQ$$_73228`); full492 identities73251/73254 likewise explicitly logged/verified. Unknown CREATE outcome retains its pending intent rather than guessing. Red cleanup preceded semantic assertions; green improves sequence journaling/PURGE, not admission expectations. Runtime exited/listener11521zero/pending0 independently checked; retained volume5,622,958,423bytes unchanged. Cfree79,868,567,552bytes is shared-machine observation, not exclusive attribution/reclamation. No download/restore/new account/environment/worktree/cloud calls.
+
+| Existing OracleCurrent evidence | Bytes | SHA256 |
+| --- | ---: | --- |
+| oracle-extra-column-native-red.trx |24420|9EC28D659C1B24DF55100E726DA020BAE88160CA8811EBF2E6FAC12A64E67F94|
+| oracle-extra-column-native-current.trx |21926|E22BBDD1BE9EB5C95156133BF63425C24DAFEF3ADD73D18163E0ADFEB40C2128|
+| oracle-native-current.trx |785750|9F5C1BA1CAECBBFC31517E85C4B23E3E8702A981FFC86519D4C92C3F54C54686|
+| oracle-extra-column-controls.trx |445688|0C2AC5510A55E629D0774BAAF6B3A871E99777EF76077A555864ADE549E6EEE4|
+
+Red report hash-verified MOVED to fixed red name; prior main480 report SHA160488A74B64B1204F9672A2CF95522A4D6B3E6A9F09FB131D1994CAADB21953 MOVED to `.pre-extra-column`. No overwrite/copy/data replay. Reusable runner gains exclusive `-ExtraColumns`12 mode and expects main492; the resource/cleanup ledger records retained originals, test tables/sequences and teardown.
+
 ### Remaining Oracle recovery/SDK/shared controls refreshed — actual terminal0
 
 Batch88233 completed on published clean Core6c689689/DLLBFB99852BE111503F20F12702BD622192BA1D528D0AD693BDF70E3942B20F57D. SharedED53435013692AB426DEA4790F1C5E0B17FB25641702542908BB97443B273859 matched consumers; source/PDB verification passed under shared producer/source hold. Native preparation6/6 (3s), encrypted replay4/4 (2s), separate-process writer2/2 (941ms) and recover2/2 (845ms); Oracle controls289/289 (597ms), OCI SDK controls77/77 (7s), Shared controls968/968 (6s), all0skip. These advanced14 are separate from the previously verified main480, not an additional main-suite rerun. OCI uses the real SDK against controlled loopback handlers, NOT Oracle Cloud. Shared/Oracle/OCI controls are not additional native endpoints. No cloud request, restore, download, new environment/account/worktree or deployment.
