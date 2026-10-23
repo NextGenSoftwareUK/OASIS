@@ -10,6 +10,8 @@ Successful storage reads set `IsLoaded=true`. Point reads count one returned rec
 
 Holon deletion sets `IsDeleted=true` and `DeletedCount=1` only after an acknowledged commit. Repeating a soft delete on an existing inactive tombstone acknowledges that state with `DeletedCount=0` and no new mutation. An uncertain commit does not claim deletion success or a count. The provider's boolean soft/hard-delete helpers preserve the native operation's result metadata through the existing result-copy helper. The `IOASISStorageProvider.DeleteHolon` GUID/provider-key, synchronous/asynchronous aliases perform **hard deletion**, matching HyperDrive's shared dispatch contract. HolonManager implements soft deletion through a tombstone Save; direct provider callers can explicitly select it with `DeleteHolonWithSoftDelete*(..., true)`.
 
+Known point-read absence uses `OASISResultErrorCodes.RecordNotFound` with no payload or native exception. Direct provider calls retain an unloaded error result; V2's existing manager layer can distinguish that state from an outage and honor explicit `allowMissing` behavior, including first-use settings/karma ledger creation. Malformed keys, invalid versions, corrupt records and native failures are not relabeled as absence. Empty collection reads retain their normal successful-empty semantics.
+
 ### Identity column compatibility
 
 `USERNAME` and `EMAIL` in `OASIS_AVATARS` and `OASIS_AVATAR_DETAILS` require explicit character length semantics with capacity of at least 256 characters. New tables use `VARCHAR2(256 CHAR)`. Existing byte-semantic identity columns fail activation with a provisioning-review error; activation does not silently alter them or change the database character set.

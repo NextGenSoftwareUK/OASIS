@@ -6,11 +6,18 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS;
 
 public partial class OracleDBOASIS
 {
+    private static void RecordMissing<T>(OASISResult<T> result,string message)
+    {
+        OASISErrorHandling.HandleError(ref result,message);
+        result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
+    }
+
     private static void RecordLoaded<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result,T value,int count=1)
     {
         result.Result=value;result.IsError=false;result.IsLoaded=true;result.LoadedCount=count;

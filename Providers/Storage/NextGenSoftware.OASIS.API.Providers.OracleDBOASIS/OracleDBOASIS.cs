@@ -276,7 +276,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var avatar = await LoadAvatarByColumnAsync("ID", OracleDbType.Raw, GuidToRaw(id),version);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar found with ID '{id}'."); return result; }
+                if (avatar == null) { RecordMissing(result, $"OracleDBOASIS: No avatar found with ID '{id}'."); return result; }
                 RecordLoaded(result,avatar); result.Message = $"OracleDBOASIS: Avatar loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar by ID '{id}': {ex.Message}"); }
@@ -291,7 +291,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var avatar = await LoadAvatarByColumnAsync("USERNAME", OracleDbType.Varchar2, username,version);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar found with username '{username}'."); return result; }
+                if (avatar == null) { RecordMissing(result, $"OracleDBOASIS: No avatar found with username '{username}'."); return result; }
                 RecordLoaded(result,avatar); result.Message = $"OracleDBOASIS: Avatar loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
@@ -377,7 +377,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var detail = await LoadAvatarDetailByColumnAsync("ID", OracleDbType.Raw, GuidToRaw(id),version);
-                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar detail found for ID '{id}'."); return result; }
+                if (detail == null) { RecordMissing(result, $"OracleDBOASIS: No avatar detail found for ID '{id}'."); return result; }
                 RecordLoaded(result,detail); result.Message = $"OracleDBOASIS: AvatarDetail loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar detail for '{id}': {ex.Message}"); }
@@ -392,7 +392,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var detail = await LoadAvatarDetailByColumnAsync("USERNAME", OracleDbType.Varchar2, username,version);
-                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar detail found for username '{username}'."); return result; }
+                if (detail == null) { RecordMissing(result, $"OracleDBOASIS: No avatar detail found for username '{username}'."); return result; }
                 RecordLoaded(result,detail); result.Message = $"OracleDBOASIS: AvatarDetail loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
@@ -407,7 +407,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 var detail = await LoadAvatarDetailByColumnAsync("EMAIL", OracleDbType.Varchar2, email,version);
-                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar detail found for email '{email}'."); return result; }
+                if (detail == null) { RecordMissing(result, $"OracleDBOASIS: No avatar detail found for email '{email}'."); return result; }
                 RecordLoaded(result,detail); result.Message = $"OracleDBOASIS: AvatarDetail loaded for email '{email}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
@@ -470,7 +470,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             {
                 ValidateGraphRead(maxChildDepth,0,version);
                 var stored=await LoadIdentityByColumnAsync<Holon>("OASIS_HOLONS","ID",OracleDbType.Raw,GuidToRaw(id),true,version);
-                if(stored==null){OASISErrorHandling.HandleError(ref result,$"OracleDBOASIS: No holon found with ID '{id}'.");return result;}
+                if(stored==null){RecordMissing(result,$"OracleDBOASIS: No holon found with ID '{id}'.");return result;}
                 RecordLoaded(result,(await ProjectHolonRootsAsync(new[]{stored},loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider)).Single());
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading holon '{id}': {ex.Message}"); }
@@ -596,7 +596,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             {
                 var avatar = await LoadAvatarByColumnAsync("EMAIL", OracleDbType.Varchar2, avatarEmail,version);
                 if (avatar != null) RecordLoaded(result,avatar);
-                else OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar with email '{avatarEmail}' not found.");
+                else RecordMissing(result, $"OracleDBOASIS: Avatar with email '{avatarEmail}' not found.");
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
