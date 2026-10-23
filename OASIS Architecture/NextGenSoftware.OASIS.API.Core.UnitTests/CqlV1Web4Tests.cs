@@ -31,7 +31,7 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
-public class CqlV1Web4Tests
+public partial class CqlV1Web4Tests
 {
     [Theory]
     [InlineData("Id")] [InlineData("Name")] [InlineData("Description")]

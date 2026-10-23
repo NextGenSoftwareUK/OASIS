@@ -7,7 +7,7 @@
 .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -Serve
 ```
 
-The first command runs fifteen annotated SDK queries and fifteen HTTP examples on MongoDB, SQLite and Neo4j. With Serve, open **http://127.0.0.1:5088/demo** once `TestResults/CosmicCqlDemo/v1-session.json` appears. Transcript: `v1-walkthrough.txt`; result: `v1-demo-result.json`. Swagger `/swagger` is prefilled, authorized as synthetic Alice and documents Idempotency-Key.
+The first command runs twenty-seven annotated SDK queries and twenty-seven HTTP examples on MongoDB, SQLite and Neo4j. With Serve, open **http://127.0.0.1:5088/demo** once `TestResults/CosmicCqlDemo/v1-session.json` appears. Transcript: `v1-walkthrough.txt`; result: `v1-demo-result.json`. Swagger `/swagger` is prefilled, authorized as synthetic Alice and documents Idempotency-Key.
 
 The dedicated runner reuses restored dependencies and rejects stale reports. Example5 demonstrates independent visible-child existence on each provider; the browser Visible child existence preset compares Alice and Visitor. Fresh23October evidence: Core1799/joint96/demo1 allpass,15SDK/15HTTP,131settled synthetic operations.
 
@@ -19,7 +19,8 @@ The dedicated runner reuses restored dependencies and rejects stale reports. Exa
 4. Show prefix/suffix, null/existence, GUID, Boolean and numeric-string examples. Exact Int64 preserves **9007199254740993** without JavaScript rounding.
 5. Repeat the last key: **409**, no second execution. A new intent gets a new key. Show settlement status.
 6. Execute Swagger's example. Change Idempotency-Key for a new intent/provider. Swagger defaults to Alice.
-7. **Finish demo & clean up** waits, verifies settlement, stops services and removes only owned fixtures.
+7. Choose **LongCount / complete visible input**: Alice gets the Int64 string `"3"` on all three stores. Show Count after Skip1/Take1 (Int32 `1`) and Any against A-private (Boolean `false` for Alice). The JSON route label changes to `/api/data/query-cql/scalar`; no implicit row Take is applied. Repeat keeps the original route and key.
+8. **Finish demo & clean up** waits, verifies settlement, stops services and removes only owned fixtures.
 
 Shipping CQL/JWT/admission code runs over real providers and a Mongo outbox. Avatar-directory/reservation authority are controlled synthetic fixtures; no production account/charge. Tokens last one hour and are not recorded in transcripts/readiness/ledger. Run one leased demo at a time. Interrupted/failed fixtures require inspection, not reset/replay.
 
@@ -147,3 +148,10 @@ The final readability batch was rebuilt using the existing environment and build
 ### Access-bound graph walkthrough
 
 The C# native and HTTP walkthroughs now include example4. The browser has an Access-bound child graph preset and Swagger pre-fills graph options. Use Alice: C-public returns public child and owned child; the private intermediate and its public grandchild are absent. Visitor returns public child only. The server binds identity from the bearer/admission, not the body. The native SDK uses WithReadAccess, not just a root Where predicate. Root-only edits use saveChildren:false; SDK raw holons retain private store observations and are not public JSON DTOs. See the HTTP contract for depth/node/byte bounds and consistency.
+
+
+## Scalar demo update — 23 October 2026
+
+Examples7–9 in both annotated source files show native LongCount, a windowed Count, and access-protected Any. The first six row examples are preserved. Browser presets and Swagger expose both exact routes. The scalar response is detached: Count is Int32, Any is Boolean, and LongCount is always an exact decimal string tagged Int64. Browser formatting retains original JSON text.
+
+The underlying signed HTTP gate passes129tests with137-input native counts on all three stores. The expanded27SDK/27HTTP demo passes its freshness/count checks:182settled operations/181physical attempts, with generated Swagger checks and scalar no-replay on all3 stores. Final Core1982/demo1 pass unskipped. Earlier15/15 and18/18 figures above are historical gates. [Scalar contract](CQL_SCALAR_HTTP_CONTRACT.md).

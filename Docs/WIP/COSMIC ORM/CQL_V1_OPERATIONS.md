@@ -4,6 +4,8 @@
 
 The WEB4 v1 transport runs the existing generic HolonManager/Core query pipeline against one active MongoDB, SQLite or Neo4j provider. [Request language and pricing configuration](CQL_V1_HTTP_CONTRACT.md); [local C# and Swagger demonstrations](CQL_DEMO_RUNBOOK.md).
 
+The companion scalar endpoint is `POST /api/data/query-cql/scalar`. Configure its prepared-storage route and query tariff alongside the row route: startup validates reservation coverage for both exact paths. Omitted scalar `take` is unbounded, while row default25 stays unchanged. `LongCount` returns an Int64 decimal string. [Scalar contract, security and examples](CQL_SCALAR_HTTP_CONTRACT.md).
+
 ## Calling from C#
 
 Use an existing WEB4 bearer token and retain the same idempotency key for the logical request. The server supplies identity, visibility, capabilities and prices.

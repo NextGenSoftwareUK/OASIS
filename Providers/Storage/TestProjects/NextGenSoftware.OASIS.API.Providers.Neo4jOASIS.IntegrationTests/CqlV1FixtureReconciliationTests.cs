@@ -41,7 +41,12 @@ public sealed class CqlV1FixtureReconciliationTests
         =>Reconcile("8C1FD0849CD861D75B3BDE8A37E70C7887798388D11C12CA906CE91850015E47",true,
             unreservedTrailingRequests:2);
 
-    private static async Task Reconcile(string expectedHash,bool graphFixture,string expectedStage="before-http-request",int unreservedTrailingRequests=0)
+    [TestMethod]
+    public Task ReviewedScalarAdmissionFixtureVerifiesSettledNoExecutionBeforeCleanup()
+        => Reconcile("2620B3C3D456A6FEDAA3BC77159D027C06840C0C0D64EBD01B209738CBCD8DEB", true,
+            expectedPreDispatchOnly: true);
+
+    private static async Task Reconcile(string expectedHash,bool graphFixture,string expectedStage="before-http-request",int unreservedTrailingRequests=0,bool expectedPreDispatchOnly=false)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string storageDb = "cosmic_cql_v1_web4_storage", usageDb = "cosmic_cql_v1_web4_usage";
@@ -73,6 +78,19 @@ public sealed class CqlV1FixtureReconciliationTests
         // The first five requests were anonymous, bad signature/issuer, expired, and
         // mismatched signed claims. The final prefix request was a settled pre-I/O rejection.
         var journal=fixture.GetProperty("requests").EnumerateArray().ToArray();
+        if (expectedPreDispatchOnly)
+        {
+            Assert.AreEqual(6, journal.Length);
+            Assert.AreEqual(1, operations.Count);
+            Assert.AreEqual(alice, journal[5].GetProperty("actor").GetGuid());
+            var operation = operations.Single();
+            Assert.AreEqual("settled", operation.State);
+            Assert.AreEqual("failed", operation.ObservedOutcome);
+            Assert.AreEqual(0, operation.ProviderAttempts.Count);
+            Assert.AreEqual(0, operation.Receipts.Count);
+            Assert.IsFalse(string.IsNullOrEmpty(operation.NoProviderExecutionReason));
+        }
+
         if(unreservedTrailingRequests!=0)
         {
             // Exact reviewed journal: oversized request142 is rejected before

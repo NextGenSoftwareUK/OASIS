@@ -2,6 +2,8 @@
 
 [Manual](CQL_MANUAL.md) · [Architecture](CQL_ARCHITECTURE.md) · [Three-provider demos](CQL_DEMO_RUNBOOK.md).
 
+Scalar results use the companion `POST /api/data/query-cql/scalar` route. It shares authenticated admission/source compilation, with a separate nullable-Take DTO and exact typed result envelope. [Scalar contract and examples](CQL_SCALAR_HTTP_CONTRACT.md). The row contract below retains its original default page.
+
 ## Route and security
 
 `POST /api/data/query-cql` requires the existing authenticated WEB4 bearer, a stable `Idempotency-Key`, and an explicitly configured prepared-storage route/reservation. Absent admission, absent query tariffs, a mismatched avatar/reservation, an inactive/unregistered provider or unsupported capability rejects before provider I/O. An eligible default is the existing active default, never an activation/failover instruction. Explicit providers are MongoDBOASIS, SQLLiteDBOASIS and Neo4jOASIS. One provider per request; grouped/global federation is outside HTTP v1.

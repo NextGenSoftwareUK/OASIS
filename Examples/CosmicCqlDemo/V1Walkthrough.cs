@@ -187,11 +187,47 @@ public static class V1Walkthrough
                 take = 1
             });
 
+            // EXAMPLE 7 — count the complete visible input. Unlike row queries,
+            // the scalar route has no implicit Take(25). Int64 is always a JSON
+            // string so a browser cannot round values above 2^53.
+            var scalarFilters = new object[]
+            {
+                new { metadataPath = new[] { "fixture" }, scalar = "String",
+                    @operator = "Equal", value = fixtureTag }
+            };
+
+            await ShowAsync("7. LongCount / no implicit row page", new
+            {
+                provider,
+                operation = "LongCount",
+                filters = scalarFilters
+            }, scalar: true, valueType: "Int64", expected: "3");
+
+            // EXAMPLE 8 — explicit source windows apply BEFORE the terminal.
+            // Count uses a JSON Int32 number; it never changes to a string.
+            await ShowAsync("8. Count / explicit source window", new
+            {
+                provider,
+                operation = "Count",
+                filters = scalarFilters,
+                skip = 1,
+                take = 1
+            }, scalar: true, valueType: "Int32", expected: 1);
+
+            // EXAMPLE 9 — Any returns a Boolean, with server-owned visibility.
+            // An inaccessible private root cannot leak through existence tests.
+            await ShowAsync("9. Any / private root remains invisible", new
+            {
+                provider,
+                operation = "Any",
+                filters = scalarFilters,
+                anyOf = new[] { new { field = "Name", @operator = "Equal", value = "A-private" } }
+            }, scalar: true, valueType: "Boolean", expected: false);
         }
 
         return completedRequests;
 
-        async Task ShowAsync(string title, object query)
+        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -200,7 +236,9 @@ public static class V1Walkthrough
             // uncertain; do not silently repeat the request with a fresh key.
             var operationKey = Guid.NewGuid().ToString("D");
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/data/query-cql")
+            var route = scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql";
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, route)
             {
                 Content = new StringContent(body, Encoding.UTF8, "application/json")
             };
@@ -217,6 +255,15 @@ public static class V1Walkthrough
                 throw new InvalidOperationException($"{title}: HTTP {(int)response.StatusCode}: {responseText}");
 
             using var result = JsonDocument.Parse(responseText);
+            if (scalar)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                if (payload.GetProperty("version").GetString() != "cql-scalar-v1"
+                    || payload.GetProperty("valueType").GetString() != valueType
+                    || payload.GetProperty("value").GetRawText() != JsonSerializer.Serialize(expected))
+                    throw new InvalidOperationException(title + " returned the wrong scalar domain or value.");
+            }
+
             completedRequests++;
             await output.WriteLineAsync(JsonSerializer.Serialize(result.RootElement, options));
             await output.WriteLineAsync("\nSettlement: " + response.Headers.GetValues("X-OASIS-Usage-Settlement").Single() + "\n");

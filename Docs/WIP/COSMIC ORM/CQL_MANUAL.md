@@ -308,7 +308,7 @@ var longCount = source.LongCount(); // Int64 result domain.
 var any = source.Any();             // Boolean result domain.
 ```
 
-Execution uses `CosmicScalarPlanner` and the generic V2 `HolonManager.ExecuteScalarQueryAsync` entry point. MongoDB, SQLite and Neo4j now advertise native Count/LongCount/Any. SQLite full1,269, Mongo unit229/native76 and Neo unit322/jointnative129 pass. Scalar HTTP transport remains pending. WEB4 scalar requests and the later aggregate shapes remain pending. [Progress and native acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md).
+Execution uses `CosmicScalarPlanner` and the generic V2 `HolonManager.ExecuteScalarQueryAsync` entry point. MongoDB, SQLite and Neo4j now advertise native Count/LongCount/Any. SQLite full1,269, Mongo unit229/native76 and Neo unit322/jointnative129 pass. WEB4 scalar requests are implemented and pass signed native checks on all three providers; later aggregate shapes remain pending. [Progress and native acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md).
 
 
 With an activated SQLite provider `sqlite` and its V2 `manager`, execute a scalar through the same generic Core contract:
@@ -354,7 +354,31 @@ long count = result.Result.Providers.Single().Value;
 Count uses checked Int32 and reports `CQL_AGGREGATE_OVERFLOW`; LongCount preserves exact Int64. Empty input/window returns zero, and Any returns false. Source access and relationship predicates apply before participation. A graph output request does not expand children or limit scalar input, while its requested snapshot consistency remains enforced. Counts remain per provider; replicas are not summed into a logical global count. These SDK intents do not grant authentication or access by themselves.
 
 
-The same scalar example works with an activated MongoDB provider and its V2 manager: bind `adapter` to the MongoDB instance and use its own query/scalar capability declarations. MongoDB counts natively without entity buffers or row caps. It validates canonical relationship membership and executes the scalar pipeline in one snapshot when relationship/graph intent requires it; cancellation and native deadlines cover validation and counting together. A concurrent-reparent control proves the old snapshot count and changed fresh count. WEB4 scalar transport and the later aggregate operations remain pending.
+The same scalar example works with an activated MongoDB provider and its V2 manager: bind `adapter` to the MongoDB instance and use its own query/scalar capability declarations. MongoDB counts natively without entity buffers or row caps. It validates canonical relationship membership and executes the scalar pipeline in one snapshot when relationship/graph intent requires it; cancellation and native deadlines cover validation and counting together. A concurrent-reparent control proves the old snapshot count and changed fresh count. WEB4 scalar transport passes the joint 129-test native batch, including a signed count of 137. Later aggregate operations remain pending.
 
 
-The generic scalar example also works with Neo4j's activated provider and V2 manager. Neo4j counts in one read-committed native transaction and validates projection ownership and descendant errors outside the scalar window. It rejects a requested ProviderSnapshot guarantee before dispatch, including a borrowed caller profile. Its controls verify actual-fetch cancellation and post-fetch cumulative deadline expiry without publication, followed by successful reuse. Prompt interruption of an already blocked driver I/O await remains a separately open limitation; these controls do not prove a hard client I/O deadline. [Planned scalar HTTP contract](CQL_SCALAR_HTTP_CONTRACT.md).
+The generic scalar example also works with Neo4j's activated provider and V2 manager. Neo4j counts in one read-committed native transaction and validates projection ownership and descendant errors outside the scalar window. It rejects a requested ProviderSnapshot guarantee before dispatch, including a borrowed caller profile. Its controls verify actual-fetch cancellation and post-fetch cumulative deadline expiry without publication, followed by successful reuse. Prompt interruption of an already blocked driver I/O await remains a separately open limitation; these controls do not prove a hard client I/O deadline. [Scalar HTTP contract](CQL_SCALAR_HTTP_CONTRACT.md).
+
+
+### WEB4 scalar requests
+
+Use `POST /api/data/query-cql/scalar` with the same bearer authentication and new logical-intent idempotency key as row queries. The server owns actor visibility, provider eligibility and durable usage accounting. Select `MongoDBOASIS`, `SQLLiteDBOASIS` or `Neo4jOASIS`, or omit the provider for the active default.
+
+```json
+{
+  "provider": "SQLLiteDBOASIS",
+  "operation": "LongCount",
+  "filters": [
+    {
+      "metadataPath": ["category"],
+      "scalar": "String",
+      "operator": "Equal",
+      "value": "coffee"
+    }
+  ]
+}
+```
+
+Omitted `take` counts the complete visible matching input. Explicit `skip`/`take` limit the source before counting. `Count` returns an Int32 JSON number; `Any` a JSON Boolean. `LongCount` always returns an invariant decimal string tagged `Int64`, preserving exact browser values above 2^53. The normal `OASISResult.result` contains `version`, `provider`, `operation`, `valueType` and `value`. Native input remains bounded by execution budgets rather than a row publication cap.
+
+See the [complete scalar contract](CQL_SCALAR_HTTP_CONTRACT.md) for limits and accounting, and [annotated demos](../../../Examples/CosmicCqlDemo/README.md) for copyable C# SDK, HTTP and interactive examples.
