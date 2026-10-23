@@ -36,3 +36,14 @@ Compact evidence is retained at `C:/Source/OASIS/TestResults/CosmicCqlDemo/v1-ve
 All owned hosts stopped; ports 5087/5088/27029/17687 clear. Owned Mongo databases, Neo4j roots, SQLite files and readiness/ownership manifests were removed only after settlement and process teardown. Shared runtimes, cache, fixed outputs and stopped services remain reusable. [Resource lifecycle and sizes](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
 [Run the demo](CQL_DEMO_RUNBOOK.md) · [Manual](CQL_MANUAL.md) · [Architecture](CQL_ARCHITECTURE.md)
+
+
+## Selected HTTP and demo gate verified — 23 October 2026
+
+The retained fixture was reconciled by the exact AC9E6B... journal and76BF29... native evidence:180settled operations/175matching receipts,411acknowledged scalar writes and all146owned holons in each of3stores verified before cleanup. Original journal and438snapshot hashes are retained. No queries were replayed. The stale Swagger assertion now checks Min and its bounded Int64 metadata selection.
+
+Fresh combined verification **passes175native regression tests, zero skips (3m7s)**, plus **36SDK queries and36HTTP examples** (12perprovider) on MongoDB, SQLite and Neo4j. The demo reports **216settled operations and211physical provider attempts**. Signed selected queries verify exact negative Int64 values beyond2^53, visibility before reduction (hidden rows contain stronger extrema), source windows, nullable empty inputs and no replay. Full Core/HTTP unit evidence remains2,117passing/0skip, including11new endpoint controls. Browser JavaScript syntaxcheck passes.
+
+Evidence: TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx; TestResults/CoreCurrent/cql-selected-scalar-http-current.trx; TestResults/CosmicCqlDemo/v1-demo-result.json, v1-walkthrough.txt, selected-http-native-final.log and selected-http-native-artifacts.json. Five producer/consumer DLL pairs agree (Core109677, shared151E8DC5); the existing runner verified fixture ownership, stopped owned services and removed the exact SQLite/wal/shm/marker after process exit. All four paths and27029/17687listeners were explicitly absent. No runtime/download/new environment was introduced.
+
+This supersedes the pending native/demo checkpoint above. The selected-extrema HTTP/demo gate is complete; the full CQL/ORM roadmap remains open, including Neo4j UTC-date enrollment and strict blocked-I/O interruption, Sum/Average/GroupBy and later federation/query/ORM acceptance.
