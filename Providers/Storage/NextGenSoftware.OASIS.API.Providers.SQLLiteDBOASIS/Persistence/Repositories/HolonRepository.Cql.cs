@@ -49,12 +49,13 @@ public partial class HolonRepository
             try
             {
                 using var budget=new SqliteCqlReadBudget(connection,cancellationToken);
-                if (plan.Query.GraphOptions != null && _dbContext.Database.CurrentTransaction != null &&
+                using var traversal=translator.HasRelationship?new SqliteCqlTraversalGuard(connection,budget.Check):null;
+                if ((plan.Query.GraphOptions != null || translator.HasTraversal) && _dbContext.Database.CurrentTransaction != null &&
                     _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
-                    return CqlError("CQL_CONSISTENCY_UNSUPPORTED", "SQLite graphs require a serializable native read owner.");
+                    return CqlError("CQL_CONSISTENCY_UNSUPPORTED", "SQLite graphs/traversals require a serializable native read owner.");
                 // A deferred read transaction supports read-only connections and
                 // holds the same SQLite snapshot for the root page and all children.
-                using var graphTransaction = plan.Query.GraphOptions != null && _dbContext.Database.CurrentTransaction == null
+                using var graphTransaction = (plan.Query.GraphOptions != null || translator.HasTraversal) && _dbContext.Database.CurrentTransaction == null
                     ? connection.BeginTransaction(IsolationLevel.Serializable, deferred: true) : null;
                 using var graphOwner = graphTransaction == null ? null : _dbContext.Database.UseTransaction(graphTransaction);
                 var rows=new List<IHolon>();long bytes=0;
@@ -65,7 +66,7 @@ public partial class HolonRepository
                         translator.Parameters.Cast<object>().ToArray()).AsNoTracking();
                     await foreach(var row in query.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
                     {
-                        budget.Check();
+                        budget.Check();traversal?.Check();
                         if(rows.Count>=Math.Min(maximumResults,plan.Query.GraphOptions?.MaximumNodes ?? maximumResults))
                             throw new SqliteCqlResourceException("Query exceeds the declared root/graph result limit.");
                         bytes+=CqlRecordSize(row);
@@ -74,7 +75,7 @@ public partial class HolonRepository
                             throw new SqliteCqlResourceException("SQLite CQL exceeds its streamed payload budget.");
                         rows.Add(GetHolonFromEntity(row));budget.Check();
                     }
-                    budget.Check();
+                    budget.Check();traversal?.Check();
                     if (plan.Query.GraphOptions != null)
                     {
                         Task<IReadOnlyList<IHolon>> ReadChildren(CosmicQueryChildSelection selection, CancellationToken token)
@@ -98,6 +99,7 @@ public partial class HolonRepository
                 if(opened)await _dbContext.Database.CloseConnectionAsync().ConfigureAwait(false);
             }
         }
+        catch (System.IO.InvalidDataException cause){return CqlError("CQL_DATA_INVALID",cause.Message,cause);}
         catch (SqliteCqlDeadlineException cause){return CqlError("CQL_QUERY_TIMEOUT",cause.Message,cause);}
         catch (SqliteCqlResourceException cause){return CqlError("CQL_QUERY_LIMIT",cause.Message,cause);}
         catch (SqliteException cause) when(cause.SqliteErrorCode==18){return CqlError("CQL_QUERY_LIMIT","SQLite CQL exceeds its native record-size budget.",cause);}
@@ -331,27 +333,19 @@ public partial class HolonRepository
 
         internal string Translate(CosmicQueryPredicate predicate)
         {
+            if(predicate is CosmicQueryAnyDescendant descendant)return TranslateDescendant(descendant);
             if(predicate is CosmicQueryAnyChild child)
             {
+                HasRelationship=true;
                 var alias="c"+Parameters.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 var inner=new CqlSqlTranslator(alias,Parameters,_access);
                 var parent=CanonicalColumn("Id");
                 var childId=inner.CanonicalColumn("Id");
-                var manifest="json_extract("+CanonicalColumn("PersistentValueJson")+",'$.ChildRoleManifestJson')";
-                var membershipSql="("+manifest+" IS NULL OR (json_extract("+manifest+",'$.schemaVersion')=1 AND "
-                    +"json_extract("+manifest+",'$.parentId')=lower("+parent+") AND EXISTS (SELECT 1 FROM json_each("
-                    +manifest+",'$.roles') AS role, json_each(role.value,'$.childIds') AS member "
-                    +"WHERE member.type='text' AND member.value=lower("+childId+"))))";
-                var visibility="1";
-                if(_access!=null)
-                {
-                    var secured=CosmicQuery<Core.Holons.Holon>.Create().WithReadAccess(_access);
-                    if(secured.IsError)throw new NotSupportedException(secured.Message);
-                    visibility=inner.Translate(secured.Result.Predicates.Single());
-                }
-                return "EXISTS (SELECT 1 FROM Holon AS \""+alias+"\" WHERE lower("+inner.CanonicalColumn("ParentHolonId")
+                var membershipSql=MembershipSql(this,inner);
+                var visibility=VisibilitySql(inner);
+                return "(CASE WHEN "+MembershipObservationSql(this)+"=0 THEN 0 ELSE EXISTS (SELECT 1 FROM Holon AS \""+alias+"\" WHERE lower("+inner.CanonicalColumn("ParentHolonId")
                     +")=lower("+parent+") AND lower("+childId+")<>lower("+parent+") AND "+membershipSql
-                    +" AND ("+visibility+") AND ("+inner.Translate(child.Predicate)+"))";
+                    +" AND ("+visibility+") AND ("+inner.Translate(child.Predicate)+")) END)";
             }
             if (predicate is CosmicQueryMembership membership)
             {
