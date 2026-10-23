@@ -85,6 +85,52 @@ public class CqlV1Web4Tests
     }
 
     [Fact]
+    public void DescendantGroupsFreezeBoundsAndExpressionsWithTheServerActor()
+    {
+        var actor=Guid.NewGuid();
+        var filter=new CqlV1Filter{MetadataPath=new[]{"precision"},Scalar=CqlV1Scalar.Integer,
+            Value=JsonSerializer.SerializeToElement(9007199254740993L)};
+        var group=new CqlV1DescendantExists{MaximumDepth=32,MaximumNodes=10000,AnyOf=new[]{filter}};
+        var request=new CqlV1Request{AnyDescendants=new[]{group},Skip=1,Take=2};
+        var query=CqlV1Compiler.Compile(request,actor,ProviderType.MongoDBOASIS);
+        var clause=Assert.Single(query.Predicates.OfType<CosmicQueryAnyDescendant>());
+        group.MaximumDepth=1;group.MaximumNodes=1;filter.Value=JsonSerializer.SerializeToElement(0);
+        Assert.Equal(32,clause.Traversal.MaximumDepth);Assert.Equal(10000,clause.Traversal.MaximumNodes);
+        Assert.Equal(9007199254740993L,Assert.IsType<CosmicQueryComparison>(clause.Predicate).Literal.Value);
+        Assert.Equal(actor,query.ReadAccess.ActorId);Assert.Equal(1,query.Offset);Assert.Equal(2,query.Limit);
+        Assert.Null(query.GraphOptions);
+    }
+
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)] [InlineData(4)]
+    [InlineData(5)] [InlineData(6)] [InlineData(7)] [InlineData(8)] [InlineData(9)]
+    [InlineData(10)] [InlineData(11)] [InlineData(12)] [InlineData(13)]
+    public void DescendantGroupsRejectInvalidBoundsAndSharedBudgetOverflow(int fault)
+    {
+        var filter=new CqlV1Filter{Field="Name",Value=JsonSerializer.SerializeToElement("match")};
+        var group=new CqlV1DescendantExists{Filters=new[]{filter}};
+        var request=new CqlV1Request{AnyDescendants=new[]{group}};
+        switch(fault)
+        {
+            case 0:request.AnyDescendants=null!;break;
+            case 1:request.AnyDescendants=new CqlV1DescendantExists[]{null!};break;
+            case 2:group.Filters=null!;break;
+            case 3:group.Filters=Array.Empty<CqlV1Filter>();break;
+            case 4:group.MaximumDepth=0;break;
+            case 5:group.MaximumDepth=33;break;
+            case 6:group.MaximumNodes=0;break;
+            case 7:group.MaximumNodes=10001;break;
+            case 8:request.AnyDescendants=Enumerable.Repeat(group,5).ToArray();break;
+            case 9:request.AnyChildren=Enumerable.Repeat(new CqlV1ChildExists{Filters=new[]{filter}},4).ToArray();break;
+            case 10:request.Filters=Enumerable.Repeat(filter,12).ToArray();break;
+            case 11:filter.Field="CreatedByAvatarId";break;
+            case 12:group.AnyOf=null!;break;
+            case 13:request.AnyChildren=new[]{new CqlV1ChildExists{Filters=Enumerable.Repeat(filter,12).ToArray()}};break;
+        }
+        Assert.Throws<ArgumentException>(()=>CqlV1Compiler.Compile(request,Guid.NewGuid(),ProviderType.Neo4jOASIS));
+    }
+
+    [Fact]
     public void GraphRequestBindsImmutablePolicyAndShapeBeforeBusinessPaging()
     {
         var actor=Guid.NewGuid();

@@ -26,18 +26,29 @@ public static class CqlV1Compiler
     public static CosmicQuery<Holon> Compile(CqlV1Request request, Guid actor, ProviderType? provider)
     {
         if (actor == Guid.Empty || provider.HasValue && !Supported(provider.Value)) throw new ArgumentException("Authenticated actor and concrete v1 provider required.");
-        if (request == null || request.Filters == null || request.AnyOf == null || request.AnyChildren == null ||
-            request.AnyChildren.Length > 4 ||
+        if (request == null || request.Filters == null || request.AnyOf == null || request.AnyChildren == null || request.AnyDescendants == null ||
+            request.AnyChildren.Length + (long)request.AnyDescendants.Length > 4 ||
             request.Filters.Length + request.AnyOf.Length > 12 || request.Skip is < 0 or > 1000 || request.Take is < 1 or > 100)
             throw new ArgumentException("Use at most 12 filters, Skip 0–1000 and Take 1–100.");
         var filterCount = request.Filters.Length + request.AnyOf.Length;
-        foreach (var group in request.AnyChildren)
+        void CountGroup(CqlV1Filter[] filters,CqlV1Filter[] anyOf)
         {
-            if (group == null || group.Filters == null || group.AnyOf == null ||
-                group.Filters.Length + (long)group.AnyOf.Length is < 1 or > 12)
-                throw new ArgumentException("Each child-existence group requires one to twelve bounded filters.");
-            filterCount += group.Filters.Length + group.AnyOf.Length;
-            if (filterCount > 12) throw new ArgumentException("Use at most twelve filters across roots and child groups.");
+            if(filters==null || anyOf==null || filters.Length+(long)anyOf.Length is <1 or >12)
+                throw new ArgumentException("Each relationship group requires one to twelve bounded filters.");
+            filterCount+=filters.Length+anyOf.Length;
+            if(filterCount>12)throw new ArgumentException("Use at most twelve filters across roots and relationship groups.");
+        }
+        foreach(var group in request.AnyChildren)
+        {
+            if(group==null)throw new ArgumentException("Child-existence groups cannot be null.");
+            CountGroup(group.Filters,group.AnyOf);
+        }
+        foreach(var group in request.AnyDescendants)
+        {
+            if(group==null)throw new ArgumentException("Descendant-existence groups cannot be null.");
+            CountGroup(group.Filters,group.AnyOf);
+            var limits=CosmicQueryTraversalOptions.Create(group.MaximumDepth,group.MaximumNodes);
+            if(limits.IsError)throw new ArgumentException(limits.Message);
         }
 
         // Mandatory access restriction enters the SAME native plan before filters, ordering
@@ -74,25 +85,19 @@ public static class CqlV1Compiler
         }
         if (alternatives != null) query = Add(query, parameter, alternatives);
 
-        foreach (var group in request.AnyChildren)
+        foreach(var group in request.AnyChildren)
         {
-            var child = Expression.Parameter(typeof(IHolon), "child");
-            Expression condition = null;
-            foreach (var filter in group.Filters)
-            {
-                var next = Predicate(filter, child);
-                condition = condition == null ? next : Expression.AndAlso(condition, next);
-            }
-            Expression any = null;
-            foreach (var filter in group.AnyOf)
-            {
-                var next = Predicate(filter, child);
-                any = any == null ? next : Expression.OrElse(any, next);
-            }
-            if (any != null) condition = condition == null ? any : Expression.AndAlso(condition, any);
-            var related = query.WhereAnyChild(Expression.Lambda<Func<IHolon, bool>>(condition, child));
-            if (related.IsError) throw new ArgumentException(related.Message);
-            query = related.Result;
+            var related=query.WhereAnyChild(RelationshipPredicate(group.Filters,group.AnyOf));
+            if(related.IsError)throw new ArgumentException(related.Message);
+            query=related.Result;
+        }
+        foreach(var group in request.AnyDescendants)
+        {
+            var limits=CosmicQueryTraversalOptions.Create(group.MaximumDepth,group.MaximumNodes);
+            if(limits.IsError)throw new ArgumentException(limits.Message);
+            var related=query.WhereAnyDescendant(RelationshipPredicate(group.Filters,group.AnyOf),limits.Result);
+            if(related.IsError)throw new ArgumentException(related.Message);
+            query=related.Result;
         }
 
         var ordered = request.OrderBy switch
@@ -106,6 +111,25 @@ public static class CqlV1Compiler
         var page = ordered.ThenBy(h => h.Id).Skip(request.Skip).Take(request.Take);
         if (page.IsError) throw new ArgumentException(page.Message);
         return page.Result;
+    }
+
+    private static Expression<Func<IHolon,bool>> RelationshipPredicate(CqlV1Filter[] filters,CqlV1Filter[] anyOf)
+    {
+        var child=Expression.Parameter(typeof(IHolon),"child");
+        Expression condition=null;
+        foreach(var filter in filters)
+        {
+            var next=Predicate(filter,child);
+            condition=condition==null?next:Expression.AndAlso(condition,next);
+        }
+        Expression alternatives=null;
+        foreach(var filter in anyOf)
+        {
+            var next=Predicate(filter,child);
+            alternatives=alternatives==null?next:Expression.OrElse(alternatives,next);
+        }
+        if(alternatives!=null)condition=condition==null?alternatives:Expression.AndAlso(condition,alternatives);
+        return Expression.Lambda<Func<IHolon,bool>>(condition,child);
     }
 
     private static CosmicQuery<Holon> Add(CosmicQuery<Holon> query, Guid actor)

@@ -77,6 +77,8 @@ public sealed partial class CqlV1Web4NativeTests
         };
         var activated = new List<IOASISStorageProvider>();
         var complete = false;
+        var walkthroughRequests = 0;
+        var localSdkQueries = 0;
         try
         {
             foreach (var provider in providers.Values)
@@ -235,6 +237,26 @@ public sealed partial class CqlV1Web4NativeTests
                             var privateRequest=new{Provider=provider.ToString(),Filters=new[]{fixture},
                                 AnyChildren=new[]{new{Filters=new[]{new{Field="Name",Operator="Equal",Value="private child"}}}},Take=1};
                             CollectionAssert.AreEqual(Array.Empty<string>(),await Read(privateRequest,childActor),provider+" private child");
+
+                            // Descendant filtering shares the same native policy and
+                            // cannot cross a private intermediate, even to a public leaf.
+                            var nodeBudget=childActor==alice?2:1;
+                            var descendantRequest=new {Provider=provider.ToString(),Filters=new[]{fixture},
+                                AnyChildren=new[]{new {Filters=new[]{new {Field="Name",Operator="Equal",Value="public child"}}}},
+                                AnyDescendants=new[]{new {MaximumDepth=2,MaximumNodes=nodeBudget,
+                                    Filters=new[]{childFilter}}},Take=1};
+                            CollectionAssert.AreEqual(childActor==alice?new[]{"C-public"}:Array.Empty<string>(),
+                                await Read(descendantRequest,childActor),provider+" descendant ownership");
+                            var hiddenBranch=new {Provider=provider.ToString(),Filters=new[]{fixture},
+                                AnyDescendants=new[]{new {MaximumDepth=2,MaximumNodes=nodeBudget,
+                                    Filters=new[]{new {Field="Name",Operator="Equal",Value="public behind private"}}}},Take=1};
+                            CollectionAssert.AreEqual(Array.Empty<string>(),await Read(hiddenBranch,childActor),
+                                provider+" inaccessible intermediates must not count or match");
+                            var publicDescendant=new {Provider=provider.ToString(),Filters=new[]{fixture},
+                                AnyDescendants=new[]{new {MaximumDepth=2,MaximumNodes=nodeBudget,
+                                    Filters=new[]{new {Field="Name",Operator="Equal",Value="public child"}}}},Take=1};
+                            CollectionAssert.AreEqual(new[]{"C-public"},await Read(publicDescendant,childActor),
+                                provider+" descendant matching precedes root paging");
                         }
 
                         var page = new { Provider = provider.ToString(), Filters = new[] { fixture }, Skip = 1, Take = 1 };
@@ -353,9 +375,9 @@ public sealed partial class CqlV1Web4NativeTests
                         await using (var transcript = new StreamWriter(Path.Combine(demoWork, "v1-walkthrough.txt")))
                         {
                             foreach (var provider in providers.Values)
-                                await V1NativeQueries.RunAsync(new Sources(providers).CreateManager(provider),
+                                localSdkQueries += await V1NativeQueries.RunAsync(new Sources(providers).CreateManager(provider),
                                     (NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicQueryStorageProvider)provider, alice, tag, transcript);
-                            await V1Walkthrough.RunAsync(client, demo.Tokens["Alice"], tag, transcript);
+                            walkthroughRequests = await V1Walkthrough.RunAsync(client, demo.Tokens["Alice"], tag, transcript);
                         }
 
                         if (mode == "serve")
@@ -381,7 +403,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await File.WriteAllTextAsync(Path.Combine(demoWork, "v1-demo-result.json"), JsonSerializer.Serialize(new
                 {
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
-                    walkthroughRequests = 15, localSdkQueries = 15, settledOperations = operations.Count,
+                    walkthroughRequests, localSdkQueries, settledOperations = operations.Count,
                     providerAttempts = operations.Sum(operation => operation.ProviderAttempts.Count)
                 }));
                 File.Delete(Path.Combine(demoWork, "v1-session.json"));

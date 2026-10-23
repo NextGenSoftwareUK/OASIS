@@ -13,6 +13,7 @@ public sealed class CqlV1Request
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1ChildExists[] AnyChildren { get; set; } = Array.Empty<CqlV1ChildExists>();
+    public CqlV1DescendantExists[] AnyDescendants { get; set; } = Array.Empty<CqlV1DescendantExists>();
     public string OrderBy { get; set; } = "Name";
     public bool Descending { get; set; }
     public int Skip { get; set; }
@@ -26,6 +27,16 @@ public sealed class CqlV1ChildExists
 {
     // Each group requires one visible direct child satisfying its local filters.
     // Separate groups are ANDed and may match different children.
+    public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
+    public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlV1DescendantExists
+{
+    // Filtering depth/node bounds are independent of response Graph shape.
+    public int MaximumDepth { get; set; } = 8;
+    public int MaximumNodes { get; set; } = 1000;
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
 }

@@ -38,4 +38,5 @@ Read the source in this order:
 
 Start with examples 1–3 for CQL querying. Examples 4–6 show how queried holons participate in change tracking, conditional saves and committed deltas. Example 7 demonstrates an unsupported query being rejected before provider execution.
 
-The native v1 walkthrough now has five spaced/commented examples per provider (15SDK and15HTTP overall). Example5 requires two visible sibling matches using WhereAnyChild / anyChildren before paging. Browser Visible child existence and Swagger use the same bounded request contract. The dedicated runner reuses existing restored dependencies and verifies a fresh15/15 report.
+
+The latest walkthrough has **six** spaced/commented examples per provider:18 SDK and18 HTTP requests. Example6 uses bounded WhereAnyDescendant / anyDescendants independently of graph output. Browser Bounded descendants and Swagger show the same contract. The runner verifies a fresh18/18 report using actual successful-query counts, replacing the earlier fixed15-count summary.

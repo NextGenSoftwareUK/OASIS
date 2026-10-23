@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — Bounded descendant WEB4 transport
+
+Optional anyDescendants compiles through generic immutable CQL with server actor binding, depth1–32/nodes1–10000 and four combined relationship groups/twelve total filters. FullCore1830/joint109 pass, including owner/outsider signed native privacy/denial-budget controls on all3stores. Core/Shared production unchanged. Sixth spaced/commented SDK/HTTP examples pass fresh actual18/18 counts (152 settled/151 attempts) in terminal78364. [HTTP contract](CQL_V1_HTTP_CONTRACT.md#bounded-descendant-existence-over-http).
+
 ## 23 October — Mongo native bounded descendants
 
 Mongo now compiles depth-32 flat native breadth pipelines under the membership snapshot, with per-hop canonical membership/access pruning, visited-node/cycle limits and protected errors outside root paging. Unit 220/native 61/joint 109 passed unskipped, including the native memory146 classification fix and both-order negative-condition/overflow controls. Final40754 confirms compiler preallocation bounds, unit220/native61/joint109 unskipped and source/PDB712Core/54Shared. Owned services stopped and fixture files absent; full CQL remains unfinished. No Core/Shared source changes. [Contract](CQL_DESCENDANT_CONTRACT.md#mongodb-native-execution).
