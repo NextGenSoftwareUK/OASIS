@@ -569,4 +569,7 @@ Use `/api/data/query-cql/scalar` with Operation Min or Max and exactly one Selec
 }
 ```
 
-Int64 results remain decimal strings; a nullable empty sequence returns null. Unit/HTTP controls pass2,117; final native and36/36demo certification is pending exact retained-fixture reconciliation after a stale Swagger assertion. [Current evidence and remaining gate](CQL_SCALAR_HTTP_CONTRACT.md#selected-minmax-http-checkpoint--23-october-2026).
+Int64 results remain decimal strings; a nullable empty sequence returns null. Unit/HTTP controls pass2,117; exact fixture reconciliation and fresh175native/36SDK/36HTTP verification now pass. [Current evidence and remaining gate](CQL_SCALAR_HTTP_CONTRACT.md#selected-minmax-http-checkpoint--23-october-2026).
+
+
+The selected Min/Max HTTP/demo gate is verified on allthree providers:175native tests plus36SDK/36HTTP examples,0skips,216settled operations/211physical attempts. [Current verified evidence](CQL_SCALAR_HTTP_CONTRACT.md#selected-http-and-demo-gate-verified--23-october-2026).
