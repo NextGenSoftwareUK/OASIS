@@ -6,6 +6,105 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CosmicChildHydrationTests
 {
+    [Fact]
+    public void APartialViewRequiresTheOwnerToRetainItsCompleteStoredManifest()
+    {
+        var owner=new Owner{Id=Guid.NewGuid()};var child=Guid.NewGuid();
+        var manifest=new HolonChildRoleManifest(1,owner.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>()),new HolonChildRole("Extras",new[]{child})});
+        var result=HolonChildRoleHydration.ApplySelectedView(owner,manifest,Array.Empty<Guid>(),
+            _=>throw new InvalidOperationException("No omitted child should resolve."));
+        result.IsError.Should().BeTrue();owner.Calls.Should().Be(0);
+    }
+
+    [Fact]
+    public void ViewMembershipUsesPersistedOrderRatherThanSelectionOrder()
+    {
+        var owner=new Owner{Id=Guid.NewGuid()};
+        var first=new SpecialChild{Id=Guid.NewGuid(),ParentHolonId=owner.Id};
+        var second=new SpecialChild{Id=Guid.NewGuid(),ParentHolonId=owner.Id};
+        var manifest=new HolonChildRoleManifest(1,owner.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>()),
+            new HolonChildRole("Extras",new[]{first.Id,Guid.NewGuid(),second.Id})});
+        owner.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(manifest);
+        var result=HolonChildRoleHydration.ApplySelectedView(owner,manifest,new[]{second.Id,first.Id},id=>id==first.Id?first:second);
+        result.IsError.Should().BeFalse(result.Message+result.Exception);
+        owner.Extras.Should().Equal(first,second);
+    }
+
+    [Fact]
+    public void APartialCallbackCannotEraseTheCompleteStoreObservation()
+    {
+        var owner=new Owner{Id=Guid.NewGuid(),Fault="manifest"};
+        var child=new SpecialChild{Id=Guid.NewGuid(),ParentHolonId=owner.Id};
+        var manifest=new HolonChildRoleManifest(1,owner.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>()),
+            new HolonChildRole("Extras",new[]{child.Id,Guid.NewGuid()})});
+        owner.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(manifest);
+        var result=HolonChildRoleHydration.ApplySelectedView(owner,manifest,new[]{child.Id},_=>child);
+        result.IsError.Should().BeTrue();result.ErrorCode.Should().Be("COSMIC_CHILD_ROLE_HYDRATION_FAILED");
+        owner.Original.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void SelectedViewsResolveOnlySelectedMembersAndPreserveCompleteStoreRoles(bool empty)
+    {
+        var owner=new Owner{Id=Guid.NewGuid()};
+        var visible=new Holon{Id=Guid.NewGuid(),ParentHolonId=owner.Id};
+        var hidden=Guid.NewGuid();var calls=0;
+        var manifest=new HolonChildRoleManifest(1,owner.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>()),
+            new HolonChildRole("Extras",new[]{hidden,visible.Id})});
+        var original=Core.Serialization.HolonChildRoleManifestJson.Serialize(manifest);
+        owner.ChildRoleManifestJson=original;
+        owner.Materialize=source=>{calls++;return Core.Helpers.Mapper<IHolon,SpecialChild>.MapBaseHolonProperties(source);};
+        var selected=empty?Array.Empty<Guid>():new[]{visible.Id};
+        var resolved=new List<Guid>();
+        var result=HolonChildRoleHydration.ApplySelectedView(owner,manifest,selected,id=>{
+            resolved.Add(id);if(id!=visible.Id)throw new InvalidOperationException("An omitted member must not resolve.");return visible;
+        });
+        result.IsError.Should().BeFalse(result.Message+result.Exception);
+        resolved.Should().Equal(selected);calls.Should().Be(empty?0:1);
+        owner.Extras.Select(child=>child.Id).Should().Equal(selected);
+        owner.ChildRoleManifestJson.Should().Be(original);
+        owner.Original.Should().BeNull();owner.Calls.Should().Be(2);
+        owner.AcceptChanges();
+        Action save=()=>{using var plan=Core.Managers.HolonSavePlan.Create(new[]{owner},true,true,0);};
+        save.Should().Throw<InvalidOperationException>();
+        using var rootOnly=Core.Managers.HolonSavePlan.Create(new[]{owner},false,false,0);
+    }
+
+    [Theory]
+    [InlineData("null")] [InlineData("empty-id")] [InlineData("duplicate")] [InlineData("foreign")]
+    [InlineData("missing")] [InlineData("parent")]
+    public void InvalidViewSelectionCannotInvokeAnyRoleFactoryOrCallback(string fault)
+    {
+        var owner=new Owner{Id=Guid.NewGuid()};var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=owner.Id};
+        var manifest=new HolonChildRoleManifest(1,owner.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>()),new HolonChildRole("Extras",new[]{child.Id})});
+        owner.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(manifest);
+        var factories=0;owner.Materialize=source=>{factories++;return new SpecialChild();};
+        IReadOnlyCollection<Guid>? selected=fault switch{"null"=>null,"empty-id"=>new[]{Guid.Empty},
+            "duplicate"=>new[]{child.Id,child.Id},"foreign"=>new[]{Guid.NewGuid()},_=>new[]{child.Id}};
+        var result=HolonChildRoleHydration.ApplySelectedView(owner,manifest,selected!,id=>fault switch {
+            "missing"=>null!,"parent"=>new Holon{Id=id,ParentHolonId=Guid.NewGuid()},_=>child});
+        result.IsError.Should().BeTrue();result.ErrorCode.Should().Be("COSMIC_CHILD_ROLE_HYDRATION_FAILED");
+        factories.Should().Be(0);owner.Calls.Should().Be(0);
+    }
+
+    [Fact]
+    public void APreviouslyCompleteObservationCannotAuthorizeAPartialReplacement()
+    {
+        var owner=new Owner{Id=Guid.NewGuid()};
+        var first=new SpecialChild{Id=Guid.NewGuid(),ParentHolonId=owner.Id};
+        var second=new SpecialChild{Id=Guid.NewGuid(),ParentHolonId=owner.Id};
+        var manifest=new HolonChildRoleManifest(1,owner.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>()),new HolonChildRole("Extras",new[]{first.Id,second.Id})});
+        owner.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(manifest);
+        HolonChildRoleHydration.ApplyFullySelected(owner,manifest,id=>id==first.Id?first:second).IsError.Should().BeFalse();
+        owner.AcceptChanges();
+        HolonChildRoleHydration.ApplySelectedView(owner,manifest,new[]{first.Id},_=>first).IsError.Should().BeFalse();
+        owner.AcceptChanges();
+        Action save=()=>{using var plan=Core.Managers.HolonSavePlan.Create(new[]{owner},true,true,0);};
+        save.Should().Throw<InvalidOperationException>();
+        owner.Extras.Should().ContainSingle().Which.Should().BeSameAs(first);
+    }
+
     [Theory]
     [InlineData("owner")] [InlineData("manifest")] [InlineData("resolver")]
     public void MissingHydrationInputsReturnExplicitErrorsBeforeCallbacks(string missing)
@@ -32,7 +131,7 @@ public class CosmicChildHydrationTests
         public List<SpecialChild> Extras=new();
         public int Calls;
         public string Fault="";
-        public Func<IHolon,SpecialChild>? Materialize;
+        [Newtonsoft.Json.JsonIgnore] public Func<IHolon,SpecialChild>? Materialize;
         public override ReadOnlyCollection<IHolon> AllChildren=>Children.Concat<IHolon>(Extras).ToList().AsReadOnly();
         public override IReadOnlyList<HolonChildCollection> CaptureChildCollections()=>base.CaptureChildCollections()
             .Concat(new[]{new HolonChildCollection("Extras",Extras,members=>Extras=members.Cast<SpecialChild>().ToList())}).ToArray();
@@ -42,6 +141,7 @@ public class CosmicChildHydrationTests
             var extras=HolonChildRoleBinding.Create<SpecialChild>("Extras",members=>{
                 Calls++;if(Fault=="callback")throw new InvalidOperationException("owned callback failure");
                 Extras=Fault=="output" ? new():members.ToList();
+                if(Fault=="manifest")ChildRoleManifestJson=null;
             },Materialize!);
             return Fault switch {"duplicate"=>new[]{physical,physical},"null"=>new[]{physical,null!},
                 "limit"=>Enumerable.Repeat(physical,257).ToArray(),_=>new[]{physical,extras}};
