@@ -1,5 +1,21 @@
 # Four-provider interface acceptance audit
 
+## Actual standalone ONODE NFT route — 23 October 2026
+
+Distinct from the Core wallet wrapper below: `ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/NftController.cs` delegates standalone sends to private ONODE.Core `Managers/NFTManager.MintLoad.cs`. Its old sync/async loops treated wait as permission to resubmit errors, discarded receipt-bearing errors, and rebuilt success without the original envelope. Controlled20-case matrix = sync/async ×wait on/off ×success/warning/receipt-bearing error/marked uncertainty/rejected-without-body. Baseline actual50129 reproduced20/20FAIL0skip549ms; mock throws on the second invocation, so the retry regression is bounded and never hits a chain. Error+wait actual invocation count2, expected1.
+
+Private ONODE.Core `9a62ec3621a08ff867645f2930e0a268648c3356` (branch `fix/hyperdrive-v2-nft-api`, parentfa911ee) invokes the selected native method once and uses the existing Core copier through one manager-owned projection helper. It preserves original status/receipt/codes/warnings/counts/message/metadata/exception; marked uncertainty cannot become success, and absent authoritative identity remains a typed reconciliation error without erasing native-reported status. Two fault-injected optional NFT metadata presentation guards prove receipt/save flags survive a local presentation error; native response flags are not rewritten. Existing six null/empty-identity cases are strengthened with original-envelope assertions. Nine pre-existing batch tests now call the existing public three-argument HolonManager constructor instead of failing reflection before orchestration; no production constructor or assertions changed.
+
+Actual first full51262 TERMINAL1:268/279PASS,11FAIL,0skip13s (20matrix cases already pass;2presentation failures,9stale-constructor failures). Hash-verified MOVE preserves that report, not overwritten or relabelled. Actual final48084 TERMINAL0: **279/279PASS,0skip13s**. Final ONODE producer/consumer SHA256 `E782B6C0C3F692FFF63A84C25678775666A34930F34C90DE27854EE269D1A159`,459current-source documents verified; Core `5140217E441C8FA24BE73A952E1A28EC56A1263C2DBE361C0BC5E32E2459001E`/716 and Shared `580BFC0B60CD045389DF31B9167C46EA34BAF5BAA9D5517F248EB668D49C24FB`/55 matched consumer PE/PDB/current sources. Pre-private-commit informational stamp; source content verified, not a post-commit native/hosted certification. Earlier red cohort uses SharedED0627C4, first full uses ONODEE762A755; they are not relabelled final.
+
+| Retained `C:/Source/OASIS-hyperdrive-v2-gaps/TestResults/OnodeCoreCurrent/` evidence | Bytes | SHA256 |
+|---|---:|---|
+| standalone-send-red.trx |91280|C0F33B663459F685816300F8E670DBCB925C2556DE3129E910D78C5D81613DB0|
+| standalone-send-current.trx.pre-presentation-and-constructor |473241|63B30725B9E3FE91CC86E5B3E24221D617388F18714F07228746F93BDCFE1611|
+| standalone-send-current.trx |447263|A581FAFA11423FB4EBE0B25810BC43EFBE0AF4663C4061EB56B101DD74AC1239|
+
+Fees: the old loop could repeat chargeable operations; this mock-only proof establishes no actual past charge or current native fee/billing acceptance. Waiting does not authorize resubmission; no generic confirmation/status-polling implementation is claimed. Controller access restrictions and paid policies unchanged. Existing real native Sui wallet-entry acceptance is a different earlier cohort, NOT proof of this hosted route. Oracle cloud/original-intermittent, remaining provider interfaces/native/hosted/billing and V2 multi-provider gates remain OPEN. No dev/main merge.
+
 ## WEB4 summary preserves native reconciliation evidence — 23 October 2026
 
 Source+controlled proof: same-chain token/NFT summary construction discarded successful native flags/warnings/counts/status; receipt-bearing native errors lost their transaction IDs, and the token error branch also lost original code/metadata. A non-null token response with empty receipt falsely reported success. Eight cases exercise both wrappers ×success/warning/receipt-bearingerror plus both missing-receipt paths: actual baseline **7failed/1passed** (NFT missing-receipt already correct), not eight failures.
