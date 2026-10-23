@@ -17,10 +17,11 @@ public partial class OracleDBOASIS
 
     private async Task<OASISResult<bool>> DeleteAvatarPairAsync(string column,OracleDbType type,object value,bool softDelete)
     {
-        var result=new OASISResult<bool>();var dispatched=false;var id=Guid.Empty;
+        var result=new OASISResult<bool>();var dispatched=false;var selectorValidated=false;var id=Guid.Empty;
         try{
             if(column=="ID"?new Guid((byte[])value)==Guid.Empty:string.IsNullOrWhiteSpace(value as string))
                 throw new ArgumentException("A nonempty Avatar selector is required.");
+            selectorValidated=true;
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync();
             await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync();
             Avatar? avatar=null;string? avatarJson=null;string? detailJson=null;
@@ -62,7 +63,7 @@ public partial class OracleDBOASIS
             result.Result=false;result.IsSaved=false;result.IsDeleted=false;result.DeletedCount=0;
             result.Exception=dispatched?new OracleLifecycleReconciliationException(id,cause):cause;
             OASISErrorHandling.HandleError(ref result,"Oracle avatar lifecycle operation failed; inspect the original exception.");
-            if(!dispatched&&cause is ArgumentException)result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
+            if(!selectorValidated&&cause is ArgumentException)result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
         }
         return result;
     }
