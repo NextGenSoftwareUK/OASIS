@@ -1,5 +1,25 @@
 # Four-provider interface acceptance audit
 
+## SQLite local wallet JSON fidelity — 23 October 2026
+
+Three existing native selector cases reproduced two independent defects: the private store's separate writer persisted `JsonElement` metadata as `{"ValueKind":4}` instead of its number, while default token parsing changed date-looking metadata and transaction memo strings into local formatted timestamps. Raw SQLite `WalletsJson` and a fresh provider connection distinguish actual stored corruption from read-only normalization. The initial three red cases remain preserved; this is not a claim that eight cases ran red.
+
+The writer now uses existing strict `StoredRecordJson.SerializeInput`; the reader reuses existing lossless parser and canonical `JObject` projection (exact numeric admission for typed fields, not float/decimal narrowing of untyped metadata). The existing concrete transaction converter and `TypeNameHandling.None` reader remain; no arbitrary stored CLR type activation or new codec/helper/Core/Shared/schema/SDK. Serialization is NOT encryption: existing opaque credential fields and credential encryption ownership are unchanged, and no secrets are logged. Already-corrupted historical JSON cannot be reconstructed by this fix.
+
+Expanded fresh-connection verification to eight id/username/email/batch × sync/async public paths, including aggregate read/clear, unchanged credentials, exact native amount/transaction identity, and raw/API metadata beyond decimal precision. Initial focused3/3 passed; the full1256 exposed two exception-contract changes, corrected at the provider boundary without weakening original corruption/refusal/null-result/unchanged-row checks. Original parsing cause is retained. One newly strengthened assertion then incorrectly required an exact framework JsonException rather than its valid JsonReaderException subtype; corrected to the declared base-class contract. Both failed full reports are preserved, not labelled green. Final full run **`6758` ACTUAL terminal0: 1,256/1,256 PASS, zero skipped, 126 seconds**. Five cases were added by expanding the existing three-selector fixture to eight sync/async/batch paths; no duplicate fixture/environment.
+
+Final identity `ac7fb7`: Core DLL `E9B7A243788B94E192E0579F0C98198A8E2F84863AE2ADCA9A068DE194292C49`/712 source documents; Shared `C6AF37DDCE705F5D9B1C699A3B04441BDE2EDD7113616DA971BEF037F3E9C56C`/55; SQLite producer/consumer both `C27FCB238164992CA814230E6BD9912F398304A8231DBBD0D35FB46823CA6469`. Peer committed unchanged Core source as `3a38ded9` during the run: this is explicitly the pre-commit-stamp DLL cohort, not a rebuilt 3a38-stamped binary. No Core/Shared source or producer build in this wallet tranche. Same fixed owned DB/sidecars absent after ordinary fixture teardown; source/build hold returned before peer's next native run. No live chain fee, new runtime, download, restore, reset or copy.
+
+| `TestResults/SQLiteCurrent/` report | Bytes | SHA256 |
+| --- | ---: | --- |
+| `sqlite-wallet-scalars-red.trx` (3 failed) | 20,636 | `E9ADC5888252FA9C6FFE740C9E248489681CA2E7CC24815DF23EA9A7C8A2FC31` |
+| `sqlite-wallet-scalars-focused.trx` (3 passed) | 7,241 | `63EC8494D8891EF326A625954E329B88BC61DA1E6AA355D17939281170111420` |
+| `sqlite-wallet-scalars-current.trx.pre-error-contract` (1,254/1,256) | 2,320,364 | `B9C77DFC9720C2E75E35980D391A7DBCE87DEB63B5BEB487A865911EE56660AB` |
+| `sqlite-wallet-scalars-current.trx.pre-jsonexception-subtype` (1,255/1,256) | 2,318,030 | `D44012097683471FB342EEDA462F3A04BB547FC4F8322B389C70F1C32503C5EB` |
+| `sqlite-wallet-scalars-current.trx` (1,256 passed) | 2,314,752 | `9291A85CBE23FDD6165E8C40311CE8421C3D642154C500F03D1CCB98ED8F384E` |
+
+Adjacent source-audit finding: Core `Objects/Wallet/ProviderWallet.cs` still declares `SendNFT`, `SendNFTAsync`, `SendToken`, `SendTokenAsync` with `NotImplementedException`. These value-object convenience methods are not proof of provider SDK interface failure, nor are provider SDK tests proof they work. Caller tracing and correct authorization/usage/fee routing remain necessary before any universal public API/SDK completion claim; this storage fix does not implement them.
+
 ## SQLite extension scalar fidelity — 23 October 2026
 
 Reproduced against the existing file-backed SQLite integration fixture, not a JSON-only model: four ordinary holon save/read cases changed provider metadata string `2030-01-02T03:04:05.0000000+05:30` to `2030-01-01T16:34:05-05:00`; two conditional cases correctly refused the resulting receipt/intent mismatch. Both inventory sync/async cases independently demonstrated API **and raw stored** nested DNA date corruption and number narrowing (`9007199254740993.125` → `9007199254740994.0`). Initial eight cases failed; a separate two-case inventory run collected both scalar failures rather than stopping at the first date assertion. These are overlapping cases, not ten new tests.
