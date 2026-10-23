@@ -20,13 +20,15 @@ public sealed class CosmicQueryChildSelection
     // Null means the older parent-link representation; empty means a known empty manifest.
     public IReadOnlyList<Guid> MemberIds { get; }
     public HolonType ChildType { get; }
+    public CosmicQueryReadAccess ReadAccess { get; }
     public int MaximumNodes { get; }
     public int MaximumPayloadBytes { get; }
 
     internal CosmicQueryChildSelection(Guid parent, Guid[] members, CosmicQueryGraphOptions options,
-        int remainingNodes, int remainingBytes)
+        int remainingNodes, int remainingBytes, CosmicQueryReadAccess readAccess)
     {
         ParentId = parent;
+        ReadAccess = readAccess;
         MemberIds = members == null ? null : Array.AsReadOnly(members);
         ChildType = options.ChildType;
         MaximumNodes = remainingNodes;
@@ -41,8 +43,32 @@ public sealed class CosmicQueryChildSelection
 /// </summary>
 public static class HolonGraphQueryExpansion
 {
-    public static async Task<OASISResult<IReadOnlyList<IHolon>>> ExpandAsync(
+    // Preserve the existing binary signature and route both contracts through one owner.
+    public static Task<OASISResult<IReadOnlyList<IHolon>>> ExpandAsync(
         IReadOnlyList<IHolon> roots, CosmicQueryGraphOptions options,
+        Func<CosmicQueryChildSelection, CancellationToken, Task<IReadOnlyList<IHolon>>> readChildren,
+        CancellationToken cancellationToken = default, Action checkNativeBudget = null)
+        => ExpandCoreAsync(roots, options, null, readChildren, cancellationToken, checkNativeBudget);
+
+    /// <summary>
+    /// Carries the mandatory policy to every native child read and validates returned
+    /// nodes defensively. The native reader must apply the policy before fetching;
+    /// this owner never filters fetched rows. Omitted membership remains private
+    /// stored evidence, not permission to replace unselected relationships.
+    /// </summary>
+    public static Task<OASISResult<IReadOnlyList<IHolon>>> ExpandAsync(
+        IReadOnlyList<IHolon> roots, CosmicQueryGraphOptions options, CosmicQueryReadAccess readAccess,
+        Func<CosmicQueryChildSelection, CancellationToken, Task<IReadOnlyList<IHolon>>> readChildren,
+        CancellationToken cancellationToken = default, Action checkNativeBudget = null)
+    {
+        if (readAccess == null)
+            return Task.FromResult(new OASISResult<IReadOnlyList<IHolon>>
+            { IsError = true, ErrorCount = 1, ErrorCode = "CQL_ACCESS_INVALID", Message = "An access-bound graph requires a read policy." });
+        return ExpandCoreAsync(roots, options, readAccess, readChildren, cancellationToken, checkNativeBudget);
+    }
+
+    private static async Task<OASISResult<IReadOnlyList<IHolon>>> ExpandCoreAsync(
+        IReadOnlyList<IHolon> roots, CosmicQueryGraphOptions options, CosmicQueryReadAccess readAccess,
         Func<CosmicQueryChildSelection, CancellationToken, Task<IReadOnlyList<IHolon>>> readChildren,
         CancellationToken cancellationToken = default, Action checkNativeBudget = null)
     {
@@ -69,6 +95,8 @@ public static class HolonGraphQueryExpansion
                 var root = roots[index];
                 if (root == null || root.Id == Guid.Empty || !rootIds.Add(root.Id))
                     throw Invalid("CQL roots require nonempty, distinct identities.");
+                if (readAccess != null && !readAccess.CanRead(root))
+                    throw new Rejected("CQL_VISIBILITY_VIOLATION", "A native graph root violates the mandatory read policy.");
                 Charge(root);
                 result[index] = root;
                 pending.Enqueue((root, 0, new HashSet<Guid> { root.Id }));
@@ -82,13 +110,15 @@ public static class HolonGraphQueryExpansion
                 checkNativeBudget?.Invoke();
                 var (node, depth, seen) = pending.Dequeue();
                 var members = Membership(node);
+                if (readAccess != null)
+                    HolonChangeTracking.MarkIncompleteChildSelection(node);
                 if (!options.IncludesChildrenAtDepth(depth)) continue;
                 if (members != null && members.Length == 0) continue;
-                if (members != null && options.ChildType == HolonType.All && members.Length > options.MaximumNodes - nodes)
+                if (readAccess == null && members != null && options.ChildType == HolonType.All && members.Length > options.MaximumNodes - nodes)
                     throw Limit("Persisted CQL membership exceeds the remaining graph node budget.");
 
                 var selection = new CosmicQueryChildSelection(node.Id, members, options,
-                    options.MaximumNodes - nodes, (int)(options.MaximumPayloadBytes - bytes));
+                    options.MaximumNodes - nodes, (int)(options.MaximumPayloadBytes - bytes), readAccess);
                 var selected = await readChildren(selection, cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
                 checkNativeBudget?.Invoke();
@@ -105,6 +135,8 @@ public static class HolonGraphQueryExpansion
                         options.ChildType != HolonType.All && child.HolonType != options.ChildType ||
                         !children.TryAdd(child.Id, child) || !seen.Add(child.Id))
                         throw Invalid("A native child is null, duplicated, cyclic, foreign or of an unrequested type.");
+                    if (readAccess != null && !readAccess.CanRead(child))
+                        throw new Rejected("CQL_VISIBILITY_VIOLATION", "A native graph child violates the mandatory read policy.");
                     Charge(child);
                 }
                 if (selected.Count != count) throw Invalid("Native children changed during graph capture.");
@@ -112,7 +144,7 @@ public static class HolonGraphQueryExpansion
                 {
                     var expected = new HashSet<Guid>(members);
                     if (children.Keys.Any(id => !expected.Contains(id)) ||
-                        options.ChildType == HolonType.All && children.Count != members.Length)
+                        readAccess == null && options.ChildType == HolonType.All && children.Count != members.Length)
                         throw Invalid("Native children differ from the persisted role membership.");
                 }
                 var ordered = members == null
