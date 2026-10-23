@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## CQL detached graphs and early typed admission — 23 October 2026
+
+Core now preserves graph edges with iterative detached publication, total node/UTF-8 budgets and structural/manifest validation before returning any group. The typed manager applies graph selection to role hydration/tracking; V2 selected-forest metadata admission now precedes typed constructors/factories. Controlled tests prove partial-role save protection and depth-boundary manifest retention. New execution/ownership22/22, full Core1,720/1,720 and native leaf regression65/65 pass, zero skips; both Core targets build. [Exact red/green evidence and native reader owners](CQL_GRAPH_LOADING.md). Core945386c is task-pushed with parent dependency-pin update. Native graph capability remains disabled: native expansion/authorization/relationship acceptance is still required before advertising it.
+
 ## CQL child graph composition/admission — 23 October 2026
 
 Core now carries immutable child depth/type/node/payload options through scope/filter/order/page composition and rechecks graph capability against actual adapters before I/O. Focused19/19, full Core1,698/1,698 and existing three-provider native v1 cohort65/65 pass, zero skips; both Core targets build and consumer copies match. [Source contract, evidence and next owners](CQL_GRAPH_LOADING.md). Native graph expansion/publication/ownership remain unfinished and no adapter advertises GraphExpansion yet. v1 stays leaf-only. The full goal is active; next work is bounded coherent native graph reads and detached typed publication, then relationship predicates.
