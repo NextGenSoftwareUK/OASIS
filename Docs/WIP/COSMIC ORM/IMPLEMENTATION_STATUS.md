@@ -1,5 +1,10 @@
 # COSMIC ORM implementation status
 
+## 23 October — Safe graph DTO projection
+
+An explicit iterative WEB4 row projector now serves leaf responses and defines bounded public graph output without stored manifests/provider state/unselected ancestor IDs. Eight new controls pass in full1,770 linked Core/WEB4 units. Native/hosted86/86 passes, zero skips;48957 completed terminal0; no Core/Shared source change. Graph request composition/capability admission remains gated. [Contract](CQL_GRAPH_LOADING.md).
+
+
 ## 23 October — Detached/typed graph access and mapper visibility
 
 Core8f057e0 validates every detached node before typed construction, permits policy-selected membership, applies partial typed-role ownership for All-type views, and rechecks policy after callbacks. It also fixes the common base-state mapper dropping IsPublic in generic/non-generic projections. Full Core1,762, Shared960, Mongo23, Neo joint86 and SQLite19 pass, zero skips. SQLite policy cases include native-to-detached-to-typed publication; source/PDB checks match711Core/54Shared. SDK/HTTP graph-policy gates remain unchanged pending safe public transport. [Details](CQL_GRAPH_LOADING.md).
