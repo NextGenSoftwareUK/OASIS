@@ -7,7 +7,9 @@
 .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -Serve
 ```
 
-The first command runs nine annotated SDK queries and nine HTTP examples on MongoDB, SQLite and Neo4j. With Serve, open **http://127.0.0.1:5088/demo** once `TestResults/CosmicCqlDemo/v1-session.json` appears. Transcript: `v1-walkthrough.txt`; result: `v1-demo-result.json`. Swagger `/swagger` is prefilled, authorized as synthetic Alice and documents Idempotency-Key.
+The first command runs fifteen annotated SDK queries and fifteen HTTP examples on MongoDB, SQLite and Neo4j. With Serve, open **http://127.0.0.1:5088/demo** once `TestResults/CosmicCqlDemo/v1-session.json` appears. Transcript: `v1-walkthrough.txt`; result: `v1-demo-result.json`. Swagger `/swagger` is prefilled, authorized as synthetic Alice and documents Idempotency-Key.
+
+The dedicated runner reuses restored dependencies and rejects stale reports. Example5 demonstrates independent visible-child existence on each provider; the browser Visible child existence preset compares Alice and Visitor. Fresh23October evidence: Core1799/joint96/demo1 allpass,15SDK/15HTTP,131settled synthetic operations.
 
 ### Five-minute presenter script
 

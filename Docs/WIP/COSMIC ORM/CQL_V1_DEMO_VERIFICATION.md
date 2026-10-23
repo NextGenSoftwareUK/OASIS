@@ -1,5 +1,10 @@
 # CQL v1 developer demo verification
 
+## 23 October refresh
+
+Fresh dedicated runner23487 passed Core1799/joint96 and console demo1, zero skips. The result written2026-10-23T12:58:00Z reports15SDK/15HTTP examples,131settled operations and130provider attempts. Example5 exercises visible-child existence on every provider; browser/Swagger presets include it. Owned fixtures removed and reusable services stopped. Report freshness and both example counts are enforced; prior22October evidence below is historical.
+
+
 22 October 2026. This increment adds runnable examples and presentation over the existing query implementation; it does not widen the production v1 contract.
 
 ## Demonstrations

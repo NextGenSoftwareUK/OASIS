@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 
@@ -25,9 +26,19 @@ public static class CqlV1Compiler
     public static CosmicQuery<Holon> Compile(CqlV1Request request, Guid actor, ProviderType? provider)
     {
         if (actor == Guid.Empty || provider.HasValue && !Supported(provider.Value)) throw new ArgumentException("Authenticated actor and concrete v1 provider required.");
-        if (request == null || request.Filters == null || request.AnyOf == null ||
+        if (request == null || request.Filters == null || request.AnyOf == null || request.AnyChildren == null ||
+            request.AnyChildren.Length > 4 ||
             request.Filters.Length + request.AnyOf.Length > 12 || request.Skip is < 0 or > 1000 || request.Take is < 1 or > 100)
             throw new ArgumentException("Use at most 12 filters, Skip 0–1000 and Take 1–100.");
+        var filterCount = request.Filters.Length + request.AnyOf.Length;
+        foreach (var group in request.AnyChildren)
+        {
+            if (group == null || group.Filters == null || group.AnyOf == null ||
+                group.Filters.Length + (long)group.AnyOf.Length is < 1 or > 12)
+                throw new ArgumentException("Each child-existence group requires one to twelve bounded filters.");
+            filterCount += group.Filters.Length + group.AnyOf.Length;
+            if (filterCount > 12) throw new ArgumentException("Use at most twelve filters across roots and child groups.");
+        }
 
         // Mandatory access restriction enters the SAME native plan before filters, ordering
         // and paging. Shared-index metadata cannot grant access; Wizard does not bypass this.
@@ -62,6 +73,27 @@ public static class CqlV1Compiler
             alternatives = alternatives == null ? condition : Expression.OrElse(alternatives, condition);
         }
         if (alternatives != null) query = Add(query, parameter, alternatives);
+
+        foreach (var group in request.AnyChildren)
+        {
+            var child = Expression.Parameter(typeof(IHolon), "child");
+            Expression condition = null;
+            foreach (var filter in group.Filters)
+            {
+                var next = Predicate(filter, child);
+                condition = condition == null ? next : Expression.AndAlso(condition, next);
+            }
+            Expression any = null;
+            foreach (var filter in group.AnyOf)
+            {
+                var next = Predicate(filter, child);
+                any = any == null ? next : Expression.OrElse(any, next);
+            }
+            if (any != null) condition = condition == null ? any : Expression.AndAlso(condition, any);
+            var related = query.WhereAnyChild(Expression.Lambda<Func<IHolon, bool>>(condition, child));
+            if (related.IsError) throw new ArgumentException(related.Message);
+            query = related.Result;
+        }
 
         var ordered = request.OrderBy switch
         {
@@ -121,7 +153,13 @@ public static class CqlV1Compiler
             if (filter.Field is not ("Id" or "Name" or "Description" or "Version" or "IsActive" or "ParentHolonId"))
                 throw new ArgumentException("Unsupported canonical query field.");
             if (filter.Operator is CqlV1Operator.Exists or CqlV1Operator.IsNull) throw new ArgumentException("Existence/null tests require MetadataPath.");
-            path = Expression.Property(parameter, filter.Field);
+            // Reflection on an interface does not include inherited interfaces.
+            // Bind the one declared contract member (e.g. IHolonBase.Name).
+            var property = parameter.Type.IsInterface
+                ? parameter.Type.GetInterfaces().Append(parameter.Type).SelectMany(type => type.GetProperties())
+                    .Where(member => member.Name == filter.Field).Distinct().Single()
+                : parameter.Type.GetProperty(filter.Field);
+            path = Expression.Property(parameter, property);
         }
 
         object value;

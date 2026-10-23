@@ -124,6 +124,33 @@ public static class V1Walkthrough
                     consistency = "ProviderDefault"
                 }
             });
+            // EXAMPLE 5 — require visible children before the root page.
+            // Groups are ANDed; each can match a different sibling. The server
+            // supplies the signed actor, so private children cannot make a match.
+            await ShowAsync("5. Parents with visible direct children", new
+            {
+                provider,
+
+                filters = new object[]
+                {
+                    new
+                    {
+                        metadataPath = new[] { "fixture" },
+                        scalar = "String",
+                        @operator = "Equal",
+                        value = fixtureTag
+                    }
+                },
+
+                anyChildren = new object[]
+                {
+                    new { filters = new[] { new { field = "Name", @operator = "Equal", value = "public child" } } },
+                    new { filters = new[] { new { field = "Name", @operator = "Equal", value = "owned child" } } }
+                },
+
+                orderBy = "Name",
+                take = 1
+            });
         }
 
         async Task ShowAsync(string title, object query)

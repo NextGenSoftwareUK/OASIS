@@ -33,7 +33,7 @@ A second result check refuses unexpected private rows; it is not a replacement f
 
 `Filters` are ANDed; a nonempty `AnyOf` adds one parenthesized OR group, also ANDed with the mandatory visibility restriction. Canonical filter fields: Id, Name, Description, Version, IsActive and ParentHolonId. Metadata paths accept one to four segments. Metadata scalar types: String, Integer (exact Int64), Boolean, Guid (canonical D text). Canonical types come from their declared property, not the request's Scalar. Operators: equality/inequality, supported ordered comparisons, string Contains/StartsWith/EndsWith, metadata Exists/IsNull. Existence/null tests omit Value. Unsupported scalar/operator/provider combinations are planning errors, not client-side evaluation. Metadata decimals/doubles, null-valued comparison syntax and arbitrary property names are outside this transport subset.
 
-OrderBy is Name, Version or Id, followed by logical Id as a deterministic tie-breaker. Maximum 12 total filter entries; Skip 0–1000, Take 1–100 (default 25). Literal strings are at most 512 UTF-16 code units and metadata segments 64. Unknown DTO fields reject. Request body maximum 32 KiB is applied before usage fingerprint buffering as well as MVC binding. Output JSON maximum one MiB is enforced while writing to a bounded stream; oversize output returns 413 without a partial result. Cancellation is propagated with a five-second cooperative deadline; existing bounded native driver behavior remains authoritative, rather than a promise of hard interruption at precisely five seconds.
+OrderBy is Name, Version or Id, followed by logical Id as a deterministic tie-breaker. Maximum 12 total root/child filter entries and four anyChildren groups; Skip 0–1000, Take 1–100 (default 25). Literal strings are at most 512 UTF-16 code units and metadata segments 64. Unknown DTO fields reject. Request body maximum 32 KiB is applied before usage fingerprint buffering as well as MVC binding. Output JSON maximum one MiB is enforced while writing to a bounded stream; oversize output returns 413 without a partial result. Cancellation is propagated with a five-second cooperative deadline; existing bounded native driver behavior remains authoritative, rather than a promise of hard interruption at precisely five seconds.
 
 String operations use explicit ordinal semantics. Exists includes a present null member; IsNull requires a present null member; missing paths satisfy neither. Exact Int64 behavior is checked above 2^53. JavaScript clients must preserve exact integer JSON: ordinary Number values cannot represent every Int64. Native typed comparisons do not coerce numeric strings or treat invalid GUID data as satisfying typed inequality.
 
@@ -105,3 +105,24 @@ Graph rows add `children` arrays containing only visible selected child DTOs. St
 ProviderSnapshot is explicitly supported by SQLite/Mongo within one provider; Neo rejects it before I/O. ProviderDefault preserves each provider's documented guarantee and never promises a distributed common snapshot. One provider query attempt/receipt includes its bounded native child reads under the configured service-query attempt tariff; it is not a per-child fee or an assertion about external provider billing.
 
 Signed route acceptance passes on Mongo, SQLite and Neo: Core1781/Shared960/Mongo23/SQLite19/joint86 and executable demo1, zero skips. See dated graph evidence for exact scope and hashes.
+
+## Direct-child existence over HTTP
+
+`anyChildren` accepts at most four independent groups. Each group has `filters` (AND) and `anyOf` (one local OR), requires at least one filter and uses the same canonical fields, typed metadata paths and operators as root filters. The twelve-entry budget is shared across all root and child filters. Groups are ANDed and may match different visible direct children. Nested/descendant groups are not accepted.
+
+```json
+{
+  "provider": "MongoDBOASIS",
+  "filters": [
+    { "metadataPath": ["fixture"], "scalar": "String", "operator": "Equal", "value": "your-fixture-tag" }
+  ],
+  "anyChildren": [
+    { "filters": [{ "field": "Name", "operator": "Equal", "value": "public child" }] },
+    { "filters": [{ "field": "Name", "operator": "Equal", "value": "owned child" }] }
+  ],
+  "orderBy": "Name",
+  "take": 1
+}
+```
+
+The authenticated actor is server-owned and applies to roots and matching children. Private children and untrusted SHARED_WITH metadata cannot grant a match. Native membership, current parentage and actor predicates run before root paging on MongoDB, SQLite and Neo4j. This selects parents without loading graphs; optional `graph` may independently expand the selected roots. Each new logical request still requires its own idempotency key and prepared usage admission.
