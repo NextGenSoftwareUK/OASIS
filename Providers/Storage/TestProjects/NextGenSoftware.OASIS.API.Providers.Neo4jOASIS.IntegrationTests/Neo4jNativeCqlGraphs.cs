@@ -136,6 +136,40 @@ public partial class Neo4jNativeCqlTests
     }
 
     [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public Task NativeAnyChildReparentingChecksCurrentParentAndNewOwnerMembership(bool declaredEmpty)
+        =>WithNativeGraph(async fixture=>
+        {
+            var other=new Holon{Id=Guid.NewGuid(),Name="owned CQL second parent"};
+            if(declaredEmpty)other.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                new HolonChildRoleManifest(1,other.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>())}));
+            fixture.Ids.Add(other.Id);await fixture.Record("before-owned-second-parent");fixture.Known=false;
+            var created=await fixture.Provider.SaveHolonAsync(other,saveChildren:false);
+            fixture.Known=!created.IsError;Assert.IsFalse(created.IsError,created.Message+created.Exception);
+            var childId=fixture.Root.Children.First().Id;
+            var loaded=await fixture.Provider.LoadHolonAsync(childId,loadChildren:false);
+            Assert.IsFalse(loaded.IsError,loaded.Message+loaded.Exception);
+            loaded.Result.ParentHolonId=other.Id;
+            await fixture.Record("before-owned-reparent");fixture.Known=false;
+            var moved=await fixture.Provider.SaveHolonAsync(loaded.Result,saveChildren:false);
+            fixture.Known=!moved.IsError;Assert.IsFalse(moved.IsError,moved.Message+moved.Exception);
+            foreach(var parent in new[]{fixture.Root.Id,other.Id})
+            {
+                var id=parent;
+                var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==id)
+                    .WhereAnyChild(child=>child.Name=="owned CQL graph child 0");
+                Assert.IsFalse(query.IsError,query.Message);
+                var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.Neo4jOASIS,
+                    new[]{new CosmicQueryTarget(ProviderType.Neo4jOASIS,Provider.CqlCapabilities)});
+                Assert.IsFalse(plan.IsError,plan.Message);
+                var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+                Assert.IsFalse(read.IsError,read.Message+read.Exception);
+                Assert.AreEqual(parent==other.Id&&!declaredEmpty?1:0,read.Result.Count);
+            }
+        },configure:root=>root.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
+            new HolonChildRoleManifest(1,root.Id,new[]{new HolonChildRole("Children",root.Children.Select(child=>child.Id))})));
+
+    [DataTestMethod]
     [DataRow(true,true)] [DataRow(false,true)]
     [DataRow(true,false)] [DataRow(false,false)]
     public Task NativeGraphAccessFiltersBeforeChildBudget(bool visible,bool manifested)
