@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             if (!response.IsSuccessStatusCode)
                 throw CreateServiceException(response,"Read failed");
             using var reader = new StreamReader(response.Content);
-            return await reader.ReadToEndAsync();
+            return Binary64JsonNumberCodec.Decode(OasisJson.ParseStoredObject(await reader.ReadToEndAsync())).ToString(Formatting.None);
         }
 
         public string ReadDocumentByField(string fieldName, string fieldValue, int version = 0)
@@ -133,6 +133,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 var obj=OasisJson.ParseStoredObject(content);
                 if(obj["Documents"] is not JArray docs) throw new InvalidDataException("Cosmos query response lacks a Documents array.");
                 if(docs.Any(doc=>doc is not JObject)) throw new InvalidDataException("Cosmos query response contains a non-object document.");
+                for(var index=0;index<docs.Count;index++)docs[index]=Binary64JsonNumberCodec.Decode((JObject)docs[index]);
                 return docs;
             }
             catch(JsonException cause)

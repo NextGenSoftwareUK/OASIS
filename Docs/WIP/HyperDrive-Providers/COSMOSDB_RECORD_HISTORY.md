@@ -1,5 +1,21 @@
 # Cosmos DB retained record history
 
+## 23 October — exact native numbers implemented; current local62 GREEN
+
+ONE pure Shared Binary64JsonNumberCodec reuses existing lossless parser/Core numeric equality. Cosmos explicitly opts in; other backends are unchanged. Reserved `_oasis_exact_numbers`/schema binary64-v1 binds unsafe numeric literals to structural paths. Native values alone become strings; point/query/ack decode restores canonical/API numbers BEFORE identity/history/equality validation. Ordinary strings/date strings/representable numbers retain their meaning. No extra write, fallback or weak acknowledgement; unknown/malformed/tampered frames and reserved input collisions reject. Shared production sources54→55, no Core edit, source slot coordinated and released after native completion.
+
+FullShared983/983PASS0skip7s (968prior+15codec controls), fullCosmos261/261PASS0skip1s, native16708 actualterminal0 full62/62PASS0skip88s. Native regression verifies two actual saves/currentv2+archivev1; independent raw SDK point stores exact string9007199254740993.125 with known envelope; point/field/sync/async collection/history/metadata selector restores original NUMBER9007199254740993.125. Exact point ETag delete204/404 and fixture empty verification completed, pending0/runtimeexited. Original failed62 report3692BD48... SHA-verified MOVED `.pre-wire-number-codec`; failed operation/ID was NEVER replayed. This closes the demonstrated LOCAL narrowing gate, not hosted/full-interface/V2 certification.
+
+All current consumer Shared hashes independently match4D9CA7500E9F4A079252E342458CB1733A2F0A7A5C219F21ECA773B35058C2FE. CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733/source712 and Shared/source55 validated before native access. Current report evidence under existing CosmosDBCurrent:
+
+| Report | Bytes | SHA256 |
+| --- | ---: | --- |
+| binary64-wire-codec-controls.trx |1495870|2E0937E36DD75004047EEDAAB18BFEEEEF1DF7BE080BD67FB1F5675723DB8A35|
+| cosmos-wire-scalar-controls.trx |402977|7E4AF848ED4EB6AA4FAE6B599835D7B063F548A3753FFEB76C091186ABD6F0FA|
+| cosmos-native-current.trx |100354|22B5616C83ECD17462408E236CC340A17FD35E26A6A19B3D150D05D4F5F4A106|
+
+Limits: no arbitrary native SQL numeric range/index equivalence over escaped strings; canonical provider metadata equality WAS tested. Encoding is NOT encryption and cannot reconstruct already-rounded records. Payload/index overhead and hosted RU/cost effects remain unverified. Same emulator EXITED/SizeRw686,807,664bytes, no new image/runtime/volume/download/restore/database clone. Cfree76,191,817,728bytes shared observation, not exclusive task attribution. Details in resource ledger; Oracle cloud/intermittent gates remain open separately.
+
 ## 23 October — original scalar fixture reconciled; storage fix NEXT
 
 Actual80295 terminal0: explicit hash-bound reconciliation1/1pass416ms. Original pending/report/inspection hashes admitted; native fixture counts avatarItems0/avatarDetailItems0/holonItems1, point bodySHA8D098878... and ETag47f5b6a9... +ID/name independently matched BEFORE deletion. ONLY that exact synthetic row was deleted under IfMatch ETag, native204 received, point404 and all3container counts0 independently verified. Original Save was NEVER replayed. Pending167byte intent retired only after durable completion inventory; original failed report/inspection evidence retained. Runtime stopped finally. This resolves the original test data lifecycle, NOT the native precision defect or full62 gate.

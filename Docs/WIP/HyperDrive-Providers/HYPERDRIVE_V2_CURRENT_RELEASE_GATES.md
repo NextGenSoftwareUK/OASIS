@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Cosmos exact-number local gate — 23 October 2026
+
+Client query corruption reproduced6red→261controls green; native storage separately narrowed a high-precision number. Exact original synthetic row was reviewed/ETag-cleaned without replay. Shared Binary64JsonNumberCodec now preserves unsafe literals in explicit native wire envelope, restoring canonical/API numbers before point/query/ack/history/metadata matching. Current fullShared983/fullCosmos261/native62 PASS0skip, CoreE6E7/712 Shared4D9CA750/55 verified. Native proof includes currentv2/archivev1, raw wire string vs restored numeric value, metadata selector, exact cleanup/pending0/service stopped. [Proof/limits](COSMOSDB_RECORD_HISTORY.md). Demonstrated local data-loss gate closed ONLY; hosted IAM/TLS/RUs/fees/arbitrary native numeric range/full-provider/V2/all-provider gates remain OPEN, other providers unchanged, no dev deployment claimed.
+
 ## Current Solana storage checkpoint — 2026-10-21
 
 The single-memo defect below is FIXED in task-branch commit `3e8fb3cdd4e0942379a7353ea8ed4758ada60994` (pushed and remotely verified). Current controlled597/597 and real avatar/detail2/2 pass; bounded chunk/commit framing preserves existing encryption and exact records. Native avatar report `81998DF854EBA3A779B3F80EAA01CD0AE92182E765AAC07E757A3D691911BB78`, controlled report `F1B26E53A63074A9CD5D4439725043B7BD851443F9FF52717C1CBB0E8F57EC87`. Original size-rejection evidence is preserved under `*-size-rejected.*` after independent native review, not unresolved/replayed. Broader current-cohort storage/token regression, NFT, sponsored fees, performance and all-provider V2 gates remain OPEN. Historical notes below describe earlier states; use the dated Solana submission report for full proof and limitations. No dev merge or deployment.
