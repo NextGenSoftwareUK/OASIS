@@ -468,7 +468,7 @@ public class OracleObjectSdkTests
             var byId=synchronous?provider.LoadAvatar(avatar.Id):await provider.LoadAvatarAsync(avatar.Id);
             var byName=synchronous?provider.LoadAvatarByUsername(avatar.Username):await provider.LoadAvatarByUsernameAsync(avatar.Username);
             var byEmail=synchronous?provider.LoadAvatarByEmail(avatar.Email):await provider.LoadAvatarByEmailAsync(avatar.Email);
-            foreach(var found in new[]{byId,byName,byEmail}){Assert.IsFalse(found.IsError,found.Message);Assert.AreEqual(avatar.Id,found.Result.Id);Assert.AreEqual(2,found.Result.Version);}
+            foreach(var found in new[]{byId,byName,byEmail}){Assert.IsFalse(found.IsError,found.Message);Assert.IsTrue(found.IsLoaded);Assert.AreEqual(1,found.LoadedCount);Assert.AreEqual(avatar.Id,found.Result.Id);Assert.AreEqual(2,found.Result.Version);}
             var historical=synchronous?provider.LoadAvatar(avatar.Id,1):await provider.LoadAvatarAsync(avatar.Id,1);Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(1,historical.Result.Version);Assert.IsNull(historical.Result.Description);
             var isolatedKey=RandomNumberGenerator.GetBytes(32);
             try {
@@ -500,8 +500,10 @@ public class OracleObjectSdkTests
             var updatedHolon=synchronous?provider.SaveHolon(holon,saveChildren:false):await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(updatedHolon.IsError,updatedHolon.Message);
             Assert.IsTrue(updatedHolon.IsSaved);Assert.AreEqual(1,updatedHolon.SavedCount);
             Assert.AreEqual(2,holon.Version);Assert.AreEqual(6,conditionalCreates-initialCreates);Assert.AreEqual(2,conditionalReplacements-initialReplacements);Assert.AreEqual(1,conditionalDeletes-initialDeletes);
-            Assert.IsFalse((await provider.LoadHolonsForParentAsync(originalParent,loadChildren:false)).Result.Any());
-            Assert.AreEqual(holon.Id,(await provider.LoadHolonsForParentAsync(nextParent,loadChildren:false)).Result.Single().Id);
+            var oldChildren=await provider.LoadHolonsForParentAsync(originalParent,loadChildren:false);
+            Assert.IsFalse(oldChildren.IsError,oldChildren.Message);Assert.IsTrue(oldChildren.IsLoaded);Assert.AreEqual(0,oldChildren.LoadedCount);Assert.IsFalse(oldChildren.Result.Any());
+            var newChildren=await provider.LoadHolonsForParentAsync(nextParent,loadChildren:false);
+            Assert.IsFalse(newChildren.IsError,newChildren.Message);Assert.IsTrue(newChildren.IsLoaded);Assert.AreEqual(1,newChildren.LoadedCount);Assert.AreEqual(holon.Id,newChildren.Result.Single().Id);
             Assert.AreEqual("private-holon",(await provider.LoadHolonAsync(holon.Id,loadChildren:false,version:1)).Result.Name);
             var selected=synchronous?provider.LoadHolonsByMetaData("tag","private-tag",loadChildren:false):await provider.LoadHolonsByMetaDataAsync("tag","private-tag",loadChildren:false);
             Assert.IsFalse(selected.IsError,selected.Message);Assert.AreEqual(holon.Id,selected.Result.Single().Id);

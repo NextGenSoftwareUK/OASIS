@@ -1,5 +1,13 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Shared key-value read acknowledgements — 23 October 2026
+
+Reproduced missing returned-root counts in the existing common provider base: initial24 controls=20fail/4pass, all successful point/collection/search gaps returned0. Owner export's existing recount and empty selection already passed. Corrected the EXISTING private Ok helper and explicit collection/search count arguments; no new SDK/backend/fallback or duplicated provider algorithms. Root-point count1 does not include nested children, partial reads retain only returned-root count, failed reads remain0. Full **1011/1011 Shared controls**, focused **28/28**, inherited **107/107 real OCI SDK/loopback controls** pass/zero skips. Core720 unchanged; new Shared55 E6BBEFA3... source/PDB/copy verified. [Oracle current evidence](ORACLE_CLIENT_PRIORITY.md), exact hashes/resource lifecycle in [inventory](ENVIRONMENT_INVENTORY.md).
+
+Direct inheritors found in current source include Oracle Object Storage, Sui, TRON, Cosmos blockchain, Hedera, Dapr, NATS JetStream, Deno Deploy, Fastly, Tigris, Netlify Blobs and Vercel KV. This common contract repair does NOT independently recertify their native services, chain fees, IAM, complete interfaces or full HyperDrive V2. Earlier AWS/Dynamo native and Oracle SQL counts below remain their separate cohorts; do not relabel them onto this new Shared hash.
+
+Follow-up source audit: Cosmos `CosmosBlockChainOASIS.ActivateDeactivateLoad.cs` and TRON `TRONOASIS.GeoNativeTrans.cs` nearby methods construct their own result after filtering, rather than returning this base helper's result; they still omit LoadedCount. These pre-existing projection gaps are not fixed by the common change and need provider-specific reproduction/verification. No new stale inherited count was observed in those inspected wrappers because they start fresh results.
+
 ## Oracle priority checkpoint — 23 October 2026 (not fully certified)
 
 Use [Oracle client readiness](ORACLE_CLIENT_PRIORITY.md) for the current Oracle gates; counts in older sections below are revision-scoped historical evidence, not the latest provider totals.
