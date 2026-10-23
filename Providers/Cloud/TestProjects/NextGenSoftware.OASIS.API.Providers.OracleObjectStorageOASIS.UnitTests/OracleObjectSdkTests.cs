@@ -8,20 +8,13 @@ using Oci.Common;
 using Oci.Common.Auth;
 using Oci.Common.Model;
 using Oci.ObjectstorageService;
+using NamedOwner = NextGenSoftware.OASIS.Providers.TestSupport.NamedChildOwner;
 
 namespace NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.UnitTests;
 
 [TestClass][DoNotParallelize]
 public class OracleObjectSdkTests
 {
-    private sealed class NamedOwner:NextGenSoftware.OASIS.API.Core.Holons.Holon
-    {
-        public List<NextGenSoftware.OASIS.API.Core.Holons.Holon> Components {get;set;}=new();
-        public override System.Collections.ObjectModel.ReadOnlyCollection<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> AllChildren
-            =>Children.Concat<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(Components).ToList().AsReadOnly();
-        public override IReadOnlyList<NextGenSoftware.OASIS.API.Core.Holons.HolonChildCollection> CaptureChildCollections()=>base.CaptureChildCollections()
-            .Concat(new[]{new NextGenSoftware.OASIS.API.Core.Holons.HolonChildCollection(nameof(Components),Components,rows=>Components=rows.Cast<NextGenSoftware.OASIS.API.Core.Holons.Holon>().ToList())}).ToArray();
-    }
     private const string Endpoint="http://127.0.0.1:18661/";
     private static ObjectStorageClient Client()
     {
