@@ -2,6 +2,30 @@
 
 ## Resume — 2026-10-23
 
+### Remaining Oracle recovery/SDK/shared controls refreshed — actual terminal0
+
+Batch88233 completed on published clean Core6c689689/DLLBFB99852BE111503F20F12702BD622192BA1D528D0AD693BDF70E3942B20F57D. SharedED53435013692AB426DEA4790F1C5E0B17FB25641702542908BB97443B273859 matched consumers; source/PDB verification passed under shared producer/source hold. Native preparation6/6 (3s), encrypted replay4/4 (2s), separate-process writer2/2 (941ms) and recover2/2 (845ms); Oracle controls289/289 (597ms), OCI SDK controls77/77 (7s), Shared controls968/968 (6s), all0skip. These advanced14 are separate from the previously verified main480, not an additional main-suite rerun. OCI uses the real SDK against controlled loopback handlers, NOT Oracle Cloud. Shared/Oracle/OCI controls are not additional native endpoints. No cloud request, restore, download, new environment/account/worktree or deployment.
+
+Independent writer67704/reader49408 process identities differ. Proof operations05e40e14-7a70-4954-9faf-bdbe817b4d00 (sync) and1dda7b61-fad9-40c6-a9c3-add7a0116d7e (async) bind the respective writer proof hashes; recover proofs verified, pending0. Eight prior completed reports/process proofs moved to fixed `.pre-current-oracle-recovery` suffixes with before/after SHA equality, no overwrite/copy. Original successful cohort remains inspectable. Same runtime started once and reused across all native phases, then stopped on verified success; independent exited/11521+18661listeners0. Retained volume5,622,958,423bytes unchanged; Cfree80,011,460,608bytes is a shared-machine observation, not exclusive attribution or a reclaimed-space claim. Full exact resources/old-hash preservation and lifecycle are in ENVIRONMENT_INVENTORY.md.
+
+New evidence paths below are relative to existing `C:/Source/OASIS/TestResults/`;11 artifacts total2,070,112bytes:
+
+| Resource | Bytes | SHA256 |
+| --- | ---: | --- |
+| OracleCurrent/oracle-preparation-native-current.trx |10469|196D88B6242463B5803A5EA5C54F71F555E055E4083F7D7F2AFF8E860A630AFC|
+| OracleCurrent/oracle-encrypted-replay-native-current.trx |7661|7DEF669E38B1A7AB183B6C0214C18442B29C62B65CF8D31C291A02E10F70B636|
+| OracleCurrent/oracle-encrypted-process-write.trx |4199|EDFD9E1D407F95C0B281480692196EBA9BA90ECEAA2D35F486CE34B1FE1F834C|
+| OracleCurrent/oracle-encrypted-process-recover.trx |4205|4479DD17C5A3189837BF27926398062F500E4093698B4C5CB4C64DEAD8E19BE3|
+| OracleCurrent/oracle-current-recovery-controls.trx |445688|E2F94DA03CD9D285C2733557B3C7BEE5B9E268FD84ECA628E88B4EB276F08641|
+| OracleObjectCurrent/oracle-object-current-recovery-controls.trx |123782|F3965691241344283E85905268B47C2CFDE7825F3C7159AFB6764C49CC9AF4A1|
+| OracleCurrent/shared-oracle-current-recovery-controls.trx |1472588|E2A1CB02B3A709CD441A9F4E8D0F7D928C2DA342F1FDE741345507161472648C|
+| OracleCurrent/encrypted-process-False.written.json |540|54D2BC308DF121A20C5135E2B4EB33D52EF419C22C25483E8C7AB002419B161F|
+| OracleCurrent/encrypted-process-True.written.json |540|CD66D320F23AA3C09F1047184B61ED543121830838221D6F8084295734EDE7B8|
+| OracleCurrent/encrypted-process-False.verified.json |220|007490EB25CCE558B5D1239D70A54CF461BB27ED8F08F769C9A149FA0AAB84BE|
+| OracleCurrent/encrypted-process-True.verified.json |220|58263EE886140B257FDCB5EFC35B52B73104C946D84865D848FDE20E2F0FF500|
+
+Oracle is still NOT100%: hosted Autonomous/OCI IAM/wallet/TLS/fees, applicable interface/route end-to-end acceptance and universal multi-provider gates remain open. Four legacy raw karma delegates are centralized domain-manager behavior, not newly implemented per-provider storage; isolated V2 KarmaManager native2 already in main480 is the relevant verified path. Historical seven-name heuristic below predates later delete-alias28/missing-delete40 acceptance; it is not a current seven-missing-implementation count. Owner cloud-access checklist remains `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`. AWS source/readiness review corrected its stale history README without starting an AWS service or spending cloud funds; waiting for priority preference while cloud access is pending, not declaring Oracle complete to skip to AWS.
+
 ### Missing-delete classification and complete karma fixture teardown — full native gate passed
 
 Source audit found the known-absence classification gap also applied to holon/avatar deletion. Forty native interface/helper cases cover avatar16/detail12/holon12, selectors GUID/provider-key/username/email as supported, sync/async and soft/hard. They use existing CREATESESSION-only schema, independently require all six tables empty before/after and original lifecycle CommitCalls0. Known absence must be IsError=true/RecordNotFound, no native exception, false result/deleted/saved flags and DeletedCount0. Transactional guard work may occur but must roll back; these are not zero-SQL-cost calls.
