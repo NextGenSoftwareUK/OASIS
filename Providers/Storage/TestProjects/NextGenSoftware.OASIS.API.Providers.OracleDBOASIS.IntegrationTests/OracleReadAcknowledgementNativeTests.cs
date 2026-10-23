@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Text;
+using System.Security.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.ManagedDataAccess.Client;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -13,6 +15,15 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 
 public sealed partial class OracleNativeAcceptanceTests
 {
+    internal static byte[] ReadAcknowledgementFailureEvidence(bool synchronous,
+        IReadOnlyDictionary<(string Table,Guid Id),string> originals,IReadOnlyList<string> failures)
+        =>JsonSerializer.SerializeToUtf8Bytes(new{
+            schema=1,state="semantic-read-failure-originals-preserved",synchronous,
+            rows=originals.Select(row=>new{table=row.Key.Table,id=row.Key.Id,
+                bytes=Encoding.UTF8.GetByteCount(row.Value),sha256=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(row.Value)))}),
+            failures
+        });
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task NativeReadAcknowledgementsReportActualSuccessAndRootCounts(bool synchronous)
     {
@@ -115,6 +126,15 @@ public sealed partial class OracleNativeAcceptanceTests
             }
             var invalid=synchronous?storage.LoadHolon("not-a-guid"):await storage.LoadHolonAsync("not-a-guid");
             if(!invalid.IsError||invalid.ErrorCode==OASISResultErrorCodes.RecordNotFound)bad.Add("Malformed key must not be classified as absent.");
+            if(bad.Count>0){
+                // Keep original native rows AND the existing pending intent. Never
+                // erase the evidence before reporting an unexplained semantic failure.
+                var evidence=Path.Combine(Path.GetDirectoryName(journal)!,"read-acknowledgements-failure.json");
+                using(var file=new FileStream(evidence,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+                    await file.WriteAsync(ReadAcknowledgementFailureEvidence(synchronous,originals,bad));file.Flush(true);
+                }
+                Assert.Fail(string.Join(Environment.NewLine,bad));
+            }
             foreach(var row in rows){
                 await using var cleanup=new OracleCommand($"DELETE FROM {row.Item1} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",native){BindByName=true};
                 cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=row.Item2.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=originals[row];
@@ -123,7 +143,28 @@ public sealed partial class OracleNativeAcceptanceTests
             File.Delete(journal);
         }
         finally{await provider.DeActivateProviderAsync();}
-        Assert.AreEqual(0,bad.Count,string.Join(Environment.NewLine,bad));
+    }
+}
+
+[TestClass]
+public sealed class OracleReadAcknowledgementEvidenceControls
+{
+    [TestMethod]
+    public void FailureInventoryBindsOriginalBytesWithoutCopyingPrivatePayload()
+    {
+        var id=Guid.NewGuid();const string original="{\"PrivateKey\":\"synthetic-private-value-ONLY-in-native-row\",\"text\":\"🌳\"}";
+        var bytes=OracleNativeAcceptanceTests.ReadAcknowledgementFailureEvidence(true,
+            new Dictionary<(string,Guid),string>{{("OASIS_AVATARS",id),original}},new[]{"owned semantic failure"});
+        var text=Encoding.UTF8.GetString(bytes);using var json=JsonDocument.Parse(bytes);
+        Assert.IsFalse(text.Contains("PrivateKey",StringComparison.Ordinal));
+        Assert.IsFalse(text.Contains("synthetic-private-value",StringComparison.Ordinal));
+        var row=json.RootElement.GetProperty("rows")[0];
+        Assert.AreEqual(id,row.GetProperty("id").GetGuid());Assert.AreEqual("OASIS_AVATARS",row.GetProperty("table").GetString());
+        Assert.AreEqual(Encoding.UTF8.GetByteCount(original),row.GetProperty("bytes").GetInt32());
+        Assert.AreEqual(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(original))),row.GetProperty("sha256").GetString());
+        Assert.AreEqual("semantic-read-failure-originals-preserved",json.RootElement.GetProperty("state").GetString());
+        Assert.IsTrue(json.RootElement.GetProperty("synchronous").GetBoolean());
+        Assert.AreEqual("owned semantic failure",json.RootElement.GetProperty("failures")[0].GetString());
     }
 }
 
