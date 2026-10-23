@@ -7,6 +7,20 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 public class OracleSchemaValidationTests
 {
     [DataTestMethod]
+    [DataRow("OASIS_AVATARS","USERNAME","C",true)][DataRow("OASIS_AVATARS","EMAIL","C",true)]
+    [DataRow("OASIS_AVATAR_DETAILS","USERNAME","C",true)][DataRow("OASIS_AVATAR_DETAILS","EMAIL","C",true)]
+    [DataRow("OASIS_AVATARS","USERNAME","B",false)][DataRow("OASIS_AVATARS","EMAIL",null,false)]
+    [DataRow("OASIS_AVATAR_DETAILS","USERNAME","B",false)][DataRow("OASIS_AVATAR_DETAILS","EMAIL","B",false)]
+    [DataRow("OASIS_WRITE_RECEIPTS","REQUEST_HASH","B",true)][DataRow("OASIS_HOLONS","DATA_JSON",null,true)]
+    public void IdentityColumnsCannotAdvertiseCharactersWithByteSemantics(string table,string column,string? semantics,bool accepted)
+    {
+        var method=typeof(OracleDBOASIS).GetMethod("ValidateIdentityCharacterSemantics",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var args=new object?[]{table,column,semantics};
+        if(accepted)method.Invoke(null,args);
+        else Assert.IsInstanceOfType<InvalidDataException>(Assert.ThrowsException<TargetInvocationException>(()=>method.Invoke(null,args)).InnerException);
+    }
+
+    [DataTestMethod]
     [DataRow("CREATED_DATE","TIMESTAMP",null,false)]
     [DataRow("MODIFIED_DATE","TIMESTAMP",0,false)]
     [DataRow("COMMITTED_AT","TIMESTAMP",null,false)]
