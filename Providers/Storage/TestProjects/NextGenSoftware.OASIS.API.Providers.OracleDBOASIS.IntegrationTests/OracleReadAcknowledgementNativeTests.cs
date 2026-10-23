@@ -132,6 +132,20 @@ public sealed partial class OracleNativeAcceptanceTests
 public sealed class OracleReadAckStressNativeTests
 {
     [TestMethod]
+    public async Task LostCommitPredecessorsDoNotPoisonFollowingReadAcknowledgements()
+    {
+        var predecessors=new[]{(false,false,false),(true,false,false),(false,true,false),(true,true,false),
+            (false,false,true),(true,false,true),(false,true,true),(true,true,true)};
+        for(var cycle=0;cycle<3;cycle++){
+            Console.WriteLine($"Owned predecessor-order cycle {cycle+1}/3; eight save fixtures then async/sync read fixtures");
+            foreach(var (detail,synchronous,loseAck) in predecessors)
+                await new OracleNativeAcceptanceTests().NativeOrdinaryIdentitySaveCountsOnlyAcknowledgedCommit(detail,synchronous,loseAck);
+            await new OracleNativeAcceptanceTests().NativeReadAcknowledgementsReportActualSuccessAndRootCounts(false);
+            await new OracleNativeAcceptanceTests().NativeReadAcknowledgementsReportActualSuccessAndRootCounts(true);
+        }
+    }
+
+    [TestMethod]
     public async Task TwentyFreshReadAcknowledgementFixturesExposeIntermittentFailures()
     {
         for(var pair=0;pair<10;pair++){
