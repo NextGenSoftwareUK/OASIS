@@ -1,6 +1,6 @@
 # CQL projection and aggregate implementation contract
 
-23 October 2026. Implementation design for the unchecked second phase of the completion roadmap. Core scalar intent/admission/execution contracts are now implemented in d71eebd; SQLite and MongoDB Count/LongCount/Any now have native verification; Neo4j scalar verification, transport and the remaining aggregate operations remain pending. The remaining items below are acceptance requirements, not shipped native aggregate support. Count/LongCount/Any are the first implementation slice; Select, Min/Max, Sum/Average and GroupBy remain required in the same programme.
+23 October 2026. Implementation design for the unchecked second phase of the completion roadmap. Core scalar intent/admission/execution contracts are now implemented in d71eebd; All three stores now have native Count/LongCount/Any verification; scalar transport and the remaining aggregate operations remain pending. The remaining items below are acceptance requirements, not shipped native aggregate support. Count/LongCount/Any are the first implementation slice; Select, Min/Max, Sum/Average and GroupBy remain required in the same programme.
 
 ## Query and result ownership
 
@@ -83,3 +83,12 @@ The reader preserves a single snapshot across canonical membership validation an
 Mongo unit **229** and native **76** pass unskipped, including9new unit and12new native cases. Native cases prove windows/empty input, Count/LongCount/Any and manager execution with a throwing typed constructor, invalid unselected typed metadata, actor/public access, 137 inputs above row/graph-publication bounds, descendant overflow/no publication/fresh reuse, pre-cancel/zero-window behavior and actual count snapshot consistency across an acknowledged concurrent reparent. Consumer Core716/Shared55 PE/PDB/source identities match the frozen producers. Initial native compile failed a missing test import before fixture mutations; the corrected native run passed.
 
 Neo4j scalar source is being prepared separately and remains uncompiled/uncertified. No scalar WEB4 transport, Select/Min/Max/Sum/Average/GroupBy, join/federation or broader policy completion is claimed by these two native count gates.
+
+
+## Neo4j native scalar gate — 23 October
+
+Neo4j now implements Count/LongCount/Any through the generic Core/HolonManager scalar contract. Row and scalar shapes share one compiled native ownership/access/membership source. Projection validation and traversal error branches stay outside cardinality reduction/windowing; success requires consuming and validating the complete controlled scalar outcome. Exact Int64 cardinality/window arithmetic avoids entity hydration, factories, row caps and graph-output truncation. One read-committed transaction owns the operation; requested snapshots reject before dispatch against the actual adapter profile.
+
+Neo unit **322** and joint native/WEB4 **129** pass with zero skips, including15new scalar native controls. Coverage includes composed windows/empty input, all3terminals and generic manager execution with a throwing typed constructor, invalid unselected metadata, owner/public restrictions,137inputs above output limits, descendant overflow/no partial scalar/fresh reuse, pre-cancel/zero-window behavior, cancellation after actual Fetch,31-second cursor-delivery expiry/reuse, projection corruption despite an empty source/page and borrowed snapshot rejection. These post-fetch controls do not prove strict interruption of blocked Neo driver I/O; that remains explicitly open.
+
+Final all3consumer PE/PDB/source identities match Core716/Shared55 producers after normal no-restore consumer refresh. Prior Mongo76/SQLite1269 native evidence used the same source documents with earlier commit-stamped Shared binaries; those native suites were not claimed rerun during this Neo-only verification. Scalar HTTP transport and Select/Min/Max/Sum/Average/GroupBy/join/federation/policy phases remain open. [Next transport acceptance](CQL_SCALAR_HTTP_CONTRACT.md).
