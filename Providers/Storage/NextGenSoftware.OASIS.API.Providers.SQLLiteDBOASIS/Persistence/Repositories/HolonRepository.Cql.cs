@@ -8,10 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
 
@@ -33,6 +35,7 @@ public partial class HolonRepository
             var predicate = plan.Query.Predicates.Count == 0 ? "1" : string.Join(" AND ", plan.Query.Predicates.Select(translator.Translate));
             var ordering=translator.TranslateOrdering(plan.Query.Orderings);
             var fetch=plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,maximumResults+1):maximumResults+1;
+            if(plan.Query.GraphOptions!=null)fetch=Math.Min(fetch,plan.Query.GraphOptions.MaximumNodes+1);
             translator.Parameters.Add(new SqliteParameter("$limit", fetch));
             translator.Parameters.Add(new SqliteParameter("$offset",plan.Query.Offset));
             cancellationToken.ThrowIfCancellationRequested();
@@ -46,6 +49,14 @@ public partial class HolonRepository
             try
             {
                 using var budget=new SqliteCqlReadBudget(connection,cancellationToken);
+                if (plan.Query.GraphOptions != null && _dbContext.Database.CurrentTransaction != null &&
+                    _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
+                    return CqlError("CQL_CONSISTENCY_UNSUPPORTED", "SQLite graphs require a serializable native read owner.");
+                // A deferred read transaction supports read-only connections and
+                // holds the same SQLite snapshot for the root page and all children.
+                using var graphTransaction = plan.Query.GraphOptions != null && _dbContext.Database.CurrentTransaction == null
+                    ? connection.BeginTransaction(IsolationLevel.Serializable, deferred: true) : null;
+                using var graphOwner = graphTransaction == null ? null : _dbContext.Database.UseTransaction(graphTransaction);
                 var rows=new List<IHolon>();long bytes=0;
                 try
                 {
@@ -55,18 +66,25 @@ public partial class HolonRepository
                     await foreach(var row in query.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
                     {
                         budget.Check();
-                        if(rows.Count>=maximumResults)throw new SqliteCqlResourceException("Query exceeds the declared result limit.");
-                        bytes+=1024;
-                        foreach(var property in CqlStringColumns)
-                        {
-                            var value=(string)property.GetValue(row);
-                            if(value!=null)bytes+=Encoding.UTF8.GetByteCount(value);
-                        }
-                        if(bytes>SqliteCqlReadBudget.MaximumPayloadBytes)
+                        if(rows.Count>=Math.Min(maximumResults,plan.Query.GraphOptions?.MaximumNodes ?? maximumResults))
+                            throw new SqliteCqlResourceException("Query exceeds the declared root/graph result limit.");
+                        bytes+=CqlRecordSize(row);
+                        if(bytes>Math.Min(SqliteCqlReadBudget.MaximumPayloadBytes,
+                            plan.Query.GraphOptions?.MaximumPayloadBytes ?? SqliteCqlReadBudget.MaximumPayloadBytes))
                             throw new SqliteCqlResourceException("SQLite CQL exceeds its streamed payload budget.");
                         rows.Add(GetHolonFromEntity(row));budget.Check();
                     }
                     budget.Check();
+                    if (plan.Query.GraphOptions != null)
+                    {
+                        var graph = await HolonGraphQueryExpansion.ExpandAsync(rows.AsReadOnly(), plan.Query.GraphOptions,
+                            (selection, token) => ReadCqlChildrenAsync(selection, budget, token), cancellationToken,
+                            budget.Check).ConfigureAwait(false);
+                        if (graph.IsError) return graph;
+                        budget.Check();
+                        graphTransaction?.Commit();
+                        return graph;
+                    }
                     return new OASISResult<IReadOnlyList<IHolon>>(rows.AsReadOnly()){IsLoaded=true};
                 }
                 catch(SqliteException cause) when(cause.SqliteErrorCode==9){budget.Check();throw;}

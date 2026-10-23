@@ -321,6 +321,45 @@ public class CosmicQueryGraphExecutionTests
         Assert.Equal(0, CountingRoot.Constructions);
     }
 
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task LegacyPartialMembershipCannotBecomeAReplacementThroughAcceptChanges(bool typed)
+    {
+        var source = Graph();
+        source.Children[0].HolonType = HolonType.Quest;
+        source.Children[0].Children[0].HolonType = HolonType.Quest;
+        var adapter = new Adapter(source);
+        var plan = Plan(CosmicQueryGraphOptions.Create(childType: HolonType.Quest).Result, adapter);
+        Holon root;
+        if (typed)
+        {
+            var result = await Manager().ExecuteQueryAsync(plan, new[] { adapter });
+            Assert.False(result.IsError, result.Message);
+            root = Assert.Single(Assert.Single(result.Result.Providers).Rows);
+        }
+        else
+        {
+            var result = await CosmicQueryExecutor.ExecuteAsync(plan, new[] { adapter });
+            Assert.False(result.IsError, result.Message);
+            root = (Holon)Assert.Single(Assert.Single(result.Result.Providers).Rows);
+        }
+        Assert.Null(root.ChildRoleManifestJson);
+        root.AcceptChanges(); // Accepting values cannot invent complete relationship observation.
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var selected = HolonSavePlan.Create(new[] { root }, true, true, 0);
+        });
+        using var excluded = HolonSavePlan.Create(new[] { root }, false, false, 0);
+        Assert.Empty(excluded.RelationshipManifests);
+        root.ChildRoleManifestJson = HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
+            1, root.Id, new[] { new HolonChildRole("Children", root.Children.Select(child => child.Id)) }));
+        root.AcceptChanges();
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var forged = HolonSavePlan.Create(new[] { root }, true, true, 0);
+        });
+    }
+
     private static HolonManager Manager()
     {
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };

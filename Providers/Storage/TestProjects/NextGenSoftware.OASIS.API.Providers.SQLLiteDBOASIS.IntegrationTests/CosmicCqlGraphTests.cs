@@ -1,0 +1,296 @@
+using FluentAssertions;
+using System.Data;
+using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
+using Xunit;
+
+namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
+
+public partial class SQLLiteDBOASISIntegrationTests
+{
+    private static Holon NativeQueryGraph(string name = "root")
+    {
+        var root = new Holon { Id = Guid.NewGuid(), Name = name };
+        var quest = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "quest", HolonType = HolonType.Quest };
+        quest.Children.Add(new Holon { Id = Guid.NewGuid(), ParentHolonId = quest.Id, Name = "grandchild", HolonType = HolonType.Quest });
+        root.Children.Add(quest);
+        root.Children.Add(new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "cafe", HolonType = HolonType.Cafe });
+        return root;
+    }
+
+    private static CosmicQueryPlan<Holon> NativeGraphPlan(Holon root, CosmicQueryGraphOptions options)
+    {
+        var id = root.Id;
+        var query = CosmicQuery<Holon>.Create().Where(row => row.Id == id).WithChildren(options);
+        query.IsError.Should().BeFalse(query.Message);
+        var plan = CosmicQueryPlanner.Plan(query.Result, ProviderType.SQLLiteDBOASIS,
+            new[] { new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, SQLLiteDBOASIS.CqlCapabilities) });
+        plan.IsError.Should().BeFalse(plan.Message);
+        return plan.Result;
+    }
+
+    private static CosmicWriteOptions CreateNativeGraph(Holon root)
+    {
+        // These fixtures deliberately assign IDs. Explicit null revisions mean
+        // create-only, rather than falsely claiming an accepted store revision.
+        var expected = new Dictionary<Guid, Guid?>();
+        var pending = new Stack<IHolon>();
+        pending.Push(root);
+        while (pending.Count != 0)
+        {
+            var node = pending.Pop();
+            expected.Add(node.Id, null);
+            foreach (var child in node.Children) pending.Push(child);
+        }
+        return new CosmicWriteOptions(Guid.NewGuid(), expected);
+    }
+
+    [Theory]
+    [InlineData(true, 0, true)]
+    [InlineData(true, 1, false)]
+    [InlineData(true, 2, true)]
+    [InlineData(false, 0, false)]
+    [InlineData(false, 2, false)]
+    public async Task NativeCqlGraphsRespectDepthAndRecursiveOptions(bool recursive, int depth, bool grandchild)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source = NativeQueryGraph();
+        (await provider.SaveHolonAsync(source)).IsError.Should().BeFalse();
+        var options = CosmicQueryGraphOptions.Create(recursive: recursive, maxChildDepth: depth).Result;
+        ICosmicQueryStorageProvider adapter = provider;
+        var result = await CosmicManager(provider, true).ExecuteQueryAsync(NativeGraphPlan(source, options), new[] { adapter });
+
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        var root = result.Result.Providers.Single().Rows.Single();
+        root.Children.Should().HaveCount(2);
+        root.Children.Single(child => child.Name == "quest").Children.Should().HaveCount(grandchild ? 1 : 0);
+        HolonChangeTracking.HasChanges(root).Should().BeFalse();
+        root.Children.Should().OnlyContain(child => child.ParentHolonId == root.Id);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task NativeCqlGraphTypeSelectionPreservesHiddenMembershipOnRootSave(bool manifested)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source = NativeQueryGraph();
+        var manager = CosmicManager(provider, true);
+        var seeded = manifested ? await manager.SaveHolonAsync(source, Guid.NewGuid(),
+            CreateNativeGraph(source), providerType: ProviderType.SQLLiteDBOASIS)
+            : await provider.SaveHolonAsync(source);
+        seeded.IsError.Should().BeFalse(seeded.Message + seeded.Exception);
+        var hidden = source.Children.Single(child => child.HolonType == HolonType.Cafe).Id;
+        ICosmicQueryStorageProvider adapter = provider;
+        var result = await manager.ExecuteQueryAsync(NativeGraphPlan(source,
+            CosmicQueryGraphOptions.Create(childType: HolonType.Quest).Result), new[] { adapter });
+
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        var root = result.Result.Providers.Single().Rows.Single();
+        root.Children.Should().ContainSingle().Which.HolonType.Should().Be(HolonType.Quest);
+        if (manifested) root.ChildRoleManifestJson.Should().Contain(hidden.ToString("D"));
+        else root.ChildRoleManifestJson.Should().BeNull();
+        root.Name = "edited root only";
+        var version = root.Version;
+        var rejected = await manager.SaveHolonAsync(root, Guid.NewGuid(), saveChildren: true, providerType: ProviderType.SQLLiteDBOASIS);
+        rejected.IsError.Should().BeTrue("a filtered view cannot replace unselected relationships");
+        rejected.IsSaved.Should().BeFalse();
+        root.Version.Should().Be(version);
+        var saved = await manager.SaveHolonAsync(root, Guid.NewGuid(), saveChildren: false, providerType: ProviderType.SQLLiteDBOASIS);
+        saved.IsError.Should().BeFalse(saved.Message + saved.Exception);
+        var persisted = await provider.LoadHolonAsync(source.Id);
+        persisted.Result.Children.Should().HaveCount(2);
+        persisted.Result.Children.Should().Contain(child => child.Id == hidden);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task NativeCqlGraphLimitsRejectWithoutPartialRowsAndReleaseTheirReadOwner(bool payload)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source = NativeQueryGraph();
+        source.Description = new string('\u20ac', 2048);
+        (await provider.SaveHolonAsync(source)).IsError.Should().BeFalse();
+        var options = CosmicQueryGraphOptions.Create(maximumNodes: payload ? 100 : 1,
+            maximumPayloadBytes: payload ? 2048 : 1024 * 1024).Result;
+        ICosmicQueryStorageProvider adapter = provider;
+        var result = await CosmicQueryExecutor.ExecuteAsync(NativeGraphPlan(source, options), new[] { adapter });
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("CQL_QUERY_LIMIT");
+        result.Result.Should().BeNull();
+        // A failed graph must not leave a connection-local progress hook or read transaction behind.
+        var id = source.Id;
+        var control = await CosmicQueryExecutor.ExecuteAsync(CqlPlan(row => row.Id == id), new[] { adapter });
+        control.IsError.Should().BeFalse(control.Message + control.Exception);
+        control.Result.TotalRows.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task NativeCqlGraphExpandsOnlyPagedRoots()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var first = NativeQueryGraph("A-root");
+        var second = NativeQueryGraph("B-root");
+        (await provider.SaveHolonAsync(first)).IsError.Should().BeFalse();
+        (await provider.SaveHolonAsync(second)).IsError.Should().BeFalse();
+        var query = CosmicQuery<Holon>.Create().Where(row => row.ParentHolonId == Guid.Empty)
+            .OrderBy(row => row.Name).Skip(1).Take(1)
+            .WithChildren(CosmicQueryGraphOptions.Create(maximumNodes: 4).Result);
+        var plan = CosmicQueryPlanner.Plan(query.Result, ProviderType.SQLLiteDBOASIS,
+            new[] { new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, SQLLiteDBOASIS.CqlCapabilities) });
+        plan.IsError.Should().BeFalse(plan.Message);
+        ICosmicQueryStorageProvider adapter = provider;
+        var result = await CosmicQueryExecutor.ExecuteAsync(plan.Result, new[] { adapter });
+
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        var root = result.Result.Providers.Single().Rows.Single();
+        root.Id.Should().Be(second.Id);
+        root.Children.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task NativeCqlGraphKeepsOneSnapshotWhenAChildChangesAfterTheRootPage()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source = NativeQueryGraph();
+        (await provider.SaveHolonAsync(source)).IsError.Should().BeFalse();
+        var childId = source.Children[0].Id.ToString("D");
+        using (var configure = new DataContext(TestConnectionString))
+            configure.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL");
+        var changed = false;
+        var interceptor = new GraphReadInterceptor(async () =>
+        {
+            using var writer = new DataContext(TestConnectionString);
+            await writer.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET Name={"newer child"} WHERE Id={childId}");
+            changed = true;
+        });
+        using var context = new GraphReadContext(TestConnectionString, interceptor);
+        var repository = new HolonRepository(context, () => false);
+        var result = await repository.ExecuteCosmicQueryAsync(
+            NativeGraphPlan(source, CosmicQueryGraphOptions.Create().Result), 100, default);
+
+        changed.Should().BeTrue("the concurrent write must commit before native child enumeration");
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        result.Result.Single().Children.Single(child => child.Id.ToString("D") == childId).Name.Should().Be("quest");
+        using var control = new DataContext(TestConnectionString);
+        control.Holons.AsNoTracking().Single(row => row.Id == childId).Name.Should().Be("newer child");
+    }
+
+    [Fact]
+    public async Task NativeCqlGraphCanUseAReadOnlyConnection()
+    {
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.SaveHolonAsync(NativeQueryGraph())).IsError.Should().BeFalse();
+        }
+        using var context = new DataContext($"Data Source={_databasePath};Mode=ReadOnly;Pooling=False");
+        var sourceId = Guid.Parse(context.Holons.AsNoTracking().Single(row => row.Name == "root").Id);
+        var repository = new HolonRepository(context, () => false);
+        var result = await repository.ExecuteCosmicQueryAsync(NativeGraphPlan(new Holon { Id = sourceId },
+            CosmicQueryGraphOptions.Create().Result), 100, default);
+
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        result.Result.Single().Children.Should().HaveCount(2);
+        context.Database.GetDbConnection().State.Should().Be(ConnectionState.Closed);
+    }
+
+    [Fact]
+    public async Task NativeCqlGraphDoesNotCommitAnExistingCallerTransaction()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source = NativeQueryGraph();
+        (await provider.SaveHolonAsync(source)).IsError.Should().BeFalse();
+        using var context = new DataContext(TestConnectionString);
+        using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        var id = source.Id.ToString("D");
+        await context.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET Name={"caller pending"} WHERE Id={id}");
+        var repository = new HolonRepository(context, () => false);
+        var result = await repository.ExecuteCosmicQueryAsync(
+            NativeGraphPlan(source, CosmicQueryGraphOptions.Create().Result), 100, default);
+
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        result.Result.Single().Name.Should().Be("caller pending");
+        context.Database.CurrentTransaction.Should().BeSameAs(transaction);
+        await transaction.RollbackAsync();
+        using var control = new DataContext(TestConnectionString);
+        control.Holons.AsNoTracking().Single(row => row.Id == id).Name.Should().Be("root");
+    }
+
+    [Fact]
+    public async Task NativeCqlGraphRejectsAWeakerCallerTransaction()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source = NativeQueryGraph();
+        (await provider.SaveHolonAsync(source)).IsError.Should().BeFalse();
+        using var context = new DataContext(TestConnectionString + ";Cache=Shared");
+        using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.ReadUncommitted);
+        var repository = new HolonRepository(context, () => false);
+        var result = await repository.ExecuteCosmicQueryAsync(
+            NativeGraphPlan(source, CosmicQueryGraphOptions.Create().Result), 100, default);
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("CQL_CONSISTENCY_UNSUPPORTED");
+        context.Database.CurrentTransaction.Should().BeSameAs(transaction);
+    }
+
+    [Fact]
+    public async Task NativeCqlGraphBatchesLargePersistedMembershipWithoutLosingItsOrder()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source = new Holon { Id = Guid.NewGuid(), Name = "large owner" };
+        for (var index = 0; index < 150; index++)
+            source.Children.Add(new Holon { Id = Guid.NewGuid(), Name = index.ToString("D3"), ParentHolonId = source.Id });
+        var manager = CosmicManager(provider, true);
+        var seeded = await manager.SaveHolonAsync(source, Guid.NewGuid(), CreateNativeGraph(source),
+            providerType: ProviderType.SQLLiteDBOASIS);
+        seeded.IsError.Should().BeFalse(seeded.Message + seeded.Exception);
+        ICosmicQueryStorageProvider adapter = provider;
+        var result = await manager.ExecuteQueryAsync(NativeGraphPlan(source,
+            CosmicQueryGraphOptions.Create(maximumNodes: 151).Result), new[] { adapter });
+
+        result.IsError.Should().BeFalse(result.Message + result.Exception);
+        result.Result.Providers.Single().Rows.Single().Children.Select(child => child.Name)
+            .Should().Equal(Enumerable.Range(0, 150).Select(index => index.ToString("D3")));
+    }
+
+    private sealed class GraphReadContext : DataContext
+    {
+        private readonly DbCommandInterceptor _interceptor;
+        internal GraphReadContext(string connection, DbCommandInterceptor interceptor) : base(connection) { _interceptor = interceptor; }
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        { base.OnConfiguring(options); options.AddInterceptors(_interceptor); }
+    }
+
+    private sealed class GraphReadInterceptor : DbCommandInterceptor
+    {
+        private readonly Func<Task> _write;
+        private bool _invoked;
+        internal GraphReadInterceptor(Func<Task> write) { _write = write; }
+        public override async ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,
+            CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            if (!_invoked && command.CommandText.Contains("$graphLimit", StringComparison.Ordinal))
+            {
+                _invoked = true;
+                await _write();
+            }
+            return result;
+        }
+    }
+}

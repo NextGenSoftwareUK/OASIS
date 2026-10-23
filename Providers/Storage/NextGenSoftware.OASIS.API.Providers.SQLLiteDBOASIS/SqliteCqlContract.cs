@@ -46,6 +46,6 @@ internal static class SqliteCqlContract
             m.SupportsMembership,m.SupportsMixedNumericComparison,supportsOrdering:true)).ToArray();
         MetadataTypes = new ReadOnlyDictionary<Type, CosmicQueryMetadataCapability>(metadata.ToDictionary(m => m.ValueType));
         Capabilities = new CosmicQueryCapabilities(CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not |
-            CosmicQueryFeatures.Metadata | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith | CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists | CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.Membership | CosmicQueryFeatures.MixedNumericComparison | CosmicQueryFeatures.FieldComparison | CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging, fields.Values.ToArray(), metadata);
+            CosmicQueryFeatures.Metadata | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith | CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists | CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.Membership | CosmicQueryFeatures.MixedNumericComparison | CosmicQueryFeatures.FieldComparison | CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.GraphExpansion, fields.Values.ToArray(), metadata);
     }
 }
