@@ -1,12 +1,21 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Text;
 using Microsoft.Data.Sqlite;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
 
 internal sealed class SqliteCqlReadBudget : IDisposable
 {
+    private static readonly Encoding StrictUtf8 = new UTF8Encoding(false, true);
+    private const string Utf8Function = "cosmic_cql_utf8_valid";
+    private static bool ValidUtf8(byte[] bytes)
+    {
+        if (bytes == null) return false;
+        try { StrictUtf8.GetCharCount(bytes); return true; }
+        catch (DecoderFallbackException) { return false; } // Native guard records invalid data, not replacement text.
+    }
     internal const int MaximumPayloadBytes=64*1024*1024;
     private const int Interval=1000;
     private readonly SqliteConnection connection;
@@ -36,9 +45,14 @@ internal sealed class SqliteCqlReadBudget : IDisposable
             return stopped==0?0:1;
         };
         SQLitePCL.raw.sqlite3_limit(connection.Handle,SQLitePCL.raw.SQLITE_LIMIT_LENGTH,Math.Min(previousLength,MaximumPayloadBytes));
-        try { SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,Interval,callback,null); }
+        try
+        {
+            SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,Interval,callback,null);
+            connection.CreateFunction<byte[], bool>(Utf8Function, ValidUtf8, isDeterministic: true);
+        }
         catch
         {
+            SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,0,null,null);
             SQLitePCL.raw.sqlite3_limit(connection.Handle,SQLitePCL.raw.SQLITE_LIMIT_LENGTH,previousLength);
             throw;
         }
@@ -52,11 +66,11 @@ internal sealed class SqliteCqlReadBudget : IDisposable
     public void Dispose()
     {
         if(disposed)return;disposed=true;
-        try { SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,0,null,null); }
+        try { connection.CreateFunction<byte[], bool>(Utf8Function, null); }
         finally
         {
-            SQLitePCL.raw.sqlite3_limit(connection.Handle,SQLitePCL.raw.SQLITE_LIMIT_LENGTH,previousLength);
-            GC.KeepAlive(callback);
+            try { SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,0,null,null); }
+            finally { SQLitePCL.raw.sqlite3_limit(connection.Handle,SQLitePCL.raw.SQLITE_LIMIT_LENGTH,previousLength); GC.KeepAlive(callback); }
         }
     }
 }

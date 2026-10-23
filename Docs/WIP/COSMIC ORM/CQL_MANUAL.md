@@ -503,3 +503,39 @@ FullCore2,059 and signed three-store acceptance pass. Neo4j DateTime metadata is
 Core now supports typed `source.Min(holon => ...)` and `source.Max(holon => ...)` intent through the existing scalar API. The selected path retains its exact CLR domain and the original source restrictions. Operation-specific read capabilities are required at planning and actual-adapter readmission; row/filter or count permissions cannot grant selection. Existing native adapters still declare count/existence only, so Min/Max execution is rejected until each native implementation is certified.
 
 Required empty extrema report CQL_EMPTY_SEQUENCE. Nullable/string empty or all-null extrema return null; absent/null nullable leaves do not participate. Wrong stored types error. Exact negative Int64 results remain valid; native values are not converted through double. FullCore2,102 and both target builds pass for this contract. [Semantics,19reference vectors and remaining native gates](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#minmax-semantics-and-implementation-gate).
+
+### Native Min/Max — SQLite SDK
+
+SQLite now declares Min/Max through its own scalar capabilities. Use the same generic V2 manager/scalar planner; the trusted host supplies actor identity. The terminal selects one typed path and executes natively over the source window. Do not apply a row-publication limit to aggregate input accidentally.
+
+```csharp
+var adapter = (ICosmicQueryScalarStorageProvider)sqlite;
+var access = CosmicQueryReadAccess.OwnerOrPublic(authenticatedActor).Result;
+
+var source = CosmicQuery<Holon>.Create()
+    .WithReadAccess(access)
+    .Where(holon => holon.IsActive)
+    .Result;
+
+// Use long? when absent/null values should be ignored and an empty input
+// should return null. A required long reports CQL_EMPTY_SEQUENCE instead.
+var intent = source.Min(
+    holon => CosmicQueryMetadata.Value<long?>(holon, "stock"));
+
+var plan = CosmicScalarPlanner.Plan(
+    intent.Result,
+    adapter.QueryProviderType,
+    new[]
+    {
+        new CosmicScalarTarget(
+            adapter.QueryProviderType,
+            adapter.QueryCapabilities,
+            adapter.ScalarCapabilities)
+    });
+
+var result = await manager.ExecuteScalarQueryAsync(
+    plan.Result,
+    new ICosmicQueryStorageProvider[] { adapter });
+```
+
+Handle each OASISResult error before using Result in application code. Max uses the same API. Negative/exact Int64 extrema are valid; wrong types and malformed participating values error. Date comparisons retain UTC ticks. Initial and expanded native controls pass as detailed in the contract; full SQLite regression passes1,318tests with zero skips (2m9s), including all33new Min/Max cases. MongoDB/Neo4j and HTTP selected extrema remain pending. [Native semantics/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-minmax-slice).
