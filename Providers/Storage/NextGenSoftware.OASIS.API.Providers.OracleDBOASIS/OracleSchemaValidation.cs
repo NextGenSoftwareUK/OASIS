@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Oracle.ManagedDataAccess.Client;
 
@@ -10,9 +11,7 @@ public partial class OracleDBOASIS
 {
     // ORA-00955 means a name exists, not that its schema matches this provider.
     // Read only: incompatible existing objects must be reviewed, never repaired here.
-    private static async Task ValidateStorageSchemaAsync(OracleConnection connection)
-    {
-        var expected=new Dictionary<string,Dictionary<string,string>>{
+    private static readonly Dictionary<string,Dictionary<string,string>> StorageSchema=new(){
             ["OASIS_AVATARS"]=new(){{"ID","RAW"},{"USERNAME","VARCHAR2"},{"EMAIL","VARCHAR2"},{"IS_DELETED","NUMBER"},{"CREATED_DATE","TIMESTAMP"},{"MODIFIED_DATE","TIMESTAMP"},{"DATA_JSON","CLOB"}},
             ["OASIS_AVATAR_DETAILS"]=new(){{"ID","RAW"},{"USERNAME","VARCHAR2"},{"EMAIL","VARCHAR2"},{"DATA_JSON","CLOB"}},
             ["OASIS_HOLONS"]=new(){{"ID","RAW"},{"PARENT_HOLON_ID","RAW"},{"HOLON_TYPE","NUMBER"},{"IS_DELETED","NUMBER"},{"CREATED_DATE","TIMESTAMP"},{"MODIFIED_DATE","TIMESTAMP"},{"DATA_JSON","CLOB"}},
@@ -20,6 +19,19 @@ public partial class OracleDBOASIS
             ["OASIS_WRITE_OPERATION_LOCKS"]=new(){{"OPERATION_ID","RAW"}},
             ["OASIS_WRITE_PREPARATIONS"]=new(){{"OPERATION_ID","RAW"},{"ACTOR_ID","RAW"},{"PAYLOAD_JSON","CLOB"}}
         };
+
+    private static async Task<bool> StorageSchemaExistsAsync(OracleConnection connection)
+    {
+        var names=StorageSchema.Keys.ToArray();
+        var parameters=names.Select((_,index)=>":Table"+index);
+        await using var command=CreateCommand("SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME IN ("+string.Join(",",parameters)+")",connection);
+        for(var index=0;index<names.Length;index++)command.Parameters.Add("Table"+index,OracleDbType.Varchar2).Value=names[index];
+        return Convert.ToInt32(await command.ExecuteScalarAsync())==names.Length;
+    }
+
+    private static async Task ValidateStorageSchemaAsync(OracleConnection connection)
+    {
+        var expected=StorageSchema;
         foreach(var table in expected){
             await using var command=CreateCommand("SELECT COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE,DATA_PRECISION,DATA_SCALE,CHAR_LENGTH,DEFAULT_LENGTH,CHAR_USED FROM USER_TAB_COLUMNS WHERE TABLE_NAME=:TableName",connection);
             command.Parameters.Add("TableName",OracleDbType.Varchar2).Value=table.Key;
