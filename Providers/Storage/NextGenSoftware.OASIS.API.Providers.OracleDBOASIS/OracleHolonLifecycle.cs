@@ -21,7 +21,7 @@ public partial class OracleDBOASIS
             await using(var select=CreateCommand("SELECT DATA_JSON,HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID FROM OASIS_HOLONS WHERE ID=:Id FOR UPDATE",connection)){
                 select.Transaction=transaction;select.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();
                 await using var reader=await select.ExecuteReaderAsync();
-                if(!await reader.ReadAsync())throw new InvalidOperationException("Oracle holon to delete was not found.");
+                if(!await reader.ReadAsync()){RecordMissing(result,"Oracle holon to delete was not found.");return result;}
                 original=reader.GetString(0);row=await ReadRecordVersionAsync<Holon>(id,original,0)??throw new InvalidDataException("Oracle locked holon is missing its current version.");
                 ValidateNativeHolonProjection(row,reader.GetInt32(1),reader.GetInt32(2),reader.IsDBNull(3)?Guid.Empty:new Guid((byte[])reader.GetValue(3)));
             }

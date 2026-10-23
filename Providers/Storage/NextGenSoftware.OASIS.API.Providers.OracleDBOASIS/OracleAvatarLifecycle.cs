@@ -35,7 +35,7 @@ public partial class OracleDBOASIS
                     if(await reader.ReadAsync())throw new InvalidDataException("Oracle delete identity selector matched multiple avatars.");
                 }
             }
-            if(avatar==null)throw new InvalidOperationException("Oracle avatar to delete was not found.");
+            if(avatar==null){RecordMissing(result,"Oracle avatar to delete was not found.");return result;}
             AvatarDetail? detail=null;
             await using(var select=CreateCommand("SELECT DATA_JSON,USERNAME,EMAIL FROM OASIS_AVATAR_DETAILS WHERE ID=:Id FOR UPDATE",connection)){
                 select.Transaction=transaction;select.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();
