@@ -1,5 +1,56 @@
 # Reusable environments and disk inventory
 
+## 2026-10-23 S3 backend boundary verification resources
+
+Actual pinned official restore bfd4b6 terminal0 (6.09s) recovered dependencies into the SAME global cache; no new runtime/container/worktree. Recent `.nupkg.metadata` timestamps identify the following 22 version directories touched during admission (historical ownership uncertain where preexisting; measured current totals, not an exclusive disk delta). All paths below are relative to `C:/Users/david/.nuget/packages/`. Retain shared cached packages for reuse, do not remove while another project/process depends on them. Recreate exact versions via existing project restore if later safely removed. NuGet HTTP-cache incremental size unmeasured. No secrets.
+
+| Cache directory | Current bytes |
+| --- | ---: |
+| awssdk.core/3.7.500.38 | 24260225 |
+| awssdk.s3/3.7.502 | 33837049 |
+| dapr.client/1.18.10 | 1456405 |
+| dapr.common/1.18.10 | 612107 |
+| dapr.protos/1.18.10 | 3978010 |
+| google.api.commonprotos/2.17.0 | 3185716 |
+| google.protobuf/3.31.1 | 6729094 |
+| google.protobuf/3.35.0 | 6795339 |
+| grpc.core.api/2.80.0 | 1072224 |
+| grpc.net.client/2.80.0 | 3857403 |
+| grpc.net.common/2.80.0 | 437719 |
+| grpc.reflection/2.80.0 | 602037 |
+| microsoft.extensions.configuration.binder/10.0.8 | 1278694 |
+| microsoft.extensions.dependencyinjection/10.0.8 | 1245078 |
+| microsoft.extensions.dependencyinjection.abstractions/10.0.8 | 1979977 |
+| microsoft.extensions.diagnostics/10.0.8 | 512483 |
+| microsoft.extensions.diagnostics.abstractions/10.0.8 | 608725 |
+| microsoft.extensions.http/10.0.8 | 1593693 |
+| microsoft.extensions.logging/10.0.8 | 896608 |
+| microsoft.extensions.logging.abstractions/10.0.8 | 2823084 |
+| microsoft.extensions.options/10.0.8 | 2260482 |
+| microsoft.extensions.options.configurationextensions/10.0.8 | 500642 |
+
+Actual e42b86/bbc662 terminal0: builds green; focused9/full-S3-protocol11 green0skip. Exact report hashes and producer/source cohort in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md. Existing producer `Providers/Storage/NextGenSoftware.OASIS.API.Providers.TigrisOASIS/bin/Debug/net10.0` now6866879 bytes; existing consumer `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests/bin/Debug/net10.0` now51973327 bytes. Current totals, incremental split unmeasured. No live service/port/data fixture. Retain outputs for ongoing source-verified S3 work, regenerate with cached lease-protected builds. Compact evidence31,901 bytes retained. Free C72589684736 bytes afterward; shared machine delta not solely attributable. Build lease released to peer SQLite work; no Core/Shared source changes.
+
+Cache-only admission failed before any build: missing pinned AWSSDK.S3 3.7.502 and Dapr.Client 1.18.10 required by the existing aggregate EdgeStorage suite. Inspected global cache, configured Visual Studio shared cache, NuGet HTTP cache and retained old checkout outputs; no reusable package archives found for these pins (an old standalone DLL is not a valid replacement restore). Last resort planned: recover these exact existing project dependencies from official NuGet into the same shared cache once, retaining no separate archive/environment; transitive dependencies and measured actual sizes must be itemized after restore. No version/pin change, unrelated SDK upgrade or alternate test environment.
+
+Owner: HyperDrive provider task. Reuse existing `Providers/Storage/NextGenSoftware.OASIS.API.Providers.TigrisOASIS` SDK AWSSDK.S3 3.7.502 and existing `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests` (assets initially absent). Cache-only restore from `C:/Users/david/.nuget/packages` permitted for this same project; no network downloads or new environment planned. Shared producer-consumer lease mandatory. New SDK boundary test source `S3BackendBoundaryTests.cs` is maintained source, not disposable. Existing fixed evidence directory `C:/Source/OASIS/TestResults/S3Current` planned for compact reports; check predecessor before writing. Build outputs in each existing project `bin/Debug/net10.0` / `obj`, sizes unmeasured before operation. No native SDK calls leave process in boundary tests, no buckets/accounts/data or secrets created. Free C before operation 73002086400 bytes. Record actual outcomes and sizes afterward; keep failed evidence separate from green and hosted acceptance.
+
+## 2026-10-23 Redis safe checkpoint before AWS S3 prioritization
+
+Actual native runner 12258 TERMINAL1: two cases failed at initial verifier connection, BEFORE fixture intent or writes. Root cause established through native Redis diagnostics: protected mode enabled without a password rejects non-loopback clients arriving through the container bridge. Internal PING succeeds; this is not an SDK retry requirement. Authentication configuration remains unfinished; do not weaken connection failure handling or claim native acceptance.
+
+Retained root Podman container `oasis-redis-retained` ID `48458f978518783740065970cccbf74f6f8626a97660c625467fa561bf4d8005` uses the pinned image below and sole volume `oasis-redis-data`, `/var/lib/containers/storage/volumes/oasis-redis-data/_data`, measured 290 bytes. DBSIZE 0; no pending/snapshot/resolved fixture files were created. Container stopped after diagnosis using the exact owner script. Lifecycle: retained/reusable but authentication repair needed; no duplicate runtime. Report `C:/Source/OASIS/TestResults/RedisCurrent/redis-native-key-current.trx`: 6952 bytes, SHA256 F381E970E67315A5A4387CE17FAE3156294E754373FB521FB05512DB1AD5DD43; preserve as failed evidence, do not overwrite/relabel green. Same integration project cache-only dependency restore took 286ms, no network download. Producer and integration cached builds succeeded; Core723 source/copy verified. Generated output size unmeasured. Owner: this HyperDrive provider task. Free C after stop 73003048960 bytes; shared-machine measurement, not exclusively attributable.
+
+AWS user now requires BOTH DynamoDB and S3. Read-only inspection reused existing MinIO/Tigris sources and cached SDK references, with no install/download/service start. Existing AWS results remain DynamoDB-only. No resource removal occurred at this checkpoint.
+
+## 2026-10-23 Redis native acceptance: one retained runtime planned
+
+Official pull59382 TERMINAL0: image ID5d79a9ce29f8b3fe50fd5c07ee1bf654b5cec557b895835825bf6825d525e4f2, actual image size71394119 bytes. No install archive retained outside reusable Podman image layers. Added one reusable owner/runner in Scripts/TestHosts (Use-ReusableRedisContainer.ps1, Run-ReusableRedisKeyTests.ps1) and two owned native key-guard cases to the existing IntegrationTests project; legacy unsafe4 cases explicitly excluded by category filter. Durable intent BEFORE save, raw exact-byte snapshot before destructive guard probe, conditioned native transaction cleanup and absent readback required before resolving journals. Pending journals preserve same service/volume, no automatic replay/reset. Fixed proof paths under existing `C:/Source/OASIS/TestResults/RedisCurrent`: environment.lock, redis-native-key-current.trx, key-guard-async/sync.pending.json, .snapshot.json and .resolved.json (all new artifact sizes unmeasured before run). Integration assets absent; runner may restore SAME project only from existing global NuGet cache with --no-dependencies, no automatic network. Runtime container/volume not created yet; build first, then single owned loopback service. No Redis production implementation change or full native acceptance claim.
+
+Same HyperDrive owner. Existing Redis provider/UnitTests/IntegrationTests and StackExchange.Redis2.8.16/Pipelines.Sockets.Unofficial2.2.8 cache reused; no SDK restore planned. Existing four native tests leave records and weakly assert non-null results, so do not dispatch them unchanged. No Redis server/CLI found on inspected Windows command path, Ubuntu command path, root Podman containers/images; this is not an exhaustive machine-wide inventory. Last-resort one official Redis8.2.2-alpine linux/amd64 runtime in SAME existing Ubuntu/root Podman environment, image `docker.io/library/redis@sha256:3f835dae62fe5012baf5a768293967c93bc09cf9e848d415351dfba04ee87537`. Official OCI index metadata and registry manifest checked; compressed layers27484660 bytes/7layers, uncompressed size unmeasured before pull. Podman manifest inspect cannot parse a single-image manifest (metadata-only command failure); direct official Registry V2 read succeeded, anonymous token not retained. No runtime download occurred before this entry.
+
+Planned exact reusable identities: container `oasis-redis-retained`, volume `oasis-redis-data` (root Podman `/var/lib/containers/storage/volumes/oasis-redis-data/_data`), host127.0.0.1:18679→container6379, memory256MiB/CPU1/server maxmemory128MiB noeviction, append-only durability. Ports6379/18679 absent before allocation. Same runtime will serve future Redis/compatible KeyDB protocol tests where technically valid, not falsely certify KeyDB-specific behavior. No duplicate clone/worktree/test environment, cloud account request or paid funds. FreeC73089912832 bytes before allocation. Record actual image/volume sizes and lifecycle after pull/create; preserve reusable runtime and acknowledged test evidence. Stop only owned exact image/container after fixture proof; no FLUSHALL/FLUSHDB or broad data removal. Later cleanup requires exact image/volume ownership and no active consumers; recreate via pinned digest and same named volume (never reset unresolved data). No claim of native Redis provider acceptance yet.
+
 ## 2026-10-23 pinned adapter package-cache recovery inventory
 
 Actual32689 TERMINAL0: all40 audited adapters compile with0errors using cached no-restore assets; fresh committed Corecf4a5abe0a601962d5184ea5ab1423d055984184 producer723 SHA025AB1D5A9AEC3D30BA78168B1FFE22DAF514AF981AA15697B6F33630A430474 source/copy verified in every consumer. Each provider's own PDB/source identity was then checked. Common helper tests remain the earlier explicitly recorded32/full2091 cohort, not relabelled as40 vendor-native proofs. No private data/SDK request or service start in this build phase.40 current bin/Debug/net10.0 trees total258160796 bytes (reused/current totals, preexisting/incremental split unmeasured); retain as reusable dependency/test outputs until adapter acceptance, do not infer broad safe deletion. Exact paths below: each row's directory is relative to C:/Source/OASIS, output directory bin/Debug/net10.0, DLL name equals project directory name plus .dll. SHA is the built provider DLL; all40 use the same Core723 copy. No new environment/worktree/runtime, no downloads beyond the already-itemized64 pinned cache recoveries. FreeC73303609344 bytes after proof capture, shared-machine delta not exclusive ownership.
