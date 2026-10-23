@@ -35,6 +35,25 @@ if (query.IsError)
 // HolonManager as shown below. A leaf adapter cannot be upgraded by the caller.
 ```
 
+To require a snapshot rather than accept a provider's default isolation:
+
+```csharp
+// One snapshot per selected provider, covering its root page and descendants.
+var snapshot = CosmicQueryGraphOptions.Create(
+    CosmicQueryGraphConsistency.ProviderSnapshot,
+    maxChildDepth: 2,
+    maximumNodes: 1000);
+
+if (snapshot.IsError)
+    throw new InvalidOperationException(snapshot.Message);
+
+// Compose WithChildren(snapshot.Result), then plan/execute normally.
+// SQLite and MongoDB support this request. Neo4j rejects it before I/O
+// with CQL_CONSISTENCY_UNSUPPORTED; it cannot silently downgrade the read.
+```
+
+`Create()` retains `ProviderDefault`; use it when the selected provider's documented native isolation is acceptable. A per-provider snapshot does not synchronize different databases to one shared instant. Unsupported strong requests also reject during actual-adapter readmission, even if a caller claimed a stronger planning profile.
+
 Roots are depth zero. Depth one includes immediate children; zero means recursion within the explicit node/payload budgets. `recursive: false` reads immediate children only. `WithoutChildren()` restores leaf shape. Node and byte limits apply to the whole selected graph; exceeding them rejects the query rather than truncating it. Filtered/depth-boundary results retain omitted membership and cannot replace unobserved relationships on a child-selecting save. Use `saveChildren: false` for root-only edits.
 
 SQLite reads roots/children from one deferred Serializable snapshot. Existing caller transactions must also be Serializable and remain caller-owned. MongoDB uses one snapshot session across root/child commands; the tested environment is Mongo8.3.11 replica set with driver3.12.0. Neo4j uses one read-committed native transaction; committed child updates between commands may be visible, so this is not a repeatable snapshot. Its driver checks cancellation between native awaits and before publication, with a30-second transaction timeout. HTTP graph transport is still pending; the three-provider v1 examples below continue to demonstrate the certified leaf API. [Graph details and evidence](CQL_GRAPH_LOADING.md).
