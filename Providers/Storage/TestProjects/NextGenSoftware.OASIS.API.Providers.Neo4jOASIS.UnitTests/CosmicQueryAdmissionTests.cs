@@ -11,6 +11,25 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 public class CosmicQueryAdmissionTests
 {
     [TestMethod]
+    public async Task ClaimedSnapshotProfileCannotUpgradeNeoNativeIsolation()
+    {
+        var driver=DispatchProxy.Create<IDriver,NoIo>();
+        var provider=new Neo4jOASIS("bolt://owned.invalid","owned","owned",()=>driver){IsProviderActivated=true};
+        var options=CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot).Result;
+        var query=CosmicQuery<Holon>.Create().WithChildren(options).Result;
+        var actual=CosmicQueryPlanner.Plan(query,ProviderType.Neo4jOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.Neo4jOASIS,Neo4jOASIS.CqlCapabilities)});
+        Assert.IsTrue(actual.IsError);Assert.AreEqual("CQL_CONSISTENCY_UNSUPPORTED",actual.ErrorCode);
+        var claimed=new CosmicQueryCapabilities(CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.GraphSnapshot,
+            Array.Empty<Type>(),Array.Empty<CosmicQueryComparisonOperator>());
+        var spoofed=CosmicQueryPlanner.Plan(query,ProviderType.Neo4jOASIS,new[]{new CosmicQueryTarget(ProviderType.Neo4jOASIS,claimed)});
+        Assert.IsFalse(spoofed.IsError,spoofed.Message);
+        var rejected=await provider.ExecuteCosmicQueryAsync(spoofed.Result);
+        Assert.AreEqual("CQL_CONSISTENCY_UNSUPPORTED",rejected.ErrorCode);
+        Assert.AreEqual(0,((NoIo)driver).Calls);
+    }
+
+    [TestMethod]
     public async Task GraphAdmissionUsesTheNativeProviderContractBeforeSessionCreation()
     {
         var driver=DispatchProxy.Create<IDriver,NoIo>();
