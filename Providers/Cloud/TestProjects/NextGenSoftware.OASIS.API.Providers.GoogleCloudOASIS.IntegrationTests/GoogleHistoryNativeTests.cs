@@ -197,9 +197,9 @@ public partial class GoogleHistoryNativeTests
             await Save(root);await Save(child);child.Name="child2";await Save(child);child.Name="child3";await Save(child);
             var oldName=root.Name;root.Name="current-root";root.ParentHolonId=newParent;root.CreatedByAvatarId=Guid.NewGuid();root.MetaData["owned-query"]="changed";await Save(root);
             void CheckRoot(IHolon selected){Assert.AreEqual(id,selected.Id);Assert.AreEqual(1,selected.Version);Assert.AreEqual(oldParent,selected.ParentHolonId);Assert.AreEqual(owner,selected.CreatedByAvatarId);Assert.AreEqual(3,selected.Children.Single().Version);Assert.AreEqual("child3",selected.Children.Single().Name);}
-            var point=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true,version:1);Assert.IsFalse(point.IsError,point.Exception?.ToString());CheckRoot(point.Result);
+            var point=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true,version:1);Assert.IsFalse(point.IsError,point.Exception?.ToString());Assert.AreEqual(1,point.LoadedCount);CheckRoot(point.Result);
             var listed=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true,version:1);Assert.IsFalse(listed.IsError,listed.Message);CheckRoot(listed.Result.Single(row=>row.Id==id));
-            var parent=await provider.LoadHolonsForParentAsync(oldParent,loadChildrenFromProvider:true,version:1);Assert.IsFalse(parent.IsError,parent.Message);CheckRoot(parent.Result.Single());
+            var parent=await provider.LoadHolonsForParentAsync(oldParent,loadChildrenFromProvider:true,version:1);Assert.IsFalse(parent.IsError,parent.Message);Assert.AreEqual(1,parent.LoadedCount);CheckRoot(parent.Result.Single());
             var bounded=await provider.LoadHolonsForParentAsync(oldParent,maxChildDepth:1,loadChildrenFromProvider:true,version:1);
             Assert.IsFalse(bounded.IsError,bounded.Exception?.ToString());Assert.AreEqual(0,bounded.Result.Single().Children.Count);
             var boundedSync=provider.LoadHolonsForParent(oldParent.ToString(),maxChildDepth:1,loadChildrenFromProvider:true,version:1);
@@ -208,9 +208,9 @@ public partial class GoogleHistoryNativeTests
             var metadata=await provider.LoadHolonsByMetaDataAsync("owned-query",id.ToString(),loadChildrenFromProvider:true,version:1);Assert.IsFalse(metadata.IsError,metadata.Message);CheckRoot(metadata.Result.Single());
             var search=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,FilterByMetaData=new(){{"owned-query",id.ToString()}},SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery=oldName,SearchHolons=true}}},version:1);
             Assert.IsFalse(search.IsError,search.Exception?.ToString());CheckRoot(search.Result.SearchResultHolons.Single());
-            var owned=await provider.ExportAllDataForAvatarByIdAsync(owner,1);Assert.IsFalse(owned.IsError,owned.Message);CheckRoot(owned.Result.Single());
+            var owned=await provider.ExportAllDataForAvatarByIdAsync(owner,1);Assert.IsFalse(owned.IsError,owned.Message);Assert.AreEqual(1,owned.LoadedCount);CheckRoot(owned.Result.Single());
             var exported=provider.ExportAll(1);Assert.IsFalse(exported.IsError,exported.Message);CheckRoot(exported.Result.Single(row=>row.Id==id));
-            var absent=await provider.LoadAllHolonsAsync(loadChildren:false,version:99);Assert.IsFalse(absent.IsError,absent.Message);Assert.IsFalse(absent.Result.Any());
+            var absent=await provider.LoadAllHolonsAsync(loadChildren:false,version:99);Assert.IsFalse(absent.IsError,absent.Message);Assert.AreEqual(0,absent.LoadedCount);Assert.IsFalse(absent.Result.Any());
             foreach(var key in new[]{id,childId}){
                 var reference=verifier.Collection("holons").Document(key.ToString());var actual=await reference.GetSnapshotAsync();Assert.IsTrue(actual.Exists);Assert.AreEqual(key.ToString(),actual.GetValue<string>("id"));
                 await reference.DeleteAsync(Precondition.LastUpdated(actual.UpdateTime!.Value));Assert.IsFalse((await reference.GetSnapshotAsync()).Exists);
