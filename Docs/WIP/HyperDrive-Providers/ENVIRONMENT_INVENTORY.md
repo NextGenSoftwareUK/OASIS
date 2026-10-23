@@ -364,6 +364,78 @@ No automatic removal from this document. First resolve absolute targets, process
 Still to backfill: installed .NET/JDK/Node SDKs and Android SDK/AVD ownership, all provider test data directories and bound ports, exact container volume/mount mappings/digests, repository bin/obj outputs, temporary downloads, product-managed caches and VHDX allocated footprint. Existing cleanup ledger remains the historical source for previous downloads/removals; do not reinterpret shared/user installations as task-owned.
 ## 2026-10-21 ongoing inventory and removal contract
 
+2026-10-23 empty MSTest deployment scaffold cleanup, owner session01a11d74: measured57 exact directories below,0 files/0 logical file bytes, no reparse points. Historical creation ownership partly uncertain; contents verified empty, not inferred disposable from names/age. These are generated MSTest scaffolds, not duplicate runtimes or large artifacts. Planned bottom-up NONRECURSIVE empty-directory deletion only after no Oracle test process is live; any file/changed ownership/reparse point aborts. LiveDriverControlled/driver.lock is NOT included. No source/credential/report/evidence/database deletion; future MSTest runs recreate empty scaffolds. Exact targets:
+
+Verified outcome:57 top-level scaffolds plus171 empty nested directories (228 total) REMOVED,0 files/0 logical bytes. Exact absolute-root/parent/name checks, complete no-file/no-reparse scan, no live Oracle dotnet/testhost, and NONRECURSIVE Directory.Delete(path,false) used; independent absence checked for each target. Cfree79,833,473,024bytes before AND after, so NO meaningful free-space gain claimed. Required reports/schema marker/locks, cached bin+obj/runtime/volume and LiveDriverControlled remain retained. Regeneration is automatic empty deployment scaffolding on future MSTest runs; no user data/evidence lost.
+
+```text
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T122044
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T122628
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T123332
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T123603
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T124358
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T124958
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T125239
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T131337
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T132812
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T134941
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T135417
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T151301
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T153707
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T190228
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T191015
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T191100
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T191159
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T192148
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T192430
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T193816
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T194620
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T195803
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261019T195828
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T035551
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T052959
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T054019
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T164513
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T165410
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T170210
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T171112
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T183812
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T185700
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T185741
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T192134
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261020T192644
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T031836
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T032631
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T033945
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T034912
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T040358
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T042506
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T043757
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T044645
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T050019
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T053053
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T055235
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T060733
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T061610
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T063002
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T070239
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T070406
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T071549
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T072308
+C:\Source\OASIS\TestResults\OracleCurrent\Deploy_david 20261023T074429
+C:\Source\OASIS\TestResults\OracleObjectCurrent\Deploy_david 20261023T064644
+C:\Source\OASIS\TestResults\OracleObjectCurrent\Deploy_david 20261023T064757
+C:\Source\OASIS\TestResults\OracleObjectCurrent\Deploy_david 20261023T064829
+```
+
+2026-10-23 Oracle extra-column admission native12 planned, session01a11d74: SAME retained runtime/volume/protected secret/SDK/cache/fixed OracleCurrent. Single fixed synthetic table OASIS_EXTRA_COLUMN_PROBE created/reused sequentially across six definitions and sync/async admission. Original absence checked before CREATE, pending intent BEFORE DDL, acknowledged OBJECT_ID journaled, native INSERT only into owned probe then rollback, exact OBJECT_ID/zero rows required before DROP and independent absence before journal retirement. No canonical table/schema/account alteration, new environment/install/restore/cloud calls. Own pending journal C:/Source/OASIS/TestResults/OracleCurrent/extra-column.pending.json; expected clean0 on completed cases, unknown CREATE keeps intent. Report oracle-extra-column-native-current.trx; preserve red by SHA-verified MOVE before green. Table/rows DISPOSABLE ONLY after exact verified teardown; reports retained evidence, sizes/outcomes to follow. Optional nullable/default/identity/virtual columns must remain admissible; omitted required visible/invisible columns without default must fail before activated publication. Oracle USER_TAB_COLS metadata reference: https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/ALL_TAB_COLS.html .
+
+Red78575 ACTUAL TERMINAL1: genuine4fail/8pass12,3s; admission falsely succeeds for extra required/no-default visible+invisible columns, even though actual canonical-shape INSERT raises ORA01400. Each case completed objectID/row0/absence cleanup before semantic assertions, independent pending0; canonical tables unchanged. Fixed report24,420bytes SHA9EC28D659C1B24DF55100E726DA020BAE88160CA8811EBF2E6FAC12A64E67F94 retained for SHA-verified MOVE. Runtime deliberately left RUNNING by failed-run policy; producer/source slot released for peer joint96 before Oracle-only source correction. Green fixture now journals implicit identity-sequence name and emits it to TRX, verifies dependent sequence absence after exact owned-table DROP PURGE (avoids recycle-bin retention). Red identity-generated sequence names were not logged; historical inventory is explicitly incomplete for those names and no retrospective name-based deletion is authorized. Current native12/main492/Oracle289 controls planned; no new SDK/API/client or database environment.
+
+Green68919 ACTUAL TERMINAL0: native12/main492/Oracle289 allpass0skip, CoreBFB/Shared3AD0F98F831B9CBF2EB01576E12B8F128BDC6728D7ED1E9B85B7C210FC72579C/source identity verified. Main492 includes12. First green lease attempt denied BEFORE body (no MOVE/test/mutation), then reused after peer30596 actual-terminal handoff. SAME running Oracle retained from red, no restart/new runtime. Own exact-OBJECT_ID fixture tables and dependent identity sequences retired: focused73225+73228/ISEQ$$_73225+ISEQ$$_73228; full73251+73254/ISEQ$$_73251+ISEQ$$_73254. All probe INSERTs rolled back; DROP PURGE only owned row0 objects, independent table/sequence absence before journal retirement. Retired schemas/data are disposable and reproducible from OracleExtraColumnNativeTests, no user records or canonical tables removed. Known rollback/absence proof required, never DELETE by age/name alone.
+
+After complete success, same retained container explicitly stopped; independent stateEXITED/listener11521zero/pending0. Volume remains5,622,958,423bytes (unchanged); Cfree79,868,567,552 after vs80,011,460,608 previous shared observation, no exclusive attribution or reclaimed-Windows-space claim. Report paths/sizes/SHA exact in ORACLE_CLIENT_PRIORITY.md current extra-column table; retain required evidence. Red original MOVED with hash9EC28D... to oracle-extra-column-native-red.trx, old main480 MOVED hash160488A... to oracle-native-current.trx.pre-extra-column. No copies/overwrites/new environment/dependency restore/download/hosted requests. Fixed cached producer/consumer bin+obj remain ACTIVE/REUSABLE, outputs measured only via reports here (individual DLL footprint not refreshed); no new per-run environment was created. Source/producer lease released only at actual terminal.
+
 2026-10-23 remaining Oracle cohort refresh planned, session01a11d74: reuse SAME Oracle image/container/volume/schema marker/secret/11521, cached Core/Shared/Oracle/OCI SDK/test outputs and .NET10. No install/download/restore/worktree/environment. Refresh preparation6/encrypted-replay4/separate-client-write2+recover2, Oracle289 controls, OCI77 SDK controls and Shared968 controls against current published Core. Preserve eight completed prior current reports/proof JSONs by exact SHA-verified MOVE to fixed `.pre-current-oracle-recovery` paths; never overwrite original unknown outcomes. Start retained Oracle once, share across all phases, stop only on completed success/pending0. Same fixed OracleCurrent/OracleObjectCurrent evidence and process proofs, no per-run directories. New compact coherent-control reports planned; actual counters/hash/size/resource teardown to follow. This is same-provider native persistence/recovery, NOT deeper auto failover/replication/load-balancing or hosted Cloud certification.
 
 Initial producer-lease attempt refused BEFORE operation body (peer live Mongo CQL process18608/vstest83472/testhost77612 independently observed). Therefore NONE of the planned eight MOVE operations/builds/runtime-start/tests occurred in that attempt. Oracle inspected exited with original image digest and exact127.0.0.1:11521 mapping. Waiting for actual-terminal handoff, not bypassing the lease or creating a duplicate environment. Source/PDB hold requested for clean published Core6c/Shared; only provider-local peer edits reported.
