@@ -2,6 +2,10 @@
 
 22 October 2026. CQL is a generic COSMIC ORM query pipeline. Native providers translate its admitted intermediate representation; they do not implement separate public query languages. [Developer manual](CQL_MANUAL.md), [HTTP contract](CQL_V1_HTTP_CONTRACT.md), [execution reference](CQL_EXECUTION_PIPELINE.md).
 
+## Native graph execution checkpoint — 23 October
+
+Core owns immutable graph intent, capability readmission, detached publication and typed selection ownership. Shared `HolonGraphQueryExpansion` assembles provider-owned native rows with cumulative node/UTF-8 bounds and persisted role ordering. SQLite owns one deferred Serializable native read transaction for roots and children, native parent/type/member predicates, pre-materialization row/byte bounds and the existing instruction/deadline hook. Caller Serializable transactions are reused without committing them. MongoDB and Neo4j graph readers remain pending. HTTP v1 remains leaf-only until authoritative graph access and accounting are implemented. [Contract and native evidence](CQL_GRAPH_LOADING.md).
+
 ## Layers and ownership
 
 ```mermaid

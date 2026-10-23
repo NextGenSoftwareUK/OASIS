@@ -1,6 +1,6 @@
 # CQL child graphs — implementation checkpoint
 
-23 October 2026. Graph composition/admission, detached graph publication and typed graph tracking are implemented in Core. Native graph loading remains open. The three native adapters still advertise leaf execution only and reject graph requests before adapter I/O. Include/relationship queries are not yet ready to demo against those stores.
+23 October 2026. Core graph composition/publication and native SQLite SDK expansion are implemented. MongoDB and Neo4j graph readers remain open and reject graph requests before adapter I/O. Relationship predicates and authenticated HTTP graph transport remain open.
 
 ## Implemented contract
 
@@ -8,7 +8,7 @@
 
 `WithChildren(options)` returns a new query. Filtering, scope changes, ordering and Skip/Take retain that exact immutable shape; the source query is unchanged. Loading children after selecting a root page is valid. `WithoutChildren()` explicitly returns leaf shape. Fluent error propagation preserves the original error rather than replacing it with a successful graph query.
 
-Graph requests require GraphExpansion capability at planning and again against the actual execution adapter. A caller-supplied capability profile cannot bypass that check. No native adapter claims the capability in this checkpoint. v1 HTTP DTO/behavior is unchanged.
+Graph requests require GraphExpansion capability at planning and again against the actual execution adapter. A caller-supplied capability profile cannot bypass that check. SQLite now advertises it; MongoDB and Neo4j do not. v1 HTTP DTO/behavior remains leaf-only.
 
 ## Detached and typed publication
 
@@ -29,9 +29,19 @@ Registered child factories receive admitted metadata and retain identity/revisio
 5. HolonChildRoleHydration.ApplyFullySelected is valid only for a fully selected immediate membership. Depth/type/visibility-limited selections must retain the stored manifest and incomplete observation. HolonChildRoleObservation.AssertCanReplace prevents a child-selecting save from overwriting an unobserved membership; keep that invariant.
 6. Hosted access policy must constrain each child/relationship match inside native reads. SDK query options are not authorization. A root's arbitrary business predicates cannot simply be reused as the child visibility policy.
 
-Native source notes: SQLite's ordinary LoadHolon path currently feeds AttachLoadedChildren from an entire Holon-table materialization; that is not a bounded CQL expansion reader. Mongo ExecuteNativeCqlAsync currently aggregates without a session and maps children:false. Neo CQL already owns a read transaction but returns one SnapshotJson per selected root. Reuse their native mapping/transaction owners while adding bounded expansion, rather than recursively invoking public load/query methods.
+Native source notes: SQLite CQL uses a dedicated bounded native reader, not its ordinary whole-table AttachLoadedChildren path. Mongo ExecuteNativeCqlAsync currently aggregates without a session and maps children:false. Neo CQL already owns a read transaction but returns one SnapshotJson per selected root. Reuse their native mapping/transaction owners while adding bounded expansion, rather than recursively invoking public load/query methods.
 
-## Verification
+## Native SQLite checkpoint
+
+Root paging and descendant reads share one deferred Serializable SQLite transaction and one native instruction/deadline/cancellation budget. Read-only connections work. An existing Serializable caller transaction is reused without committing it; weaker caller transactions reject with CQL_CONSISTENCY_UNSUPPORTED. A WAL concurrency test changes a child after the root page and proves that the graph retains the original snapshot.
+
+The shared HolonGraphQueryExpansion assembler charges nodes and UTF-8 payload when discovered, including queued records. SQLite predicates select parent, type and persisted membership natively, batch membership lists at 128 IDs, cap each read with the remaining node budget plus one overflow probe, and check streamed bytes before materialization. All-type missing members, contradictory links and cycles fail the whole query. Persisted role order is retained; records without role manifests use parent links and deterministic GUID ordering. These older record formats do not introduce changes to legacy Hyperdrive.
+
+Private selection evidence prevents partial or leaf CQL views without manifests from becoming relationship replacements through local AcceptChanges, including after forged subset-manifest JSON. Root-only saves remain permitted. This fixes a proven ownership gap for both raw and typed query results; user-editable metadata cannot grant complete observation.
+
+Acceptance: full Core 1,722/1,722, Shared 954/954 and SQLite integration 1,218/1,218, zero skips. These include 15 native SQLite graph cases and 9 shared expansion cases. Logs: TestResults/CosmicCqlDemo/{core-graph-full,shared-graph-full,sqlite-graph-full,shared-cql-graph-tests,sqlite-cql-graph-tests}.log. Core ownership regressions first failed in cql-legacy-selection-red.log. This certifies SQLite SDK graph expansion, not completion of the three-provider roadmap or HTTP graphs.
+
+## Earlier composition checkpoint verification
 
 Core focused graph options: 19/19 passed. Full Core: 1,698/1,698 passed, zero skipped; both Core target frameworks build. Cases cover depth/recursion, invalid budgets/types, immutable composition, root paging, first-error preservation and actual-adapter readmission before I/O. Existing native v1 cohort: 65/65 passed, zero skipped, against all three stores. Its 97-attempt/98-settlement HTTP matrix remains intact. This is leaf regression evidence, not native graph acceptance.
 
@@ -39,7 +49,7 @@ Core task commit: `014987d`. Reports: `C:/Source/OASIS/TestResults/CosmicCqlDemo
 
 [Completion gates](CQL_COMPLETION_ROADMAP.md), [architecture](CQL_ARCHITECTURE.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
-## Publication checkpoint evidence
+## Earlier publication checkpoint evidence
 
 Core task commit `945386c`: focused graph execution/ownership22/22; full Core1,720/1,720; native leaf cohort65/65, all zero skips. Both Core targets build. The initial12 graph-publication tests all failed before the edge/budget repair; the expanded20-case cohort then exposed two missing-manifest failures while confirming existing encrypted-child tracking. A separate typed-constructor timing case failed before the early-admission change. Final22 cases also cover a registered encrypted typed-child factory, 1,200-edge depth, cross-provider node budgets, UTF-8 payloads and partial-save ownership.
 
