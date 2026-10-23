@@ -140,3 +140,8 @@ Remaining work includes authenticated production WEB4 integration, broader gener
 The demo sources now use a shared local `.editorconfig` (UTF-8, four-space indentation, separate statements) and teaching comments. Start with `Examples/CosmicCqlDemo/CoffeeWalkthrough.cs`: setup and the planning/execution helper lead into seven numbered query/save examples with expected results. `CoffeeApiHost.cs` explains the equivalent request-to-query pipeline; `Program.cs` explains host setup, two-client ownership and teardown. Demo assertions verify behavior and are not required application boilerplate.
 
 The final readability batch was rebuilt using the existing environment and build lease. Console query/tracking/no-op/delta/conflict checks and all six HTTP/Swagger checks passed. Formatting verification and the build lease contract check passed. No host or synthetic database was retained. Detailed evidence remains in the fixed `TestResults/CosmicCqlDemo` directory, including `readability-verification.log`.
+
+
+### Access-bound graph walkthrough
+
+The C# native and HTTP walkthroughs now include example4. The browser has an Access-bound child graph preset and Swagger pre-fills graph options. Use Alice: C-public returns public child and owned child; the private intermediate and its public grandchild are absent. Visitor returns public child only. The server binds identity from the bearer/admission, not the body. The native SDK uses WithReadAccess, not just a root Where predicate. Root-only edits use saveChildren:false; SDK raw holons retain private store observations and are not public JSON DTOs. See the HTTP contract for depth/node/byte bounds and consistency.

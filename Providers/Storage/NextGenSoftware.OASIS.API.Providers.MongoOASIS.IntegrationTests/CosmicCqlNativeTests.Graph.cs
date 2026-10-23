@@ -102,14 +102,11 @@ public sealed partial class CosmicCqlNativeTests
             if(manifested)Assert.Equal(2,Core.Serialization.HolonChildRoleManifestJson.Deserialize(((Holon)root).ChildRoleManifestJson).Roles.Single().ChildIds.Count);
         },manifest:manifested,configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=visible;});
 
-    private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query, CosmicQueryReadAccess policy)
+    private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query,CosmicQueryReadAccess policy)
     {
-        // Exercise the adapter contract while public SDK/HTTP graph admission is
-        // still closed. Reflection is confined to this test fixture, not runtime.
-        var constructor=typeof(CosmicQuery<Holon>).GetConstructors(
-            System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Single();
-        return (CosmicQuery<Holon>)constructor.Invoke(new object?[]{query.Scope,query.Predicates.ToArray(),
-            query.Orderings.ToArray(),query.Offset,query.Limit,query.GraphOptions,policy});
+        var bound=query.WithReadAccess(policy);
+        if(bound.IsError)throw new InvalidOperationException(bound.Message);
+        return bound.Result;
     }
 
     private static CosmicQueryPlan<Holon> MongoGraphPlan(Holon root,CosmicQueryGraphOptions options,CosmicQueryReadAccess? access=null)

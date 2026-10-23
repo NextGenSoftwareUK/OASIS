@@ -45,8 +45,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         root.Children.All(child=>child.IsPublic && !child.Children.Any()).Should().BeTrue();
         if(manifested)Core.Serialization.HolonChildRoleManifestJson.Deserialize(((Holon)root).ChildRoleManifestJson).Roles.Single().ChildIds.Should().HaveCount(2);
 
-        // Exercise native selection -> detached admission -> typed role hydration
-        // together, while public SDK/HTTP graph-policy composition stays gated.
+        // Exercise the public SDK native -> detached -> typed graph pipeline.
         var published=await CosmicManager(provider,true).ExecuteQueryAsync(plan,
             new ICosmicQueryStorageProvider[]{provider});
         published.IsError.Should().BeFalse(published.Message+published.Exception);
@@ -56,14 +55,11 @@ public partial class SQLLiteDBOASISIntegrationTests
         HolonChangeTracking.HasChanges(typed).Should().BeFalse();
     }
 
-    private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query, CosmicQueryReadAccess policy)
+    private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query,CosmicQueryReadAccess policy)
     {
-        // Exercise the adapter contract while public SDK/HTTP graph admission is
-        // still closed. Reflection is confined to this test fixture, not runtime.
-        var constructor=typeof(CosmicQuery<Holon>).GetConstructors(
-            System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Single();
-        return (CosmicQuery<Holon>)constructor.Invoke(new object?[]{query.Scope,query.Predicates.ToArray(),
-            query.Orderings.ToArray(),query.Offset,query.Limit,query.GraphOptions,policy});
+        var bound=query.WithReadAccess(policy);
+        if(bound.IsError)throw new InvalidOperationException(bound.Message);
+        return bound.Result;
     }
 
     private static CosmicQueryPlan<Holon> NativeGraphPlan(Holon root, CosmicQueryGraphOptions options,CosmicQueryReadAccess? access=null)
