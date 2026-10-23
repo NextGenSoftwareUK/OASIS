@@ -25,6 +25,70 @@ public partial class SQLLiteDBOASISIntegrationTests
         await global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyAsync(provider,root);
     }
 
+    [Fact]
+    public async Task NativeCqlDescendantCancellationAfterNativeReaderReleasesOwnerAndCallbacks()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source=NativeQueryGraph();
+        (await provider.SaveHolonAsync(source)).IsError.Should().BeFalse();
+        using var cancellation=new CancellationTokenSource();
+        var observed=false;
+        using var context=new GraphReadContext(TestConnectionString,new DescendantReaderInterceptor(()=>
+        {
+            observed=true;cancellation.Cancel();return Task.CompletedTask;
+        }));
+        var repository=new HolonRepository(context,()=>false);
+        var plan=DescendantPlan(source);
+        var read=await repository.ExecuteCosmicQueryAsync(plan,100,cancellation.Token);
+        observed.Should().BeTrue();read.ErrorCode.Should().Be("CQL_QUERY_CANCELLED");
+        read.Result.Should().BeNull();read.IsLoaded.Should().BeFalse();
+        context.Database.CurrentTransaction.Should().BeNull();
+        context.Database.GetDbConnection().State.Should().Be(System.Data.ConnectionState.Closed);
+        var fresh=await repository.ExecuteCosmicQueryAsync(plan,100,default);
+        fresh.IsError.Should().BeFalse(fresh.Message+fresh.Exception);fresh.Result.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task NativeCqlDescendantSnapshotRetainsOldPathAcrossConcurrentReparent()
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source=NativeQueryGraph();var next=new Holon{Id=Guid.NewGuid(),Name="new parent"};
+        (await provider.SaveHolonAsync(source)).IsError.Should().BeFalse();
+        (await provider.SaveHolonAsync(next,saveChildren:false)).IsError.Should().BeFalse();
+        using(var configuration=new DataContext(TestConnectionString))
+            configuration.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL");
+        var moved=false;
+        using var context=new GraphReadContext(TestConnectionString,new DescendantReaderInterceptor(async()=>
+        {
+            using var writer=new DataContext(TestConnectionString);
+            var childId=source.Children.First().Id.ToString("D");var parentId=next.Id.ToString("D");
+            await writer.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET ParentHolonId={parentId} WHERE Id={childId}");
+            moved=true;
+        }));
+        var repository=new HolonRepository(context,()=>false);
+        var old=await repository.ExecuteCosmicQueryAsync(DescendantPlan(source),100,default);
+        moved.Should().BeTrue();old.IsError.Should().BeFalse(old.Message+old.Exception);old.Result.Should().ContainSingle();
+        var fresh=await repository.ExecuteCosmicQueryAsync(DescendantPlan(source),100,default);
+        fresh.IsError.Should().BeFalse(fresh.Message+fresh.Exception);fresh.Result.Should().BeEmpty();
+        await global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyMovedSubtreeAsync(
+            provider,source.Id,next.Id,false,"grandchild");
+    }
+
+    private sealed class DescendantReaderInterceptor(Func<Task> action) : Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor
+    {
+        private bool invoked;
+        public override async ValueTask<System.Data.Common.DbDataReader> ReaderExecutedAsync(
+            System.Data.Common.DbCommand command,Microsoft.EntityFrameworkCore.Diagnostics.CommandExecutedEventData eventData,
+            System.Data.Common.DbDataReader result,CancellationToken cancellationToken=default)
+        {
+            if(!invoked && command.CommandText.Contains("WITH RECURSIVE",StringComparison.OrdinalIgnoreCase))
+            {invoked=true;await action();}
+            return result;
+        }
+    }
+
     private static CosmicQueryPlan<Holon> DescendantPlan(Holon root, int depth = 4, int nodes = 10,
         CosmicQueryReadAccess? access = null, string name = "grandchild")
     {

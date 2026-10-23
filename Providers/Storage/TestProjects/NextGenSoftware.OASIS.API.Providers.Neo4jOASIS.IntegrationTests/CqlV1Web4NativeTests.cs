@@ -154,7 +154,7 @@ public sealed partial class CqlV1Web4NativeTests
                     var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
                     using var client = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
 
-                    async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null)
+                    async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null,bool expectContinue = false)
                     {
                         var operation = operationKey ?? Guid.NewGuid().ToString("D");
                         await Journal("before-http-request", new { actor, operation });
@@ -163,6 +163,7 @@ public sealed partial class CqlV1Web4NativeTests
                             Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
                         };
                         request.Headers.Add("Idempotency-Key", operation);
+                        request.Headers.ExpectContinue=expectContinue;
                         if (actor != Guid.Empty)
                             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer",
                                 tokenOverride ?? authority.Tokens.Single(pair => pair.Value == actor).Key);
@@ -337,7 +338,7 @@ public sealed partial class CqlV1Web4NativeTests
                         "Omitted provider resolves the server's active current default.");
 
                     var beforeOversize = authority.Started.Count;
-                    using (var oversized = await Send(new { Provider = new string('x', 40000) }, alice))
+                    using (var oversized = await Send(new { Provider = new string('x', 40000) }, alice, expectContinue:true))
                         Assert.AreEqual(HttpStatusCode.RequestEntityTooLarge, oversized.StatusCode);
                     Assert.AreEqual(beforeOversize, authority.Started.Count, "Request budget rejects before reservation.");
 

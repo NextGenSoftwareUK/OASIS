@@ -1,5 +1,13 @@
 # COSMIC ORM implementation status
 
+## 23 October — Concurrent reads and pre-admission HTTP errors
+
+SQLite snapshot and Mongo snapshot controls retain the original path during an acknowledged concurrent reparent, then fresh reads see current membership. Neo4j read committed controls permit an already-fetched old row and require fresh-path correctness. Post-read cancellation/expiry never publishes partial results and permits a fresh read. Strict interruption of an outstanding Neo4j driver await remains open.
+
+The Core usage middleware now classifies native Kestrel pre-admission body-limit exceptions as `REQUEST_TOO_LARGE` (413) and writes complete JSON with explicit UTF-8 length. Known oversized HTTP/1 controls negotiate `Expect: 100-continue`; no request retry was added. Exact reconciliation proved 133 settled operations and two absent trailing operation IDs before owned cleanup.
+
+Fresh verification: Core **1,834**, joint Neo4j/WEB4 **114**, MongoDB **64**, SQLite native **204** plus CQL **18**, and the focused real-Kestrel **4** cases pass with zero skips. All three consumers match Core 712/Shared 55 source documents and producer hashes. Fixtures are removed and owned test ports stopped. Full CQL completion remains governed by the unchecked [roadmap](CQL_COMPLETION_ROADMAP.md).
+
 ## 23 October — Actual depth boundary and moved subtrees
 
 A shared test-only33-edge chain now proves actual depth31/32 selection, exclusion of node33 and31-node overflow on all3 native stores. Existing acknowledged reparent fixtures also prove that a moved grandchild leaves its old path and requires new-owner membership. FullSQLite1249/focused46, Mongo62 and jointNeo110 pass0skip; all3source/PDB consumers match Core712/Shared55. No production Core/Shared/provider change was needed. Broader cancellation/concurrent-reparent and aggregate phases remain open. [Native contract](CQL_DESCENDANT_CONTRACT.md#exact-boundary-and-moved-subtree-certification).
