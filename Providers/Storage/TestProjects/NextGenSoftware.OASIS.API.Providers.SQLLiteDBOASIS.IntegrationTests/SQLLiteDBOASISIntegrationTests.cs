@@ -615,6 +615,12 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         var loaded = await provider.LoadProviderWalletsForAvatarByIdAsync(avatar.Id);
         loaded.IsError.Should().BeTrue();
         loaded.Exception.Should().BeAssignableTo<Newtonsoft.Json.JsonException>();
+        if(payload is "not-json" or "[]")
+        {
+            var malformed=loaded.Exception.Should().BeOfType<Newtonsoft.Json.JsonSerializationException>().Subject;
+            malformed.InnerException.Should().BeOfType<System.IO.InvalidDataException>();
+            if(payload=="not-json")malformed.InnerException!.InnerException.Should().BeAssignableTo<System.Text.Json.JsonException>();
+        }
         loaded.Result.Should().BeNull();
         control.AvatarWalletStores.Single().WalletsJson.Should().Be(payload);
     }
@@ -792,11 +798,15 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
-    [InlineData("id")]
-    [InlineData("username")]
-    [InlineData("email")]
-    public async Task ProviderWalletSaveMustSurviveFreshConnectionReadback(string selector)
+    [InlineData("id",false)] [InlineData("id",true)]
+    [InlineData("username",false)] [InlineData("username",true)]
+    [InlineData("email",false)] [InlineData("email",true)]
+    [InlineData("batch",false)] [InlineData("batch",true)]
+    public async Task ProviderWalletSaveMustSurviveFreshConnectionReadback(string selector,bool synchronous)
     {
+        const string exactDate="2030-01-02T03:04:05.0000000+05:30";
+        const string exactNumber="9007199254740993.125";
+        const string beyondDecimal="0.123456789012345678901234567890123456789";
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-wallet-avatar", Email = "owned-wallet@test.local",
             AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
         var wallet = new ProviderWallet { WalletId = Guid.NewGuid(), AvatarId = avatar.Id,
@@ -809,11 +819,16 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         wallet.CreatedDate = new DateTime(2026, 10, 14, 1, 2, 3, DateTimeKind.Utc);
         wallet.Version = 7;
         wallet.MetaData["public-test-label"] = "retained";
+        wallet.MetaData["date-looking-string"] = exactDate;
+        using(var number=System.Text.Json.JsonDocument.Parse(exactNumber))
+            wallet.MetaData["exact-number"]=number.RootElement.Clone();
+        using(var number=System.Text.Json.JsonDocument.Parse(beyondDecimal))
+            wallet.MetaData["beyond-decimal"]=number.RootElement.Clone();
         var transaction = new NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response.WalletTransaction
         {
             TransactionId = Guid.NewGuid(), NativeTransactionId = "test-native-receipt",
             RawAmount = "12345678901234567890", AmountUnit = "lamport", Amount = 12.5,
-            Description = "retained-history", CreatedDate = DateTime.UtcNow
+            Description = "retained-history", MemoText = exactDate, CreatedDate = DateTime.UtcNow
         };
         wallet.Transactions = new() { transaction };
         using (var provider = new SQLLiteDBOASIS(TestConnectionString))
@@ -823,9 +838,10 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
             var wallets = new Dictionary<ProviderType, List<IProviderWallet>> { [ProviderType.SolanaOASIS] = new() { wallet } };
             var saved = selector switch
             {
-                "id" => await provider.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, wallets),
-                "username" => await provider.SaveProviderWalletsForAvatarByUsernameAsync(avatar.Username, wallets),
-                "email" => await provider.SaveProviderWalletsForAvatarByEmailAsync(avatar.Email, wallets),
+                "id" => synchronous?provider.SaveProviderWalletsForAvatarById(avatar.Id,wallets):await provider.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, wallets),
+                "username" => synchronous?provider.SaveProviderWalletsForAvatarByUsername(avatar.Username,wallets):await provider.SaveProviderWalletsForAvatarByUsernameAsync(avatar.Username, wallets),
+                "email" => synchronous?provider.SaveProviderWalletsForAvatarByEmail(avatar.Email,wallets):await provider.SaveProviderWalletsForAvatarByEmailAsync(avatar.Email, wallets),
+                "batch" => synchronous?provider.SaveProviderWallets(wallets):await provider.SaveProviderWalletsAsync(wallets),
                 _ => throw new ArgumentException(nameof(selector))
             };
             saved.IsError.Should().BeFalse(saved.Message);
@@ -837,10 +853,14 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         }
         using var reopened = new SQLLiteDBOASIS(TestConnectionString);
         (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
-        var loaded = await reopened.LoadProviderWalletsForAvatarByIdAsync(avatar.Id);
+        var loaded = selector switch {
+            "username"=>synchronous?reopened.LoadProviderWalletsForAvatarByUsername(avatar.Username):await reopened.LoadProviderWalletsForAvatarByUsernameAsync(avatar.Username),
+            "email"=>synchronous?reopened.LoadProviderWalletsForAvatarByEmail(avatar.Email):await reopened.LoadProviderWalletsForAvatarByEmailAsync(avatar.Email),
+            _=>synchronous?reopened.LoadProviderWalletsForAvatarById(avatar.Id):await reopened.LoadProviderWalletsForAvatarByIdAsync(avatar.Id)};
         loaded.IsError.Should().BeFalse(loaded.Message);
         loaded.Result.Should().ContainKey(ProviderType.SolanaOASIS);
         var persistedWallet = loaded.Result[ProviderType.SolanaOASIS].Should().ContainSingle().Subject;
+        using var scalarAssertions=new FluentAssertions.Execution.AssertionScope();
         persistedWallet.WalletId.Should().Be(wallet.WalletId);
         persistedWallet.AvatarId.Should().Be(avatar.Id);
         persistedWallet.PrivateKey.Should().Be(wallet.PrivateKey);
@@ -856,12 +876,25 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         persistedWallet.CreatedDate.Should().Be(wallet.CreatedDate);
         persistedWallet.Version.Should().Be(7);
         persistedWallet.MetaData["public-test-label"].ToString().Should().Be("retained");
+        persistedWallet.MetaData["date-looking-string"].ToString().Should().Be(exactDate);
+        persistedWallet.MetaData["exact-number"].ToString().Should().Be(exactNumber);
+        persistedWallet.MetaData["beyond-decimal"].ToString().Should().Be(beyondDecimal);
         var persistedTransaction = persistedWallet.Transactions.Should().ContainSingle().Subject;
         persistedTransaction.TransactionId.Should().Be(transaction.TransactionId);
         persistedTransaction.NativeTransactionId.Should().Be(transaction.NativeTransactionId);
         persistedTransaction.RawAmount.Should().Be(transaction.RawAmount);
         persistedTransaction.AmountUnit.Should().Be(transaction.AmountUnit);
         persistedTransaction.CreatedDate.Should().Be(transaction.CreatedDate);
+        persistedTransaction.MemoText.Should().Be(exactDate);
+        using(var control=new DataContext(TestConnectionString))
+        using(var raw=System.Text.Json.JsonDocument.Parse(control.AvatarWalletStores.AsNoTracking().Single().WalletsJson))
+        {
+            var nativeWallet=raw.RootElement.GetProperty(ProviderType.SolanaOASIS.ToString())[0];
+            nativeWallet.GetProperty("MetaData").GetProperty("date-looking-string").GetString().Should().Be(exactDate);
+            nativeWallet.GetProperty("MetaData").GetProperty("exact-number").GetRawText().Should().Be(exactNumber);
+            nativeWallet.GetProperty("MetaData").GetProperty("beyond-decimal").GetRawText().Should().Be(beyondDecimal);
+            nativeWallet.GetProperty("Transactions")[0].GetProperty("MemoText").GetString().Should().Be(exactDate);
+        }
         var aggregate = await reopened.LoadProviderWalletsAsync();
         aggregate.IsError.Should().BeFalse(aggregate.Message);
         aggregate.Result[ProviderType.SolanaOASIS].Should().ContainSingle().Which.WalletId.Should().Be(wallet.WalletId);
