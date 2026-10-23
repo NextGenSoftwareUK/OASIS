@@ -271,3 +271,8 @@ var query = CosmicQuery<Holon>.Create()
 The actor comes from trusted authentication/admission; SDK policy creation does not authenticate someone. The normal planner/manager pipeline checks native GraphReadAccess and rechecks detached/typed nodes before publication. Hidden intermediate children are not traversed. Selected/depth-limited views cannot replace unloaded children on Save; use saveChildren:false for root-only edits. SDK models retain private store observations for correct save ownership; public JSON should use the WEB4 graph DTOs instead of serializing raw holons.
 
 HTTP graph defaults/limits, safe fields, parent IDs and consistency are documented in the [HTTP contract](CQL_V1_HTTP_CONTRACT.md). Public depth is1–8; SDK depth0 retains bounded unbounded recursion. C#/HTTP/browser/Swagger demo files include the new graph example. Native certification is being refreshed; current exact evidence is in the graph loading log.
+
+
+### Saving an authorized partial graph
+
+Native tests now verify this on all three providers, both with a stored role manifest and with older parent-link records. AcceptChanges does not authorize child replacement. After editing a selected root, use the normal conditional SaveHolonAsync with saveChildren:false; the root version advances once and child versions/provider revisions remain unchanged. A child-selecting save from that partial view rejects before it can replace hidden membership. For intentional replacement, use a trusted complete-load/hydration path that proves full stored membership and independent write authority; repeating a filtered access query does not grant completeness. Public HTTP graph DTOs are read projections, not concurrency-bearing SDK save models.

@@ -14,9 +14,15 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed class CqlV1FixtureReconciliationTests
 {
     [TestMethod]
-    public async Task ReviewedRejectedStringFixtureContainsOnlySettledOwnedOperationsBeforeExactCleanup()
+    public Task ReviewedRejectedStringFixtureContainsOnlySettledOwnedOperationsBeforeExactCleanup()
+        =>Reconcile("1ECEF8404C4CF8E5E368E02D69D0B88EE8457995C36B3C183FBB8014D9EB1E0C",false);
+
+    [TestMethod]
+    public Task ReviewedGraphOrderingFixtureContainsOnlySettledOwnedRecordsBeforeExactCleanup()
+        =>Reconcile("6CA92E59C526CFD4592D07D70ED39DD821C97D4A81E16D86AFCE7590B4C1A87B",true);
+
+    private static async Task Reconcile(string expectedHash,bool graphFixture)
     {
-        const string expectedHash = "1ECEF8404C4CF8E5E368E02D69D0B88EE8457995C36B3C183FBB8014D9EB1E0C";
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string storageDb = "cosmic_cql_v1_web4_storage", usageDb = "cosmic_cql_v1_web4_usage";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -33,8 +39,11 @@ public sealed class CqlV1FixtureReconciliationTests
         var sqlite = Path.GetFullPath(Path.Combine(work, "cql-v1-web4.sqlite"));
         Assert.AreEqual(sqlite, fixture.GetProperty("sqlite").GetString());
         var ids = fixture.GetProperty("ids").EnumerateArray().Select(id => id.GetGuid()).ToArray();
-        var names = new[] { "A-private", "A-index", "B-owned", "C-public", "D-owned" };
-        Assert.AreEqual(5, ids.Distinct().Count());
+        var names = graphFixture ? new[]{"A-private","A-index","B-owned","C-public","D-owned",
+            "public child","private child","owned child","public behind private"}
+            : new[]{"A-private","A-index","B-owned","C-public","D-owned"};
+        Assert.AreEqual(names.Length,ids.Length);
+        Assert.AreEqual(names.Length, ids.Distinct().Count());
         var alice = fixture.GetProperty("alice").GetGuid();
         var bob = fixture.GetProperty("bob").GetGuid();
         var tag = fixture.GetProperty("tag").GetString();
@@ -81,6 +90,9 @@ public sealed class CqlV1FixtureReconciliationTests
             Assert.IsFalse(activation.IsError, activation.Message);
             try
             {
+                var all=await provider.LoadAllHolonsAsync(loadChildren:false);
+                Assert.IsFalse(all.IsError,all.Message);
+                CollectionAssert.AreEquivalent(ids,all.Result.Select(row=>row.Id).ToArray());
                 for (var i = 0; i < ids.Length; i++)
                 {
                     var loaded = await provider.LoadHolonAsync(ids[i], loadChildren: false);
@@ -88,9 +100,12 @@ public sealed class CqlV1FixtureReconciliationTests
                     var holon = loaded.Result;
                     Assert.AreEqual(ids[i], holon.Id);
                     Assert.AreEqual(names[i], holon.Name);
-                    Assert.AreEqual(i is 2 or 4 ? alice : bob, holon.CreatedByAvatarId);
-                    Assert.AreEqual(i == 3, holon.IsPublic);
-                    Assert.AreEqual(tag, holon.MetaData["fixture"].ToString());
+                    Assert.AreEqual(i is 2 or 4 or 7 ? alice : bob, holon.CreatedByAvatarId);
+                    Assert.AreEqual(i is 3 or 5 or 8, holon.IsPublic);
+                    Assert.AreEqual(i<5?Guid.Empty:i==8?ids[6]:ids[3],holon.ParentHolonId);
+                    if(i<5)Assert.AreEqual(tag,holon.MetaData["fixture"].ToString());
+                    else Assert.IsFalse(holon.MetaData.ContainsKey("fixture"));
+                    if(i==6)Assert.AreEqual(alice.ToString("D"),holon.MetaData["SHARED_WITH"].ToString());
                     snapshots.Add(new { provider = provider.ProviderType.Name, holon.Id,
                         hash = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new
                         { holon.Id, holon.Name, holon.CreatedByAvatarId, holon.IsPublic, holon.Version, holon.MetaData }))) });

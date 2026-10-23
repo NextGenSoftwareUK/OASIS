@@ -182,16 +182,23 @@ public partial class Neo4jNativeCqlTests
         });
 
     [DataTestMethod]
-    [DataRow(false)] [DataRow(true)]
-    public Task NativeGraphPartialSavePreservesUnobservedMembers(bool manifested)
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public Task NativeGraphPartialSavePreservesUnobservedMembers(bool manifested,bool accessBound)
         =>WithNativeGraph(async fixture=>
         {
             var manager=GraphManager(fixture.Provider);
             ICosmicQueryStorageProvider adapter=fixture.Provider;
-            var read=await manager.ExecuteQueryAsync(GraphPlan(fixture,CosmicQueryGraphOptions.Create(maxChildDepth:1,childType:HolonType.Quest).Result),new[]{adapter});
+            var policy=accessBound?CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result:null;
+            var shape=CosmicQueryGraphOptions.Create(maxChildDepth:1,childType:accessBound?HolonType.All:HolonType.Quest).Result;
+            var baseline=await fixture.Provider.ExecuteCosmicQueryAsync(GraphPlan(fixture,CosmicQueryGraphOptions.Create().Result));
+            if(baseline.IsError)throw new InvalidOperationException(baseline.Message);
+            var childState=baseline.Result.Single().Children.ToDictionary(child=>child.Id,
+                child=>(child.Version,CosmicConcurrency.GetProviderRevisionId(child,ProviderType.Neo4jOASIS)));
+            var read=await manager.ExecuteQueryAsync(GraphPlan(fixture,shape,policy),new[]{adapter});
             Assert.IsFalse(read.IsError,read.Message+read.Exception);
             var root=read.Result.Providers.Single().Rows.Single();
             Assert.AreEqual(HolonType.Quest,root.Children.Single().HolonType);
+            root.AcceptChanges();
             root.Name+=" edited";var version=root.Version;
             var rejected=await manager.SaveHolonAsync(root,Guid.NewGuid(),saveChildren:true,providerType:ProviderType.Neo4jOASIS);
             Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.IsSaved);Assert.AreEqual(version,root.Version);
@@ -204,7 +211,10 @@ public partial class Neo4jNativeCqlTests
             var fresh=await fixture.Provider.ExecuteCosmicQueryAsync(GraphPlan(fixture,CosmicQueryGraphOptions.Create().Result));
             Assert.IsFalse(fresh.IsError,fresh.Message+fresh.Exception);
             Assert.AreEqual(2,fresh.Result.Single().Children.Count());
-        },manifested:manifested);
+            foreach(var child in fresh.Result.Single().Children)
+                Assert.AreEqual(childState[child.Id],(child.Version,CosmicConcurrency.GetProviderRevisionId(child,ProviderType.Neo4jOASIS)));
+            Assert.AreEqual(version+1,fresh.Result.Single().Version);
+        },manifested:manifested,configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=true;});
 
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]

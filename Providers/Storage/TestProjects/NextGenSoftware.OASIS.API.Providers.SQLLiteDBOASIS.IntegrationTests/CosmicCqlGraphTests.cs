@@ -114,12 +114,13 @@ public partial class SQLLiteDBOASISIntegrationTests
     }
 
     [Theory]
-    [InlineData(false)] [InlineData(true)]
-    public async Task NativeCqlGraphTypeSelectionPreservesHiddenMembershipOnRootSave(bool manifested)
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)] [InlineData(true,true)]
+    public async Task NativeCqlGraphTypeSelectionPreservesHiddenMembershipOnRootSave(bool manifested,bool accessBound)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         var source = NativeQueryGraph();
+        source.IsPublic=true;source.Children.First().IsPublic=true;
         var manager = CosmicManager(provider, true);
         var seeded = manifested ? await manager.SaveHolonAsync(source, Guid.NewGuid(),
             CreateNativeGraph(source), providerType: ProviderType.SQLLiteDBOASIS)
@@ -127,14 +128,20 @@ public partial class SQLLiteDBOASISIntegrationTests
         seeded.IsError.Should().BeFalse(seeded.Message + seeded.Exception);
         var hidden = source.Children.Single(child => child.HolonType == HolonType.Cafe).Id;
         ICosmicQueryStorageProvider adapter = provider;
+        var baseline=await provider.ExecuteCosmicQueryAsync(NativeGraphPlan(source,CosmicQueryGraphOptions.Create().Result));
+        baseline.IsError.Should().BeFalse(baseline.Message);
+        var childState=baseline.Result.Single().Children.ToDictionary(child=>child.Id,
+            child=>(child.Version,CosmicConcurrency.GetProviderRevisionId(child,ProviderType.SQLLiteDBOASIS)));
+        var policy=accessBound?CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result:null;
         var result = await manager.ExecuteQueryAsync(NativeGraphPlan(source,
-            CosmicQueryGraphOptions.Create(childType: HolonType.Quest).Result), new[] { adapter });
+            CosmicQueryGraphOptions.Create(childType:accessBound?HolonType.All:HolonType.Quest).Result,policy), new[] { adapter });
 
         result.IsError.Should().BeFalse(result.Message + result.Exception);
         var root = result.Result.Providers.Single().Rows.Single();
         root.Children.Should().ContainSingle().Which.HolonType.Should().Be(HolonType.Quest);
         if (manifested) root.ChildRoleManifestJson.Should().Contain(hidden.ToString("D"));
         else root.ChildRoleManifestJson.Should().BeNull();
+        root.AcceptChanges();
         root.Name = "edited root only";
         var version = root.Version;
         var rejected = await manager.SaveHolonAsync(root, Guid.NewGuid(), saveChildren: true, providerType: ProviderType.SQLLiteDBOASIS);
@@ -146,6 +153,9 @@ public partial class SQLLiteDBOASISIntegrationTests
         var persisted = await provider.LoadHolonAsync(source.Id);
         persisted.Result.Children.Should().HaveCount(2);
         persisted.Result.Children.Should().Contain(child => child.Id == hidden);
+        persisted.Result.Version.Should().Be(version+1);
+        foreach(var child in persisted.Result.Children)
+            (child.Version,CosmicConcurrency.GetProviderRevisionId(child,ProviderType.SQLLiteDBOASIS)).Should().Be(childState[child.Id]);
     }
 
     [Theory]
