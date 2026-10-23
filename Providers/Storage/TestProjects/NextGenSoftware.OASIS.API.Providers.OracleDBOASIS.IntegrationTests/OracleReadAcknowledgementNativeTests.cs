@@ -25,6 +25,16 @@ public sealed partial class OracleNativeAcceptanceTests
         var rows=new[]{("OASIS_AVATARS",ids[0]),("OASIS_AVATAR_DETAILS",ids[0]),("OASIS_HOLONS",ids[1]),("OASIS_HOLONS",ids[2])};
         foreach(var row in rows)Assert.IsNull(await Read(native,row.Item1,row.Item2));
         var bad=new List<string>();var originals=new Dictionary<(string,Guid),string>();
+        const string literalDate="2030-01-02T03:04:05.0000000+05:30",literalNumber="9007199254740993.125";
+        using var precise=JsonDocument.Parse(literalNumber);
+        Dictionary<string,object> Metadata()=>new(){[marker]=name,["owned.scalar.date"]=literalDate,["owned.scalar.number"]=precise.RootElement.Clone()};
+        void CheckScalars(object? value,string label){
+            if(value is not IHolonBase record||!ids.Contains(record.Id))return;
+            using var json=JsonDocument.Parse(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(record));
+            var meta=json.RootElement.GetProperty("MetaData");
+            if(!meta.TryGetProperty("owned.scalar.date",out var date)||date.ValueKind!=JsonValueKind.String||date.GetString()!=literalDate)bad.Add(label+": date-shaped metadata string changed");
+            if(!meta.TryGetProperty("owned.scalar.number",out var number)||number.GetRawText()!=literalNumber)bad.Add(label+": precise metadata number changed");
+        }
         void Check<T>(string label,OASISResult<T> result,bool failure=false)
         {
             if(failure){if(!result.IsError||result.IsLoaded||result.LoadedCount!=0)bad.Add(label+": failed read claimed loaded data");return;}
@@ -36,17 +46,20 @@ public sealed partial class OracleNativeAcceptanceTests
                 result.Result is System.Collections.IEnumerable values&&result.Result is not string?values.Cast<object>().Count():1;
             if(!result.IsLoaded||result.LoadedCount!=expected||result.IsSaved)
                 bad.Add($"{label}: IsLoaded={result.IsLoaded},LoadedCount={result.LoadedCount},expected={expected},IsSaved={result.IsSaved}");
+            if(result.Result is ISearchResults found){foreach(var row in found.SearchResultHolons)CheckScalars(row,label);}
+            else if(result.Result is System.Collections.IEnumerable collection&&result.Result is not string){foreach(var row in collection)CheckScalars(row,label);}
+            else CheckScalars(result.Result,label);
         }
         try
         {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
             await File.WriteAllTextAsync(journal,JsonSerializer.Serialize(new{state="before-owned-read-ack-fixture",ids,name}));
-            var avatar=new Avatar{Id=ids[0],Username=name,Email=name+"@example.invalid",MetaData=new(){[marker]=name},
+            var avatar=new Avatar{Id=ids[0],Username=name,Email=name+"@example.invalid",MetaData=Metadata(),
                 VerificationToken=name+"-verify",ResetToken=name+"-reset",RefreshTokens=new(){new RefreshToken{Token=name+"-refresh",Expires=DateTime.UtcNow.AddHours(1)}},
                 ProviderWallets=new(){[ProviderType.OracleDBOASIS]=new List<IProviderWallet>{new ProviderWallet{PublicKey=name+"-public",PrivateKey=name+"-private"}}}};
-            var detail=new AvatarDetail{Id=ids[0],Username=name,Email=avatar.Email};
-            var root=new Holon{Id=ids[1],Name=name,CreatedByAvatarId=ids[0],MetaData=new(){[marker]=name}};
-            var child=new Holon{Id=ids[2],Name=name+"-child",ParentHolonId=ids[1],CreatedByAvatarId=ids[0],MetaData=new(){[marker]=name}};
+            var detail=new AvatarDetail{Id=ids[0],Username=name,Email=avatar.Email,MetaData=Metadata()};
+            var root=new Holon{Id=ids[1],Name=name,CreatedByAvatarId=ids[0],MetaData=Metadata()};
+            var child=new Holon{Id=ids[2],Name=name+"-child",ParentHolonId=ids[1],CreatedByAvatarId=ids[0],MetaData=Metadata()};
             for(var version=1;version<=2;version++){
                 Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);Assert.IsFalse((await provider.SaveAvatarDetailAsync(detail)).IsError);
                 Assert.IsFalse((await provider.SaveHolonAsync(root,saveChildren:false)).IsError);Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
