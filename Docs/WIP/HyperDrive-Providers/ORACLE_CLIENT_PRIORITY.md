@@ -2,6 +2,24 @@
 
 ## Resume — 2026-10-23
 
+### Root-parent selection parity — native red/green and full local closure
+
+Actual9983 TERMINAL0:16/16focused passed7s;342/342main native passed89s;271/271controlled passed617ms; zero skipped. Focused16 is INCLUDED in342. Existing identity verifier with -VerifySourceDocuments passed710Core/54Shared source checks and matching consumer/producer hashes: Core39618322D816E56DF5559945210CEE01637ED54BFC9D333EBA4493DFED67D5F5 / Shared884759DC609A5B4DB096DF411867A49808B830B1861FBB5482E51E7E6BABE09C. Exact report hashes:
+
+| Report | SHA256 |
+|---|---|
+| oracle-root-parent-native-current.trx | F055E12D74F8B77779366B63548DC0A9E8F61E23ADC2F4D52D6539636FF62489 |
+| oracle-native-current.trx | 33AB93D04B9E07BA800283F869EBB7617F4AAC2108E5EA870D6F1B47B62615A7 |
+| oracle-root-parent-controls.trx | B816F9C69A84C3D032DECD5CD77BD90CD3946F7E911F96305683D5CD7800F210 |
+
+Same existing container started once for focused/full/control closure; exact owned fixture cleanup and independent absence completed, pending0, independently exited and11521listeners0. Red moved with verified hash to oracle-root-parent-native-red.trx; preceding326report moved to oracle-native-current.trx.pre-root-parent, never relabelled as current. Native advanced14 were NOT rerun in this two-line predicate tranche and remain earlier-source evidence. No download/restore/new environment/schema/cloud fee. Producer lease released to reserved Neo owner. Oracle/OCI live acceptance, API/security/fees and complete-provider/V2 gates remain open; no dev deployment. Next local audit candidate: identity VARCHAR2 character-versus-byte capacity under the retained database character set (unverified; do not change schema merely from a source hypothesis).
+
+Source audit found the writer's single representation for ParentHolonId==Guid.Empty is native NULL, but latest LoadHolonsForParent bound a zero-valued RAW GUID with equality; the existing historical path compared domain Guid.Empty correctly. Actual19448terminal0:16native yielded8latest failures/8historical passes, red report9220ADFC84A5A106971A6BFD05A399BC98D0045CDF584931A630F0FF2EE7F4B3. Schedules cover GUID/string selector, sync/async, all/typed and latest/version1; verify original versus updated name, typed roots, unrelated-parent exclusion, and legitimate historical visibility of a currently tombstoned root. Four exact declared rows per case were natively observed/conditionally cleaned and independently absent BEFORE final red assertions. No production corruption or global root deletion inferred.
+
+Existing latest parent query now selects IS NULL for domain Guid.Empty and binds RAW equality only for nonempty IDs. No second representation, fallback query, extra SDK operation/schema/configuration change. Existing current projection validation and historical selection stay intact. Main grows326→342, focused16 INCLUDED. First green attempt was lease-busy before execution; actual9983 subsequently acquired the released lease and is refreshing16focused+342main+271controls on one retained instance. Prior advanced14 are separate earlier-source evidence, not relabelled as this new binary. Full results/lifecycle follow only after actual terminal.
+
+Performance/cost caveat: the existing single-column IDX_OASIS_HLN_PARENT is a B-tree and wholly-null keys are omitted ([Oracle index documentation](https://docs.oracle.com/en/database/oracle/oracle-database/18/cncpt/indexes-and-index-organized-tables.html)). Therefore that index alone cannot serve the NULL-root predicate; a root query may scan, depending on type filter/optimizer choices. Nonempty-parent equality is unchanged. No new/drop/rebuilt index or hosted DDL privilege was introduced silently. Benchmark representative hosted workloads before deciding on a composite index/provisioning change; no exact hosted fee or latency estimate is claimed. This resolves the earlier unverified-root audit candidate, not Oracle Cloud/full-provider/V2 acceptance.
+
 ### Holon read projection integrity — native red/green and full local closure
 
 Actual91735 TERMINAL0:326/326main native passed87s, encrypted replay4/4passed2s, preparation6/6passed2s, process write2/2passed979ms and separate-process recovery2/2passed877ms. Zero skipped. Focused48 is INCLUDED in326; advanced14 are separate. Full271controlled and focused48 had already passed in actual74590terminal0. Matching Core39618322D816E56DF5559945210CEE01637ED54BFC9D333EBA4493DFED67D5F5 / SharedF42AC16273B7D398691C742E427DDB8514581C13CE86C10D8B7821D9157C94A6 were observed for native/advanced phases and preceding controls. Exact report hashes:
