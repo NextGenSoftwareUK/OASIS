@@ -1,5 +1,25 @@
 # Four-provider interface acceptance audit
 
+## Required wallet SDK send entry points — implementation and controlled proof, 23 October 2026
+
+Four actual public `IProviderWallet` cases reproduced `NotImplementedException`. Core `ddfabcc738a72ed83e28037e7bf8eff28e1c8cdc` replaces all four stubs with thin manager-owned dispatch, reusing exact wallet-ID/provider lookup, detached credential decryption, request projection and existing raw token dispatch. Only the authenticated wallet owner may use these managed-wallet methods. Exact non-default wallet selection does not decrypt an unrelated default wallet's bad ciphertext; conflicting sender/public key/legacy key aliases are rejected. Explicit signer material is never mixed with stored ciphertext. Caller request/binding snapshots precede awaits; cache/request objects and global storage provider are not rewritten. Existing loaded-wallet clones now retain the owning manager for dispatch (private context only, not serialized). No cross-chain send fallback or automatic resubmission.
+
+Raw NFT dispatch is shared with the existing WEB4 wrapper, fixing its independently found false-success path after provider failure. Native typed results/error codes/exceptions/receipt-bearing errors are retained; missing/empty receipts and thrown post-dispatch failures require reconciliation, never invented success. WEB4 summary strings are not converted into fabricated native receipts. This adds no new fee waiver, subscription bypass, native funding or credential encryption scheme. The underlying SDK/native route is unchanged; live fee/auth/SDK acceptance remains a separate gate.
+
+Actual controlled cohorts: initial four red, focused4pass, guards92pass, full1932pass; final owning-manager checks add two, giving **full1,934/1,934 PASS, zero skipped, 10 seconds** (`27240` terminal0). Hundred new cases include sync/async token/NFT,15 rejection modes, provider success/error/null/empty/throw at-most-once outcomes, explicit keys, pending-storage mutation, legacy key alias, WEB4 NFT error propagation and loaded-manager affinity. Native providers/storage in these dispatch controls are mocks with synthetic encrypted keys: **not real chain/storage/fee acceptance**. No new runtime, download, restore, account, database or native transaction.
+
+Final `6961e2` identity uses the existing verifier's `-Dependencies Core` option (Core.UnitTests has no Shared DLL; the default two-dependency invocation correctly refused that missing file, not bypassed/copied). Core producer/consumer `A24932B002CB71AB26DBEF96AE7A0FD9DEBF0787B38FD6039E7927F61599ACE1`,713 source documents verified before source handoff. This is the pre-ddfabcc informational-stamp build of identical committed source bytes, not a post-commit-stamp native cohort. Shared source unchanged. Later additive CQL work/other consumers must rebuild and verify their own cohort. Parent gitlink/pin updated together on the task branch, no dev merge/hosted deployment.
+
+| `TestResults/CoreCurrent/` report | Bytes | SHA256 |
+| --- | ---: | --- |
+| `wallet-interface-red.trx` (4 failed) |15,651|`8D105EC83318DBDD6CFD952EDB69DFB2B6DFFE368367CC17443E4CB2268F46CD`|
+| `wallet-interface-focused.trx` (4 passed) |7,989|`A35CB325D9C39D839F099DA354F4F07899599A9143DFB09384A462B6D294A3BA`|
+| `wallet-interface-guards.trx` (92 passed) |151,174|`5315211818C2124FEC5D9EAA0EEE1682CAE794B6A493E97610264D22D333AE36`|
+| `wallet-interface-current.trx` (1,932 passed) |3,135,420|`E0EBE686ECFB3F449419F1C3B3878CC7A4580221C4BFD506440D055218AE35B6`|
+| `wallet-interface-final.trx` (1,934 passed) |3,138,592|`A48E5478939CBBE168C13D450A9D1BFAD97A7DEE4407F40E7BE4B286DA4CCB71`|
+
+Implementation gate now has code/controlled proof. **Native end-to-end wallet entry-point gate remains OPEN**, including real credential storage, exact chain readback, native fee effects/receipts and relevant funded/test-runtime constraints. Do not infer universal SDK/provider/V2 completion from these controls. Historical four-stub discovery below describes the preceding checkpoint, superseded by this implementation section.
+
 ## SQLite local wallet JSON fidelity — 23 October 2026
 
 Three existing native selector cases reproduced two independent defects: the private store's separate writer persisted `JsonElement` metadata as `{"ValueKind":4}` instead of its number, while default token parsing changed date-looking metadata and transaction memo strings into local formatted timestamps. Raw SQLite `WalletsJson` and a fresh provider connection distinguish actual stored corruption from read-only normalization. The initial three red cases remain preserved; this is not a claim that eight cases ran red.
@@ -18,7 +38,7 @@ Final identity `ac7fb7`: Core DLL `E9B7A243788B94E192E0579F0C98198A8E2F84863AE2A
 | `sqlite-wallet-scalars-current.trx.pre-jsonexception-subtype` (1,255/1,256) | 2,318,030 | `D44012097683471FB342EEDA462F3A04BB547FC4F8322B389C70F1C32503C5EB` |
 | `sqlite-wallet-scalars-current.trx` (1,256 passed) | 2,314,752 | `9291A85CBE23FDD6165E8C40311CE8421C3D642154C500F03D1CCB98ED8F384E` |
 
-Adjacent source-audit finding: Core `Objects/Wallet/ProviderWallet.cs` still declares `SendNFT`, `SendNFTAsync`, `SendToken`, `SendTokenAsync` with `NotImplementedException`. These value-object convenience methods are not proof of provider SDK interface failure, nor are provider SDK tests proof they work. Caller tracing and correct authorization/usage/fee routing remain necessary before any universal public API/SDK completion claim; this storage fix does not implement them.
+Adjacent source-audit finding: Core `Objects/Wallet/ProviderWallet.cs` still declares `SendNFT`, `SendNFTAsync`, `SendToken`, `SendTokenAsync` with `NotImplementedException`. Follow-up confirmed these are FOUR REQUIRED `IProviderWallet` methods (`Interfaces/Wallet/IProviderWallet.cs:38`), not optional conveniences. This is a genuine incomplete SDK interface even though public WEB4 controllers call manager routes rather than these instance methods. Existing provider SDK tests do not prove these entry points work. Exact-wallet lookup/credential isolation/raw token dispatch already exist in WalletManager and should be reused; the async WEB4 summary DTO is not a native Web3 receipt and must not be adapted by fabricating one. Bound sender/provider/ownership, credential conflict, no-mutation, error/uncertainty and at-most-once submission tests plus authorization/usage/fee-aware native acceptance remain necessary. The preceding wallet-storage fix does not implement these four methods; queued Core work waits for the peer's current source/build handoff.
 
 ## SQLite extension scalar fidelity — 23 October 2026
 
