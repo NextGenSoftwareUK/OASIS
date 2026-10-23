@@ -49,6 +49,9 @@ public class OracleObjectSdkTests
         await context.Response.OutputStream.WriteAsync(bytes);
     }
     private static async Task Exchange(Func<OracleObjectStorageBackend,Task> action,params Func<HttpListenerContext,Task>[] responses)
+        =>await ExchangeClient(client=>action(new(client,"ns","bucket")),responses);
+
+    private static async Task ExchangeClient(Func<ObjectStorageClient,Task> action,params Func<HttpListenerContext,Task>[] responses)
     {
         using var listener=new HttpListener();listener.Prefixes.Add(Endpoint);listener.Start();
         using var client=Client();
@@ -62,9 +65,60 @@ public class OracleObjectSdkTests
                 }finally{context.Response.Close();}
             }
         });
-        try{await Task.WhenAll(action(new(client,"ns","bucket")),server);}
+        try{await Task.WhenAll(action(client),server);}
         catch(OciException cause){Console.WriteLine("Observed SDK request endpoint: "+cause.ApiDetails?.RequestEndpoint);throw;}
         finally{listener.Stop();}
+    }
+
+    [DataTestMethod][DataRow("success")][DataRow("create")][DataRow("replace")][DataRow("delete")][DataRow("occupied")]
+    public async Task LiveTransportDriverKeepsOriginalUncertainJournalWithoutCleanupOrReplay(string outcome)
+    {
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        while(root!=null&&!Directory.Exists(Path.Combine(root.FullName,"Scripts","TestHosts")))root=root.Parent;
+        Assert.IsNotNull(root);
+        var work=Path.Combine(root.FullName,"TestResults","OracleObjectCurrent","LiveDriverControlled");
+        Directory.CreateDirectory(work); // One fixed reusable evidence scope, not per-run directories.
+        var pending=Path.Combine(work,"oci-live-transport.pending.json");var report=Path.Combine(work,"oci-live-transport.current.json");
+        Assert.IsFalse(File.Exists(pending)||File.Exists(report),"Review original controlled fixture before reuse.");
+        string? value=outcome=="occupied"?"foreign object":null;var revision="\"v1\"";var requests=0;var deletes=0;var puts=0;
+        var expected=outcome switch{"occupied"=>2,"create"=>3,"replace"=>5,"delete"=>9,_=>10};
+        async Task Service(HttpListenerContext context)
+        {
+            requests++;var method=context.Request.HttpMethod;
+            if(method=="HEAD"){await Reply(context,200,"");return;}
+            StringAssert.EndsWith(Uri.UnescapeDataString(context.Request.Url!.AbsolutePath),"/o/oasis-acceptance/transport-probe");
+            if(method=="GET"){
+                if(value==null)await Reply(context,404,"{\"code\":\"ObjectNotFound\",\"message\":\"controlled\"}");
+                else{context.Response.Headers["ETag"]=revision;await Reply(context,200,value);}return;
+            }
+            if(method=="PUT"){
+                puts++;using var reader=new StreamReader(context.Request.InputStream,Encoding.UTF8);var proposed=await reader.ReadToEndAsync();
+                if(puts==1){Assert.AreEqual("*",context.Request.Headers["If-None-Match"]);value=proposed;}
+                else if(context.Request.Headers["If-Match"]!=revision){await Reply(context,412,"{\"code\":\"PreconditionFailed\",\"message\":\"controlled\"}");return;}
+                else{value=proposed;revision="\"v2\"";}
+                if(outcome==(puts==1?"create":"replace")){await Reply(context,503,"{\"code\":\"ServiceUnavailable\",\"message\":\"after owned mutation\"}");return;}
+                context.Response.Headers["ETag"]=revision;context.Response.Headers["opc-content-md5"]=context.Request.Headers["Content-MD5"];
+                await Reply(context,200,"",acknowledgePut:false);return;
+            }
+            Assert.AreEqual("DELETE",method);deletes++;Assert.AreEqual(revision,context.Request.Headers["If-Match"]);value=null;
+            await Reply(context,outcome=="delete"?503:204,outcome=="delete"?"{\"code\":\"ServiceUnavailable\",\"message\":\"after owned delete\"}":"");
+        }
+        await ExchangeClient(async client=>{
+            if(outcome=="success")await OracleLiveTransportAcceptance.RunAsync(client,"ns","bucket","oasis-acceptance/",work);
+            else if(outcome=="occupied")await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>OracleLiveTransportAcceptance.RunAsync(client,"ns","bucket","oasis-acceptance/",work));
+            else await Assert.ThrowsExceptionAsync<OracleObjectMutationReconciliationException>(()=>OracleLiveTransportAcceptance.RunAsync(client,"ns","bucket","oasis-acceptance/",work));
+        },Enumerable.Repeat<Func<HttpListenerContext,Task>>(Service,expected).ToArray());
+        Assert.AreEqual(expected,requests);Assert.AreEqual(outcome is "success" or "delete"?1:0,deletes);
+        if(outcome=="occupied"){Assert.AreEqual(0,puts);Assert.AreEqual("foreign object",value);Assert.IsFalse(File.Exists(pending)||File.Exists(report));return;}
+        var evidence=outcome=="success"?report:pending;
+        using(var document=System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(evidence))){
+            var state=document.RootElement;Assert.AreEqual("ns",state.GetProperty("namespaceName").GetString());Assert.AreEqual("bucket",state.GetProperty("bucket").GetString());
+            Assert.AreEqual("oasis-acceptance/transport-probe",state.GetProperty("objectName").GetString());
+            Assert.AreEqual(outcome switch{"create"=>"before-create","replace"=>"before-replace","delete"=>"before-conditional-delete",_=>"verified"},state.GetProperty("state").GetString());
+            if(outcome=="success"){Assert.IsFalse(state.GetProperty("fullProviderVerified").GetBoolean());Assert.AreEqual(10,state.GetProperty("logicalSdkCalls").GetInt32());}
+        }
+        Assert.AreEqual(outcome!="success",File.Exists(pending));Assert.AreEqual(outcome=="success",File.Exists(report));
+        File.Delete(evidence); // Verified synthetic LOOPBACK fixture only; real runner never auto-cleans errors.
     }
 
     [DataTestMethod][DataRow("get")][DataRow("put")][DataRow("delete")][DataRow("verify")]
