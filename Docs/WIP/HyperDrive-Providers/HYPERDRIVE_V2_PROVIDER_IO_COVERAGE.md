@@ -1,5 +1,16 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Oracle priority checkpoint — 23 October 2026 (not fully certified)
+
+Use [Oracle client readiness](ORACLE_CLIENT_PRIORITY.md) for the current Oracle gates; counts in older sections below are revision-scoped historical evidence, not the latest provider totals.
+
+- Oracle Database: **317/317 unit tests passed**. The latest complete native run was **491/492 passed**, with one read-acknowledgement test failing during SDK ORA-50201 / listener TNS-12516 connection refusals. The original four rows and failure journals remain preserved. A subsequent read-only control completed 3,200 unpooled and 3,200 pooled reads without reproducing the refusal; this does **not** fix or explain the original trigger, and is not a replacement full-native pass.
+- OCI Object Storage: **107/107 controlled tests passed**, including twelve real-SDK loopback GET/PUT/DELETE cases proving logical object names cannot escape their transport namespace. This verifies the signed SDK transport locally, **not** cloud IAM, a real bucket, Autonomous Database, billing or full HyperDrive V2 acceptance. No production URI workaround was needed.
+- The latest Oracle source review also checked export/graph projection admission and existing native corruption coverage; no additional implementation defect was established. No speculative production change or new test environment was introduced by that review.
+- AWS remains next after Oracle. Its earlier **134/134 native AWS-alias tests** used retained DynamoDB Local; those results are not live AWS IAM/account/cost certification or a newly rerun current-source cohort.
+
+Cloud configuration and cost/permission approvals remain in [Actions for David](../Release%20and%20Status/ACTIONS-FOR-DAVID.md). Exact cohorts, report hashes, retained failure data and runtime lifecycle are recorded in [the resource ledger](ENVIRONMENT_INVENTORY.md). Oracle is **not 100% complete**; do not merge or advertise universal provider/V2 certification on the strength of these narrower results.
+
 ## PostgreSQL canonical text search repaired — native8 green
 
 2026-10-20 real PostgreSQL/Npgsql tests reproduced two missing-search-result failures: canonical JSON stores `Name`/`Description`, but SearchAsync SQL used lowercase JSON property keys. Corrected those two key literals in the existing parameterized query; no fallback query, new scan/client/codec or changed deleted-row filter. Both Name and Description cases now prove actual provider SearchAsync finds the persisted record. Six existing sync/async CRUD/selector cases retained.
