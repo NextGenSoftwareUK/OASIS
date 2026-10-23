@@ -1,5 +1,20 @@
 # Reusable environments and disk inventory
 
+## 2026-10-23 independent export-selector history: verified shared/SDK checkpoint
+
+Owner: HyperDrive provider task, branch `fix/hyperdrive-v2-providers`. Reused existing Shared unit in-memory backend, S3 official SDK controlled-HTTP fixture, OCI official SDK signed-loopback fixture, cached Core/Shared/provider/test outputs and `C:/Source/OASIS/TestResults/S3Current`. No installation, dependency restore, cloud request, new environment, native database, persistent key or runtime. Added maintained `ExportSelectorVersionTests.cs` (8 cases) and four S3 SDK cases. Red baseline eight: four expected independent-history failures, four negative-version passes. Shared owner now resolves current identity independently of holon export version; negative versions rejected before identity I/O. Full Shared1019, S3 filtered55 and OCI107 passed, zero skips; SDK batch93482 actualterminal0. Same Core723 SHA109677C92C57B9132C5DC92E2907123C2B856C8554157E9B0B03F69FE27DE0D4; new Shared55 SHAB753D1D66EEBBC07184728931865DF584334CE52DAB42414BDA9F4C91585994E. Producer/copy and provider/test portable-PDB source identity verified under global lease. No shared producer modified during peer frozen tests. All fixture clients/listeners disposed at test completion; no persistent native dataset introduced. C: free73117835264 bytes observed before batch, shared-machine value not attributed cleanup.
+
+Retain these compact proof files, not disposable/unexplained duplicate reports (exact base `C:/Source/OASIS/TestResults/S3Current`):
+
+| File | Bytes | SHA256 | Lifecycle/recreation |
+| --- | ---: | --- | --- |
+| shared-export-version-before.trx | 15906 | 33D97D8067358D643811E07EBAD8E8DA2EEF2F7C34431CC5919EDEACEB9233C7 | Preserved expected failure; recreate only against pre-fix source, never overwrite |
+| shared-export-version-full.trx | 1550313 | 8C8A67374236CE1AC1416F11BE5D6E9DC546290E6230542D324759BD294EAB20 | Verified full Shared1019; retain proof |
+| s3-export-version-regression.trx | 84379 | CFC4C2FE509C01ECE59C8AD0FE5FACF7FC129B1FED96EBD98F8A1F79B19367EC | Verified full S3 subset55; retain proof |
+| oci-export-version-regression.trx | 171571 | 4200BC7515CA63B42773574FEE35722F91D76BEE0248152ED09DD9CD06C96BD5 | Verified OCI107; retain proof |
+
+Existing bin/obj directories reused in Shared unit, AWSS3 provider, OCI provider, EdgeStorage.ProtocolTests and OCI unit projects; incremental bytes unmeasured, no separate per-run copy. Same retention/cleanup as their earlier inventory entries: preserve reusable dependencies and source, remove only verified unused generated outputs after consumers stop; regenerate with cached builds under global lease. Separate OracleDB selector implementation has the same source defect and remains an explicit next native gate; these results do not certify that path, live clouds or V2 routing.
+
 ## 2026-10-23 Redis authentication/native invariant complete checkpoint
 
 Actuale6fd7c/0d6c16 readiness: existing same container/image/volume authenticated without recreation, protected mode retained. One reusable test credential CREATED by this HyperDrive task at `C:/Users/david/AppData/Local/OASIS/ReusableProviderTests/Redis/test-auth.dpapi`, measured294 bytes; current-user DPAPI, random32-byte entropy encoded64hex, no secret values in logs/argv/repo/ledger. Native requirepass lives only in server runtime memory; owned cold starts reapply the SAME protected credential. Already-authenticated start path also verified, not reset on failed auth. Lifecycle active/reusable credential, container currently stopped. Retain until Redis test work finishes. Later cleanup must verify exact stopped owned container/no pending fixtures; remove only this owned credential if no consumer remains. It can be regenerated for a deliberate owned cold start; it is authentication, not the data-encryption/signing key. Never rotate implicitly against an already authenticated server.

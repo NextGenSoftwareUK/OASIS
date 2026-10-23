@@ -14,6 +14,43 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
 public class AwsS3GraphLifecycleTests
 {
     [DataTestMethod]
+    [DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task Export_version_is_independent_of_avatar_identity_over_real_sdk(bool sync,bool email)
+    {
+        using var store = new AwsS3EncryptedLifecycleTests.Store(); var key = RandomNumberGenerator.GetBytes(32);
+        try
+        {
+            using var provider = store.Open(key); Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "private-export-owner", Email = "private-export@example.invalid", IsActive = true };
+            Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError); Assert.AreEqual(1, avatar.Version);
+            var own = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = avatar.Id };
+            var foreign = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid() };
+            for (var version = 1; version <= 3; version++)
+            {
+                own.Name = "private-export-own-" + version; foreign.Name = "private-export-foreign-" + version;
+                var saved = await provider.SaveHolonAsync(own, saveChildren: false); Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
+                Assert.IsFalse((await provider.SaveHolonAsync(foreign, saveChildren: false)).IsError);
+            }
+            var before = store.Objects.OrderBy(p => p.Key, StringComparer.Ordinal).ToArray();
+            var result = email
+                ? sync ? provider.ExportAllDataForAvatarByEmail(avatar.Email, 3) : await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email, 3)
+                : sync ? provider.ExportAllDataForAvatarByUsername(avatar.Username, 3) : await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username, 3);
+            Assert.IsFalse(result.IsError, result.Message + result.Exception); Assert.IsTrue(result.IsLoaded); Assert.AreEqual(1, result.LoadedCount);
+            Assert.AreEqual(own.Id, result.Result.Single().Id); Assert.AreEqual(3, result.Result.Single().Version);
+            Assert.AreEqual("private-export-own-3", result.Result.Single().Name);
+            Assert.AreEqual(1, (await provider.LoadAvatarAsync(avatar.Id)).Result.Version);
+            var requests = store.Requests;
+            var invalid = email ? await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email, -1)
+                : await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username, -1);
+            Assert.IsTrue(invalid.IsError); Assert.IsInstanceOfType<ArgumentOutOfRangeException>(invalid.Exception);
+            Assert.AreEqual(requests, store.Requests, "Invalid export version must fail before SDK identity reads.");
+            CollectionAssert.AreEqual(before, store.Objects.OrderBy(p => p.Key, StringComparer.Ordinal).ToArray());
+            store.AssertPrivate(avatar.Username, avatar.Email, "private-export-own-3");
+        }
+        finally { CryptographicOperations.ZeroMemory(key); }
+    }
+
+    [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task Named_roles_root_only_saves_and_independent_child_versions_are_preserved(bool sync)

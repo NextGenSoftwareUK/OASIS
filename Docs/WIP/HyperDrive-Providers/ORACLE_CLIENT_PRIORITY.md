@@ -1,5 +1,9 @@
 # Oracle client readiness — top priority
 
+## Latest verification — 23 October 2026
+
+Shared export selector repair passed full Shared1019, S3 official-SDK55 and OCI official-SDK107 cases (zero skips; actual93482 terminal0). Exported holon versions must not require matching avatar identity-history versions. Exact new SharedB753D1D6/Core109677 source/copy cohort and proof hashes in ENVIRONMENT_INVENTORY.md. OCI suite is regression coverage, not live Oracle Cloud acceptance. Source inspection found the same coupling in OracleDBOASIS's separate username/email export methods; this path is not repaired by the shared base change and is next native-test work. Therefore Oracle is NOT 100% complete: OracleDB selector repair, hosted Autonomous Database/Object Storage acceptance and full Oracle V2 routing remain explicit outstanding gates. Earlier local492 remains a historical cohort, not verification of this newly identified behavior.
+
 ## Resume — 2026-10-23
 
 ### Shared inherited read counts repaired — new OCI107 cohort
