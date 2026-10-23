@@ -37,3 +37,5 @@ Read the source in this order:
 3. **Program.cs** — local host setup and synthetic fixture ownership/cleanup.
 
 Start with examples 1–3 for CQL querying. Examples 4–6 show how queried holons participate in change tracking, conditional saves and committed deltas. Example 7 demonstrates an unsupported query being rejected before provider execution.
+
+The native v1 walkthrough now has five spaced/commented examples per provider (15SDK and15HTTP overall). Example5 requires two visible sibling matches using WhereAnyChild / anyChildren before paging. Browser Visible child existence and Swagger use the same bounded request contract. The dedicated runner reuses existing restored dependencies and verifies a fresh15/15 report.

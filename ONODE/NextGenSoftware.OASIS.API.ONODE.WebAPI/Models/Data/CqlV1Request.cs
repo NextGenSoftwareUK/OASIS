@@ -12,12 +12,22 @@ public sealed class CqlV1Request
     public string? Provider { get; set; }
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
+    public CqlV1ChildExists[] AnyChildren { get; set; } = Array.Empty<CqlV1ChildExists>();
     public string OrderBy { get; set; } = "Name";
     public bool Descending { get; set; }
     public int Skip { get; set; }
     public int Take { get; set; } = 25;
     public bool IncludeMetadata { get; set; }
     public CqlV1Graph? Graph { get; set; }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlV1ChildExists
+{
+    // Each group requires one visible direct child satisfying its local filters.
+    // Separate groups are ANDed and may match different children.
+    public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
+    public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<CqlV1Scalar>))]

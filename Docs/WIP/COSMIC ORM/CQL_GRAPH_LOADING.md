@@ -8,7 +8,7 @@
 
 `WithChildren(options)` returns a new query. Filtering, scope changes, ordering and Skip/Take retain that exact immutable shape; the source query is unchanged. Loading children after selecting a root page is valid. `WithoutChildren()` explicitly returns leaf shape. Fluent error propagation preserves the original error rather than replacing it with a successful graph query.
 
-Graph requests require GraphExpansion capability at planning and again against the actual execution adapter. A caller-supplied capability profile cannot bypass that check. SQLite, MongoDB and Neo4j now advertise it. MongoDB final native/deadline evidence is recorded below. v1 HTTP DTO/behavior remains leaf-only.
+Graph requests require GraphExpansion capability at planning and again against the actual execution adapter. A caller-supplied capability profile cannot bypass that check. SQLite, MongoDB and Neo4j now advertise it. MongoDB final native/deadline evidence is recorded below. v1 HTTP now supports safe bounded access-bound graphs; direct-child filtering is documented in CQL_RELATIONSHIPS.md.
 
 ## Detached and typed publication
 

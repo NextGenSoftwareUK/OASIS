@@ -26,18 +26,17 @@ try {
     $env:OASIS_CQL_V1_DEMO_MODE = if ($Serve) { 'serve' } else { 'console' }
 
     & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'CQL v1 three-provider developer demo' -Operation {
-        $project = Join-Path $taskRoot 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj'
 
-        # Restore the existing pinned graph in the shared cache, then build and
-        # verify producer copies through the existing owned-service runner.
-        & dotnet restore $project --no-dependencies --disable-parallel -v:q
-        if ($LASTEXITCODE) { throw 'Pinned demo dependency restore failed.' }
-
+        # Dependencies are already restored in the retained provider environment.
+        # The reusable runner builds with --no-restore and verifies producer copies.
+        $started = [DateTime]::UtcNow
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CqlV1Demo
-        if ($LASTEXITCODE) { throw 'Native demo failed. Preserve its journal and data.' }
+        if ($LASTEXITCODE) { throw 'Native CQL v1 walkthrough failed.' }
 
+        $proof = Get-Item -LiteralPath (Join-Path $work 'v1-demo-result.json') -ErrorAction Stop
+        if ($proof.LastWriteTimeUtc -lt $started) { throw 'Demo result is stale; no verification claim permitted.' }
         $report = Get-Content -LiteralPath (Join-Path $work 'v1-demo-result.json') -Raw | ConvertFrom-Json
-        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 9) {
+        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 15 -or $report.localSdkQueries -ne 15) {
             throw 'Three-provider demo proof is incomplete.'
         }
 
