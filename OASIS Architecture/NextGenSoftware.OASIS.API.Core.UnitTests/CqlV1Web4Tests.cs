@@ -33,6 +33,78 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class CqlV1Web4Tests
 {
+    [Fact]
+    public void GraphProjectionContainsSelectedFieldsWithoutPrivateMembershipOrProviderState()
+    {
+        var hidden=Guid.NewGuid();var ancestor=Guid.NewGuid();
+        var root=new Holon{Id=Guid.NewGuid(),Name="public root",IsPublic=true,ParentHolonId=ancestor};
+        var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,IsPublic=true};
+        root.Children.Add(child);
+        root.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
+            1,root.Id,new[]{new HolonChildRole("Children",new[]{child.Id,hidden})}));
+        root.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS]="private-provider-key";
+        root.MetaData["city"]="London";
+        var projected=CqlV1Projection.Create(new[]{root},CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result,
+            true,CosmicQueryGraphOptions.Create(maximumNodes:2).Result);
+        var row=Assert.Single(projected);Assert.Equal(Guid.Empty,row.ParentHolonId);
+        Assert.Equal(root.Id,Assert.Single(row.Children).ParentHolonId);
+        var json=JsonSerializer.Serialize(projected);
+        Assert.Contains("London",json);
+        Assert.DoesNotContain(hidden.ToString(),json);Assert.DoesNotContain(ancestor.ToString(),json);
+        Assert.DoesNotContain("ChildRoleManifest",json);Assert.DoesNotContain("ProviderUnique",json);
+        Assert.DoesNotContain("private-provider-key",json);
+    }
+
+    [Fact]
+    public void PublicGraphDepthCannotExceedTheTransportBound()
+    {
+        var root=new Holon{Id=Guid.NewGuid(),IsPublic=true};var parent=root;
+        for(var depth=0;depth<=CqlV1Projection.MaximumDepth;depth++)
+        {
+            var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=parent.Id,IsPublic=true};
+            parent.Children.Add(child);parent=child;
+        }
+        var error=Assert.Throws<CqlV1Projection.Rejected>(()=>CqlV1Projection.Create(new[]{root},
+            CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result,false,CosmicQueryGraphOptions.Create().Result));
+        Assert.Equal("CQL_RESPONSE_LIMIT",error.Code);
+    }
+
+    [Fact]
+    public void CancelledProjectionDoesNotReturnAnEmptySuccess()
+    {
+        using var cancellation=new CancellationTokenSource();cancellation.Cancel();
+        Assert.Throws<OperationCanceledException>(()=>CqlV1Projection.Create(Array.Empty<IHolon>(),
+            CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result,false,null,cancellation.Token));
+    }
+
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)]
+    public void GraphProjectionRejectsForeignCyclesDepthAndBudget(int fault)
+    {
+        var root=new Holon{Id=Guid.NewGuid(),IsPublic=true};
+        var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,IsPublic=fault!=0};
+        root.Children.Add(child);
+        if(fault==1)child.Children.Add(root);
+        if(fault==2)child.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=child.Id,IsPublic=true});
+        var options=CosmicQueryGraphOptions.Create(maximumNodes:fault==3?1:10,maxChildDepth:fault==2?1:0).Result;
+        var error=Assert.Throws<CqlV1Projection.Rejected>(()=>CqlV1Projection.Create(new[]{root},
+            CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result,false,options));
+        Assert.Equal(fault==0?"CQL_VISIBILITY_VIOLATION":fault==3?"CQL_RESPONSE_LIMIT":"CQL_PROVIDER_RESULT_INVALID",error.Code);
+    }
+
+    [Fact]
+    public void OverlappingRootTreesRemainIndependentWhileLeafShapeIsUnchanged()
+    {
+        var root=new Holon{Id=Guid.NewGuid(),IsPublic=true,ParentHolonId=Guid.NewGuid()};
+        var child=new Holon{Id=Guid.NewGuid(),IsPublic=true,ParentHolonId=root.Id};root.Children.Add(child);
+        var policy=CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
+        var graphs=CqlV1Projection.Create(new[]{root,child},policy,false,CosmicQueryGraphOptions.Create().Result);
+        Assert.Equal(2,graphs.Count);Assert.Single(graphs[0].Children);Assert.Empty(graphs[1].Children);
+        var leaf=Assert.Single(CqlV1Projection.Create(new[]{root},policy,false,null));
+        Assert.Equal(root.ParentHolonId,leaf.ParentHolonId);
+        Assert.DoesNotContain("Children",JsonSerializer.Serialize(leaf));
+    }
+
     [Theory]
     [InlineData(CqlV1Operator.Contains)]
     [InlineData(CqlV1Operator.StartsWith)]
