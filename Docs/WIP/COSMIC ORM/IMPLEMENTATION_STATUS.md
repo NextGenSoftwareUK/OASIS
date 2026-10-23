@@ -1,8 +1,12 @@
 # COSMIC ORM implementation status
 
+## 23 October — MongoDB native Count/LongCount/Any
+
+MongoDB now shares the generic scalar Core/HolonManager API with SQLite. Native reduction retains access, canonical membership snapshots, traversal errors and exact windows without entity hydration or row/graph-publication truncation. Unit **229** / native **76** pass with no skips (9new unit/12new native controls), including a real snapshot/count race with acknowledged reparenting. Consumer Core716/Shared55 source identities match; owned runtime stopped after fixture teardown. [Manual](CQL_MANUAL.md#scalar-terminals--sqlite-and-mongodb-native-execution), [native contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-scalar-gate--23-october). Neo4j scalar source and later aggregate/transport phases remain pending.
+
 ## 23 October — SQLite native Count/LongCount/Any
 
-SQLite now executes native scalar terminals through generic Core/HolonManager, with exact window cardinality and existing access/snapshot/traversal/deadline ownership. Count does not hydrate entities or inherit row/graph-publication limits. Full SQLite **1,269** passes unskipped, including12new scalar controls and actual-reader cancellation/reuse. Consumer identities match Core716/Shared55; fixed owned DB is removed. MongoDB/Neo4j scalar execution and WEB4 scalar transport remain open. [Manual example](CQL_MANUAL.md#scalar-terminals--sqlite-native-execution), [acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-scalar-gate--23-october).
+SQLite now executes native scalar terminals through generic Core/HolonManager, with exact window cardinality and existing access/snapshot/traversal/deadline ownership. Count does not hydrate entities or inherit row/graph-publication limits. Full SQLite **1,269** passes unskipped, including12new scalar controls and actual-reader cancellation/reuse. Consumer identities match Core716/Shared55; fixed owned DB is removed. MongoDB/Neo4j scalar execution and WEB4 scalar transport remain open. [Manual example](CQL_MANUAL.md#scalar-terminals--sqlite-and-mongodb-native-execution), [acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-scalar-gate--23-october).
 
 ## 23 October — Scalar plans and common query attempt ownership
 

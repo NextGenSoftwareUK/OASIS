@@ -292,7 +292,7 @@ HTTP child existence uses up to four anyChildren groups; the twelve-filter budge
 WhereAnyDescendant has a generic bounded contract with explicit traversal limits. MongoDB, SQLite and Neo4j declare DescendantExists (depth 32/nodes 10000). Mongo retains snapshot semantics with flat native breadth traversal (certified Mongo8.3). Neo descendant execution requires Neo4j5.9+ (certified5.26.12) and retains read-committed semantics. Scope overflow returns CQL_QUERY_LIMIT without partial rows. Descendant intent does not load child graphs; HTTP exposes bounded anyDescendants groups, sharing four relationship groups and twelve filters with roots/direct children; see [JSON contract](CQL_V1_HTTP_CONTRACT.md#bounded-descendant-existence-over-http). [Contract](CQL_DESCENDANT_CONTRACT.md).
 
 
-## Scalar terminals — SQLite native execution
+## Scalar terminals — SQLite and MongoDB native execution
 
 Core now supports immutable typed terminal construction. These statements perform no storage I/O:
 
@@ -308,7 +308,7 @@ var longCount = source.LongCount(); // Int64 result domain.
 var any = source.Any();             // Boolean result domain.
 ```
 
-Execution uses `CosmicScalarPlanner` and the generic V2 `HolonManager.ExecuteScalarQueryAsync` entry point. SQLite now advertises native Count/LongCount/Any, verified by full1,269 tests. MongoDB and Neo4j do not yet advertise scalar support and reject it before I/O. WEB4 scalar requests and the later aggregate shapes remain pending. [Progress and native acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md).
+Execution uses `CosmicScalarPlanner` and the generic V2 `HolonManager.ExecuteScalarQueryAsync` entry point. SQLite and MongoDB now advertise native Count/LongCount/Any. SQLite full1,269 and Mongo unit229/native76 pass. Neo4j scalar execution remains a candidate and is not yet certified. WEB4 scalar requests and the later aggregate shapes remain pending. [Progress and native acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md).
 
 
 With an activated SQLite provider `sqlite` and its V2 `manager`, execute a scalar through the same generic Core contract:
@@ -352,3 +352,6 @@ long count = result.Result.Providers.Single().Value;
 ```
 
 Count uses checked Int32 and reports `CQL_AGGREGATE_OVERFLOW`; LongCount preserves exact Int64. Empty input/window returns zero, and Any returns false. Source access and relationship predicates apply before participation. A graph output request does not expand children or limit scalar input, while its requested snapshot consistency remains enforced. Counts remain per provider; replicas are not summed into a logical global count. These SDK intents do not grant authentication or access by themselves.
+
+
+The same scalar example works with an activated MongoDB provider and its V2 manager: bind `adapter` to the MongoDB instance and use its own query/scalar capability declarations. MongoDB counts natively without entity buffers or row caps. It validates canonical relationship membership and executes the scalar pipeline in one snapshot when relationship/graph intent requires it; cancellation and native deadlines cover validation and counting together. A concurrent-reparent control proves the old snapshot count and changed fresh count. WEB4 scalar transport and the later aggregate operations remain pending.
