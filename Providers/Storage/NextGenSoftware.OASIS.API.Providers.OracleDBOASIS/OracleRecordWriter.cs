@@ -17,7 +17,7 @@ public partial class OracleDBOASIS
     {
         var expected=table=="OASIS_AVATARS"?typeof(Avatar):table=="OASIS_AVATAR_DETAILS"?typeof(AvatarDetail):table=="OASIS_HOLONS"?typeof(Holon):null;
         if(expected!=typeof(T))throw new ArgumentException("Canonical Oracle record type must match its table.");
-        var dispatched=false;var creating=false;
+        var dispatched=false;var canonicalWriteAcknowledged=false;var creating=false;
         try{
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync();
             await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync();
@@ -52,7 +52,12 @@ public partial class OracleDBOASIS
                 await RejectRelatedTombstoneAsync<AvatarDetail>(connection,transaction,"OASIS_AVATAR_DETAILS",proposed.Id);
             await using var command=CreateCanonicalWriteCommand(staged,json,table,creating,connection,transaction);
             dispatched=true;if(await ExecuteCanonicalWriteAsync(command)!=1)throw new InvalidDataException("Oracle locked canonical writer did not affect exactly one record.");
+            canonicalWriteAcknowledged=true;
             await CommitLifecycleTransactionAsync(transaction);return staged;
+        }catch(OracleException cause)when(dispatched&&!canonicalWriteAcknowledged&&cause.Number==12899){
+            // A received statement-size rejection is not a lost commit response.
+            // The identical error number after DML acknowledgement remains uncertain.
+            throw new InvalidDataException("Oracle canonical statement rejected a value exceeding native column capacity; the original statement was not committed.",cause);
         }catch(OracleException cause)when(creating&&cause.Number==1){
             throw new InvalidDataException("Oracle create-only record conflicted with an existing native identity.",cause);
         }catch(Exception cause)when(dispatched){throw new OracleLifecycleReconciliationException(proposed.Id,cause);}
