@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
 
@@ -27,7 +28,8 @@ public partial class HolonRepository
     private static string CaptureHolonPersistentValues(IHolon source)
     {
         var record=StoredRecordJson.Project<Holon>(source);
-        var values=JObject.Parse(StoredRecordJson.Serialize(record));
+        // Splitting native columns must not reinterpret metadata strings or narrow numbers.
+        var values=OasisJson.ParseStoredObject(StoredRecordJson.Serialize(record));
         foreach(var field in HolonColumnFields)values.Remove(field);
         // The native column owns this provider's physical observation.
         if(values[nameof(IHolon.ProviderMetaData)] is JObject providers
@@ -40,7 +42,7 @@ public partial class HolonRepository
     {
         try
         {
-            var values=JObject.Parse(model.PersistentValueJson ?? throw new InvalidDataException("Stored holon extension is missing."));
+            var values=OasisJson.ParseStoredObject(model.PersistentValueJson ?? throw new InvalidDataException("Stored holon extension is missing."));
             if(values.Property(nameof(Holon.ChildRoleManifestJson)) is { } relationship)
             {
                 if(relationship.Value.Type!=JTokenType.String)
@@ -54,11 +56,11 @@ public partial class HolonRepository
                 && providers[ProviderType.SQLLiteDBOASIS.ToString()] is JObject local
                 && local.Property(CosmicConcurrency.ProviderRevisionMetadataKey)!=null)
                 throw new InvalidDataException("Stored holon extension contains a duplicate native revision observation.");
-            var document=JObject.Parse(StoredRecordJson.Serialize(mapped));
+            var document=OasisJson.ParseStoredObject(StoredRecordJson.Serialize(mapped));
             foreach(var property in values.Properties())document[property.Name]=property.Value.DeepClone();
             var restored=StoredRecordJson.DeserializeStored<Holon>(document.ToString(Formatting.None))
                 ?? throw new InvalidDataException("Stored holon extension has no canonical value.");
-            var roundTrip=JObject.Parse(StoredRecordJson.Serialize(restored));
+            var roundTrip=OasisJson.ParseStoredObject(StoredRecordJson.Serialize(restored));
             if(values.Properties().Any(property=>roundTrip.Property(property.Name)==null))
                 throw new InvalidDataException("Stored holon extension contains unknown or nonpersistent fields.");
             // Keep the relational codecs and physical observation authoritative.

@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public InventoryItemModel(){}
         public InventoryItemModel(NextGenSoftware.OASIS.API.Core.Interfaces.IInventoryItem source){
             var projected=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<InventoryItem>(source);
-            var extended=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(projected));
+            var extended=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.ParseStoredObject(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(projected));
             foreach(var name in RelationalColumnNames)extended.Remove(name);
             // These two values have differently named relational JSON columns.
             extended.Remove("Properties");extended.Remove("MetaData");
