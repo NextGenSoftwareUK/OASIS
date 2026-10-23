@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Oracle listener failure preserved and read-only control — 23 October 2026
+
+Oracle required-identity admission guard:16red then317/317unit controls green. Full native491/492, NOT green: intermittent synchronous read-ack case reproduced with ODP.NETORA-50201 and timestamp-matching serverTNS-12516 connection refusals. Independent server SHA256 matches all four original canonical rows, so this reproduction is unavailable connections, not deleted/corrupted originals. Root trigger and cloud gates remain OPEN. Original rows/journals/hash inventories are preserved, no cleanup/reset/replay.
+
+Explicit original-fenced read-only control completed1/1 after correcting a runner-only expected-count mistake:400unpooled reads produced400native logons in12068ms;400SDK-pooled reads used4logons in576ms. Both had0failed reads, so this demonstrates churn/performance only, **not a causal fix** of the earlier refusal or provider-wide acceptance. No server/schema/production configuration change, download, restore or additional environment. [Exact status/evidence](ORACLE_CLIENT_PRIORITY.md), [retained resources](ENVIRONMENT_INVENTORY.md). This scoped task-branch work does not authorize dev/main merge or supersede other open provider/V2 gates.
+
 ## Standalone NFT API mutation replay removed — 23 October 2026
 
 The actual `NftController.SendNFTAsync` route calls the separate ONODE `NFTManager`, not the Core WalletManager summary wrapper audited below. Its sync/async standalone methods repeated the native mutation after ordinary errors when `WaitTillNFTSent` was true, including errors carrying an original receipt. A bounded mock reproduced **two submissions**, and all **20 new outcome cases failed** at baseline. ONODE.Core `9a62ec3621a08ff867645f2930e0a268648c3356` removes both loops/blocking sleeps, submits once and reuses the existing Core result copier. Original native receipts, codes, warnings, counts, exceptions and metadata remain available; native/marked uncertainty remains an error, never success. Missing-ID responses remain reconciliation errors while retaining source-reported status/metadata, not fabricating authoritative IDs. Optional presentation failure now retains the observed receipt and save flags instead of clearing them through the generic error handler.

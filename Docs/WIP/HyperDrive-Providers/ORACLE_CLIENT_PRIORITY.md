@@ -2,6 +2,55 @@
 
 ## Resume — 2026-10-23
 
+### Bounded read-only connection comparison completed; trigger still open
+
+New explicit `Run-ReusableOracleTests.ps1 -InspectReadConnections` fences the exact preserved pending/failure hashes, permits only the read-only diagnostic class and leaves all normal write modes blocked by the pending original. It does not activate providers, save/delete records, replay mutations, alter schema/server settings or clean up originals. The separate diagnostic uses the existing real ODP.NET23.6.0/provider methods,50×8 synchronous current/historical point reads per phase. Before/after each phase it independently verifies all four original canonical byte lengths/SHA256 and finally checks both original intent/failure files unchanged. Numeric exception chains are bounded and connection strings/keys are never recorded. Its PASS means observation completed, NOT provider-wide acceptance or causal proof.
+
+First actual2298: diagnostic1/1PASS,0skip12s; wrapper TERMINAL1 because the new mode's final expected-count mapping incorrectly remained492. This was a runner bug, not native acceptance. After correcting its explicit expected1 case and SHA-verified MOVE of the tiny first reports, actual6726 TERMINAL0 ran the same bounded observation once more,1/1PASS0skip13s. No blind write retry or fixture reset.
+
+| Final observed profile | Public reads | Failed reads | Native logons delta | Elapsed |
+|---|---:|---:|---:|---:|
+| Pooling disabled |400|0|400 (3729→4129)|12068ms|
+| Real SDK pooling, min0/max4 |400|0|4 (4129→4133)|576ms|
+
+First observation likewise had400/0bad/400logons11775ms versus400/0bad/4logons555ms. This establishes reduced physical connection churn and cost/latency in this local control, **not** that pooling is the cause/fix of the earlier transient listener refusal: neither phase reproduced TNS-12516. No production/test-server setting was changed, and both profiles remain explicit diagnostic choices. All originals stay preserved for further investigation. The dedicated testhost owns its pool, which closes when that process exits; no global pool clearing or extra environment.
+
+| Existing OracleCurrent evidence | Bytes | SHA256 |
+|---|---:|---|
+| oracle-read-only-connection-current.trx.pre-runner-count |3184|04E1A18F19FA677A6A8698A3943650B9FBA7109118C754150E9D5B2F403DF04C|
+| oracle-read-only-connection.json.pre-runner-count |340|AB562FBD2C61BB1E6EA36F94681EE87F0D445E429185A67B9830037A0C88A8E9|
+| oracle-read-only-connection-current.trx |3184|9B4F8ACC33C50D86B11929610F34DED6581860770D0CA9E342CD400CE740A504|
+| oracle-read-only-connection.json |340|BC2E8491A64F64059B6B73C667AD238686ED60D98DE2B6A3CC98F2B33B48D006|
+
+Final readonly cohort Core9AF98CC8/716 unchanged during execution; SharedD7D10F14B47185348A7259EC47C55084D350973AC03F1873F6AA881BF908EC14/55 is the existing runner's rebuild at parent8de8, not the earlier full-native069 or unitD661 cohort. Global build slot released at actual terminal for peer Core projection work. Required-identity source guard has317green controls, but full native remains491/492; do not claim Oracle100%, hosted readiness or close original/past failures by inference. Cloud prerequisites remain in owner action checklist. No dev/main deployment.
+
+### Intermittent read failure reproduced: listener refused connections; originals intact
+
+Actual80876 TERMINAL1: new required-identity controls **317/317PASS,0skip662ms**; full retained Oracle native **491/492PASS,1FAIL,0skip2m5s**. Failing case `NativeReadAcknowledgementsReportActualSuccessAndRootCounts(True)` ran2026-10-23 13:26:33.715–13:26:35.171 UTC-05. Its missing-payload/absence checks contain actual ODP.NET `ORA-50201` connection errors. The same testhost's TCP/FREEPDB1 requests in the retained server listener log at18:26:34UTC report **TNS-12516**, not successful queries returning missing rows. [Oracle's error reference](https://docs.oracle.com/en/database/oracle/oracle-database/21/errmg/TNS-00001.html) identifies unavailable matching service handlers. This identifies connection refusal for THIS reproduction of the intermittent case; it does not prove every historical failure had this cause or close the underlying trigger.
+
+The previously added diagnostic fixture preserved all four original canonical rows, the original pending intent and a hash-only failure inventory. Independent READ-ONLY SQLPlus/SYSDBA queries inside the same container, in FREEPDB1, returned DBMS_CRYPTO SHA256 matching **all four** inventory hashes exactly. No repair, cleanup, reset or mutation replay occurred. Thus this reproduction provides evidence of unavailable connections, not deleted/corrupted originals. Runtime remains intentionally running for investigation; do not restart/reset it or remove its original data/journals.
+
+Post-failure inspection: container running, OOMKilledfalse, listener11521 present; service later READY with3317established connections. Database resource maxima observed99/200processes and122/322sessions, so a hard process/session-limit exhaustion is NOT established. Existing runner explicitly disables ODP.NET pooling (`Pooling=false`), creating connection churn; its causal role is a hypothesis requiring a bounded read-only pooled/unpooled control, not justification for added retries, arbitrary database-limit changes or claiming a fix. Current listener log `/opt/oracle/diag/tnslsnr/e8861e296e10/listener/trace/listener.log` contains the refusals. Next: preserve original evidence, inspect/measure service admission under read-only load, then correct the demonstrated cause and rerun only after reviewed exact reconciliation. Cloud access remains pending; Oracle is NOT100%.
+
+| Existing `C:/Source/OASIS/TestResults/OracleCurrent/` evidence | Bytes | SHA256 |
+|---|---:|---|
+| oracle-required-identity-red.trx |43009|E6EF4029309E9E4D7BB9E5502A253A6B9642C8D2453F8E8896E3C47AEE54720D|
+| oracle-required-identity-current.trx |489452|BA4ACE51E789BB1C1F2EF8FF14DBC9C4C6049DE77CF0AB21695D3D2A8D298485|
+| oracle-native-current.trx.pre-required-identity |786091|81C87774EB81C15E2D0DC1A737B40076DE762C3D43CA8191EF08DC7D4CD0218C|
+| oracle-native-current.trx (FAILED) |797449|98C5BCA88B951AB199A9D9ABE9C47EC22783640CBAAB20A82313E54C3069F811|
+| read-acknowledgements-failure.json |10912|470441EA9F0D9062305760949A92C303574FD668AF8CAD3369586B92E87F3F68|
+| read-acknowledgements.pending.json |223|C83043A1A52487CB881ADE96B9038C328F78052CCC6DE126DCDB82D1043DA198|
+
+Unit cohort Core9AF98CC8/716 SharedD661/55 verified; native runner rebuilt Shared069736B8945FDF3120478D3042D312C4C38D02F593F3DE7ACDE4983252A6ADAD, Core9AF unchanged. Do not relabel unitD661 as native069 or treat the failed full suite as green. Shared build lease released at actual terminal to peer CQL work; subsequent Oracle activity READ ONLY, no concurrent builds. Source guard/unit/docs remain isolated, not swept into a deployment or peer CQL publication.
+
+### Required-identity admission — in progress, not native acceptance
+
+The admitted Oracle schema requires USERNAME and EMAIL NOT NULL for avatars/details. Oracle's documented [zero-length character SQL semantics](https://docs.oracle.com/en/database/oracle/oracle-database/18/sqlrf/Nulls.html) first suggested a projection issue, but source review ruled that state out under this provider's strict admitted schema. No schema relaxation, null/empty normalization, dummy identity or migration was introduced. The actionable gap is that invalid required identities currently reach SDK connection handling rather than a clear field-specific input error before I/O.
+
+Actual pure-red batch:16/16FAIL,0skip570ms, public avatar/detail ×sync/async ×username/email ×null/empty, using a deliberately invalid SDK connection option. The observed error lacks the required field ParamName; existing successful-invalid-connection controls now supply valid identity values so they continue testing the real SDK parser rather than bypassing that contract. Single-boundary guard in `OracleRecordWriter.WriteCanonicalRecordAsync` checks only schema-required nonempty identities before opening the connection, leaves holons/whitespace/schema/canonical data unchanged, and does not publish caller ID/version/key mutations. Now unit-verified317/317; native491/492 with the independently diagnosed listener refusal above, not a completed provider/deployed fix.
+
+Red evidence `C:/Source/OASIS/TestResults/OracleCurrent/oracle-required-identity-red.trx` SHA256 `E6EF4029309E9E4D7BB9E5502A253A6B9642C8D2453F8E8896E3C47AEE54720D`; Core `9AF98CC8A77FE7625C443C6F26725C28EC3922CBFC0324A2AE159CE8662CB51C`/716 and Shared `D66169E3A86F4FE09A87DA82C39E040D31DD7639DAFE949F7805F936E138F946`/55 consumer/PDB/current-source verified. No native connection, service startup, data write, download or restore in this scoped red run. Shared build slot released after actual terminal to the CQL HTTP work; next full Oracle unit/native window pending. Original intermittent missing-payload cause and live cloud gates remain OPEN; this input-validation issue is not claimed as their cause.
+
 ### Preserve originals on the next unexplained read failure
 
 Audit found the semantic read-ack fixture deleted all four owned native rows before its final aggregate assertion, destroying evidence of a failing version/collection path. It now writes a create-new/write-through compact failure inventory BEFORE asserting, and leaves original rows plus the existing pending intent untouched. Inventory includes exact table/GUID/UTF8 byte length/SHA256 and error diagnostics, not copied canonical row bodies. No retry, data repair or production-provider behavior change. A subsequent run remains gated by the original pending marker; reviewed reconciliation is required, not automatic reset/cleanup.

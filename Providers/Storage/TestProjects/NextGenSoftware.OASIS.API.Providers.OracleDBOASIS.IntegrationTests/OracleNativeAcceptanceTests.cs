@@ -1212,7 +1212,7 @@ public sealed partial class OracleNativeAcceptanceTests
         }finally{await provider.DeActivateProviderAsync();}
     }
 
-    private static async Task<string?> Read(OracleConnection connection,string table,Guid id)
+    internal static async Task<string?> Read(OracleConnection connection,string table,Guid id)
     {
         await using var command=new OracleCommand($"SELECT DATA_JSON FROM {table} WHERE ID=:Id",connection){BindByName=true};
         command.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();
