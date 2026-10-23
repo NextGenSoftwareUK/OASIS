@@ -2,6 +2,10 @@
 
 ## Resume — 2026-10-23
 
+### Oracle read metadata repair checkpoint — full regression still pending
+
+Oracle read annotations are checkpointed after the real focused100-response matrix passed (two sync/async cases). Reused private RecordLoaded/RecordsLoaded annotations cover point, collection, metadata, parent, export and search success paths, without another query; collection inputs already materialized are reused rather than copied. Existing failure paths are not marked loaded. The separate Shared wallet count fix was published at d9231e090 with960 controls green. Native flags/projection tests below establish this scoped change, NOT the full376+advanced14+OCI72 regression. The coherent published Core gate is reserved once the peer's graph-boundary repair is published; no dev merge/deployment is authorized by this checkpoint. Earlier statement that Oracle code was local describes the preceding Shared-only checkpoint, not this later source checkpoint.
+
 ### Read acknowledgement audit — Shared checkpoint, Oracle full gate pending
 
 Actual25473 red TERMINAL1: both native sync/async cases failed after exact fixture cleanup, each exposing46 incorrect read envelopes. The matrix checks100 responses total:22 versioned read families at latest/v1 in each sync/async mode plus current credentials and missing-record failure. Old records were returned with IsLoaded=false/LoadedCount0; search/wallet counts were also0. This is response metadata, not evidence that native records were absent.
