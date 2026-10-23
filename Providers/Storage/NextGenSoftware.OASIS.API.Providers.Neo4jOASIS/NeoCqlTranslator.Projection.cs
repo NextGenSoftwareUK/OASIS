@@ -10,14 +10,18 @@ internal sealed partial class NeoCqlTranslator
         var projected = new List<(string, string)>();
         foreach (var column in columns)
         {
-            var path = column.Path;
-            var operand = Operand(path);
-            var missing = path.IsMetadata ? _projection + "[" + Bind(NeoCqlProjection.PathKey(path.Segments) + "_kind") + "] IS NULL" : "false";
-            var state = "CASE WHEN " + missing + " THEN 0 WHEN " + operand.Null + " THEN 1 WHEN "
-                + Total(operand.Guard) + " THEN 2 ELSE 3 END";
-            var value = "CASE WHEN " + Total(operand.Guard) + " THEN " + operand.Value + " ELSE null END";
-            projected.Add((state, value));
+            projected.Add(TranslateProjectionPath(column.Path));
         }
         return projected.AsReadOnly();
+    }
+
+    internal (string State, string Value) TranslateProjectionPath(CosmicQueryPath path)
+    {
+        var operand = Operand(path);
+        var missing = path.IsMetadata ? _projection + "[" + Bind(NeoCqlProjection.PathKey(path.Segments) + "_kind") + "] IS NULL" : "false";
+        var state = "CASE WHEN " + missing + " THEN 0 WHEN " + operand.Null + " THEN 1 WHEN "
+            + Total(operand.Guard) + " THEN 2 ELSE 3 END";
+        var value = "CASE WHEN " + Total(operand.Guard) + " THEN " + operand.Value + " ELSE null END";
+        return (state, value);
     }
 }
