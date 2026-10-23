@@ -2,6 +2,20 @@
 
 ## Resume — 2026-10-23
 
+### Read acknowledgement audit — Shared checkpoint, Oracle full gate pending
+
+Actual25473 red TERMINAL1: both native sync/async cases failed after exact fixture cleanup, each exposing46 incorrect read envelopes. The matrix checks100 responses total:22 versioned read families at latest/v1 in each sync/async mode plus current credentials and missing-record failure. Old records were returned with IsLoaded=false/LoadedCount0; search/wallet counts were also0. This is response metadata, not evidence that native records were absent.
+
+Focused corrected native2/2 passed6s in96937; its later Shared test compile failed on a test-only attempt to assign computed IsDeleted. Corrected test to set DeletedDate, then85166 ACTUAL TERMINAL0 fullShared960/960 passed7s, no skips; owned Oracle runtime stopped/pending0. Existing native data/projections/query count/crypto unchanged by response annotations. Collection counts mean returned roots, not nested descendants; successful empty collections are loaded/count0; missing records remain error/not-loaded/count0. Oracle production/runner/new matrix are still local pending a full coherent native gate before their commit. This checkpoint publishes ONLY the reusable Shared wallet selector's LoadedCount1 and its two controls (deleted-match exclusion, missing-count0 and source-collection count preservation).
+
+| Current scoped evidence | Bytes | SHA256 |
+|---|---:|---|
+| oracle-read-ack-native-red.trx | 13530 | 03C246878FD1E47E89B1D444B88CDC1BB2371928128ABCC98DBBCF87E0C99780 |
+| oracle-read-ack-native-current.trx | 4343 | 55A9FB688564F8C5DE19DF559BB8AA4118FFBB6ACCB4CE400B177A71463162F7 |
+| oracle-read-ack-shared-controls.trx | 1460276 | 2D3F7283D87DF37961D05F2B5839C2F48F8AB5EC0F905D77B4DF5F80CBEC543B |
+
+Core producer was20709771, but peer Core source had six in-progress graph edits by the final controls; NO current Core source/PDB match or final published-Core certification is asserted here. A coherent published gate is reserved after peer publication. Main376/advanced14/OCI72 remain pending refresh; earlier374+14/72 evidence below is not relabelled. Cloud acceptance still pending, no Oracle100% claim.
+
 ### Coherent published-source Oracle cohort refreshed
 
 Actual6082 TERMINAL0, zero skips: main374/374 native passed91s, replay4/4 passed2s, preparation6/6 passed2s, separate process write2/2 passed956ms and recovery2/2 passed843ms (388 native test cases total, NOT388 API routes). Controls281/281 passed583ms; signed official OCI SDK loopback72/72 passed10s. This brings the previously separate main/advanced/OCI evidence onto one frozen source cohort: published/pinned Core20709771bc09d40f8d8b99c7b1d22c889b138f9f, DLLBAB2B0EF08E3536712B7617012842449AAD45357F0A3FC83C60836FBC04C656C / SharedD2EA733F1DC5BFDAD5A995655B4773A51FA9BFE2D211A3B063FCC58A2D8A49B0. Both integration and OCI consumers matched producers;711Core/54Shared source/PDB documents verified under the exclusive lease and peer source hold. Later source changes are a different cohort, not silently recertified.

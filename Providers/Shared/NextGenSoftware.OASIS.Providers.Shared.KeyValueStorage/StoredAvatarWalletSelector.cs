@@ -38,7 +38,7 @@ public static class StoredAvatarWalletSelector
             {
                 result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="No avatar matches the credential selector.";
             }
-            else {result.Result=matches[0];result.IsLoaded=true;}
+            else {result.Result=matches[0];result.IsLoaded=true;result.LoadedCount=1;}
         }
         catch(Exception cause)
         {
