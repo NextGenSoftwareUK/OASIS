@@ -386,7 +386,7 @@ See the [complete scalar contract](CQL_SCALAR_HTTP_CONTRACT.md) for limits and a
 
 ## Native Select — SQLite SDK
 
-SQLite supports detached scalar, anonymous and flat DTO projections through the generic V2 manager. MongoDB and Neo4j projection adapters and the projection HTTP route are still pending; their row/scalar APIs remain unchanged. This SDK code runs within a trusted host: bind the actor from your authoritative application identity.
+SQLite supports detached scalar, anonymous and flat DTO projections through the generic V2 manager. MongoDB now also implements the same projection contract (see below); Neo4j and the projection HTTP route remain pending. Existing row/scalar APIs are unchanged. This SDK code runs within a trusted host: bind the actor from your authoritative application identity.
 
 ```csharp
 ICosmicQueryProjectionStorageProvider adapter = sqlite;
@@ -437,3 +437,10 @@ var rows = result.Result.Providers.Single().Rows;
 SQLite selects the columns natively; it does not load holons to run the selector. Core constructs detached results after every native buffer validates. Nullable/string missing or explicit null becomes null; a required missing value, wrong type or ambiguous duplicate path is an error. Int64 retains its exact value. Computed selectors, arbitrary methods, entity results and implicit numeric conversions are rejected. Bounds are rejection limits, not truncation: use explicit source Take for a page, and choose an adequate maximumResults/payload budget for execution. At most32 scalar columns are admitted, with the existing bounded native parameter/instruction/deadline limits.
 
 Requested source snapshot consistency is retained; graph output node caps do not reduce projected rows and no children are hydrated. Scope traversal retains its independent depth/node budgets. [Native projection evidence and implementation](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-projection-slice--23-october-2026).
+
+
+### MongoDB Select availability
+
+The same generic SDK projection code above is implemented for MongoDB: bind `ICosmicQueryProjectionStorageProvider adapter` to the activated MongoDB instance and use its own query/projection capabilities. Source eligibility, ordering and paging run in the native BSON pipeline; the driver receives scalar cells, never a fetched holon graph for client-side selection. Required relationship validation and column reads share one native snapshot. Graph output limits do not cap projected roots. UUID text/standard/legacy representations and exact UTC tick companions retain their stored semantics; ambiguous dictionary paths or precision companions error. Native row/byte/deadline limits fail without partial results.
+
+Initial unit236/native81 and expanded unit237/native91 gates pass with zero skips. The expanded native cases include snapshot reparenting, actual-aggregate cancellation/reuse, large projections, both UUID layouts and ambiguity rejection. Neo4j projection and projection HTTP support remain pending. See [MongoDB projection contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-projection-slice--23-october-2026).

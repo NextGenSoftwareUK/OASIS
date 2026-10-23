@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — native MongoDB Select
+
+MongoDB now executes native scalar/anonymous/flat DTO projections through the generic Core/V2 manager. Native pipeline retains protected source filters/order/window, error branches outside paging, snapshot membership ownership and exact BSON decoding. Duplicate dictionary paths/UTC precision companions reject, UUID layouts and exact Int64/ticks retain their domains. Unit **237** / native **91** pass unskipped (8newunit/15newnative controls). Producer/unit/native-consumer DLL04CD09A3 matches. Core720/Shared55 source unchanged; owned Mongo graph fixtures clean and runner runtime stopped normally. Next Neo4j native Select, then authenticated projection transport/demos. [SDK example availability](CQL_MANUAL.md#mongodb-select-availability), [contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-projection-slice--23-october-2026).
+
 ## 23 October — native SQLite Select
 
 SQLite now executes scalar/anonymous/flat DTO projection through generic V2 HolonManager. Native columns reuse source predicates, visibility/order/window and bounded relationship semantics, with exact type/presence decoding and no entity hydration. Scope validation and projection share a snapshot; read-only/caller ownership, cancellation/reuse,137rows beyond graph output caps, ambiguous paths and corrupt canonical domains are verified. FullSQLite **1,282** passes unskipped; final **16**focused projection cases include3additional test-only canonical controls on the unchanged provider binary (no full1,285claim). PriorCore2,011 remains recorded; no Core/Shared source changed in this slice. Next MongoDB/Neo4j native Select and authenticated projection transport/demos. [Working SQLite SDK example](CQL_MANUAL.md#native-select--sqlite-sdk), [contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-projection-slice--23-october-2026).
