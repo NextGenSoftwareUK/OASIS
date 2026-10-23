@@ -20,7 +20,7 @@ The immutable node freezes the child expression with the existing scalar compile
 
 Options require depth1-32 and nodes1-10000; defaults are depth8/nodes1000. Adapters declare DescendantExists1048576 together with ChildExists and an immutable CosmicQueryTraversalCapability. Its explicit certified bounds can be smaller than the generic absolute maxima. Missing capability or excessive requested bounds rejects at planning and actual-adapter readmission, before dispatch. A supplied plan cannot lend its traversal budget to the executing adapter. Existing public capability constructor signatures are preserved; new overloads carry traversal limits.
 
-MongoDB, SQLite and Neo4j declare DescendantExists with depth32/nodes10000. Direct-child SDK/HTTP queries remain supported on all three stores; descendant HTTP transport is pending.
+MongoDB, SQLite and Neo4j declare DescendantExists with depth32/nodes10000. Direct-child SDK/HTTP queries remain supported on all three stores; bounded descendant HTTP groups are implemented with shared relationship/filter budgets.
 
 ## Required native semantics
 
@@ -60,7 +60,7 @@ Native error scopes are outside root sorting/Skip/Take, under the same read-comm
 
 Final50927 terminal0: Neo316unit/45native/joint109 pass unskipped. Positive/negative controls cover depth, private intermediate pruning, exact Int64 and independent clauses, unlisted branches, duplicate edges, budget/reuse, root paging and cycles. Root cause red1 after introducing inline pruning identified MATCH relationship uniqueness suppressing a self-loop; separate canonical projection lookups fixed it. Earlier4failed assertions were an incorrect fixture-name literal and were corrected separately. Two completed-stage fixture reconciliations used exact hashes and validated native absence/all9SQLite rows before removal; no operation replay/reset.
 
-Consumers match712Core/54Shared source/PDB: CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733 / SharedF51B52FE83B3F22422BEED382F2EA2B53AB7D0323176FC73BAC432032AD8692B. The newer Mongo owner is described below; descendant transport and broader acceptance gates remain open.
+Consumers match712Core/54Shared source/PDB: CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733 / SharedF51B52FE83B3F22422BEED382F2EA2B53AB7D0323176FC73BAC432032AD8692B. The newer Mongo owner is described below; broader acceptance gates remain open; bounded descendant HTTP is implemented.
 
 ## MongoDB native execution
 
@@ -75,3 +75,5 @@ The retained certification engine is Mongo8.3; other engine versions have not be
 An actual native negative control lowers the owned replica's facet budget to1byte rather than allocating a large dataset. It exposed the mapper handling292 but missing named146/ExceededMemoryLimit. The mapper now recognizes both; the [Mongo8.3 facet executor](https://github.com/mongodb/mongo/blob/r8.3.0/src/mongo/db/exec/agg/facet_stage.cpp) uses the named memory error. The test verifies146, CQL_QUERY_LIMIT, absent partial output, exact parameter restoration in finally and successful reuse.
 
 The first completed native batch passed58 cases; the expanded negative batch passed59/60 and exposed the mapping defect. After that root fix,219 unit tests,60 native cases and109 joint cases passed without skips. Final40754 actual terminal0:220 unit tests,61 native tests (19 descendant controls) and109 joint tests pass with no skips, including both-order negative/overflow scopes and preallocation rejection. Source/PDB712Core/54Shared verified: CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733 / Shared325CF326FCF0B58D6E2FBAAF84BBE27CE4851112DE500F11E5D2A2707CEB038A. Evidence is retained in TestResults/CosmicCqlDemo/mongo-descendant-source.log; no Core/Shared source change is part of this provider checkpoint.
+
+WEB4 anyDescendants now compiles through this immutable contract with server actor binding, explicit depth/node bounds and shared direct/descendant group/filter budgets. FullCore1830/joint109 pass, including owner/outsider signed native pruning and denial-budget controls across all3 stores. No production Core/Shared changes. See [transport](CQL_V1_HTTP_CONTRACT.md#bounded-descendant-existence-over-http).
