@@ -38,6 +38,7 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
             var rows=await repository.ExecuteNativeCqlAsync(command,maximumResults,cancellationToken).ConfigureAwait(false);
             return new OASISResult<IReadOnlyList<IHolon>>(rows){IsLoaded=true};
         }
+        catch(System.IO.InvalidDataException cause){return CqlFailure("CQL_DATA_INVALID",cause.Message,cause);}
         catch(MongoCqlLimitException cause){return CqlFailure("CQL_QUERY_LIMIT",cause.Message,cause);}
         catch(Repositories.MongoCqlGraphTimeoutException cause){return CqlFailure("CQL_QUERY_TIMEOUT",cause.Message,cause);}
         catch(NotSupportedException cause){return CqlFailure("CQL_CAPABILITY_UNSUPPORTED",cause.Message,cause);}

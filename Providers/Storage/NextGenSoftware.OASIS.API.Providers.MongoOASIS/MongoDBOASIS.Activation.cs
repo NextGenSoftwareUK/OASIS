@@ -34,6 +34,7 @@ public partial class MongoDBOASIS
                 await holons.EnsurePrimaryOutboxIndexesAsync().ConfigureAwait(false);
                 await avatars.EnsurePublicIdentityIndexesAsync().ConfigureAwait(false);
             }
+            await holons.UpgradeCqlMembershipAsync().ConfigureAwait(false);
             Database=database;
             _avatarRepository=avatars;
             _holonRepository=holons;

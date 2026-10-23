@@ -16,6 +16,21 @@ internal static class MongoCqlMembership
     internal const string Field = "CosmicCqlMembership";
     internal const int SchemaVersion = 1;
 
+    internal static BsonValue ValidObservation()
+    {
+        var root = "$" + Field + ".";
+        BsonValue Equal(BsonValue left, BsonValue right) => new BsonDocument("$eq", new BsonArray { left, right });
+        var source = new BsonDocument("$ifNull", new BsonArray { "$ChildRoleManifestJson", BsonNull.Value });
+        return new BsonDocument("$and", new BsonArray
+        {
+            Equal(root + "schema", SchemaVersion),
+            Equal(root + "owner", new BsonDocument("$toLower", "$HolonId")),
+            Equal(root + "source", source),
+            Equal(root + "declared", new BsonDocument("$ne", new BsonArray { source, BsonNull.Value })),
+            new BsonDocument("$isArray", root + "members")
+        });
+    }
+
     internal static BsonDocument Build(Guid ownerId, string manifest)
     {
         try

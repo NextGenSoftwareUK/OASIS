@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — Native direct-child predicates on all three providers
+
+Mongo now declares ChildExists: canonical final-write membership, whole-record CAS upgrade, same-snapshot validation/lookup, actor visibility and independent matches before paging. Unit216/native37/joint96 pass, zero skips; Core711/Shared54 source identity verified. SQLite/Neo native direct-child owners remain implemented. Descendants, extended relationship controls, HTTP relation descriptions, aggregates/joins/federation and full roadmap completion remain open. [Contract and evidence](CQL_RELATIONSHIPS.md).
+
 ## 23 October — Mongo canonical relationship write state
 
 Central final-BSON writer now derives schema1 canonical membership state for ordinary/conditional/replica record replacements. Unit213/native29 pass unskipped, including stale-projection replacement and unchanged children during root-only conditional saves. Hash-bound preparation-fixture reconciliation1 passed; Core711/Shared54 source identity verified. Mongo ChildExists stays closed pending migration, snapshot validation and native lookup. [Contract](CQL_RELATIONSHIPS.md).

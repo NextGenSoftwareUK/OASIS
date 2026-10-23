@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MongoDB.Bson;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -10,7 +11,9 @@ internal sealed class MongoCqlCommand
 {
     internal BsonDocument[] Pipeline { get; }
     internal int FetchCount { get; }
-    internal MongoCqlCommand(BsonDocument[] pipeline,int fetchCount){Pipeline=pipeline;FetchCount=fetchCount;}
+    internal bool RequiresMembership { get; }
+    internal MongoCqlCommand(BsonDocument[] pipeline,int fetchCount,bool requiresMembership=false)
+    {Pipeline=pipeline;FetchCount=fetchCount;RequiresMembership=requiresMembership;}
 }
 
 internal sealed partial class MongoCqlTranslator
@@ -32,8 +35,10 @@ internal sealed partial class MongoCqlTranslator
 
     internal MongoCqlCommand CompileExecution<T>(CosmicQuery<T> query,int maximumResults) where T:IHolon
     {
-        var filter=Compile(query);
-        var pipeline=new List<BsonDocument>{new("$match",filter),new("$project",new BsonDocument("Children",0))};
+        var filter=CompileRootPredicates(query);
+        var pipeline=new List<BsonDocument>{new("$match",filter)};
+        AddChildExistence(pipeline,query);
+        pipeline.Add(new("$project",new BsonDocument("Children",0)));
         if(query.Orderings.Count!=0)
         {
             // Wrap the complete row so computed sort keys cannot overwrite any
@@ -64,6 +69,6 @@ internal sealed partial class MongoCqlTranslator
             else if(entry.Value is BsonArray array)foreach(var value in array)pending.Push((value,entry.Depth+1));
         }
         if(envelope.ToBson().Length>1024*1024)throw new MongoCqlLimitException();
-        return new MongoCqlCommand(pipeline.ToArray(),fetch);
+        return new MongoCqlCommand(pipeline.ToArray(),fetch,query.Predicates.Any(predicate=>predicate is CosmicQueryAnyChild));
     }
 }

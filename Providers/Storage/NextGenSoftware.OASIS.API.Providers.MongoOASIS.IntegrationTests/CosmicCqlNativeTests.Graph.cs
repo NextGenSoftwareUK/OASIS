@@ -27,7 +27,7 @@ public sealed partial class CosmicCqlNativeTests
         public IMongoCollection<BsonDocument> Records=>Database.GetCollection<BsonDocument>("Holon");
     }
 
-    private async Task WithMongoGraph(Func<MongoGraphFixture,Task> verify,bool manifest=true,int width=2,bool largeChild=false,Action<Holon>? configure=null,Func<Holon>? createRoot=null)
+    private async Task WithMongoGraph(Func<MongoGraphFixture,Task> verify,bool manifest=true,int width=2,bool largeChild=false,Action<Holon>? configure=null,Func<Holon>? createRoot=null,Guid? actor=null)
     {
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
@@ -63,7 +63,7 @@ public sealed partial class CosmicCqlNativeTests
             {
                 // Assigned fixture IDs deliberately declare create-only preconditions.
                 var expected=nodes.ToDictionary(node=>node.Id,_=>(Guid?)null);
-                var seeded=await Manager(provider).SaveHolonAsync(fixture.Root,Guid.NewGuid(),
+                var seeded=await Manager(provider).SaveHolonAsync(fixture.Root,actor??Guid.NewGuid(),
                     new CosmicWriteOptions(Guid.NewGuid(),expected),saveChildren:true,providerType:ProviderType.MongoDBOASIS);
                 Assert.False(seeded.IsError,seeded.Message+seeded.Exception);
             }
@@ -85,6 +85,113 @@ public sealed partial class CosmicCqlNativeTests
             else output.WriteLine("Preserved owned graph fixture after an unknown/unacknowledged write; inspect before reuse.");
         }
     }
+
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)]
+    public Task NativeAnyChildUsesVisibilityExactMetadataAndIndependentSiblings(int visibility)
+    {
+        var actor=Guid.NewGuid();
+        return WithMongoGraph(async fixture=>
+        {
+            var id=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
+                .Where(root=>root.Id==id)
+                .WhereAnyChild(child=>child.Name=="owned CQL graph child 0" &&
+                    CosmicQueryMetadata.Value<long>(child,"precision")==9007199254740993L)
+                .WhereAnyChild(child=>child.HolonType==HolonType.Cafe).OrderBy(root=>root.Name).Take(1);
+            Assert.False(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            Assert.False(plan.IsError,plan.Message);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.False(read.IsError,read.Message+read.Exception);Assert.Equal(visibility==0?0:1,read.Result.Count);
+        },configure:root=>
+        {
+            root.IsPublic=true;root.Children.Last().IsPublic=true;
+            var child=root.Children.First();child.IsPublic=visibility==1;
+            child.MetaData["precision"]=9007199254740993L;
+        },actor:visibility==2?actor:null);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public Task NativeAnyChildHonorsDeclaredMembershipOrExplicitParentLinks(bool manifested)
+        =>WithMongoGraph(async fixture=>
+        {
+            var orphan=new Holon{Id=Guid.NewGuid(),ParentHolonId=fixture.Root.Id,Name="unlisted match"};
+            fixture.KnownOutcome=false;
+            var saved=await fixture.Provider.SaveHolonAsync(orphan,saveChildren:false);
+            fixture.KnownOutcome=!saved.IsError;Assert.False(saved.IsError,saved.Message+saved.Exception);
+            var id=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==id)
+                .WhereAnyChild(child=>child.Name=="unlisted match").OrderBy(root=>root.Name).Take(1);
+            Assert.False(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            Assert.False(plan.IsError,plan.Message);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.False(read.IsError,read.Message+read.Exception);Assert.Equal(manifested?0:1,read.Result.Count);
+        },manifest:manifested);
+
+    [Fact]
+    public Task NativeAnyChildUpgradePreservesEveryCanonicalRecordAndRevision()
+        =>WithMongoGraph(async fixture=>
+        {
+            var before=await fixture.Records.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+            foreach(var row in before)row.Remove("CosmicCqlMembership");
+            await fixture.Records.UpdateManyAsync(FilterDefinition<BsonDocument>.Empty,
+                new BsonDocument("$unset",new BsonDocument("CosmicCqlMembership",1)));
+            var id=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==id).WhereAnyChild(child=>child.HolonType==HolonType.Quest);
+            Assert.False(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            Assert.False(plan.IsError,plan.Message);
+            var rejected=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.True(rejected.IsError);Assert.Equal("CQL_DATA_INVALID",rejected.ErrorCode);
+            var upgrade=new Provider("mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000",fixture.Database.DatabaseNamespace.DatabaseName);
+            try
+            {
+                fixture.KnownOutcome=false;var activated=await upgrade.ActivateProviderAsync();
+                fixture.KnownOutcome=!activated.IsError;Assert.False(activated.IsError,activated.Message+activated.Exception);
+            }
+            finally{await upgrade.DeActivateProviderAsync();}
+            var loaded=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.False(loaded.IsError,loaded.Message+loaded.Exception);Assert.Single(loaded.Result);
+            var after=await fixture.Records.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+            Assert.Equal(before.Count,after.Count);
+            foreach(var row in after){row.Remove("CosmicCqlMembership");Assert.Equal(before.Single(old=>old["_id"]==row["_id"]),row);}
+        });
+
+    [Fact]
+    public Task NativeAnyChildRejectsStaleProjectionOutsideTheRootPage()
+        =>WithMongoGraph(async fixture=>
+        {
+            var grandchild=fixture.Root.Children.First().Children.Single().Id.ToString("D");
+            await fixture.Records.UpdateOneAsync(new BsonDocument("HolonId",grandchild),
+                new BsonDocument("$set",new BsonDocument("CosmicCqlMembership.source","stale")));
+            var id=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==id)
+                .WhereAnyChild(child=>child.HolonType==HolonType.Quest).Take(1);
+            Assert.False(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            var rejected=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.True(rejected.IsError);Assert.Equal("CQL_DATA_INVALID",rejected.ErrorCode);
+        });
+
+    [Fact]
+    public Task NativeAnyChildFutureSchemaFailsActivationWithoutDowngrade()
+        =>WithMongoGraph(async fixture=>
+        {
+            var id=fixture.Root.Id.ToString("D");var filter=new BsonDocument("HolonId",id);
+            await fixture.Records.UpdateOneAsync(filter,new BsonDocument("$set",new BsonDocument("CosmicCqlMembership.schema",2)));
+            var before=await fixture.Records.Find(filter).SingleAsync();
+            var upgrade=new Provider("mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000",fixture.Database.DatabaseNamespace.DatabaseName);
+            try{var rejected=await upgrade.ActivateProviderAsync();Assert.True(rejected.IsError);Assert.False(upgrade.IsProviderActivated);}
+            finally{await upgrade.DeActivateProviderAsync();}
+            Assert.Equal(before,await fixture.Records.Find(filter).SingleAsync());
+        });
 
     [Theory]
     [InlineData(false)]

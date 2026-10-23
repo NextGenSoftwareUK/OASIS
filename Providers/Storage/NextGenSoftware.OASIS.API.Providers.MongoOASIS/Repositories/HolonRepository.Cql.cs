@@ -14,15 +14,38 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 public partial class HolonRepository
 {
     internal async Task<IReadOnlyList<IHolon>> ExecuteNativeCqlAsync(MongoCqlCommand command,int maximumResults,CancellationToken cancellationToken)
-        => await ReadNativeCqlRowsAsync(command,maximumResults,64*1024*1024,null,
-            () => new AggregateOptions{Collation=Collation.Simple,MaxTime=TimeSpan.FromSeconds(30),BatchSize=16,AllowDiskUse=false},
-            cancellationToken).ConfigureAwait(false);
+    {
+        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(30));
+        var elapsed=System.Diagnostics.Stopwatch.StartNew();
+        AggregateOptions Options()
+        {
+            deadline.Token.ThrowIfCancellationRequested();
+            var remaining=TimeSpan.FromSeconds(30)-elapsed.Elapsed;
+            if(remaining<=TimeSpan.Zero)throw new MongoCqlGraphTimeoutException();
+            return new AggregateOptions{Collation=Collation.Simple,MaxTime=TimeSpan.FromMilliseconds(Math.Ceiling(remaining.TotalMilliseconds)),BatchSize=16,AllowDiskUse=false};
+        }
+        try
+        {
+            using var session=command.RequiresMembership && command.FetchCount!=0
+                ? await _dbContext.MongoClient.StartSessionAsync(new ClientSessionOptions{Snapshot=true,CausalConsistency=false},deadline.Token).ConfigureAwait(false)
+                : null;
+            return await ReadNativeCqlRowsAsync(command,maximumResults,64*1024*1024,session,Options,deadline.Token).ConfigureAwait(false);
+        }
+        catch(OperationCanceledException) when(!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
+        {throw new MongoCqlGraphTimeoutException();}
+    }
 
     private async Task<IReadOnlyList<IHolon>> ReadNativeCqlRowsAsync(MongoCqlCommand command,int maximumResults,
         int maximumBytes,IClientSessionHandle session,Func<AggregateOptions> options,CancellationToken cancellationToken,
         Action<int> reserveNativeBytes=null)
     {
         if(command.FetchCount==0)return Array.Empty<IHolon>();
+        if(command.RequiresMembership)
+        {
+            if(session==null)throw new InvalidOperationException("Mongo relationship validation requires its native snapshot owner.");
+            await ValidateCqlMembershipAsync(session,options,cancellationToken).ConfigureAwait(false);
+        }
         // The native pipeline owns filtering, exact sort keys, offset and page
         // boundaries. Disk spilling is explicitly disabled to bound resources.
         using var cursor=session==null

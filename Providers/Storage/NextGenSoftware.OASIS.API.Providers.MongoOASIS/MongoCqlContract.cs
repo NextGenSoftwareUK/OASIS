@@ -42,7 +42,7 @@ internal static class MongoCqlContract
         return new CosmicQueryCapabilities(CosmicQueryFeatures.And|CosmicQueryFeatures.Or|CosmicQueryFeatures.Not
             |CosmicQueryFeatures.Metadata|CosmicQueryFeatures.NullLiteral|CosmicQueryFeatures.BooleanConstant
             |CosmicQueryFeatures.MetadataExists|CosmicQueryFeatures.MetadataNull|CosmicQueryFeatures.Membership
-            |CosmicQueryFeatures.Ordering|CosmicQueryFeatures.Paging|CosmicQueryFeatures.FieldComparison|CosmicQueryFeatures.StringContains|CosmicQueryFeatures.StringStartsWith|CosmicQueryFeatures.StringEndsWith|CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.GraphReadAccess|CosmicQueryFeatures.GraphSnapshot,
+            |CosmicQueryFeatures.Ordering|CosmicQueryFeatures.Paging|CosmicQueryFeatures.FieldComparison|CosmicQueryFeatures.StringContains|CosmicQueryFeatures.StringStartsWith|CosmicQueryFeatures.StringEndsWith|CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.GraphReadAccess|CosmicQueryFeatures.GraphSnapshot|CosmicQueryFeatures.ChildExists,
             fields.ToArray(),metadata);
     }
 }
