@@ -220,7 +220,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             return result;
         }
 
-        private static OASISResult<T> Ok<T>(T value, string message = null) => new(value) { IsLoaded = true, Message = message };
+        private static OASISResult<T> Ok<T>(T value, string message = null, int loadedCount = 1) => new(value) { IsLoaded = true, LoadedCount = loadedCount, Message = message };
 
         private static bool ParseKey(string providerKey, out Guid id) => Guid.TryParse(providerKey, out id) && id!=Guid.Empty;
 
@@ -392,7 +392,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}avatar/");
-                return Ok<IEnumerable<IAvatar>>(await ReadAllAsync<IAvatar>(keys, version));
+                var avatars=await ReadAllAsync<IAvatar>(keys, version);
+                return Ok<IEnumerable<IAvatar>>(avatars,loadedCount:avatars.Count);
             }
             catch (Exception ex) { return Fail<IEnumerable<IAvatar>>($"Error loading avatars: {ex.Message}", ex); }
         }
@@ -575,7 +576,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}avatardetail/");
-                return Ok<IEnumerable<IAvatarDetail>>(await ReadAllAsync<IAvatarDetail>(keys, version));
+                var details=await ReadAllAsync<IAvatarDetail>(keys, version);
+                return Ok<IEnumerable<IAvatarDetail>>(details,loadedCount:details.Count);
             }
             catch (Exception ex) { return Fail<IEnumerable<IAvatarDetail>>($"Error loading avatar details: {ex.Message}", ex); }
         }
@@ -867,7 +869,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     child.Children = grandChildren.Result?.ToList() ?? new List<IHolon>();
                 }
             }
-            return MarkPartialRead(Ok<IEnumerable<IHolon>>(children.Where(h => type == HolonType.All || h.HolonType == type).ToList()), failures);
+            var typedChildren=children.Where(h => type == HolonType.All || h.HolonType == type).ToList();
+            return MarkPartialRead(Ok<IEnumerable<IHolon>>(typedChildren,loadedCount:typedChildren.Count), failures);
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -911,7 +914,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                             continueOnError: continueOnError, failures: failures,owner:holon);
                         holon.Children = children.Result.ToList();
                     }
-                return MarkPartialRead(Ok<IEnumerable<IHolon>>(selected), failures);
+                return MarkPartialRead(Ok<IEnumerable<IHolon>>(selected,loadedCount:selected.Count), failures);
             }
             catch (Exception ex) { return Fail<IEnumerable<IHolon>>($"Error loading holons: {ex.Message}", ex); }
         }
@@ -1039,7 +1042,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 results.SearchResultAvatars.AddRange(avatars.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,true,searchParams,ancestry)));
                 if(searchHolons)results.SearchResultHolons.AddRange(holons.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,false,searchParams,ancestry)));
                 results.NumberOfResults = results.SearchResultAvatars.Count + results.SearchResultHolons.Count;
-                var result=Ok<ISearchResults>(results);
+                var result=Ok<ISearchResults>(results,loadedCount:results.NumberOfResults);
                 if(partialCollection!=null){result.IsWarning=true;result.Message=partialCollection.Message;result.MetaData=partialCollection.MetaData;}
                 return result;
             }
