@@ -52,7 +52,7 @@ public class CosmicQueryProjectionUpgradeTests
                             if (Data.Mode is "newer" or "duplicate" or "schema")
                             {
                                 var node = DispatchProxy.Create<IRelationship, Neo4jNativeIdentityTests.NodeProbe>();
-                                ((Neo4jNativeIdentityTests.NodeProbe)node).Values = new Dictionary<string, object> { ["SchemaVersion"] = Data.Mode == "schema" ? (object)"1" : 2L };
+                                ((Neo4jNativeIdentityTests.NodeProbe)node).Values = new Dictionary<string, object> { ["SchemaVersion"] = Data.Mode == "schema" ? (object)"1" : NeoCqlProjection.SchemaVersion+1 };
                                 projections.Add(node); if (Data.Mode == "duplicate") projections.Add(node);
                             }
                             state.Rows.Add(Record(new() { ["h"] = Data.Node, ["projections"] = projections }));

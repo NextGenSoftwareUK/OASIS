@@ -1,5 +1,12 @@
 # COSMIC ORM implementation status
 
+## 23 October — Neo4j native CQL graph reader and type projection
+
+Added bounded native HAS_CHILD expansion after root paging, persisted membership ordering/batching, graph budgets, partial-save ownership and native snapshot/revision consistency checks. Neo4j uses one read-committed transaction; it does not offer the SQLite/Mongo cross-command snapshot guarantee. Cooperative driver cancellation is checked around awaits and before publication. Canonical HolonType projection/translation/capability is now implemented under schema2, using the existing activation migration owner.
+
+Native81/81, unit31/31 and scoped18/18 pass, zero skips;17 graph cases include real interleaved child updates and schema1→2 preservation of canonical records. Joint hosted82/82 tests passed; the runner's old65 count is corrected to82, with its final gate now passing terminal0 and successful teardown. [Exact guarantees/evidence](CQL_GRAPH_LOADING.md). All three SDK readers now support graph shape; HTTP graph policy/transport, relationships, projections/aggregates, joins and federation remain open. Keep the full goal active.
+
+
 ## 23 October — MongoDB native CQL graphs certified
 
 MongoDB now expands root pages and child membership inside one snapshot session with one cumulative30-second deadline. Native parent/type/member predicates use the existing translator,128-ID batches and pre-decode BSON/node bounds; Shared owns ordered graph assembly and Core owns detached/typed publication and partial-save ownership. No Core/Shared source change in this increment. Native104/104 and admission31/31 pass, zero skips, including16 graph cases covering a concurrent child update, in-flight cancellation, cumulative deadline across two commands, depth/type limits, root paging,150-member batching and malformed links. Producer and both consumer copies match. [Exact contract/evidence](CQL_GRAPH_LOADING.md).

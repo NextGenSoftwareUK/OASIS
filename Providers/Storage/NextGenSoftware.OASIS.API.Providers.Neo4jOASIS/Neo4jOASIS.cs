@@ -16,6 +16,7 @@ using System.Threading;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests")]
+[assembly: InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests")]
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 {
