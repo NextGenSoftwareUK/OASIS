@@ -11,6 +11,27 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 [TestClass]
 public class CosmosStreamOwnershipTests
 {
+    [DataTestMethod]
+    [DataRow("field",false)][DataRow("field",true)]
+    [DataRow("sync",false)][DataRow("sync",true)]
+    [DataRow("async",false)][DataRow("async",true)]
+    public async Task QueryDecodingPreservesUntypedMetadataScalars(string route,bool number)
+    {
+        const string date="2030-01-02T03:04:05.0000000+05:30",precise="9007199254740993.125";
+        var response=new TrackedResponse(HttpStatusCode.OK);
+        response.SetContent("{\"Documents\":[{\"id\":\"owned-scalar\",\"MetaData\":{\"date\":\""+date+"\",\"number\":"+precise+"}}]}");
+        var iterator=new Mock<FeedIterator>();iterator.SetupSequence(i=>i.HasMoreResults).Returns(true).Returns(false);
+        iterator.Setup(i=>i.ReadNextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        var container=new Mock<Container>();
+        container.Setup(c=>c.GetItemQueryStreamIterator(It.IsAny<QueryDefinition>(),It.IsAny<string>(),It.IsAny<QueryRequestOptions>())).Returns(iterator.Object);
+        var client=new CosmosDbClient(container.Object);
+        var raw=route=="field"?client.ReadDocumentByField("Username","owned"):
+            route=="sync"?client.ReadAllDocuments().Single():(await client.ReadAllDocumentsAsync()).Single();
+        using var json=System.Text.Json.JsonDocument.Parse(raw);var metadata=json.RootElement.GetProperty("MetaData");
+        Assert.AreEqual(number?precise:date,number?metadata.GetProperty("number").GetRawText():metadata.GetProperty("date").GetString());
+        Assert.IsTrue(response.Disposed);iterator.Protected().Verify("Dispose",Times.Once(),new object[]{true});
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task CollectionReadsAwaitEverySdkPageAndDisposeOnSuccessOrFailure(bool failLaterPage)
     {
