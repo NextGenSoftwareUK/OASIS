@@ -100,7 +100,8 @@ public partial class CosmosDbClient
             if(frozen==null || frozen.Id.ToString()!=id)throw new InvalidDataException("Canonical history proposal conflicts with its item identity.");
             staged=await CosmosEmbeddedHistory.StageAsync(frozen,previous,decode).ConfigureAwait(false);
         }
-        using var stream=new MemoryStream(Encoding.UTF8.GetBytes(staged.ToString(Formatting.None)));
+        var wire=Binary64JsonNumberCodec.Encode(staged);
+        using var stream=new MemoryStream(Encoding.UTF8.GetBytes(wire.ToString(Formatting.None)));
         token.ThrowIfCancellationRequested();
         using var response=await ObserveMutationAsync(()=>previous==null
             ? _container.CreateItemStreamAsync(stream,partition,null,token)
@@ -108,7 +109,9 @@ public partial class CosmosDbClient
         var acknowledged=await ReadAcknowledgedPayloadAsync(response,id).ConfigureAwait(false);
         try
         {
-            var observed=OasisJson.ParseStoredObject(acknowledged);
+            var decoded=Binary64JsonNumberCodec.Decode(OasisJson.ParseStoredObject(acknowledged));
+            acknowledged=decoded.ToString(Formatting.None);
+            var observed=(JObject)decoded.DeepClone();
             foreach(var native in new[]{"_etag","_rid","_self","_attachments","_ts"})observed.Remove(native);
             if(!StoredRecordPayloadEquality.Equivalent(staged,observed))
                 throw new InvalidDataException("Acknowledged Cosmos current/history document differs from the staged atomic write.");
