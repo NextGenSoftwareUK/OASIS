@@ -2,6 +2,24 @@
 
 ## Resume — 2026-10-23
 
+### Restricted-schema native acceptance — full local gate passed
+
+The read-only inventory36994 TERMINAL0 found only non-maintained PDBADMIN and all six OASIS tables owned by SYSTEM. Added one reusable local `FREEPDB1.OASIS_PRIV_TEST` schema-only `NO AUTHENTICATION` identity, no new password/runtime/database/download. It uses the existing protected SYSTEM credential as a proxy authenticator, while the effective client session has only CREATE SESSION and no roles. Initial normal provider provisioning temporarily grants CREATE TABLE and revokes it in finally; subsequent activations cannot provision tables. This is local permission testing, NOT production administrator/proxy guidance.
+
+Initial69855 failed compilation before database access (SDK property is ProxyUserId, confirmed against cached official23.6.0 assembly). Actual6630 then failed ORA-00959 before account creation because this retained image has no USERS tablespace; second case correctly refused the pending bootstrap. Read-only authoritative reconciliation verified account/object/proxy counts0:0:0 and existing database default permanent tablespace SYSTEM. Original intent/report were SHA-verified MOVED, not overwritten or blindly replayed: `oracle-restricted-schema.rejected-no-tablespace.json`118bytes/SHA256C486BD8C9948EC94B19BB47F64E47B936E0D40E8ED8FF1F59ABA4F0619BD5AAE; `oracle-restricted-schema-missing-tablespace.trx`9,338bytes/SHA25651ADA4A96675035223C0349FB14A838435BA3EE86563FDA47A076C28B47AA21B. The fixture now selects/validates the configured existing permanent tablespace; it does not create one or suggest SYSTEM tablespace for client deployments.
+
+Actual29229 TERMINAL0: both synchronous/asynchronous permission cases passed2s, zero skips. They independently verify SESSION_USER/PROXY_USER, effective system privileges/roles, unchanged native table OBJECT_IDs, all three record-kind saves, username/email/ID lookups, nullable holon metadata, Karma345/XP678 preservation, hard holon deletion and paired avatar/detail deletion, plus native row absence. Required `TestResults/OracleCurrent/oracle-restricted-schema.json` owns the reusable USER_ID/database/container/tablespace; retain it with the schema, not disposable reports. Account creation never adopts an unmarked existing user and interrupted bootstrap requires review. Every synthetic record has its own original journal; uncertain outcomes are not replayed.
+
+Actual12100 TERMINAL0: main438/438 passed106s, zero skips, reusing the same account/schema without provisioning. The new2 cases are included in438; only those2 use the restricted schema, while the other436 retain their existing SYSTEM test context. Core0ca01b98/DLL6E531CACD3A034FD42E1DE47C85982C07F00CB78BF057CD4CDAAFD4F81221BC7 and Shared89C9B2428E2CEEFCD09C134FFC09855ADE964D3A80B25AF104569BB2D9DCB78C matched producer/consumer and711/54 source/PDB documents under lease/source hold. This test-only increment does not recertify earlier unit/OCI/advanced cohorts.
+
+| Current report/required marker in TestResults/OracleCurrent | Bytes | SHA256 |
+|---|---:|---|
+| oracle-restricted-schema-native-current.trx | 4409 | D9DC1E178134A6F5D2125B955176B67CB2654206FD31FDDAA170E5B167B9C1D8 |
+| oracle-native-current.trx | 696525 | DA46CE7CC50E2E0E03EAD2596538B22B59F6ADFCC4BA11516004FA459F1ECBEF |
+| oracle-restricted-schema.json | 102 | 449F773E703CD4EF0B4F5D83CCDC8ECA41094809B178B495F8BFEEAD8FF8BA71 |
+
+Prior436 report was SHA-verified MOVED to `oracle-native-current.trx.pre-restricted-schema`; its original55DC35CA59BAC0328BFABE1BFDA0128670B173BF44136C2392BD8AA350BC2663 is retained. Final DBA inventory: FREE/FREEPDB1.OASIS_PRIV_TEST USER_ID136, authentication NONE, only CREATE SESSION/no roles; six tables allocate1,048,576bytes against16,777,216byte quota in the existing SYSTEM default tablespace. All six restricted tables have zero total rows. Native pending journals0, runtime exited/listener11521count0, volume logical5,284,334,423bytes unchanged. Free C81,448,157,184bytes is a shared-machine observation, not exclusive attribution or reclaimed space. Required102byte marker is ownership state, not a disposable report; schema and marker are retained together for reuse. Source/build hold released after terminal. No hosted privilege, wallet, IAM, cost or full multi-provider certification is implied; Oracle Cloud access and AWS priority remain as previously documented.
+
 ### Real V2 manager delete routes — expanded native gate passed
 
 Added16 real HolonManager/HyperDrive V2 → Oracle ManagedDataAccess → retained database cases: soft/hard × GUID/provider-key × sync/async × typed/untyped. Existing isolated registered-provider manager setup is reused; auto failover, replication and balancing are deliberately disabled, so these cases do not certify those features or hosted HTTP/authentication. Independent native reads verify hard physical removal, soft deleting actor/timestamp/root-only version advance and readable original history, plus unchanged exact child JSON (including its version/provider revision). Child cleanup compares the original expected JSON, not a newly observed changed child.
@@ -13,7 +31,7 @@ Actual22974 TERMINAL0: focused16/16 passed4s, expanded main436/436 passed106s, z
 | Current report relative to TestResults | Bytes | SHA256 |
 |---|---:|---|
 | OracleCurrent/oracle-v2-delete-native-current.trx | 26620 | CC8CDA08F54DEF004B6BEAE6A542A313A03FE8284524CCB6894129020826769A |
-| OracleCurrent/oracle-native-current.trx | 693325 | 55DC35CA59BAC0328BFABE1BFDA0128670B173BF44136C2392BD8AA350BC2663 |
+| OracleCurrent/oracle-native-current.trx.pre-restricted-schema | 693325 | 55DC35CA59BAC0328BFABE1BFDA0128670B173BF44136C2392BD8AA350BC2663 |
 | OracleCurrent/oracle-v2-delete-controls.trx | 445688 | 84AE42F688696359045D79E4B67D8072BE1D7B693F6444A11A116014838B37C8 |
 | OracleObjectCurrent/oracle-v2-delete-sdk.trx | 115699 | 5A89CF1446D1998C29722A3288595F4F75B1798BF4DC4AE6320691061EC4F9F0 |
 
