@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## AWS native-key deletion invariant restored — 23 October 2026
+
+Removed DynamoDB's unsafe string provider-key→username fallback. Native provider keys must be nonempty GUIDs; username deletion remains a separate explicit interface.24 controls reproduced20 invalid-dispatch failures and4 valid controls, then all24/full467 units passed. Real retained AWS134+preflight1/cleanup1 and Dynamo163 passed, zero skips (actual28094 terminal0). Existing native cases prove username-shaped invalid key does not delete or alter avatar/detail/XP/karma/inventory, followed by valid GUID-key deletion. No schema change, added SDK call or new environment. Core7219662/Shared55 520F current-source identities, producer13/native25 and matching F3B89A4C provider copy verified. Evidence/cleanup paths in ENVIRONMENT_INVENTORY.md; hosted AWS/cost/global V2 gates remain open.
+
 ## GoogleCloud read acknowledgement mapping — 23 October 2026
 
 Twelve controlled SDK stream cases reproduced successful avatar/detail/holon point and collection reads with LoadedCount0. Existing read codecs now report returned root count, selectors1, materialized collection size, filtered metadata/parent/owner/nearby size, search NumberOfResults; nearby failures clear copied counts. No new SDK/storage algorithm, retry, fallback or production stub. Root count excludes attached descendants and is not cloud usage/cost evidence.
