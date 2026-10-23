@@ -1,15 +1,18 @@
 param([switch]$CleanupCanonicalHistory,[switch]$InspectCanonicalHistory,[switch]$CleanupSqliteKarmaHistory,[switch]$InspectSqliteKarmaHistory,[switch]$ReconcileKarmaSeed,[switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
-    [switch]$CleanupKarmaMutation,[switch]$InspectKarmaMutation,[switch]$CleanupKarmaSeed,[switch]$CleanupVerifiedAwsRun,[ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$VerifiedReportSha256)
+    [switch]$IndependentExportVersions,[switch]$CleanupKarmaMutation,[switch]$InspectKarmaMutation,[switch]$CleanupKarmaSeed,[switch]$CleanupVerifiedAwsRun,[ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$VerifiedReportSha256)
 $ErrorActionPreference='Stop'
 $selectedModes=@($CleanupCanonicalHistory,$InspectCanonicalHistory,$CleanupSqliteKarmaHistory,$InspectSqliteKarmaHistory,$CleanupKarmaMutation,$InspectKarmaMutation,$CleanupKarmaSeed,$ReconcileKarmaSeed,$OrdinarySaveAcknowledgements,$OrdinarySaveLifecycle,$DetailDeletionResults,
     $BatchRevisions,$EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileConditionalInitial,$ConditionalGraphs,
     $ReconcileKnownReadFixture,$FullAwsSuite,$ReconcileAwsPreRead,$CleanupKnownAwsRun,$ReconcileValidationFixtures,
-    $ReconcileReflectionFixtures,$CleanupVerifiedAwsRun).Where({$_.IsPresent})
+    $ReconcileReflectionFixtures,$CleanupVerifiedAwsRun,$IndependentExportVersions).Where({$_.IsPresent})
 if($selectedModes.Count -gt 1){throw 'Choose one explicit runner mode.'}
 if($CleanupVerifiedAwsRun -ne [bool]$VerifiedReportSha256){throw 'Verified cleanup requires its explicit original full-suite report SHA256, exclusively.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runtime='C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\runtime'
 $work=Join-Path $root 'TestResults/DynamoHistoryCurrent'
+if($IndependentExportVersions -and (Test-Path -LiteralPath (Join-Path $work 'dynamo-independent-export-native-current.trx'))){
+    throw 'Preserve the original independent-export native report before another run.'
+}
 if($FullAwsSuite){
     foreach($reportName in @('aws-full-begin-current.trx','aws-full-native-current.trx')){
         if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve and hash-verify the previous full-suite reports before another native run.'}
@@ -176,10 +179,11 @@ try{
     if($DetailDeletionResults){$filter='FullyQualifiedName~StandaloneDetailNativeLifecyclePreservesAvatarAndOriginalCondition|FullyQualifiedName~NativeSoftDeletePreservesCurrentAndArchivedScalarMetadata';$reportName='dynamo-detail-delete-result-native-current.trx'}
     if($OrdinarySaveLifecycle){$filter='FullyQualifiedName~NativeOrdinarySaveMustPreserveObservedTombstone';$reportName='dynamo-ordinary-save-lifecycle-native-current.trx'}
     if($OrdinarySaveAcknowledgements){$filter='FullyQualifiedName~NativeOrdinarySaveCountsOnlyKnownCommitBeforeCallerPublication';$reportName='dynamo-ordinary-save-ack-native-current.trx'}
+    if($IndependentExportVersions){$reportName='dynamo-independent-export-native-current.trx'}
     if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve the original native report before another run.'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Native history test failed; preserve journal/data for reconciliation.'}
-$report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($EncryptedReplay){8}elseif($PreparationClaims){4}elseif($ReconcileConditionalInitial){1}elseif($ConditionalGraphs){8}elseif($ReconcileKnownReadFixture){1}else{163}
+$report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($EncryptedReplay){8}elseif($PreparationClaims){4}elseif($ReconcileConditionalInitial){1}elseif($ConditionalGraphs){8}elseif($ReconcileKnownReadFixture){1}else{171}
     if($BatchRevisions){$expected=4}
     if($DetailDeletionResults){$expected=14}
     if($OrdinarySaveLifecycle){$expected=48}

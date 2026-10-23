@@ -868,7 +868,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try {
                 if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
                 ValidateGraphRead(0,0,version);
-                var selected=email ? await LoadAvatarByEmailAsync(selector,version):await LoadAvatarByUsernameAsync(selector,version);
+                // Identity history is independent of the exported holon root version.
+                var selected=email ? await LoadAvatarByEmailAsync(selector):await LoadAvatarByUsernameAsync(selector);
                 if(selected.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(selected);
                 if(selected.Result==null) {OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: No avatar matches export selector.");return result;}
                 return await ExportAllDataForAvatarByIdAsync(selected.Result.Id,version);
