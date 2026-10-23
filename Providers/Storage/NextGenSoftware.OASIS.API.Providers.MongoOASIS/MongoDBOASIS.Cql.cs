@@ -43,7 +43,7 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
         catch(Repositories.MongoCqlGraphTimeoutException cause){return CqlFailure("CQL_QUERY_TIMEOUT",cause.Message,cause);}
         catch(NotSupportedException cause){return CqlFailure("CQL_CAPABILITY_UNSUPPORTED",cause.Message,cause);}
         catch(OperationCanceledException cause){return CqlFailure("CQL_QUERY_CANCELLED","MongoDB CQL was cancelled.",cause);}
-        catch(MongoCommandException cause) when(cause.Code==292){return CqlFailure("CQL_QUERY_LIMIT","MongoDB exceeded its native in-memory query budget.",cause);}
+        catch(MongoCommandException cause) when(cause.Code==146 || cause.Code==292){return CqlFailure("CQL_QUERY_LIMIT","MongoDB exceeded its native in-memory query budget.",cause);}
         catch(MongoExecutionTimeoutException cause){return CqlFailure("CQL_QUERY_TIMEOUT","MongoDB exceeded the native query deadline.",cause);}
         catch(Exception cause){return CqlFailure("CQL_QUERY_FAILED","MongoDB CQL execution failed.",cause);}
     }
