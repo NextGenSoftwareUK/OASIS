@@ -20,6 +20,7 @@ public class AwsS3ConfigurationTests
     [DataRow("encryption")]
     [DataRow("access")]
     [DataRow("secret")]
+    [DataRow("session")]
     public void Required_configuration_is_validated_before_sdk_use(string missing)
     {
         var settings = Settings();
@@ -31,6 +32,7 @@ public class AwsS3ConfigurationTests
             case "encryption": settings.StorageEncryptionKeyEnvironmentVariable = " "; break;
             case "access": settings.AccessKey = " "; break;
             case "secret": settings.SecretKey = " "; break;
+            case "session": settings.SessionToken = " "; break;
         }
         Assert.ThrowsException<ArgumentException>(() => AwsS3ProviderFactory.Create(settings));
     }
