@@ -2,7 +2,25 @@
 
 ## Resume — 2026-10-23
 
-### Delete aliases and domain-delegation audit closed locally
+### Hard-delete dispatch correction — local native gate passed
+
+The previous alias audit below incorrectly assumed that `IOASISStorageProvider.DeleteHolon*` meant soft deletion. That assumption was wrong, even though its acknowledgement tests passed. Core `OASISHyperDrive.DispatchAsync` routes hard deletion to these aliases and rejects `SoftDelete=true` there; HolonManager implements soft deletion by loading and saving a tombstone. The shared key/value provider also physically removes records through these aliases. No API contract change is required.
+
+Actual67017 TERMINAL1 reproduced the Oracle mismatch: eight GUID/provider-key × synchronous/asynchronous × normal/lost-commit alias cases failed physical-row absence, while twenty explicit-helper/detail cases passed (28 total, zero skips). Exact-payload cleanup completed before final failure assertions; pending journals were zero. Red evidence was SHA256-verified MOVED to `TestResults/OracleCurrent/oracle-hard-delete-contract-red.trx` (54,689 bytes; `0D5871D18CC8EC0B511232436066AE3313E0BDFBD2F1516992939F8D2AD5403C`), not overwritten or replayed.
+
+Oracle's shared alias now selects hard deletion. Explicit `DeleteHolonWithSoftDelete*(..., true)` remains soft. Two older tests intentionally covering soft-delete history and lost soft-commit recovery now call that explicit helper and independently inspect native tombstone state; their history, version, inactivity, timestamp/idempotence and uncertain-outcome checks remain. The native alias matrix requires physical removal through the actual storage interface, including lost ORIGINAL commit acknowledgement without replay.
+
+Actual36638 TERMINAL0: focused28/28 passed5s, main420/420 passed103s, controlled289/289 passed658ms, zero skips. Focused28 are included in420, not additive. Core0ca01b98 / `6E531CACD3A034FD42E1DE47C85982C07F00CB78BF057CD4CDAAFD4F81221BC7` and Shared `C98EE1DD3B4465AC961769608252A7C76062AF557308372A271BA4F9578BBEA5` matched producer/consumer and711/54 current source/PDB documents under the shared lease. This verifies the real Oracle storage-interface aliases; the Core dispatch trace and pre-existing mocked manager tests establish routing intent, not a new native end-to-end manager/HTTP certification.
+
+| Current report in TestResults/OracleCurrent | Bytes | SHA256 |
+|---|---:|---|
+| oracle-delete-alias-native-current.trx | 45940 | BDBECE80B72BEF2DB2C3F58142BC90190B7B22CB3B9F0230E233CE55FCBFA87F |
+| oracle-native-current.trx | 667917 | 06E096EC6520E2F2FF72A742A3AACA511D875E1E79E06152E6C874097309F465 |
+| oracle-hard-delete-controls.trx | 445688 | 517D4E91D8FD0066CC534E1BF2BB9AB5CF58994BEBA1EA29BF42E9311219E193 |
+
+Prior focused/main reports were hash-verified MOVED in place to `.pre-hard-contract` files; prior controls remain unchanged. Runtime exited,11521 listener0,pending journals0; retained volume logical5,284,334,423bytes unchanged; C free81,874,907,136bytes (shared-machine observation, not attributed exclusive growth). No schema, encryption, query, SDK, environment, download or restore change. No new cloud cost; native hard deletion now removes the row as requested rather than retaining its tombstone/history. Soft-delete history remains available only while its physical record is retained. Existing advanced14/OCI72 evidence is not recertified by this batch. Cloud acceptance still awaits the owner's access; AWS follows Oracle.
+
+### Historical acknowledgement audit — soft-alias assumption corrected above
 
 Actual21866 red TERMINAL1:28 native cases,12 incorrect successful delete envelopes failed/16 passed, all owned fixtures retired before final metadata assertions. An initial test compile used the provider-only WithSoftDelete helper through IOASISStorageProvider; corrected receiver to concrete provider before any database access. Legacy DeleteHolon and detail aliases remain tested through their real storage interface. Native deletion already committed correctly; its response lacked flags/counts, and the bool wrapper manually dropped result metadata.
 
@@ -15,8 +33,8 @@ Core8f057e0424d23577dbff4cc31f811f3adfd01807 / DLL1D076CE53F4D2ABB405F0F29546290
 | Report in TestResults/OracleCurrent | Bytes | SHA256 |
 |---|---:|---|
 | oracle-delete-alias-native-red.trx | 59446 | 4CE54185C9A5D61691E9330E7E81583387643E122ADA48CEE11783DA533B0773 |
-| oracle-delete-alias-native-current.trx | 45924 | F11758EF4D3144A9F1B304C8499319D8FD8A7733F24D89105F3111DA6AC4865F |
-| oracle-native-current.trx | 667901 | 49D7FCACE3AAC6F201AD8D853FE319D8A58731167FADC93E84CB7709C9309740 |
+| oracle-delete-alias-native-current.trx.pre-hard-contract | 45924 | F11758EF4D3144A9F1B304C8499319D8FD8A7733F24D89105F3111DA6AC4865F |
+| oracle-native-current.trx.pre-hard-contract | 667901 | 49D7FCACE3AAC6F201AD8D853FE319D8A58731167FADC93E84CB7709C9309740 |
 | oracle-delete-alias-controls.trx | 445688 | 19F0B40631667F9F904B749982B476F76DB0746D759FFCE8A92B6BFEDCC8118F |
 
 Previous392 report verified MOVED to oracle-native-pre-delete-alias.trx, red likewise MOVED before green, no evidence overwrite/copies. Runtime stopped,11521listener0,pending0, volume logical5,284,334,423bytes unchanged. Source heuristic now finds explicit calls to all74 unique storage-interface method NAMES across native+unit sources (70native,4domain delegates); this is NOT overload/branch/transport/business completeness. Actual manager routing and hosted endpoint dispatch, cloud Autonomous/OCI IAM/wallet/cost, and hosted HyperDrive gates remain. Oracle is NOT100%; AWS remains after Oracle.
