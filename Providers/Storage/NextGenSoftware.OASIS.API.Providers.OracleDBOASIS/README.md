@@ -6,6 +6,14 @@ This provider uses the real Oracle.ManagedDataAccess.Core client with indexed lo
 
 ## Configuration and verification
 
+### Identity column compatibility
+
+`USERNAME` and `EMAIL` in `OASIS_AVATARS` and `OASIS_AVATAR_DETAILS` require explicit character length semantics with capacity of at least 256 characters. New tables use `VARCHAR2(256 CHAR)`. Existing byte-semantic identity columns fail activation with a provisioning-review error; activation does not silently alter them or change the database character set.
+
+Before upgrading an existing schema, have its DBA inspect data lengths, character representability, indexes and maintenance requirements. Do not blindly narrow wider columns. Oracle DDL commits independently, so a schema change is not an ordinary rollback-safe data transaction. The guarded local empty-test-schema procedure is not a general production migration. Unicode acceptance was tested on AL32UTF8; other database character sets and hosted configurations require their own verification.
+
+### Connection settings
+
 Configure `OASIS.StorageProviders.OracleDBOASIS.ConnectionString` through the host's secure configuration. `IsVersionControlEnabled` defaults to false; enabling it creates version archives. Existing archives are preserved when creation is disabled. Historical profile reads do not authorize historical credentials: verification/reset/refresh token selectors require version zero.
 
 Activation currently initializes/verifies SQL tables and indexes. Use only a database/schema where that provisioning is explicitly authorized. Real SQL tests reuse one retained local Oracle Free instance; they do not certify hosted Autonomous Database or every provider/HyperDrive interface. Current scoped evidence and remaining gates are tracked in [the working verification report](../../../Docs/WIP/HyperDrive-Providers/ORACLE_CLIENT_PRIORITY.md).
