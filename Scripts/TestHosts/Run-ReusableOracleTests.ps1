@@ -1,4 +1,6 @@
 param(
+    [switch]$IndependentExportVersions,
+    [switch]$ReconcileExportIdentity,
     [switch]$InspectReadConnections,
     [switch]$ReconcileReadOutage,
     [ValidateSet('Provider','Native')][string]$ReadConnectionPath='Provider',
@@ -14,7 +16,7 @@ param(
     [switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,
     [switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions
 )
-$selectedModes=@($InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
+$selectedModes=@($ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions).Where({$_.IsPresent}).Count
@@ -41,7 +43,7 @@ try{
            (Get-FileHash (Join-Path $work 'read-acknowledgements-failure.json')).Hash -ne '470441EA9F0D9062305760949A92C303574FD668AF8CAD3369586B92E87F3F68'){throw 'Original read evidence changed; inspection refused.'}
     }
     elseif($ReconcileKarmaAssertion){if($pending.Count -ne 1 -or $pending[0].Name -ne 'v2-karma-manager.pending.json'){throw 'Exactly the original karma assertion journal required.'}}
-    elseif($ReconcileOriginal){if($pending.Count -ne 1 -or $pending[0].Name -ne 'canonical-records.pending.json'){throw 'Exactly the original canonical journal required.'}}
+    elseif($ReconcileOriginal -or $ReconcileExportIdentity){if($pending.Count -ne 1 -or $pending[0].Name -ne 'canonical-records.pending.json'){throw 'Exactly the original canonical journal required.'}}
     elseif($ReconcileAmbiguity){if($pending.Count -ne 1 -or $pending[0].Name -ne 'identity-ambiguity.pending.json'){throw 'Exactly the original duplicate identity journal required.'}}
     elseif($ReconcileHistoricalExport){if($pending.Count -ne 1 -or $pending[0].Name -ne 'canonical-records.pending.json'){throw 'Exactly the original historical export journal required.'}}
     elseif($ReconcileCorruptAvatar){if($pending.Count -ne 1 -or $pending[0].Name -ne 'create-race-0.pending.json'){throw 'Exactly the original corrupt avatar journal required.'}}
@@ -103,6 +105,9 @@ try{
     }
     $report=if($EncryptedReplay){'oracle-encrypted-replay-native-current.trx'}elseif($PreparationClaims){'oracle-preparation-native-current.trx'}elseif($ReconcileOriginal){'oracle-native-reconciliation-current.trx'}elseif($ReconcileAmbiguity){'oracle-ambiguity-reconciliation.trx'}elseif($ReconcileHistoricalExport){'oracle-history-export-reconciliation.trx'}elseif($ReconcileCorruptAvatar){'oracle-corrupt-avatar-reconciliation.trx'}elseif($ReconcileProjectionAssertions){'oracle-projection-assertion-reconciliation.trx'}else{'oracle-native-current.trx'}
     $filter=if($EncryptedReplay){'FullyQualifiedName~OracleEncryptedReplayNativeTests'}elseif($PreparationClaims){'FullyQualifiedName~OraclePreparationNativeTests'}elseif($ReconcileOriginal){'FullyQualifiedName~RealSdkCanonicalRecordsSelectorsAndMetadataPaths'}elseif($ReconcileAmbiguity){'FullyQualifiedName~DuplicateIdentityIsRejectedInsteadOfSelectingArbitraryAvatar'}elseif($ReconcileHistoricalExport){'FullyQualifiedName~ReconcileKnownHistoricalExportFixture'}elseif($ReconcileCorruptAvatar){'FullyQualifiedName~ReconcileKnownCorruptAvatarFixture'}elseif($ReconcileProjectionAssertions){'FullyQualifiedName~ReconcileKnownProjectionAssertionFixtures'}else{'FullyQualifiedName~OracleNativeAcceptanceTests&FullyQualifiedName!~Reconcile'}
+    # Full regression plus four independent identity/holon version cases; retain earlier reports.
+    if($IndependentExportVersions){$report='oracle-independent-export-native-current.trx'}
+    if($ReconcileExportIdentity){$report='oracle-export-identity-reconciliation-current.trx';$filter='FullyQualifiedName~ReconcileKnownIndependentExportIdentityFixture'}
     if($LifecycleGuards){$report='oracle-lifecycle-guard-native-current.trx';$filter='FullyQualifiedName~NativeLifecycleGuardsRejectStaleAndRelatedActiveSaves'}
     if($AvatarProjection){$report='oracle-avatar-projection-native-current.trx';$filter='FullyQualifiedName~NativeAvatarProjectionMismatchCannotBeHiddenOrRepaired'}
     if($SaveAcknowledgements){$report='oracle-save-ack-native-current.trx';$filter='FullyQualifiedName~NativeOrdinaryIdentitySaveCountsOnlyAcknowledgedCommit|FullyQualifiedName~AcknowledgedSaveCannotOverwriteChangedCallerContract'}
@@ -141,8 +146,8 @@ try{
     }elseif(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
     $reportFile=Get-Item -LiteralPath (Join-Path $work $report)
     [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){12}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){64}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{492}
-    if($ReconcileReadOutage){$expected=1}
+    $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){12}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){64}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{496}
+    if($ReconcileReadOutage -or $ReconcileExportIdentity){$expected=1}
     if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}
     $passed=$true
 }finally{
