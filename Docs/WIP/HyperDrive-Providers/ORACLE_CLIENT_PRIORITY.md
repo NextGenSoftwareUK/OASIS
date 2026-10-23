@@ -2,6 +2,23 @@
 
 ## Resume — 2026-10-23
 
+### Separate Oracle scalar fidelity corruption fixed —12 codec red/full301+native492 green
+
+Audit of the immediately preceding ordinary-commit fixture found no default JSON/culture mutation; the original intermittent missing-payload cause remains UNKNOWN. Separately, OracleRecordHistory parsed current and prior canonical documents with JObject.Parse, which reinterpreted date-shaped strings and narrowed untyped fractional JSON numbers. Actual Oracle-codec12/12 red (3record types×2scalar types×latest/v1) showed date text2030-01-02T03:04:05.0000000+05:30 changed to2030-01-01T16:34:05-05:00 and number9007199254740993.125 rounded to9007199254740994.0. This is a proven, separate fidelity defect, NOT established explanation for earlier26 missing payloads.
+
+Production fix is TWO parse calls changed to EXISTING shared OasisJson.ParseStoredObject; no new codec, format, fallback, shadow write, migration or generic framework. Existing history/identity/projection validation retained. Native read-ack fixture now checks exact scalars on owned avatar/detail/root/child at latest/v1 through point/collection/search/export/credential reads, with identical exact-ID/JSON cleanup and unchanged main492 case count. Already-altered stored values cannot be reconstructed by parser replacement; no original data was migrated or rewritten as repair.
+
+Actual79679 TERMINAL0: focused native2/2pass8s (included in492), full492/492pass0skip124s, Oracle301/301controls0skip657ms (289prior+12new). Published Core23/E6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733/Shared3E005C6C609EB03D966425EF1CB94B0563F8B010FBE49278A48016B52731E02E/source712+54 verified under producer/source hold. Prior encrypted/recovery14/OCI95/Shared968 are separate cohorts, NOT recertified by this SQL-only fix. Original intermittent failure remains an explicit OPEN gate; no Oracle100%/hosted-cloud/interface/HTTP/cost or dev deployment claim.
+
+| Existing C:/Source/OASIS/TestResults/OracleCurrent evidence | Bytes | SHA256 |
+| --- | ---: | --- |
+| oracle-history-scalar-red.trx |32581|FDA439426340B33BBF54C902B9CF203501AFC49031AF63AD59E9782A12105630|
+| oracle-read-ack-native-current.trx |4684|3D252CF6536B9AECEE16A80DA1C95F5E3CA309FD5E935A19F6F68DBCAAB46871|
+| oracle-native-current.trx |786091|81C87774EB81C15E2D0DC1A737B40076DE762C3D43CA8191EF08DC7D4CD0218C|
+| oracle-history-scalar-controls.trx |463884|D07F0EEBA5612149AD23470B92F50D52F30EE986717545284334D92FD024DDA2|
+
+Same retained runtime started once/shared across native phases, then stopped; independent EXITED/listener11521zero/pending0 verified. Volume5,842,510,679bytes unchanged; Cfree78,258,835,456bytes shared observation, not exclusive attribution/reclamation. No restore/download/install/new environment/profile/account/cloud request. Prior main786,091bytes SHA77B847... and focused4,343bytes SHA55A9FB... hash-verified MOVED to `.pre-scalar-fidelity`, no copy/overwrite/reset/replay. Four new evidence files1,287,240bytes retained. Exact resources/cleanup in ENVIRONMENT_INVENTORY.md; next source slot released to sibling provider work at actual terminal.
+
 ### Core23 compatibility: later green, original intermittent native failure STILL OPEN
 
 Published clean Core23da2dcb5fc44d2bcbc447aaca5d7cec4a963840/DLLE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733 and Shared45E098A99A5308A7DC78B9ECD8CCD3EC969A45DCCC97F09CC9F3846DE7A93617/source712+54 validated. SDK94274:95/95pass0skip8s. Native46301 TERMINAL1:491pass/1fail492,125s; synchronous read-ack matrix reported26 missing payloads (version0 creator exports/search and all version1 families), async case immediately before it passed. Old aggregate labels omitted ErrorCode/Exception/Message; failed-case stdout/stderr empty. Cause UNKNOWN: do not label it proven Core regression, transient infrastructure or data corruption without evidence.
