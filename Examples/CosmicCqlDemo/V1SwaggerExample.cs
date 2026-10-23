@@ -55,6 +55,23 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                     }
                 }
             },
+            ["anyDescendants"] = new OpenApiArray
+            {
+                new OpenApiObject
+                {
+                    ["maximumDepth"] = new OpenApiInteger(2),
+                    ["maximumNodes"] = new OpenApiInteger(2),
+                    ["filters"] = new OpenApiArray
+                    {
+                        new OpenApiObject
+                        {
+                            ["field"] = new OpenApiString("Name"),
+                            ["operator"] = new OpenApiString("Equal"),
+                            ["value"] = new OpenApiString("owned child")
+                        }
+                    }
+                }
+            },
             ["graph"] = new OpenApiObject
             {
                 ["maxChildDepth"] = new OpenApiInteger(2),

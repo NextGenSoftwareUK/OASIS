@@ -75,7 +75,7 @@ public static class V1DemoPresentation
       <label>Walkthrough<br><select id="example">
         <option value="page">Visibility before paging</option><option value="nested">Nested metadata + protected OR</option>
         <option value="strings">Ordinal prefix / suffix</option><option value="null">Explicit null / existence</option>
-        <option value="children">Visible child existence</option><option value="graph">Access-bound child graph</option><option value="precision">Exact Int64 beyond 2^53</option><option value="guid">Typed GUID metadata</option>
+        <option value="children">Visible child existence</option><option value="descendants">Bounded descendants</option><option value="graph">Access-bound child graph</option><option value="precision">Exact Int64 beyond 2^53</option><option value="guid">Typed GUID metadata</option>
         <option value="types">Numeric strings are not integers</option><option value="boolean">Typed Boolean metadata</option><option value="invalid">Unsupported provider rejected</option>
       </select></label>
     </div>
@@ -105,6 +105,7 @@ const notes = {
   nested: 'London AND stock >= 7 AND (A-private OR D-owned). Alice receives only D-owned: OR cannot escape the server access predicate.',
   strings: 'Ordinal StartsWith("B-") AND EndsWith("owned"). Alice receives B-owned. No culture-dependent evaluation.',
   null: 'IsNull matches a present null member. Exists also matches present null; missing paths satisfy neither. Try changing the operator/path.',
+  descendants: 'Bounded depth2/nodes2; no graph output. Private intermediates prune branches before matching or counting.',
   precision: '9007199254740993 is preserved as an exact Int64. The client sends the original text without converting it to JavaScript Number.',
   guid: 'GUID metadata accepts canonical D literals with GUID case normalization. Alice receives B-owned.',
   types: 'mixedInteger contains the string "7" on D-owned. Integer equality returns B-owned and C-public, excluding the numeric string.',
@@ -123,6 +124,10 @@ function preset() {
       { filters: [{ field: 'Name', operator: 'Equal', value: 'public child' }] },
       { filters: [{ field: 'Name', operator: 'Equal', value: 'owned child' }] }
     ];
+    body.take = 1;
+  }
+  if (name === 'descendants') {
+    body.anyDescendants = [{ maximumDepth: 2, maximumNodes: 2, filters: [{ field: 'Name', operator: 'Equal', value: 'owned child' }] }];
     body.take = 1;
   }
   if (name === 'graph') {

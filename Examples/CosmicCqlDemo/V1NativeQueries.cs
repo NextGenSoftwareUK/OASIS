@@ -13,13 +13,14 @@ namespace CosmicCqlDemo;
 /// </summary>
 public static class V1NativeQueries
 {
-    public static async Task RunAsync(
+    public static async Task<int> RunAsync(
         HolonManager manager,
         ICosmicQueryStorageProvider adapter,
         Guid actor,
         string fixtureTag,
         TextWriter output)
     {
+        var completedQueries = 0;
         var provider = adapter.QueryProviderType;
         var scope = Value(CosmicQueryScope.Named(provider));
 
@@ -85,6 +86,8 @@ public static class V1NativeQueries
         if (!children.SequenceEqual(new[] { "public child", "owned child" }))
             throw new InvalidOperationException("Child visibility or persisted membership ordering changed.");
 
+        completedQueries++;
+
         await output.WriteLineAsync("4. Access-bound graph: public root / selected children");
         await output.WriteLineAsync("\n  " + root.Name + "\n    " + string.Join("\n    ", children) + "\n");
 
@@ -102,6 +105,22 @@ public static class V1NativeQueries
             .Take(1));
 
         await ShowAsync("5. Native child existence / independent siblings", parentsWithChildren, "C-public");
+
+        // 6. Search a bounded descendant scope without loading child output.
+        // A private intermediate prunes its entire branch, even a public leaf.
+        // MaximumNodes counts all visible canonical descendants, not just matches.
+        var traversal = Value(CosmicQueryTraversalOptions.Create(
+            maximumDepth: 2,
+            maximumNodes: 2));
+
+        var parentsWithDescendants = Value(visible
+            .WhereAnyDescendant(child => child.Name == "owned child", traversal)
+            .OrderBy(parent => parent.Name)
+            .Take(1));
+
+        await ShowAsync("6. Bounded native descendant existence", parentsWithDescendants, "C-public");
+
+        return completedQueries;
 
         async Task ShowAsync(string title, CosmicQuery<Holon> query, params string[] expected)
         {
@@ -121,6 +140,8 @@ public static class V1NativeQueries
 
             if (!names.SequenceEqual(expected))
                 throw new InvalidOperationException(title + " returned unexpected native rows.");
+
+            completedQueries++;
 
             await output.WriteLineAsync(title);
             await output.WriteLineAsync("\n  " + string.Join("\n  ", names) + "\n");

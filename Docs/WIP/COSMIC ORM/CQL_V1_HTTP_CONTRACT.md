@@ -126,3 +126,29 @@ Signed route acceptance passes on Mongo, SQLite and Neo: Core1781/Shared960/Mong
 ```
 
 The authenticated actor is server-owned and applies to roots and matching children. Private children and untrusted SHARED_WITH metadata cannot grant a match. Native membership, current parentage and actor predicates run before root paging on MongoDB, SQLite and Neo4j. This selects parents without loading graphs; optional `graph` may independently expand the selected roots. Each new logical request still requires its own idempotency key and prepared usage admission.
+
+## Bounded descendant existence over HTTP
+
+Optional anyDescendants groups compile to generic WhereAnyDescendant before root ordering/paging. Existing v1 requests remain valid. Direct-child and descendant groups share a maximum of four groups and the twelve-filter budget with roots. Each nonempty group ANDs Filters and its local AnyOf disjunction; separate groups may match different nodes.
+
+```json
+{
+  "provider": "MongoDBOASIS",
+  "filters": [],
+  "anyDescendants": [
+    {
+      "maximumDepth": 2,
+      "maximumNodes": 250,
+      "filters": [
+        { "field": "Name", "operator": "Equal", "value": "coffee" }
+      ]
+    }
+  ],
+  "orderBy": "Name",
+  "take": 10
+}
+```
+
+Depth is1–32 (default8); nodes1–10000 (default1000), separately from response Graph limits. Traversal does not request graph output. Malformed/null/empty groups, excessive combined groups/filters or out-of-range bounds fail validation before native execution. Actor identity is server-bound; no group can override it. A private intermediate prunes the branch before visiting/counting even a public grandchild. Exact integer metadata literals retain Int64 semantics. Actual adapter capability/bounds admission remains mandatory.
+
+Full Core1830 and signed joint109 pass unskipped. The existing owned fixture verifies owner/outsider requests on Mongo/SQLite/Neo, public descendants before paging, public-behind-private denial and exact visible-node budgets. The fixture adds read operations only; no new dataset or ownership format is needed. Fresh78364 terminal0 demo passes18 SDK/18 HTTP requests,152 settled operations/151 attempts; joint109 remains green.

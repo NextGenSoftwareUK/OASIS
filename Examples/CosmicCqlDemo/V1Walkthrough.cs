@@ -11,13 +11,15 @@ namespace CosmicCqlDemo;
 /// </summary>
 public static class V1Walkthrough
 {
-    public static async Task RunAsync(
+    public static async Task<int> RunAsync(
         HttpClient client,
         string bearerToken,
         string fixtureTag,
         TextWriter output,
         CancellationToken cancellationToken = default)
     {
+        var completedRequests = 0;
+
         foreach (var provider in new[] { "MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS" })
         {
             await output.WriteLineAsync($"\n===== {provider}: the same v1 query contract =====\n");
@@ -124,7 +126,7 @@ public static class V1Walkthrough
                     consistency = "ProviderDefault"
                 }
             });
-            // EXAMPLE 5 � require visible children before the root page.
+            // EXAMPLE 5 — require visible children before the root page.
             // Groups are ANDed; each can match a different sibling. The server
             // supplies the signed actor, so private children cannot make a match.
             await ShowAsync("5. Parents with visible direct children", new
@@ -151,7 +153,43 @@ public static class V1Walkthrough
                 orderBy = "Name",
                 take = 1
             });
+            // EXAMPLE 6 — bounded descendants, independent of graph output.
+            // The server prunes private intermediates before visiting a branch.
+            await ShowAsync("6. Bounded descendant existence", new
+            {
+                provider,
+
+                filters = new[]
+                {
+                    new
+                    {
+                        metadataPath = new[] { "fixture" },
+                        scalar = "String",
+                        @operator = "Equal",
+                        value = fixtureTag
+                    }
+                },
+
+                anyDescendants = new[]
+                {
+                    new
+                    {
+                        maximumDepth = 2,
+                        maximumNodes = 2,
+                        filters = new[]
+                        {
+                            new { field = "Name", @operator = "Equal", value = "owned child" }
+                        }
+                    }
+                },
+
+                orderBy = "Name",
+                take = 1
+            });
+
         }
+
+        return completedRequests;
 
         async Task ShowAsync(string title, object query)
         {
@@ -179,6 +217,7 @@ public static class V1Walkthrough
                 throw new InvalidOperationException($"{title}: HTTP {(int)response.StatusCode}: {responseText}");
 
             using var result = JsonDocument.Parse(responseText);
+            completedRequests++;
             await output.WriteLineAsync(JsonSerializer.Serialize(result.RootElement, options));
             await output.WriteLineAsync("\nSettlement: " + response.Headers.GetValues("X-OASIS-Usage-Settlement").Single() + "\n");
         }
