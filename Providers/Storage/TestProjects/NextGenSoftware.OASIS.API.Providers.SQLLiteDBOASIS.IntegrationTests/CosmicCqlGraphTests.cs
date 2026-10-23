@@ -26,6 +26,22 @@ public partial class SQLLiteDBOASISIntegrationTests
     }
 
     [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task NativeCqlGraphHydratesNamedTypedRoles(bool accessBound)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source=NativeQueryGraph();
+        var owner=(global::OASIS.ProviderTests.Fixtures.CqlRoleOwner)global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.CreateRoot();
+        owner.Id=source.Id;owner.Children=source.Children;
+        global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.Configure(owner);
+        var manager=CosmicManager(provider,true);
+        var seeded=await manager.SaveHolonAsync(owner,Guid.NewGuid(),CreateNativeGraph(owner),providerType:ProviderType.SQLLiteDBOASIS);
+        seeded.IsError.Should().BeFalse(seeded.Message+seeded.Exception);
+        await global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.VerifyAsync(manager,provider,owner,accessBound);
+    }
+
+    [Theory]
     [InlineData(true,true)] [InlineData(false,true)]
     [InlineData(true,false)] [InlineData(false,false)]
     public async Task NativeCqlGraphAccessFiltersBeforeChildBudget(bool visible,bool manifested)
@@ -84,7 +100,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         {
             var node = pending.Pop();
             expected.Add(node.Id, null);
-            foreach (var child in node.Children) pending.Push(child);
+            foreach (var child in node.AllChildren) pending.Push(child);
         }
         return new CosmicWriteOptions(Guid.NewGuid(), expected);
     }

@@ -29,4 +29,5 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup><Compile Include="../../../../Scripts/TestHosts/Fixtures/CqlCustomRoleGraph.cs" Link="Fixtures/CqlCustomRoleGraph.cs" /></ItemGroup>
 </Project>

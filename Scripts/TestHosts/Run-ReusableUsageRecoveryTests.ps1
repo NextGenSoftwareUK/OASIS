@@ -315,7 +315,7 @@ try{
         if($mongoFile.LastWriteTimeUtc -lt $mongoStarted){throw 'Mongo native report is stale.'}
         [xml]$mongoEvidence=Get-Content -LiteralPath $mongoFile.FullName -Raw
         $mongoCounts=$mongoEvidence.TestRun.ResultSummary.Counters
-        $expectedMongo=if($CosmicCqlReconcile){1}elseif($CosmicCql){25}elseif($CosmicConditionalReconcile){1}elseif($CosmicConditionalWrites){16}elseif($CosmicChildReconcile){1}elseif($CosmicGraphTraversal){4}elseif($MongoTransactions){104}elseif($MongoGraphReconcile){1}else{3}
+        $expectedMongo=if($CosmicCqlReconcile){1}elseif($CosmicCql){27}elseif($CosmicConditionalReconcile){1}elseif($CosmicConditionalWrites){16}elseif($CosmicChildReconcile){1}elseif($CosmicGraphTraversal){4}elseif($MongoTransactions){104}elseif($MongoGraphReconcile){1}else{3}
         if([int]$mongoCounts.total -ne $expectedMongo -or [int]$mongoCounts.passed -ne $expectedMongo -or [int]$mongoCounts.notExecuted -ne 0){throw 'Expected complete selected Mongo native suite without skips.'}
     }elseif($TronPreparedStorage){
         $tronProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj'

@@ -276,3 +276,8 @@ HTTP graph defaults/limits, safe fields, parent IDs and consistency are document
 ### Saving an authorized partial graph
 
 Native tests now verify this on all three providers, both with a stored role manifest and with older parent-link records. AcceptChanges does not authorize child replacement. After editing a selected root, use the normal conditional SaveHolonAsync with saveChildren:false; the root version advances once and child versions/provider revisions remain unchanged. A child-selecting save from that partial view rejects before it can replace hidden membership. For intentional replacement, use a trusted complete-load/hydration path that proves full stored membership and independent write authority; repeating a filtered access query does not grant completeness. Public HTTP graph DTOs are read projections, not concurrency-bearing SDK save models.
+
+
+### Registered custom child roles
+
+A trusted owner type declares every role through CaptureChildCollections and GetChildRoleBindings and exposes its complete runtime selection through AllChildren. The same names must match its stored role manifest. Registered typed factories receive admitted/decrypted selected records; they map their child metadata into typed properties. Complete and selected views share the hydration owner, preserving role order and full store observation. A hidden role is an empty selected collection, not permission to delete its omitted records. See the source-linked native contract fixture Scripts/TestHosts/Fixtures/CqlCustomRoleGraph.cs for the owner, typed child and factory registration used by all three suites.
