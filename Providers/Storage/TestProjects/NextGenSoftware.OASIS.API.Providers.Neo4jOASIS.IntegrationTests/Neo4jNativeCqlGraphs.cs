@@ -234,6 +234,78 @@ public partial class Neo4jNativeCqlTests
             Assert.AreEqual("CQL_QUERY_LIMIT",read.ErrorCode);Assert.IsNull(read.Result);Assert.IsFalse(read.IsLoaded);
         },largeChild:payload);
 
+    [DataTestMethod]
+    [DataRow(0)] [DataRow(1)] [DataRow(2)]
+    public Task NativeAnyChildFiltersVisibilityAndExactMetadata(int visibility)
+    {
+        var actor=Guid.NewGuid();
+        return WithNativeGraph(async fixture=>
+        {
+            var id=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
+                .Where(root=>root.Id==id).WhereAnyChild(child=>child.Name=="owned CQL graph child 0" &&
+                    CosmicQueryMetadata.Value<long>(child,"precision")==9007199254740993L)
+                .WhereAnyChild(child=>child.HolonType==HolonType.Cafe);
+            Assert.IsFalse(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.Neo4jOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.Neo4jOASIS,Provider.CqlCapabilities)});
+            Assert.IsFalse(plan.IsError,plan.Message);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.IsFalse(read.IsError,read.Message+read.Exception);
+            Assert.AreEqual(visibility==0?0:1,read.Result.Count);
+        },configure:root=>
+        {
+            root.IsPublic=true;root.Children.Last().IsPublic=true;var child=root.Children.First();
+            child.IsPublic=visibility==1;child.CreatedByAvatarId=visibility==2?actor:Guid.NewGuid();
+            child.MetaData["precision"]=9007199254740993L;
+        });
+    }
+
+    [TestMethod]
+    public Task NativeAnyChildDoesNotCountAnUnlistedPhysicalEdge()
+        =>WithNativeGraph(async fixture=>
+        {
+            var orphan=new Holon{Id=Guid.NewGuid(),ParentHolonId=fixture.Root.Id,Name="unlisted child",IsPublic=true};
+            fixture.Ids.Add(orphan.Id);await fixture.Record("before-owned-orphan");fixture.Known=false;
+            var saved=await fixture.Provider.SaveHolonAsync(orphan,saveChildren:false);fixture.Known=!saved.IsError;
+            Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);
+            await fixture.Edit("MATCH (parent:Holon {Id:$parent}),(child:Holon {Id:$child}) MERGE (parent)-[:HAS_CHILD]->(child)",
+                new{parent=fixture.Root.Id.ToString(),child=orphan.Id.ToString()});
+            var id=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==id).WhereAnyChild(child=>child.Name=="unlisted child");
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.Neo4jOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.Neo4jOASIS,Provider.CqlCapabilities)});
+            Assert.IsFalse(plan.IsError,plan.Message);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.IsFalse(read.IsError,read.Message+read.Exception);Assert.AreEqual(0,read.Result.Count);
+        },configure:root=>root.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
+            new HolonChildRoleManifest(1,root.Id,new[]{new HolonChildRole("Children",root.Children.Select(child=>child.Id))})));
+
+    [TestMethod]
+    public Task NativeMembershipProjectionUpgradePreservesCanonicalSnapshot()
+        =>WithNativeGraph(async fixture=>
+        {
+            using var inspection=fixture.Driver.AsyncSession();var id=fixture.Root.Id.ToString();
+            var before=(await(await inspection.RunAsync("MATCH (h:Holon {Id:$id}) RETURN h.SnapshotJson AS snapshot",new{id})).SingleAsync())["snapshot"].As<string>();
+            await fixture.Edit("MATCH (h:Holon)-[p:HAS_CQL_PROJECTION]->(h) WHERE h.Id IN $ids SET p.SchemaVersion=2 REMOVE p.f_HasChildManifest,p.f_ChildIds",
+                new{ids=fixture.Ids.Select(value=>value.ToString()).ToArray()});
+            var rootId=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==rootId).WhereAnyChild(child=>child.HolonType==HolonType.Quest);
+            Assert.IsFalse(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.Neo4jOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.Neo4jOASIS,Provider.CqlCapabilities)});
+            Assert.IsFalse(plan.IsError,plan.Message);
+            var unready=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.IsTrue(unready.IsError);Assert.AreEqual("CQL_DATA_INVALID",unready.ErrorCode);
+            var upgrader=new Provider("bolt://127.0.0.1:17687","neo4j","oasis-local-test-only");
+            try{var activated=await upgrader.ActivateProviderAsync();Assert.IsFalse(activated.IsError,activated.Message+activated.Exception);}
+            finally{await upgrader.DeActivateProviderAsync();}
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);Assert.IsFalse(read.IsError,read.Message+read.Exception);
+            Assert.AreEqual(1,read.Result.Count);
+            var after=(await(await inspection.RunAsync("MATCH (h:Holon {Id:$id}) RETURN h.SnapshotJson AS snapshot",new{id})).SingleAsync())["snapshot"].As<string>();
+            Assert.AreEqual(before,after);
+        });
+
     [TestMethod]
     public Task NativeGraphRejectsACorruptSelfCycle()
         =>WithNativeGraph(async fixture=>

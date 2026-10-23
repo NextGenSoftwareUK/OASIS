@@ -285,4 +285,4 @@ A trusted owner type declares every role through CaptureChildCollections and Get
 
 ## Direct-child existence (SQLite first)
 
-Use WhereAnyChild(child=>child.Name=="match") before root ordering/Skip/Take. The generic Core contract freezes the child expression; native membership/current parent and mandatory child access decide whether the parent matches before paging. SQLite declares ChildExists; Mongo/Neo reject until their native implementations are completed. This does not load child graphs or extend the current HTTP DTO. See [relationship contract/examples](CQL_RELATIONSHIPS.md) for membership/reparenting semantics and remaining work.
+Use WhereAnyChild(child=>child.Name=="match") before root ordering/Skip/Take. The generic Core contract freezes the child expression; native membership/current parent and mandatory child access decide whether the parent matches before paging. SQLite and Neo4j declare ChildExists; Mongo rejects until its native implementation is completed. This does not load child graphs or extend the current HTTP DTO. See [relationship contract/examples](CQL_RELATIONSHIPS.md) for membership/reparenting semantics and remaining work.

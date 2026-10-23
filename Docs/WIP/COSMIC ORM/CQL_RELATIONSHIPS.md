@@ -19,7 +19,7 @@ var query = CosmicQuery<Holon>.Create(
 // Check query, plan against the actual adapter, then execute through HolonManager.
 ```
 
-`ChildExists` capability524288 is required at planning and actual-adapter re-admission. An access-bound query also requires native GraphReadAccess. SQLite implements the correlated SELECT EXISTS owner. Mongo/Neo currently reject this operator before I/O; their native membership projections/correlation are pending. The operator is not yet part of the bounded WEB4 HTTP DTO. Existing HTTP child graph loading is independent and remains supported on all three stores.
+`ChildExists` capability524288 is required at planning and actual-adapter re-admission. An access-bound query also requires native GraphReadAccess. SQLite implements correlated SELECT EXISTS. Neo4j implements a parameterized native EXISTS subquery over HAS_CHILD and the canonical membership projection. Mongo currently rejects this operator before I/O pending its native correlation owner. The operator is not yet part of the bounded WEB4 HTTP DTO. Existing HTTP child graph loading is independent and remains supported on all three stores.
 
 ## Membership and visibility
 
@@ -35,8 +35,17 @@ Relationship filtering after an existing Skip/Take rejects because a native subq
 
 SQLite uses one parameterized native statement with correlated aliases, role JSON membership, child visibility and exact scalar predicates. Parent and child metadata paths cannot accidentally resolve against the wrong row. Parameters share the existing900-binding budget and the existing native instruction/deadline/cancellation owner. No client scan or post-page filtering occurs.
 
+## Neo4j membership projection
+
+Schema3 derives f_HasChildManifest and f_ChildIds from the canonical stored manifest, including named roles. A foreign-owner manifest fails projection construction. Activation uses the existing locked projection upgrade owner to rebuild older projections from canonical snapshots, preserving logical snapshots and revisions. Schema3 projections missing membership fields reject outside the root page.
+
+Native EXISTS requires HAS_CHILD, matching current parentage, non-self identity, current projection/revision and canonical membership (or the explicit absent-manifest representation). Child access and scalar conditions run inside the correlated subquery. Separate clauses use independent aliases and share the900-parameter budget and existing native deadline/cancellation owner. Neo4j retains its declared read-committed consistency; this does not add snapshot support.
+
 ## Evidence and remaining work
+
+Neo certification28074 terminal0: Neo unit314 and joint native/WEB4 96 pass, zero skips. New native controls cover private/public/actor-owned exact Int64 matching, independent sibling EXISTS aliases, unlisted physical edges, schema2 rejection before upgrade and schema3 activation migration preserving the exact canonical snapshot. Hash-bound completed-fixture reconciliation1 passed before the fresh run; owned fixture files are absent. Source/PDB711Core/54Shared matched CoreBFB99852BE111503F20F12702BD622192BA1D528D0AD693BDF70E3942B20F57D and Shared55B512686B8993A89BE39E2DFC8DABC47836E469FD019161AB28ABFFAD452034.
+
 
 Published certification10773 completed terminal0: Core1,785, Shared968, joint91 and SQLite29 pass, zero skips. Native controls cover hidden/public/actor-owned matching before root paging, unlisted physical orphans, declared vs absent new-owner membership after reparenting, independent sibling EXISTS aliases, nested child metadata and exact Int64 beyond2^53. Core tests cover frozen literals, post-window rejection and a planned capability that the actual adapter cannot borrow (zero dispatches).
 
-Published source/PDB checks match711Core/54Shared documents: CoreBFB99852BE111503F20F12702BD622192BA1D528D0AD693BDF70E3942B20F57D, SharedD7FA2D058B6DEB9323392D4FD652AB37FE4184FC3CDD0354F5D061C4458A46FC. Mongo/Neo native support, expression-syntax nested Any, descendant existence, relation Count, Boolean OR/NOT composition, public HTTP relation descriptions and later aggregates/joins/federation remain roadmap work.
+Published source/PDB checks match711Core/54Shared documents: CoreBFB99852BE111503F20F12702BD622192BA1D528D0AD693BDF70E3942B20F57D, SharedD7FA2D058B6DEB9323392D4FD652AB37FE4184FC3CDD0354F5D061C4458A46FC. Mongo native support, expression-syntax nested Any, descendant existence, relation Count, Boolean OR/NOT composition, public HTTP relation descriptions and later aggregates/joins/federation remain roadmap work.
