@@ -2,6 +2,25 @@
 
 ## Resume — 2026-10-23
 
+### Real V2 manager delete routes — expanded native gate passed
+
+Added16 real HolonManager/HyperDrive V2 → Oracle ManagedDataAccess → retained database cases: soft/hard × GUID/provider-key × sync/async × typed/untyped. Existing isolated registered-provider manager setup is reused; auto failover, replication and balancing are deliberately disabled, so these cases do not certify those features or hosted HTTP/authentication. Independent native reads verify hard physical removal, soft deleting actor/timestamp/root-only version advance and readable original history, plus unchanged exact child JSON (including its version/provider revision). Child cleanup compares the original expected JSON, not a newly observed changed child.
+
+Actual99720 TERMINAL1 exposed an incorrect assertion in the new test, not a production deletion failure: all16 performed the expected native mutation, but the assertion treated Oracle's documented point-read not-found error as if it should be an empty success. The test now requires IsError=true, no result/exception, IsLoaded=false, LoadedCount0 and the exact identity-specific not-found message. All owned fixtures were removed before the semantic assertion; journals0. Original report hash-verified MOVED to `oracle-v2-delete-notfound-assertion.trx` (49,305bytes; `FD461F13AED7B9AC8E723F9ECE9C55E9D8BD1FB3BF3B7CC7719D2CD03931C3F4`). No production relaxation or replay.
+
+Actual22974 TERMINAL0: focused16/16 passed4s, expanded main436/436 passed106s, zero skips; focused16 are INCLUDED in436. Actual65234 TERMINAL0: Oracle289/289 controls passed633ms and OCI72/72 official SDK/configuration controls passed12s, zero skips. All three consumers matched Core0ca01b98 / `6E531CACD3A034FD42E1DE47C85982C07F00CB78BF057CD4CDAAFD4F81221BC7` and Shared `4D45B3DC262FE295B5580E7E6FDACDEC9B369C258EF33B563A5FE3DDC9F7630E`, with711/54 source/PDB documents verified under the shared build lease/source hold. OCI uses a signed synthetic loopback server, NOT Oracle Cloud. Existing advanced14 recovery/preparation cases retain their prior cohorts and were not rerun in this increment.
+
+| Current report relative to TestResults | Bytes | SHA256 |
+|---|---:|---|
+| OracleCurrent/oracle-v2-delete-native-current.trx | 26620 | CC8CDA08F54DEF004B6BEAE6A542A313A03FE8284524CCB6894129020826769A |
+| OracleCurrent/oracle-native-current.trx | 693325 | 55DC35CA59BAC0328BFABE1BFDA0128670B173BF44136C2392BD8AA350BC2663 |
+| OracleCurrent/oracle-v2-delete-controls.trx | 445688 | 84AE42F688696359045D79E4B67D8072BE1D7B693F6444A11A116014838B37C8 |
+| OracleObjectCurrent/oracle-v2-delete-sdk.trx | 115699 | 5A89CF1446D1998C29722A3288595F4F75B1798BF4DC4AE6320691061EC4F9F0 |
+
+Prior main420 report MOVED to `oracle-native-current.trx.pre-v2-delete-routes` with unchanged SHA256 `06E096EC6520E2F2FF72A742A3AACA511D875E1E79E06152E6C874097309F465`. No new environment/download/restore or paid cloud request. Actual runtime exited,11521/18661 listeners0, pending journals0; volume logical5,284,334,423bytes unchanged; C free81,825,882,112bytes, a shared-machine observation without exclusive attribution. Source/output hold released after actual terminals; reusable outputs and compact evidence retained, synthetic rows retired.
+
+Cost semantics: manager soft deletion is an authoritative root read plus tombstone Save with retained history; hard deletion removes that root record/history, not independently versioned children. These database requests/retained bytes can incur hosted charges, not measured locally. Native manager deletion is now certified for these16 routes, not every transport or recovery branch. Cloud Autonomous/wallet/IAM/least-privilege acceptance, real OCI bucket costs, hosted HTTP/authentication and full multi-provider routing gates remain open; Oracle is NOT100%. AWS remains next priority after Oracle's outstanding gates.
+
 ### Hard-delete dispatch correction — local native gate passed
 
 The previous alias audit below incorrectly assumed that `IOASISStorageProvider.DeleteHolon*` meant soft deletion. That assumption was wrong, even though its acknowledgement tests passed. Core `OASISHyperDrive.DispatchAsync` routes hard deletion to these aliases and rejects `SoftDelete=true` there; HolonManager implements soft deletion by loading and saving a tombstone. The shared key/value provider also physically removes records through these aliases. No API contract change is required.
@@ -15,7 +34,7 @@ Actual36638 TERMINAL0: focused28/28 passed5s, main420/420 passed103s, controlled
 | Current report in TestResults/OracleCurrent | Bytes | SHA256 |
 |---|---:|---|
 | oracle-delete-alias-native-current.trx | 45940 | BDBECE80B72BEF2DB2C3F58142BC90190B7B22CB3B9F0230E233CE55FCBFA87F |
-| oracle-native-current.trx | 667917 | 06E096EC6520E2F2FF72A742A3AACA511D875E1E79E06152E6C874097309F465 |
+| oracle-native-current.trx.pre-v2-delete-routes | 667917 | 06E096EC6520E2F2FF72A742A3AACA511D875E1E79E06152E6C874097309F465 |
 | oracle-hard-delete-controls.trx | 445688 | 517D4E91D8FD0066CC534E1BF2BB9AB5CF58994BEBA1EA29BF42E9311219E193 |
 
 Prior focused/main reports were hash-verified MOVED in place to `.pre-hard-contract` files; prior controls remain unchanged. Runtime exited,11521 listener0,pending journals0; retained volume logical5,284,334,423bytes unchanged; C free81,874,907,136bytes (shared-machine observation, not attributed exclusive growth). No schema, encryption, query, SDK, environment, download or restore change. No new cloud cost; native hard deletion now removes the row as requested rather than retaining its tombstone/history. Soft-delete history remains available only while its physical record is retained. Existing advanced14/OCI72 evidence is not recertified by this batch. Cloud acceptance still awaits the owner's access; AWS follows Oracle.
