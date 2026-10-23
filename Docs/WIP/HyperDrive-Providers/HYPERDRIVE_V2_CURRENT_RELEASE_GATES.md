@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## AWS/Dynamo independent export root versions — 23 October 2026
+
+Full475unit/171native PASS0skip (8new native cases test both provider identities); common implementation resolves current avatar identity independently of holon Version. Explicit avatar history remains unchanged. Baseline4missing-identity failures,4negative-admission passes; after fix owner isolation and unchanged canonical/native attributes proved. Current Core109677/Shared151E/Dynamo8E684/AWSB6DA producer/consumer/PDB checks pass. Same retained DB1486848bytes, pending0, container stopped/ports18000+18001absent, no downloads/new environment/cloud requests. Scoped source/native gate closed; AWS hosted IAM/capacity/billing/cloud durability and global V2 gates remain OPEN. Exact cohort/proofs/cleanup in AWS audit and ENVIRONMENT_INVENTORY.md. No dev merge/deployment or all-AWS100% claim.
+
 ## OracleDB independent export selector native gate — 23 October 2026
 
 Full native496/finalunit325 PASS0skip, Core109677/SharedB01845DC source/copies verified. Username/email export resolves current identity and applies Version to holon roots; explicit avatar-history lookup retains historical aliases. New4 native controls plus8 dispatch controls cover independent histories/negative admission/owner isolation/read-only preservation. One existing canonical fixture expected retired export aliases; preserved original495/496 and reconciled only its exact four synthetic rows before corrected full regression. Pending0, retained Oracle stopped11521absent; no download/new environment/cloud requests. Exact hashes, ownership, cleanup and selector contract in ORACLE_CLIENT_PRIORITY.md/ENVIRONMENT_INVENTORY.md. This scoped gate is closed; hosted Autonomous Database/OCI acceptance and full Oracle/all-provider V2 matrices remain OPEN. No dev merge/deployment.
