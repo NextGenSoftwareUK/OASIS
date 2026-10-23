@@ -2,6 +2,21 @@
 
 ## Resume — 2026-10-23
 
+### OCI object-name fidelity: existing SDK correct, full107 controlled cases green
+
+Audited the real OCI SDK149.0.0 transport for configured-prefix escape through URL normalization. Added12 GET/PUT/DELETE cases across literal `../outside`, `a/../outside`, backslash-looking names and `a?b#c`, observing the signed loopback request's decoded path and round-tripped body/acknowledgement. [Oracle documents flat object names with slash support and client URL-encoding responsibility](https://docs.oracle.com/en-us/iaas/Content/Object/Tasks/managingobjects.htm). These names must remain data; do not silently normalize them into another object or reject supported names merely because they resemble paths.
+
+Actual focused12/12PASS0skip1s, then full85939 TERMINAL0 **107/107PASS0skip10s** (prior95+new12). Existing SDK already addresses every tested exact name under `tenant/`; **no production defect, SDK replacement, custom signer, key-remapping, fallback or provider source change was introduced**. This is meaningful transport coverage, not live OCI IAM/TLS/bucket acceptance: tests use the real SDK and synthetic signing identity against127.0.0.1:18661, not Oracle Cloud. All original SQL failure rows/journals/runtime remain untouched.
+
+Frozen cohort Core `1C3AEBC42EDD679D5B399EBBEEBFFE38D77BDA3D6C65C4D4EBC2F1F0FBE4ABC2`/720current-source documents and Shared `E16FE1ECBF359B5F7929FD9B38A1B871E6E3E0BD472DF344FE1C51D7C811C5DA`/55 matched consumer/PE/PDB/current-source proof before tests. Core720 is the then-working peer cohort, not a claim the older pinned Oracle317/native491 cohorts were recertified. Global lease released at actual terminal; no concurrent producer work or package restore/download. Dedicated listener18661 absent afterward, synthetic factory config/signing-key files absent, controlled driver directory retains only reusable0byte lock/no pending mutation. Exact paths/sizes in resource ledger.
+
+| Existing `C:/Source/OASIS/TestResults/OracleObjectCurrent/` evidence | Bytes | SHA256 |
+|---|---:|---|
+| oracle-object-path-current.trx (focused12) |20082|213E84A5FA00CE0FBC71EEB8E9841E7A5B27459D4030796A4A49B50D1332A78F|
+| oracle-object-path-full.trx (controlled107) |171571|F352AE094EA58CF2CE0FBEFD624DCEC2443DABB852A52C2C0CEAE41DC06FD774|
+
+Oracle remains NOT100%: live OCI/Autonomous Database owner access, hosted/security/cost acceptance and the separately preserved SQL listener-trigger gate remain OPEN. No dev/main merge or production configuration change.
+
 ### Sustained original-data control: connection volume alone did not reproduce refusal
 
 The prior400-logon phase was shorter than the failing full suite's observed~3317listener connections. To test that limitation, the same original-fenced read-only mode now accepts explicit `-ReadConnectionIterations`1..400 (default50 unchanged), only with InspectReadConnections. Actual81871 TERMINAL0: one observation PASS,0skip1m34s,400iterations×8current/historical public reads per profile, **6400total**. All four original byte lengths/SHA256 and both original evidence-file hashes remain unchanged. No activation, mutation replay, schema/server/privilege change, new environment or package restore/download.

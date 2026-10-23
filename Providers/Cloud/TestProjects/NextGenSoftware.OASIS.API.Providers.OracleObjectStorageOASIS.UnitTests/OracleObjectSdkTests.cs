@@ -70,6 +70,28 @@ public class OracleObjectSdkTests
         finally{listener.Stop();}
     }
 
+    [DataTestMethod]
+    [DataRow("get","../outside")][DataRow("put","../outside")][DataRow("delete","../outside")]
+    [DataRow("get","a/../outside")][DataRow("put","a/../outside")][DataRow("delete","a/../outside")]
+    [DataRow("get","a\\..\\outside")][DataRow("put","a\\..\\outside")][DataRow("delete","a\\..\\outside")]
+    [DataRow("get","a?b#c")][DataRow("put","a?b#c")][DataRow("delete","a?b#c")]
+    public async Task LogicalObjectNameCannotEscapeItsTransportNamespace(string operation,string key)
+    {
+        await ExchangeClient(async client=>{
+            var backend=new OracleObjectStorageBackend(client,"ns","bucket","tenant/");
+            if(operation=="get")Assert.AreEqual("owned-value",await backend.GetAsync(key));
+            else if(operation=="put")await backend.PutAsync(key,"owned-value");
+            else await backend.DeleteAsync(key);
+        },async context=>{
+            Assert.AreEqual(operation.ToUpperInvariant(),context.Request.HttpMethod);
+            var rawPath=context.Request.RawUrl!.Split('?')[0];
+            Assert.AreEqual("/n/ns/b/bucket/o/tenant/"+key,Uri.UnescapeDataString(rawPath),
+                "An object name must remain data, not normalize or replace the configured object namespace.");
+            context.Response.Headers["ETag"]="\"owned-observed\"";
+            await Reply(context,operation=="delete"?204:200,operation=="get"?"owned-value":"");
+        });
+    }
+
     [DataTestMethod][DataRow("success")][DataRow("create")][DataRow("replace")][DataRow("delete")][DataRow("occupied")][DataRow("list-create")][DataRow("list-delete")]
     public async Task LiveTransportDriverKeepsOriginalUncertainJournalWithoutCleanupOrReplay(string outcome)
     {
