@@ -77,6 +77,8 @@ The full runnable source handles errors and verifies returned rows. A local SDK 
 
 ## WEB4 v1 request
 
+Child graph work is in progress: [Core composition/admission and remaining native work](CQL_GRAPH_LOADING.md). Existing native adapters and v1 HTTP remain leaf-only until that acceptance gate is complete.
+
 ```json
 {
   "provider": "MongoDBOASIS",
