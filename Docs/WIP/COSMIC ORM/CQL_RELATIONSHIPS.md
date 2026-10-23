@@ -41,6 +41,12 @@ Schema3 derives f_HasChildManifest and f_ChildIds from the canonical stored mani
 
 Native EXISTS requires HAS_CHILD, matching current parentage, non-self identity, current projection/revision and canonical membership (or the explicit absent-manifest representation). Child access and scalar conditions run inside the correlated subquery. Separate clauses use independent aliases and share the900-parameter budget and existing native deadline/cancellation owner. Neo4j retains its declared read-committed consistency; this does not add snapshot support.
 
+## MongoDB final-record membership owner
+
+The central MongoNativeRecordWriter.SerializePayload now derives CosmicCqlMembership from the final native holon's canonical ChildRoleManifestJson. Ordinary, conditional and replica writes use this same owner; projection and record share the final replacement/CAS transaction. The descriptor stores schema1, canonical owner, exact source observation, declared/absent distinction and the union of named-role member IDs. Invalid JSON or foreign-owner manifests fail serialization. Unknown-field retention cannot restore an older projection over the replacement.
+
+Mongo unit213 and native29 pass (certification97612, zero skips), including both ordinary parent-link fixtures and conditional manifest fixtures, stale derived-state replacement and unchanged child BSON after root-only saving. Existing records still require a revision-safe membership migration. Mongo ChildExists remains closed until migration, snapshot validation, bounded native lookup and relationship semantics are implemented and verified. No relationship client scan is introduced.
+
 ## Evidence and remaining work
 
 Neo certification28074 terminal0: Neo unit314 and joint native/WEB4 96 pass, zero skips. New native controls cover private/public/actor-owned exact Int64 matching, independent sibling EXISTS aliases, unlisted physical edges, schema2 rejection before upgrade and schema3 activation migration preserving the exact canonical snapshot. Hash-bound completed-fixture reconciliation1 passed before the fresh run; owned fixture files are absent. Source/PDB711Core/54Shared matched CoreBFB99852BE111503F20F12702BD622192BA1D528D0AD693BDF70E3942B20F57D and Shared55B512686B8993A89BE39E2DFC8DABC47836E469FD019161AB28ABFFAD452034.

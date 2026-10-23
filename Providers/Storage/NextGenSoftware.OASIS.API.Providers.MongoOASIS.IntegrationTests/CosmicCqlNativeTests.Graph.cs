@@ -87,6 +87,46 @@ public sealed partial class CosmicCqlNativeTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task NativeCanonicalMembershipProjectionSharesTheFinalWrite(bool manifested)
+        =>WithMongoGraph(async fixture=>
+        {
+            void Check(BsonDocument row)
+            {
+                var projection=row["CosmicCqlMembership"].AsBsonDocument;
+                var source=row.GetValue("ChildRoleManifestJson",BsonNull.Value);
+                var declared=!source.IsBsonNull;
+                Assert.Equal(1,projection["schema"].AsInt32);
+                Assert.Equal(row["HolonId"].AsString.ToLowerInvariant(),projection["owner"].AsString);
+                Assert.Equal(source,projection["source"]);Assert.Equal(declared,projection["declared"].AsBoolean);
+                var members=declared?Core.Serialization.HolonChildRoleManifestJson.Deserialize(source.AsString)
+                    .Roles.SelectMany(role=>role.ChildIds).Select(id=>id.ToString("D")).ToArray():Array.Empty<string>();
+                Assert.Equal(members,projection["members"].AsBsonArray.Select(id=>id.AsString).ToArray());
+            }
+            var rows=await fixture.Records.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+            Assert.Equal(4,rows.Count);Assert.All(rows,Check);
+            var id=fixture.Root.Id.ToString("D");
+            var rootFilter=new BsonDocument("HolonId",id);
+            // Derived-state corruption must not survive a new canonical replacement.
+            await fixture.Records.UpdateOneAsync(rootFilter,new BsonDocument("$set",new BsonDocument(
+                "CosmicCqlMembership",new BsonDocument("members",new BsonArray{"stale"}))));
+            var read=await Manager(fixture.Provider).ExecuteQueryAsync(
+                MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result),new ICosmicQueryStorageProvider[]{fixture.Provider});
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var observedRoot=Assert.Single(Assert.Single(read.Result.Providers).Rows);
+            observedRoot.Description="membership owner replacement";
+            fixture.KnownOutcome=false;
+            var saved=await Manager(fixture.Provider).SaveHolonAsync(observedRoot,Guid.NewGuid(),
+                new CosmicWriteOptions(Guid.NewGuid()),saveChildren:false,providerType:ProviderType.MongoDBOASIS);
+            fixture.KnownOutcome=!saved.IsError;
+            Assert.False(saved.IsError,saved.Message+saved.Exception);
+            Check(await fixture.Records.Find(rootFilter).SingleAsync());
+            var children=await fixture.Records.Find(new BsonDocument("HolonId",new BsonDocument("$ne",id))).ToListAsync();
+            foreach(var child in children)Assert.Equal(rows.Single(row=>row["_id"]==child["_id"]),child);
+        },manifest:manifested);
+
+    [Theory]
     [InlineData(true,true)] [InlineData(false,true)]
     [InlineData(true,false)] [InlineData(false,false)]
     public Task NativeGraphAccessFiltersBeforeChildBudget(bool visible,bool manifested)
