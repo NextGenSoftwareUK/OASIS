@@ -454,3 +454,26 @@ Bind the same generic SDK example to the activated Neo4j provider and its own `Q
 Neo4j preserves its admitted GUID, Boolean, signed/narrow integer and defined-enum metadata domains; missing/null string or nullable leaves become null, while required or wrong-domain leaves error. DateTime metadata remains explicitly unsupported. Graph output caps do not cap projected roots; source traversal budgets still apply. This provider supplies read committed, and rejects a requested `ProviderSnapshot` guarantee even when a caller claims a more permissive profile.
 
 Output limits reject the operation rather than return a shortened list. A native row-size lower bound removes impossible string rows before transfer; one-row fetches bound driver buffering, and the existing read-budget owner then checks exact UTF-8 bytes. Cancellation/deadline checks surround native awaits and publication. Prompt interruption of an already blocked driver await remains an open limitation. Final unit328/joint native-WEB4 147 acceptance passes with zero skips, including18new native projection controls and two actual cursor-buffer inspections. [Native contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#neo4j-native-projection-slice--23-october-2026).
+
+### Runtime column records
+
+A host that chooses its result columns at runtime can use `CosmicProjectionSelection<T>.Create` and `SelectColumns`. Each binding still requires a typed expression path; Core retains no executable selector delegate. The result is an immutable `CosmicProjectionRecord` with ordered `Aliases`, `Values` and an alias indexer. Native planning/readmission, exact raw-value validation and V2 execution are shared with typed Select.
+
+```csharp
+// Choose bounded typed columns; aliases are labels, never native identifiers.
+var label = CosmicProjectionSelection<Holon>.Create("label", holon => holon.Name);
+var stock = CosmicProjectionSelection<Holon>.Create(
+    "stock",
+    holon => CosmicQueryMetadata.Value<long?>(holon, "stock"));
+
+if (label.IsError || stock.IsError)
+    throw new InvalidOperationException("A requested column is invalid.");
+
+var source = CosmicQuery<Holon>.Create().Take(10).Result;
+var selection = source.SelectColumns(new[] { label.Result, stock.Result });
+
+// Plan and execute selection.Result through the same projection API shown above.
+// Each resulting record exposes record["label"] and record["stock"].
+```
+
+Core2,018 unit cases and both framework targets pass for the runtime-record extension. Authenticated projection HTTP and native-to-record transport/demos remain separate pending acceptance gates. [HTTP contract in progress](CQL_PROJECTION_HTTP_CONTRACT.md).
