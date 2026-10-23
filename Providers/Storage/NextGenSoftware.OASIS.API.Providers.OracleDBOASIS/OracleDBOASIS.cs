@@ -577,7 +577,9 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                // Identity and exported holon histories have independent version counters.
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
                 if (avatarResult.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 if (avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar with email '{avatarEmailAddress}' not found."); return result; }
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
@@ -759,7 +761,8 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername,version);
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
                 if (avatarResult.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 if (avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar '{avatarUsername}' not found."); return result; }
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);

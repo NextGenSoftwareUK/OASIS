@@ -794,7 +794,7 @@ public sealed partial class OracleNativeAcceptanceTests
                     await provider.LoadHolonsByMetaDataAsync("owned.fixture","literal-dot",version:1),
                     await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string>{{"owned.fixture","literal-dot"}},NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,version:1),
                     await provider.ExportAllAsync(1),await provider.ExportAllDataForAvatarByIdAsync(id,1),
-                    await provider.ExportAllDataForAvatarByUsernameAsync(name,1),await provider.ExportAllDataForAvatarByEmailAsync(name+"@example.invalid",1)}){
+                    await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username,1),await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email,1)}){
                     Assert.IsFalse(historical.IsError,historical.Exception?.ToString());Assert.AreEqual(1,historical.Result.Single(row=>row.Id==id).Version);
                 }
                 Assert.IsFalse((await provider.LoadHolonsForParentAsync(oldHolon.Result.ParentHolonId)).Result.Any(row=>row.Id==id));
@@ -802,7 +802,7 @@ public sealed partial class OracleNativeAcceptanceTests
                 Assert.AreEqual(0,(await provider.LoadAllHolonsAsync(version:99)).Result.Count());
                 var search=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,FilterByMetaData=new(){["owned.fixture"]="literal-dot"}},version:1);
                 Assert.IsFalse(search.IsError,search.Exception?.ToString());Assert.AreEqual(1,search.Result.SearchResultHolons.Single(row=>row.Id==id).Version);Assert.AreEqual(5,search.Result.SearchResultHolons.Single(row=>row.Id==id).Children.Single().Version);
-                foreach(var exportedRoot in new[]{await provider.ExportAllAsync(1),await provider.ExportAllDataForAvatarByIdAsync(id,1),await provider.ExportAllDataForAvatarByUsernameAsync(name,1),await provider.ExportAllDataForAvatarByEmailAsync(name+"@example.invalid",1)}){
+                foreach(var exportedRoot in new[]{await provider.ExportAllAsync(1),await provider.ExportAllDataForAvatarByIdAsync(id,1),await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username,1),await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email,1)}){
                     Assert.IsFalse(exportedRoot.IsError,exportedRoot.Exception?.ToString());Assert.AreEqual(5,exportedRoot.Result.Single(row=>row.Id==id).Children.Single().Version);
                 }
                 var historicalCredential=await provider.LoadAvatarByVerificationTokenAsync(name+"-original-token",1);Assert.IsTrue(historicalCredential.IsError);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(historicalCredential.Exception);

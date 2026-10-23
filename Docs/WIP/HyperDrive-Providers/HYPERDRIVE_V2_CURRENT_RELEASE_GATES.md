@@ -1,8 +1,12 @@
 # HyperDrive V2 current release gates
 
+## OracleDB independent export selector native gate — 23 October 2026
+
+Full native496/finalunit325 PASS0skip, Core109677/SharedB01845DC source/copies verified. Username/email export resolves current identity and applies Version to holon roots; explicit avatar-history lookup retains historical aliases. New4 native controls plus8 dispatch controls cover independent histories/negative admission/owner isolation/read-only preservation. One existing canonical fixture expected retired export aliases; preserved original495/496 and reconciled only its exact four synthetic rows before corrected full regression. Pending0, retained Oracle stopped11521absent; no download/new environment/cloud requests. Exact hashes, ownership, cleanup and selector contract in ORACLE_CLIENT_PRIORITY.md/ENVIRONMENT_INVENTORY.md. This scoped gate is closed; hosted Autonomous Database/OCI acceptance and full Oracle/all-provider V2 matrices remain OPEN. No dev merge/deployment.
+
 ## Shared export identity/history invariant — 23 October 2026
 
-Shared1019/S3 SDK55/OCI SDK107 passed, zero skips, after four expected red independent-history failures. Current identity lookup no longer requires an avatar version matching the exported holon Version; negative versions fail before storage. Core109677/SharedB753D1D6 source/copies verified; compact evidence and resources in ENVIRONMENT_INVENTORY.md. Separate OracleDB implementation has the same source defect and remains next native work. Oracle Cloud Autonomous Database/OCI bucket acceptance and provider-specific V2 matrices remain OPEN; local/controlled evidence is not 100% readiness or a dev deployment gate.
+Shared1019/S3 SDK55/OCI SDK107 passed, zero skips, after four expected red independent-history failures. Current identity lookup no longer requires an avatar version matching the exported holon Version; negative versions fail before storage. Core109677/SharedB753D1D6 source/copies verified; compact evidence and resources in ENVIRONMENT_INVENTORY.md. Separate OracleDB implementation was outstanding at this checkpoint; its subsequent496/325 native/unit repair is recorded above. Oracle Cloud Autonomous Database/OCI bucket acceptance and provider-specific V2 matrices remain OPEN; local/controlled evidence is not 100% readiness or a dev deployment gate.
 
 ## GUID-key deletion guard adopted by40 adapters — 23 October 2026
 
