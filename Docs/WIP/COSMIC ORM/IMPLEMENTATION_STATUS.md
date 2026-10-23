@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — Mongo native bounded descendants
+
+Mongo now compiles depth-32 flat native breadth pipelines under the membership snapshot, with per-hop canonical membership/access pruning, visited-node/cycle limits and protected errors outside root paging. Unit 220/native 61/joint 109 passed unskipped, including the native memory146 classification fix and both-order negative-condition/overflow controls. Final40754 confirms compiler preallocation bounds, unit220/native61/joint109 unskipped and source/PDB712Core/54Shared. Owned services stopped and fixture files absent; full CQL remains unfinished. No Core/Shared source changes. [Contract](CQL_DESCENDANT_CONTRACT.md#mongodb-native-execution).
+
 ## 23 October — Neo4j native bounded descendants
 
 Neo now executes WhereAnyDescendant with inline membership/access pruning in quantified paths, distinct visited-state budgets and typed cycle/limit errors outside paging. Unit316/scoped45/joint109 pass unskipped on5.26.12; Neo5.9+ required. Separate projection MATCH scopes fix self-loop validation; read committed remains explicit. Source/PDB712Core/54Shared verified and owned fixtures cleaned. Mongo descendants/remaining acceptance gates stay open. [Contract](CQL_DESCENDANT_CONTRACT.md).
