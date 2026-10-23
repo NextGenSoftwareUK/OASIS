@@ -12,8 +12,17 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
 {
-    public static CosmicScalarCapabilities CqlScalarCapabilities { get; } = new(
-        CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any);
+    private static class ScalarContract
+    {
+        internal static readonly CosmicScalarCapabilities Capabilities = new(
+            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any },
+            new[]
+            {
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities)
+            });
+    }
+    public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
     public CosmicScalarCapabilities ScalarCapabilities => CqlScalarCapabilities;
 
     public async Task<OASISResult<TResult>> ExecuteCosmicScalarAsync<T, TResult>(CosmicScalarPlan<T, TResult> plan,
@@ -26,7 +35,9 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             var source = plan.Query.Source;
             var compiled = CompileCqlSource(source);
             cancellationToken.ThrowIfCancellationRequested();
-            if (source.Limit == 0) return CosmicScalarResults.FromCount(plan.Query, 0);
+            var selected = plan.Query.Selector != null;
+            if (source.Limit == 0) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
+                : CosmicScalarResults.FromCount(plan.Query, 0);
             if (!IsProviderActivated || _driver == null) return ScalarCqlFailure<TResult>("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
 
             var parameters = compiled.Translator.Parameters;
@@ -44,14 +55,19 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 + "WHEN total-$countOffset > $countTake THEN $countTake ELSE total-$countOffset END AS value,"
                 + "true AS valid,false AS traversalCycle,false AS traversalLimit } RETURN value,valid,traversalCycle,traversalLimit";
 
-            var budget = new NeoCqlReadBudget(1024, cancellationToken);
+            if (selected) query = CompileCqlExtremum(compiled, plan.Query);
+            // ReserveProjection includes 32 bytes of envelope overhead; the
+            // selected scalar itself retains the common exact 32 MiB bound.
+            var budget = new NeoCqlReadBudget(selected ? CosmicProjectionResults.MaximumPayloadLimit + 32 : 1024, cancellationToken);
             budget.Check();
-            using var session = _driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read));
+            using var session = _driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read).WithFetchSize(1));
             using var transaction = await session.BeginTransactionAsync(config => config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
             budget.Check();
             var cursor = await transaction.RunAsync(query, parameters).ConfigureAwait(false);
             var observed = false;
             long count = 0;
+            object selectedValue = null;
+            var hasSelectedValue = false;
             while (true)
             {
                 budget.Check();
@@ -60,16 +76,37 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 var row = cursor.Current;
                 if (row["traversalCycle"].As<bool>()) throw new InvalidDataException("Neo4j scalar traversal encountered a cycle.");
                 if (row["traversalLimit"].As<bool>()) throw new NeoCqlLimitException("Neo4j scalar traversal exceeds its visited-node budget.");
-                if (!row["valid"].As<bool>()) throw new InvalidDataException("Neo4j scalar projection/membership ownership is invalid.");
-                if (observed || row["value"] is not long value || value < 0)
-                    throw new InvalidDataException("Neo4j scalar requires exactly one nonnegative Int64 result.");
-                observed = true; count = value;
+                if (!row["valid"].As<bool>()) throw new InvalidDataException("Neo4j scalar ownership, membership or selected-value domain is invalid.");
+                if (observed) throw new InvalidDataException("Neo4j scalar returned multiple native values.");
+                if (selected)
+                {
+                    if (row["payloadLimit"].As<bool>()) throw new NeoCqlLimitException("Selected scalar exceeds its native payload bound.");
+                    if (row["present"] is not long present || present < 0)
+                        throw new InvalidDataException("Selected scalar requires a nonnegative participating-value count.");
+                    hasSelectedValue = present != 0;
+                    if ((!hasSelectedValue && row["value"] != null) || (hasSelectedValue && row["value"] == null))
+                        throw new InvalidDataException("Selected scalar value/presence disagree.");
+                    if (hasSelectedValue)
+                    {
+                        selectedValue = DecodeNativeProjectionValue(row["value"],
+                            Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) ?? plan.Query.Selector.ValueType);
+                        budget.ReserveProjection(new[] { selectedValue });
+                    }
+                }
+                else
+                {
+                    if (row["value"] is not long value || value < 0)
+                        throw new InvalidDataException("Neo4j scalar requires exactly one nonnegative Int64 result.");
+                    count = value;
+                }
+                observed = true;
             }
             budget.Check();
-            if (!observed) throw new InvalidDataException("Neo4j scalar count did not return its empty/nonempty result.");
+            if (!observed) throw new InvalidDataException("Neo4j scalar reduction did not return its empty/nonempty result.");
             await transaction.CommitAsync().ConfigureAwait(false);
             budget.Check();
-            return CosmicScalarResults.FromCount(plan.Query, count);
+            return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, selectedValue, hasSelectedValue)
+                : CosmicScalarResults.FromCount(plan.Query, count);
         }
         catch (NeoCqlLimitException cause) { return ScalarCqlFailure<TResult>("CQL_QUERY_LIMIT", cause.Message, cause); }
         catch (NeoCqlTimeoutException cause) { return ScalarCqlFailure<TResult>("CQL_QUERY_TIMEOUT", cause.Message, cause); }
