@@ -242,6 +242,26 @@ public static class V1Walkthrough
                     new { alias = "city", metadataPath = new[] { "location", "city" }, valueType = "String" }
                 }
             }, projection: true);
+
+            // EXAMPLE 11 — selected Min uses the same actor-protected source.
+            // Int64 metadata is explicit; its exact wire value is decimal text.
+            await ShowAsync("11. Min / exact signed selected value", new
+            {
+                provider,
+                operation = "Min",
+                selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" },
+                filters = scalarFilters
+            }, scalar: true, valueType: "Int64", expected: "-9007199254740991");
+
+            // EXAMPLE 12 — Max changes only the terminal. Private roots contain
+            // more extreme values, but the server excludes them before reduction.
+            await ShowAsync("12. Max / protected native reduction", new
+            {
+                provider,
+                operation = "Max",
+                selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" },
+                filters = scalarFilters
+            }, scalar: true, valueType: "Int64", expected: "-9007199254740989");
         }
 
         return completedRequests;

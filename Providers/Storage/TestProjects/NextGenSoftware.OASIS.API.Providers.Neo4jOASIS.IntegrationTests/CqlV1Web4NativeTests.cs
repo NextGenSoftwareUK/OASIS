@@ -100,6 +100,9 @@ public sealed partial class CqlV1Web4NativeTests
                             ["fixture"] = tag, ["stock"] = 7L, ["guid"] = ids[i],
                             ["enabled"] = i >= 2, ["nullable"] = null!,
                             ["precision"] = 9007199254740993L,
+                            // Hidden roots carry stronger extrema; signed Min/Max
+                            // must apply actor visibility before native reduction.
+                            ["extremum"] = i == 0 ? long.MinValue : i == 1 ? long.MaxValue : -9007199254740993L + i,
                             ["mixedInteger"] = i == 4 ? (object)"7" : 7L,
                             ["mixedGuid"] = i == 4 ? (object)"not-a-guid" : ids[i],
                             ["location"] = new Dictionary<string, object> { ["city"] = "London" },
@@ -301,6 +304,22 @@ public sealed partial class CqlV1Web4NativeTests
                         await Scalar(new { Provider = provider.ToString(), Operation = "Any", Filters = new[] { new { Field = "Id", Operator = "Equal", Value = ids[0] } } }, alice, "Boolean", "false");
                         await Scalar(new { Provider = provider.ToString(), Operation = "LongCount", Filters = new[] { fixture },
                             AnyDescendants = new[] { new { MaximumDepth = 2, MaximumNodes = 3, Filters = new[] { new { Field = "Name", Operator = "Equal", Value = "public behind private" } } } } }, outsider, "Int64", "0");
+
+                        // Typed selected scalars retain exact Int64 text, visibility,
+                        // source windows and the existing one-attempt receipt owner.
+                        var selected = new { MetadataPath = new[] { "extremum" }, ValueType = "Int64" };
+                        await Scalar(new { Provider = provider.ToString(), Operation = "Min", Selection = selected, Filters = new[] { fixture } },
+                            alice, "Int64", "-9007199254740991", verifyReplay: true);
+                        await Scalar(new { Provider = provider.ToString(), Operation = "Max", Selection = selected, Filters = new[] { fixture } },
+                            alice, "Int64", "-9007199254740989");
+                        await Scalar(new { Provider = provider.ToString(), Operation = "Min", Selection = selected, Filters = new[] { fixture } },
+                            outsider, "Int64", "-9007199254740990");
+                        await Scalar(new { Provider = provider.ToString(), Operation = "Max", Selection = selected, Filters = new[] { fixture }, Skip = 1, Take = 1 },
+                            alice, "Int64", "-9007199254740990");
+                        await Scalar(new { Provider = provider.ToString(), Operation = "Min", Selection = new
+                            { MetadataPath = new[] { "absentSelectedValue" }, ValueType = "Int64", Nullable = true }, Filters = new[] { fixture } },
+                            alice, "Int64", null!);
+
                         foreach(var graphActor in new[]{alice,outsider})
                         {
                             var expected=graphActor==alice?new[]{childIds[0],childIds[2]}:new[]{childIds[0]};
@@ -493,7 +512,9 @@ public sealed partial class CqlV1Web4NativeTests
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/projection", out _));
                             var example = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlScalarV1Request").GetProperty("example");
-                            Assert.AreEqual("LongCount", example.GetProperty("operation").GetString());
+                            Assert.AreEqual("Min", example.GetProperty("operation").GetString());
+                            Assert.AreEqual("Int64", example.GetProperty("selection").GetProperty("valueType").GetString());
+                            Assert.AreEqual("extremum", example.GetProperty("selection").GetProperty("metadataPath")[0].GetString());
                             Assert.IsFalse(example.TryGetProperty("take", out _), "Scalar demo must not inherit a row page.");
                             var projectionExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlProjectionV1Request").GetProperty("example");
