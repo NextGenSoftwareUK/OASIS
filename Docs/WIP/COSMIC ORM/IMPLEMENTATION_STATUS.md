@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — Neo4j native bounded descendants
+
+Neo now executes WhereAnyDescendant with inline membership/access pruning in quantified paths, distinct visited-state budgets and typed cycle/limit errors outside paging. Unit316/scoped45/joint109 pass unskipped on5.26.12; Neo5.9+ required. Separate projection MATCH scopes fix self-loop validation; read committed remains explicit. Source/PDB712Core/54Shared verified and owned fixtures cleaned. Mongo descendants/remaining acceptance gates stay open. [Contract](CQL_DESCENDANT_CONTRACT.md).
+
 ## 23 October — SQLite native bounded descendants
 
 SQLite now executes WhereAnyDescendant via a bounded recursive CTE (depth32/nodes10000), with native membership/access before each hop, scope budgets/cycles, typed errors and leaf output before root paging. Full1248/focused45 native checks pass unskipped. Empty-parent malformed-manifest red2 found a common direct/descendant omission; validation now precedes existence. Mongo/Neo descendants and further descendant controls remain open. [Contract](CQL_DESCENDANT_CONTRACT.md).

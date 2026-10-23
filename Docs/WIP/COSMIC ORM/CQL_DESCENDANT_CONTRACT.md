@@ -1,6 +1,6 @@
 # Bounded native descendant existence
 
-23 October 2026. SQLite native checkpoint; Mongo/Neo native descendants and the full roadmap are not complete.
+23 October 2026. SQLite/Neo native checkpoint; Mongo descendants and the full roadmap are not complete.
 
 ## SDK and admission
 
@@ -20,7 +20,7 @@ The immutable node freezes the child expression with the existing scalar compile
 
 Options require depth1-32 and nodes1-10000; defaults are depth8/nodes1000. Adapters declare DescendantExists1048576 together with ChildExists and an immutable CosmicQueryTraversalCapability. Its explicit certified bounds can be smaller than the generic absolute maxima. Missing capability or excessive requested bounds rejects at planning and actual-adapter readmission, before dispatch. A supplied plan cannot lend its traversal budget to the executing adapter. Existing public capability constructor signatures are preserved; new overloads carry traversal limits.
 
-SQLite now declares DescendantExists with depth32/nodes10000. MongoDB and Neo4j still reject descendant requests before I/O pending native implementations. Direct-child SDK/HTTP queries remain supported on all three stores; descendant HTTP transport is pending.
+SQLite and Neo4j now declare DescendantExists with depth32/nodes10000. MongoDB still rejects descendants before I/O pending native implementation. Direct-child SDK/HTTP queries remain supported on all three stores; descendant HTTP transport is pending.
 
 ## Required native semantics
 
@@ -49,3 +49,15 @@ Connection-local provider functions record explicit cycle/node/manifest outcomes
 FullSQLite1248 and focused45 native relationship/graph controls pass, zero skips. A genuine empty-parent malformed-manifest red2 proved the omission and green controls prove the common-owner fix. Tests cover depth1/2, partial graph-independent output, exact Int64, independent clauses, root paging, hidden intermediate pruning, unlisted branches, node overflow/reuse, cycles/function teardown, read-only storage and caller transaction rollback. Broader concurrency, cancellation and all-provider descendant certification remain roadmap work.
 
 Final SQLite58545/joint96796 terminal0: full1248/focused45/joint98 pass unskipped. Consumers match712Core/54Shared source/PDB: CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733 / Shared45E098A99A5308A7DC78B9ECD8CCD3EC969A45DCCC97F09CC9F3846DE7A93617. Fixed SQLite fixture and owned HTTP/native resources are absent; reusable services stopped.
+
+## Neo4j native execution
+
+Neo4j uses quantified path patterns with inline EXISTS membership/current-parent and trusted child access predicates, pruning excluded branches during traversal. This feature requires Neo4j5.9+; the retained native certification runtime is5.26.12. The official [Neo4j5 path-pattern guide](https://neo4j.com/docs/cypher-manual/5/patterns/variable-length-paths/) documents inline pruning. No APOC, new procedure or alternate evaluator is installed.
+
+Each scope retains distinct endpoint/cycle/match states capped at nodes+1; duplicate equivalent physical edges cannot inflate the node budget. Simple prefixes retain their first repeated endpoint as a typed cycle outcome. Parent and child projection lookups use separate MATCH clauses so a self-loop can reuse its one canonical projection relationship and reach cycle validation. Independent conditions retain separate scope aliases and exact scalar parameters.
+
+Native error scopes are outside root sorting/Skip/Take, under the same read-committed transaction/deadline owner as result scopes. Cycle or node-budget failures publish no rows; the reader consumes typed native flags. Root business/access predicates restrict the scope before traversal. Read committed remains explicit; no snapshot guarantee is inferred. WithChildren remains independent of filtering.
+
+Final50927 terminal0: Neo316unit/45native/joint109 pass unskipped. Positive/negative controls cover depth, private intermediate pruning, exact Int64 and independent clauses, unlisted branches, duplicate edges, budget/reuse, root paging and cycles. Root cause red1 after introducing inline pruning identified MATCH relationship uniqueness suppressing a self-loop; separate canonical projection lookups fixed it. Earlier4failed assertions were an incorrect fixture-name literal and were corrected separately. Two completed-stage fixture reconciliations used exact hashes and validated native absence/all9SQLite rows before removal; no operation replay/reset.
+
+Consumers match712Core/54Shared source/PDB: CoreE6E7EE404AA0B2282036291A868E5C7F3CA108C3CE26148AD0F39EF866D44733 / SharedF51B52FE83B3F22422BEED382F2EA2B53AB7D0323176FC73BAC432032AD8692B. Mongo native descendants, descendant transport and broader acceptance gates remain open.

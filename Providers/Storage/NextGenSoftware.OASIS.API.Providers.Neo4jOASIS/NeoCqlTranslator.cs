@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
-internal sealed class NeoCqlTranslator
+internal sealed partial class NeoCqlTranslator
 {
     internal readonly Dictionary<string, object> Parameters;
     private readonly string _node;
@@ -92,6 +92,7 @@ internal sealed class NeoCqlTranslator
     {
         switch (predicate)
         {
+            case CosmicQueryAnyDescendant descendant:return TranslateDescendant(descendant);
             case CosmicQueryAnyChild child:
             {
                 var suffix=Parameters.Count.ToString(CultureInfo.InvariantCulture);

@@ -77,6 +77,8 @@ public partial class Neo4jOASIS
         {
             budget.Check();
             var row=cursor.Current;
+            if(row.Keys.Contains("traversalCycle") && row["traversalCycle"].As<bool>())throw new InvalidDataException("Neo4j descendant traversal encountered a cycle.");
+            if(row.Keys.Contains("traversalLimit") && row["traversalLimit"].As<bool>())throw new NeoCqlLimitException("Neo4j descendant traversal exceeds its visited-node budget.");
             if(!row["valid"].As<bool>())throw new InvalidDataException("Neo4j CQL relationship/projection ownership or schema is invalid.");
             if(rows.Count>=maximumRows)throw new NeoCqlLimitException("Neo4j CQL exceeds its declared node/result limit.");
             var snapshot=row["snapshot"].As<string>();
