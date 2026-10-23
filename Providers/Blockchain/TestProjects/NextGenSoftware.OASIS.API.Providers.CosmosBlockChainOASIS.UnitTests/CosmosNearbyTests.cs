@@ -18,11 +18,11 @@ public sealed class CosmosNearbyTests
             MetaData = new() { ["Latitude"] = "30.0005", ["Longitude"] = "20" } };
         public Records() { IsProviderActivated = true; }
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
-            => new() { Result = new[] { Avatar }, IsLoaded = true };
+            => new() { Result = new[] { Avatar,new Avatar{Id=Guid.NewGuid(),IsActive=true,MetaData=new(){{"Latitude","40"},{"Longitude","20"}}} }, IsLoaded = true,LoadedCount=2 };
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true,
             bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
-            => new() { Result = new[] { Holon }, IsLoaded = true };
+            => new() { Result = new[] { Holon,new Holon{Id=Guid.NewGuid(),IsActive=true,HolonType=HolonType.Park,MetaData=new(){{"Latitude","40"},{"Longitude","20"}}} }, IsLoaded = true,LoadedCount=2 };
     }
 
     [DataTestMethod]
@@ -36,11 +36,13 @@ public sealed class CosmosNearbyTests
             if (avatars) {
                 var result = net.GetAvatarsNearMe(30000000,20000000,100);
                 Assert.IsFalse(result.IsError); Assert.IsTrue(result.IsLoaded); Assert.AreSame(provider.Avatar, result.Result.Single());
-                provider.Avatar.IsActive = false; Assert.AreEqual(0, net.GetAvatarsNearMe(30000000,20000000,100).Result.Count());
+                Assert.AreEqual(1,result.LoadedCount);
+                provider.Avatar.IsActive = false;var empty=net.GetAvatarsNearMe(30000000,20000000,100);Assert.AreEqual(0,empty.Result.Count());Assert.AreEqual(0,empty.LoadedCount);
             } else {
                 var result = net.GetHolonsNearMe(30000000,20000000,100,HolonType.Park);
                 Assert.IsFalse(result.IsError); Assert.IsTrue(result.IsLoaded); Assert.AreSame(provider.Holon, result.Result.Single());
-                Assert.AreEqual(0, net.GetHolonsNearMe(30000000,20000000,100,HolonType.Holon).Result.Count());
+                Assert.AreEqual(1,result.LoadedCount);
+                var empty=net.GetHolonsNearMe(30000000,20000000,100,HolonType.Holon);Assert.AreEqual(0,empty.Result.Count());Assert.AreEqual(0,empty.LoadedCount);
             }
         } finally { CultureInfo.CurrentCulture = prior; }
     }

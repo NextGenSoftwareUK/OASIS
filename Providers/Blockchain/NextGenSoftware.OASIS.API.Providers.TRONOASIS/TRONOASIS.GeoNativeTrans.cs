@@ -69,6 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 var nearby = query.Select(allAvatarsResult.Result, avatar => avatar.IsActive && !avatar.IsDeleted);
                 result.Result = nearby;
                 result.IsLoaded = true;
+                result.LoadedCount = nearby.Count;
                 result.Message = $"Retrieved {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
@@ -104,6 +105,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     holon => holon.IsActive && !holon.IsDeleted && (Type == HolonType.All || holon.HolonType == Type));
                 result.Result = nearby;
                 result.IsLoaded = true;
+                result.LoadedCount = nearby.Count;
                 result.Message = $"Retrieved {nearby.Count} holons within {radiusInMeters}m";
             }
             catch (Exception ex)
