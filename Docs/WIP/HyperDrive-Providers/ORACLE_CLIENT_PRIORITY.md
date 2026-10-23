@@ -2,6 +2,23 @@
 
 ## Resume — 2026-10-23
 
+### Permanent-table admission — real native regression
+
+Actual53947 red: four temporary-table cases wrongly accepted, two permanent cases passed. Actual25828 green TERMINAL0: focused6/6 passed1s, full374/374 passed89s,281/281 controls passed604ms, zero skips. Focused6 are INCLUDED in374. The schema validator now joins USER_TABLES in its EXISTING column query and requires TEMPORARY=N plus null DURATION; no additional metadata round trip, automatic conversion, new provider backend or crypto. Oracle documents transaction/session duration and permanent-table metadata here: https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/ALL_TABLES.html .
+
+These native cases add one TEST-ONLY private expected-schema map entry and one fixed empty owned OASIS_DURABILITY_PROBE table, exercising real activation/metadata through the same validator. Both sync/async paths cover permanent, SYS$TRANSACTION and SYS$SESSION tables. Canonical tables, account privileges and schemas were NOT replaced/altered. Fixture ownership is acknowledged OBJECT_ID, with empty-row/exact-identity/absence checks before journal removal. Unknown CREATE/DROP acknowledgement preserves the original journal, never a blind retry. This is not a hosted/restricted-account test or a physical crash/media-recovery drill.
+
+Native cohort used published intermediate Core15689b7 (DLL6B225A40F1690B05A171A5014F3A2F46FB13DC4FC2A93B8759A10431433ADE6A) and SharedEC711DBF65077CA76AF9F4B964C09A8407E9507043C074FA638614B7A5EC4D4E, matched consumer/producer and711Core/54Shared source/PDB documents under the exclusive lease. Later final Core publication is a different cohort and requires its own refresh; these results do not certify it. Advanced14 and OCI72 retain earlier actual cohorts below.
+
+| Report in TestResults/OracleCurrent | Bytes | SHA256 |
+|---|---:|---|
+| oracle-table-durability-native-red.trx | 15390 | BD9256684C66869FF0D59DF11AE05FA6806D51495421A277ABDE3E6DC717BE3E |
+| oracle-table-durability-native-current.trx | 11069 | AF78BB77783507B8993FBA35E6AA3E0DB1B2F02479F57F0A87EA075A4B378EC4 |
+| oracle-native-current.trx | 594471 | 6C5EBB454A61B0E31A9E352306D3D7B18AEB82A47D9F2B001D3D6CBF0A5F6157 |
+| oracle-table-durability-controls.trx | 433144 | 338F6D0D1C27A07538FFB73286E0817D48BE871E5237FFF04B9FD2D89016B884 |
+
+Previous368 report hash9E40C85660954BE8AD3174C8EC43E35534722A689F1874D280731F21AD094224 was verified MOVED to oracle-native-pre-table-durability.trx. Red likewise moved before green. No reports overwritten/copied. Runner parser and conflicting-mode guard also passed before native access. Service stopped, listener absent, pending0. Separate same-runtime read-only SQL*Plus inventory94876 verified probe objects0 and recyclebin0, SYSTEM default tablespace SYSTEM; no canonical DDL/data changes. Measured volume growth and retained archive-format files are detailed in ENVIRONMENT_INVENTORY.md, not silently deleted as disposable. Oracle cloud acceptance remains pending; AWS follows Oracle.
+
 ### Existing-schema activation avoids provisioning DDL
 
 Actual98508 TERMINAL0: focused2/2 native passed1s, full368/368 passed89s,281/281 controls passed612ms, zero skips. Focused2 are INCLUDED in368. Previous behavior, after a mechanical provisioning-method extraction, failed both focused cases because activation unconditionally entered DDL provisioning. The regression uses a provisioning-method fence plus REAL local connection/catalog validation; no synthetic account, schema, altered privileges or new runtime. Complete schemas now bypass provisioning but still run the existing column/primary-key validator. Missing-table initialization retains its original DDL statements. Table names/definitions are shared between existence lookup and validation, not separately maintained lists. No new configuration, crypto/backend implementation or extra per-record query.
