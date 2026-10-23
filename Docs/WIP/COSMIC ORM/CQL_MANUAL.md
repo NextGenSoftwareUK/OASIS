@@ -2,6 +2,29 @@
 
 22 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
 
+## Mandatory read access in trusted server code
+
+WEB4 v1 binds owner/public visibility from the authenticated avatar and matching usage admission. Clients cannot supply an actor in the DTO. Trusted SDK/service code can bind the same immutable restriction before filters/order/pages:
+
+```csharp
+var access = CosmicQueryReadAccess.OwnerOrPublic(authenticatedAvatarId);
+if (access.IsError)
+    throw new InvalidOperationException(access.Message);
+
+var query = CosmicQuery<Holon>.Create()
+    .WithReadAccess(access.Result)
+    .Where(holon => holon.IsActive)
+    .OrderBy(holon => holon.Name)
+    .Take(10);
+
+if (query.IsError)
+    throw new InvalidOperationException(query.Message);
+```
+
+The binding is retained by scope and window composition; a later actor cannot replace it. The mandatory predicate runs natively before paging. Core checks detached rows before typed constructors and rejects visibility violations as a whole result. Metadata labels such as sharedWith/tenantRole are not grants under this owner/public rule. Creating an SDK policy does not authenticate a caller or grant storage credentials.
+
+Access-bound graphs currently reject CQL_GRAPH_ACCESS_UNSUPPORTED. Native child enforcement, incomplete custom-role hydration and membership-safe public transport are still required; a root predicate alone cannot authorize descendants. Existing trusted unbound SDK graphs keep their documented contract. Shared-recipient/tenant authorization remains separate unfinished work.
+
 ## SQLite, MongoDB and Neo4j SDK child graphs
 
 SQLite, MongoDB and Neo4j support immutable `WithChildren(options)` query composition. SQLite/Mongo native graph readers are certified under snapshot semantics; Neo4j native81/unit31 and joint82 cases also pass under its documented read-committed semantics. These are provider-specific guarantees, not portable snapshot admission. Create options with `CosmicQueryGraphOptions.Create(recursive: true, maxChildDepth: 2, childType: HolonType.All, maximumNodes: 1000)` and check its OASISResult before passing Result to WithChildren. Check the resulting query/plan before executing through the usual generic HolonManager pipeline. Apply root Where/OrderBy/Skip/Take as usual: expansion occurs after the root page is selected.

@@ -1,5 +1,12 @@
 # COSMIC ORM implementation status
 
+## 23 October — Immutable mandatory read-access identity
+
+Published Core638b70a gives the WEB4 owner/public rule an immutable actor/predicate binding. Native predicates precede business paging; scope/order/fluent composition preserves the rule without duplication. Actor replacement and admitted-actor mismatch reject, metadata labels cannot grant access, and foreign rows reject before typed constructors. WEB4 v1 uses that same policy owner from its JWT/admission identity. SDK policy creation itself is not authentication or a grant of credentials.
+
+Full Core1742/1742 and joint native/hosted82/82 pass, zero skips;711Core/54Shared source checks and producer/unit/native hashes match. Existing unbound trusted SDK graph queries retain their documented behavior. Visibility-bound graphs explicitly reject CQL_GRAPH_ACCESS_UNSUPPORTED until native child filtering, partial-role hydration, membership handling and safe transport are implemented. This is the policy foundation, not completion of child authorization, shared-recipient or tenant authority. [Detailed boundary and evidence](CQL_GRAPH_LOADING.md).
+
+
 ## 23 October — Explicit graph consistency requests and admission
 
 Core d548e55 adds immutable ProviderDefault/ProviderSnapshot requests, preserving the original factory binary signature. Snapshot capability is declared by SQLite/Mongo and rechecked against the actual adapter; Neo rejects stronger requests before I/O. Native race tests now request the guarantee explicitly. No weaker fallback or silent provider substitution occurs; per-provider snapshots do not create a distributed common snapshot.
