@@ -54,6 +54,8 @@ public sealed partial class CqlV1Web4NativeTests
         var tag = Guid.NewGuid().ToString("D");
         var ids = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid()).ToArray();
         var childIds = Enumerable.Range(0,4).Select(_=>Guid.NewGuid()).ToArray();
+        var scalarIds = Enumerable.Range(0,137).Select(_=>Guid.NewGuid()).ToArray();
+        var scalarWrites = new List<string>();
         var journal = new List<object>();
         using var journalGate = new SemaphoreSlim(1);
         async Task Journal(string stage, object? request = null)
@@ -63,7 +65,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 if (request != null) journal.Add(request);
                 await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new
-                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).ToArray(), tag, requests = journal }));
+                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).ToArray(), scalarIds, scalarWrites, tag, requests = journal }));
             }
             finally { journalGate.Release(); }
         }
@@ -154,11 +156,11 @@ public sealed partial class CqlV1Web4NativeTests
                     var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
                     using var client = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
 
-                    async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null,bool expectContinue = false)
+                    async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null,bool expectContinue = false,bool scalar = false)
                     {
                         var operation = operationKey ?? Guid.NewGuid().ToString("D");
                         await Journal("before-http-request", new { actor, operation });
-                        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/data/query-cql")
+                        using var request = new HttpRequestMessage(HttpMethod.Post, scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql")
                         {
                             Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
                         };
@@ -206,6 +208,45 @@ public sealed partial class CqlV1Web4NativeTests
                     foreach (var provider in providers.Keys)
                     {
                         var fixture = new { MetadataPath = new[] { "fixture" }, Operator = "Equal", Scalar = "String", Value = tag };
+                        // Scalar requests share signed admission and exact durable receipts.
+                        // The fixture marker applies only to its five roots: Alice sees3,
+                        // the outsider sees1. A private/shared-index root cannot participate.
+                        async Task Scalar(object body, Guid actor, string domain, string expected, bool verifyReplay = false)
+                        {
+                            var logicalKey = Guid.NewGuid().ToString("D");
+                            using var response = await Send(body, actor, logicalKey, scalar: true);
+                            var text = await response.Content.ReadAsStringAsync();
+                            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                            Assert.AreEqual("settled", response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
+                            var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                            Assert.AreEqual("settled", operation.State);
+                            Assert.AreEqual(1, operation.ProviderAttempts.Count); Assert.AreEqual(1, operation.Receipts.Count);
+                            Assert.AreEqual(0.002m, operation.Receipts.Single().ActualCostUsd);
+                            Assert.AreEqual(operation.ProviderAttempts.Single().ClientRequestId, operation.Receipts.Single().ClientRequestId);
+                            using var json = JsonDocument.Parse(text);
+                            var value = json.RootElement.GetProperty("result");
+                            Assert.AreEqual("cql-scalar-v1", value.GetProperty("version").GetString());
+                            Assert.AreEqual(provider.ToString(), value.GetProperty("provider").GetString());
+                            Assert.AreEqual(domain, value.GetProperty("valueType").GetString());
+                            Assert.AreEqual(expected, domain == "Int64" ? value.GetProperty("value").GetString() : value.GetProperty("value").GetRawText());
+                            if (verifyReplay)
+                            {
+                                var starts = authority.Started.Count;
+                                using var duplicate = await Send(body, actor, logicalKey, scalar: true);
+                                Assert.AreEqual(HttpStatusCode.Conflict, duplicate.StatusCode);
+                                Assert.AreEqual(starts, authority.Started.Count, "Scalar replay must not reserve another execution.");
+                                var retained = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                                Assert.AreEqual(1, retained.ProviderAttempts.Count, "Scalar replay must not dispatch another native attempt.");
+                                Assert.AreEqual(1, retained.Receipts.Count, "Scalar replay must not duplicate receipts.");
+                            }
+                        }
+                        await Scalar(new { Provider = provider.ToString(), Operation = "LongCount", Filters = new[] { fixture } }, alice, "Int64", "3");
+                        await Scalar(new { Provider = provider.ToString(), Operation = "Count", Filters = new[] { fixture } }, outsider, "Int32", "1");
+                        await Scalar(new { Provider = provider.ToString(), Operation = "Count", Filters = new[] { fixture }, Skip = 1, Take = 1 }, alice, "Int32", "1");
+                        await Scalar(new { Provider = provider.ToString(), Operation = "Any", Filters = new[] { fixture }, Take = 0 }, alice, "Boolean", "false");
+                        await Scalar(new { Provider = provider.ToString(), Operation = "Any", Filters = new[] { new { Field = "Id", Operator = "Equal", Value = ids[0] } } }, alice, "Boolean", "false");
+                        await Scalar(new { Provider = provider.ToString(), Operation = "LongCount", Filters = new[] { fixture },
+                            AnyDescendants = new[] { new { MaximumDepth = 2, MaximumNodes = 3, Filters = new[] { new { Field = "Name", Operator = "Equal", Value = "public behind private" } } } } }, outsider, "Int64", "0");
                         foreach(var graphActor in new[]{alice,outsider})
                         {
                             var expected=graphActor==alice?new[]{childIds[0],childIds[2]}:new[]{childIds[0]};
@@ -332,6 +373,24 @@ public sealed partial class CqlV1Web4NativeTests
                         foreach (var orderBy in new[] { "Id", "Version" })
                             CollectionAssert.AreEqual(byId, await Read(new
                             { Provider = provider.ToString(), Filters = new[] { fixture }, OrderBy = orderBy, Take = 3 }, alice));
+
+                        // The same signed HTTP route must count beyond both the row
+                        // default25 and maximum100, without allocating a new environment.
+                        foreach (var id in scalarIds)
+                        {
+                            await Journal("before-owned-scalar-seed");
+                            var seeded = await providers[provider].SaveHolonAsync(new Holon
+                            {
+                                Id = id, Name = "Z-owned scalar " + id.ToString("D"), CreatedByAvatarId = alice,
+                                MetaData = new() { ["scalarFixture"] = tag }
+                            }, saveChildren: false);
+                            Assert.IsFalse(seeded.IsError, seeded.Message + seeded.Exception);
+                            scalarWrites.Add(provider + ":" + id.ToString("D"));
+                        }
+                        await Journal("owned-scalar-seed-acknowledged");
+                        await Scalar(new { Provider = provider.ToString(), Operation = "LongCount",
+                            Filters = new[] { new { MetadataPath = new[] { "scalarFixture" }, Operator = "Equal", Scalar = "String", Value = tag } } },
+                            alice, "Int64", "137", verifyReplay: true);
                     }
 
                     CollectionAssert.AreEqual(new[] { "B-owned", "C-public", "D-owned" }, await Read(new { Take = 3 }, alice),
@@ -370,6 +429,18 @@ public sealed partial class CqlV1Web4NativeTests
                     {
                         var demoWork = Path.GetFullPath(Path.Combine(work, "../CosmicCqlDemo"));
                         Directory.CreateDirectory(demoWork);
+
+                        // Verify the actual generated schema, not a second mock contract.
+                        using (var swagger = JsonDocument.Parse(await client.GetStringAsync("/swagger/v1/swagger.json")))
+                        {
+                            var paths = swagger.RootElement.GetProperty("paths");
+                            Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql", out _));
+                            Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/scalar", out _));
+                            var example = swagger.RootElement.GetProperty("components").GetProperty("schemas")
+                                .GetProperty("CqlScalarV1Request").GetProperty("example");
+                            Assert.AreEqual("LongCount", example.GetProperty("operation").GetString());
+                            Assert.IsFalse(example.TryGetProperty("take", out _), "Scalar demo must not inherit a row page.");
+                        }
 
                         // These examples are the same readable C# client code developers
                         // can copy. They execute against this actual three-provider host.
@@ -421,7 +492,7 @@ public sealed partial class CqlV1Web4NativeTests
             if (complete)
             {
                 // These exact IDs/databases were absent at preflight and journalled before creation.
-                var ownedIds = ids.Concat(childIds).Select(id => id.ToString("D")).ToArray();
+                var ownedIds = ids.Concat(childIds).Concat(scalarIds).Select(id => id.ToString("D")).ToArray();
                 await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids DETACH DELETE v", new { ids = ownedIds })).ConsumeAsync();
                 await mongo.DropDatabaseAsync(storageDb);

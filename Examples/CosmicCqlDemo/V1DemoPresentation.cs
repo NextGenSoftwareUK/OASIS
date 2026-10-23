@@ -73,6 +73,7 @@ public static class V1DemoPresentation
       <label>Native provider<br><select id="provider"><option>MongoDBOASIS</option><option>SQLLiteDBOASIS</option><option>Neo4jOASIS</option><option value="">Current default (SQLite)</option></select></label>
       <label>Authenticated user<br><select id="actor"><option>Alice</option><option>Bob</option><option>Visitor</option><option>Anonymous</option></select></label>
       <label>Walkthrough<br><select id="example">
+        <option value="longCount">LongCount / complete visible input</option><option value="count">Count / explicit window</option><option value="any">Any / private root</option>
         <option value="page">Visibility before paging</option><option value="nested">Nested metadata + protected OR</option>
         <option value="strings">Ordinal prefix / suffix</option><option value="null">Explicit null / existence</option>
         <option value="children">Visible child existence</option><option value="descendants">Bounded descendants</option><option value="graph">Access-bound child graph</option><option value="precision">Exact Int64 beyond 2^53</option><option value="guid">Typed GUID metadata</option>
@@ -90,15 +91,19 @@ public static class V1DemoPresentation
   </div>
   <p id="status" role="status">Loading the synthetic session…</p>
   <div class="columns">
-    <section class="card"><h2>2. Edit the v1 JSON request</h2><p>POST <code>/api/data/query-cql</code></p><textarea id="query" spellcheck="false" aria-label="CQL JSON request"></textarea></section>
+    <section class="card"><h2>2. Edit the v1 JSON request</h2><p>POST <code id="route">/api/data/query-cql</code></p><textarea id="query" spellcheck="false" aria-label="CQL JSON request"></textarea></section>
     <section class="card"><h2>3. Inspect the result and settlement</h2><p>Visibility is enforced inside the native plan before sorting and paging.</p><pre id="result">Choose an example, then run it.</pre></section>
   </div>
   <p class="note">Each new intent gets an idempotency key. Repeat demonstrates HTTP 409 without another provider execution. The JSON text is sent intact, preserving exact Int64 literals. Use Finish to stop the host and clean only its owned fixture.</p>
 
 <script>
 let session, last;
+let queryRoute = "/api/data/query-cql";
 const el = id => document.getElementById(id);
 const notes = {
+  longCount: 'Native LongCount over the complete visible source: Alice 3, Bob 3, Visitor 1. Omitted take has no row-page cap. Int64 values are always decimal strings; keep them as text or BigInt.',
+  count: 'Count after Skip 1 / Take 1: Alice and Bob receive Int32 1, Visitor 0. Source windows apply before the terminal.',
+  any: 'Any returns a Boolean. A-private belongs to Bob: Alice and Visitor receive false, Bob true. The query cannot bypass owner/public visibility.',
   children: 'Two independent native EXISTS conditions run before the root page. Alice matches C-public via public and owned siblings. Visitor cannot match the owned child. Private SHARED_WITH metadata grants no access.',
   graph: 'The server applies owner/public access to every child. Alice sees public + owned children; the private branch and its public grandchild are omitted. Parent IDs/role manifests outside the selected view are not public output.',
   page: 'Alice: Skip 1 / Take 1 returns C-public. Her private-inaccessible rows are removed BEFORE paging. Switch provider without changing query semantics.',
@@ -146,6 +151,17 @@ function preset() {
   if (name === 'guid') body.filters.push(metadata(['guid'], 'Guid', 'Equal', session.ids[2].toUpperCase()));
   if (name === 'types') body.filters.push(metadata(['mixedInteger'], 'Integer', 'Equal', 7));
   if (name === 'boolean') body.filters.push(metadata(['enabled'], 'Boolean', 'Equal', true));
+  // Scalar intent has its own transport. Preserve the selected route with the
+  // operation key, so repeating a prior request cannot dispatch to another API.
+  queryRoute = '/api/data/query-cql';
+  if (['longCount', 'count', 'any'].includes(name)) {
+    queryRoute += '/scalar';
+    body.operation = name === 'longCount' ? 'LongCount' : name === 'count' ? 'Count' : 'Any';
+    delete body.take;
+    if (name === 'count') { body.skip = 1; body.take = 1; }
+    if (name === 'any') body.filters.push({ field: 'Name', operator: 'Equal', value: 'A-private' });
+  }
+  el('route').textContent = queryRoute;
   if (!body.provider) delete body.provider;
   if (name === 'invalid') body.provider = 'All';
   el('query').value = JSON.stringify(body, null, 2).replace('"__EXACT_INT64__"', '9007199254740993');
@@ -169,14 +185,14 @@ function pretty(text) {
 }
 
 async function run(repeat) {
-  const operation = repeat ? last : { body: el('query').value, key: crypto.randomUUID(), actor: el('actor').value };
+  const operation = repeat ? last : { body: el('query').value, key: crypto.randomUUID(), actor: el('actor').value, path: queryRoute };
   if (!operation) return;
   const headers = { 'Content-Type': 'application/json', 'Idempotency-Key': operation.key };
   if (session.tokens[operation.actor]) headers.Authorization = 'Bearer ' + session.tokens[operation.actor];
   for (const id of ['run', 'repeat', 'finish']) el(id).disabled = true;
   el('status').textContent = 'Running native query…';
   try {
-    const response = await fetch('/api/data/query-cql', { method: 'POST', headers, body: operation.body });
+    const response = await fetch(operation.path, { method: 'POST', headers, body: operation.body });
     last = operation;
     el('result').textContent = pretty(await response.text());
     el('status').textContent = 'HTTP ' + response.status + ' · settlement: ' + (response.headers.get('X-OASIS-Usage-Settlement') || 'not settled by this response') + ' · key: ' + operation.key;

@@ -1,5 +1,11 @@
 # COSMIC ORM implementation status
 
+## 23 October — signed scalar HTTP transport
+
+`POST /api/data/query-cql/scalar` implements Count/LongCount/Any through the same generic Core/HolonManager scalar owner on MongoDB, SQLite and Neo4j. A shared source compiler preserves nullable/unbounded scalar Take while keeping row default25. Both routes share authenticated admission and provider eligibility; startup tariff validation now includes the scalar route. Exact LongCount is always a tagged Int64 decimal string.
+
+Core **1,982** and joint native **129** pass, zero skips. Native signed counts return137 on every store, with visibility/window/relationship checks and155settled/154physical attempts. The earlier prepared-route test-host gap was reconciled from its exact retained manifest with affirmative zero-execution evidence, then fixed at one shared route predicate. Core reservation guard committed/pushed **af6aed5**. The committed-producer refresh and expanded annotated demo pass:27SDK/27HTTP,182settled/181physical attempts. Each store rejects a repeated scalar operation with409 and no additional attempt/receipt. Final Core1982 and dedicated demo1 pass with zero skips; the earlier broader native129 gate remains recorded separately. Broader roadmap gates remain open. [HTTP scalar contract](CQL_SCALAR_HTTP_CONTRACT.md), [manual](CQL_MANUAL.md), [demos](CQL_DEMO_RUNBOOK.md).
+
 ## 23 October — Neo4j native Count/LongCount/Any
 
 All three priority stores now execute native scalar count/existence through generic Core/HolonManager. Neo4j unit **322** / joint native-WEB4 **129** pass unskipped, including15new scalar controls for windows, privacy, large inputs, validation, cancellation/expiry and explicit snapshot rejection. Common native source extraction preserves existing row behavior. Final all3consumer source checks match Core716/Shared55; owned fixtures/processes are cleared. Strict blocked-driver I/O interruption and later roadmap phases remain open. [Scalar manual](CQL_MANUAL.md#scalar-terminals--mongodb-sqlite-and-neo4j-native-execution), [pending HTTP contract](CQL_SCALAR_HTTP_CONTRACT.md).
