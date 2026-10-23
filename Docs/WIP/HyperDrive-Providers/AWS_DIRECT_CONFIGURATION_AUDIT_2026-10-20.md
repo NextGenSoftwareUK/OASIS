@@ -1,5 +1,11 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## Provider-key deletion no longer targets usernames — 23 October 2026
+
+IOASISStorageProvider separates `DeleteAvatar[Async](string providerKey)` from `DeleteAvatarByUsername[Async]`. DynamoDB's string-key override incorrectly dispatched non-GUID input to username deletion, risking the wrong target. It now rejects null/empty/blank/non-GUID/empty-GUID with an ArgumentException inside OASISResult before any identity or SDK dispatch. Nonempty GUID keys retain exact ID/softDelete forwarding. AWSOASIS inherits the repair. Compatibility: intentional username deletion must use the existing explicit username method; no record/schema migration or selector fallback is added.
+
+Baseline24 route controls:20 failed/4 valid-GUID passed. Fixed24 focused/full467 units pass. Actual native28094 terminal0: AWS134 plus preflight1/cleanup1, Dynamo163 all pass, zero skips. Existing real native pair lifecycle cases now attempt permanent deletion with the seeded username as provider key, assert rejection and unchanged profile/detail/XP/karma/inventory, then successfully use the GUID provider key. No production stub, retry or duplicate mutation. Source/pin cohort Core7219662/Shared55 520F; producer13/native25 PDB documents and native copy SHA F3B89A4CF24B3D9BA952CFDF11919A337843B2971823AAD5F33BFCC8EC86151D verified. Retained same runtime/data; pending0/listeners0 after verified cleanup and stop. Hashes/lifecycle in ENVIRONMENT_INVENTORY.md. Hosted IAM/TLS/billing, S3 client service choice and global V2 gates remain OPEN; not an all-AWS certification.
+
 ## Cost/capacity warning — returned-root counts are not billable usage
 
 `LoadedCount` describes returned OASIS roots, not DynamoDB read capacity or a monetary fee. Existing identity selectors and metadata/nearby/search paths use canonical strongly consistent table scans; a small or empty filtered response can still evaluate many items. AWS documents [scan capacity is based on evaluated data, not filtered output](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Scan.html), and [strongly consistent scans are not whole-table snapshots](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Scan.html). Do not describe the present implementation as an indexed low-cost lookup or transactionally consistent whole-table snapshot.

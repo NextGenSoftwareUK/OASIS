@@ -1,5 +1,38 @@
 # Reusable environments and disk inventory
 
+## 2026-10-23 AWS provider-key delete routing: native regression complete
+
+Actual28094 TERMINAL0: AWS134/134(70s), empty preflight1 and verified cleanup1, Dynamo163/163(37s), zero skips. Native invalid-key controls preserved seeded avatar/detail/XP321/karma29/inventory, then correct GUID-key soft deletion succeeded. Current Core7219662/Shared55 520F cohort below source/copy verified after both suites. Dynamo producer13 and AWS native25 PDB documents verified; provider native-copy SHA F3B89A4CF24B3D9BA952CFDF11919A337843B2971823AAD5F33BFCC8EC86151D matches producer. No pending journals;18000/18001 listeners0 after retained-container stop. Same database1486848 bytes before/after; freeC73879367680 bytes, shared-machine delta not exclusively attributable. Predecessors listed below were exact-hash MOVED, unchanged, to `.pre-provider-key-delete`. No download, restore, new environment, real AWS account request or paid spend. Disposable synthetic full-suite fixtures were conditionally removed after full-suite proof; retain compact cleanup evidence and reusable database/JAR/container, regenerate via same guarded runner. Incremental shared bin/obj sizes unmeasured.
+
+Current required evidence in `C:/Source/OASIS/TestResults/DynamoHistoryCurrent` (retain for handoff):
+
+| Resource | Bytes | SHA256 |
+| --- | ---: | --- |
+| dynamo-provider-key-red.trx | 49633 | 2115435FD660A01925513DB5257B11560BFEA1F592D40FDDCFE8CACA3305296F |
+| dynamo-provider-key-green.trx | 37876 | 5D2550EA8AAEEFD8CF16DF8855D249F9670944FD3142F260C76B3E5667710F9E |
+| dynamo-provider-key-full.trx | 714015 | BCD54989105796F350770BC2AF0C1EC38898281B29A8FD07E402361B0EEE54E5 |
+| aws-full-begin-current.trx | 2660 | 3C7656D1AE2C7969B8221F345D4EEF8ED0636758BC54AD89B5562B8F8DD63819 |
+| aws-full-native-current.trx | 209056 | 43853387A0B49FC7866AE546B5A0B4183D666E864650E7958224EF6F2E1F1320 |
+| aws-full-cleanup-current.trx | 2663 | F61C0167C51245DBC2FD0A7F4F85118A65180BBCA1BDE874332CC77D6ABE4E23 |
+| aws-full-suite-cleanup-current.json | 9471 | FE3359A1498CCFD6D9956AEA3C596C6CBC4A7B94A469C5441BDD4AAEAE3BDA26 |
+| dynamo-history-native-current.trx | 256634 | 8A88DDD3BC3D03729D7280E099602CC58A285537B620DA71189A812F421207D0 |
+
+Historical pre-dispatch planning and completed controlled proof follow; native dispatch is no longer pending.
+
+Actual red batch terminal0 (explicit expected test exit1):24 cases,20 failed/4 valid-GUID controls passed. After deleting username fallback, actual4940 TERMINAL0:24/24 focused and467/467 full controls passed, zero skips. Core721 SHA9662A03A33F03C7FB34BA670F4F429AF0A00298953FB101AA0D8B48794CA2089 and same-source Shared55 SHA520F50348D8543FF363ED9801153B0C50919E2B9584AFF423B851D628F2B89D5 verified. Cached builds24/11warnings, zero errors; no restore. Next native mode reuses `oasis-dynamo-retained`, existing1.25.1 JAR under `C:/Source/OASIS-hyperdrive-v2-gaps/TestResults/AWSProviderEvidence/runtime`, same retained-history-data database and loopback18000/18001 lifecycle through Run-ReusableDynamoHistoryTests.ps1. Existing AWS pair lifecycle cases now reject a real fixture's username passed as provider key, verify profile/detail/XP/karma/inventory unchanged, then delete via its actual GUID key. No new test dataset class/case count or production identity workaround. Native validation has not run yet.
+
+Required predecessor evidence exact-hash MOVE planned to fixed `.pre-provider-key-delete` suffix under `C:/Source/OASIS/TestResults/DynamoHistoryCurrent`, retaining bytes (never overwrite originals):
+
+| Resource | Bytes | SHA256 |
+| --- | ---: | --- |
+| aws-full-begin-current.trx | 2660 | 25561A51CEF837FD25AC8EA79D04B2041494C64C5DAA0E1278FE157F14AD71D3 |
+| aws-full-native-current.trx | 209056 | D41F811A2B9ABC194EA2712186222D45CECF2E2C2535E4A99B9573AA6773DFF9 |
+| aws-full-cleanup-current.trx | 2663 | FCA4A45DD22D3D1263228EE4D19AA9034562D1EE7FA7EF242610E20B3322CD60 |
+| aws-full-suite-cleanup-current.json | 9471 | 15D30E7277B952A8F94E0450B281C0C6DBD79E1BAA5EE7A25B59137EAFECD1D7 |
+| dynamo-history-native-current.trx | 256634 | 91D218CF5C6D811F4F25CFB9121BE918D6C2B68EB836B41951638DB9E009D6CC |
+
+Owner same HyperDrive task. Reuse `C:/Source/OASIS/Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests`, existing SDK/cache/bin/obj and `C:/Source/OASIS/TestResults/DynamoHistoryCurrent`. Source string provider-key deletion falls through to username dispatch on non-GUID input, contrary to IOASISStorageProvider's separate selectors. New24 route controls cover null/empty/blank/username-shaped/empty-GUID/valid-GUID, sync/async and soft/hard flags; no network/data/runtime/write/download/restore. Planned compact `dynamo-provider-key-red.trx` and green/full reports, sizes unmeasured. Only build after shared-producer window is released; use global lease and current source/copy verification. No new environment; inherited build sizes unmeasured, preserve reusable shared outputs and required evidence. Later native regression uses the same retained Dynamo runtime/data and guarded runner, never a duplicate service/reset.
+
 ## 2026-10-23 GoogleCloud read-result audit: controlled and retained native proof complete
 
 Actual native batch75219 TERMINAL0:79/79 history (8s) and79/79 regression (28s), no skips. Same Core7219662/Shared55F791 identities below verified again after terminal; Google producer25/native32 PDB source documents verified, native provider copy matches producer SHA B62552A8373ED6970ED9E5E71DBCAA945A5653D30C7ABE639813AE84E5016FDD. Existing native cases now assert point root1 despite children, filtered parent/owner1, missing-version collection0 and search1. Exact predecessor reports were hash-verified MOVED (not copied) to `.pre-read-counts`; export/checkpoint retained373 bytes. Runner imported known checkpoint, conditionally reconciled that exact synthetic marker and owned fixtures, then stopped owned Java process. Post-terminal pending journals0; reserved18080–18083 listeners0. FreeC73958068224 bytes; shared-machine difference is not exclusive attribution. No new installs, restores, environment, cloud credentials or paid requests. Reused LocalFile/SQLite producer outputs were rebuilt by the existing regression runner; bin/obj incremental sizes unmeasured, reusable shared build dependencies—not approved broad cleanup targets.

@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## AWS native-key deletion repair — 23 October 2026
+
+Invalid DynamoDB provider keys no longer fall through to username deletion. Existing explicit username API is unchanged; nonempty GUID keys preserve ID/soft/hard routing. Baseline20/24 failures corrected;24 focused/full467 units and retained AWS134/Dynamo163 native cases passed with zero skips. Native cases confirm invalid-key rejection leaves avatar/detail/XP/karma/inventory untouched. Same retained service/data, pending0/listeners0 after verified teardown. Current-source/copy proof and hashes in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md and ENVIRONMENT_INVENTORY.md. This closes the scoped routing defect, not hosted IAM/billing, all AWS services or all-provider V2 acceptance. No dev merge/deployment is implied.
+
 ## GoogleCloud scoped read-count fix — 23 October 2026
 
 Fresh controlled44/full297 unit and retained Firestore79 history+79 regression cases pass, zero skips (actual terminals86418/75219), after twelve red cases proved successful reads incorrectly reported LoadedCount0. Existing codecs now map root/filtered/search counts and clear copied nearby count on failure. Same committed Core945c65/721 and Shared55 source cohort; current-source/copy identities verified. See HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md and ENVIRONMENT_INVENTORY.md for hashes, resource lifecycle and bounded scope. No new environment/download, cloud request or dev deployment. Google Cloud credentials/live billing and full V2 routing remain open, not implied by this emulator result. Oracle Cloud owner-access gates remain unchanged; local Oracle492 and OCI controlled107 are not cloud acceptance. AWS local134+163 and controlled443 likewise do not certify client account access or billing.
