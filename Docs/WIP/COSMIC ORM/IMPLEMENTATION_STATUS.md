@@ -618,3 +618,7 @@ Final authenticated-metadata / exact-DTO batch acceptance: **Core 1,494/1,494; f
 ## Min/Max Core foundation
 
 Corecf4a5ab preserves helper8d45 and adds typed Min/Max intent plus exact selected-value contracts in the existing scalar pipeline. Both target builds and full2,102unit tests pass (11newcontrols), including valid negative Int64 execution and all-target read rejection before dispatch. Native adapters remain count/existence-only until their Min/Max gates pass. Source19vector fixture is a contract, not native certification. [Implementation requirements](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#minmax-semantics-and-implementation-gate).
+
+## SQLite native Min/Max implementation
+
+Existing scalar ownership now executes native extrema with whole-input domain validation, exact UTC/numeric/string handling and caller/snapshot retention. Initial5 pass; expanded32/33 plus the corrected UTF8 fixture1 pass on unchanged production. Full SQLite regression passes1,318tests with zero skips (2m9s), including all33new Min/Max cases. MongoDB/Neo4j Min/Max, selected-scalar HTTP, Sum/Average/GroupBy and later CQL/ORM gates remain open. [Evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-minmax-slice).

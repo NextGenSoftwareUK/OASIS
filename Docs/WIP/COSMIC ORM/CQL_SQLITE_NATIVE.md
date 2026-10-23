@@ -80,3 +80,9 @@ The [typed scalar metadata contract](CQL_SCALAR_METADATA.md) adds native compari
 The compiler also handles method-free built-in nullable scalar literal lifting, fixing the nullable boolean comparison exposed by the original red fixture. Full Core 1,353/1,353 and focused native 43/43 pass with zero skips. The original 26-case failure report is retained. Native decimal/double/GUID/date/enum metadata, authenticated WEB4 policy/routing, broader adapters, graph queries, paging/aggregates/federation and all unfinished original roadmap stages remain required.
 
 Final native regression: SQLite 948/948 passes125s, zero skips (`sqlite-cql-scalar-metadata-full-verified.trx`), with the fixture absent after normal teardown. Full Core1,353/1,353 and focused native43/43 belong to the recorded matching Core/provider epoch.
+
+## Native Min/Max — 23 October 2026
+
+SQLite now admits typed Min/Max selections through generic V2 scalar planning/execution. Native domain validation covers every participating value before selecting an extremum, including malformed non-winning canonical values. Required/nullable empty results, negative/exact Int64, Unicode/GUID ordering and UTC ticks follow the shared contract. Source visibility/windowing and relationship/snapshot ownership remain protected; graph output caps do not truncate aggregate input. The existing read-budget owner manages raw UTF8 validation and native resource limits; caller connections/transactions remain caller-owned.
+
+Full integration regression passes1,318tests/0skip in2m9s, including33new native controls and all19reference vectors. Producer and consumer SQLite/Core/Shared identities match. [Usage](CQL_MANUAL.md#native-minmax--sqlite-sdk), [semantics/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-minmax-slice). MongoDB/Neo4j Min/Max, selected-scalar HTTP/demos and the later aggregate/grouping phases remain required.

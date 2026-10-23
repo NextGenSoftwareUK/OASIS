@@ -198,7 +198,7 @@ public partial class HolonRepository
                 var members=string.Join(",",defined);
                 return members.Length==0 ? "0" : alias+".type = 'integer' AND typeof("+alias+".value) = 'integer' AND "+alias+".value IN ("+members+")";
             }
-            if (type == typeof(string)) return alias + ".type = 'text'";
+            if (type == typeof(string)) return alias + ".type = 'text' AND cosmic_cql_utf8_valid(CAST(" + alias + ".value AS BLOB))";
             if (type == typeof(DateTime)) return SqliteCqlDate.Guard(alias);
             if (type == typeof(Guid))
             {

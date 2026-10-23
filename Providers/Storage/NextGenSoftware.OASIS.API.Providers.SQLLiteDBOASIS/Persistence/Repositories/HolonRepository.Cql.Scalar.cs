@@ -29,7 +29,9 @@ public partial class HolonRepository
             var translator = new CqlSqlTranslator(source.ReadAccess);
             var predicate = source.Predicates.Count == 0 ? "1" : string.Join(" AND ", source.Predicates.Select(translator.Translate));
             cancellationToken.ThrowIfCancellationRequested();
-            if (source.Limit == 0) return CosmicScalarResults.FromCount(plan.Query, 0);
+            var selected = plan.Query.Selector != null;
+            if (source.Limit == 0) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
+                : CosmicScalarResults.FromCount(plan.Query, 0);
 
             // Count cardinality is independent of ordering. Count the complete
             // eligible source first so a page/Any cannot hide a traversal error,
@@ -38,6 +40,8 @@ public partial class HolonRepository
             translator.Parameters.Add(new SqliteParameter("$countTake", source.Limit.HasValue ? (long)source.Limit.Value : long.MaxValue));
             var sql = "SELECT CASE WHEN total <= $countOffset THEN 0 ELSE min(total - $countOffset, $countTake) END AS Value "
                 + "FROM (SELECT count(*) AS total FROM Holon WHERE " + predicate + ")";
+            if (selected) sql = translator.TranslateExtremum(plan.Query.Selector, plan.Query.Operation,
+                predicate, translator.TranslateOrdering(source.Orderings));
 
             using var exclusive = _dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
@@ -47,7 +51,7 @@ public partial class HolonRepository
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
                 using var traversal = translator.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
-                var needsSnapshot = source.GraphOptions != null || translator.HasTraversal;
+                var needsSnapshot = source.GraphOptions != null || translator.HasTraversal || selected && translator.HasRelationship;
                 if (needsSnapshot && _dbContext.Database.CurrentTransaction != null
                     && _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
                     return ScalarCqlError<TResult>("CQL_CONSISTENCY_UNSUPPORTED", "SQLite scalar graph/traversal intent requires a serializable read owner.");
@@ -57,12 +61,44 @@ public partial class HolonRepository
                 try
                 {
                     budget.Check();
-                    var count = await _dbContext.Database.SqlQueryRaw<long>(sql, translator.Parameters.Cast<object>().ToArray())
-                        .SingleAsync(cancellationToken).ConfigureAwait(false);
+                    OASISResult<TResult> result;
+                    if (selected)
+                    {
+                        if (translator.HasRelationship)
+                        {
+                            await _dbContext.Database.SqlQueryRaw<long>("SELECT count(*) AS Value FROM Holon WHERE " + predicate,
+                                translator.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
+                            budget.Check(); traversal.Check();
+                        }
+                        using var command = connection.CreateCommand();
+                        command.Transaction = _dbContext.Database.CurrentTransaction?.GetDbTransaction() as SqliteTransaction;
+                        command.CommandText = sql;
+                        foreach (var parameter in translator.Parameters)
+                            command.Parameters.Add(new SqliteParameter(parameter.ParameterName, parameter.SqliteType) { Value = parameter.Value });
+                        await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+                        {
+                            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                                throw new System.IO.InvalidDataException("Native extremum envelope is missing.");
+                            budget.Check(); traversal?.Check();
+                            if (reader.GetInt64(0) != 0) throw new System.IO.InvalidDataException("A participating selected value has an invalid domain.");
+                            if (reader.GetInt64(2) != 0) throw new SqliteCqlResourceException("Selected scalar exceeds its native payload budget.");
+                            var present = reader.GetInt64(1) > 0;
+                            var value = present ? DecodeProjectionCell(reader.GetValue(3), plan.Query.Selector.ValueType) : null;
+                            result = CosmicSelectedScalarResults.FromValue(plan.Query, value, present);
+                            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                                throw new System.IO.InvalidDataException("Native extremum returned multiple envelopes.");
+                        }
+                    }
+                    else
+                    {
+                        var count = await _dbContext.Database.SqlQueryRaw<long>(sql, translator.Parameters.Cast<object>().ToArray())
+                            .SingleAsync(cancellationToken).ConfigureAwait(false);
+                        result = CosmicScalarResults.FromCount(plan.Query, count);
+                    }
                     budget.Check(); traversal?.Check();
-                    transaction?.Commit();
-                    budget.Check();
-                    return CosmicScalarResults.FromCount(plan.Query, count);
+                    if (result.IsError) return result;
+                    transaction?.Commit(); budget.Check();
+                    return result;
                 }
                 catch (SqliteException cause) when (cause.SqliteErrorCode == 9) { budget.Check(); throw; }
             }
@@ -71,6 +107,7 @@ public partial class HolonRepository
                 if (opened) await _dbContext.Database.CloseConnectionAsync().ConfigureAwait(false);
             }
         }
+        catch (OverflowException cause) { return ScalarCqlError<TResult>("CQL_DATA_INVALID", "Selected scalar exceeds its exact CLR domain.", cause); }
         catch (System.IO.InvalidDataException cause) { return ScalarCqlError<TResult>("CQL_DATA_INVALID", cause.Message, cause); }
         catch (SqliteCqlDeadlineException cause) { return ScalarCqlError<TResult>("CQL_QUERY_TIMEOUT", cause.Message, cause); }
         catch (SqliteCqlResourceException cause) { return ScalarCqlError<TResult>("CQL_QUERY_LIMIT", cause.Message, cause); }
