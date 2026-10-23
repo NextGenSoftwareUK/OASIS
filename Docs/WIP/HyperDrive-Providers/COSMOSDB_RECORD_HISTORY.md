@@ -1,5 +1,28 @@
 # Cosmos DB retained record history
 
+## 23 October 2026 — query decoder fixed; native numeric storage gate OPEN
+
+Actual client-boundary reproduction: six official-SDK-stream-controlled cases (field selector, sync collection, async collection × date/number) all failed. Default JObject.Parse changed the date-shaped metadata string2030-01-02T03:04:05.0000000+05:30 to2030-01-01T16:34:05-05:00 and numeric9007199254740993.125 to9007199254740994.0. ONE query-envelope parse now uses EXISTING lossless OasisJson.ParseStoredObject, retaining existing Documents/object/page/error/disposal validation. Full261/261controls passed0skip1s (prior255+6), CoreE6E7/source712 Shared325CF326/source54 source/PDB verified. No new codec/format/extra write/restore/download for this fix.
+
+Fresh native69234 DID NOT pass:55/62pass0skip88seconds. The new native scalar test's SaveHolon reported mutation-reconciliation-required; six later search cases refused setup because the single owned row was deliberately preserved. These are ONE primary mutation failure and SIX protective fixture refusals, not seven independent query bugs. The old61green report was SHA-verified MOVED `.pre-query-scalars`, not overwritten; do NOT cite it as current62 success.
+
+Independent READ-ONLY26405 passed1/1: exact original b8de3c86-356f-4db8-a0f9-28df785c3daa in oasis-cosmos-crud/holonItems has date string unchanged but native number9007199254740994 instead of source9007199254740993.125. Source/native difference is established; original assertion omitted its inner cause, so do not claim its precise exception chain was recovered. Native numeric narrowing is separate from the query-parser corruption. Microsoft documents Cosmos's binary64 boundary and recommends strings for numbers outside it: [official data-modeling guidance](https://learn.microsoft.com/en-in/azure/cosmos-db/modeling-data). Do NOT weaken acknowledgement equality, return a false success, silently round values or replay the original save to make the suite green.
+
+The original row, single durable pending intent and exact inspection inventory remain PRESERVED. Inspection admission pins BOTH original journal/report hashes and exact ID/name, uses only official SDK point GET, and writes metadata/ETag/bodySHA—not a copied canonical body or secrets. Runtime stopped finally. Inspection category is excluded from main62; main admission refuses pending originals. Future save failures now retain their inner exception in the assertion. CoreE6E7/source712 Shared1EDEC56FD2CEC3DF875A86696BD123FC5807B089AF5ECFC11E2C252F9396BB15/source54 verified for native/inspection (not relabelled controls).
+
+NEXT: reconcile this exact known committed-but-altered fixture by reviewed ID/ETag/body hash, without replay/broad cleanup; design/test lossless native number representation using existing shared codecs where possible and preserve metadata query semantics/typed fields/history/identity. The service precision limit must be handled at the storage boundary, not hidden by client parsing. Re-run the single scoped native scalar regression and full62 only after original evidence is reconciled. Original arbitrary-precision numeric support and full native/hosted/V2 certification remain OPEN. Oracle cloud/intermittent gates remain open separately; no dev merge/deploy.
+
+| C:/Source/OASIS/TestResults/CosmosDBCurrent | Bytes | SHA256 |
+| --- | ---: | --- |
+| cosmos-query-scalar-red.trx |13946|956B2B9B966FFB8B8501D4F403C6F08A40785497B67E149F45B8777148FF4542|
+| cosmos-query-scalar-controls.trx |402977|AEC037DE52023B16DE71149212DB6D08939A9115C6B2DDFAD6C60E8A367C14D7|
+| cosmos-native-current.trx |107113|3692BD48BEA7461C07129AAE3649E964D472C8BDD1308A99FEC2B1D6405F234B|
+| cosmos-query-scalar.pending.json |167|1E63DBEC39F0466F2CC2BC0487E8F93EF780F0D2A37D0CD5853BF51F85990BA8|
+| cosmos-scalar-inspection-current.trx |3326|FF3A72793120B9C51A3E311E3EFD7AB758172587E699D51D627CCC5E104F4D96|
+| cosmos-query-scalar-inspection.json |374|3DBE4BDF106385A1C9BC88983BA0E6903016DCBDE1D3903C219AC3770A7B1803|
+
+Same retained emulator container0c07f84c631b80ca83f0364393bf1715c52a2fc0470feeccddaf2a65c3b46270/imageb4ed.../existing writable data, no mounts/new volume/clone/download. Final EXITED/SizeRw677,159,650bytes, pending1 protected. Resource details and safe cleanup requirements in ENVIRONMENT_INVENTORY.md.
+
 ## Native karma-history fields verified — 2026-10-20
 
 Full retained native suite **61/61 passed**, zero skipped, 1m29s, actual session38470 terminal0. The strengthened existing detail schedule proves full karma-record fields/owner/UTC kind/totals and unchanged XP through async creation, sync update, archived version1, current provider load and independent official-SDK canonical payload. No production provider change or test-count increase. `cosmos-native-current.trx` SHA256 `EE4BF4853A6D2C91A02E6A6417F57FEC346FDD56B36895FBB5F16F5B9C642175`.
