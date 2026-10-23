@@ -2,6 +2,12 @@
 
 ## Resume — 2026-10-23
 
+### Shared inherited read counts repaired — new OCI107 cohort
+
+Follow-on audit after AWS count fix found the same contract gap in KeyValueStorageProviderBase's existing private success helper, used by OracleObjectStorageOASIS and other adapters. Baseline24cases=20count failures/4already-correct owner/empty cases. Minimal common helper change sets point1 and explicit materialized collection/search root counts; no SDK or storage rewrite, no extra native call. Four added partial/failure cases confirm nested children are not counted as additional roots and failed reads remain0.
+
+Actual14175 TERMINAL0: **28/28focused plus1011/1011full Shared controls**, then **107/107real OCI SDK/loopback controls**, zero skipped. Existing public provider sync/async tests now also assert actual signed-wire-backed point counts1, old parent collection0 and new parent collection1. Fresh report `TestResults/OracleObjectCurrent/oracle-object-shared-read-count-current.trx`171571bytes SHA2561D1F5BE7701AD7E3B4B147FC14A05EEA1B330E8DA0C55BED04B5392685ACE7E8. Core720/1C3AEBC4 unchanged, Shared55/E6BBEFA3A8EEA9DB3CACFEA8A23C60261889F90E0DBE47F04BFBBF8E1FFA93D7 verified against source/PDB and both consumers. Old OCI107/Oracle SQL492 are retained distinct cohorts, not relabelled. Loopback18661 listener absent after tests, synthetic factory config/key files absent; no cloud request, runtime install, restore or data reset. Oracle SQL and Dynamo retained services stay stopped. Live Autonomous/OCI IAM/TLS/account-fees/full-V2 gates remain OPEN; no Oracle100% claim. Exact controlled hashes and lifecycle in [inventory](ENVIRONMENT_INVENTORY.md).
+
 ### Listener refusal isolated to forced unpooled harness — complete492 native regression green
 
 Original listener trace now establishes the admission event: `18:26:34.790` DEDICATED blocked by listener at load199; `18:26:34.893` unblocked at93. Process high-water99/200 and sessions122/322 do not establish physical process exhaustion. Do not infer leaked records, corruption or an exhausted database from ORA-50201 alone.
