@@ -1,5 +1,10 @@
 # COSMIC ORM implementation status
 
+## 23 October — Native child existence, SQLite first
+
+Core6c68968 adds immutable WhereAnyChild/ChildExists capability admission. SQLite implements correlated native membership/current-parent/child-visibility matching before root paging, with shared parameter/native work budgets. Native tests prove orphan exclusion, reparenting, nested exact metadata and independent child aliases. Published Core1,785/Shared968/SQLite29/joint91 pass unskipped;711Core/54Shared source/PDB checks match. Mongo/Neo direct-child existence remains capability-rejected pending implementation; descendant predicates and the full roadmap remain open. [Contract](CQL_RELATIONSHIPS.md).
+
+
 ## 23 October — Native graph-loading matrix verified
 
 SQLite25/Neo joint91 pass with the final native cycle/cancellation controls, zero skips; unchanged Mongo27 includes its cycle/in-flight cancellation proofs. SQLite also reuses the same repository after cancellation. Alongside prior shape/policy/custom-role/conditional-save gates, the graph-loading verification matrix is checked for all three providers. Core711/Shared54 source identity matches and owned fixture resources are absent. Relationship predicates, aggregates, joins/federation and the full roadmap remain open. [Evidence](CQL_GRAPH_LOADING.md).
