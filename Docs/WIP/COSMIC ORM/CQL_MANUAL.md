@@ -382,3 +382,58 @@ Use `POST /api/data/query-cql/scalar` with the same bearer authentication and ne
 Omitted `take` counts the complete visible matching input. Explicit `skip`/`take` limit the source before counting. `Count` returns an Int32 JSON number; `Any` a JSON Boolean. `LongCount` always returns an invariant decimal string tagged `Int64`, preserving exact browser values above 2^53. The normal `OASISResult.result` contains `version`, `provider`, `operation`, `valueType` and `value`. Native input remains bounded by execution budgets rather than a row publication cap.
 
 See the [complete scalar contract](CQL_SCALAR_HTTP_CONTRACT.md) for limits and accounting, and [annotated demos](../../../Examples/CosmicCqlDemo/README.md) for copyable C# SDK, HTTP and interactive examples.
+
+
+## Native Select — SQLite SDK
+
+SQLite supports detached scalar, anonymous and flat DTO projections through the generic V2 manager. MongoDB and Neo4j projection adapters and the projection HTTP route are still pending; their row/scalar APIs remain unchanged. This SDK code runs within a trusted host: bind the actor from your authoritative application identity.
+
+```csharp
+ICosmicQueryProjectionStorageProvider adapter = sqlite;
+
+var access = CosmicQueryReadAccess.OwnerOrPublic(actor);
+if (access.IsError)
+    throw new InvalidOperationException(access.Message);
+
+var selected = CosmicQuery<Holon>.Create()
+    .WithReadAccess(access.Result)
+    .Where(holon => holon.IsActive)
+    .OrderBy(holon => holon.Name)
+    .Take(20)
+    .Select(holon => new
+    {
+        holon.Id,
+        holon.Name,
+        Stock = CosmicQueryMetadata.Value<long?>(holon, "stock")
+    });
+
+if (selected.IsError)
+    throw new InvalidOperationException(selected.Message);
+
+var plan = CosmicProjectionPlanner.Plan(
+    selected.Result,
+    adapter.QueryProviderType,
+    new[]
+    {
+        new CosmicProjectionTarget(
+            adapter.QueryProviderType,
+            adapter.QueryCapabilities,
+            adapter.ProjectionCapabilities)
+    });
+
+if (plan.IsError)
+    throw new InvalidOperationException(plan.Message);
+
+var result = await manager.ExecuteProjectionQueryAsync(
+    plan.Result,
+    new ICosmicQueryStorageProvider[] { adapter });
+
+if (result.IsError)
+    throw new InvalidOperationException(result.Message, result.Exception);
+
+var rows = result.Result.Providers.Single().Rows;
+```
+
+SQLite selects the columns natively; it does not load holons to run the selector. Core constructs detached results after every native buffer validates. Nullable/string missing or explicit null becomes null; a required missing value, wrong type or ambiguous duplicate path is an error. Int64 retains its exact value. Computed selectors, arbitrary methods, entity results and implicit numeric conversions are rejected. Bounds are rejection limits, not truncation: use explicit source Take for a page, and choose an adequate maximumResults/payload budget for execution. At most32 scalar columns are admitted, with the existing bounded native parameter/instruction/deadline limits.
+
+Requested source snapshot consistency is retained; graph output node caps do not reduce projected rows and no children are hydrated. Scope traversal retains its independent depth/node budgets. [Native projection evidence and implementation](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-projection-slice--23-october-2026).

@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — native SQLite Select
+
+SQLite now executes scalar/anonymous/flat DTO projection through generic V2 HolonManager. Native columns reuse source predicates, visibility/order/window and bounded relationship semantics, with exact type/presence decoding and no entity hydration. Scope validation and projection share a snapshot; read-only/caller ownership, cancellation/reuse,137rows beyond graph output caps, ambiguous paths and corrupt canonical domains are verified. FullSQLite **1,282** passes unskipped; final **16**focused projection cases include3additional test-only canonical controls on the unchanged provider binary (no full1,285claim). PriorCore2,011 remains recorded; no Core/Shared source changed in this slice. Next MongoDB/Neo4j native Select and authenticated projection transport/demos. [Working SQLite SDK example](CQL_MANUAL.md#native-select--sqlite-sdk), [contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-projection-slice--23-october-2026).
+
 ## 23 October — generic projection execution pipeline
 
 Core `27f75b7` adds separate exact field/type projection permissions, actual-adapter readmission, detached scalar-cell results, global row/byte limits and generic V2 `HolonManager.ExecuteProjectionQueryAsync`. All adapters preflight before dispatch, and all raw buffers validate before any DTO construction. It shares the existing durable attempt/receipt owner; no entity hydration or client predicate evaluator. FullCore **2,011** passes (22newcontrols); both frameworks build. Dedicated native row/scalar regression passes27SDK/27HTTP,182settled/181attempts. No native provider advertises Select yet. Next: native SQLite projection/typed decoding inside its existing read owner, then MongoDB and Neo4j, followed by authenticated projection transport/demos. [Current contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#core-projection-execution-owner--23-october-2026).
