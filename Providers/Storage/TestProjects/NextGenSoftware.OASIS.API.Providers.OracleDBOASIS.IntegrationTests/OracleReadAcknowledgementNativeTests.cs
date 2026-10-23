@@ -80,7 +80,24 @@ public sealed partial class OracleNativeAcceptanceTests
             Check("verification",synchronous?storage.LoadAvatarByVerificationToken(name+"-verify"):await storage.LoadAvatarByVerificationTokenAsync(name+"-verify"));
             Check("reset",synchronous?storage.LoadAvatarByResetToken(name+"-reset"):await storage.LoadAvatarByResetTokenAsync(name+"-reset"));
             Check("refresh",synchronous?storage.LoadAvatarByRefreshToken(name+"-refresh"):await storage.LoadAvatarByRefreshTokenAsync(name+"-refresh"));
-            Check("missing-id",synchronous?storage.LoadAvatar(Guid.NewGuid()):await storage.LoadAvatarAsync(Guid.NewGuid()),failure:true);
+            void Missing<T>(string label,OASISResult<T> result){
+                Check(label,result,failure:true);
+                if(result.Result is not null||result.Exception!=null||result.ErrorCode!=OASISResultErrorCodes.RecordNotFound)
+                    bad.Add(label+": known absence must retain its typed not-found result, not an outage/payload error");
+            }
+            var absent=Guid.NewGuid();var missingName="absent-"+absent.ToString("N");
+            foreach(var version in new[]{0,1}){
+                Missing("avatar-id",synchronous?storage.LoadAvatar(absent,version):await storage.LoadAvatarAsync(absent,version));
+                Missing("avatar-name",synchronous?storage.LoadAvatarByUsername(missingName,version):await storage.LoadAvatarByUsernameAsync(missingName,version));
+                Missing("avatar-email",synchronous?storage.LoadAvatarByEmail(missingName+"@example.invalid",version):await storage.LoadAvatarByEmailAsync(missingName+"@example.invalid",version));
+                Missing("detail-id",synchronous?storage.LoadAvatarDetail(absent,version):await storage.LoadAvatarDetailAsync(absent,version));
+                Missing("detail-name",synchronous?storage.LoadAvatarDetailByUsername(missingName,version):await storage.LoadAvatarDetailByUsernameAsync(missingName,version));
+                Missing("detail-email",synchronous?storage.LoadAvatarDetailByEmail(missingName+"@example.invalid",version):await storage.LoadAvatarDetailByEmailAsync(missingName+"@example.invalid",version));
+                Missing("holon-id",synchronous?storage.LoadHolon(absent,loadChildren:false,version:version):await storage.LoadHolonAsync(absent,loadChildren:false,version:version));
+                Missing("holon-key",synchronous?storage.LoadHolon(absent.ToString(),loadChildren:false,version:version):await storage.LoadHolonAsync(absent.ToString(),loadChildren:false,version:version));
+            }
+            var invalid=synchronous?storage.LoadHolon("not-a-guid"):await storage.LoadHolonAsync("not-a-guid");
+            if(!invalid.IsError||invalid.ErrorCode==OASISResultErrorCodes.RecordNotFound)bad.Add("Malformed key must not be classified as absent.");
             foreach(var row in rows){
                 await using var cleanup=new OracleCommand($"DELETE FROM {row.Item1} WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",native){BindByName=true};
                 cleanup.Parameters.Add("Id",OracleDbType.Raw).Value=row.Item2.ToByteArray();cleanup.Parameters.Add("Expected",OracleDbType.Clob).Value=originals[row];
