@@ -6,6 +6,8 @@ This provider uses the real Oracle.ManagedDataAccess.Core client with indexed lo
 
 ## Configuration and verification
 
+Record-history parsing reuses the existing shared canonical JSON parser, preserving date-shaped metadata strings and high-precision untyped JSON numbers at latest and historical versions. It does not reinterpret metadata as local dates or narrow numbers through binary floating point. This does not reconstruct values already altered by an older stored write.
+
 Successful storage reads set `IsLoaded=true`. Point reads count one returned record; collection/export reads count returned roots, not recursively nested children. A successful empty collection has `LoadedCount=0` and remains loaded. Search counts its returned avatar/holon roots. Missing-record and failed reads do not claim loaded records. These response annotations do not change the query, persisted data, logical history or encryption policy.
 
 Holon deletion sets `IsDeleted=true` and `DeletedCount=1` only after an acknowledged commit. Repeating a soft delete on an existing inactive tombstone acknowledges that state with `DeletedCount=0` and no new mutation. An uncertain commit does not claim deletion success or a count. The provider's boolean soft/hard-delete helpers preserve the native operation's result metadata through the existing result-copy helper. The `IOASISStorageProvider.DeleteHolon` GUID/provider-key, synchronous/asynchronous aliases perform **hard deletion**, matching HyperDrive's shared dispatch contract. HolonManager implements soft deletion through a tombstone Save; direct provider callers can explicitly select it with `DeleteHolonWithSoftDelete*(..., true)`.

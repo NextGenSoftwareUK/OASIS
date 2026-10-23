@@ -37,7 +37,7 @@ public partial class OracleDBOASIS
             if(current is not IHolon holon)throw new ArgumentException("Native holon projection requires a canonical Holon.");
             ValidateNativeHolonProjection(holon,projection.Type,projection.Deleted,projection.Parent);
         }
-        var document=JObject.Parse(json);
+        var document=OasisJson.ParseStoredObject(json);
         if(document["id"]!=null&&document["id"]!.Value<string>()!=identity.ToString())throw new InvalidDataException("Oracle embedded history identity differs from native key.");
         if(document.Property(EmbeddedRecordHistory.PropertyName)==null)return version==0||current.Version==version?current:null;
         document["id"]=identity.ToString();
@@ -66,7 +66,7 @@ public partial class OracleDBOASIS
             if(nativeIdentity.HasValue)ValidateNativeIdentityProjection(stored,nativeIdentity.Value);
             if(stored.IsDeleted&&!proposed.IsDeleted)
                 throw new Core.Helpers.StorageLifecycleConflictException("Active save cannot overwrite a committed Oracle tombstone.");
-            previous=JObject.Parse(original);
+            previous=OasisJson.ParseStoredObject(original);
         }
         if(!IsVersionControlEnabled&&previous?.Property(EmbeddedRecordHistory.PropertyName)==null)return Serialize(proposed);
         if(previous!=null){
