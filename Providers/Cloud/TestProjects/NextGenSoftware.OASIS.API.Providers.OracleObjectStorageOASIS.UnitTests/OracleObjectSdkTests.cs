@@ -452,6 +452,22 @@ public class OracleObjectSdkTests
             var removed=synchronous?provider.DeleteAvatar(avatar.Id,softDelete:false):await provider.DeleteAvatarAsync(avatar.Id,softDelete:false);Assert.IsFalse(removed.IsError,removed.Message);
             Assert.AreEqual(5,conditionalDeletes-beforeAvatarDelete,"Avatar, both identity indexes and both archives must use native If-Match deletion.");
             Assert.IsTrue((await provider.LoadAvatarAsync(avatar.Id)).IsError);
+            var independent=new NextGenSoftware.OASIS.API.Core.Holons.Avatar{Id=Guid.NewGuid(),Username="private-independent-user",Email="independent@example.invalid",IsActive=true};
+            Assert.IsFalse((await provider.SaveAvatarAsync(independent)).IsError);Assert.AreEqual(1,independent.Version);
+            var independentDetail=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=independent.Id,Karma=10,XP=20};
+            for(var version=1;version<=3;version++){
+                independentDetail.Karma=version*10;independentDetail.XP=version*20;
+                Assert.IsFalse((await provider.SaveAvatarDetailAsync(independentDetail)).IsError);Assert.AreEqual(version,independentDetail.Version);
+            }
+            Assert.AreEqual(1,(await provider.LoadAvatarAsync(independent.Id)).Result.Version);
+            var independentByName=synchronous?provider.LoadAvatarDetailByUsername(independent.Username,3):await provider.LoadAvatarDetailByUsernameAsync(independent.Username,3);
+            var independentByEmail=synchronous?provider.LoadAvatarDetailByEmail(independent.Email,2):await provider.LoadAvatarDetailByEmailAsync(independent.Email,2);
+            foreach(var observation in new[]{(Result:independentByName,Version:3),(Result:independentByEmail,Version:2)}){
+                Assert.IsFalse(observation.Result.IsError,observation.Result.Message);Assert.AreEqual(independent.Id,observation.Result.Result.Id);
+                Assert.AreEqual(observation.Version,observation.Result.Result.Version);Assert.AreEqual((long)observation.Version*10,observation.Result.Result.Karma);
+            }
+            Assert.IsFalse((await provider.DeleteAvatarDetailAsync(independent.Id,false)).IsError);
+            Assert.IsFalse((await provider.DeleteAvatarAsync(independent.Id,false)).IsError);
             var owner=new NamedOwner{Id=Guid.NewGuid(),Name="private-named-owner"};
             var member=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),Name="private-named-member"};owner.Components.Add(member);
             var manifest=NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(

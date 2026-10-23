@@ -2,6 +2,25 @@
 
 ## Resume — 2026-10-23
 
+### Shared detail-selector version coupling repaired — Oracle SDK red/green
+
+Real encrypted-record SDK reproduction: an avatar profile atv1 and its independently updated detail atv3 could load detailv3 by ID, but username/email detail selectors wrongly passed that requested version into the PROFILE lookup. Actual OCI red2/2 failed with `Avatar ... version 3 not found`, despite the requested detail existing. This is shared business/identity resolution, not an OCI transport gap; repair belongs in existing KeyValueStorageProviderBase, benefiting its derived providers without duplicating code in Oracle/AWS/etc.
+
+Both selectors now reject negative detail versions before any backend access, resolve the CURRENT authoritative profile identity using existing helpers, then apply the requested version ONLY to the selected detail root. Sync APIs retain existing async delegation. No migration, alternate codec/index, fallback scan/retry, extra shadow writes or new SDK. An explicit detail version is not a historical identity-alias or multi-record point-in-time snapshot: current username/email identify the avatar, detail history is independent. Use immutable avatar ID plus version for history after identity aliases change; this intentionally does not resurrect old username/email aliases through a coincidentally matching profile version.
+
+New8 shared controls cover sync/async × username/email: current profilev2/renamed aliases, independent detailv1–3/latest, exact Karma/XP, no storage mutation, old-alias rejection, and negative versions before backend reads. Initial full Shared run had964pass/4fail because this NEW test fixture had omitted enabling history; corrected the fixture (not production history rules), SHA-verified MOVED its1,475,013byte report to `shared-detail-version-controls.trx.history-disabled`. Initial Shared-red4fail/4pass likewise is not claimed as four isolated genuine defects; the independently reproduced real SDK2 failures establish the production bug.
+
+Actual77223 TERMINAL0: full Shared968/968 passed6s, OCI77/77 passed13s, zero skips. Existing OCI encrypted public-record cases now additionally prove profilev1/detailv2–3 selectors and conditionally retire their synthetic records; five guarded-live-runner cases remain included. Core0ca01b98/DLL6E531CACD3A034FD42E1DE47C85982C07F00CB78BF057CD4CDAAFD4F81221BC7 / Shared61167F38B784BD4251AE8FDF22DB6BE429C2844EF5CFD46E0AE0254C087DAAC8 match source711/54 under producer/source hold. This is a controlled signed loopback proof, not live Oracle Cloud or all derived-provider acceptance. Other provider cohorts must be refreshed when their release gates run.
+
+| Evidence in TestResults/OracleObjectCurrent | Bytes | SHA256 |
+|---|---:|---|
+| oracle-detail-version-red.trx | 6476 | 1782CF25B0770A8A4AA6ED5491AB95E6848AB1C8AB91C1CF16CC66B4BE6B0F60 |
+| shared-detail-version-red.trx | 16010 | 8CF942151871CC6667CD5A61D3E13E822ECA1E712BF8C332693E909F5B8BD4B4 |
+| shared-detail-version-controls.trx | 1472588 | C423F8EF14ABC57E03C5BC04D21B44C24E01D781B32612D0A12FE1EDC8DF2F80 |
+| oracle-detail-version-controls.trx | 123782 | F46AA92BD252063CCEF8F74A0A831F9A9DA82997C81154987AC3CA6B9A6477FF |
+
+No download/restore/new environment/service/database/account/cloud request; same pinned SDK/cache/outputs/18661 service, memory-only synthetic data, listener/pending0 on completion. Source/output hold released after actual terminal. Free C81,182,670,848bytes shared-machine observation, no exclusive attribution. Real reads/retained history may incur provider fees; no new tariff or fee recovery policy is introduced or cost quoted. Oracle Cloud, full API/auth and cross-provider gates remain open; AWS remains next priority after Oracle.
+
 ### Guarded OCI live transport entry point prepared — not cloud-certified
 
 Added `Scripts/TestHosts/Run-OracleObjectLiveAcceptance.ps1`, using the EXISTING .NET10 PowerShell/OCI149/provider/unit output and a compiled acceptance entry point in the existing test project. No new project, dependency restore, profile, credential, runtime or bucket. It rejects missing explicit cloud-request approval before assembly/profile/network work, owns the shared producer lease through assembly validation/loading and the bounded run (do not nest another lease), checks producer/consumer/source identity, and reads credentials only through an existing protected OCI profile. Runtime assembly loading/compiled entry-point binding and final PowerShell syntax/approval guard were checked locally without SDK network dispatch.
