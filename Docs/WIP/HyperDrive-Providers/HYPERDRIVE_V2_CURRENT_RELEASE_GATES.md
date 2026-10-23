@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## WEB4 native transfer evidence retention — 23 October 2026
+
+Same-chain token/NFT wrappers dropped native status metadata and receipt-bearing errors lost their transaction IDs. Token also falsely reported success for an empty native receipt. Eight controlled cases reproduced **7 failures/1 pass**, then Core `ecbb9518eadcf48ad2b335db1d194993df3a9752` reuses existing result-copy into the existing summary DTO, retains original nativeID even on error, and preserves original error/code/exception/warning/count/message/metadata. No nativeID is fabricated or error converted to success; token uses the existing missing-receipt guard. No schema, signing, authorization, fee policy, provider selection or submission count change.
+
+Actual full **1,964/1,964 Core controls PASS, zero skipped, 10 seconds**. Final source/PDB producer/consumer `5140217E441C8FA24BE73A952E1A28EC56A1263C2DBE361C0BC5E32E2459001E`/716 documents; pre-commit-stamp cohort, not hosted/native HTTP proof. [Exact red/green evidence](HYPERDRIVE_V2_FOUR_PROVIDER_INTERFACE_ACCEPTANCE.md). Existing Sui native acceptance remains its separately recorded earlier cohort, not silently recertified. All-provider/hosted/V2 gates remain OPEN; task-branch pin publication only, no dev deployment.
+
 ## Bound wallet SDK — real Sui acceptance, 23 October 2026
 
 Actual retained-runtime run `83148` terminal0: **6/6 native cases PASS, zero skipped, 160 seconds**, through real encrypted LocalFile wallet storage, owning WalletManager and all four sync/async `IProviderWallet` token/NFT send APIs. This is not the earlier mock dispatch proof. Native owner/balance/supply/lock/unlock/burn readbacks and38 distinct successful signed-operation fee receipts passed; seven of those operations are wallet SDK sends. Caller credentials stayed empty and the stored encrypted file matched its original hash before verified clear/removal. Journals/owned wallet file absent, Sui/Mongo listeners and owned Sui process stopped afterward.
