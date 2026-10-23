@@ -2,6 +2,25 @@
 
 ## Resume — 2026-10-23
 
+### Guarded OCI live transport entry point prepared — not cloud-certified
+
+Added `Scripts/TestHosts/Run-OracleObjectLiveAcceptance.ps1`, using the EXISTING .NET10 PowerShell/OCI149/provider/unit output and a compiled acceptance entry point in the existing test project. No new project, dependency restore, profile, credential, runtime or bucket. It rejects missing explicit cloud-request approval before assembly/profile/network work, owns the shared producer lease through assembly validation/loading and the bounded run (do not nest another lease), checks producer/consumer/source identity, and reads credentials only through an existing protected OCI profile. Runtime assembly loading/compiled entry-point binding and final PowerShell syntax/approval guard were checked locally without SDK network dispatch.
+
+Example for AFTER David supplies the authorized isolated test bucket/profile and approves potentially billable requests (all arguments below are non-secret placeholders):
+
+```powershell
+& C:/Source/OASIS/Scripts/TestHosts/Run-OracleObjectLiveAcceptance.ps1 `
+  -ConfigFilePath C:/protected/oci/config -ProfileName OASIS_TEST `
+  -RegionId your-region -NamespaceName your-namespace -BucketName your-test-bucket `
+  -ApproveCloudRequests
+```
+
+This exercises signed native transport ONLY: bucket HEAD, initial absence GET, create-only PUT, readback GET, If-Match replacement PUT, updated GET, expected stale-ETag rejection PUT, unchanged GET, If-Match DELETE, final absence GET. Nominal10 logical SDK calls:1HEAD/5GET/3PUT(including expected rejected stale PUT)/1DELETE. Native adapter disables retries; the script configures10s request timeout and driver45s cancellation. This is NOT a currency spending cap, proof of billing classification or promise that rejected/read requests are free. Small synthetic object retention after an uncertain error can incur storage until reviewed. No cloud request has been run yet.
+
+One fixed key `oasis-acceptance/transport-probe`; occupied object is never adopted, overwritten or deleted. Existing `TestResults/OracleObjectCurrent/oci-live-transport.pending.json` or `.current.json` blocks another run. Journal records non-secret operation/target/content hashes/observed revision before mutations and acknowledged stages afterward. Any error retains original evidence and performs NO catch/finally mutation cleanup or replay. Review the original object/value hash/native ETag before separately authorizing conditional reconciliation; do not delete the journal to force rerun. Success independently verifies absence, records a scoped report, then removes pending state. Fixed lease prevents overlapping invocations.
+
+Actual83998 TERMINAL0: full77/77 OCI SDK/configuration/driver controls passed13s0skip. Five new real-signed-SDK LOOPBACK cases cover full10-request flow, occupied foreign object/no mutations, and service503 AFTER create/replace/delete with original journal preserved/no retry/no cleanup; only verified synthetic loopback evidence is retired by the tests. All72 prior cases remain included. Initial compile failed before any test/network due to missing helper namespace and was corrected. Source/consumer Core6E531CACD3A034FD42E1DE47C85982C07F00CB78BF057CD4CDAAFD4F81221BC7 / SharedBF23BAC44E412B1F56BD40BE4EEE7CF5D2497BBB1876538E15706699315C263B matched711/54 source documents. Report `TestResults/OracleObjectCurrent/oracle-live-driver-controls.trx`123,782bytes/SHA2568A852694AFAD8F2B177E6091C20E34C74F228E51A874E6DF4DAAABC72F2F22F9. Listener18661/pending journals0; only zero-byte controlled lease remains. C free81,212,727,296bytes shared observation, no exclusive attribution. Live full-provider encryption/index/history/interfaces, actual IAM/region/cost/recovery and hosted V2 remain OPEN; native transport success alone will not close them. AWS remains next priority after Oracle.
+
 ### Restricted-schema native acceptance — full local gate passed
 
 The read-only inventory36994 TERMINAL0 found only non-maintained PDBADMIN and all six OASIS tables owned by SYSTEM. Added one reusable local `FREEPDB1.OASIS_PRIV_TEST` schema-only `NO AUTHENTICATION` identity, no new password/runtime/database/download. It uses the existing protected SYSTEM credential as a proxy authenticator, while the effective client session has only CREATE SESSION and no roles. Initial normal provider provisioning temporarily grants CREATE TABLE and revokes it in finally; subsequent activations cannot provision tables. This is local permission testing, NOT production administrator/proxy guidance.
