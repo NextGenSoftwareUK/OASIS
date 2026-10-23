@@ -30,6 +30,8 @@ Every required table must be permanent (`TEMPORARY=N`, `DURATION` null). Validat
 
 If any table is absent, the existing initialization path still creates missing tables/indexes before validating. Use only a database/schema where that provisioning is explicitly authorized; Oracle DDL is not an ordinary rollback-safe data transaction. A validation-only activation is not proof that a particular least-privilege account can perform every storage operation. Real SQL tests reuse one retained local Oracle Free instance; they do not certify hosted Autonomous Database or every provider/HyperDrive interface. Current scoped evidence and remaining gates are tracked in [the working verification report](../../../Docs/WIP/HyperDrive-Providers/ORACLE_CLIENT_PRIORITY.md).
 
+Separate schema provisioning from application access. A pre-provisioned schema can activate without `CREATE TABLE`: the local permission fixture verifies effective `CREATE SESSION` only, no roles, unchanged table identities, and avatar/detail/holon saves, indexed lookups and deletion. The schema owner has implicit access to its own tables. This is scoped local evidence, not a blanket privilege prescription for every operation or Autonomous/IAM configuration. The local fixture uses one passwordless schema-only identity through an administrator-authenticated proxy; that test setup is not a recommendation to give production applications administrator credentials. Have the DBA provision/review the intended application schema and cloud authentication separately.
+
 Initial Release targeting OASIS API v2.0.0: \
 https://api.oasisweb4.one
 
