@@ -109,6 +109,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.AWSS3OASIS:
+                            {
+                                result.Result = AwsS3ProviderFactory.Create(
+                                    OASISDNA.OASIS.StorageProviders.AWSS3OASIS, overrideConnectionString);
+                            }
+                            break;
+
                         case ProviderType.OracleObjectStorageOASIS:
                             {
                                 result.Result = OracleObjectStorageProviderFactory.Create(

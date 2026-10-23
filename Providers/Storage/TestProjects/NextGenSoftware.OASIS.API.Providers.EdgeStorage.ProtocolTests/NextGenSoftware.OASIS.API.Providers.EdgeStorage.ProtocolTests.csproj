@@ -12,6 +12,7 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../../../Shared/NextGenSoftware.OASIS.Providers.Shared.S3/NextGenSoftware.OASIS.Providers.Shared.S3.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.FastlyOASIS\NextGenSoftware.OASIS.API.Providers.FastlyOASIS.csproj" />
     <ProjectReference Include="..\..\..\Other\NextGenSoftware.OASIS.API.Providers.DaprOASIS\NextGenSoftware.OASIS.API.Providers.DaprOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS\NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS.csproj" />

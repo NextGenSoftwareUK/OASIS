@@ -17,9 +17,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.AWSOASIS\NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.AWSS3OASIS/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\CloudProviderFactory.AWS.cs" Link="Production\CloudProviderFactory.cs" />
+    <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/AwsS3ProviderFactory.cs" Link="Production/AwsS3ProviderFactory.cs" />
   </ItemGroup>
 </Project>

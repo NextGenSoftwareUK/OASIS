@@ -36,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string OASISProviderBootType { get; set; }
         public AzureOASISProviderSettings AzureCosmosDBOASIS { get; set; }
         public AWSOASISProviderSettings AWSOASIS { get; set; }
+        public AWSS3OASISSettings AWSS3OASIS { get; set; }
         public AzureStorageOASISProviderSettings AzureStorageOASIS { get; set; }
         public HoloOASISProviderSettings HoloOASIS { get; set; }
         public MongoDBOASISProviderSettings MongoDBOASIS { get; set; }
