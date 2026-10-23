@@ -1,5 +1,10 @@
 # COSMIC ORM implementation status
 
+## 23 October — Detached/typed graph access and mapper visibility
+
+Core8f057e0 validates every detached node before typed construction, permits policy-selected membership, applies partial typed-role ownership for All-type views, and rechecks policy after callbacks. It also fixes the common base-state mapper dropping IsPublic in generic/non-generic projections. Full Core1,762, Shared960, Mongo23, Neo joint86 and SQLite19 pass, zero skips. SQLite policy cases include native-to-detached-to-typed publication; source/PDB checks match711Core/54Shared. SDK/HTTP graph-policy gates remain unchanged pending safe public transport. [Details](CQL_GRAPH_LOADING.md).
+
+
 ## 23 October — Native child read-access policy
 
 Mongo, SQLite and Neo now carry the immutable owner/public rule into native child predicates before limits, using the existing translator and transaction/deadline owners. Twelve new adapter boundary cases cover selected/all-hidden children with and without stored membership and tight node budgets. Mongo23, SQLite19 and Neo joint86 pass, zero skips; source/PDB checks match711Core/54Shared. No Core/Shared source changes in this increment.
