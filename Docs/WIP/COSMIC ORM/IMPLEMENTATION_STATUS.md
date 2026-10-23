@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — generic projection execution pipeline
+
+Core `27f75b7` adds separate exact field/type projection permissions, actual-adapter readmission, detached scalar-cell results, global row/byte limits and generic V2 `HolonManager.ExecuteProjectionQueryAsync`. All adapters preflight before dispatch, and all raw buffers validate before any DTO construction. It shares the existing durable attempt/receipt owner; no entity hydration or client predicate evaluator. FullCore **2,011** passes (22newcontrols); both frameworks build. Dedicated native row/scalar regression passes27SDK/27HTTP,182settled/181attempts. No native provider advertises Select yet. Next: native SQLite projection/typed decoding inside its existing read owner, then MongoDB and Neo4j, followed by authenticated projection transport/demos. [Current contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#core-projection-execution-owner--23-october-2026).
+
 ## 23 October — immutable projection intent
 
 Core `aa35a43` adds bounded scalar/anonymous/flat DTO Select intent through the existing path compiler, preserving the original source/access/scope/window/graph-consistency object. It invokes no selected getter, constructor or setter and rejects entities, arbitrary methods, computed values, collection shapes,33columns and discarded numeric conversions. FullCore **1,989** (7newprojectioncontrols) passes; netstandard2.1/net10.0 both build. The dedicated three-provider row/scalar demo still passes27SDK/27HTTP,182settled/181attempts after the compiler refactor. No provider advertises native projection execution yet: capability planning/readmission, native Select and detached-value construction are next, not claimed complete. [Projection boundary](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#projection-implementation-boundary--23-october-2026).

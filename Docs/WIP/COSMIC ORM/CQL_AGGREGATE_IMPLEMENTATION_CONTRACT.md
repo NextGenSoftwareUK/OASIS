@@ -109,3 +109,14 @@ The Core intent and shared path compiler now pass1,989tests, including7projectio
 
 
 Core intent `aa35a43` freezes scalar paths and flat construction metadata without retaining the selector delegate/closure. Columns are readonly and bounded; implicit numeric conversions are rejected explicitly rather than discarded. Anonymous/scalar/flat DTO selection, source/access/window/consistency retention, no user-code invocation, invalid/null source propagation,33-column rejection and result-domain preservation have focused controls inside the full Core1,989gate. Native row/scalar regression after this common-path refactor passes the dedicated demo1:27SDK/27HTTP,182settled/181attempts, with the owned fixture absent after teardown. This is not native Select certification.
+
+
+## Core projection execution owner — 23 October 2026
+
+Core `27f75b7` implements separate native projection capabilities/targets/plans and actual-adapter readmission. Canonical field name plus exact CLR type and explicit metadata domains grant result participation independently of predicate/order operators. Input arrays are captured before validation; fields/types/width are bounded. A row-only adapter rejects before any earlier native target dispatch.
+
+`ICosmicQueryProjectionStorageProvider` returns immutable ordered raw scalar-cell rows, not holons or application DTOs. `HolonManager.ExecuteProjectionQueryAsync` requires V2 and delegates to the common prepared query-attempt owner. One durable physical attempt precedes every native callback; completed work uses the existing explicit service-query receipt. Inherited provider denial has zero calls. No activation, failover, entity factory or downloaded-row LINQ evaluator exists in this path.
+
+Core validates every provider buffer before invoking any application constructor/setter: exact native domains, nullable/missing values, width/window, UTF-8 validity, finite numbers, total result count and total detached payload budget. Strings/immutable scalar values are not coerced or serialized through arbitrary getters. Nullable/string missing or null becomes null; required values and wrong types error. Int64 beyond2^53 stays exact. Only after every buffer validates are scalar/anonymous/flat DTO outputs constructed. Factory exceptions, cancellation or a later invalid store publish no partial execution. Per-provider provenance remains separate; replicas are not merged or summed.
+
+The additive Core pipeline passes2,011tests including22new planning/result/executor/hosted/manager controls and both target-framework builds. The committed-cohort row/scalar native regression also passes dedicateddemo1:27SDK/27HTTP,182settled/181attempts. This is controlled Core evidence: no MongoDB/SQLite/Neo4j provider yet implements native Select or advertises projection capabilities. Native adapters/SQL-BSON-Cypher projections and explicit authenticated transport remain required.
