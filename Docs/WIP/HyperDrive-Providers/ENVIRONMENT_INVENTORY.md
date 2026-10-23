@@ -1,6 +1,131 @@
 # Reusable environments and disk inventory
 
+## 2026-10-23 pinned adapter package-cache recovery inventory
+
+Actual32689 TERMINAL0: all40 audited adapters compile with0errors using cached no-restore assets; fresh committed Corecf4a5abe0a601962d5184ea5ab1423d055984184 producer723 SHA025AB1D5A9AEC3D30BA78168B1FFE22DAF514AF981AA15697B6F33630A430474 source/copy verified in every consumer. Each provider's own PDB/source identity was then checked. Common helper tests remain the earlier explicitly recorded32/full2091 cohort, not relabelled as40 vendor-native proofs. No private data/SDK request or service start in this build phase.40 current bin/Debug/net10.0 trees total258160796 bytes (reused/current totals, preexisting/incremental split unmeasured); retain as reusable dependency/test outputs until adapter acceptance, do not infer broad safe deletion. Exact paths below: each row's directory is relative to C:/Source/OASIS, output directory bin/Debug/net10.0, DLL name equals project directory name plus .dll. SHA is the built provider DLL; all40 use the same Core723 copy. No new environment/worktree/runtime, no downloads beyond the already-itemized64 pinned cache recoveries. FreeC73303609344 bytes after proof capture, shared-machine delta not exclusive ownership.
+
+| Exact project directory relative to C:/Source/OASIS | Source documents | Current bin bytes | Provider DLL SHA256 |
+| --- | ---: | ---: | --- |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS | 3 | 6454372 | 740B6D34820FC16CFC7463A29C05D24DE1F649ED721B201C127A7BA7AFB1296F |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS | 3 | 6454313 | 3C7D9B8E5BC545A21C86314C7EA3A2CFBCCAD254CB7476451E4E28737B8BE7CE |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS | 3 | 6460819 | 8E1F3AA5D4F4F038706706B006BAEEE92A10D30EA9246857739104849AEB1378 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS | 3 | 6458070 | EBD09D085CFDA2CBB0EE8FA8EE53BE8B6DC4B028109CBF39A3313160194FEC36 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS | 3 | 6457886 | E83D0DAF0FE00AC0C0961945DD4295D784C6CECDB99441197E2B6911DF0830AB |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS | 3 | 6456410 | D2778043BD7629D299962940D8D8B0C1D6F5A690DA456544CA3DDA08B9CEC5D0 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS | 3 | 6457471 | 10A9647246AC874E940616FB4FA4C234F43500D829BD66279A5F9CD808CA51FF |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.CassandraOASIS | 3 | 6443426 | A6BC911082382567CF2648F05C115B4452D2CC5E45ABEEF9DDF9C2ED7F3288C9 |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.NeonOASIS | 3 | 6457849 | 11FC56E9051D26CCC70DC43B5A88BC9C898DA7239A07073FBA928335A95164C7 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS | 3 | 6457200 | C351B1219193D198562418614F39DED1A14FFA423D89EF65F557E23562219E42 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS | 3 | 6455783 | A08D3B29E5E3173A142385DF2CFEA4F5065B3C7884A1A6C2FDE472B9FD4AB8C3 |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FaunaOASIS | 3 | 6444439 | FBE08278FE4C0DB9C6E2D36B82D4026D69231CCE7D4A9FFB697A3E2CF7519BD9 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS | 3 | 6457530 | 72BA288A3B20463CD3B11CE2D87E643C0DB3DB5A671F8FAF094DBC8FDD49182A |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS | 3 | 6455737 | DD6981CF796FF2869919CD1851E46629696B21BEC53051E6343E3C2E9374F2F1 |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.ConvexOASIS | 3 | 6447814 | 4AE7033CEC52D5602752605F861EBED9F4E5998FABCF14687209D99494A3BA4E |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS | 3 | 6444600 | 7E0EF3DFAE3D99FB3973A6FFB5B33E4478E774CF9B8EC534591E362A0E11AF0E |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS | 3 | 6455137 | 70237247935F1A0C3B891625EEC87191F453A4B2753741A5B68C273FDA60AB3C |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.SolrOASIS | 3 | 6451888 | AFE737C697D17C6FEBC49DBD69809E07DC48F583E2FCC6879C9CB1D48540D653 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.MinIOOASIS | 3 | 6458053 | 85730E7FBA40747909423708BA7966E1A7AE5FEC70277CDE2F7B326C9F3DF78E |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS | 3 | 6460479 | A9FF0B620F87A27A96E651482F883703895DFC76B05FBBDB3EBDD619831FD82E |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.MemcachedOASIS | 3 | 6454921 | 70BF17C11FD407223FFD85A7D4439087DE4352E50113718C0FA47740EDBD84CD |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS | 3 | 6449199 | 72EA87383F8D7B90D6B288CF28050E22236D714ACB45CE523C274EE0B5771A1F |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS | 3 | 6453682 | 00B2701951D2DE722B31643CC04937F2FA5DAE3A739192C8D9D95BE894DF9013 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.QdrantOASIS | 3 | 6455246 | 7ECBBE9C90294DBB4FCAF43A207A2CCAC9629F24C4D96510B5E67CBB6979E27C |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS | 3 | 6461777 | 66F81A1F5DF5A23057F8D54B2D7BA2043F80D8AD712072966147E4BBAAD81A09 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS | 3 | 6456730 | 2FCEA51C79C85D062C686418A717638D6196B15C9385D6770AA02E2D8F370BA1 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.LitestreamOASIS | 3 | 6479888 | 432DD9FD203838514EF8F59C4A23E406DA358C92A5D997D9EFA054DB40CE6B56 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS | 3 | 6446229 | 16EAEDBD2BA932EA0F9FECDA9823A3B43889D447AEAE2D05B87DC72A735E2D94 |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.UpstashOASIS | 3 | 6443485 | A6F6E6148BF8DF87F0B371B470929CB4BBB65D86CE387BC9C14CF9061E3BD4FC |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS | 3 | 6455660 | 1B7D9947BCE04C9B2D2A4ED0536044841097F13D0077476C235571BAC4FC9D78 |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS | 3 | 6452442 | ABC71E4E60379A1371539B2AB958656CA7D7DD9B537203C827CEF81F3DB381E4 |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS | 3 | 6446348 | 80EE10DCFEB88F0702546272B37C08F293A4296B216B5C3FD6944998A99A0640 |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.TursoOASIS | 3 | 6451815 | 3780E23E7542B9CD050F295A4986A4FF6631431A7F290D90313A70DC6397D92B |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS | 3 | 6446878 | B2C5F51DFBD8FDB15DF4CB10D330D21058068AB5374D833F0D80EFFE2710677B |
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS | 3 | 6454480 | 2006FF28E1163F700BAE1DA5EFFD72433573EB63A76691A844D617F1094471B3 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS | 3 | 6448386 | F6FA37A588FC0046C0B78DA6C9FE10BBE82853946883E83A748A839FB609FDE6 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS | 3 | 6462490 | FE818B8B58D23686B2A09EBA9A3D3A119EE99EA04EC67C0D9F555E0F26FFB211 |
+| Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS | 3 | 6453781 | 2B02B5DE780977612EEA36BB3EB5C3FC4C71AEACAD740BB56DB8A9C928E926C0 |
+| Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS | 3 | 6449701 | 4709173759AED15A68ED602F92628E532A2E76FFF09F368EC8FCC802729A2E56 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS | 3 | 6448382 | 43615F39942A1444F7769B584B5A7C18680CA817144BD8FE698B6645CA6CB472 |
+
+Retain this compact source/hash/resource proof; reproduce with the existing40 projects, --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false under the one global lease, and current-source Core checks. Vendor SDK success/live capabilities/cloud cost/privacy/whole-interface/global V2 gates remain unverified by compilation. No claim that40 native environments exist. The common guard is implementation progress, not an all-provider100% milestone.
+
+
+PlanetScale-only cache repair completed terminal0,2.51s; `C:/Users/david/.nuget/packages/mysqlconnector/2.4.0` actual12591513 bytes, active/reusable same shared NuGet cache. No MySQL server, pin change or new environment. Total newly restored versions for this audit64 (8+55+1), measured package files233339391 bytes; shared HTTP cache growth remains unmeasured. Subsequent attempts must reuse these versions, not redownload or create per-run installs.
+
+Expanded11-adapter cache preflight found just one additional missing pinned dependency: `C:/Users/david/.nuget/packages/mysqlconnector/2.4.0` for existing Storage/PlanetScaleOASIS project. Both configured package roots and exact HTTP-cache archive name checked; no usable2.4.0 found. Plan one no-dependencies official restore of that SAME project, no MySQL server/runtime/environment install or pin change. Package bytes unmeasured before action; retain reusable package/cache for future PlanetScale tests, cleanup only after all-consumer ownership review, recreate via same project restore. Other10 newly audited adapters' package folders exist; not a content/runtime proof.
+
+Expanded source search adds11 existing adapters (exact directory/source identities in provider-I/O coverage), making40 working-source delegations. Existing assets/imports/GUID key assignments inspected; their SDK caches/builds are not yet certified. No new environment/download/runtime for this source audit. Core currently has peer-owned scalar source edits; no current-source consumer builds until that producer is verified/frozen. Existing published helper8d45 is retained, not overwritten. Four adapter build passes remain a separate pre-scalar cohort, not40 current-provider acceptance.
+
+Actual66855 TERMINAL0: all12 scoped existing-project restores succeeded, no csproj/version changes.55 absent versions now measured183792461 bytes; the preceding Couchbase8 versions total36955417 bytes. All63 version directories stay in the SAME reusable global package cache; NuGet reused Npgsql/Cassandra dependencies across later projects (204–213ms warm restores), no duplicate environment/install archives. Shared HTTP-cache incremental bytes unmeasured; retained for reuse, not purged. FreeC73360891904 bytes after recovery; shared-machine delta is not exclusive attribution. Committed Core8d45 producer722 SHA3D5C88AFE3EA640F52D6BA07E8A2BB66F23D0A9E6F711B6E7BE268C526110938 source/copy verified through rebuilt Couchbase. Initial verifier incorrectly expected Shared DLL in this Core-only adapter; corrected dependency scope to Core and passed, not a provider defect. Remaining29 compilation still pending next source freeze; no native acceptance claim. No cloud service request, test database or signing material introduced.
+
+Owner same HyperDrive task. Readonly assets/cache preflight after the next cached Cockroach build failed identified 55 absent distinct package versions across 12 existing projects. Both configured package roots were checked; a package folder is availability evidence, not full content verification. Do not change pins or create environments to bypass missing SDKs. Reuse global package directories below under `C:/Users/david/.nuget/packages/` (also inspected configured VS shared cache); planned one no-dependencies official NuGet restore of only projects with missing packages, serialized via the shared lease, no producer builds while peer Core changes. Existing HTTP cache reused by NuGet where available. Sizes explicitly unmeasured before download; retention active/reusable SDK dependencies, not disposable archives, safe removal only after future all-consumer cache ownership review; recreation is the same pinned project restore. No server/runtime or private data is involved. Source project identities are in the29-adapter audit. Actual results must replace planned status below.
+
+| Exact cache-relative identity/version | Lifecycle before action | Bytes before action |
+| --- | --- | ---: |
+| npgsql/8.0.5 | restored once; active/reusable pinned dependency | 13088645 |
+| clickhouse.client/7.6.0 | restored once; active/reusable pinned dependency | 1125382 |
+| nodatime/3.1.11 | restored once; active/reusable pinned dependency | 4250116 |
+| cassandracsharpdriver/3.21.0 | restored once; active/reusable pinned dependency | 5492456 |
+| k4os.compression.lz4/1.1.11 | restored once; active/reusable pinned dependency | 479850 |
+| microsoft.netcore.platforms/3.1.0 | restored once; active/reusable pinned dependency | 104710 |
+| system.codedom/4.7.0 | restored once; active/reusable pinned dependency | 2101056 |
+| system.management/4.7.0 | restored once; active/reusable pinned dependency | 1359145 |
+| concurrenthashset/1.3.0 | restored once; active/reusable pinned dependency | 143150 |
+| dahomey.cbor/1.26.3 | restored once; active/reusable pinned dependency | 1044751 |
+| microsoft.aspnetcore.jsonpatch.systemtextjson/10.0.7 | restored once; active/reusable pinned dependency | 266714 |
+| microsoft.extensions.configuration/10.0.7 | restored once; active/reusable pinned dependency | 724273 |
+| microsoft.extensions.configuration.abstractions/10.0.7 | restored once; active/reusable pinned dependency | 536264 |
+| microsoft.extensions.configuration.binder/10.0.7 | restored once; active/reusable pinned dependency | 1294158 |
+| microsoft.extensions.dependencyinjection/10.0.7 | restored once; active/reusable pinned dependency | 1250013 |
+| microsoft.extensions.dependencyinjection.abstractions/10.0.7 | restored once; active/reusable pinned dependency | 1984876 |
+| microsoft.extensions.diagnostics/10.0.7 | restored once; active/reusable pinned dependency | 516509 |
+| microsoft.extensions.diagnostics.abstractions/10.0.7 | restored once; active/reusable pinned dependency | 613050 |
+| microsoft.extensions.http/10.0.7 | restored once; active/reusable pinned dependency | 1597816 |
+| microsoft.extensions.logging/10.0.7 | restored once; active/reusable pinned dependency | 901517 |
+| microsoft.extensions.logging.abstractions/10.0.7 | restored once; active/reusable pinned dependency | 2860863 |
+| microsoft.extensions.options/10.0.7 | restored once; active/reusable pinned dependency | 2277135 |
+| microsoft.extensions.options.configurationextensions/10.0.7 | restored once; active/reusable pinned dependency | 504735 |
+| microsoft.extensions.primitives/10.0.7 | restored once; active/reusable pinned dependency | 998824 |
+| microsoft.io.recyclablememorystream/3.0.1 | restored once; active/reusable pinned dependency | 707161 |
+| microsoft.spatial/7.22.0 | restored once; active/reusable pinned dependency | 2017532 |
+| semver/3.0.0 | restored once; active/reusable pinned dependency | 868575 |
+| surrealdb.net/1.0.0 | restored once; active/reusable pinned dependency | 3245015 |
+| system.reactive/6.0.0 | restored once; active/reusable pinned dependency | 22603311 |
+| websocket.client/5.3.0 | restored once; active/reusable pinned dependency | 631015 |
+| enyimmemcachedcore/2.5.1 | restored once; active/reusable pinned dependency | 883538 |
+| microsoft.aspnetcore.http.abstractions/2.2.0 | restored once; active/reusable pinned dependency | 253374 |
+| microsoft.aspnetcore.http.features/2.2.0 | restored once; active/reusable pinned dependency | 141584 |
+| microsoft.extensions.caching.abstractions/5.0.0 | restored once; active/reusable pinned dependency | 269573 |
+| newtonsoft.json.bson/1.0.2 | restored once; active/reusable pinned dependency | 713040 |
+| lambda2js.signed/3.1.4 | restored once; active/reusable pinned dependency | 515820 |
+| microsoft.aspnetcore.jsonpatch/8.0.13 | restored once; active/reusable pinned dependency | 636578 |
+| nito.asyncex.coordination/5.1.2 | restored once; active/reusable pinned dependency | 488964 |
+| nito.collections.deque/1.1.1 | restored once; active/reusable pinned dependency | 160023 |
+| ravendb.client/7.0.1 | restored once; active/reusable pinned dependency | 38691633 |
+| npgsql/8.0.3 | restored once; active/reusable pinned dependency | 13065115 |
+| microsoft.data.sqlite/10.0.12 | restored once; active/reusable pinned dependency | 60682 |
+| microsoft.data.sqlite.core/10.0.12 | restored once; active/reusable pinned dependency | 1106344 |
+| sqlitepclraw.bundle_e_sqlite3/2.1.12 | restored once; active/reusable pinned dependency | 90173 |
+| sqlitepclraw.core/2.1.12 | restored once; active/reusable pinned dependency | 101697 |
+| sqlitepclraw.provider.e_sqlite3/2.1.12 | restored once; active/reusable pinned dependency | 189048 |
+| csvhelper/33.1.0 | restored once; active/reusable pinned dependency | 5513496 |
+| influxdb.client/5.1.0 | restored once; active/reusable pinned dependency | 14174466 |
+| influxdb.client.core/5.1.0 | restored once; active/reusable pinned dependency | 321400 |
+| jsonsubtypes/2.0.1 | restored once; active/reusable pinned dependency | 255593 |
+| microsoft.extensions.objectpool/10.0.8 | restored once; active/reusable pinned dependency | 305563 |
+| nodatime/3.3.2 | restored once; active/reusable pinned dependency | 3980868 |
+| nodatime.serialization.jsonnet/3.1.0 | restored once; active/reusable pinned dependency | 155606 |
+| restsharp/113.1.0 | restored once; active/reusable pinned dependency | 3515894 |
+| system.reactive/6.0.1 | restored once; active/reusable pinned dependency | 22613772 |
+
+Couchbase scoped restore already completed once (6.29s); new reusable package bytes: couchbasenetclient/3.7.1 25520571; dnsclient/1.8.0 2830143; google.api.commonprotos/2.13.0 3051122; grpc.core.api/2.50.0 1286374; grpc.net.client/2.50.0 2796611; grpc.net.clientfactory/2.50.0 829902; grpc.net.common/2.50.0 399543; microsoft.extensions.objectpool/6.0.0 241151. Same global path prefix, no standalone installer retained. Subsequent Couchbase cached build passed0errors2warnings. HTTP-cache growth unmeasured and shared; do not purge it during ongoing work or redownload these versions. Other wrapper builds remain incomplete; four confirmed build passes are ArangoDB/Algolia/Elasticsearch/Couchbase, not29-native acceptance.
+
+
 ## 2026-10-23 shared GUID-key dispatch audit and reuse plan
+
+Actual cached adapter batch21648 TERMINAL1: committed Core dual-TFM and Shared built; ArangoDB, Algolia and Elasticsearch compiled, then Couchbase failed with missing Couchbase namespace/SDK types. No subsequent adapter was attempted. Inspected both configured package roots and retained old Couchbase output/cache before restore: assets reference missing pinned CouchbaseNetClient3.7.1, DnsClient1.8.0, Google.Api.CommonProtos2.13.0, Grpc.Core.Api/Net.Client/Net.ClientFactory/Net.Common2.50.0, Microsoft.Extensions.ObjectPool6.0.0. No cached Couchbase nupkg/output found by exact-name searches. Plan one scoped restore of the SAME existing Couchbase project with --no-dependencies against official NuGet, preserving csproj/pins and reusable global package cache; no SDK runtime/server/environment install. Package/archive sizes unmeasured before action; measure afterward, retain reusable package/cache (not an owned disposable installer). No success/native capability claim for missing SDK. FreeC73649152000 bytes before restore. Stop and inspect cache first for any later missing provider dependencies as well.
+
+After coherent Core8d45/parent e9dc69 publication,29 audited source wrappers now delegate to the common helper (not yet compiled or native-certified). Reuse each enumerated existing provider directory's `.csproj`, obj/project.assets.json and bin/obj; cached no-restore producer build plan under one global lease, with existing committed Core dual-TFM/Shared producers rebuilt first. No new worktree, downloads, SDK/runtime installs, test services, databases or per-provider environments. Artifact incremental sizes remain unmeasured; preserve shared output dependencies. Stop on missing cached dependency and inspect installed caches before considering any restore. Same owner; record individual build outcomes below, never infer runtime coverage from compilation. No callback/data is intentionally exercised in this compile phase.
 
 Helper prerequisite built/tested and private Core published `8d45d35cbd1f7bbeeb10062fcb0a837df0b44ac0` (one new helper file, existing branch reused). Actual69012 dual-TFM build0errors252warnings, consumer compile caught test-only xUnit Throws(Func<Task>) misuse before any tests; changed to Action assertion. Actual7106 TERMINAL0: focused32/32(28ms), full2091/2091(10s), no skips. Tested working-source Core722 SHA8564E8A62FBC5555271C029297CE0913C072710AF7EA9C332AF46639A9E70A9A source/copy verified; this pre-publication stamp must not be relabelled as the later committed-producer cohort. Rebuild committed8d45 before adapter consumers. Required proof `C:/Source/OASIS/TestResults/OracleCurrent/core-guid-key-helper-current.trx`53056 bytes SHA7DE27A703F0C5F26D6B1CFEEA41AEE10E17F10AE7664D294725F7407FDE87A5D and `core-guid-key-helper-full.trx`3386052 bytes SHA FDB24147C8264E4822EBF467CBF8EE0BBE24A50BCE777997FBE0C66204AADB3D. Retain compact test evidence; regenerate using same Core/Unit projects and global lease after preserving original reports. No SDK download/restore, new environment, network mutation, data fixture or service start.29-adapter adoption/compile/native acceptance remains pending; current unchanged adapters are not fixed by publishing a helper alone. Parent manifest/gitlink must advance as a pair; no dev deployment.
 
