@@ -61,7 +61,10 @@ public sealed partial class AWSNativeRunLifecycle
     {
         var marker=Path.Combine(Work(),"aws-full-suite.pending.json");Assert.IsFalse(File.Exists(marker),"Reconcile prior full-suite evidence before another run.");
         var provider=new AWSOASIS("us-east-1","OwnedFullSuite","owned-synthetic-secret","http://127.0.0.1:18000");
-        try{Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);}finally{await provider.DeActivateProviderAsync();}
+        try{
+            var activation=await provider.ActivateProviderAsync();
+            Assert.IsFalse(activation.IsError,$"Native activation failed: {activation.Message}; cause={activation.Exception?.GetType().FullName}: {activation.Exception?.Message}");
+        }finally{await provider.DeActivateProviderAsync();}
         using var client=Client();foreach(var table in Tables)Assert.AreEqual(0,(await Rows(client,table)).Count,"Nonempty retained table is not disposable: "+table);
         await DurableJson(marker,new{state="verified-empty-before-exclusive-native-suite",endpoint="http://127.0.0.1:18000",tables=Tables,startedUtc=DateTime.UtcNow});
     }

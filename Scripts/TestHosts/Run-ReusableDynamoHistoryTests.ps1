@@ -63,17 +63,8 @@ try{
         & dotnet build $build --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Cached producer/consumer build failed.'}
     }
-    & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput (Join-Path (Split-Path $project) 'bin/Debug/net10.0')
-    $java=(Get-Command java -ErrorAction Stop).Source
-    $owned=Start-Process -FilePath $java -ArgumentList @("-Djava.library.path=$runtime/DynamoDBLocal_lib",'-jar',"$runtime/DynamoDBLocal.jar",'-dbPath',$data,'-sharedDb','-disableTelemetry','-port','18000') -WindowStyle Hidden -WorkingDirectory $runtime -PassThru -RedirectStandardOutput (Join-Path $work 'native-current.log') -RedirectStandardError (Join-Path $work 'native-current.err')
-    $deadline=[DateTime]::UtcNow.AddSeconds(20)
-    do{
-        if($owned.HasExited){throw 'Retained runtime exited before readiness.'}
-        $listener=Get-NetTCPConnection -State Listen -LocalPort 18000 -ErrorAction SilentlyContinue
-        if($listener){if($listener.OwningProcess -ne $owned.Id){throw 'Listener is not owned runtime.'};break}
-        Start-Sleep -Milliseconds 200
-    }while([DateTime]::UtcNow -lt $deadline)
-    if(!$listener){throw 'Owned runtime readiness timeout.'}
+    & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput (Join-Path (Split-Path $project) 'bin/Debug/net10.0') -VerifySourceDocuments
+    $owned=& (Join-Path $PSScriptRoot 'Use-ReusableDynamoContainer.ps1')
     $env:DYNAMODB_SERVICE_URL='http://127.0.0.1:18000';$env:OASIS_DYNAMO_HISTORY_WORK=$work;$started=[DateTime]::UtcNow
     if($EncryptedProcess){
         foreach($phase in @('write','recover')){
@@ -197,6 +188,6 @@ try{
 }finally{
     $env:DYNAMODB_SERVICE_URL=$previousEndpoint;$env:OASIS_DYNAMO_HISTORY_WORK=$previousWork
     $env:OASIS_AWS_CLEANUP_AUTHORITY=$previousCleanup
-    if($owned -and !$owned.HasExited){Stop-Process -Id $owned.Id;$owned.WaitForExit(5000)|Out-Null}
-    $lease.Dispose()
+    try{if($owned){& (Join-Path $PSScriptRoot 'Use-ReusableDynamoContainer.ps1') -Stop}}
+    finally{$lease.Dispose()}
 }
