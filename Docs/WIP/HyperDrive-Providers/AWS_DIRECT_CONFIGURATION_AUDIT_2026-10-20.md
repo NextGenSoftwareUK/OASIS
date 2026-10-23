@@ -28,6 +28,8 @@ Follow-up source audit while awaiting shared producer slot (NOT yet a reproduced
 
 Cosmos follow-up now independently reproduced/fixed at client query boundary (six red→full261green), then native62 exposed separate service number narrowing; original single fixture is preserved and native gate remains OPEN. See [exact current evidence/next steps](COSMOSDB_RECORD_HISTORY.md). Neo/SQLite findings above remain unproven risks, not silently labelled fixed.
 
+Subsequent scoped follow-ups: Cosmos numeric storage narrowing now fixed with explicit shared wire codec and full983Shared/261Cosmos/native62green; original synthetic row reconciled without replay (current Cosmos report supersedes historical open note above). Neo acknowledgement guard ALSO independently reproduced6falseacceptances→lossless-parser fix/full322controls/native265green; [exact scope/proof](HYPERDRIVE_V2_FOUR_PROVIDER_INTERFACE_ACCEPTANCE.md). SQLite extension parsing remains an unproven source-audit risk, not labelled fixed by those other stores' results.
+
 ## 2026-10-23 current Core23 native134 — PASS; hosted gates still open
 
 Batch83268 actualterminal0: existing real AWSSDK3.7.400.15 against retained DynamoDB Local1.25.1 passed134/134, zero skipped,72seconds. Empty-table admission1/1 and exact conditional cleanup1/1 passed separately;65 owned rows inventoried/conditionally deleted, returned originals compared and independent native absence/empty scans verified. Pending0, owned service exited and Windows ports18000/18001 absent. This is local AWS-adapter acceptance, NOT hosted IAM/STS/SSO/TLS/cost certification or universal interface/V2 completion.

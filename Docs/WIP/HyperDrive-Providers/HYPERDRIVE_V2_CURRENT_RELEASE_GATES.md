@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Neo acknowledgement scalar false-success gate — 23 October 2026
+
+Actual identity/graph-write comparison guard normalized both payloads through default JSON parsing and could accept different metadata. Six actual-guard cases reproduced false acceptance (Avatar/detail/holon ×date/number); TWO parses now use existing lossless parser and same canonical equality. Full322controls/native265 PASS0skip, unchanged exact-payload clones accepted, altered values rejected; native raw current/v1 snapshots/API archive scalars verified, pending0/service stopped. [Scope/cohorts/exact proof](HYPERDRIVE_V2_FOUR_PROVIDER_INTERFACE_ACCEPTANCE.md). No format/Core/Shared/config change or blanket all-interface/hosted/V2 certification.
+
 ## Cosmos exact-number local gate — 23 October 2026
 
 Client query corruption reproduced6red→261controls green; native storage separately narrowed a high-precision number. Exact original synthetic row was reviewed/ETag-cleaned without replay. Shared Binary64JsonNumberCodec now preserves unsafe literals in explicit native wire envelope, restoring canonical/API numbers before point/query/ack/history/metadata matching. Current fullShared983/fullCosmos261/native62 PASS0skip, CoreE6E7/712 Shared4D9CA750/55 verified. Native proof includes currentv2/archivev1, raw wire string vs restored numeric value, metadata selector, exact cleanup/pending0/service stopped. [Proof/limits](COSMOSDB_RECORD_HISTORY.md). Demonstrated local data-loss gate closed ONLY; hosted IAM/TLS/RUs/fees/arbitrary native numeric range/full-provider/V2/all-provider gates remain OPEN, other providers unchanged, no dev deployment claimed.
