@@ -91,3 +91,9 @@ HolonType/ProviderType and nullable metadata domains now use defined integer ide
 ## GUID metadata checkpoint — 21 October 2026
 
 Guid/Guid? canonical text domains now use one safe native guard/value owner for equality, membership, fields and ordering. Full307 controls and expanded native64 regression pass, zero skips;20 declared copies match. [Detailed contract and stable feature evidence](CQL_SCALAR_METADATA.md#neo4j-guid-metadata--21-october-2026). This cohort also renews the existing enum/narrow assertions. Date metadata and native resource/fault acceptance remain open.
+
+## Native Select — 23 October 2026
+
+Neo4j now implements the shared `ICosmicQueryProjectionStorageProvider` contract through V2 `HolonManager.ExecuteProjectionQueryAsync`. The same native source/operand owners apply protection, relationship matching and ordering/windowing before scalar selection. Selected values validate exact CLR domains and are detached before Core constructs result DTOs. Read-committed ownership and explicit snapshot rejection remain unchanged; graph output limits do not cap projected roots. Actual-fetch cancellation/deadline controls publish nothing and allow fresh reuse. Prompt blocked-I/O interruption is still open.
+
+Initial unit328/native81 pass after a genuine missing-interface red batch. Final fullunit328/joint native-WEB4 147 pass unskipped on the updated production binary, including18new native projection controls and actual cursor-buffer inspections. [Usage and provider limits](CQL_MANUAL.md#neo4j-select-availability), [implementation/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#neo4j-native-projection-slice--23-october-2026).
