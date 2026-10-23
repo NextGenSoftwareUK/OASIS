@@ -10,6 +10,21 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 [TestClass]
 public class CosmicQueryAdmissionTests
 {
+    [TestMethod]
+    public async Task GraphAdmissionUsesTheNativeProviderContractBeforeSessionCreation()
+    {
+        var driver=DispatchProxy.Create<IDriver,NoIo>();
+        var provider=new Neo4jOASIS("bolt://owned.invalid","owned","owned",()=>driver);
+        var query=CosmicQuery<Holon>.Create().WithChildren(CosmicQueryGraphOptions.Create(maxChildDepth:2).Result);
+        Assert.IsFalse(query.IsError,query.Message);
+        var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.Neo4jOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.Neo4jOASIS,Neo4jOASIS.CqlCapabilities)});
+        Assert.IsFalse(plan.IsError,plan.Message);
+        var result=await provider.ExecuteCosmicQueryAsync(plan.Result);
+        Assert.AreEqual("CQL_PROVIDER_INACTIVE",result.ErrorCode);
+        Assert.AreEqual(0,((NoIo)driver).Calls);
+    }
+
     public class NoIo : DispatchProxy
     {
         public int Calls;

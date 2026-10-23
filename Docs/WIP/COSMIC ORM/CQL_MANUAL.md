@@ -2,9 +2,9 @@
 
 22 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
 
-## SQLite and MongoDB SDK child graphs
+## SQLite, MongoDB and Neo4j SDK child graphs
 
-SQLite and MongoDB support immutable `WithChildren(options)` query composition. Both native SDK graph readers are certified; MongoDB104 native and31 admission cases pass, including16 graph cases. Create options with `CosmicQueryGraphOptions.Create(recursive: true, maxChildDepth: 2, childType: HolonType.All, maximumNodes: 1000)` and check its OASISResult before passing Result to WithChildren. Check the resulting query/plan before executing through the usual generic HolonManager pipeline. Apply root Where/OrderBy/Skip/Take as usual: expansion occurs after the root page is selected.
+SQLite, MongoDB and Neo4j support immutable `WithChildren(options)` query composition. SQLite/Mongo native graph readers are certified under snapshot semantics; Neo4j native81/unit31 and joint82 cases also pass under its documented read-committed semantics. These are provider-specific guarantees, not portable snapshot admission. Create options with `CosmicQueryGraphOptions.Create(recursive: true, maxChildDepth: 2, childType: HolonType.All, maximumNodes: 1000)` and check its OASISResult before passing Result to WithChildren. Check the resulting query/plan before executing through the usual generic HolonManager pipeline. Apply root Where/OrderBy/Skip/Take as usual: expansion occurs after the root page is selected.
 
 For example, with the selected root IDs already stored in a local `rootIds` array:
 
@@ -37,7 +37,7 @@ if (query.IsError)
 
 Roots are depth zero. Depth one includes immediate children; zero means recursion within the explicit node/payload budgets. `recursive: false` reads immediate children only. `WithoutChildren()` restores leaf shape. Node and byte limits apply to the whole selected graph; exceeding them rejects the query rather than truncating it. Filtered/depth-boundary results retain omitted membership and cannot replace unobserved relationships on a child-selecting save. Use `saveChildren: false` for root-only edits.
 
-SQLite reads roots/children from one deferred Serializable snapshot. Existing caller transactions must also be Serializable and remain caller-owned. MongoDB uses one snapshot session across root/child commands; the tested environment is Mongo8.3.11 replica set with driver3.12.0. Neo4j graph capability and HTTP graph transport are still pending; the three-provider v1 examples below continue to demonstrate the certified leaf API. [Graph details and evidence](CQL_GRAPH_LOADING.md).
+SQLite reads roots/children from one deferred Serializable snapshot. Existing caller transactions must also be Serializable and remain caller-owned. MongoDB uses one snapshot session across root/child commands; the tested environment is Mongo8.3.11 replica set with driver3.12.0. Neo4j uses one read-committed native transaction; committed child updates between commands may be visible, so this is not a repeatable snapshot. Its driver checks cancellation between native awaits and before publication, with a30-second transaction timeout. HTTP graph transport is still pending; the three-provider v1 examples below continue to demonstrate the certified leaf API. [Graph details and evidence](CQL_GRAPH_LOADING.md).
 
 ## Run a demonstration
 
@@ -114,7 +114,7 @@ The full runnable source handles errors and verifies returned rows. A local SDK 
 
 ## WEB4 v1 request
 
-Child graph work is in progress: [Core publication, certified SQLite SDK expansion and remaining Mongo/Neo work](CQL_GRAPH_LOADING.md). Neo4j native execution and v1 HTTP remain leaf-only.
+Child graph work is in progress: [Core publication, certified SQLite SDK expansion and remaining Mongo/Neo work](CQL_GRAPH_LOADING.md). All three native SDK adapters support graphs; v1 HTTP remains leaf-only.
 
 ```json
 {
