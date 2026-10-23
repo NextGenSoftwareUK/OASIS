@@ -1,5 +1,7 @@
 param(
     [switch]$InspectReadConnections,
+    [switch]$ReconcileReadOutage,
+    [ValidateSet('Provider','Native')][string]$ReadConnectionPath='Provider',
     [ValidateRange(1,400)][int]$ReadConnectionIterations=50,
     [switch]$ReadAcknowledgementOrder,
     [switch]$ReadAcknowledgementStress,
@@ -12,12 +14,13 @@ param(
     [switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,
     [switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions
 )
-$selectedModes=@($InspectReadConnections,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
+$selectedModes=@($InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions).Where({$_.IsPresent}).Count
 if($selectedModes -gt 1){throw 'Choose one original reconciliation mode.'}
 if(!$InspectReadConnections -and $ReadConnectionIterations -ne 50){throw 'A custom read workload requires the explicitly read-only inspection mode.'}
+if(!$InspectReadConnections -and $ReadConnectionPath -ne 'Provider'){throw 'A native connection control requires the explicitly read-only inspection mode.'}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/OracleCurrent'
@@ -27,10 +30,12 @@ $previousConnection=$env:ORACLEDBOASIS_CONNECTIONSTRING;$previousWork=$env:OASIS
 $previousAmbiguity=$env:OASIS_ORACLE_RECONCILE_AMBIGUITY
 $previousSchemaUpgrade=$env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE
 $previousReadIterations=$env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS
+$previousReadPath=$env:OASIS_ORACLE_READ_CONNECTION_PATH
+$previousReadReconciliation=$env:OASIS_ORACLE_RECONCILE_READ_OUTAGE
 $startedHere=$false;$passed=$false
 try{
     $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
-    if($InspectReadConnections){
+    if($InspectReadConnections -or $ReconcileReadOutage){
         if($pending.Count -ne 1 -or $pending[0].Name -ne 'read-acknowledgements.pending.json'){throw 'Exactly the preserved read-ack original intent required.'}
         if((Get-FileHash (Join-Path $work 'read-acknowledgements.pending.json')).Hash -ne 'C83043A1A52487CB881ADE96B9038C328F78052CCC6DE126DCDB82D1043DA198' -or
            (Get-FileHash (Join-Path $work 'read-acknowledgements-failure.json')).Hash -ne '470441EA9F0D9062305760949A92C303574FD668AF8CAD3369586B92E87F3F68'){throw 'Original read evidence changed; inspection refused.'}
@@ -52,7 +57,7 @@ try{
         & dotnet build (Join-Path $root $project) --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Cached Oracle build failed.'}
     }
-    & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0'
+    & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0' -VerifySourceDocuments
     $state=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Status}}' oasis-oracle-free).Trim()
     if($state -eq 'exited'){
         & wsl -d Ubuntu -u root -- podman start oasis-oracle-free
@@ -69,9 +74,14 @@ try{
     if($health -ne 'healthy'){throw 'Retained Oracle readiness timeout; no restart/reset.'}
     $secret=(& wsl -d Ubuntu -u root -- podman secret inspect --showsecret oasis-oracle-pwd | ConvertFrom-Json)[0].SecretData
     if([string]::IsNullOrWhiteSpace($secret)){throw 'Retained secret unavailable.'}
-    $env:ORACLEDBOASIS_CONNECTIONSTRING="User Id=SYSTEM;Password=$secret;Data Source=127.0.0.1:11521/FREEPDB1;Connection Timeout=10;Pooling=false"
+    # Use normal SDK connection reuse, bounded for the retained local server.
+    # Forced per-call physical logons reproduced listener admission saturation;
+    # the explicit native diagnostic still exercises that negative control.
+    $env:ORACLEDBOASIS_CONNECTIONSTRING="User Id=SYSTEM;Password=$secret;Data Source=127.0.0.1:11521/FREEPDB1;Connection Timeout=10;Pooling=true;Min Pool Size=0;Max Pool Size=16"
     $env:OASIS_ORACLE_TEST_WORK=$work;$env:OASIS_ORACLE_RESUME_CANONICAL=if($ReconcileOriginal){'1'}else{$null}
     $env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS=if($InspectReadConnections){$ReadConnectionIterations.ToString([Globalization.CultureInfo]::InvariantCulture)}else{$null}
+    $env:OASIS_ORACLE_READ_CONNECTION_PATH=if($InspectReadConnections){$ReadConnectionPath}else{$null}
+    $env:OASIS_ORACLE_RECONCILE_READ_OUTAGE=if($ReconcileReadOutage){'1'}else{$null}
     $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=if($ReconcileAmbiguity){'1'}else{$null}
     $env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE=if($UpgradeIdentityCharacters){'1'}else{$null}
     if($EncryptedProcess){
@@ -117,7 +127,8 @@ try{
     if($ReconcileKarmaAssertion){$report='oracle-karma-history-shape-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaHistoryAssertionFixture'}
     if($MissingDeletion){$report='oracle-missing-delete-native-current.trx';$filter='FullyQualifiedName~NativeMissingDeleteIsKnownAbsenceWithoutAcknowledgedMutation'}
     if($ReconcileKarmaProjections){$report='oracle-karma-projection-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaLeaderboardProjectionFixtures'}
-    if($InspectReadConnections){$report='oracle-read-only-connection-current.trx';$filter='FullyQualifiedName~OracleReadOnlyConnectionNativeTests.CompareConnectionAdmissionWithoutReplayingOriginalWrites'}
+    if($InspectReadConnections){$report=if($ReadConnectionPath -eq 'Native'){'oracle-read-only-native-connection-current.trx'}else{'oracle-read-only-connection-current.trx'};$filter='FullyQualifiedName~OracleReadOnlyConnectionNativeTests.CompareConnectionAdmissionWithoutReplayingOriginalWrites'}
+    if($ReconcileReadOutage){$report='oracle-read-ack-outage-reconciliation-current.trx';$filter='FullyQualifiedName~OracleNativeAcceptanceTests.ReconcileKnownReadAcknowledgementConnectionOutage'}
     if(Test-Path -LiteralPath (Join-Path $work $report)){throw 'Preserve the original native report before another run.'}
     $testStarted=[DateTime]::UtcNow
     & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter $filter --logger "trx;LogFileName=$report" --results-directory $work /m:2 /nr:false
@@ -131,6 +142,7 @@ try{
     $reportFile=Get-Item -LiteralPath (Join-Path $work $report)
     [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
     $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){12}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){64}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{492}
+    if($ReconcileReadOutage){$expected=1}
     if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}
     $passed=$true
 }finally{
@@ -138,6 +150,8 @@ try{
     $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=$previousAmbiguity
     $env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE=$previousSchemaUpgrade
     $env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS=$previousReadIterations
+    $env:OASIS_ORACLE_READ_CONNECTION_PATH=$previousReadPath
+    $env:OASIS_ORACLE_RECONCILE_READ_OUTAGE=$previousReadReconciliation
     if($startedHere -and $passed){& wsl -d Ubuntu -u root -- podman stop --time 30 oasis-oracle-free}
     $lease.Dispose()
 }

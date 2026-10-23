@@ -16,7 +16,9 @@ public sealed class OracleReadOnlyConnectionNativeTests
     public async Task CompareConnectionAdmissionWithoutReplayingOriginalWrites()
     {
         var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
-        var proof=Path.Combine(work,"oracle-read-only-connection.json");Assert.IsFalse(File.Exists(proof));
+        var connectionPath=Environment.GetEnvironmentVariable("OASIS_ORACLE_READ_CONNECTION_PATH")??"Provider";
+        Assert.IsTrue(connectionPath is "Provider" or "Native","Explicit read-only connection path required.");
+        var proof=Path.Combine(work,connectionPath=="Native"?"oracle-read-only-native-connection.json":"oracle-read-only-connection.json");Assert.IsFalse(File.Exists(proof));
         var intent=await File.ReadAllBytesAsync(Path.Combine(work,"read-acknowledgements.pending.json"));
         var failure=await File.ReadAllBytesAsync(Path.Combine(work,"read-acknowledgements-failure.json"));
         Assert.AreEqual("C83043A1A52487CB881ADE96B9038C328F78052CCC6DE126DCDB82D1043DA198",Convert.ToHexString(SHA256.HashData(intent)));
@@ -47,25 +49,47 @@ public sealed class OracleReadOnlyConnectionNativeTests
             return Convert.ToInt64(await command.ExecuteScalarAsync());
         }
         await VerifyOriginals();var outcomes=new List<object>();
-        foreach(var pooled in new[]{false,true})
+        // Native control opens its small SDK pool before applying unpooled churn;
+        // a refusal induced by the latter must not contaminate pool initialization.
+        foreach(var pooled in connectionPath=="Native"?new[]{true,false}:new[]{false,true})
         {
             var profile=new OracleConnectionStringBuilder(connection){Pooling=pooled,MinPoolSize=0,MaxPoolSize=4};
             var provider=new OracleDBOASIS(profile.ConnectionString);
             var failures=new List<object>();int attempted=0,bad=0;var logonsBefore=await Logons();var watch=Stopwatch.StartNew();
+            void RecordFailure(bool isError,string? errorCode,Exception? exception)
+            {
+                bad++;if(failures.Count>=32)return;
+                var chain=new List<object>();
+                for(var error=exception;error!=null&&chain.Count<8;error=error.InnerException)
+                    chain.Add(new{type=error.GetType().FullName,error.HResult,
+                        oracleNumber=error is OracleException oracle?(int?)oracle.Number:null,
+                        socketCode=error is System.Net.Sockets.SocketException socket?(int?)socket.SocketErrorCode:null});
+                failures.Add(new{attempted,IsError=isError,ErrorCode=errorCode,exceptionChain=chain});
+            }
             void Observe<T>(OASISResult<T> result,Guid expected)
             {
                 attempted++;
                 if(!result.IsError&&result.Result is IHolonBase record&&record.Id==expected)return;
-                bad++;if(failures.Count>=32)return;
-                var chain=new List<object>();
-                for(var error=result.Exception;error!=null&&chain.Count<8;error=error.InnerException)
-                    chain.Add(new{type=error.GetType().FullName,error.HResult,
-                        oracleNumber=error is OracleException oracle?(int?)oracle.Number:null,
-                        socketCode=error is System.Net.Sockets.SocketException socket?(int?)socket.SocketErrorCode:null});
-                failures.Add(new{attempted,result.IsError,result.ErrorCode,exceptionChain=chain});
+                RecordFailure(result.IsError,result.ErrorCode,result.Exception);
+            }
+            void ObserveNative()
+            {
+                attempted++;
+                try
+                {
+                    using var probe=new OracleConnection(profile.ConnectionString);probe.Open();
+                    using var command=new OracleCommand("SELECT 1 FROM DUAL",probe){CommandTimeout=5};
+                    if(Convert.ToInt32(command.ExecuteScalar())!=1)throw new InvalidDataException("Native read control returned an unexpected scalar.");
+                }
+                catch(Exception error){RecordFailure(true,null,error);}
             }
             for(int index=0;index<iterations;index++)
             {
+                if(connectionPath=="Native")
+                {
+                    for(int read=0;read<8;read++)ObserveNative();
+                    continue;
+                }
                 Observe(provider.LoadAvatar(ids[0]),ids[0]);Observe(provider.LoadAvatar(ids[0],1),ids[0]);
                 Observe(provider.LoadAvatarDetail(ids[0]),ids[0]);Observe(provider.LoadAvatarDetail(ids[0],1),ids[0]);
                 Observe(provider.LoadHolon(ids[1],loadChildren:false),ids[1]);Observe(provider.LoadHolon(ids[1],loadChildren:false,version:1),ids[1]);
@@ -76,7 +100,7 @@ public sealed class OracleReadOnlyConnectionNativeTests
         }
         CollectionAssert.AreEqual(intent,await File.ReadAllBytesAsync(Path.Combine(work,"read-acknowledgements.pending.json")));
         CollectionAssert.AreEqual(failure,await File.ReadAllBytesAsync(Path.Combine(work,"read-acknowledgements-failure.json")));
-        var bytesProof=JsonSerializer.SerializeToUtf8Bytes(new{schema=1,kind="read-only-connection-admission-control",iterations,originalsUnchanged=true,outcomes});
+        var bytesProof=JsonSerializer.SerializeToUtf8Bytes(new{schema=1,kind="read-only-connection-admission-control",connectionPath,iterations,originalsUnchanged=true,outcomes});
         using(var file=new FileStream(proof,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough))
         {await file.WriteAsync(bytesProof);file.Flush(true);}
         Console.WriteLine(Encoding.UTF8.GetString(bytesProof));
