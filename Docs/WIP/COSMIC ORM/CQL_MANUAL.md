@@ -538,4 +538,9 @@ var result = await manager.ExecuteScalarQueryAsync(
     new ICosmicQueryStorageProvider[] { adapter });
 ```
 
-Handle each OASISResult error before using Result in application code. Max uses the same API. Negative/exact Int64 extrema are valid; wrong types and malformed participating values error. Date comparisons retain UTC ticks. Initial and expanded native controls pass as detailed in the contract; full SQLite regression passes1,318tests with zero skips (2m9s), including all33new Min/Max cases. MongoDB/Neo4j and HTTP selected extrema remain pending. [Native semantics/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-minmax-slice).
+Handle each OASISResult error before using Result in application code. Max uses the same API. Negative/exact Int64 extrema are valid; wrong types and malformed participating values error. Date comparisons retain UTC ticks. Initial and expanded native controls pass as detailed in the contract; full SQLite regression passes1,318tests with zero skips (2m9s), including all33new Min/Max cases. The same SDK API now works on MongoDB: its final native CQL matrix passes 124 tests and its full provider unit suite passes 237, with zero skips, including all 33 new Min/Max cases. Neo4j and HTTP selected extrema remain pending. [Native semantics/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-minmax-slice).
+
+
+### MongoDB selected extrema
+
+The typed Min/Max example above also applies to the MongoDB adapter. Plan with that adapter's actual QueryCapabilities and ScalarCapabilities, then execute through HolonManager's existing scalar query API. Required empty sequences report `CQL_EMPTY_SEQUENCE`; nullable/string empty sequences return null. A wrong participating value reports `CQL_DATA_INVALID`, even when another row would win. Source ordering/paging, visibility and traversal validation keep their existing semantics. The manager does not load entities to calculate extrema. [Native implementation and acceptance](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-minmax-slice).

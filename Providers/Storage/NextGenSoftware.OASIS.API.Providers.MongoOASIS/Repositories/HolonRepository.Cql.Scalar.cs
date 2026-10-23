@@ -9,10 +9,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 
 public partial class HolonRepository
 {
-    internal async Task<long> ExecuteNativeCqlCountAsync(MongoCqlScalarCommand command, CancellationToken cancellationToken)
+    internal Task<long> ExecuteNativeCqlCountAsync(MongoCqlScalarCommand command, CancellationToken cancellationToken)
+        => ExecuteNativeCqlScalarAsync(command, ReadNativeCqlCount, 0L, cancellationToken);
+
+    private async Task<TValue> ExecuteNativeCqlScalarAsync<TValue>(MongoCqlScalarCommand command,
+        Func<BsonDocument, TValue> decode, TValue empty, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (command.IsEmpty) return 0;
+        if (command.IsEmpty) return empty;
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
         var elapsed = System.Diagnostics.Stopwatch.StartNew();
@@ -38,17 +42,17 @@ public partial class HolonRepository
                 ? await _dbContext.Holon.AggregateAsync<BsonDocument>(command.Pipeline, Options(), deadline.Token).ConfigureAwait(false)
                 : await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Pipeline, Options(), deadline.Token).ConfigureAwait(false);
             var observed = false;
-            long count = 0;
+            var value = empty;
             while (await cursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
                 foreach (var document in cursor.Current)
                 {
                     deadline.Token.ThrowIfCancellationRequested();
-                    if (observed) throw new InvalidDataException("A scalar count returned multiple native values.");
-                    count = ReadNativeCqlCount(document);
+                    if (observed) throw new InvalidDataException("A scalar returned multiple native values.");
+                    value = decode(document);
                     observed = true;
                 }
             deadline.Token.ThrowIfCancellationRequested();
-            return count;
+            return value;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
         { throw new MongoCqlGraphTimeoutException(); }
