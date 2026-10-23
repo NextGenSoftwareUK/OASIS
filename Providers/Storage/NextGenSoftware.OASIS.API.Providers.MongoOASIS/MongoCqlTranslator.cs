@@ -14,7 +14,7 @@ internal sealed partial class MongoCqlTranslator
     {
         var admitted=MongoCqlContract.Capabilities.Admit(query);
         if(admitted.IsError)throw new NotSupportedException(admitted.Message);
-        var predicates=query.Predicates.Where(predicate=>predicate is not CosmicQueryAnyChild).Select(predicate=>Translate(predicate,0)).ToArray();
+        var predicates=query.Predicates.Where(predicate=>predicate is not CosmicQueryAnyChild && predicate is not CosmicQueryAnyDescendant).Select(predicate=>Translate(predicate,0)).ToArray();
         var expression=predicates.Length==0?Literal(true):Op("$and",predicates);
         var filter=new BsonDocument("$expr",expression);
         var pending=new Stack<(BsonValue Value,int Depth)>();pending.Push((filter,0));

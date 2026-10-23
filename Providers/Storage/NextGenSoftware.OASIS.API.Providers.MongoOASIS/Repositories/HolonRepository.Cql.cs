@@ -57,7 +57,18 @@ public partial class HolonRepository
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if(rows.Count>=maximumResults)throw new MongoCqlLimitException();
-                var payload=document.ToBson();bytes+=payload.Length;
+                // Every descendant result is a provider-owned envelope. Persisted
+                // user field names cannot forge traversal errors or shadow rows.
+                var row=document;
+                if(command.HasTraversalEnvelope)
+                {
+                    var error=document["error"].AsInt32;
+                    if(error==1)throw new System.IO.InvalidDataException("MongoDB CQL encountered a descendant cycle or conflicting logical identity.");
+                    if(error==2)throw new MongoCqlLimitException();
+                    if(error!=0)throw new System.IO.InvalidDataException("MongoDB CQL traversal returned an invalid outcome.");
+                    row=document["row"].AsBsonDocument;
+                }
+                var payload=row.ToBson();bytes+=payload.Length;
                 if(bytes>maximumBytes)throw new MongoCqlLimitException();
                 reserveNativeBytes?.Invoke(payload.Length);
                 var native=BsonSerializer.Deserialize<Entities.Holon>(payload);

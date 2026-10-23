@@ -1,6 +1,6 @@
 # CQL developer manual
 
-22 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
+23 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
 
 ## Partial typed child roles
 
@@ -29,7 +29,7 @@ if (query.IsError)
 
 The binding is retained by scope and window composition; a later actor cannot replace it. The mandatory predicate runs natively before paging. Core checks detached rows before typed constructors and rejects visibility violations as a whole result. Metadata labels such as sharedWith/tenantRole are not grants under this owner/public rule. Creating an SDK policy does not authenticate a caller or grant storage credentials.
 
-Access-bound graphs currently reject CQL_GRAPH_ACCESS_UNSUPPORTED. Native child enforcement, incomplete custom-role hydration and membership-safe public transport are still required; a root predicate alone cannot authorize descendants. Existing trusted unbound SDK graphs keep their documented contract. Shared-recipient/tenant authorization remains separate unfinished work.
+Access-bound graphs enforce the same owner/public policy at each native child hop on MongoDB, SQLite and Neo4j. Selected registered roles retain complete private membership observations; HTTP returns bounded public graph DTOs. Shared-recipient/tenant authorization remains separate unfinished work.
 
 ## SQLite, MongoDB and Neo4j SDK child graphs
 
@@ -289,4 +289,4 @@ Use WhereAnyChild(child=>child.Name=="match") before root ordering/Skip/Take. Th
 
 HTTP child existence uses up to four anyChildren groups; the twelve-filter budget is shared with roots. Server actor visibility applies before relationship matching and root paging. See [complete JSON example and limits](CQL_V1_HTTP_CONTRACT.md#direct-child-existence-over-http). The numbered SDK/HTTP demos now include example5 for independent visible siblings on every provider.
 
-WhereAnyDescendant has a generic bounded contract with explicit traversal limits. SQLite and Neo4j declare DescendantExists (depth32/nodes10000); Mongo rejects until its native owner is implemented. Neo descendant execution requires Neo4j5.9+ (certified5.26.12) and retains read-committed semantics. Scope overflow returns CQL_QUERY_LIMIT without partial rows. Descendant intent does not load child graphs; HTTP descendant groups remain pending. [Contract](CQL_DESCENDANT_CONTRACT.md).
+WhereAnyDescendant has a generic bounded contract with explicit traversal limits. MongoDB, SQLite and Neo4j declare DescendantExists (depth 32/nodes 10000). Mongo retains snapshot semantics with flat native breadth traversal (certified Mongo8.3). Neo descendant execution requires Neo4j5.9+ (certified5.26.12) and retains read-committed semantics. Scope overflow returns CQL_QUERY_LIMIT without partial rows. Descendant intent does not load child graphs; HTTP descendant groups remain pending. [Contract](CQL_DESCENDANT_CONTRACT.md).
