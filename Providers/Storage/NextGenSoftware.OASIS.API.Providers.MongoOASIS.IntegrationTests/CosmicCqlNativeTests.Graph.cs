@@ -136,17 +136,24 @@ public sealed partial class CosmicCqlNativeTests
         });
 
     [Theory]
-    [InlineData(false)] [InlineData(true)]
-    public Task NativeCqlGraphPartialViewsCannotReplaceUnseenChildren(bool manifest)
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)] [InlineData(true,true)]
+    public Task NativeCqlGraphPartialViewsCannotReplaceUnseenChildren(bool manifest,bool accessBound)
         =>WithMongoGraph(async fixture=>
         {
             var manager=Manager(fixture.Provider);
-            var plan=MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create(childType:HolonType.Quest,maxChildDepth:1).Result);
+            var policy=accessBound?CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result:null;
+            var shape=CosmicQueryGraphOptions.Create(maxChildDepth:1,childType:accessBound?HolonType.All:HolonType.Quest).Result;
+            var baseline=await fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result));
+            if(baseline.IsError)throw new InvalidOperationException(baseline.Message);
+            var childState=baseline.Result.Single().Children.ToDictionary(child=>child.Id,
+                child=>(child.Version,CosmicConcurrency.GetProviderRevisionId(child,ProviderType.MongoDBOASIS)));
+            var plan=MongoGraphPlan(fixture.Root,shape,policy);
             ICosmicQueryStorageProvider adapter=fixture.Provider;
             var read=await manager.ExecuteQueryAsync(plan,new[]{adapter});
             Assert.False(read.IsError,read.Message+read.Exception);
             var root=Assert.Single(Assert.Single(read.Result.Providers).Rows);
             Assert.Equal(HolonType.Quest,Assert.Single(root.Children).HolonType);
+            root.AcceptChanges();
             root.Name+=" edited";
             var version=root.Version;
             var rejected=await manager.SaveHolonAsync(root,Guid.NewGuid(),saveChildren:true,providerType:ProviderType.MongoDBOASIS);
@@ -160,7 +167,10 @@ public sealed partial class CosmicCqlNativeTests
             var fresh=await fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result));
             Assert.False(fresh.IsError,fresh.Message+fresh.Exception);
             Assert.Equal(2,Assert.Single(fresh.Result).Children.Count());
-        },manifest:manifest);
+            foreach(var child in fresh.Result.Single().Children)
+                Assert.Equal(childState[child.Id],(child.Version,CosmicConcurrency.GetProviderRevisionId(child,ProviderType.MongoDBOASIS)));
+            Assert.Equal(version+1,fresh.Result.Single().Version);
+        },manifest:manifest,configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=true;});
 
     [Theory]
     [InlineData(false)] [InlineData(true)]

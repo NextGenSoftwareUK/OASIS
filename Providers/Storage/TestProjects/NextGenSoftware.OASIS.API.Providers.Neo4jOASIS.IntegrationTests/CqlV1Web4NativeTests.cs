@@ -112,6 +112,12 @@ public sealed partial class CqlV1Web4NativeTests
                         hidden.Children.Add(new Holon{Id=childIds[3],ParentHolonId=hidden.Id,Name="public behind private",IsPublic=true,CreatedByAvatarId=bob});
                         holon.Children.Add(hidden);
                         holon.Children.Add(new Holon{Id=childIds[2],ParentHolonId=holon.Id,Name="owned child",CreatedByAvatarId=alice,HolonType=HolonType.Cafe});
+                        // This example promises persisted role order, not the GUID
+                        // order used by the older parent-link-only representation.
+                        hidden.ChildRoleManifestJson=NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                            new HolonChildRoleManifest(1,hidden.Id,new[]{new HolonChildRole("Children",new[]{childIds[3]})}));
+                        holon.ChildRoleManifestJson=NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                            new HolonChildRoleManifest(1,holon.Id,new[]{new HolonChildRole("Children",childIds.Take(3).ToArray())}));
                     }
                     var seeded = await provider.SaveHolonAsync(holon, saveChildren: i==3);
                     Assert.IsFalse(seeded.IsError, seeded.Message + seeded.Exception);
