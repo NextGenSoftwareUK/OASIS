@@ -270,20 +270,22 @@ public class CosmicQueryGraphExecutionTests
                 }) };
     }
 
-    [Fact]
-    public async Task ARegisteredChildFactoryReceivesDecryptedMetadataBeforeTracking()
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task ARegisteredChildFactoryReceivesDecryptedMetadataBeforeTracking(bool partial)
     {
         var source = Graph();
         var child = source.Children[0];
         child.Children.Clear();
+        if(partial)child.HolonType=HolonType.Quest;
         source.ChildRoleManifestJson = HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
-            1, source.Id, new[] { new HolonChildRole("Children", new[] { child.Id }) }));
+            1, source.Id, new[] { new HolonChildRole("Children", partial?new[]{child.Id,Guid.NewGuid()}:new[] { child.Id }) }));
         var settings = new EncryptionSettings { Rijndael256EncryptionEnabled = true, Rijndael256Key = new string('e', 32) };
         child.MetaData["__oasis_enc__"] = NextGenSoftware.OASIS.API.Core.Helpers.PasswordEncryptionHelper.EncryptValue("{\"secret\":\"mapped child\"}", settings);
         var manager = Manager();
         manager.OASISDNA.OASIS.Security = new SecuritySettings { HolonDataEncryption = settings };
         var adapter = new Adapter(source);
-        var query = CosmicQuery<FactoryRoot>.Create().WithChildren(CosmicQueryGraphOptions.Create().Result).Result;
+        var query = CosmicQuery<FactoryRoot>.Create().WithChildren(CosmicQueryGraphOptions.Create(childType:partial?HolonType.Quest:HolonType.All).Result).Result;
         var plan = CosmicQueryPlanner.Plan(query, adapter.QueryProviderType,
             new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) });
         var result = await manager.ExecuteQueryAsync(plan.Result, new[] { adapter });
