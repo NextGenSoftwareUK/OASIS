@@ -281,3 +281,8 @@ Native tests now verify this on all three providers, both with a stored role man
 ### Registered custom child roles
 
 A trusted owner type declares every role through CaptureChildCollections and GetChildRoleBindings and exposes its complete runtime selection through AllChildren. The same names must match its stored role manifest. Registered typed factories receive admitted/decrypted selected records; they map their child metadata into typed properties. Complete and selected views share the hydration owner, preserving role order and full store observation. A hidden role is an empty selected collection, not permission to delete its omitted records. See the source-linked native contract fixture Scripts/TestHosts/Fixtures/CqlCustomRoleGraph.cs for the owner, typed child and factory registration used by all three suites.
+
+
+## Direct-child existence (SQLite first)
+
+Use WhereAnyChild(child=>child.Name=="match") before root ordering/Skip/Take. The generic Core contract freezes the child expression; native membership/current parent and mandatory child access decide whether the parent matches before paging. SQLite declares ChildExists; Mongo/Neo reject until their native implementations are completed. This does not load child graphs or extend the current HTTP DTO. See [relationship contract/examples](CQL_RELATIONSHIPS.md) for membership/reparenting semantics and remaining work.
