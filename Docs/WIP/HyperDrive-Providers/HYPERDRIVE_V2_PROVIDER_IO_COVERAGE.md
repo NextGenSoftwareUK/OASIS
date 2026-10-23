@@ -1,5 +1,18 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Cross-provider native-key dispatch audit — 23 October 2026, helper verified; adoption pending
+
+Shared prerequisite now exists in Core.Helpers.GuidProviderKeyDeletion, published private Core8d45d35cbd1f7bbeeb10062fcb0a837df0b44ac0. It returns an argument-error OASISResult before invalid-key mutation dispatch and forwards valid GUID/softDelete exactly once, preserving the exact original task/result/fault without retry or rewrap.32 focused/full2091 Core tests and both target-framework builds passed (actual7106 terminal0, build69012). Pre-publication Core722 SHA8564E8A6 source/copy verified; fresh committed producer rebuild required before consumers. Hashes/resource lifecycle in ENVIRONMENT_INVENTORY.md. The29 existing fallback wrappers below still need adoption and verification: helper publication alone is not their repair or native certification.
+
+After the AWS repair, exact source search found29 additional overrides that parse a GUID provider key but dispatch non-GUID input to username deletion. Each affected source also explicitly assigns `avatar.ProviderUniqueStorageKey[ProviderType] = avatar.Id.ToString()` and defines the GUID deletion overload: these adapters advertise GUID native keys, not username aliases. Every corresponding existing project.assets.json is present. This is source evidence of unsafe dispatch, not proof of all vendor operations or runtime availability.
+
+Affected directories under `C:/Source/OASIS/Providers` (each named `NextGenSoftware.OASIS.API.Providers.<name>`, source `<name>.cs`):
+
+- Cloud: CloudflareD1OASIS, ConvexOASIS, FaunaOASIS, NeonOASIS, UpstashOASIS.
+- Storage: AlgoliaOASIS, ArangoDBOASIS, CassandraOASIS, ClickHouseOASIS, CloudinaryOASIS, CockroachDBOASIS, CouchbaseOASIS, ElasticsearchOASIS, InfluxDBOASIS, LitestreamOASIS, MeilisearchOASIS, MemcachedOASIS, MinIOOASIS, OpenSearchOASIS, PouchDBOASIS, QdrantOASIS, QuestDBOASIS, RavenDBOASIS, ScyllaDBOASIS, SolrOASIS, SurrealDBOASIS, TimescaleDBOASIS, TypesenseOASIS, WeaviateOASIS.
+
+Next: one opt-in Core helper for GUID-key deletion validation and exact single dispatch, tested once then consumed by these confirmed GUID-key adapters. Do not globally parse arbitrary provider keys as GUIDs: MongoDB/native object IDs, SOLID private record keys and other opaque key contracts retain their specific owners. Existing priority routes inspected separately: AWS now rejects invalid GUIDs, Google delegates its canonical key owner, SOLID parses its private key, Mongo delegates its repository native key and ActivityPub explicitly rejects generic account deletion. Their source routing alone does not recertify native/cloud acceptance. Core production remains frozen until the peer's live native regression terminates; no helper or29-provider fix is claimed yet.
+
 ## AWS native-key deletion invariant restored — 23 October 2026
 
 Removed DynamoDB's unsafe string provider-key→username fallback. Native provider keys must be nonempty GUIDs; username deletion remains a separate explicit interface.24 controls reproduced20 invalid-dispatch failures and4 valid controls, then all24/full467 units passed. Real retained AWS134+preflight1/cleanup1 and Dynamo163 passed, zero skips (actual28094 terminal0). Existing native cases prove username-shaped invalid key does not delete or alter avatar/detail/XP/karma/inventory, followed by valid GUID-key deletion. No schema change, added SDK call or new environment. Core7219662/Shared55 520F current-source identities, producer13/native25 and matching F3B89A4C provider copy verified. Evidence/cleanup paths in ENVIRONMENT_INVENTORY.md; hosted AWS/cost/global V2 gates remain open.
