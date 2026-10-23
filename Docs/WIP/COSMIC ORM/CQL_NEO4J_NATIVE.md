@@ -97,3 +97,10 @@ Guid/Guid? canonical text domains now use one safe native guard/value owner for 
 Neo4j now implements the shared `ICosmicQueryProjectionStorageProvider` contract through V2 `HolonManager.ExecuteProjectionQueryAsync`. The same native source/operand owners apply protection, relationship matching and ordering/windowing before scalar selection. Selected values validate exact CLR domains and are detached before Core constructs result DTOs. Read-committed ownership and explicit snapshot rejection remain unchanged; graph output limits do not cap projected roots. Actual-fetch cancellation/deadline controls publish nothing and allow fresh reuse. Prompt blocked-I/O interruption is still open.
 
 Initial unit328/native81 pass after a genuine missing-interface red batch. Final fullunit328/joint native-WEB4 147 pass unskipped on the updated production binary, including18new native projection controls and actual cursor-buffer inspections. [Usage and provider limits](CQL_MANUAL.md#neo4j-select-availability), [implementation/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#neo4j-native-projection-slice--23-october-2026).
+
+
+## Neo4j selected Min/Max — 23 October 2026
+
+Native Min/Max now executes through Neo4j's existing scalar owner, sharing projection guards and exact decoding. Final acceptance: **111 native CQL tests plus 328 provider unit tests, zero skips**, including all 28 new cases. The 18 supported reference vectors pass; UTC DateTime reads remain unsupported and borrowed date permissions are rejected before fetch. Read-committed semantics, blocked-I/O interruption and native character-count wire-bound limitations remain explicit. [Implementation and exact evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#neo4j-native-minmax-slice).
+
+Next: selected-scalar HTTP and demonstrations, followed by the remaining aggregate/read-domain and CQL/ORM gates. This does not complete the full roadmap.
