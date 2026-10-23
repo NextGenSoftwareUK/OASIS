@@ -9,7 +9,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 internal sealed class NeoCqlTranslator
 {
-    internal readonly Dictionary<string, object> Parameters = new(StringComparer.Ordinal);
+    internal readonly Dictionary<string, object> Parameters;
+    private readonly string _node;
+    private readonly string _projection;
+    private readonly CosmicQueryReadAccess _access;
+    internal NeoCqlTranslator(CosmicQueryReadAccess access=null):this("h","p",new Dictionary<string,object>(StringComparer.Ordinal),access){}
+    private NeoCqlTranslator(string node,string projection,Dictionary<string,object> parameters,CosmicQueryReadAccess access)
+    {_node=node;_projection=projection;Parameters=parameters;_access=access;}
     private string Bind(object value)
     {
         if (Parameters.Count >= 900) throw new NotSupportedException("Neo4j CQL exceeds its 900-parameter budget.");
@@ -25,12 +31,12 @@ internal sealed class NeoCqlTranslator
             if (!new[] { "Id", "Name", "Description", "Version", "HolonType", "IsActive", "IsPublic", "ParentHolonId", "VersionId",
                 "PreviousVersionId", "CreatedByAvatarId", "ModifiedByAvatarId" }.Contains(name, StringComparer.Ordinal))
                 throw new NotSupportedException("Neo4j CQL canonical path is unsupported.");
-            var column = "p[" + Bind("f_" + name) + "]";
+            var column = _projection+"[" + Bind("f_" + name) + "]";
             return (column, "true", column + " IS NULL");
         }
         var key = NeoCqlProjection.PathKey(path.Segments);
-        var kind = "p[" + Bind(key + "_kind") + "]";
-        var value = "p[" + Bind(key + "_value") + "]";
+        var kind = _projection+"[" + Bind(key + "_kind") + "]";
+        var value = _projection+"[" + Bind(key + "_value") + "]";
         var type = Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType;
         string guard;
         if (type == typeof(string)) guard = kind + "='string'";
@@ -73,7 +79,7 @@ internal sealed class NeoCqlTranslator
         {
             var operand=Operand(ordering.Path);
             var rank=ordering.Path.IsMetadata
-                ? "CASE WHEN p["+Bind(NeoCqlProjection.PathKey(ordering.Path.Segments)+"_kind")+"] IS NULL THEN 0 WHEN "+operand.Null+
+                ? "CASE WHEN "+_projection+"["+Bind(NeoCqlProjection.PathKey(ordering.Path.Segments)+"_kind")+"] IS NULL THEN 0 WHEN "+operand.Null+
                     " THEN 1 WHEN "+operand.Guard+" THEN 2 ELSE 3 END"
                 : "CASE WHEN "+operand.Null+" THEN 1 ELSE 2 END";
             keys.Add((rank,ordering.Descending));
@@ -86,6 +92,27 @@ internal sealed class NeoCqlTranslator
     {
         switch (predicate)
         {
+            case CosmicQueryAnyChild child:
+            {
+                var suffix=Parameters.Count.ToString(CultureInfo.InvariantCulture);
+                var node="rh"+suffix;var projection="rp"+suffix;
+                var inner=new NeoCqlTranslator(node,projection,Parameters,_access);
+                var visibility="true";
+                if(_access!=null)
+                {
+                    var secured=CosmicQuery<Core.Holons.Holon>.Create().WithReadAccess(_access);
+                    if(secured.IsError)throw new NotSupportedException(secured.Message);
+                    visibility=inner.Translate(secured.Result.Predicates.Single());
+                }
+                var match=inner.Translate(child.Predicate);
+                return "EXISTS { MATCH ("+_node+")-[:HAS_CHILD]->("+node+":Holon)-["+projection+":HAS_CQL_PROJECTION]->("+node+") "
+                    +"WHERE "+projection+".SchemaVersion="+NeoCqlProjection.SchemaVersion.ToString(CultureInfo.InvariantCulture)
+                    +" AND "+projection+".f_Id=toLower("+node+".Id) AND "+projection+".f_Id<>"+_projection+".f_Id"
+                    +" AND "+projection+".f_ParentHolonId="+_projection+".f_Id"
+                    +" AND coalesce("+projection+".ProviderRevisionId,'')=coalesce("+node+".ProviderRevisionId,'')"
+                    +" AND (NOT "+_projection+".f_HasChildManifest OR "+projection+".f_Id IN "+_projection+".f_ChildIds)"
+                    +" AND ("+visibility+") AND ("+match+") }";
+            }
             case CosmicQueryBoolean constant: return constant.Value ? "true" : "false";
             case CosmicQueryLogical logical:
                 return "(" + Translate(logical.Left) + (logical.IsAnd ? " AND " : " OR ") + Translate(logical.Right) + ")";
@@ -104,7 +131,7 @@ internal sealed class NeoCqlTranslator
                 else fieldTest = Total(left.Value + Symbol(fields.Operator) + right.Value);
                 return Total(leftValid + " AND " + rightValid + " AND (" + fieldTest + ")");
             case CosmicQueryMetadataTest test:
-                var kind = "p[" + Bind(NeoCqlProjection.PathKey(test.Segments) + "_kind") + "]";
+                var kind = _projection+"[" + Bind(NeoCqlProjection.PathKey(test.Segments) + "_kind") + "]";
                 return test.Kind == CosmicQueryMetadataTestKind.Exists ? "(" + kind + " IS NOT NULL)" : Total(kind + "='null'");
             case CosmicQueryComparison comparison:
                 var operand = Operand(comparison.Path);

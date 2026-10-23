@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — Neo4j native child existence verified
+
+Neo4j now implements WhereAnyChild with native HAS_CHILD correlation, schema3 canonical role membership, current parent/revision and child visibility checks before root paging. Existing activation migration upgrades projections without changing canonical snapshots. Unit314/joint96 pass unskipped, completed-fixture reconciliation1 passed; source/PDB711Core/54Shared match. Owned fixtures removed and reusable services stopped. Mongo native direct-child support, descendant predicates and the full roadmap remain open. See [relationship contract](CQL_RELATIONSHIPS.md).
+
 ## 23 October â€” Native child existence, SQLite first
 
 Core6c68968 adds immutable WhereAnyChild/ChildExists capability admission. SQLite implements correlated native membership/current-parent/child-visibility matching before root paging, with shared parameter/native work budgets. Native tests prove orphan exclusion, reparenting, nested exact metadata and independent child aliases. Published Core1,785/Shared968/SQLite29/joint91 pass unskipped;711Core/54Shared source/PDB checks match. Mongo/Neo direct-child existence remains capability-rejected pending implementation; descendant predicates and the full roadmap remain open. [Contract](CQL_RELATIONSHIPS.md).

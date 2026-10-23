@@ -32,7 +32,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 return CqlFailure("CQL_QUERY_LIMIT", "Neo4j CQL result limit must be between one and 10,000.");
             var admission = CqlCapabilities.Admit(plan.Query);
             if (admission.IsError) return CqlFailure(admission.ErrorCode, admission.Message);
-            var translator = new NeoCqlTranslator();
+            var translator = new NeoCqlTranslator(plan.Query.ReadAccess);
             var predicate = plan.Query.Predicates.Count == 0 ? "true" : string.Join(" AND ", plan.Query.Predicates.Select(translator.Translate));
             var keys=translator.TranslateOrdering(plan.Query.Orderings);
             var rootBudget=plan.Query.GraphOptions==null?maximumResults:Math.Min(maximumResults,plan.Query.GraphOptions.MaximumNodes);
@@ -47,7 +47,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             // projection. Both branches execute inside one native read query.
             var source = "MATCH (h:Holon) OPTIONAL MATCH (h)-[p:HAS_CQL_PROJECTION]->(h) "
                 + "WITH h,collect(p) AS projections WITH h,head(projections) AS p,size(projections)=1 AS uniqueProjection "
-                + "WITH h,p,coalesce(uniqueProjection AND p.SchemaVersion=$schema AND p.f_Id=toLower(h.Id) AND h.SnapshotJson IS NOT NULL "
+                + "WITH h,p,coalesce(uniqueProjection AND p.SchemaVersion=$schema AND p.f_Id=toLower(h.Id) AND p.f_HasChildManifest IN [true,false] AND p.f_ChildIds IS NOT NULL AND h.SnapshotJson IS NOT NULL "
                 + "AND coalesce(p.ProviderRevisionId,'')=coalesce(h.ProviderRevisionId,''),false) AS valid ";
             var aliases=keys.Select((_,index)=>"cqlSort"+index).ToArray();
             var directions=keys.Select((key,index)=>aliases[index]+(key.Descending?" DESC":" ASC")).ToArray();

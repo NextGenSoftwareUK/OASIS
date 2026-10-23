@@ -21,7 +21,12 @@ public sealed class CqlV1FixtureReconciliationTests
     public Task ReviewedGraphOrderingFixtureContainsOnlySettledOwnedRecordsBeforeExactCleanup()
         =>Reconcile("6CA92E59C526CFD4592D07D70ED39DD821C97D4A81E16D86AFCE7590B4C1A87B",true);
 
-    private static async Task Reconcile(string expectedHash,bool graphFixture)
+    [TestMethod]
+    public Task ReviewedCompletedRelationshipFixtureVerifiesNativeCleanupAndSQLiteOwnership()
+        =>Reconcile("F056FAEB238F379C3F43D6DAB25CA7E1E5259B3BAC6E76E504A6D72E906F0262",true,
+            "successful-awaiting-runner-cleanup");
+
+    private static async Task Reconcile(string expectedHash,bool graphFixture,string expectedStage="before-http-request")
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string storageDb = "cosmic_cql_v1_web4_storage", usageDb = "cosmic_cql_v1_web4_usage";
@@ -33,7 +38,7 @@ public sealed class CqlV1FixtureReconciliationTests
         Assert.AreEqual(expectedHash, Convert.ToHexString(SHA256.HashData(bytes)), "Reviewed manifest must remain unchanged.");
         using var json = JsonDocument.Parse(bytes);
         var fixture = json.RootElement;
-        Assert.AreEqual("before-http-request", fixture.GetProperty("stage").GetString());
+        Assert.AreEqual(expectedStage, fixture.GetProperty("stage").GetString());
         Assert.AreEqual(storageDb, fixture.GetProperty("storageDb").GetString());
         Assert.AreEqual(usageDb, fixture.GetProperty("usageDb").GetString());
         var sqlite = Path.GetFullPath(Path.Combine(work, "cql-v1-web4.sqlite"));
@@ -58,7 +63,14 @@ public sealed class CqlV1FixtureReconciliationTests
                 request.GetProperty("operation").GetString()! });
             return new Guid(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(canonical)).AsSpan(0, 16)).ToString("D");
         }).Distinct().ToArray();
-        CollectionAssert.AreEquivalent(expectedOperations, operations.Select(operation => operation.Id).ToArray());
+        var completed=expectedStage=="successful-awaiting-runner-cleanup";
+        if(completed)
+        {
+            Assert.AreEqual(0,operations.Count);
+            var databases=await(await mongo.ListDatabaseNamesAsync()).ToListAsync();
+            Assert.IsFalse(databases.Contains(storageDb));Assert.IsFalse(databases.Contains(usageDb));
+        }
+        else CollectionAssert.AreEquivalent(expectedOperations, operations.Select(operation => operation.Id).ToArray());
         foreach (var operation in operations)
         {
             Assert.AreEqual("WEB4", operation.Service);
@@ -80,9 +92,10 @@ public sealed class CqlV1FixtureReconciliationTests
         using var driver = GraphDatabase.Driver("bolt://127.0.0.1:17687", AuthTokens.Basic("neo4j", "oasis-local-test-only"));
         await using var inspection = driver.AsyncSession();
         var native = await (await inspection.RunAsync("MATCH (h:Holon) RETURN h.Id AS id")).ToListAsync();
-        CollectionAssert.AreEquivalent(ids.Select(id => id.ToString("D")).ToArray(), native.Select(row => row["id"].As<string>()).ToArray());
+        CollectionAssert.AreEquivalent(completed?Array.Empty<string>():ids.Select(id => id.ToString("D")).ToArray(), native.Select(row => row["id"].As<string>()).ToArray());
         var providers = new IOASISStorageProvider[] { new MongoProvider(uri, storageDb),
             new SqliteProvider("Data Source=" + sqlite), new Neo4jOASIS("bolt://127.0.0.1:17687", "neo4j", "oasis-local-test-only") };
+        if(completed)providers=new IOASISStorageProvider[]{new SqliteProvider("Data Source="+sqlite)};
         var snapshots = new List<object>();
         foreach (var provider in providers)
         {
@@ -117,10 +130,13 @@ public sealed class CqlV1FixtureReconciliationTests
         await File.WriteAllTextAsync(Path.Combine(work, "cql-v1-web4-reviewed-reconciliation.json"),
             JsonSerializer.Serialize(new { expectedHash, snapshots, operations = operations.Select(op => new { op.Id, op.State, receipts = op.Receipts.Count }) }));
         var ownedIds = ids.Select(id => id.ToString("D")).ToArray();
+        if(!completed)
+        {
         await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = ownedIds })).ConsumeAsync();
         await (await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids DETACH DELETE v", new { ids = ownedIds })).ConsumeAsync();
         await mongo.DropDatabaseAsync(storageDb);
         await mongo.DropDatabaseAsync(usageDb);
+        }
         await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new { stage = "successful-awaiting-runner-cleanup", sqlite }));
     }
 }

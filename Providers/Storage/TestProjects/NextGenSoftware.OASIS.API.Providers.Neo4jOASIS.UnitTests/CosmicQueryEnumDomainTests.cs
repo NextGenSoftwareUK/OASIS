@@ -19,7 +19,7 @@ public class CosmicQueryEnumDomainTests
         var projection=NeoCqlProjection.Build(NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(
             new Holon{Id=Guid.NewGuid(),HolonType=HolonType.Quest}));
         Assert.AreEqual((long)HolonType.Quest,projection["f_HolonType"]);
-        Assert.AreEqual(2L,projection["SchemaVersion"]);
+        Assert.AreEqual(3L,projection["SchemaVersion"]);
     }
 
     [TestMethod]
