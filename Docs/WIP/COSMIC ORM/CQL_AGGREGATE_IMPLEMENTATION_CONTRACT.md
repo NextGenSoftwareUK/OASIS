@@ -152,3 +152,25 @@ Actual red70 showed65existing passes and5 missing-interface InvalidCast failures
 ## Public projection transport checkpoint
 
 The new bounded request/compiler/endpoint uses generic Core runtime records and the existing authenticated admission, resource filter and prepared-attempt/receipt owner. FullCore2,059 passes unskipped, including30compiler and11endpoint controls. Signed native three-store endpoint acceptance1/1 passes24seconds, proving privacy before paging, exact Int64/null/GUID/nested values, correct provenance/receipts and no replay. Unsupported/schema rejection settles with no provider execution. This initial native run is endpoint-only; expanded10-exampleSDK/HTTPwalkthroughs, browser/Swagger examples and broad147 regression now pass fresh console-mode verification:30SDK/30HTTP and broad147native cases, unskipped (195settled/190physicalattempts). [Request/wire contract](CQL_PROJECTION_HTTP_CONTRACT.md).
+
+## Min/Max semantics and implementation gate
+
+The next scalar extension retains the original source, scope, actor restrictions, relationship validation, window and requested consistency. Min and Max select one typed scalar path and return that same CLR domain; they reuse the scalar executor and common prepared-attempt owner. Count/LongCount/Any remain compatible. No row enumeration or client aggregate evaluator is admitted.
+
+| Input domain | Missing/null participation | Empty/all-null result | Comparison |
+| --- | --- | --- | --- |
+| Required value type | Any missing/null participating leaf is CQL_DATA_INVALID | CQL_EMPTY_SEQUENCE | Exact admitted scalar domain |
+| Nullable value type | Ignore absent/null participating leaves | Null | Exact underlying domain |
+| String | Ignore absent/null participating leaves; empty string participates | Null | Unicode scalar/codepoint order, matching established portable native ordering |
+
+Wrong terminal storage domains always error; numeric text cannot become an integer. Invalid selected values outside the source window do not participate; mandatory ownership/relationship/traversal errors still cannot be hidden by a page or negative predicate. Graph output caps never truncate aggregate input. Requested snapshot consistency remains independent of output expansion.
+
+Int64/narrow integer/Boolean/GUID/defined-enum domains retain exact values without binary64 conversion. UTC DateTime metadata requires the storage owner's exact tick contract; Neo4j cannot borrow DateTime support. Unsupported scalar/read/operator domains reject at planning and actual-adapter readmission before any target dispatch. Negative extrema are valid: the scalar executor's nonnegative validation must apply specifically to count domains. Result validation also rejects non-finite or invalid UTF-8 values and enforces a bounded scalar payload.
+
+Capabilities separately authorize the operation, exact input/result domains and canonical/metadata read paths. Row/filter or count support cannot grant Min/Max. Extend the current scalar intent/planner/results/executor and native read owners; do not create another accounting or orchestration path.
+
+Machine-readable reference inputs: OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/Fixtures/CqlMinMaxVectors.json (19vectors). They specify required/nullable empty inputs, missing/null/wrong domains, Int64 extremes beyond2^53, negative extrema, narrow integer bounds, Boolean order, Unicode scalar order, GUID order and individual UTC ticks. These are acceptance fixtures, not native certification. Tests must consume relevant vectors and add windows, visibility, large inputs, borrowed capabilities, cancellation/deadlines and no partial publication against each native owner.
+
+Sum/Average and GroupBy remain in the full phase. Their accumulation/rounding/overflow, null-key and cardinality contracts require explicit implementation; Min/Max alone does not complete this phase or the broader goal.
+
+Min/Max Core foundation is now implemented in cf4a5ab: typed selectors, operation-specific read capabilities, shared path/read admission, explicit empty results and exact selected-value validation. FullCore2,102/dual-target builds pass, including11new controls. The scalar executor now accepts negative selected values while retaining nonnegative count checks. All-target actual read-profile rejection occurs before first dispatch. Existing native capabilities are deliberately unchanged; SQLite/MongoDB/Neo4j execution and HTTP/demos remain the next acceptance gates for these two operations.

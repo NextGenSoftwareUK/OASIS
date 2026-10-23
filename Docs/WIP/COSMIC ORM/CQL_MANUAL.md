@@ -497,3 +497,9 @@ Send `POST /api/data/query-cql/projection` with the existing bearer token and on
 The `cql-projection-v1` result contains provider provenance, ordered column schema and matching row arrays. Int64 cells use decimal strings, so browsers retain values above2^53; GUIDs use D strings, UTC dates preserve seven tick digits, enums use defined names and null remains null. Selected values are detached. Native privacy/ordering/paging precede selection. Source limits and response limits reject excessive output without a partial result. Repeating a logical key produces a conflict without another dispatch.
 
 FullCore2,059 and signed three-store acceptance pass. Neo4j DateTime metadata is rejected before execution. Prompt interruption of an already blocked Neo4j4.2 driver await remains open. [Complete request/wire limits and evidence](CQL_PROJECTION_HTTP_CONTRACT.md).
+
+### Min/Max intent prerequisite — native execution pending
+
+Core now supports typed `source.Min(holon => ...)` and `source.Max(holon => ...)` intent through the existing scalar API. The selected path retains its exact CLR domain and the original source restrictions. Operation-specific read capabilities are required at planning and actual-adapter readmission; row/filter or count permissions cannot grant selection. Existing native adapters still declare count/existence only, so Min/Max execution is rejected until each native implementation is certified.
+
+Required empty extrema report CQL_EMPTY_SEQUENCE. Nullable/string empty or all-null extrema return null; absent/null nullable leaves do not participate. Wrong stored types error. Exact negative Int64 results remain valid; native values are not converted through double. FullCore2,102 and both target builds pass for this contract. [Semantics,19reference vectors and remaining native gates](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#minmax-semantics-and-implementation-gate).

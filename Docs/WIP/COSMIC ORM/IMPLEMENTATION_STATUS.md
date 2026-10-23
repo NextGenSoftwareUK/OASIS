@@ -614,3 +614,7 @@ Final authenticated-metadata / exact-DTO batch acceptance: **Core 1,494/1,494; f
 ## 23 October — public selected-column endpoint
 
 `POST /api/data/query-cql/projection` now reuses the generic Core record shape and existing authenticated admission/prepared-attempt/receipt owners. FullCore2,059 controls and signed native three-store acceptance1/1 pass unskipped. Native visibility before paging, exact scalar cells, nested metadata, no replay and no-execution rejections are verified. Annotated10-exampleC#/HTTPwalkthroughs and browser/Swagger examples are implemented, with final30/30demo and broad147native regression passing unskipped (195settled/190physicalattempts). Non-count aggregates/grouping and remaining CQL/ORM gates remain open. [Contract](CQL_PROJECTION_HTTP_CONTRACT.md).
+
+## Min/Max Core foundation
+
+Corecf4a5ab preserves helper8d45 and adds typed Min/Max intent plus exact selected-value contracts in the existing scalar pipeline. Both target builds and full2,102unit tests pass (11newcontrols), including valid negative Int64 execution and all-target read rejection before dispatch. Native adapters remain count/existence-only until their Min/Max gates pass. Source19vector fixture is a contract, not native certification. [Implementation requirements](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#minmax-semantics-and-implementation-gate).
