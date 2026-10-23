@@ -1,4 +1,5 @@
 param(
+    [switch]$ExtraColumns,
     [switch]$ReconcileKarmaProjections,[switch]$MissingDeletion,[switch]$ReconcileKarmaAssertion,[switch]$KarmaManager,[switch]$LeastPrivilege,[switch]$V2Deletion,[switch]$DeleteAliases,[switch]$ReadAcknowledgements,[switch]$TableDurability,[switch]$ExistingSchema,[switch]$WriteRejections,[switch]$IdentityCapacity,[switch]$UpgradeIdentityCharacters,
     [switch]$RootParent,[switch]$HolonProjection,[switch]$IdentityRaces,
     [switch]$DetailDeletionResults,[switch]$AvatarDeletionResults,[switch]$SaveAcknowledgements,
@@ -7,7 +8,7 @@ param(
     [switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,
     [switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions
 )
-$selectedModes=@($ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
+$selectedModes=@($ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions).Where({$_.IsPresent}).Count
@@ -93,6 +94,7 @@ try{
     if($WriteRejections){$report='oracle-write-rejections-native-current.trx';$filter='FullyQualifiedName~NativeIdentityColumnRejectionDoesNotBecomeUnknown|FullyQualifiedName~NativeCommitPhaseCapacityErrorRemainsUncertain'}
     if($ExistingSchema){$report='oracle-existing-schema-native-current.trx';$filter='FullyQualifiedName~NativeExistingSchemaActivationValidatesWithoutProvisioning'}
     if($TableDurability){$report='oracle-table-durability-native-current.trx';$filter='FullyQualifiedName~NativeTableDurabilityAdmissionUsesActualCatalogWithoutAlteringCanonicalTables'}
+    if($ExtraColumns){$report='oracle-extra-column-native-current.trx';$filter='FullyQualifiedName~NativeExtraColumnsMustPermitCanonicalInsertWithoutSchemaRepair'}
     if($ReadAcknowledgements){$report='oracle-read-ack-native-current.trx';$filter='FullyQualifiedName~NativeReadAcknowledgementsReportActualSuccessAndRootCounts'}
     if($DeleteAliases){$report='oracle-delete-alias-native-current.trx';$filter='FullyQualifiedName~NativeHolonDeleteAliasesCountAcknowledgedMutationOnly|FullyQualifiedName~NativeDetailDeleteInterfaceAliasesPreserveProfileAndOtherSelectors'}
     if($V2Deletion){$report='oracle-v2-delete-native-current.trx';$filter='FullyQualifiedName~NativeV2ManagerDeleteRoutesPreserveIndependentChildren'}
@@ -107,7 +109,7 @@ try{
     if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
     $reportFile=Get-Item -LiteralPath (Join-Path $work $report)
     [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){64}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{480}
+    $expected=if($ExtraColumns){12}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){64}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{492}
     if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}
     $passed=$true
 }finally{

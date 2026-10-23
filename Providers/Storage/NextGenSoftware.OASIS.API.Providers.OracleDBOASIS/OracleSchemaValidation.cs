@@ -33,13 +33,21 @@ public partial class OracleDBOASIS
     {
         var expected=StorageSchema;
         foreach(var table in expected){
-            await using var command=CreateCommand("SELECT c.COLUMN_NAME,c.DATA_TYPE,c.DATA_LENGTH,c.NULLABLE,c.DATA_PRECISION,c.DATA_SCALE,c.CHAR_LENGTH,c.DEFAULT_LENGTH,c.CHAR_USED,t.TEMPORARY,t.DURATION FROM USER_TAB_COLUMNS c JOIN USER_TABLES t ON t.TABLE_NAME=c.TABLE_NAME WHERE c.TABLE_NAME=:TableName",connection);
+            // Include user-declared invisible columns, not system-generated hidden columns.
+            await using var command=CreateCommand("SELECT c.COLUMN_NAME,c.DATA_TYPE,c.DATA_LENGTH,c.NULLABLE,c.DATA_PRECISION,c.DATA_SCALE,c.CHAR_LENGTH,c.DEFAULT_LENGTH,c.CHAR_USED,t.TEMPORARY,t.DURATION,c.IDENTITY_COLUMN,c.VIRTUAL_COLUMN FROM USER_TAB_COLS c JOIN USER_TABLES t ON t.TABLE_NAME=c.TABLE_NAME WHERE c.TABLE_NAME=:TableName AND c.USER_GENERATED='YES'",connection);
             command.Parameters.Add("TableName",OracleDbType.Varchar2).Value=table.Key;
             var missing=new HashSet<string>(table.Value.Keys,StringComparer.Ordinal);
             await using var reader=await command.ExecuteReaderAsync();
             while(await reader.ReadAsync()){
                 var column=reader.GetString(0);
-                if(!table.Value.TryGetValue(column,out var required))continue;
+                if(!table.Value.TryGetValue(column,out var required)){
+                    // Canonical INSERTs omit extra columns. A required stored column
+                    // without a default makes even an otherwise valid schema unwritable.
+                    if(reader.GetString(3)=="N"&&(reader.IsDBNull(7)||reader.GetInt32(7)<=0)
+                        &&reader.GetString(11)!="YES"&&reader.GetString(12)!="YES")
+                        throw new InvalidDataException($"Oracle schema {table.Key}.{column} is an additional required column without an insert default or generated value.");
+                    continue;
+                }
                 if(reader.IsDBNull(9)||reader.GetString(9)!="N"||!reader.IsDBNull(10))
                     throw new InvalidDataException($"Oracle schema {table.Key} requires a permanent table; temporary/session-scoped records are not durable provider storage.");
                 ValidateIdentityCharacterSemantics(table.Key,column,reader.IsDBNull(8)?null:reader.GetString(8));
