@@ -33,13 +33,15 @@ public partial class OracleDBOASIS
     {
         var expected=StorageSchema;
         foreach(var table in expected){
-            await using var command=CreateCommand("SELECT COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE,DATA_PRECISION,DATA_SCALE,CHAR_LENGTH,DEFAULT_LENGTH,CHAR_USED FROM USER_TAB_COLUMNS WHERE TABLE_NAME=:TableName",connection);
+            await using var command=CreateCommand("SELECT c.COLUMN_NAME,c.DATA_TYPE,c.DATA_LENGTH,c.NULLABLE,c.DATA_PRECISION,c.DATA_SCALE,c.CHAR_LENGTH,c.DEFAULT_LENGTH,c.CHAR_USED,t.TEMPORARY,t.DURATION FROM USER_TAB_COLUMNS c JOIN USER_TABLES t ON t.TABLE_NAME=c.TABLE_NAME WHERE c.TABLE_NAME=:TableName",connection);
             command.Parameters.Add("TableName",OracleDbType.Varchar2).Value=table.Key;
             var missing=new HashSet<string>(table.Value.Keys,StringComparer.Ordinal);
             await using var reader=await command.ExecuteReaderAsync();
             while(await reader.ReadAsync()){
                 var column=reader.GetString(0);
                 if(!table.Value.TryGetValue(column,out var required))continue;
+                if(reader.IsDBNull(9)||reader.GetString(9)!="N"||!reader.IsDBNull(10))
+                    throw new InvalidDataException($"Oracle schema {table.Key} requires a permanent table; temporary/session-scoped records are not durable provider storage.");
                 ValidateIdentityCharacterSemantics(table.Key,column,reader.IsDBNull(8)?null:reader.GetString(8));
                 ValidateStorageColumn(table.Key,column,required,reader.GetString(1),reader.GetInt32(2));
                 ValidateStorageColumnProperties(table.Key,column,required,reader.GetString(3),
