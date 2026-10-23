@@ -14,6 +14,60 @@ public partial class Neo4jNativeCqlTests
         =>WithNativeGraph(fixture=>global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyAsync(fixture.Provider,fixture.Root),
             width:0,configure:global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.Configure);
 
+    [TestMethod]
+    public Task NativeCqlDescendantCancellationAfterActualFetchPublishesNothingAndReusesOwner()
+        =>WithNativeGraph(async fixture=>
+        {
+            using var cancellation=new CancellationTokenSource();var observed=false;
+            fixture.AfterRootRow=()=>{observed=true;cancellation.Cancel();return Task.CompletedTask;};
+            var plan=DescendantPlan(fixture);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan,cancellationToken:cancellation.Token);
+            Assert.IsTrue(observed);Assert.AreEqual("CQL_QUERY_CANCELLED",read.ErrorCode);
+            Assert.IsNull(read.Result);Assert.IsFalse(read.IsLoaded);
+            var fresh=await fixture.Provider.ExecuteCosmicQueryAsync(plan);
+            Assert.IsFalse(fresh.IsError,fresh.Message+fresh.Exception);Assert.AreEqual(1,fresh.Result.Count);
+        });
+
+    [TestMethod]
+    public Task NativeCqlDescendantDeadlineIncludesActualCursorDelivery()
+        =>WithNativeGraph(async fixture=>
+        {
+            fixture.AfterRootRow=()=>Task.Delay(TimeSpan.FromSeconds(31));
+            var watch=System.Diagnostics.Stopwatch.StartNew();
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(DescendantPlan(fixture));
+            Assert.AreEqual("CQL_QUERY_TIMEOUT",read.ErrorCode);Assert.IsNull(read.Result);Assert.IsFalse(read.IsLoaded);
+            Assert.IsTrue(watch.Elapsed>=TimeSpan.FromSeconds(30) && watch.Elapsed<TimeSpan.FromSeconds(45),
+                "The shared deadline must bound native cursor delivery and teardown.");
+            var fresh=await fixture.Provider.ExecuteCosmicQueryAsync(DescendantPlan(fixture));
+            Assert.IsFalse(fresh.IsError,fresh.Message+fresh.Exception);Assert.AreEqual(1,fresh.Result.Count);
+        });
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public Task NativeCqlDescendantReadCommittedObservesAnOldReadThenFreshReparent(bool declaredEmpty)
+        =>WithNativeGraph(async fixture=>
+        {
+            var other=new Holon{Id=Guid.NewGuid(),Name="owned concurrent parent"};
+            if(declaredEmpty)other.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                new HolonChildRoleManifest(1,other.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>())}));
+            fixture.Ids.Add(other.Id);await fixture.Record("before-concurrent-parent");fixture.Known=false;
+            var created=await fixture.Provider.SaveHolonAsync(other,saveChildren:false);
+            fixture.Known=!created.IsError;Assert.IsFalse(created.IsError,created.Message+created.Exception);
+            var moved=false;
+            fixture.AfterRootRow=async()=>
+            {
+                var loaded=await fixture.Provider.LoadHolonAsync(fixture.Root.Children.First().Id,loadChildren:false);
+                Assert.IsFalse(loaded.IsError,loaded.Message+loaded.Exception);loaded.Result.ParentHolonId=other.Id;
+                await fixture.Record("before-concurrent-reparent");fixture.Known=false;
+                var write=await fixture.Provider.SaveHolonAsync(loaded.Result,saveChildren:false);
+                fixture.Known=!write.IsError;Assert.IsFalse(write.IsError,write.Message+write.Exception);moved=true;
+            };
+            var old=await fixture.Provider.ExecuteCosmicQueryAsync(DescendantPlan(fixture));
+            Assert.IsTrue(moved);Assert.IsFalse(old.IsError,old.Message+old.Exception);Assert.AreEqual(1,old.Result.Count);
+            await global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyMovedSubtreeAsync(
+                fixture.Provider,fixture.Root.Id,other.Id,declaredEmpty,"owned CQL grandchild");
+        });
+
     private static CosmicQueryPlan<Holon> DescendantPlan(GraphFixture fixture, int depth = 4, int nodes = 10,
         CosmicQueryReadAccess? access = null, string name = "owned CQL grandchild")
     {

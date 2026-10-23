@@ -36,7 +36,12 @@ public sealed class CqlV1FixtureReconciliationTests
         =>Reconcile("E18D14C5DDB14930DB521F8383C9943D7662DD6A9E0F86C63EA7D03A91261947",true,
             "successful-awaiting-runner-cleanup");
 
-    private static async Task Reconcile(string expectedHash,bool graphFixture,string expectedStage="before-http-request")
+    [TestMethod]
+    public Task ReviewedOversizeTransportFixtureVerifiesNoReservationAndExactOwnedRecords()
+        =>Reconcile("8C1FD0849CD861D75B3BDE8A37E70C7887798388D11C12CA906CE91850015E47",true,
+            unreservedTrailingRequests:2);
+
+    private static async Task Reconcile(string expectedHash,bool graphFixture,string expectedStage="before-http-request",int unreservedTrailingRequests=0)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string storageDb = "cosmic_cql_v1_web4_storage", usageDb = "cosmic_cql_v1_web4_usage";
@@ -67,7 +72,22 @@ public sealed class CqlV1FixtureReconciliationTests
             .Find(Builders<UsageOutboxOperation>.Filter.Empty).ToListAsync();
         // The first five requests were anonymous, bad signature/issuer, expired, and
         // mismatched signed claims. The final prefix request was a settled pre-I/O rejection.
-        var expectedOperations = fixture.GetProperty("requests").EnumerateArray().Skip(5).Select(request =>
+        var journal=fixture.GetProperty("requests").EnumerateArray().ToArray();
+        if(unreservedTrailingRequests!=0)
+        {
+            // Exact reviewed journal: oversized request142 is rejected before
+            // reservation; request143 (unknown member) then hits the stale HTTP1
+            // connection before reservation. Both exact operation IDs must be absent.
+            Assert.AreEqual(2,unreservedTrailingRequests);Assert.AreEqual(143,journal.Length);
+            foreach(var request in journal.TakeLast(unreservedTrailingRequests))
+            {
+                Assert.AreEqual(alice,request.GetProperty("actor").GetGuid());
+                var canonical=JsonSerializer.Serialize(new[]{"WEB4",alice.ToString("D"),request.GetProperty("operation").GetString()!});
+                var id=new Guid(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(canonical)).AsSpan(0,16)).ToString("D");
+                Assert.IsFalse(operations.Any(operation=>operation.Id==id),"Exact unreserved operation must not have an outbox row.");
+            }
+        }
+        var expectedOperations = journal.Skip(5).Take(journal.Length-5-unreservedTrailingRequests).Select(request =>
         {
             var canonical = JsonSerializer.Serialize(new[] { "WEB4", request.GetProperty("actor").GetGuid().ToString("D"),
                 request.GetProperty("operation").GetString()! });

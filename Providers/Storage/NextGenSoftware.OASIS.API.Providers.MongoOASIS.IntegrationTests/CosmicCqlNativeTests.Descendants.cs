@@ -213,6 +213,44 @@ public sealed partial class CosmicCqlNativeTests
             Assert.False(fresh.IsError,fresh.Message+fresh.Exception);Assert.Single(fresh.Result);
         });
 
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public Task NativeDescendantSnapshotRetainsOldPathAcrossConcurrentReparent(bool declaredEmpty)
+        =>WithMongoGraph(async fixture=>
+        {
+            var other=new Holon{Id=Guid.NewGuid(),Name="owned concurrent parent"};
+            if(declaredEmpty)other.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                new HolonChildRoleManifest(1,other.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>())}));
+            fixture.KnownOutcome=false;
+            var created=await fixture.Provider.SaveHolonAsync(other,saveChildren:false);
+            fixture.KnownOutcome=!created.IsError;Assert.False(created.IsError,created.Message+created.Exception);
+            var loaded=await fixture.Provider.LoadHolonAsync(fixture.Root.Children.First().Id,loadChildren:false);
+            Assert.False(loaded.IsError,loaded.Message+loaded.Exception);
+            var admin=fixture.Client.GetDatabase("admin");
+            var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"configureFailPoint","failCommand"},
+                {"mode",new BsonDocument("skip",1)},{"data",new BsonDocument {{"failCommands",new BsonArray {"aggregate"}},
+                    {"appName","CosmicCqlGraph"},{"blockConnection",true},{"blockTimeMS",5000}}}});
+            Task<NextGenSoftware.OASIS.Common.OASISResult<System.Collections.Generic.IReadOnlyList<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>>>? pending=null;
+            try
+            {
+                pending=fixture.Provider.ExecuteCosmicQueryAsync(DescendantPlan(fixture));
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"waitForFailPoint","failCommand"},
+                    {"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",10000}});
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"configureFailPoint","failCommand"},{"mode","off"}});
+                loaded.Result.ParentHolonId=other.Id;fixture.KnownOutcome=false;
+                var write=await fixture.Provider.SaveHolonAsync(loaded.Result,saveChildren:false);
+                fixture.KnownOutcome=!write.IsError;Assert.False(write.IsError,write.Message+write.Exception);
+                var old=await pending;Assert.False(old.IsError,old.Message+old.Exception);Assert.Single(old.Result);
+                await global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyMovedSubtreeAsync(
+                    fixture.Provider,fixture.Root.Id,other.Id,declaredEmpty,"owned CQL graph grandchild");
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"configureFailPoint","failCommand"},{"mode","off"}});
+                if(pending!=null)await pending;
+            }
+        });
+
     [Fact]
     public Task NativeDescendantSnapshotRetainsTheGrandchildAcrossAnAccessMutation()
         =>WithMongoGraph(async fixture=>

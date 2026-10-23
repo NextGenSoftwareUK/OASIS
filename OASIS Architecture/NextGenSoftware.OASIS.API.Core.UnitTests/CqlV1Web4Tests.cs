@@ -627,4 +627,72 @@ public class CqlV1Web4Tests
         }
         finally { await app.StopAsync(); }
     }
+    [Theory]
+    [InlineData(true,true)] [InlineData(true,false)]
+    [InlineData(false,true)] [InlineData(false,false)]
+    public async Task RealKestrelOversizeRepliesAreCompleteBeforeReservation(bool knownLength,bool serverLimit)
+    {
+        var admitted=Admission(ProviderType.SQLLiteDBOASIS);
+        var authority=new Mock<IUsageReservationAuthority>(MockBehavior.Strict);
+        var failures=new OversizeFailureLogger();
+        var options=new Web4UsageLedgerOptions {Service="WEB4",MaximumRequestBytes=1000000,
+            EndpointPolicy=http=>http.Request.Path=="/bounded"?new UsageEndpointPolicy():null};
+        var builder=WebApplication.CreateBuilder(new WebApplicationOptions {Args=Array.Empty<string>()});
+        builder.Logging.ClearProviders();builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.WebHost.ConfigureKestrel(server=>server.Limits.MaxRequestBodySize=serverLimit?32768:1000000);
+        await using var app=builder.Build();
+        app.UseRouting();
+        app.Use(async(HttpContext http,RequestDelegate next)=>
+        {
+            http.User=admitted.Http.User;
+            var middleware=new Web4UsageLedgerMiddleware(next,failures);
+            await middleware.InvokeAsync(http,new Web4UsageExecution(authority.Object,admitted.Store.Object,options),options);
+        });
+        app.MapPost("/bounded",()=>Results.Ok()).WithMetadata(new RequestSizeLimitAttribute(32768));
+        app.MapGet("/probe",()=>Results.Ok(new {ready=true}));
+        await app.StartAsync();
+        try
+        {
+            var address=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
+            using var client=new HttpClient {BaseAddress=new Uri(address),Timeout=TimeSpan.FromSeconds(10)};
+            client.DefaultRequestHeaders.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer","controlled");
+            client.DefaultRequestHeaders.Add("Idempotency-Key","unreserved-oversize");
+            for(var repeat=0;repeat<8;repeat++)
+            {
+                using HttpContent body=knownLength?new ByteArrayContent(new byte[40000]):new UnknownLengthOversizeContent();
+                using var request=new HttpRequestMessage(HttpMethod.Post,"/bounded"){Content=body};
+                // A declared upload above the native ceiling negotiates rejection
+                // before sending bytes. Kestrel may otherwise reset an unread body.
+                request.Headers.ExpectContinue=knownLength;
+                using var response=await client.SendAsync(request);
+                Assert.True(response.StatusCode==HttpStatusCode.RequestEntityTooLarge,
+                    response.StatusCode+" / "+failures.Last);
+                var bytes=await response.Content.ReadAsByteArrayAsync();
+                Assert.Equal(bytes.LongLength,response.Content.Headers.ContentLength.GetValueOrDefault(-1));
+                using var json=JsonDocument.Parse(bytes);
+                Assert.Equal("REQUEST_TOO_LARGE",json.RootElement.GetProperty("code").GetString());
+                using var probe=await client.GetAsync("/probe");
+                Assert.Equal(HttpStatusCode.OK,probe.StatusCode);
+            }
+            authority.VerifyNoOtherCalls();
+        }
+        finally {await app.StopAsync();}
+    }
+
+    private sealed class OversizeFailureLogger : ILogger<Web4UsageLedgerMiddleware>
+    {
+        internal Exception? Last;
+        public IDisposable? BeginScope<TState>(TState state) where TState:notnull=>null;
+        public bool IsEnabled(LogLevel level)=>true;
+        public void Log<TState>(LogLevel level,EventId id,TState state,Exception? exception,Func<TState,Exception?,string> formatter)
+        {Last=exception;}
+    }
+
+    private sealed class UnknownLengthOversizeContent : HttpContent
+    {
+        protected override bool TryComputeLength(out long length){length=0;return false;}
+        protected override Task SerializeToStreamAsync(Stream stream,TransportContext? context)
+            =>stream.WriteAsync(new byte[40000]).AsTask();
+    }
+
 }
