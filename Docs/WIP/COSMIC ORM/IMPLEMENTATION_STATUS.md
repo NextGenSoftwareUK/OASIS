@@ -4,7 +4,7 @@
 
 Implemented bounded native SQLite child queries after root paging, reusing one deferred Serializable snapshot and native work budget. Added reusable Shared expansion, persisted membership ordering/batching, read-only and caller-transaction support. Fixed private incomplete-selection ownership for manifest-free raw/typed query results, including forged-manifest/AcceptChanges attempts. Root-only saves preserve omitted links.
 
-Verified: Core 1,722, Shared 954, SQLite integration 1,218 tests; all passed, zero skipped. Includes 15 native graph cases and 9 shared assembler cases. Core38d8696 contains the ownership fix. MongoDB/Neo4j graphs, relationship predicates, aggregates/projections, joins, federation and new hosted transport/policy remain open. Existing bounded HTTP v1 remains available. [Detailed graph contract](CQL_GRAPH_LOADING.md), [remaining roadmap](CQL_COMPLETION_ROADMAP.md).
+Verified: Core 1,722, Shared 954, SQLite integration 1,218 tests; all passed, zero skipped. Includes 15 native graph cases and 8 shared assembler cases. Core38d8696 contains the ownership fix. MongoDB/Neo4j graphs, relationship predicates, aggregates/projections, joins, federation and new hosted transport/policy remain open. Existing bounded HTTP v1 remains available. [Detailed graph contract](CQL_GRAPH_LOADING.md), [remaining roadmap](CQL_COMPLETION_ROADMAP.md).
 
 
 ## CQL detached graphs and early typed admission — 23 October 2026
