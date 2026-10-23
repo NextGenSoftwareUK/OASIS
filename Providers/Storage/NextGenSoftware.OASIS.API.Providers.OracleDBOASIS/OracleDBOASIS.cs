@@ -643,12 +643,12 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
                     result.Result=await ProjectHolonRootsAsync(selected.Where(row=>row.ParentHolonId==id&&(type==HolonType.All||row.HolonType==type)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true);return result;
                 }
-                string sql = "SELECT ID,DATA_JSON,HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID FROM OASIS_HOLONS WHERE PARENT_HOLON_ID=:ParentId";
+                string sql = "SELECT ID,DATA_JSON,HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID FROM OASIS_HOLONS WHERE "+(id==Guid.Empty?"PARENT_HOLON_ID IS NULL":"PARENT_HOLON_ID=:ParentId");
                 if (type != HolonType.All) sql += " AND HOLON_TYPE=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = CreateCommand(sql, conn);
-                cmd.Parameters.Add(":ParentId", OracleDbType.Raw).Value = GuidToRaw(id);
+                if(id!=Guid.Empty)cmd.Parameters.Add(":ParentId", OracleDbType.Raw).Value = GuidToRaw(id);
                 if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Int32).Value = (int)type;
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
