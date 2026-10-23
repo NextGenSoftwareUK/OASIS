@@ -32,19 +32,14 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 return CqlFailure("CQL_QUERY_LIMIT", "Neo4j CQL result limit must be between one and 10,000.");
             var admission = CqlCapabilities.Admit(plan.Query);
             if (admission.IsError) return CqlFailure(admission.ErrorCode, admission.Message);
-            var translator = new NeoCqlTranslator(plan.Query.ReadAccess);
-            var predicates=plan.Query.Predicates.Select(node=>(Node:node,Sql:translator.Translate(node))).ToArray();
-            var parentPredicate=predicates.Any(item=>item.Node is not CosmicQueryAnyDescendant)
-                ?string.Join(" AND ",predicates.Where(item=>item.Node is not CosmicQueryAnyDescendant).Select(item=>item.Sql)):"true";
-            var descendantPredicate=predicates.Any(item=>item.Node is CosmicQueryAnyDescendant)
-                ?string.Join(" AND ",predicates.Where(item=>item.Node is CosmicQueryAnyDescendant).Select(item=>item.Sql)):"true";
-            var traversals=string.Concat(translator.TraversalClauses);
-            var cycle=translator.TraversalCycles.Count==0?"false":"("+string.Join(" OR ",translator.TraversalCycles)+")";
-            var traversalLimit=translator.TraversalLimits.Count==0?"false":"("+string.Join(" OR ",translator.TraversalLimits)+")";
+            var compiled=CompileCqlSource(plan.Query);
+            var translator=compiled.Translator;
+            var descendantPredicate=compiled.DescendantPredicate;
+            var cycle=compiled.Cycle;
+            var traversalLimit=compiled.TraversalLimit;
             var keys=translator.TranslateOrdering(plan.Query.Orderings);
             var rootBudget=plan.Query.GraphOptions==null?maximumResults:Math.Min(maximumResults,plan.Query.GraphOptions.MaximumNodes);
             var fetch=plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,rootBudget+1):rootBudget+1;
-            translator.Parameters.Add("schema", NeoCqlProjection.SchemaVersion);
             translator.Parameters.Add("limit", fetch);
             translator.Parameters.Add("offset",plan.Query.Offset);
             cancellationToken.ThrowIfCancellationRequested();
@@ -52,10 +47,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             if (!IsProviderActivated || _driver == null) return CqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
             // Validation is outside the page branch: SKIP must never hide an invalid
             // projection. Both branches execute inside one native read query.
-            var source = "MATCH (h:Holon) OPTIONAL MATCH (h)-[p:HAS_CQL_PROJECTION]->(h) "
-                + "WITH h,collect(p) AS projections WITH h,head(projections) AS p,size(projections)=1 AS uniqueProjection "
-                + "WITH h,p,coalesce(uniqueProjection AND p.SchemaVersion=$schema AND p.f_Id=toLower(h.Id) AND p.f_HasChildManifest IN [true,false] AND p.f_ChildIds IS NOT NULL AND h.SnapshotJson IS NOT NULL "
-                + "AND coalesce(p.ProviderRevisionId,'')=coalesce(h.ProviderRevisionId,''),false) AS valid ";
+            var source=compiled.Source;
             var aliases=keys.Select((_,index)=>"cqlSort"+index).ToArray();
             var directions=keys.Select((key,index)=>aliases[index]+(key.Descending?" DESC":" ASC")).ToArray();
             var project=string.Concat(keys.Select((key,index)=>","+key.Expression+" AS "+aliases[index]));
@@ -63,8 +55,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             var nullKeys=string.Concat(aliases.Select(alias=>",null AS "+alias));
             var pageOrder=string.Join(",",directions.Concat(new[]{"p.f_Id ASC"}));
             var finalOrder=string.Join(",",new[]{"valid ASC"}.Concat(directions).Concat(new[]{"toLower(id) ASC"}));
-            var eligibleSource=source+"WHERE valid AND ("+parentPredicate+") WITH h,p "+traversals+
-                "WITH h,p"+string.Concat(translator.TraversalStates.Select(state=>","+state))+" ";
+            var eligibleSource=compiled.EligibleSource;
             var traversalError=translator.TraversalClauses.Count==0?"":
                 " UNION ALL "+eligibleSource+"WHERE "+cycle+" OR "+traversalLimit+
                 " RETURN h.Id AS id,h.ProviderRevisionId AS revision,false AS valid,null AS snapshot,"+
