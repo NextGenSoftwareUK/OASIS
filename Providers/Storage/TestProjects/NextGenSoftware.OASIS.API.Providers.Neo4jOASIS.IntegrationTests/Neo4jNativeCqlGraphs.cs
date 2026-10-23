@@ -73,14 +73,14 @@ public partial class Neo4jNativeCqlTests
         return new HolonManager(provider,dna,registry);
     }
 
-    private static async Task WithNativeGraph(Func<GraphFixture,Task> test,bool manifested=true,int width=2,bool largeChild=false,Action<Holon>? configure=null)
+    private static async Task WithNativeGraph(Func<GraphFixture,Task> test,bool manifested=true,int width=2,bool largeChild=false,Action<Holon>? configure=null,Func<Holon>? createRoot=null)
     {
         const string uri="bolt://127.0.0.1:17687";
         Assert.AreEqual(uri,Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
         var manifest=Path.Combine(Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_WORK")!,"cql-graph-fixture.json");
         Assert.IsFalse(File.Exists(manifest),"Reconcile an unknown graph fixture before reuse.");
         using var driver=GraphDatabase.Driver(uri,AuthTokens.Basic("neo4j","oasis-local-test-only"));
-        var fixture=new GraphFixture{Driver=driver,Manifest=manifest,Root=new Holon{Id=Guid.NewGuid(),Name="owned CQL graph root"}};
+        var fixture=new GraphFixture{Driver=driver,Manifest=manifest,Root=createRoot?.Invoke()??new Holon{Id=Guid.NewGuid(),Name="owned CQL graph root"}};
         for(var index=0;index<width;index++)
             fixture.Root.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=fixture.Root.Id,
                 Name="owned CQL graph child "+index,HolonType=index==0?HolonType.Quest:HolonType.Cafe,
@@ -92,7 +92,7 @@ public partial class Neo4jNativeCqlTests
         }
         configure?.Invoke(fixture.Root);
         var nodes=new List<IHolon>{fixture.Root};
-        for(var index=0;index<nodes.Count;index++)nodes.AddRange(nodes[index].Children);
+        for(var index=0;index<nodes.Count;index++)nodes.AddRange(nodes[index].AllChildren);
         fixture.Ids.AddRange(nodes.Select(node=>node.Id));
         var hooked=GraphNativeHook.Wrap(driver,async()=>
         {
@@ -150,6 +150,14 @@ public partial class Neo4jNativeCqlTests
             Assert.IsTrue(root.Children.All(child=>child.IsPublic && !child.Children.Any()));
             if(manifested)Assert.AreEqual(2,Core.Serialization.HolonChildRoleManifestJson.Deserialize(((Holon)root).ChildRoleManifestJson).Roles.Single().ChildIds.Count);
         },manifested:manifested,configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=visible;});
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public Task NativeGraphHydratesNamedTypedRoles(bool accessBound)
+        =>WithNativeGraph(fixture=>global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.VerifyAsync(
+            GraphManager(fixture.Provider),fixture.Provider,fixture.Root,accessBound),
+            configure:global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.Configure,
+            createRoot:global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.CreateRoot);
 
     private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query,CosmicQueryReadAccess policy)
     {

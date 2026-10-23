@@ -1,5 +1,10 @@
 # COSMIC ORM implementation status
 
+## 23 October — Native named typed child roles
+
+One source-linked fixture now verifies registered Extras role materialization, typed metadata, accepted baseline/local change tracking, and hidden-role omission/full store observation across all three providers. Mongo27/Neo joint90/SQLite23 pass, zero skips; Core711/Shared54 source/PDB identity matches. No production Core/Shared change or new environment. The full graph matrix remains open for its remaining explicit native corruption/cancellation controls. [Evidence](CQL_GRAPH_LOADING.md).
+
+
 ## 23 October — Authorized partial saves verified on all three stores
 
 Mongo25, SQLite21 and joint88 pass, zero skips. Both type-selected and access-selected views, with/without stored manifests, survive AcceptChanges without gaining replacement rights. A root-only conditional save advances the root once and leaves all child versions/provider revisions unchanged. The ownership roadmap gate is checked. A flaky HTTP fixture now explicitly declares its promised child ordering; the retained failed fixture was hash/identity/settlement-verified before cleanup. [Evidence](CQL_GRAPH_LOADING.md).

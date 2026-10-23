@@ -27,7 +27,7 @@ public sealed partial class CosmicCqlNativeTests
         public IMongoCollection<BsonDocument> Records=>Database.GetCollection<BsonDocument>("Holon");
     }
 
-    private async Task WithMongoGraph(Func<MongoGraphFixture,Task> verify,bool manifest=true,int width=2,bool largeChild=false,Action<Holon>? configure=null)
+    private async Task WithMongoGraph(Func<MongoGraphFixture,Task> verify,bool manifest=true,int width=2,bool largeChild=false,Action<Holon>? configure=null,Func<Holon>? createRoot=null)
     {
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
@@ -42,7 +42,7 @@ public sealed partial class CosmicCqlNativeTests
         await database.CreateCollectionAsync("CosmicOwnedFixture");
         var provider=new Provider(uri+"&appName=CosmicCqlGraph",name);
         var fixture=new MongoGraphFixture{Provider=provider,Database=database,Client=client,
-            Root=new Holon{Id=Guid.NewGuid(),Name="owned CQL graph root"}};
+            Root=createRoot?.Invoke()??new Holon{Id=Guid.NewGuid(),Name="owned CQL graph root"}};
         try
         {
             Assert.False((await provider.ActivateProviderAsync()).IsError);
@@ -58,7 +58,7 @@ public sealed partial class CosmicCqlNativeTests
             }
             configure?.Invoke(fixture.Root);
             var nodes=new List<IHolon>{fixture.Root};
-            for(var index=0;index<nodes.Count;index++)nodes.AddRange(nodes[index].Children);
+            for(var index=0;index<nodes.Count;index++)nodes.AddRange(nodes[index].AllChildren);
             if(manifest)
             {
                 // Assigned fixture IDs deliberately declare create-only preconditions.
@@ -101,6 +101,14 @@ public sealed partial class CosmicCqlNativeTests
             Assert.All(root.Children,child=>{Assert.True(child.IsPublic);Assert.Empty(child.Children);});
             if(manifested)Assert.Equal(2,Core.Serialization.HolonChildRoleManifestJson.Deserialize(((Holon)root).ChildRoleManifestJson).Roles.Single().ChildIds.Count);
         },manifest:manifested,configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=visible;});
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public Task NativeGraphHydratesNamedTypedRoles(bool accessBound)
+        =>WithMongoGraph(fixture=>global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.VerifyAsync(
+            Manager(fixture.Provider),fixture.Provider,fixture.Root,accessBound),
+            configure:global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.Configure,
+            createRoot:global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.CreateRoot);
 
     private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query,CosmicQueryReadAccess policy)
     {
