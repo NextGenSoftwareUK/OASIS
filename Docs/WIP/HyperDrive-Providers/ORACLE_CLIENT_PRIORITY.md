@@ -2,6 +2,30 @@
 
 ## Resume — 2026-10-23
 
+### Follow-up: provider configuration is not a caller payload error
+
+Twenty-four genuine controlled failures reproduced the distinction across profile/detail GUID, username and email deletion, sync/async, soft/hard. The existing lifecycle catch blocks classified any predispatched ArgumentException as HYPERDRIVE_PAYLOAD_INVALID, including an invalid provider connection-string option with a valid selector. Each owner now records successful selector admission and applies that error code only to failures in admission. Original provider exceptions and zero mutation flags/counts are preserved. No new persistence path, retry, configuration fallback, SDK request, schema or Core/Shared behavior was added.
+
+| Evidence | Result | SHA256 |
+|---|---|---|
+| oracle-delete-config-classification-red.trx | 24 failed before fix | A0A6F14BB690D7E380AB65C82C0149CFB4576B8696BD412769B0C45DEE7EDE9C |
+| oracle-delete-config-classification-green.trx | 271 passed after fix | 2FE73FC77B431C5C6E87A2A3DAE02B9E3B864F3B6478F33626B571C971137F63 |
+| oracle-native-current.trx | 278 passed,79s | 5D5E7BD41C66D59013006B2A4331163DE5D2FD50806B4894C1266621FD33F166 |
+| oracle-encrypted-replay-native-current.trx | 4 passed,2s | 447ACB8C7A41225E7888E02233D85AE5794BDAD720732E3E2718E5E352139AF4 |
+| oracle-preparation-native-current.trx | 6 passed,2s | 905EF5803F839EAC762F1F80FA5EFA7ED075B56CE55FB74E666F0C6F327667F7 |
+| oracle-encrypted-process-write.trx | 2 passed,1s | 7C0E6A4828F713E30CD658FF4F188039B907FF48342C7F28B0C3504CF2F79141 |
+| oracle-encrypted-process-recover.trx | 2 passed,903ms | E0BA04328B12BACB80E050BD2F06261E98369722E92C2C8882947262F32E3DC6 |
+| oracle-db-config-cohort.trx | 271 passed,613ms | 315461D08042D2D1D89B751CC34179D2801981C69D711D3B2FE18AB8B7D7131A |
+| oracle-object-config-cohort.trx | 52 passed,7s | DF627E9CC344AA50A054DA04A66E804376DBFF0F7CD327AAD19F8BAB029684AE |
+
+All successful reports have zero skips. Actual native95777 and final controls53308 both TERMINAL0. Same existing Oracle instance started once for native phases, exactly reconciled/cleaned synthetic fixtures, pending0, independently exited afterward. No download/restore/new environment/cloud fees. This proves error-envelope classification, NOT a newly executed V2 failover/replication/load-balancing scenario. Native Shared binaries changed with parent commit metadata during the batch: main observed84064FBC55C79A7A47E4521146879271B9B35041C6149341EA673A606CB67763, advanced phases and final controlled consumers8FDC0BC1892F367E44EF2A0EA6BD6444E4EC88B7E82618179BB3C430962C7FE2. Do not claim one immutable binary cohort for every row. Core stayed39618322D816E56DF5559945210CEE01637ED54BFC9D333EBA4493DFED67D5F5.
+
+#### Reusable source-provenance verification
+
+Clean/pinned Core checkout is38d8696870736ec9591061024079a4a7a303a417, while generated assembly informational revision is945386c. Read-only inspection bound the exact producer DLL to portable PDB D6F3DA7850F9718E7C5E98652CEA71C30658C930D1D593C773828DCE3464352F through matching CodeView/PDB GUID585cd859-a5b6-49d7-aa06-bbc00d505690. ALL710 local Core source documents matched SHA256 with zero missing/mismatches, including every one of the five changed source files between those commits. An initial diagnostic failed only while formatting immutable PDB-ID bytes; the corrected complete diagnostic succeeded. This disproves the inference that the old stamp alone establishes old logic; it does not certify all transitive inputs or fix release SourceLink/version stamping.
+
+Extended existing Scripts/TestHosts/Assert-ReusableProviderBuildIdentity.ps1 with optional -VerifySourceDocuments rather than a competing verifier/environment. It binds PDB to producer PE, verifies current local source document SHA256 and requires at least one document, while preserving default consumer/producer hash matching. Executed against BOTH final database and OCI controlled consumers:710Core and54Shared documents each passed, with consumer hashes matching current producers. No Core rebuild/copy or new dependency was necessary. Source-document verification is not whole-repository test coverage, whole-build reproducibility or hosted acceptance. Release metadata freshness remains a separate packaging gate; the limited provenance result must not be promoted to Oracle100%.
+
 ### Final repaired-source local checkpoint
 
 Actual93980 TERMINAL0: main278/278native passed75s, encrypted replay4/4passed2s, preparation/real transaction races6/6passed2s, encrypted process write2/2passed1s and recovery in separate processes2/2passed893ms; all zero skipped. These additional14 are separate from main278; focused identity8 is already included in278. Native report hashes (TestResults/OracleCurrent):

@@ -7,6 +7,29 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests;
 public sealed class OracleDetailLifecycleAdmissionTests
 {
     [DataTestMethod]
+    [DataRow(0,false,false)][DataRow(0,true,false)][DataRow(1,false,false)][DataRow(1,true,false)][DataRow(2,false,false)][DataRow(2,true,false)]
+    [DataRow(3,false,false)][DataRow(3,true,false)][DataRow(4,false,false)][DataRow(4,true,false)][DataRow(5,false,false)][DataRow(5,true,false)]
+    [DataRow(0,false,true)][DataRow(0,true,true)][DataRow(1,false,true)][DataRow(1,true,true)][DataRow(2,false,true)][DataRow(2,true,true)]
+    [DataRow(3,false,true)][DataRow(3,true,true)][DataRow(4,false,true)][DataRow(4,true,true)][DataRow(5,false,true)][DataRow(5,true,true)]
+    public async Task ValidDeleteSelectorDoesNotClassifyProviderConfigurationAsPayload(int kind,bool synchronous,bool softDelete)
+    {
+        IOASISStorageProvider provider=new OracleDBOASIS("UnsupportedOracleOptionForOwnedTest=true");
+        var id=Guid.NewGuid();
+        var result=kind switch {
+            0=>synchronous?provider.DeleteAvatar(id,softDelete):await provider.DeleteAvatarAsync(id,softDelete),
+            1=>synchronous?provider.DeleteAvatarByUsername("owned-user",softDelete):await provider.DeleteAvatarByUsernameAsync("owned-user",softDelete),
+            2=>synchronous?provider.DeleteAvatarByEmail("owned-user@example.invalid",softDelete):await provider.DeleteAvatarByEmailAsync("owned-user@example.invalid",softDelete),
+            3=>synchronous?provider.DeleteAvatarDetail(id,softDelete):await provider.DeleteAvatarDetailAsync(id,softDelete),
+            4=>synchronous?provider.DeleteAvatarDetailByUsername("owned-user",softDelete):await provider.DeleteAvatarDetailByUsernameAsync("owned-user",softDelete),
+            _=>synchronous?provider.DeleteAvatarDetailByEmail("owned-user@example.invalid",softDelete):await provider.DeleteAvatarDetailByEmailAsync("owned-user@example.invalid",softDelete)
+        };
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsSaved);Assert.IsFalse(result.IsDeleted);
+        Assert.AreEqual(0,result.DeletedCount);
+        Assert.IsInstanceOfType<ArgumentException>(result.Exception);
+        Assert.AreNotEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode,"A valid selector must not turn a provider connection configuration failure into a caller payload rejection.");
+    }
+
+    [DataTestMethod]
     [DataRow(0,false)][DataRow(1,false)][DataRow(2,false)][DataRow(3,false)][DataRow(4,false)][DataRow(5,false)]
     [DataRow(0,true)][DataRow(1,true)][DataRow(2,true)][DataRow(3,true)][DataRow(4,true)][DataRow(5,true)]
     public async Task PairedAvatarInvalidSelectorFailsBeforeOpeningConnection(int kind,bool softDelete)
