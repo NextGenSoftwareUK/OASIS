@@ -31,7 +31,7 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
                 return CqlFailure("CQL_PROVIDER_NOT_READY","Activate MongoDB before native CQL execution.");
             if(plan.Query.GraphOptions!=null)
             {
-                var graph=await repository.ExecuteNativeCqlGraphAsync(command,maximumResults,plan.Query.GraphOptions,cancellationToken).ConfigureAwait(false);
+                var graph=await repository.ExecuteNativeCqlGraphAsync(command,maximumResults,plan.Query.GraphOptions,cancellationToken,plan.Query.ReadAccess).ConfigureAwait(false);
                 graph.IsLoaded=!graph.IsError;
                 return graph;
             }

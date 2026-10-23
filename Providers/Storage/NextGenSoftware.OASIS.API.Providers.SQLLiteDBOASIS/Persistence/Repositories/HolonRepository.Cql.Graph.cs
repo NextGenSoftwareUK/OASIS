@@ -30,6 +30,7 @@ public partial class HolonRepository
         {
             budget.Check();
             var query = CosmicQuery<Holon>.Create().Where(row => row.ParentHolonId == parentId);
+            if(selection.ReadAccess!=null)query=query.WithReadAccess(selection.ReadAccess);
             if (selection.ChildType != HolonType.All)
                 query = query.Where(row => row.HolonType == childType);
             if (selection.MemberIds != null)

@@ -71,9 +71,13 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             var rows=await ReadCqlRowsAsync(cursor,rootBudget,budget).ConfigureAwait(false);
             if(plan.Query.GraphOptions!=null)
             {
-                var graph=await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphQueryExpansion.ExpandAsync(
-                    rows,plan.Query.GraphOptions,(selection,_)=>ReadCqlChildrenAsync(selection,transaction,budget),
-                    cancellationToken,budget.Check).ConfigureAwait(false);
+                Task<IReadOnlyList<IHolon>> ReadChildren(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.CosmicQueryChildSelection selection,CancellationToken token)
+                    => ReadCqlChildrenAsync(selection,transaction,budget);
+                var graph=plan.Query.ReadAccess==null
+                    ? await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphQueryExpansion.ExpandAsync(
+                        rows,plan.Query.GraphOptions,ReadChildren,cancellationToken,budget.Check).ConfigureAwait(false)
+                    : await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphQueryExpansion.ExpandAsync(
+                        rows,plan.Query.GraphOptions,plan.Query.ReadAccess,ReadChildren,cancellationToken,budget.Check).ConfigureAwait(false);
                 if(graph.IsError)return graph;
                 rows=graph.Result;
             }

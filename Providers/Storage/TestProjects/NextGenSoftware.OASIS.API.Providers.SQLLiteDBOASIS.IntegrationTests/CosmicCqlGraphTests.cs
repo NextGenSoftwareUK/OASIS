@@ -25,12 +25,43 @@ public partial class SQLLiteDBOASISIntegrationTests
         return root;
     }
 
-    private static CosmicQueryPlan<Holon> NativeGraphPlan(Holon root, CosmicQueryGraphOptions options)
+    [Theory]
+    [InlineData(true,true)] [InlineData(false,true)]
+    [InlineData(true,false)] [InlineData(false,false)]
+    public async Task NativeCqlGraphAccessFiltersBeforeChildBudget(bool visible,bool manifested)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var source=NativeQueryGraph();source.IsPublic=true;source.Children.First().IsPublic=visible;
+        var seeded=manifested ? await CosmicManager(provider,true).SaveHolonAsync(source,Guid.NewGuid(),
+            CreateNativeGraph(source),providerType:ProviderType.SQLLiteDBOASIS) : await provider.SaveHolonAsync(source);
+        seeded.IsError.Should().BeFalse(seeded.Message+seeded.Exception);
+        var policy=CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
+        var plan=NativeGraphPlan(source,CosmicQueryGraphOptions.Create(maximumNodes:visible?2:1).Result,policy);
+        var read=await provider.ExecuteCosmicQueryAsync(plan);
+        read.IsError.Should().BeFalse(read.Message+read.Exception);
+        var root=read.Result.Single();
+        root.Children.Should().HaveCount(visible?1:0);
+        root.Children.All(child=>child.IsPublic && !child.Children.Any()).Should().BeTrue();
+        if(manifested)Core.Serialization.HolonChildRoleManifestJson.Deserialize(((Holon)root).ChildRoleManifestJson).Roles.Single().ChildIds.Should().HaveCount(2);
+    }
+
+    private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query, CosmicQueryReadAccess policy)
+    {
+        // Exercise the adapter contract while public SDK/HTTP graph admission is
+        // still closed. Reflection is confined to this test fixture, not runtime.
+        var constructor=typeof(CosmicQuery<Holon>).GetConstructors(
+            System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Single();
+        return (CosmicQuery<Holon>)constructor.Invoke(new object?[]{query.Scope,query.Predicates.ToArray(),
+            query.Orderings.ToArray(),query.Offset,query.Limit,query.GraphOptions,policy});
+    }
+
+    private static CosmicQueryPlan<Holon> NativeGraphPlan(Holon root, CosmicQueryGraphOptions options,CosmicQueryReadAccess? access=null)
     {
         var id = root.Id;
         var query = CosmicQuery<Holon>.Create().Where(row => row.Id == id).WithChildren(options);
         query.IsError.Should().BeFalse(query.Message);
-        var plan = CosmicQueryPlanner.Plan(query.Result, ProviderType.SQLLiteDBOASIS,
+        var plan = CosmicQueryPlanner.Plan(access==null ? query.Result : BindNativeGraphPolicy(query.Result,access), ProviderType.SQLLiteDBOASIS,
             new[] { new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, SQLLiteDBOASIS.CqlCapabilities) });
         plan.IsError.Should().BeFalse(plan.Message);
         return plan.Result;

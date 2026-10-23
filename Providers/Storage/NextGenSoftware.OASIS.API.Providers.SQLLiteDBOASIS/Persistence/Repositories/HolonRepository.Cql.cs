@@ -77,9 +77,13 @@ public partial class HolonRepository
                     budget.Check();
                     if (plan.Query.GraphOptions != null)
                     {
-                        var graph = await HolonGraphQueryExpansion.ExpandAsync(rows.AsReadOnly(), plan.Query.GraphOptions,
-                            (selection, token) => ReadCqlChildrenAsync(selection, budget, token), cancellationToken,
-                            budget.Check).ConfigureAwait(false);
+                        Task<IReadOnlyList<IHolon>> ReadChildren(CosmicQueryChildSelection selection, CancellationToken token)
+                            => ReadCqlChildrenAsync(selection, budget, token);
+                        var graph = plan.Query.ReadAccess == null
+                            ? await HolonGraphQueryExpansion.ExpandAsync(rows.AsReadOnly(), plan.Query.GraphOptions,
+                                ReadChildren, cancellationToken, budget.Check).ConfigureAwait(false)
+                            : await HolonGraphQueryExpansion.ExpandAsync(rows.AsReadOnly(), plan.Query.GraphOptions,
+                                plan.Query.ReadAccess, ReadChildren, cancellationToken, budget.Check).ConfigureAwait(false);
                         if (graph.IsError) return graph;
                         budget.Check();
                         graphTransaction?.Commit();
