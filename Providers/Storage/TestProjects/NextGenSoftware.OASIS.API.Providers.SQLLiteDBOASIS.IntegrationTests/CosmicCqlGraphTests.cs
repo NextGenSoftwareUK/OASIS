@@ -44,6 +44,16 @@ public partial class SQLLiteDBOASISIntegrationTests
         root.Children.Should().HaveCount(visible?1:0);
         root.Children.All(child=>child.IsPublic && !child.Children.Any()).Should().BeTrue();
         if(manifested)Core.Serialization.HolonChildRoleManifestJson.Deserialize(((Holon)root).ChildRoleManifestJson).Roles.Single().ChildIds.Should().HaveCount(2);
+
+        // Exercise native selection -> detached admission -> typed role hydration
+        // together, while public SDK/HTTP graph-policy composition stays gated.
+        var published=await CosmicManager(provider,true).ExecuteQueryAsync(plan,
+            new ICosmicQueryStorageProvider[]{provider});
+        published.IsError.Should().BeFalse(published.Message+published.Exception);
+        var typed=published.Result.Providers.Single().Rows.Single();
+        typed.IsPublic.Should().BeTrue();
+        typed.Children.Should().HaveCount(visible?1:0);
+        HolonChangeTracking.HasChanges(typed).Should().BeFalse();
     }
 
     private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query, CosmicQueryReadAccess policy)

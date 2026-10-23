@@ -21,6 +21,49 @@ public class CosmicQueryGraphExecutionTests
         return root;
     }
 
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void BothBaseMappersPreserveStoredVisibility(bool isPublic)
+    {
+        var source=new Holon{Id=Guid.NewGuid(),IsPublic=isPublic,CreatedByAvatarId=Guid.NewGuid()};
+        var plain=new Holon{IsPublic=!isPublic};
+        var typed=new CountingRoot{IsPublic=!isPublic};
+        Core.Helpers.Mapper.MapBaseHolonProperties(source,plain,mapChildren:false);
+        Core.Helpers.Mapper<IHolon,CountingRoot>.MapBaseHolonProperties(source,typed);
+        Assert.Equal(isPublic,plain.IsPublic);Assert.Equal(isPublic,typed.IsPublic);
+        Assert.Equal(source.CreatedByAvatarId,plain.CreatedByAvatarId);
+        Assert.Equal(source.CreatedByAvatarId,typed.CreatedByAvatarId);
+    }
+
+    // Boundary fixture while public SDK/HTTP access-graph admission stays closed.
+    private static CosmicQuery<T> BindGraphPolicy<T>(CosmicQuery<T> query, CosmicQueryReadAccess policy) where T:IHolon
+        => (CosmicQuery<T>)typeof(CosmicQuery<T>).GetConstructors(
+            System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Single()
+            .Invoke(new object?[]{query.Scope,query.Predicates.ToArray(),query.Orderings.ToArray(),
+                query.Offset,query.Limit,query.GraphOptions,policy});
+
+    [Theory]
+    [InlineData(1)] [InlineData(2)]
+    public async Task ForeignDescendantsRejectBeforeAnyTypedRootConstructor(int depth)
+    {
+        var source=Graph();source.IsPublic=true;
+        source.Children[0].IsPublic=depth!=1;
+        source.Children[0].Children[0].IsPublic=depth!=2;
+        var adapter=new Adapter(source);
+        var query=BindGraphPolicy(CosmicQuery<CountingRoot>.Create()
+            .WithChildren(CosmicQueryGraphOptions.Create().Result).Result,
+            CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result);
+        var plan=CosmicQueryPlanner.Plan(query,adapter.QueryProviderType,
+            new[]{new CosmicQueryTarget(adapter.QueryProviderType,adapter.QueryCapabilities)});
+        Assert.False(plan.IsError,plan.Message);
+        CountingRoot.Constructions=0;
+        var read=await Manager().ExecuteQueryAsync(plan.Result,new[]{adapter});
+        Assert.True(read.IsError);
+        Assert.Equal("CQL_VISIBILITY_VIOLATION",read.ErrorCode);
+        Assert.Null(read.Result);
+        Assert.Equal(0,CountingRoot.Constructions);
+    }
+
     [Fact]
     public async Task GraphEdgesAndMetadataAreDetachedBeforePublication()
     {
@@ -249,6 +292,37 @@ public class CosmicQueryGraphExecutionTests
         public CountingRoot() { Constructions++; }
     }
 
+    public sealed class RevokingFactoryRoot : Holon
+    {
+        public override IReadOnlyList<HolonChildRoleBinding> GetChildRoleBindings()
+            =>new[]{HolonChildRoleBinding.Create<Holon>("Children",
+                children=>
+                {
+                    Children=children.Cast<IHolon>().ToList();
+                    foreach(var child in Children){child.IsPublic=false;child.CreatedByAvatarId=Guid.Empty;}
+                },source=>StoredRecordJson.Project<Holon>(source))};
+    }
+
+    [Fact]
+    public async Task ATypedFactoryCannotPublishAForeignReplacement()
+    {
+        var source=Graph();source.IsPublic=true;
+        source.Children[0].IsPublic=true;source.Children[0].Children.Clear();
+        source.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
+            1,source.Id,new[]{new HolonChildRole("Children",new[]{source.Children[0].Id,Guid.NewGuid()})}));
+        var adapter=new Adapter(source);
+        var query=BindGraphPolicy(CosmicQuery<RevokingFactoryRoot>.Create()
+            .WithChildren(CosmicQueryGraphOptions.Create().Result).Result,
+            CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result);
+        var plan=CosmicQueryPlanner.Plan(query,adapter.QueryProviderType,
+            new[]{new CosmicQueryTarget(adapter.QueryProviderType,adapter.QueryCapabilities)});
+        Assert.False(plan.IsError,plan.Message);
+        var read=await Manager().ExecuteQueryAsync(plan.Result,new[]{adapter});
+        Assert.True(read.IsError);
+        Assert.Equal("CQL_VISIBILITY_VIOLATION",read.ErrorCode);
+        Assert.Null(read.Result);
+    }
+
     public sealed class TypedChild : Holon
     {
         [NextGenSoftware.OASIS.API.Core.CustomAttrbiutes.CustomOASISProperty]
@@ -271,13 +345,15 @@ public class CosmicQueryGraphExecutionTests
     }
 
     [Theory]
-    [InlineData(false)] [InlineData(true)]
-    public async Task ARegisteredChildFactoryReceivesDecryptedMetadataBeforeTracking(bool partial)
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(true,true)]
+    public async Task ARegisteredChildFactoryReceivesDecryptedMetadataBeforeTracking(bool partial,bool accessBound)
     {
         var source = Graph();
         var child = source.Children[0];
         child.Children.Clear();
         if(partial)child.HolonType=HolonType.Quest;
+        var policy=CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
+        if(accessBound){source.IsPublic=true;child.CreatedByAvatarId=policy.ActorId;}
         source.ChildRoleManifestJson = HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
             1, source.Id, new[] { new HolonChildRole("Children", partial?new[]{child.Id,Guid.NewGuid()}:new[] { child.Id }) }));
         var settings = new EncryptionSettings { Rijndael256EncryptionEnabled = true, Rijndael256Key = new string('e', 32) };
@@ -285,7 +361,8 @@ public class CosmicQueryGraphExecutionTests
         var manager = Manager();
         manager.OASISDNA.OASIS.Security = new SecuritySettings { HolonDataEncryption = settings };
         var adapter = new Adapter(source);
-        var query = CosmicQuery<FactoryRoot>.Create().WithChildren(CosmicQueryGraphOptions.Create(childType:partial?HolonType.Quest:HolonType.All).Result).Result;
+        var query = CosmicQuery<FactoryRoot>.Create().WithChildren(CosmicQueryGraphOptions.Create(childType:partial&&!accessBound?HolonType.Quest:HolonType.All).Result).Result;
+        if(accessBound)query=BindGraphPolicy(query,policy);
         var plan = CosmicQueryPlanner.Plan(query, adapter.QueryProviderType,
             new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) });
         var result = await manager.ExecuteQueryAsync(plan.Result, new[] { adapter });
@@ -298,6 +375,12 @@ public class CosmicQueryGraphExecutionTests
         loadedChild.Secret = "edited locally";
         Assert.True(HolonChangeTracking.HasChanges(root));
         Assert.True(child.MetaData.ContainsKey("__oasis_enc__"));
+        if(accessBound)
+        {
+            root.AcceptChanges();
+            Assert.Throws<InvalidOperationException>(()=>HolonSavePlan.Create(new[]{root},true,true,0));
+            using var rootOnly=HolonSavePlan.Create(new[]{root},false,false,0);
+        }
     }
 
     [Fact]
@@ -380,8 +463,9 @@ public class CosmicQueryGraphExecutionTests
         { _root = root; QueryProviderType = provider; }
 
         public ProviderType QueryProviderType { get; }
-        public CosmicQueryCapabilities QueryCapabilities => new(CosmicQueryFeatures.GraphExpansion,
-            Array.Empty<CosmicQueryFieldCapability>());
+        public CosmicQueryCapabilities QueryCapabilities => new(CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.Or|CosmicQueryFeatures.And,
+            new[]{new CosmicQueryFieldCapability("IsPublic",typeof(bool),CosmicQueryComparisonOperator.Equal),
+                new CosmicQueryFieldCapability("CreatedByAvatarId",typeof(Guid),CosmicQueryComparisonOperator.Equal)});
 
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
             int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
