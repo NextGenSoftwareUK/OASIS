@@ -1,5 +1,9 @@
 # COSMIC ORM implementation status
 
+## 23 October — immutable projection intent
+
+Core `aa35a43` adds bounded scalar/anonymous/flat DTO Select intent through the existing path compiler, preserving the original source/access/scope/window/graph-consistency object. It invokes no selected getter, constructor or setter and rejects entities, arbitrary methods, computed values, collection shapes,33columns and discarded numeric conversions. FullCore **1,989** (7newprojectioncontrols) passes; netstandard2.1/net10.0 both build. The dedicated three-provider row/scalar demo still passes27SDK/27HTTP,182settled/181attempts after the compiler refactor. No provider advertises native projection execution yet: capability planning/readmission, native Select and detached-value construction are next, not claimed complete. [Projection boundary](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#projection-implementation-boundary--23-october-2026).
+
 ## 23 October — signed scalar HTTP transport
 
 `POST /api/data/query-cql/scalar` implements Count/LongCount/Any through the same generic Core/HolonManager scalar owner on MongoDB, SQLite and Neo4j. A shared source compiler preserves nullable/unbounded scalar Take while keeping row default25. Both routes share authenticated admission and provider eligibility; startup tariff validation now includes the scalar route. Exact LongCount is always a tagged Int64 decimal string.
