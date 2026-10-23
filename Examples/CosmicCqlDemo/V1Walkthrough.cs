@@ -223,11 +223,30 @@ public static class V1Walkthrough
                 filters = scalarFilters,
                 anyOf = new[] { new { field = "Name", @operator = "Equal", value = "A-private" } }
             }, scalar: true, valueType: "Boolean", expected: false);
+
+            // EXAMPLE 10 — select a detached native shape. Metadata types are
+            // explicit; canonical types are inferred. Int64 cells are decimal
+            // text, nullable leaves stay null, and columns retain their order.
+            await ShowAsync("10. Native projection / exact selected values", new
+            {
+                provider,
+                filters = scalarFilters,
+                orderBy = "Name",
+                skip = 1,
+                take = 1,
+                columns = new object[]
+                {
+                    new { alias = "label", field = "Name" },
+                    new { alias = "precision", metadataPath = new[] { "precision" }, valueType = "Int64" },
+                    new { alias = "optional", metadataPath = new[] { "nullable" }, valueType = "Int64", nullable = true },
+                    new { alias = "city", metadataPath = new[] { "location", "city" }, valueType = "String" }
+                }
+            }, projection: true);
         }
 
         return completedRequests;
 
-        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null)
+        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null, bool projection = false)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -236,7 +255,8 @@ public static class V1Walkthrough
             // uncertain; do not silently repeat the request with a fresh key.
             var operationKey = Guid.NewGuid().ToString("D");
 
-            var route = scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql";
+            var route = projection ? "/api/data/query-cql/projection"
+                : scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql";
 
             using var request = new HttpRequestMessage(HttpMethod.Post, route)
             {
@@ -262,6 +282,18 @@ public static class V1Walkthrough
                     || payload.GetProperty("valueType").GetString() != valueType
                     || payload.GetProperty("value").GetRawText() != JsonSerializer.Serialize(expected))
                     throw new InvalidOperationException(title + " returned the wrong scalar domain or value.");
+            }
+
+            if (projection)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var row = payload.GetProperty("rows").EnumerateArray().Single();
+
+                if (payload.GetProperty("version").GetString() != "cql-projection-v1"
+                    || payload.GetProperty("columns")[1].GetProperty("valueType").GetString() != "Int64"
+                    || row[0].GetString() != "C-public" || row[1].GetString() != "9007199254740993"
+                    || row[2].ValueKind != JsonValueKind.Null || row[3].GetString() != "London")
+                    throw new InvalidOperationException(title + " returned the wrong selected shape or exact value.");
             }
 
             completedRequests++;

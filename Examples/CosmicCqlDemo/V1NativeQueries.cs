@@ -133,6 +133,52 @@ public static class V1NativeQueries
         await ShowScalarAsync("9. Any cannot reveal a private root",
             Value(visible.Where(holon => holon.Name == "A-private").Any()), false);
 
+        // 10. Select only the values this screen needs. Source visibility and
+        // Skip/Take run natively before selection; no holon or child is hydrated.
+        // These detached DTO values carry no entity save/change-tracking state.
+        if (adapter is not ICosmicQueryProjectionStorageProvider projectionAdapter)
+            throw new InvalidOperationException("This provider has no selected-column contract.");
+
+        var selected = Value(visible
+            .OrderBy(holon => holon.Name)
+            .ThenBy(holon => holon.Id)
+            .Skip(1)
+            .Take(1)
+            .Select(holon => new
+            {
+                Label = holon.Name,
+                Precision = CosmicQueryMetadata.Value<long>(holon, "precision"),
+                Optional = CosmicQueryMetadata.Value<long?>(holon, "nullable"),
+                City = CosmicQueryMetadata.Value<string>(holon, "location", "city")
+            }));
+
+        var selectedPlan = Value(CosmicProjectionPlanner.Plan(
+            selected,
+            provider,
+            new[]
+            {
+                new CosmicProjectionTarget(
+                    provider,
+                    adapter.QueryCapabilities,
+                    projectionAdapter.ProjectionCapabilities)
+            }));
+
+        var projected = Value(await manager.ExecuteProjectionQueryAsync(
+            selectedPlan,
+            new[] { adapter },
+            maximumResults: 10));
+
+        var summary = projected.Providers.Single().Rows.Single();
+
+        if (summary.Label != "C-public" || summary.Precision != 9007199254740993L
+            || summary.Optional != null || summary.City != "London")
+            throw new InvalidOperationException("Native selected-column values changed.");
+
+        completedQueries++;
+
+        await output.WriteLineAsync("10. Native Select / detached typed values");
+        await output.WriteLineAsync($"\n  {summary.Label}\n  Exact Int64: {summary.Precision}\n  Optional: null\n  City: {summary.City}\n");
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(

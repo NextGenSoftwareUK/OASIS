@@ -73,7 +73,7 @@ public static class V1DemoPresentation
       <label>Native provider<br><select id="provider"><option>MongoDBOASIS</option><option>SQLLiteDBOASIS</option><option>Neo4jOASIS</option><option value="">Current default (SQLite)</option></select></label>
       <label>Authenticated user<br><select id="actor"><option>Alice</option><option>Bob</option><option>Visitor</option><option>Anonymous</option></select></label>
       <label>Walkthrough<br><select id="example">
-        <option value="longCount">LongCount / complete visible input</option><option value="count">Count / explicit window</option><option value="any">Any / private root</option>
+        <option value="projection">Select / detached typed columns</option><option value="longCount">LongCount / complete visible input</option><option value="count">Count / explicit window</option><option value="any">Any / private root</option>
         <option value="page">Visibility before paging</option><option value="nested">Nested metadata + protected OR</option>
         <option value="strings">Ordinal prefix / suffix</option><option value="null">Explicit null / existence</option>
         <option value="children">Visible child existence</option><option value="descendants">Bounded descendants</option><option value="graph">Access-bound child graph</option><option value="precision">Exact Int64 beyond 2^53</option><option value="guid">Typed GUID metadata</option>
@@ -103,6 +103,7 @@ const el = id => document.getElementById(id);
 const notes = {
   longCount: 'Native LongCount over the complete visible source: Alice 3, Bob 3, Visitor 1. Omitted take has no row-page cap. Int64 values are always decimal strings; keep them as text or BigInt.',
   count: 'Count after Skip 1 / Take 1: Alice and Bob receive Int32 1, Visitor 0. Source windows apply before the terminal.',
+  projection: 'Select returns ordered column schema and value arrays. Int64 is exact decimal text; nullable metadata stays null. The selected values are detached, with visibility applied before the native page.',
   any: 'Any returns a Boolean. A-private belongs to Bob: Alice and Visitor receive false, Bob true. The query cannot bypass owner/public visibility.',
   children: 'Two independent native EXISTS conditions run before the root page. Alice matches C-public via public and owned siblings. Visitor cannot match the owned child. Private SHARED_WITH metadata grants no access.',
   graph: 'The server applies owner/public access to every child. Alice sees public + owned children; the private branch and its public grandchild are omitted. Parent IDs/role manifests outside the selected view are not public output.',
@@ -160,6 +161,16 @@ function preset() {
     delete body.take;
     if (name === 'count') { body.skip = 1; body.take = 1; }
     if (name === 'any') body.filters.push({ field: 'Name', operator: 'Equal', value: 'A-private' });
+  }
+  if (name === 'projection') {
+    queryRoute += '/projection';
+    body.take = 3;
+    body.columns = [
+      { alias: 'label', field: 'Name' },
+      { alias: 'precision', metadataPath: ['precision'], valueType: 'Int64' },
+      { alias: 'optional', metadataPath: ['nullable'], valueType: 'Int64', nullable: true },
+      { alias: 'city', metadataPath: ['location', 'city'], valueType: 'String' }
+    ];
   }
   el('route').textContent = queryRoute;
   if (!body.provider) delete body.provider;

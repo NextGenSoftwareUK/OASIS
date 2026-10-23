@@ -156,11 +156,11 @@ public sealed partial class CqlV1Web4NativeTests
                     var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
                     using var client = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
 
-                    async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null,bool expectContinue = false,bool scalar = false)
+                    async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null,bool expectContinue = false,bool scalar = false,bool projection = false)
                     {
                         var operation = operationKey ?? Guid.NewGuid().ToString("D");
                         await Journal("before-http-request", new { actor, operation });
-                        using var request = new HttpRequestMessage(HttpMethod.Post, scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql")
+                        using var request = new HttpRequestMessage(HttpMethod.Post, projection ? "/api/data/query-cql/projection" : scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql")
                         {
                             Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
                         };
@@ -208,6 +208,60 @@ public sealed partial class CqlV1Web4NativeTests
                     foreach (var provider in providers.Keys)
                     {
                         var fixture = new { MetadataPath = new[] { "fixture" }, Operator = "Equal", Scalar = "String", Value = tag };
+                        // Native selection must apply visibility before paging and return
+                        // exact scalar cells, without hydrating source entities.
+                        async Task Projection(Guid actor, int skip, bool replay)
+                        {
+                            var logical = Guid.NewGuid().ToString("D");
+                            var body = new
+                            {
+                                Provider = provider.ToString(), Filters = new[] { fixture }, Skip = skip, Take = 1,
+                                Columns = new object[]
+                                {
+                                    new { Alias = "name", Field = "Name" },
+                                    new { Alias = "precision", MetadataPath = new[] { "precision" }, ValueType = "Int64" },
+                                    new { Alias = "empty", MetadataPath = new[] { "nullable" }, ValueType = "Int64", Nullable = true },
+                                    new { Alias = "code", MetadataPath = new[] { "guid" }, ValueType = "Guid" },
+                                    new { Alias = "city", MetadataPath = new[] { "location", "city" }, ValueType = "String" }
+                                }
+                            };
+                            using var response = await Send(body, actor, logical, projection: true);
+                            var text = await response.Content.ReadAsStringAsync();
+                            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                            Assert.AreEqual("settled", response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
+                            var operation = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                            Assert.AreEqual("settled", operation.State); Assert.AreEqual(1, operation.ProviderAttempts.Count);
+                            Assert.AreEqual(1, operation.Receipts.Count); Assert.AreEqual(0.002m, operation.Receipts.Single().ActualCostUsd);
+                            using var json = JsonDocument.Parse(text);
+                            var value = json.RootElement.GetProperty("result");
+                            Assert.AreEqual("cql-projection-v1", value.GetProperty("version").GetString());
+                            Assert.AreEqual(provider.ToString(), value.GetProperty("provider").GetString());
+                            Assert.AreEqual("Int64", value.GetProperty("columns")[1].GetProperty("valueType").GetString());
+                            var row = value.GetProperty("rows").EnumerateArray().Single();
+                            Assert.AreEqual("C-public", row[0].GetString()); Assert.AreEqual("9007199254740993", row[1].GetString());
+                            Assert.AreEqual(JsonValueKind.Null, row[2].ValueKind); Assert.AreEqual(ids[3].ToString("D"), row[3].GetString());
+                            Assert.AreEqual("London", row[4].GetString());
+                            if (replay)
+                            {
+                                var starts = authority.Started.Count;
+                                using var duplicate = await Send(body, actor, logical, projection: true);
+                                Assert.AreEqual(HttpStatusCode.Conflict, duplicate.StatusCode); Assert.AreEqual(starts, authority.Started.Count);
+                                var retained = await outbox.GetAsync(response.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                                Assert.AreEqual(1, retained.ProviderAttempts.Count); Assert.AreEqual(1, retained.Receipts.Count);
+                            }
+                        }
+                        await Projection(alice, skip: 1, replay: true);
+                        await Projection(outsider, skip: 0, replay: false);
+                        using (var invalidColumns = await Send(new
+                        {
+                            Provider = provider.ToString(), Columns = new[] { new { Alias = "same", Field = "Name" }, new { Alias = "same", Field = "Id" } }
+                        }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, invalidColumns.StatusCode);
+                        if (provider == ProviderType.Neo4jOASIS)
+                            using (var unsupportedDate = await Send(new
+                            {
+                                Provider = provider.ToString(), Columns = new[] { new { Alias = "when", MetadataPath = new[] { "when" }, ValueType = "DateTime" } }
+                            }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, unsupportedDate.StatusCode);
+
                         // Scalar requests share signed admission and exact durable receipts.
                         // The fixture marker applies only to its five roots: Alice sees3,
                         // the outsider sees1. A private/shared-index root cannot participate.
@@ -436,10 +490,14 @@ public sealed partial class CqlV1Web4NativeTests
                             var paths = swagger.RootElement.GetProperty("paths");
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql", out _));
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/scalar", out _));
+                            Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/projection", out _));
                             var example = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlScalarV1Request").GetProperty("example");
                             Assert.AreEqual("LongCount", example.GetProperty("operation").GetString());
                             Assert.IsFalse(example.TryGetProperty("take", out _), "Scalar demo must not inherit a row page.");
+                            var projectionExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
+                                .GetProperty("CqlProjectionV1Request").GetProperty("example");
+                            Assert.AreEqual("Int64", projectionExample.GetProperty("columns")[1].GetProperty("valueType").GetString());
                         }
 
                         // These examples are the same readable C# client code developers

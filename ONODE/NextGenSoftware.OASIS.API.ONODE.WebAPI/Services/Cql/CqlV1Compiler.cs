@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
-public static class CqlV1Compiler
+public static partial class CqlV1Compiler
 {
     public static bool Supported(ProviderType type) => type is ProviderType.MongoDBOASIS or ProviderType.SQLLiteDBOASIS or ProviderType.Neo4jOASIS;
 
