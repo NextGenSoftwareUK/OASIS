@@ -26,6 +26,8 @@ public sealed class OracleReadOnlyConnectionNativeTests
         using var journal=JsonDocument.Parse(intent);
         var ids=journal.RootElement.GetProperty("ids").EnumerateArray().Select(x=>x.GetGuid()).ToArray();Assert.AreEqual(3,ids.Length);
         var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;
+        var iterationsText=Environment.GetEnvironmentVariable("OASIS_ORACLE_READ_CONNECTION_ITERATIONS")??"50";
+        Assert.IsTrue(int.TryParse(iterationsText,out var iterations)&&iterations>=1&&iterations<=400,"Explicit bounded read-only workload required.");
         await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();
         async Task VerifyOriginals()
         {
@@ -62,7 +64,7 @@ public sealed class OracleReadOnlyConnectionNativeTests
                         socketCode=error is System.Net.Sockets.SocketException socket?(int?)socket.SocketErrorCode:null});
                 failures.Add(new{attempted,result.IsError,result.ErrorCode,exceptionChain=chain});
             }
-            for(int index=0;index<50;index++)
+            for(int index=0;index<iterations;index++)
             {
                 Observe(provider.LoadAvatar(ids[0]),ids[0]);Observe(provider.LoadAvatar(ids[0],1),ids[0]);
                 Observe(provider.LoadAvatarDetail(ids[0]),ids[0]);Observe(provider.LoadAvatarDetail(ids[0],1),ids[0]);
@@ -74,7 +76,7 @@ public sealed class OracleReadOnlyConnectionNativeTests
         }
         CollectionAssert.AreEqual(intent,await File.ReadAllBytesAsync(Path.Combine(work,"read-acknowledgements.pending.json")));
         CollectionAssert.AreEqual(failure,await File.ReadAllBytesAsync(Path.Combine(work,"read-acknowledgements-failure.json")));
-        var bytesProof=JsonSerializer.SerializeToUtf8Bytes(new{schema=1,kind="read-only-connection-admission-control",originalsUnchanged=true,outcomes});
+        var bytesProof=JsonSerializer.SerializeToUtf8Bytes(new{schema=1,kind="read-only-connection-admission-control",iterations,originalsUnchanged=true,outcomes});
         using(var file=new FileStream(proof,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough))
         {await file.WriteAsync(bytesProof);file.Flush(true);}
         Console.WriteLine(Encoding.UTF8.GetString(bytesProof));

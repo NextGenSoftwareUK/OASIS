@@ -2,6 +2,23 @@
 
 ## Resume — 2026-10-23
 
+### Sustained original-data control: connection volume alone did not reproduce refusal
+
+The prior400-logon phase was shorter than the failing full suite's observed~3317listener connections. To test that limitation, the same original-fenced read-only mode now accepts explicit `-ReadConnectionIterations`1..400 (default50 unchanged), only with InspectReadConnections. Actual81871 TERMINAL0: one observation PASS,0skip1m34s,400iterations×8current/historical public reads per profile, **6400total**. All four original byte lengths/SHA256 and both original evidence-file hashes remain unchanged. No activation, mutation replay, schema/server/privilege change, new environment or package restore/download.
+
+| Sustained profile | Reads | Failed | Native logons delta | Elapsed |
+|---|---:|---:|---:|---:|
+| Pooling disabled |3200|0|3200 (4135→7335)|89699ms|
+| Real SDK pooling,min0/max4 |3200|0|4 (7335→7339)|3907ms|
+
+This narrows the investigation: **sustained connection volume alone was insufficient to reproduce** the full mixed-workload listener refusal. Pooling clearly reduces physical logons/performance cost, but remains an unproven explanation/fix for that refusal. Do not replace this observation with a provider-wide pass, add arbitrary retries/limits/OS privileges, or delete/reset originals to obtain a green count. Listener config showed no explicit rate limit; inspected alert log contained startup priority/patch-info warnings but no demonstrated causal link. Historical predecessor ordering remains in the earlier failed TRX; the async read-ack case passed immediately before the failing sync case. The trigger remains OPEN and the full native result remains491/492; cloud verification still pending.
+
+Additional read-only listener correlation:35FREEPDB1 refusals cluster at18:26:34.817–18:26:34.893UTC; a `service_update * inst_upd=1 handler_upd=1 * FREE * 0` entry occurs at18:26:34.893. This is a measured registration/handler-event correlation, not proof of the update's cause/state payload or a provider-code defect. Default OCI profile still absent and no inspected OCI/Oracle-cloud configuration environment-variable names present; no secret values accessed, cloud gate unchanged.
+
+The runner restores its ephemeral iteration environment setting. Three CLI misuse cases were explicitly rejected before runtime access:401iterations, custom workload without read-only mode, and read-only combined with a write-reconciliation mode. An initial validation-harness catch referenced a nonpublic/unresolvable PowerShell exception type; corrected harness used the actual validation error ID, all3rejections verified, no native work during those checks.
+
+Earlier tiny400-read reports were exact-hash MOVED to `.pre-sustained`, not overwritten. Final `oracle-read-only-connection-current.trx`3204bytes SHA256 `E61F9DACF8E97E83607629E28B528D3D42C630E11843FE64625EDD8162CA1A4D`; proofJSON360bytes SHA256 `C52CA73A41C43DC6155BFDE1C265968F0542C4696A92FCCE9EE2F2D0D7985F6A`. Execution cohort Core `FF333B21949CD763C83D48E71E397937FC7C85A3D57D8203062B532C9984B126`/717, Shared `E16FE1ECBF359B5F7929FD9B38A1B871E6E3E0BD472DF344FE1C51D7C811C5DA`/55; source frozen during batch. This does not relabel the prior9AF or full-native069 cohorts. Runtime/data/journals remain preserved; global build slot released at actual terminal. No dev/main deployment.
+
 ### Bounded read-only connection comparison completed; trigger still open
 
 New explicit `Run-ReusableOracleTests.ps1 -InspectReadConnections` fences the exact preserved pending/failure hashes, permits only the read-only diagnostic class and leaves all normal write modes blocked by the pending original. It does not activate providers, save/delete records, replay mutations, alter schema/server settings or clean up originals. The separate diagnostic uses the existing real ODP.NET23.6.0/provider methods,50×8 synchronous current/historical point reads per phase. Before/after each phase it independently verifies all four original canonical byte lengths/SHA256 and finally checks both original intent/failure files unchanged. Numeric exception chains are bounded and connection strings/keys are never recorded. Its PASS means observation completed, NOT provider-wide acceptance or causal proof.
