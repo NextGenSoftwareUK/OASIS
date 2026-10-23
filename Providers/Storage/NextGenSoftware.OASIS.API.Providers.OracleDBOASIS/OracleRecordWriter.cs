@@ -17,6 +17,17 @@ public partial class OracleDBOASIS
     {
         var expected=table=="OASIS_AVATARS"?typeof(Avatar):table=="OASIS_AVATAR_DETAILS"?typeof(AvatarDetail):table=="OASIS_HOLONS"?typeof(Holon):null;
         if(expected!=typeof(T))throw new ArgumentException("Canonical Oracle record type must match its table.");
+        // These indexed columns are NOT NULL in the admitted Oracle schema.
+        // Reject invalid input before opening a connection, not after dispatch.
+        (string? Username,string? Email)? identity=proposed switch{
+            IAvatar avatar=>(avatar.Username,avatar.Email),
+            IAvatarDetail detail=>(detail.Username,detail.Email),
+            _=>null
+        };
+        if(identity.HasValue){
+            ArgumentException.ThrowIfNullOrEmpty(identity.Value.Username,nameof(IAvatar.Username));
+            ArgumentException.ThrowIfNullOrEmpty(identity.Value.Email,nameof(IAvatar.Email));
+        }
         var dispatched=false;var canonicalWriteAcknowledged=false;var creating=false;
         try{
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync();
