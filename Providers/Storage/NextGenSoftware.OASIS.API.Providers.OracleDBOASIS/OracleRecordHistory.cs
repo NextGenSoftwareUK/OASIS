@@ -26,13 +26,17 @@ public partial class OracleDBOASIS
             throw new InvalidDataException("Oracle native identity indexes differ from their current canonical record.");
     }
 
-    private async Task<T?> ReadRecordVersionAsync<T>(Guid identity,string json,int version,int? nativeAvatarDeleted=null,NativeIdentityProjection? nativeIdentity=null) where T:class,IHolonBase
+    private async Task<T?> ReadRecordVersionAsync<T>(Guid identity,string json,int version,int? nativeAvatarDeleted=null,NativeIdentityProjection? nativeIdentity=null,NativeHolonProjection? nativeHolon=null) where T:class,IHolonBase
     {
         if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
         var current=Deserialize<T>(json);
         if(current.Id!=identity)throw new InvalidDataException("Oracle canonical record identity differs from its native key.");
         if(nativeAvatarDeleted.HasValue)ValidateNativeAvatarProjection(current,nativeAvatarDeleted.Value);
         if(nativeIdentity.HasValue)ValidateNativeIdentityProjection(current,nativeIdentity.Value);
+        if(nativeHolon is {} projection){
+            if(current is not IHolon holon)throw new ArgumentException("Native holon projection requires a canonical Holon.");
+            ValidateNativeHolonProjection(holon,projection.Type,projection.Deleted,projection.Parent);
+        }
         var document=JObject.Parse(json);
         if(document["id"]!=null&&document["id"]!.Value<string>()!=identity.ToString())throw new InvalidDataException("Oracle embedded history identity differs from native key.");
         if(document.Property(EmbeddedRecordHistory.PropertyName)==null)return version==0||current.Version==version?current:null;

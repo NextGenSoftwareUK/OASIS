@@ -238,10 +238,11 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             // Table/column are internal constants, never caller-supplied SQL identifiers.
             var historicalIdentity=version>0&&column!="ID";
             var validateAvatar=typeof(T)==typeof(Avatar);
+            var validateHolon=typeof(T)==typeof(Holon);
             var validateIdentity=validateAvatar||typeof(T)==typeof(AvatarDetail);
             // Validate current native/canonical agreement before deletion filtering or
             // historical selection; an inconsistent SQL flag must not hide the record.
-            string sql = $"SELECT ID,DATA_JSON{(validateAvatar?",IS_DELETED":"")}{(validateIdentity?",USERNAME,EMAIL":"")} FROM {table}" + (historicalIdentity?"":$" WHERE {column}=:val"+(excludeDeleted&&!validateAvatar&&version==0?" AND IS_DELETED=0":""));
+            string sql = $"SELECT ID,DATA_JSON{(validateAvatar?",IS_DELETED":validateHolon?",HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID":"")}{(validateIdentity?",USERNAME,EMAIL":"")} FROM {table}" + (historicalIdentity?"":$" WHERE {column}=:val"+(excludeDeleted&&!validateAvatar&&!validateHolon&&version==0?" AND IS_DELETED=0":""));
             await using var conn = new OracleConnection(_connectionString);
             await conn.OpenAsync();
             await using var cmd = CreateCommand(sql, conn);
@@ -249,7 +250,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             await using var reader=await cmd.ExecuteReaderAsync();
             T? selected=null;
             while(await reader.ReadAsync()){
-                var id=new Guid((byte[])reader.GetValue(0));var record=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version,validateAvatar?reader.GetInt32(2):null,validateIdentity?ReadNativeIdentityProjection(reader,validateAvatar?3:2):null);
+                var id=new Guid((byte[])reader.GetValue(0));var record=await ReadRecordVersionAsync<T>(id,reader.GetString(1),version,validateAvatar?reader.GetInt32(2):null,validateIdentity?ReadNativeIdentityProjection(reader,validateAvatar?3:2):null,validateHolon?ReadNativeHolonProjection(reader,2):null);
                 if(record==null||record.IsDeleted)continue;
                 if(column!="ID"){
                     if(!CanonicalIdentityMatches(record,column,value)){
@@ -642,7 +643,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
                     result.Result=await ProjectHolonRootsAsync(selected.Where(row=>row.ParentHolonId==id&&(type==HolonType.All||row.HolonType==type)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true);return result;
                 }
-                string sql = "SELECT ID,DATA_JSON FROM OASIS_HOLONS WHERE PARENT_HOLON_ID=:ParentId AND IS_DELETED=0";
+                string sql = "SELECT ID,DATA_JSON,HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID FROM OASIS_HOLONS WHERE PARENT_HOLON_ID=:ParentId";
                 if (type != HolonType.All) sql += " AND HOLON_TYPE=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
@@ -651,7 +652,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Int32).Value = (int)type;
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = await ReadRecordVersionAsync<Holon>(new Guid((byte[])reader.GetValue(0)),reader.GetString(1),0); if (h != null&&!h.IsDeleted) {ValidateSelectedHolon(h,type,id);holons.Add(h);} }
+                while (await reader.ReadAsync()) { var h = await ReadRecordVersionAsync<Holon>(new Guid((byte[])reader.GetValue(0)),reader.GetString(1),0,nativeHolon:ReadNativeHolonProjection(reader,2)); if (h != null&&!h.IsDeleted) {ValidateSelectedHolon(h,type,id);holons.Add(h);} }
                 result.Result = await ProjectHolonRootsAsync(holons,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true); result.IsError = false;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
@@ -669,15 +670,15 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
                     result.Result=await ProjectHolonRootsAsync(selected.Where(row=>type==HolonType.All||row.HolonType==type),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);return result;
                 }
-                string sql = "SELECT ID,DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0";
-                if (type != HolonType.All) sql += " AND HOLON_TYPE=:HType";
+                string sql = "SELECT ID,DATA_JSON,HOLON_TYPE,IS_DELETED,PARENT_HOLON_ID FROM OASIS_HOLONS";
+                if (type != HolonType.All) sql += " WHERE HOLON_TYPE=:HType";
                 await using var conn = new OracleConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = CreateCommand(sql, conn);
                 if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Int32).Value = (int)type;
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = await ReadRecordVersionAsync<Holon>(new Guid((byte[])reader.GetValue(0)),reader.GetString(1),0); if (h != null&&!h.IsDeleted) {ValidateSelectedHolon(h,type);holons.Add(h);} }
+                while (await reader.ReadAsync()) { var h = await ReadRecordVersionAsync<Holon>(new Guid((byte[])reader.GetValue(0)),reader.GetString(1),0,nativeHolon:ReadNativeHolonProjection(reader,2)); if (h != null&&!h.IsDeleted) {ValidateSelectedHolon(h,type);holons.Add(h);} }
                 result.Result = await ProjectHolonRootsAsync(holons,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider); result.IsError = false;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }

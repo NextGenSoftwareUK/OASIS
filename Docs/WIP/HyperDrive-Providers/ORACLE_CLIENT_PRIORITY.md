@@ -2,6 +2,28 @@
 
 ## Resume — 2026-10-23
 
+### Holon read projection integrity — native red/green and full local closure
+
+Actual91735 TERMINAL0:326/326main native passed87s, encrypted replay4/4passed2s, preparation6/6passed2s, process write2/2passed979ms and separate-process recovery2/2passed877ms. Zero skipped. Focused48 is INCLUDED in326; advanced14 are separate. Full271controlled and focused48 had already passed in actual74590terminal0. Matching Core39618322D816E56DF5559945210CEE01637ED54BFC9D333EBA4493DFED67D5F5 / SharedF42AC16273B7D398691C742E427DDB8514581C13CE86C10D8B7821D9157C94A6 were observed for native/advanced phases and preceding controls. Exact report hashes:
+
+| Report | SHA256 |
+|---|---|
+| oracle-holon-projection-native-current.trx | 5341DE4994C1ABF3CC30B425FFF82F17AF33CC57E4C3C3CAC34D5DBA570C6255 |
+| oracle-holon-projection-controls.trx | 6976D35FF7F430411CDF0340678FE09B7CBB1111F5BEDCF448840C4D010322AC |
+| oracle-native-current.trx | BB60B4AB73623288200EE79A2AE103FA0DD2B395A1DE629DD3BF8B35EFDDB1F6 |
+| oracle-encrypted-replay-native-current.trx | 1B60C34F119D3B19978E7FA9AA607E941C3E5C53256FE56076B6B835762A45C1 |
+| oracle-preparation-native-current.trx | A14DDF7308BEB5ADC7384ECD2AF6AFA4B1891B5908E3DFDB916C0AF84C166EC7 |
+| oracle-encrypted-process-write.trx | 5BAA1875CBE014208C11C5E7DF2D79ED0CFC9A57FB26554A9C098CC29AB619CF |
+| oracle-encrypted-process-recover.trx | 2578A050E6415EFB2A1615B97366DBE7666DDEC82317BBBE354C6C82CE9BC288 |
+
+Existing fixture owners conditionally cleaned exact declared payload/type/flag/parent state and independently verified absence; pending0, retained container independently exited. Same single existing container/volume/SDK/cache/output directories; no install/restore/download/cloud spend. Previous reports/proofs hash-verified moved with .pre-holon-projection suffix. Native data volume measured5074753879logical bytes at /var/lib/containers/storage/volumes/oasis-oracle-data/_data after stopped teardown; retain it, do not delete database files. Whole-drive free85016244224bytes is not an attribution of disk growth/recovery. Producer lease released to reserved Neo owner; no further Oracle build queued in this batch. No dev deployment/full-provider claim. Next local audit candidate: native NULL parent versus Guid.Empty root selection (unverified, no defect claimed yet).
+
+Real native fixture tests reproduced a remaining read integrity gap: holon point reads did not validate native type/deletion/parent, optimized latest collections filtered native IS_DELETED before validation, and historical collection projection skipped current native/canonical comparison. Red48cases (four corruptions x point/all/parent latest/history x sync/async):46failed/2passed, oracle-holon-projection-native-red.trx SHA256F0A191CDCF9A6170953E1E4E75E0D67569CAC3F54E3D1E2F3E3E876C0D173906. All exact-owned rows cleaned and absence verified BEFORE final red assertions; this is not evidence production data was corrupted.
+
+Root fix reuses existing ValidateNativeHolonProjection at the existing ReadRecordVersionAsync decoder BEFORE historical selection/deletion filtering. Point/collection/parent readers project type/flag/parent in their existing SELECT; current native columns are compared to CURRENT canonical record, not a legitimately different archived parent/type. Type/parent SQL selector indexes remain in use. No repair write, extra SDK round trip, schema, crypto format or parallel reader was added. Focused48/48native passed12s and271/271controls passed642ms (actual74590terminal0). Full main suite grows278→326; focused48 is a SUBSET, not an additional374. Expanded native+advanced closure91735 is currently live; later results must supersede this pending status only after terminal.
+
+Cost/scope: three extra projected scalar columns; deletion filtering moves after canonical validation, so queries can transfer/parse additional tombstone rows. No hosted latency/byte/CPU fee estimate is established. This validates records RETURNED by native selectors, not global detection of every corrupted index entry excluded by a different type/parent predicate. No full-table scan was added to point/parent paths merely to claim global corruption detection. Hosted Oracle/OCI/IAM/TLS and universal V2 gates remain OPEN, AWS still second.
+
 ### Follow-up: provider configuration is not a caller payload error
 
 Twenty-four genuine controlled failures reproduced the distinction across profile/detail GUID, username and email deletion, sync/async, soft/hard. The existing lifecycle catch blocks classified any predispatched ArgumentException as HYPERDRIVE_PAYLOAD_INVALID, including an invalid provider connection-string option with a valid selector. Each owner now records successful selector admission and applies that error code only to failures in admission. Original provider exceptions and zero mutation flags/counts are preserved. No new persistence path, retry, configuration fallback, SDK request, schema or Core/Shared behavior was added.

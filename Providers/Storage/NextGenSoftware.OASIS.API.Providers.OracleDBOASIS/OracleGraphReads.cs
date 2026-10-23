@@ -11,6 +11,10 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS;
 
 public partial class OracleDBOASIS
 {
+    private readonly record struct NativeHolonProjection(int Type,int Deleted,Guid Parent);
+    private static NativeHolonProjection ReadNativeHolonProjection(System.Data.Common.DbDataReader reader,int offset)
+        =>new(reader.GetInt32(offset),reader.GetInt32(offset+1),reader.IsDBNull(offset+2)?Guid.Empty:new Guid((byte[])reader.GetValue(offset+2)));
+
     private static void ValidateNativeHolonProjection(IHolon row,int type,int deleted,Guid parent)
     {
         if((int)row.HolonType!=type||(row.IsDeleted?1:0)!=deleted||row.ParentHolonId!=parent)
