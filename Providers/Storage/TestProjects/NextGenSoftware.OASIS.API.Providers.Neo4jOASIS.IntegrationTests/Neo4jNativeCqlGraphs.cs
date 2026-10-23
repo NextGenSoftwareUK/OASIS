@@ -235,6 +235,23 @@ public partial class Neo4jNativeCqlTests
         },largeChild:payload);
 
     [TestMethod]
+    public Task NativeGraphRejectsACorruptSelfCycle()
+        =>WithNativeGraph(async fixture=>
+        {
+            using var inspection=fixture.Driver.AsyncSession();
+            var id=fixture.Root.Id.ToString("D");
+            var row=await(await inspection.RunAsync("MATCH (h:Holon {Id:$id}) RETURN h.SnapshotJson AS snapshot",new{id})).SingleAsync();
+            var source=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStoredHolon(row["snapshot"].As<string>());
+            source.ParentHolonId=source.Id;
+            ((Holon)source).ChildRoleManifestJson=null;
+            var snapshot=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(source);
+            await fixture.Edit("MATCH (h:Holon {Id:$id})-[p:HAS_CQL_PROJECTION]->(h) SET h.ParentHolonId=$id,h.SnapshotJson=$snapshot,p.f_ParentHolonId=$id CREATE (h)-[:HAS_CHILD]->(h)",new{id,snapshot});
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(GraphPlan(fixture,CosmicQueryGraphOptions.Create().Result));
+            Assert.IsTrue(read.IsError);Assert.AreEqual("CQL_DATA_INVALID",read.ErrorCode);
+            Assert.IsNull(read.Result);Assert.IsFalse(read.IsLoaded);
+        },manifested:false);
+
+    [TestMethod]
     public Task NativeGraphBatchesLargeOrderedMembership()
         =>WithNativeGraph(async fixture=>
         {
