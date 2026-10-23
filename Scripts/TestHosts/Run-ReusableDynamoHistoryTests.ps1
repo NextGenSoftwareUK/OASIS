@@ -173,15 +173,15 @@ try{
     $filter=if($EncryptedReplay){'FullyQualifiedName~DynamoEncryptedReplayNativeTests'}elseif($PreparationClaims){'FullyQualifiedName~DynamoPreparationNativeTests'}elseif($ReconcileConditionalInitial){'FullyQualifiedName~ReconcileOriginalFourInitialGraphAssertionFixtures'}elseif($ConditionalGraphs){'FullyQualifiedName~DynamoConditionalNativeTests'}elseif($ReconcileKnownReadFixture){'FullyQualifiedName~ReconcileKnownHistoryReadFixture'}else{'FullyQualifiedName~DynamoHistoryNativeTests&FullyQualifiedName!~ReconcileKnown'}
     $reportName=if($EncryptedReplay){'dynamo-encrypted-replay-native-current.trx'}elseif($PreparationClaims){'dynamo-preparation-native-current.trx'}elseif($ReconcileConditionalInitial){'dynamo-conditional-reconciliation-current.trx'}elseif($ConditionalGraphs){'dynamo-conditional-native-current.trx'}elseif($ReconcileKnownReadFixture){'dynamo-history-reconciliation-current.trx'}else{'dynamo-history-native-current.trx'}
     if($BatchRevisions){$filter='FullyQualifiedName~DynamoBatchRevisionNativeTests';$reportName='dynamo-batch-revision-native-current.trx'}
-    if($DetailDeletionResults){$filter='FullyQualifiedName~StandaloneDetailNativeLifecyclePreservesAvatarAndOriginalCondition';$reportName='dynamo-detail-delete-result-native-current.trx'}
+    if($DetailDeletionResults){$filter='FullyQualifiedName~StandaloneDetailNativeLifecyclePreservesAvatarAndOriginalCondition|FullyQualifiedName~NativeSoftDeletePreservesCurrentAndArchivedScalarMetadata';$reportName='dynamo-detail-delete-result-native-current.trx'}
     if($OrdinarySaveLifecycle){$filter='FullyQualifiedName~NativeOrdinarySaveMustPreserveObservedTombstone';$reportName='dynamo-ordinary-save-lifecycle-native-current.trx'}
     if($OrdinarySaveAcknowledgements){$filter='FullyQualifiedName~NativeOrdinarySaveCountsOnlyKnownCommitBeforeCallerPublication';$reportName='dynamo-ordinary-save-ack-native-current.trx'}
     if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve the original native report before another run.'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Native history test failed; preserve journal/data for reconciliation.'}
-    $report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($EncryptedReplay){8}elseif($PreparationClaims){4}elseif($ReconcileConditionalInitial){1}elseif($ConditionalGraphs){8}elseif($ReconcileKnownReadFixture){1}else{159}
+$report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($EncryptedReplay){8}elseif($PreparationClaims){4}elseif($ReconcileConditionalInitial){1}elseif($ConditionalGraphs){8}elseif($ReconcileKnownReadFixture){1}else{163}
     if($BatchRevisions){$expected=4}
-    if($DetailDeletionResults){$expected=10}
+    if($DetailDeletionResults){$expected=14}
     if($OrdinarySaveLifecycle){$expected=48}
     if($OrdinarySaveAcknowledgements){$expected=12}
     if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Fresh complete native cases and cleared original journals required.'}

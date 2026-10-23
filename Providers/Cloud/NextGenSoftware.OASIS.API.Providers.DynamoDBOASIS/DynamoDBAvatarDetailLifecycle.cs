@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
-using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS;
 
@@ -41,7 +41,7 @@ public partial class DynamoDBOASIS
             {
                 detail.IsActive = false;
                 if (!detail.IsDeleted) detail.DeletedDate = DateTime.UtcNow;
-                updated = (await StageRecordAsync(detail, JObject.Parse(expected))).ToString(Newtonsoft.Json.Formatting.None);
+                updated = (await StageRecordAsync(detail, OasisJson.ParseStoredObject(expected))).ToString(Newtonsoft.Json.Formatting.None);
             }
             var request = new TransactWriteItemsRequest
             {
