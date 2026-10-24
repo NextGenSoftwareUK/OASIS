@@ -56,6 +56,7 @@ public partial class SOLIDOASIS
             }
             found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
             result.Result=found;
+            result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private search failed.",error);}
         return result;
     }

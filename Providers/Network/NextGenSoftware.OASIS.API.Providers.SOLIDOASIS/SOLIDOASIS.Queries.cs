@@ -53,6 +53,7 @@ public partial class SOLIDOASIS
                 record=>StoredRecordJson.DeserializeStored<IHolon>(StoredRecordJson.Serialize(record)),rootsAreChildren:rootsAreChildren);
             result.Result=rows.Where(record=>(type==HolonType.All||record.HolonType==type)&&(filter==null||filter(record))).Select(project).ToArray();
             result.IsLoaded=true;
+            result.LoadedCount=result.Result.Count();
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private holon query failed.",error);}
         return result;
     }
