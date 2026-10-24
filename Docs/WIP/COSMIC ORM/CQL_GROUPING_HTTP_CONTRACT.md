@@ -99,3 +99,22 @@ Controlled verification: **2,334 Core/linked-production tests pass, zero skips**
 Verification: **2,334 Core/linked-production unit tests pass, zero skips**; the fresh integrated native demo passes **51 SDK queries and51 HTTP examples**, **231 settled operations and226 physical attempts** across all three providers (actual32210terminal0, native1PASS0skip). Evidence: TestResults/CosmicCurrent/http-group-page-current.trx; TestResults/CosmicCqlDemo/http-group-page-unit.log, group-page-demo-native.log, group-page-demo-artifacts.json, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/native copies match for Core and all three providers; runner verifies Core051A0664/SharedD5273C49. Browser script passes Node24.19.0 syntax check. This is the integrated demo acceptance test, not an all-suite provider rerun.
 
 The other session completed reviewed fixture cleanup and its Mongo historical-type regressions before granting the live window. No blind reset/replay occurred. Final owned fixture marker/SQLite/WAL/SHM are absent, Mongo27029 and Neo17687 listeners absent. Post-group filtering, exact Average ordering and broader unchecked roadmap gates remain open.
+
+## Selected-result filters
+
+`resultFilters` is an optional array of at most 32 ANDed predicates. Each predicate names an exact, case-sensitive selected output `alias`, an `operator` from the existing CQL operator enum, and a typed `value`. These predicates run after reduction and before `resultOrder`, `resultSkip` and `resultTake`. Source filters/windows remain independent.
+
+```json
+"resultFilters": [
+  { "alias": "TotalStock", "operator": "GreaterThan", "value": "9007199254740993" },
+  { "alias": "Category", "operator": "StartsWith", "value": "Coffee" }
+]
+```
+
+Int64 and Decimal literals must be invariant strings; Int32 literals are JSON integers, Boolean literals are JSON booleans, GUIDs use D-format strings, and strings are bounded to 512 characters. Decimal strings must round-trip exactly through invariant Decimal formatting: excess precision is rejected rather than rounded. String comparisons use ordinal semantics. `IsNull` omits `value` and requires a nullable selected column; equality/inequality can also use an explicit null. `Exists` is rejected because every selected alias already exists. This initial HTTP grammar does not expose OR, membership, field comparisons, dates or enums for result predicates; those require an explicit later transport extension.
+
+Binding the request captures shared Core intent; it grants no provider permission. The actual adapter must separately enroll the selected key or aggregate type and comparison. In particular, Average filtering remains unavailable on the three native providers. All bounded proof groups remain subject to shared validation, including nonmatching and off-page groups. Authorization, physical attempts and receipts retain their existing owners.
+
+Compiler verification: 2,386 full Core unit tests passed, zero skips, before the added controlled endpoint cases. Final endpoint regression evidence is pending; this is not yet a new live demo certification.
+
+Final controlled verification: actual test session92762 terminated successfully; 2,389 full Core unit tests passed, zero failures/skips, including HTTP filtering checks for each of MongoDB/SQLite/Neo4j. Evidence: TestResults/CosmicCurrent/http-group-filter-final-current.trx and http-group-filter-artifacts.json. Live native demo extension remains pending; this checkpoint does not replace provider-native evidence.

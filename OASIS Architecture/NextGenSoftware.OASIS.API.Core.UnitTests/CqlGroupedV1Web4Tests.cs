@@ -25,7 +25,7 @@ public partial class CqlV1Web4Tests
         }
     };
 
-    private static void GroupAdapter(Source source, ProviderType provider, IReadOnlyList<CosmicGroupedRow> rows, bool ordering = false, bool paging = false)
+    private static void GroupAdapter(Source source, ProviderType provider, IReadOnlyList<CosmicGroupedRow> rows, bool ordering = false, bool paging = false, bool filtering = false)
     {
         var projected = new CosmicProjectionCapabilities(new[]
         {
@@ -42,11 +42,35 @@ public partial class CqlV1Web4Tests
         adapter.SetupGet(a => a.QueryCapabilities).Returns(Capabilities);
         adapter.SetupGet(a => a.GroupedCapabilities).Returns(new CosmicGroupedCapabilities(projected, scalar, ordering ?
             new CosmicGroupedOrderingCapabilities(new[] { typeof(string) }, new[]
-            { new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, typeof(long)) }) : null, supportsResultPaging: paging));
+            { new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, typeof(long)) }) : null, supportsResultPaging: paging,
+            filtering: filtering ? new CosmicGroupedFilteringCapabilities(CosmicQueryFeatures.None,
+                Array.Empty<CosmicQueryMetadataCapability>(), new[] {
+                    new CosmicGroupedAggregateFilteringCapability(CosmicScalarOperation.Sum,
+                        new CosmicQueryMetadataCapability(typeof(long), new[] { CosmicQueryComparisonOperator.GreaterThan })) }) : null));
         adapter.Setup(a => a.ExecuteCosmicGroupedAsync(
             It.IsAny<CosmicGroupedPlan<Holon, CosmicProjectionRecord, CosmicProjectionRecord>>(),
             It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new OASISResult<IReadOnlyList<CosmicGroupedRow>>(rows) { IsLoaded = true });
+    }
+
+    [Theory]
+    [InlineData(ProviderType.MongoDBOASIS)] [InlineData(ProviderType.SQLLiteDBOASIS)] [InlineData(ProviderType.Neo4jOASIS)]
+    public async Task GroupedHttpFiltersUseActualCapabilitiesAndCompleteProof(ProviderType provider)
+    {
+        var source = new Source(provider);
+        GroupAdapter(source, provider, new[] {
+            new CosmicGroupedRow(1, false, new object[] { "coffee" }, "coffee", 0L, 1m),
+            new CosmicGroupedRow(1, true, new object[] { "tea" }, "tea", 2L, 1m) }, filtering: true);
+        var request = GroupRequest();
+        request.ResultFilters = new[] { new CqlGroupedV1Filter { Alias = "Stock", Operator = CqlV1Operator.GreaterThan,
+            Value = JsonSerializer.SerializeToElement("1") } };
+        var admitted = Admission(provider);
+        var response = await admitted.Policy.RunAsync(() => CqlV1Endpoint.ExecuteGroupedAsync(admitted.Http, request, source));
+        using var document = JsonDocument.Parse(Assert.IsType<FileContentResult>(response).FileContents);
+        var rows = document.RootElement.GetProperty("result").GetProperty("rows");
+        Assert.Equal(1, rows.GetArrayLength());
+        Assert.Equal("tea", rows[0][0].GetString());
+        Assert.Single(admitted.Receipts);
     }
 
     [Theory]
