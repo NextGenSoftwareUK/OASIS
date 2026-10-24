@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Data.Common;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -382,7 +383,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString());
-                CompleteRows<IHolon>(result,all.FindAll(h => !h.IsDeleted));
+                CompleteRows<IHolon>(result,all.FindAll(h => !h.IsDeleted && (holonType == HolonType.All || h.HolonType == holonType)));
             }
             catch (Exception ex)
             {
@@ -400,7 +401,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Holon>(CollHolons);
-                CompleteRows<IHolon>(result,docs.FindAll(h => !h.IsDeleted));
+                CompleteRows<IHolon>(result,docs.FindAll(h => !h.IsDeleted && (holonType == HolonType.All || h.HolonType == holonType)));
             }
             catch (Exception ex)
             {
@@ -635,23 +636,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-            if (all.IsError || all.Result == null)
+            try
             {
-                OASISErrorHandling.HandleError(ref result, all.Message);
-                return result;
+                return await LoadHolonsByMetaDataAsync(new Dictionary<string,string>(StringComparer.Ordinal){{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
             }
-
-            var matches = new List<IHolon>();
-            foreach (var holon in all.Result)
+            catch(Exception ex)
             {
-                if (holon.MetaData != null
-                    && holon.MetaData.TryGetValue(metaKey, out var value)
-                    && value?.ToString() == metaValue)
-                    matches.Add(holon);
+                OASISErrorHandling.HandleError(ref result,"BigQuery metadata query failed.",ex);
             }
-
-            result.Result = matches;
             return result;
         }
 
@@ -661,39 +653,23 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-            if (all.IsError || all.Result == null)
+            try
             {
-                OASISErrorHandling.HandleError(ref result, all.Message);
-                return result;
-            }
-
-            if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
-            {
-                result.Result = new List<IHolon>(all.Result);
-                return result;
-            }
-
-            var matches = new List<IHolon>();
-            foreach (var holon in all.Result)
-            {
-                if (holon.MetaData == null) continue;
-
-                var matched = 0;
-                foreach (var pair in metaKeyValuePairs)
+                if(metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.All && metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.Any)
+                    throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
+                var requested=metaKeyValuePairs==null?null:new Dictionary<string,string>(metaKeyValuePairs,StringComparer.Ordinal);
+                var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                if(all.IsError || all.Result==null)
                 {
-                    if (holon.MetaData.TryGetValue(pair.Key, out var value) && value?.ToString() == pair.Value)
-                        matched++;
+                    OASISErrorHandling.HandleError(ref result,all.Message,all.Exception);
+                    return result;
                 }
-
-                var isMatch = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All
-                    ? matched == metaKeyValuePairs.Count
-                    : matched > 0;
-
-                if (isMatch) matches.Add(holon);
+                CompleteRows(result,all.Result.Where(holon=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(holon.MetaData,requested,metaKeyValuePairMatchMode)));
             }
-
-            result.Result = matches;
+            catch(Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result,"BigQuery metadata query failed.",ex);
+            }
             return result;
         }
 
