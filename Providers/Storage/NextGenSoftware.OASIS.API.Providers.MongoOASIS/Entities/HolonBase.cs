@@ -166,7 +166,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public string STARODKVersion { get; set; }
         public string OASISVersion { get; set; }
         public string COSMICVersion { get; set; }
-        Guid IHolonBase.Id { get => CreatedByAvatar.Id; set => CreatedByAvatar.Id = value; }
+        Guid IHolonBase.Id { get => HolonId; set => HolonId = value; }
 
         public event EventDelegates.HolonsLoaded OnChildrenLoaded;
         public event EventDelegates.HolonsError OnChildrenLoadError;
