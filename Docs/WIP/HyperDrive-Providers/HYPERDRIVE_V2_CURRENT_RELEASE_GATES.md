@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Ordinary Dynamo/AWS save admission — 24 October
+
+Existing shared lower-bound size guard now also covers ordinary proposals before native reads and history-expanded records before PUT. Two reproduced controlled failures fixed; matched533unit and187real-SDK/local-native PASS0skip. Native tests explicitly require zero writes on known oversized proposals and unchanged caller/stored history, not a fabricated native exception. Original178pass/9fail run retained; separate read-only original verification then exact-hash conditional cleanup resolved only its synthetic fixtures. Core740/ABD06B39 Shared55/1A9956E5 current-source/copies verified; retained runtime exited, ports absent, pending0. Inventory contains immutable evidence hashes and resolved journals. This is a local scoped gate, not hosted AWS/S3 acceptance, an exact fee estimator or full HyperDrive V2 certification.
+
 ## AWS/Dynamo native size admission — 24 October 2026
 
 Removed invented preparation1024+256/record padding and graph numeric38-byte padding that rejected valid near-limit native items. One lower-bound sizing owner reuses [AWS documented native attribute rules](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/CapacityUnitCalculations.html); exact numeric compressed size remains SDK/service-owned, not guessed. It governs preparation claim/readback and graph/receipt admission, preserving the99-record transaction design. Definitely oversized known bytes still reject locally before reads, while borderline numeric cases may reach native validation; no fee-free/billing estimator claim.
