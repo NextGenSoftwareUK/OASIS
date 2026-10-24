@@ -4,6 +4,8 @@ NEAR adapter using a pinned official near-api-js SDK through a Node bridge. Nati
 
 ## Custom token mint intent
 
+Generic contract calls and native transfers accept an acknowledgement only when its original transaction ID, signer and receiver match the dispatched operation and execution is explicitly `FINAL`/successful. A bound finalized native failure is a rejection; missing, mismatched, nonfinal or unavailable evidence is marked as requiring reconciliation before replay. The existing outcome classifier is reused. This is not durable pre-broadcast journaling, fee settlement or native certification of every mutation; ordinary record put/delete paths remain separate review gates.
+
 Filtered search, metadata and nearby results report `LoadedCount` for returned matches/roots, not the size of underlying collections. Nearby results are materialized before publication; malformed-coordinate failures clear the result, `IsLoaded` and count. These logical counts are not native RPC usage, fees or evidence that every other read route is certified.
 
 Minting uses the maintained custom OASIS `token_mint` contract operation, not a universal NEP-141 mint API. `TokenAddress` selects an explicitly compatible contract; omission keeps the configured contract. `ToWalletAddress` selects the recipient balance owner; omission keeps the configured account. Explicit blank values are invalid, never silently substituted. The configured contract-owner signer remains unchanged and must be authorized by the selected contract.

@@ -205,21 +205,20 @@ internal sealed class NearSdkService
         string signerAccountId = null, string signerPrivateKey = null)
     {
         EnsureWritable(signerAccountId, signerPrivateKey);
-        using var response = await InvokeAsync("transfer", new
+        return await InvokeMutationAsync("transfer", new
         {
             receiverId,
             amountYocto,
             accountId = signerAccountId ?? _accountId,
             privateKey = signerPrivateKey ?? _privateKey
-        });
-        return response.RootElement.GetProperty("transactionHash").GetString();
+        },signerAccountId ?? _accountId,receiverId);
     }
 
     public async Task<string> CallAsync(string methodName, object args, string targetContractId = null,
         string depositYocto = "0", string signerAccountId = null, string signerPrivateKey = null)
     {
         EnsureWritable(signerAccountId, signerPrivateKey);
-        using var response = await InvokeAsync("call", new
+        return await InvokeMutationAsync("call", new
         {
             methodName,
             args,
@@ -227,8 +226,30 @@ internal sealed class NearSdkService
             depositYocto,
             accountId = signerAccountId ?? _accountId,
             privateKey = signerPrivateKey ?? _privateKey
-        });
-        return response.RootElement.GetProperty("transactionHash").GetString();
+        },signerAccountId ?? _accountId,targetContractId ?? _contractId);
+    }
+
+    private async Task<string> InvokeMutationAsync(string operation,object args,string signer,string receiver)
+    {
+        string hash=null;
+        try{
+            using var response=await InvokeAsync(operation,args);
+            var root=response.RootElement;
+            hash=root.GetProperty("transactionHash").GetString();
+            if(string.IsNullOrWhiteSpace(hash))throw new InvalidDataException("Native mutation lacks an original transaction identity.");
+            var outcome=root.GetProperty("outcome");
+            if(outcome.GetProperty("transaction_outcome").GetProperty("id").GetString()!=hash)
+                throw new InvalidDataException("Native mutation outcome transaction identity differs.");
+            var transaction=outcome.GetProperty("transaction");
+            if(transaction.GetProperty("signer_id").GetString()!=signer||transaction.GetProperty("receiver_id").GetString()!=receiver)
+                throw new InvalidDataException("Native mutation signer or receiver differs from admitted intent.");
+            var status=ClassifyTransactionOutcome(outcome);
+            if(status=="Failed")throw new NearMutationRejectedException(hash,outcome.GetProperty("status").GetRawText());
+            if(status!="Completed")throw new InvalidDataException("Native mutation execution is not FINAL.");
+            return hash;
+        }
+        catch(NearMutationRejectedException){throw;}
+        catch(Exception cause){throw new NearMutationUncertainException(hash,cause);}
     }
 
     public async Task<JsonElement> ViewAsync(string methodName, object args, string targetContractId = null)
