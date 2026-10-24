@@ -29,15 +29,16 @@ public class OracleExportSelectorVersionTests
         }
     }
 
-    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
-    public async Task ExportVersionDoesNotSelectIdentityHistory(bool sync,bool email)
+    [DataTestMethod][DataRow(false,false,3)][DataRow(false,true,3)][DataRow(true,false,3)][DataRow(true,true,3)]
+    [DataRow(false,false,-1)][DataRow(false,true,-1)][DataRow(true,false,-1)][DataRow(true,true,-1)]
+    public async Task ExportVersionDoesNotSelectIdentityHistory(bool sync,bool email,int version)
     {
         var provider=new Probe();
         var result=email
-            ?sync?provider.ExportAllDataForAvatarByEmail("owner@example.invalid",3):await provider.ExportAllDataForAvatarByEmailAsync("owner@example.invalid",3)
-            :sync?provider.ExportAllDataForAvatarByUsername("owner",3):await provider.ExportAllDataForAvatarByUsernameAsync("owner",3);
+            ?sync?provider.ExportAllDataForAvatarByEmail("owner@example.invalid",version):await provider.ExportAllDataForAvatarByEmailAsync("owner@example.invalid",version)
+            :sync?provider.ExportAllDataForAvatarByUsername("owner",version):await provider.ExportAllDataForAvatarByUsernameAsync("owner",version);
         Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);
-        Assert.AreEqual(1,provider.IdentityCalls);Assert.AreEqual(1,provider.ExportCalls);Assert.AreEqual(3,provider.ExportVersion);
+        Assert.AreEqual(1,provider.IdentityCalls);Assert.AreEqual(1,provider.ExportCalls);Assert.AreEqual(version,provider.ExportVersion);
     }
 
     [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
@@ -45,8 +46,8 @@ public class OracleExportSelectorVersionTests
     {
         var provider=new Probe();
         var result=email
-            ?sync?provider.ExportAllDataForAvatarByEmail("owner@example.invalid",-1):await provider.ExportAllDataForAvatarByEmailAsync("owner@example.invalid",-1)
-            :sync?provider.ExportAllDataForAvatarByUsername("owner",-1):await provider.ExportAllDataForAvatarByUsernameAsync("owner",-1);
+            ?sync?provider.ExportAllDataForAvatarByEmail("owner@example.invalid",-2):await provider.ExportAllDataForAvatarByEmailAsync("owner@example.invalid",-2)
+            :sync?provider.ExportAllDataForAvatarByUsername("owner",-2):await provider.ExportAllDataForAvatarByUsernameAsync("owner",-2);
         Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(result.Exception);
         Assert.AreEqual(0,provider.IdentityCalls);Assert.AreEqual(0,provider.ExportCalls);
     }

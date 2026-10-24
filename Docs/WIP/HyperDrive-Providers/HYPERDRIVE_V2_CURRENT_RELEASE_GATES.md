@@ -2,6 +2,8 @@
 
 ## OPEN: documented all-versions exports versus provider admission (24 October 2026)
 
+Oracle local -1 export gate now verified as well: matched385unit/496native PASS0skip, same archive codec and native projection owner, current avatar identity, per-version owner/deletion filtering, stored children only. Core732/4ECCB543/Shared55/F33D8F73 source checks passed; no pending native journals. Hosted Oracle/cloud and other-provider/public API/fullV2 gates remain OPEN; no universal export-contract claim.
+
 Final local AWS/Dynamo gate verified: matched Shared1037unit + Dynamo523unit + native171PASS0skip, current source/copy checks Core732/4ECCB543/Shared55/00AF19C5. This closes their local -1 enumeration mismatch; hosted/public API/other-provider archive export/fullV2 gates remain OPEN. No all-provider completion claim or deployment authorized by these local tests.
 
 Update: working-tree AWS/Dynamo -1 export now enumerates existing validated embedded history, retains archived child payloads, filters deleted versions/owners, keeps versions below-1 invalid. Shared1037unit/Dynamo523unit and retained native171 (including8AWS/Dynamo all-version fixture assertions) pass in documented cohorts. Matched final unit refresh/publication still pending; other provider implementations and hosted/public API acceptance remain OPEN. Earlier mismatch finding below describes the pre-fix source, not the current working-tree route.

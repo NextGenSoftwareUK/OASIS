@@ -29,13 +29,13 @@ public sealed class OracleCollectionAdmissionTests
             case 3:Check(synchronous?provider.LoadHolonsForParent(id,version:-1):await provider.LoadHolonsForParentAsync(id,version:-1));break;
             case 4:Check(synchronous?provider.LoadHolonsByMetaData("owned","value",version:-1):await provider.LoadHolonsByMetaDataAsync("owned","value",version:-1));break;
             case 5:Check(synchronous?provider.LoadHolonsByMetaData(new Dictionary<string,string>{{"owned","value"}},MetaKeyValuePairMatchMode.All,version:-1):await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string>{{"owned","value"}},MetaKeyValuePairMatchMode.All,version:-1));break;
-            case 6:Check(synchronous?provider.ExportAll(-1):await provider.ExportAllAsync(-1));break;
-            case 7:Check(synchronous?provider.ExportAllDataForAvatarById(id,-1):await provider.ExportAllDataForAvatarByIdAsync(id,-1));break;
+            case 6:Check(synchronous?provider.ExportAll(-2):await provider.ExportAllAsync(-2));break;
+            case 7:Check(synchronous?provider.ExportAllDataForAvatarById(id,-2):await provider.ExportAllDataForAvatarByIdAsync(id,-2));break;
             case 8:Check(synchronous?provider.LoadAllHolonsLegacy(version:-1):await provider.LoadAllHolonsAsyncLegacy(version:-1));break;
             case 9:Check(synchronous?provider.LoadHolonsForParentLegacy(id,version:-1):await provider.LoadHolonsForParentAsyncLegacy(id,version:-1));break;
             case 10:Check(synchronous?provider.LoadHolonsForParentLegacy(id.ToString(),version:-1):await provider.LoadHolonsForParentAsyncLegacy(id.ToString(),version:-1));break;
-            case 11:Check(synchronous?provider.ExportAllDataForAvatarByUsername("owned",-1):await provider.ExportAllDataForAvatarByUsernameAsync("owned",-1));break;
-            default:Check(synchronous?provider.ExportAllDataForAvatarByEmail("owned@example.invalid",-1):await provider.ExportAllDataForAvatarByEmailAsync("owned@example.invalid",-1));break;
+            case 11:Check(synchronous?provider.ExportAllDataForAvatarByUsername("owned",-2):await provider.ExportAllDataForAvatarByUsernameAsync("owned",-2));break;
+            default:Check(synchronous?provider.ExportAllDataForAvatarByEmail("owned@example.invalid",-2):await provider.ExportAllDataForAvatarByEmailAsync("owned@example.invalid",-2));break;
         }
         static void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(result.Exception);}
     }

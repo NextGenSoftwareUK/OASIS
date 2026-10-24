@@ -96,6 +96,13 @@ public sealed partial class OracleNativeAcceptanceTests
                 Assert.AreEqual(own,selected.Result.Single().Id);Assert.AreEqual(expected,selected.Result.Single().Version);
                 Assert.AreEqual(name+"-v"+expected,selected.Result.Single().Name);
             }
+            var allVersions=email
+                ?sync?provider.ExportAllDataForAvatarByEmail(avatar.Email,-1):await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email,-1)
+                :sync?provider.ExportAllDataForAvatarByUsername(avatar.Username,-1):await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username,-1);
+            Assert.IsFalse(allVersions.IsError,allVersions.Exception?.ToString());Assert.IsTrue(allVersions.IsLoaded);Assert.AreEqual(3,allVersions.LoadedCount);
+            var versions=allVersions.Result.ToArray();CollectionAssert.AreEqual(new[]{1,2,3},versions.Select(row=>row.Version).ToArray());
+            Assert.IsTrue(versions.All(row=>row.Id==own&&row.CreatedByAvatarId==owner));
+            for(var index=0;index<versions.Length;index++)Assert.AreEqual(name+"-v"+(index+1),versions[index].Name);
             // Explicit avatar history still supports old identity fields; export's Version belongs to holons, not identities.
             var oldAvatar=email?await provider.LoadAvatarByEmailAsync(name+"@example.invalid",1):await provider.LoadAvatarByUsernameAsync(name,1);
             Assert.IsFalse(oldAvatar.IsError);Assert.AreEqual(owner,oldAvatar.Result.Id);Assert.AreEqual(1,oldAvatar.Result.Version);

@@ -579,7 +579,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
                 // Identity and exported holon histories have independent version counters.
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
                 if (avatarResult.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
@@ -730,7 +730,14 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
         }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            if(version!=-1)return await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try {RecordsLoaded(result,(await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version,exportAllVersions:true)).Cast<IHolon>().ToList());}
+            catch(Exception cause){result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);}
+            return result;
+        }
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
@@ -738,7 +745,11 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
+                if(version==-1){
+                    var all=await ExportAllAsync(version);if(all.IsError)return all;
+                    RecordsLoaded(result,all.Result.Where(row=>row.CreatedByAvatarId==avatarId).ToList());return result;
+                }
                 if(version>0){
                     var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
                     RecordsLoaded(result,await ProjectHolonRootsAsync(selected.Where(row=>row.CreatedByAvatarId==avatarId),true,true,0,0,true));return result;
@@ -763,7 +774,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
                 var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
                 if (avatarResult.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 if (avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar '{avatarUsername}' not found."); return result; }
