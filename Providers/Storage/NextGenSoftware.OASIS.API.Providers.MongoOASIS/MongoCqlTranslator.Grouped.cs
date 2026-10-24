@@ -84,6 +84,11 @@ internal sealed partial class MongoCqlTranslator
         reduction.Add("inputs", new BsonDocument("$sum", Literal(1L)));
         reduction.Add("invalid", new BsonDocument("$sum", Choose(new BsonDocument("$or", invalid), Literal(1L), Literal(0L))));
         page.Add(new("$group", reduction));
+        var means = new BsonDocument();
+        for (var index = 0; index < query.Columns.Count; index++)
+            if (query.Columns[index].Operation == CosmicScalarOperation.Average)
+                means.Add("cqlGroupAverage" + index, GroupedAverageValue(index));
+        if (means.ElementCount != 0) page.Add(new("$set", means));
         // Compute global participation before the group output sentinel. Neither
         // excess work nor excess groups can silently become a partial success.
         page.Add(new("$setWindowFields", new BsonDocument("output", new BsonDocument("work", new BsonDocument
@@ -106,6 +111,8 @@ internal sealed partial class MongoCqlTranslator
                 // Bounded Int64 input has at most29 decimal digits in total.
                 // Decimal128 arithmetic is exact here, including cancelling sums.
                 value = GroupedSumValue(ordering.ColumnIndex);
+            else if (column.Operation == CosmicScalarOperation.Average)
+                value = "$cqlGroupAverage" + ordering.ColumnIndex;
             else throw new NotSupportedException("Exact native ordering is not enrolled for this aggregate.");
             var alias = "cqlGroupSort" + index;
             sortFields.Add(alias, value);
@@ -135,7 +142,7 @@ internal sealed partial class MongoCqlTranslator
                 : Literal(true)))));
         page.Add(new("$sort", sort));
         page.Add(new("$limit", maximumGroups + 1));
-        page.Add(new("$unset", new BsonArray(sortFields.Names.Concat(new[] { "cqlGroupPosition", "cqlGroupFilter" }))));
+        page.Add(new("$unset", new BsonArray(sortFields.Names.Concat(means.Names).Concat(new[] { "cqlGroupPosition", "cqlGroupFilter" }))));
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
         ValidatePipeline(source);
         var membership = query.Source.Predicates.Any(p => p is CosmicQueryAnyChild || p is CosmicQueryAnyDescendant);
