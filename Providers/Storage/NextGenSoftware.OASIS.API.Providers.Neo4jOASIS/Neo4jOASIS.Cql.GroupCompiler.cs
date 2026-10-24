@@ -112,6 +112,38 @@ public partial class Neo4jOASIS
             + compiled.Cycle + " AS traversalCycle," + compiled.TraversalLimit + " AS traversalLimit LIMIT 1";
         // Error branches precede pagination. The input sentinel bounds integral
         // limb sums; the reader must sum input proofs before publishing groups.
+        var resultOrder = new List<string>();
+        void Sort(string value, bool descending)
+        {
+            var direction = descending ? " DESC" : " ASC";
+            resultOrder.Add("CASE WHEN " + value + " IS NULL THEN 0 ELSE 1 END" + direction);
+            resultOrder.Add(value + direction);
+        }
+        foreach (var resultOrdering in query.Orderings)
+        {
+            var column = query.Columns[resultOrdering.ColumnIndex];
+            if (column.KeyIndex >= 0) Sort("keys[" + column.KeyIndex + "].v", resultOrdering.Descending);
+            else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount)
+                Sort("inputs", resultOrdering.Descending);
+            else
+            {
+                var slot = query.Columns.Take(resultOrdering.ColumnIndex).Count(item => item.KeyIndex < 0 && item.Selector != null);
+                var packet = "aggregates[" + slot + "]";
+                if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
+                    Sort(packet + ".value", resultOrdering.Descending);
+                else if (column.Operation == CosmicScalarOperation.Sum)
+                {
+                    // Lexicographic floor quotient/remainder is the exact total
+                    // order, without recombining into an overflowing Int64 or Double.
+                    var remainder = "(" + packet + ".low % 4294967296)";
+                    var quotient = "(" + packet + ".high + " + packet + ".low / 4294967296)";
+                    Sort("CASE WHEN " + remainder + " < 0 THEN " + quotient + " - 1 ELSE " + quotient + " END", resultOrdering.Descending);
+                    Sort("CASE WHEN " + remainder + " < 0 THEN " + remainder + " + 4294967296 ELSE " + remainder + " END", resultOrdering.Descending);
+                }
+                else throw new NotSupportedException("Exact native resultOrdering is not enrolled for this aggregate.");
+            }
+        }
+        foreach (var index in Enumerable.Range(0, keyNames.Length)) Sort("keys[" + index + "].v", false);
         var cypher = "CALL { " + compiled.Source + "WHERE NOT valid RETURN " + failure
             + ",false AS traversalCycle,false AS traversalLimit LIMIT 1" + traversal
             + " UNION ALL " + compiled.EligibleSource + "WHERE (" + compiled.DescendantPredicate
@@ -127,7 +159,7 @@ public partial class Neo4jOASIS
             + "CASE WHEN payloadLimit THEN [] ELSE keys END AS keys,"
             + "CASE WHEN payloadLimit THEN [] ELSE aggregates END AS aggregates,"
             + "valid,traversalCycle,traversalLimit,payloadLimit "
-            + "ORDER BY valid ASC,payloadLimit DESC," + string.Join(",", keyNames.Select((_, i) => "CASE WHEN keys[" + i + "].v IS NULL THEN 0 ELSE 1 END ASC,keys[" + i + "].v ASC")) + " LIMIT $groupLimit";
+            + "ORDER BY valid ASC,payloadLimit DESC," + string.Join(",", resultOrder) + " LIMIT $groupLimit";
         return new NeoCqlGroupedCommand(cypher, translator.Parameters);
     }
 }
