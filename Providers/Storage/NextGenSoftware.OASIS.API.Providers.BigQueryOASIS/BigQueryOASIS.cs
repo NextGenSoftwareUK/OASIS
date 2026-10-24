@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
     ///
     /// Tables: {project}.{dataset}.oasis_avatars / _avatar_details / _holons
     /// </summary>
-    public class BigQueryOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class BigQueryOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -181,22 +181,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
             => LoadAllAvatarsAsync(version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (avatar.Id == Guid.Empty)
-                    avatar.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollAvatars, avatar.Id.ToString(), avatar);
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: SaveAvatarAsync failed: {ex.Message}");
-            }
-            return result;
-        }
+        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+            => SaveAcknowledgedRecordAsync(avatar,CollAvatars);
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
             => SaveAvatarAsync(avatar).GetAwaiter().GetResult();
@@ -356,22 +342,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
             => LoadAllAvatarDetailsAsync(version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail detail)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (detail.Id == Guid.Empty)
-                    detail.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollAvatarDetails, detail.Id.ToString(), detail);
-                result.Result = detail;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: SaveAvatarDetailAsync failed: {ex.Message}");
-            }
-            return result;
-        }
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail detail)
+            => SaveAcknowledgedRecordAsync(detail,CollAvatarDetails);
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail detail)
             => SaveAvatarDetailAsync(detail).GetAwaiter().GetResult();
@@ -437,22 +409,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollHolons, holon.Id.ToString(), holon);
-                result.Result = holon;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: SaveHolonAsync failed: {ex.Message}");
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveAcknowledgedRecordAsync(holon,CollHolons);
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
@@ -461,18 +419,35 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
+            var acknowledged=new List<string>();var failures=new List<Exception>();var count=0;
             try
             {
-                foreach (var h in holons)
+                ArgumentNullException.ThrowIfNull(holons);
+                var roots=System.Linq.Enumerable.ToArray(holons);
+                if(System.Linq.Enumerable.Any(roots,root=>root==null))throw new ArgumentException("BigQuery bulk roots must not contain null.",nameof(holons));
+                foreach (var h in roots)
                 {
                     var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError) saved.Add(r.Result);
+                    count=checked(count+r.SavedCount);
+                    if(r.SavedCount>0){
+                        var id=r.Exception is BigQueryRecordReconciliationException native?native.RecordId:r.Result?.Id??h.Id;
+                        if(id!=Guid.Empty)acknowledged.Add(id.ToString());
+                    }
+                    if(r.IsError||!r.IsSaved||r.Result==null){
+                        var cause=r.Exception??new System.IO.InvalidDataException("BigQuery member returned no complete save acknowledgement.");failures.Add(cause);
+                        if(!continueOnError||NativeMutationReconciliation.IsRequired(cause))break;
+                    }else saved.Add(r.Result);
                 }
-                result.Result = saved;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: SaveHolonsAsync failed: {ex.Message}");
+                failures.Add(ex);
+            }
+            result.Result=saved;result.SavedCount=count;result.IsSaved=failures.Count==0;
+            if(failures.Count>0){
+                Exception cause=failures.Count==1?failures[0]:new AggregateException(failures);
+                if(acknowledged.Count>0)cause=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValuePartialMutationException(Core.Enums.ProviderType.BigQueryOASIS,acknowledged,cause);
+                OASISErrorHandling.HandleError(ref result,"BigQuery bulk save failed; reconcile acknowledged records and original member outcomes before replay.",cause);
             }
             return result;
         }
@@ -1039,7 +1014,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             return rows.Count > 0 ? rows[0] : null;
         }
 
-        private async Task UpsertDocAsync<T>(string table, string id, T obj)
+        private sealed record BigQueryWriteAcknowledgement(string JobId,string Location);
+        private async Task<BigQueryWriteAcknowledgement> UpsertDocAsync<T>(string table, string id, T obj)
         {
             var (doc, u, e, p) = Shred(obj);
             var sql = $@"MERGE {Table(table)} t
@@ -1050,7 +1026,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                                              parent_holon_id = s.parent_holon_id, updated_at = CURRENT_TIMESTAMP()
                 WHEN NOT MATCHED THEN INSERT (id, doc, username, email, parent_holon_id, updated_at)
                                       VALUES (s.id, s.doc, s.username, s.email, s.parent_holon_id, CURRENT_TIMESTAMP())";
-            await _client!.ExecuteQueryAsync(sql,new[]{StringParameter("id",id),StringParameter("doc",doc),StringParameter("username",u),StringParameter("email",e),StringParameter("parent",p)},new QueryOptions{UseLegacySql=false});
+            var client=_client??throw new InvalidOperationException("BigQuery client is not activated.");
+            var parameters=new[]{StringParameter("id",id),StringParameter("doc",doc),StringParameter("username",u),StringParameter("email",e),StringParameter("parent",p)};
+            // Supply the native job identity before dispatch so even a lost response
+            // has a concrete request to reconcile. This is not a success receipt.
+            var jobId="oasis-record-"+Guid.NewGuid().ToString("N");string location="";var acknowledged=false;
+            try{
+                var completed=await client.ExecuteQueryAsync(sql,parameters,new QueryOptions{UseLegacySql=false,JobId=jobId});
+                var reference=completed?.JobReference;
+                var bound=reference?.ProjectId==_projectId&&reference.JobId==jobId;
+                if(bound)location=reference!.Location??"";
+                acknowledged=bound&&completed?.NumDmlAffectedRows==1;
+                if(!acknowledged){
+                    var invalid=new System.IO.InvalidDataException("BigQuery MERGE requires exactly one affected row and its original project/job identity.");
+                    if(reference!=null&&!bound){invalid.Data["UnboundProjectId"]=reference.ProjectId??"";invalid.Data["UnboundJobId"]=reference.JobId??"";}
+                    throw invalid;
+                }
+                return new(jobId,location);
+            }catch(Exception cause){throw new BigQueryRecordReconciliationException(Guid.Parse(id),_projectId,jobId,location,acknowledged,cause);}
         }
 
         private async Task DeleteDocAsync(string table, string id)
