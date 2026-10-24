@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Cloud.Firestore;
@@ -61,7 +60,7 @@ public partial class GoogleCloudOASIS : IConditionalHolonStorageProvider
                 throw new CosmicConcurrencyException(conflicts);
             }
             var batch=_firestoreDb.StartBatch();var acknowledged=new Dictionary<Guid,IHolon>();
-            long requestBytes=0;var writes=0;
+            var writes=0;
             foreach(var node in plan.Nodes) {
                 var snapshot=snapshots[node.Snapshot.Id];var old=previous[node.Snapshot.Id];
                 var proposal=plan.Operation==ConditionalHolonOperation.Save?node.Snapshot:Core.Serialization.StoredRecordJson.Project<Holon>(old);
@@ -90,14 +89,13 @@ public partial class GoogleCloudOASIS : IConditionalHolonStorageProvider
                 var committed=OasisJson.DeserializeStored<Holon>(json);acknowledged.Add(committed.Id,committed);
                 if(plan.Operation==ConditionalHolonOperation.HardDelete) {
                     batch.Delete(snapshot.Reference,ObservedFirestoreRevision(snapshot));
-                    requestBytes+=1024+Encoding.UTF8.GetByteCount(snapshot.Reference.Path);
                 } else {
                     var fields=CreateFirestoreHolonFields(committed,json);
-                    requestBytes+=MeasureFirestoreGraphDocument(snapshot.Reference,fields);
+                    _=MeasureFirestoreGraphDocument(snapshot.Reference,fields);
                     if(snapshot.Exists) {
                         var updates=fields.ToDictionary(pair=>new FieldPath(pair.Key),pair=>pair.Value);
                         foreach(var name in snapshot.ToDictionary().Keys.Where(name=>!fields.ContainsKey(name))) {
-                            updates[new FieldPath(name)]=FieldValue.Delete;requestBytes+=64+Encoding.UTF8.GetByteCount(name);
+                            updates[new FieldPath(name)]=FieldValue.Delete;
                         }
                         batch.Update(snapshot.Reference,updates,ObservedFirestoreRevision(snapshot));
                     } else batch.Create(snapshot.Reference,fields);
@@ -111,16 +109,17 @@ public partial class GoogleCloudOASIS : IConditionalHolonStorageProvider
             var receiptFields=new Dictionary<string,object> {
                 ["operationId"]=plan.OperationId.ToString("D"),["requestHash"]=plan.Fingerprint,["resultJson"]=receiptJson
             };
-            requestBytes+=MeasureFirestoreGraphDocument(receiptReference,receiptFields);
+            _=MeasureFirestoreGraphDocument(receiptReference,receiptFields);
             batch.Create(receiptReference,receiptFields);writes++;
             var fenceFields=new Dictionary<string,object> {
                 ["operationId"]=plan.OperationId.ToString("D"),["revision"]=Guid.NewGuid().ToString("D")
             };
-            requestBytes+=MeasureFirestoreGraphDocument(fenceReference,fenceFields);
+            _=MeasureFirestoreGraphDocument(fenceReference,fenceFields);
             if(fence.Exists)batch.Update(fenceReference,fenceFields,ObservedFirestoreRevision(fence));
             else batch.Create(fenceReference,fenceFields);
             writes++;
-            if(requestBytes>10L*1024*1024)throw new ArgumentException("Firestore atomic graph exceeds its conservative10MiB request budget.");
+            // Document storage size is validated above. Aggregate request/index limits
+            // belong to the native service; padded storage sums are not SDK wire sizes.
             cancellationToken.ThrowIfCancellationRequested();dispatched=true;
             try {
                 var results=await CommitFirestoreConditionalBatchAsync(batch,cancellationToken);

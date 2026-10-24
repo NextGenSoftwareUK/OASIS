@@ -1,5 +1,13 @@
 # Firestore record history — integration in progress
 
+## 24 October — remove invented aggregate padding; native limits remain authoritative
+
+Final371unit/4atomic-native/85history-native/79regression-native PASS0skip. Two genuine controlled failures showed the local estimate rejected seven small documents with140000 obsolete fields before SDK dispatch. After removing the padded aggregate counter, the actual SDK CommitRequest serializes below10MiB. Two additional controls inject native InvalidArgument: the original cause is preserved, no mutation occurs, and no retry or success is reported. These tests do NOT certify hosted index acceptance for this large-field fixture.
+
+Removed the1024-byte delete allowance,64-byte deleted-field allowance and sum-of-document-storage-as-request check. Per-document1MiB validation remains unchanged for records, receipts and fences. Commit stays single-attempt/atomic with the same receipt/reconciliation rules. No second serializer, reflection adapter, speculative exact-request calculator or batch splitting was introduced.
+
+[Firestore's native transaction limits](https://firebase.google.com/docs/firestore/manage-data/transactions) account for affected documents and index entries, including deletions. Wire size alone is not a complete index/transaction-size certificate. The native service therefore remains authoritative for aggregate admission; hosted index-limit/IAM/cost/durability and full V2 acceptance remain OPEN. Four native atomic tests plus85history/79regression are retained-emulator healthy-service regression, not hosted near-limit/index proof. Same retained runtime/export/ports, stopped after success; pending0/listeners0, no download/restore/new environment. Exact evidence/resources in inventory.
+
 ## 24 October — native exact storage boundary verified,85history/79regression GREEN
 
 Two added official-SDK/retained Firestore1.22.0 cases now prove ASCII and Unicode documents at exactly1MiB under the documented storage formula are accepted and independently read back. A conditional update adding exactly one UTF8byte is natively rejected with InvalidArgument; original contents AND native revision remain unchanged. Both originals are then conditionally deleted and independently confirmed absent. This settles the local storage-boundary concern above/below without treating protobuf wire size as storage size. Hosted service acceptance remains unverified; the conservative10MiB batch-request estimate is still a separate open gap.
