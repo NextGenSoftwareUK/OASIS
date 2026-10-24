@@ -1,7 +1,7 @@
-param([switch]$CleanupCanonicalHistory,[switch]$InspectCanonicalHistory,[switch]$CleanupSqliteKarmaHistory,[switch]$InspectSqliteKarmaHistory,[switch]$ReconcileKarmaSeed,[switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
+param([switch]$ItemSizeBoundary,[switch]$CleanupCanonicalHistory,[switch]$InspectCanonicalHistory,[switch]$CleanupSqliteKarmaHistory,[switch]$InspectSqliteKarmaHistory,[switch]$ReconcileKarmaSeed,[switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
     [switch]$AllVersionExports,[switch]$PointReadIdentities,[switch]$IndependentExportVersions,[switch]$DuplicatePageRegression,[switch]$CleanupKarmaMutation,[switch]$InspectKarmaMutation,[switch]$CleanupKarmaSeed,[switch]$CleanupVerifiedAwsRun,[ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$VerifiedReportSha256)
 $ErrorActionPreference='Stop'
-$selectedModes=@($CleanupCanonicalHistory,$InspectCanonicalHistory,$CleanupSqliteKarmaHistory,$InspectSqliteKarmaHistory,$CleanupKarmaMutation,$InspectKarmaMutation,$CleanupKarmaSeed,$ReconcileKarmaSeed,$OrdinarySaveAcknowledgements,$OrdinarySaveLifecycle,$DetailDeletionResults,
+$selectedModes=@($ItemSizeBoundary,$CleanupCanonicalHistory,$InspectCanonicalHistory,$CleanupSqliteKarmaHistory,$InspectSqliteKarmaHistory,$CleanupKarmaMutation,$InspectKarmaMutation,$CleanupKarmaSeed,$ReconcileKarmaSeed,$OrdinarySaveAcknowledgements,$OrdinarySaveLifecycle,$DetailDeletionResults,
     $BatchRevisions,$EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileConditionalInitial,$ConditionalGraphs,
     $ReconcileKnownReadFixture,$FullAwsSuite,$ReconcileAwsPreRead,$CleanupKnownAwsRun,$ReconcileValidationFixtures,
     $ReconcileReflectionFixtures,$CleanupVerifiedAwsRun,$IndependentExportVersions,$DuplicatePageRegression,$PointReadIdentities,$AllVersionExports).Where({$_.IsPresent})
@@ -10,6 +10,7 @@ if($CleanupVerifiedAwsRun -ne [bool]$VerifiedReportSha256){throw 'Verified clean
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runtime='C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\runtime'
 $work=Join-Path $root 'TestResults/DynamoHistoryCurrent'
+if($ItemSizeBoundary -and (Test-Path -LiteralPath (Join-Path $work 'dynamo-size-boundary-full-native.trx'))){throw 'Preserve the original size-boundary native report before another run.'}
 if($AllVersionExports -and (Test-Path -LiteralPath (Join-Path $work 'dynamo-all-version-export-native-current.trx'))){throw 'Preserve the original all-version export native report before another run.'}
 if($PointReadIdentities -and (Test-Path -LiteralPath (Join-Path $work 'dynamo-point-identities-native-current.trx'))){
     throw 'Preserve the original point-identity native regression report before another run.'
@@ -190,6 +191,7 @@ try{
     if($DuplicatePageRegression){$reportName='dynamo-duplicate-pages-native-current.trx'}
     if($PointReadIdentities){$reportName='dynamo-point-identities-native-current.trx'}
     if($AllVersionExports){$reportName='dynamo-all-version-export-native-current.trx'}
+    if($ItemSizeBoundary){$filter='(FullyQualifiedName~DynamoHistoryNativeTests&FullyQualifiedName!~ReconcileKnown)|FullyQualifiedName~DynamoPreparationNativeTests|FullyQualifiedName~DynamoConditionalNativeTests|FullyQualifiedName~DynamoSizeBoundaryNativeTests';$reportName='dynamo-size-boundary-full-native.trx'}
     if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve the original native report before another run.'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Native history test failed; preserve journal/data for reconciliation.'}
@@ -198,6 +200,7 @@ $report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.Ful
     if($DetailDeletionResults){$expected=14}
     if($OrdinarySaveLifecycle){$expected=48}
     if($OrdinarySaveAcknowledgements){$expected=12}
+    if($ItemSizeBoundary){$expected=187}
     if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Fresh complete native cases and cleared original journals required.'}
 }finally{
     $env:DYNAMODB_SERVICE_URL=$previousEndpoint;$env:OASIS_DYNAMO_HISTORY_WORK=$previousWork

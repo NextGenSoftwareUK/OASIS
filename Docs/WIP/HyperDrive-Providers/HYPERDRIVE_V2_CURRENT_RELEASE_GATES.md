@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## AWS/Dynamo native size admission — 24 October 2026
+
+Removed invented preparation1024+256/record padding and graph numeric38-byte padding that rejected valid near-limit native items. One lower-bound sizing owner reuses [AWS documented native attribute rules](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/CapacityUnitCalculations.html); exact numeric compressed size remains SDK/service-owned, not guessed. It governs preparation claim/readback and graph/receipt admission, preserving the99-record transaction design. Definitely oversized known bytes still reject locally before reads, while borderline numeric cases may reach native validation; no fee-free/billing estimator claim.
+
+Four controlled reds →531unitPASS0skip;187DynamoDB Local real-SDK casesPASS0skip43s (171existinghistory+4preparation+8conditional+4new AWS/Dynamo near-limit ASCII/Unicode). Readback/replay/conditional cleanup/journals0 proved for those fixtures, no cipher authenticity or hosted AWS proof. Core740/ABD06B39 Shared55/E78803F0 Dynamo14/5C13FBCE source/copies verified. Same retained runtime/data, independently exited/18000+18001 absent; no download/install/new environment. Hosted Oracle/OCI/AWS credentials remain absent only in the inspected process/default-profile locations, not a machine-wide assertion. IAM/fees/durability/public API/fullV2 gates remain OPEN.
+
+Priority-document reconciliation: AWS all-version local enumeration was already published3698c29cd (523unit/171native), despite its stale OPEN heading, now corrected. Oracle's original intermittent refusal was causally traced to the forced-unpooled local harness and closed by pooled-harness diagnostic/reconciliation (ORACLE_CLIENT_PRIORITY.md); earlier readback-root-cause-open entries below are historical, not a newly unresolved original blocker. Oracle cloud acceptance remains open. No old test cohort was rerun or renamed by these documentation corrections.
+
 ## Mongo opt-in account history retention — 24 October 2026
 
 Account retention is now wired to the existing `IsVersionControlEnabled` property (defaultfalse): ordinary avatar/detail saves, gameplay updates, avatar/clan transfers, paired/detail-only soft deletion and replica tombstones stage their prior native BSON inside the same replacement/CAS/transaction. The setting is sampled once per multi-account transaction, and the live repository callback respects changes after activation. Hard deletion removes the native record and embedded history. Disabled lifecycle mode keeps the existing exact-field patch behavior; disabling append does not authorize ordinary/gameplay writes to corrupt an existing archive or move it backwards.

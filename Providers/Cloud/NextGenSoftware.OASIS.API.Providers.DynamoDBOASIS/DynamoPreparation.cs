@@ -27,13 +27,9 @@ public partial class DynamoDBOASIS : IHolonWritePreparationStorageProvider
             if(candidate.Authority!=StorageProviderType)return PreparationFailure("COSMIC_AUTHORITY_MISMATCH","The preparation belongs to another authority.");
             if(_client.Config.MaxErrorRetry!=0)throw new InvalidOperationException("Preparation claims require single-attempt SDK configuration.");
             // Native list/map attributes preserve opaque envelope text without a second JSON codec.
-            // Conservative overhead includes names, IDs and native collection bookkeeping.
-            var bytes=1024L+candidate.Records.Sum(record=>256L+Encoding.UTF8.GetByteCount(record.Envelope));
-            if(candidate.Records.Count>99||bytes>400L*1024)
+            if(candidate.Records.Count>99)
                 throw new ArgumentException("DynamoDB protected preparation exceeds the99-record/400KiB native item limit.");
             key=StorageProviderType+":"+candidate.OperationId.ToString("N");
-            var prior=await ReadPreparationWinnerAsync(candidate,key,cancellationToken);
-            if(prior!=null)return new(prior);
             var item=new Dictionary<string,AttributeValue> {
                 ["id"]=new(){S=key},["actor"]=new(){S=candidate.ActorId.ToString("D")},
                 ["authority"]=new(){S=StorageProviderType.ToString()},
@@ -41,6 +37,10 @@ public partial class DynamoDBOASIS : IHolonWritePreparationStorageProvider
                     ["id"]=new(){S=record.HolonId.ToString("D")},["envelope"]=new(){S=record.Envelope}
                 }}).ToList()}
             };
+            if(DynamoItemSize.MinimumBytes(item)>DynamoItemSize.MaximumItemBytes)
+                throw new ArgumentException("DynamoDB protected preparation known native bytes exceed400KiB.");
+            var prior=await ReadPreparationWinnerAsync(candidate,key,cancellationToken);
+            if(prior!=null)return new(prior);
             requestToken=Guid.NewGuid().ToString("N");
             var transaction=new TransactWriteItemsRequest {ClientRequestToken=requestToken,TransactItems=new() {
                 new(){ConditionCheck=new ConditionCheck {TableName=ConditionalReceiptTable,Key=new(){{"id",new(){S=key}}},
@@ -89,14 +89,14 @@ public partial class DynamoDBOASIS : IHolonWritePreparationStorageProvider
         if(owner!=candidate.ActorId)throw new PreparationActorMismatchException();
         if(!item.TryGetValue("records",out var rows)||rows.L==null||rows.L.Count<1||rows.L.Count>99)
             throw new InvalidDataException("Stored preparation record count is invalid.");
-        var records=new List<ProtectedHolonPreparation>();long bytes=1024;
+        if(DynamoItemSize.MinimumBytes(item)>DynamoItemSize.MaximumItemBytes)
+            throw new InvalidDataException("Stored preparation exceeds its native transport limit.");
+        var records=new List<ProtectedHolonPreparation>();
         foreach(var row in rows.L) {
             var fields=row.M;
             if(fields==null||fields.Count!=2||!fields.TryGetValue("id",out var identity)||!Guid.TryParseExact(identity.S,"D",out var holonId)
                 ||identity.S!=holonId.ToString("D")||!fields.TryGetValue("envelope",out var envelope)||envelope.S==null)
                 throw new InvalidDataException("Stored preparation record schema is invalid.");
-            bytes+=256L+Encoding.UTF8.GetByteCount(envelope.S);
-            if(bytes>400L*1024)throw new InvalidDataException("Stored preparation exceeds its native transport limit.");
             records.Add(new ProtectedHolonPreparation(holonId,envelope.S));
         }
         return new HolonWritePreparation(candidate.OperationId,owner,StorageProviderType,records);

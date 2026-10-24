@@ -1,5 +1,7 @@
 # Oracle client readiness — top priority
 
+Status clarification,24 October: the original local intermittent listener-refusal cause is resolved in the pooled-harness closure below; earlier headings saying trigger/root cause open are historical observations. Latest local SQL385unit/496native and OCI119signed-loopback results remain distinct cohorts, not fresh cloud tests. Live Autonomous/OCI access, IAM/durability/fees and full V2 remain OPEN. No new Oracle run or production configuration change is implied by this clarification.
+
 ## Latest verification — 23 October 2026
 
 24 October all-version export update: documented Version=-1 now enumerates validated stored histories through the existing shared codec/Oracle native projection validator, retains stored child payloads (not a point-in-time graph), filters deleted versions and owner per version. Normal point/collection negative rules unchanged; exports below-1 invalid. Four native identity fixtures assert3versions/current avatar selectors/foreign isolation/unchanged rows. Final matched385unit+496native PASS0skip, Core732/4ECCB543/Shared55/F33D8F73 source/copies verified. Pending0/listener11521absent, same retained DB stopped. Local implementation gate verified; hosted Autonomous/OCI IAM/wallet/durability/fees/fullV2 still OPEN. Details/evidence in inventory; prior381unit is historical.
