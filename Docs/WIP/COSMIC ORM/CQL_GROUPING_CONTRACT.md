@@ -118,3 +118,10 @@ The current native profile permits up to 1,000 output groups, 32 selected column
 Read execution reuses SQLite's scope predicate, deadline/traversal guards and concurrency detector. Relationship scope checks run before source windows. An owned read snapshot is rolled back and its connection closed; a caller-owned serializable transaction/connection remains owned by the caller. Cancellation and subsequent reuse are covered. Inactive providers return CQL_PROVIDER_NOT_READY explicitly.
 
 Verification: **1,364 native SQLite tests passed, zero skipped**, including 19 new grouping controls. Evidence: TestResults/SQLiteCurrent/cql-grouped-full-current.trx; TestResults/CosmicCqlDemo/sqlite-group-full.log and sqlite-group-artifacts.json. Core SHA256 starts 6D193362, Shared 996EE8E6, SQLite 98D67EC2; producer and test-output copies match. The fixed fixture database, WAL and SHM are absent after teardown. This certifies this SQLite slice only: MongoDB/Neo4j native grouping, grouped HTTP/demos, post-group filters/order/pages and remaining roadmap gates are still open.
+
+
+## MongoDB compiler checkpoint - 23 October 2026
+
+The native grouped compiler is implemented behind an internal, unenrolled entry point. It shares source/scope compilation, typed projection cells, comparable key normalization and exact Decimal128 limb decomposition. Source windows precede reductions; an input sentinel and global participation window precede the output-group sentinel. All identity columns remain present even when omitted from the selected DTO. Traversal outcomes retain the existing protected envelope.
+
+Producer build and all **248 Mongo unit tests passed, zero skips**, including three new grouped compiler controls. Evidence: TestResults/MongoCurrent/cql-grouped-compiler-current.trx and TestResults/CosmicCqlDemo/mongo-group-compiler.log. This is compiler evidence only. MongoDB GroupBy is not advertised or live-certified: bounded packet decoding, read-owner dispatch, adapter admission and native acceptance remain next.
