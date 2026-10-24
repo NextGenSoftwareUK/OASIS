@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
@@ -22,6 +23,21 @@ public sealed class SearchRequestSnapshotTests
         public Task DeleteAsync(string key,CancellationToken token=default)=>Store.DeleteAsync(key,token);
         public Task VerifyAsync(CancellationToken token=default)=>Store.VerifyAsync(token);
         public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix,CancellationToken token=default){var rows=await Store.ListKeysAsync(prefix,token);var change=OnList;OnList=null;change?.Invoke();return rows;}
+    }
+    public static IEnumerable<object[]> MetadataCases(){foreach(var mutation in Enumerable.Range(0,4))foreach(var sync in new[]{false,true})foreach(var version in new[]{0,1})foreach(var mode in new[]{MetaKeyValuePairMatchMode.All,MetaKeyValuePairMatchMode.Any})yield return new object[]{mutation,sync,version,mode};}
+    [DataTestMethod][DynamicData(nameof(MetadataCases),DynamicDataSourceType.Method)]
+    public async Task SharedMetadataOwnsPairsBeforeBackendEnumeration(int mutation,bool sync,int version,MetaKeyValuePairMatchMode mode)
+    {
+        var backend=new ObservedBackend();var provider=new TestProvider(backend){IsVersionControlEnabled=true};
+        var first=new Holon{Id=Guid.NewGuid(),Name="park",MetaData=new(){{"zone","park"},{"region","north"}}};
+        var other=new Holon{Id=Guid.NewGuid(),Name="city",MetaData=new(){{"zone","city"},{"region","south"}}};
+        foreach(var row in new[]{first,other}){Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);row.Description="second version";Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);}
+        var original=backend.Store.Items.ToDictionary(pair=>pair.Key,pair=>pair.Value);var writes=backend.Store.PutCalls;
+        var pairs=new Dictionary<string,string>{{"zone","park"},{"region","north"}};
+        backend.OnList=()=>{switch(mutation){case 0:pairs["zone"]="city";pairs["region"]="south";break;case 1:pairs.Clear();break;case 2:pairs.Remove("zone");pairs["region"]="south";break;default:pairs.Clear();pairs["absent"]="other";break;}};
+        var result=sync?provider.LoadHolonsByMetaData(pairs,mode,loadChildren:false,version:version):await provider.LoadHolonsByMetaDataAsync(pairs,mode,loadChildren:false,version:version);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);Assert.AreEqual(first.Id,result.Result.Single().Id);Assert.AreEqual(version==0?2:1,result.Result.Single().Version);
+        Assert.IsNull(backend.OnList);Assert.AreEqual(writes,backend.Store.PutCalls);Assert.AreEqual(original.Count,backend.Store.Items.Count);foreach(var pair in original)Assert.AreEqual(pair.Value,backend.Store.Items[pair.Key]);
     }
     public static IEnumerable<object[]> Cases(){foreach(var scenario in Enumerable.Range(0,6))foreach(var sync in new[]{false,true})yield return new object[]{scenario,sync};}
     [DataTestMethod][DynamicData(nameof(Cases),DynamicDataSourceType.Method)]

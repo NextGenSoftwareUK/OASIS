@@ -1,5 +1,13 @@
 # Shared canonical record-history codec
 
+## Shared metadata query ownership — 24 October 2026
+
+The common key-value provider now captures validated metadata pairs before its first backend await. Previously, in-flight caller dictionary edits changed the later Any/All predicate. Thirty-two controlled cases first all failed (value/key/removal/clear mutations, sync/async, current/version1, Any/All). The one existing query owner now snapshots pairs with `ToArray`; existing matching, history, graph loading and admission rules remain unchanged. No new helper, provider-specific persistence path, parser or SDK request was added.
+
+Final shared1163, OCI119 and full edge98 tests PASS with zero skips. The full edge cohort contains all76 selected S3 tests. Two new S3 cases and the existing two OCI encrypted lifecycle cases mutate caller pairs inside signed official SDK listing exchanges, then verify original current/historical selection/count and unchanged encrypted objects/history with no new writes. OCI uses retained loopback18661; S3 uses in-memory HTTP interception. These are controlled SDK/service proofs, NOT hosted OCI/S3 acceptance, billing, native deployment or full V2 certification. Redis/NATS/Hedera were not independently fully retested by this cohort.
+
+Core741/35AE105E and Shared56/9FD90A38 source/copies match all tested consumers. Resources, report hashes, subset cleanup and remaining gaps are in ENVIRONMENT_INVENTORY.md. No restore/download/new environment/cloud spending/dev deployment.
+
 ## Exact numeric search — 24 October 2026
 
 The shared legacy search matcher parsed every selected value through `decimal.TryParse(value.ToString())`. This incorrectly treated text such as `"1"` or `"1,000"` as a numeric candidate, rounded precise fractions, and missed genuine values outside Decimal's range. Its separate JsonElement projection also narrowed numbers through a default JsonTextReader before matching.
