@@ -157,113 +157,51 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Export all holons created by the avatar
-                var holons = await _holonRepository.GetAllHolonsAsync();
-                result.Result = holons.Cast<IHolon>();
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons?.Count() ?? 0} holons for avatar {avatarId} from MongoDB";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from MongoDB: {ex.Message}", ex);
-            }
-            return result;
+            return await ReadCanonicalMongoExportAsync(version,avatarId);
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Export all holons created by the avatar username
-                var holons = await _holonRepository.GetAllHolonsAsync();
-                result.Result = holons.Cast<IHolon>();
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons?.Count() ?? 0} holons for avatar {avatarUsername} from MongoDB";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from MongoDB: {ex.Message}", ex);
-            }
-            return result;
+            return await ReadCanonicalMongoExportSelectorAsync(avatarUsername,false,version);
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Export all holons created by the avatar email
-                var holons = await _holonRepository.GetAllHolonsAsync();
-                result.Result = holons.Cast<IHolon>();
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons?.Count() ?? 0} holons for avatar {avatarEmailAddress} from MongoDB";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from MongoDB: {ex.Message}", ex);
-            }
-            return result;
+            return await ReadCanonicalMongoExportSelectorAsync(avatarEmailAddress,true,version);
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
+            return await ReadCanonicalMongoExportAsync(version);
+        }
 
-                // Export all holons
-                var holons = await _holonRepository.GetAllHolonsAsync();
-                result.Result = holons.Cast<IHolon>();
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons?.Count() ?? 0} holons from MongoDB";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from MongoDB: {ex.Message}", ex);
-            }
+        private async Task<OASISResult<IEnumerable<IHolon>>> ReadCanonicalMongoExportAsync(int version,Guid? owner=null)
+        {
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                if(owner.HasValue&&owner.Value==Guid.Empty)throw new ArgumentException("A nonempty export owner is required.",nameof(owner));
+                var loaded=await LoadAllHolonsAsync(loadChildren:false,version:version);
+                if(loaded.IsError)return loaded;
+                if(loaded.Result==null)throw new System.IO.InvalidDataException("Mongo export source returned no collection.");
+                result=NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
+                var rows=loaded.Result.Where(row=>!owner.HasValue||row.CreatedByAvatarId==owner.Value).ToList();
+                result.Result=rows;result.IsLoaded=true;result.LoadedCount=rows.Count;
+            }catch(Exception cause){OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+            return result;
+        }
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> ReadCanonicalMongoExportSelectorAsync(string selector,bool email,int version)
+        {
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                if(string.IsNullOrWhiteSpace(selector))throw new ArgumentException("A nonblank export identity is required.",nameof(selector));
+                var owner=email?await LoadAvatarByEmailAsync(selector):await LoadAvatarByUsernameAsync(selector);
+                if(owner.IsError)return NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(owner);
+                if(owner.Result==null)throw new System.IO.InvalidDataException("Mongo export identity returned no avatar.");
+                return await ReadCanonicalMongoExportAsync(version,owner.Result.Id);
+            }catch(Exception cause){OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
             return result;
         }
 
