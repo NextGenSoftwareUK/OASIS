@@ -18,7 +18,8 @@ public partial class Neo4jOASIS
     internal static CosmicGroupedRow DecodeCqlGrouped<T, TKey, TResult>(IReadOnlyDictionary<string, object> packet,
         CosmicGroupedSelection<T, TKey, TResult> query) where T : IHolon
     {
-        if (packet.Count != 7 || !packet.TryGetValue("inputs", out var rawInputs) || rawInputs is not long inputs
+        if (packet.Count != 8 || !packet.TryGetValue("inputs", out var rawInputs) || rawInputs is not long inputs
+            || !packet.TryGetValue("resultMember", out var member) || member is not bool isResult
             || !packet.TryGetValue("valid", out var valid) || valid is not bool ok
             || !packet.TryGetValue("traversalCycle", out var cycle) || cycle is not bool hasCycle
             || !packet.TryGetValue("traversalLimit", out var limit) || limit is not bool hasLimit
@@ -75,6 +76,6 @@ public partial class Neo4jOASIS
             else throw new InvalidDataException("Native grouped aggregate is unknown.");
         }
         if (position != aggregates.Count) throw new InvalidDataException("Native grouped packet has unexpected aggregate slots.");
-        return new CosmicGroupedRow(inputs, identity, values);
+        return new CosmicGroupedRow(inputs, isResult, identity, values);
     }
 }
