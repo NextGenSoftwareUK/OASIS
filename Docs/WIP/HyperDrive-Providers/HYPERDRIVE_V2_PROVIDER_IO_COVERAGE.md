@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## NEAR export version boundary — 23 October 2026
+
+Shared NEAR selector owner separates current identity from holon history, validates before dispatch and preserves errors; GUID exports acknowledge/count matching roots. Full240 unit controls PASS0skip including20new; encrypted owner filtering uses controlled Node IPC (not native SDK transport). Native assertions compile but are unexecuted. Retained interrupted15/19 native report preserved; read-only recovery confirms unchanged1156record inventory, not uncertain-write closure. No fresh chain mutation or V2 certification. Original recovery and full native/fee/V2 gates remain OPEN; details in NEAR_IDENTITY_LOOKUP_VERIFICATION.md.
+
 ## Shared Web3 returned-root counts — 23 October 2026, controlled scope
 
 Common Web3 owners repaired (Polygon/Arbitrum V2 wrapper), not duplicate adapters. Full176 selected Web3 +124 Ethereum non-native controls PASS0skip;39 new SDK-ABI/encrypted fixtures include positive independent-version exports, filtering, empty/error/graph counts. In-memory RPC responses are NOT live storage or cross-provider V2 proof. No new native acceptance or chain operation; preserved routing evidence and cloud/full V2 gates remain OPEN. Exact identities/resources/reports: ENVIRONMENT_INVENTORY.md.

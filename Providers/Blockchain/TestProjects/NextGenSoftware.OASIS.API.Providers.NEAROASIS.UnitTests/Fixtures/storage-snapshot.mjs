@@ -3,8 +3,12 @@ import {readFileSync} from 'node:fs';
 const input=JSON.parse(readFileSync(0,'utf8'));
 if(input.operation==='probe')process.stdout.write(JSON.stringify({ok:true,result:{}}));
 else if(input.operation==='entries'){
-  if(input.prefix!=='avatar:')throw new Error('Unexpected controlled search collection');
-  process.stdout.write(JSON.stringify({ok:true,result:[]}));
+  if(input.prefix==='holon:' && process.env.OASIS_NEAR_EXPORT_FIXTURE_ROWS){
+    process.stdout.write(JSON.stringify({ok:true,result:JSON.parse(process.env.OASIS_NEAR_EXPORT_FIXTURE_ROWS)}));
+  }else{
+    if(input.prefix!=='avatar:')throw new Error('Unexpected controlled search collection');
+    process.stdout.write(JSON.stringify({ok:true,result:[]}));
+  }
 }
 else if(input.operation==='get'){
   const result=JSON.parse(process.env.OASIS_NEAR_SNAPSHOT_FIXTURE_RESPONSE);

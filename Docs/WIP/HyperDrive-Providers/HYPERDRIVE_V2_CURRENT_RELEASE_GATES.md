@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR export selector controlled gate — 23 October 2026
+
+Current identity resolves independently of exported holon Version, negative/empty-owner admission before SDK, successful owner-filter counts. New20 controls/full240 unit PASS0skip; native fixture compiles only, NOT executed. Original native19 is interrupted15pass/4fail, preserved SHA AA17152..., not fresh green. Read-only same retained chain/code/1156record inventory verified; no native write/replay/reset, node stopped/config5. Original ordinary-write recovery, complete native interfaces/fees/full V2 remain OPEN. Exact scope/evidence in NEAR_IDENTITY_LOOKUP_VERIFICATION.md and inventory; no dev deployment.
+
 ## Shared Web3 read-count controlled gate — 23 October 2026
 
 176 Web3 selected controls +124 Ethereum non-native PASS0skip, including39 new encrypted real-SDK-ABI response cases and positive independent-version exports. Corrected baseline19 count failures; first baseline also contained one explicitly corrected fixture error. Scoped successful returned-root/filtered/search counters are repaired in the shared Polygon/Arbitrum V2 owner. Original routing.db unchanged,64 retention decisions pass. Native chain/interfaces/finalized outcomes/fees/full V2 remain OPEN; no dev merge/deployment. Current source/copy/PDB cohort Core2D6B/Shared658206, exact artifacts in inventory. Earlier counter-audit-open notes below are historical.
