@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## AWS/Dynamo read identity consistency — 23 October 2026
+
+Existing common scan/query page reader now rejects repeated GUIDs within/across pages, reusing its native-ID parser with canonical decoding. No retry, silent deduplication or snapshot guarantee.24 new controlled cases/full499 controls plus171 existing official SDK/DynamoDB Local native regressions PASS0skip, same current cohort verified. Forced repetition schedules are controlled, not native races. Native fixtures cleared/container stopped; no hosted cloud request/new environment/dev deployment. Full AWS IAM/capacity/billing/relevant-interface/V2 gates remain OPEN; details in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md.
+
 ## NEAR export version boundary — 23 October 2026
 
 Shared NEAR selector owner separates current identity from holon history, validates before dispatch and preserves errors; GUID exports acknowledge/count matching roots. Full240 unit controls PASS0skip including20new; encrypted owner filtering uses controlled Node IPC (not native SDK transport). Native assertions compile but are unexecuted. Retained interrupted15/19 native report preserved; read-only recovery confirms unchanged1156record inventory, not uncertain-write closure. No fresh chain mutation or V2 certification. Original recovery and full native/fee/V2 gates remain OPEN; details in NEAR_IDENTITY_LOOKUP_VERIFICATION.md.
