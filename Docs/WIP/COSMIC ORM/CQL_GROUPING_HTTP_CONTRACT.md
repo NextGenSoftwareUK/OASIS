@@ -28,6 +28,8 @@
     { "alias": "TotalStock", "descending": true },
     { "alias": "Category" }
   ],
+  "resultSkip": 1,
+  "resultTake": 5,
   "maximumGroups": 25
 }
 ```
@@ -79,3 +81,21 @@ Example16 now demonstrates native grouped ordering in both readable C# and HTTP 
 The retained runner completed **48 SDK queries and48 HTTP examples** across MongoDB, SQLite and Neo4j; **228 operations settled and223 provider attempts**. Actual session96782 terminal0, integrated native test1pass/0skip. This is live demo acceptance, not a rerun of every provider suite. Evidence: TestResults/CosmicCqlDemo/ordered-group-demo-native.log, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/copy checks verified Core19F1CA8B and SharedDF5015E4. Node24.19.0 syntax check passed for the browser script. Fixture manifest/SQLite/WAL/SHM verified absent after owned cleanup; Mongo27029 and Neo17687 listeners absent.
 
 HTTP result ordering live acceptance is complete for the enrolled operations. Exact Average ordering, post-group filters/pages and the broader unchecked CQL/ORM roadmap remain open.
+
+
+## HTTP grouped result window — 24 October 2026
+
+`resultSkip` defaults to zero and `resultTake` is optional. They apply to reduced groups after `resultOrder`, independently of source `skip`/`take`. `resultTake: 0` returns an empty published page while still validating every bounded proof packet. Omission preserves all bounded results. Negative values or values/offsets above `maximumGroups` reject before dispatch; `maximumGroups` and the 1 MiB proof budget still bound complete reduced proof, including off-page groups.
+
+The compiler binds the existing shared Skip/Take intent. Actual providers must advertise SupportsResultPaging; source paging or ordering support cannot grant it. Native MongoDB, SQLite and Neo4j enrollment is recorded in their provider docs. Core validates all proof and native membership before any selected DTO constructor executes.
+
+Controlled verification: **2,334 Core/linked-production tests pass, zero skips**, including seven new request compiler cases and five endpoint cases (all three profiles, empty publication with retained proof and unenrolled paging rejected before dispatch). Evidence: TestResults/CosmicCurrent/http-group-page-current.trx and TestResults/CosmicCqlDemo/http-group-page-unit.log. Example17 has been prepared for both SDK/HTTP/browser/Swagger; its live three-provider acceptance is pending the other session's reviewed Mongo fixture cleanup. Prior48/48demo evidence above does not certify paging.
+
+
+## HTTP grouped paging live acceptance — 24 October 2026
+
+`resultSkip`/`resultTake` now run through native paging on MongoDB, SQLite and Neo4j. Example17 shows the same query in spaced/commented C# and HTTP, with browser and Swagger fields: group by Name, sum exact Int64 values, order Total descending/Name ascending, then Skip1/Take1. The selected C-public total remains -9007199254740990; source windows remain independent. Complete bounded proof includes skipped groups.
+
+Verification: **2,334 Core/linked-production unit tests pass, zero skips**; the fresh integrated native demo passes **51 SDK queries and51 HTTP examples**, **231 settled operations and226 physical attempts** across all three providers (actual32210terminal0, native1PASS0skip). Evidence: TestResults/CosmicCurrent/http-group-page-current.trx; TestResults/CosmicCqlDemo/http-group-page-unit.log, group-page-demo-native.log, group-page-demo-artifacts.json, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/native copies match for Core and all three providers; runner verifies Core051A0664/SharedD5273C49. Browser script passes Node24.19.0 syntax check. This is the integrated demo acceptance test, not an all-suite provider rerun.
+
+The other session completed reviewed fixture cleanup and its Mongo historical-type regressions before granting the live window. No blind reset/replay occurred. Final owned fixture marker/SQLite/WAL/SHM are absent, Mongo27029 and Neo17687 listeners absent. Post-group filtering, exact Average ordering and broader unchecked roadmap gates remain open.
