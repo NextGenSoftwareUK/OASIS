@@ -2,6 +2,8 @@
 
 ## Mongo historical export — confirmed native blocker,24 October 2026
 
+Native identity safety repair: Entities/HolonBase explicit IHolonBase.Id incorrectly forwarded getter/setter to CreatedByAvatar.Id. Nine in-memory controls first red across native holon/avatar/detail (wrong ID, null creator dereference, creator mutation). Mapping now uses HolonId; full310unitPASS0skip including3existing-format BSON checks (GUID string and separate physical ObjectId). Added BSON tests initially assumed binary GUIDs; corrected to authoritative existing GuidSerializer(BsonType.String), not a storage-format change. No DB/account writes or historical production-loss attribution. Native audit GUID interface members remain a separate mapping gap; avatar/detail history still open.
+
 ### Remaining history ownership audit (read-only during live-demo source freeze)
 
 | Path | Current authoritative implementation | Remaining gate |
