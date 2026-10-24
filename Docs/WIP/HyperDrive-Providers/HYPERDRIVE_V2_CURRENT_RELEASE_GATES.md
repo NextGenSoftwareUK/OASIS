@@ -1,5 +1,7 @@
 # HyperDrive V2 current release gates
 
+BigQuery search24October:331controlledPASS0skip after36genuine baseline failures. Removed divergent provider matcher; existing Shared search now owns comparisons/group operators/target-owner-metadata-parent scope and canonical query snapshot. Required read failures retain original cause/no partial success; resultcounts fixed. Unsupported history explicitly rejects,not implemented. Native hosted/history/graph/durable fee/fullV2 remainOPEN; no environment/download/cloud operation. Audit/inventory updated.
+
 BigQuery metadata/type24October:295controlledPASS0skip.16genuine baseline failures/4valid controls; existing shared invariant matcher reused,single/dictionary routes unified,filter captured beforeawait,actual resultcounts and primary root-type filtering repaired. Empty/null/no-match/invalid-mode/original-failure controls pass. No native cloud/new environment/download; history/graph/fees/fullV2 remainOPEN. Audit/inventory updated.
 
 BigQuery delete24October:261controlledPASS0skip. Hard DELETE now reuses MERGE's one-row/project/request-job acknowledgement/reconciliation owner rather than ignoring response.36baseline failures retained; public holon wrapper8failures also repaired,missing soft-delete4controls pass. Counts/flags/original uncertainty preserved,no unsafe replay. No real deletion/cloud request,new environment/download. Native hosted DML,paired lifecycle/concurrency/durable recovery/fees/fullV2 OPEN; audit/inventory record scope.
