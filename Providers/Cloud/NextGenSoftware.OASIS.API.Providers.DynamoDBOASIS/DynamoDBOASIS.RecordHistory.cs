@@ -68,6 +68,8 @@ public partial class DynamoDBOASIS
             else if(pair.Key=="is_deleted")item.Add(pair.Key,new AttributeValue{BOOL=pair.Value.BOOL});
             else throw new ArgumentException("Unsupported proposed record attribute.");
         }
+        if(DynamoItemSize.MinimumBytes(item)>DynamoItemSize.MaximumItemBytes)
+            throw new ArgumentException("DynamoDB record known native bytes exceed400KiB.");
         var proposed=ReadStoredIdentity<T>(item);var id=proposed.Id;
         var observed=await client.GetItemAsync(new GetItemRequest{TableName=table,Key=new(){{"id",new AttributeValue{S=id.ToString()}}},ConsistentRead=true});
         RequireItemRead(observed);
@@ -88,6 +90,8 @@ public partial class DynamoDBOASIS
         }
         var staged=await StageRecordDocumentAsync(proposed,previousDocument,createHistory);
         item["data_json"]=new AttributeValue{S=staged.ToString(Newtonsoft.Json.Formatting.None)};
+        if(DynamoItemSize.MinimumBytes(item)>DynamoItemSize.MaximumItemBytes)
+            throw new ArgumentException("DynamoDB staged record/history known native bytes exceed400KiB.");
         var request=new PutItemRequest{TableName=table,Item=item,ReturnValues=ReturnValue.ALL_OLD,
             ExpressionAttributeNames=new(){{"#id","id"},{"#data","data_json"}}};
         if(previous==null){request.ConditionExpression="attribute_not_exists(#id)";request.ExpressionAttributeNames.Remove("#data");}

@@ -15,6 +15,88 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.IntegrationTests;
 [TestClass][DoNotParallelize]
 public partial class DynamoHistoryNativeTests
 {
+    [TestMethod][TestCategory("Reconciliation")]
+    public async Task ReconcileKnownSizeAdmissionFixturesCleanup()
+    {
+        Assert.AreEqual("http://127.0.0.1:18000",Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL"));
+        var work=Environment.GetEnvironmentVariable("OASIS_DYNAMO_HISTORY_WORK")!;
+        static string Hash(byte[] value)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(value));
+        var report=await File.ReadAllBytesAsync(Path.Combine(work,"dynamo-size-admission-original-inspection.trx"));
+        Assert.AreEqual("19A4CA4A2AAC545340D3B500DBA52DFCA8D5029A9C62A8C00576915456F1AC8D",Hash(report));
+        var xml=new System.Xml.XmlDocument();xml.Load(new MemoryStream(report));
+        var lines=xml.SelectSingleNode("//*[local-name()='StdOut']")!.InnerText.Split('\n',StringSplitOptions.RemoveEmptyEntries);
+        Assert.AreEqual(9,lines.Length);Assert.AreEqual(9,Directory.GetFiles(work,"*.pending.json").Length);
+        using var client=Client();var observed=new List<(string Name,string Id,string Table,string? Json)>();
+        foreach(var line in lines){
+            using var evidence=JsonDocument.Parse(line);var root=evidence.RootElement;
+            var name=root.GetProperty("name").GetString()!;var id=root.GetProperty("id").GetString()!;var table=root.GetProperty("table").GetString()!;
+            var journal=Path.Combine(work,name+".pending.json");
+            Assert.IsFalse(File.Exists(Path.Combine(work,name+".resolved.json")));
+            Assert.AreEqual(root.GetProperty("journalSha256").GetString(),Hash(await File.ReadAllBytesAsync(journal)));
+            var response=await client.GetItemAsync(new GetItemRequest{TableName=table,Key=new(){{"id",new(){S=id}}},ConsistentRead=true});
+            Assert.AreEqual(HttpStatusCode.OK,response.HttpStatusCode);
+            string? json=null;
+            if(root.GetProperty("version").GetInt32()==0)Assert.AreEqual(0,response.Item.Count);
+            else{
+                json=response.Item["data_json"].S;
+                Assert.AreEqual(root.GetProperty("recordSha256").GetString(),Hash(System.Text.Encoding.UTF8.GetBytes(json)));
+                Assert.AreEqual(root.GetProperty("recordBytes").GetInt32(),System.Text.Encoding.UTF8.GetByteCount(json));
+            }
+            observed.Add((name,id,table,json));
+        }
+        // Verify every original before the first deletion; delete only exact observed JSON.
+        foreach(var (name,id,table,json) in observed){
+            if(json!=null)await RemoveOwned(client,table,Guid.Parse(id),json);
+            var absent=await client.GetItemAsync(new GetItemRequest{TableName=table,Key=new(){{"id",new(){S=id}}},ConsistentRead=true});
+            Assert.AreEqual(HttpStatusCode.OK,absent.HttpStatusCode);Assert.AreEqual(0,absent.Item.Count);
+            File.Move(Path.Combine(work,name+".pending.json"),Path.Combine(work,name+".resolved.json"));
+        }
+    }
+    [TestMethod][TestCategory("Reconciliation")]
+    public async Task ReconcileKnownSizeAdmissionFixturesReadOnly()
+    {
+        Assert.AreEqual("http://127.0.0.1:18000",Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL"));
+        var work=Environment.GetEnvironmentVariable("OASIS_DYNAMO_HISTORY_WORK")!;
+        var originals=new[]{
+            ("fault-history-capacity","f5511526-6bdb-41df-b0b6-8d62a6612926","OasisHolons",1),
+            ("oversized-put-False","f4175a0b-f062-4618-b11e-10bbb6420628","OasisHolons",0),
+            ("oversized-put-True","f5d00a58-d417-4b6a-99eb-6c5f8e5379a6","OasisHolons",0),
+            ("public-capacity-0","9bc92c63-1a21-44ef-818d-8979914430f5","OasisAvatars",2),
+            ("public-capacity-1","d8502004-7c17-4493-87ce-7405521dbd6e","OasisAvatarDetails",2),
+            ("public-capacity-2","1d893484-aaa4-493f-bcb9-8c291e3e25b5","OasisHolons",2),
+            ("public-capacity-3","e7948d33-bfd0-414d-8d13-136bdbca86ad","OasisAvatars",2),
+            ("public-capacity-4","74d419d1-5247-4316-9a68-ec9b5727f912","OasisAvatarDetails",2),
+            ("public-capacity-5","b19e4ae5-8768-4a63-953a-051ccd94733a","OasisHolons",2)};
+        Assert.AreEqual(originals.Length,Directory.GetFiles(work,"*.pending.json").Length);
+        using var client=Client();
+        foreach(var (name,id,table,version) in originals){
+            var bytes=await File.ReadAllBytesAsync(Path.Combine(work,name+".pending.json"));
+            using var intent=JsonDocument.Parse(bytes);
+            Assert.AreEqual(id,intent.RootElement.GetProperty("id").GetGuid().ToString());
+            Assert.AreEqual(table,intent.RootElement.GetProperty("table").GetString());
+            var response=await client.GetItemAsync(new GetItemRequest{TableName=table,Key=new(){{"id",new(){S=id}}},ConsistentRead=true});
+            Assert.AreEqual(HttpStatusCode.OK,response.HttpStatusCode);
+            var json=version==0?null:response.Item["data_json"].S;
+            if(version==0)Assert.AreEqual(0,response.Item.Count);
+            else{
+                Assert.AreEqual(id,response.Item["id"].S);
+                var record=JObject.Parse(json!);Assert.AreEqual(id,record["Id"]!.Value<string>());
+                Assert.AreEqual(version,record["Version"]!.Value<int>());
+                Assert.IsNull(record["MetaData"]?["padding"]);
+                Assert.AreEqual(version==1?"first":"second",record["MetaData"]!["owned_history_fixture"]!.Value<string>());
+                if(version==2){
+                    var expected="capacity-"+Guid.Parse(id).ToString("N");
+                    Assert.AreEqual(expected,record[table=="OasisHolons"?"Name":"Username"]!.Value<string>());
+                    var history=(JArray)record[EmbeddedRecordHistory.PropertyName]!["records"]!;
+                    Assert.AreEqual(1,history.Count);Assert.AreEqual(1,history[0]!["Version"]!.Value<int>());
+                    Assert.AreEqual("first",history[0]!["MetaData"]!["owned_history_fixture"]!.Value<string>());
+                }else Assert.AreEqual("owned-fault-fixture",record["Name"]!.Value<string>());
+            }
+            static string Hash(byte[] value)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(value));
+            Console.WriteLine(JsonSerializer.Serialize(new{name,id,table,version,journalSha256=Hash(bytes),recordBytes=json==null?0:System.Text.Encoding.UTF8.GetByteCount(json),recordSha256=json==null?null:Hash(System.Text.Encoding.UTF8.GetBytes(json))}));
+        }
+        // Deliberately no activation, save, deletion, journal modification or replay.
+    }
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task NativeOversizedPutIsRejectedWithoutPublicationOrUnknownOutcome(bool aws)
     {
@@ -28,9 +110,9 @@ public partial class DynamoHistoryNativeTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);var key=new Dictionary<string,AttributeValue>{{"id",new(){S=row.Id.ToString()}}};
             Assert.AreEqual(0,(await verifier.GetItemAsync(new GetItemRequest{TableName="OasisHolons",Key=key,ConsistentRead=true})).Item.Count);
             using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id=row.Id,table="OasisHolons",aws,state="before-oversized-sdk-put"}));file.Flush(true);}
-            var rejected=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.IsSaved);Assert.IsNull(rejected.Result);Assert.AreEqual(1,client.Writes);
-            Assert.IsInstanceOfType<AmazonDynamoDBException>(rejected.Exception);var cause=(AmazonDynamoDBException)rejected.Exception;
-            Assert.AreEqual(HttpStatusCode.BadRequest,cause.StatusCode);Assert.AreEqual("ValidationException",cause.ErrorCode);Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(cause));
+            var rejected=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.IsSaved);Assert.IsNull(rejected.Result);Assert.AreEqual(0,client.Writes);
+            Assert.IsInstanceOfType<ArgumentException>(rejected.Exception);
+            Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(rejected.Exception));
             Assert.AreEqual(9,row.Version);Assert.AreEqual(versionId,row.VersionId);Assert.AreEqual(0,row.ProviderUniqueStorageKey.Count);
             Assert.AreEqual(0,(await verifier.GetItemAsync(new GetItemRequest{TableName="OasisHolons",Key=key,ConsistentRead=true})).Item.Count);File.Delete(journal);
         }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
@@ -307,7 +389,7 @@ public partial class DynamoHistoryNativeTests
             if(row is IAvatar avatar)Check(await provider.SaveAvatarAsync(avatar));
             else if(row is IAvatarDetail detail)Check(await provider.SaveAvatarDetailAsync(detail));
             else Check(await provider.SaveHolonAsync((IHolon)row,saveChildren:false));
-            Assert.AreEqual(1,client.Writes);Assert.AreEqual(2,row.Version);Assert.AreEqual(versionId,row.VersionId);
+            Assert.AreEqual(0,client.Writes);Assert.AreEqual(2,row.Version);Assert.AreEqual(versionId,row.VersionId);
             Assert.AreEqual(keys,JsonSerializer.Serialize(row.ProviderUniqueStorageKey));
             var after=(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item["data_json"].S;
             Assert.AreEqual(before,after,"Rejected oversized public save must not trim or overwrite committed data/history.");
@@ -315,10 +397,8 @@ public partial class DynamoHistoryNativeTests
         }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
         static void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){
             Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
-            Assert.IsInstanceOfType<AmazonDynamoDBException>(result.Exception);
-            var native=(AmazonDynamoDBException)result.Exception;
-            Assert.AreEqual("ValidationException",native.ErrorCode);Assert.AreEqual(HttpStatusCode.BadRequest,native.StatusCode);
-            Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(native));
+            Assert.IsInstanceOfType<ArgumentException>(result.Exception);
+            Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
         }
     }
 
@@ -399,11 +479,10 @@ public partial class DynamoHistoryNativeTests
                 client.Mode="missing-ack";var error=await Assert.ThrowsExceptionAsync<DynamoDBMutationReconciliationException>(()=>Write(provider,row,table));Assert.IsInstanceOfType(error.InnerException,typeof(InvalidDataException));
             }else{
                 row.MetaData["padding"]=new string('x',410*1024);
-                var error=await Assert.ThrowsExceptionAsync<AmazonDynamoDBException>(()=>Write(provider,row,table));
-                Assert.AreEqual("ValidationException",error.ErrorCode);Assert.AreEqual(HttpStatusCode.BadRequest,error.StatusCode);
+                var error=await Assert.ThrowsExceptionAsync<ArgumentException>(()=>Write(provider,row,table));
                 Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(error));
             }
-            Assert.AreEqual(1,client.Writes);Assert.AreEqual(0,row.Version);
+            Assert.AreEqual(mode=="capacity"?0:1,client.Writes);Assert.AreEqual(0,row.Version);
             var actual=(await verifier.GetItemAsync(new GetItemRequest{TableName=table,Key=key,ConsistentRead=true})).Item;
             var document=JObject.Parse(actual["data_json"].S);Assert.AreEqual(mode=="capacity"?1:2,document["Version"]!.Value<int>());
             if(mode=="capacity")Assert.AreEqual(before,actual["data_json"].S,"Native size rejection must not alter or trim prior committed data/history.");

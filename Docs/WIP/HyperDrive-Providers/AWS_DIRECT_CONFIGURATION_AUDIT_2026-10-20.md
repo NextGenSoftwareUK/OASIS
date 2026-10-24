@@ -1,5 +1,11 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## Ordinary save size admission — verified local, 24 October
+
+Ordinary WriteRecordAsync now reuses the same minimum-known-native-byte guard both before reading existing state and after staging history, before PUT. Two controlled regressions genuinely failed before correction; full533units now PASS0skip. Real SDK/retained DynamoDB Local187regression PASS0skip44s, with nine public/native controls updated to require ArgumentException/zero PUTs instead of a dispatched SDK size error. Caller versions/storage keys and committed JSON/archive unchanged; archive-growth guard has controlled coverage. Numeric lower-bound caveat below still applies: not exact capacity/billing estimation or a promise every invalid request avoids service I/O.
+
+First native run178/187 failed at those obsolete dispatch expectations; original report preserved, not overwritten. Separate read-only original reconciliation verified two absent/seven expected records; subsequent exact-hash/conditional cleanup removed only seven synthetic rows and retained nine unchanged resolved journals. Fresh187native and matched533unit cohort verified against Core740/ABD06B39 and Shared55/1A9956E5; runtime exited, reserved ports absent/pending0. Exact reports/hashes/resource ledger: ENVIRONMENT_INVENTORY.md. No download/install/restore/new environment/cloud call. Hosted AWS/S3/IAM/fees/durability and full V2 remain OPEN.
+
 ## Native size admission — 24 October 2026
 
 Fixed a real near-limit rejection: preparation claim/recovery invented1024+256bytes/record, and conditional graph guards charged38bytes for every number. Four controlled ASCII/Unicode sync/async preparations first failed before SDK dispatch. One Dynamo/AWS inherited sizing owner now counts documented UTF8/binary/BOOL/list/map/set bytes without invented padding. Numeric payload is deliberately omitted from the **lower bound**, because [AWS documents compressed number size only approximately](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/CapacityUnitCalculations.html); SDK/service remains final boundary authority. This is not a billing/capacity estimator and cannot guarantee every invalid paid request is avoided.
