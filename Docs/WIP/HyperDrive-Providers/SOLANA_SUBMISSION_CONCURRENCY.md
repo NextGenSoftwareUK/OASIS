@@ -1,5 +1,11 @@
 # Solana SDK submission concurrency — staged verification
 
+## Current checkpoint — 23 October 2026
+
+The single-memo size defect described below is historical and FIXED in published3e8fb3cdd. Source has bounded chunk/commit framing; retained native reports rechecked: avatar/detail2/2, storage/token3/3 and read-only fee1/1 pass in their separate older cohorts. This is NOT a fresh current-source combined/full-interface recertification. Later sections record controlled royalty/interface/fee work; no native NFT success is established.
+
+Two read-only public RPC calls on23October verified the original official devnet genesis and finalized balance **0lamports at slot514460843** for retained public fixture Fi4AJCtDCehEVc7CiQVcHC9t57BmKk3B6gtMjWqA4Ffr. The prior faucet request remains uncertain: HTTP200/RPC-32603/no signature, original778B `devnet-funding.pending.json` SHA25697658F3D6039336E1836266656816F5B652B075948C3FB1DD19E10EAE3307A9C unchanged. Zero current balance does not prove the original request never executed. No faucet retry, signing, broadcast, native fixture mutation, local-ledger reset/start or new environment occurred. Free test-SOL funding is an owner action, never real-money SOL/private keys in chat. Native NFT mint/transfer/burn, aggregate multi-frame fee/sponsorship admission, complete interfaces and fullV2 remain OPEN. See ACTIONS-FOR-DAVID.md and ENVIRONMENT_INVENTORY.md.
+
 ## Real avatar-detail failure: transaction-size boundary — original preserved
 
 Actual82151 terminal1: AvatarOnly2 schedules failed in13s. The FIRST profile save was finalized/acknowledged (SavedCount1 passed), then the real avatar-detail payload was rejected by native JSON-RPC: error-32602, `base64 encoded ... VersionedTransaction too large: 3824 bytes (max: encoded/raw 1644/1232)`. Repository correctly surfaced its exact attempted transaction identity `4egC1Amf1VzrweSSomj2EJp24R3CVdHurf9oGEaoSjXZDKdW7d8RDhBe97zaHU7vDtRgX3EoipaHN49nkRJV1V6N` as reconciliation-required, not successful storage. Second schedule was blocked by TestInitialize before any new write because the first intent remained. No avatar/detail payload was reduced or fields omitted to manufacture success.
