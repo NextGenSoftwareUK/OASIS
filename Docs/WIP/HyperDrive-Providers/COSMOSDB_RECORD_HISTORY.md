@@ -1,5 +1,13 @@
 # Cosmos DB retained record history
 
+## Fresh paired native/unit regression — 24 October
+
+Current producers/consumers passed **66/66 real SDK/retained emulator integration tests (91seconds)** and matched **422/422 unit tests (2seconds)**, zero skips. Existing AllVersionExports runner scope runs the complete non-reconciliation66suite; this is not a new selectively reduced native set. Old106778byte report SHA53BBAFE7... preserved in-place .pre-current-interface-refresh and independently rechecked. New nativeB4A9AED3.../unit27DBFB97... exact evidence in inventory. README now correctly distinguishes supported export-1from invalid values below-1; no production persistence change in this batch.
+
+Fixture journals0, emulator EXITED and Windows1234/8080/8081/8082listenersabsent after completion. Same image/data/runtime, no download/restore/reset/new environment. Current-source/PDB Cosmos33/unit32/native21/Core742/Shared56 and provider/consumer copies verified. Existing hard-delete routing test intentionally retains one empty reusable SQLite schema file696320bytes (native finally validates all user tables empty, no sidecars observed); its exact path/hash/cleanup instructions are recorded rather than pretending it vanished.
+
+Retained emulator SizeRw grew from729920903to740825813bytes over the measured run window. Logical fixture cleanup does not imply physical storage compaction; data/index/log layer remains the reusable environment, no reset/purge attempted to make disk numbers look better. This is local real-service acceptance, NOT hosted Azure IAM/TLS/RU pricing/cloud durability/public endpoint or full V2 certification. Earlier Unicode controls still do not claim malformed UTF16 was submitted to the native service.
+
 ## Unicode admission regression — 24 October,422unit GREEN; native not rerun
 
 Added27common-client boundary cases across holon/avatar/avatar-detail, canonical Description and metadata key/value. Existing codec rejects18unpaired high/low surrogate inputs BEFORE native mutation, without uncertainty markers or caller ID/text changes;9valid emoji controls dispatch once and round-trip exactly. Initial9Holon-only Name cases already passed. Expanding Name to avatar kinds exposed a TEST assumption: their Name is derived, not writable canonical text. Corrected to persisted Description, asserting input is actually present before invoking the client; original18fixture failures retained, not reported as production corruption or hidden by weaker expectations.
