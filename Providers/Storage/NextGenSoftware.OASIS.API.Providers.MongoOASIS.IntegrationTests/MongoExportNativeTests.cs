@@ -9,6 +9,7 @@ using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.Common;
 using Xunit;
@@ -19,6 +20,73 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public sealed class MongoExportNativeTests(ITestOutputHelper output)
 {
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task ClanTransferPreservesHistoryOrRejectsDeletedTarget(bool deletedTarget)
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        const string name="cosmic_cql_fixture";var client=new MongoClient(uri);
+        using var names=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await names.ToListAsync());
+        var database=client.GetDatabase(name);await database.CreateCollectionAsync("CosmicOwnedFixture");
+        var provider=new Provider(uri,name);var complete=false;
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            var sourceId=Guid.NewGuid();var itemId=Guid.NewGuid();var destinationId=Guid.NewGuid();
+            var details=database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail");
+            await details.InsertOneAsync(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail{Id=ObjectId.GenerateNewId().ToString(),HolonId=sourceId,Version=1,VersionId=Guid.NewGuid(),
+                Inventory=new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>{new(){Id=itemId,Name="Clan seed",GameSource="Our World",Quantity=3,ItemType=InventoryItemType.QuestItem}}});
+            var clan=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=sourceId,HolonType=HolonType.Clan,Name="original clan",Version=1,VersionId=Guid.NewGuid(),MetaData=new(){
+                [ClanManager.ClanStateMetadataKey]=Newtonsoft.Json.JsonConvert.SerializeObject(new ClanManager.ClanPersistentState{OwnerAvatarId=sourceId,MemberIds=new(){sourceId},Inventory=new()})}};
+            var first=await provider.SaveHolonAsync(clan,saveChildren:false);Assert.False(first.IsError,first.Message+first.Exception);
+            var current=first.Result;current.PreviousVersionId=current.VersionId;current.Version=2;current.VersionId=Guid.NewGuid();current.Name="current clan";
+            if(deletedTarget)current.DeletedDate=DateTime.UtcNow;
+            var second=await provider.SaveHolonAsync(current,saveChildren:false);Assert.False(second.IsError,second.Message+second.Exception);
+            var rawClans=database.GetCollection<BsonDocument>("Holon");
+            var marker=await rawClans.UpdateOneAsync(FilterDefinition<BsonDocument>.Empty,Builders<BsonDocument>.Update.Set("UnknownClanField","retained"));Assert.Equal(1,marker.MatchedCount);
+            var rawDetails=database.GetCollection<BsonDocument>("AvatarDetail");
+            async Task<byte[]> ClanBytes()=>Assert.Single(await rawClans.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).ToBson();
+            async Task<byte[]> SourceBytes()=>Assert.Single(await rawDetails.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).ToBson();
+            var beforeClan=await ClanBytes();var beforeSource=await SourceBytes();
+            var payload=new HyperDriveAvatarGameplayCommand{Action=HyperDriveAvatarGameplayAction.TransferInventoryToClan,InventoryItemId=itemId,TargetClanId=clan.Id,DestinationInventoryItemId=destinationId,Amount=2};
+            var command=new HostedSyncCommandItem{OperationId=Guid.NewGuid(),AvatarId=sourceId,EntityId=sourceId,EntityType=HyperDriveEntityTypes.AvatarGameplay,PayloadJson=HyperDriveJson.Serialize(payload)};
+            var applied=await provider.ApplyAvatarGameplayCommandAsync(command,default);
+            if(deletedTarget)
+            {
+                Assert.True(applied.IsError);Assert.Equal(beforeClan,await ClanBytes());Assert.Equal(beforeSource,await SourceBytes());
+            }
+            else
+            {
+                Assert.False(applied.IsError,applied.Message+applied.Exception);
+                var savedSource=await details.Find(FilterDefinition<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>.Empty).SingleAsync();
+                Assert.Equal(1,Assert.Single(savedSource.Inventory).Quantity);
+                var stored=Assert.Single(await rawClans.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync());
+                Assert.Equal(3,stored["Version"].AsInt32);Assert.Equal("retained",stored["UnknownClanField"].AsString);
+                var all=await provider.ExportAllAsync(-1);Assert.False(all.IsError,all.Message+all.Exception);
+                Assert.Equal(new[]{1,2,3},all.Result.OrderBy(row=>row.Version).Select(row=>row.Version));
+                var latest=all.Result.Single(row=>row.Version==3);
+                var state=Newtonsoft.Json.JsonConvert.DeserializeObject<ClanManager.ClanPersistentState>(latest.MetaData[ClanManager.ClanStateMetadataKey].ToString());
+                Assert.Equal(2,Assert.Single(state.Inventory).Quantity);
+                var afterClan=await ClanBytes();var afterSource=await SourceBytes();
+                var replay=await provider.ApplyAvatarGameplayCommandAsync(command,default);Assert.False(replay.IsError,replay.Message+replay.Exception);
+                Assert.Equal(afterClan,await ClanBytes());Assert.Equal(afterSource,await SourceBytes());
+                payload.Amount=1;command.PayloadJson=HyperDriveJson.Serialize(payload);
+                var mismatch=await provider.ApplyAvatarGameplayCommandAsync(command,default);Assert.True(mismatch.IsError);
+                Assert.Equal(afterClan,await ClanBytes());Assert.Equal(afterSource,await SourceBytes());
+            }
+            complete=true;
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+            if(complete)await client.DropDatabaseAsync(name);
+            else output.WriteLine("Preserved owned cosmic_cql_fixture clan-transfer history evidence for reviewed reconciliation.");
+        }
+    }
+
     [Fact]
     [Trait("Category","OwnedFixtureReconciliation")]
     public async Task ReconcileReviewedHistoricalCollectionFixture()
