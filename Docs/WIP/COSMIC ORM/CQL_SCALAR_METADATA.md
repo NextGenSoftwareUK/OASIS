@@ -16,6 +16,7 @@ The production profile and translator share `SqliteCqlContract.MetadataTypes`. U
 | `byte/sbyte/short/ushort/uint` and nullable forms | JSON integer within the exact declared CLR range | All six comparisons | Exact scalar arrays | None |
 | `HolonType`, `ProviderType` and nullable forms | JSON integer defined by that declared enum | All six comparisons | Exact enum arrays | None |
 | `long`, `long?` | JSON integer represented exactly by SQLite Int64 | All six comparisons | Exact scalar arrays | None |
+| `ulong`, `ulong?` | Unsigned JSON integer token within UInt64 bounds; native20-digit key avoids REAL rounding | All six comparisons | Exact arrays, including nullable null | None |
 | `Guid`, `Guid?` | Canonical 36-byte GUID D text, either hex case | `==`, `!=` | Exact GUID arrays, including nullable null | None |
 | `DateTime`, `DateTime?` | Valid UTC ISO JSON text, zero to seven fractional digits | All six comparisons | Exact date arrays, including nullable null | None |
 
@@ -85,3 +86,8 @@ One native operand owner validates the exact text shape and normalizes its value
 The original admission gate fails both cases (`TestResults/CoreCurrent/neo-cql-guid-red.trx`). Fixed final controls pass 307/307, zero skips (`neo-cql-guid-final-controls.trx`). Expanded native regression passes 64/64 in 23 seconds, zero skips; stable feature report `TestResults/Neo4jCurrent/cql-guid-native.trx` is retained independently of the reusable current report. Native assertions cover reversed equality, nullable inequality/null/membership/NOT, canonical/metadata and metadata/metadata comparisons, Guid.Empty, malformed representations, ordinal string controls and both ordering directions with invalid buckets. Existing enum and narrow-integer assertions also run in this cohort.
 
 `TestResults/Neo4jCurrent/cql-guid-final-artifacts.json` binds source/report hashes and 20 matching declared Core/Shared/Neo/SQLite/Mongo producer/consumer copies. Core SHA256 remains `97A343EF51A6A4BF8942250BB2995F5A4E37CD51E0129EEA07F5729B379CAD11`; Neo is `1B47CC8307C5EA8E7FE88170001A6E1382F9343669688BAAE502DA1270406B5D`. Copy equality is not renewed native certification of other adapters. Successful owned fixture manifest is absent, container stopped, Bolt listener absent. No download/install/restore/new environment belongs to this increment. Date metadata, broader scalar domains, native stress and the wider roadmap remain open.
+
+
+UInt64 enrollment now passes22 native controls in the full1,435-case SQLite suite.
+Original JSON tokens preserve the complete unsigned range, including adjacent
+values at UInt64.MaxValue. [Domain, restrictions and evidence](CQL_UINT64_CONTRACT.md).

@@ -133,6 +133,8 @@ public partial class HolonRepository
         if (type == typeof(DateTime) && value is string date && DateTime.TryParseExact(date,
             new[] { "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF'Z'" }, CultureInfo.InvariantCulture,
             DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var instant)) return instant;
+        if (type == typeof(ulong) && value is string unsigned
+            && ulong.TryParse(unsigned, NumberStyles.None, CultureInfo.InvariantCulture, out var unsignedValue)) return unsignedValue;
         if (value is long integer)
         {
             if (type == typeof(bool) && integer is 0 or 1) return integer == 1;

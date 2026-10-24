@@ -1025,3 +1025,43 @@ Neo4j is stopped. Free C:69,475,381,248 bytes after teardown. Broader scalar typ
 joins/composition/federation, authoritative sharing/tenant policy, strict blocked
 I/O interruption and final coherent certification remain open. Full CQL/ORM
 completion is not claimed; the active goal continues.
+
+2026-10-24 UInt64 CQL slice: reuse .NET SDK10.0.401/runtime10.0.12 and C:/Users/david/.nuget/packages; Core both TFM outputs and fixed TestResults/CosmicCurrent logs/TRX; SQLite producer/test outputs and fixed TestResults/SQLiteCurrent/integration-current.db/sidecars with existing fixture exclusive lease/teardown. Owner COSMIC ORM UInt64 task; output sizes unmeasured; no downloads/restores/new environment. Build batch uses global provider lease, /m:2 /nr:false shared compilation disabled. Keep compact evidence and reusable outputs; fixture removes exact owned database/sidecars after provider disposal; preserve failed/unknown fixture ownership.
+
+UInt64 verification: actual51804 terminal0 with4Core/11SQLite native pass. First full-gate lease attempt stopped busy before any build. Actual42392 terminal1 with test-only compile mistakes (explicit adapter access/Create return); preserved uint64-test-build-red.log. Corrected test consumer rebuild under actual72203; full Core2428 passes. Native broad run currently live; four intentional peer search failures plus four UInt64 test path-array grammar errors identified; preserve final TRX before corrective test-only rebuild. No production fallback or path grammar widening. All resources still fixed/reused; no restores or downloads.
+
+Actual72203 terminal1: fullCore2428 passed; broadSQLite1435 total/1427passed/8failed/0skip. Four peer unfinished search baselines and four new UInt64 tests used captured path arrays forbidden by explicit-segment grammar. Failure reports preserved uint64-full-red-current.trx and uint64-full-red.log. Exact owned SQLite database absent after fixture teardown. Source/build freeze released for peer search repair; own tests now use explicit one/two-segment expressions. No production query grammar widening or numeric conversion workaround.
+
+
+## Exact UInt64 Core/SQLite acceptance — 24 October 2026
+
+Core9d5efa9 adds UInt64/nullable capture and grouped keys, with exact Decimal
+literal packets and lossless conversion bounds. SQLite reads original JSON
+integer tokens rather than rounded REAL values and uses20-digit ordinal keys.
+No storage migration or reindex is required. Row predicates/membership/field
+comparison/order, detached projections, Min/Max and grouped keys/result filters
+share the existing generic planners, read owner and detached proof validation.
+Mixed fractional/out-of-range literals reject explicitly; Sum/Average retain their
+Int32/Int64 enrollment. Other providers/HTTP do not inherit UInt64 permission.
+
+Actual52891 terminated0: **all1,435 SQLite integration tests pass, zero skips**,
+including22 new UInt64 cases and four independently repaired legacy-search cases.
+The separate full Core cohort passes**2,428 cases**, with four new capture controls.
+Initial11 native cases passed; eight broader red cases were four test-expression
+mistakes and four peer search baselines, all resolved before the final unfiltered
+run. This is not a rerun of MongoDB/Neo4j suites or the63/63 HTTP demo.
+
+Core/SQL/test source hashes stayed unchanged during the final gate. Producer/native
+copies match Core35AE105E, Shared50CABB2E and SQLite014AAE08; the full Core unit
+consumer matches the same Core producer. Exact identities/source hashes:
+TestResults/SQLiteCurrent/uint64-artifacts.json and uint64-final-source-hashes.json.
+Reports: TestResults/CosmicCurrent/uint64-full-current.trx and
+TestResults/SQLiteCurrent/uint64-final-current.trx. Log:
+TestResults/CosmicCqlDemo/uint64-final.log. The exact owned SQLite DB/WAL/SHM are
+absent after teardown; no downloads/restores/new environments were needed.
+
+Next: MongoDB and Neo4j UInt64 persistence/query domains, transport/examples,
+then remaining Decimal/double coverage and the broader unchanged roadmap.
+See [the UInt64 contract](CQL_UINT64_CONTRACT.md). The full goal remains active.
+
+UInt64 final resource reconciliation: free C:68,824,170,496 bytes after actual52891 terminal0. Exact fixture database/WAL/SHM absent. Retain fixed Core/Shared/SQLite and test bin/obj outputs as reusable build products (sizes unmeasured; no active owned build/test process after terminal); compact baseline/final logs, TRX and identity/source-hash evidence retained at paths above. No installations, downloads, restores, containers, services or new environments introduced by this slice. Core source commit9d5efa9 pushed; parent gitlink and deployment manifest updated together for scoped task publication.
