@@ -19,18 +19,27 @@ internal static class DynamoCapacityUsage
     {
         ArgumentNullException.ThrowIfNull(requestedTables);
         if(requestedTables.Count==0)throw new ArgumentException("Original transaction tables are required.",nameof(requestedTables));
-        var tables=new HashSet<string>(StringComparer.Ordinal);
-        foreach(var table in requestedTables){ArgumentException.ThrowIfNullOrWhiteSpace(table);tables.Add(table);}
-        var returned=new Dictionary<string,ConsumedCapacity>(StringComparer.Ordinal);
-        if(capacities!=null)foreach(var capacity in capacities){
-            if(capacity==null||string.IsNullOrWhiteSpace(capacity.TableName)||!tables.Contains(capacity.TableName)
-                ||!returned.TryAdd(capacity.TableName,capacity))
-                throw new InvalidDataException("Transaction capacity must identify each original table at most once.");
+        var tables=new Dictionary<string,int>(StringComparer.Ordinal);
+        foreach(var table in requestedTables){ArgumentException.ThrowIfNullOrWhiteSpace(table);tables.TryGetValue(table,out var count);tables[table]=count+1;}
+        var returned=new Dictionary<string,List<(int Index,ConsumedCapacity Capacity)>>(StringComparer.Ordinal);
+        if(capacities!=null)for(var index=0;index<capacities.Count;index++){
+            var capacity=capacities[index];
+            if(capacity==null||string.IsNullOrWhiteSpace(capacity.TableName)||!tables.TryGetValue(capacity.TableName,out var actions))
+                throw new InvalidDataException("Transaction capacity must identify original requested tables.");
+            if(!returned.TryGetValue(capacity.TableName,out var entries))returned[capacity.TableName]=entries=new();
+            if(entries.Count>=actions)throw new InvalidDataException("Transaction capacity exceeds the original table's action count.");
+            entries.Add((index,capacity));
         }
         var rows=new List<NativeResourceUsageObservation>();
-        foreach(var table in tables){
-            returned.TryGetValue(table,out var capacity);
-            rows.AddRange(Capture(provider,logicalRequestId,nativeRequestId,region,table,capacity,observedAtUtc));
+        foreach(var table in tables.Keys){
+            if(!returned.TryGetValue(table,out var entries)){
+                rows.AddRange(Capture(provider,logicalRequestId,nativeRequestId,region,table,null,observedAtUtc));continue;
+            }
+            foreach(var entry in entries)foreach(var row in Capture(provider,logicalRequestId,nativeRequestId,region,table,entry.Capacity,observedAtUtc)){
+                // Preserve response entry identity; do not guess an action mapping or sum alternative views.
+                var observation=entries.Count==1?row:row with{ResourceScope=row.ResourceScope+"/capacity-entry/"+entry.Index.ToString(CultureInfo.InvariantCulture)};
+                observation.Validate(provider,logicalRequestId);rows.Add(observation);
+            }
         }
         return rows.AsReadOnly();
     }

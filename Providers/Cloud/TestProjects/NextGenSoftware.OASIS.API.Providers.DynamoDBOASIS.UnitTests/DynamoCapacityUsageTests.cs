@@ -49,6 +49,21 @@ public class DynamoCapacityUsageTests
         try{return (IReadOnlyList<NativeResourceUsageObservation>)method.Invoke(null,new object?[]{"AWSOASIS","logical-original",request,"eu-west-1","OasisHolons",capacity,new DateTime(2026,10,24,0,0,0,DateTimeKind.Utc)})!;}
         catch(TargetInvocationException cause) when(cause.InnerException!=null){ExceptionDispatchInfo.Capture(cause.InnerException).Throw();throw;}
     }
+    [TestMethod]
+    public void RepeatedNativeTransactionEntriesRemainDistinctWithoutInventedAggregation()
+    {
+        var rows=Transaction(new[]{"A","A"},new[]{new ConsumedCapacity{TableName="A",WriteCapacityUnits=0.5},new ConsumedCapacity{TableName="A",WriteCapacityUnits=1.5}});
+        Assert.AreEqual(2,rows.Count);CollectionAssert.AreEquivalent(new decimal?[]{0.5m,1.5m},rows.Select(row=>row.Quantity).ToArray());
+        Assert.AreEqual(2,rows.Select(row=>row.ResourceScope).Distinct().Count());
+        Assert.IsTrue(rows.Any(row=>row.ResourceScope.EndsWith("/capacity-entry/0",StringComparison.Ordinal)));
+        Assert.IsTrue(rows.Any(row=>row.ResourceScope.EndsWith("/capacity-entry/1",StringComparison.Ordinal)));
+        UsageReceiptAccounting.ValidateResourceEvidence(new UsageProviderReceipt{Provider="AWSOASIS",ProviderRequestId="logical-original",NativeResourceUsage=rows.ToList()});
+    }
+
+    [TestMethod]
+    public void NativeTransactionCannotReturnMoreEntriesThanOriginalTableActions()
+        =>Assert.ThrowsException<InvalidDataException>(()=>Transaction(new[]{"A","A"},new[]{
+            new ConsumedCapacity{TableName="A",WriteCapacityUnits=1},new ConsumedCapacity{TableName="A",WriteCapacityUnits=1},new ConsumedCapacity{TableName="A",WriteCapacityUnits=1}}));
     private sealed class Service(string? capacity,bool transaction=false):HttpMessageHandler
     {
         internal int Calls;
