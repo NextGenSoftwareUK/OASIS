@@ -19,7 +19,13 @@ internal static class MongoNativeHolonHistory
 {
     internal const string Field="OasisHolonRevisionArchive";
 
-    private static IHolon Current(BsonDocument document)=>Helpers.DataHelper.ConvertMongoEntityToOASISHolon(BsonSerializer.Deserialize<NativeHolon>(document),true);
+    private static IHolon Current(BsonDocument document)
+    {
+        var current=Helpers.DataHelper.ConvertMongoEntityToOASISHolon(BsonSerializer.Deserialize<NativeHolon>(document),true);
+        if(current==null || current.Id==Guid.Empty || current.Version<0)
+            throw new InvalidDataException("Mongo current holon identity/version is invalid.");
+        return current;
+    }
 
     internal static IReadOnlyList<IHolon> Read(BsonDocument document,bool requireUniqueLogicalVersions=true)
     {
@@ -39,7 +45,7 @@ internal static class MongoNativeHolonHistory
                     || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json.AsString)))!=digest.AsString)
                     throw new InvalidDataException("Mongo archived holon checksum or envelope is invalid.");
                 var record=StoredRecordJson.DeserializeStoredHolon(json.AsString);
-                if(record==null || record.Id!=current.Id || record.Version<0)
+                if(record==null || record.Id!=current.Id || record.Version<0 || record.Version>current.Version)
                     throw new InvalidDataException("Mongo archived holon identity/version differs from its record.");
                 records.Add(record);
             }
@@ -62,8 +68,11 @@ internal static class MongoNativeHolonHistory
     {
         // Validate existing evidence before allowing any replacement to overwrite it.
         var records=Read(observed,requireUniqueLogicalVersions:false);
-        if(Current(replacement).Id!=records[0].Id)
+        var proposed=Current(replacement);
+        if(proposed.Id!=records[0].Id)
             throw new InvalidDataException("Mongo replacement changed the archived public identity.");
+        if(records.Any(record=>record.Version>proposed.Version))
+            throw new InvalidDataException("Mongo replacement would move logical history backwards.");
         replacement[Field]=new BsonDocument{{"schema",1},{"records",new BsonArray(records.Select(record=>{
             var json=StoredRecordJson.Serialize<IHolon>(record);
             return new BsonDocument{{"json",json},{"sha256",Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))}};

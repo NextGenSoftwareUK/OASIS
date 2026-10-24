@@ -35,6 +35,31 @@ public sealed class MongoNativeHolonHistoryTests
     }
 
     [TestMethod]
+    public void ValidChecksumDoesNotAllowArchivedVersionAfterCurrent()
+    {
+        var id=Guid.NewGuid();var current=Document(id,4,"current");
+        MongoNativeHolonHistory.Stage(current,Document(id,3,"archived"));
+        current["Version"]=2;
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>MongoNativeHolonHistory.Read(current));
+    }
+
+    [TestMethod]
+    public void BackwardsStagingFailsWithoutChangingReplacement()
+    {
+        var id=Guid.NewGuid();var current=Document(id,2,"backwards");var before=current.ToJson();
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>MongoNativeHolonHistory.Stage(current,Document(id,3,"observed")));
+        Assert.AreEqual(before,current.ToJson());
+    }
+
+    [DataTestMethod]
+    [DataRow(true)] [DataRow(false)]
+    public void InvalidCurrentIdentityOrVersionIsRejected(bool emptyId)
+    {
+        var current=Document(emptyId?Guid.Empty:Guid.NewGuid(),emptyId?1:-1,"invalid");
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>MongoNativeHolonHistory.Read(current));
+    }
+
+    [TestMethod]
     public void SameLogicalVersionCanBePreservedButCannotBeSilentlySelected()
     {
         var id=Guid.NewGuid();var second=Document(id,1,"replacement");MongoNativeHolonHistory.Stage(second,Document(id,1,"original"));
