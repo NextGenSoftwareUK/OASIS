@@ -1,5 +1,9 @@
 # SOLID private authentication — scoped native verification
 
+## 24 October — renewed approval executed; cold discovery failure reproduced
+
+Same retained container/image/volume/identity, frozen existing integration output, no builds/downloads/writes. One explicit cold diagnostic FAILED at issuer discovery (line18) with HttpIOException ResponseEnded, before credentials were decrypted or an authenticated ACL request was attempted. Thus authentication remains untested in this run; no claim that credentials failed. Report solid-cold-approved.trx SHA256680763AE756D89D44A65A4AD6F90C97B58D4400947CEA62815B463BA1B4A4ED9 retained in TestResults/SolidCurrent. Owned stop required SIGKILL after20seconds, EXITED137, OOMKilledfalse. Full resource identities, frozen DLL hash and lifecycle recorded in ENVIRONMENT_INVENTORY.md. Need resolve runtime readiness and graceful shutdown, then verify one authenticated read; do not mask failure with an arbitrary retry or call it final-source acceptance.
+
 ## 24 October — approval received; diagnostic execution still denied
 
 User explicitly approved the same pinned retained server, bounded issuer readiness measurement and one authenticated read (no download/new identity/ACL or record writes). Read-only inspection confirms original image58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a, exited state, loopback127.0.0.1:13000 and oasis-solid-data:/data, no pending journals. The attempted leased build/start/discovery/read batch was rejected by execution policy BEFORE process creation. No build/start/readiness observation or authenticated read occurred; no alternate shell/API bypass attempted. Earlier cold failure remains unchanged, and approved readiness/authentication gate remains unperformed, not passed. Final checked13000 listener absent. Inventory records the attempted scope/resources; no environment/download created.
