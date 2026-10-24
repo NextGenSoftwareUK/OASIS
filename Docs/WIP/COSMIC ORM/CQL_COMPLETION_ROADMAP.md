@@ -1,8 +1,8 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core 2,392 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo 54 SDK queries/54 HTTP examples with 234 settled operations and 229 attempts. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core 2,392 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo 57 SDK queries/57 HTTP examples with 237 settled operations and 232 attempts. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
-Next implementation: live Average demos and coherent provider regression, then remaining scalar/Neo4j DateTime gates; native/HTTP grouped paging and the51/51 live demo are verified on all three providers. Enrolled key/count/extrema/integer Sum ordering is verified on all three providers and through the live demo. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
+Next implementation: remaining scalar/Neo4j DateTime gates and the expanded provider/policy certification matrix. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes236 cases. Distinct full MongoDB/SQLite regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
@@ -35,7 +35,7 @@ Current verified contracts: [projection/aggregate ownership](CQL_AGGREGATE_IMPLE
 - [x] Verify initial grouping boundaries: SQLite 19 controls/full 1,364; MongoDB 16 selected grouped controls (prior full 147 CQL/260 units); Neo4j 10 selected grouped controls (prior full 137 CQL/345 units). These counts are scoped checkpoints, not a single new full regression cohort.
 - [ ] Complete the expanded all-provider grouped identity/type/access/snapshot/interruption matrix and final coherent regression certification.
 - [x] Multiple aggregates, bounded grouped HTTP, named runtime bindings, spaced C#/HTTP/UI/Swagger examples and live three-provider acceptance. Route registration/admission/tariff classification shares an exact Core leaf registry; failed fixture outcomes were reconciled before rerun.
-- [ ] Implement and certify post-group filters/order/pages while preserving source-window versus grouped-window operation order and complete work/error proofs.
+- [x] Implement and certify post-group filters/order/pages for enrolled domains while preserving source-window versus grouped-window operation order and complete work/error proofs. SDK/native/HTTP Average comparisons and the57/57 live demo now pass on all three providers; broader scalar/policy certification remains below.
 
 ## 3. Joins and composition
 
@@ -387,3 +387,11 @@ Actual session68272 terminated successfully: **172 full native CQL tests and352 
 Core, Shared, MongoDB, SQLite and Neo4j C# source hashes remained unchanged throughout the gate. Actual producer/native/unit copies match Core `ABD06B39...`, Shared `7A2DDFA5...` and Neo4j `C0C15771...`. Exact paths, sizes and hashes are retained in `TestResults/Neo4jCurrent/average-artifacts.json` and `average-source-hashes.json`. Native evidence: `neo4j-cql-native-current.trx`, `average-final-unit-current.trx` and `TestResults/CosmicCqlDemo/neo-average-{native,final-unit-tests}.log`.
 
 SQLite's shared-key migration also passed eight focused Average cases (session12470); its tested consumer hashes are recorded separately in `TestResults/SQLiteCurrent/decimal-key-average-artifacts.json`. That focused gate and the earlier1,409-case SQLite regression are distinct cohorts. Exact Average result filtering/ordering is now native-verified on all three providers. A new live HTTP/SDK Average demo and the broader roadmap remain outstanding. No full CQL/ORM completion is claimed.
+
+## Live grouped Average demo — 24 October 2026
+
+Actual session70730 terminated successfully: **236 Neo4j/WEB4 native regression tests,57 SDK queries and57 HTTP examples passed, zero failures/skips**. The signed three-provider run recorded237 settled operations/232 provider attempts. Example19 compares the exact published Decimal mean with a two-bound range, orders it and takes a result page. Expected stock7/items2/mean`-9007199254740990.5` and Decimal schema tagging pass on MongoDB, SQLite and Neo4j. The browser preset has the same request grammar; script syntax and generated Swagger examples pass. This gate executes the annotated SDK/HTTP code and validates Swagger; it does not claim browser interaction was automated.
+
+Core/Shared/provider/CQL wire/compiler/demo C# hashes remained unchanged during the run. Actual producer/native host DLL pairs match Core`ABD06B39...`, Shared`E78803F0...`, MongoDB`C022AAB5...`, SQLite`BDBC9D35...` and Neo4j`E1E4AE41...`. Exact paths, sizes and hashes: `TestResults/CosmicCqlDemo/group-average-demo-artifacts.json` and `group-average-demo-source-hashes.json`. Fresh result/transcript/log: `v1-demo-result.json`, `v1-walkthrough.txt`, `group-average-demo-native.log`; native report: `TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx`.
+
+Readiness/graph markers are absent; owned27029/17687/5088 listeners are absent and the retained Neo4j image is stopped. The236-case gate is Neo4j/WEB4 plus joint live acceptance, not a rerun of the entire MongoDB191-case or SQLite1409-case native suites. Those earlier cohorts retain their recorded scope. Wider scalar domains, Neo4j DateTime, joins/composition/federation, authoritative policy and remaining roadmap certification remain open.

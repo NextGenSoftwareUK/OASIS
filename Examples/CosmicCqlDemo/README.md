@@ -39,7 +39,7 @@ Read the source in this order:
 Start with examples 1–3 for CQL querying. Examples 4–6 show how queried holons participate in change tracking, conditional saves and committed deltas. Example 7 demonstrates an unsupported query being rejected before provider execution.
 
 
-The current walkthrough has **eighteen** spaced/commented examples per provider: 54 SDK queries and 54 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
+The current walkthrough has **nineteen** spaced/commented examples per provider: 57 SDK queries and 57 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
 
 Projection transport now passes fullCore2,059 controls and signed native three-store acceptance, including visibility before paging, exact large integers/null/GUID/nested values, receipts and no replay. The new10-example SDK/HTTP walkthroughs now pass their expanded30/30 verification plus broad147native regression (195settled operations/190physical attempts); consult the current [HTTP projection contract](../../Docs/WIP/COSMIC%20ORM/CQL_PROJECTION_HTTP_CONTRACT.md) for limits and verified evidence.
 
@@ -104,3 +104,20 @@ var matchingPage = orderedGroups
 The HTTP walkthrough posts `resultFilters` to `/api/data/query-cql/grouped`, using the selected alias `Total` and invariant string `"-9007199254740991"`. Browser preset **GroupBy / filter exact totals** and Swagger show the same request grammar. Int64 result-filter values use strings so browser number parsing cannot round them. Only matching groups consume resultSkip; maximumGroups still bounds every reduced proof group.
 
 Expected expanded walkthrough: eighteen examples per provider,54 SDK queries and54 HTTP requests. Fresh live certification passed on all three providers:54 SDK/54 HTTP,234 settled operations/229 provider attempts, zero skips. Evidence: TestResults/CosmicCqlDemo/group-filter-demo-native.log, v1-demo-result.json and v1-walkthrough.txt. Earlier51/51 results above remain historical evidence.
+
+
+## Example 19: filter and order exact Decimal means
+
+Reuse the `grouped` intent from example15, then compose selected-output operations before the result window:
+
+```csharp
+var averagePage = grouped
+    .Where(row => row.Mean >= -9007199254740990.5m
+        && row.Mean < -9007199254740990m)
+    .OrderBy(row => row.Mean)
+    .Take(1);
+```
+
+The two source rows determine participation before grouping. The result retains stock7, two items and exact mean `-9007199254740990.5`. Binary64 loses the half-unit at this magnitude; the SDK uses Decimal literals, while HTTP, browser and Swagger use invariant string thresholds. Native comparisons use the same normalized Decimal that CQL publishes, including the provider's independently tested round-to-even behavior. All three providers support these grouped Average operations.
+
+The browser preset is **GroupBy / filter exact Decimal means**. Swagger prefills the same range predicate, result order and independent result limit. Fresh live acceptance passed:57 SDK queries/57 HTTP examples on all three providers, plus236 Neo4j/WEB4 native regression cases, zero failures/skips. The run records237 settled operations and232 provider attempts. Earlier54/54 evidence above retains its original scope.

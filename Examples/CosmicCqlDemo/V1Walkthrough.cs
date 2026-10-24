@@ -381,6 +381,45 @@ public static class V1Walkthrough
                 resultSkip = 1,
                 resultTake = 1
             }, grouped: true, orderedGroups: true, pagedGroups: true);
+
+            // EXAMPLE 19 — Compare the published Decimal mean, not a Float.
+            // Source take2 determines participation. Result filters/order/take
+            // apply after grouping; Decimal literals stay exact JSON strings.
+            await ShowAsync("19. Filter and order normalized Decimal means", new
+            {
+                provider,
+                filters = scalarFilters,
+                orderBy = "Name",
+                take = 2,
+                maximumGroups = 10,
+
+                keys = new[] { new { alias = "stock", metadataPath = new[] { "stock" }, valueType = "Int64" } },
+                columns = new object[]
+                {
+                    new { alias = "Stock", keyAlias = "stock" },
+                    new { alias = "Items", operation = "LongCount" },
+                    new
+                    {
+                        alias = "Total",
+                        operation = "Sum",
+                        selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" }
+                    },
+                    new
+                    {
+                        alias = "Mean",
+                        operation = "Average",
+                        selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" }
+                    }
+                },
+
+                resultFilters = new[]
+                {
+                    new { alias = "Mean", @operator = "GreaterThanOrEqual", value = "-9007199254740990.5" },
+                    new { alias = "Mean", @operator = "LessThan", value = "-9007199254740990" }
+                },
+                resultOrder = new[] { new { alias = "Mean", descending = false } },
+                resultTake = 1
+            }, grouped: true);
         }
 
         return completedRequests;
@@ -442,6 +481,7 @@ public static class V1Walkthrough
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
 
                 if (payload.GetProperty("version").GetString() != "cql-grouped-v1"
+                    || payload.GetProperty("columns")[3].GetProperty("valueType").GetString() != "Decimal"
                     || row[0].GetString() != "7" || row[1].GetString() != "2"
                     || row[2].GetString() != "-18014398509481981" || row[3].GetString() != "-9007199254740990.5")
                     throw new InvalidOperationException(title + " returned an incorrect grouped shape or exact aggregate.");

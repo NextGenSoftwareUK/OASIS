@@ -1,6 +1,37 @@
 # CQL developer manual
 
-23 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
+24 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
+
+## Start with the developer demo
+
+Open [the demo guide](../../../Examples/CosmicCqlDemo/README.md), then read `V1NativeQueries.cs` for C# and `V1Walkthrough.cs` for matching HTTP requests. The examples include comments, expected values and explicit result checks. From the repository root:
+
+```powershell
+# Bounded SDK and signed HTTP walkthrough; reuses existing test services.
+& .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1
+
+# Include the retained Neo4j/WEB4 native regression gate.
+& .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -IncludeRegression
+
+# Interactive browser and Swagger; use Finish demo for verified teardown.
+& .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -Serve
+```
+
+These commands require the already configured reusable provider environment. They do not install or download services. The current runner checks fresh actual results rather than treating an older report as success. SDK examples check `OASISResult` before planning/execution; the public endpoint binds the authenticated actor itself.
+
+## Current operator guide
+
+| Area | Supported composition for admitted domains |
+|---|---|
+| Source rows | Typed fields/metadata, AND/OR/NOT, membership, ordinal strings, ordering and source windows |
+| Detached results | Selected columns/DTOs; Count, LongCount, Any, Min, Max, integer Sum and Decimal Average |
+| Groups | Multiple keys/aggregates; selected-output Where, OrderBy/ThenBy and result Skip/Take; exact normalized Average comparisons on MongoDB, SQLite and Neo4j |
+| Relationships | Child/descendant predicates and bounded child graph expansion, with each provider's documented consistency |
+| HTTP | Bounded row, projection, scalar and grouped JSON requests; grouped predicates/order bind exact selected aliases |
+
+Apply grouped predicates and ordering **before** result Skip/Take. Source windows select aggregate participants; result windows select reduced groups. Unsupported domain/operator combinations fail capability admission; the engine does not substitute an unbounded client scan. The HTTP grammar is narrower than the SDK expression grammar: see [the grouped contract](CQL_GROUPING_HTTP_CONTRACT.md).
+
+Joins, composition requiring post-window subqueries, federated global cursors, broader scalar domains and authoritative shared-recipient/tenant policy remain separate unfinished requirements. See [the completion roadmap](CQL_COMPLETION_ROADMAP.md) for acceptance criteria and scoped evidence; supported examples are not a claim that the full roadmap is complete.
 
 ## Partial typed child roles
 
@@ -744,6 +775,6 @@ See [the full grouped HTTP contract](CQL_GROUPING_HTTP_CONTRACT.md#selected-resu
 
 ### SQLite: filter and order normalized group means
 
-After selecting `Mean = group.Average(...)`, compose `.Where(row => row.Mean >= 1.5m).OrderBy(row => row.Mean)` before result Skip/Take. SQLite compares the same rounded Decimal returned in the result, including halfway ties; it does not compare an unrounded ratio. Nullable averages can use null checks, membership and other selected Average fields with the same underlying CLR domain. Mixed Decimal-versus-Int64 field comparison remains an explicit shared capture gap. SQLite, MongoDB and Neo4j support this capability after their native normalization gates. The existing HTTP `resultFilters` grammar can represent the Decimal threshold as `"1.5"`; native SDK support is verified, while a new live HTTP Average demo remains outstanding.
+After selecting `Mean = group.Average(...)`, compose `.Where(row => row.Mean >= 1.5m).OrderBy(row => row.Mean)` before result Skip/Take. SQLite compares the same rounded Decimal returned in the result, including halfway ties; it does not compare an unrounded ratio. Nullable averages can use null checks, membership and other selected Average fields with the same underlying CLR domain. Mixed Decimal-versus-Int64 field comparison remains an explicit shared capture gap. SQLite, MongoDB and Neo4j support this capability after their native normalization gates. The existing HTTP `resultFilters` grammar can represent the Decimal threshold as `"1.5"`; native SDK and live HTTP Average support are verified by example19 on all three providers.
 
-MongoDB now supports the same grouped Average filter/order compositions documented for SQLite above, using exact normalized Decimal128 output from a bounded native digit kernel. The full191-case native CQL suite and427 provider units pass. Selected Average fields, Decimal literals and nullable membership compare normalized published values. Neo4j now also supports these operations after its172-case native gate. The existing54/54 signed demo still demonstrates Sum result filters; the live Average demo is next.
+MongoDB now supports the same grouped Average filter/order compositions documented for SQLite above, using exact normalized Decimal128 output from a bounded native digit kernel. The full191-case native CQL suite and427 provider units pass. Selected Average fields, Decimal literals and nullable membership compare normalized published values. Neo4j now also supports these operations after its172-case native gate. The57/57 signed demo demonstrates both Sum and Average result filters, with exact Decimal wire values on all three providers.
