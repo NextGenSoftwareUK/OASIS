@@ -45,17 +45,25 @@ public partial class NEAROASIS
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Symbol) || request.Amount <= 0)
                 throw new ArgumentException("Token symbol and a positive amount are required.");
+            // Contract owner signs issuance; the recipient is an independent
+            // requested balance owner, not a replacement signing identity.
+            // Freeze nested metadata too before activation can yield.
+            var symbol=request.Symbol;
+            var recipient=request.ToWalletAddress??_accountId;
+            var target=request.TokenAddress??_contractAddress;
+            if(string.IsNullOrWhiteSpace(recipient))throw new ArgumentException("A nonblank NEAR mint recipient is required.");
+            if(string.IsNullOrWhiteSpace(target))throw new ArgumentException("A nonblank NEAR custom token contract is required.");
+            var amount=ToTokenUnits(request.Amount);
+            var metadata=System.Text.Json.JsonSerializer.Serialize(new {
+                request.Title,request.Description,request.MetaData,request.Tags });
             if (!await EnsureSdkActiveAsync(result)) return result;
             var tx = await _sdk.CallAsync("token_mint", new
             {
-                symbol = request.Symbol,
-                owner_id = _accountId,
-                amount = ToTokenUnits(request.Amount),
-                metadata_json = System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    request.Title, request.Description, request.MetaData, request.Tags
-                })
-            });
+                symbol,
+                owner_id = recipient,
+                amount,
+                metadata_json = metadata
+            },targetContractId:target);
             result.Result = new TransactionResponse { TransactionResult = tx };
             result.Message = "Token minted by the deployed NEAR contract.";
         }
