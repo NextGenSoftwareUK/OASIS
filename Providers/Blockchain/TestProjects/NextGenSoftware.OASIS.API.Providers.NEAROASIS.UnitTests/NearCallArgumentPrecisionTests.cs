@@ -8,6 +8,16 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class NearCallArgumentPrecisionTests
 {
+    [TestMethod]
+    public async Task SharedSubmissionPreservesFailureAndDisablesNonceResigning()
+    {
+        var serviceType=typeof(NEAROASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.NEAROASIS.NearSdkService")!;
+        var service=Activator.CreateInstance(serviceType,new object[]{"http://127.0.0.1:1","fixture","receiver.near","sender.near","controlled-key","node",Path.Combine(AppContext.BaseDirectory,"Fixtures","native-submission.mjs")})!;
+        var view=(Task<JsonElement>)serviceType.GetMethod("ViewAsync")!.Invoke(service,new object?[]{"policy",new{},null})!;
+        var response=await view;Assert.AreEqual(1,response.GetProperty("calls").GetInt32());
+        Assert.IsTrue(response.GetProperty("nativeFailurePreserved").GetBoolean());
+    }
+
     [DataTestMethod]
     [DataRow("",false)][DataRow("%%%",false)][DataRow("e30",false)]
     [DataRow("/w==",false)][DataRow("bm90LWpzb24=",false)][DataRow("e30=",true)]
