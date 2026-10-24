@@ -44,6 +44,40 @@ public class OracleObjectSdkTests
     private static async Task Exchange(Func<OracleObjectStorageBackend,Task> action,params Func<HttpListenerContext,Task>[] responses)
         =>await ExchangeClient(client=>action(new(client,"ns","bucket")),responses);
 
+    [DataTestMethod]
+    [DataRow(false,false,"")][DataRow(false,true,"")][DataRow(true,false,"")][DataRow(true,true,"")]
+    [DataRow(false,false,"tree 🌳")][DataRow(false,true,"tree 🌳")][DataRow(true,false,"tree 🌳")][DataRow(true,true,"tree 🌳")]
+    public async Task WholeRecordReadRequiresNativeByteLength(bool observed,bool declaredLength,string body)
+    {
+        await Exchange(async backend=>{
+            async Task<string?> Read()=>observed?(await backend.ReadObservedAsync("oasis/whole-record"))?.Value:await backend.GetAsync("oasis/whole-record");
+            if(declaredLength)Assert.AreEqual(body,await Read(),"Byte length must accept valid empty and multibyte objects.");
+            else await Assert.ThrowsExceptionAsync<InvalidDataException>(async()=>{await Read();});
+        },async context=>{
+            context.Response.Headers["ETag"]="\"whole-record-revision\"";
+            if(declaredLength)await Reply(context,200,body);
+            else{
+                context.Response.StatusCode=200;context.Response.SendChunked=true;
+                await context.Response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes(body));
+            }
+        });
+    }
+
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task DeclaredNativeReadChecksumMustMatchCompleteBytes(bool observed,bool valid)
+    {
+        const string body="tree 🌳";
+        await Exchange(async backend=>{
+            async Task<string?> Read()=>observed?(await backend.ReadObservedAsync("oasis/checksummed-record"))?.Value:await backend.GetAsync("oasis/checksummed-record");
+            if(valid)Assert.AreEqual(body,await Read());
+            else await Assert.ThrowsExceptionAsync<InvalidDataException>(async()=>{await Read();});
+        },async context=>{
+            context.Response.Headers["ETag"]="\"checksummed-revision\"";
+            context.Response.Headers["Content-MD5"]=Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(valid?body:"different bytes")));
+            await Reply(context,200,body);
+        });
+    }
+
     private static async Task ExchangeClient(Func<ObjectStorageClient,Task> action,params Func<HttpListenerContext,Task>[] responses)
     {
         using var listener=new HttpListener();listener.Prefixes.Add(Endpoint);listener.Start();
