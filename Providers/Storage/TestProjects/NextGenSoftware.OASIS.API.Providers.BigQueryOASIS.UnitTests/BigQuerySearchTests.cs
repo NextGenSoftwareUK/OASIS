@@ -64,7 +64,7 @@ public class BigQuerySearchTests
     {
         var called=false;var client=Rows();client.BeforeRead=()=>called=true;var provider=BigQueryCollectionTests.Create(client);var query=Query();
         if(kind==1)query.SearchOnlyForCurrentAvatar=true;if(kind==3)query.MetaKeyValuePairMatchMode=(MetaKeyValuePairMatchMode)999;if(kind==4)query.SearchGroups.Add(Text(" "));
-        var result=sync?provider.Search(kind==0?null!:query,loadChildren:false,maxChildDepth:kind==5?-1:0,version:kind==2?1:0):await provider.SearchAsync(kind==0?null!:query,loadChildren:false,maxChildDepth:kind==5?-1:0,version:kind==2?1:0);
+        var result=sync?provider.Search(kind==0?null!:query,loadChildren:false,maxChildDepth:kind==5?-1:0,version:kind==2?-1:0):await provider.SearchAsync(kind==0?null!:query,loadChildren:false,maxChildDepth:kind==5?-1:0,version:kind==2?-1:0);
         Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Exception);Assert.IsFalse(called);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
     }
 }

@@ -631,7 +631,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             => ExportAllAsync(version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => await LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, true, version);
+        {
+            if(version!=-1)return await LoadAllHolonsAsync(HolonType.All,true,true,0,0,true,true,version);
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var versions=await ReadRowsAsync<Holon>($"SELECT doc FROM {Table(CollHolons)}",Array.Empty<BigQueryParameter>(),version:-1,exportAllVersions:true);
+                CompleteRows<IHolon>(result,versions.Where(row=>!row.IsDeleted));
+            }
+            catch(Exception cause){OASISErrorHandling.HandleError(ref result,"BigQuery all-version export failed.",cause);}
+            return result;
+        }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
             => ExportAllDataForAvatarByIdAsync(avatarId, version).GetAwaiter().GetResult();
@@ -642,8 +652,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 if(avatarId==Guid.Empty)throw new ArgumentException("Avatar export requires a nonempty owner.",nameof(avatarId));
-                var owned=(await GetAllDocsAsync<Holon>(CollHolons)).Where(row=>!row.IsDeleted&&row.CreatedByAvatarId==avatarId).Cast<IHolon>().ToList();
-                CompleteRows(result,await ProjectGraphRootsAsync(owned,true,true,0,0,true,providerPool:owned));
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
+                if(version==-1)
+                {
+                    var all=await ExportAllAsync(-1);
+                    if(all.IsError)return all;
+                    CompleteRows(result,all.Result.Where(row=>row.CreatedByAvatarId==avatarId));
+                }
+                else
+                {
+                    var owned=(await GetAllDocsAsync<Holon>(CollHolons,version)).Where(row=>!row.IsDeleted&&row.CreatedByAvatarId==avatarId).Cast<IHolon>().ToList();
+                    var pool=version==0?owned:(await GetAllDocsAsync<Holon>(CollHolons)).Where(row=>!row.IsDeleted&&row.CreatedByAvatarId==avatarId).Cast<IHolon>().ToList();
+                    CompleteRows(result,await ProjectGraphRootsAsync(owned,true,true,0,0,true,providerPool:pool));
+                }
             }
             catch(Exception ex){OASISErrorHandling.HandleError(ref result,"BigQuery owner export failed.",ex);}
             return result;
@@ -652,31 +673,31 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
             => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var avatar = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (avatar.IsError || avatar.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, avatar.Message,avatar.Exception);
-                return result;
-            }
-            return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+            => ExportOwnerByIdentityAsync(avatarUsername,false,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
             => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+            => ExportOwnerByIdentityAsync(avatarEmailAddress,true,version);
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> ExportOwnerByIdentityAsync(string identity,bool email,int version)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var avatar = await LoadAvatarByEmailAsync(avatarEmailAddress);
-            if (avatar.IsError || avatar.Result == null)
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try
             {
-                OASISErrorHandling.HandleError(ref result, avatar.Message,avatar.Exception);
-                return result;
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
+                var avatar=email?await LoadAvatarByEmailAsync(identity):await LoadAvatarByUsernameAsync(identity);
+                if(avatar.IsError||avatar.Result==null)
+                {
+                    OASISErrorHandling.HandleError(ref result,avatar.Message,avatar.Exception);
+                    return result;
+                }
+                return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id,version);
             }
-            return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
+            catch(Exception cause){OASISErrorHandling.HandleError(ref result,"BigQuery owner identity export failed.",cause);}
+            return result;
         }
 
         // ─── Search ──────────────────────────────────────────────────────────────
@@ -686,30 +707,33 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<ISearchResults>();
             try
             {
-                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
                 searchParams=Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
-                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
                 var groups=searchParams.SearchGroups??new List<ISearchGroupBase>();
                 var wantsAvatars=groups.Count==0||groups.Any(group=>group.SearchAvatars||!group.SearchHolons);
                 var wantsHolons=groups.Count==0||groups.Any(group=>group.SearchHolons||!group.SearchAvatars);
                 var holons=new List<IHolon>();
                 if(wantsHolons||searchParams.ParentId!=Guid.Empty)
                 {
-                    var loaded=await LoadAllHolonsAsync(HolonType.All,false,recursive,maxChildDepth,0,continueOnError,false,version);
+                    var loaded=await LoadAllHolonsAsync(HolonType.All,false,recursive,maxChildDepth,0,continueOnError,false,wantsHolons?version:0);
                     if(loaded.IsError||loaded.Result==null)
                         throw loaded.Exception??new System.IO.InvalidDataException("BigQuery search holon source did not complete.");
                     holons.AddRange(loaded.Result);
                 }
+                var graphPool=holons;
+                if(version>0&&wantsHolons&&(loadChildren||searchParams.ParentId!=Guid.Empty))
+                    graphPool=(await GetAllDocsAsync<Holon>(CollHolons)).Where(row=>!row.IsDeleted).Cast<IHolon>().ToList();
                 var found=new SearchResults();
                 if(wantsAvatars)
                 {
                     var loaded=await LoadAllAvatarsAsync(version);
                     if(loaded.IsError||loaded.Result==null)
                         throw loaded.Exception??new System.IO.InvalidDataException("BigQuery search avatar source did not complete.");
-                    found.SearchResultAvatars.AddRange(loaded.Result.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,holons)));
+                    found.SearchResultAvatars.AddRange(loaded.Result.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,graphPool)));
                 }
                 if(wantsHolons)
-                    found.SearchResultHolons.AddRange(await ProjectGraphRootsAsync(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,holons)),loadChildren,recursive,maxChildDepth,0,true,providerPool:holons));
+                    found.SearchResultHolons.AddRange(await ProjectGraphRootsAsync(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,graphPool)),loadChildren,recursive,maxChildDepth,0,true,providerPool:graphPool));
                 found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
                 result.Result=found;result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
             }
@@ -764,15 +788,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         private async Task<List<T>> SqlAsync<T>(string sql,params BigQueryParameter[] parameters) where T : class,IHolonBase
             => await ReadRowsAsync<T>(sql,parameters);
 
-        private async Task<List<T>> ReadRowsAsync<T>(string sql,IEnumerable<BigQueryParameter> parameters,Action<T,string>? observe=null,int version=0) where T : class,IHolonBase
+        private async Task<List<T>> ReadRowsAsync<T>(string sql,IEnumerable<BigQueryParameter> parameters,Action<T,string>? observe=null,int version=0,bool exportAllVersions=false) where T : class,IHolonBase
         {
-            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            if(exportAllVersions?version!=-1:version<0)throw new ArgumentOutOfRangeException(nameof(version));
             var list = new List<T>();
             var results = await _client!.ExecuteQueryAsync(sql, parameters,new QueryOptions{UseLegacySql=false});
             await foreach (var row in results.GetRowsAsync())
             {
                 var raw = row["doc"]?.ToString();
                 if (string.IsNullOrWhiteSpace(raw))throw new System.IO.InvalidDataException("BigQuery stored record row has no canonical document.");
+                if(exportAllVersions){list.AddRange(ReadAllRecordVersions<T>(raw));continue;}
                 var item = await DecodeRecordVersionAsync<T>(raw,version);
                 if(item==null)continue;
                 observe?.Invoke(item,raw);

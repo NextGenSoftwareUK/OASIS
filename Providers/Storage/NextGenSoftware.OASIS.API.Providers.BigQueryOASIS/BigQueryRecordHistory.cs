@@ -20,6 +20,13 @@ public partial class BigQueryOASIS
 
     private static async Task<T?> DecodeRecordVersionAsync<T>(string raw,int version)where T:class,IHolonBase
     {
+        var (current,document)=ReadHistoryDocument<T>(raw);
+        if(document.Property(EmbeddedRecordHistory.PropertyName)==null)return version==0||current.Version==version?current:null;
+        return await RecordHistory.ReadAsync(current.Id,document,version,DecodeCanonical<T>);
+    }
+
+    private static (T Current,JObject Document) ReadHistoryDocument<T>(string raw)where T:class,IHolonBase
+    {
         if(raw.Trim()=="null")throw new InvalidDataException("BigQuery stored record document must not be null.");
         var document=OasisJson.ParseStoredObject(raw);
         var payload=RecordHistory.CanonicalPayload(document);
@@ -27,8 +34,13 @@ public partial class BigQueryOASIS
         if(current==null||current.Version<0)throw new InvalidDataException("BigQuery canonical record or version is invalid.");
         if(document["id"]!=null&&document["id"]!.Value<string>()!=current.Id.ToString())throw new InvalidDataException("BigQuery history envelope identity differs from its canonical record.");
         document["id"]=current.Id.ToString();
-        if(document.Property(EmbeddedRecordHistory.PropertyName)==null)return version==0||current.Version==version?current:null;
-        return await RecordHistory.ReadAsync(current.Id,document,version,DecodeCanonical<T>);
+        return(current,document);
+    }
+
+    private static System.Collections.Generic.IReadOnlyList<T> ReadAllRecordVersions<T>(string raw)where T:class,IHolonBase
+    {
+        var (current,document)=ReadHistoryDocument<T>(raw);
+        return RecordHistory.ReadAll(current.Id,document,DecodeCanonical<T>);
     }
 
     private static T DecodeCanonical<T>(string json)where T:class,IHolonBase
