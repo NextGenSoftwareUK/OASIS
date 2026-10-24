@@ -298,6 +298,11 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                     throw new ArgumentException("Mint requires a request and an authorized minter avatar.");
                 var minter = transaction.MintedByAvatarId;
                 var requestedRecipient = transaction.SendToAddressAfterMinting;
+                var requestedCollection = transaction.CollectionPublicKey;
+                if (requestedCollection != null
+                    && (!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(requestedCollection)
+                        || string.Equals(requestedCollection, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase)))
+                    throw new ArgumentException("An explicitly supplied NFT collection must be a nonzero contract address.");
                 // Reuse the existing KeyManager/default-wallet policy, not the first key in storage.
                 var keysResult = ResolveTokenSigningKeys(minter);
                 if (keysResult.IsError)
@@ -333,8 +338,11 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
 
                 var web3 = CreateWeb3WithAccount(senderAccount, HostURI);
 
-                // Use contract address or default NFT contract
-                var nftContractAddress = _contractAddress ?? ContractAddress ?? "0x0000000000000000000000000000000000000000";
+                // Explicit collection override or the existing configured contract; never guess another ABI.
+                var nftContractAddress = requestedCollection ?? _contractAddress ?? ContractAddress;
+                if (!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(nftContractAddress)
+                    || string.Equals(nftContractAddress, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("NFT mint requires a configured nonzero contract address.");
                 
                 // ERC-721 mint function ABI (assuming contract has mint function)
                 var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""mint"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
