@@ -199,10 +199,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 if (ready.IsError)
                     return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IHolon>>(ready);
                 var snapshot = await _firestoreDb.Collection("holons").GetSnapshotAsync();
-                var records = snapshot.Documents.Select(doc => ReadFirestoreHistoryAsync<Holon>(doc.ToDictionary(),doc.Id,version).GetAwaiter().GetResult())
-                    .Where(row => row!=null&&row.DeletedDate==DateTime.MinValue).Cast<IHolon>().ToList();
+                var records = (await ReadFirestoreCollectionAsync<Holon>(snapshot,version))
+                    .Where(row => row.DeletedDate==DateTime.MinValue).Cast<IHolon>().ToList();
                 var childPool=loadChildren&&loadChildrenFromProvider&&version>0
-                    ? snapshot.Documents.Select(doc=>DecodeHolon(doc.ToDictionary(),doc.Id)).Where(row=>row.DeletedDate==DateTime.MinValue).Cast<IHolon>().ToList()
+                    ? (await ReadFirestoreCollectionAsync<Holon>(snapshot,0)).Where(row=>row.DeletedDate==DateTime.MinValue).Cast<IHolon>().ToList()
                     : records;
                 var project = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(
                     childPool, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider,

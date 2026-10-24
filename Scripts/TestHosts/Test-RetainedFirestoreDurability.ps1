@@ -1,10 +1,11 @@
 #requires -Version 7.5
-param([switch]$IndependentExportVersions,[switch]$RunBatchRevisions,[switch]$RunEncryptedReplay,[switch]$RunPreparationClaims,[switch]$RunConditionalGraphs,[switch]$ResumeExportedProof,[switch]$ReconcileRetainedExport,[switch]$InspectRetainedExport,[switch]$VerifyRetainedCheckpoint,[switch]$RunHistoryTests,[switch]$RunRegressionTests,[switch]$ReconcileRoleFixture,[int]$ContinueOwnedEmulatorId)
+param([switch]$CollectionIdentities,[switch]$IndependentExportVersions,[switch]$RunBatchRevisions,[switch]$RunEncryptedReplay,[switch]$RunPreparationClaims,[switch]$RunConditionalGraphs,[switch]$ResumeExportedProof,[switch]$ReconcileRetainedExport,[switch]$InspectRetainedExport,[switch]$VerifyRetainedCheckpoint,[switch]$RunHistoryTests,[switch]$RunRegressionTests,[switch]$ReconcileRoleFixture,[int]$ContinueOwnedEmulatorId)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/GoogleCurrent'
-$historyReportName=if($IndependentExportVersions){'google-export-history-native-current.trx'}else{'google-history-native-current.trx'}
-$regressionReportName=if($IndependentExportVersions){'google-export-regression-native-current.trx'}else{'google-native-current.trx'}
+$historyReportName=if($CollectionIdentities){'google-collection-id-history-native-current.trx'}elseif($IndependentExportVersions){'google-export-history-native-current.trx'}else{'google-history-native-current.trx'}
+$regressionReportName=if($CollectionIdentities){'google-collection-id-regression-native-current.trx'}elseif($IndependentExportVersions){'google-export-regression-native-current.trx'}else{'google-native-current.trx'}
+if($CollectionIdentities -and (!$RunHistoryTests -or !$RunRegressionTests -or !$VerifyRetainedCheckpoint -or $IndependentExportVersions -or $RunBatchRevisions -or $RunEncryptedReplay -or $RunPreparationClaims -or $RunConditionalGraphs -or $ResumeExportedProof -or $ReconcileRetainedExport -or $InspectRetainedExport -or $ReconcileRoleFixture -or $ContinueOwnedEmulatorId)){throw 'Collection identity verification requires only completed checkpoint and both native suites.'}
 if($IndependentExportVersions -and (!$RunHistoryTests -or !$RunRegressionTests -or !$VerifyRetainedCheckpoint)){throw 'Independent export verification requires the completed retained checkpoint and both native suites.'}
 if($RunHistoryTests -and $RunRegressionTests -and !$ContinueOwnedEmulatorId){
     foreach($reportName in @($historyReportName,$regressionReportName)){
