@@ -1,4 +1,5 @@
 param(
+    [switch]$PointReadSelectors,
     [switch]$IndependentExportVersions,
     [switch]$ReconcileExportIdentity,
     [switch]$InspectReadConnections,
@@ -16,7 +17,7 @@ param(
     [switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,
     [switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions
 )
-$selectedModes=@($ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
+$selectedModes=@($PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions).Where({$_.IsPresent}).Count
@@ -107,6 +108,7 @@ try{
     $filter=if($EncryptedReplay){'FullyQualifiedName~OracleEncryptedReplayNativeTests'}elseif($PreparationClaims){'FullyQualifiedName~OraclePreparationNativeTests'}elseif($ReconcileOriginal){'FullyQualifiedName~RealSdkCanonicalRecordsSelectorsAndMetadataPaths'}elseif($ReconcileAmbiguity){'FullyQualifiedName~DuplicateIdentityIsRejectedInsteadOfSelectingArbitraryAvatar'}elseif($ReconcileHistoricalExport){'FullyQualifiedName~ReconcileKnownHistoricalExportFixture'}elseif($ReconcileCorruptAvatar){'FullyQualifiedName~ReconcileKnownCorruptAvatarFixture'}elseif($ReconcileProjectionAssertions){'FullyQualifiedName~ReconcileKnownProjectionAssertionFixtures'}else{'FullyQualifiedName~OracleNativeAcceptanceTests&FullyQualifiedName!~Reconcile'}
     # Full regression plus four independent identity/holon version cases; retain earlier reports.
     if($IndependentExportVersions){$report='oracle-independent-export-native-current.trx'}
+    if($PointReadSelectors){$report='oracle-point-selector-native-current.trx'}
     if($ReconcileExportIdentity){$report='oracle-export-identity-reconciliation-current.trx';$filter='FullyQualifiedName~ReconcileKnownIndependentExportIdentityFixture'}
     if($LifecycleGuards){$report='oracle-lifecycle-guard-native-current.trx';$filter='FullyQualifiedName~NativeLifecycleGuardsRejectStaleAndRelatedActiveSaves'}
     if($AvatarProjection){$report='oracle-avatar-projection-native-current.trx';$filter='FullyQualifiedName~NativeAvatarProjectionMismatchCannotBeHiddenOrRepaired'}

@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Oracle point selector predispatch — 23 October 2026
+
+One SQL identity read helper validates RAW16 nonemptyGUID/nonblank username/email before SDK connection construction. New56controls first28invalid failures/28valid controls; final paired381unit/496native PASS0skip, same retained DB/serverstopped/pending0/11521absent. Exact matching/history/parent-root/save-new semantics preserved; no new query/retry/config fallback. Invalid SDK config fixture proves ordering, not live cloud fee elimination. Core6D193362/Shared13EC9571/OracleDE777306/source15 and exact reports/resources in ENVIRONMENT_INVENTORY.md. Hosted Autonomous/OCI IAM/wallet/cost/durability/fullV2 remain OPEN; no new runtime/download/reset/dev deployment.
+
 ## Shared typed point identity admission — 23 October 2026
 
 One common record-key owner rejects typed Guid.Empty for avatar/detail/holon read/delete before backend dispatch. New12controls reproduce10dispatch gaps+2detail rejection-envelope gaps; final1033Shared+rebuiltOCI119/selectedS352/Redis35 controlsPASS0skip. Existing parent/root empty semantics/save-newID generation preserved; no per-provider validators, extra SDK call, native gas or all-provider billing claim. Core6D193362/source731 and SharedA6AD60B7/source55 verified in all4consumers. Exact preserved failure/final reports/resources in ENVIRONMENT_INVENTORY.md. Native/cloud/broaderV2 matrices not rerun or certified, no new environment/install/download/dev deployment.
