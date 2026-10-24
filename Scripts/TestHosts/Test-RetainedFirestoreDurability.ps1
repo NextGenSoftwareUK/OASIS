@@ -1,10 +1,13 @@
 #requires -Version 7.5
-param([switch]$RunBatchRevisions,[switch]$RunEncryptedReplay,[switch]$RunPreparationClaims,[switch]$RunConditionalGraphs,[switch]$ResumeExportedProof,[switch]$ReconcileRetainedExport,[switch]$InspectRetainedExport,[switch]$VerifyRetainedCheckpoint,[switch]$RunHistoryTests,[switch]$RunRegressionTests,[switch]$ReconcileRoleFixture,[int]$ContinueOwnedEmulatorId)
+param([switch]$IndependentExportVersions,[switch]$RunBatchRevisions,[switch]$RunEncryptedReplay,[switch]$RunPreparationClaims,[switch]$RunConditionalGraphs,[switch]$ResumeExportedProof,[switch]$ReconcileRetainedExport,[switch]$InspectRetainedExport,[switch]$VerifyRetainedCheckpoint,[switch]$RunHistoryTests,[switch]$RunRegressionTests,[switch]$ReconcileRoleFixture,[int]$ContinueOwnedEmulatorId)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/GoogleCurrent'
+$historyReportName=if($IndependentExportVersions){'google-export-history-native-current.trx'}else{'google-history-native-current.trx'}
+$regressionReportName=if($IndependentExportVersions){'google-export-regression-native-current.trx'}else{'google-native-current.trx'}
+if($IndependentExportVersions -and (!$RunHistoryTests -or !$RunRegressionTests -or !$VerifyRetainedCheckpoint)){throw 'Independent export verification requires the completed retained checkpoint and both native suites.'}
 if($RunHistoryTests -and $RunRegressionTests -and !$ContinueOwnedEmulatorId){
-    foreach($reportName in @('google-history-native-current.trx','google-native-current.trx')){
+    foreach($reportName in @($historyReportName,$regressionReportName)){
         if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve and hash-verify previous Google history/regression reports before a fresh verification run.'}
     }
 }
@@ -191,19 +194,19 @@ try{
             if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Original atomic graph fixtures remain unresolved.'}
             if(!$RunRegressionTests){$safeToStop=$true;return}
         }
-        & dotnet test $project --no-build --no-restore --filter 'TestCategory=HistoryNative' --logger 'trx;LogFileName=google-history-native-current.trx' --results-directory $work -v:q
+        & dotnet test $project --no-build --no-restore --filter 'TestCategory=HistoryNative' --logger "trx;LogFileName=$historyReportName" --results-directory $work -v:q
         if($LASTEXITCODE){throw 'Native history suite failed; retain live emulator for original reconciliation.'}
-        $report=Get-Item -LiteralPath (Join-Path $work 'google-history-native-current.trx')
+        $report=Get-Item -LiteralPath (Join-Path $work $historyReportName)
         if($report.LastWriteTimeUtc -lt $started){throw 'Stale native report.'}
         [xml]$trx=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$trx.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 79 -or [int]$counts.passed -ne 79 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly79native history/lifecycle/search/role/identity/count cases, no skips.'}
+        if([int]$counts.total -ne 83 -or [int]$counts.passed -ne 83 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly83native history/lifecycle/search/role/identity/count/export cases, no skips.'}
         if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native history originals remain; do not stop.'}
         if($RunRegressionTests){
             $started=[DateTime]::UtcNow
-            & dotnet test $project --no-build --no-restore --filter 'TestCategory!=HistoryNative&TestCategory!=RoleFixtureReconciliation&TestCategory!=IdentityTransactionInspection&TestCategory!=AtomicGraphNative&TestCategory!=PreparationNative&TestCategory!=RuntimeEncryptedNative&TestCategory!=BatchRevisionNative' --logger 'trx;LogFileName=google-native-current.trx' --results-directory $work -v:q
+            & dotnet test $project --no-build --no-restore --filter 'TestCategory!=HistoryNative&TestCategory!=RoleFixtureReconciliation&TestCategory!=IdentityTransactionInspection&TestCategory!=AtomicGraphNative&TestCategory!=PreparationNative&TestCategory!=RuntimeEncryptedNative&TestCategory!=BatchRevisionNative' --logger "trx;LogFileName=$regressionReportName" --results-directory $work -v:q
             if($LASTEXITCODE){throw 'Native regression failed; retain original live emulator for inspection.'}
-            $report=Get-Item -LiteralPath (Join-Path $work 'google-native-current.trx')
+            $report=Get-Item -LiteralPath (Join-Path $work $regressionReportName)
             if($report.LastWriteTimeUtc -lt $started){throw 'Stale native regression report.'}
             [xml]$trx=Get-Content -LiteralPath $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
             if([int]$counts.total -ne 79 -or [int]$counts.passed -ne 79 -or [int]$counts.notExecuted -ne 0){throw 'Expected all79native regression cases, no skips.'}
