@@ -50,9 +50,9 @@ public class BigQueryParameterTests
     }
     private sealed class Client:BigQueryClient
     {
-        public string? Sql;public BigQueryParameter[] Parameters=Array.Empty<BigQueryParameter>();public int Calls;
+        public string? Sql;public BigQueryParameter[] Parameters=Array.Empty<BigQueryParameter>();public int Calls;public bool AllowHolonRead;
         public override Task<BigQueryResults> ExecuteQueryAsync(string sql,IEnumerable<BigQueryParameter> parameters,QueryOptions? queryOptions=null,GetQueryResultsOptions? resultsOptions=null,CancellationToken token=default)
-        {Calls++;Sql=sql;Parameters=parameters?.ToArray()??Array.Empty<BigQueryParameter>();Assert.IsNotNull(queryOptions);Assert.AreEqual(false,queryOptions.UseLegacySql);throw new IOException("Controlled stop before native dispatch.");}
+        {if(AllowHolonRead&&sql.TrimStart().StartsWith("SELECT",StringComparison.Ordinal))return Task.FromResult(new BigQueryResults(this,new Google.Apis.Bigquery.v2.Data.GetQueryResultsResponse{JobComplete=true,TotalRows=0,JobReference=new(){ProjectId="my-project",JobId="owned-read"}},null,new GetQueryResultsOptions()));Calls++;Sql=sql;Parameters=parameters?.ToArray()??Array.Empty<BigQueryParameter>();Assert.IsNotNull(queryOptions);Assert.AreEqual(false,queryOptions.UseLegacySql);throw new IOException("Controlled stop before native dispatch.");}
     }
     [DataTestMethod]
     [DataRow(0,false)][DataRow(0,true)][DataRow(1,false)][DataRow(1,true)][DataRow(2,false)][DataRow(2,true)]
@@ -61,7 +61,7 @@ public class BigQueryParameterTests
     public async Task PublicRecordValuesReachSdkAsParametersNotSqlText(int route,bool sync)
     {
         const string value="canary'; SELECT 'injected\\payload🌳";var id=Guid.NewGuid();
-        var provider=new BigQueryOASIS("my-project","oasis");var client=new Client();
+        var provider=new BigQueryOASIS("my-project","oasis");var client=new Client{AllowHolonRead=route==2};
         typeof(BigQueryOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,client);
         if(route==0){var row=new Avatar{Id=id,Username=value,Email=value};if(sync)provider.SaveAvatar(row);else await provider.SaveAvatarAsync(row);}
         else if(route==1){var row=new AvatarDetail{Id=id,Username=value,Email=value};if(sync)provider.SaveAvatarDetail(row);else await provider.SaveAvatarDetailAsync(row);}
@@ -73,7 +73,8 @@ public class BigQueryParameterTests
         else{if(sync)provider.DeleteAvatar(id,false);else await provider.DeleteAvatarAsync(id,false);}
         Assert.AreEqual(1,client.Calls);Assert.IsNotNull(client.Sql);Assert.IsFalse(client.Sql.Contains(value,StringComparison.Ordinal));Assert.IsFalse(client.Sql.Contains(id.ToString(),StringComparison.Ordinal));
         Assert.IsTrue(client.Parameters.Length>0,"Actual SDK call must carry named parameters.");
-        Assert.IsTrue(client.Parameters.All(parameter=>parameter.Type==BigQueryDbType.String));
+        Assert.IsTrue(client.Parameters.All(parameter=>parameter.Type==(route==2&&parameter.Name=="expected_exists"?BigQueryDbType.Bool:BigQueryDbType.String)));
+        if(route==2){Assert.AreEqual(false,client.Parameters.Single(parameter=>parameter.Name=="expected_exists").Value);Assert.IsNull(client.Parameters.Single(parameter=>parameter.Name=="expected_doc").Value);}
         var expected=route is 3 or 4 or 6?"value":"id";
         Assert.AreEqual(route is 3 or 4?value:id.ToString(),client.Parameters.Single(parameter=>parameter.Name==expected).Value);
         if(route<3){var doc=(string)client.Parameters.Single(parameter=>parameter.Name=="doc").Value;using var json=System.Text.Json.JsonDocument.Parse(doc);Assert.AreEqual(value,json.RootElement.GetProperty(route==2?"Name":"Username").GetString());}
