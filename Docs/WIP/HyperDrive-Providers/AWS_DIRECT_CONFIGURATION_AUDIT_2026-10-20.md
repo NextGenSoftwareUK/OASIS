@@ -1,5 +1,11 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## Shared key-value/S3 acknowledgement compatibility — 24 October
+
+Fresh matched Shared1170 and fullEdge114controlled protocol cases PASS0skip after the selected-save admission/complete-acknowledgement repair; Core2474 and OCI127loopback also pass. The common key-value owner uses explicit caller admission and post-native selected membership observation, with structural receipt capture kept separate from mutation authority. No extra SDK observation/retry or hosted request was added. Source/PDB/copy proof and resource closure in inventory; shared contract/remaining other-adapter migrations in SHARED_RECORD_HISTORY.md.
+
+This is NOT a fresh DynamoDB138native/635unit/38alias run (those remain the distinct earlier cohorts below), nor hosted DynamoDB/S3 IAM/KMS/durability/fees/fullV2 acceptance. No AWS profile/configuration or billing enablement change, download/restore or dev deployment.
+
 ## Fresh AWS local interface regression — 24 October
 
 Rebuilt/reverified current producers and consumers against published Coree5774d2/source742 and Shared56. Same retained DynamoDB Local environment passed **138/138 AWS integration tests (73seconds)**, plus1empty-baseline/intent and1verified-cleanup case. Matched **635/635 Dynamo unit/SDK tests (2seconds)** and **38/38 AWS alias configuration/interface-dispatch tests (591ms)** passed, all zero skips. This is the complete selected AWS integration project and those unit projects, not proof of every hosted API/provider option. No production storage-code change was needed. README correction distinguishes supported export-1from invalid values below-1; ordinary reads remain nonnegative.
