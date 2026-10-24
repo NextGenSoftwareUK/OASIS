@@ -1,5 +1,13 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## Fresh AWS local interface regression — 24 October
+
+Rebuilt/reverified current producers and consumers against published Coree5774d2/source742 and Shared56. Same retained DynamoDB Local environment passed **138/138 AWS integration tests (73seconds)**, plus1empty-baseline/intent and1verified-cleanup case. Matched **635/635 Dynamo unit/SDK tests (2seconds)** and **38/38 AWS alias configuration/interface-dispatch tests (591ms)** passed, all zero skips. This is the complete selected AWS integration project and those unit projects, not proof of every hosted API/provider option. No production storage-code change was needed. README correction distinguishes supported export-1from invalid values below-1; ordinary reads remain nonnegative.
+
+Native cleanup conditionally removed81exact synthetic Dynamo rows and independently verified empty retained tables; pending0/containerexited/18000+18001listenersabsent. Fixed SQLite lifecycle fixtures have no residual db/wal/shm in the checked owned directories. Same DB1526784bytes, JAR/container/image/caches reused, no download/restore/new environment/cloud spend. All four old full-run reports/cleanup inventory preserved in-place .pre-interface-refresh. Exact new/old hashes and resource identities are in ENVIRONMENT_INVENTORY.md.
+
+Current-source/PDB Dynamo16/AWS3/native27/Dynamounit37/AWSunit9/Core742/Shared56 and producer/consumer copies matched. Dynamo PEBD8145CA... and AWS PE4A527C95...; Shared producerDD117502... metadata refresh is distinct from earlier S3 cohort, which was not rerun/relabelled. Hosted DynamoDB/S3 IAM/KMS/security/durability/fees, remaining interface options/concurrency/recovery and full V2 remain OPEN. Local tests must not be presented as100%client readiness or public endpoint acceptance.
+
 ## S3 contradictory completion repaired — 24 October
 
 Eight new official-SDK SigV4/XML controlled HTTP cases reproduced4genuine false-completion failures/4valid controls. The shared S3 listing owner previously accepted IsTruncated=false while a nonempty NextContinuationToken also advertised more results. [AWS documents the continuation token for truncated listings](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html); rejecting this contradictory acknowledgement is our fail-closed consistency rule, not a claim that AWS itself was observed returning it. One guard now rejects before accepting the page, without a second parser, retry, extra request or provider-specific fork.

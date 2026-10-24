@@ -2,7 +2,7 @@
 
 DynamoDB OASIS Provider — AWS managed NoSQL key-value and document database for OASIS holons and avatars via AWSSDK.DynamoDBv2. https://oasisomniverse.one
 
-Username/email exports resolve the current avatar identity; their `version` selects exported holon roots, not the avatar's independent history. Use the current username/email when exporting older holons. Linked children keep independent versions. Explicit versioned avatar lookups still support historical identity fields. Negative export versions fail before identity I/O. `AWSOASIS` inherits this same implementation.
+Username/email exports resolve the current avatar identity; their `version` selects exported holon roots, not the avatar's independent history. Use the current username/email when exporting older holons. Linked children keep independent versions. Explicit versioned avatar lookups still support historical identity fields. Export `version=-1` enumerates validated stored histories and filters ownership/deletion per version; archived roots retain stored child payloads, not a cross-version graph snapshot. Export versions below `-1` fail before identity I/O; ordinary reads still reject negative versions. `AWSOASIS` inherits this same implementation.
 
 ## Installation
 
