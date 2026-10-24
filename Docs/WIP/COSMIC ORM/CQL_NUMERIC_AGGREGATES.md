@@ -93,3 +93,8 @@ The fresh joint acceptance run passes **195 native regression tests, zero skips*
 Evidence: TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx; TestResults/CosmicCqlDemo/numeric-demo-native.log, v1-demo-result.json, v1-walkthrough.txt and numeric-demo-artifacts.json. Core, Shared and all three provider producer/native-consumer hashes agree. The retained Neo container is exited, Mongo/Bolt/demo ports have no listeners, and the readiness marker and fixed SQLite fixture are absent after acknowledged cleanup. No runtime/environment/download/restore was added.
 
 Run `Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1 -IncludeRegression` for the same bounded acceptance or `-Serve` for the browser demo. Numeric transport and these integer-domain demos are now verified. Decimal/double/UInt64 selector expansion, GroupBy, composition/federation, strict blocked-I/O interruption, Neo UTC DateTime reads and all other unchecked roadmap gates remain open.
+
+
+## Shared adapter packet normalization
+
+The public operation/input-domain FromParts overload and typed scalar overload now share one exact normalization body, enabling native grouped Sum/Average without a provider-local copy of overflow/rounding rules. Full Core2,252 passes unskipped, including13 shared JSON vectors through the adapter-facing API. Permission and native scope validation still precede arithmetic normalization. This does not advertise native grouping. [Grouping prerequisite/evidence](CQL_GROUPING_CONTRACT.md#native-grouped-numeric-prerequisite--23-october-2026).
