@@ -1,5 +1,6 @@
-param([switch]$InspectInterruptedRun)
+param([switch]$InspectInterruptedRun,[switch]$InspectStorageRecords)
 $ErrorActionPreference='Stop'
+if($InspectStorageRecords -and !$InspectInterruptedRun){throw 'Storage inspection requires explicit read-only inspection mode.'}
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 if(!$InspectInterruptedRun -and (Test-Path -LiteralPath (Join-Path $root 'TestResults/NearRuntime/near-provider-current.trx'))){
     throw 'Preserve and hash-verify the original NEAR native report before another run; no node or mutation started.'
@@ -75,7 +76,8 @@ fi
 # Transport this public script as bytes, avoiding Windows native-argument quoting
 # changing Bash quotes/substitutions before its own variable assignments execute.
 $inspectionValue=if($InspectInterruptedRun){'1'}else{'0'}
-$nearShell="export OASIS_NEAR_READ_ONLY_INSPECTION=$inspectionValue`n"+$nearShell
+$storageInspectionValue=if($InspectStorageRecords){'1'}else{'0'}
+$nearShell="export OASIS_NEAR_READ_ONLY_INSPECTION=$inspectionValue`nexport OASIS_NEAR_READ_ONLY_STORAGE=$storageInspectionValue`n"+$nearShell
 $nearEncoded=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($nearShell -replace "`r`n","`n")))
 & wsl.exe -d Ubuntu -- bash -lc "printf '%s' '$nearEncoded' | base64 -d | bash"
 if($LASTEXITCODE -ne 0){throw 'Retained NEAR verification did not pass; inspect original evidence before rerunning.'}

@@ -49,7 +49,8 @@ const statusSettings={NEAROASIS_RPCENDPOINT:endpoint,NEAROASIS_NETWORKID:status.
 const statusTests=spawnSync('/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe',
   ['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',
     'C:\\Source\\OASIS\\Scripts\\TestHosts\\near-local\\run-dotnet-evidence.ps1',
-    '-SettingsFromStdin','-RepositoryRoot','C:\\Source\\OASIS','-ReadOnlyStatus'],
+    '-SettingsFromStdin','-RepositoryRoot','C:\\Source\\OASIS',
+    process.env.OASIS_NEAR_READ_ONLY_STORAGE==='1'?'-ReadOnlyStorage':'-ReadOnlyStatus'],
   {input:JSON.stringify(statusSettings),stdio:['pipe','inherit','inherit'],timeout:120000});
 if(statusTests.error||statusTests.status!==0)throw new Error('Original C# read-only status tests failed; preserve their separate report, no replay.');
 const receipt=spawnSync(process.execPath,[`${repo}/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/bridge.mjs`],
