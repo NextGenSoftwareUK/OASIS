@@ -43,8 +43,19 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             return ExportAllDataForAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            if(version!=-1)return await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try {
+                var ready=await EnsureDetailStoreAsync(0);
+                if(ready.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<IHolon>>(ready);
+                var snapshot=await _firestoreDb.Collection("holons").GetSnapshotAsync();
+                var rows=(await ReadFirestoreCollectionAsync<Holon>(snapshot,version,exportAllVersions:true)).Where(row=>!row.IsDeleted).Cast<IHolon>().ToList();
+                result.Result=rows;result.IsLoaded=true;result.LoadedCount=rows.Count;
+            }catch(Exception cause){OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+            return result;
+        }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {

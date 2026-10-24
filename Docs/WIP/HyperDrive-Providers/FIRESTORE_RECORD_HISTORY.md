@@ -1,5 +1,11 @@
 # Firestore record history — integration in progress
 
+## 24 October — all-version exports,353unit/83history/79regression GREEN
+
+Documented export Version=-1 now enumerates validated existing embedded history via shared ReadAll, preserving native projection/identity/duplicate-document checks. Exports filter deleted versions and ownership per version; avatar selectors use current identity. Stored child payloads retained, not a point-in-time graph snapshot. Normal point/collection negative rules unchanged; export values below-1 invalid. Eight controlled archive/owner/corrupt/deleted-current cases plus four existing native export fixtures verify three original versions, foreign-owner exclusion and exact native update-time/payload preservation.
+
+Actual95412terminal0 retained checkpoint restart/readback+conditional cleanup PASS,83history+79regression0skip; paired008bc3 full353unit0skip. Core733/594AAEDB Shared55/8E034BFB Google25/C0818732 current-source/PDB/copies matched. Pending0/ports18080–18083 absent; same emulator/JAR/export reused, no reset/new environment/download. Initial345unit failure was one obsolete -1-invalid expectation, corrected export-only to-2 with original report retained. Exact hashes/resources in ENVIRONMENT_INVENTORY.md. Hosted billing/IAM/TLS, other Google services and fullV2 remain OPEN; no live cloud-account or full-provider certification.
+
 ## 23 October — collection identity/history gate,341unit/83history/79regression GREEN
 
 New36public SDK/gRPC-controlled cases first18repeated failures/18valid passes. One provider-owned async snapshot reader validates native identity uniqueness before existing canonical/history decoding, reused by avatars/details/holons/current-child pools. No deduplication/extra SDK request/codec copy; missing historical versions cannot hide repeated native roots. Current matched341unit,83real-SDK/emulator history and79native regression PASS0skip, retained checkpoint restart/conditional cleanupPASS; native suites are healthy regression, not forced duplicate/race schedules. Same jar/export/environment reused, pending0/emulatorportsabsent, no download/reset/cloud request. Exact sources/report hashes/resources in ENVIRONMENT_INVENTORY.md. Hosted IAM/cost/cloud durability/fullV2 still OPEN; older counts below are historical distinct cohorts.

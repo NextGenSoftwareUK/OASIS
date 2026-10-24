@@ -225,7 +225,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             var provider=new FailedActivationProvider();
             Assert.IsInstanceOfType((await provider.ExportAllDataForAvatarByIdAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
             Assert.IsInstanceOfType((await provider.ExportAllDataForAvatarByEmailAsync(" ")).Exception,typeof(System.ArgumentException));
-            Assert.IsInstanceOfType((await provider.ExportAllAsync(version:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
+            Assert.IsInstanceOfType((await provider.ExportAllAsync(version:-2)).Exception,typeof(System.ArgumentOutOfRangeException));
             Assert.AreEqual(0,provider.Activations);
             var failed=await provider.ExportAllDataForAvatarByUsernameAsync("owned");
             Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
