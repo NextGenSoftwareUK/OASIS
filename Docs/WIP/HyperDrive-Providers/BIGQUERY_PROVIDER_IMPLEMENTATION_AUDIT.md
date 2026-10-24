@@ -1,5 +1,15 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## AvatarDetail delete interface implemented — 24 October
+
+Full856controlledPASS0skip6seconds. Actual interface audit found six AvatarDetail delete entries still routed to IOASISStorageProvider defaults: hard delete unsupported; soft delete performed a separate load/save and lacked provider-native delete acknowledgement/count semantics. Original20cases18genuinefail/2already-protected soft lost-ack cases. BigQuery now implements GUID/username/email sync/async entries directly; compiled IOASISStorageProvider map independently confirms all six targets belong to BigQueryOASIS. This targeted map is not a claim that every interface body is certified.
+
+One detail lifecycle owner validates selector/ambiguity/canonical consistency,reads original raw document once,and either stages shared history for soft deletion or issues a conditional native DELETE against that original document. Both use the existing requested-job/one-row acknowledgement/reconciliation owner. Soft deletion deactivates the detail and archives its active revision. Repeating an already inactive tombstone reports known deletion without another write/version. Hard delete removes its entire same-record archive. Native changes after the original read fail without deleting newer data; committed-lost-ack remains uncertain with original job/record/cause and no application replay.
+
+49additional controls cover interface ownership,repeated soft deletion,hard-after-soft purge,ambiguous/missing selectors and invalid input beforeI/O. Controlled client enforces the detail table and preserves an avatar-family shadow with the SAME GUID; this is request/family-isolation control,NOT hosted paired-record transaction proof. Existing profile history/metadata remains readable at its original revision after soft delete. Source/PDB Core742/Shared56/provider8/unit16 and copies verified. No fixture correction,download/restore/new environment/cloud data or real deletion.
+
+Remaining: full interface/visibility/conditional-query/placement behavior,hosted BigQuery SQL/concurrency/uniqueness/limits/IAM/encryption,paired avatar/detail orchestration,atomic multi-record transactions,durable fee/admission/recovery and fullV2 remain OPEN. This adds an actual missing provider lifecycle,not provider100%. Detail deletion now costs a native observation plus mutation job when a write is needed; hosted cost proof remains absent. Evidence/resources in inventory.
+
 ## Requested selector versus canonical-record integrity — 24 October
 
 Full787controlledPASS0skip5seconds. Original32case baseline16genuinefail/16valid: GUID point,avatar/detail username/email and parent index responses could return canonical records belonging to another requested identity/scope. Existing GetDoc/FindOne/FindAll owners now use one requested-selector validator and reject mismatch as InvalidDataException with no loaded/partial payload. No filtering a corrupt index response into a seemingly healthy result. Historical selectors still evaluate the selected canonical revision rather than compare against current index fields.

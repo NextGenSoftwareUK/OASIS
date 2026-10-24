@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+BigQuery detail lifecycle24October:856controlledPASS0skip. All six AvatarDetail delete interface targets resolve to provider; shared history/conditional mutation owners reused for one-observation soft/hard deletion.18genuine failures/2already-correct controls retained,49added interface/idempotence/purge/selector controls. No real native/cloud deletion; paired transaction/security/fees/durability/allinterfaces/fullV2 remainOPEN. SameSDK/cache/env; audit/inventory updated.
+
 BigQuery selector24October:787controlledPASS0skip. Common point/index query owners reject request/canonical ID,username,email,parent mismatches with original InvalidDataException/no payload.16genuine failures/16valid retained;48admission/corrupt-ID/root-parent controls added. Empty point IDs/blank names reject before native I/O; no native rewrite. Unfiltered native column parity/cloud index semantics/security/fees/fullV2 remainOPEN. Audit/inventory updated,reusedsameSDK/environment.
 
 BigQuery historicalsearch/export24October:707controlledPASS0skip. Shared archive reader/search/projector now covers positive historical roots,current independent descendants,current avatar identity for exports and flat -1all-version exports;owner scope applied per revision.22genuine failures/4valid retained,12additional identity/foreignmembership/corruption controls pass. Current SDK memory fixtures now model table/index boundaries. No cloud server proof; full native/interfaces/fees/durability/V2 stillOPEN. Audit/inventory updated,same environment/cache.
