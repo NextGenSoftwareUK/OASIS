@@ -1,6 +1,6 @@
 # CQL GroupBy contract
 
-23 October 2026. Key capture is implemented; grouped selection/planning/execution and native adapters are not yet enrolled. This contract preserves the full grouping requirement rather than declaring completion from capture alone.
+23 October 2026. Key and grouped-result selection capture are implemented; planning, grouped result validation/execution and native adapters are not yet enrolled. This contract preserves the full grouping requirement rather than declaring completion from capture alone.
 
 ## Key capture
 
@@ -34,4 +34,28 @@ Native grouped Count/LongCount, Min/Max and exact integer Sum/Average must retai
 
 Both Core targets build (netstandard2.1/net10.0). Full Core/HTTP suite:2,169 passed, zero skips, including14 new key-capture controls. Evidence: TestResults/CoreCurrent/cql-grouping-foundation-current.trx and TestResults/CosmicCqlDemo/grouping-foundation-final.log. The first test compilation used `.Result` on the direct query factory; corrected before the passing run. Core production key capture, Shared rebuild and the unit consumer share the same new Core assembly.
 
-Still required: typed grouped selection/result shape, operation-specific planning/readmission, existing physical-attempt owner integration, native MongoDB/SQLite/Neo4j reductions and fault controls, bounded HTTP description, spaced/commented examples and live three-provider acceptance. No native grouping, GroupBy transport or completion claim follows from key capture.
+Still required: grouped result validation/materialization, operation-specific planning/readmission, existing physical-attempt owner integration, native MongoDB/SQLite/Neo4j reductions and fault controls, bounded HTTP description, spaced/commented examples and live three-provider acceptance. No native grouping, GroupBy transport or completion claim follows from key capture.
+
+
+## Grouped selection capture — verified
+
+The typed selection is `grouped.Select(g => new { g.Key.Name, Rows = g.LongCount(), Total = g.Sum(h => h.Version), Mean = g.Average(h => h.Version) })`. The expression parameter is a non-enumerable CQL grouping contract, with Key and native aggregate terminals only. Its integer Average overloads return Decimal/nullable Decimal consistently with the existing CQL scalar API. Arbitrary method calls, grouped arithmetic and aggregate selector code are rejected rather than evaluated on the client.
+
+Flat result scalar/anonymous/DTO construction shares one detached result-shape parser with ordinary Select. Composite keys are selected through explicit flat members. Key slots retain the original key-column index; aggregate slots retain operation, typed selector and result domain. Capture does not invoke result constructors. All key read domains must be admitted even if a result omits the key columns. Output columns remain bounded and aliases unique. All 13 new controls pass in the full 2,182-test suite, zero skips. They cover key slots, multiple aggregate domains, Decimal/nullable Average, deferred DTO constructors, arbitrary code/arithmetic rejection, failed/missing inputs and the 32/33-column boundary. Both Core targets build. Ordinary Select now uses the same extracted shape parser; its existing regression tests pass in the same full run. This proves capture only, not native grouped execution.
+
+
+```csharp
+var selected = source
+    .GroupBy(h => new { h.Version, h.Name })
+    .Select(g => new
+    {
+        g.Key.Name,
+        Rows = g.LongCount(),
+        Total = g.Sum(h => h.Version),
+        Mean = g.Average(h => h.Version)
+    });
+```
+
+The selection remains an immutable intent; no provider advertises GroupBy execution. `Mean` has Decimal type. It uses the CQL grouping contract rather than Enumerable.Average's Double result. Count/LongCount have no predicate overload; filter the source explicitly. Unsupported grouped arithmetic and arbitrary selector code fail capture instead of becoming a client evaluator.
+
+Evidence: TestResults/CoreCurrent/cql-grouped-selection-current.trx and cql-grouped-selection-final-current.trx; TestResults/CosmicCqlDemo/grouped-selection.log, grouped-selection-final.log and grouped-selection-artifacts.json. Private Core297b971ab628a763848c5f39a649d8c13570a128 is paired with the parent gitlink/manifest. This extends the earlier key-only checkpoint and leaves native grouping/HTTP/demos open.

@@ -25,7 +25,8 @@ Current verified contracts: [projection/aggregate ownership](CQL_AGGREGATE_IMPLE
 - [x] Bounded SDK/HTTP transport and spaced/commented demos for these supported operators: latest full Core2,155, native195,42 SDK/42 HTTP, zero skips;222 settled/217 physical attempts. GroupBy foundation subsequently passes full Core2,169.
 - [x] Empty/null/precision/overflow semantics for the enrolled scalar operations and detached selected publication. Broader scalar coverage and authoritative sharing/tenant policy remain separate unchecked requirements below.
 - [x] Immutable scalar/composite GroupBy key capture through the existing projection compiler, independent grouped-output bounds and source/access/window preservation (14 new controls).
-- [ ] Complete grouped result selection, aggregate slots, capability planning/readmission and existing attempt-owner integration before native grouping I/O.
+- [x] Capture typed grouped result selection and key/Count/LongCount/Min/Max/Sum/Average slots through a common detached DTO-shape owner (13 new controls; full Core2,182 passes).
+- [ ] Complete grouped result validation/materialization, capability planning/readmission and existing attempt-owner integration before native grouping I/O.
 - [ ] Implement grouped Count/LongCount, Min/Max and exact Sum/Average natively on all three providers; prove typed key equality, nullable/missing rules, deterministic order, group/input budgets, access-before-participation and no partial publication.
 - [ ] Certify post-group filters/order/pages and multiple aggregates. Add bounded grouped HTTP, developer examples and live three-provider acceptance.
 
