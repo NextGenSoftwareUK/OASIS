@@ -137,10 +137,8 @@ public partial class Neo4jOASIS
                 {
                     // Lexicographic floor quotient/remainder is the exact total
                     // order, without recombining into an overflowing Int64 or Double.
-                    var remainder = "(" + packet + ".low % 4294967296)";
-                    var quotient = "(" + packet + ".high + " + packet + ".low / 4294967296)";
-                    Sort("CASE WHEN " + remainder + " < 0 THEN " + quotient + " - 1 ELSE " + quotient + " END", resultOrdering.Descending);
-                    Sort("CASE WHEN " + remainder + " < 0 THEN " + remainder + " + 4294967296 ELSE " + remainder + " END", resultOrdering.Descending);
+                    var parts = GroupedIntegralParts(packet + ".high", packet + ".low");
+                    Sort(parts.High, resultOrdering.Descending); Sort(parts.Low, resultOrdering.Descending);
                 }
                 else throw new NotSupportedException("Exact native resultOrdering is not enrolled for this aggregate.");
             }
@@ -163,19 +161,23 @@ public partial class Neo4jOASIS
             + "valid,traversalCycle,traversalLimit,payloadLimit "
             + "ORDER BY valid ASC,payloadLimit DESC," + string.Join(",", resultOrder) + " LIMIT $groupLimit";
         const string fields = "inputs,keys,aggregates,valid,traversalCycle,traversalLimit,payloadLimit";
+        var filterCompiler = new GroupFilterCompiler<T, TKey, TResult>(query, translator);
+        var filter = query.ResultPredicates.Count == 0 ? "true" : string.Join(" AND ", query.ResultPredicates.Select(filterCompiler.Translate));
         if (query.ResultOffset != 0 || query.ResultLimit.HasValue)
         {
             // Bound the ordered proof first, then compute native membership.
             // Off-page packets remain mandatory proof; no source rows hydrate.
-            cypher += " WITH collect({inputs:inputs,keys:keys,aggregates:aggregates,valid:valid,"
+            cypher += " WITH " + fields + ",CASE WHEN (" + filter + ") THEN true ELSE false END AS groupMatches"
+                + " WITH collect({inputs:inputs,keys:keys,aggregates:aggregates,valid:valid,filterMember:groupMatches,"
                 + "traversalCycle:traversalCycle,traversalLimit:traversalLimit,payloadLimit:payloadLimit}) AS groupPackets"
                 + " UNWIND range(0,size(groupPackets)-1) AS groupIndex"
-                + " WITH groupPackets[groupIndex] AS packet,groupIndex RETURN "
+                + " WITH groupPackets[groupIndex] AS packet,groupIndex,"
+                + "reduce(prior=0,candidate IN groupPackets[0..groupIndex] | prior + CASE WHEN candidate.filterMember THEN 1 ELSE 0 END) AS filteredRank RETURN "
                 + string.Join(",", fields.Split(',').Select(field => "packet." + field + " AS " + field))
-                + ",groupIndex >= $resultOffset AND ($resultTake IS NULL OR groupIndex < $resultOffset+$resultTake) AS resultMember"
+                + ",packet.filterMember AND filteredRank >= $resultOffset AND ($resultTake IS NULL OR filteredRank < $resultOffset+$resultTake) AS resultMember"
                 + " ORDER BY groupIndex";
         }
-        else cypher += " RETURN " + fields + ",true AS resultMember";
+        else cypher += " RETURN " + fields + ",CASE WHEN (" + filter + ") THEN true ELSE false END AS resultMember";
         return new NeoCqlGroupedCommand(cypher, translator.Parameters);
     }
 }
