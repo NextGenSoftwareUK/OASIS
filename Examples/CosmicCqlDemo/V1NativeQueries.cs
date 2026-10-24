@@ -296,6 +296,31 @@ public static class V1NativeQueries
         await output.WriteLineAsync("17. Native grouped page / Skip(1).Take(1)\n");
         await output.WriteLineAsync($"  {pageRow.Name}: {pageRow.Total}\n");
 
+        // 18. Filter the reduced totals, then page the matching groups.
+        // B-owned is excluded by its aggregate value. Skip(1) skips D-owned,
+        // so C-public wins. Filtering source rows would have different semantics.
+        // Keep the Int64 literal exact: these adjacent values exceed 2^53.
+        var filteredGroups = Value(orderedGroups
+            .Where(group => group.Total > -9007199254740991L)
+            .Skip(1)
+            .Take(1));
+
+        var filteredPlan = Value(CosmicGroupedPlanner.Plan(
+            filteredGroups,
+            provider,
+            new[] { new CosmicGroupedTarget(provider,
+                adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var filteredExecution = Value(await manager.ExecuteGroupedQueryAsync(filteredPlan, new[] { adapter }));
+        var filteredRow = filteredExecution.Providers.Single().Rows.Single();
+
+        if (filteredRow.Name != "C-public" || filteredRow.Total != -9007199254740990L)
+            throw new InvalidOperationException("Grouped filtering or matching-group paging lost exact semantics.");
+
+        completedQueries++;
+        await output.WriteLineAsync("18. Filter grouped totals / Where().Skip(1).Take(1)\n");
+        await output.WriteLineAsync($"  {filteredRow.Name}: {filteredRow.Total}\n");
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(
