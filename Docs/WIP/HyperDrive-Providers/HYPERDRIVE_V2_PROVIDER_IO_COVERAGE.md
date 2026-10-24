@@ -1,8 +1,12 @@
 # HyperDrive V2 provider-I/O coverage
 
-## Redis shared-storage transport prerequisite — 23 October 2026
+## Latest Oracle/S3 read-integrity evidence — 23 October 2026
 
-Native adapter IConditionalKeyValueBackend foundation (unused by public provider) compiles; real retained Redis8.2.2 bounded1scenario PASS0skip,13 existing compatibility controls PASS0skip. Scope: native observed-byte CAS/create/delete/read/list and exact owned cleanup; no fake client/native claim.12 public version controls remain red and locally uncommitted, not included in the13 compatibility run. Shared-base wiring, full history/interfaces/encryption/lifecycle/faults/cluster and provider V2 remain OPEN. No new environment/download/key/dev deployment; exact artifacts and cleanup in ENVIRONMENT_INVENTORY.md.
+Oracle Object Storage7f807fb now119SDK signed-loopback controls PASS0skip after6reproduced malformed-read acceptance cases; native ContentLength/optional supplied-MD5 checked before publication. Oracle SQL496native/325unit is a separate older cohort. S3b4fbd797 current selected52controlsPASS0skip after caller WHEN_REQUIRED exposed4checksum-request omissions; existing SDK GET explicitly enables its own validator, no custom hash/extra HEAD/retry. Neither suite is a real cloud IAM/KMS/wallet/cost/durability/fullV2 certificate. Native cloud owner actions stay in ACTIONS-FOR-DAVID.md; exact evidence/cohorts/resource ledger in ENVIRONMENT_INVENTORY.md. No new SDK/environment/download/dev deployment.
+
+## Redis native transport and shared public storage — 23 October 2026
+
+5e7729c4 wires public Redis to shared canonical history/query/lifecycle/private encryption.35unit and fullShared1021controlsPASS0skip; actual retained Redis8.2.2 native4public cases plus1readonlypreflightPASS0skip. Original12point-version failures are repaired and preserved as red baseline, not currently unresolved. Public native scope includes private history, identity-key rejection, inventory/XP/karma, reconnect, conditional soft/hard cleanup and refusal to migrate legacy rows; exact owned data removed/pending0/containerstopped. Retained DPAPI test storage key262B is reused and never a production auto-generated key. Earlier native transport1/compatibility13 are distinct historical cohorts. Native graph/query breadth, crash/concurrency/cluster/monotonic revision guarantees and full provider V2 remain OPEN; no download/new environment/dev deployment. Resource/evidence details in inventory.
 
 ## AWS/Dynamo read identity consistency — 23 October 2026
 

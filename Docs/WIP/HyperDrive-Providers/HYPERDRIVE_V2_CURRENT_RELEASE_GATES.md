@@ -1,8 +1,14 @@
 # HyperDrive V2 current release gates
 
-## Redis transport foundation — 23 October 2026, public provider remains OPEN
+## Latest Oracle/S3 integrity gates — 23 October 2026
 
-New native conditional key-value adapter compiles and passes one bounded real Redis8.2.2 scenario: observed-byte GET, SET-NX, stale-state CAS rejection, conditional delete, scope-bound observations, predispatch cancellation and scoped enumeration. Two synthetic keys conditionally cleaned/absent verified; intent resolved, server stopped/pending0. Existing13 compatibility controls PASS0skip, explicitly EXCLUDING12 newly reproduced public version regressions (stillred/uncommitted). Adapter is NOT wired into public RedisOASIS; no public history/interface fix, encrypted-provider/cluster/transport-loss/ABA-monotonicity/V2 certification. State comparisons are native observed bytes, not invented transaction IDs or monotonic revisions. No new SDK/runtime/environment/authkey; local cache-only graph update. Exact identities/proofs/resources in inventory. No dev deployment.
+Oracle Object Storage7f807fb:12new SDK controls first6red/6valid; single GET owner now validates native byte count and supplied optional MD5. Current119/119official-SDK signed-loopback controls PASS0skip, no hosted OCI request. Oracle Database496native/325unit remains its distinct older cohort. Live Autonomous/OCI IAM/wallet/durability/fees/fullV2 remain OPEN.
+
+AWS S3b4fbd797: default SDK4controls already passed; caller WHEN_REQUIRED adds4reproduced failures. Existing GET now explicitly enables SDK ChecksumMode, no custom hash/extra request/retry/fallback. Current selected52/52SharedS3/AwsS3 controls PASS0skip, NOT hosted cloud or equivalent to older55scope. Real account/KMS permissions/fees/durability/composite/multipart/fullV2 remain OPEN. Exact sources/cohorts/report hashes and resource lifecycle in ENVIRONMENT_INVENTORY.md; no dev deployment by these batches.
+
+## Redis shared encrypted provider — 23 October 2026, scoped native gate closed, full provider remains OPEN
+
+Public RedisOASIS is now wired to shared canonical storage/history/query/private encryption in5e7729c4, removing duplicated storage code. Original12red negative/missing-version regressions now pass within35unit controls, alongside positive stored-history/admission controls; fullShared1021PASS0skip. Retained Redis8.2.2 public native4cases plus readonly1preflight PASS0skip: private wire state/history, XP/karma/inventory, rejected username-shaped key, reconnect, soft/hard lifecycle, unrelated sentinel preservation and exact legacy-layout refusal. Owned fixtures acknowledged absent, intents resolved, server stopped/pending0. One separately persisted test storage key262B retained/reused, no production key generation or migration. Earlier adapter-only native1/compatibility13/red12 reports are preserved historical cohorts, not current failures. CAS compares exact native state, not a monotonic revision/ABA-history guarantee. Broad interface/graph/query/concurrency/transport-loss/cluster/fullV2 certification remains OPEN. Exact reports/resources in inventory; no dev deployment.
 
 ## AWS/Dynamo repeated-row read gate — 23 October 2026
 
