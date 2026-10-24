@@ -1,6 +1,6 @@
 # CQL GroupBy contract
 
-23 October 2026. Core captures, plans, validates and executes grouped intents through the V2 physical-attempt owner. SQLite native reduction is verified below; MongoDB/Neo4j native adapters, grouped HTTP/demos and post-group composition remain open.
+23 October 2026. Core captures, plans, validates and executes grouped intents through the V2 physical-attempt owner. SQLite native reduction and MongoDB native integration/boundaries are verified below; Neo4j native grouping, grouped HTTP/demos and post-group composition remain open.
 
 ## Key capture
 
@@ -146,3 +146,10 @@ MongoDB now implements ICosmicQueryGroupedStorageProvider with independent group
 Verification: producer/consumer build, **260 unit tests and 147 native CQL regression tests passed, zero skips**. The native total includes three new grouped controls: all six aggregate families without hydration, ordered source windows and excess-group rejection. Evidence: TestResults/MongoCurrent/cql-grouped-read-owner-final-current.trx, cql-grouped-native-final-current.trx, cql-grouped-native-regression-current.trx; TestResults/CosmicCqlDemo/mongo-group-{read-rebuild,native-final,native-regression}.log. Producer/consumer hashes in TestResults/MongoCurrent/grouped-native-artifacts.json: Core6D193362, Shared996EE8E6, MongoB9500284. Owned fixture absent and retained Mongo process stopped after verified identity and admin shutdown.
 
 This is initial native integration evidence. Expanded grouped composite/null/date/GUID/visibility/cancellation/overflow acceptance is still open, as are Neo4j native grouping, grouped HTTP/demos and post-group composition. The overall grouping gate remains unchecked.
+
+
+## MongoDB expanded grouped acceptance - 23 October 2026
+
+All **16 selected native grouping tests pass, zero skips** (13 new boundary cases plus the three initial native controls). This test-only batch requires no production change. Coverage now includes composite identities; explicit NULL/missing equivalence; empty nullable Min/Max/Sum/Average; exact cancelling Int64 totals and Decimal averages; true final overflow; 137 participating rows under one output-group budget; access filtering before malformed hidden values can participate; invalid participating keys/values; Unicode scalar ordering; GUID identity across string case; distinct 100 ns timestamp keys; protected traversal limits despite Take(0); pre-cancellation and subsequent reuse; payload exhaustion and zero remaining group/output budgets.
+
+Evidence: TestResults/MongoCurrent/cql-grouped-boundaries-final-current.trx and TestResults/CosmicCqlDemo/mongo-group-boundaries-final.log (earlier11/15 controls also pass). The prior full147 native CQL regression/260 unit evidence remains the production-code checkpoint; no new full160-suite run is claimed. Strict mid-I/O interruption and grouped snapshot race controls remain separate acceptance work; this pre-cancel test does not prove them. Neo4j native grouping, grouped HTTP/demos and post-group composition remain open.
