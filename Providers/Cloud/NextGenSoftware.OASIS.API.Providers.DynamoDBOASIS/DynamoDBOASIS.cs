@@ -296,13 +296,19 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         // ─── Avatar loading ───────────────────────────────────────────────────────
 
+        private static Dictionary<string,AttributeValue> PointReadKey(Guid id)
+        {
+            if(id==Guid.Empty)throw new ArgumentException("A nonempty record identity is required.",nameof(id));
+            return LifecycleKey(id);
+        }
+
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
             try
             {
                 ValidateRecordVersion(version);
-                var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatars",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
+                var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatars",ConsistentRead=true,Key=PointReadKey(id)});
                 RequireItemRead(resp);
                 if (resp.Item.Count==0) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var avatar = ReadStoredIdentity<Avatar>(resp.Item,id,version);
@@ -508,7 +514,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ValidateRecordVersion(version);
-                var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatarDetails",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
+                var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatarDetails",ConsistentRead=true,Key=PointReadKey(id)});
                 RequireItemRead(resp);
                 if (resp.Item.Count==0) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var d = ReadStoredIdentity<AvatarDetail>(resp.Item,id,version);
@@ -646,8 +652,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ValidateGraphRead(maxChildDepth,0,version);
-                if(id==Guid.Empty) throw new ArgumentException("A nonempty holon identity is required.",nameof(id));
-                var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisHolons",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
+                var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisHolons",ConsistentRead=true,Key=PointReadKey(id)});
                 RequireItemRead(resp);
                 if (resp.Item.Count==0) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No holon for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = ReadStoredIdentity<Holon>(resp.Item,id,version);
