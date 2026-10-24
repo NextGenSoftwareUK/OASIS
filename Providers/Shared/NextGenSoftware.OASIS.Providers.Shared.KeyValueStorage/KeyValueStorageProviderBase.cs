@@ -1084,13 +1084,38 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).GetAwaiter().GetResult();
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, true, false, version);
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            if(version!=-1)return await LoadAllHolonsAsync(HolonType.All,false,false,0,0,true,false,version);
+            try {
+                var rows=new List<IHolon>();var roots=new HashSet<string>(StringComparer.Ordinal);
+                foreach(var key in await Backend.ListKeysAsync($"{KeyPrefix}holon/")){
+                    var id=IdFromKey(key);
+                    if(key!=HolonKey(id)||!roots.Add(key))throw new System.IO.InvalidDataException("Export root key is invalid or repeated.");
+                    var current=await ReadVersionAsync(key,await ReadAsync<IHolon>(key),0);
+                    if(current==null||current.Version<0)throw new System.IO.InvalidDataException("Export root is missing or has an invalid version.");
+                    var archived=new SortedDictionary<int,IHolon>();
+                    foreach(var historyKey in await Backend.ListKeysAsync(VersionPrefix(key))){
+                        var suffix=historyKey[(historyKey.LastIndexOf('/')+1)..];
+                        if(!int.TryParse(suffix,System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out var selected)
+                            ||selected<0||selected>=current.Version||historyKey!=VersionKey(key,selected)||archived.ContainsKey(selected))
+                            throw new System.IO.InvalidDataException("Export history key is invalid or repeated.");
+                        var stored=await ReadAsync<IHolon>(historyKey);
+                        if(stored==null||stored.Id!=id||stored.Version!=selected)throw new System.IO.InvalidDataException("Export history identity/version differs from its key.");
+                        archived.Add(selected,stored);
+                    }
+                    rows.AddRange(archived.Values.Where(row=>!row.IsDeleted));
+                    if(!current.IsDeleted)rows.Add(current);
+                }
+                return Ok<IEnumerable<IHolon>>(rows,loadedCount:rows.Count);
+            }catch(Exception cause){return Fail<IEnumerable<IHolon>>("All-version export failed.",cause);}
+        }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, true, false, version);
+            var all = await ExportAllAsync(version);
             if(all.IsError)return all;
             var filtered=all.Result.Where(h=>h.CreatedByAvatarId==avatarId).ToList();
             all.Result=filtered;all.LoadedCount=filtered.Count;
@@ -1101,7 +1126,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            if(version<0)return InvalidVersion<IEnumerable<IHolon>>(version);
+            if(version < -1)return InvalidVersion<IEnumerable<IHolon>>(version);
             // Identity and exported holon histories have independent version counters.
             var avatar = await LoadAvatarByUsernameAsync(avatarUsername);
             return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
@@ -1111,7 +1136,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            if(version<0)return InvalidVersion<IEnumerable<IHolon>>(version);
+            if(version < -1)return InvalidVersion<IEnumerable<IHolon>>(version);
             var avatar = await LoadAvatarByEmailAsync(avatarEmailAddress);
             return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
         }

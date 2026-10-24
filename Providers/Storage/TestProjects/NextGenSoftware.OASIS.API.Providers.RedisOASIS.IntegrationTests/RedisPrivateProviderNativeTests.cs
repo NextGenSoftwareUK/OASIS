@@ -79,6 +79,12 @@ public class RedisPrivateProviderNativeTests
                 var soft=sync?provider.DeleteHolon(holonId):await provider.DeleteHolonAsync(holonId);
                 Assert.IsFalse(soft.IsError,soft.Message);Assert.IsTrue(soft.Result.IsDeleted);Assert.AreEqual(1,soft.DeletedCount);Assert.AreEqual(2,soft.Result.Version);
                 var historical=await provider.LoadHolonAsync(holonId,loadChildren:false,version:1);Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(1,historical.Result.Version);Assert.IsFalse(historical.Result.IsDeleted);
+                var exportKeys=server.Keys(pattern:"*").OrderBy(value=>value.ToString(),StringComparer.Ordinal).ToArray();
+                var exportBytes=await db.StringGetAsync(exportKeys);
+                var allVersions=sync?provider.ExportAll(-1):await provider.ExportAllAsync(-1);
+                Assert.IsFalse(allVersions.IsError,allVersions.Message);Assert.IsTrue(allVersions.IsLoaded);Assert.AreEqual(1,allVersions.LoadedCount);
+                Assert.AreEqual(holonId,allVersions.Result.Single().Id);Assert.AreEqual(1,allVersions.Result.Single().Version);Assert.IsFalse(allVersions.Result.Single().IsDeleted);
+                CollectionAssert.AreEqual(exportBytes,await db.StringGetAsync(exportKeys),"Archive export must not rewrite private records or unrelated keys.");
                 var hardHolon=sync?provider.DeleteHolonSoft(holonId,false):await provider.DeleteHolonSoftAsync(holonId,false);Assert.IsFalse(hardHolon.IsError,hardHolon.Message);Assert.IsTrue(hardHolon.Result);
                 var deleted=sync?provider.DeleteAvatar(id,false):await provider.DeleteAvatarAsync(id,false);Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsTrue(deleted.IsDeleted);
                 Assert.AreEqual(sentinelValue,await db.StringGetAsync(sentinel),"Provider cleanup must preserve unrelated namespace data.");
