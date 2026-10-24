@@ -1,6 +1,6 @@
 # CQL GroupBy contract
 
-23 October 2026. Core captures, plans and validates detached grouped results. Execution ownership and native adapters remain to implement; the full grouping requirement is still open.
+23 October 2026. Core captures, plans, validates and executes grouped intents through the V2 physical-attempt owner. Native adapters/HTTP/demos remain to implement; the full grouping requirement is still open.
 
 ## Key capture
 
@@ -84,3 +84,17 @@ All 24 new controls pass in the full **2,224-test suite, zero skips**, and both 
 The shared detached scalar validator also closes two projection gaps: non-UTC DateTime values and undefined enum values now fail before construction. Exact CLR types, finite numbers, strict Unicode and primitive-only cells share this owner; no arbitrary serializer/getter/ToString is invoked. Payload checks stop after each key/result cell. Numeric grouped input work counts nullable nonparticipants too; a LongCount-only group can retain its exact Int64 count without a binary64 conversion. Grouped source cardinality uses mandatory input proofs rather than just the number of groups.
 
 Evidence: TestResults/CoreCurrent/cql-grouped-results-{current,final-current,budget-current}.trx; TestResults/CosmicCqlDemo/grouped-results{,-fixed,-final,-budget}.log and grouped-results-artifacts.json. The initial build hit an Enum name collision; System.Enum was qualified before the passing build. Private Core92a5d5e419b9e673287d930e345cad6c77457b65 is paired with the parent gitlink/manifest. This verifies detached result handling, not native GroupBy execution.
+
+
+## Grouped execution owner — verified
+
+The grouped adapter interface is additive to the existing query provider contract. Generic execution snapshots adapters and preflights every actual source/group profile before the first native call. It reuses CosmicQueryAttemptOwner and prepared storage admission/receipts; no new accounting path or entity scan is permitted. Generic HolonManager execution is V2-only; legacy behavior remains documented, not repaired.
+
+Group count and detached payload budgets apply across all selected provider buffers. Native methods receive remaining rejection limits, including zero; they must not truncate input or skip mandatory scope checks. A later empty provider still executes when the publication budget is exhausted. Results retain per-provider provenance without implicit identity merging. Every buffer validates before any provider's DTO constructor executes. Cancellation, an unacknowledged response, invalid later buffer or provider failure must produce no partial grouped publication.
+
+All 15 new executor/hosted controls pass in the full **2,239-test suite, zero skips**. They prove durable attempt-before-native/receipt-after-native ordering on all three priority identities with controlled adapters, inherited-provider denial, V2 manager gating, all-target preflight, cross-provider no-partial DTO construction, cancellation, identity rejection and global group/payload budgets. An empty later provider still executes with both remaining limits zero. Both Core targets build. This is controlled execution evidence, not native store certification.
+
+
+The host executes an admitted plan with `HolonManager.ExecuteGroupedQueryAsync(plan, adapters, cancellationToken)`. Native enrollment requires ICosmicQueryGroupedStorageProvider plus actual GroupedCapabilities. Remaining output bounds are rejection limits: zero is valid for an empty result but cannot authorize truncation or skipping protected scope checks. Per-provider results retain provenance and independent row sets; there is no implicit replica merge.
+
+Evidence: TestResults/CoreCurrent/cql-grouped-executor-{current,final-current}.trx; TestResults/CosmicCqlDemo/grouped-executor{,-final}.log and grouped-executor-artifacts.json. Private Core237f84b3c729cabe949ddbff0ff9fc92bff6972e is paired with the parent gitlink/manifest. No native provider advertises grouping yet. Native grouped Count/LongCount/Min/Max/Sum/Average, bounded HTTP, developer demos and later post-group composition remain required.
