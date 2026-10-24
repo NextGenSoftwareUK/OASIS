@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Globalization;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -15,6 +17,7 @@ public static partial class CqlV1Compiler
         CqlGroupedV1Request request, Guid actor, ProviderType? provider)
     {
         if (request == null || request.Keys == null || request.Keys.Length is < 1 or > 8
+            || request.ResultFilters == null || request.ResultFilters.Length > 32
             || request.ResultOrder == null || request.ResultOrder.Length > 32
             || request.Columns == null || request.Columns.Length is < 1 or > 32 || request.MaximumGroups is < 1 or > 100)
             throw new ArgumentException("Grouping requires one to8 keys, one to32 columns and one to100 output groups.");
@@ -56,6 +59,8 @@ public static partial class CqlV1Compiler
         var result = grouping.SelectColumns(bindings);
         if (result.IsError) throw new ArgumentException(result.Message);
         var ordered = result.Result;
+        foreach (var filter in request.ResultFilters)
+            ordered = BindGroupedFilter(ordered, filter);
         foreach (var order in request.ResultOrder)
         {
             if (order == null) throw new ArgumentException("Result ordering cannot contain null entries.");
@@ -68,6 +73,75 @@ public static partial class CqlV1Compiler
         if (request.ResultTake.HasValue) page = page.Take(request.ResultTake.Value);
         if (page.IsError) throw new ArgumentException(page.Message);
         return page.Result;
+    }
+
+    private static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> BindGroupedFilter(
+        CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> query,
+        CqlGroupedV1Filter filter)
+    {
+        if (filter == null || !Enum.IsDefined(filter.Operator) || filter.Operator == CqlV1Operator.Exists)
+            throw new ArgumentException("A defined grouped comparison is required; selected aliases always exist.");
+        var column = query.Columns.SingleOrDefault(candidate => candidate.Alias == filter.Alias)
+            ?? throw new ArgumentException("Result filtering must name an exact selected output alias.");
+        var row = Expression.Parameter(typeof(CosmicProjectionRecord), "row");
+        var cell = Expression.Call(row, typeof(CosmicProjectionRecord).GetMethod("get_Item"), Expression.Constant(column.Alias));
+        var path = Expression.Convert(cell, column.ValueType);
+        var type = Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType;
+        var json = filter.Value;
+        object value;
+        if (filter.Operator == CqlV1Operator.IsNull)
+        {
+            if (json.ValueKind != JsonValueKind.Undefined)
+                throw new ArgumentException("IsNull does not accept Value.");
+            value = null;
+        }
+        else if (json.ValueKind == JsonValueKind.Null) value = null;
+        else if (type == typeof(string) && json.ValueKind == JsonValueKind.String && json.GetString().Length <= 512)
+            value = json.GetString();
+        else if (type == typeof(bool) && json.ValueKind is JsonValueKind.True or JsonValueKind.False)
+            value = json.GetBoolean();
+        // Int64 and Decimal use invariant strings to preserve precision through JavaScript clients.
+        else if (type == typeof(long) && json.ValueKind == JsonValueKind.String &&
+            long.TryParse(json.GetString(), NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var integer)) value = integer;
+        else if (type == typeof(decimal) && json.ValueKind == JsonValueKind.String &&
+            decimal.TryParse(json.GetString(), NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+                CultureInfo.InvariantCulture, out var number) &&
+            number.ToString(CultureInfo.InvariantCulture) == json.GetString()) value = number;
+        else if (type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var count)) value = count;
+        else if (type == typeof(Guid) && json.ValueKind == JsonValueKind.String &&
+            Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
+        else throw new ArgumentException("Value must match the exact grouped scalar type; Int64 and Decimal require invariant strings.");
+        if (value == null && type == column.ValueType && type.IsValueType)
+            throw new ArgumentException("This grouped column cannot be null.");
+        Expression literal = value == null ? Expression.Constant(null, column.ValueType)
+            : Expression.Constant(value, type);
+        if (literal.Type != path.Type) literal = Expression.Convert(literal, path.Type);
+        Expression predicate;
+        if (filter.Operator is CqlV1Operator.Contains or CqlV1Operator.StartsWith or CqlV1Operator.EndsWith)
+        {
+            if (type != typeof(string) || value == null)
+                throw new ArgumentException("String operations require a non-null string literal.");
+            var method = typeof(string).GetMethod(filter.Operator.ToString(), new[] { typeof(string), typeof(StringComparison) });
+            predicate = Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
+        }
+        else
+        {
+            var operation = filter.Operator switch
+            {
+                CqlV1Operator.Equal or CqlV1Operator.IsNull => ExpressionType.Equal,
+                CqlV1Operator.NotEqual => ExpressionType.NotEqual,
+                CqlV1Operator.GreaterThan => ExpressionType.GreaterThan,
+                CqlV1Operator.GreaterThanOrEqual => ExpressionType.GreaterThanOrEqual,
+                CqlV1Operator.LessThan => ExpressionType.LessThan,
+                CqlV1Operator.LessThanOrEqual => ExpressionType.LessThanOrEqual,
+                _ => throw new ArgumentException("Unsupported grouped filter operation.")
+            };
+            try { predicate = Expression.MakeBinary(operation, path, literal); }
+            catch (InvalidOperationException exception) { throw new ArgumentException("The selected type does not support this comparison.", exception); }
+        }
+        var filtered = query.Where(Expression.Lambda<Func<CosmicProjectionRecord, bool>>(predicate, row));
+        if (filtered.IsError) throw new ArgumentException(filtered.Message);
+        return filtered.Result;
     }
 
     private static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> BindGroupedOrdering(

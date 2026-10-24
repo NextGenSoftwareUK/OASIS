@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
@@ -11,6 +12,8 @@ public sealed class CqlGroupedV1Request
     public string? Provider { get; set; }
     public CqlProjectionV1Column[] Keys { get; set; } = Array.Empty<CqlProjectionV1Column>();
     public CqlGroupedV1Column[] Columns { get; set; } = Array.Empty<CqlGroupedV1Column>();
+    /// <summary>ANDed predicates over exact selected aliases, before result ordering and paging.</summary>
+    public CqlGroupedV1Filter[] ResultFilters { get; set; } = Array.Empty<CqlGroupedV1Filter>();
     /// <summary>Selected output aliases, applied after grouping. Source OrderBy remains independent.</summary>
     public CqlGroupedV1Ordering[] ResultOrder { get; set; } = Array.Empty<CqlGroupedV1Ordering>();
     /// <summary>Skip reduced groups after result ordering; independent of source Skip.</summary>
@@ -45,4 +48,12 @@ public sealed class CqlGroupedV1Ordering
 {
     public string? Alias { get; set; }
     public bool Descending { get; set; }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlGroupedV1Filter
+{
+    public string? Alias { get; set; }
+    public CqlV1Operator Operator { get; set; }
+    public JsonElement Value { get; set; }
 }
