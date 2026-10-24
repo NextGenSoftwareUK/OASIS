@@ -2,6 +2,8 @@
 
 WEB4 OASIS API AzureCosmosDB OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.
 
+Username/email exports resolve the current avatar identity; `version` selects exported holon roots, not independent avatar history. Use the current username/email when exporting older holons. Linked children keep independent versions. Explicit versioned avatar lookups retain historical identity fields. Negative export versions fail before identity repository reads. Owned exports report returned-root `LoadedCount`, including zero for an empty result; this count is not Cosmos request-unit usage or cost.
+
 Initial Release targeting OASIS API v2.3.1 (Current LIVE REST version): \
 https://api.oasisweb4.one
 
