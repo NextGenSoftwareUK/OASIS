@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Redis shared-storage transport prerequisite — 23 October 2026
+
+Native adapter IConditionalKeyValueBackend foundation (unused by public provider) compiles; real retained Redis8.2.2 bounded1scenario PASS0skip,13 existing compatibility controls PASS0skip. Scope: native observed-byte CAS/create/delete/read/list and exact owned cleanup; no fake client/native claim.12 public version controls remain red and locally uncommitted, not included in the13 compatibility run. Shared-base wiring, full history/interfaces/encryption/lifecycle/faults/cluster and provider V2 remain OPEN. No new environment/download/key/dev deployment; exact artifacts and cleanup in ENVIRONMENT_INVENTORY.md.
+
 ## AWS/Dynamo read identity consistency — 23 October 2026
 
 Existing common scan/query page reader now rejects repeated GUIDs within/across pages, reusing its native-ID parser with canonical decoding. No retry, silent deduplication or snapshot guarantee.24 new controlled cases/full499 controls plus171 existing official SDK/DynamoDB Local native regressions PASS0skip, same current cohort verified. Forced repetition schedules are controlled, not native races. Native fixtures cleared/container stopped; no hosted cloud request/new environment/dev deployment. Full AWS IAM/capacity/billing/relevant-interface/V2 gates remain OPEN; details in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md.
