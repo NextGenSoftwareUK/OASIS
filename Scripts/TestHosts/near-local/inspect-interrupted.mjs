@@ -19,6 +19,14 @@ const code=await rpc('query',{request_type:'view_code',account_id:contract,final
 const expectedCode=digest(readFileSync(`${retained}/build/oasis_storage.wasm`));
 if(typeof code.code_base64!=='string'||digest(Buffer.from(code.code_base64,'base64'))!==expectedCode)
   throw new Error('Retained contract bytecode differs; no redeployment permitted');
+// Reproduce the original Windows SDK runtime's transport independently of the
+// Linux status check. Repeated status observations are diagnostics, not retries.
+for(const [executable,probe] of [[process.execPath,`${repo}/Scripts/TestHosts/near-local/inspect-endpoint.mjs`],
+  ['/mnt/c/Program Files/nodejs/node.exe','C:\\Source\\OASIS\\Scripts\\TestHosts\\near-local\\inspect-endpoint.mjs']]){
+  const control=spawnSync(executable,[probe],{encoding:'utf8',timeout:30000,maxBuffer:64*1024});
+  if(control.stdout)console.log(control.stdout.trim());
+  if(control.error||control.status!==0)throw new Error('Retained read-only endpoint control failed; preserve evidence, no fixture replay.');
+}
 const input={operation:'entries',rpcEndpoint:endpoint,networkId:'oasis-near-local',contractId:contract,prefix:''};
 const child=spawnSync(process.execPath,[`${repo}/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/bridge.mjs`],
   {input:JSON.stringify(input),encoding:'utf8',timeout:120000,maxBuffer:70*1024*1024});
