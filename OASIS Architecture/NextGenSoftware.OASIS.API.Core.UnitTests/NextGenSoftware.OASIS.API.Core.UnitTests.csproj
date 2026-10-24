@@ -25,6 +25,10 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlGroupedV1Endpoint.cs" Link="Production/CqlGroupedV1Endpoint.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlGroupedV1Request.cs" Link="Production/CqlGroupedV1Request.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlGroupedV1Compiler.cs" Link="Production/CqlGroupedV1Compiler.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlScalarSelectionCompiler.cs" Link="Production/CqlScalarSelectionCompiler.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/AdmittedStorageManagerAcquisition.cs" Link="Production/AdmittedStorageManagerAcquisition.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlV1Request.cs" Link="Production/CqlV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlScalarV1Request.cs" Link="Production/CqlScalarV1Request.cs" />

@@ -102,7 +102,7 @@ public static partial class CqlV1Endpoint
         return response;
     }
 
-    private sealed class SelectedScalarConsumer : CqlV1Compiler.ISelectionConsumer<Task<IActionResult>>
+    private sealed class SelectedScalarConsumer : CqlV1Compiler.ISelectionConsumer<Task<IActionResult>>, CqlV1Compiler.IScalarConsumer<Task<IActionResult>>
     {
         private readonly HttpContext http;
         private readonly ICqlV1Providers providers;
@@ -116,33 +116,9 @@ public static partial class CqlV1Endpoint
         { this.http = http; this.providers = providers; this.storage = storage; this.adapter = adapter; this.source = source; this.operation = operation; }
 
         public Task<IActionResult> Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector)
-        {
-            if (operation == CosmicScalarOperation.Average)
-            {
-                // The bounded selection visitor already knows the exact CLR input
-                // type. Bind only the four public integer Average overloads;
-                // no reflection or compiled selector delegate is involved.
-                if (typeof(TValue) == typeof(int))
-                    return Run(source.Average((Expression<Func<Holon, int>>)(object)selector));
-                if (typeof(TValue) == typeof(long))
-                    return Run(source.Average((Expression<Func<Holon, long>>)(object)selector));
-                if (typeof(TValue) == typeof(int?))
-                    return Run(source.Average((Expression<Func<Holon, int?>>)(object)selector));
-                if (typeof(TValue) == typeof(long?))
-                    return Run(source.Average((Expression<Func<Holon, long?>>)(object)selector));
-                throw new ArgumentException("Average requires an Int32/Int64 selection, optionally nullable.");
-            }
-            var intent = operation switch
-            {
-                CosmicScalarOperation.Min => source.Min(selector),
-                CosmicScalarOperation.Max => source.Max(selector),
-                CosmicScalarOperation.Sum => source.Sum(selector),
-                _ => throw new ArgumentException("A selected scalar operation is required.")
-            };
-            return Run(intent);
-        }
+            => CqlV1Compiler.BindScalar(source, operation, selector, this);
 
-        private Task<IActionResult> Run<TResult>(OASISResult<CosmicScalarQuery<Holon, TResult>> intent)
+        public Task<IActionResult> Consume<TResult>(OASISResult<CosmicScalarQuery<Holon, TResult>> intent)
         {
             if (intent.IsError) throw new ArgumentException(intent.Message);
             return ExecuteScalar(http, providers, storage, adapter, intent.Result);

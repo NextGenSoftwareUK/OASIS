@@ -687,3 +687,6 @@ MongoDB now supports the same grouped selection expression shape shown in the SQ
 
 
 Neo4j now executes the same typed grouped selection shape illustrated above, using its actual CosmicGroupedTarget/GroupedCapabilities and HolonManager.ExecuteGroupedQueryAsync. Native grouping exists on MongoDB, SQLite and Neo4j; select only types admitted by the actual provider. Neo4j UTC date coverage remains pending, and grouped HTTP/demo screens and post-group filtering/order/pages remain pending.
+
+
+Grouped HTTP request compilation and the protected `/api/data/query-cql/grouped` route are implemented. See [grouped HTTP contract](CQL_GROUPING_HTTP_CONTRACT.md) for JSON, limits, wire domains and current evidence. Full2,271 controlled tests pass0skip; live grouped HTTP/demo acceptance and post-group composition remain open. Scalar and grouped selections share one typed visitor and alias/path validator.
