@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
     public partial class AvatarRepository : IAvatarRepository
     {
         private MongoDbContext _dbContext;
+        private readonly Func<bool> _retainAccountHistory;
 
         public void EnsurePublicIdentityIndexes()
         {
@@ -36,25 +37,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 Builders<AvatarDetail>.IndexKeys.Ascending(x => x.HolonId), new CreateIndexOptions { Unique = true, Name = "oasis_avatar_detail_public_identity" }));
         }
 
-        public AvatarRepository(MongoDbContext dbContext)
+        public AvatarRepository(MongoDbContext dbContext,Func<bool> retainAccountHistory=null)
         {
             SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
             SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
             SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
             _dbContext = dbContext;
+            _retainAccountHistory=retainAccountHistory ?? (()=>false);
         }
 
         public Task<OASISResult<Avatar>> AddAsync(Avatar avatar)
-            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,false,false);
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,false,false,retainAccountHistory:_retainAccountHistory());
 
         public Task<OASISResult<AvatarDetail>> AddAsync(AvatarDetail avatar)
-            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,false,false);
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,false,false,retainAccountHistory:_retainAccountHistory());
 
         public OASISResult<Avatar> Add(Avatar avatar)
-            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,false,true).GetAwaiter().GetResult();
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,false,true,retainAccountHistory:_retainAccountHistory()).GetAwaiter().GetResult();
 
         public OASISResult<AvatarDetail> Add(AvatarDetail avatar)
-            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,false,true).GetAwaiter().GetResult();
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,false,true,retainAccountHistory:_retainAccountHistory()).GetAwaiter().GetResult();
 
         public async Task<OASISResult<Avatar>> GetAvatarAsync(Guid id)
         {
@@ -248,10 +250,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         }
 
         public Task<OASISResult<Avatar>> UpdateAsync(Avatar avatar)
-            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,true,false);
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,true,false,retainAccountHistory:_retainAccountHistory());
 
         public Task<OASISResult<AvatarDetail>> UpdateAsync(AvatarDetail avatar)
-            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,true,false);
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,true,false,retainAccountHistory:_retainAccountHistory());
 
         public OASISResult<AvatarDetail> GetAvatarDetail(Expression<Func<AvatarDetail, bool>> expression)
         {
@@ -398,10 +400,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         }
 
         public OASISResult<Avatar> Update(Avatar avatar)
-            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,true,true).GetAwaiter().GetResult();
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,true,true,retainAccountHistory:_retainAccountHistory()).GetAwaiter().GetResult();
 
         public OASISResult<AvatarDetail> Update(AvatarDetail avatar)
-            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,true,true).GetAwaiter().GetResult();
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,true,true,retainAccountHistory:_retainAccountHistory()).GetAwaiter().GetResult();
 
         public Task<OASISResult<bool>> DeleteAsync(Guid id, bool softDelete = true) => DeleteGraphAsync(id, softDelete, false);
         public Task<OASISResult<bool>> DeleteDetailAsync(Guid id, bool softDelete = true) => DeleteGraphAsync(id, softDelete, true);
@@ -415,6 +417,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 using var session = await _dbContext.MongoClient.StartSessionAsync();
                 session.StartTransaction(new TransactionOptions(readConcern:ReadConcern.Snapshot,writeConcern:WriteConcern.WMajority.With(journal:true)));
                 bool commitAttempted = false;
+                var retainHistory=_retainAccountHistory();
                 try
                 {
                     if (detailOnly)
@@ -427,8 +430,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             if (detail.DeletedDate != DateTime.MinValue) throw new StorageLifecycleConflictException("Avatar detail is already soft deleted.");
                             detail.IsActive = false;
                             detail.DeletedDate = DateTime.UtcNow;
-                            var write = await _dbContext.AvatarDetail.UpdateOneAsync(session, x => x.Id == detail.Id, SoftDeletionPatch<AvatarDetail>(detail.DeletedDate,null,false));
-                            if (!write.IsAcknowledged || write.MatchedCount != 1) throw new InvalidOperationException("Detail soft deletion was not acknowledged.");
+                            await PatchAccountLifecycleAsync(session,_dbContext.AvatarDetail,detail.Id,SoftDeletionPatch<AvatarDetail>(detail.DeletedDate,null,false),retainHistory,false);
                         }
                         else
                         {
@@ -456,10 +458,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             detail.DeletedByAvatarId = actor.ToString();
                             avatar.DeletedDate = deletedDate;
                             detail.DeletedDate = deletedDate;
-                            var avatarWrite = await _dbContext.Avatar.UpdateOneAsync(session, x => x.HolonId == id, SoftDeletionPatch<Avatar>(deletedDate,actor.ToString(),true));
-                            var detailWrite = await _dbContext.AvatarDetail.UpdateOneAsync(session, x => x.HolonId == id, SoftDeletionPatch<AvatarDetail>(deletedDate,actor.ToString(),true));
-                            if (!avatarWrite.IsAcknowledged || avatarWrite.MatchedCount != 1 || !detailWrite.IsAcknowledged || detailWrite.MatchedCount != 1)
-                                throw new InvalidOperationException("Soft deletion did not acknowledge both persisted identities.");
+                            await PatchAccountLifecycleAsync(session,_dbContext.Avatar,avatar.Id,SoftDeletionPatch<Avatar>(deletedDate,actor.ToString(),true),retainHistory,false);
+                            await PatchAccountLifecycleAsync(session,_dbContext.AvatarDetail,detail.Id,SoftDeletionPatch<AvatarDetail>(deletedDate,actor.ToString(),true),retainHistory,false);
                         }
                         else
                         {
@@ -512,6 +512,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 using var session = _dbContext.MongoClient.StartSession();
                 session.StartTransaction(new TransactionOptions(readConcern:ReadConcern.Snapshot,writeConcern:WriteConcern.WMajority.With(journal:true)));
                 bool commitAttempted = false;
+                var retainHistory=_retainAccountHistory();
                 try
                 {
                     if (detailOnly)
@@ -524,8 +525,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             if (detail.DeletedDate != DateTime.MinValue) throw new StorageLifecycleConflictException("Avatar detail is already soft deleted.");
                             detail.IsActive = false;
                             detail.DeletedDate = DateTime.UtcNow;
-                            var write = _dbContext.AvatarDetail.UpdateOne(session, x => x.Id == detail.Id, SoftDeletionPatch<AvatarDetail>(detail.DeletedDate,null,false));
-                            if (!write.IsAcknowledged || write.MatchedCount != 1) throw new InvalidOperationException("Detail soft deletion was not acknowledged.");
+                            PatchAccountLifecycleAsync(session,_dbContext.AvatarDetail,detail.Id,SoftDeletionPatch<AvatarDetail>(detail.DeletedDate,null,false),retainHistory,true).GetAwaiter().GetResult();
                         }
                         else
                         {
@@ -553,10 +553,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             detail.DeletedByAvatarId = actor.ToString();
                             avatar.DeletedDate = deletedDate;
                             detail.DeletedDate = deletedDate;
-                            var avatarWrite = _dbContext.Avatar.UpdateOne(session, x => x.HolonId == id, SoftDeletionPatch<Avatar>(deletedDate,actor.ToString(),true));
-                            var detailWrite = _dbContext.AvatarDetail.UpdateOne(session, x => x.HolonId == id, SoftDeletionPatch<AvatarDetail>(deletedDate,actor.ToString(),true));
-                            if (!avatarWrite.IsAcknowledged || avatarWrite.MatchedCount != 1 || !detailWrite.IsAcknowledged || detailWrite.MatchedCount != 1)
-                                throw new InvalidOperationException("Soft deletion did not acknowledge both persisted identities.");
+                            PatchAccountLifecycleAsync(session,_dbContext.Avatar,avatar.Id,SoftDeletionPatch<Avatar>(deletedDate,actor.ToString(),true),retainHistory,true).GetAwaiter().GetResult();
+                            PatchAccountLifecycleAsync(session,_dbContext.AvatarDetail,detail.Id,SoftDeletionPatch<AvatarDetail>(deletedDate,actor.ToString(),true),retainHistory,true).GetAwaiter().GetResult();
                         }
                         else
                         {

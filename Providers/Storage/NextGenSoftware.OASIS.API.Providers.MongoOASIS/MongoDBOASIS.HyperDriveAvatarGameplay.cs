@@ -34,6 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             session.StartTransaction();
             try
             {
+                var retainHistory=IsVersionControlEnabled;
                 var collection = Database.MongoDB.GetCollection<AvatarDetail>("AvatarDetail");
                 var detail = await collection.Find(session, x => x.HolonId == command.AvatarId)
                     .SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
@@ -43,10 +44,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     return GameplayReceiptInvalid(receiptError);
                 if (payload.Action == HyperDriveAvatarGameplayAction.TransferInventoryToClan)
                     return await ApplyClanTransferAsync(session, collection, detail, command, payload,
-                        canonicalPayload, receipts, cancellationToken).ConfigureAwait(false);
+                        canonicalPayload, receipts, retainHistory, cancellationToken).ConfigureAwait(false);
                 if (payload.Action == HyperDriveAvatarGameplayAction.TransferInventory)
                     return await ApplyTransferAsync(session, collection, detail, command, payload,
-                        canonicalPayload, receipts, cancellationToken).ConfigureAwait(false);
+                        canonicalPayload, receipts, retainHistory, cancellationToken).ConfigureAwait(false);
                 if (receipts.TryGetValue(command.OperationId, out var original))
                     return original == canonicalPayload
                         ? new OASISResult<HyperDriveAvatarDetailProjection>(CreateEdgeAvatarDetailProjection(detail))
@@ -137,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }
                 receipts.Add(command.OperationId, canonicalPayload);
                 detail.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey] = JsonConvert.SerializeObject(receipts);
-                await ReplaceGameplayAvatarDetailAsync(session,collection,detail,cancellationToken).ConfigureAwait(false);
+                await ReplaceGameplayAvatarDetailAsync(session,collection,detail,retainHistory,cancellationToken).ConfigureAwait(false);
                 // The domain change stream projects this document, including its receipt, as one version.
                 await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
                 return new OASISResult<HyperDriveAvatarDetailProjection>(CreateEdgeAvatarDetailProjection(detail));
@@ -156,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private async Task<OASISResult<HyperDriveAvatarDetailProjection>> ApplyTransferAsync(
             IClientSessionHandle session, IMongoCollection<AvatarDetail> collection, AvatarDetail source,
             HostedSyncCommandItem command, HyperDriveAvatarGameplayCommand payload, string canonicalPayload,
-            Dictionary<Guid, string> sourceReceipts, CancellationToken cancellationToken)
+            Dictionary<Guid, string> sourceReceipts, bool retainHistory,CancellationToken cancellationToken)
         {
             var target = await collection.Find(session, x => x.HolonId == payload.TargetAvatarId.Value)
                 .SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
@@ -189,8 +190,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             target.Inventory.Add(moved);
             RecordReceipt(source, sourceReceipts, command.OperationId, canonicalPayload);
             RecordReceipt(target, targetReceipts, command.OperationId, canonicalPayload);
-            await ReplaceGameplayAvatarDetailAsync(session,collection,source,cancellationToken).ConfigureAwait(false);
-            await ReplaceGameplayAvatarDetailAsync(session,collection,target,cancellationToken).ConfigureAwait(false);
+            await ReplaceGameplayAvatarDetailAsync(session,collection,source,retainHistory,cancellationToken).ConfigureAwait(false);
+            await ReplaceGameplayAvatarDetailAsync(session,collection,target,retainHistory,cancellationToken).ConfigureAwait(false);
             await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
             return new OASISResult<HyperDriveAvatarDetailProjection>(CreateEdgeAvatarDetailProjection(source));
         }
@@ -199,7 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private async Task<OASISResult<HyperDriveAvatarDetailProjection>> ApplyClanTransferAsync(
             IClientSessionHandle session, IMongoCollection<AvatarDetail> avatarCollection, AvatarDetail source,
             HostedSyncCommandItem command, HyperDriveAvatarGameplayCommand payload, string canonicalPayload,
-            Dictionary<Guid, string> sourceReceipts, CancellationToken cancellationToken)
+            Dictionary<Guid, string> sourceReceipts, bool retainHistory,CancellationToken cancellationToken)
         {
             if (!payload.TargetClanId.HasValue || payload.TargetClanId == Guid.Empty)
                 return GameplayRejected("The target clan identity is required.");
@@ -266,7 +267,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             clan.Version=checked(clan.Version+1);
             clan.VersionId = Guid.NewGuid();
             var body=MongoNativeRecordWriter.PrepareHolonMutation(holonCollection,clan,observed);
-            await ReplaceGameplayAvatarDetailAsync(session,avatarCollection,source,cancellationToken).ConfigureAwait(false);
+            await ReplaceGameplayAvatarDetailAsync(session,avatarCollection,source,retainHistory,cancellationToken).ConfigureAwait(false);
             var clanSaved=await rawClans.ReplaceOneAsync(session,new BsonDocument("_id",observed["_id"]),body,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             if(!clanSaved.IsAcknowledged || clanSaved.MatchedCount!=1)return GameplayRejected("The clan inventory update was not acknowledged.");

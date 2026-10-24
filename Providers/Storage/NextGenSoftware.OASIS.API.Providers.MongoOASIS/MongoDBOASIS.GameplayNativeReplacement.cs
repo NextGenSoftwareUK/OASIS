@@ -14,7 +14,7 @@ public partial class MongoDBOASIS
         :System.OverflowException("The account version cannot be advanced.",cause);
 
     private async Task ReplaceGameplayAvatarDetailAsync(IClientSessionHandle session,
-        IMongoCollection<AvatarDetail> collection,AvatarDetail detail,CancellationToken token)
+        IMongoCollection<AvatarDetail> collection,AvatarDetail detail,bool retainHistory,CancellationToken token)
     {
         // The raw read uses the same transaction snapshot as the original typed read.
         // Typed serialization alone drops all unmapped native fields.
@@ -36,6 +36,7 @@ public partial class MongoDBOASIS
         detail.VersionId=System.Guid.NewGuid();
         var body=MongoNativeRecordWriter.SerializePayload(collection,detail);
         MongoNativeRecordWriter.RetainUnknownFields<AvatarDetail>(body,observed);
+        MongoNativeRecordWriter.PrepareAccountHistory<AvatarDetail>(body,observed,retainHistory);
         var replaced=await raw.ReplaceOneAsync(session,identity,body,cancellationToken:token).ConfigureAwait(false);
         if(!replaced.IsAcknowledged || replaced.MatchedCount!=1)
             throw new InvalidDataException("The gameplay account replacement was not acknowledged.");

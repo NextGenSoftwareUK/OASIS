@@ -26,6 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 using var session=await _dbContext.MongoClient.StartSessionAsync();
                 session.StartTransaction(new TransactionOptions(readConcern:ReadConcern.Snapshot,writeConcern:WriteConcern.WMajority));
                 bool commitAttempted=false;
+                var retainHistory=_retainAccountHistory();
                 try
                 {
                     var avatars=await _dbContext.Avatar.Find(session,row=>row.HolonId==tombstone.AvatarId).Limit(2).ToListAsync();
@@ -43,13 +44,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     {
                         var actor=tombstone.DeletedByAvatarId.ToString();
                         var avatarPatch=SoftDeletionPatch<Avatar>(tombstone.DeletedAtUtc,actor,true);
-                        var written=await _dbContext.Avatar.UpdateOneAsync(session,row=>row.Id==avatar.Id,avatarPatch);
-                        if(!written.IsAcknowledged || written.MatchedCount!=1) throw new InvalidOperationException("Mongo avatar lifecycle patch was not acknowledged.");
+                        await PatchAccountLifecycleAsync(session,_dbContext.Avatar,avatar.Id,avatarPatch,retainHistory,false);
                         if(detail != null)
                         {
                             var detailPatch=SoftDeletionPatch<AvatarDetail>(tombstone.DeletedAtUtc,actor,true);
-                            var detailWritten=await _dbContext.AvatarDetail.UpdateOneAsync(session,row=>row.Id==detail.Id,detailPatch);
-                            if(!detailWritten.IsAcknowledged || detailWritten.MatchedCount!=1) throw new InvalidOperationException("Mongo detail lifecycle patch was not acknowledged.");
+                            await PatchAccountLifecycleAsync(session,_dbContext.AvatarDetail,detail.Id,detailPatch,retainHistory,false);
                         }
                     }
                     commitAttempted=!already;

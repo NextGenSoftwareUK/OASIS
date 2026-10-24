@@ -14,9 +14,9 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-internal static class MongoNativeRecordWriter
+internal static partial class MongoNativeRecordWriter
 {
-    internal static async Task<OASISResult<T>> SaveAsync<T>(IMongoCollection<T> records,T holon,bool updating,bool synchronous,bool preserveChildren=false) where T:HolonBase
+    internal static async Task<OASISResult<T>> SaveAsync<T>(IMongoCollection<T> records,T holon,bool updating,bool synchronous,bool preserveChildren=false,bool retainAccountHistory=false) where T:HolonBase
     {
         var entered=false;var validatingPayload=false;
         try
@@ -81,6 +81,7 @@ internal static class MongoNativeRecordWriter
             }
             var writer=raw.WithWriteConcern(WriteConcern.WMajority.With(journal:true));
             if(updating && typeof(T)==typeof(Holon))MongoNativeHolonHistory.Stage(replacement,observed);
+            else if(updating)PrepareAccountHistory<T>(replacement,observed,retainAccountHistory);
             entered=true;
             if(updating)
             {
@@ -105,6 +106,7 @@ internal static class MongoNativeRecordWriter
             return new OASISResult<T> {IsError=true,Exception=failure,
                 ErrorCode=cause is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode
                     :cause is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity
+                    :!entered && (cause is InvalidDataException || cause is FormatException) ? StorageLifecycleConflictException.ErrorCode
                     :!entered && (cause is ArgumentException || validatingPayload && cause is BsonSerializationException) ? "HYPERDRIVE_PAYLOAD_INVALID":null,
                 Message="Mongo record save failed."};
         }
