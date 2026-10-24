@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Published Core compatibility refresh — 24 October
+
+Fresh full local regression against published Core d61551d20fdb9c5cbcc1be2c0f744c28e96614f9 passed **498 native database tests (47 seconds) and417 unit tests**, zero skips. Current-source PE/PDB checks cover Core742/Shared56 and Oracle15/integration39/unit29 documents; exact hashes/resources are in ENVIRONMENT_INVENTORY.md. Same retained Oracle database and cached SDK, no download/restore/new environment/cloud request. Prior native evidence preserved; cleanup complete, pending0, database stopped and port11521 absent. README now correctly distinguishes supported export -1 from invalid values below -1; ordinary reads still reject negatives. No storage-code change was needed for this refresh.
+
+This establishes compatibility of the local SQL suite with the published Core change, not fresh OCI Object Storage certification or live Autonomous/OCI acceptance. Cloud access remains absent from the checked default locations/process environment; nondefault configuration is not ruled out. Hosted IAM/wallet/security, cloud durability/fees and full Oracle V2 remain open. Oracle is not100% complete.
+
 24 October shared metadata follow-up: fresh OCI119 signed-SDK loopback tests PASS0skip13seconds with shared query-scope repair. Existing2encryptedlifecyclecases now mutatecaller metadata inside realSDK ListObjects exchange, verifycurrent/version1×Any/All originalselection/count and unchangedencryptedobjects/history/noadditionalwrites. This is not cloudOCI proof or a freshSQLrun; SQL417unit/498native below remains its distinct earlier cohort. HostedAutonomous/OCI IAM/wallet/durability/fees/fullV2 remainOPEN. Evidence/resources inSHARED_RECORD_HISTORY/inventory.
 
 ## Latest metadata read ownership verification — 24 October
