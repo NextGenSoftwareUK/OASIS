@@ -30,6 +30,7 @@ public partial class GoogleAtomicGraphTests
     {
         public Dictionary<string,Document> Documents=new();public int Reads,Commits;public bool LoseAck,Reject;
         public CommitRequest? Submitted;
+        public RpcException? CommitFailure;
         public override FirestoreSettings Settings=>(FirestoreSettings)typeof(GoogleCloudOASIS)
             .GetMethod("CreateFirestoreSettings",BindingFlags.Static|BindingFlags.NonPublic)!.Invoke(null,null)!;
         public override BatchGetDocumentsStream BatchGetDocuments(BatchGetDocumentsRequest request,CallSettings settings=null) {
@@ -39,6 +40,7 @@ public partial class GoogleAtomicGraphTests
         }
         public override Task<CommitResponse> CommitAsync(CommitRequest request,CallSettings settings=null) {
             Commits++;Submitted=request.Clone();
+            if(CommitFailure!=null)throw CommitFailure;
             if(Reject)throw new RpcException(new Status(StatusCode.FailedPrecondition,"owned rejected commit"));
             foreach(var write in request.Writes) {
                 var path=write.OperationCase==NativeWrite.OperationOneofCase.Delete?write.Delete:write.Update.Name;
