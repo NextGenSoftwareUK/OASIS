@@ -1,5 +1,9 @@
 # Cosmos DB retained record history
 
+## 23 October — canonical collection identity guard,391unit/66native GREEN
+
+New36repository-boundary controls first18red/18distinct passes: repeated canonical GUIDs were appended or hidden by missing-history selection. One existing canonical decoder now receives a per-collection GUID set and rejects duplicates BEFORE history selection, shared by avatar/detail/holon repositories. No deduplication, extra SDK request, alternate reader or snapshot guarantee. Current paired391unit and retained emulator66native PASS0skip; native66is healthy real-SDK regression, not a forced duplicate-page/race schedule. Separate baseline/corrected/paired/native reports and identities in ENVIRONMENT_INVENTORY.md. Owned fixture teardowns passed, pending0, same emulator stopped; no cloud request/download/new environment/reset. Hosted IAM/RUs/billing/cloud durability and fullV2 remain OPEN. Earlier62/66/355cohorts below are historical scope, not the latest unit count.
+
 ## 23 October — exact native numbers implemented; current local62 GREEN
 
 ONE pure Shared Binary64JsonNumberCodec reuses existing lossless parser/Core numeric equality. Cosmos explicitly opts in; other backends are unchanged. Reserved `_oasis_exact_numbers`/schema binary64-v1 binds unsafe numeric literals to structural paths. Native values alone become strings; point/query/ack decode restores canonical/API numbers BEFORE identity/history/equality validation. Ordinary strings/date strings/representable numbers retain their meaning. No extra write, fallback or weak acknowledgement; unknown/malformed/tampered frames and reserved input collisions reject. Shared production sources54→55, no Core edit, source slot coordinated and released after native completion.

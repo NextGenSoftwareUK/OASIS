@@ -79,9 +79,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var jsonList = await cosmosDbClient.ReadAllDocumentsAsync().ConfigureAwait(false);
                 var list = new List<T>();
+                var identities = new HashSet<Guid>();
                 foreach (var json in jsonList)
                 {
-                    var selected=DeserializeEntity(json,version:version);
+                    var selected=DeserializeEntity(json,version:version,identities:identities);
                     if(selected!=null)list.Add(selected);
                 }
                 return list;
@@ -219,7 +220,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             catch(Exception cause) {throw new CosmosMutationReconciliationException(expectedId,cause,acknowledged:true);}
         }
 
-        private T DeserializeEntity(string json,string expectedId=null,int version=0)
+        private T DeserializeEntity(string json,string expectedId=null,int version=0,HashSet<Guid> identities=null)
         {
             try
             {
@@ -229,6 +230,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                     || document["id"].Value<string>()!=logical.ToString()
                     || expectedId!=null && expectedId!=logical.ToString())
                     throw new InvalidDataException("Cosmos document key, OASIS payload identity and requested identity must match.");
+                if(identities!=null&&!identities.Add(logical))
+                    throw new InvalidDataException("Cosmos collection contains a repeated canonical OASIS identity.");
                 var entity=(T)OasisJson.Deserialize(json,EntityType);
                 if(entity==null || entity.Id!=logical) throw new InvalidDataException("Deserialized Cosmos identity differs from its document.");
                 if(version>0 || document[CosmosEmbeddedHistory.PropertyName]!=null)
