@@ -1111,3 +1111,37 @@ authoritative policy, interruption and final certification requirements stay ope
 See [the matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) and [UInt64 contract](CQL_UINT64_CONTRACT.md).
 
 Actual99510 terminal0 resource reconciliation: retain fixed reusable Core/Shared/Neo/native/unit outputs (sizesunmeasured), compact named logs/TRX/source/DLL hashes. Exact retained Neo container stopped in runner finally; owned17687/27029 listeners absent. FreeC69,731,119,104bytes at check; concurrent changes not solely attributed. Next build lease slot explicitly transferred to provider/Oracle session; no reacquisition until its release. No new downloads, installations, restores or environments introduced.
+
+2026-10-24 UInt64 demo preparation:23annotated SDK/HTTP examples per provider;69/69 target pending. Reuse Node24.19.0 C:/Program Files/nodejs/node.exe; regenerated fixed TestResults/CosmicCqlDemo/v1-page-check.js (sizeunmeasured) from current inline browser source, node --check passed. No download/install/restore/environment. Adds counter metadata only to existing owned WEB4 fixture IDs; known fixture/journal/outbox/cleanup runner unchanged. Named ExactUInt64 Swagger examples retain UTC schema example; native host asserts UInt64 strings/schema. Existing reusable Script/Neo/Mongo environment and SDK outputs planned, no newDBnamespace. Native/live gate waits for provider/Oracle owner's reserved build slot release.
+
+Offline UInt64 browser-script behavior check reused Node24.19.0 and built-in fs/vm/assert only; fixed TestResults/CosmicCqlDemo/v1-unsigned-ui-check.cjs and .json (sizesunmeasured), ownerCOSMIC ORM, preserve compact evidence; disposablehelper recreates from inline browser source.2presets and lexical UInt64/Int64 exactness passed without browser/network/service. This does not claim browser interaction or native HTTP acceptance. No installation/restore/newenv.
+
+
+## Live UInt64 examples22–23 — 24 October2026
+
+Actual69794 terminated0: **69 SDK queries/69 signed HTTP examples passed** on
+MongoDB, SQLite and Neo4j, with249 settled operations/244 provider attempts.
+The dedicated signed native demo case and replica initialization each passed,
+zero failures/skips. This is the joint demo acceptance, not a new full269-case
+Neo4j/WEB4 regression. Prior native205/205 and provider-unit cohorts retain their
+own recorded binary scope.
+
+Example22 verifies exact unsigned source bounds and UInt64-tagged selected values.
+SDK ordering is by Counter; HTTP projection explicitly orders by canonical Name.
+Example23 filters selected Counter aliases before native group ordering/page.
+Both preserve adjacent18446744073709551612/613 values without binary64 or Int64
+conversion. Generated Swagger ExactUInt64 named examples pass native-host checks;
+existing UTC schema examples remain. Browser script syntax, both unsigned preset
+builders and lexical exactness pass an offline Node24.19.0 check; no browser
+interaction is claimed.
+
+Producer/native identities were captured inside the global lease: CoreDAD1283D,
+Shared39F60986, MongoAFE8D3D5, SQLite48F6F643 and Neo5F6E61A3. Exact paths/hashes:
+TestResults/CosmicCqlDemo/v1-binary-identities.json. Fresh evidence: v1-demo-result.json,
+v1-walkthrough.txt, uint64-demo-native.log and v1-unsigned-ui-check.json; native TRX:
+TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Fixture/readiness markers
+are absent, owned services stopped, retained Neo image exited. No new runtime,
+restore or download. This closes UInt64 live-demo acceptance; the broader roadmap
+remains open. [Runnable guide](../../../Examples/CosmicCqlDemo/README.md).
+
+Final resources69794: freeC69,419,167,744bytes; fixed Neo4jCurrent ownedSQLite/fixture/readiness removed by runner after settled outcomes, retained Mongo27029/Neo17687 stopped and exact oasis-neo4j exited. Keep fixed reusable bin/obj/data/cache and compact TRX/transcript/identity/Node evidence; sizesunmeasured, same task ownership/recreation as existing entries. No install/download/restore/newenvironment. Native branch publication excludes peerCore/Shared/Oracle changes; deployment pin pair remains peer-owned.
