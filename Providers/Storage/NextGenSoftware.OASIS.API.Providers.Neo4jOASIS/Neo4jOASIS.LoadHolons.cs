@@ -73,6 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     
                     response.Result = holons.Where(child => type == HolonType.All || child.HolonType == type).ToList();
                     response.IsLoaded = true;
+                    response.LoadedCount = response.Result.Count();
                     response.IsError = false;
                     response.Message = "Child holons loaded successfully from Neo4j";
                 }
@@ -171,6 +172,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     
                     response.Result = holons;
                     response.IsLoaded = true;
+                    response.LoadedCount = holons.Count;
                     response.IsError = false;
                     response.Message = $"Successfully loaded {holons.Count} holons by metadata from Neo4j";
                 }
@@ -223,6 +225,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     
                     response.Result = holons;
                     response.IsLoaded = true;
+                    response.LoadedCount = holons.Count;
                     response.IsError = false;
                     response.Message = "All holons loaded successfully from Neo4j";
                 }

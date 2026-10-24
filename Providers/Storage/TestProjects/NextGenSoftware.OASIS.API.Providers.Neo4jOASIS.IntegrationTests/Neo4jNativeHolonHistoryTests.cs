@@ -50,6 +50,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse((await provider.SaveAvatarAsync(owner)).IsError);
             var old=synchronous?provider.LoadHolon(root.Id,version:1):await provider.LoadHolonAsync(root.Id,version:1);
             Assert.IsFalse(old.IsError,old.Message);
+            Assert.AreEqual(1,old.LoadedCount,"Only the selected root counts, not hydrated descendants.");
             Assert.AreEqual($"root-v1-{marker}",old.Result.Name);Assert.AreEqual(rootVersionId,old.Result.VersionId);
             Assert.AreEqual(1,old.Result.Version);
             Assert.AreEqual(child.Name,old.Result.Children.Single().Name);Assert.AreEqual(2,old.Result.Children.Single().Version);
@@ -61,12 +62,15 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(3,(await provider.LoadHolonAsync(root.Id)).Result.Version);
             var all=synchronous?provider.LoadAllHolons(loadChildren:false,version:1):await provider.LoadAllHolonsAsync(loadChildren:false,version:1);
             Assert.IsFalse(all.IsError,all.Message);Assert.AreEqual(3,all.Result.Count());
+            Assert.AreEqual(3,all.LoadedCount);
             Assert.AreEqual($"root-v1-{marker}",all.Result.Single(h=>h.Id==root.Id).Name);
             var metadata=synchronous?provider.LoadHolonsByMetaData("history-marker",marker,version:1):await provider.LoadHolonsByMetaDataAsync("history-marker",marker,version:1);
             Assert.IsFalse(metadata.IsError,metadata.Message);Assert.AreEqual(root.Id,metadata.Result.Single().Id);
+            Assert.AreEqual(1,metadata.LoadedCount);
             Assert.AreEqual(2,metadata.Result.Single().Children.Single().Version);
             var children=synchronous?provider.LoadHolonsForParent(root.Id,version:1):await provider.LoadHolonsForParentAsync(root.Id,version:1);
             Assert.IsFalse(children.IsError,children.Message);Assert.AreEqual(1,children.Result.Single().Version);
+            Assert.AreEqual(1,children.LoadedCount);
             Assert.AreEqual(2,children.Result.Single().Children.Single().Version);
             var keyedChildren=await provider.LoadHolonsForParentAsync(root.Id.ToString(),version:2);
             Assert.IsFalse(keyedChildren.IsError,keyedChildren.Message);Assert.AreEqual(2,keyedChildren.Result.Single().Version);

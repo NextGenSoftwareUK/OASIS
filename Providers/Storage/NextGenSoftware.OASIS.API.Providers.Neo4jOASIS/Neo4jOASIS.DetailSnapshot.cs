@@ -74,6 +74,7 @@ public partial class Neo4jOASIS
                 result.Result = rows.Select(row => (IAvatarDetail)ReadDetailNode(row["a"].As<Neo4j.Driver.INode>())).ToList();
             }
             result.IsLoaded = true;
+            result.LoadedCount = result.Result.Count();
         }
         catch (Exception cause) { result.IsError = true; result.Exception = cause; result.Message = cause.Message;
             if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
@@ -90,6 +91,7 @@ public partial class Neo4jOASIS
             if(read.IsError)return read;
             read.Result=read.Result.Where(detail=>field switch{
                 null=>true,"Id"=>detail.Id.ToString()==value,"Username"=>detail.Username==value,"Email"=>detail.Email==value,_=>false}).ToList();
+            read.LoadedCount=read.Result.Count();
             return read;
         }
         catch(Exception cause){result.IsError=true;result.Exception=cause;result.Message=cause.Message;return result;}
@@ -102,7 +104,7 @@ public partial class Neo4jOASIS
         var records = read.Result.ToList();
         if (records.Count == 0) return new OASISResult<IAvatarDetail> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar detail not found in Neo4j." };
         if (records.Count != 1) return new OASISResult<IAvatarDetail> { IsError = true, ErrorCode = OASISResultErrorCodes.AmbiguousIdentity, Message = "Neo4j detail selector is not unique." };
-        return new OASISResult<IAvatarDetail>(records[0]) { IsLoaded = true };
+        return new OASISResult<IAvatarDetail>(records[0]) { IsLoaded = true, LoadedCount = 1 };
     }
 
     public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) => ReadDetailsAsync(version:version);

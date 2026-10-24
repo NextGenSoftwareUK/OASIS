@@ -1,5 +1,11 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Neo4j ordinary read counts — 24 October
+
+Latest440unit/271nativePASS0skip supersedes400/271 below. Thirty-six genuine failures proved all tested public current/version1 sync/async point/collection routes returned count0 despite1/2selected roots. Existing successful publication owners now assign selected-root counts for avatar/detail/holon point, current/history collections, parent and metadata results; filtered historical detail counts are recomputed. Nearby reports filtered results, not inherited source count, and clears count on projection error. Four additional nearby controlled cases prove sourcecount7→selected1 or error0. No new persistence engine/helper/SDKcall, Core visibility-default or peerCQL change.
+
+Existing native export/history cases now assert current/historical point and collection counts, parent/metadata selected roots versus hydrated descendants. Full271nativePASS91seconds with exact source/copy identity, own fixture cleanup and retained server stopped. This closes the documented ordinary read-count omission cohort; it does not certify all CQL shapes, hosted Aura, full native interface options/failure-recovery or V2 routing. Exact reports/hashes in inventory.
+
 ## Neo4j independent export versions — 24 October
 
 Export Version=-1 now enumerates validated stored versions of existing roots using the existing canonical decoder/history validator. Native archive kind, ID, integer version, duplicate versions and snapshot identity/version must agree before any result is published. Deleted versions are excluded; stored child payloads do not constitute a point-in-time graph. Named exports resolve the current avatar identity independently of requested holon version; explicit avatar history remains available separately. Ordinary negative-version reads remain invalid.
