@@ -1,5 +1,13 @@
 # ActivityPub provider implementation audit
 
+## Private email must not become a public account-search query — 24 October
+
+Removed two generated email lookup bodies that transmitted private email through public account search,used incompatible generic Actor/OASIS parsers,and could return an unrelated best-effort detail match. Avatar/detail/email-export routes now share one explicit unsupported-result owner BEFORE activation/HTTP. Email values are not echoed. No fallback,private index,admin-scope escalation or remote query added. This repairs privacy/truthfulness; it does NOT count native private-email storage/lookup as implemented.
+
+The [public account-search contract](https://docs.joinmastodon.org/methods/accounts/#search) searches account handles/profile data; the [public Account schema](https://docs.joinmastodon.org/entities/Account/) is not an authoritative private-email directory. An authorized admin integration would be a different capability,not implicit permission from an ordinary social token. Use OASIS private storage providers for email identity. Public native IDs and handles remain supported,unchanged.
+
+Twelve genuine baseline failures(sync/async,current/history,avatar/detail/export) now pass; full **212controlledPASS0skip230ms**. Fresh **8GET-only live public-nativePASS0skip10seconds** at original mastodon.social/hachyderm.io fixtures confirms supported profiles/statuses/timelines/replies. No email canary/token/post/delete/signup in native reads,no new environment/download/restore. Actual76528terminal0. Source/copies/PDB Core742/Shared56/provider11/unit18/native5 verified. Exact reports/resources in inventory. Live authenticated DELETE/search/ownership,complete social interfaces,federation and fullV2 remain OPEN.
+
 ## Native status DELETE corrected — controlled gate, 24 October
 
 Existing native-key DeleteHolon now implements [Mastodon's DELETE status contract](https://docs.joinmastodon.org/methods/statuses/#delete): requires a configured user token, sends one escaped native-ID request, accepts only200 plus an exact-ID status projection, returns that deleted projection/IsDeleted/DeletedCount1. Native service remains the authoritative owner/OAuthscope check; no extra read:accounts permission or pre-read race added. GUID deletion uses the existing explicit nonreversible-identity error, no HTTP. Local observation time populates returned DeletedDate; it is not represented as a server-supplied timestamp.

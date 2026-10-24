@@ -399,22 +399,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return ExportAllDataForAvatarByUsernameAsync(username, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
-        {
-            // First load the avatar by email to get its ID
-            var avatarResult = await LoadAvatarByEmailAsync(email, version);
-            if (avatarResult.IsError || avatarResult.Result == null)
-            {
-                return new OASISResult<IEnumerable<IHolon>>
-                {
-                    IsError = true,
-                    Message = $"Failed to load avatar by email: {avatarResult.Message}"
-                };
-            }
-
-            // Then export all data for that avatar
-            return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
+            => Task.FromResult(RejectPrivateEmailLookup<IEnumerable<IHolon>>());
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0)
         {
