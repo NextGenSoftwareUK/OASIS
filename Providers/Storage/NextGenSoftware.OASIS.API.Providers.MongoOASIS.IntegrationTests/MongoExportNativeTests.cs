@@ -257,6 +257,55 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
         output.WriteLine("Archived date JSON: "+json.RootElement.GetProperty("MetaData").GetProperty("date").GetRawText());
     }
 
+    [Fact]
+    public async Task InspectPreservedDateOrSearchFixture()
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        var report=Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/mongo-history-collection-native-fixed.trx.date-or-original-failed");
+        Assert.Equal("93B33A5E1093541DAAE55FF9E669937758A1BDFBA8A3B195209301439E3B6059",Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(report))));
+        var database=new MongoClient(uri).GetDatabase("cosmic_cql_fixture");
+        var rows=await database.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();Assert.Equal(3,rows.Count);
+        var root=Assert.Single(rows.Where(row=>row["Name"]=="current collection root"));Assert.Equal(2,root["Version"].AsInt32);
+        var old=Assert.Single(root["OasisHolonRevisionArchive"]["records"].AsBsonArray).AsBsonDocument;
+        Assert.Equal(Convert.ToHexString(SHA256.HashData(old["bson"].AsBsonDocument.ToBson())),old["sha256"].AsString);
+        Assert.Equal("historical collection root",old["bson"]["Name"].AsString);
+        Assert.Equal(DateTime.MinValue,old["bson"]["ModifiedDate"].ToUniversalTime());
+        output.WriteLine("Archived first-insert ModifiedDate="+old["bson"]["ModifiedDate"].ToJson()+"; current="+root["ModifiedDate"].ToJson());
+        foreach(var row in rows.OrderBy(row=>row["Name"].AsString))output.WriteLine(row["Name"].AsString+"|"+row["_id"]+"|"+row["HolonId"]+"|"+Convert.ToHexString(SHA256.HashData(row.ToBson())));
+        using var names=await database.ListCollectionNamesAsync();
+        foreach(var collection in await names.ToListAsync())output.WriteLine("Count|"+collection+"|"+await database.GetCollection<BsonDocument>(collection).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        var after=await database.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+        Assert.Equal(rows.OrderBy(row=>row["_id"].ToString()).Select(row=>Convert.ToHexString(SHA256.HashData(row.ToBson()))),after.OrderBy(row=>row["_id"].ToString()).Select(row=>Convert.ToHexString(SHA256.HashData(row.ToBson()))));
+    }
+
+    [Fact]
+    public async Task CleanupVerifiedDateOrSearchFixture()
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        var work=Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent");
+        Assert.Equal("93B33A5E1093541DAAE55FF9E669937758A1BDFBA8A3B195209301439E3B6059",Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(Path.Combine(work,"mongo-history-collection-native-fixed.trx.date-or-original-failed")))));
+        Assert.Equal("FFBFB7951D2678572DAD3630B524F0007AE6C190A6D32FECE767E4CFDEE10126",Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(Path.Combine(work,"mongo-search-date-original-inspection.trx")))));
+        var expected=new[]{("6adcb369f7744203d121ab6c","0bc65415-e824-45b4-85ca-cf2ed3c4d766","F3DB85A7BBC69B6FBB834DC6220286201B7D7C3BD92B8E17100BD10D29D8AE35"),
+            ("6adcb369f7744203d121ab6d","c67bf6a0-d2f7-417e-bd99-165b22262536","6DF682EB4518FBA728675CC90CEBB3B147BFBBC679B022B19AF3DCA41FFB24E9"),
+            ("6adcb369f7744203d121ab6e","e1e8d921-4228-4bc2-a5e3-c5144d83c9d2","8FDAF97C3849D46F191F83025E83342395A9991E8D8375F9D849F43120AAAB68")};
+        var client=new MongoClient(uri);var database=client.GetDatabase("cosmic_cql_fixture");
+        var allowed=new[]{"Holon","AvatarDetail","CosmicHolonOutbox","CosmicOwnedFixture","Avatar"};
+        using var names=await database.ListCollectionNamesAsync();Assert.Equal(allowed.OrderBy(value=>value), (await names.ToListAsync()).OrderBy(value=>value));
+        foreach(var name in allowed.Where(value=>value!="Holon"))Assert.Equal(0,await database.GetCollection<BsonDocument>(name).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        var collection=database.GetCollection<BsonDocument>("Holon");var rows=await collection.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();Assert.Equal(3,rows.Count);
+        // Verify ALL original identities and hashes before the first destructive operation.
+        foreach(var item in expected){var row=Assert.Single(rows.Where(row=>row["_id"].AsObjectId.ToString()==item.Item1));Assert.Equal(item.Item2,row["HolonId"].AsString);Assert.Equal(item.Item3,Convert.ToHexString(SHA256.HashData(row.ToBson())));}
+        foreach(var row in rows){var deleted=await collection.DeleteOneAsync(new BsonDocument{{"_id",row["_id"]},{"$expr",new BsonDocument("$eq",new BsonArray{"$$ROOT",new BsonDocument("$literal",row)})}});Assert.True(deleted.IsAcknowledged);Assert.Equal(1,deleted.DeletedCount);Assert.Equal(0,await collection.CountDocumentsAsync(new BsonDocument("_id",row["_id"])));}
+        foreach(var name in allowed)Assert.Equal(0,await database.GetCollection<BsonDocument>(name).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        await client.DropDatabaseAsync("cosmic_cql_fixture");using var remaining=await client.ListDatabaseNamesAsync();Assert.DoesNotContain("cosmic_cql_fixture",await remaining.ToListAsync());
+    }
+
     public static IEnumerable<object[]> HistoricalCollectionCases(){foreach(var kind in Enumerable.Range(0,6))foreach(var sync in new[]{false,true})yield return new object[]{kind,sync};}
 
     [Theory]
@@ -276,14 +325,15 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
             Assert.False((await provider.ActivateProviderAsync()).IsError);
             var ancestor=await provider.SaveHolonAsync(new Holon{Id=Guid.NewGuid(),Version=9,VersionId=Guid.NewGuid(),HolonType=HolonType.Game,Name="anchor"},saveChildren:false);
             Assert.False(ancestor.IsError,ancestor.Message+ancestor.Exception);
-            var root=new Holon{Id=Guid.NewGuid(),ParentHolonId=ancestor.Result.Id,Version=1,VersionId=Guid.NewGuid(),HolonType=HolonType.Park,Name="historical collection root",
+            var oldModified=new DateTime(2026,10,23,0,0,0,DateTimeKind.Utc);var newModified=oldModified.AddDays(1);
+            var root=new Holon{Id=Guid.NewGuid(),ParentHolonId=ancestor.Result.Id,Version=1,VersionId=Guid.NewGuid(),HolonType=HolonType.Park,Name="historical collection root",ModifiedDate=oldModified,
                 MetaData=new(){["literal.$key"]="$old",["bool"]=true,["number"]=123,["large"]=9007199254740993L,["fraction"]=1.25d,
                     ["date"]=new DateTime(2026,10,24,0,0,0,DateTimeKind.Utc),["nullable"]=null,["compound"]=new[]{1,2}}};
             var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Version=7,VersionId=Guid.NewGuid(),HolonType=HolonType.Quest,Name="initial child"};
             root.Children=new List<IHolon>{child};
-            var first=await provider.SaveHolonAsync(root,saveChildren:true);Assert.False(first.IsError,first.Message+first.Exception);
+            var first=await provider.SaveHolonAsync(root,saveChildren:true);Assert.False(first.IsError,first.Message+first.Exception);oldModified=first.Result.ModifiedDate;
             var current=first.Result;current.PreviousVersionId=current.VersionId;current.Version=2;current.VersionId=Guid.NewGuid();current.Name="current collection root";
-            current.MetaData["literal.$key"]="$new";current.MetaData["bool"]=false;
+            current.MetaData["literal.$key"]="$new";current.MetaData["bool"]=false;current.ModifiedDate=newModified;
             var second=await provider.SaveHolonAsync(current,saveChildren:false);Assert.False(second.IsError,second.Message+second.Exception);
             var loadedChild=await provider.LoadHolonAsync(child.Id,loadChildren:false);Assert.NotNull(loadedChild.Result);
             loadedChild.Result.PreviousVersionId=loadedChild.Result.VersionId;loadedChild.Result.Version=8;loadedChild.Result.VersionId=Guid.NewGuid();
@@ -337,6 +387,18 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
                 Assert.False(found.IsError,found.Message+found.Exception);Assert.True(found.IsLoaded);
                 Assert.Equal(selectedVersion==1?1:0,found.LoadedCount);
                 if(selectedVersion==1)Assert.Equal(root.Id,Assert.Single(found.Result.SearchResultHolons).Id);
+            }
+            if(kind==0)foreach(var dateCase in new[]{(Version:1,Date:oldModified,Count:1),(Version:1,Date:newModified,Count:0),
+                (Version:2,Date:newModified,Count:1),(Version:0,Date:oldModified,Count:0)})
+            {
+                var dateQuery=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,ParentId=ancestor.Result.Id,
+                    SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery="no-owned-record-matches-this",SearchHolons=true,HolonType=HolonType.Park},
+                        new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchDateGroup{Date=dateCase.Date,DateOperator=SearchOperatorType.EqualTo,
+                            PreviousSearchGroupOperator=SearchParamGroupOperator.Or,HolonType=HolonType.Park,
+                            HolonSearchParams=new SearchHolonParams{ModifiedDate=true}}}};
+                var found=sync?provider.Search(dateQuery,loadChildren:false,version:dateCase.Version):await provider.SearchAsync(dateQuery,loadChildren:false,version:dateCase.Version);
+                Assert.False(found.IsError,found.Message+found.Exception);Assert.Equal(dateCase.Count,found.LoadedCount);
+                if(dateCase.Count==1){Assert.Equal(root.Id,Assert.Single(found.Result.SearchResultHolons).Id);Assert.Equal(dateCase.Date,Assert.Single(found.Result.SearchResultHolons).ModifiedDate);}
             }
             Assert.Equal(before,await Snapshot());complete=true;
         }
