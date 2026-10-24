@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## SQLite export result metadata — 24 October 2026
+
+Scoped native-memory regression:16sync/async all/ID/username/email exports with0/1returned roots, full maintained21testsPASS0skip. Valid baseline8cases reproduced IsLoaded=false despite correct persisted/exported root. One completion helper repairs flags/counts without extra reads or provider fallback. Held named-memory connection/schema activation and provider disposal keep fixtures transient; offline restore reused existing packages only. Earlier2failed fixture runs did not reach export assertions. Exact reports/cohorts/resources in ENVIRONMENT_INVENTORY.md. This is not full SQLite integration/all-version export or globalV2 certification.
+
 ## Latest Oracle/S3 read-integrity evidence — 23 October 2026
 
 Oracle Object Storage7f807fb now119SDK signed-loopback controls PASS0skip after6reproduced malformed-read acceptance cases; native ContentLength/optional supplied-MD5 checked before publication. Oracle SQL496native/325unit is a separate older cohort. S3b4fbd797 current selected52controlsPASS0skip after caller WHEN_REQUIRED exposed4checksum-request omissions; existing SDK GET explicitly enables its own validator, no custom hash/extra HEAD/retry. Neither suite is a real cloud IAM/KMS/wallet/cost/durability/fullV2 certificate. Native cloud owner actions stay in ACTIONS-FOR-DAVID.md; exact evidence/cohorts/resource ledger in ENVIRONMENT_INVENTORY.md. No new SDK/environment/download/dev deployment.
