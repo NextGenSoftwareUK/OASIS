@@ -615,8 +615,9 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 ValidateGraphRead(maxChildDepth,curentChildDepth,version,type);
                 if(metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.All&&metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.Any)throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
                 if(metaKeyValuePairs==null||metaKeyValuePairs.Count==0)return await LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
+                var requested=new Dictionary<string,string>(metaKeyValuePairs,StringComparer.Ordinal);
                 var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
-                RecordsLoaded(result,await ProjectHolonRootsAsync(selected.Where(row=>(type==HolonType.All||row.HolonType==type)&&NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(row.MetaData,metaKeyValuePairs,metaKeyValuePairMatchMode)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider));
+                RecordsLoaded(result,await ProjectHolonRootsAsync(selected.Where(row=>(type==HolonType.All||row.HolonType==type)&&NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(row.MetaData,requested,metaKeyValuePairMatchMode)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider));
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;

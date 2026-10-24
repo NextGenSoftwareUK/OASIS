@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+Oraclemetadata24October: latest417unit/498retainednativePASS0skip.32genuineredcontrols forcaller dictionary value/key/removal/clear edits acrosssync/async,current/version1,Any/All; publicquery nowcapturespairsbeforeI/O andusesexistingsharedmatcher.2nativecasesmutateafterREALSQLread, verifyoriginalroot/count/versions/unchangedCLOBhistory/exactconditionalcleanup. Existinggenericreader protectedvirtual foroneboundaryhook, no duplicateSDKpath/extraquery. Same retainedDB/SDK/serverstopped/pending0/listener11521absent. HostedAutonomous/OCI/security/durability/fees/fullV2 remainOPEN; OCI119loopbackseparate. Reports/resources inOraclepriority/inventory.
+
 AWS provisioning24October: final614unit/138retainednative PASS0skip, baseline+cleanup1eachPASS. ExistingCreateTable owner now validates its own native acknowledgement before readiness polling: exacttable/HTTP200/description/CREATINGorACTIVE.18baseline14genuinefailures+4controls,10additionalsignedSDKJSONpipelinecontrols. Native regression does not inject malformedcreate or certify hostedprovisioning/billing. Runner cleanupTRX overwriteguard added; exact original/current evidence and disclosed priorcleanupTRXoverwrite in AWSaudit/inventory. HostedAWS/security/durability/capacitydispatch/pricing/V2 remainOPEN.
 
 ## Neo4j ordinary read counts — 24 October
