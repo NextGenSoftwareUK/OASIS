@@ -79,27 +79,26 @@ public partial class HolonRepository
                 }
                 else if (column.Operation == CosmicScalarOperation.Sum)
                 {
-                    var high = "a" + selectedOrder.ColumnIndex + "h";
-                    var low = "a" + selectedOrder.ColumnIndex + "l";
-                    var remainder = "(" + low + "%4294967296)";
-                    var quotient = "(" + high + "+" + low + "/4294967296)";
-                    resultOrder.Add("(CASE WHEN " + remainder + "<0 THEN " + quotient + "-1 ELSE " + quotient + " END)" + direction);
-                    resultOrder.Add("(CASE WHEN " + remainder + "<0 THEN " + remainder + "+4294967296 ELSE " + remainder + " END)" + direction);
+                    var parts = GroupedIntegralParts("a" + selectedOrder.ColumnIndex + "h", "a" + selectedOrder.ColumnIndex + "l");
+                    resultOrder.Add(parts.High + direction); resultOrder.Add(parts.Low + direction);
                 }
                 else throw new NotSupportedException("Grouped aggregate ordering is not enrolled for this operation.");
             }
             // A complete identity tie-break makes limits deterministic across providers.
             resultOrder.AddRange(keys.Select(key => key + " ASC"));
             var tail = output.Count == 0 ? "" : "," + string.Join(",", output);
+            var filter = query.ResultPredicates.Count == 0 ? "1" : string.Join(" AND ",
+                query.ResultPredicates.Select(value => TranslateGroupPredicate(query, value)));
             return "/* COSMIC grouped */ WITH selected AS (SELECT " + string.Join(",", input)
                 + " FROM Holon WHERE " + predicate + " ORDER BY " + ordering + " LIMIT $groupTake OFFSET $groupOffset),"
                 + " shaped AS (SELECT " + string.Join(",", shaped) + " FROM selected),"
                 + " reduced AS (SELECT " + string.Join(",", keys) + ",count(*) AS inputs,"
                 + "sum(CASE WHEN " + string.Join(" OR ", bad.Select(condition => "(" + condition + ")")) + " THEN 1 ELSE 0 END) AS invalid"
-                + (reductions.Count == 0 ? "" : "," + string.Join(",", reductions)) + " FROM shaped GROUP BY " + string.Join(",", keys) + "), ranked AS (SELECT *,row_number() OVER (ORDER BY "
-                + string.Join(",", resultOrder) + ") AS groupPosition FROM reduced) "
+                + (reductions.Count == 0 ? "" : "," + string.Join(",", reductions)) + " FROM shaped GROUP BY " + string.Join(",", keys) + "), filtered AS (SELECT *,CASE WHEN " + filter + " THEN 1 ELSE 0 END AS filterMember FROM reduced), ranked AS (SELECT *,row_number() OVER (ORDER BY "
+                + string.Join(",", resultOrder) + ") AS groupPosition,sum(filterMember) OVER (ORDER BY " + string.Join(",", resultOrder)
+                + " ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS matchedPosition FROM filtered) "
                 + "SELECT invalid,(SELECT count(*) FROM selected) AS work,inputs," + string.Join(",", keys) + tail
-                + ",CASE WHEN groupPosition>$resultOffset AND ($resultTake IS NULL OR groupPosition<=$resultOffset+$resultTake) THEN 1 ELSE 0 END AS resultMember"
+                + ",CASE WHEN filterMember=1 AND matchedPosition>$resultOffset AND ($resultTake IS NULL OR matchedPosition<=$resultOffset+$resultTake) THEN 1 ELSE 0 END AS resultMember"
                 + " FROM ranked ORDER BY groupPosition LIMIT $groupLimit";
         }
     }
