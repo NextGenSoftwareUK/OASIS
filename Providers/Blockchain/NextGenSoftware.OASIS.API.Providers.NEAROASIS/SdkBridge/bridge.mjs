@@ -4,6 +4,7 @@ import bip39 from "bip39-light";
 import { collectEntries } from "./entries-page.mjs";
 import { submitCheckedRecord } from "./checked-write.mjs";
 import { decodeCallArguments } from "./call-arguments.mjs";
+import { submitNativeAction } from "./native-mutation.mjs";
 
 async function readInput() {
   const chunks = [];
@@ -78,11 +79,7 @@ async function execute(input) {
     case "transfer": {
       const account = accountFor(input, provider);
       if (!input.receiverId) throw new Error("receiverId is required");
-      const outcome = await account.signAndSendTransaction({
-        receiverId: input.receiverId,
-        actions: [actions.transfer(BigInt(input.amountYocto))],
-        waitUntil: "FINAL",
-      });
+      const outcome = await submitNativeAction(account,input.receiverId,actions.transfer(BigInt(input.amountYocto)));
       return { transactionHash: outcome.transaction_outcome.id, outcome };
     }
     case "transactionStatus": {
@@ -105,14 +102,8 @@ async function execute(input) {
     case "call": {
       const args=decodeCallArguments(input.argsBase64);
       const account = accountFor(input, provider);
-      const outcome = await account.callFunctionRaw({
-        contractId: input.targetContractId ?? input.contractId,
-        methodName: input.methodName,
-        args,
-        gas: BigInt(input.gas ?? teraToGas("100")),
-        deposit: BigInt(input.depositYocto ?? "0"),
-        waitUntil: "FINAL",
-      });
+      const outcome = await submitNativeAction(account,input.targetContractId ?? input.contractId,
+        actions.functionCall(input.methodName,args,BigInt(input.gas ?? teraToGas("100")),BigInt(input.depositYocto ?? "0")));
       return { transactionHash: outcome.transaction_outcome.id, outcome };
     }
     case "put": {
