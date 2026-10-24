@@ -29,6 +29,13 @@ public partial class OracleDBOASIS
     private async Task<T?> ReadRecordVersionAsync<T>(Guid identity,string json,int version,int? nativeAvatarDeleted=null,NativeIdentityProjection? nativeIdentity=null,NativeHolonProjection? nativeHolon=null) where T:class,IHolonBase
     {
         if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+        var (current,document)=ReadRecordDocument<T>(identity,json,nativeAvatarDeleted,nativeIdentity,nativeHolon);
+        if(document.Property(EmbeddedRecordHistory.PropertyName)==null)return version==0||current.Version==version?current:null;
+        return await RecordHistory.ReadAsync(identity,document,version,value=>Deserialize<T>(value));
+    }
+
+    private (T Current,JObject Document) ReadRecordDocument<T>(Guid identity,string json,int? nativeAvatarDeleted=null,NativeIdentityProjection? nativeIdentity=null,NativeHolonProjection? nativeHolon=null) where T:class,IHolonBase
+    {
         var current=Deserialize<T>(json);
         if(current.Id!=identity)throw new InvalidDataException("Oracle canonical record identity differs from its native key.");
         if(nativeAvatarDeleted.HasValue)ValidateNativeAvatarProjection(current,nativeAvatarDeleted.Value);
@@ -39,9 +46,8 @@ public partial class OracleDBOASIS
         }
         var document=OasisJson.ParseStoredObject(json);
         if(document["id"]!=null&&document["id"]!.Value<string>()!=identity.ToString())throw new InvalidDataException("Oracle embedded history identity differs from native key.");
-        if(document.Property(EmbeddedRecordHistory.PropertyName)==null)return version==0||current.Version==version?current:null;
         document["id"]=identity.ToString();
-        return await RecordHistory.ReadAsync(identity,document,version,value=>Deserialize<T>(value));
+        return (current,document);
     }
 
     private static void ValidateNativeAvatarProjection(IHolonBase current,int deleted)
