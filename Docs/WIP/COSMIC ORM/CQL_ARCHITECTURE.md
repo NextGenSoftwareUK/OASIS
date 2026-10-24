@@ -367,3 +367,54 @@ Core/Shared/provider/CQL wire/compiler/demo C# hashes remained unchanged during 
 Readiness/graph markers are absent; owned27029/17687/5088 listeners are absent and the retained Neo4j image is stopped. The236-case gate is Neo4j/WEB4 plus joint live acceptance, not a rerun of the entire MongoDB191-case or SQLite1409-case native suites. Those earlier cohorts retain their recorded scope. Wider scalar domains, Neo4j DateTime, joins/composition/federation, authoritative policy and remaining roadmap certification remain open.
 
 Neo4j UTC date enrollment fixes the read-side translation/decoder owner. Schema3 already retains exact ISO metadata strings, so no storage rewrite or new date index is needed. Native Gregorian guards and fixed-width normalization are reused by source predicates/order, selected columns, extrema and grouping; malformed short strings remain safe even when boolean evaluation is not short-circuited. Typed decoding uses invariant exact UTC parsing. Actor/visibility, snapshot/transaction and physical-attempt owners are unchanged. Exact192-native/354-unit evidence and transport limitations are in CQL_UTC_DATETIME_CONTRACT.md.
+
+
+## UTC predicate transport — 24 October 2026
+
+The source enum adds DateTime without renumbering existing values. Source and
+selected-result compilation share one exact invariant UTC parser: uppercase T/Z,
+zero through seven fractional digits, and valid Gregorian dates. Selected alias
+schemas supply grouped predicate types; requests cannot override that type.
+Invalid wire values fail compilation before provider resolution or execution.
+
+The existing generic HolonManager planners/executors and each actual adapter's
+capability profile remain the execution owners. The extension introduces no
+provider-specific HTTP route or client-side query evaluator. Native DateTime
+normalization preserves adjacent100ns instants on all three stores. Example20
+covers source range/selection; example21 covers grouped key filtering/order/page.
+See [the date contract](CQL_UTC_DATETIME_CONTRACT.md) for scoped test evidence.
+
+The demo runner now captures producer/native-host SHA256 pairs while holding the
+global build lease. Later shared-output rebuilds cannot alter the identity evidence
+for the accepted walkthrough. Historical cohorts above retain their own scope.
+
+
+## UTC wire/demo acceptance — 24 October 2026
+
+Actual45734 terminated successfully: **256 Neo4j/WEB4 native regression cases,
+63 SDK queries and63 signed HTTP examples passed, zero failures/skips**. The
+joint MongoDB/SQLite/Neo4j walkthrough recorded243 settled operations and238
+provider attempts. The separate full Core/linked-production cohort passes2,424
+cases, including32 new UTC wire controls. These are distinct scopes; this does
+not rerun the entire MongoDB191-case or SQLite1409-case suite.
+
+Examples20–21 cover exact UTC source ranges/projection and selected grouped-date
+filters/order/page, preserving neighboring100ns values and UTC result tags.
+Malformed/timezone/precision wire values fail compilation. The older hosted
+DateTime-denial assertion now checks still-unenrolled Decimal. Its original
+253/256 failure is preserved; exact ownership and122 settled operations were
+verified before the retained mixed-size fixture was removed and this gate rerun.
+
+Evidence: TestResults/CosmicCurrent/utc-wire-final-current.trx;
+TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx;
+TestResults/CosmicCqlDemo/utc-demo-final-native.log, v1-demo-result.json,
+v1-walkthrough.txt and v1-binary-identities.json. Producer/native-host SHA256 pairs
+were captured inside the global lease: Core BC24B11D, Shared83968E9A,
+MongoB7A03FAA, SQLite267F7C88, Neo51EBF916. All112 checked local documentation
+links resolve. No installs/downloads/restores or new environments were needed.
+
+Fixture/readiness markers and owned27029/17687/5088 listeners are absent; retained
+Neo4j is stopped. Free C:69,475,381,248 bytes after teardown. Broader scalar types,
+joins/composition/federation, authoritative sharing/tenant policy, strict blocked
+I/O interruption and final coherent certification remain open. Full CQL/ORM
+completion is not claimed; the active goal continues.

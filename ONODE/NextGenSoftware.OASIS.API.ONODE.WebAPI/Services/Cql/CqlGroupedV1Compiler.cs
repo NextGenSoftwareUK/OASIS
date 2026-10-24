@@ -110,6 +110,7 @@ public static partial class CqlV1Compiler
         else if (type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var count)) value = count;
         else if (type == typeof(Guid) && json.ValueKind == JsonValueKind.String &&
             Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
+        else if (type == typeof(DateTime) && TryUtcDate(json, out var utc)) value = utc;
         else throw new ArgumentException("Value must match the exact grouped scalar type; Int64 and Decimal require invariant strings.");
         if (value == null && type == column.ValueType && type.IsValueType)
             throw new ArgumentException("This grouped column cannot be null.");

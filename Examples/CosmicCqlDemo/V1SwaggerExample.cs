@@ -24,76 +24,48 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
     {
         if (context.Type.Name == "CqlGroupedV1Request")
         {
-            // Keep keys and aggregate descriptions separate. Each aggregate
-            // selects an exact input domain; Average returns Decimal text.
-            OpenApiObject Aggregate(string alias, string operation) => new()
-            {
-                ["alias"] = new OpenApiString(alias),
-                ["operation"] = new OpenApiString(operation),
-                ["selection"] = new OpenApiObject
-                {
-                    ["metadataPath"] = new OpenApiArray { new OpenApiString("extremum") },
-                    ["valueType"] = new OpenApiString("Int64")
-                }
-            };
-
+            // Date keys keep exact UTC identity. These selected-result bounds
+            // are independent of source ordering and participation.
             schema.Example = new OpenApiObject
             {
                 ["provider"] = new OpenApiString("MongoDBOASIS"),
-                ["take"] = new OpenApiInteger(2),
                 ["maximumGroups"] = new OpenApiInteger(10),
-                ["resultSkip"] = new OpenApiInteger(0),
-                ["resultTake"] = new OpenApiInteger(1),
-                // Compare the published Decimal mean, preserving the fraction
-                // with a string literal. Result filtering precedes paging.
-                ["resultFilters"] = new OpenApiArray
-                {
-                    new OpenApiObject
-                    {
-                        ["alias"] = new OpenApiString("Mean"),
-                        ["operator"] = new OpenApiString("GreaterThanOrEqual"),
-                        ["value"] = new OpenApiString("-9007199254740990.5")
-                    },
-                    new OpenApiObject
-                    {
-                        ["alias"] = new OpenApiString("Mean"),
-                        ["operator"] = new OpenApiString("LessThan"),
-                        ["value"] = new OpenApiString("-9007199254740990")
-                    }
-                },
-                ["resultOrder"] = new OpenApiArray
-                {
-                    new OpenApiObject { ["alias"] = new OpenApiString("Mean"), ["descending"] = new OpenApiBoolean(false) },
-                    new OpenApiObject { ["alias"] = new OpenApiString("Stock") }
-                },
-
+                ["resultTake"] = new OpenApiInteger(2),
                 ["keys"] = new OpenApiArray
                 {
                     new OpenApiObject
                     {
-                        ["alias"] = new OpenApiString("stock"),
-                        ["metadataPath"] = new OpenApiArray { new OpenApiString("stock") },
-                        ["valueType"] = new OpenApiString("Int64")
+                        ["alias"] = new OpenApiString("observed"),
+                        ["metadataPath"] = new OpenApiArray { new OpenApiString("observedAt") },
+                        ["valueType"] = new OpenApiString("DateTime")
                     }
                 },
                 ["columns"] = new OpenApiArray
                 {
-                    new OpenApiObject
-                    {
-                        ["alias"] = new OpenApiString("Stock"),
-                        ["keyAlias"] = new OpenApiString("stock")
-                    },
-                    new OpenApiObject
-                    {
-                        ["alias"] = new OpenApiString("Items"),
-                        ["operation"] = new OpenApiString("LongCount")
-                    },
-                    Aggregate("Total", "Sum"),
-                    Aggregate("Mean", "Average")
+                    new OpenApiObject { ["alias"] = new OpenApiString("ObservedAt"), ["keyAlias"] = new OpenApiString("observed") },
+                    new OpenApiObject { ["alias"] = new OpenApiString("Items"), ["operation"] = new OpenApiString("LongCount") }
                 },
-
-                // Copy the live tag from /demo/session; never scan another
-                // session's fixture or application data for this walkthrough.
+                ["resultFilters"] = new OpenApiArray
+                {
+                    new OpenApiObject
+                    {
+                        ["alias"] = new OpenApiString("ObservedAt"),
+                        ["operator"] = new OpenApiString("GreaterThanOrEqual"),
+                        ["value"] = new OpenApiString("2026-10-24T00:00:00.0000002Z")
+                    },
+                    new OpenApiObject
+                    {
+                        ["alias"] = new OpenApiString("ObservedAt"),
+                        ["operator"] = new OpenApiString("LessThan"),
+                        ["value"] = new OpenApiString("2026-10-24T00:00:00.0000004Z")
+                    }
+                },
+                ["resultOrder"] = new OpenApiArray
+                {
+                    new OpenApiObject { ["alias"] = new OpenApiString("ObservedAt"), ["descending"] = new OpenApiBoolean(false) }
+                },
+                // Copy the live tag from /demo/session. Never query another
+                // session's fixture or unrelated application data in the demo.
                 ["filters"] = new OpenApiArray
                 {
                     new OpenApiObject
@@ -152,6 +124,20 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                         ["metadataPath"] = new OpenApiArray { new OpenApiString("location"), new OpenApiString("city") },
                         ["scalar"] = new OpenApiString("String"), ["operator"] = new OpenApiString("Equal"),
                         ["value"] = new OpenApiString("London")
+                    },
+                    new OpenApiObject
+                    {
+                        ["metadataPath"] = new OpenApiArray { new OpenApiString("observedAt") },
+                        ["scalar"] = new OpenApiString("DateTime"),
+                        ["operator"] = new OpenApiString("GreaterThanOrEqual"),
+                        ["value"] = new OpenApiString("2026-10-24T00:00:00.0000002Z")
+                    },
+                    new OpenApiObject
+                    {
+                        ["metadataPath"] = new OpenApiArray { new OpenApiString("observedAt") },
+                        ["scalar"] = new OpenApiString("DateTime"),
+                        ["operator"] = new OpenApiString("LessThan"),
+                        ["value"] = new OpenApiString("2026-10-24T00:00:00.0000004Z")
                     }
                 },
                 ["columns"] = new OpenApiArray
@@ -162,6 +148,12 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                         ["alias"] = new OpenApiString("precision"),
                         ["metadataPath"] = new OpenApiArray { new OpenApiString("precision") },
                         ["valueType"] = new OpenApiString("Int64")
+                    },
+                    new OpenApiObject
+                    {
+                        ["alias"] = new OpenApiString("ObservedAt"),
+                        ["metadataPath"] = new OpenApiArray { new OpenApiString("observedAt") },
+                        ["valueType"] = new OpenApiString("DateTime")
                     }
                 }
             };

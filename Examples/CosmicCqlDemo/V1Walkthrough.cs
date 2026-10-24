@@ -420,11 +420,54 @@ public static class V1Walkthrough
                 resultOrder = new[] { new { alias = "Mean", descending = false } },
                 resultTake = 1
             }, grouped: true);
+
+            // EXAMPLE 20 — UTC source predicates use the DateTime scalar and
+            // explicit Z text. The range distinguishes neighboring100ns ticks.
+            await ShowAsync("20. UTC source range / detached date columns", new
+            {
+                provider,
+                filters = scalarFilters.Concat(new object[]
+                {
+                    new { metadataPath = new[] { "observedAt" }, scalar = "DateTime",
+                        @operator = "GreaterThanOrEqual", value = "2026-10-24T00:00:00.0000002Z" },
+                    new { metadataPath = new[] { "observedAt" }, scalar = "DateTime",
+                        @operator = "LessThan", value = "2026-10-24T00:00:00.0000004Z" }
+                }).ToArray(),
+                orderBy = "Name",
+                take = 2,
+                columns = new object[]
+                {
+                    new { alias = "Name", field = "Name" },
+                    new { alias = "ObservedAt", metadataPath = new[] { "observedAt" }, valueType = "DateTime" }
+                }
+            }, projection: true, dateProjection: true);
+
+            // EXAMPLE 21 — Filter exact selected date keys after reduction.
+            // Result order/page are independent of the source's default order.
+            await ShowAsync("21. UTC grouped dates / selected alias predicates", new
+            {
+                provider,
+                filters = scalarFilters,
+                maximumGroups = 10,
+                keys = new[] { new { alias = "observed", metadataPath = new[] { "observedAt" }, valueType = "DateTime" } },
+                columns = new object[]
+                {
+                    new { alias = "ObservedAt", keyAlias = "observed" },
+                    new { alias = "Items", operation = "LongCount" }
+                },
+                resultFilters = new[]
+                {
+                    new { alias = "ObservedAt", @operator = "GreaterThanOrEqual", value = "2026-10-24T00:00:00.0000002Z" },
+                    new { alias = "ObservedAt", @operator = "LessThan", value = "2026-10-24T00:00:00.0000004Z" }
+                },
+                resultOrder = new[] { new { alias = "ObservedAt", descending = false } },
+                resultTake = 2
+            }, grouped: true, dateGroups: true);
         }
 
         return completedRequests;
 
-        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null, bool projection = false, bool grouped = false, bool orderedGroups = false, bool pagedGroups = false)
+        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null, bool projection = false, bool grouped = false, bool orderedGroups = false, bool pagedGroups = false, bool dateProjection = false, bool dateGroups = false)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -463,7 +506,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong scalar domain or value.");
             }
 
-            if (projection)
+            if (projection && !dateProjection)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -475,7 +518,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong selected shape or exact value.");
             }
 
-            if (grouped && !orderedGroups)
+            if (grouped && !orderedGroups && !dateGroups)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -504,6 +547,25 @@ public static class V1Walkthrough
                     || !rows.Select(row => row[0].GetString()).SequenceEqual(expectedNames)
                     || !rows.Select(row => row[1].GetString()).SequenceEqual(expectedTotals))
                     throw new InvalidOperationException(title + " returned incorrect exact ordered groups.");
+            }
+
+            if (dateProjection || dateGroups)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var rows = payload.GetProperty("rows").EnumerateArray().ToArray();
+                var dateIndex = dateGroups ? 0 : 1;
+                var expectedDates = new[]
+                {
+                    "2026-10-24T00:00:00.0000002Z",
+                    "2026-10-24T00:00:00.0000003Z"
+                };
+
+                if (payload.GetProperty("version").GetString() != (dateGroups ? "cql-grouped-v1" : "cql-projection-v1")
+                    || payload.GetProperty("columns")[dateIndex].GetProperty("valueType").GetString() != "DateTime"
+                    || !rows.Select(row => row[dateIndex].GetString()).SequenceEqual(expectedDates)
+                    || (dateGroups ? rows.Any(row => row[1].GetString() != "1")
+                        : !rows.Select(row => row[0].GetString()).SequenceEqual(new[] { "B-owned", "C-public" })))
+                    throw new InvalidOperationException(title + " lost exact UTC date values, shape or visibility.");
             }
 
             completedRequests++;

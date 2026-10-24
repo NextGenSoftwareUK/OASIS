@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.Json;
+using System.Globalization;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -12,6 +13,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public static partial class CqlV1Compiler
 {
+    private static readonly string[] UtcDateFormats = Enumerable.Range(0, 8)
+        .Select(digits => "yyyy-MM-dd'T'HH:mm:ss" + (digits == 0 ? "" : "." + new string('f', digits)) + "'Z'").ToArray();
+
+    // One wire owner for source and selected-result dates. Do not infer a
+    // timezone or round input wider than DateTime's100ns resolution.
+    private static bool TryUtcDate(JsonElement json, out DateTime value)
+    {
+        value = default;
+        if (json.ValueKind != JsonValueKind.String) return false;
+        var text = json.GetString();
+        return text.Length is >= 20 and <= 28 && DateTime.TryParseExact(text, UtcDateFormats,
+            CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out value);
+    }
     public static bool Supported(ProviderType type) => type is ProviderType.MongoDBOASIS or ProviderType.SQLLiteDBOASIS or ProviderType.Neo4jOASIS;
 
     public static ProviderType? RequestedProvider(string name)
@@ -186,7 +200,7 @@ public static partial class CqlV1Compiler
             var type = filter.Scalar switch
             {
                 CqlV1Scalar.String => typeof(string), CqlV1Scalar.Integer => typeof(long),
-                CqlV1Scalar.Boolean => typeof(bool), _ => typeof(Guid)
+                CqlV1Scalar.Boolean => typeof(bool), CqlV1Scalar.DateTime => typeof(DateTime), _ => typeof(Guid)
             };
             path = Expression.Call(typeof(CosmicQueryMetadata), "Value", new[] { type }, parameter, segments);
         }
@@ -211,6 +225,7 @@ public static partial class CqlV1Compiler
         else if (path.Type == typeof(long) && json.ValueKind == JsonValueKind.Number && json.TryGetInt64(out var number)) value = number;
         else if (path.Type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var integer)) value = integer;
         else if (path.Type == typeof(Guid) && json.ValueKind == JsonValueKind.String && Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
+        else if (path.Type == typeof(DateTime) && TryUtcDate(json, out var utc)) value = utc;
         else throw new ArgumentException("Value must match the exact bounded scalar type.");
 
         var literal = Expression.Constant(value, path.Type);

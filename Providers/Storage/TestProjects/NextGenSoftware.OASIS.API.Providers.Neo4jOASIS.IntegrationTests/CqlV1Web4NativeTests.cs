@@ -100,6 +100,9 @@ public sealed partial class CqlV1Web4NativeTests
                             ["fixture"] = tag, ["stock"] = 7L, ["guid"] = ids[i],
                             ["enabled"] = i >= 2, ["nullable"] = null!,
                             ["precision"] = 9007199254740993L,
+                            // Adjacent UTC ticks exercise exact date filters and
+                            // detached date output on every native provider.
+                            ["observedAt"] = new DateTime(2026, 10, 24, 0, 0, 0, DateTimeKind.Utc).AddTicks(i),
                             // Hidden roots carry stronger extrema; signed Min/Max
                             // must apply actor visibility before native reduction.
                             ["extremum"] = i == 0 ? long.MinValue : i == 1 ? long.MaxValue : -9007199254740993L + i,
@@ -260,10 +263,10 @@ public sealed partial class CqlV1Web4NativeTests
                             Provider = provider.ToString(), Columns = new[] { new { Alias = "same", Field = "Name" }, new { Alias = "same", Field = "Id" } }
                         }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, invalidColumns.StatusCode);
                         if (provider == ProviderType.Neo4jOASIS)
-                            using (var unsupportedDate = await Send(new
+                            using (var unsupportedDecimal = await Send(new
                             {
-                                Provider = provider.ToString(), Columns = new[] { new { Alias = "when", MetadataPath = new[] { "when" }, ValueType = "DateTime" } }
-                            }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, unsupportedDate.StatusCode);
+                                Provider = provider.ToString(), Columns = new[] { new { Alias = "amount", MetadataPath = new[] { "amount" }, ValueType = "Decimal" } }
+                            }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, unsupportedDecimal.StatusCode);
 
                         // Scalar requests share signed admission and exact durable receipts.
                         // The fixture marker applies only to its five roots: Alice sees3,
@@ -519,14 +522,16 @@ public sealed partial class CqlV1Web4NativeTests
                             var projectionExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlProjectionV1Request").GetProperty("example");
                             Assert.AreEqual("Int64", projectionExample.GetProperty("columns")[1].GetProperty("valueType").GetString());
+                            Assert.AreEqual("DateTime", projectionExample.GetProperty("columns")[2].GetProperty("valueType").GetString());
+                            Assert.AreEqual("DateTime", projectionExample.GetProperty("filters")[1].GetProperty("scalar").GetString());
                             var groupedExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlGroupedV1Request").GetProperty("example");
-                            Assert.AreEqual("Mean", groupedExample.GetProperty("resultOrder")[0].GetProperty("alias").GetString());
+                            Assert.AreEqual("ObservedAt", groupedExample.GetProperty("resultOrder")[0].GetProperty("alias").GetString());
                             Assert.IsFalse(groupedExample.GetProperty("resultOrder")[0].GetProperty("descending").GetBoolean());
-                            Assert.AreEqual(1, groupedExample.GetProperty("resultTake").GetInt32());
-                            Assert.AreEqual("Mean", groupedExample.GetProperty("resultFilters")[0].GetProperty("alias").GetString());
+                            Assert.AreEqual(2, groupedExample.GetProperty("resultTake").GetInt32());
+                            Assert.AreEqual("ObservedAt", groupedExample.GetProperty("resultFilters")[0].GetProperty("alias").GetString());
                             Assert.AreEqual("GreaterThanOrEqual", groupedExample.GetProperty("resultFilters")[0].GetProperty("operator").GetString());
-                            Assert.AreEqual("-9007199254740990.5", groupedExample.GetProperty("resultFilters")[0].GetProperty("value").GetString());
+                            Assert.AreEqual("2026-10-24T00:00:00.0000002Z", groupedExample.GetProperty("resultFilters")[0].GetProperty("value").GetString());
                             Assert.AreEqual("LessThan", groupedExample.GetProperty("resultFilters")[1].GetProperty("operator").GetString());
                         }
 
