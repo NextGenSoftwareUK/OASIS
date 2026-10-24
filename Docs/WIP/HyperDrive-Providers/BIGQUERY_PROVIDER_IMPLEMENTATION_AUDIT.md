@@ -1,5 +1,13 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## Shared parent-linked graph reads — 24 October
+
+Full425controlledPASS0skip4seconds. Original76case graph cohort32genuine failures/44valid controls: requested provider children were absent and cycles were silently returned as successful roots. Point GUID,parent GUID and all-holon collection owners now reuse existing Shared.HolonGraphProjection,not a new traversal. Adapter obtains current undeleted provider rows only when provider children are requested; all-collection reads reuse their already-fetched active pool. Root HolonType filtering does NOT incorrectly filter descendant types. Source records are canonically cloned,not mutated or persisted by reads.
+
+Shared rules cover loadChildren,recursive,maxChildDepth,initial depth,parent-root edge accounting and cycle errors. Counts remain selected roots,not descendant totals. Child versions remain independent (root2/child8/grandchild1 in controls). Additional18controls verify negative depth rejects before I/O,initial-depth budgeting,no unrequested provider-pool read,and original child-source failure/no partial root regardless of continueOnError. Provider-disabled mode uses persisted embedded child data as defined by the shared projector; BigQuery's canonical stored records do not currently persist full child navigation,so absence is not advertised as an embedded graph implementation.
+
+This is controlled current parent-linked graph-read support,NOT graph writes,history/native cloud correctness,transactional root/pool snapshot consistency or full option/interface certification. Non-GUID provider-key option forwarding,search/export integration and role-manifest/native integrity matrices still need completion. No real cloud query or dataset,downloads or new environment. Source/PDB Core742/Shared56/provider5/unit9 and copies verified. Reports/resources in inventory.
+
 ## Shared search contract replaces divergent matcher — 24 October
 
 Full331controlledPASS0skip3seconds,including36new genuine before-fix failures. Replaced provider-only text/metadata/any-group matchers with existing Shared.StoredRecordSearch.Validate/Matches and Core.StoredRecordJson query projection. Query is validated,captured and validated before the first awaited source read. Shared behavior now supplies numeric/date comparisons,ordered AND/OR,implicit targets,avatar ownership by CreatedByAvatarId,avatar metadata scope and recursive parent ancestry. This aligns BigQuery with the existing Oracle/shared contract rather than inventing provider-specific semantics. Returned root counts/loaded flags are explicit.
