@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.Common;
@@ -18,6 +19,57 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public sealed class MongoExportNativeTests(ITestOutputHelper output)
 {
+    [Theory]
+    [InlineData(false,false,false)] [InlineData(false,false,true)]
+    [InlineData(false,true,false)] [InlineData(false,true,true)]
+    [InlineData(true,false,false)] [InlineData(true,false,true)]
+    [InlineData(true,true,false)] [InlineData(true,true,true)]
+    public async Task HistoricalPointReadSelectsRootButKeepsIndependentChildVersion(bool byKey,bool sync,bool providerChildren)
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        const string name="cosmic_cql_fixture";var client=new MongoClient(uri);
+        using var names=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await names.ToListAsync());
+        var database=client.GetDatabase(name);await database.CreateCollectionAsync("CosmicOwnedFixture");
+        var provider=new Provider(uri,name);var complete=false;
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            var root=new Holon{Id=Guid.NewGuid(),Version=1,VersionId=Guid.NewGuid(),Name="historical root"};
+            var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Version=7,VersionId=Guid.NewGuid(),Name="initial child"};
+            root.Children=new List<IHolon>{child};
+            var first=await provider.SaveHolonAsync(root,saveChildren:true);
+            Assert.False(first.IsError,first.Message+first.Exception);
+            var current=first.Result;current.PreviousVersionId=current.VersionId;current.Version=2;current.VersionId=Guid.NewGuid();current.Name="current root";
+            var second=await provider.SaveHolonAsync(current,saveChildren:false);
+            Assert.False(second.IsError,second.Message+second.Exception);
+            var storedChild=await provider.LoadHolonAsync(child.Id,loadChildren:false);
+            Assert.False(storedChild.IsError,storedChild.Message+storedChild.Exception);Assert.NotNull(storedChild.Result);
+            storedChild.Result.PreviousVersionId=storedChild.Result.VersionId;storedChild.Result.Version=8;storedChild.Result.VersionId=Guid.NewGuid();storedChild.Result.Name="independent current child";
+            var savedChild=await provider.SaveHolonAsync(storedChild.Result,saveChildren:false);
+            Assert.False(savedChild.IsError,savedChild.Message+savedChild.Exception);
+            var native=database.GetCollection<BsonDocument>("Holon");
+            async Task<string[]> Snapshot()=>(await native.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).Select(row=>row.ToJson()).OrderBy(row=>row,StringComparer.Ordinal).ToArray();
+            var before=await Snapshot();var key=current.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS];
+            var loaded=byKey
+                ?sync?provider.LoadHolon(key,loadChildren:providerChildren,loadChildrenFromProvider:providerChildren,version:1):await provider.LoadHolonAsync(key,loadChildren:providerChildren,loadChildrenFromProvider:providerChildren,version:1)
+                :sync?provider.LoadHolon(root.Id,loadChildren:providerChildren,loadChildrenFromProvider:providerChildren,version:1):await provider.LoadHolonAsync(root.Id,loadChildren:providerChildren,loadChildrenFromProvider:providerChildren,version:1);
+            Assert.False(loaded.IsError,loaded.Message+loaded.Exception);Assert.True(loaded.IsLoaded);Assert.Equal(1,loaded.LoadedCount);
+            Assert.Equal("historical root",loaded.Result.Name);Assert.Equal(1,loaded.Result.Version);
+            if(providerChildren){var selected=Assert.Single(loaded.Result.Children);Assert.Equal(8,selected.Version);Assert.Equal("independent current child",selected.Name);}
+            else Assert.Empty(loaded.Result.Children);
+            Assert.Equal(before,await Snapshot());complete=true;
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+            if(complete)await client.DropDatabaseAsync(name);
+            else output.WriteLine("Preserved owned cosmic_cql_fixture historical point-read evidence for reviewed reconciliation.");
+        }
+    }
+
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public async Task HostedDomainMutationPreservesExistingArchiveAndUnknownFields(bool softDelete)
