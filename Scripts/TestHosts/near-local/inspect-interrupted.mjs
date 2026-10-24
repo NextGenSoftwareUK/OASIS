@@ -40,6 +40,26 @@ const fingerprints=rows.map(row=>{
 }).sort((left,right)=>left[0].localeCompare(right[0]));
 const negative=JSON.parse(readFileSync(`${retained}/failed-status-current.json`,'utf8'));
 const checked=JSON.parse(readFileSync(`${repo}/TestResults/NearRuntime/near-checked-sdk.complete.json`,'utf8'));
+if(negative.chain!==status.chain_id||typeof negative.hash!=='string'||typeof negative.accountId!=='string')
+  throw new Error('Original negative receipt identity is invalid; no replacement permitted');
+const receipt=spawnSync(process.execPath,[`${repo}/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/bridge.mjs`],
+  {input:JSON.stringify({operation:'transactionStatus',rpcEndpoint:endpoint,networkId:status.chain_id,
+    contractId:contract,transactionHash:negative.hash,signerAccountId:negative.accountId}),
+    encoding:'utf8',timeout:30000,maxBuffer:1024*1024});
+if(receipt.error)throw new Error('Original receipt observation did not finish; outcome remains unverified');
+const receiptEnvelope=JSON.parse(receipt.stdout);
+if(receiptEnvelope.ok===true){
+  if(receipt.status!==0)throw new Error('Inconsistent receipt process result');
+  const outcome=receiptEnvelope.result?.outcome;
+  if(outcome?.transaction_outcome?.id!==negative.hash)throw new Error('Observed receipt transaction identity differs');
+  console.log(JSON.stringify({Mode:'original-negative-receipt',Available:true,
+    Finality:outcome.final_execution_status,StatusKeys:Object.keys(outcome.status??{})}));
+}else{
+  if(receipt.status!==1||typeof receiptEnvelope.error!=='string')throw new Error('Invalid original receipt error envelope');
+  console.log(JSON.stringify({Mode:'original-negative-receipt',Available:false,
+    ErrorSha256:digest(receiptEnvelope.error),UnknownTransaction:receiptEnvelope.error.includes('Unknown transaction'),
+    TransportFailure:receiptEnvelope.error.includes('fetch failed'),OutcomeRemainsUnverified:true}));
+}
 console.log(JSON.stringify({Mode:'read-only-interrupted-inspection',Chain:status.chain_id,Contract:contract,
   CodeSha256:expectedCode,FinalizedHeight:status.sync_info.latest_block_height,Rows:rows.length,
   InventorySha256:digest(JSON.stringify(fingerprints)),ValueBytes:fingerprints.reduce((sum,row)=>sum+row[2],0),
