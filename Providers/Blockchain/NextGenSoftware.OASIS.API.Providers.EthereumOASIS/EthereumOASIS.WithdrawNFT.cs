@@ -291,6 +291,8 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
         {
             var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
             string errorMessage = "Error in MintNFTAsync method in EthereumOASIS. Reason: ";
+            var dispatched = false;
+            string submittedHash = null;
 
             try
             {
@@ -356,22 +358,30 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                 // ERC-721 itself does not standardize a mint function.
                 var mintGas = await mintFunction.EstimateGasAsync(senderAccount.Address, null, null, mintToAddress, tokenId);
 
-                var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
+                dispatched = true;
+                var acknowledgedHash = await mintFunction.SendTransactionAsync(
                     senderAccount.Address,
                     mintGas,
                     null,
-                    null,
                     mintToAddress,
                     tokenId);
+                if (!IsStorageTransactionIdentity(acknowledgedHash))
+                    throw new InvalidDataException("NFT mint submission returned no valid native transaction identity.");
+                submittedHash = acknowledgedHash;
+                // Reuse the existing SDK polling owner, retaining submission identity independently.
+                var receipt = await PollTokenReceiptAsync(web3, submittedHash);
+                if (receipt == null || !string.Equals(receipt.TransactionHash, submittedHash, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("NFT mint receipt does not match the original submitted transaction.");
 
                 if (receipt.HasErrors() == true)
                 {
+                    result.Result.TransactionResult = submittedHash;
+                    result.ErrorCode = "ETHEREUM_NFT_REVERTED";
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-721 mint failed."));
                     return result;
                 }
 
-                try { NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721MintReceipt.Verify(receipt, nftContractAddress, mintToAddress, tokenId); }
-                catch (Exception cause) { throw new EthereumNftMutationReconciliationException(receipt?.TransactionHash, cause); }
+                NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721MintReceipt.Verify(receipt, nftContractAddress, mintToAddress, tokenId);
                 result.Result.TransactionResult = receipt.TransactionHash;
                 result.Result.Web3NFT = new Web3NFT
                 {
@@ -385,8 +395,9 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-                if (ex is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
+                var cause = dispatched ? new EthereumNftMutationReconciliationException(submittedHash, ex) : ex;
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, cause.Message), cause);
+                if (!dispatched && ex is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
             }
             return result;
         }
