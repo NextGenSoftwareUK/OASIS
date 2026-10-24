@@ -16,7 +16,7 @@ internal sealed partial class NeoCqlTranslator
     internal NeoCqlTranslator(CosmicQueryReadAccess access=null):this("h","p",new Dictionary<string,object>(StringComparer.Ordinal),access){}
     private NeoCqlTranslator(string node,string projection,Dictionary<string,object> parameters,CosmicQueryReadAccess access)
     {_node=node;_projection=projection;Parameters=parameters;_access=access;}
-    private string Bind(object value)
+    internal string Bind(object value)
     {
         if (Parameters.Count >= 900) throw new NotSupportedException("Neo4j CQL exceeds its 900-parameter budget.");
         var name = "cql" + Parameters.Count; Parameters.Add(name, value); return "$" + name;
@@ -61,12 +61,12 @@ internal sealed partial class NeoCqlTranslator
         else throw new NotSupportedException("Neo4j CQL metadata scalar domain is unsupported.");
         return (value, "(" + guard + ")", kind + "='null'");
     }
-    private static string Symbol(CosmicQueryComparisonOperator operation) => operation switch {
+    internal static string Symbol(CosmicQueryComparisonOperator operation) => operation switch {
         CosmicQueryComparisonOperator.Equal => "=", CosmicQueryComparisonOperator.NotEqual => "<>",
         CosmicQueryComparisonOperator.GreaterThan => ">", CosmicQueryComparisonOperator.GreaterThanOrEqual => ">=",
         CosmicQueryComparisonOperator.LessThan => "<", CosmicQueryComparisonOperator.LessThanOrEqual => "<=",
         _ => throw new NotSupportedException("Unknown Neo4j CQL comparison.") };
-    private static object Literal(CosmicQueryLiteral literal) => literal.Kind switch {
+    internal static object Literal(CosmicQueryLiteral literal) => literal.Kind switch {
         CosmicQueryScalarKind.String or CosmicQueryScalarKind.Boolean or CosmicQueryScalarKind.Int64 => literal.Value,
         CosmicQueryScalarKind.Guid => ((Guid)literal.Value).ToString("D"),
         _ => throw new NotSupportedException("Neo4j CQL literal domain is unsupported.") };
