@@ -27,7 +27,8 @@ Current verified contracts: [projection/aggregate ownership](CQL_AGGREGATE_IMPLE
 - [x] Immutable scalar/composite GroupBy key capture through the existing projection compiler, independent grouped-output bounds and source/access/window preservation (14 new controls).
 - [x] Capture typed grouped result selection and key/Count/LongCount/Min/Max/Sum/Average slots through a common detached DTO-shape owner (13 new controls; full Core2,182 passes).
 - [x] Independent grouped capability planning and actual-adapter readmission, including every key/aggregate and output budgets (18 new controls; full Core2,200 passes).
-- [ ] Complete grouped result validation/materialization and existing attempt-owner integration before native grouping I/O.
+- [x] Validate complete grouped identity/count/result buffers before shared DTO construction; enforce exact scalar domains, key order, proof agreement, source/window/work and payload bounds (24 new controls; full Core2,224 passes).
+- [ ] Integrate grouped execution with the existing physical-attempt owner, all-provider preflight and validation before any provider DTO is constructed.
 - [ ] Implement grouped Count/LongCount, Min/Max and exact Sum/Average natively on all three providers; prove typed key equality, nullable/missing rules, deterministic order, group/input budgets, access-before-participation and no partial publication.
 - [ ] Certify post-group filters/order/pages and multiple aggregates. Add bounded grouped HTTP, developer examples and live three-provider acceptance.
 

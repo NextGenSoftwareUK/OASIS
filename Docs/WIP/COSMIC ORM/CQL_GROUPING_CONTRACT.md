@@ -1,6 +1,6 @@
 # CQL GroupBy contract
 
-23 October 2026. Key and grouped-result selection capture are implemented; planning/readmission are implemented; grouped result validation/execution and native adapters are not yet enrolled. This contract preserves the full grouping requirement rather than declaring completion from capture alone.
+23 October 2026. Core captures, plans and validates detached grouped results. Execution ownership and native adapters remain to implement; the full grouping requirement is still open.
 
 ## Key capture
 
@@ -34,7 +34,7 @@ Native grouped Count/LongCount, Min/Max and exact integer Sum/Average must retai
 
 Both Core targets build (netstandard2.1/net10.0). Full Core/HTTP suite:2,169 passed, zero skips, including14 new key-capture controls. Evidence: TestResults/CoreCurrent/cql-grouping-foundation-current.trx and TestResults/CosmicCqlDemo/grouping-foundation-final.log. The first test compilation used `.Result` on the direct query factory; corrected before the passing run. Core production key capture, Shared rebuild and the unit consumer share the same new Core assembly.
 
-Still required: grouped result validation/materialization, existing physical-attempt owner integration, native MongoDB/SQLite/Neo4j reductions and fault controls, bounded HTTP description, spaced/commented examples and live three-provider acceptance. No native grouping, GroupBy transport or completion claim follows from key capture.
+Still required: existing physical-attempt owner integration, native MongoDB/SQLite/Neo4j reductions and fault controls, bounded HTTP description, spaced/commented examples and live three-provider acceptance. No native grouping, GroupBy transport or completion claim follows from key capture.
 
 
 ## Grouped selection capture — verified
@@ -69,4 +69,18 @@ Evidence: TestResults/CoreCurrent/cql-grouped-selection-current.trx and cql-grou
 
 Both Core targets build and the full suite passes **2,200 tests, zero skips**, including18 new planning cases. Controls cover immutable target snapshots, omitted/composite key permissions, independent operation/read-domain checks, actual-profile/source rejection, group/width/payload bounds, invalid/duplicate target sets and an unsupported later all-eligible target. Evidence: TestResults/CoreCurrent/cql-grouped-planning-{current,final-current}.trx and TestResults/CosmicCqlDemo/grouped-planning{,-final}.log, grouped-planning-artifacts.json. Private Corea4e3e6d0a69b524d3a7b2cd0e87a9eb0dadf71f2 is paired with the parent pin.
 
-This is planning evidence, not native GroupBy execution certification. Grouped result validation/materialization, the existing physical-attempt owner, native adapters, HTTP and demos remain required. No current provider advertises grouping execution.
+This is planning evidence, not native GroupBy execution certification. The existing physical-attempt owner, native adapters, HTTP and demos remain required. No current provider advertises grouping execution.
+
+
+## Grouped result validation/materialization — verified
+
+The native row protocol carries a required positive input count and immutable key cells separately from selected result cells. Selected Count/LongCount must agree with that proof, and summed group input cannot exceed a composed source window even when counts are omitted. No default count or inferred proof is permitted. Every key component is validated even when omitted from the result. Selected key slots must agree with the identity cells. Rows must have strictly increasing composite keys (null first, Unicode scalar string order); duplicates and unordered buffers fail rather than being silently merged or sorted in the manager.
+
+Validation snapshots the whole bounded buffer before constructing any DTO. Group cardinality cannot exceed the composed source window, and group-count/payload limits are independent. The payload budget includes identity/proof cells as well as selected cells. Count/LongCount must be positive for a published group; nullable Sum still cannot publish null; Average must fit its declared integer input range. Required/null/CLR domains, finite numbers, UTC dates, defined enums and strict Unicode must share one validation owner with ordinary detached projection values. Constructor/member assignment now shares one owner with ordinary detached projections.
+
+All 24 new controls pass in the full **2,224-test suite, zero skips**, and both Core targets build. The final producer/Shared/unit copies match. Controls include large exact LongCount proof, nullable/all-null aggregates, source-window and numeric input-work bounds, immutable row snapshots and whole-buffer rejection before any DTO constructor. Grouped executor/physical-attempt integration and native adapters remain subsequent requirements; no provider advertises execution.
+
+
+The shared detached scalar validator also closes two projection gaps: non-UTC DateTime values and undefined enum values now fail before construction. Exact CLR types, finite numbers, strict Unicode and primitive-only cells share this owner; no arbitrary serializer/getter/ToString is invoked. Payload checks stop after each key/result cell. Numeric grouped input work counts nullable nonparticipants too; a LongCount-only group can retain its exact Int64 count without a binary64 conversion. Grouped source cardinality uses mandatory input proofs rather than just the number of groups.
+
+Evidence: TestResults/CoreCurrent/cql-grouped-results-{current,final-current,budget-current}.trx; TestResults/CosmicCqlDemo/grouped-results{,-fixed,-final,-budget}.log and grouped-results-artifacts.json. The initial build hit an Enum name collision; System.Enum was qualified before the passing build. Private Core92a5d5e419b9e673287d930e345cad6c77457b65 is paired with the parent gitlink/manifest. This verifies detached result handling, not native GroupBy execution.
