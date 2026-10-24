@@ -1,5 +1,23 @@
 # Reusable environments and disk inventory
 
+2026-10-24 BigQuery graph-write closure,owner HyperDrive providers:505controlledPASS0skip3seconds,final terminalexit0. SameSDK3.9.0/Core/Shared/.NET/cache/checkout/outputdirectories reused; no restore/download/environment/runtime/cloud job/dataset/realcredentials or real mutation. Test Ledger contains memory-only canonical graphs/conditional receipts,not a native database; two actual SDK compressedHTTP controls use synthetic token and in-memory handler,no DNS/service request. Official GoogleSQL MERGE docs read remotely,in-memory,no source archive. No live owned process/port. Source/PDB Core742/Shared56/provider6/unit11 and producer/copy match; provider3B855858E69FF12EDF56C84FE9A99548D4A2E549A28639673B46FAB2CADBBF3A,unit3495E161DFDA048E976B945660414631EFC757DA872E4D2D2C26E9A46132889C. Core/Shared unchanged from earlier closures.
+
+Exact reused C:/Source/OASIS/Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS/bin7086969bytes,obj996944bytes; C:/Source/OASIS/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests/bin47678435bytes,obj1275426bytes. Retain reusable shared outputs/cache; remove exactbin/obj only after shared consumers stop,regenerate existing project-scoped cached builds under lease. No disposable persistent ledger/database/archive introduced or deleted. Whole-drivefree71060537344bytes,not task attribution/reclamation. Native hosted cost warning: observation+MERGE per attempted node,not yet budget/admission certified.
+
+Retain compact C:/Source/OASIS/TestResults/BigQueryCurrent/ evidence,no live dependencies; recreate same unitproject under lease,not native cloud acceptance:
+
+| File | Bytes | SHA256 | Meaning |
+|---|---:|---|---|
+| graph-write-before.trx |38785|838B2BF247D45CA3173CEAA9BF9D22E18541D92639BB3C1E9E767CC31C90146D|18genuine failures |
+| graph-write-final.trx |742425|5056313ACF05C5D2BE8BAA6249E43BBDAE9C4A505F86342E063603F4264E5A20|487pass/2real null-input regressions |
+| graph-write-verified.trx |741202|E1801F48F789908A5E28588552F9396FDBB3E0407E43C78C3EDC5F602ADCDA47|489PASS after source guard |
+| graph-write-complete.trx |745191|958FDCCBCBF371FA8B4BD3CA9B9948CDC9CD4808523FC0AC93B7E7ACC30028FE|489pass/2fixture all-STRING assumptions |
+| graph-write-bound.trx |744192|A6B2CA1413B7C2C9F66F45C44D1E4D0968946F502DD375538E1C790DA4BB2707|491PASS typed parameter assertions corrected |
+| graph-write-preflight.trx |761964|36687E6D9761FCF8692FDC986BB651C802F7ECC10C128A1BF002D7021C3CD3A7|503PASS |
+| graph-write-wire.trx |764960|183F00E4776BEB6CDC9CE07CEE23E15E8C826290FAA1B4615101AC12358C8821|505PASS actual SDK conditional request construction |
+
+2026-10-24 BigQuery graph-write admission,owner HyperDrive providers: reuse existingSDK3.9.0/Core/Shared HolonGraphWritePlan/HolonChildRolePersistence/publication helpers and same output folders. No download/restore/cloud/environment/runtime; controlled canonical rows/conditional mutation receipts memory-only. Planned TestResults/BigQueryCurrent/graph-write-before.trx and graph-write-final.trx(sizes pending). Verify full graph preflight,frozen node intent,selected role manifests and native compare-and-set preservation for unselected roles; retain failed evidence,measure outputs at closure. Native server semantics remain unverified until cloud access.
+
 2026-10-24 BigQuery entrypoint integration closure,owner HyperDrive providers:471controlledPASS0skip4seconds,terminal32258exit0. Original30entrypoint cases24genuinefail/6pass; intermediate455pass. Separate import2genuinefail then final adds10export error/admission/fullgraph controls and4healthy import controls. Existing SDK3.9.0/Core/Shared/.NET/cache/Rowsfixture/checkout/outputdirectories reused; no restore/download/new environment/runtime/cloud job/dataset/credentials or real mutation. Synthetic records/exports/partial writes memory-only,disposed at terminal. No live owned process/port. Source/PDB Core742/Shared56/provider5/unit10 and producer/consumer match; provider62E043B98FF2EF923D73CDD77137BC22418B92D6570D1EFDF2EE2453246FE1DA,unit19857F4BB2E3EAE8986AF910733D69B94F27F1F7B785CD520E825CF38A542572;Core/Shared unchanged from earlier closures.
 
 Exact reusable outputs C:/Source/OASIS/Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS/bin7081073bytes,obj990024bytes; C:/Source/OASIS/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests/bin47647887bytes,obj1241558bytes. Retain shared cache/outputs; exactbin/obj cleanup only after all consumers stop,regenerate existing cached project build under lease. No disposable runtime/database/archive introduced or deleted. Whole-drivefree71058370560bytes,not exclusive attribution.

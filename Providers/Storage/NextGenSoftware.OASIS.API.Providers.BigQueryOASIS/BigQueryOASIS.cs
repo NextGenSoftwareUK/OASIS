@@ -418,47 +418,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
         public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-            => SaveAcknowledgedRecordAsync(holon,CollHolons);
+            => SaveSelectedGraphAsync(holon,saveChildren,recursive,maxChildDepth);
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>();
-            var acknowledged=new List<string>();var failures=new List<Exception>();var count=0;
-            try
-            {
-                ArgumentNullException.ThrowIfNull(holons);
-                var roots=System.Linq.Enumerable.ToArray(holons);
-                if(System.Linq.Enumerable.Any(roots,root=>root==null))throw new ArgumentException("BigQuery bulk roots must not contain null.",nameof(holons));
-                foreach (var h in roots)
-                {
-                    var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    count=checked(count+r.SavedCount);
-                    if(r.SavedCount>0){
-                        var id=r.Exception is BigQueryRecordReconciliationException native?native.RecordId:r.Result?.Id??h.Id;
-                        if(id!=Guid.Empty)acknowledged.Add(id.ToString());
-                    }
-                    if(r.IsError||!r.IsSaved||r.Result==null){
-                        var cause=r.Exception??new System.IO.InvalidDataException("BigQuery member returned no complete save acknowledgement.");failures.Add(cause);
-                        if(!continueOnError||NativeMutationReconciliation.IsRequired(cause))break;
-                    }else saved.Add(r.Result);
-                }
-            }
-            catch (Exception ex)
-            {
-                failures.Add(ex);
-            }
-            result.Result=saved;result.SavedCount=count;result.IsSaved=failures.Count==0;
-            if(failures.Count>0){
-                Exception cause=failures.Count==1?failures[0]:new AggregateException(failures);
-                if(acknowledged.Count>0)cause=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValuePartialMutationException(Core.Enums.ProviderType.BigQueryOASIS,acknowledged,cause);
-                OASISErrorHandling.HandleError(ref result,"BigQuery bulk save failed; reconcile acknowledged records and original member outcomes before replay.",cause);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => WriteGraphAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
@@ -808,6 +774,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         private string Table(string t) => $"`{_projectId}.{_dataset}.{t}`";
 
         private async Task<List<T>> SqlAsync<T>(string sql,params BigQueryParameter[] parameters) where T : class
+            => await ReadRowsAsync<T>(sql,parameters);
+
+        private async Task<List<T>> ReadRowsAsync<T>(string sql,IEnumerable<BigQueryParameter> parameters,Action<T,string>? observe=null) where T : class
         {
             var list = new List<T>();
             var results = await _client!.ExecuteQueryAsync(sql, parameters,new QueryOptions{UseLegacySql=false});
@@ -817,6 +786,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 if (string.IsNullOrWhiteSpace(raw))throw new System.IO.InvalidDataException("BigQuery stored record row has no canonical document.");
                 var item = Core.Serialization.StoredRecordJson.DeserializeStored<T>(raw);
                 if(item==null)throw new System.IO.InvalidDataException("BigQuery stored record document must not be null.");
+                observe?.Invoke(item,raw);
                 list.Add(item);
             }
             return list;
@@ -835,19 +805,20 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         }
 
         private sealed record BigQueryWriteAcknowledgement(string JobId,string Location);
-        private async Task<BigQueryWriteAcknowledgement> UpsertDocAsync<T>(string table, string id, T obj)
+        private async Task<BigQueryWriteAcknowledgement> UpsertDocAsync<T>(string table, string id, T obj,bool checkOriginal=false,string? expectedDoc=null)
         {
             var (doc, u, e, p) = Shred(obj);
             var sql = $@"MERGE {Table(table)} t
                 USING (SELECT @id AS id, @doc AS doc, @username AS username,
                               @email AS email, @parent AS parent_holon_id) s
                 ON t.id = s.id
-                WHEN MATCHED THEN UPDATE SET doc = s.doc, username = s.username, email = s.email,
+                WHEN MATCHED{(checkOriginal?" AND @expected_exists AND t.doc = @expected_doc":"")} THEN UPDATE SET doc = s.doc, username = s.username, email = s.email,
                                              parent_holon_id = s.parent_holon_id, updated_at = CURRENT_TIMESTAMP()
-                WHEN NOT MATCHED THEN INSERT (id, doc, username, email, parent_holon_id, updated_at)
+                WHEN NOT MATCHED{(checkOriginal?" AND NOT @expected_exists":"")} THEN INSERT (id, doc, username, email, parent_holon_id, updated_at)
                                       VALUES (s.id, s.doc, s.username, s.email, s.parent_holon_id, CURRENT_TIMESTAMP())";
             var client=_client??throw new InvalidOperationException("BigQuery client is not activated.");
-            var parameters=new[]{StringParameter("id",id),StringParameter("doc",doc),StringParameter("username",u),StringParameter("email",e),StringParameter("parent",p)};
+            var parameters=new List<BigQueryParameter>{StringParameter("id",id),StringParameter("doc",doc),StringParameter("username",u),StringParameter("email",e),StringParameter("parent",p)};
+            if(checkOriginal){parameters.Add(new BigQueryParameter("expected_exists",BigQueryDbType.Bool,expectedDoc!=null));parameters.Add(new BigQueryParameter("expected_doc",BigQueryDbType.String,expectedDoc));}
             return await ExecuteOneRowMutationAsync(client,id,sql,parameters);
         }
 
