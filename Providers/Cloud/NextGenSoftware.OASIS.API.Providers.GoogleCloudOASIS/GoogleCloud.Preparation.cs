@@ -27,12 +27,15 @@ public partial class GoogleCloudOASIS : IHolonWritePreparationStorageProvider
                 return FirestorePreparationFailure("COSMIC_AUTHORITY_MISMATCH","The preparation belongs to another authority.");
             if(!_enableFirestore)throw new NotSupportedException("Protected preparation claims require enabled Firestore.");
             var payload=ProtectedPreparationJson.Write(candidate);
-            if(Encoding.UTF8.GetByteCount(payload)+2048L>1024L*1024)
-                throw new ArgumentException("Firestore protected preparation exceeds its conservative1MiB document budget.");
+            var key=ConditionalOperationKey(candidate.OperationId);
+            var fields=new Dictionary<string,object> {
+                ["operationId"]=candidate.OperationId.ToString("D"),["actorId"]=candidate.ActorId.ToString("D"),
+                ["authority"]=candidate.Authority.ToString(),["payloadJson"]=payload
+            };
+            _=FirestoreDocumentSize.RequireRelative(PreparationCollection+"/"+key,fields);
             var ready=await EnsureDetailStoreAsync(0);
             if(ready.IsError)return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,HolonWritePreparation>(ready);
             RequireSingleAttemptFirestoreCommit(_firestoreDb);
-            var key=ConditionalOperationKey(candidate.OperationId);
             var reference=_firestoreDb.Collection(PreparationCollection).Document(key);path=reference.Path;
             var prior=await ReadFirestorePreparationWinnerAsync(reference,candidate,cancellationToken);
             if(prior!=null)return new(prior);
@@ -42,11 +45,6 @@ public partial class GoogleCloudOASIS : IHolonWritePreparationStorageProvider
             ValidateOperationFence(fence,candidate.OperationId);
             if((await receiptReference.GetSnapshotAsync(cancellationToken)).Exists)
                 return MissingFirestorePreparation(candidate.OperationId,path);
-            var fields=new Dictionary<string,object> {
-                ["operationId"]=candidate.OperationId.ToString("D"),["actorId"]=candidate.ActorId.ToString("D"),
-                ["authority"]=candidate.Authority.ToString(),["payloadJson"]=payload
-            };
-            _=MeasureFirestoreGraphDocument(reference,fields);
             var fenceFields=new Dictionary<string,object> {
                 ["operationId"]=candidate.OperationId.ToString("D"),["revision"]=Guid.NewGuid().ToString("D")
             };

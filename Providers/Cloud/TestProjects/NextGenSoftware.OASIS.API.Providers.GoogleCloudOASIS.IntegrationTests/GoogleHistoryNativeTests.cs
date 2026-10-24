@@ -166,9 +166,17 @@ public partial class GoogleHistoryNativeTests
             var boundary=new NativeCommitBoundary(healthy.Client,"capacity");field.SetValue(provider,FirestoreDb.Create("oasis-google-native",boundary));
             row.Name=new string('x',1_100_000);
             var failed=await provider.SaveHolonAsync(row,saveChildren:false);
-            Assert.IsTrue(failed.IsError);Assert.IsFalse(failed.IsSaved);Assert.AreEqual(1,boundary.Attempts);Assert.IsNotNull(boundary.NativeFailure);
-            Assert.AreEqual(Grpc.Core.StatusCode.InvalidArgument,boundary.NativeFailure.StatusCode);
-            Assert.AreSame(boundary.NativeFailure,failed.Exception);Assert.IsNull(failed.Result);
+            Assert.IsTrue(failed.IsError);Assert.IsFalse(failed.IsSaved);Assert.AreEqual(0,boundary.Attempts);Assert.IsNull(boundary.NativeFailure);
+            Assert.IsInstanceOfType<ArgumentException>(failed.Exception);Assert.IsNull(failed.Result);
+            Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",failed.ErrorCode);
+            // Independently retain the real service-rejection proof; public admission must not
+            // dispatch a known-oversized proposal merely to make this test exercise the service.
+            var oversizedDocument=new Google.Cloud.Firestore.V1.Document{Name=reference.Path};
+            oversizedDocument.Fields.Add("data_json",new Google.Cloud.Firestore.V1.Value{StringValue=row.Name});
+            var nativeRequest=new Google.Cloud.Firestore.V1.CommitRequest{Database=$"projects/{healthy.ProjectId}/databases/{healthy.DatabaseId}"};
+            nativeRequest.Writes.Add(new Google.Cloud.Firestore.V1.Write{Update=oversizedDocument,CurrentDocument=new Google.Cloud.Firestore.V1.Precondition{UpdateTime=before.UpdateTime!.Value.ToProto()}});
+            var nativeFailure=await Assert.ThrowsExceptionAsync<Grpc.Core.RpcException>(()=>healthy.Client.CommitAsync(nativeRequest));
+            Assert.AreEqual(Grpc.Core.StatusCode.InvalidArgument,nativeFailure.StatusCode);
             Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
             Assert.AreNotEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,failed.ErrorCode);
             Assert.AreEqual(2,row.Version);Assert.AreEqual(version,row.VersionId);
