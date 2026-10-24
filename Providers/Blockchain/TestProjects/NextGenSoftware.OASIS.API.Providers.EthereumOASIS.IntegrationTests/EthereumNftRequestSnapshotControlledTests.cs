@@ -19,6 +19,36 @@ public class EthereumNftRequestSnapshotControlledTests
     // Public, never-funded unit-only identity; never signs or submits anything.
     private const string Key = "1111111111111111111111111111111111111111111111111111111111111111";
 
+    [TestMethod]
+    public async Task MintRequiresNativeEstimationBeforeNonceSigningOrSubmission()
+    {
+        using var listener = new HttpListener(); listener.Prefixes.Add(Url); listener.Start();
+        var provider = new AuthorizedMintProvider { Web3Client = new Web3(Url) };
+        typeof(EthereumOASIS).GetProperty("IsProviderActivated")!.SetValue(provider, true);
+        var pending = provider.MintNFTAsync(new MintWeb3NFTRequest { MintedByAvatarId = Guid.NewGuid(), SendToAddressAfterMinting = Other });
+        var context = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        var body = JsonNode.Parse(await new StreamReader(context.Request.InputStream).ReadToEndAsync())!;
+        var bytes = Encoding.UTF8.GetBytes(new JsonObject { ["jsonrpc"] = "2.0", ["id"] = body["id"]!.DeepClone(),
+            ["error"] = new JsonObject { ["code"] = -32000, ["message"] = "Controlled incompatible mint preflight" } }.ToJsonString());
+        context.Response.ContentType = "application/json"; context.Response.ContentLength64 = bytes.Length;
+        await context.Response.OutputStream.WriteAsync(bytes); context.Response.Close();
+        var result = await pending.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsSaved);
+        StringAssert.Contains(result.Message, "Controlled incompatible mint preflight");
+        Assert.AreEqual("eth_estimateGas", body["method"]!.GetValue<string>(), "Preflight must precede signing fee discovery, nonce or broadcast.");
+        Assert.AreEqual(Contract, body["params"]![0]!["to"]!.GetValue<string>());
+        Assert.AreEqual(new Account(Key,31337).Address.ToLowerInvariant(), body["params"]![0]!["from"]!.GetValue<string>().ToLowerInvariant());
+        StringAssert.StartsWith(body["params"]![0]!["data"]!.GetValue<string>(), "0x40c10f19" + Other.Substring(2).PadLeft(64,'0'));
+        Assert.IsFalse(result.Exception is NextGenSoftware.OASIS.API.Core.Interfaces.INativeMutationReconciliationRequired,
+            "A preflight refusal has not submitted a transaction.");
+    }
+
+    private sealed class AuthorizedMintProvider : EthereumOASIS
+    {
+        public AuthorizedMintProvider() : base(Url, Key, 31337, Contract) { }
+        protected override NextGenSoftware.OASIS.Common.OASISResult<List<string>> ResolveTokenSigningKeys(Guid avatarId) => new() { Result = new() { Key } };
+    }
+
     [DataTestMethod, DataRow(false), DataRow(true)]
     public async Task OriginalContractAndTokenSurviveSigningGateWait(bool burn)
     {
