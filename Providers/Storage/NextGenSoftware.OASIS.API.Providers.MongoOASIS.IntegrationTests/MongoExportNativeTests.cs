@@ -362,7 +362,7 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
         await client.DropDatabaseAsync("cosmic_cql_fixture");using var remaining=await client.ListDatabaseNamesAsync();Assert.DoesNotContain("cosmic_cql_fixture",await remaining.ToListAsync());
     }
 
-    public static IEnumerable<object[]> HistoricalCollectionCases(){foreach(var kind in Enumerable.Range(0,8))foreach(var sync in new[]{false,true})yield return new object[]{kind,sync};}
+    public static IEnumerable<object[]> HistoricalCollectionCases(){foreach(var kind in Enumerable.Range(0,9))foreach(var sync in new[]{false,true})yield return new object[]{kind,sync};}
 
     [Theory]
     [MemberData(nameof(HistoricalCollectionCases))]
@@ -456,7 +456,22 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
                 Assert.False(found.IsError,found.Message+found.Exception);Assert.Equal(dateCase.Count,found.LoadedCount);
                 if(dateCase.Count==1){Assert.Equal(root.Id,Assert.Single(found.Result.SearchResultHolons).Id);Assert.Equal(dateCase.Date,Assert.Single(found.Result.SearchResultHolons).ModifiedDate);}
             }
-            if(kind>=6)
+            if(kind==8)
+            {
+                var childQuery=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,
+                    SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery="historical collection root",HolonType=HolonType.Park,SearchHolons=true}}};
+                foreach(var graph in new[]{(Load:false,Recursive:false,Depth:0),(Load:true,Recursive:false,Depth:0),(Load:true,Recursive:true,Depth:1)})
+                {
+                    var found=sync?provider.Search(childQuery,loadChildren:graph.Load,recursive:graph.Recursive,maxChildDepth:graph.Depth,version:1)
+                        :await provider.SearchAsync(childQuery,loadChildren:graph.Load,recursive:graph.Recursive,maxChildDepth:graph.Depth,version:1);
+                    Assert.False(found.IsError,found.Message+found.Exception);Assert.Equal(1,found.LoadedCount);var selectedRoot=Assert.Single(found.Result.SearchResultHolons);Assert.Equal(1,selectedRoot.Version);
+                    if(graph.Load){var embedded=Assert.Single(selectedRoot.Children);Assert.Equal(child.Id,embedded.Id);Assert.Equal(7,embedded.Version);Assert.Empty(embedded.Children);}
+                    else Assert.Empty(selectedRoot.Children);
+                }
+                // Search has no provider-linked-child option: current native child8 is independent.
+                Assert.Equal(8,(await native.Find(new BsonDocument("HolonId",child.Id.ToString("D"))).SingleAsync())["Version"].AsInt32);
+            }
+            if(kind is 6 or 7)
             {
                 var original=await native.Find(new BsonDocument("HolonId",root.Id.ToString("D"))).SingleAsync();
                 var batch=new List<BsonDocument>();
