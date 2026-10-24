@@ -1,5 +1,13 @@
 # NEAR signer and receipt audit
 
+## Filtered read-result contract repaired — 24 October
+
+Twenty-four controlled checks genuinely failed: search matched one but reported LoadedCount0; metadata/nearby retained the underlying2count after filtering to1or0; malformed nearby queries retained loaded state/count on error. Existing query owners now publish selected counts, nearby materializes selection before publishing and clears result/IsLoaded/count on failure. Search/metadata matching, stored data, encryption, pagination and native requests are unchanged; no second storage path or retry introduced.
+
+Final **266controlled PASS, zero skips,14seconds**, plus **1real Windows C# read-only native test PASS, zero skips,13seconds** over the ORIGINAL encrypted search/nearby records. That native case now checks search match counts, metadata selection and nearby returned-root counts. It does NOT mutate malformed coordinates or prove the old save/finality failures fixed. New controlled malformed cases verify the public error state without a native write. Existing15/19original native report remains historical/unmodified; two separate status passes remain their own earlier cohort, not fresh after this query change. Other point/collection/graph read-result fidelity still needs review; this is not all-read or whole-interface certification.
+
+Current-source PE/PDB verified provider17/unit32/integration7/Core742/Shared56, copied NEAR assembly identical in both consumers SHA E46873BF63174FC86800033822AC28310111397B9BD8063DEE875B8B0E6817C5. Exact red/final/native report hashes and resource teardown are in inventory. Same retained environment/storage key, no downloads/restore/new fixtures/signing. Node cleanly stopped, ports absent; original reports/logs retained.
+
 ## Retained cross-platform transport diagnosis — 24 October
 
 Retained storage follow-up now **1/1native read-only test PASS, zero skips,12seconds** through the actual Windows C# provider/SDK and original protected encryption key. It discovers the ORIGINAL search fixture records without creating replacements, asserts exact owner/group intersection and unrestricted-owner IDs, unmatched metadata0, and original zero-coordinate nearby records selected at0but excluded one degree away. No save/delete/signing code is in this test. Separate near-readonly-storage-current.trx2826bytes SHA3C7DCCD254CD75EEB8EB106E17D3BA62A5DFE20B91EE000B2DFA96536062C646. Existing19-test runner explicitly excludes the new RetainedReadonlyInspection category; the separate read-only mode selects only this test and refuses report overwrite.

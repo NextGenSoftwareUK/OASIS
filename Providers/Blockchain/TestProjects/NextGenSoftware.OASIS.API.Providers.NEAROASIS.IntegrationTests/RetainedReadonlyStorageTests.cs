@@ -27,24 +27,33 @@ public class RetainedReadonlyStorageTests
                     HolonType=HolonType.All,PreviousSearchGroupOperator=SearchParamGroupOperator.And}}};
         var owned=await provider.SearchAsync(query,loadChildren:false);
         Assert.IsFalse(owned.IsError,$"Retained owner/group search: {owned.Message}");
+        Assert.AreEqual(owned.Result.NumberOfResults,owned.LoadedCount);
         CollectionAssert.AreEquivalent(searchRows.Where(row=>row.Name==selected.Name && row.CreatedByAvatarId==selected.CreatedByAvatarId).Select(row=>row.Id).ToArray(),
             owned.Result.SearchResultHolons.Select(row=>row.Id).ToArray());
         query.SearchOnlyForCurrentAvatar=false;
         var everyone=provider.Search(query,loadChildren:false);
         Assert.IsFalse(everyone.IsError,$"Retained unrestricted search: {everyone.Message}");
+        Assert.AreEqual(everyone.Result.NumberOfResults,everyone.LoadedCount);
         CollectionAssert.AreEquivalent(searchRows.Where(row=>row.Name==selected.Name).Select(row=>row.Id).ToArray(),
             everyone.Result.SearchResultHolons.Select(row=>row.Id).ToArray());
         query.FilterByMetaData["search-marker"]="not-the-marker";
         var unmatched=await provider.SearchAsync(query,loadChildren:false);
         Assert.IsFalse(unmatched.IsError,$"Retained unmatched search: {unmatched.Message}");
         Assert.AreEqual(0,unmatched.Result.NumberOfResults);
+        Assert.AreEqual(0,unmatched.LoadedCount);
+        var metadata=await provider.LoadHolonsByMetaDataAsync("search-marker",marker,HolonType.All,loadChildren:false);
+        Assert.IsFalse(metadata.IsError,$"Retained metadata query: {metadata.Message}");
+        Assert.AreEqual(searchRows.Count(row=>row.Name==selected.Name),metadata.LoadedCount);
+        Assert.AreEqual(metadata.Result.Count(),metadata.LoadedCount);
         var nearbyRows=rows.Where(row=>row.Name?.StartsWith("nearby-",StringComparison.Ordinal)==true).ToArray();
         Assert.IsTrue(nearbyRows.Length>0,"Original nearby records must exist; no replacement fixtures.");
         var near=provider.GetHolonsNearMe(0,0,0,HolonType.All);
         Assert.IsFalse(near.IsError,$"Retained nearby query: {near.Message}");
+        Assert.AreEqual(near.Result.Count(),near.LoadedCount);
         Assert.IsTrue(nearbyRows.All(row=>near.Result.Any(found=>found.Id==row.Id)),"Original zero-coordinate nearby records must be selected.");
         var distant=provider.GetHolonsNearMe(1000000,0,1,HolonType.All);
         Assert.IsFalse(distant.IsError,$"Retained distant query: {distant.Message}");
+        Assert.AreEqual(distant.Result.Count(),distant.LoadedCount);
         Assert.IsFalse(nearbyRows.Any(row=>distant.Result.Any(found=>found.Id==row.Id)),"Original zero-coordinate records must not be selected one degree away.");
     }
 }

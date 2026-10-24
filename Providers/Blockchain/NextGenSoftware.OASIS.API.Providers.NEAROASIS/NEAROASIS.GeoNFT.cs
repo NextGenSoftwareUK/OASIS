@@ -28,9 +28,12 @@ public partial class NEAROASIS
             var query = new StoredRecordLocationQuery(x,y,radius);
             result = LoadAllAvatarsAsync().GetAwaiter().GetResult();
             if (result.IsError) return result;
-            result.Result = query.Select(result.Result);
+            var selected = query.Select(result.Result).ToArray();
+            result.Result = selected;
+            result.IsLoaded = true;
+            result.LoadedCount = selected.Length;
         }
-        catch(Exception ex){result.Result=null;OASISErrorHandling.HandleError(ref result,$"Error querying nearby NEAR avatars: {ex.Message}",ex);}
+        catch(Exception ex){result.Result=null;result.IsLoaded=false;result.LoadedCount=0;OASISErrorHandling.HandleError(ref result,$"Error querying nearby NEAR avatars: {ex.Message}",ex);}
         return result;
     }
 
@@ -43,9 +46,12 @@ public partial class NEAROASIS
             if (!Enum.IsDefined(typeof(HolonType),holonType)) throw new ArgumentOutOfRangeException(nameof(holonType));
             result = LoadAllHolonsAsync(holonType,loadChildren:false).GetAwaiter().GetResult();
             if (result.IsError) return result;
-            result.Result = query.Select(result.Result);
+            var selected = query.Select(result.Result).ToArray();
+            result.Result = selected;
+            result.IsLoaded = true;
+            result.LoadedCount = selected.Length;
         }
-        catch(Exception ex){result.Result=null;OASISErrorHandling.HandleError(ref result,$"Error querying nearby NEAR holons: {ex.Message}",ex);}
+        catch(Exception ex){result.Result=null;result.IsLoaded=false;result.LoadedCount=0;OASISErrorHandling.HandleError(ref result,$"Error querying nearby NEAR holons: {ex.Message}",ex);}
         return result;
     }
 
@@ -176,6 +182,7 @@ public partial class NEAROASIS
             if (all.IsError) return all;
             all.Result=all.Result.Where(holon=>StoredRecordSearch.MatchesMetadata(holon.MetaData,filter,matchMode)).ToList();
             all.IsLoaded=true;
+            all.LoadedCount=all.Result.Count();
             return all;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);return result;}

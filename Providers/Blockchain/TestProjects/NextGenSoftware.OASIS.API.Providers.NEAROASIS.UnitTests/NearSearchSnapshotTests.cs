@@ -42,6 +42,7 @@ public class NearSearchSnapshotTests
             Environment.SetEnvironmentVariable(setting,Convert.ToBase64String(key));
             var result=synchronous?provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
             Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(1,result.Result.NumberOfResults);
+            Assert.AreEqual(1,result.LoadedCount,"Search load count must describe returned matches, not collection reads.");
             Assert.AreEqual(first.Id,result.Result.SearchResultHolons.Single().Id);Assert.AreEqual(1,provider.Reads);Assert.IsTrue(result.IsLoaded);
         }finally{Environment.SetEnvironmentVariable(setting,previous);CryptographicOperations.ZeroMemory(key);}
     }
