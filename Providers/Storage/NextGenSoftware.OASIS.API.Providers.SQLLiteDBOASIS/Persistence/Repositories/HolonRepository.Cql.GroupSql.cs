@@ -60,6 +60,36 @@ public partial class HolonRepository
             }
             // The selected window is bounded by an extra work detection row.
             // It cannot become a successful truncated grouping or limb sum.
+            // Compare exact integral sums as floor quotient/remainder pairs. Rebuilding
+            // the total here could overflow Int64; floating point would lose adjacent values.
+            var resultOrder = new List<string>();
+            foreach (var selectedOrder in query.Orderings)
+            {
+                var column = query.Columns[selectedOrder.ColumnIndex];
+                var direction = selectedOrder.Descending ? " DESC" : " ASC";
+                if (column.KeyIndex >= 0)
+                    resultOrder.Add("k" + column.KeyIndex + "v" + direction);
+                else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount)
+                    resultOrder.Add("inputs" + direction);
+                else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
+                {
+                    var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+                    resultOrder.Add("a" + selectedOrder.ColumnIndex + "v" +
+                        (type == typeof(Guid) ? " COLLATE NOCASE" : " COLLATE BINARY") + direction);
+                }
+                else if (column.Operation == CosmicScalarOperation.Sum)
+                {
+                    var high = "a" + selectedOrder.ColumnIndex + "h";
+                    var low = "a" + selectedOrder.ColumnIndex + "l";
+                    var remainder = "(" + low + "%4294967296)";
+                    var quotient = "(" + high + "+" + low + "/4294967296)";
+                    resultOrder.Add("(CASE WHEN " + remainder + "<0 THEN " + quotient + "-1 ELSE " + quotient + " END)" + direction);
+                    resultOrder.Add("(CASE WHEN " + remainder + "<0 THEN " + remainder + "+4294967296 ELSE " + remainder + " END)" + direction);
+                }
+                else throw new NotSupportedException("Grouped aggregate ordering is not enrolled for this operation.");
+            }
+            // A complete identity tie-break makes limits deterministic across providers.
+            resultOrder.AddRange(keys.Select(key => key + " ASC"));
             var tail = output.Count == 0 ? "" : "," + string.Join(",", output);
             return "/* COSMIC grouped */ WITH selected AS (SELECT " + string.Join(",", input)
                 + " FROM Holon WHERE " + predicate + " ORDER BY " + ordering + " LIMIT $groupTake OFFSET $groupOffset),"
@@ -68,7 +98,7 @@ public partial class HolonRepository
                 + "sum(CASE WHEN " + string.Join(" OR ", bad.Select(condition => "(" + condition + ")")) + " THEN 1 ELSE 0 END) AS invalid"
                 + (reductions.Count == 0 ? "" : "," + string.Join(",", reductions)) + " FROM shaped GROUP BY " + string.Join(",", keys) + ") "
                 + "SELECT invalid,(SELECT count(*) FROM selected) AS work,inputs," + string.Join(",", keys) + tail
-                + " FROM reduced ORDER BY " + string.Join(",", keys.Select(key => key + " ASC")) + " LIMIT $groupLimit";
+                + " FROM reduced ORDER BY " + string.Join(",", resultOrder) + " LIMIT $groupLimit";
         }
     }
 }

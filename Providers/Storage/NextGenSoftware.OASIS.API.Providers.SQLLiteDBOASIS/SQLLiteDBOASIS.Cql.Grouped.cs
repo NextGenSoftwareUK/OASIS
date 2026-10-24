@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +14,24 @@ public partial class SQLLiteDBOASIS : ICosmicQueryGroupedStorageProvider
 {
     private static class GroupContract
     {
-        internal static readonly CosmicGroupedCapabilities Value = new(CqlProjectionCapabilities, CqlScalarCapabilities);
+        internal static readonly CosmicGroupedCapabilities Value = Create();
+        private static CosmicGroupedCapabilities Create()
+        {
+            var keys = CqlCapabilities.CanonicalFields.Select(field => field.ValueType)
+                .Concat(CqlCapabilities.MetadataTypes.Select(type => type.ValueType)).Distinct().ToArray();
+            var aggregates = keys.SelectMany(type => new[]
+            {
+                new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Min, type),
+                new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Max, type)
+            }).Concat(new[]
+            {
+                new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Count, typeof(int)),
+                new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.LongCount, typeof(long))
+            }).Concat(new[] { typeof(int), typeof(int?), typeof(long), typeof(long?) }
+                .Select(type => new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, type))).ToArray();
+            return new CosmicGroupedCapabilities(CqlProjectionCapabilities, CqlScalarCapabilities,
+                new CosmicGroupedOrderingCapabilities(keys, aggregates));
+        }
     }
     public static CosmicGroupedCapabilities CqlGroupedCapabilities => GroupContract.Value;
     public CosmicGroupedCapabilities GroupedCapabilities => CqlGroupedCapabilities;

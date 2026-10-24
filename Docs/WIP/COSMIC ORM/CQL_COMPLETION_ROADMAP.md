@@ -239,3 +239,14 @@ Neo4j now enrolls grouped key, Count/LongCount, Min/Max and integer Sum ordering
 Verification: **347 unit tests and144 full native CQL tests passed, zero skips**. Thirteen selected grouped controls include three new native ordering cases. Evidence: TestResults/Neo4jCurrent/cql-grouped-order-{unit,native,regression}-current.trx, group-order-artifacts.json and group-order-final-inspection.log; TestResults/CosmicCqlDemo/neo-group-order-{build-final,native,regression}.log. The first build caught a local variable name collision, corrected before final build/native tests. The reusable runner's inclusive mode counts advance to144/207/209/208; only144 full CQL mode was verified here, not the broader modes.
 
 Average ordering stays explicitly unsupported pending exact normalized Decimal semantics. SQLite grouped ordering, HTTP result-order fields and grouped filters/pages remain open. The full CQL/ORM goal is not complete.
+
+
+## SQLite grouped result ordering — 24 October 2026
+
+SQLite now supports selected grouped key, Count/LongCount, Min/Max and exact integer Sum ordering. OrderBy/ThenBy run in SQL after reduction and before the output bound. Complete original group keys provide ascending deterministic final ties. Existing key collations are retained; extrema use NOCASE for GUID and BINARY comparison otherwise. SQLite native ascending/descending null placement matches the Core contract.
+
+Sum ordering compares floor quotient and nonnegative remainder in base 4294967296, preserving negative borrowing and adjacent Int64 values beyond 2^53 without recombining an overflowing total or converting to floating point. Aggregate operation/type permissions are explicit; Average ordering remains rejected pending exact normalized Decimal comparison.
+
+Verification: **1,378 full SQLite integration tests passed, zero skipped**, including four new ordering controls (ascending/descending Int64 boundaries, negative borrowing, count ties and Average admission). Evidence: TestResults/SQLiteCurrent/cql-group-order-current.trx and cql-group-order-regression-current.trx; TestResults/CosmicCqlDemo/sqlite-group-order-{build,tests,regression}.log. Producer and consumer SQLite DLL SHA256 E7000E84E5023C86FB1550A850ACF6B57301C2EC8762FBAEECC40D784FF7910C match; Core SHA256 19F1CA8BC1EF425876D3CB5C6F756BA32C22DA18B0B804EAF06FCD7366D34B81. Exact paths/bytes are retained in TestResults/SQLiteCurrent/group-order-artifacts.json. Owned fixture DB/WAL/SHM verified absent after teardown.
+
+Grouped ordering is now implemented for MongoDB, SQLite and Neo4j for the enrolled operations above. HTTP result-order fields, exact Average ordering, post-group filtering/paging and the remaining roadmap gates are still open; overall CQL/ORM completion is not claimed.

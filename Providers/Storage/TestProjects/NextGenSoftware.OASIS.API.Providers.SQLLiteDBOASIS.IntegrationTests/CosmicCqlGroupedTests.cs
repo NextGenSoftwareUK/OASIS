@@ -13,7 +13,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         CosmicGroupedSelection<T, TKey, TResult> query) where T : IHolon
     {
         var adapter = (ICosmicQueryStorageProvider)provider;
-        var claims = new CosmicGroupedCapabilities(SQLLiteDBOASIS.CqlProjectionCapabilities, SQLLiteDBOASIS.CqlScalarCapabilities);
+        var claims = SQLLiteDBOASIS.CqlGroupedCapabilities;
         var result = CosmicGroupedPlanner.Plan(query, ProviderType.SQLLiteDBOASIS,
             new[] { new CosmicGroupedTarget(ProviderType.SQLLiteDBOASIS, adapter.QueryCapabilities, claims) });
         result.IsError.Should().BeFalse(result.Message);
