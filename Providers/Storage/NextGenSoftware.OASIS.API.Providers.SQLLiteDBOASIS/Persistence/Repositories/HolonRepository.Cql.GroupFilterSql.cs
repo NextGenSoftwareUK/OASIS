@@ -13,6 +13,7 @@ public partial class HolonRepository
         {
             internal string Value, High, Low;
             internal Type Type;
+            internal bool DecimalKey;
             internal bool IsSum => High != null;
             internal string IsNull => IsSum ? "0" : "(" + Value + " IS NULL)";
         }
@@ -39,16 +40,28 @@ public partial class HolonRepository
                 ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.ValueType == path.ValueType) : -1;
             if (index < 0) throw new NotSupportedException("Grouped filter must bind an exact selected output.");
             var column = query.Columns[index];
-            if (column.Operation == CosmicScalarOperation.Average)
-                throw new NotSupportedException("Exact normalized Average filtering is not enrolled.");
             var cell = new GroupFilterCell { Type = column.ValueType };
             if (column.KeyIndex >= 0) cell.Value = "k" + column.KeyIndex + "v";
             else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) cell.Value = "inputs";
-            else if (column.Operation == CosmicScalarOperation.Sum) { cell.High = "a" + index + "h"; cell.Low = "a" + index + "l"; }
+            else if (column.Operation == CosmicScalarOperation.Sum)
+            {
+                cell.High = "a" + index + "h"; cell.Low = "a" + index + "l";
+            }
+            else if (column.Operation == CosmicScalarOperation.Average)
+            {
+                cell.Value = GroupNumericKey(column, index);
+                cell.DecimalKey = true;
+            }
             else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max) cell.Value = "a" + index + "v";
             else throw new NotSupportedException("Unknown grouped filter operation.");
             if (!cell.IsSum) cell.Value += GroupCollation(column.ValueType);
             return cell;
+        }
+        private static string GroupNumericKey(CosmicGroupedColumn column, int index)
+        {
+            var input = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+            var mode = (input == typeof(long) ? 2 : 0) + (Nullable.GetUnderlyingType(column.Selector.ValueType) != null ? 1 : 0);
+            return SqliteCqlNumericKeys.PartsFunction + "(a" + index + "h,a" + index + "l,a" + index + "n," + mode + ")";
         }
         private static string ComparisonSymbol(CosmicQueryComparisonOperator operation) => operation switch
         {
@@ -70,7 +83,13 @@ public partial class HolonRepository
         {
             var symbol = ComparisonSymbol(operation);
             string raw;
-            if (left.IsSum || right.IsSum)
+            if (left.DecimalKey || right.DecimalKey)
+            {
+                if ((!left.DecimalKey && left.Value != "NULL") || (!right.DecimalKey && right.Value != "NULL"))
+                    throw new NotSupportedException("Normalized Average field comparisons require Decimal result domains.");
+                raw = left.Value + symbol + right.Value;
+            }
+            else if (left.IsSum || right.IsSum)
             {
                 var first = GroupedParts(left); var second = GroupedParts(right);
                 var equal = "(" + first.High + "=" + second.High + " AND " + first.Low + "=" + second.Low + ")";
@@ -95,6 +114,9 @@ public partial class HolonRepository
                 return GroupComparison(left, new GroupFilterCell { Value = Bind(boundary.Boundary), Type = path.ValueType }, operation);
             }
             object value = literal.Value;
+            if (left.DecimalKey && value != null)
+                return GroupComparison(left, new GroupFilterCell { Value = Bind(SqliteCqlNumericKeys.Key((decimal)value)),
+                    DecimalKey = true, Type = path.ValueType }, operation);
             if (literal.Kind == CosmicQueryScalarKind.Guid) value = ((Guid)value).ToString("D");
             else if (literal.Kind == CosmicQueryScalarKind.UtcDateTime) value = SqliteCqlDate.Literal((DateTime)value);
             else if (literal.Kind == CosmicQueryScalarKind.Boolean) value = (bool)value ? 1L : 0L;

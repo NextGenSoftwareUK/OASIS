@@ -82,6 +82,8 @@ public partial class HolonRepository
                     var parts = GroupedIntegralParts("a" + selectedOrder.ColumnIndex + "h", "a" + selectedOrder.ColumnIndex + "l");
                     resultOrder.Add(parts.High + direction); resultOrder.Add(parts.Low + direction);
                 }
+                else if (column.Operation == CosmicScalarOperation.Average)
+                    resultOrder.Add(GroupNumericKey(column, selectedOrder.ColumnIndex) + " COLLATE BINARY" + direction);
                 else throw new NotSupportedException("Grouped aggregate ordering is not enrolled for this operation.");
             }
             // A complete identity tie-break makes limits deterministic across providers.

@@ -48,6 +48,11 @@ public partial class SQLLiteDBOASISIntegrationTests
         var query = CosmicQuery<Holon>.Create().GroupBy(h => h.Name)
             .Select(g => new { Total = g.Sum(h => h.Version), Mean = g.Average(h => h.Version) }).Result;
         SQLLiteDBOASIS.CqlGroupedCapabilities.Admit(query.OrderBy(g => g.Total).Result).IsError.Should().BeFalse();
-        SQLLiteDBOASIS.CqlGroupedCapabilities.Admit(query.OrderBy(g => g.Mean).Result).ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
+        var capability = SQLLiteDBOASIS.CqlGroupedCapabilities;
+        capability.Admit(query.OrderBy(g => g.Mean).Result).IsError.Should().BeFalse();
+        var sumOnly = new CosmicGroupedCapabilities(capability.KeyCapabilities, capability.AggregateCapabilities,
+            new CosmicGroupedOrderingCapabilities(capability.OrderingCapabilities.KeyTypes,
+                capability.OrderingCapabilities.Aggregates.Where(value => value.Operation != CosmicScalarOperation.Average).ToArray()));
+        sumOnly.Admit(query.OrderBy(g => g.Mean).Result).ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
     }
 }
