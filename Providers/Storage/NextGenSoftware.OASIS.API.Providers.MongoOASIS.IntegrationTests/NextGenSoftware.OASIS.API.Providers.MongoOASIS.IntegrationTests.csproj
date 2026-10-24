@@ -23,4 +23,5 @@
   <ItemGroup><Compile Include="../../../Scripts/TestHosts/Fixtures/CqlCustomRoleGraph.cs" Link="Fixtures/CqlCustomRoleGraph.cs" /></ItemGroup>
   <ItemGroup><Compile Include="../../../Scripts/TestHosts/Fixtures/CqlDescendantAcceptance.cs" Link="Fixtures/CqlDescendantAcceptance.cs" /></ItemGroup>
   <ItemGroup><None Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/Fixtures/CqlMinMaxVectors.json" Link="Fixtures/CqlMinMaxVectors.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><None Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/Fixtures/CqlNumericAggregateVectors.json" Link="Fixtures/CqlNumericAggregateVectors.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

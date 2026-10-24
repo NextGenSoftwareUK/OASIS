@@ -77,4 +77,9 @@ Run the fixed reusable native CQL matrix under the shared build lease:
     }
 ```
 
-The runner requires the existing pinned MongoDB runtime and owns its fixed 27029 environment lifecycle. It requires all 124 selected tests without skips, refuses occupied fixtures and retains uncertain write outcomes. Acknowledged fixtures are dropped by their existing owner; shared runtime/data caches are retained. Selected-scalar HTTP/demos and later aggregate operators remain separate roadmap gates.
+The runner requires the existing pinned MongoDB runtime and owns its fixed 27029 environment lifecycle. It now requires all 144 selected tests without skips, refuses occupied fixtures and retains uncertain write outcomes. Acknowledged fixtures are dropped by their existing owner; shared runtime/data caches are retained. Selected-scalar HTTP/demos and later aggregate operators remain separate roadmap gates.
+
+
+## MongoDB numeric checkpoint — 23 October 2026
+
+Native Sum/Average now use exact signed limb aggregation through the existing scalar read/snapshot/cancellation owner. The final Mongo suite passes **144 native tests and 245 unit tests, zero skips**;20 native and 8 decoder controls are new. Core and SQLite numerical support remain verified from their earlier checkpoints. See [numeric contract and evidence](CQL_NUMERIC_AGGREGATES.md). Neo4j numeric support, numeric HTTP/Decimal wire and demos, GroupBy, composition/federation, strict blocked-I/O interruption and the remaining roadmap gates are still open. This checkpoint is not full CQL/ORM completion.
