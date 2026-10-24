@@ -1161,3 +1161,25 @@ Owned fixed integration-current.db/WAL/SHM absent after fixture disposal;
 no installs/downloads/restores/new environments. Free C before gate69,170,028,544
 bytes. Shared conditional candidate remains peer-owned and unverified by its
 separate Oracle replay gate. Build slot returned to peer after settled teardown.
+
+Mongo Decimal gate64320 terminal1 reused Mongo8.3.11, existing27029 replica/data,
+Shared/Mongo/native outputs and fixedfixture.228 cases:227PASS/1FAIL0skip; the new
+null fixture supplied missing metadata instead of present null. Source snapshots
+unchanged; unit phase not reached. Preserve SubscriptionUsageCurrent/
+decimal-first-red.trx, decimal-identities-current.json and
+CosmicCqlDemo/decimal-mongo-full.log (sizes unmeasured). Owned Mongo stopped;
+runner bounded its12,230,345-byte raw log to65,370-byte retained tail. Reusable
+database/runtime untouched; no installs/downloads/restores/new environments.
+Correct only test fixture, rerun gate; slot returned for peer Dynamo unit batch.
+
+Mongo retry15936 terminal0:228 full native CQL/483 full units PASS0skip. The
+preceding lease-busy attempt stopped before its operation; no build/test/service
+ran. Final retry reused the same runtime/data/outputs, source snapshots unchanged.
+Native/unit DLLs match CoreC65FBD5F/SharedCC928AD3/Mongo2CDF3D68; exact Windows
+paths/hashes in SubscriptionUsageCurrent/decimal-identities-current.json.
+Preserve final TRX/log and decimal-first-red.trx/decimal-first-identities.json,
+CosmicCqlDemo/decimal-mongo-first-red.log (sizes unmeasured). Owned27029 stopped;
+only reusable cosmic-cql-environment.lock remains, no fixture journal. Runner
+bounded10,123,815-byte raw Mongo log to65,367-byte tail; database/runtime retained.
+Free C after gate69,727,821,824 bytes. No download/install/restore/new environment.
+Build lease released; preserve compact evidence and reusable outputs for Neo work.
