@@ -1,5 +1,9 @@
 # Actions for David
 
+## Pending retained SOLID init-wrapper approval — 24 October 2026
+
+- [ ] Approve reconfiguring ONLY the existing `oasis-solid` container definition with Podman's built-in `--init`, preserving pinned image58bee7c3..., existing oasis-solid-data volume, protected identity and loopback127.0.0.1:13000. No download/new environment/data reset is requested; inherited `/usr/bin/catatonit` already exists. Approval is pending in chat; no reconfiguration has occurred. Startup readiness is now measured before the first request (20.284s observed), and the authenticated read passes. Shutdown still ignores30second SIGTERM grace and requiresSIGKILL/exit137; Node is PID1/initfalse. The [official Node Docker guidance](https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md) recommends an init wrapper for signal handling. This is the next configuration test, not an already-proven graceful-shutdown fix. Details: [SOLID authentication](../HyperDrive-Providers/SOLID_AUTHENTICATION.md), resource ledger in the same task folder.
+
 ## Pending ActivityPub paged account-search acceptance — 24 October 2026
 
 - [ ] Configure an existing authorized Mastodon test user token with `read:search` outside chat as `OASIS_ACTIVITYPUB_SEARCH_TOKEN`; provide non-secret instance origin through `OASIS_ACTIVITYPUB_SEARCH_INSTANCE` and a narrow known public-handle query through `OASIS_ACTIVITYPUB_SEARCH_QUERY`. Never put tokens/private emails in chat or the query. Reuse the existing suitable test identity; no account creation requested.
