@@ -243,7 +243,7 @@ public static class V1NativeQueries
         await output.WriteLineAsync($"\n  Stock={groupSummary.Stock}, Items={groupSummary.Items}\n  Total={groupSummary.Total}\n  Mean={groupSummary.Mean}\n");
 
         // 16. Sort selected aggregate outputs after grouping. The sums differ
-        // by one beyond 2^53, so native ordering must retain exact Int64 values.
+        // by one near the binary64 integer boundary; retain exact Int64 values.
         // ThenBy supplies the next user sort; complete group identity breaks ties.
         var orderedGroups = Value(visible
             .GroupBy(h => h.Name)
@@ -299,7 +299,7 @@ public static class V1NativeQueries
         // 18. Filter the reduced totals, then page the matching groups.
         // B-owned is excluded by its aggregate value. Skip(1) skips D-owned,
         // so C-public wins. Filtering source rows would have different semantics.
-        // Keep the Int64 literal exact: these adjacent values exceed 2^53.
+        // Keep the Int64 literal exact, including its sign and adjacent units.
         var filteredGroups = Value(orderedGroups
             .Where(group => group.Total > -9007199254740991L)
             .Skip(1)
@@ -320,6 +320,32 @@ public static class V1NativeQueries
         completedQueries++;
         await output.WriteLineAsync("18. Filter grouped totals / Where().Skip(1).Take(1)\n");
         await output.WriteLineAsync($"  {filteredRow.Name}: {filteredRow.Total}\n");
+
+        // 19. Filter and order the normalized Decimal Average, then take a page.
+        // The two source rows were selected before grouping (example15).
+        // At this magnitude, a binary64 value loses the half-unit fraction.
+        // Every provider compares the same rounded value that it publishes.
+        var averagePage = Value(grouped
+            .Where(row => row.Mean >= -9007199254740990.5m
+                && row.Mean < -9007199254740990m)
+            .OrderBy(row => row.Mean)
+            .Take(1));
+
+        var averagePlan = Value(CosmicGroupedPlanner.Plan(
+            averagePage,
+            provider,
+            new[] { new CosmicGroupedTarget(provider,
+                adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var averageExecution = Value(await manager.ExecuteGroupedQueryAsync(averagePlan, new[] { adapter }));
+        var averageRow = averageExecution.Providers.Single().Rows.Single();
+
+        if (averageRow.Stock != 7 || averageRow.Items != 2 || averageRow.Mean != -9007199254740990.5m)
+            throw new InvalidOperationException("Normalized Average filtering/order/page lost exact Decimal semantics.");
+
+        completedQueries++;
+        await output.WriteLineAsync("19. Filter and order Decimal means / Select().Where().OrderBy()\n");
+        await output.WriteLineAsync($"  Stock={averageRow.Stock}, Items={averageRow.Items}, Mean={averageRow.Mean}\n");
 
         return completedQueries;
 
