@@ -1,5 +1,9 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## Soft-deleted detail visibility — 24 October
+
+Full171controlledPASS0skip3seconds. Before fix,8deleted-detail cases genuinely failed while8nondeleted controls passed: GUID/username/email point reads and collection,each sync/async. AvatarDetail paths now apply the same IsDeleted boundary as existing Avatar/Holon reads; point results are not loaded and collection counts exclude tombstones. Stored canonical bytes remain unchanged. Version/history support is still OPEN; this does not claim historical retrieval or paired avatar/detail deletion correctness. First compile attempted to assign derived readonly IsDeleted; fixture corrected to actual DeletedDate before any red test ran. No production schema/codec change, native/cloud job or new environment. Core742/Shared56/provider4/unit7 and exact producer/copy verified; evidence/resources in inventory.
+
 ## Collection completeness and canonical record codec — 24 October
 
 Full155 controlled tests PASS,zero skipped. Collection SQL no longer truncates at1000; the existing official SDK GetRowsAsync iterator reads1002 synthetic records across two native-shaped REST pages. All four collection families, sync/async, verify complete root counts and empty loaded results. Later-page HTTP400 preserves GoogleApiException and returns no partial payload. Blank/null stored documents fail rather than disappear silently. Point and primary collection success flags/counts now reflect actual results.

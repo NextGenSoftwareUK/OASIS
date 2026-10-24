@@ -12,6 +12,31 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests;
 [TestClass]
 public class BigQueryCollectionTests
 {
+    [DataTestMethod]
+    [DataRow(0,false,false)][DataRow(0,false,true)][DataRow(0,true,false)][DataRow(0,true,true)]
+    [DataRow(1,false,false)][DataRow(1,false,true)][DataRow(1,true,false)][DataRow(1,true,true)]
+    [DataRow(2,false,false)][DataRow(2,false,true)][DataRow(2,true,false)][DataRow(2,true,true)]
+    [DataRow(3,false,false)][DataRow(3,false,true)][DataRow(3,true,false)][DataRow(3,true,true)]
+    public async Task DeletedDetailsAreExcludedFromOrdinaryReads(int route,bool sync,bool deleted)
+    {
+        var detail=new AvatarDetail{Id=Guid.NewGuid(),Username="owned-tree",Email="owned@example.invalid",DeletedDate=deleted?new DateTime(2026,10,24,0,0,0,DateTimeKind.Utc):DateTime.MinValue};
+        var stored=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(detail);
+        var client=new Rows{Stored=stored};var provider=new BigQueryOASIS("my-project");
+        typeof(BigQueryOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,client);
+        if(route==3){
+            var result=sync?provider.LoadAllAvatarDetails():await provider.LoadAllAvatarDetailsAsync();
+            Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);
+            Assert.AreEqual(deleted?0:1,result.LoadedCount);Assert.AreEqual(deleted?0:1,result.Result.Count());
+        }else{
+            var result=route==0?(sync?provider.LoadAvatarDetail(detail.Id):await provider.LoadAvatarDetailAsync(detail.Id)):
+                route==1?(sync?provider.LoadAvatarDetailByUsername(detail.Username):await provider.LoadAvatarDetailByUsernameAsync(detail.Username)):
+                (sync?provider.LoadAvatarDetailByEmail(detail.Email):await provider.LoadAvatarDetailByEmailAsync(detail.Email));
+            Assert.AreEqual(deleted,result.IsError);Assert.AreEqual(!deleted,result.IsLoaded);Assert.AreEqual(deleted?0:1,result.LoadedCount);
+            if(deleted)Assert.IsNull(result.Result);else Assert.AreEqual(detail.Id,result.Result.Id);
+        }
+        Assert.AreEqual(stored,client.Stored,"Read visibility must not rewrite the stored record.");
+    }
+
     private sealed class Rows(string? bad=null):BigQueryClient
     {
         public string? Stored;
