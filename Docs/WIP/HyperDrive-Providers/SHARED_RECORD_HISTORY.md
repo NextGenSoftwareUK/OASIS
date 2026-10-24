@@ -1,5 +1,9 @@
 # Shared canonical record-history codec
 
+## Typed point identity admission — 23 October 2026
+
+Common avatar/detail/holon key factories now delegate to one nonempty-GUID validator. Typed empty-ID point reads/deletes fail with ArgumentException and zero backend calls; save-new IDs and parent/root empty semantics are unchanged. Baseline12failures comprised10backend dispatches and2already-blocked detail deletes lacking the argument cause. First full1031/1033 exposed the redundant detail guard; removed it in favor of the common owner. Final1033shared controls plus rebuilt OCI119/selectedS352/Redis35 controls PASS0skip, source/copies/PDB verified. SDK controlled consumers are not fresh native/cloud recertification, observed billing or fullV2 proof. Exact reports/resources in ENVIRONMENT_INVENTORY.md; no install/download/native transaction/new environment/dev deployment.
+
 ## Final generic decoder consumer compatibility — repaired gates green
 
 Local dependency pairing complete: parent06f3db0a7 pinsCorebab3288 in gitlink+manifest; strict validator passes. Independently inspected finalSQLite971/971 counters, reportgeneric-metadata-native-full.trx SHA2564B3E116C115857EB954A715BFA892EFED47E979AEF1C8BE446993BF584C2E02A. No generic-source pin blocker remains for this checkpoint; later typed numeric narrowing/nested/envelope scopes remain separate work, not certified here. No deployment/push.
