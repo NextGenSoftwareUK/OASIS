@@ -1,7 +1,7 @@
 # CQL Decimal metadata contract
 
 24 October2026. Core codec/capture verified; SQLite implementation has passed its
-focused24-case native gate. Full SQLite regression, MongoDB/Neo4j metadata Decimal
+full1,459-case native gate, including24 Decimal cases. MongoDB/Neo4j metadata Decimal
 and live wire/examples remain open. This does not imply Decimal Sum/Average input
 enrollment; the existing numeric aggregate input contract stays Int32/Int64.
 
@@ -51,5 +51,24 @@ TestResults/CosmicCqlDemo/decimal-focused-final.log.
 The numeric source is frozen at this checkpoint so the parallel provider session
 can verify Oracle against the same Core producer. Core net10 SHA256C2A107EF and
 netstandard0E5E8E12 are the compiled producer identities before commit metadata.
-The full SQLite gate follows its lease release. Resources/cleanup ownership:
+Full SQLite gate35989 terminal0 passes1,459 cases with zero failures/skips;
+source hashes were unchanged throughout its producer/consumer/test batch.
+Evidence: TestResults/SQLiteCurrent/decimal-full-current.trx and
+decimal-identities-current.json; log: TestResults/CosmicCqlDemo/decimal-sqlite-full.log.
+Its owned fixture DB/WAL/SHM are absent after teardown. This cohort includes the
+peer's uncommitted Shared conditional-admission candidate; that candidate's
+separate Oracle replay failure remains open and is excluded from this commit.
+Resources/cleanup ownership:
 [ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Full CQL/ORM completion remains open.
+
+## MongoDB implementation under verification
+
+The prepared native domain admits BSON Int32/Int64 and finite Decimal128 only
+when the value is exactly representable as .NET Decimal. It reuses bounded native
+coefficient/scale normalization and compares the result with the original packet;
+rounded or underflowed inputs cannot supply a Decimal domain proof. Detached
+projection/group/extrema decoding independently checks exact Decimal128 equality.
+Binary64 and numeric strings remain foreign domains. Fourteen native cases and
+five unit cases are added; full gates are pending. Existing unsupported Decimal
+admission controls now exercise still-unsupported Double. No storage migration
+or installation is required.

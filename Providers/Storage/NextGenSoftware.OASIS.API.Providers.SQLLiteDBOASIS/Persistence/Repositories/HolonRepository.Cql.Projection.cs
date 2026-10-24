@@ -135,6 +135,12 @@ public partial class HolonRepository
             DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var instant)) return instant;
         if (type == typeof(ulong) && value is string unsigned
             && ulong.TryParse(unsigned, NumberStyles.None, CultureInfo.InvariantCulture, out var unsignedValue)) return unsignedValue;
+        if (type == typeof(decimal) && value is string key)
+        {
+            var decoded = CosmicNumericScalarResults.DecimalFromOrderKey(key);
+            if (decoded.IsError) throw new InvalidDataException(decoded.Message);
+            return decoded.Result;
+        }
         if (value is long integer)
         {
             if (type == typeof(bool) && integer is 0 or 1) return integer == 1;
