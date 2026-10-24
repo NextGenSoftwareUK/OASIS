@@ -28,7 +28,9 @@ public partial class SQLLiteDBOASIS : ICosmicQueryGroupedStorageProvider
                 new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Count, typeof(int)),
                 new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.LongCount, typeof(long))
             }).Concat(new[] { typeof(int), typeof(int?), typeof(long), typeof(long?) }
-                .Select(type => new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, type))).ToArray();
+                .Select(type => new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, type)))
+                .Concat(new[] { typeof(decimal), typeof(decimal?) }.Select(type =>
+                    new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Average, type))).ToArray();
             var comparisons = System.Enum.GetValues<CosmicQueryComparisonOperator>();
             CosmicQueryMetadataCapability Scalar(Type declared)
             {

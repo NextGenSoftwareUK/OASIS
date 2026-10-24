@@ -49,6 +49,7 @@ public partial class HolonRepository
             try
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
+                using var numericKeys = new SqliteCqlNumericKeys(connection, budget.Check);
                 using var traversal = translator.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
                 var snapshot = source.GraphOptions != null || translator.HasRelationship;
                 if (snapshot && _dbContext.Database.CurrentTransaction != null
@@ -82,6 +83,7 @@ public partial class HolonRepository
                                 throw new SqliteCqlResourceException("Grouped input exceeds its explicit native work bound.");
                             if (rows.Count >= maximumGroups) throw new SqliteCqlResourceException("Grouping exceeds its remaining output count.");
                             if (reader.GetInt64(0) != 0) throw new InvalidDataException("A participating grouping key or aggregate has an invalid domain.");
+                            numericKeys.Check();
                             var inputs = reader.GetInt64(2); var position = 3;
                             var keys = new object[query.Grouping.Key.Columns.Count]; bytes += 32;
                             for (var index = 0; index < keys.Length; index++)
@@ -122,7 +124,7 @@ public partial class HolonRepository
                             rows.Add(new CosmicGroupedRow(inputs, member == 1, keys, values));
                         }
                     }
-                    budget.Check(); traversal?.Check();
+                    budget.Check(); traversal?.Check(); numericKeys.Check();
                     return new OASISResult<IReadOnlyList<CosmicGroupedRow>>(rows) { IsLoaded = true };
 
                     void Reserve(object value)
@@ -136,6 +138,7 @@ public partial class HolonRepository
             finally { if (opened) await _dbContext.Database.CloseConnectionAsync().ConfigureAwait(false); }
         }
         catch (OverflowException cause) { return GroupedCqlError("CQL_DATA_INVALID", "Grouped scalar exceeds its exact CLR domain.", cause); }
+        catch (SqliteCqlNumericException cause) { return GroupedCqlError(cause.Code, cause.Message, cause); }
         catch (InvalidDataException cause) { return GroupedCqlError("CQL_DATA_INVALID", cause.Message, cause); }
         catch (SqliteCqlDeadlineException cause) { return GroupedCqlError("CQL_QUERY_TIMEOUT", cause.Message, cause); }
         catch (SqliteCqlResourceException cause) { return GroupedCqlError("CQL_QUERY_LIMIT", cause.Message, cause); }
