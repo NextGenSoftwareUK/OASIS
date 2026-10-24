@@ -752,201 +752,44 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<ISearchResults>();
-            var searchResults = new SearchResults();
-
             try
             {
-                var groups = searchParams?.SearchGroups ?? new List<ISearchGroupBase>();
-                var wantAvatars = groups.Count == 0 || groups.Exists(g => g.SearchAvatars);
-                var wantHolons = groups.Count == 0 || groups.Exists(g => g.SearchHolons);
-
-                var matchedAvatars = new Dictionary<Guid, IAvatar>();
-                var matchedHolons = new Dictionary<Guid, IHolon>();
-
-                // ── Avatars ──────────────────────────────────────────────────
-                if (wantAvatars)
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                searchParams=Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                var groups=searchParams.SearchGroups??new List<ISearchGroupBase>();
+                var wantsAvatars=groups.Count==0||groups.Any(group=>group.SearchAvatars||!group.SearchHolons);
+                var wantsHolons=groups.Count==0||groups.Any(group=>group.SearchHolons||!group.SearchAvatars);
+                var holons=new List<IHolon>();
+                if(wantsHolons||searchParams.ParentId!=Guid.Empty)
                 {
-                    var avatars = await LoadAllAvatarsAsync(version);
-                    if (avatars.IsError && !continueOnError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, avatars.Message);
-                        return result;
-                    }
-
-                    foreach (var avatar in avatars.Result ?? new List<IAvatar>())
-                    {
-                        if (avatar == null) continue;
-                        if (searchParams != null && searchParams.SearchOnlyForCurrentAvatar
-                            && searchParams.AvatarId != Guid.Empty && avatar.Id != searchParams.AvatarId)
-                            continue;
-
-                        if (groups.Count == 0 || AvatarMatchesAnyGroup(avatar, groups))
-                            matchedAvatars[avatar.Id] = avatar;
-                    }
+                    var loaded=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,false,version);
+                    if(loaded.IsError||loaded.Result==null)
+                        throw loaded.Exception??new System.IO.InvalidDataException("BigQuery search holon source did not complete.");
+                    holons.AddRange(loaded.Result);
                 }
-
-                // ── Holons ───────────────────────────────────────────────────
-                if (wantHolons)
+                var found=new SearchResults();
+                if(wantsAvatars)
                 {
-                    var holons = await LoadAllHolonsAsync(HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);
-                    if (holons.IsError && !continueOnError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, holons.Message);
-                        return result;
-                    }
-
-                    foreach (var holon in holons.Result ?? new List<IHolon>())
-                    {
-                        if (holon == null) continue;
-
-                        if (searchParams != null)
-                        {
-                            if (searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId != Guid.Empty
-                                && holon.CreatedByAvatarId != searchParams.AvatarId)
-                                continue;
-
-                            if (searchParams.ParentId != Guid.Empty && holon.ParentHolonId != searchParams.ParentId)
-                                continue;
-
-                            if (!MetaDataMatches(holon, searchParams.FilterByMetaData, searchParams.MetaKeyValuePairMatchMode))
-                                continue;
-                        }
-
-                        if (groups.Count == 0 || HolonMatchesAnyGroup(holon, groups))
-                            matchedHolons[holon.Id] = holon;
-                    }
+                    var loaded=await LoadAllAvatarsAsync(version);
+                    if(loaded.IsError||loaded.Result==null)
+                        throw loaded.Exception??new System.IO.InvalidDataException("BigQuery search avatar source did not complete.");
+                    found.SearchResultAvatars.AddRange(loaded.Result.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,holons)));
                 }
-
-                searchResults.SearchResultAvatars = new List<IAvatar>(matchedAvatars.Values);
-                searchResults.SearchResultHolons = new List<IHolon>(matchedHolons.Values);
-                searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
-
-                result.Result = searchResults;
+                if(wantsHolons)
+                    found.SearchResultHolons.AddRange(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,holons)));
+                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+                result.Result=found;result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: SearchAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result,"BigQuery search failed; no complete result is available.",ex);
             }
-
             return result;
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
             => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).GetAwaiter().GetResult();
-
-        private static bool Contains(string source, string query)
-            => !string.IsNullOrEmpty(source) && source.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
-
-        private static bool MetaDataMatches(IHolon holon, Dictionary<string, string> filter, MetaKeyValuePairMatchMode mode)
-        {
-            if (filter == null || filter.Count == 0) return true;
-            if (holon.MetaData == null) return false;
-
-            var matched = 0;
-            foreach (var pair in filter)
-            {
-                if (holon.MetaData.TryGetValue(pair.Key, out var value) && value?.ToString() == pair.Value)
-                    matched++;
-            }
-
-            return mode == MetaKeyValuePairMatchMode.All ? matched == filter.Count : matched > 0;
-        }
-
-        private static bool AvatarMatchesAnyGroup(IAvatar avatar, List<ISearchGroupBase> groups)
-        {
-            foreach (var group in groups)
-            {
-                if (!group.SearchAvatars) continue;
-
-                var text = group as ISearchTextGroup;
-                var query = text?.SearchQuery;
-                if (string.IsNullOrWhiteSpace(query)) return true;
-
-                var p = group.AvatarSearchParams;
-
-                // No field flags set - match the natural identity fields.
-                if (p == null)
-                {
-                    if (Contains(avatar.Username, query) || Contains(avatar.Email, query)
-                        || Contains(avatar.FirstName, query) || Contains(avatar.LastName, query))
-                        return true;
-                    continue;
-                }
-
-                if (p.Username && Contains(avatar.Username, query)) return true;
-                if (p.Email && Contains(avatar.Email, query)) return true;
-                if (p.FirstName && Contains(avatar.FirstName, query)) return true;
-                if (p.LastName && Contains(avatar.LastName, query)) return true;
-                if (p.Title && Contains(avatar.Title, query)) return true;
-                if (p.AvatarId && Contains(avatar.Id.ToString(), query)) return true;
-                if (text != null && text.SearchIds && Contains(avatar.Id.ToString(), query)) return true;
-
-                if (text != null && text.SearchProviderKeys && avatar.ProviderUniqueStorageKey != null)
-                {
-                    foreach (var key in avatar.ProviderUniqueStorageKey.Values)
-                        if (Contains(key, query)) return true;
-                }
-
-                // Flags present but none of them matched a searchable field - fall
-                // back to identity fields so a query is never silently dropped.
-                if (!p.Username && !p.Email && !p.FirstName && !p.LastName && !p.Title && !p.AvatarId)
-                {
-                    if (Contains(avatar.Username, query) || Contains(avatar.Email, query))
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool HolonMatchesAnyGroup(IHolon holon, List<ISearchGroupBase> groups)
-        {
-            foreach (var group in groups)
-            {
-                if (!group.SearchHolons) continue;
-
-                if (group.HolonType != HolonType.All && holon.HolonType != group.HolonType)
-                    continue;
-
-                var text = group as ISearchTextGroup;
-                var query = text?.SearchQuery;
-                if (string.IsNullOrWhiteSpace(query)) return true;
-
-                var p = group.HolonSearchParams;
-
-                if (p == null)
-                {
-                    if (Contains(holon.Name, query) || Contains(holon.Description, query))
-                        return true;
-                    continue;
-                }
-
-                if (p.Name && Contains(holon.Name, query)) return true;
-                if (p.Description && Contains(holon.Description, query)) return true;
-                if (text != null && text.SearchIds && Contains(holon.Id.ToString(), query)) return true;
-
-                if (p.MetaData && holon.MetaData != null)
-                {
-                    foreach (var kvp in holon.MetaData)
-                        if (Contains(kvp.Key, query) || Contains(kvp.Value?.ToString(), query)) return true;
-                }
-
-                if ((p.ProviderUniqueStorageKey || (text != null && text.SearchProviderKeys))
-                    && holon.ProviderUniqueStorageKey != null)
-                {
-                    foreach (var key in holon.ProviderUniqueStorageKey.Values)
-                        if (Contains(key, query)) return true;
-                }
-
-                if (!p.Name && !p.Description && !p.MetaData && !p.ProviderUniqueStorageKey)
-                {
-                    if (Contains(holon.Name, query) || Contains(holon.Description, query))
-                        return true;
-                }
-            }
-
-            return false;
-        }
 
         // ─── Backend helpers ─────────────────────────────────────────────────────
 
