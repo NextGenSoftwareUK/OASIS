@@ -118,9 +118,22 @@ internal sealed partial class MongoCqlTranslator
             selectedSort.AddRange(sort);
             sort = selectedSort;
         }
+        // Page membership is computed natively, while every bounded group
+        // packet remains available to prove off-page domains and arithmetic.
+        page.Add(new("$setWindowFields", new BsonDocument
+        {
+            { "sortBy", sort },
+            { "output", new BsonDocument("cqlGroupPosition", new BsonDocument
+                { { "$sum", Literal(1L) }, { "window", new BsonDocument("documents", new BsonArray { "unbounded", "current" }) } }) }
+        }));
+        page.Add(new("$set", new BsonDocument("resultMember", Op("$and",
+            Op("$gt", "$cqlGroupPosition", Literal(query.ResultOffset)),
+            query.ResultLimit.HasValue
+                ? Op("$lte", "$cqlGroupPosition", Literal((long)query.ResultOffset + query.ResultLimit.Value))
+                : Literal(true)))));
         page.Add(new("$sort", sort));
         page.Add(new("$limit", maximumGroups + 1));
-        if (sortFields.ElementCount != 0) page.Add(new("$unset", new BsonArray(sortFields.Names)));
+        page.Add(new("$unset", new BsonArray(sortFields.Names.Concat(new[] { "cqlGroupPosition" }))));
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
         ValidatePipeline(source);
         var membership = query.Source.Predicates.Any(p => p is CosmicQueryAnyChild || p is CosmicQueryAnyDescendant);
