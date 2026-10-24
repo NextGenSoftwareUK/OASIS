@@ -227,7 +227,7 @@ internal sealed class NearSdkService
         return await InvokeMutationAsync("call", new
         {
             methodName,
-            args,
+            argsBase64=Convert.ToBase64String(Encoding.UTF8.GetBytes(intent.Arguments.GetRawText())),
             targetContractId = targetContractId ?? _contractId,
             depositYocto,
             gas,
