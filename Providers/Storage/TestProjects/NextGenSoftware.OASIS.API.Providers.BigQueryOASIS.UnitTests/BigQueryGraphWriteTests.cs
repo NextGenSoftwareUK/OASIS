@@ -67,12 +67,17 @@ public class BigQueryGraphWriteTests
     internal sealed class Ledger:BigQueryClient
     {
         public readonly Dictionary<string,string> Records=new();public int Writes,Reads;public int FailAt;public Action? FirstWrite;public Action<string>? AfterRead;
+        private readonly Dictionary<string,string> _tables=new();
+        private static string TableName(string sql)=>sql.Contains(".oasis_avatar_details`",StringComparison.Ordinal)?"details":sql.Contains(".oasis_avatars`",StringComparison.Ordinal)?"avatars":"holons";
         public override Task<BigQueryResults> ExecuteQueryAsync(string sql,IEnumerable<BigQueryParameter> parameters,QueryOptions? queryOptions=null,GetQueryResultsOptions? resultsOptions=null,CancellationToken token=default)
         {
             var args=parameters?.ToDictionary(row=>row.Name,row=>row.Value)??new();var job=new JobReference{ProjectId="my-project",JobId=queryOptions?.JobId??"controlled-read"};
             if(sql.TrimStart().StartsWith("SELECT",StringComparison.Ordinal)){
                 Reads++;
-                var values=args.TryGetValue("id",out var id)?Records.TryGetValue(id.ToString()!,out var value)?new[]{value}:Array.Empty<string>():Records.Values.ToArray();
+                var table=TableName(sql);var selected=Records.Where(row=>!_tables.TryGetValue(row.Key,out var assigned)||assigned==table);
+                if(args.TryGetValue("id",out var id))selected=selected.Where(row=>row.Key==id.ToString());
+                if(args.TryGetValue("value",out var sought)){var property=sql.Contains("WHERE username =",StringComparison.Ordinal)?"Username":sql.Contains("WHERE email =",StringComparison.Ordinal)?"Email":"ParentHolonId";selected=selected.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.ParseStoredObject(row.Value)[property]?.ToString()==sought?.ToString());}
+                var values=selected.Select(row=>row.Value).ToArray();
                 if(id!=null)AfterRead?.Invoke(id.ToString()!);
                 return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=job,TotalRows=(ulong)values.Length,Schema=new(){Fields=new List<TableFieldSchema>{new(){Name="doc",Type="STRING"}}},Rows=values.Select(value=>new TableRow{F=new List<TableCell>{new(){V=value}}}).ToList()},null,new GetQueryResultsOptions()));
             }
@@ -82,7 +87,7 @@ public class BigQueryGraphWriteTests
                 StringAssert.Contains(sql,"t.doc = @expected_doc");StringAssert.Contains(sql,"WHEN NOT MATCHED AND NOT @expected_exists");
                 var present=Records.TryGetValue(key,out var original);admitted=present==(bool)exists&&(!present||original==(string?)args["expected_doc"]);
             }
-            if(admitted)Records[key]=(string)args["doc"];
+            if(admitted){Records[key]=(string)args["doc"];_tables[key]=TableName(sql);}
             if(Writes==1)FirstWrite?.Invoke();
             return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=job,NumDmlAffectedRows=admitted?1:0},null,new GetQueryResultsOptions()));
         }
