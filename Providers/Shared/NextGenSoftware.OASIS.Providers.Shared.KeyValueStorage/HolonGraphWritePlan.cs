@@ -22,6 +22,13 @@ public static class HolonGraphWritePlan
     public static (List<IHolon> Roots,List<PlannedHolonWrite> Nodes) Create(IEnumerable<IHolon> input,bool children,bool recursive,int depth,int initialDepth)
         =>Create(input,children,recursive,depth,initialDepth,null);
     public static (List<IHolon> Roots,List<PlannedHolonWrite> Nodes) Create(IEnumerable<IHolon> input,bool children,bool recursive,int depth,int initialDepth,Action<IHolon> validateSource)
+        =>Capture(input,children,recursive,depth,initialDepth,validateSource,false);
+
+    /// <summary>Caller mutation admission. Receipt/replica graph validation uses structural Create instead.</summary>
+    public static (List<IHolon> Roots,List<PlannedHolonWrite> Nodes) CreateForSave(IEnumerable<IHolon> input,bool children,bool recursive,int depth,int initialDepth,Action<IHolon> validateSource=null)
+        =>Capture(input,children,recursive,depth,initialDepth,validateSource,true);
+
+    private static (List<IHolon> Roots,List<PlannedHolonWrite> Nodes) Capture(IEnumerable<IHolon> input,bool children,bool recursive,int depth,int initialDepth,Action<IHolon> validateSource,bool mutation)
     {
         ArgumentNullException.ThrowIfNull(input);
         if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
@@ -42,13 +49,14 @@ public static class HolonGraphWritePlan
             if(parent.HasValue && source.ParentHolonId!=Guid.Empty && source.ParentHolonId!=parent.Value)
                 throw new ArgumentException("Selected child has a conflicting parent identity.");
             validateSource?.Invoke(source);
+            var selectsChildren = children && (depth==0 || current<depth) && (recursive || current==initialDepth);
+            if(mutation && selectsChildren)HolonChangeTracking.ValidateChildSelectionForSave(source);
             var document=StoredRecordJson.CaptureInputToken<IHolon>(source) as JObject
                 ??throw new ArgumentException("Selected graph input must capture a record object.");
             var captured=document.ToString(Newtonsoft.Json.Formatting.None);document.Remove("$type");
             // This JSON was just captured from input, not read from storage.
             var snapshot=StoredRecordJson.Project<Holon>(document);
             snapshot.Id=id;snapshot.ParentHolonId=parent ?? source.ParentHolonId;
-            var selectsChildren = children && (depth==0 || current<depth) && (recursive || current==initialDepth);
             var childIds=new List<Guid>();
             nodes.Add(new PlannedHolonWrite(source,snapshot) { SelectsChildren = selectsChildren, CapturedIntentJson = captured,
                 SelectedChildIds = childIds.AsReadOnly() });

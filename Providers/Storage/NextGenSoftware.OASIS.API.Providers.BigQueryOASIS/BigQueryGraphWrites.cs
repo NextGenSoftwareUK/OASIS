@@ -34,7 +34,7 @@ public partial class BigQueryOASIS
             ArgumentNullException.ThrowIfNull(sources);ValidateGraphDepth(maximum,initial);
             var roots=sources.ToArray();
             if(roots.Length==0){result.Result=Array.Empty<IHolon>();result.IsSaved=true;return result;}
-            var plan=HolonGraphWritePlan.Create(roots,children,recursive,maximum,initial,ValidateRecordWrite);
+            var plan=HolonGraphWritePlan.CreateForSave(roots,children,recursive,maximum,initial,ValidateRecordWrite);
             var publications=new Dictionary<IHolon,StoredRecordPublicationSnapshot<Holon>>(ReferenceEqualityComparer.Instance);
             foreach(var node in plan.Nodes)publications.Add(node.Source,StoredRecordPublicationSnapshot<Holon>.Capture(node.Source));
             foreach(var node in plan.Nodes)
@@ -62,6 +62,7 @@ public partial class BigQueryOASIS
                     throw;
                 }
             }
+            foreach(var node in plan.Nodes)HolonChildRolePersistence.PublishAcknowledgedSelection(node);
             result.Result=plan.Roots;result.IsSaved=true;
         }
         catch(Exception cause)

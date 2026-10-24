@@ -711,6 +711,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                         }
                     }
                 }
+                if(!result.IsError)HolonChildRolePersistence.PublishAcknowledgedSelection(node);
                 return result;
             }
             catch (Exception ex) { return Fail<IHolon>($"Error saving holon: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
@@ -750,7 +751,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             var selected=roots.ToList();if(selected.Count==0) return new SaveForest(Array.Empty<PlannedHolonWrite>());
             // This provider's existing depth limit counts the root as level one.
             var children=saveChildren && (depth==0 || recursive) && (maxChildDepth==0 || depth+1<maxChildDepth);
-            try {return new SaveForest(HolonGraphWritePlan.Create(selected,children,recursive,maxChildDepth==0 ? 0:maxChildDepth-1,depth).Nodes);}
+            try {return new SaveForest(HolonGraphWritePlan.CreateForSave(selected,children,recursive,maxChildDepth==0 ? 0:maxChildDepth-1,depth).Nodes);}
             catch(ArgumentException cause)
             {
                 // Preserve the existing terminal invalid-graph boundary while sharing one graph validator.
