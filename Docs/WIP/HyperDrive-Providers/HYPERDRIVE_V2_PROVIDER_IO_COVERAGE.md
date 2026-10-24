@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+BigQuery delete24October:261controlledPASS0skip. Shared existing save acknowledgement owner now validates hard DELETE; original job/cause retained on null/non-one-row/misbound/lost outcomes. Public holon wrappers preserve Core replay-containment exception and deletion counts. No native cloud/server semantics or durable recovery proof; paired lifecycle/concurrency/fullV2 open. Original36plus8red and4missing-record regressions documented in audit/inventory.
+
 BigQuery identity ambiguity24October:213controlledPASS0skip. Two shared point-query owners use LIMIT2/common unique validator; multiple rows return explicit error/no payload instead of arbitrary newest record.42new controls cover missing/single/duplicate across7selectors×sync/async;14genuine red retained. Not server uniqueness,concurrency,native cloud or fullV2 proof; audit/inventory retain boundaries.
 
 BigQuery deleted-detail24October:171controlledPASS0skip; point GUID/username/email and collection sync/async now exclude soft-deleted details using existing IsDeleted contract.8genuine red cases retained,8nondeleted controls unchanged; stored canonical content unchanged. Not native cloud/history/paired-lifecycle/fullV2 proof. Audit/inventory updated.
