@@ -43,6 +43,12 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public bool IsProviderTransportFailure(Exception failure)=>failure is TimeoutException;
         private AmazonDynamoDBClient _client;
         private readonly Func<AmazonDynamoDBClient> _createClient;
+        private readonly DynamoResourceCapture _resourceCapture;
+        /// <summary>Trusted host-scoped native observations, not pricing or spending authorization.
+        /// Observer must preserve incomplete evidence; operation and observer work must be awaited.</summary>
+        public Task<T> ObserveNativeResourceUsageAsync<T>(string providerRequestId, Func<Task<T>> operation,
+            Func<string, IReadOnlyList<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeResourceUsageObservation>, Task> observer)
+            => _resourceCapture.RunAsync(providerRequestId, operation, observer);
         private bool _clientDisposed;
         protected virtual ProviderType StorageProviderType => Core.Enums.ProviderType.DynamoDBOASIS;
 
@@ -81,7 +87,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 config.AuthenticationRegion = region;
                 config.UseHttp = serviceUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
             }
-            _createClient = () => useDefaultCredentials ? new AmazonDynamoDBClient(config):new AmazonDynamoDBClient(creds,config);
+            _resourceCapture = new DynamoResourceCapture(() => StorageProviderType.ToString(), region);
+            _createClient = () => useDefaultCredentials ? new DynamoResourceClient(config,_resourceCapture):new DynamoResourceClient(creds,config,_resourceCapture);
             _client = _createClient();
             ProviderName = "DynamoDBOASIS";
             ProviderDescription = "AWS DynamoDB provider (AWSSDK.DynamoDBv2 — serverless NoSQL for OASIS holons and avatars)";
