@@ -63,4 +63,17 @@ public sealed class MongoCqlGroupedTests
         Assert.IsTrue(json.Contains("$facet") && json.Contains("$invalid"));
         Assert.IsTrue(json.Contains("$expr") && json.Contains("false"));
     }
+
+    [TestMethod]
+    public void NativePageMarksRanksWithoutTruncatingTheCompleteGroupProof()
+    {
+        var query = CosmicQuery<Holon>.Create().GroupBy(h => h.Name)
+            .Select(g => new { g.Key, Rows = g.LongCount() }).OrderByDescending(g => g.Rows).Skip(2).Take(1).Result;
+        var stages = new MongoCqlTranslator().CompileGrouped(query, 10).Pipeline;
+        var rank = stages.Single(stage => stage.Contains("$setWindowFields") && stage["$setWindowFields"].AsBsonDocument.Contains("sortBy"));
+        Assert.IsTrue(rank.ToJson().Contains("cqlGroupPosition"));
+        Assert.IsTrue(stages.Any(stage => stage.Contains("$set") && stage["$set"].AsBsonDocument.Contains("resultMember")));
+        Assert.AreEqual(11L, stages.Last(stage => stage.Contains("$limit"))["$limit"].ToInt64());
+        Assert.IsFalse(stages.Any(stage => stage.Contains("$skip")));
+    }
 }
