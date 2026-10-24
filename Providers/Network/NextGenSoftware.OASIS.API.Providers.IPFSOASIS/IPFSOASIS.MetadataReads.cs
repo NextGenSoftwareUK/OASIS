@@ -34,7 +34,7 @@ public partial class IPFSOASIS
             result.Result=records.Where(row=>(type==HolonType.All || row.HolonType==type)
                 && (mode==MetaKeyValuePairMatchMode.All ? requested.All(pair=>Match(row,pair)):requested.Any(pair=>Match(row,pair))))
                 .Select(project).ToList();
-            result.IsLoaded=true;
+            MarkIpfsLoaded(result,result.Result.Count());
         }
         catch(Exception cause)
         {

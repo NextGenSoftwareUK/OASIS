@@ -13,6 +13,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 public partial class IPFSOASIS
 {
+    private static void MarkIpfsLoaded<T>(OASISResult<T> result,int returnedRoots=1)
+    {
+        result.IsLoaded=true;
+        result.LoadedCount=returnedRoots;
+    }
+
     private const string PrivateIndexContext="oasis/ipfs/private-index/v1";
     private Func<byte[]> _storageKeyResolver=null;
 
@@ -132,7 +138,7 @@ public partial class IPFSOASIS
     private async Task<OASISResult<IEnumerable<T>>> ReadPrivateCollectionResultAsync<T>(string kind,int version) where T:class,IHolonBase
     {
         var result=new OASISResult<IEnumerable<T>>();
-        try {result.Result=await ReadIndexedCollectionAsync<T>(kind,row=>true,version);result.IsLoaded=true;}
+        try {result.Result=await ReadIndexedCollectionAsync<T>(kind,row=>true,version);MarkIpfsLoaded(result,result.Result.Count());}
         catch(Exception cause)
         {
             OASISErrorHandling.HandleError(ref result,"IPFS collection read failed: "+cause.Message,cause);

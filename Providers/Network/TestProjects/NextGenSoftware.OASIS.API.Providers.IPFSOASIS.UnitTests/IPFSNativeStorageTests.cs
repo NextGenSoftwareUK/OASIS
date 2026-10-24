@@ -60,6 +60,7 @@ public class IPFSNativeStorageTests
             var profile=await provider.LoadAvatarTemplateAsync(row=>row.Id==id);
             var stats=await provider.LoadAvatarDetailTemplateAsync(row=>row.Id==id);
             var stored=await provider.LoadHolonTemplateAsync(row=>row.Id==id);
+            Assert.Equal(1,profile.LoadedCount);Assert.Equal(1,stats.LoadedCount);Assert.Equal(1,stored.LoadedCount);
             Assert.Equal(avatar.Email,profile.Result.Email); Assert.Equal(avatar.Password,profile.Result.Password);
             Assert.Equal(detail.XP,stats.Result.XP); Assert.Equal(detail.Karma,stats.Result.Karma); Assert.Equal(holon.Name,stored.Result.Name);
             var item=Assert.IsType<InventoryItem>(Assert.Single(stats.Result.Inventory));
@@ -109,6 +110,7 @@ public class IPFSNativeStorageTests
                 SearchGroups=new() {new SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery="owned-native-child",HolonSearchParams=new SearchHolonParams {Name=true}}}};
             var searched=await provider.SearchAsync(query);
             Assert.False(searched.IsError,searched.Message); Assert.Equal(1,searched.Result.NumberOfResults);
+            Assert.Equal(1,searched.LoadedCount);
             Assert.Equal(child.Id,Assert.Single(searched.Result.SearchResultHolons).Id);
             Assert.Equal(grandchild.Id,Assert.Single(searched.Result.SearchResultHolons[0].Children).Id);
             var noChildren=provider.Search(query,loadChildren:false);
@@ -119,8 +121,10 @@ public class IPFSNativeStorageTests
             query.FilterByMetaData["biome"]="not-this-park";
             var noMatch=await provider.SearchAsync(query);
             Assert.False(noMatch.IsError,noMatch.Message); Assert.Equal(0,noMatch.Result.NumberOfResults);
+            Assert.True(noMatch.IsLoaded);Assert.Equal(0,noMatch.LoadedCount);
             var metadata=await provider.LoadHolonsByMetaDataAsync("biome","owned-park",loadChildrenFromProvider:true);
             Assert.False(metadata.IsError,metadata.Message); Assert.True(metadata.IsLoaded);
+            Assert.Equal(1,metadata.LoadedCount);
             Assert.Equal(child.Id,Assert.Single(metadata.Result).Id);
             Assert.Equal(grandchild.Id,Assert.Single(metadata.Result.Single().Children).Id);
             var pairs=new Dictionary<string,string> {{"biome","owned-park"},{"missing","none"}};

@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
                 var all=synchronous ? provider.LoadAllHolons(NextGenSoftware.OASIS.API.Core.Enums.HolonType.All,loadChildrenFromProvider:true,version:1)
                     :await provider.LoadAllHolonsAsync(NextGenSoftware.OASIS.API.Core.Enums.HolonType.All,loadChildrenFromProvider:true,version:1);
                 Assert.False(all.IsError,all.Message);Assert.True(all.IsLoaded);Assert.Equal(3,all.Result.Count());
+                Assert.Equal(3,all.LoadedCount);
                 Assert.All(all.Result,row=>Assert.Equal(1,row.Version));
                 var oldRoot=all.Result.Single(row=>row.Id==root.Id);
                 Assert.Equal(currentOnly.Id,Assert.Single(oldRoot.Children).Id);
@@ -60,6 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
                 var single=synchronous ? provider.LoadHolon(root.Id,loadChildrenFromProvider:true,version:1)
                     :await provider.LoadHolonAsync(root.Id,loadChildrenFromProvider:true,version:1);
                 Assert.False(single.IsError,single.Message);Assert.Equal(1,single.Result.Version);
+                Assert.Equal(1,single.LoadedCount);
                 Assert.Equal(currentOnly.Id,Assert.Single(single.Result.Children).Id);
                 var shallow=provider.LoadHolon(root.Id,recursive:false,loadChildrenFromProvider:true,version:1);
                 Assert.Empty(Assert.Single(shallow.Result.Children).Children);
@@ -67,24 +69,29 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
                 var parent=synchronous ? provider.LoadHolonsForParent(parentKey,loadChildren:false,version:1)
                     :await provider.LoadHolonsForParentAsync(root.Id,loadChildren:false,version:1);
                 Assert.False(parent.IsError,parent.Message);Assert.Equal(child.Id,Assert.Single(parent.Result).Id);
+                Assert.Equal(1,parent.LoadedCount);
                 var parentGraph=await provider.LoadHolonsForParentAsync(root.Id,loadChildrenFromProvider:true,version:1);
                 Assert.Equal(child.Id,Assert.Single(parentGraph.Result).Id);
+                Assert.Equal(1,parentGraph.LoadedCount);
                 Assert.Equal(2,Assert.Single(parentGraph.Result.Single().Children).Version);
                 var meta=synchronous ? provider.LoadHolonsByMetaData("biome","old-park",loadChildrenFromProvider:true,version:1)
                     :await provider.LoadHolonsByMetaDataAsync("biome","old-park",loadChildrenFromProvider:true,version:1);
                 Assert.False(meta.IsError,meta.Message);Assert.Equal(child.Id,Assert.Single(meta.Result).Id);
+                Assert.Equal(1,meta.LoadedCount);
                 Assert.Equal(grandchild.Id,Assert.Single(meta.Result.Single().Children).Id);
                 Assert.Equal(2,meta.Result.Single().Children.Single().Version);
                 Assert.Empty(provider.LoadHolonsByMetaData("biome","new-park",version:1).Result);
                 var exported=synchronous ? provider.ExportAllDataForAvatarByEmail(avatar.Email,version:1)
                     :await provider.ExportAllDataForAvatarByIdAsync(avatar.Id,version:1);
                 Assert.False(exported.IsError,exported.Message);Assert.Equal(3,exported.Result.Count());
+                Assert.Equal(3,exported.LoadedCount);
                 Assert.All(exported.Result,row=>Assert.Equal(avatar.Id,row.CreatedByAvatarId));
                 Assert.Empty(provider.ExportAllDataForAvatarById(avatar.Id).Result);
                 Assert.Equal(3,provider.ExportAll(version:1).Result.Count());
                 var avatars=synchronous ? provider.LoadAllAvatars(version:1):await provider.LoadAllAvatarsAsync(version:1);
                 var details=synchronous ? provider.LoadAllAvatarDetails(version:1):await provider.LoadAllAvatarDetailsAsync(version:1);
                 Assert.Equal("history-owner-old",Assert.Single(avatars.Result).Username);Assert.Equal(17,Assert.Single(details.Result).XP);
+                Assert.Equal(1,avatars.LoadedCount);Assert.Equal(1,details.LoadedCount);
                 var query=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
                     SearchOnlyForCurrentAvatar=false,MetaKeyValuePairMatchMode=NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,
                     SearchGroups=new() {new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {
@@ -92,6 +99,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
                         HolonSearchParams=new SearchHolonParams {Name=true}}}};
                 var searched=synchronous ? provider.Search(query,version:1):await provider.SearchAsync(query,version:1);
                 Assert.False(searched.IsError,searched.Message);Assert.Equal(1,searched.Result.NumberOfResults);
+                Assert.Equal(1,searched.LoadedCount);
                 Assert.Equal(grandchild.Id,Assert.Single(Assert.Single(searched.Result.SearchResultHolons).Children).Id);
                 Assert.Equal(2,searched.Result.SearchResultHolons.Single().Children.Single().Version);
                 Assert.Empty(provider.LoadAllHolons(version:3).Result);
