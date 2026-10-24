@@ -46,11 +46,16 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         #region Keys
 
-        private string AvatarKey(Guid id) => $"{KeyPrefix}avatar/{id:N}";
-        private string AvatarDetailKey(Guid id) => $"{KeyPrefix}avatardetail/{id:N}";
+        private string RecordKey(string kind,Guid id)
+        {
+            if(id==Guid.Empty)throw new ArgumentException("A nonempty OASIS record identity is required.",nameof(id));
+            return $"{KeyPrefix}{kind}/{id:N}";
+        }
+        private string AvatarKey(Guid id) => RecordKey("avatar",id);
+        private string AvatarDetailKey(Guid id) => RecordKey("avatardetail",id);
         private string UsernameKey(string username) => $"{KeyPrefix}avatar-username/{Encode(username)}";
         private string EmailKey(string email) => $"{KeyPrefix}avatar-email/{Encode(email)}";
-        private string HolonKey(Guid id) => $"{KeyPrefix}holon/{id:N}";
+        private string HolonKey(Guid id) => RecordKey("holon",id);
         private string ParentPrefix(Guid parentId) => $"{KeyPrefix}holon-parent/{parentId:N}/";
         private string ParentKey(Guid parentId, Guid id) => $"{ParentPrefix(parentId)}{id:N}";
         // Versions live outside the record prefixes so listing avatars or holons never returns old versions.
@@ -589,7 +594,6 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             var acknowledged=new List<string>();
             try
             {
-                if (id == Guid.Empty) return Fail<bool>("Avatar detail ID is required.");
                 var key=AvatarDetailKey(id);var conditional=Backend as IConditionalKeyValueBackend;
                 var (record,observed)=await ReadForMutationAsync<IAvatarDetail>(key,conditional);
                 var detail=await ReadVersionAsync(key,record,0);

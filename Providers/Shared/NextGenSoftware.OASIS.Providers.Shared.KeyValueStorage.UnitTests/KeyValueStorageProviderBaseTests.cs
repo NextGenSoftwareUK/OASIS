@@ -26,12 +26,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         public string FailDeleteKey;
         public int ListCalls;
         public int PutCalls;
+        public int GetCalls,DeleteCalls;
 
-        public Task<string> GetAsync(string key, CancellationToken ct = default) => key == FailGetKey
+        public Task<string> GetAsync(string key, CancellationToken ct = default)
+        { Interlocked.Increment(ref GetCalls);return key == FailGetKey
             ? throw (FailGetException ?? new System.IO.IOException("controlled child read outage")) : ThrowReads
-            ? throw new InvalidOperationException("store read unavailable") : Task.FromResult(Items.TryGetValue(key, out var v) ? v : null);
+            ? throw new InvalidOperationException("store read unavailable") : Task.FromResult(Items.TryGetValue(key, out var v) ? v : null); }
         public Task PutAsync(string key, string value, CancellationToken ct = default) { Interlocked.Increment(ref PutCalls); if (key == FailPutKey) throw (FailPutException ?? new InvalidOperationException("controlled write failure")); Items[key] = value; return Task.CompletedTask; }
-        public Task DeleteAsync(string key, CancellationToken ct = default) { if (key == FailDeleteKey) throw new InvalidOperationException("controlled delete failure"); Items.TryRemove(key, out _); return Task.CompletedTask; }
+        public Task DeleteAsync(string key, CancellationToken ct = default) { Interlocked.Increment(ref DeleteCalls);if (key == FailDeleteKey) throw new InvalidOperationException("controlled delete failure"); Items.TryRemove(key, out _); return Task.CompletedTask; }
         public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken ct = default)
         { ListCalls++; return Task.FromResult<IReadOnlyList<string>>(Items.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).OrderBy(k => k).ToList()); }
         public Task VerifyAsync(CancellationToken ct = default) => Reachable ? Task.CompletedTask : throw new InvalidOperationException("store unreachable");
