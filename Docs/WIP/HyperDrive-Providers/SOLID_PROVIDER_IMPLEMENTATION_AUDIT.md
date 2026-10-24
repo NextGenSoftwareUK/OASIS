@@ -1,5 +1,13 @@
 # SOLID provider implementation audit
 
+## Cold-start failure narrowed before authentication — 24 October 2026
+
+Added explicit read-only SolidColdStartReadOnlyTests, selected independently of the six RetainedSolidPodTests. SAME pinned retained CSS container/volume/DPAPI identity, no ACL/record write or new identity. Fresh process cold start reproduces the host transport-abort on anonymous `GET /.well-known/openid-configuration`, before credential decryption/token acquisition/private ACL GET. Thus this failure is not specific to DPoP token handling; server/forwarding readiness remains a hypothesis, not yet proven root cause. Do not add provider authentication retries or relabel warm success as cold reliability.
+
+Actual56725 TERMINAL1:1failed/0passed/0skipped, two seconds; original report `TestResults/SolidCurrent/solid-cold-readonly-20261024.trx`15601bytes SHA25672A100DDC62D3ECA6DA766477F8388857F972E586D768256F57A016DD898FD06. Explicit bounded readiness-measurement follow-up was rejected by execution policy BEFORE process creation; no readiness observation or authenticated success occurred. No alternate route was used. Startup logs at configured warn level were empty; do not infer readiness from this. Container stop needed native SIGKILL after20second SIGTERM timeout; independently exited/notOOM/exit137, reserved13000absent/pending0. This is not an authentication fix or passing native acceptance.
+
+Before dispatch, integration build exposed missing pinned xUnit2.5.3 packages in shared cache despite existing assets. Restored SAME project in place with --no-dependencies, versions unchanged; subsequent build0errors24warnings. Core740/ABD06B39 Shared55/1A9956E5 current-source/copies verified. No runtime/download/clone/new environment; package recovery details and measured paths in inventory. Next authorized diagnostic must measure exact issuer readiness and then perform one authenticated read, retaining original failure. Broad OIDC/private graph/interface/V2 gates remain open.
+
 ## Rejected credential cache recovery — 2026-10-20
 
 Root cause: the client retained rejected credentials until their advertised expiry. An initial fix requiring `DPoP error="invalid_token"` passed controlled tests but failed against the retained real CSS server. With a well-formed access JWT whose signature was deliberately damaged only in this client's cache, CSS returned **401 with `Bearer scope="openid webid"`**, without an error parameter. The same cached token was then sent again. No issuer credential or server record was altered by that probe.
