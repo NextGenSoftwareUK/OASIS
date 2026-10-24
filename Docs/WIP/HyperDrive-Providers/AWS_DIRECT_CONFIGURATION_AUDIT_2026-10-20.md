@@ -1,5 +1,7 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+S3 name-fidelity follow-up24October: actual official SDK SigV4/custom-HTTP tests preserve ../outside,a/../outside,backslash and query/fragment-looking names exactly under configured prefix, with no query/fragment injection. Existing production SDK/transport is correct for tested cases; no new reject/remap/custom signer was introduced. Four new controls plus prior64selected regressions=68PASS0skip840ms. Initial4fail were invalid synthetic ETag fixture (SDK hex parsing), not demonstrated name-routing defects; original failed report retained, fixture corrected to matchingMD5. Evidence/resources in inventory. These are controlled HTTP tests, not hosted S3/IAM/durability/fee/V2 acceptance.
+
 ## S3 full-key admission — 24 October
 
 Shared S3 transport now enforces [AWS's1024UTF8-byte full object-key limit including prefix](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html) at its existing Key owner before SDK dispatch. No truncation/hash remapping/normalization; exact boundary names preserved. Twelve new ASCII/Unicode ×six-operation controls all failed before correction, then selected SharedS3/AwsS3 regression64/64PASS0skip936ms. Covers GET/observedGET/PUT/create/replace/conditionalDELETE; not a claim of64live cloud operations or full edge-provider coverage. Source/PDB/frozen copies verified; exact hashes/resources in ENVIRONMENT_INVENTORY.md. No download/install/restore/environment/cloud write. Hosted IAM/durability/fees and fullV2 remain open.
