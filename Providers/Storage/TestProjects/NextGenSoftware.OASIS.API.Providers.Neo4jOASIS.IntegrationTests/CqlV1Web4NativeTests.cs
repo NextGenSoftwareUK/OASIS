@@ -521,12 +521,13 @@ public sealed partial class CqlV1Web4NativeTests
                             Assert.AreEqual("Int64", projectionExample.GetProperty("columns")[1].GetProperty("valueType").GetString());
                             var groupedExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlGroupedV1Request").GetProperty("example");
-                            Assert.AreEqual("Total", groupedExample.GetProperty("resultOrder")[0].GetProperty("alias").GetString());
-                            Assert.IsTrue(groupedExample.GetProperty("resultOrder")[0].GetProperty("descending").GetBoolean());
+                            Assert.AreEqual("Mean", groupedExample.GetProperty("resultOrder")[0].GetProperty("alias").GetString());
+                            Assert.IsFalse(groupedExample.GetProperty("resultOrder")[0].GetProperty("descending").GetBoolean());
                             Assert.AreEqual(1, groupedExample.GetProperty("resultTake").GetInt32());
-                            Assert.AreEqual("Total", groupedExample.GetProperty("resultFilters")[0].GetProperty("alias").GetString());
-                            Assert.AreEqual("GreaterThan", groupedExample.GetProperty("resultFilters")[0].GetProperty("operator").GetString());
-                            Assert.AreEqual("-18014398509481982", groupedExample.GetProperty("resultFilters")[0].GetProperty("value").GetString());
+                            Assert.AreEqual("Mean", groupedExample.GetProperty("resultFilters")[0].GetProperty("alias").GetString());
+                            Assert.AreEqual("GreaterThanOrEqual", groupedExample.GetProperty("resultFilters")[0].GetProperty("operator").GetString());
+                            Assert.AreEqual("-9007199254740990.5", groupedExample.GetProperty("resultFilters")[0].GetProperty("value").GetString());
+                            Assert.AreEqual("LessThan", groupedExample.GetProperty("resultFilters")[1].GetProperty("operator").GetString());
                         }
 
                         // These examples are the same readable C# client code developers
