@@ -110,56 +110,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var response = new OASISResult<IAvatar>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Load avatar by email from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/search?q={avatarEmail}";
-                
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse ActivityPub JSON and create Avatar object
-                    // Parse ActivityPub JSON and create Avatar object
-                    var avatar = ParseActivityPubToAvatar(content);
-                    if (avatar != null)
-                    {
-                        response.Result = (IAvatar)avatar;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar by email from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+            => Task.FromResult(RejectPrivateEmailLookup<IAvatar>());
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
@@ -182,58 +134,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return LoadAvatarDetailAsync(id, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+            => Task.FromResult(RejectPrivateEmailLookup<IAvatarDetail>());
+
+        private static OASISResult<T> RejectPrivateEmailLookup<T>()
         {
-            var response = new OASISResult<IAvatarDetail>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Load avatar detail by email: search accounts then parse as AvatarDetail (do not build from Avatar)
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/search?q={Uri.EscapeDataString(avatarEmail)}";
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var avatarDetail = ParseActivityPubToAvatarDetail(content);
-                    if (avatarDetail != null && string.Equals(avatarDetail.Email, avatarEmail, StringComparison.OrdinalIgnoreCase))
-                    {
-                        response.Result = avatarDetail;
-                        response.IsError = false;
-                        response.Message = "Avatar detail loaded from ActivityPub by email successfully";
-                    }
-                    else if (avatarDetail != null)
-                    {
-                        response.Result = avatarDetail;
-                        response.IsError = false;
-                        response.Message = "Avatar detail loaded from ActivityPub search (email match best-effort)";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response or no match by email");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail by email from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by email from ActivityPub: {ex.Message}");
-            }
-
-            return response;
+            const string message="Mastodon public accounts do not provide private email identity lookup. An email must not be sent as a public account-search query. Use a private OASIS storage provider for email lookup; no request was sent.";
+            var result=new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref result,message,new NotSupportedException(message));
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
