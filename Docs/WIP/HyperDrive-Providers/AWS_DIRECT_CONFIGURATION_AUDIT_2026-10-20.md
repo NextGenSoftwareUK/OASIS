@@ -1,5 +1,13 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## DynamoDB activation observations — 24 October, native regression verified
+
+Eighteen new sync/async controls reproduced **16 failures and 2 valid controls**: an ACTIVE-looking table body could activate despite HTTP0/202/500, or a missing initial table description could be ignored before another request. The existing activation owner now uses one `RequireTableObservation` check for both the initial describe and readiness polling. Malformed observations return an error/inactive state immediately; they do not mean absence and cannot trigger provisioning. Existing schema checks and bounded CREATING/UPDATING readiness behavior remain in place. Their fixtures now explicitly model HTTP200 so the original schema/timeout assertions remain meaningful.
+
+Full **583/583 unit tests PASS, zero skipped**. Before report45979bytes SHA256 `D38F66AB01AA3263DB6B17D880D5E94BB89D81A21495A6D5509DEEADA1E45ECE`; initial after890295bytes SHA256 `18551F89B77A419C7C192D5E18294BFFD3C77040DDDC931E4749D75AFBA057C1`. Fresh paired unit583/583 also passed after the native runner's shared-output refresh:890295bytes SHA256 `978A10D0CC76FCFD40EF27526914D0C5B01EF3E0340748BA658BA6430823E5C6`.
+
+Actual native runner56086 terminal0: baseline1/1, **134/134 native tests PASS, zero skipped,69seconds**, cleanup1/1. Native209056bytes SHA256 `1CF8FD616941DD81E89C1E219750EDE17313CD532AABAE84B8F7EF7403B5BB2A`; exact cleanup inventory9471bytes SHA256 `86F30205955C7C3CE7508B17BA4EF0AEB598731094D05CF733E81758D1C0638F`. Prior reports/inventory preserved by exact-hash checked moves. Final Core741/35AE105E and Shared55/920D7DBF source/consumer identities match; provider15/unit34/native25 PDB source documents verified. Dynamo producer and both consumer copies SHA256 `2329BE3C15BC552F95AD062AED1FD6A69FFF1C7C7F94CAFD7DAD45607022F20D`. No pending native journals; Windows18000/18001 listeners absent after runner teardown. Same retained DynamoDB Local/image/data reused; no hosted AWS request, dependency restore, download or new environment. Hosted IAM/STS/TLS, native capacity/pricing and full provider-specific V2 remain open: these results are not all-AWS certification.
+
 ## S3 listing completion metadata — 24 October
 
 The shared S3 transport previously interpreted an omitted `IsTruncated` as the SDK's default `false`, publishing an empty or partial listing as complete. Six signed-HTTP/official-SDK XML controls reproduced **4 failures and 2 valid controls** (first/second page, empty/nonempty results). The common transport now requires native presence before interpreting the flag; explicit `false` remains valid, and no retry or extra request guesses missing evidence.

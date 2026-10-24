@@ -162,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private async Task EnsureTableAsync(string tableName, List<KeySchemaElement> keys, List<AttributeDefinition> attrs, List<GlobalSecondaryIndex>? gsis = null)
         {
             bool exists;
-            try { await _client.DescribeTableAsync(tableName); exists=true; } catch (ResourceNotFoundException) { exists=false; }
+            try { RequireTableObservation(await _client.DescribeTableAsync(tableName)); exists=true; } catch (ResourceNotFoundException) { exists=false; }
             if (!exists)
             {
             var req = new CreateTableRequest
@@ -182,15 +182,21 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 throw new System.IO.InvalidDataException($"DynamoDB table {tableName} requires the canonical string id partition key without a sort key.");
         }
 
+        private static TableDescription RequireTableObservation(DescribeTableResponse? response)
+        {
+            if(response?.HttpStatusCode!=System.Net.HttpStatusCode.OK||response.Table==null)
+                throw new System.IO.InvalidDataException("DynamoDB table description lacks a completed native acknowledgement.");
+            return response.Table;
+        }
+
         private static async Task<TableDescription> WaitForTableActiveAsync(Func<Task<DescribeTableResponse>> describe, Func<Task> delay)
         {
             for (int i = 0; i < 30; i++)
             {
-                var desc = await describe();
-                if (desc?.Table == null) throw new InvalidOperationException("DynamoDB table description is missing.");
-                if (desc.Table.TableStatus == TableStatus.ACTIVE) return desc.Table;
-                if (desc.Table.TableStatus != TableStatus.CREATING && desc.Table.TableStatus != TableStatus.UPDATING)
-                    throw new InvalidOperationException($"DynamoDB table is not available: {desc.Table.TableStatus}.");
+                var table = RequireTableObservation(await describe());
+                if (table.TableStatus == TableStatus.ACTIVE) return table;
+                if (table.TableStatus != TableStatus.CREATING && table.TableStatus != TableStatus.UPDATING)
+                    throw new InvalidOperationException($"DynamoDB table is not available: {table.TableStatus}.");
                 if(i<29) await delay();
             }
             throw new TimeoutException("DynamoDB table did not become ACTIVE within the readiness observation window.");
