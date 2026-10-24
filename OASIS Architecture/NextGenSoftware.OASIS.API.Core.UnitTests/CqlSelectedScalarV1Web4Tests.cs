@@ -42,6 +42,7 @@ public partial class CqlV1Web4Tests
 
     [Theory]
     [InlineData("Min", false)] [InlineData("Max", false)]
+    [InlineData("Sum", false)] [InlineData("Average", false)]
     [InlineData("Count", true)] [InlineData("LongCount", true)] [InlineData("Any", true)]
     public async Task ScalarSelectionPresenceMatchesItsOperationBeforeDispatch(string operation, bool selection)
     {
