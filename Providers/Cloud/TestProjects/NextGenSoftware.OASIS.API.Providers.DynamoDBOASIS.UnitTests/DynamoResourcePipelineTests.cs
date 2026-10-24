@@ -51,7 +51,8 @@ public class DynamoResourcePipelineTests
             _ => ",\"ConsumedCapacity\":{\"TableName\":\"OasisHolons\",\"ReadCapacityUnits\":0.5}" };
         using var service = new Service("{\"Item\":{}" + capacity + "}"); var (provider, client) = Create(service); using var owned = client;
         var rows = new List<NativeResourceUsageObservation>();
-        var result = await provider.ObserveNativeResourceUsageAsync("attempt-original", () => provider.LoadHolonAsync(Guid.NewGuid()),
+        var capability = (NextGenSoftware.OASIS.API.Core.Interfaces.INativeResourceUsageProvider)provider;
+        var result = await capability.ObserveNativeResourceUsageAsync("attempt-original", () => provider.LoadHolonAsync(Guid.NewGuid()),
             (nativeOperation, evidence) => { Assert.AreEqual("GetItem", nativeOperation); rows.AddRange(evidence); return Task.CompletedTask; });
         Assert.IsTrue(result.IsError, "Fixture deliberately returns no holon; native read still consumed resources.");
         Assert.AreEqual(1, service.Calls); var row = rows.Single();
