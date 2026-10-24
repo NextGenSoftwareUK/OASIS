@@ -1,5 +1,7 @@
 # HyperDrive V2 current release gates
 
+S3 key-admission follow-up24October: existing shared Key owner now rejects full prefixed names above1024UTF8bytes before SDK GET/PUT/DELETE dispatch, preserving valid1024byte ASCII/Unicode names. Genuine12red controls then64selected S3 SDK-boundary/protocol regressionsPASS0skip; producer4source-doc/current-copy hash43E0224C, Core740/ABD06B39 Shared55/1A9956E5 matched. This closes one local admission gap only, not hosted/native cloud/IAM/billing/durability/fullV2. Resource/evidence hashes in inventory; no new runtime/download or service.
+
 ## Ordinary Dynamo/AWS save admission — 24 October
 
 Existing shared lower-bound size guard now also covers ordinary proposals before native reads and history-expanded records before PUT. Two reproduced controlled failures fixed; matched533unit and187real-SDK/local-native PASS0skip. Native tests explicitly require zero writes on known oversized proposals and unchanged caller/stored history, not a fabricated native exception. Original178pass/9fail run retained; separate read-only original verification then exact-hash conditional cleanup resolved only its synthetic fixtures. Core740/ABD06B39 Shared55/1A9956E5 current-source/copies verified; retained runtime exited, ports absent, pending0. Inventory contains immutable evidence hashes and resolved journals. This is a local scoped gate, not hosted AWS/S3 acceptance, an exact fee estimator or full HyperDrive V2 certification.

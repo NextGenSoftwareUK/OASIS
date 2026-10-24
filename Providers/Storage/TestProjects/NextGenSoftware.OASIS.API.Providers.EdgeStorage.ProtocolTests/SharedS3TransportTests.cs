@@ -19,6 +19,22 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
 [TestClass]
 public class SharedS3TransportTests
 {
+    [DataTestMethod]
+    [DataRow(0,false)][DataRow(1,false)][DataRow(2,false)][DataRow(3,false)][DataRow(4,false)][DataRow(5,false)]
+    [DataRow(0,true)][DataRow(1,true)][DataRow(2,true)][DataRow(3,true)][DataRow(4,true)][DataRow(5,true)]
+    public async Task Key_admission_counts_full_utf8_bytes_and_preserves_exact_boundary(int operation,bool unicode)
+    {
+        using var client=new Client();var backend=new Backend(client,"bucket","scope/");
+        var valid=unicode?new string('é',509):new string('x',1018);
+        Assert.AreEqual(1024,Encoding.UTF8.GetByteCount("scope/"+valid));
+        Task Invoke(string key)=>operation switch {
+            0=>backend.GetAsync(key),1=>backend.ReadObservedAsync(key),2=>backend.PutAsync(key,"value"),
+            3=>backend.CreateOnlyAsync(key,"value"),4=>backend.ReplaceUnchangedAsync(key,"value","revision"),
+            _=>backend.DeleteUnchangedAsync(key,"revision")};
+        await Assert.ThrowsExceptionAsync<ArgumentException>(()=>Invoke(valid+"x"));
+        Assert.AreEqual(0,client.Calls,"Invalid key must be rejected before SDK dispatch.");
+        await Invoke(valid);Assert.AreEqual(1,client.Calls);Assert.AreEqual("scope/"+valid,client.Key);
+    }
     private sealed class Client : AmazonS3Client
     {
         public Client(int retry = 0) : base(new AnonymousAWSCredentials(), new AmazonS3Config { RegionEndpoint = Amazon.RegionEndpoint.USEast1, MaxErrorRetry = retry }) { }
