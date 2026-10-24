@@ -1,6 +1,10 @@
 # NEAR public conditional record saves
 
-## Latest native checkpoint — 2026-10-21
+## Current export checkpoint — 23 October 2026, native interruption still OPEN
+
+Independent identity/export versions and owned-export success counters repaired;20new controls/full240 unit PASS0skip. Four owner-filter cases traverse encrypted C# storage entries with controlled Node IPC, NOT native SDK. Prepared native version/export assertions compile but have not run. Latest native19 report is interrupted15pass/4fail/SHA AA17152..., not the older19pass report below. Read-only retained inspection confirms unchanged1156rows/inventory05707.../contract638719..., node stopped/config5; it does not settle individual uncertain ordinary writes. Preserve originals and reconcile before another full native mutation suite. No reset/replay/download/new environment/deployment or whole-provider claim. Details: NEAR_IDENTITY_LOOKUP_VERIFICATION.md and ENVIRONMENT_INVENTORY.md.
+
+## Historical successful native checkpoint — 2026-10-21 (before interrupted run)
 
 Full19/19 native pass7m26, zero skipped, actual81763terminal0; current report SHA2568A0D29486FC40E8B060340B3FCD468B73FDAFF5AD7BD6007B22A84F5E4923D0E. Strengthened token/NFT cases now prove real mnemonic-owned token burn, NFT return and NFT burn, alongside existing storage/graph/history/checked-write/status cases. Matched full210controls and providerBB9B4A8D/Core97A343EF/Shared5E6F3626; details/limits/fees and original report archival in NEAR_SIGNER_AND_RECEIPT_AUDIT.md. Same retained chain/runtime/keys, no reset/install/download. Node/ports/pending absent; retention restored5 and exact config hash checked. Broader relevant-interface/hosted/recovery/fee/V2 gates remain open; no deployment or whole-provider100% claim. Historical checkpoints below retain their own measured cohorts.
 

@@ -512,7 +512,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual(12L, (await _provider.LoadAvatarDetailByUsernameAsync(oldUsername, 1)).Result.Karma);
             Assert.AreEqual(12L, _provider.LoadAvatarDetailByEmail(oldEmail, 1).Result.Karma);
 
-            var root = new Holon { Id = Guid.NewGuid(), Name = $"root-v1-{marker}" };
+            var root = new Holon { Id = Guid.NewGuid(), Name = $"root-v1-{marker}", CreatedByAvatarId = avatar.Id };
             var child = new Holon { Id = Guid.NewGuid(), Name = $"child-v1-{marker}" };
             root.Children.Add(child);
             Assert.IsFalse((await _provider.SaveHolonAsync(root, saveChildren:true)).IsError);
@@ -525,6 +525,22 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.AreEqual($"root-v1-{marker}", historical.Result.Name);
             Assert.AreEqual(child.Name, historical.Result.Children.Single().Name);
             Assert.AreEqual(2, historical.Result.Children.Single().Version);
+            // Identity is current avatar2; the requested export roots are holon1.
+            // Explicit old-identity profile history above must remain supported.
+            foreach (var exported in new[] {
+                await _provider.ExportAllDataForAvatarByEmailAsync(avatar.Email, 1),
+                _provider.ExportAllDataForAvatarByEmail(avatar.Email, 1),
+                await _provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username, 1),
+                _provider.ExportAllDataForAvatarByUsername(avatar.Username, 1) })
+            {
+                Assert.IsFalse(exported.IsError, exported.Message); Assert.IsTrue(exported.IsLoaded);
+                Assert.AreEqual(1, exported.LoadedCount);
+                var exportedRoot = exported.Result.Single();
+                Assert.AreEqual(root.Id, exportedRoot.Id); Assert.AreEqual(1, exportedRoot.Version);
+                Assert.AreEqual(avatar.Id, exportedRoot.CreatedByAvatarId);
+            }
+            Assert.IsTrue((await _provider.ExportAllDataForAvatarByEmailAsync(oldEmail, 1)).IsError);
+            Assert.IsTrue(_provider.ExportAllDataForAvatarByUsername(oldUsername, 1).IsError);
             Assert.AreEqual($"root-v1-{marker}", _provider.LoadHolonByProviderKey(root.Id.ToString("D"), 1).Result.Name);
             Assert.AreEqual(1, (await _provider.LoadAllHolonsAsync(HolonType.All, version:1)).Result.Single(item=>item.Id==root.Id).Version);
             IOASISStorageProvider storage=_provider;
