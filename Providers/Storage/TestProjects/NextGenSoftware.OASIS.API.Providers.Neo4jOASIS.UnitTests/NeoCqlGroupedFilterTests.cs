@@ -33,7 +33,9 @@ public sealed class NeoCqlGroupedFilterTests
     public void ProfileKeepsNormalizedAverageAndUnenrolledDateFilteringExplicit()
     {
         var average = CosmicQuery<Holon>.Create().GroupBy(h => h.Name).Select(g => g.Average(h => h.Version)).Where(mean => mean > 1m).Result;
-        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Neo4jOASIS.CqlGroupedCapabilities.Admit(average).ErrorCode);
+        var capability = Neo4jOASIS.CqlGroupedCapabilities;
+        Assert.IsFalse(capability.Admit(average).IsError);
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", new CosmicGroupedCapabilities(capability.KeyCapabilities, capability.AggregateCapabilities).Admit(average).ErrorCode);
         var utc = new System.DateTime(2026, 10, 24, 0, 0, 0, System.DateTimeKind.Utc);
         var date = CosmicQuery<Holon>.Create().GroupBy(h => CosmicQueryMetadata.Value<System.DateTime>(h, "date")).Select(g => g.Key).Where(value => value == utc).Result;
         Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Neo4jOASIS.CqlGroupedCapabilities.Admit(date).ErrorCode);
