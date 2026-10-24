@@ -22,16 +22,7 @@ public partial class HolonRepository
 
     private static MongoCqlExtremumValue ReadNativeCqlExtremum(BsonDocument document, Type selectedType, bool traverses)
     {
-        if (traverses)
-        {
-            if (document.ElementCount != 2 || !document.TryGetValue("error", out var error) || !error.IsInt32
-                || !document.TryGetValue("row", out var row))
-                throw new InvalidDataException("Native extremum requires its exact traversal envelope.");
-            if (error.AsInt32 == 1) throw new InvalidDataException("MongoDB scalar traversal encountered a cycle or conflicting identity.");
-            if (error.AsInt32 == 2) throw new MongoCqlLimitException();
-            if (error.AsInt32 != 0 || !row.IsBsonDocument) throw new InvalidDataException("Native extremum traversal outcome is invalid.");
-            document = row.AsBsonDocument;
-        }
+        document = UnwrapNativeSelectedScalar(document, traverses);
         if (document.ElementCount != 3 || !document.TryGetValue("invalid", out var invalid) || !(invalid.IsInt32 || invalid.IsInt64)
             || !document.TryGetValue("present", out var present) || !(present.IsInt32 || present.IsInt64)
             || !document.TryGetValue("cell", out var cell) || !cell.IsBsonDocument)
@@ -51,4 +42,19 @@ public partial class HolonRepository
         if (state.AsInt32 != 2 || value.IsBsonNull) throw new InvalidDataException("Native extremum did not select a present value.");
         return new MongoCqlExtremumValue(true, DecodeNativeProjectionCell(value, Nullable.GetUnderlyingType(selectedType) ?? selectedType));
     }
+    private static BsonDocument UnwrapNativeSelectedScalar(BsonDocument document, bool traverses)
+    {
+        if (traverses)
+        {
+            if (document.ElementCount != 2 || !document.TryGetValue("error", out var error) || !error.IsInt32
+                || !document.TryGetValue("row", out var row))
+                throw new InvalidDataException("Native extremum requires its exact traversal envelope.");
+            if (error.AsInt32 == 1) throw new InvalidDataException("MongoDB scalar traversal encountered a cycle or conflicting identity.");
+            if (error.AsInt32 == 2) throw new MongoCqlLimitException();
+            if (error.AsInt32 != 0 || !row.IsBsonDocument) throw new InvalidDataException("Native extremum traversal outcome is invalid.");
+            document = row.AsBsonDocument;
+        }
+        return document;
+    }
+
 }

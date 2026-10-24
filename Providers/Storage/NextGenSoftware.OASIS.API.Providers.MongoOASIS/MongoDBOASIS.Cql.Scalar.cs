@@ -19,7 +19,9 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
             new[]
             {
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
-                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities)
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities)
             });
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
@@ -36,6 +38,12 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
             if (!IsProviderActivated || _holonRepository is not HolonRepository repository)
                 return ScalarCqlFailure<TResult>("CQL_PROVIDER_NOT_READY", "Activate MongoDB before native scalar execution.");
             var translator = new MongoCqlTranslator();
+            if (plan.Query.Operation == CosmicScalarOperation.Sum || plan.Query.Operation == CosmicScalarOperation.Average)
+            {
+                var numeric = await repository.ExecuteNativeCqlNumericAsync(translator.CompileNumeric(plan.Query),
+                    cancellationToken).ConfigureAwait(false);
+                return CosmicNumericScalarResults.FromParts(plan.Query, numeric.High, numeric.Low, numeric.Count);
+            }
             if (plan.Query.Selector != null)
             {
                 var selected = await repository.ExecuteNativeCqlExtremumAsync(translator.CompileExtremum(plan.Query),
