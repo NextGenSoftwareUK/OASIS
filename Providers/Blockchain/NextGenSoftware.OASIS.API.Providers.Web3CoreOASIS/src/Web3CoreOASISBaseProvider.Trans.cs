@@ -67,6 +67,20 @@ public partial class Web3CoreOASISBaseProvider
             return result;
         }
 
+        // Own the admitted intent before the signing gate or native ownership reads yield.
+        // Copy only the scalar fields consumed here; never serialize signing material.
+        transaction = new SendWeb3NFTRequest
+        {
+            Amount = transaction.Amount,
+            TokenId = transaction.TokenId,
+            TokenAddress = transaction.TokenAddress,
+            FromNFTTokenAddress = transaction.FromNFTTokenAddress,
+            OwnerPrivateKey = transaction.OwnerPrivateKey,
+            FromWalletAddress = transaction.FromWalletAddress,
+            ToWalletAddress = transaction.ToWalletAddress,
+            MemoText = transaction.MemoText
+        };
+
         if (transaction.Amount != 1)
         {
             OASISErrorHandling.HandleError(
@@ -307,6 +321,18 @@ public partial class Web3CoreOASISBaseProvider
     public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        if (request != null)
+        {
+            // Validation, owner lookup, signing and receipt proof must share one intent.
+            request = new BurnWeb3NFTRequest
+            {
+                TokenId = request.TokenId,
+                NFTTokenAddress = request.NFTTokenAddress,
+                OwnerPrivateKey = request.OwnerPrivateKey,
+                OwnerPublicKey = request.OwnerPublicKey,
+                OwnerSeedPhrase = request.OwnerSeedPhrase
+            };
+        }
         if (request == null || !Web3NftTokenId.TryParse(request.TokenId, out var tokenId)
             || !AddressUtil.Current.IsValidEthereumAddressHexFormat(request.NFTTokenAddress)
             || string.Equals(request.NFTTokenAddress, "0x0000000000000000000000000000000000000000", StringComparison.OrdinalIgnoreCase)
