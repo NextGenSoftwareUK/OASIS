@@ -67,7 +67,7 @@ public partial class Neo4jOASIS
                 var stored=await ReadStoredVersionAsync(session,kind,current,version,readArchive);
                 if(stored!=null)selected.Add(stored);
             }
-            result.Result=selected;result.IsLoaded=true;
+            result.Result=selected;result.IsLoaded=true;result.LoadedCount=selected.Count;
         }
         catch(Exception cause){result.IsError=true;result.Exception=cause;result.Message=cause.Message;
             if(cause is StorageIdentityAmbiguousException)result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
@@ -111,7 +111,7 @@ public partial class Neo4jOASIS
                 _=>false}).ToList();
             if(matches.Count==0)return new OASISResult<IAvatar>{IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Requested Neo4j avatar version was not found."};
             if(matches.Count!=1)throw new StorageIdentityAmbiguousException();
-            result.Result=matches[0];result.IsLoaded=true;
+            result.Result=matches[0];result.IsLoaded=true;result.LoadedCount=1;
         }
         catch(Exception cause){result.IsError=true;result.Exception=cause;result.Message=cause.Message;
             if(cause is StorageIdentityAmbiguousException)result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;}

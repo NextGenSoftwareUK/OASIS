@@ -29,7 +29,7 @@ public partial class Neo4jOASIS
                 foreach(var root in selected)
                     await HydrateNativeChildrenAsync(session,(Holon)root,recursive,maximumDepth,currentDepth,new HashSet<Guid>{root.Id},continueOnError,failures);
             }
-            response.Result=selected;response.IsLoaded=true;
+            response.Result=selected;response.IsLoaded=true;response.LoadedCount=selected.Count;
         }
         catch(Exception cause){response.IsError=true;response.Exception=cause;response.Message=cause.Message;}
         return MarkNativePartialRead(response,failures);

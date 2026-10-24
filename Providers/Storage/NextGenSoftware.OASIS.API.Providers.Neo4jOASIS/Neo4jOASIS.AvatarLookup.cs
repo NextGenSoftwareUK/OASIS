@@ -30,7 +30,7 @@ public partial class Neo4jOASIS
             var rows=await (await session.RunAsync(query,new {value})).ToListAsync();
             if(rows.Count==0) return new OASISResult<IAvatar> {IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Avatar not found in Neo4j."};
             if(rows.Count!=1) throw new StorageIdentityAmbiguousException();
-            result.Result=ReadAvatarNode(rows[0]["a"].As<Neo4j.Driver.INode>());result.IsLoaded=true;
+            result.Result=ReadAvatarNode(rows[0]["a"].As<Neo4j.Driver.INode>());result.IsLoaded=true;result.LoadedCount=1;
         }
         catch(Exception cause)
         {
