@@ -12,4 +12,6 @@ const metadata=JSON.parse(args.metadata_json);
 if(metadata.Title!=='original title'||metadata.Description!=='original description'||metadata.MetaData.zone!=='north'
   ||metadata.Tags.length!==1||metadata.Tags[0]!=='original')throw new Error('Mint metadata differs from admitted intent');
 if(input.accountId!=='service.near'||input.privateKey!=='controlled-service-key')throw new Error('Configured mint authority changed');
-process.stdout.write(JSON.stringify({ok:true,result:{transactionHash:'controlled-original-mint-transaction'}}));
+const hash='controlled-original-mint-transaction';
+process.stdout.write(JSON.stringify({ok:true,result:{transactionHash:hash,outcome:{transaction_outcome:{id:hash},
+  transaction:{signer_id:input.accountId,receiver_id:input.targetContractId},final_execution_status:'FINAL',status:{SuccessValue:''}}}}));

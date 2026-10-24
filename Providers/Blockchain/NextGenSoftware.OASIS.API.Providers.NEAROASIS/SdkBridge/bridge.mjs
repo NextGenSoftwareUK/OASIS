@@ -82,7 +82,7 @@ async function execute(input) {
         actions: [actions.transfer(BigInt(input.amountYocto))],
         waitUntil: "FINAL",
       });
-      return { transactionHash: outcome.transaction_outcome.id };
+      return { transactionHash: outcome.transaction_outcome.id, outcome };
     }
     case "transactionStatus": {
       if (!input.transactionHash) throw new Error("transactionHash is required");
