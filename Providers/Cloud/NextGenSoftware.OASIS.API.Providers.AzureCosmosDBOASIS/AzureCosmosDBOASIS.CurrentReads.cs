@@ -121,9 +121,10 @@ public partial class AzureCosmosDBOASIS
         try
         {
             if(owner==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.",nameof(owner));
-            var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version).ConfigureAwait(false);
+            var loaded=version==-1?await ExportAllAsync(version):await ReadCurrentListAsync<IHolon>(()=>holonRepository,version).ConfigureAwait(false);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
+            if(version==-1){result.Result=records.Where(row=>row.CreatedByAvatarId==owner||row.ParentHolonId==owner).ToArray();result.LoadedCount=result.Result.Count();result.IsLoaded=true;return result;}
             var pool=await ReadGraphPoolAsync(loaded,version,true,true).ConfigureAwait(false);
             if(pool.IsError)return pool;
             var project=HolonGraphProjection.Create(pool.Result,true,true,0,0,true,
@@ -141,7 +142,7 @@ public partial class AzureCosmosDBOASIS
         var result=new OASISResult<IEnumerable<IHolon>>();
         try
         {
-            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
             // Identity history is independent of exported holon root versions.
             var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,0).ConfigureAwait(false);
             if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
@@ -248,12 +249,12 @@ public partial class AzureCosmosDBOASIS
         OASISErrorHandling.HandleError(ref result,cause.Message,cause);return Task.FromResult(result);
     }
 
-    private async Task<OASISResult<IEnumerable<T>>> ReadCurrentListAsync<T>(Func<IRepository<T>> repository,int version) where T:IHolonBase
+    private async Task<OASISResult<IEnumerable<T>>> ReadCurrentListAsync<T>(Func<IRepository<T>> repository,int version,bool exportAllVersions=false) where T:IHolonBase
     {
         var result=new OASISResult<IEnumerable<T>>();
         try
         {
-            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+            if(version<0&&!(exportAllVersions&&version==-1)) throw new ArgumentOutOfRangeException(nameof(version));
             if(!IsProviderActivated)
             {
                 var activation=await ActivateProviderAsync();
