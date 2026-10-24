@@ -20,6 +20,8 @@ public partial class Neo4jOASIS
         try
         {
             StoredRecordSearch.Validate(search,version,maximumDepth,supportsHistory:true);
+            search=OasisJson.Project<SearchParams>(search);
+            StoredRecordSearch.Validate(search,version,maximumDepth,supportsHistory:true);
             var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
             var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
             var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
@@ -41,9 +43,9 @@ public partial class Neo4jOASIS
             found.SearchResultAvatars.AddRange(avatars.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,true,search,holons)));
             if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,false,search,holons)));
             found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
-            result.Result=found;result.IsLoaded=true;
+            result.Result=found;result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
         }
-        catch(Exception cause) {result.Result=null;result.IsLoaded=false;OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        catch(Exception cause) {result.Result=null;result.IsLoaded=false;result.LoadedCount=0;OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
     }
 }
