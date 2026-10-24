@@ -310,7 +310,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 var project = HolonGraphProjection.Create(records, loadChildren, recursive, maxDepth, 0, childrenFromProvider,
                     source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
                 result.Result = project(root);
-                result.IsLoaded = true;
+                MarkIpfsLoaded(result);
             }
             catch (Exception cause)
             {
@@ -351,7 +351,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                     current=>ValidateCanonicalSelector(current,kind,predicate));
                 if(result.Result==null) return new OASISResult<T> {IsError=true,ErrorCount=1,
                     ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="The requested IPFS entity version was not found."};
-                result.IsLoaded=true;
+                MarkIpfsLoaded(result);
             }
             catch(Exception cause)
             {
@@ -367,13 +367,13 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             _idLookup=await LoadLookupToJson();
             var selected=FindIndexEntry("holon",predicate);
             var record=await ReadPrivateRecordAsync<Holon>(selected.Key,"holon",selected.Value.Id);
-            return new OASISResult<IHolon>(record) {IsLoaded=true};
+            var result=new OASISResult<IHolon>(record);MarkIpfsLoaded(result);return result;
         }
 
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentTemplateAsync(Func<HolonResume,bool> predicate,int version=0)
         {
             var records=await ReadIndexedCollectionAsync<Holon>("holon",predicate,version);
-            return new OASISResult<IEnumerable<IHolon>>(records) {IsLoaded=true};
+            var result=new OASISResult<IEnumerable<IHolon>>(records);MarkIpfsLoaded(result,records.Count);return result;
         }
         /***********/
 
@@ -390,9 +390,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             var project = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(
                 graphRecords, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider,
                 source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
-            return new OASISResult<IEnumerable<IHolon>>(records
+            var result=new OASISResult<IEnumerable<IHolon>>(records
                 .Where(row => row.ParentHolonId == id && (type == HolonType.All || row.HolonType == type))
-                .Select(project).ToList()) { IsLoaded = true };
+                .Select(project).ToList());MarkIpfsLoaded(result,result.Result.Count());return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -478,7 +478,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 var project=HolonGraphProjection.Create(graphRecords,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,
                     source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
                 result.Result=records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();
-                result.IsLoaded=true;
+                MarkIpfsLoaded(result,result.Result.Count());
             }
             catch(Exception cause)
             {
