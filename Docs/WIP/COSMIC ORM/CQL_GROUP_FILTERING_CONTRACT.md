@@ -1,6 +1,6 @@
 # CQL post-group filtering contract
 
-24 October2026. Shared capture, capability admission and proof validation are verified. SQLite, MongoDB and Neo4j native execution are enrolled for their domains recorded below; HTTP remains pending.
+24 October2026. Shared capture, capability admission and proof validation are verified. SQLite, MongoDB and Neo4j native execution are enrolled for their domains recorded below; bounded HTTP filtering and the54 SDK/54 HTTP live demo are now verified.
 
 ## Captured intent
 
@@ -16,7 +16,7 @@ Filtering or reordering after grouped Skip/Take returns CQL_COMPOSITION_UNSUPPOR
 
 Profiles without FilteringCapabilities reject result predicates with CQL_CAPABILITY_UNSUPPORTED. All three providers declare explicit native permissions for their verified domains; unsupported Average/date domains remain denied. New profiles must explicitly declare key domains, aggregate operation/result domains, exact comparisons, string operations, membership and mixed-numeric permissions. Planning and actual-adapter readmission both check them; source/ordering support cannot grant filtering. SQLite enrollment and current limitations are recorded below. Manual Materialize performs pure all-buffer filter/page proof validation, rejecting incorrect native markers; it does not dispatch providers or grant capabilities.
 
-Complete-proof native filtering on all three stores is verified below. Next implement HTTP result filters and demos; unsupported scalar domains remain separate gates. Nonmatching groups must still undergo domain/arithmetic/work/payload validation. Result paging must count matching groups while Core independently checks native filter/page agreement. Excluded groups cannot hide final overflow, malformed data or protected traversal failures. HTTP selected-result filters and three-provider SDK/HTTP demos follow native verification. Exact Average comparison needs normalized Decimal semantics and must not substitute unrounded ratios or binary64.
+Complete-proof native filtering on all three stores is verified below. HTTP result filters and demos are verified below; unsupported scalar domains remain separate gates. Nonmatching groups must still undergo domain/arithmetic/work/payload validation. Result paging must count matching groups while Core independently checks native filter/page agreement. Excluded groups cannot hide final overflow, malformed data or protected traversal failures. The bounded HTTP grammar is documented in CQL_GROUPING_HTTP_CONTRACT.md. Exact Average comparison needs normalized Decimal semantics and must not substitute unrounded ratios or binary64.
 
 ## Evidence
 
@@ -73,3 +73,6 @@ Verification: **352 Neo4j unit tests and164 full native CQL tests passed, zero s
 Evidence: TestResults/Neo4jCurrent/group-filter-unit-current.trx, neo4j-cql-native-current.trx and group-filter-artifacts.json; TestResults/CosmicCqlDemo/neo-group-filter-{unit,native}.log. Actual84093terminal0. Fresh producer/native copies match Core4C58BC9D8A6CD0D90F2526E0549B60671E34B68C04909D11B3755D7BB67B36BD and NeoD93C89D04396A6AD22937F4B52CC01935A33A7D3259B836475513976D20C18F7; SharedA142C8A4 verified by runner. This Core60285b30 cohort includes the coordinated account-version fix and differs from earlier native evidence. Owned fixture teardown acknowledged, cql-graph-fixture.json absent and exact retained container/image exited;17687 listener absent. Inclusive runner counts advance to164/227/229/228; only164fullCQL mode ran here, not broader modes.
 
 Grouped filtering is verified on SQLite, MongoDB and Neo4j for their explicitly enrolled domains. HTTP result filters/demos, normalized Average semantics and broader unchecked CQL/ORM gates remain open.
+
+
+Grouped-filter live checkpoint —24 October2026: actual74024terminal0, native demo1PASS0skip plus replica-init1PASS;54 SDK queries/54 HTTP examples across MongoDB/SQLite/Neo4j,234 settled operations/229 provider attempts. Example18 verifies exact Int64 selected-Sum filtering before matching-group paging; browser syntax and generated Swagger filter example pass. Producer/native Core4C58BC9D, Shared8F33C322, Mongo9DC9681C, SQLiteEA7573D5, Neo609661BC match; exact paths/bytes/SHA256 retained TestResults/CosmicCqlDemo/group-filter-demo-artifacts.json. Fresh report/transcript/log: v1-demo-result.json, v1-walkthrough.txt, group-filter-demo-native.log. This is scoped demo acceptance, not a new full native regression or full roadmap certification. Remaining Average normalization/order/filter, scalar and broader roadmap gates remain open.

@@ -351,6 +351,36 @@ public static class V1Walkthrough
                 resultSkip = 1,
                 resultTake = 1
             }, grouped: true, orderedGroups: true, pagedGroups: true);
+
+            // EXAMPLE 18 — Filter selected aggregate aliases before paging.
+            // Int64 literals are JSON strings here, preserving every digit in
+            // browser clients. Only matching groups consume resultSkip.
+            await ShowAsync("18. Filter grouped totals / exact Int64 threshold", new
+            {
+                provider,
+                filters = scalarFilters,
+                maximumGroups = 10,
+
+                keys = new[] { new { alias = "name", field = "Name" } },
+                columns = new object[]
+                {
+                    new { alias = "Name", keyAlias = "name" },
+                    new { alias = "Total", operation = "Sum",
+                        selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" } }
+                },
+
+                resultFilters = new[]
+                {
+                    new { alias = "Total", @operator = "GreaterThan", value = "-9007199254740991" }
+                },
+                resultOrder = new[]
+                {
+                    new { alias = "Total", descending = true },
+                    new { alias = "Name", descending = false }
+                },
+                resultSkip = 1,
+                resultTake = 1
+            }, grouped: true, orderedGroups: true, pagedGroups: true);
         }
 
         return completedRequests;

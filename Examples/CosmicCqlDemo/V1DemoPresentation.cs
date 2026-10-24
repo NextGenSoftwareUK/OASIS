@@ -73,7 +73,7 @@ public static class V1DemoPresentation
       <label>Native provider<br><select id="provider"><option>MongoDBOASIS</option><option>SQLLiteDBOASIS</option><option>Neo4jOASIS</option><option value="">Current default (SQLite)</option></select></label>
       <label>Authenticated user<br><select id="actor"><option>Alice</option><option>Bob</option><option>Visitor</option><option>Anonymous</option></select></label>
       <label>Walkthrough<br><select id="example">
-        <option value="min">Min / exact selected value</option><option value="max">Max / protected reduction</option><option value="sum">Sum / exact signed total</option><option value="average">Average / Decimal fraction</option><option value="groupedPage">GroupBy / independent result page</option><option value="groupedOrder">GroupBy / ordered exact totals</option><option value="grouped">GroupBy / exact multiple aggregates</option><option value="projection">Select / detached typed columns</option><option value="longCount">LongCount / complete visible input</option><option value="count">Count / explicit window</option><option value="any">Any / private root</option>
+        <option value="min">Min / exact selected value</option><option value="max">Max / protected reduction</option><option value="sum">Sum / exact signed total</option><option value="average">Average / Decimal fraction</option><option value="groupedFilter">GroupBy / filter exact totals</option><option value="groupedPage">GroupBy / independent result page</option><option value="groupedOrder">GroupBy / ordered exact totals</option><option value="grouped">GroupBy / exact multiple aggregates</option><option value="projection">Select / detached typed columns</option><option value="longCount">LongCount / complete visible input</option><option value="count">Count / explicit window</option><option value="any">Any / private root</option>
         <option value="page">Visibility before paging</option><option value="nested">Nested metadata + protected OR</option>
         <option value="strings">Ordinal prefix / suffix</option><option value="null">Explicit null / existence</option>
         <option value="children">Visible child existence</option><option value="descendants">Bounded descendants</option><option value="graph">Access-bound child graph</option><option value="precision">Exact Int64 beyond 2^53</option><option value="guid">Typed GUID metadata</option>
@@ -107,6 +107,7 @@ const notes = {
   max: 'Native Max uses the same typed selector and protected source. Choose a provider without changing query semantics; no client entity scan is used.',
   longCount: 'Native LongCount over the complete visible source: Alice 3, Bob 3, Visitor 1. Omitted take has no row-page cap. Int64 values are always decimal strings; keep them as text or BigInt.',
   count: 'Count after Skip 1 / Take 1: Alice and Bob receive Int32 1, Visitor 0. Source windows apply before the terminal.',
+  groupedFilter: 'Filter selected aggregate aliases before ordering and paging. Int64 result-filter literals use strings to preserve precision; only matching groups consume resultSkip.',
   groupedPage: 'Page ordered aggregate results with resultSkip/resultTake. Complete off-page proof remains validated; maximumGroups bounds all reduced proof, not just the published page.',
   groupedOrder: 'Group visible rows by name, then order selected exact sums descending. resultOrder names output aliases; source ordering remains independent. Adjacent Int64 totals retain precision.',
   grouped: 'Group the first two ordered visible rows by stock. Counts, exact Int64 Sum and Decimal Average reduce natively. Output group limits do not truncate input.',
@@ -198,7 +199,7 @@ function preset() {
       { alias: 'Mean', operation: 'Average', selection: { metadataPath: ['extremum'], valueType: 'Int64' } }
     ];
   }
-  if (name === 'groupedOrder' || name === 'groupedPage') {
+  if (name === 'groupedOrder' || name === 'groupedPage' || name === 'groupedFilter') {
     queryRoute += '/grouped';
     body.maximumGroups = 10;
     body.keys = [{ alias: 'name', field: 'Name' }];
@@ -207,7 +208,10 @@ function preset() {
       { alias: 'Total', operation: 'Sum', selection: { metadataPath: ['extremum'], valueType: 'Int64' } }
     ];
     body.resultOrder = [{ alias: 'Total', descending: true }, { alias: 'Name' }];
-    if (name === 'groupedPage') { body.resultSkip = 1; body.resultTake = 1; }
+    if (name === 'groupedPage' || name === 'groupedFilter') { body.resultSkip = 1; body.resultTake = 1; }
+    if (name === 'groupedFilter') {
+      body.resultFilters = [{ alias: 'Total', operator: 'GreaterThan', value: '-9007199254740991' }];
+    }
   }
   el('route').textContent = queryRoute;
   if (!body.provider) delete body.provider;

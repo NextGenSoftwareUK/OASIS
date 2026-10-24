@@ -44,6 +44,17 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                 ["maximumGroups"] = new OpenApiInteger(10),
                 ["resultSkip"] = new OpenApiInteger(0),
                 ["resultTake"] = new OpenApiInteger(1),
+                // Filter the selected Sum, preserving exact Int64 digits as text.
+                // Filtering precedes the independent result page.
+                ["resultFilters"] = new OpenApiArray
+                {
+                    new OpenApiObject
+                    {
+                        ["alias"] = new OpenApiString("Total"),
+                        ["operator"] = new OpenApiString("GreaterThan"),
+                        ["value"] = new OpenApiString("-18014398509481982")
+                    }
+                },
                 ["resultOrder"] = new OpenApiArray
                 {
                     new OpenApiObject { ["alias"] = new OpenApiString("Total"), ["descending"] = new OpenApiBoolean(true) },

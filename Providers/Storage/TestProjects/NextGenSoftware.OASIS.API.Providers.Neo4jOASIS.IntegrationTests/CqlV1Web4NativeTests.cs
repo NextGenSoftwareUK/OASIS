@@ -524,6 +524,9 @@ public sealed partial class CqlV1Web4NativeTests
                             Assert.AreEqual("Total", groupedExample.GetProperty("resultOrder")[0].GetProperty("alias").GetString());
                             Assert.IsTrue(groupedExample.GetProperty("resultOrder")[0].GetProperty("descending").GetBoolean());
                             Assert.AreEqual(1, groupedExample.GetProperty("resultTake").GetInt32());
+                            Assert.AreEqual("Total", groupedExample.GetProperty("resultFilters")[0].GetProperty("alias").GetString());
+                            Assert.AreEqual("GreaterThan", groupedExample.GetProperty("resultFilters")[0].GetProperty("operator").GetString());
+                            Assert.AreEqual("-18014398509481982", groupedExample.GetProperty("resultFilters")[0].GetProperty("value").GetString());
                         }
 
                         // These examples are the same readable C# client code developers
