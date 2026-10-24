@@ -59,7 +59,7 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
         var physical = Key(key); cancellationToken.ThrowIfCancellationRequested();
         try
         {
-            using var response = await _client.GetObjectAsync(new GetObjectRequest { BucketName = _bucket, Key = physical }, cancellationToken);
+            using var response = await _client.GetObjectAsync(new GetObjectRequest { BucketName = _bucket, Key = physical, ChecksumMode = ChecksumMode.ENABLED }, cancellationToken);
             Complete(response.HttpStatusCode, HttpStatusCode.OK, "GET");
             if (!string.IsNullOrEmpty(response.ContentRange) || string.IsNullOrWhiteSpace(response.ETag))
                 throw new InvalidDataException("S3 GET must return a whole object and its native ETag.");
