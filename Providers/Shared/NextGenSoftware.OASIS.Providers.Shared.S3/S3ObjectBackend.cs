@@ -1,5 +1,6 @@
 using System.Net;
 using System.Security.Cryptography;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -17,6 +18,13 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     private static readonly UTF8Encoding Utf8 = new(false, true);
     private readonly IAmazonS3 _client;
     private readonly string _bucket, _prefix;
+
+    // AWSSDK.S3 3.7.502 keeps service presence separately from its public bool.
+    // Core's IsPropertySet explicitly excludes S3. Bind to the SDK's own exact
+    // presence method, not an inferred default or a second XML parser. This
+    // version-coupled contract must fail visibly if a future SDK removes it.
+    [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "IsSetIsTruncated")]
+    private static extern bool HasNativeCompletionFlag(ListObjectsV2Response response);
 
     public S3ObjectBackend(IAmazonS3 client, string bucket, string objectPrefix = "")
     {
@@ -137,6 +145,10 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
         {
             var response = await _client.ListObjectsV2Async(request, cancellationToken);
             Complete(response.HttpStatusCode, HttpStatusCode.OK, "LIST");
+            // The v3 SDK exposes omitted nullable service fields as CLR defaults.
+            // Only an explicitly returned false establishes a complete final page.
+            if (!HasNativeCompletionFlag(response))
+                throw new InvalidDataException("S3 listing omitted its native completion flag.");
             foreach (var item in response.S3Objects ?? throw new InvalidDataException("S3 listing omitted its object collection."))
             {
                 if (string.IsNullOrWhiteSpace(item?.Key) || !item.Key.StartsWith(physical, StringComparison.Ordinal) || !seen.Add(item.Key))
