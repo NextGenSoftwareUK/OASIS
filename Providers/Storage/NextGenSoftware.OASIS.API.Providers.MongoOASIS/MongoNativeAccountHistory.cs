@@ -12,6 +12,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 // owner as holons. No JSON account archive format has previously been defined.
 internal static class MongoNativeAccountHistory
 {
+    private static BsonValue ValidatePhysicalArchive(BsonDocument document)
+    {
+        if(!document.TryGetValue("_id",out var key) || !key.IsObjectId)
+            throw new InvalidDataException("Mongo account native identity is invalid.");
+        if(document.TryGetValue(MongoNativeHolonHistory.Field,out var archive))
+        {
+            if(!archive.IsBsonDocument || !archive.AsBsonDocument.TryGetValue("records",out var records) || !records.IsBsonArray)
+                throw new InvalidDataException("Mongo account archive is malformed.");
+            foreach(var entry in records.AsBsonArray)
+                if(!entry.IsBsonDocument || !entry.AsBsonDocument.TryGetValue("bson",out var snapshot) || !snapshot.IsBsonDocument
+                    || !snapshot.AsBsonDocument.TryGetValue("_id",out var archivedKey) || archivedKey!=key)
+                    throw new InvalidDataException("Mongo account archive native identity differs from its record.");
+        }
+        return key;
+    }
+    private static void ValidateReplacement(BsonDocument replacement,BsonDocument observed)
+    {
+        if(ValidatePhysicalArchive(replacement)!=ValidatePhysicalArchive(observed))
+            throw new InvalidDataException("Mongo account replacement changed its native identity.");
+    }
     private static T Require<T>(OASISResult<T> result) where T:IHolonBase
     {
         if(result==null || result.IsError || result.Result is null)
@@ -26,11 +46,23 @@ internal static class MongoNativeAccountHistory
         =>throw new InvalidDataException("Mongo account history does not define a legacy JSON archive format.");
 
     internal static IReadOnlyList<IAvatar> ReadAvatar(BsonDocument document)
-        =>MongoNativeHolonHistory.Read(document,Avatar,UndefinedLegacy<IAvatar>);
+    {
+        ValidatePhysicalArchive(document);
+        return MongoNativeHolonHistory.Read(document,Avatar,UndefinedLegacy<IAvatar>);
+    }
     internal static IReadOnlyList<IAvatarDetail> ReadDetail(BsonDocument document)
-        =>MongoNativeHolonHistory.Read(document,Detail,UndefinedLegacy<IAvatarDetail>);
+    {
+        ValidatePhysicalArchive(document);
+        return MongoNativeHolonHistory.Read(document,Detail,UndefinedLegacy<IAvatarDetail>);
+    }
     internal static void StageAvatar(BsonDocument replacement,BsonDocument observed)
-        =>MongoNativeHolonHistory.Stage(replacement,observed,Avatar,UndefinedLegacy<IAvatar>);
+    {
+        ValidateReplacement(replacement,observed);
+        MongoNativeHolonHistory.Stage(replacement,observed,Avatar,UndefinedLegacy<IAvatar>);
+    }
     internal static void StageDetail(BsonDocument replacement,BsonDocument observed)
-        =>MongoNativeHolonHistory.Stage(replacement,observed,Detail,UndefinedLegacy<IAvatarDetail>);
+    {
+        ValidateReplacement(replacement,observed);
+        MongoNativeHolonHistory.Stage(replacement,observed,Detail,UndefinedLegacy<IAvatarDetail>);
+    }
 }

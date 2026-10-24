@@ -24,7 +24,7 @@ public sealed class MongoNativeAccountHistoryTests
     {
         var id=Guid.NewGuid();var old=Document(detail,id,1,"old-user");
         old["unknown-native-field"]=new BsonDocument("date",new BsonDateTime(DateTime.UtcNow));
-        var bytes=old.ToBson();var next=Document(detail,id,2,"new-user");Stage(detail,next,old);
+        var bytes=old.ToBson();var next=Document(detail,id,2,"new-user");next["_id"]=old["_id"];Stage(detail,next,old);
         CollectionAssert.AreEqual(bytes,old.ToBson());
         CollectionAssert.AreEqual(bytes,next[MongoNativeHolonHistory.Field]["records"][0]["bson"].AsBsonDocument.ToBson());
         if(detail){var rows=MongoNativeAccountHistory.ReadDetail(next);Assert.AreEqual("old-user",rows[0].Username);Assert.AreEqual("new-user",rows[1].Username);}
@@ -34,7 +34,7 @@ public sealed class MongoNativeAccountHistoryTests
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public void TamperedAccountArchiveRejectsRatherThanReturningCurrentOnly(bool detail)
     {
-        var id=Guid.NewGuid();var next=Document(detail,id,2,"new");Stage(detail,next,Document(detail,id,1,"old"));
+        var id=Guid.NewGuid();var next=Document(detail,id,2,"new");var old=Document(detail,id,1,"old");next["_id"]=old["_id"];Stage(detail,next,old);
         next[MongoNativeHolonHistory.Field]["records"][0]["sha256"]=new string('0',64);
         Assert.ThrowsException<System.IO.InvalidDataException>(()=>{if(detail)MongoNativeAccountHistory.ReadDetail(next);else MongoNativeAccountHistory.ReadAvatar(next);});
     }
@@ -42,8 +42,8 @@ public sealed class MongoNativeAccountHistoryTests
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public void BackwardsAccountVersionDoesNotMutateReplacement(bool detail)
     {
-        var id=Guid.NewGuid();var next=Document(detail,id,1,"new");var before=next.ToBson();
-        Assert.ThrowsException<System.IO.InvalidDataException>(()=>Stage(detail,next,Document(detail,id,2,"old")));
+        var id=Guid.NewGuid();var next=Document(detail,id,1,"new");var old=Document(detail,id,2,"old");next["_id"]=old["_id"];var before=next.ToBson();
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>Stage(detail,next,old));
         CollectionAssert.AreEqual(before,next.ToBson());
     }
 
@@ -55,6 +55,23 @@ public sealed class MongoNativeAccountHistoryTests
         if(detail)next["Karma"]=new BsonInt64(123);
         else next["Password"]="different-synthetic-password";
         Stage(detail,next,old);
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>{if(detail)MongoNativeAccountHistory.ReadDetail(next);else MongoNativeAccountHistory.ReadAvatar(next);});
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void DifferentPhysicalIdentityCannotBeStagedForSamePublicAccount(bool detail)
+    {
+        var id=Guid.NewGuid();var old=Document(detail,id,1,"old");var next=Document(detail,id,2,"new");var before=next.ToBson();
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>Stage(detail,next,old));
+        CollectionAssert.AreEqual(before,next.ToBson());
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void ChecksumValidArchiveStillCannotChangePhysicalIdentity(bool detail)
+    {
+        var id=Guid.NewGuid();var old=Document(detail,id,1,"old");var next=Document(detail,id,2,"new");next["_id"]=old["_id"];Stage(detail,next,old);
+        var snapshot=next[MongoNativeHolonHistory.Field]["records"][0]["bson"].AsBsonDocument;snapshot["_id"]=ObjectId.GenerateNewId();
+        next[MongoNativeHolonHistory.Field]["records"][0]["sha256"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(snapshot.ToBson()));
         Assert.ThrowsException<System.IO.InvalidDataException>(()=>{if(detail)MongoNativeAccountHistory.ReadDetail(next);else MongoNativeAccountHistory.ReadAvatar(next);});
     }
 }
