@@ -492,3 +492,18 @@ cohorts retain their recorded scope. Owned fixture/services cleaned up; dependen
 and Development publication remain coordinated with the provider session.
 [Exact evidence](CQL_UINT64_CONTRACT.md#live-uint64-examples2223--24-october2026).
 Next: remaining scalar domains and unchanged joins/federation/policy/certification.
+
+## Exact Decimal metadata ownership
+
+Core owns canonical Decimal order keys and exact decoding to96-bit coefficients.
+Provider admission remains authoritative: capture of Decimal grouping does not
+enroll a provider. SQLite's query-scoped read-budget owner registers the native
+`cosmic_cql_decimal_key` intrinsic and supplies original JSON numeric tokens,
+avoiding REAL extraction. Predicates, ordering, projections, extrema and grouping
+share that exact value domain. The owner enforces cancellation/deadline and the
+4,096-character token bound before publication, including values SQL filters out.
+Detached decoding uses Core's exact decoder. No storage migration or extra
+hydration path is involved. Full SQLite1,459 native cases pass; MongoDB's analogous
+native Decimal128 admission/decoder passes228 CQL cases and483 provider units.
+Neo4j/HTTP Decimal metadata enrollment remains pending.
+[Contract and cohort evidence](CQL_DECIMAL_METADATA_CONTRACT.md).

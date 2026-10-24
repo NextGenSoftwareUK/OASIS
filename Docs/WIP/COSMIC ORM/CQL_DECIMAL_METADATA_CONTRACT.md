@@ -1,8 +1,9 @@
 # CQL Decimal metadata contract
 
 24 October2026. Core codec/capture verified; SQLite implementation has passed its
-full1,459-case native gate, including24 Decimal cases. MongoDB/Neo4j metadata Decimal
-and live wire/examples remain open. This does not imply Decimal Sum/Average input
+full1,459-case native gate, including24 Decimal cases. MongoDB passes228 native
+CQL and483 unit cases, including23/5 new cases. Neo4j metadata Decimal and live
+wire/examples remain open. This does not imply Decimal Sum/Average input
 enrollment; the existing numeric aggregate input contract stays Int32/Int64.
 
 ## One exact value domain
@@ -61,14 +62,26 @@ separate Oracle replay failure remains open and is excluded from this commit.
 Resources/cleanup ownership:
 [ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Full CQL/ORM completion remains open.
 
-## MongoDB implementation under verification
+## MongoDB native implementation and verification
 
 The prepared native domain admits BSON Int32/Int64 and finite Decimal128 only
 when the value is exactly representable as .NET Decimal. It reuses bounded native
 coefficient/scale normalization and compares the result with the original packet;
 rounded or underflowed inputs cannot supply a Decimal domain proof. Detached
 projection/group/extrema decoding independently checks exact Decimal128 equality.
-Binary64 and numeric strings remain foreign domains. Fourteen native cases and
-five unit cases are added; full gates are pending. Existing unsupported Decimal
+Binary64 and numeric strings remain foreign domains. Twenty-three native cases and
+five unit cases are added; both full gates now pass. Existing unsupported Decimal
 admission controls now exercise still-unsupported Double. No storage migration
 or installation is required.
+
+First full Mongo gate64320:227PASS/1FAIL0skip of228 cases. The sole failure was
+the new null predicate fixture using an absent path instead of a present null;
+the predicate contract remains unchanged. Fixture corrected, original red report
+preserved in SubscriptionUsageCurrent/decimal-first-red.trx. Final full native
+and unit gates were then rerun: actual15936 terminal0 passes228 native/483 units,
+zero skips. Source snapshots are unchanged; CoreC65FBD5F, SharedCC928AD3 and
+Mongo2CDF3D68 match across native/unit consumers. Evidence:
+TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx,
+decimal-unit-current.trx and decimal-identities-current.json; final log:
+TestResults/CosmicCqlDemo/decimal-mongo-full.log. Owned fixture/services cleaned;
+no new runtime/install/restore. Neo4j and wire/demo Decimal enrollment remain open.
