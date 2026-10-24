@@ -103,9 +103,9 @@ public sealed class CosmicGroupedFilterCaptureTests
     [Fact]
     public void ManualMaterializationCannotIgnoreCapturedFilters()
     {
-        var query = CosmicQuery<Holon>.Create().GroupBy(h => h.Name).Select(g => g.LongCount()).Where(rows => rows > 1).Result;
+        var query = CosmicQuery<Holon>.Create().GroupBy(h => h.Name).Select(g => g.LongCount()).Where(rows => rows > 3).Result;
         var result = CosmicGroupedResults.Materialize(query, new[] { new CosmicGroupedRow(2, new object[] { "A" }, 2L) });
-        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", result.ErrorCode);
+        Assert.Equal("CQL_PROVIDER_RESULT_INVALID", result.ErrorCode);
     }
 
     private sealed class Trap
