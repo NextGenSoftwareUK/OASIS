@@ -144,6 +144,7 @@ public class BigQueryCollectionTests
             var selected=sql.Contains(".oasis_avatars`",StringComparison.Ordinal)&&AvatarSelected!=null?AvatarSelected:Selected;
             if(sql.Contains("WHERE id = @id",StringComparison.Ordinal)&&PointSelected!=null)selected=PointSelected;
             if(sql.Contains("WHERE parent_holon_id = @value",StringComparison.Ordinal)&&ParentSelected!=null)selected=ParentSelected;
+            if(selected==null&&Stored==null&&sql.Contains("WHERE id = @id",StringComparison.Ordinal))selected=Array.Empty<string>();
             var values=selected!=null?(sql.Contains("LIMIT 1",StringComparison.Ordinal)?selected.Take(1).ToArray():selected):Stored!=null?new[]{Stored}:new[]{"{\"Id\":\""+Guid.NewGuid()+"\"}",bad};
             var rows=values.Select(value=>new TableRow{F=new List<TableCell>{new(){V=value}}}).ToList();
             return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=job,TotalRows=(ulong)rows.Count,Schema=new(){Fields=new List<TableFieldSchema>{new(){Name="doc",Type="STRING"}}},Rows=rows},null,new GetQueryResultsOptions()));

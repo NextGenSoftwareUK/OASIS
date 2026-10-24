@@ -30,8 +30,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
     public partial class BigQueryOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
-        /// When true this provider stores a new record per save and links to the previous
-        /// version (blockchain-style) instead of updating in place.
+        /// Retains logical versions in the shared same-record history envelope.
+        /// Existing archives continue to be preserved when this option is disabled.
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
@@ -195,13 +195,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             {
                 if (softDelete)
                 {
-                    var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
-                    if (avatar == null)throw new System.Collections.Generic.KeyNotFoundException("BigQuery avatar to delete was not found.");
-                    else
-                    {
-                        avatar.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollAvatars, id.ToString(), avatar);
-                    }
+                    await SoftDeleteRecordAsync<Avatar>(CollAvatars,id);
                 }
                 else
                 {
@@ -436,13 +430,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             {
                 if (softDelete)
                 {
-                    var holon = await GetDocAsync<Holon>(CollHolons, id.ToString());
-                    if (holon == null)throw new System.Collections.Generic.KeyNotFoundException("BigQuery holon to delete was not found.");
-                    else
-                    {
-                        holon.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollHolons, id.ToString(), holon);
-                    }
+                    await SoftDeleteRecordAsync<Holon>(CollHolons,id);
                 }
                 else
                 {
@@ -806,9 +794,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         }
 
         private sealed record BigQueryWriteAcknowledgement(string JobId,string Location);
-        private async Task<BigQueryWriteAcknowledgement> UpsertDocAsync<T>(string table, string id, T obj,bool checkOriginal=false,string? expectedDoc=null)
+        private async Task<BigQueryWriteAcknowledgement> UpsertDocAsync<T>(string table, string id, T obj,bool checkOriginal=false,string? expectedDoc=null,string? documentJson=null)
         {
             var (doc, u, e, p) = Shred(obj);
+            if(documentJson!=null)doc=documentJson;
             var sql = $@"MERGE {Table(table)} t
                 USING (SELECT @id AS id, @doc AS doc, @username AS username,
                               @email AS email, @parent AS parent_holon_id) s
