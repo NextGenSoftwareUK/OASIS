@@ -1,6 +1,8 @@
 # CQL integer Sum/Average contract
 
-23 October 2026. Core foundation and SQLite native execution are verified. MongoDB/Neo4j execution, numeric transport and demonstrations remain required. This is part of the full aggregate roadmap, not a replacement for decimal/double/UInt64 or GroupBy coverage.
+Current native status: exact Int32/Int64 and nullable Sum/Average are verified for SQLite (1,345 tests), MongoDB (144 native/245 unit) and Neo4j (131 native/331 unit), all zero skips. Numeric HTTP/Decimal wire and demos are next; the full roadmap remains open.
+
+23 October 2026. Core foundation and SQLite/MongoDB/Neo4j native execution are verified. Numeric transport and demonstrations remain required. This is part of the full aggregate roadmap, not a replacement for decimal/double/UInt64 or GroupBy coverage.
 
 ## Public intent and result domains
 
@@ -64,3 +66,14 @@ The decoder requires exactly five fields, integral count fields and finite Decim
 Before capability enrolment, the genuine native baseline passed all 124 prior cases and rejected all 13 new reference vectors with CQL_CAPABILITY_UNSUPPORTED (137 total, zero skips). Enrolled execution passed 137 native cases and 245 provider unit cases, zero skips. The final expanded native suite passes144 cases, zero skips (3m26s), including all 20 new numeric cases. Seven additional controls cover non-hydration/window order, nullable missing values, numeric-string rejection,137 inputs under graph-output cap 1, traversal failure outside paging, snapshot consistency across reparenting and cancellation during the actual aggregate followed by owner reuse. Eight new decoder unit cases reject malformed, fractional, nonfinite and binary64 packets.
 
 Evidence: TestResults/SubscriptionUsageCurrent/cql-numeric-{red,green,final}-current.trx; TestResults/MongoCurrent/mongo-numeric-unit-current.trx; TestResults/CosmicCqlDemo/mongo-numeric-{red,green,final}.log and mongo-numeric-artifacts.json. Core/Shared/Mongo producer/native/unit hashes match. Owned port 27029 is stopped after the final runner; no environment/download/restore was added. Neo4j numeric enrollment, numeric HTTP/Decimal wire and demos remain open, together with the other roadmap gates.
+
+
+## Neo4j native Sum/Average verified — 23 October 2026
+
+Neo4j now reduces signed integer quotient/remainder limbs using the existing scalar transaction, read budget and cursor owner. The ordered source window precedes selected-domain checks; mandatory ownership and traversal failures remain outside both pagination and reduction. There is no entity hydration or floating-point total. A work sentinel rejects excess input instead of publishing a truncated sum; nullable missing values still count toward work. The strict seven-field packet requires Int64 limbs and consistent participation counts before Core normalization. Numeric publication occurs after cursor completion and transaction acknowledgement.
+
+The genuine baseline passed all 111 prior native cases and rejected all 13 new numeric vectors as unsupported. After enrollment, all 124 native cases and 331 provider unit cases passed without skips. Three new packet controls reject floating-point fields, additional fields, impossible participation and excess work. The final expanded suite passes **131 native tests, zero skips (3m14s)**, including all 20 new native cases. Seven boundary controls verify non-hydration/windowing, nullable missing values, numeric-string rejection, 137 inputs under graph-output cap 1, traversal failure outside pagination, cancellation after actual fetch and deadline accounting through actual cursor delivery followed by owner reuse. The retained container is stopped and Bolt port 17687 has no listener. Core and MongoDB/SQLite numerical gates remain independently verified. Numeric HTTP/Decimal wire, demos, grouping and the remaining roadmap gates are open.
+
+The operator contract is described in the [Neo4j mathematical operators manual](https://neo4j.com/docs/cypher-manual/current/expressions/mathematical-operators/). Exact signed extrema, cancellation of an intermediate overflowing total, fractional averages and values beyond binary64 precision are verified by the shared reference vectors rather than inferred from operator availability.
+
+Evidence: TestResults/Neo4jCurrent/cql-numeric-{red,green,final}-current.trx and neo-numeric-unit-current.trx; TestResults/CosmicCqlDemo/neo-numeric-{red,green,final}.log and neo-numeric-artifacts.json. Core/Shared/Neo producer/native/unit assembly hashes match. No new runtime, environment, restore or download. Neo remains read committed; strict blocked-I/O interruption and its UTC DateTime read capability remain separate open gates.
