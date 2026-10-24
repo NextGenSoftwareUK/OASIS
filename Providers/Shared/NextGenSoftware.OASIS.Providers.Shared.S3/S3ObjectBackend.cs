@@ -155,6 +155,8 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
             // Only an explicitly returned false establishes a complete final page.
             if (!HasNativeCompletionFlag(response))
                 throw new InvalidDataException("S3 listing omitted its native completion flag.");
+            if (!response.IsTruncated && !string.IsNullOrEmpty(response.NextContinuationToken))
+                throw new InvalidDataException("S3 listing claims completion but also supplies a next continuation token.");
             foreach (var item in response.S3Objects ?? throw new InvalidDataException("S3 listing omitted its object collection."))
             {
                 if (string.IsNullOrWhiteSpace(item?.Key) || !item.Key.StartsWith(physical, StringComparison.Ordinal) || !seen.Add(item.Key))
