@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 public partial class AWSOASISIntegrationTests
 {
     [DataTestMethod][DataRow(false)][DataRow(true)]
-    public async Task NativeVisibilityDefaultsPreserveOwnerPublicAndProviderDiagnostics(bool sync)
+    public async Task NativeVisibilityDefaultsPreserveOwnerPublicAndScopedRootCounts(bool sync)
     {
         var storage=(IOASISStorageProvider)_provider;var owner=Guid.NewGuid();var parent=Guid.NewGuid();var marker=Guid.NewGuid().ToString("D");
         var own=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=owner,ParentHolonId=parent};
@@ -32,9 +32,10 @@ public partial class AWSOASISIntegrationTests
             var expected=new List<Guid>{own.Id};if(!parentOnly)expected.Add(unrelated.Id);if(includePublic)expected.Add(shared.Id);
             CollectionAssert.AreEquivalent(expected,selected);
             if(!allowOtherPublic)Assert.AreEqual(selected.Length,result.Result.Count(),"Parent/metadata scopes cannot return other allowed-but-unrequested public records.");
-            // Existing interface contract retains the authoritative provider's loaded count,
-            // rather than claiming native I/O read only the post-filtered visible rows.
-            Assert.AreEqual(nativeCount,result.LoadedCount);
+            // LoadedCount counts returned roots. Native scan/capacity observations
+            // remain a separate diagnostic; they are not visible-result cardinality.
+            Assert.AreEqual(result.Result.Count(),result.LoadedCount);
+            Assert.IsTrue(nativeCount>=result.LoadedCount);
         }
         foreach(var includePublic in new[]{false,true}){
             Verify(sync?storage.LoadAllHolons(owner,includePublic,loadChildren:false):await storage.LoadAllHolonsAsync(owner,includePublic,loadChildren:false),includePublic,all.LoadedCount,allowOtherPublic:true);

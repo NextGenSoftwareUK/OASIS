@@ -1,5 +1,9 @@
 # Shared canonical record-history codec
 
+## 24 October — Dynamo/AWS ordinary graph adapter migrated and verified
+
+Dynamo SaveHolons now reuses existing CreateForSave plus complete-success PublishAcknowledgedSelection, inherited by AWS alias. Eight partial-selection admission and two acknowledgement-observation cases genuinely failed before repair; final full647unit/38alias/138retainednativePASS0skip, with two additional failed-child/no-complete-observation controls. No new Core/Shared changes or alternate SDK path. Native's two old scan-count assertions were corrected to current visible-root contract after original136/138failure was hash-fenced/reconciled, not hidden. Fresh baseline/cleanup1eachPASS, originalfailedruncleanup1PASS, pending0/stopped. Other adapters still using structuralCreate at caller mutation boundaries remain an open migration/verification gate; this does not certify all providers or hostedAWS/V2.
+
 ## 24 October — conditional intent guard repaired; native gate passed
 
 FINAL63250terminal0: fullCore2477PASS0skip15s; original Oracle reconciliation1PASS1s; fresh fullOracle502PASS0skip71s, including later revision-bound copied updates/stale/reused operation/soft/hard deletion/original historical replay. FullShared1181PASS0skip13s from72494. Core published17ba4f44a75f93d9704907419dbbd8767737298c; provider/source proof Core743=C65FBD5F3EAEE7E849D5DAA429C34979AD853530C5864C6C0D6F5C86E86E4D46 and Shared56=15E6948B120F4CB63D4CFC88CEC2F7C99645A4497C489DD0411F1FF8489C8D5B. Original two-row native fixture/receipt verified and conditionally removed, no replay, pending0/serverEXITED. This closes the reproduced local conditional admission/replay gate, not all adapters/cloud/V2. Earlier candidate and failing sections remain historical evidence.
