@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Google Firestore canonical collection identity — 23 October 2026
+
+New36SDK/gRPC controls first18red/18valid; one async provider snapshot/history reader now rejects repeated native identities before version filtering for avatars/details/holons and child pools. No dedup/extra request/codec duplication. Matched341unit plus83history/79regression real-SDK/retained emulator PASS0skip; known checkpoint restart/conditionalcleanupPASS, pending0/portsabsent. Duplicateforcing is controlled, not native server races; no cloud IAM/cost/durability/fullV2 certificate. Core6D193362/Shared5BCA13FB/Google972198F9/source25, exact reports/lifecycle in ENVIRONMENT_INVENTORY.md. No restore/install/newenvironment/reset/dev deployment.
+
 ## Azure Cosmos canonical collection identity — 23 October 2026
 
 New36repository controls first18red/18distinct valid; one canonical decoder now rejects repeated GUIDs before history selection, no dedup/partial publication/extra request/snapshot guarantee. Current matched391unit and66native real SDK/retained emulator PASS0skip. Forced duplicate schedules are controlled, not native;66is existing healthy-provider regression. Same retained container stopped/pending0, no reset/restore/download/cloud request; Core6D193362/Shared5BCA13FB/Cosmos117BACD5/source33 and exact reports/resources in ENVIRONMENT_INVENTORY.md. Hosted IAM/RUs/billing/durability/fullV2 remain OPEN; no dev deployment/provider100claim.

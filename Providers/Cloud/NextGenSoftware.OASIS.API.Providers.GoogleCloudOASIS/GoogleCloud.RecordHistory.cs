@@ -12,6 +12,18 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
+    private static async Task<List<T>> ReadFirestoreCollectionAsync<T>(QuerySnapshot snapshot,int version) where T:class,IHolonBase
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        var identities=new HashSet<string>(StringComparer.Ordinal);var records=new List<T>();
+        foreach(var document in snapshot.Documents){
+            if(!identities.Add(document.Id))throw new InvalidDataException("Firestore collection contains a repeated native OASIS identity.");
+            var record=await ReadFirestoreHistoryAsync<T>(document.ToDictionary(),document.Id,version).ConfigureAwait(false);
+            if(record!=null)records.Add(record);
+        }
+        return records;
+    }
+
     private static void ValidateFirestoreCallerPublication(Action validate,Guid acknowledgedId)
     {
         try{validate();}catch(Exception cause){throw new GoogleFirestorePartialMutationException(new[]{acknowledgedId},cause);}

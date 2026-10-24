@@ -68,7 +68,7 @@ public partial class GoogleCloudOASIS
             var ready=await EnsureDetailStoreAsync(version);
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<IAvatarDetail>>(ready);
             var snapshot=await _firestoreDb.Collection("avatarDetails").GetSnapshotAsync();
-            result.Result=snapshot.Documents.Select(doc=>ReadFirestoreHistoryAsync<AvatarDetail>(doc.ToDictionary(),doc.Id,version).GetAwaiter().GetResult()).Where(row=>row!=null&&row.IsActive).Cast<IAvatarDetail>().ToList();
+            result.Result=(await ReadFirestoreCollectionAsync<AvatarDetail>(snapshot,version)).Where(row=>row.IsActive).Cast<IAvatarDetail>().ToList();
             result.LoadedCount=result.Result.Count();result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
