@@ -72,7 +72,7 @@ public partial class SolanaOASIS
                 mapped.Add(record);
             }
             result.Result=mapped;
-            result.IsLoaded=true;
+            result.IsLoaded=true;result.LoadedCount=mapped.Count;
         }
         catch(Exception cause) { OASISErrorHandling.HandleError(ref result,"Solana finalized collection read failed: "+cause.Message,cause); }
         return result;
@@ -346,6 +346,7 @@ public partial class SolanaOASIS
                 source=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Core.Holons.Holon>(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(source)));
             result.Result=project(holon);
             result.IsLoaded = true;
+            result.LoadedCount = 1;
             result.IsError = false;
         }
         catch (Exception e)
