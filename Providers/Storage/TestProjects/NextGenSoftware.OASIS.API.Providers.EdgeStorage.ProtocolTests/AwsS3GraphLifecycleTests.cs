@@ -39,9 +39,15 @@ public class AwsS3GraphLifecycleTests
             Assert.AreEqual(own.Id, result.Result.Single().Id); Assert.AreEqual(3, result.Result.Single().Version);
             Assert.AreEqual("private-export-own-3", result.Result.Single().Name);
             Assert.AreEqual(1, (await provider.LoadAvatarAsync(avatar.Id)).Result.Version);
+            var allVersions=email
+                ?sync?provider.ExportAllDataForAvatarByEmail(avatar.Email,-1):await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email,-1)
+                :sync?provider.ExportAllDataForAvatarByUsername(avatar.Username,-1):await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username,-1);
+            Assert.IsFalse(allVersions.IsError,allVersions.Message+allVersions.Exception);Assert.IsTrue(allVersions.IsLoaded);Assert.AreEqual(3,allVersions.LoadedCount);
+            CollectionAssert.AreEqual(new[]{1,2,3},allVersions.Result.Select(row=>row.Version).ToArray());
+            Assert.IsTrue(allVersions.Result.All(row=>row.Id==own.Id&&row.CreatedByAvatarId==avatar.Id));
             var requests = store.Requests;
-            var invalid = email ? await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email, -1)
-                : await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username, -1);
+            var invalid = email ? await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email, -2)
+                : await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username, -2);
             Assert.IsTrue(invalid.IsError); Assert.IsInstanceOfType<ArgumentOutOfRangeException>(invalid.Exception);
             Assert.AreEqual(requests, store.Requests, "Invalid export version must fail before SDK identity reads.");
             CollectionAssert.AreEqual(before, store.Objects.OrderBy(p => p.Key, StringComparer.Ordinal).ToArray());
