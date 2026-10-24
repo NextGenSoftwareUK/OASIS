@@ -1,4 +1,5 @@
 param(
+    [switch]$AllVersionExports,
     [switch]$PointReadSelectors,
     [switch]$IndependentExportVersions,
     [switch]$ReconcileExportIdentity,
@@ -20,7 +21,7 @@ param(
 $selectedModes=@($PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
-    $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions).Where({$_.IsPresent}).Count
+    $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports).Where({$_.IsPresent}).Count
 if($selectedModes -gt 1){throw 'Choose one original reconciliation mode.'}
 if(!$InspectReadConnections -and $ReadConnectionIterations -ne 50){throw 'A custom read workload requires the explicitly read-only inspection mode.'}
 if(!$InspectReadConnections -and $ReadConnectionPath -ne 'Provider'){throw 'A native connection control requires the explicitly read-only inspection mode.'}
@@ -109,6 +110,7 @@ try{
     # Full regression plus four independent identity/holon version cases; retain earlier reports.
     if($IndependentExportVersions){$report='oracle-independent-export-native-current.trx'}
     if($PointReadSelectors){$report='oracle-point-selector-native-current.trx'}
+    if($AllVersionExports){$report='oracle-all-version-export-native-current.trx'}
     if($ReconcileExportIdentity){$report='oracle-export-identity-reconciliation-current.trx';$filter='FullyQualifiedName~ReconcileKnownIndependentExportIdentityFixture'}
     if($LifecycleGuards){$report='oracle-lifecycle-guard-native-current.trx';$filter='FullyQualifiedName~NativeLifecycleGuardsRejectStaleAndRelatedActiveSaves'}
     if($AvatarProjection){$report='oracle-avatar-projection-native-current.trx';$filter='FullyQualifiedName~NativeAvatarProjectionMismatchCannotBeHiddenOrRepaired'}
