@@ -302,11 +302,35 @@ public static class V1Walkthrough
                     new { alias = "Mean", operation = "Average", selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" } }
                 }
             }, grouped: true);
+
+            // EXAMPLE 16 — Source orderBy and selected resultOrder are separate.
+            // Aggregate values are exact Int64 text; all three providers sort
+            // these adjacent totals natively, with no JavaScript number rounding.
+            await ShowAsync("16. Grouped ordering / adjacent exact Int64 sums", new
+            {
+                provider,
+                filters = scalarFilters,
+                maximumGroups = 10,
+
+                keys = new[] { new { alias = "name", field = "Name" } },
+                columns = new object[]
+                {
+                    new { alias = "Name", keyAlias = "name" },
+                    new { alias = "Total", operation = "Sum",
+                        selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" } }
+                },
+
+                resultOrder = new[]
+                {
+                    new { alias = "Total", descending = true },
+                    new { alias = "Name", descending = false }
+                }
+            }, grouped: true, orderedGroups: true);
         }
 
         return completedRequests;
 
-        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null, bool projection = false, bool grouped = false)
+        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null, bool projection = false, bool grouped = false, bool orderedGroups = false)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -357,7 +381,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong selected shape or exact value.");
             }
 
-            if (grouped)
+            if (grouped && !orderedGroups)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -366,6 +390,17 @@ public static class V1Walkthrough
                     || row[0].GetString() != "7" || row[1].GetString() != "2"
                     || row[2].GetString() != "-18014398509481981" || row[3].GetString() != "-9007199254740990.5")
                     throw new InvalidOperationException(title + " returned an incorrect grouped shape or exact aggregate.");
+            }
+
+            if (orderedGroups)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var rows = payload.GetProperty("rows").EnumerateArray().ToArray();
+
+                if (payload.GetProperty("version").GetString() != "cql-grouped-v1"
+                    || !rows.Select(row => row[0].GetString()).SequenceEqual(new[] { "D-owned", "C-public", "B-owned" })
+                    || !rows.Select(row => row[1].GetString()).SequenceEqual(new[] { "-9007199254740989", "-9007199254740990", "-9007199254740991" }))
+                    throw new InvalidOperationException(title + " returned incorrect exact ordered groups.");
             }
 
             completedRequests++;
