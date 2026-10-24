@@ -1,5 +1,11 @@
 # EVM finalized transaction status — implementation in progress
 
+## Latest export-selector checkpoint — 23 October 2026, no native acceptance
+
+Standalone Ethereum/shared Web3Core export selectors now resolve current identity independently of holon Version, with early negative admission and full identity-error forwarding. New16 controlled cases baseline12fail/4pass; full124Ethereum non-native +137Web3 selected controls PASS0skip. Core7242D6B/Shared55B7F554 +four provider/six project source/copy/PDB evidence and exact TRXs in ENVIRONMENT_INVENTORY.md. This is failure-routing/compatibility verification, not successful live encrypted storage, finalized transactions, gas recovery or native provider completion.
+
+Original routing.db827392bytes/hash1A826... remains unchanged; native preflight still blocks.64retention guard controls pass. Future mixed native count300 includes16new controls but has NOT run; old ephemeral chain authority cannot be restored by a new node. Owner decision recorded in ACTIONS-FOR-DAVID.md. No new runtime/download/environment/node/RPC/signing/public gas or dev deployment. All unclosed native/interface/V2 gates remain OPEN.
+
 ## Stored-identity diagnostic propagation audit — pending verification, 2026-10-20
 
 Broader controlled follow-up: actual81956 terminal0, **108/108 non-native cases passed**, zero skipped,2s; explicitly excludes native `EthereumOASISIntegrationTests`. `identity-envelope-regression.trx` SHA256 `EF8931FADE9D6458ECCEB269055E5157FF0998EA9024B84C8B019CF98CC25A4B`. Cached consumer compile zero errors/29warnings. Measured Ethereum producer/consumer DLL both `8D9264FF4B4B6875D32DCD0769528304E9549CECEEC6F5C8D25AC0E92B048B7F`; Core `6635E34C24426B6267FC781B7FADAAA603EB906320A9F53F5A2FBE2E275D83F2` and newly rebuilt Shared `6E57826D416D9FB9AE07577E0D19A8426B5FC8C18310669D47829348B88E587F` match current producers. This is a refreshed controlled cohort, not relabelling the earlier12/Shared73F5 result. Existing unrelated CredentialSelectors working-tree changes were compiled but remain excluded from this source patch; no immutable full-provider claim. No native startup/signature/download/restore/deployment; free C50,994,565,120bytes, target unmet. Native284+Web3 remains gated by preserved originals/operator choice below.
