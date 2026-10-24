@@ -244,3 +244,14 @@ Neo4j now enrolls grouped key, Count/LongCount, Min/Max and integer Sum ordering
 Verification: **347 unit tests and144 full native CQL tests passed, zero skips**. Thirteen selected grouped controls include three new native ordering cases. Evidence: TestResults/Neo4jCurrent/cql-grouped-order-{unit,native,regression}-current.trx, group-order-artifacts.json and group-order-final-inspection.log; TestResults/CosmicCqlDemo/neo-group-order-{build-final,native,regression}.log. The first build caught a local variable name collision, corrected before final build/native tests. The reusable runner's inclusive mode counts advance to144/207/209/208; only144 full CQL mode was verified here, not the broader modes.
 
 Average ordering stays explicitly unsupported pending exact normalized Decimal semantics. SQLite grouped ordering, HTTP result-order fields and grouped filters/pages remain open. The full CQL/ORM goal is not complete.
+
+
+## Post-group paging contract — 24 October 2026
+
+Core now captures immutable `Skip`/`Take` on a grouped selection as ResultOffset/ResultLimit, independently of Source.Offset/Limit. Repeated Take narrows; Skip consumes a prior Take; skipping beyond it produces an explicit zero limit. Ordering changes preserve the result window. Negative, overflowing and group-budget-exceeding windows reject without mutating earlier intent. This first contract bounds offsets/pages by the independently declared MaximumGroups proof budget; it does not increase that budget.
+
+Paging requires its own SupportsResultPaging capability. Existing constructor signatures remain available and default false. Actual-adapter readmission checks the permission; source paging and grouped ordering permissions cannot grant it. Result validation rejects buffers exceeding the composed result limit, including nonempty Take(0) buffers.
+
+**Native paging is not yet enrolled on any provider.** Before enrollment, native execution must prove complete source participation and preserve protected traversal failures, malformed off-page groups, true final numeric overflow, group/work/payload bounds and owned read teardown even for Take(0). A LIMIT that hides these errors is insufficient. Native provider implementations and hosted paging fields/demos remain required; this is not end-to-end paging completion.
+
+Both Core net10.0/netstandard2.1 targets build; **2,320 Core/linked-production unit tests pass, zero skips**, including six new paging cases. Evidence: TestResults/CosmicCurrent/group-page-core-current.trx; TestResults/CosmicCqlDemo/group-page-core-{build,}.log (test log is group-page-core.log). Private Core cbd77d42c0fb05a879ccf7d75707c4a0a0a3907c; net10 SHA256 5F9A28609728B2B77BAB95F60E533C253B359768FDC2597EDC6936187E188E66 and netstandard SHA256 E3E38DD7DB2F8B4DA1D65441E8514098F749BB7255349DC5E9EC69E19129743C. Native provider binaries from prior gates remain historical cohorts until refreshed.

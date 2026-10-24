@@ -1,8 +1,8 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core 2,280 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo 45 SDK queries/45 HTTP examples with 225 settled operations and 220 attempts. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core 2,320 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo 48 SDK queries/48 HTTP examples with 228 settled operations and 223 attempts. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
-Next implementation: post-group filtering, ordering and paging. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
+Next implementation: proof-aware native post-group paging, then post-group filtering and exact Average ordering. Enrolled key/count/extrema/integer Sum ordering is verified on all three providers and through the live demo. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
@@ -262,3 +262,14 @@ Example16 now demonstrates native grouped ordering in both readable C# and HTTP 
 The retained runner completed **48 SDK queries and48 HTTP examples** across MongoDB, SQLite and Neo4j; **228 operations settled and223 provider attempts**. Actual session96782 terminal0, integrated native test1pass/0skip. This is live demo acceptance, not a rerun of every provider suite. Evidence: TestResults/CosmicCqlDemo/ordered-group-demo-native.log, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/copy checks verified Core19F1CA8B and SharedDF5015E4. Node24.19.0 syntax check passed for the browser script. Fixture manifest/SQLite/WAL/SHM verified absent after owned cleanup; Mongo27029 and Neo17687 listeners absent.
 
 HTTP result ordering live acceptance is complete for the enrolled operations. Exact Average ordering, post-group filters/pages and the broader unchecked CQL/ORM roadmap remain open.
+
+
+## Post-group paging contract — 24 October 2026
+
+Core now captures immutable `Skip`/`Take` on a grouped selection as ResultOffset/ResultLimit, independently of Source.Offset/Limit. Repeated Take narrows; Skip consumes a prior Take; skipping beyond it produces an explicit zero limit. Ordering changes preserve the result window. Negative, overflowing and group-budget-exceeding windows reject without mutating earlier intent. This first contract bounds offsets/pages by the independently declared MaximumGroups proof budget; it does not increase that budget.
+
+Paging requires its own SupportsResultPaging capability. Existing constructor signatures remain available and default false. Actual-adapter readmission checks the permission; source paging and grouped ordering permissions cannot grant it. Result validation rejects buffers exceeding the composed result limit, including nonempty Take(0) buffers.
+
+**Native paging is not yet enrolled on any provider.** Before enrollment, native execution must prove complete source participation and preserve protected traversal failures, malformed off-page groups, true final numeric overflow, group/work/payload bounds and owned read teardown even for Take(0). A LIMIT that hides these errors is insufficient. Native provider implementations and hosted paging fields/demos remain required; this is not end-to-end paging completion.
+
+Both Core net10.0/netstandard2.1 targets build; **2,320 Core/linked-production unit tests pass, zero skips**, including six new paging cases. Evidence: TestResults/CosmicCurrent/group-page-core-current.trx; TestResults/CosmicCqlDemo/group-page-core-{build,}.log (test log is group-page-core.log). Private Core cbd77d42c0fb05a879ccf7d75707c4a0a0a3907c; net10 SHA256 5F9A28609728B2B77BAB95F60E533C253B359768FDC2597EDC6936187E188E66 and netstandard SHA256 E3E38DD7DB2F8B4DA1D65441E8514098F749BB7255349DC5E9EC69E19129743C. Native provider binaries from prior gates remain historical cohorts until refreshed.
