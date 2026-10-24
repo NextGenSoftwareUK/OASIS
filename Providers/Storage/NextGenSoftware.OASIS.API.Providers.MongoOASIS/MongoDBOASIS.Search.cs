@@ -35,7 +35,11 @@ public partial class MongoDBOASIS
             }
             result=synchronous ? _searchRepository.Search(query,version):await _searchRepository.SearchAsync(query,version).ConfigureAwait(false);
             if(result==null) throw new InvalidDataException("Mongo search repository returned no result envelope.");
-            if(result.IsError) return result;
+            if(result.IsError)
+            {
+                result.Result=null;result.IsLoaded=false;result.LoadedCount=0;
+                return result;
+            }
             var found=result.Result ?? throw new InvalidDataException("Mongo search repository returned no result content.");
             if(found.SearchResultHolons==null || found.SearchResultAvatars==null)
                 throw new InvalidDataException("Mongo search repository returned missing result collections.");
