@@ -42,6 +42,8 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                 ["provider"] = new OpenApiString("MongoDBOASIS"),
                 ["take"] = new OpenApiInteger(2),
                 ["maximumGroups"] = new OpenApiInteger(10),
+                ["resultSkip"] = new OpenApiInteger(0),
+                ["resultTake"] = new OpenApiInteger(1),
                 ["resultOrder"] = new OpenApiArray
                 {
                     new OpenApiObject { ["alias"] = new OpenApiString("Total"), ["descending"] = new OpenApiBoolean(true) },

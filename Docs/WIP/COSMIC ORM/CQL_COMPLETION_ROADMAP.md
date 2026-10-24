@@ -1,8 +1,8 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core 2,322 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo 48 SDK queries/48 HTTP examples with 228 settled operations and 223 attempts. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core 2,334 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo 51 SDK queries/51 HTTP examples with 231 settled operations and 226 attempts. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
-Next implementation: HTTP grouped paging and demos (native paging verified on all three providers), then post-group filtering and exact Average ordering. Enrolled key/count/extrema/integer Sum ordering is verified on all three providers and through the live demo. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
+Next implementation: post-group filtering and exact Average ordering; native/HTTP grouped paging and the51/51 live demo are verified on all three providers. Enrolled key/count/extrema/integer Sum ordering is verified on all three providers and through the live demo. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
@@ -300,3 +300,15 @@ Verification: **349 Neo4j unit tests and150 full native CQL tests passed, zero s
 Evidence: TestResults/Neo4jCurrent/group-page-unit-current.trx, neo4j-cql-native-current.trx and group-page-artifacts.json; TestResults/CosmicCqlDemo/neo-group-page-{unit,native}.log. Initial globallease refusal made no build mutation; actual10167terminal0. Native producer/copies match Core051A066408A38315DD1D60353D2F44A4C6A237AB414AA894A540C874B53A7FA4 and NeoD52B4404C3A9EE9558837331ADC382CA353AF7624946D4FB64A597CE47990240; runner also verified Shared53D9BCAF75F1697788F0B08FEAFD636F8EE0BA38DBE3748721619E1F0B458F4C. Fixture teardown acknowledged; cql-graph-fixture.json verified absent and exact retained container/image exited. Runner inclusive counts advance to150/213/215/214; only150 fullCQL mode was run here, not broader modes.
 
 MongoDB, SQLite and Neo4j native paging are now verified. HTTP result-window fields/demos, post-group filtering and exact Average ordering remain open. Overall CQL/ORM completion is not claimed.
+
+
+HTTP paging contract/controlled endpoint checkpoint24October2026:2334Core/linkedunit0skip, including12new compiler/endpoint controls. Native paging is verified onMongo/SQLite/Neo. Demo17/51SDK+51HTTP sourceprepared, liveacceptance awaiting otherowner reviewedMongo fixture cleanup/source gate. See CQL_GROUPING_HTTP_CONTRACT.md; overall roadmap remains incomplete.
+
+
+## HTTP grouped paging live acceptance — 24 October 2026
+
+`resultSkip`/`resultTake` now run through native paging on MongoDB, SQLite and Neo4j. Example17 shows the same query in spaced/commented C# and HTTP, with browser and Swagger fields: group by Name, sum exact Int64 values, order Total descending/Name ascending, then Skip1/Take1. The selected C-public total remains -9007199254740990; source windows remain independent. Complete bounded proof includes skipped groups.
+
+Verification: **2,334 Core/linked-production unit tests pass, zero skips**; the fresh integrated native demo passes **51 SDK queries and51 HTTP examples**, **231 settled operations and226 physical attempts** across all three providers (actual32210terminal0, native1PASS0skip). Evidence: TestResults/CosmicCurrent/http-group-page-current.trx; TestResults/CosmicCqlDemo/http-group-page-unit.log, group-page-demo-native.log, group-page-demo-artifacts.json, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/native copies match for Core and all three providers; runner verifies Core051A0664/SharedD5273C49. Browser script passes Node24.19.0 syntax check. This is the integrated demo acceptance test, not an all-suite provider rerun.
+
+The other session completed reviewed fixture cleanup and its Mongo historical-type regressions before granting the live window. No blind reset/replay occurred. Final owned fixture marker/SQLite/WAL/SHM are absent, Mongo27029 and Neo17687 listeners absent. Post-group filtering, exact Average ordering and broader unchecked roadmap gates remain open.

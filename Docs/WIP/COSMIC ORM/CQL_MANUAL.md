@@ -711,3 +711,27 @@ Example16 now demonstrates native grouped ordering in both readable C# and HTTP 
 The retained runner completed **48 SDK queries and48 HTTP examples** across MongoDB, SQLite and Neo4j; **228 operations settled and223 provider attempts**. Actual session96782 terminal0, integrated native test1pass/0skip. This is live demo acceptance, not a rerun of every provider suite. Evidence: TestResults/CosmicCqlDemo/ordered-group-demo-native.log, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/copy checks verified Core19F1CA8B and SharedDF5015E4. Node24.19.0 syntax check passed for the browser script. Fixture manifest/SQLite/WAL/SHM verified absent after owned cleanup; Mongo27029 and Neo17687 listeners absent.
 
 HTTP result ordering live acceptance is complete for the enrolled operations. Exact Average ordering, post-group filters/pages and the broader unchecked CQL/ORM roadmap remain open.
+
+
+### Page grouped results independently of source rows
+
+In C#, compose `GroupBy(...).Select(...).OrderByDescending(row => row.Total).Skip(1).Take(5)`. The last two operators page reduced groups. Apply source Skip/Take before GroupBy when you intentionally want to change which input rows participate in aggregates.
+
+For POST `/api/data/query-cql/grouped`, add:
+
+```json
+"resultOrder": [ { "alias": "Total", "descending": true } ],
+"resultSkip": 1,
+"resultTake": 5
+```
+
+Aliases name selected output columns. Omit resultTake for the complete bounded result; zero publishes no groups but still validates the complete proof. maximumGroups and payload bounds include off-page groups. Unsupported provider paging fails at admission. HTTP compiler/controlled endpoint coverage passes in the2,334-case suite; live paging demo verification now passes51SDK/51HTTP across all three providers (see acceptance below). See CQL_GROUPING_HTTP_CONTRACT.md for current evidence.
+
+
+## HTTP grouped paging live acceptance — 24 October 2026
+
+`resultSkip`/`resultTake` now run through native paging on MongoDB, SQLite and Neo4j. Example17 shows the same query in spaced/commented C# and HTTP, with browser and Swagger fields: group by Name, sum exact Int64 values, order Total descending/Name ascending, then Skip1/Take1. The selected C-public total remains -9007199254740990; source windows remain independent. Complete bounded proof includes skipped groups.
+
+Verification: **2,334 Core/linked-production unit tests pass, zero skips**; the fresh integrated native demo passes **51 SDK queries and51 HTTP examples**, **231 settled operations and226 physical attempts** across all three providers (actual32210terminal0, native1PASS0skip). Evidence: TestResults/CosmicCurrent/http-group-page-current.trx; TestResults/CosmicCqlDemo/http-group-page-unit.log, group-page-demo-native.log, group-page-demo-artifacts.json, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/native copies match for Core and all three providers; runner verifies Core051A0664/SharedD5273C49. Browser script passes Node24.19.0 syntax check. This is the integrated demo acceptance test, not an all-suite provider rerun.
+
+The other session completed reviewed fixture cleanup and its Mongo historical-type regressions before granting the live window. No blind reset/replay occurred. Final owned fixture marker/SQLite/WAL/SHM are absent, Mongo27029 and Neo17687 listeners absent. Post-group filtering, exact Average ordering and broader unchecked roadmap gates remain open.

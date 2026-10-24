@@ -326,11 +326,36 @@ public static class V1Walkthrough
                     new { alias = "Name", descending = false }
                 }
             }, grouped: true, orderedGroups: true);
+
+            // EXAMPLE 17 — Result paging follows grouping and result ordering.
+            // It cannot reduce aggregate participation or hide off-page errors.
+            await ShowAsync("17. Grouped result page / independent native window", new
+            {
+                provider,
+                filters = scalarFilters,
+                maximumGroups = 10,
+
+                keys = new[] { new { alias = "name", field = "Name" } },
+                columns = new object[]
+                {
+                    new { alias = "Name", keyAlias = "name" },
+                    new { alias = "Total", operation = "Sum",
+                        selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" } }
+                },
+
+                resultOrder = new[]
+                {
+                    new { alias = "Total", descending = true },
+                    new { alias = "Name", descending = false }
+                },
+                resultSkip = 1,
+                resultTake = 1
+            }, grouped: true, orderedGroups: true, pagedGroups: true);
         }
 
         return completedRequests;
 
-        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null, bool projection = false, bool grouped = false, bool orderedGroups = false)
+        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null, bool projection = false, bool grouped = false, bool orderedGroups = false, bool pagedGroups = false)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -397,9 +422,17 @@ public static class V1Walkthrough
                 var payload = result.RootElement.GetProperty("result");
                 var rows = payload.GetProperty("rows").EnumerateArray().ToArray();
 
+                var expectedNames = pagedGroups
+                    ? new[] { "C-public" }
+                    : new[] { "D-owned", "C-public", "B-owned" };
+
+                var expectedTotals = pagedGroups
+                    ? new[] { "-9007199254740990" }
+                    : new[] { "-9007199254740989", "-9007199254740990", "-9007199254740991" };
+
                 if (payload.GetProperty("version").GetString() != "cql-grouped-v1"
-                    || !rows.Select(row => row[0].GetString()).SequenceEqual(new[] { "D-owned", "C-public", "B-owned" })
-                    || !rows.Select(row => row[1].GetString()).SequenceEqual(new[] { "-9007199254740989", "-9007199254740990", "-9007199254740991" }))
+                    || !rows.Select(row => row[0].GetString()).SequenceEqual(expectedNames)
+                    || !rows.Select(row => row[1].GetString()).SequenceEqual(expectedTotals))
                     throw new InvalidOperationException(title + " returned incorrect exact ordered groups.");
             }
 

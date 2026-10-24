@@ -13,6 +13,10 @@ public sealed class CqlGroupedV1Request
     public CqlGroupedV1Column[] Columns { get; set; } = Array.Empty<CqlGroupedV1Column>();
     /// <summary>Selected output aliases, applied after grouping. Source OrderBy remains independent.</summary>
     public CqlGroupedV1Ordering[] ResultOrder { get; set; } = Array.Empty<CqlGroupedV1Ordering>();
+    /// <summary>Skip reduced groups after result ordering; independent of source Skip.</summary>
+    public int ResultSkip { get; set; }
+    /// <summary>Limit published groups; omission retains the complete bounded result.</summary>
+    public int? ResultTake { get; set; }
     public int MaximumGroups { get; set; } = 25;
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
