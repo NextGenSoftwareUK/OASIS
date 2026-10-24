@@ -41,11 +41,13 @@ public sealed class CosmicGroupedOrderingTests
     }
 
     [Fact]
-    public void UnenrolledOrderingCannotPublishNaturallySortedRows()
+    public void UnenrolledOrderingCannotPassProviderAdmission()
     {
         var query = CosmicQuery<Holon>.Create().GroupBy(h => h.Name).Select(g => g.LongCount())
             .OrderBy(g => g).Result;
-        var result = CosmicGroupedResults.Materialize(query, new[] { new CosmicGroupedRow(1, new object[] { "a" }, 1L) });
+        var projection = new CosmicProjectionCapabilities(new[] { new CosmicProjectionFieldCapability("Name", typeof(string)) }, System.Array.Empty<System.Type>());
+        var capabilities = new CosmicGroupedCapabilities(projection, new CosmicScalarCapabilities(new[] { CosmicScalarOperation.LongCount }));
+        var result = capabilities.Admit(query);
         Assert.True(result.IsError); Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", result.ErrorCode);
     }
 }
