@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Numerics;
 using Microsoft.Data.Sqlite;
 using NextGenSoftware.OASIS.API.Core.Queries;
 
@@ -34,7 +33,7 @@ internal sealed class SqliteCqlNumericKeys : IDisposable
                 failureMessage ??= result.Message;
                 return null;
             }
-            return result.Result == null ? null : Key(Convert.ToDecimal(result.Result, CultureInfo.InvariantCulture));
+            return result.Result == null ? null : CosmicNumericScalarResults.DecimalOrderKey(Convert.ToDecimal(result.Result, CultureInfo.InvariantCulture));
         }, isDeterministic: false);
     }
 
@@ -46,19 +45,6 @@ internal sealed class SqliteCqlNumericKeys : IDisposable
             budgetFailure ??= cause;
             return false;
         }
-    }
-
-    // Every Decimal is an integer on the common 10^-28 grid. A fixed-width
-    // sign/complement encoding gives SQLite BINARY collation exact numeric order.
-    internal static string Key(decimal value)
-    {
-        var bits = decimal.GetBits(value);
-        var magnitude = new BigInteger((uint)bits[0]) | (new BigInteger((uint)bits[1]) << 32)
-            | (new BigInteger((uint)bits[2]) << 64);
-        magnitude *= BigInteger.Pow(10, 28 - ((bits[3] >> 16) & 255));
-        var negative = value < 0;
-        if (negative) magnitude = BigInteger.Pow(10, 57) - 1 - magnitude;
-        return (negative ? "0" : "1") + magnitude.ToString("D57", CultureInfo.InvariantCulture);
     }
 
     internal void Check()

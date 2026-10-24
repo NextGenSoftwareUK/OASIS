@@ -34,6 +34,7 @@ public partial class Neo4jOASIS
             var column = query.Columns[index];
             if (column.KeyIndex >= 0) return new Cell { Value = "keys[" + column.KeyIndex + "].v" };
             if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) return new Cell { Value = "inputs" };
+            if (column.Operation == CosmicScalarOperation.Average) return new Cell { Value = "averageKeys[" + index + "]" };
             var slot = query.Columns.Take(index).Count(item => item.KeyIndex < 0 && item.Selector != null);
             var packet = "aggregates[" + slot + "]";
             if (column.Operation == CosmicScalarOperation.Sum) return new Cell { High = packet + ".high", Low = packet + ".low" };
@@ -76,7 +77,9 @@ public partial class Neo4jOASIS
                 if (boundary.Constant.HasValue) return NullAware(left, new Cell { Value = "0" }, operation, boundary.Constant.Value ? "true" : "false");
                 return Compare(left, new Cell { Value = translator.Bind(boundary.Boundary) }, operation);
             }
-            return Compare(left, new Cell { Value = literal.Kind == CosmicQueryScalarKind.Null ? "null" : translator.Bind(NeoCqlTranslator.Literal(literal)) }, operation);
+            var value = literal.Kind == CosmicQueryScalarKind.Decimal
+                ? CosmicNumericScalarResults.DecimalOrderKey((decimal)literal.Value) : literal.Kind == CosmicQueryScalarKind.Null ? null : NeoCqlTranslator.Literal(literal);
+            return Compare(left, new Cell { Value = value == null ? "null" : translator.Bind(value) }, operation);
         }
         internal string Translate(CosmicQueryPredicate predicate)
         {

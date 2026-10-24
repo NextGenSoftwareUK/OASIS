@@ -140,10 +140,20 @@ public partial class Neo4jOASIS
                     var parts = GroupedIntegralParts(packet + ".high", packet + ".low");
                     Sort(parts.High, resultOrdering.Descending); Sort(parts.Low, resultOrdering.Descending);
                 }
+                else if (column.Operation == CosmicScalarOperation.Average)
+                    Sort("averageKeys[" + resultOrdering.ColumnIndex + "]", resultOrdering.Descending);
                 else throw new NotSupportedException("Exact native resultOrdering is not enrolled for this aggregate.");
             }
         }
         foreach (var index in Enumerable.Range(0, keyNames.Length)) Sort("keys[" + index + "].v", false);
+        var meanKeys = new List<string>();
+        for (var index = 0; index < query.Columns.Count; index++)
+        {
+            var slot = query.Columns.Take(index).Count(item => item.KeyIndex < 0 && item.Selector != null);
+            var packet = "aggregates[" + slot + "]";
+            meanKeys.Add(query.Columns[index].Operation == CosmicScalarOperation.Average
+                ? GroupedAverageKey(packet + ".high", packet + ".low", packet + ".present") : "null");
+        }
         var cypher = "CALL { " + compiled.Source + "WHERE NOT valid RETURN " + failure
             + ",false AS traversalCycle,false AS traversalLimit LIMIT 1" + traversal
             + " UNION ALL " + compiled.EligibleSource + "WHERE (" + compiled.DescendantPredicate
@@ -159,6 +169,7 @@ public partial class Neo4jOASIS
             + "CASE WHEN payloadLimit THEN [] ELSE keys END AS keys,"
             + "CASE WHEN payloadLimit THEN [] ELSE aggregates END AS aggregates,"
             + "valid,traversalCycle,traversalLimit,payloadLimit "
+            + "WITH *,[" + string.Join(",", meanKeys) + "] AS averageKeys "
             + "ORDER BY valid ASC,payloadLimit DESC," + string.Join(",", resultOrder) + " LIMIT $groupLimit";
         const string fields = "inputs,keys,aggregates,valid,traversalCycle,traversalLimit,payloadLimit";
         var filterCompiler = new GroupFilterCompiler<T, TKey, TResult>(query, translator);

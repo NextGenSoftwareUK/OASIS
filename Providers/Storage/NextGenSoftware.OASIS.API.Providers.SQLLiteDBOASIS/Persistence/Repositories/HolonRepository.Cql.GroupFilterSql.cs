@@ -115,7 +115,7 @@ public partial class HolonRepository
             }
             object value = literal.Value;
             if (left.DecimalKey && value != null)
-                return GroupComparison(left, new GroupFilterCell { Value = Bind(SqliteCqlNumericKeys.Key((decimal)value)),
+                return GroupComparison(left, new GroupFilterCell { Value = Bind(CosmicNumericScalarResults.DecimalOrderKey((decimal)value)),
                     DecimalKey = true, Type = path.ValueType }, operation);
             if (literal.Kind == CosmicQueryScalarKind.Guid) value = ((Guid)value).ToString("D");
             else if (literal.Kind == CosmicQueryScalarKind.UtcDateTime) value = SqliteCqlDate.Literal((DateTime)value);

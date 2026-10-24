@@ -23,6 +23,11 @@ public sealed class NeoCqlGroupedOrderingTests
         var query = CosmicQuery<Holon>.Create().GroupBy(h => h.Name)
             .Select(g => new { Total = g.Sum(h => h.Version), Mean = g.Average(h => h.Version) }).Result;
         Assert.IsFalse(Neo4jOASIS.CqlGroupedCapabilities.Admit(query.OrderBy(g => g.Total).Result).IsError);
-        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Neo4jOASIS.CqlGroupedCapabilities.Admit(query.OrderBy(g => g.Mean).Result).ErrorCode);
+        var capability = Neo4jOASIS.CqlGroupedCapabilities;
+        Assert.IsFalse(capability.Admit(query.OrderBy(g => g.Mean).Result).IsError);
+        var sumOnly = new CosmicGroupedCapabilities(capability.KeyCapabilities, capability.AggregateCapabilities,
+            new CosmicGroupedOrderingCapabilities(capability.OrderingCapabilities.KeyTypes,
+                capability.OrderingCapabilities.Aggregates.Where(value => value.Operation != CosmicScalarOperation.Average).ToArray()));
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", sumOnly.Admit(query.OrderBy(g => g.Mean).Result).ErrorCode);
     }
 }
