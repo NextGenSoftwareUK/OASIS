@@ -22,54 +22,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
     public partial class ActivityPubOASIS
     {
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IHolon>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Load holon from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/statuses/{id}";
-                
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse ActivityPub JSON and create Holon object
-                    var holon = ParseActivityPubToHolon(content);
-                    if (holon != null)
-                    {
-                        response.Result = holon;
-                        response.Message = "Holon loaded from ActivityPub successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holon from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => Task.FromResult(RejectProjectionGuid<IHolon>());
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {

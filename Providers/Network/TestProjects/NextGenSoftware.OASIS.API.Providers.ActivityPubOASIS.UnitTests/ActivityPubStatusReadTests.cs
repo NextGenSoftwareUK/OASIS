@@ -5,6 +5,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.UnitTests;
 
 public class ActivityPubStatusReadTests
 {
+    [Theory]
+    [InlineData(0,false,false)][InlineData(0,false,true)][InlineData(0,true,false)][InlineData(0,true,true)]
+    [InlineData(1,false,false)][InlineData(1,false,true)][InlineData(1,true,false)][InlineData(1,true,true)]
+    [InlineData(2,false,false)][InlineData(2,false,true)][InlineData(2,true,false)][InlineData(2,true,true)]
+    public async Task ProjectionGuidCannotBeSentAsNativeStatusId(int kind,bool sync,bool empty)
+    {
+        var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
+        var id=empty?Guid.Empty:Guid.NewGuid();
+        if(kind==0)Check(sync?provider.LoadHolon(id):await provider.LoadHolonAsync(id));
+        else if(kind==1)Check(sync?provider.LoadAvatar(id):await provider.LoadAvatarAsync(id));
+        else Check(sync?provider.LoadAvatarDetail(id):await provider.LoadAvatarDetailAsync(id));
+        Assert.Equal(0,transport.Calls);
+        static void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result){
+            Assert.True(result.IsError);Assert.IsType<NotSupportedException>(result.Exception);
+            Assert.Null(result.Result);Assert.False(result.IsLoaded);Assert.Equal(0,result.LoadedCount);
+        }
+    }
     [Fact]
     public async Task LegacyNativeParserAndPointReadHaveOneIdentityAndProjection()
     {

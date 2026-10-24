@@ -14,6 +14,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
 
 public partial class ActivityPubOASIS
 {
+    private static OASISResult<T> RejectProjectionGuid<T>()
+    {
+        var result=new OASISResult<T>();
+        OASISErrorHandling.HandleError(ref result,"Use the native Mastodon account/status key; projection GUIDs are not reversible native IDs.",
+            new NotSupportedException("An OASIS projection GUID has no reversible Mastodon native identity."));
+        return result;
+    }
     private async Task<OASISResult<IHolon>> ReadMastodonStatusAsync(string key,bool children,bool providerChildren,int depth,int version,bool recursive)
     {
         var result=new OASISResult<IHolon>();

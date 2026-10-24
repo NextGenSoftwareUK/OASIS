@@ -156,12 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         // Holon methods
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref response,"Use the native Mastodon status key for reply lookups; projection GUIDs are not native account or status IDs.",
-                new NotSupportedException("An OASIS projection GUID has no reversible Mastodon native identity."));
-            return Task.FromResult(response);
-        }
+            => Task.FromResult(RejectProjectionGuid<IEnumerable<IHolon>>());
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
