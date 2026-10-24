@@ -25,6 +25,8 @@ else if(input.operation==='view'&&input.methodName==='nft_token')result=process.
 else if(input.operation==='call'&&['nft_transfer','nft_burn'].includes(input.methodName))result={transactionHash:'controlled-original-nft-transaction'};
 else throw new Error('Unexpected fixture operation; wallet followup must not precede verified ownership.');
 if(result?.transactionHash)result.outcome={transaction_outcome:{id:result.transactionHash},
-  transaction:{signer_id:input.accountId,receiver_id:input.operation==='transfer'?input.receiverId:input.targetContractId},
+  transaction:{signer_id:input.accountId,receiver_id:input.operation==='transfer'?input.receiverId:input.targetContractId,
+    actions:[input.operation==='transfer'?{Transfer:{deposit:input.amountYocto}}:{FunctionCall:{method_name:input.methodName,
+      deposit:input.depositYocto,gas:Number(input.gas),args:Buffer.from(JSON.stringify(input.args??{})).toString('base64')}}]},
   final_execution_status:'FINAL',status:{SuccessValue:''}};
 process.stdout.write(JSON.stringify({ok:true,result}));
