@@ -1,5 +1,13 @@
 # ActivityPub provider implementation audit
 
+## Projection GUID point-read boundary corrected — 24 October
+
+Removed three obsolete generated avatar/avatar-detail/holon GUID loaders that sent OASIS projection GUIDs directly to Mastodon account/status endpoints and used inconsistent generic parsers. Projection IDs are one-way instance/category/native-ID hashes, not reversible native IDs. A single explicit NotSupportedException result owner now serves these overloads and existing parentGUID rejection, before activation/HTTP; native-key/account-handle/status/context implementations unchanged. No guessed reverse lookup, ephemeral identity registry, private-record publication or fictitious GUID capability added. Generic GUID-based storage remains unsupported by this public-social adapter; that limitation is NOT counted as implemented native storage.
+
+Twelve empty/nonemptyGUID×sync/async×three-record-kind cases genuinely failed before fix; full183controlledPASS0skip228ms. Fresh8/8GET-only live public nativePASS0skip9s at original mastodon.social/hachyderm.io fixtures verifies native key/profile/status/author/timeline/reply paths still work. No token/account/post/delete/federation write or service setup. Actual60310terminal0, native/controlled Core740/ABD06B39 Shared55/A1F5D1D8 source/copies matched, provider10PDB/source and all consumer DLLsED74E9F5 verified. Exact reports/resource lifecycle in inventory. Authenticated ownership/search/authorized social writes, generic capability policy and fullV2 remainOPEN; publicGET green is not all-provider certification.
+
+Missing pinned Moq4.20.70 cache prevented the first admitted build; sameproject --no-dependencies restore recovered it in shared cache, no version change/environment. Earlier lease refusals while Neo test was live were waits, not baseline results. No deployment/dev merge in this batch.
+
 ## Fresh public-native refresh and relationship-write scope — 2026-10-20
 
 Inspected private holon save contract: ActivityPub deliberately returns `RejectPrivateRecordStorage` rather than projecting private OASIS graph records into public statuses. There is no captured private relationship-plan writer to patch here. Do not force the SOLID/Cosmos persistence fix into this public-social adapter or count native unsupported private-record storage as implemented. Public reply graphs retain native status/context semantics; authenticated authorized social operations are a separate acceptance scope.
