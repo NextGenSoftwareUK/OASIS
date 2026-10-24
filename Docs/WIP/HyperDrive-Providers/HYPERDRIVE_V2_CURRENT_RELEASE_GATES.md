@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Mongo historical export — confirmed native blocker,24 October 2026
+
+Actual8829 terminal1: real Version1 save and Version2 replacement both acknowledged; current export returns replacement, but ExportAllAsync(1) returns empty (Assert.Single at MongoExportNativeTests.cs:47). This is a reproduced missing-history contract, not SDK connectivity or fixture setup failure. Native writer uses whole-document CAS replacement without archiving old payload; provider revision rotation does not preserve history. Separate historical acceptance mode intentionally remains red until durable history is implemented across mutation owners and reads. Marked cosmic_cql_fixture retained; owned service stopped, no automatic cleanup/replay. Existing8 current-owner cases remain independently green. No dev merge/deploy or Mongo completion claim.
+
 ## Mongo avatar export scope — native verified,24 October 2026
 
 Actual9433 terminal0:8 native owner-export cases plus1 replica initialization PASS0skip on retained replica set. All4 selectors sync/async preserve canonical metadata/counts, exclude foreign creator for scoped exports, and leave exact Holon BSON unchanged. Earlier full278unit PASS is a separate build cohort; native current source/copy gate Core735/Shared55 passes. Exact reports/resources in ENVIRONMENT_INVENTORY.md. This closes current owner/payload routing only: Mongo historical/-1 export contract, hosted and fullV2 remain OPEN; no universal/provider100% or deployment claim.
