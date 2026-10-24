@@ -1,5 +1,9 @@
 # Oracle client readiness — top priority
 
+## 24 October — shared Core visibility compatibility
+
+Fresh **419 Oracle SQL unit** and **127 OCI signed-SDK loopback** tests passed, zero skips, after the shared Core c2ab34af5bc202ca48d095b2f14e439d1cc43031 visibility repair. Core2451 and BigQuery860 regression also passed. All eight default scoped collection routes now filter descendants, preserve source graphs/role observations and prevent filtered views from replacing hidden child membership. Oracle provider overrides/native access predicates are not universally proven by these shared controls. Compiled source/copies verified; same caches/outputs, no download/restore/new environment/cloud request or database start. Prior498 native SQL cohort is not rerun/relabelled here. Hosted Autonomous/OCI IAM/wallet/security/durability/fees and full Oracle V2 remain OPEN: **Oracle is not100% complete**. Exact reports/lifecycle in ENVIRONMENT_INVENTORY.md; shared contract in SHARED_RECORD_HISTORY.md. Task branch only, no dev/master deployment.
+
 ## 24 October — complete storage dispatch ownership checked
 
 Actual compiled interface maps cover94public storage entries plus2database version-control property entries. Targets resolve to OracleDBOASIS,reviewed shared karma/event owners or existing visibility-scoped interface defaults; no unexpected abstract/base owner found. Full419unitPASS0skip730ms,current-source Core742/Shared56/Oracle15/unit30 and provider copies verified. This is structural ownership,NOT correctness of every body/option/native operation. The first test erroneously requested IOASISNETProvider,which Oracle does not advertise; original420case report retains that fixture failure(419passed/1failed),not a provider regression. Corrected audit covers the actual two declared storage contracts; no peer-network functionality was removed or newly implemented.
