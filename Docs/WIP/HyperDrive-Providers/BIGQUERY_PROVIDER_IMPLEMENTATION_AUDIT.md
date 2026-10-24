@@ -1,5 +1,13 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## Shared search contract replaces divergent matcher — 24 October
+
+Full331controlledPASS0skip3seconds,including36new genuine before-fix failures. Replaced provider-only text/metadata/any-group matchers with existing Shared.StoredRecordSearch.Validate/Matches and Core.StoredRecordJson query projection. Query is validated,captured and validated before the first awaited source read. Shared behavior now supplies numeric/date comparisons,ordered AND/OR,implicit targets,avatar ownership by CreatedByAvatarId,avatar metadata scope and recursive parent ancestry. This aligns BigQuery with the existing Oracle/shared contract rather than inventing provider-specific semantics. Returned root counts/loaded flags are explicit.
+
+Any required collection-source failure now returns error with original exception and no successful or partial payload,regardless of continueOnError. That flag still reaches graph read options; it cannot make an incomplete search complete. Null/current-owner-without-ID/invalid-mode/blank-text/negative-depth requests reject before SDK I/O. Explicit historical search now truthfully rejects via the existing shared validator instead of silently returning current data; implementing history remains OPEN,not counted as done.
+
+The same existing collection read owners and official SDK remain responsible for actual I/O. No independent search index,persistence engine,retry or alternative matcher. Parent ancestry selection is not child graph materialization; child-loading options/graph writer/native hosted semantics still need full implementation/verification. Source/PDB Core742/Shared56/provider4/unit8 and copies verified; tests use controlled SDK results only,no cloud request. Exact reports/resources in inventory.
+
 ## Shared metadata matching and root-type filtering — 24 October
 
 Full295controlledPASS0skip3seconds. Twenty focused baseline cases yielded16genuine failures/4already-correct All-type controls:4culture-dependent decimal comparisons,4caller dictionary mutation races,and8ignored explicit root-type selectors. Primary all/parent collections now filter the requested HolonType alongside deletion; All remains unrestricted,Default remains an actual type consistent with ordinary storage collections. Graph loading remains OPEN.

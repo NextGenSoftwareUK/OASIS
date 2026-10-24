@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+BigQuery sharedsearch24October:331controlledPASS0skip;36genuine red cases cover numeric/date/AND/implicit targets/queryownership/recursiveparent/avatarownership+metadata/sourceerrors/admission. Existing Shared.StoredRecordSearch and Core query projection replace local matcher; actual SDK collectionowners retained. No fabricated partial success on required source failure. Search history truthfully unsupported pending implementation; full native/cloud/graph/fees/V2 remainOPEN. Audit/inventory document bounds.
+
 BigQuery metadata/type24October:295controlledPASS0skip. Shared StoredRecordSearch matcher now owns metadata equality/AnyAll/invariant decimals; query dictionary captured beforeawait. Primary collections honor explicit rootHolonType and metadata results expose loaded counts.16genuine failures reproduced; additional empty/null/error/admission controls retained. Not graph/history/native cloud/index/cost/V2 acceptance; audit/inventory record scope.
 
 BigQuery delete24October:261controlledPASS0skip. Shared existing save acknowledgement owner now validates hard DELETE; original job/cause retained on null/non-one-row/misbound/lost outcomes. Public holon wrappers preserve Core replay-containment exception and deletion counts. No native cloud/server semantics or durable recovery proof; paired lifecycle/concurrency/fullV2 open. Original36plus8red and4missing-record regressions documented in audit/inventory.
