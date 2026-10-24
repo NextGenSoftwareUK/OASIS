@@ -21,9 +21,10 @@ public sealed class CosmicGroupedPagingTests
         Assert.Same(original.Source, paged.Source);
         Assert.Equal(3, paged.Source.Offset); Assert.Equal(20, paged.Source.Limit);
         Assert.Equal(0, original.ResultOffset); Assert.Null(original.ResultLimit);
-        var reordered = paged.OrderByDescending(value => value).Result;
-        Assert.Equal(2, reordered.ResultOffset); Assert.Equal(3, reordered.ResultLimit);
-        Assert.Equal(1, reordered.Orderings.Count);
+        Assert.Equal("CQL_COMPOSITION_UNSUPPORTED", paged.OrderByDescending(value => value).ErrorCode);
+        var orderedPage = original.OrderByDescending(value => value).Take(5).Skip(2).Result;
+        Assert.Equal(2, orderedPage.ResultOffset); Assert.Equal(3, orderedPage.ResultLimit);
+        Assert.Equal(1, orderedPage.Orderings.Count);
     }
 
     [Fact]
