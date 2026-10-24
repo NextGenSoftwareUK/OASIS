@@ -955,7 +955,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)=>DeleteHolonRecordAsync(id,false);
+
+        protected Task<OASISResult<IHolon>> DeleteHolonRecordAsync(string key,bool softDelete)
+            =>ParseKey(key,out var id)?DeleteHolonRecordAsync(id,softDelete):Task.FromResult(InvalidProviderKey<IHolon>());
+
+        /// <summary>Single shared lifecycle owner. Existing generic DeleteHolon remains hard-delete;
+        /// adapters with an explicit soft-delete contract can reuse the same protected observation/history path.</summary>
+        protected async Task<OASISResult<IHolon>> DeleteHolonRecordAsync(Guid id,bool softDelete)
         {
             var acknowledged=new List<string>();
             try
@@ -964,6 +971,16 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 var (record,observed)=await ReadForMutationAsync<IHolon>(key,conditional);
                 var holon=await ReadVersionAsync(key,record,0);
                 if (holon == null) return Fail<IHolon>($"Holon {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
+                if(softDelete){
+                    if(holon.IsDeleted)return new OASISResult<IHolon>(holon){IsDeleted=true,DeletedCount=0};
+                    var proposal=OasisJson.Deserialize<IHolon>(OasisJson.Serialize(holon));
+                    proposal.DeletedDate=DateTime.UtcNow;proposal.IsActive=false;
+                    if(conditional==null){
+                        await StampVersionAsync(key,proposal,holon,acknowledged);
+                        await PutAcknowledgedAsync(key,OasisJson.Serialize(proposal),acknowledged);
+                    }else await WriteObservedLifecycleAsync(key,proposal,holon,observed,conditional,acknowledged);
+                    return new OASISResult<IHolon>(proposal){IsDeleted=true,DeletedCount=1};
+                }
                 if(conditional==null){
                     if(holon.ParentHolonId!=Guid.Empty)await DeleteAcknowledgedAsync(ParentKey(holon.ParentHolonId,id),acknowledged);
                     foreach(var childLink in await Backend.ListKeysAsync(ParentPrefix(id)))await DeleteAcknowledgedAsync(childLink,acknowledged);
@@ -986,7 +1003,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     foreach(var link in links)await DeleteObservedAcknowledgedAsync(conditional,link.Key,link.Value,acknowledged);
                     foreach(var version in versions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
                 }
-                return new OASISResult<IHolon>(holon) { IsDeleted = true, Message = $"Holon {id} deleted from {Name}." };
+                return new OASISResult<IHolon>(holon) { IsDeleted = true, DeletedCount=1, Message = $"Holon {id} deleted from {Name}." };
             }
             catch (Exception ex) { return Fail<IHolon>($"Error deleting holon {id}: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
