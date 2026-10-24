@@ -1,5 +1,7 @@
 # SOLID provider implementation audit
 
+24October startup-admission closure: actualLinuxlistener first20.284s, immediateRUNNING-only request was premature. Reused strict shared listener observer now gates both test-host entrypoints beforefirstSDK request, no provider-operation retry/newruntime/configchange. FrozenoneauthenticatedreadPASS followedby matchedcurrent362controlled/6retainednativePASS0skip63s; Core743/Shared56/SOLID13/unit29/native7PDB/source/copies verified. Native6encryptedCRUD/privateDPoP/history/conditional/graph fixtures cleaned, pending0. Originalfailures/oldnative report retained, currentnativeSHA9DF1D436...; exact resources in inventory/authenticationdocs. Same pinned image/volume/identity, no download/restore/newenvironment/spend. Shutdown137stillrequiresSIGKILLafter30s; initwrapperapprovalpending, not fixed/gracefulcertified. HostedOIDC/ACL/security/fullinterface/nativefault/durability/fullV2 remainOPEN, not100%SOLID.
+
 24October token completion repair:4genuine failures/1validcontrol →362unitPASS0skip. Existing DPoP token owner now requiresHTTP200before caching/publication;201/202/203/206cannotdispatch resources. Next explicitrequestcanacquirenewtoken,noautomaticmutationretry. Source/copies verified,no service startup. Retained server remainsEXITED137; renewed readiness-diagnostic approval pending. Cold transport abort is distinct and stillunresolved. Details and RFC6749source in SOLID_AUTHENTICATION.md,exact resources in inventory. No native/fullprovider/V2completionclaim.
 
 ## Read acknowledgement counts repaired — 24 October
