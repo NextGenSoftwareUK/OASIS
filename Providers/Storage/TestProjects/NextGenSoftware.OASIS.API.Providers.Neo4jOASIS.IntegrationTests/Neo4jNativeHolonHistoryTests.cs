@@ -84,9 +84,10 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse(currentExport.IsError,currentExport.Message);Assert.AreEqual(3,currentExport.Result.Single(h=>h.Id==root.Id).Version);
             var owned=synchronous?provider.ExportAllDataForAvatarById(owner.Id,1):await provider.ExportAllDataForAvatarByIdAsync(owner.Id,1);
             Assert.IsFalse(owned.IsError,owned.Message);Assert.AreEqual(root.Id,owned.Result.Single().Id);Assert.AreEqual(1,owned.Result.Single().Version);
-            var byUsername=synchronous?provider.ExportAllDataForAvatarByUsername($"export-old-{marker}",1):await provider.ExportAllDataForAvatarByUsernameAsync($"export-old-{marker}",1);
+            // Identity selects the current avatar; version independently selects holon roots.
+            var byUsername=synchronous?provider.ExportAllDataForAvatarByUsername(owner.Username,1):await provider.ExportAllDataForAvatarByUsernameAsync(owner.Username,1);
             Assert.IsFalse(byUsername.IsError,byUsername.Message);Assert.AreEqual(root.Id,byUsername.Result.Single().Id);
-            var byEmail=synchronous?provider.ExportAllDataForAvatarByEmail($"old-{marker}@example.invalid",1):await provider.ExportAllDataForAvatarByEmailAsync($"old-{marker}@example.invalid",1);
+            var byEmail=synchronous?provider.ExportAllDataForAvatarByEmail(owner.Email,1):await provider.ExportAllDataForAvatarByEmailAsync(owner.Email,1);
             Assert.IsFalse(byEmail.IsError,byEmail.Message);Assert.AreEqual(root.Id,byEmail.Result.Single().Id);
             var absentOwner=await provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid(),1);
             Assert.IsFalse(absentOwner.IsError,absentOwner.Message);Assert.AreEqual(0,absentOwner.Result.Count());
