@@ -13,6 +13,27 @@ public class SolidDpopTests
     }
     private static readonly Uri Root=new("https://pod.invalid/private/");
     private static readonly Uri TokenEndpoint=new("https://issuer.invalid/token");
+    [Theory][InlineData(200)][InlineData(201)][InlineData(202)][InlineData(203)][InlineData(206)]
+    public async Task TokenRequiresCompletedOAuthResponseBeforeResourceDispatch(int status)
+    {
+        var tokens=0;var resources=0;
+        var issuer=new CallbackTransport((request,cancellation)=>{
+            var responseStatus=++tokens==1?(HttpStatusCode)status:HttpStatusCode.OK;
+            return Task.FromResult(new HttpResponseMessage(responseStatus){Content=new StringContent("{\"access_token\":\"owned-token\",\"token_type\":\"DPoP\",\"expires_in\":3600}",Encoding.UTF8,"application/json")});
+        });
+        var transport=new CallbackTransport((request,cancellation)=>{
+            resources++;Assert.Equal("owned-token",request.Headers.Authorization!.Parameter);
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+        });
+        using var client=new HttpClient(new SolidDpopClientCredentialsHandler(Root,TokenEndpoint,"client","secret",transport,issuer));
+        if(status==200){using var first=await client.GetAsync(new Uri(Root,"record"));Assert.Equal(HttpStatusCode.OK,first.StatusCode);}
+        else{
+            await Assert.ThrowsAsync<InvalidDataException>(()=>client.PutAsync(new Uri(Root,"record"),new StringContent("must not dispatch")));
+            Assert.Equal(0,resources);Assert.Equal(1,tokens);
+        }
+        using var next=await client.GetAsync(new Uri(Root,"record"));Assert.Equal(HttpStatusCode.OK,next.StatusCode);
+        Assert.Equal(status==200?1:2,tokens);Assert.Equal(status==200?2:1,resources);
+    }
     private sealed class TokenTransport(string mode="valid"):HttpMessageHandler
     {
         public int Calls;public string? PublicX;
