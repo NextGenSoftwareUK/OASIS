@@ -444,6 +444,7 @@ public class OracleObjectSdkTests
         using var client=Client();using var stopped=new CancellationTokenSource();
         var objects=new System.Collections.Concurrent.ConcurrentDictionary<string,string>(StringComparer.Ordinal);
         var conditionalCreates=0;var conditionalReplacements=0;var conditionalDeletes=0;
+        Action? beforeListReply=null;
         var server=Task.Run(async()=>{
             while(!stopped.IsCancellationRequested) {
                 HttpListenerContext context;
@@ -455,7 +456,9 @@ public class OracleObjectSdkTests
                     if(context.Request.HttpMethod=="HEAD"){await Reply(context,200,"");continue;}
                     if(path=="/n/ns/b/bucket/o") {
                         Assert.AreEqual("GET",context.Request.HttpMethod);var prefix=context.Request.QueryString["prefix"]??"";
-                        await Reply(context,200,System.Text.Json.JsonSerializer.Serialize(new{objects=objects.Keys.Where(key=>key.StartsWith(prefix,StringComparison.Ordinal)).Select(key=>new{name=key}).ToArray()}));continue;
+                        var listing=objects.Keys.Where(key=>key.StartsWith(prefix,StringComparison.Ordinal)).Select(key=>new{name=key}).ToArray();
+                        Interlocked.Exchange(ref beforeListReply,null)?.Invoke();
+                        await Reply(context,200,System.Text.Json.JsonSerializer.Serialize(new{objects=listing}));continue;
                     }
                     StringAssert.StartsWith(path,objectPath);var key=Uri.UnescapeDataString(path[objectPath.Length..]);
                     StringAssert.Matches(key,new System.Text.RegularExpressions.Regex("^(?:oasis|isolated)/oasis/private/v1/[a-f0-9]{64}$"));
@@ -534,6 +537,14 @@ public class OracleObjectSdkTests
             Assert.AreEqual("private-holon",(await provider.LoadHolonAsync(holon.Id,loadChildren:false,version:1)).Result.Name);
             var selected=synchronous?provider.LoadHolonsByMetaData("tag","private-tag",loadChildren:false):await provider.LoadHolonsByMetaDataAsync("tag","private-tag",loadChildren:false);
             Assert.IsFalse(selected.IsError,selected.Message);Assert.AreEqual(holon.Id,selected.Result.Single().Id);
+            var beforeMetadata=objects.ToDictionary(pair=>pair.Key,pair=>pair.Value);var beforeMetadataWrites=conditionalCreates+conditionalReplacements+conditionalDeletes;
+            foreach(var version in new[]{0,1})foreach(var mode in new[]{NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.Any}){
+                var pairs=new Dictionary<string,string>{{"tag","private-tag"}};beforeListReply=()=>pairs["tag"]="not-the-original-query";
+                var captured=synchronous?provider.LoadHolonsByMetaData(pairs,mode,loadChildren:false,version:version):await provider.LoadHolonsByMetaDataAsync(pairs,mode,loadChildren:false,version:version);
+                Assert.IsFalse(captured.IsError,captured.Exception?.ToString());Assert.AreEqual(1,captured.LoadedCount);Assert.AreEqual(holon.Id,captured.Result.Single().Id);Assert.AreEqual(version==0?2:1,captured.Result.Single().Version);
+                Assert.AreEqual("not-the-original-query",pairs["tag"],"Mutation must occur inside the signed SDK list exchange.");Assert.IsNull(beforeListReply);
+            }
+            Assert.AreEqual(beforeMetadataWrites,conditionalCreates+conditionalReplacements+conditionalDeletes);Assert.AreEqual(beforeMetadata.Count,objects.Count);foreach(var pair in beforeMetadata)Assert.AreEqual(pair.Value,objects[pair.Key],"Metadata queries cannot rewrite encrypted objects/history.");
             Assert.IsTrue(objects.Count>0);
             foreach(var value in objects.Values)foreach(var marker in new[]{avatar.Username,avatar.Email,avatar.Id.ToString(),holon.Name,"private-tag"})Assert.IsFalse(value.Contains(marker,StringComparison.Ordinal));
             var beforePairCreates=conditionalCreates;var beforePairReplacements=conditionalReplacements;

@@ -1,5 +1,7 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+24 October sharedmetadatafollow-up: selectedAWS/S376 andfullcontrollededge98 PASS0skip, samecachedofficialS3SDK3.7.502. New2S3cases mutatecallerqueryduring signedSDK paginatedlisting; current/version1×Any/All preserves originalselection andencryptedbytes/history withoutwrites. Sharedbase1163/OCI119 alsoPASS, producer/source/copyidentityverified. Full98containsallselected76cases; finalfullreportretained, redundantsubsetcleanup recorded ininventory. Dynamo614unit/138native earliercohort notrerun forthiscommonkeyvaluebase-onlychange. HostedS3/cloudIAM/durability/billing andV2remainOPEN; no newenvironment/download/restore/cloudspend.
+
 ## Provisioning acknowledgement integrity — 24 October
 
 `EnsureTableAsync` previously discarded CreateTableResponse and could activate after malformed creation evidence if a later DescribeTable looked valid. Eighteen sync/async controls first produced14failures/4valid passes. The single provisioning owner now requires HTTP200, a description naming the exact requested table, and CREATING/ACTIVE status before existing readiness polling. Invalid/null/mismatched responses stop inactive without another native request; no retry, fallback or fabricated acknowledgement.
