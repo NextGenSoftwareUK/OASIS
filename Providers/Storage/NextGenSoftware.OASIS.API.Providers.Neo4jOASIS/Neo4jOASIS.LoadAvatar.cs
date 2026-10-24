@@ -46,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     
                     response.Result = avatars;
                     response.IsLoaded = true;
+                    response.LoadedCount = avatars.Count;
                     response.IsError = false;
                     response.Message = "All avatars loaded successfully from Neo4j";
                 }

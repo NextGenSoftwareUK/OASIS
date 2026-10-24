@@ -47,6 +47,7 @@ public partial class Neo4jOASIS
                 result.Result = root;
             }
             result.IsLoaded = true;
+            result.LoadedCount = 1;
         }
         catch (Exception cause)
         {
