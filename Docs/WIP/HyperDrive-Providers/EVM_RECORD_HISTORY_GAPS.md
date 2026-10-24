@@ -1,5 +1,13 @@
 # EVM record history: current gap and reuse map
 
+## Shared Web3 NFT request ownership — 24 October 2026
+
+Transfer and burn reread mutable caller fields after their signing-gate await; burn could query ownership on a different contract than the originally supplied one. Three controlled public-boundary cases genuinely failed (two transfer contract-validation cases, one burn actual Nethereum ABI owner-read target), then passed after the existing owners captured consumed scalar request fields before validation/await. Signing material is copied only in memory, never serialized. Existing signer/preparation checks, native SDK submission and receipt verification remain unchanged; no retry or alternate storage/transaction path.
+
+Full selected Web3 controlled suite **179/179 PASS, zero skips, 1 second**, excluding native storage, recovery-process, retained-outbox inspection and SQLite native-fault classes exactly as prior controlled cohorts. Producer35/unit41 source documents verified; Core741/Shared56 copies verified. This is not live-chain NFT or complete provider/V2 certification. Standalone Ethereum has a separate similar mutable-request pattern in `EthereumOASIS.WithdrawNFT.cs`; it is NOT fixed by shared Web3 inheritance and remains the next implementation task. Original routing.db uncertainty remains untouched; no node, network, signing, gas, replay or reset used by the new tests.
+
+Reports/resources/hashes are recorded in ENVIRONMENT_INVENTORY.md. No dev deployment is implied.
+
 ## Shared Web3 returned-root counts repaired — controlled176, 23 October 2026
 
 The common Web3 read owners now set point counts1, materialized collection/filter/export/nearby counts to returned roots, and search envelope counts to NumberOfResults. Graph projection failure clears loaded state/count. Polygon and the Arbitrum V2 wrapper inherit this repair; no per-provider duplicate, SDK/storage/encryption rewrite, extra RPC or retry. Credential selectors already use the correctly counting shared wallet-selector helper and were not rewritten.
