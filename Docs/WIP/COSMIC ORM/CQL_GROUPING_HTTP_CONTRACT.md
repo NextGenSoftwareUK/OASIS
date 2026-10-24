@@ -41,3 +41,10 @@ The OASISResult result contains version `cql-grouped-v1`, concrete provider, col
 ## Evidence and remaining work
 
 Full 2,271 controlled Core/linked-production tests pass, zero skips, including seven request compiler controls and four endpoint cases (exact wire domains/durable attempt across three provider types, plus malformed request rejected before provider resolution). Evidence: TestResults/CoreCurrent/cql-grouped-http-{compiler,endpoint}-current.trx and TestResults/CosmicCqlDemo/grouped-http-{compiler,endpoint}.log. The shared typed scalar visitor also retains all existing scalar endpoint controls. Native grouped provider tests predate this HTTP route; they do not prove live HTTP acceptance. Grouped HTTP demos, live three-provider acceptance and post-group composition remain open.
+
+
+## Live acceptance finding - 24 October2026
+
+The first expanded native demo completed45 SDK queries, then rejected the first grouped HTTP example with CQL_ADMISSION_REQUIRED. The demo host's path predicate omitted grouped, so storage admission never ran. The configured production tariff guard also only recognized row/scalar paths, omitting projection/grouped. Core now provides CosmicQueryHttpRoutes: an exact immutable four-leaf registry used by startup tariff validation and the native demo host's admission/Swagger predicates. Prefix lookalikes are rejected. Both Core targets and2,280 unit tests pass0skip, including nine registry controls.
+
+PrivateCore65c368f1acc35c217a35e3d002ff14c2843cf2a5 is paired with parent pin. Native consumer refresh, exact failed-fixture reconciliation and rerun remain pending. Do not treat the45/45demo as passed: the preserved fixture is awaiting review. Existing configured hosts must explicitly register authenticated storage admission and query tariffs for the grouped route.
