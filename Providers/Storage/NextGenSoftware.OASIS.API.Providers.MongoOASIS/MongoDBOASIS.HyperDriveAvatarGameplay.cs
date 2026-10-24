@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.Common;
@@ -204,9 +206,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 return GameplayRejected("The target clan identity is required.");
 
             var holonCollection = Database.MongoDB.GetCollection<MongoHolon>("Holon");
-            var clan = await holonCollection.Find(session, x => x.HolonId == payload.TargetClanId.Value &&
-                    x.HolonType == HolonType.Clan)
-                .SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            var clanFilter=Builders<MongoHolon>.Filter.Where(x=>x.HolonId==payload.TargetClanId.Value && x.HolonType==HolonType.Clan && x.DeletedDate==DateTime.MinValue);
+            var rendered=clanFilter.Render(new RenderArgs<MongoHolon>(holonCollection.DocumentSerializer,holonCollection.Settings.SerializerRegistry));
+            var rawClans=Database.MongoDB.GetCollection<BsonDocument>(holonCollection.CollectionNamespace.CollectionName,holonCollection.Settings);
+            var observed=await rawClans.Find(session,rendered).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            var clan=observed==null?null:BsonSerializer.Deserialize<MongoHolon>(observed);
             if (clan == null) return GameplayRejected("The target clan was not found.");
             clan.MetaData ??= new Dictionary<string, object>();
             if (!clan.MetaData.TryGetValue(ClanManager.ClanStateMetadataKey, out object stateValue))
@@ -260,11 +264,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             clan.MetaData[ClanManager.ClanStateMetadataKey] = JsonConvert.SerializeObject(clanState);
             clan.MetaData[HyperDriveAvatarGameplay.ClanReceiptMetadataKey] = JsonConvert.SerializeObject(clanReceipts);
             source.VersionId = Guid.NewGuid();
+            clan.PreviousVersionId=clan.VersionId;
+            clan.Version=checked(clan.Version+1);
             clan.VersionId = Guid.NewGuid();
-            await avatarCollection.ReplaceOneAsync(session, x => x.Id == source.Id, source,
+            var body=MongoNativeRecordWriter.PrepareHolonMutation(holonCollection,clan,observed);
+            var sourceSaved=await avatarCollection.ReplaceOneAsync(session, x => x.Id == source.Id, source,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
-            await holonCollection.ReplaceOneAsync(session, x => x.Id == clan.Id, clan,
+            if(!sourceSaved.IsAcknowledged || sourceSaved.MatchedCount!=1)return GameplayRejected("The source inventory update was not acknowledged.");
+            var clanSaved=await rawClans.ReplaceOneAsync(session,new BsonDocument("_id",observed["_id"]),body,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
+            if(!clanSaved.IsAcknowledged || clanSaved.MatchedCount!=1)return GameplayRejected("The clan inventory update was not acknowledged.");
             await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
             return new OASISResult<HyperDriveAvatarDetailProjection>(CreateEdgeAvatarDetailProjection(source));
         }

@@ -128,6 +128,7 @@ internal static class MongoNativeRecordWriter
 
     internal static BsonDocument PrepareHolonMutation(IMongoCollection<Holon> collection,Holon record,BsonDocument observed)
     {
+        PrepareIdentity(record);
         RotateHolonRevision(record);
         var body=SerializePayload(collection,record);
         if(observed!=null)
