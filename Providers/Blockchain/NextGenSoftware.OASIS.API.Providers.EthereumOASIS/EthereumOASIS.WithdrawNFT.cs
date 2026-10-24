@@ -305,6 +305,13 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                 var minter = transaction.MintedByAvatarId;
                 var requestedRecipient = transaction.SendToAddressAfterMinting;
                 var requestedCollection = transaction.CollectionPublicKey;
+                var memo = transaction.MemoText;
+                // NFTManager prepares public NFT metadata. Never serialize the
+                // administrative mint request (avatar/email/routing/signing controls).
+                // An omitted on-chain flag does not authorize publishing its JSON.
+                var metadataJson = Newtonsoft.Json.JsonConvert.SerializeObject(new {
+                    transaction.JSONMetaDataURL,
+                    JSONMetaData = transaction.StoreNFTMetaDataOnChain == true ? transaction.JSONMetaData : null });
                 if (requestedCollection != null
                     && (!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(requestedCollection)
                         || string.Equals(requestedCollection, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase)))
@@ -350,24 +357,23 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                     || string.Equals(nftContractAddress, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase))
                     throw new ArgumentException("NFT mint requires a configured nonzero contract address.");
                 
-                // ERC-721 mint function ABI (assuming contract has mint function)
-                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""mint"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
+                // Explicit maintained Web3CoreOASIS.sol extension, not a generic
+                // ERC-721 mint ABI. The contract owns allocation and metadata storage.
+                var erc721Abi = @"[{""inputs"":[{""name"":""to"",""type"":""address""},{""name"":""metadataJson"",""type"":""string""}],""name"":""mint"",""outputs"":[],""stateMutability"":""nonpayable"",""type"":""function""}]";
                 var erc721Contract = web3.Eth.GetContract(erc721Abi, nftContractAddress);
                 var mintFunction = erc721Contract.GetFunction("mint");
 
-                // Generate token ID (in production, this should be managed properly)
-                var tokenId = new BigInteger(DateTime.UtcNow.Ticks);
                 var mintToAddress = requestedRecipient ?? senderAccount.Address;
                 // Validate the actual configured mint extension/authorization before nonce or signing.
                 // ERC-721 itself does not standardize a mint function.
-                var mintGas = await mintFunction.EstimateGasAsync(senderAccount.Address, null, null, mintToAddress, tokenId);
+                var mintGas = await mintFunction.EstimateGasAsync(senderAccount.Address, null, null, mintToAddress, metadataJson);
 
                 dispatched = true;
                 var receipt = await SubmitNftAsync(web3, mintFunction,
                     senderAccount.Address,
                     mintGas,
                     mintToAddress,
-                    tokenId);
+                    metadataJson);
                 submittedHash = receipt.TransactionHash;
 
                 if (receipt.HasErrors() == true)
@@ -378,10 +384,11 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                     return result;
                 }
 
-                NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721MintReceipt.Verify(receipt, nftContractAddress, mintToAddress, tokenId);
+                var tokenId = NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721MintReceipt.Verify(receipt, nftContractAddress, mintToAddress);
                 result.Result.TransactionResult = receipt.TransactionHash;
                 result.Result.Web3NFT = new Web3NFT
                 {
+                    MemoText = memo,
                     TokenId = tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     NFTTokenAddress = nftContractAddress,
                     MintTransactionHash = receipt.TransactionHash,
