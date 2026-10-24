@@ -16,6 +16,30 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
 [TestClass]
 public class SharedS3WireTests
 {
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task Full_object_checksum_is_requested_and_corrupt_bytes_are_not_published(bool observed,bool valid)
+    {
+        const string body="tree 🌳";var calls=0;var requested=false;
+        using var service=new FakeService((request,bytes)=>{
+            calls++;Assert.AreEqual(HttpMethod.Get,request.Method);
+            requested=request.Headers.TryGetValues("x-amz-checksum-mode",out var modes)&&modes.Single()=="ENABLED";
+            var response=FakeService.Text(body);response.Headers.TryAddWithoutValidation("ETag","\"opaque-revision\"");
+            // Model the service contract: checksum metadata is requested, not assumed present.
+            if(requested){
+                response.Headers.TryAddWithoutValidation("x-amz-checksum-type","FULL_OBJECT");
+                response.Headers.TryAddWithoutValidation("x-amz-checksum-sha256",Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(valid?body:"different bytes"))));
+            }
+            return response;
+        });
+        using var client=new AmazonS3Client(new BasicAWSCredentials("synthetic-key","synthetic-secret"),new AmazonS3Config{
+            ServiceURL="https://s3.us-east-1.amazonaws.com",AuthenticationRegion="us-east-1",ForcePathStyle=true,MaxErrorRetry=0,HttpClientFactory=new HandlerHttpClientFactory(service)});
+        var backend=new Backend(client,"test-bucket");Exception failure=null;string result=null;
+        try{result=observed?(await backend.ReadObservedAsync("key"))?.Value:await backend.GetAsync("key");}catch(Exception cause){failure=cause;}
+        Assert.IsTrue(requested,"Whole-record SDK reads must request the uploaded native checksum.");Assert.AreEqual(1,calls,"No automatic retry or second HEAD may establish read integrity.");
+        if(valid){Assert.IsNull(failure,failure?.ToString());Assert.AreEqual(body,result);}
+        else{Assert.IsNotNull(failure,"Corrupt full-object bytes must not become a successful observation.");Assert.IsNull(result);}
+    }
+
     [TestMethod]
     public async Task Conditional_operations_are_sigv4_signed_and_send_native_headers()
     {
