@@ -28,6 +28,22 @@ public sealed class DynamoPointReadAcknowledgementTests
     }
     public static IEnumerable<object[]> Cases(){foreach(var kind in new[]{0,1,2})foreach(var mode in new[]{0,1,2,3})foreach(var sync in new[]{false,true})yield return new object[]{kind,mode,sync};}
 
+    public static IEnumerable<object[]> EmptyIdentityCases(){foreach(var kind in new[]{0,1,2})foreach(var version in new[]{0,1})foreach(var sync in new[]{false,true})yield return new object[]{kind,version,sync};}
+
+    [DataTestMethod][DynamicData(nameof(EmptyIdentityCases),DynamicDataSourceType.Method)]
+    public async Task EmptyIdentityRejectsBeforeSdkDispatch(int kind,int version,bool synchronous)
+    {
+        var provider=new DynamoDBOASIS("owned","owned","us-east-1");var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var original=(AmazonDynamoDBClient)field.GetValue(provider)!;using var probe=new Probe(4);field.SetValue(provider,probe);
+        try {
+            void Check<T>(OASISResult<T> result){Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);Assert.AreEqual(0,result.LoadedCount);Assert.IsInstanceOfType<ArgumentException>(result.Exception);}
+            if(kind==0)Check(synchronous?provider.LoadAvatar(Guid.Empty,version):await provider.LoadAvatarAsync(Guid.Empty,version));
+            else if(kind==1)Check(synchronous?provider.LoadAvatarDetail(Guid.Empty,version):await provider.LoadAvatarDetailAsync(Guid.Empty,version));
+            else Check(synchronous?provider.LoadHolon(Guid.Empty,loadChildren:false,version:version):await provider.LoadHolonAsync(Guid.Empty,loadChildren:false,version:version));
+            Assert.AreEqual(0,probe.Reads);
+        }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
+    }
+
     [DataTestMethod]
     [DataRow(0,false)][DataRow(0,true)][DataRow(1,false)][DataRow(1,true)][DataRow(2,false)][DataRow(2,true)]
     public async Task SuccessfulPointReadReportsOneReturnedRoot(int kind,bool synchronous)

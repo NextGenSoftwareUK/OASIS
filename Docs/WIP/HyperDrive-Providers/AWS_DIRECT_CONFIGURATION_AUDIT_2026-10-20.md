@@ -1,5 +1,13 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## Empty point identity admission — 24 October 2026
+
+Paired511unit refresh passed0skip against the same E9961A5D Core/54014791 Shared binaries as native171. Final current-source check then correctly failed on concurrently edited Core Queries/CosmicGroupedResults.cs; binary copy identity separately passed. This preserves matched executed-binary evidence, NOT certification of the newer unbuilt Core source. Retest the new Core cohort before deploying. Paired TRX779071B SHA2560AEFB9267C2956DA56C58A3F1E2B0BFD6B363025A6ACED0349EFD3B227636ABC.
+
+Native refresh now PASS: actual91672terminal0, existing retained DynamoDB Local full171/171, zero skips42s. Rebuilt consumers after concurrent Core release; source identity Core731/E9961A5D and Shared55/54014791 verified by runner. The earlier511unit cohort predates that Core rebuild and still needs a paired refresh. Native171 is healthy regression, not forced invalid-request cost measurement; hosted acceptance/full V2 remain open.
+
+SDK-controlled baseline12 cases:8 failed for avatar/detail,4 existing holon guards passed. A single point-read key helper now rejects Guid.Empty before SDK dispatch and reuses the existing native key encoder for all three record kinds. AWS inherits the Dynamo repair. Fixed full511/511 unit controls pass, zero skips; valid point-read/acknowledgement tests remain included. No parent/root/save-new semantics changed. Native refresh and hosted IAM/cost/full V2 acceptance remain pending; prior native171 is not relabelled as testing this change. No new environment/download/restore/cloud request. Exact reports/resources in ENVIRONMENT_INVENTORY.md.
+
 ## S3 SDK read-integrity baseline — 23 October 2026
 
 Follow-up policy override now reproduced and fixed: caller ResponseChecksumValidation=WHEN_REQUIRED caused all4new cases to omit checksum admission (default4still passed). The common S3 read now explicitly sets SDK GetObjectRequest.ChecksumMode=ENABLED, preserving the official SDK validator and one GET, not adding hashing/HEAD/retry/fallback. Current selected52/52passes0skip; default-only48 is historical. General-purpose SSE-KMS access must authorize kms:Decrypt per pinned SDK XML; review account key policy/charges before cloud acceptance. Unsupported compatible services must surface their real error, not retry without integrity. No cloud billing/IAM/composite/multipart proof is implied.
