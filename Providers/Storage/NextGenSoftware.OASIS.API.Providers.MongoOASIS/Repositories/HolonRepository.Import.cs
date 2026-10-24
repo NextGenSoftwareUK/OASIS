@@ -138,6 +138,9 @@ public partial class HolonRepository
                 }
                 // Native frontier preparation remains inside the snapshot, before the first write.
                 prepareBodies?.Invoke(bodies,observations);
+                foreach(var pair in bodies)
+                    if(observations.TryGetValue(pair.Key,out var original) && original!=null)
+                        MongoNativeHolonHistory.Stage(pair.Value,original);
                 // Validate the actual BSON representation before any native mutation or receipt.
                 if(replica!=null)
                     foreach(var body in bodies.Values)

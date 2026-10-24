@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization.Conventions;
@@ -179,9 +181,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             var result=new OASISResult<IEnumerable<IHolon>>();
             try {
-                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
                 if(owner.HasValue&&owner.Value==Guid.Empty)throw new ArgumentException("A nonempty export owner is required.",nameof(owner));
-                var loaded=await LoadAllHolonsAsync(loadChildren:false,version:version);
+                var loaded=await LoadMongoExportRootsAsync(version);
                 if(loaded.IsError)return loaded;
                 if(loaded.Result==null)throw new System.IO.InvalidDataException("Mongo export source returned no collection.");
                 result=NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
@@ -191,11 +193,35 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return result;
         }
 
+        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadMongoExportRootsAsync(int version)
+        {
+            if(version==0)return await LoadAllHolonsAsync(loadChildren:false);
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
+                if(!IsProviderActivated)
+                {
+                    var activation=await ActivateProviderAsync();
+                    if(activation.IsError)return NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<IHolon>>(activation);
+                }
+                var collection=Database.MongoDB.GetCollection<BsonDocument>(Database.Holon.CollectionNamespace.CollectionName);
+                var documents=await collection.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+                var records=documents.SelectMany(document=>MongoNativeHolonHistory.Read(document)).ToArray();
+                if(records.GroupBy(row=>(row.Id,row.Version)).Any(group=>group.Count()>1))
+                    throw new StorageIdentityAmbiguousException();
+                var selected=records.Where(row=>(version==-1 || row.Version==version) && row.DeletedDate==DateTime.MinValue).ToList();
+                result.Result=selected;result.IsLoaded=true;result.LoadedCount=selected.Count;
+            }
+            catch(Exception cause){OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+            return result;
+        }
+
         private async Task<OASISResult<IEnumerable<IHolon>>> ReadCanonicalMongoExportSelectorAsync(string selector,bool email,int version)
         {
             var result=new OASISResult<IEnumerable<IHolon>>();
             try {
-                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
                 if(string.IsNullOrWhiteSpace(selector))throw new ArgumentException("A nonblank export identity is required.",nameof(selector));
                 var owner=email?await LoadAvatarByEmailAsync(selector):await LoadAvatarByUsernameAsync(selector);
                 if(owner.IsError)return NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(owner);
