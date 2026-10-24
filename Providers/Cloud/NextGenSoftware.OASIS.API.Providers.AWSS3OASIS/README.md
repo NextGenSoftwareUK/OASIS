@@ -5,6 +5,11 @@ the official AWS SDK. This is distinct from `AWSOASIS`, which remains DynamoDB-b
 The shared key-value layer owns records, identity lookup, queries and history; the
 shared S3 layer owns SDK transport and native per-key preconditions.
 
+Listing completion must be internally consistent: a page marked complete cannot
+also advertise a next continuation token. Contradictory pages fail rather than
+publishing a potentially incomplete list or guessing another request. This follows
+the [S3 ListObjectsV2 contract](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html).
+
 Configure `OASIS.StorageProviders.AWSS3OASIS` with `Region`, `BucketName`, `KeyPrefix`
 (default `oasis/`), `UseDefaultCredentials`, and
 `StorageEncryptionKeyEnvironmentVariable` (default
