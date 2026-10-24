@@ -12,6 +12,72 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests;
 [TestClass]
 public class BigQueryCollectionTests
 {
+    public static IEnumerable<object[]> EmptyMetadataCases(){foreach(var sync in new[]{false,true})foreach(var any in new[]{false,true})foreach(var absent in new[]{false,true})yield return new object[]{sync,any,absent};}
+    [DataTestMethod][DynamicData(nameof(EmptyMetadataCases),DynamicDataSourceType.Method)]
+    public async Task EmptyMetadataFilterLoadsAllEvenWhenRecordMetadataIsNull(bool sync,bool any,bool absent)
+    {
+        var source=new Holon{Id=Guid.NewGuid(),MetaData=null!};var provider=Create(new Rows{Selected=new[]{Core.Serialization.StoredRecordJson.Serialize(source)}});
+        var filter=absent?null!:new Dictionary<string,string>();var mode=any?Core.Enums.MetaKeyValuePairMatchMode.Any:Core.Enums.MetaKeyValuePairMatchMode.All;
+        var result=sync?provider.LoadHolonsByMetaData(filter,mode,loadChildren:false):await provider.LoadHolonsByMetaDataAsync(filter,mode,loadChildren:false);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);Assert.AreEqual(source.Id,result.Result.Single().Id);
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task InvalidMetadataModeRejectsBeforeSdkDispatch(bool sync)
+    {
+        var called=false;var provider=Create(new Rows{Selected=Array.Empty<string>(),BeforeRead=()=>called=true});
+        var result=sync?provider.LoadHolonsByMetaData(new(),(Core.Enums.MetaKeyValuePairMatchMode)999,loadChildren:false):await provider.LoadHolonsByMetaDataAsync(new(),(Core.Enums.MetaKeyValuePairMatchMode)999,loadChildren:false);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.AreEqual(0,result.LoadedCount);Assert.IsNull(result.Result);Assert.IsFalse(called);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(result.Exception);
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task MetadataQueryKeepsOriginalReadFailureWithoutPartialResult(bool sync)
+    {
+        var cause=new IOException("Controlled read failure.");var provider=Create(new Rows{BeforeRead=()=>throw cause});
+        var result=sync?provider.LoadHolonsByMetaData("tag","oak",loadChildren:false):await provider.LoadHolonsByMetaDataAsync("tag","oak",loadChildren:false);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.AreEqual(0,result.LoadedCount);Assert.IsNull(result.Result);Assert.AreSame(cause,result.Exception);
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task NoMetadataMatchesIsLoadedEmptyResult(bool sync)
+    {
+        var provider=Create(new Rows{Selected=new[]{Core.Serialization.StoredRecordJson.Serialize(new Holon{Id=Guid.NewGuid(),MetaData=null!})}});
+        var result=sync?provider.LoadHolonsByMetaData("tag","oak",loadChildren:false):await provider.LoadHolonsByMetaDataAsync("tag","oak",loadChildren:false);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(0,result.LoadedCount);Assert.AreEqual(0,result.Result.Count());
+    }
+
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task MetadataUsesInvariantSharedMatchingAndActualCounts(bool sync,bool single)
+    {
+        var previous=System.Globalization.CultureInfo.CurrentCulture;
+        try{
+            System.Globalization.CultureInfo.CurrentCulture=System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+            var source=new Holon{Id=Guid.NewGuid(),MetaData=new(){{"number",12.5m}}};
+            var client=new Rows{Selected=new[]{Core.Serialization.StoredRecordJson.Serialize(source)}};var provider=Create(client);
+            var result=single?(sync?provider.LoadHolonsByMetaData("number","12.5",loadChildren:false):await provider.LoadHolonsByMetaDataAsync("number","12.5",loadChildren:false)):
+                (sync?provider.LoadHolonsByMetaData(new(){{"number","12.5"}},Core.Enums.MetaKeyValuePairMatchMode.All,loadChildren:false):await provider.LoadHolonsByMetaDataAsync(new(){{"number","12.5"}},Core.Enums.MetaKeyValuePairMatchMode.All,loadChildren:false));
+            Assert.IsFalse(result.IsError,result.Exception?.ToString());CollectionAssert.AreEqual(new[]{source.Id},result.Result.Select(row=>row.Id).ToArray());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);
+        }finally{System.Globalization.CultureInfo.CurrentCulture=previous;}
+    }
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task MetadataFilterIsOwnedBeforeAwaitAndKeepsAnyAllSemantics(bool sync,bool any)
+    {
+        var first=new Holon{Id=Guid.NewGuid(),MetaData=new(){{"tag","oak"}}};var second=new Holon{Id=Guid.NewGuid(),MetaData=new(){{"tag","pine"},{"alt","yes"}}};var third=new Holon{Id=Guid.NewGuid(),MetaData=new(){{"tag","oak"},{"alt","yes"}}};
+        var filter=new Dictionary<string,string>{{"tag","oak"},{"alt","yes"}};var client=new Rows{Selected=new[]{first,second,third}.Select(Core.Serialization.StoredRecordJson.Serialize).ToArray(),BeforeRead=()=>{filter.Clear();filter["tag"]="changed";}};
+        var provider=Create(client);var mode=any?Core.Enums.MetaKeyValuePairMatchMode.Any:Core.Enums.MetaKeyValuePairMatchMode.All;
+        var result=sync?provider.LoadHolonsByMetaData(filter,mode,loadChildren:false):await provider.LoadHolonsByMetaDataAsync(filter,mode,loadChildren:false);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());var expected=any?new[]{first.Id,second.Id,third.Id}:new[]{third.Id};
+        CollectionAssert.AreEqual(expected,result.Result.Select(row=>row.Id).ToArray());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(expected.Length,result.LoadedCount);
+    }
+    public static IEnumerable<object[]> TypeCases(){foreach(var parent in new[]{false,true})foreach(var sync in new[]{false,true})foreach(var type in new[]{Core.Enums.HolonType.All,Core.Enums.HolonType.Quest,Core.Enums.HolonType.Park})yield return new object[]{parent,sync,type};}
+    [DataTestMethod][DynamicData(nameof(TypeCases),DynamicDataSourceType.Method)]
+    public async Task PrimaryCollectionsRespectRequestedRootType(bool parent,bool sync,Core.Enums.HolonType type)
+    {
+        var id=Guid.NewGuid();var sources=new[]{new Holon{Id=Guid.NewGuid(),ParentHolonId=id,HolonType=Core.Enums.HolonType.Quest},new Holon{Id=Guid.NewGuid(),ParentHolonId=id,HolonType=Core.Enums.HolonType.Park},new Holon{Id=Guid.NewGuid(),ParentHolonId=id,HolonType=Core.Enums.HolonType.Quest,DeletedDate=DateTime.UtcNow}};
+        var client=new Rows{Selected=sources.Select(Core.Serialization.StoredRecordJson.Serialize).ToArray()};var provider=Create(client);
+        var result=parent?(sync?provider.LoadHolonsForParent(id,type,loadChildren:false):await provider.LoadHolonsForParentAsync(id,type,loadChildren:false)):(sync?provider.LoadAllHolons(type,loadChildren:false):await provider.LoadAllHolonsAsync(type,loadChildren:false));
+        var expected=sources.Where(row=>!row.IsDeleted&&(type==Core.Enums.HolonType.All||row.HolonType==type)).Select(row=>row.Id).ToArray();
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());CollectionAssert.AreEqual(expected,result.Result.Select(row=>row.Id).ToArray());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(expected.Length,result.LoadedCount);
+    }
+    private static BigQueryOASIS Create(Rows client){var provider=new BigQueryOASIS("my-project");typeof(BigQueryOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,client);return provider;}
+
     [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
     public async Task MissingSoftDeleteIsNotReportedAsDeleted(bool holon,bool sync)
     {
@@ -66,7 +132,7 @@ public class BigQueryCollectionTests
 
     private sealed class Rows(string? bad=null):BigQueryClient
     {
-        public string? Stored;public string[]? Selected;
+        public string? Stored;public string[]? Selected;public Action? BeforeRead;
         public override Task<BigQueryResults> ExecuteQueryAsync(string sql,IEnumerable<BigQueryParameter> parameters,QueryOptions? queryOptions=null,GetQueryResultsOptions? resultsOptions=null,CancellationToken token=default)
         {
             var job=new JobReference{ProjectId="my-project",JobId=queryOptions?.JobId??"owned-read-job"};
@@ -74,6 +140,7 @@ public class BigQueryCollectionTests
                 Stored=(string)parameters.Single(parameter=>parameter.Name=="doc").Value;
                 return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=job,NumDmlAffectedRows=1},null,new GetQueryResultsOptions()));
             }
+            BeforeRead?.Invoke();
             var values=Selected!=null?(sql.Contains("LIMIT 1",StringComparison.Ordinal)?Selected.Take(1).ToArray():Selected):Stored!=null?new[]{Stored}:new[]{"{\"Id\":\""+Guid.NewGuid()+"\"}",bad};
             var rows=values.Select(value=>new TableRow{F=new List<TableCell>{new(){V=value}}}).ToList();
             return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=job,TotalRows=(ulong)rows.Count,Schema=new(){Fields=new List<TableFieldSchema>{new(){Name="doc",Type="STRING"}}},Rows=rows},null,new GetQueryResultsOptions()));

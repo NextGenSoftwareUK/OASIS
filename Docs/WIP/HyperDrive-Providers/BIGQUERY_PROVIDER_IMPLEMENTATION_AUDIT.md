@@ -1,5 +1,11 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## Shared metadata matching and root-type filtering — 24 October
+
+Full295controlledPASS0skip3seconds. Twenty focused baseline cases yielded16genuine failures/4already-correct All-type controls:4culture-dependent decimal comparisons,4caller dictionary mutation races,and8ignored explicit root-type selectors. Primary all/parent collections now filter the requested HolonType alongside deletion; All remains unrestricted,Default remains an actual type consistent with ordinary storage collections. Graph loading remains OPEN.
+
+Single-key metadata queries delegate to the same dictionary query owner. That owner copies the filter with ordinal keys BEFORE awaiting collection I/O and reuses existing Shared.StoredRecordSearch.MatchesMetadata (invariant values,Any/All,nonnull values). No parallel metadata codec/matcher. Loaded flags/counts reflect the selected roots,including zero matches; null/empty filters preserve all records including null metadata. Invalid match mode rejects before SDK I/O; original read failure is retained with no partial payload. Additional14regression cases cover these boundaries. No metadata/history/schema rewrite or live query; SDK/native cloud/IAM/fees/graph/history/fullV2 gates remain open. Reports/source/copies/resources in inventory.
+
 ## Delete acknowledgements and replay containment — 24 October
 
 Full261controlledPASS0skip3seconds. Hard DELETE previously accepted null/missing/non-one-row/wrong-project/wrong-job responses and lost original exceptions;36baseline cases genuinely failed (including4healthy operations missing deletion flags,4lost-response cases missing reconciliation,28invalid acknowledgements accepted). DELETE and MERGE now share ONE ExecuteOneRowMutationAsync owner: native request job assigned before SDK dispatch,exact project/job/one-row acknowledgement required,original uncertainty retained through existing Core reconciliation interface. No independent retry/fallback. Exact-request job identity is NOT durable execution proof.
