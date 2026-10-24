@@ -257,7 +257,7 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
         output.WriteLine("Archived date JSON: "+json.RootElement.GetProperty("MetaData").GetProperty("date").GetRawText());
     }
 
-    [Fact]
+    [Fact][Trait("Category","OwnedFixtureReconciliation")]
     public async Task InspectPreservedDateOrSearchFixture()
     {
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -281,7 +281,7 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
         Assert.Equal(rows.OrderBy(row=>row["_id"].ToString()).Select(row=>Convert.ToHexString(SHA256.HashData(row.ToBson()))),after.OrderBy(row=>row["_id"].ToString()).Select(row=>Convert.ToHexString(SHA256.HashData(row.ToBson()))));
     }
 
-    [Fact]
+    [Fact][Trait("Category","OwnedFixtureReconciliation")]
     public async Task CleanupVerifiedDateOrSearchFixture()
     {
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -306,7 +306,63 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
         await client.DropDatabaseAsync("cosmic_cql_fixture");using var remaining=await client.ListDatabaseNamesAsync();Assert.DoesNotContain("cosmic_cql_fixture",await remaining.ToListAsync());
     }
 
-    public static IEnumerable<object[]> HistoricalCollectionCases(){foreach(var kind in Enumerable.Range(0,6))foreach(var sync in new[]{false,true})yield return new object[]{kind,sync};}
+    [Fact][Trait("Category","OwnedFixtureReconciliation")]
+    public async Task InspectPreservedSearchBatchFixture()
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        Assert.Equal("207561F1FE58DF482A7C08ADE115FC87411473D08F7E36A006B6F7803754A6D1",Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/mongo-history-collection-native-fixed.trx.batch-original-failed")))));
+        const string name="cosmic_cql_fixture";var database=new MongoClient(uri).GetDatabase(name);
+        var rows=await database.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();Assert.Equal(273,rows.Count);
+        var journal=await database.GetCollection<BsonDocument>("CosmicOwnedFixture").Find(FilterDefinition<BsonDocument>.Empty).SingleAsync();Assert.Equal("owned-historical-search-batch",journal["kind"].AsString);
+        var entries=journal["rows"].AsBsonArray;Assert.Equal(270,entries.Count);Assert.Equal(270,entries.Select(row=>row["_id"].AsObjectId).Distinct().Count());
+        var ids=entries.Select(row=>row["_id"].AsObjectId).ToHashSet();
+        foreach(var entry in entries){var row=Assert.Single(rows.Where(row=>row["_id"]==entry["_id"]));Assert.Equal(entry["sha256"].AsString,Convert.ToHexString(SHA256.HashData(row.ToBson())));Assert.Equal("current batch root",row["Name"].AsString);}
+        output.WriteLine("JournalSHA="+Convert.ToHexString(SHA256.HashData(journal.ToBson())));
+        foreach(var row in rows.Where(row=>!ids.Contains(row["_id"].AsObjectId)).OrderBy(row=>row["Name"].AsString))output.WriteLine("Original|"+row["Name"].AsString+"|"+row["_id"]+"|"+Convert.ToHexString(SHA256.HashData(row.ToBson())));
+        _=new Provider(uri,name);var repository=new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories.SearchRepository(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories.MongoDbContext(uri,name));
+        foreach(var type in new[]{HolonType.Default,HolonType.Park})foreach(var synchronous in new[]{false,true})
+        {
+            var query=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,
+                SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery="historical batch root",HolonType=type,SearchHolons=true}}};
+            var found=synchronous?repository.Search(query,1):await repository.SearchAsync(query,1);Assert.False(found.IsError,found.Message+found.Exception);
+            Assert.Equal(type==HolonType.Park?270:0,found.Result.SearchResultHolons.Count);
+        }
+        var after=await database.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+        Assert.Equal(rows.OrderBy(row=>row["_id"].ToString()).Select(row=>Convert.ToHexString(SHA256.HashData(row.ToBson()))),after.OrderBy(row=>row["_id"].ToString()).Select(row=>Convert.ToHexString(SHA256.HashData(row.ToBson()))));
+    }
+
+    [Fact][Trait("Category","OwnedFixtureReconciliation")]
+    public async Task CleanupVerifiedSearchBatchFixture()
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        var work=Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent");
+        Assert.Equal("207561F1FE58DF482A7C08ADE115FC87411473D08F7E36A006B6F7803754A6D1",Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(Path.Combine(work,"mongo-history-collection-native-fixed.trx.batch-original-failed")))));
+        Assert.Equal("CD56B3C73F096373694EE5F668AB498A4DC7F3C794D6F712D740504058F1DD1A",Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(Path.Combine(work,"mongo-search-batch-original-inspection.trx")))));
+        var client=new MongoClient(uri);var database=client.GetDatabase("cosmic_cql_fixture");var allowed=new[]{"Holon","AvatarDetail","CosmicHolonOutbox","CosmicOwnedFixture","Avatar"};
+        using var names=await database.ListCollectionNamesAsync();Assert.Equal(allowed.OrderBy(value=>value),(await names.ToListAsync()).OrderBy(value=>value));
+        foreach(var name in allowed.Where(value=>value!="Holon"&&value!="CosmicOwnedFixture"))Assert.Equal(0,await database.GetCollection<BsonDocument>(name).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        var markers=database.GetCollection<BsonDocument>("CosmicOwnedFixture");var journal=await markers.Find(FilterDefinition<BsonDocument>.Empty).SingleAsync();
+        Assert.Equal("4175821BF4287CB8445587999B12B32744CD52407C0CEC09BA36CD9DCA61BCA6",Convert.ToHexString(SHA256.HashData(journal.ToBson())));
+        var expected=journal["rows"].AsBsonArray.ToDictionary(row=>row["_id"].AsObjectId,row=>row["sha256"].AsString);Assert.Equal(270,expected.Count);
+        expected.Add(ObjectId.Parse("6adcb54b4124e6c0d069971e"),"730E460A48781890EAF1CB3F2C15A274B8073FF5D912698CE7E18EACF1C830C4");
+        expected.Add(ObjectId.Parse("6adcb54b4124e6c0d069971f"),"4AA68AF3D8EAFE8A7107F86ECEB7AC6954C40BE2BD89A0E3E6FDE6AD663B954B");
+        expected.Add(ObjectId.Parse("6adcb54b4124e6c0d0699720"),"348F208CBEDF48CF7D9EB889DDF88B4226F6C6FF0BD739D4ECD03A3A343DE01F");
+        var collection=database.GetCollection<BsonDocument>("Holon");var rows=await collection.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();Assert.Equal(273,rows.Count);
+        foreach(var row in rows){Assert.True(expected.TryGetValue(row["_id"].AsObjectId,out var hash));Assert.Equal(hash,Convert.ToHexString(SHA256.HashData(row.ToBson())));}
+        var deletes=rows.Select(row=>(WriteModel<BsonDocument>)new DeleteOneModel<BsonDocument>(new BsonDocument{{"_id",row["_id"]},{"$expr",new BsonDocument("$eq",new BsonArray{"$$ROOT",new BsonDocument("$literal",row)})}})).ToArray();
+        var removed=await collection.WithWriteConcern(WriteConcern.WMajority.With(journal:true)).BulkWriteAsync(deletes);Assert.True(removed.IsAcknowledged);Assert.Equal(273,removed.DeletedCount);Assert.Equal(0,await collection.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        var deletedJournal=await markers.DeleteOneAsync(new BsonDocument("$expr",new BsonDocument("$eq",new BsonArray{"$$ROOT",new BsonDocument("$literal",journal)})));Assert.True(deletedJournal.IsAcknowledged);Assert.Equal(1,deletedJournal.DeletedCount);
+        foreach(var name in allowed)Assert.Equal(0,await database.GetCollection<BsonDocument>(name).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        await client.DropDatabaseAsync("cosmic_cql_fixture");using var remaining=await client.ListDatabaseNamesAsync();Assert.DoesNotContain("cosmic_cql_fixture",await remaining.ToListAsync());
+    }
+
+    public static IEnumerable<object[]> HistoricalCollectionCases(){foreach(var kind in Enumerable.Range(0,7))foreach(var sync in new[]{false,true})yield return new object[]{kind,sync};}
 
     [Theory]
     [MemberData(nameof(HistoricalCollectionCases))]
@@ -399,6 +455,36 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
                 var found=sync?provider.Search(dateQuery,loadChildren:false,version:dateCase.Version):await provider.SearchAsync(dateQuery,loadChildren:false,version:dateCase.Version);
                 Assert.False(found.IsError,found.Message+found.Exception);Assert.Equal(dateCase.Count,found.LoadedCount);
                 if(dateCase.Count==1){Assert.Equal(root.Id,Assert.Single(found.Result.SearchResultHolons).Id);Assert.Equal(dateCase.Date,Assert.Single(found.Result.SearchResultHolons).ModifiedDate);}
+            }
+            if(kind==6)
+            {
+                var original=await native.Find(new BsonDocument("HolonId",root.Id.ToString("D"))).SingleAsync();
+                var batch=new List<BsonDocument>();
+                for(var index=0;index<270;index++)
+                {
+                    var row=original.DeepClone().AsBsonDocument;var publicId=Guid.NewGuid().ToString("D");var physical=ObjectId.GenerateNewId();
+                    row["_id"]=physical;row["HolonId"]=publicId;row["Name"]="current batch root";row["Children"]=new BsonArray();
+                    row["MetaData"]["batch-pad"]=new string('x',8192);
+                    var archived=row["OasisHolonRevisionArchive"]["records"][0].AsBsonDocument;var old=archived["bson"].AsBsonDocument;
+                    old["_id"]=physical;old["HolonId"]=publicId;old["Name"]="historical batch root";old["Children"]=new BsonArray();old["MetaData"]["batch-pad"]=new string('x',8192);
+                    archived["sha256"]=Convert.ToHexString(SHA256.HashData(old.ToBson()));batch.Add(row);
+                }
+                var journal=new BsonDocument{{"kind","owned-historical-search-batch"},{"rows",new BsonArray(batch.Select(row=>new BsonDocument{{"_id",row["_id"]},{"sha256",Convert.ToHexString(SHA256.HashData(row.ToBson()))}}))}};
+                var markers=database.GetCollection<BsonDocument>("CosmicOwnedFixture").WithWriteConcern(WriteConcern.WMajority.With(journal:true));
+                await markers.InsertOneAsync(journal);await native.WithWriteConcern(WriteConcern.WMajority.With(journal:true)).InsertManyAsync(batch);
+                output.WriteLine("Owned batch native bytes="+batch.Sum(row=>(long)row.ToBson().Length));
+                var batchQuery=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,
+                    SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery="historical batch root",HolonType=HolonType.Park,SearchHolons=true,SearchAvatars=false}}};
+                var found=sync?provider.Search(batchQuery,loadChildren:false,version:1):await provider.SearchAsync(batchQuery,loadChildren:false,version:1);
+                Assert.False(found.IsError,found.Message+found.Exception);Assert.Equal(270,found.LoadedCount);Assert.Equal(270,found.Result.NumberOfResults);
+                Assert.All(found.Result.SearchResultHolons,row=>{Assert.Equal(1,row.Version);Assert.Equal("historical batch root",row.Name);});
+                Assert.Equal(batch.Select(row=>row["HolonId"].AsString).OrderBy(value=>value),found.Result.SearchResultHolons.Select(row=>row.Id.ToString("D")).OrderBy(value=>value));
+                var ids=new BsonArray(batch.Select(row=>row["_id"]));var stored=await native.Find(new BsonDocument("_id",new BsonDocument("$in",ids))).ToListAsync();Assert.Equal(270,stored.Count);
+                foreach(var row in batch)Assert.Equal(row.ToBson(),Assert.Single(stored.Where(item=>item["_id"]==row["_id"])).ToBson());
+                var deletes=batch.Select(row=>(WriteModel<BsonDocument>)new DeleteOneModel<BsonDocument>(new BsonDocument{{"_id",row["_id"]},{"$expr",new BsonDocument("$eq",new BsonArray{"$$ROOT",new BsonDocument("$literal",row)})}})).ToArray();
+                var removed=await native.WithWriteConcern(WriteConcern.WMajority.With(journal:true)).BulkWriteAsync(deletes);Assert.True(removed.IsAcknowledged);Assert.Equal(270,removed.DeletedCount);
+                Assert.Equal(0,await native.CountDocumentsAsync(new BsonDocument("_id",new BsonDocument("$in",ids))));
+                var markerRemoved=await markers.DeleteOneAsync(new BsonDocument("$expr",new BsonDocument("$eq",new BsonArray{"$$ROOT",new BsonDocument("$literal",journal)})));Assert.True(markerRemoved.IsAcknowledged);Assert.Equal(1,markerRemoved.DeletedCount);
             }
             Assert.Equal(before,await Snapshot());complete=true;
         }
