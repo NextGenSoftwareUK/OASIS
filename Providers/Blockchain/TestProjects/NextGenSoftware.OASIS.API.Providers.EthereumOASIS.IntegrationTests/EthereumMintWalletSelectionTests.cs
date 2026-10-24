@@ -75,6 +75,15 @@ public sealed class EthereumMintWalletSelectionTests
     }
 
     private static MintWeb3NFTRequest NftRequest() => new() { MintedByAvatarId = Guid.NewGuid(), SendToAddressAfterMinting = "0x" + new string('2',40) };
+
+    [DataTestMethod, DataRow(""), DataRow(" "), DataRow("invalid"), DataRow("0x0000000000000000000000000000000000000000")]
+    public async Task NftExplicitInvalidCollectionCannotFallBackToStorageContract(string collection)
+    {
+        var provider = new SelectionProvider(); var request = NftRequest(); request.CollectionPublicKey = collection;
+        var result = await provider.MintNFTAsync(request);
+        Assert.IsTrue(result.IsError); Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID", result.ErrorCode);
+        Assert.AreEqual(0, provider.KeyReads); Assert.AreEqual(0, provider.DefaultReads); Assert.AreEqual(0, provider.Activations);
+    }
     private sealed class SelectionProvider : EthereumOASIS
     {
         public readonly string Key;public List<string> Keys;public OASISResult<string> Default=new();
