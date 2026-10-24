@@ -1,5 +1,11 @@
 # Cosmos DB retained record history
 
+## Unicode admission regression — 24 October,422unit GREEN; native not rerun
+
+Added27common-client boundary cases across holon/avatar/avatar-detail, canonical Description and metadata key/value. Existing codec rejects18unpaired high/low surrogate inputs BEFORE native mutation, without uncertainty markers or caller ID/text changes;9valid emoji controls dispatch once and round-trip exactly. Initial9Holon-only Name cases already passed. Expanding Name to avatar kinds exposed a TEST assumption: their Name is derived, not writable canonical text. Corrected to persisted Description, asserting input is actually present before invoking the client; original18fixture failures retained, not reported as production corruption or hidden by weaker expectations.
+
+Full **422/422unit tests PASS, zero skips,1second**, no production codec change. Current-source/PDB Cosmos33/unit32/Core742/Shared56 and producer/consumer identity checked. SDK Container is controlled via Moq; this is admission/codec boundary evidence, NOT actual Cosmos service Unicode acceptance or a fresh66native cohort. No emulator/network/credentials/download/restore/environment. Required initial/failed/final hashes and reuse/cleanup ledger in ENVIRONMENT_INVENTORY.md. Hosted IAM/RUs/security/durability/fullinterface/V2 and fresh native regression remain OPEN.
+
 ## 24 October — all-version exports,395unit/66native GREEN
 
 Export Version=-1 now enumerates existing embedded history through the shared codec and repository's native/canonical/duplicate-root validator. Ordinary provider list/point reads retain negative admission; export values below-1 reject. Current avatar identity resolves owner, each version preserves existing IsActive visibility and CreatedByAvatarId-or-ParentHolonId ownership. Stored child payloads retained, not an invented historical graph snapshot. No new repository interface, codec, collection or SDK.
