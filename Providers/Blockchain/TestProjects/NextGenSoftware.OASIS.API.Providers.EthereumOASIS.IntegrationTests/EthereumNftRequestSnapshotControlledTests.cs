@@ -19,14 +19,21 @@ public class EthereumNftRequestSnapshotControlledTests
     // Public, never-funded unit-only identity; never signs or submits anything.
     private const string Key = "1111111111111111111111111111111111111111111111111111111111111111";
 
-    [DataTestMethod, DataRow(false), DataRow(true)]
-    public async Task MintRequiresNativeEstimationBeforeNonceSigningOrSubmission(bool explicitCollection)
+    [DataTestMethod, DataRow(false,false), DataRow(false,true), DataRow(false,null), DataRow(true,false), DataRow(true,true), DataRow(true,null)]
+    public async Task MintRequiresNativeEstimationBeforeNonceSigningOrSubmission(bool explicitCollection,bool? storeMetadata)
     {
         using var listener = new HttpListener(); listener.Prefixes.Add(Url); listener.Start();
         var provider = new AuthorizedMintProvider { Web3Client = new Web3(Url) };
         typeof(EthereumOASIS).GetProperty("IsProviderActivated")!.SetValue(provider, true);
-        var pending = provider.MintNFTAsync(new MintWeb3NFTRequest { MintedByAvatarId = Guid.NewGuid(), SendToAddressAfterMinting = Other,
-            CollectionPublicKey = explicitCollection ? Other : null });
+        var intent = new MintWeb3NFTRequest { MintedByAvatarId = Guid.NewGuid(), SendToAddressAfterMinting = Other,
+            CollectionPublicKey = explicitCollection ? Other : null, JSONMetaData = "{\"name\":\"Oak 🌳\"}",
+            JSONMetaDataURL="ipfs://original-metadata", StoreNFTMetaDataOnChain=storeMetadata, MemoText = "original metadata" };
+        var originalJson = Newtonsoft.Json.JsonConvert.SerializeObject(new {
+            intent.JSONMetaDataURL, JSONMetaData=storeMetadata==true?intent.JSONMetaData:null });
+        const string abi = "[{\"type\":\"function\",\"name\":\"mint\",\"inputs\":[{\"name\":\"to\",\"type\":\"address\"},{\"name\":\"metadataJson\",\"type\":\"string\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"}]";
+        var expectedData = provider.Web3Client.Eth.GetContract(abi, Contract).GetFunction("mint").GetData(Other, originalJson);
+        provider.OnResolve = () => { intent.JSONMetaData = "changed"; intent.JSONMetaDataURL="changed"; intent.StoreNFTMetaDataOnChain=storeMetadata!=true; intent.MemoText = "changed"; };
+        var pending = provider.MintNFTAsync(intent);
         var context = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(5));
         var body = JsonNode.Parse(await new StreamReader(context.Request.InputStream).ReadToEndAsync())!;
         var bytes = Encoding.UTF8.GetBytes(new JsonObject { ["jsonrpc"] = "2.0", ["id"] = body["id"]!.DeepClone(),
@@ -39,15 +46,18 @@ public class EthereumNftRequestSnapshotControlledTests
         Assert.AreEqual("eth_estimateGas", body["method"]!.GetValue<string>(), "Preflight must precede signing fee discovery, nonce or broadcast.");
         Assert.AreEqual(explicitCollection ? Other : Contract, body["params"]![0]!["to"]!.GetValue<string>());
         Assert.AreEqual(new Account(Key,31337).Address.ToLowerInvariant(), body["params"]![0]!["from"]!.GetValue<string>().ToLowerInvariant());
-        StringAssert.StartsWith(body["params"]![0]!["data"]!.GetValue<string>(), "0x40c10f19" + Other.Substring(2).PadLeft(64,'0'));
+        Assert.AreEqual(expectedData, body["params"]![0]!["data"]!.GetValue<string>(),
+            "Use the maintained OASIS mint(address,string) extension and original complete metadata, not a clock-assigned token ID.");
         Assert.IsFalse(result.Exception is NextGenSoftware.OASIS.API.Core.Interfaces.INativeMutationReconciliationRequired,
             "A preflight refusal has not submitted a transaction.");
     }
 
     private sealed class AuthorizedMintProvider : EthereumOASIS
     {
+        public Action? OnResolve;
         public AuthorizedMintProvider() : base(Url, Key, 31337, Contract) { }
-        protected override NextGenSoftware.OASIS.Common.OASISResult<List<string>> ResolveTokenSigningKeys(Guid avatarId) => new() { Result = new() { Key } };
+        protected override NextGenSoftware.OASIS.Common.OASISResult<List<string>> ResolveTokenSigningKeys(Guid avatarId)
+        { OnResolve?.Invoke(); return new() { Result = new() { Key } }; }
     }
 
     [DataTestMethod, DataRow(false), DataRow(true)]
