@@ -23,6 +23,7 @@ public class EthereumMintOutcomeControlledTests
     [DataTestMethod,
         DataRow("ack-loss","mint"), DataRow("receipt-loss","mint"), DataRow("foreign-receipt","mint"), DataRow("no-op","mint"),
         DataRow("success","mint"), DataRow("reverted","mint"), DataRow("missing-status","mint"), DataRow("reverted-unmined","mint"),
+        DataRow("success-zero","mint"), DataRow("success-max","mint"),
         DataRow("ack-loss","send"), DataRow("receipt-loss","send"), DataRow("foreign-receipt","send"), DataRow("no-op","send"),
         DataRow("success","send"), DataRow("reverted","send"), DataRow("missing-status","send"), DataRow("reverted-unmined","send"),
         DataRow("ack-loss","burn"), DataRow("receipt-loss","burn"), DataRow("foreign-receipt","burn"), DataRow("no-op","burn"),
@@ -33,8 +34,13 @@ public class EthereumMintOutcomeControlledTests
         using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         var provider = new MintProvider { Web3Client = new Web3(Url) };
         typeof(EthereumOASIS).GetProperty("IsProviderActivated")!.SetValue(provider, true);
-        string hash = "", token = new string('0',63) + "1"; var submissions = 0;
+        string hash = "", token = mode=="success-max"?new string('f',64):mode=="success-zero"?new string('0',64):new string('0',63) + "1"; var submissions = 0;
         var sender = new Account(Key,31337).Address;
+        var mintIntent = new MintWeb3NFTRequest { MintedByAvatarId=Guid.NewGuid(),SendToAddressAfterMinting=Recipient,
+            JSONMetaData="{\"name\":\"Original oak 🌳\"}",JSONMetaDataURL="ipfs://original",StoreNFTMetaDataOnChain=true,MemoText="original mint memo" };
+        const string mintAbi="[{\"type\":\"function\",\"name\":\"mint\",\"inputs\":[{\"name\":\"to\",\"type\":\"address\"},{\"name\":\"metadataJson\",\"type\":\"string\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"}]";
+        var metadata=Newtonsoft.Json.JsonConvert.SerializeObject(new {mintIntent.JSONMetaDataURL,mintIntent.JSONMetaData});
+        var expectedMintData=provider.Web3Client.Eth.GetContract(mintAbi,Contract).GetFunction("mint").GetData(Recipient,metadata);
         var serving = Task.Run(async () =>
         {
             for (var i = 0; i < 16; i++)
@@ -46,13 +52,19 @@ public class EthereumMintOutcomeControlledTests
                 {
                     case "eth_call": terminal = submissions > 0; response = JsonValue.Create("0x" + (submissions > 0 && mode != "no-op" ? Recipient : sender)[2..].PadLeft(64,'0')); break;
                     case "eth_estimateGas":
-                        token = request["params"]![0]!["data"]!.GetValue<string>()[^64..]; response = JsonValue.Create("0x493e0"); break;
+                        // This fixture's contract allocates token1; metadata bytes
+                        // are not an explicit token-ID argument to the mint call.
+                        Assert.AreEqual(expectedMintData,request["params"]![0]!["data"]!.GetValue<string>());
+                        mintIntent.JSONMetaData="changed after preflight";mintIntent.JSONMetaDataURL="changed";mintIntent.MemoText="changed";
+                        response = JsonValue.Create("0x493e0"); break;
                     case "eth_getTransactionCount": response = JsonValue.Create("0x0"); break;
                     case "eth_chainId": response = JsonValue.Create("0x7a69"); break;
                     case "eth_gasPrice": case "eth_maxPriorityFeePerGas": response = JsonValue.Create("0x1"); break;
                     case "eth_getBlockByNumber": response = JsonNode.Parse("{\"number\":\"0x7\",\"gasLimit\":\"0x1c9c380\",\"baseFeePerGas\":\"0x1\"}"); break;
                     case "eth_feeHistory": response = JsonNode.Parse("{\"oldestBlock\":\"0x1\",\"baseFeePerGas\":[\"0x1\",\"0x1\"],\"gasUsedRatio\":[0.5],\"reward\":[[\"0x1\"]]}"); break;
                     case "eth_sendRawTransaction":
+                        if(operation=="mint")StringAssert.Contains(request["params"]![0]!.GetValue<string>().ToLowerInvariant(),expectedMintData[2..].ToLowerInvariant(),
+                            "The actual SDK-signed transaction must contain the same admitted metadata calldata as preflight.");
                         submissions++; hash = "0x" + Sha3Keccack.Current.CalculateHash(request["params"]![0]!.GetValue<string>().HexToByteArray()).ToHex();
                         // Signature is consumed only here, never persisted/relayed to a chain.
                         error = terminal = mode == "ack-loss";
@@ -76,7 +88,7 @@ public class EthereumMintOutcomeControlledTests
             Assert.Fail("Controlled RPC request bound exceeded.");
         });
         var pending = operation == "mint"
-            ? provider.MintNFTAsync(new MintWeb3NFTRequest { MintedByAvatarId = Guid.NewGuid(), SendToAddressAfterMinting = Recipient })
+            ? provider.MintNFTAsync(mintIntent)
             : operation == "send" ? provider.SendNFTAsync(new SendWeb3NFTRequest { TokenAddress = Contract, FromWalletAddress = sender,
                 ToWalletAddress = Recipient, TokenId = "1", Amount = 1, OwnerPrivateKey = Key })
             : provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = Contract, TokenId = "1", OwnerPrivateKey = Key, OwnerPublicKey = "", OwnerSeedPhrase = "" });
@@ -86,11 +98,12 @@ public class EthereumMintOutcomeControlledTests
         catch (OperationCanceledException) when (limit.IsCancellationRequested) { /* Owned responder teardown after the provider completed. */ }
         var result = await pending;
         Assert.AreEqual(1, submissions);
-        if (mode == "success")
+        if (mode.StartsWith("success",StringComparison.Ordinal))
         {
             Assert.IsFalse(result.IsError, result.Exception?.ToString() ?? result.Message); Assert.IsTrue(result.IsSaved);
             Assert.AreEqual(hash, result.Result.TransactionResult); Assert.AreEqual(Contract, result.Result.Web3NFT.NFTTokenAddress);
             Assert.AreEqual(System.Numerics.BigInteger.Parse("0" + token, System.Globalization.NumberStyles.AllowHexSpecifier).ToString(), result.Result.Web3NFT.TokenId);
+            if(operation=="mint")Assert.AreEqual("original mint memo",result.Result.Web3NFT.MemoText);
             return;
         }
         Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsSaved);
