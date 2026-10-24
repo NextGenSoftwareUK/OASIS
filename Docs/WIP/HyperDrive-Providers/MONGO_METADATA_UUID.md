@@ -1,5 +1,15 @@
 # MongoDB metadata UUID identity preservation
 
+## Search intent ownership — 24 October 2026
+
+Mongo public search retained a caller-owned ISearchParams across activation/repository awaits. Corrected baseline16/16genuine failures covers sync/async,current/version1 and edits to ownership/parent/recursive flags,metadata,text group and group collection. The search entry point now validates,detaches using EXISTING OasisJson.Project<SearchParams>,then validates the canonical request before any await/dispatch. Native repository/query/filter/history/projection logic is unchanged; no second search engine,SDK call or retry.
+
+Fresh matched **457unit +18native historical collection/search cases PASS,zero skips** (native7seconds),plus retained replica initialization1PASS. Two existing native cases delegate to the REAL repository while editing the original caller before its queries; current/history match/miss/counts still follow original intent. Existing full native BSON snapshots remain unchanged after reads; fixture success cleanup drops only its guarded synthetic database. Same Mongo8.3.11/oasisRecoveryRs/runtime/data/port27029 reused; process/listener absent after terminal32328exit0. No install/download/restore/new environment. Source/copies/PDB Core742/Shared56/Mongo106/unit44/native47 verified. Native cohort is scoped18,not the entire provider/hosted/V2 certification.
+
+Evidence: search-intent-corrected-before.trx SHA256AD57177BF66F18CF5291E18C87ABCAC954494D0ABC7DA2FD5C4BA0B05BF7D9C4; matched unit914195421D4F65F8D7BE07BB5768765757B835EDC3991BA8DDF7BFE3ABDB6656; native51C94D9C383E854CCDC558ACC347B8B61F908DCA750C8038B7F39230EF81DAD6. Initial comparison accidentally serialized concrete and interface roots differently; the intermediate16fixturefailures are preserved,not counted as a failed production fix. Corrected-interface baseline was rerun against original implementation before final repair. Native first attempt failed compilation on a test-only namespace,after initialization but BEFORE fixture execution; corrected without weakening assertions. All original reports remain retained with exact sizes/hashes in inventory.
+
+Separate open follow-up: ReadHolonCollectionGraphAsync retains its metadata dictionary beyond a snapshot-session await before historical filtering. This search fix does not close that distinct collection owner or certify hosted security/durability/all options/full V2.
+
 ## Cyclic complex metadata write protection — 2026-10-19
 
 Complex metadata JSON encoding used ReferenceHandler.IgnoreCycles, silently replacing cyclic references with null while reporting serialization success. Removed that lossy option; cyclic or over-depth structures now fail through existing BsonSerializationException/cause handling. Acyclic complex metadata remains JSON text, not an arbitrary typed object round-trip. Root dictionaries/arrays and other unsupported arbitrary object graphs are not certified merely by this fix.
