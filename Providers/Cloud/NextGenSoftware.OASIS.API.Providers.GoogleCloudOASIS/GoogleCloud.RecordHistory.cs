@@ -12,12 +12,17 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
-    private static async Task<List<T>> ReadFirestoreCollectionAsync<T>(QuerySnapshot snapshot,int version) where T:class,IHolonBase
+    private static async Task<List<T>> ReadFirestoreCollectionAsync<T>(QuerySnapshot snapshot,int version,bool exportAllVersions=false) where T:class,IHolonBase
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         var identities=new HashSet<string>(StringComparer.Ordinal);var records=new List<T>();
         foreach(var document in snapshot.Documents){
             if(!identities.Add(document.Id))throw new InvalidDataException("Firestore collection contains a repeated native OASIS identity.");
+            if(exportAllVersions&&version==-1){
+                var canonical=CanonicalFirestoreHistoryDocument<T>(document.ToDictionary(),document.Id);
+                records.AddRange(FirestoreHistory.ReadAll(Guid.Parse(document.Id),canonical,OasisJson.DeserializeStored<T>));
+                continue;
+            }
             var record=await ReadFirestoreHistoryAsync<T>(document.ToDictionary(),document.Id,version).ConfigureAwait(false);
             if(record!=null)records.Add(record);
         }
