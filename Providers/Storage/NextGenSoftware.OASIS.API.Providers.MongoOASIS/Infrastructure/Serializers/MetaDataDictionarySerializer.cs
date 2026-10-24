@@ -259,6 +259,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 writer.WriteInt64((long)value);
             else if (valueType == typeof(double))
                 writer.WriteDouble((double)value);
+            else if (valueType == typeof(ulong))
+                writer.WriteDecimal128((decimal)(ulong)value);
             else if (valueType == typeof(decimal))
                 writer.WriteDecimal128((decimal)value);
             else if (valueType == typeof(string))
