@@ -30,7 +30,7 @@ public partial class SQLLiteDBOASIS : ICosmicQueryGroupedStorageProvider
             }).Concat(new[] { typeof(int), typeof(int?), typeof(long), typeof(long?) }
                 .Select(type => new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, type))).ToArray();
             return new CosmicGroupedCapabilities(CqlProjectionCapabilities, CqlScalarCapabilities,
-                new CosmicGroupedOrderingCapabilities(keys, aggregates));
+                new CosmicGroupedOrderingCapabilities(keys, aggregates), supportsResultPaging: true);
         }
     }
     public static CosmicGroupedCapabilities CqlGroupedCapabilities => GroupContract.Value;

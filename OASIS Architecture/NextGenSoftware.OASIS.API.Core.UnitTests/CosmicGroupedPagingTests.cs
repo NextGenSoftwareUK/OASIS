@@ -73,4 +73,27 @@ public sealed class CosmicGroupedPagingTests
         Assert.Equal("CQL_PROVIDER_RESULT_INVALID", CosmicGroupedResults.Materialize(Query().Take(0).Result, rows).ErrorCode);
         Assert.False(CosmicGroupedResults.Materialize(Query().Take(0).Result, Array.Empty<CosmicGroupedRow>()).IsError);
     }
+
+    [Fact]
+    public void CompleteProofPublishesOnlyNativePageMembers()
+    {
+        var rows = new[] { new CosmicGroupedRow(1, false, new object[] { "A" }, 1L),
+            new CosmicGroupedRow(2, true, new object[] { "B" }, 2L),
+            new CosmicGroupedRow(3, false, new object[] { "C" }, 3L) };
+        var result = CosmicGroupedResults.Materialize(Query().Skip(1).Take(1).Result, rows);
+        Assert.False(result.IsError, result.Message); Assert.Equal(2L, Assert.Single(result.Result));
+        Assert.Equal("CQL_PROVIDER_RESULT_INVALID", CosmicGroupedResults.Materialize(Query().Take(1).Result, rows).ErrorCode);
+    }
+
+    [Fact]
+    public void OffPageProofMustStillMeetExactDomainsAndSourceWork()
+    {
+        var query = Query().Take(0).Result;
+        Assert.Equal("CQL_PROVIDER_RESULT_INVALID", CosmicGroupedResults.Materialize(query,
+            new[] { new CosmicGroupedRow(1, false, new object[] { "A" }, "wrong domain") }).ErrorCode);
+        Assert.Equal("CQL_PROVIDER_RESULT_INVALID", CosmicGroupedResults.Materialize(query,
+            new[] { new CosmicGroupedRow(21, false, new object[] { "A" }, 21L) }).ErrorCode);
+        Assert.False(CosmicGroupedResults.Materialize(query,
+            new[] { new CosmicGroupedRow(1, false, new object[] { "A" }, 1L) }).IsError);
+    }
 }
