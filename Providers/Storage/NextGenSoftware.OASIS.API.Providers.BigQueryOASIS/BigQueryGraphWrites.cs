@@ -34,26 +34,25 @@ public partial class BigQueryOASIS
             ArgumentNullException.ThrowIfNull(sources);ValidateGraphDepth(maximum,initial);
             var roots=sources.ToArray();
             if(roots.Length==0){result.Result=Array.Empty<IHolon>();result.IsSaved=true;return result;}
-            var plan=HolonGraphWritePlan.Create(roots,children,recursive,maximum,initial);
+            var plan=HolonGraphWritePlan.Create(roots,children,recursive,maximum,initial,ValidateRecordWrite);
             var publications=new Dictionary<IHolon,StoredRecordPublicationSnapshot<Holon>>(ReferenceEqualityComparer.Instance);
             foreach(var node in plan.Nodes)publications.Add(node.Source,StoredRecordPublicationSnapshot<Holon>.Capture(node.Source));
             foreach(var node in plan.Nodes)
             {
                 var publication=publications[node.Source];publication.ValidateUnchanged();
-                var id=node.Snapshot.Id;string? original=null;
-                var observed=UniqueRecord(await ReadRowsAsync<Holon>($"SELECT doc FROM {Table(CollHolons)} WHERE id = @id LIMIT 2",new[]{StringParameter("id",id.ToString())},(_,raw)=>original=raw));
-                if(observed!=null&&observed.Id!=id)throw new InvalidDataException("BigQuery graph native identity differs from its canonical record.");
-                if(observed?.IsDeleted==true&&!node.Snapshot.IsDeleted)throw new InvalidOperationException("A deleted BigQuery record cannot be implicitly resurrected by graph save.");
+                var id=node.Snapshot.Id;var observation=await ObserveRecordAsync<Holon>(CollHolons,id);var observed=observation.Record;var original=observation.Raw;
                 node.Snapshot.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(node,HolonChildRoleWriteKind.SourceSave,observed!=null,observed?.ChildRoleManifestJson);
                 node.Snapshot.ProviderUniqueStorageKey??=new();node.Snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.BigQueryOASIS]=id.ToString();
+                var staged=await StageRecordHistoryAsync(node.Snapshot,original);
                 publication.ValidateUnchanged();BigQueryWriteAcknowledgement? receipt=null;
                 try
                 {
-                    receipt=await UpsertDocAsync(CollHolons,id.ToString(),node.Snapshot,checkOriginal:true,expectedDoc:original);
+                    receipt=await UpsertDocAsync(CollHolons,id.ToString(),staged.Record,checkOriginal:true,expectedDoc:original,documentJson:staged.Document);
                     acknowledged.Add(id.ToString());
                     publication.ValidateUnchanged();
                     node.Source.Id=id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
                     node.Source.ProviderUniqueStorageKey??=new();node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.BigQueryOASIS]=id.ToString();
+                    PublishRecordVersion(node.Source,staged.Record);
                     if(node.Source is Holon concrete)concrete.ChildRoleManifestJson=node.Snapshot.ChildRoleManifestJson;
                     published.Add(node.Source);
                 }
