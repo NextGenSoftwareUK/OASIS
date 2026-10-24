@@ -436,3 +436,35 @@ Neo4j is stopped. Free C:69,475,381,248 bytes after teardown. Broader scalar typ
 joins/composition/federation, authoritative sharing/tenant policy, strict blocked
 I/O interruption and final coherent certification remain open. Full CQL/ORM
 completion is not claimed; the active goal continues.
+
+
+## Exact UInt64 Core/SQLite acceptance — 24 October 2026
+
+Core9d5efa9 adds UInt64/nullable capture and grouped keys, with exact Decimal
+literal packets and lossless conversion bounds. SQLite reads original JSON
+integer tokens rather than rounded REAL values and uses20-digit ordinal keys.
+No storage migration or reindex is required. Row predicates/membership/field
+comparison/order, detached projections, Min/Max and grouped keys/result filters
+share the existing generic planners, read owner and detached proof validation.
+Mixed fractional/out-of-range literals reject explicitly; Sum/Average retain their
+Int32/Int64 enrollment. Other providers/HTTP do not inherit UInt64 permission.
+
+Actual52891 terminated0: **all1,435 SQLite integration tests pass, zero skips**,
+including22 new UInt64 cases and four independently repaired legacy-search cases.
+The separate full Core cohort passes**2,428 cases**, with four new capture controls.
+Initial11 native cases passed; eight broader red cases were four test-expression
+mistakes and four peer search baselines, all resolved before the final unfiltered
+run. This is not a rerun of MongoDB/Neo4j suites or the63/63 HTTP demo.
+
+Core/SQL/test source hashes stayed unchanged during the final gate. Producer/native
+copies match Core35AE105E, Shared50CABB2E and SQLite014AAE08; the full Core unit
+consumer matches the same Core producer. Exact identities/source hashes:
+TestResults/SQLiteCurrent/uint64-artifacts.json and uint64-final-source-hashes.json.
+Reports: TestResults/CosmicCurrent/uint64-full-current.trx and
+TestResults/SQLiteCurrent/uint64-final-current.trx. Log:
+TestResults/CosmicCqlDemo/uint64-final.log. The exact owned SQLite DB/WAL/SHM are
+absent after teardown; no downloads/restores/new environments were needed.
+
+Next: MongoDB and Neo4j UInt64 persistence/query domains, transport/examples,
+then remaining Decimal/double coverage and the broader unchanged roadmap.
+See [the UInt64 contract](CQL_UINT64_CONTRACT.md). The full goal remains active.

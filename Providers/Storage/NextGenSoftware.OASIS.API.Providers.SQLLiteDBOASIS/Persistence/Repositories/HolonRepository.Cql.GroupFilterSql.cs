@@ -114,6 +114,8 @@ public partial class HolonRepository
                 return GroupComparison(left, new GroupFilterCell { Value = Bind(boundary.Boundary), Type = path.ValueType }, operation);
             }
             object value = literal.Value;
+            if (value != null && (Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType) == typeof(ulong))
+                value = SqliteCqlUInt64.Literal(value);
             if (left.DecimalKey && value != null)
                 return GroupComparison(left, new GroupFilterCell { Value = Bind(CosmicNumericScalarResults.DecimalOrderKey((decimal)value)),
                     DecimalKey = true, Type = path.ValueType }, operation);
