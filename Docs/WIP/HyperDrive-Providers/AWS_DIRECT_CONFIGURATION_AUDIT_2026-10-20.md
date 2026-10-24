@@ -1,5 +1,11 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## S3 contradictory completion repaired — 24 October
+
+Eight new official-SDK SigV4/XML controlled HTTP cases reproduced4genuine false-completion failures/4valid controls. The shared S3 listing owner previously accepted IsTruncated=false while a nonempty NextContinuationToken also advertised more results. [AWS documents the continuation token for truncated listings](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html); rejecting this contradictory acknowledgement is our fail-closed consistency rule, not a claim that AWS itself was observed returning it. One guard now rejects before accepting the page, without a second parser, retry, extra request or provider-specific fork.
+
+Final **114/114 full Edge protocol tests PASS, zero skips,1second**, including empty/populated and one/two-page cases, encrypted S3 lifecycle coverage and valid pagination controls. Current-source PE/PDB SharedS3=4/test=11/Core742/Shared56 and producer/copy identity verified; exact red/final reports/resources in inventory. No live AWS operation, credential use, download, restore or new environment. Hosted IAM/KMS/durability/cost/full interface and V2 gates remain OPEN; DynamoDB's earlier results were not rerun/relabelled in this S3-only batch.
+
 ## S3 empty-object completeness repaired — 24 October
 
 The common S3 transport previously accepted an empty body with no native Content-Length because the SDK's inherited scalar defaults to zero. Four genuine failures across deterministic SDK-boundary and actual signed SDK HTTP controls reproduced this; four explicit-zero controls already passed. ReadObservedAsync now uses the existing S3 Headers.ContentLength, which preserves missing as -1, rejects missing/negative lengths and verifies UTF8 bytes against the native value. GetAsync uses the same owner. No custom parser, extra HEAD/GET, retry or pricing/storage change.
