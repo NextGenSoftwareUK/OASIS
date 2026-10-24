@@ -77,7 +77,9 @@ public partial class Neo4jOASIS
                 if (boundary.Constant.HasValue) return NullAware(left, new Cell { Value = "0" }, operation, boundary.Constant.Value ? "true" : "false");
                 return Compare(left, new Cell { Value = translator.Bind(boundary.Boundary) }, operation);
             }
-            var value = literal.Kind == CosmicQueryScalarKind.Decimal
+            var value = literal.Kind != CosmicQueryScalarKind.Null
+                && (Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType) == typeof(ulong)
+                ? NeoCqlUInt64.Literal(literal.Value) : literal.Kind == CosmicQueryScalarKind.Decimal
                 ? CosmicNumericScalarResults.DecimalOrderKey((decimal)literal.Value) : literal.Kind == CosmicQueryScalarKind.Null ? null : NeoCqlTranslator.Literal(literal);
             return Compare(left, new Cell { Value = value == null ? "null" : translator.Bind(value) }, operation);
         }

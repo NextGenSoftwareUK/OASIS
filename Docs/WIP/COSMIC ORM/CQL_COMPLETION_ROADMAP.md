@@ -1,8 +1,8 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core 2,424 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo63 SDK queries/63 HTTP examples with243 settled operations and238 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core 2,474 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo63 SDK queries/63 HTTP examples with243 settled operations and238 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
-Next implementation: broader scalar coverage and the expanded provider/policy certification matrix. Neo4j SDK DateTime now passes192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full MongoDB/SQLite regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
+Next implementation: live UInt64 HTTP/examples, broader scalar coverage and the expanded provider/policy certification matrix. Neo4j SDK DateTime now passes192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full MongoDB/SQLite regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
@@ -468,3 +468,35 @@ absent after teardown; no downloads/restores/new environments were needed.
 Next: MongoDB and Neo4j UInt64 persistence/query domains, transport/examples,
 then remaining Decimal/double coverage and the broader unchanged roadmap.
 See [the UInt64 contract](CQL_UINT64_CONTRACT.md). The full goal remains active.
+
+
+## Three-provider UInt64/native and wire checkpoint — 24 October2026
+
+Actual99510 terminated0: fullCore/linked-production**2,474 tests**, Neo4j**205
+native CQL tests and453 provider units**, zero failures/skips. Twenty wire controls,
+13 native Neo cases and five Neo unit cases are new. The native gate covers exact
+UInt64 range/membership/order/projection, nullable grouped keys/Min/Max, field
+comparison and10 invalid-domain cases. Both existing schema3 integer values and
+exact raw wider-number text normalize to20-digit ordinal keys. No storage rewrite,
+reindex, toFloat or signed-integer conversion is introduced for these keys.
+
+Source/wire hashes stayed unchanged. Inside-lease producer/native/unit identities
+match Core9EA092FC, Shared2FD86EA9 and Neo86F7CE9C. Exact evidence:
+TestResults/Neo4jCurrent/uint64-artifacts.json, uint64-source-hashes.json,
+neo4j-cql-native-current.trx, uint64-unit-current.trx;
+TestResults/CosmicCurrent/uint64-wire-full-current.trx;
+TestResults/CosmicCqlDemo/uint64-wire-neo-final.log.
+
+Mongo acceptance11416 also passed205 native/478 units; SQLite's prior full1,435
+cohort remains scoped to its earlier binary. These are separate verified cohorts,
+not a simultaneous full regression of all three stores. The latest live demo remains
+63SDK/63HTTP UTC examples; new UInt64 live transport/examples still require their
+own gate. The additive UInt64 enum, selected/nullable binding, grouped alias
+predicates and central exact-string wire formatting pass the20 new Core controls.
+
+Core/Shared receipt repair was necessary for the current native seed path and is
+owned by the parallel provider session. Its committed dependency pin/publication
+must be reconciled before a Development deployment batch. This checkpoint remains
+on the task branch. Original joins, federation, broader Decimal/floating metadata,
+authoritative policy, interruption and final certification requirements stay open.
+See [the matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) and [UInt64 contract](CQL_UINT64_CONTRACT.md).

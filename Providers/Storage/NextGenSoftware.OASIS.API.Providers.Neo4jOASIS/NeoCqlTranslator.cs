@@ -45,6 +45,11 @@ internal sealed partial class NeoCqlTranslator
             var date = NeoCqlDate.Operand(kind, value, Bind);
             guard = date.Guard; value = date.Value;
         }
+        else if (type == typeof(ulong))
+        {
+            var unsigned = NeoCqlUInt64.Operand(kind, value, Bind);
+            guard = unsigned.Guard; value = unsigned.Value;
+        }
         else if (type == typeof(bool)) guard = kind + "='boolean'";
         else if (type == typeof(Guid))
         {
@@ -76,6 +81,9 @@ internal sealed partial class NeoCqlTranslator
         CosmicQueryScalarKind.Guid => ((Guid)literal.Value).ToString("D"),
         CosmicQueryScalarKind.UtcDateTime => NeoCqlDate.Literal((DateTime)literal.Value),
         _ => throw new NotSupportedException("Neo4j CQL literal domain is unsupported.") };
+    private static object Literal(CosmicQueryLiteral literal, Type declared)
+        => (Nullable.GetUnderlyingType(declared) ?? declared) == typeof(ulong)
+            ? NeoCqlUInt64.Literal(literal.Value) : Literal(literal);
     private static string Total(string predicate) => "coalesce((" + predicate + "),false)";
 
     internal IReadOnlyList<(string Expression,bool Descending)> TranslateOrdering(IReadOnlyList<CosmicQueryOrdering> orderings)
@@ -150,7 +158,7 @@ internal sealed partial class NeoCqlTranslator
                         CosmicQueryComparisonOperator.NotEqual => Total(operand.Guard + " AND NOT (" + operand.Null + ")"),
                         _ => throw new NotSupportedException("CQL null ordering is unsupported.") };
                 }
-                var compared = operand.Guard + " AND " + operand.Value + Symbol(comparison.Operator) + Bind(Literal(comparison.Literal));
+                var compared = operand.Guard + " AND " + operand.Value + Symbol(comparison.Operator) + Bind(Literal(comparison.Literal, comparison.Path.ValueType));
                 if (comparison.Operator == CosmicQueryComparisonOperator.NotEqual && NullablePath(comparison.Path))
                     compared = "(" + compared + ") OR (" + operand.Null + ")";
                 return Total(compared);
@@ -162,7 +170,7 @@ internal sealed partial class NeoCqlTranslator
                 return Total(text.Guard + " AND " + text.Value + operation + Bind(match.Value));
             case CosmicQueryMembership membership:
                 var member = Operand(membership.Path);
-                var values = membership.Values.Where(value => value.Kind != CosmicQueryScalarKind.Null).Select(Literal).ToArray();
+                var values = membership.Values.Where(value => value.Kind != CosmicQueryScalarKind.Null).Select(value => Literal(value, membership.Path.ValueType)).ToArray();
                 var included = member.Guard + " AND " + member.Value + " IN " + Bind(values);
                 if (NullablePath(membership.Path) && membership.Values.Any(value => value.Kind == CosmicQueryScalarKind.Null))
                     included = "(" + included + ") OR (" + member.Null + ")";
