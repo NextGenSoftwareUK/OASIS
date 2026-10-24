@@ -831,9 +831,9 @@ See [examples20–21](../../../Examples/CosmicCqlDemo/README.md#examples-2021-ex
 and [the exact transport contract](CQL_UTC_DATETIME_CONTRACT.md).
 
 
-## SQLite UInt64 metadata
+## UInt64 metadata on MongoDB, SQLite and Neo4j
 
-SQLite now supports `Value<ulong>` and `Value<ulong?>` for the full unsigned range.
+MongoDB, SQLite and Neo4j support `Value<ulong>` and `Value<ulong?>` for the full unsigned range.
 Use typed integer literals so intent and provider admission retain the domain:
 
 ```csharp
@@ -847,7 +847,7 @@ var highCounters = CosmicQuery<Holon>.Create()
     });
 ```
 
-Handle the result, plan against the actual SQLite adapter and execute through
+Handle the result, plan against the actual target adapter and execute through
 HolonManager as in the projection walkthrough. Metadata paths require explicit
 segments: use `Value<ulong>(row, "stats", "counter")` for a nested counter.
 Captured path arrays are not part of the expression grammar.
@@ -855,6 +855,32 @@ Captured path arrays are not part of the expression grammar.
 UInt64 source values above Int64.MaxValue remain exact; the native query does not
 compare a rounded floating-point extraction. Nullable values, membership,
 field-to-field comparison, Min/Max and grouped keys use the same exact domain.
-Fractional/out-of-range Decimal comparisons, UInt64 Sum/Average, MongoDB/Neo4j
-UInt64 and HTTP UInt64 transport are not enrolled by this SQLite checkpoint.
+Fractional/out-of-range mixed literals remain a provider admission restriction.
+UInt64 Sum/Average are not enrolled by metadata support. HTTP UInt64 compiler
+coverage passes; live transport/demo acceptance is still pending.
 See [the UInt64 contract](CQL_UINT64_CONTRACT.md) for verified scope and examples.
+
+
+### UInt64 HTTP shapes
+
+Source metadata filters use the additive `UInt64` scalar and an exact digit string:
+
+```json
+{
+  "metadataPath": ["counter"],
+  "scalar": "UInt64",
+  "operator": "GreaterThan",
+  "value": "9223372036854775807"
+}
+```
+
+Select a counter with `{"alias":"Counter","metadataPath":["counter"],"valueType":"UInt64"}`.
+Set `nullable:true` when missing/null values are allowed in selected output. Group
+keys use the same selection shape. A selected group predicate can use
+`{"alias":"Counter","operator":"Equal","value":"18446744073709551615"}`.
+Output columns carry UInt64 schema tags and invariant strings, preserving all bits
+through JavaScript clients. Numeric JSON input, signs, whitespace, fractions,
+exponents and values above UInt64.MaxValue fail compilation. Existing enum values
+retain their identities. Live three-provider examples remain the next acceptance
+step; [the capability matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) distinguishes that
+pending gate from the passing compiler and native evidence.
