@@ -143,6 +143,8 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
         if (type == typeof(string) && value is string text) return text;
         if (type == typeof(bool) && value is bool boolean) return boolean;
         if (type == typeof(Guid) && value is string guid && Guid.TryParseExact(guid, "D", out var id)) return id;
+        if (type == typeof(DateTime) && value is string date && DateTime.TryParseExact(date, NeoCqlDate.Format,
+            CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var utc)) return utc;
         if (value is long integer)
         {
             if (type.IsEnum)
