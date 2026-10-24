@@ -1,5 +1,15 @@
 # NEAR signer and receipt audit
 
+## C# to real SDK argument precision repaired — 24 October
+
+Four tests using the actual retained near-api-js7.3.1 actions.functionCall encoder reproduced3precision failures/1smallinteger control PASS: Int64max, negative beyond2^53 and high-precision decimal were changed by the Node object's JSON.parse→SDK JSON.stringify boundary. Prior receipt binding detected wrong arguments only after an operation could already execute; prevention must happen before signing.
+
+CallAsync now sends the captured C# UTF8 JSON as canonical base64. One production decodeCallArguments owner validates canonical base64, strict UTF8 and JSON syntax, discards the parsed JS object and returns ORIGINAL bytes to account.callFunctionRaw's supported Uint8Array path. No object fallback/second serialization, alternative SDK or extra RPC. Existing read-only ViewAsync and record put/delete protocols are unchanged; this is a coordinated internal call-protocol change, and new module is copied/published alongside bridge.mjs. Existing controlled mint/NFT fixtures use the same captured argument bytes.
+
+Final **322tests PASS, zero skips,17seconds**:4real-SDK action-byte encoding cases,6production decoder admission cases and312existing controlled regressions. SDK encoder bytes match captured C# bytes exactly for the four cases. Decoder rejects empty/noncanonical/invalid base64, invalid UTF8 and invalid JSON, accepts canonical object JSON. These are real SDK serialization + controlled IPC proofs, NOT signed native transactions, network finality or whole-provider certification. No signer/provider/RPC is constructed by the SDK byte fixture. Source/PDB provider18/unit34/Core742/Shared56 and all module/fixture copies verified.
+
+Generic signed native success/failure, durable transaction identity/recovery, ordinary put/delete, ViewAsync numeric argument fidelity, contract-side numeric semantics, fees/full interfaces/V2 remain OPEN. Previous native cohorts not rerun. Red/final report and resource hashes in inventory; one exact-hash superseded green intermediate removed after all-pass/name-superset verification, not original failure evidence.
+
 ## Signed action intent binding — controlled proof, 24 October
 
 Extended42call/transfer controls first reproduced14wrong-action false successes while28existing controls passed. Existing acknowledgement owner now requires exactly one native action of the admitted type with exact deposit/transfer amount. Function calls also bind method, captured JSON arguments and gas. Amounts are admitted as nonnegative decimal integers before dispatch; function gas has one C# request owner (100Tgas) and is sent explicitly to the same bridge. No alternate SDK or second submission path. Malformed/wrong action evidence retains the original ID under the existing uncertainty marker; no replay/followup success is fabricated.
