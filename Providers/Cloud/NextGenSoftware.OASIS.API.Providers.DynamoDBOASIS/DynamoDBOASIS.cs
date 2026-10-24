@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
@@ -841,14 +842,33 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var saved = await SaveHolonsAsync(holons,continueOnError:false); var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved); result.Result=!saved.IsError && saved.IsSaved; return result; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            if(version!=-1)return await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try {
+                var items=await ReadScanItemsAsync(request=>_client.ScanAsync(request),"OasisHolons");
+                var rows=new List<IHolon>();
+                foreach(var item in items){
+                    var id=ReadNativeItemIdentity(item);
+                    ReadCanonicalIdentity<Holon>(item,id);
+                    var document=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.ParseStoredObject(item["data_json"].S);
+                    if(document["id"]!=null&&document["id"].Value<string>()!=id.ToString())throw new System.IO.InvalidDataException("Embedded record identity conflicts with native key.");
+                    document["id"]=id.ToString();
+                    rows.AddRange(RecordHistory.ReadAll(id,document,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeStored<Holon>).Where(row=>!row.IsDeleted));
+                }
+                // Archived roots retain their stored child payloads; never invent a cross-version graph snapshot.
+                result.Result=rows;result.IsLoaded=true;result.LoadedCount=rows.Count;
+            }catch(Exception cause){result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);}
+            return result;
+        }
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
             var result=new OASISResult<IEnumerable<IHolon>>();
             try {
                 if(avatarId==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
-                var loaded=await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
+                var loaded=await ExportAllAsync(version);
                 if(loaded.IsError) return loaded;
                 result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
                 result.Result=loaded.Result.Where(row=>row.CreatedByAvatarId==avatarId).ToList();
@@ -870,7 +890,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result=new OASISResult<IEnumerable<IHolon>>();
             try {
                 if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
-                ValidateGraphRead(0,0,version);
+                ValidateGraphRead(0,0,version==-1?0:version);
                 // Identity history is independent of the exported holon root version.
                 var selected=email ? await LoadAvatarByEmailAsync(selector):await LoadAvatarByUsernameAsync(selector);
                 if(selected.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(selected);

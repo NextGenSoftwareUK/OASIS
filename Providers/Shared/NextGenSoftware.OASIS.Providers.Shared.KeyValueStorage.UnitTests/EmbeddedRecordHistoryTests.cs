@@ -10,6 +10,33 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class EmbeddedRecordHistoryTests
 {
+    [TestMethod]
+    public async Task AllVersionsAreAscendingDetachedAndIncludeDeletedCurrent()
+    {
+        var codec=new EmbeddedRecordHistory();var row=new Holon{Id=Guid.NewGuid(),Name="first"};
+        var first=await codec.StageAsync(row,null,Decode);
+        Assert.AreEqual(1,codec.ReadAll(row.Id,first,Decode).Count);
+        row.Name="deleted";row.DeletedDate=DateTime.UtcNow;
+        var second=await codec.StageAsync(row,first,Decode);var before=second.ToString();
+        var all=codec.ReadAll(row.Id,second,Decode);
+        Assert.AreEqual(2,all.Count);Assert.AreEqual(1,all[0].Version);Assert.AreEqual(2,all[1].Version);
+        Assert.AreEqual("first",all[0].Name);Assert.AreNotEqual(DateTime.MinValue,all[1].DeletedDate);
+        all[0].Name="caller edit";Assert.AreEqual(before,second.ToString());
+        Assert.AreEqual("first",codec.ReadAll(row.Id,second,Decode)[0].Name);
+    }
+
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)]
+    public async Task AllVersionsRejectCorruptArchiveBeforeReturningAnyRecords(int mode)
+    {
+        var codec=new EmbeddedRecordHistory("native_revision");var row=new Holon{Id=Guid.NewGuid()};
+        var first=await codec.StageAsync(row,null,Decode);var second=await codec.StageAsync(row,first,Decode);
+        var archive=(JArray)second[EmbeddedRecordHistory.PropertyName]!["records"]!;
+        if(mode==0)archive.Add(archive[0]!.DeepClone());
+        else if(mode==1)archive[0]!["Id"]=Guid.NewGuid().ToString();
+        else archive[0]!["native_revision"]="invalid";
+        Assert.ThrowsException<InvalidDataException>(()=>codec.ReadAll(row.Id,second,Decode));
+    }
+
     [DataTestMethod]
     [DataRow("1",true)][DataRow("1.0",false)][DataRow("1e0",false)][DataRow("\"1\"",false)]
     public async Task ExactObjectParserRetainsStrictIntegerSchemaContract(string schema,bool valid)

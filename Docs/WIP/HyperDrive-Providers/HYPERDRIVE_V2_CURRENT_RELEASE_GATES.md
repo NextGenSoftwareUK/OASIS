@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## OPEN: documented all-versions exports versus provider admission (24 October 2026)
+
+Final local AWS/Dynamo gate verified: matched Shared1037unit + Dynamo523unit + native171PASS0skip, current source/copy checks Core732/4ECCB543/Shared55/00AF19C5. This closes their local -1 enumeration mismatch; hosted/public API/other-provider archive export/fullV2 gates remain OPEN. No all-provider completion claim or deployment authorized by these local tests.
+
+Update: working-tree AWS/Dynamo -1 export now enumerates existing validated embedded history, retains archived child payloads, filters deleted versions/owners, keeps versions below-1 invalid. Shared1037unit/Dynamo523unit and retained native171 (including8AWS/Dynamo all-version fixture assertions) pass in documented cohorts. Matched final unit refresh/publication still pending; other provider implementations and hosted/public API acceptance remain OPEN. Earlier mismatch finding below describes the pre-fix source, not the current working-tree route.
+
+Core IOASISStorageProvider export comments (lines474–481) specify Version=-1 means all versions. AWS/Dynamo current exports instead reach negative-version rejection. Positive-history/local green results are not complete interface-contract proof. Investigate archive enumeration and graph/deletion/counter semantics before claiming these interfaces100%; do not weaken single-version validators or silently map -1 to latest. Evidence/source pointers and implementation considerations: AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md. Other providers need the same contract audit, not assumed affected or compliant.
+
 ## Oracle point selector predispatch — 23 October 2026
 
 One SQL identity read helper validates RAW16 nonemptyGUID/nonblank username/email before SDK connection construction. New56controls first28invalid failures/28valid controls; final paired381unit/496native PASS0skip, same retained DB/serverstopped/pending0/11521absent. Exact matching/history/parent-root/save-new semantics preserved; no new query/retry/config fallback. Invalid SDK config fixture proves ordering, not live cloud fee elimination. Core6D193362/Shared13EC9571/OracleDE777306/source15 and exact reports/resources in ENVIRONMENT_INVENTORY.md. Hosted Autonomous/OCI IAM/wallet/cost/durability/fullV2 remain OPEN; no new runtime/download/reset/dev deployment.
