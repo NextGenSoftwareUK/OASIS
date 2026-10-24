@@ -38,6 +38,8 @@ public partial class HolonRepository
             translator.Parameters.Add(new SqliteParameter("$groupOffset", (long)source.Offset));
             translator.Parameters.Add(new SqliteParameter("$groupTake", Math.Min(source.Limit.HasValue ? (long)source.Limit.Value : long.MaxValue, sentinel)));
             translator.Parameters.Add(new SqliteParameter("$groupLimit", (long)maximumGroups + 1));
+            translator.Parameters.Add(new SqliteParameter("$resultOffset", query.ResultOffset));
+            translator.Parameters.Add(new SqliteParameter("$resultTake", (object)query.ResultLimit ?? DBNull.Value));
             var sql = translator.TranslateGroups(query, predicate, ordering);
             cancellationToken.ThrowIfCancellationRequested();
             using var exclusive = _dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
@@ -113,7 +115,11 @@ public partial class HolonRepository
                                 }
                                 Reserve(values[index]);
                             }
-                            rows.Add(new CosmicGroupedRow(inputs, keys, values));
+                            // Native selection is only published after every bounded proof
+                            // packet has been decoded, including groups outside this page.
+                            var member = reader.GetInt64(position);
+                            if (member != 0 && member != 1) throw new InvalidDataException("Invalid native result-page marker.");
+                            rows.Add(new CosmicGroupedRow(inputs, member == 1, keys, values));
                         }
                     }
                     budget.Check(); traversal?.Check();

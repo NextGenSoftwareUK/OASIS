@@ -96,9 +96,11 @@ public partial class HolonRepository
                 + " shaped AS (SELECT " + string.Join(",", shaped) + " FROM selected),"
                 + " reduced AS (SELECT " + string.Join(",", keys) + ",count(*) AS inputs,"
                 + "sum(CASE WHEN " + string.Join(" OR ", bad.Select(condition => "(" + condition + ")")) + " THEN 1 ELSE 0 END) AS invalid"
-                + (reductions.Count == 0 ? "" : "," + string.Join(",", reductions)) + " FROM shaped GROUP BY " + string.Join(",", keys) + ") "
+                + (reductions.Count == 0 ? "" : "," + string.Join(",", reductions)) + " FROM shaped GROUP BY " + string.Join(",", keys) + "), ranked AS (SELECT *,row_number() OVER (ORDER BY "
+                + string.Join(",", resultOrder) + ") AS groupPosition FROM reduced) "
                 + "SELECT invalid,(SELECT count(*) FROM selected) AS work,inputs," + string.Join(",", keys) + tail
-                + " FROM reduced ORDER BY " + string.Join(",", resultOrder) + " LIMIT $groupLimit";
+                + ",CASE WHEN groupPosition>$resultOffset AND ($resultTake IS NULL OR groupPosition<=$resultOffset+$resultTake) THEN 1 ELSE 0 END AS resultMember"
+                + " FROM ranked ORDER BY groupPosition LIMIT $groupLimit";
         }
     }
 }
