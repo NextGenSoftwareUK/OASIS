@@ -19,16 +19,18 @@ internal static class DynamoCapacityUsage
     {
         ArgumentNullException.ThrowIfNull(requestedTables);
         if(requestedTables.Count==0)throw new ArgumentException("Original transaction tables are required.",nameof(requestedTables));
-        if(capacities!=null&&capacities.Count!=0&&capacities.Count!=requestedTables.Count)
-            throw new InvalidDataException("Transaction capacity must preserve the original action ordering and count.");
+        var tables=new HashSet<string>(StringComparer.Ordinal);
+        foreach(var table in requestedTables){ArgumentException.ThrowIfNullOrWhiteSpace(table);tables.Add(table);}
+        var returned=new Dictionary<string,ConsumedCapacity>(StringComparer.Ordinal);
+        if(capacities!=null)foreach(var capacity in capacities){
+            if(capacity==null||string.IsNullOrWhiteSpace(capacity.TableName)||!tables.Contains(capacity.TableName)
+                ||!returned.TryAdd(capacity.TableName,capacity))
+                throw new InvalidDataException("Transaction capacity must identify each original table at most once.");
+        }
         var rows=new List<NativeResourceUsageObservation>();
-        for(var index=0;index<requestedTables.Count;index++){
-            var table=requestedTables[index];ArgumentException.ThrowIfNullOrWhiteSpace(table);
-            var capacity=capacities==null||capacities.Count==0?null:capacities[index];
-            if(capacities?.Count>0&&(capacity==null||capacity.TableName!=table))
-                throw new InvalidDataException("Transaction capacity table differs from its original ordered action.");
-            foreach(var row in Capture(provider,logicalRequestId,nativeRequestId,region,table,capacity,observedAtUtc))
-                rows.Add(row with {ResourceScope=row.ResourceScope+"/transaction-action/"+index.ToString(CultureInfo.InvariantCulture)});
+        foreach(var table in tables){
+            returned.TryGetValue(table,out var capacity);
+            rows.AddRange(Capture(provider,logicalRequestId,nativeRequestId,region,table,capacity,observedAtUtc));
         }
         return rows.AsReadOnly();
     }

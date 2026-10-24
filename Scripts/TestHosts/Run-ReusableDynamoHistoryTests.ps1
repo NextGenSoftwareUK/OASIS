@@ -1,7 +1,7 @@
-param([switch]$CleanupSizeAdmission,[switch]$InspectSizeAdmission,[switch]$ItemSizeBoundary,[switch]$CleanupCanonicalHistory,[switch]$InspectCanonicalHistory,[switch]$CleanupSqliteKarmaHistory,[switch]$InspectSqliteKarmaHistory,[switch]$ReconcileKarmaSeed,[switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
+param([switch]$CapacityReadOnly,[switch]$CleanupSizeAdmission,[switch]$InspectSizeAdmission,[switch]$ItemSizeBoundary,[switch]$CleanupCanonicalHistory,[switch]$InspectCanonicalHistory,[switch]$CleanupSqliteKarmaHistory,[switch]$InspectSqliteKarmaHistory,[switch]$ReconcileKarmaSeed,[switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
     [switch]$AllVersionExports,[switch]$PointReadIdentities,[switch]$IndependentExportVersions,[switch]$DuplicatePageRegression,[switch]$CleanupKarmaMutation,[switch]$InspectKarmaMutation,[switch]$CleanupKarmaSeed,[switch]$CleanupVerifiedAwsRun,[ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$VerifiedReportSha256)
 $ErrorActionPreference='Stop'
-$selectedModes=@($CleanupSizeAdmission,$InspectSizeAdmission,$ItemSizeBoundary,$CleanupCanonicalHistory,$InspectCanonicalHistory,$CleanupSqliteKarmaHistory,$InspectSqliteKarmaHistory,$CleanupKarmaMutation,$InspectKarmaMutation,$CleanupKarmaSeed,$ReconcileKarmaSeed,$OrdinarySaveAcknowledgements,$OrdinarySaveLifecycle,$DetailDeletionResults,
+$selectedModes=@($CapacityReadOnly,$CleanupSizeAdmission,$InspectSizeAdmission,$ItemSizeBoundary,$CleanupCanonicalHistory,$InspectCanonicalHistory,$CleanupSqliteKarmaHistory,$InspectSqliteKarmaHistory,$CleanupKarmaMutation,$InspectKarmaMutation,$CleanupKarmaSeed,$ReconcileKarmaSeed,$OrdinarySaveAcknowledgements,$OrdinarySaveLifecycle,$DetailDeletionResults,
     $BatchRevisions,$EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileConditionalInitial,$ConditionalGraphs,
     $ReconcileKnownReadFixture,$FullAwsSuite,$ReconcileAwsPreRead,$CleanupKnownAwsRun,$ReconcileValidationFixtures,
     $ReconcileReflectionFixtures,$CleanupVerifiedAwsRun,$IndependentExportVersions,$DuplicatePageRegression,$PointReadIdentities,$AllVersionExports).Where({$_.IsPresent})
@@ -197,6 +197,7 @@ try{
     if($ItemSizeBoundary){$filter='(FullyQualifiedName~DynamoHistoryNativeTests&FullyQualifiedName!~ReconcileKnown)|FullyQualifiedName~DynamoPreparationNativeTests|FullyQualifiedName~DynamoConditionalNativeTests|FullyQualifiedName~DynamoSizeBoundaryNativeTests';$reportName='dynamo-size-boundary-full-native.trx'}
     if($InspectSizeAdmission){$filter='FullyQualifiedName~ReconcileKnownSizeAdmissionFixturesReadOnly';$reportName='dynamo-size-admission-original-inspection.trx'}
     if($CleanupSizeAdmission){$filter='FullyQualifiedName~ReconcileKnownSizeAdmissionFixturesCleanup';$reportName='dynamo-size-admission-original-cleanup.trx'}
+    if($CapacityReadOnly){$filter='FullyQualifiedName~DynamoCapacityNativeTests';$reportName='dynamo-capacity-read-only-native.trx'}
     if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve the original native report before another run.'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Native history test failed; preserve journal/data for reconciliation.'}
@@ -207,6 +208,7 @@ $report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.Ful
     if($OrdinarySaveAcknowledgements){$expected=12}
     if($ItemSizeBoundary){$expected=187}
     if($CleanupSizeAdmission){$expected=1}
+    if($CapacityReadOnly){$expected=1}
     if($InspectSizeAdmission){
         if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0 -or @(Get-ChildItem -LiteralPath $work -Filter '*.pending.json').Count -ne 9){throw 'Fresh read-only original inspection and nine preserved journals required.'}
         return
