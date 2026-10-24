@@ -1,5 +1,7 @@
 # HyperDrive V2 current release gates
 
+BigQuery unique selectors24October:213controlledPASS0skip.14genuine duplicate-selection failures/28valid missing-single controls across7point selectors,sync/async; common point helper now fetches2and rejects ambiguity,not arbitrary newest-row success. Native execution,write concurrency/uniqueness,index-canonical consistency and fullV2 remainOPEN. Existing cache/environment only; audit/inventory updated.
+
 BigQuery detailvisibility24October:171controlledPASS0skip.8genuine failures/8valid controls reproduced deleted details returned by GUID/username/email/list,sync/async. Existing read boundaries now exclude tombstones without rewriting records. Historical versioning/paired deletion/native/cloud/fullV2 remainOPEN; see audit/inventory. No runtime/download/restore.
 
 BigQuery collections24October:155controlledPASS0skip. Removed silent1000-row collection cap; official SDK async iterator verified against1002 synthetic rows/two native-shaped REST pages. Existing canonical Core codec fixes unreadable saved AvatarDetail interfaces; paired roundtrip, empty/count and later-page failure/no partial controls pass. Source/copy identity verified. No hosted query or cloud acceptance; encryption/history/graph/options/identity ambiguity/durable jobs/fees/fullV2 remainOPEN. Audit/inventory retain original failing evidence; older pagination/serialization-open notices below are historical.
