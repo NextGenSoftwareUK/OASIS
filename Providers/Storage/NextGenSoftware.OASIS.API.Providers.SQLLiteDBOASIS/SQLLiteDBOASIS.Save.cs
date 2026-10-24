@@ -212,6 +212,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                SqliteReadVersion.ValidateExport(version);
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -224,7 +225,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId
-                var allHolons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                var allHolons = await ExportAllAsync(version);
                 if (allHolons.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading export data: {allHolons.Message}", allHolons.Exception);
@@ -252,6 +253,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                SqliteReadVersion.ValidateExport(version);
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -264,7 +266,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId (using CreatedByAvatar property)
-                var allHolons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                var allHolons = await ExportAllAsync(version);
                 if (allHolons.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading export data: {allHolons.Message}", allHolons.Exception);
@@ -300,6 +302,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                SqliteReadVersion.ValidateExport(version);
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -312,7 +315,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId (using CreatedByAvatar property)
-                var allHolons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                var allHolons = await ExportAllAsync(version);
                 if (allHolons.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading export data: {allHolons.Message}", allHolons.Exception);
@@ -354,6 +357,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                SqliteReadVersion.ValidateExport(version);
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -366,7 +370,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Export all holons via current repository API
-                var holons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                var holons = version==-1?await _holonRepository.ExportAllVersionsAsync():await _holonRepository.LoadAllHolonsAsync(version: version);
                 if (holons.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading export data: {holons.Message}", holons.Exception);

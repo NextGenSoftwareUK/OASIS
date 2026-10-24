@@ -15,6 +15,30 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
 public partial class HolonRepository
 {
+    public async System.Threading.Tasks.Task<NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>>> ExportAllVersionsAsync()
+    {
+        var result=new NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>>();
+        try {
+            using var ownedTransaction=_dbContext.Database.CurrentTransaction==null?await _dbContext.Database.BeginTransactionAsync():null;
+            var versions=new List<int>();
+            using(var command=_dbContext.Database.GetDbConnection().CreateCommand()){
+                command.Transaction=_dbContext.Database.CurrentTransaction?.GetDbTransaction();
+                command.CommandText="SELECT Version FROM Holon UNION SELECT Version FROM CosmicHolonRevision ORDER BY Version";
+                using var reader=await command.ExecuteReaderAsync();
+                while(await reader.ReadAsync()){
+                    var version=reader.GetInt32(0);
+                    if(version<0)throw new InvalidDataException("Stored export version is negative.");
+                    versions.Add(version);
+                }
+            }
+            var records=new List<IHolon>();
+            foreach(var version in versions)records.AddRange(ReadHolonRevisions(version,Core.Enums.HolonType.All));
+            ownedTransaction?.Commit();
+            result.Result=records;result.IsLoaded=true;result.LoadedCount=records.Count;
+        }catch(Exception cause){result.IsError=true;result.Exception=cause;result.Message=cause.Message;}
+        return result;
+    }
+
     private static void AddRevisionCandidate(Dictionary<Guid,IHolon> records,IHolon record)
     {
         if(records.TryAdd(record.Id,record))return;

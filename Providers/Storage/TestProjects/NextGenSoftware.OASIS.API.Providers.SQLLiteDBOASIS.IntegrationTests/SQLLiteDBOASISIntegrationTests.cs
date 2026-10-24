@@ -14,6 +14,58 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
 public partial class SQLLiteDBOASISIntegrationTests : IDisposable
 {
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task AllVersionExportRejectsCorruptArchivedChecksumWithoutPartialSuccess(bool sync)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString){IsVersionControlEnabled=true};
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var row=new Holon{Id=Guid.NewGuid(),Name="first",IsActive=true,Version=1,VersionId=Guid.NewGuid()};
+        (await provider.SaveHolonAsync(row,saveChildren:false)).IsError.Should().BeFalse();
+        row.Name="second";row.Version=2;row.PreviousVersionId=row.VersionId;row.VersionId=Guid.NewGuid();
+        (await provider.SaveHolonAsync(row,saveChildren:false)).IsError.Should().BeFalse();
+        using var control=new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw("UPDATE CosmicHolonRevision SET RecordDigest={0} WHERE HolonId={1}",new string('0',64),row.Id.ToString("D")).Should().Be(1);
+        var exported=sync?provider.ExportAll(-1):await provider.ExportAllAsync(-1);
+        exported.IsError.Should().BeTrue();exported.Exception.Should().BeOfType<System.IO.InvalidDataException>();
+        exported.Result.Should().BeNull();exported.IsLoaded.Should().BeFalse();exported.LoadedCount.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(0,false)][InlineData(0,true)][InlineData(1,false)][InlineData(1,true)]
+    [InlineData(2,false)][InlineData(2,true)][InlineData(3,false)][InlineData(3,true)]
+    public async Task AllVersionExportsSurviveReopenAndPreserveOwnedHistory(int selector,bool sync)
+    {
+        var avatar=new Avatar{Id=Guid.NewGuid(),Username="owned-history",Email="owned-history@example.invalid",IsActive=true};
+        var own=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=avatar.Id,IsActive=true};
+        var foreign=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=Guid.NewGuid(),IsActive=true};
+        using(var writer=new SQLLiteDBOASIS(TestConnectionString){IsVersionControlEnabled=true}){
+            (await writer.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await writer.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+            avatar.Username="current-owned-history";avatar.Email="current-owned-history@example.invalid";
+            (await writer.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+            for(var version=1;version<=3;version++){
+                own.PreviousVersionId=own.VersionId;own.VersionId=Guid.NewGuid();own.Version=version;own.Name="owned-v"+version;
+                foreign.PreviousVersionId=foreign.VersionId;foreign.VersionId=Guid.NewGuid();foreign.Version=version;foreign.Name="foreign-v"+version;
+                (await writer.SaveHolonAsync(own,saveChildren:false)).IsError.Should().BeFalse();
+                (await writer.SaveHolonAsync(foreign,saveChildren:false)).IsError.Should().BeFalse();
+            }
+        }
+        using var reader=new SQLLiteDBOASIS(TestConnectionString);
+        (await reader.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var before=System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(_databasePath));
+        var exported=selector switch{
+            0=>sync?reader.ExportAll(-1):await reader.ExportAllAsync(-1),
+            1=>sync?reader.ExportAllDataForAvatarById(avatar.Id,-1):await reader.ExportAllDataForAvatarByIdAsync(avatar.Id,-1),
+            2=>sync?reader.ExportAllDataForAvatarByUsername(avatar.Username,-1):await reader.ExportAllDataForAvatarByUsernameAsync(avatar.Username,-1),
+            _=>sync?reader.ExportAllDataForAvatarByEmail(avatar.Email,-1):await reader.ExportAllDataForAvatarByEmailAsync(avatar.Email,-1)
+        };
+        exported.IsError.Should().BeFalse(exported.Message);exported.IsLoaded.Should().BeTrue();exported.LoadedCount.Should().Be(selector==0?6:3);
+        var selected=exported.Result.Where(row=>row.Id==own.Id).ToArray();selected.Select(row=>row.Version).Should().Equal(1,2,3);
+        selected.Select(row=>row.Name).Should().Equal("owned-v1","owned-v2","owned-v3");
+        if(selector!=0)exported.Result.Should().OnlyContain(row=>row.CreatedByAvatarId==avatar.Id);
+        System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(_databasePath)).Should().Equal(before);
+    }
+
     [Theory]
     [InlineData(DateTimeKind.Local)]
     [InlineData(DateTimeKind.Unspecified)]

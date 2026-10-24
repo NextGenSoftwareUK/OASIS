@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## SQLite all-version exports — 24 October 2026
+
+Matched39maintainedunit +10focusedfile-backed native PASS0skip;8persist/reopen/currentidentity/foreign exclusion/whole-DB SHA unchanged,2corrupt64hex digest rejection. Reuses existing revision table/checksum/native revision ambiguity reader; enumerates actual stored logical versions within owned/caller read transaction. Manager owns logical Version/lineage, archive flag does not auto-increment it; test supplies1..3 accordingly. Ordinary negative reads unchanged, export-1 allowed/-2 rejected before activation. Existing deleted-row visibility retained, not cross-provider visibility equivalence. Core735/19F1CA8B Shared55/B2BE823C SQLite161/37FD0B2C source/copies verified, fixed DB/wal/shm absent. Full SQLite integration/public APIs/all-providerV2 remain OPEN.
+
 ## SQLite successful-export counters — 24 October 2026
 
 One CompleteExport owner now materializes roots/sets IsLoaded/LoadedCount for all four export methods. Actual activated baseline8/8failed IsLoaded after valid native-memory writes/payload assertions; fixed full maintained21unitPASS0skip, including16sync/async empty/nonempty real SQLite cases. Earlier2fixture failures were missing activation/schema, NOT counter proof; preserved. Source/PDB/copies Core734/E4FEDC5B Shared55/E18B2EF1 SQLite161/C6237445 verified. Offline existing-cache assets restore only; no disk DB/download/new environment/extra query. Separate SQLite all-version/full integration/public API/fullV2 gates remain OPEN.
