@@ -18,16 +18,18 @@ public partial class Neo4jOASIS
     internal static CosmicGroupedRow DecodeCqlGrouped<T, TKey, TResult>(IReadOnlyDictionary<string, object> packet,
         CosmicGroupedSelection<T, TKey, TResult> query) where T : IHolon
     {
-        if (packet.Count != 6 || !packet.TryGetValue("inputs", out var rawInputs) || rawInputs is not long inputs
+        if (packet.Count != 7 || !packet.TryGetValue("inputs", out var rawInputs) || rawInputs is not long inputs
             || !packet.TryGetValue("valid", out var valid) || valid is not bool ok
             || !packet.TryGetValue("traversalCycle", out var cycle) || cycle is not bool hasCycle
             || !packet.TryGetValue("traversalLimit", out var limit) || limit is not bool hasLimit
+            || !packet.TryGetValue("payloadLimit", out var payload) || payload is not bool payloadLimited
             || !packet.TryGetValue("keys", out var rawKeys) || rawKeys is not IReadOnlyList<object> keys
             || !packet.TryGetValue("aggregates", out var rawAggregates) || rawAggregates is not IReadOnlyList<object> aggregates)
             throw new InvalidDataException("Native grouped packet has an invalid envelope.");
         if (hasCycle) throw new InvalidDataException("Native grouped traversal encountered a cycle.");
         if (hasLimit) throw new NeoCqlLimitException("Native grouped traversal exceeds its visited-node budget.");
         if (!ok || inputs < 1) throw new InvalidDataException("Native grouped ownership or selected domain is invalid.");
+        if (payloadLimited) throw new NeoCqlLimitException("Native grouped row exceeds its payload budget.");
         if (inputs > CosmicNumericScalarResults.MaximumParticipatingValues)
             throw new NeoCqlLimitException("Native grouped input exceeds its work bound.");
 
