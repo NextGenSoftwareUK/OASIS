@@ -283,11 +283,30 @@ public static class V1Walkthrough
                 orderBy = "Name",
                 take = 2
             }, scalar: true, valueType: "Decimal", expected: "-9007199254740990.5");
+            // EXAMPLE 15 — Keys and aggregate columns are separate descriptions.
+            // Take selects the source window; maximumGroups limits only output.
+            await ShowAsync("15. GroupBy / exact multiple aggregates", new
+            {
+                provider,
+                filters = scalarFilters,
+                orderBy = "Name",
+                take = 2,
+                maximumGroups = 10,
+
+                keys = new[] { new { alias = "stock", metadataPath = new[] { "stock" }, valueType = "Int64" } },
+                columns = new object[]
+                {
+                    new { alias = "Stock", keyAlias = "stock" },
+                    new { alias = "Items", operation = "LongCount" },
+                    new { alias = "Total", operation = "Sum", selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" } },
+                    new { alias = "Mean", operation = "Average", selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" } }
+                }
+            }, grouped: true);
         }
 
         return completedRequests;
 
-        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null, bool projection = false)
+        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null, bool projection = false, bool grouped = false)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -296,7 +315,8 @@ public static class V1Walkthrough
             // uncertain; do not silently repeat the request with a fresh key.
             var operationKey = Guid.NewGuid().ToString("D");
 
-            var route = projection ? "/api/data/query-cql/projection"
+            var route = grouped ? "/api/data/query-cql/grouped"
+                : projection ? "/api/data/query-cql/projection"
                 : scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql";
 
             using var request = new HttpRequestMessage(HttpMethod.Post, route)
@@ -335,6 +355,17 @@ public static class V1Walkthrough
                     || row[0].GetString() != "C-public" || row[1].GetString() != "9007199254740993"
                     || row[2].ValueKind != JsonValueKind.Null || row[3].GetString() != "London")
                     throw new InvalidOperationException(title + " returned the wrong selected shape or exact value.");
+            }
+
+            if (grouped)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var row = payload.GetProperty("rows").EnumerateArray().Single();
+
+                if (payload.GetProperty("version").GetString() != "cql-grouped-v1"
+                    || row[0].GetString() != "7" || row[1].GetString() != "2"
+                    || row[2].GetString() != "-18014398509481981" || row[3].GetString() != "-9007199254740990.5")
+                    throw new InvalidOperationException(title + " returned an incorrect grouped shape or exact aggregate.");
             }
 
             completedRequests++;

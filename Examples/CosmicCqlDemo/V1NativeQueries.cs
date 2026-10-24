@@ -205,6 +205,43 @@ public static class V1NativeQueries
             Value(firstTwo.Average(h => CosmicQueryMetadata.Value<long>(h, "extremum"))),
             -9007199254740990.5m);
 
+        // 15. Reduce a selected source window into native groups. The key and
+        // aggregates are detached values; no holon is hydrated or tracked.
+        var grouped = Value(firstTwo
+            .GroupBy(h => CosmicQueryMetadata.Value<long>(h, "stock"))
+            .Select(group => new
+            {
+                Stock = group.Key,
+                Items = group.LongCount(),
+
+                Total = group.Sum(h => CosmicQueryMetadata.Value<long>(h, "extremum")),
+                Mean = group.Average(h => CosmicQueryMetadata.Value<long>(h, "extremum"))
+            }));
+
+        if (adapter is not ICosmicQueryGroupedStorageProvider groupedAdapter)
+            throw new InvalidOperationException("This provider has no grouped contract.");
+
+        var groupedPlan = Value(CosmicGroupedPlanner.Plan(
+            grouped,
+            provider,
+            new[]
+            {
+                new CosmicGroupedTarget(provider,
+                    adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities)
+            }));
+
+        var groupedExecution = Value(await manager.ExecuteGroupedQueryAsync(groupedPlan, new[] { adapter }));
+        var groupSummary = groupedExecution.Providers.Single().Rows.Single();
+
+        if (groupSummary.Stock != 7 || groupSummary.Items != 2
+            || groupSummary.Total != -18014398509481981L
+            || groupSummary.Mean != -9007199254740990.5m)
+            throw new InvalidOperationException("Grouped source-window reduction returned unexpected values.");
+
+        completedQueries++;
+        await output.WriteLineAsync("15. Native GroupBy / exact multi-aggregate reduction");
+        await output.WriteLineAsync($"\n  Stock={groupSummary.Stock}, Items={groupSummary.Items}\n  Total={groupSummary.Total}\n  Mean={groupSummary.Mean}\n");
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(
