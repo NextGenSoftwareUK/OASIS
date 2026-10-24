@@ -2,6 +2,10 @@
 
 ## OPEN: documented all-versions exports versus provider admission (24 October 2026)
 
+Shared separate-key export final local gate: actual27154terminal0 Shared1047unit + selected S352SDK + OCI119SDK PASS0skip, all current source/copy checks Core733/594AAEDB/Shared55/2874521D. S3encrypted SDK4fixtures now assert3version export/owner isolation/no ciphertext writes and invalid-2 no requests. Redis native4+preflight1 on earlier4ECC/3EE cohort separately passes archive-after-softdelete/unchanged bytes; not relabelled as rerun on new Core. OCI119 is regression, not new all-version-specific live cloud evidence. Hosted costs/IAM/durability/other interfaces/fullV2 remain OPEN. No dev deployment.
+
+Shared separate-key storage working-tree implementation now passes1047unit0skip/current source/copy gate, Core732/4ECCB543/Shared55/3EE36DB0. Tests include10corrupt/read-error/missing-payload controls and4sync/async current-identity owner fixtures; ordinary reads retain-1 rejection, exports below-1 invalid. Native SDK consumers still need refresh; no S3/OCI/Redis/cloud certification from these shared-unit results. Per-root archive LIST and GET operations carry provider request/read costs; no whole-export transactional snapshot claim.
+
 Oracle local -1 export gate now verified as well: matched385unit/496native PASS0skip, same archive codec and native projection owner, current avatar identity, per-version owner/deletion filtering, stored children only. Core732/4ECCB543/Shared55/F33D8F73 source checks passed; no pending native journals. Hosted Oracle/cloud and other-provider/public API/fullV2 gates remain OPEN; no universal export-contract claim.
 
 Final local AWS/Dynamo gate verified: matched Shared1037unit + Dynamo523unit + native171PASS0skip, current source/copy checks Core732/4ECCB543/Shared55/00AF19C5. This closes their local -1 enumeration mismatch; hosted/public API/other-provider archive export/fullV2 gates remain OPEN. No all-provider completion claim or deployment authorized by these local tests.

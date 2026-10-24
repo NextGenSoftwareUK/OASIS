@@ -27,7 +27,7 @@ public sealed class InvalidVersionAdmissionTests
             method.GetParameters().Any(parameter=>parameter.Name=="version")).ToArray();
         Assert.IsTrue(methods.Length>=2,"Both sync and async contracts must be exercised.");
         foreach(var method in methods)
-        foreach(var version in new[]{-1,int.MinValue})
+        foreach(var version in new[]{operation.StartsWith("Export",StringComparison.Ordinal)?-2:-1,int.MinValue})
         {
             var backend=new ProbeBackend();var provider=new TestProvider(backend);
             var args=method.GetParameters().Select(parameter=>Argument(parameter,version)).ToArray();
