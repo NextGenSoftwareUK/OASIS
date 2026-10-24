@@ -33,13 +33,13 @@ public partial class MongoDBOASIS
                     result.ErrorCode=activated.ErrorCode;return result;
                 }
             }
-            result=synchronous ? _searchRepository.Search(query):await _searchRepository.SearchAsync(query).ConfigureAwait(false);
+            result=synchronous ? _searchRepository.Search(query,version):await _searchRepository.SearchAsync(query,version).ConfigureAwait(false);
             if(result==null) throw new InvalidDataException("Mongo search repository returned no result envelope.");
             if(result.IsError) return result;
             var found=result.Result ?? throw new InvalidDataException("Mongo search repository returned no result content.");
             if(found.SearchResultHolons==null || found.SearchResultAvatars==null)
                 throw new InvalidDataException("Mongo search repository returned missing result collections.");
-            // Version selects matching current root records, not an archive or global graph snapshot.
+            // The repository selects archived roots before matching; descendants remain independent.
             var roots=found.SearchResultHolons.Where(row=>version==0 || row.Version==version).ToList();
             var project=HolonGraphProjection.Create(roots,children,recursive,depth,0,false,
                 row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));

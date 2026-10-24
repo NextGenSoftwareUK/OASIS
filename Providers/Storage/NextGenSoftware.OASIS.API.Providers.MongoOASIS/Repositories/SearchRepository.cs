@@ -59,13 +59,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         //}
 
 
-        public Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams)
-            => SearchCoreAsync(searchParams, false);
+        public Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams,int version=0)
+            => SearchCoreAsync(searchParams, false,version);
 
-        private async Task<OASISResult<ISearchResults>> SearchCoreAsync(ISearchParams searchParams, bool synchronous)
+        private async Task<OASISResult<ISearchResults>> SearchCoreAsync(ISearchParams searchParams, bool synchronous,int version=0)
         {
             var currentGroupType=HolonType.All;
             HashSet<Guid> parentScope=null;
+            var historicalDocuments=new Dictionary<Type,List<BsonDocument>>();
             async Task<List<T>> Read<T>(IMongoCollection<T> collection, FilterDefinition<T> filter)
             {
                 if(parentScope!=null)
@@ -78,6 +79,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 if(currentGroupType!=HolonType.All)
                     filter &= Builders<T>.Filter.Eq("HolonType",currentGroupType);
+                if(version>0)return await ReadHistoricalSearchMatchesAsync(collection,filter,version,synchronous,historicalDocuments).ConfigureAwait(false);
                 return synchronous ? collection.Find(filter).ToList()
                     : await collection.Find(filter).ToListAsync().ConfigureAwait(false);
             }
@@ -535,9 +537,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public OASISResult<ISearchResults> Search(ISearchParams searchParams)
+        public OASISResult<ISearchResults> Search(ISearchParams searchParams,int version=0)
         {
-            return SearchCoreAsync(searchParams, true).GetAwaiter().GetResult();
+            return SearchCoreAsync(searchParams, true,version).GetAwaiter().GetResult();
 
 
             //OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();

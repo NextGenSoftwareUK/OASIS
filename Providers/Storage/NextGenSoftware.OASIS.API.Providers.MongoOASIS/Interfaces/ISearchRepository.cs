@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
 {
     public interface ISearchRepository
     {
-        Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchTerm);
-        OASISResult<ISearchResults> Search(ISearchParams searchTerm);
+        Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchTerm,int version=0);
+        OASISResult<ISearchResults> Search(ISearchParams searchTerm,int version=0);
     }
 }
