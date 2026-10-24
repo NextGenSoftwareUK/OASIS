@@ -22,12 +22,12 @@ public class DynamoCapacityUsageTests
         catch(TargetInvocationException cause) when(cause.InnerException!=null){ExceptionDispatchInfo.Capture(cause.InnerException).Throw();throw;}
     }
     [TestMethod]
-    public void TransactionPreservesOrderedActionsIncludingRepeatedTables()
+    public void TransactionBindsNativeTableAggregatesWithoutMultiplyingRepeatedActions()
     {
-        var rows=Transaction(new[]{"A","B","A"},new[]{new ConsumedCapacity{TableName="A",WriteCapacityUnits=0.5},new ConsumedCapacity{TableName="B",WriteCapacityUnits=2},new ConsumedCapacity{TableName="A",WriteCapacityUnits=1}});
-        Assert.AreEqual(3,rows.Count);
-        Assert.AreEqual(0.5m,rows.Single(row=>row.ResourceScope.EndsWith("/transaction-action/0",StringComparison.Ordinal)).Quantity);
-        Assert.AreEqual(1m,rows.Single(row=>row.ResourceScope.EndsWith("/transaction-action/2",StringComparison.Ordinal)).Quantity);
+        var rows=Transaction(new[]{"A","B","A"},new[]{new ConsumedCapacity{TableName="B",WriteCapacityUnits=2},new ConsumedCapacity{TableName="A",WriteCapacityUnits=0.5}});
+        Assert.AreEqual(2,rows.Count);
+        Assert.AreEqual(0.5m,rows.Single(row=>row.ResourceScope.EndsWith("/A",StringComparison.Ordinal)).Quantity);
+        Assert.AreEqual(2m,rows.Single(row=>row.ResourceScope.EndsWith("/B",StringComparison.Ordinal)).Quantity);
     }
     [TestMethod]
     public void TransactionMissingTableEvidenceIsUnknownNotZero()
@@ -65,16 +65,16 @@ public class DynamoCapacityUsageTests
     [TestMethod]
     public async Task OfficialSdkTransactionRetainsRepeatedTableActionEvidenceAndIndexViews()
     {
-        using var service=new Service("[{\"TableName\":\"A\",\"WriteCapacityUnits\":0.5,\"GlobalSecondaryIndexes\":{\"by-name\":{\"WriteCapacityUnits\":0}}},{\"TableName\":\"A\",\"WriteCapacityUnits\":1}]",true);
+        using var service=new Service("[{\"TableName\":\"A\",\"WriteCapacityUnits\":1.5,\"GlobalSecondaryIndexes\":{\"by-name\":{\"WriteCapacityUnits\":0}}}]",true);
         using var client=new AmazonDynamoDBClient(new BasicAWSCredentials("synthetic-key","synthetic-secret"),new AmazonDynamoDBConfig{
             RegionEndpoint=Amazon.RegionEndpoint.EUWest1,MaxErrorRetry=0,HttpClientFactory=new HandlerHttpClientFactory(service)});
         var response=await client.TransactWriteItemsAsync(new TransactWriteItemsRequest{ReturnConsumedCapacity=ReturnConsumedCapacity.INDEXES,
             TransactItems=new(){new(){Put=new(){TableName="A",Item=new(){{"id",new(){S="one"}}}}},new(){Put=new(){TableName="A",Item=new(){{"id",new(){S="two"}}}}}}});
         var rows=Transaction(new[]{"A","A"},response.ConsumedCapacity.ToArray());
         Assert.AreEqual(1,service.Calls);Assert.AreEqual("sdk-original",response.ResponseMetadata.RequestId);
-        Assert.AreEqual(3,rows.Count);Assert.AreEqual(2,rows.Count(row=>row.View=="Total"));
+        Assert.AreEqual(2,rows.Count);Assert.AreEqual(1,rows.Count(row=>row.View=="Total"));
         Assert.AreEqual(0m,rows.Single(row=>row.View=="Breakdown").Quantity);
-        Assert.AreEqual(3,rows.Select(row=>(row.ResourceScope,row.Unit,row.View)).Distinct().Count());
+        Assert.AreEqual(2,rows.Select(row=>(row.ResourceScope,row.Unit,row.View)).Distinct().Count());
     }
     [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)]
     public async Task OfficialSdkWirePreservesOmittedZeroAndFractionalCapacity(int mode)
