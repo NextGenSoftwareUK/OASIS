@@ -1,5 +1,9 @@
 # Firestore record history — integration in progress
 
+## 23 October — collection identity/history gate,341unit/83history/79regression GREEN
+
+New36public SDK/gRPC-controlled cases first18repeated failures/18valid passes. One provider-owned async snapshot reader validates native identity uniqueness before existing canonical/history decoding, reused by avatars/details/holons/current-child pools. No deduplication/extra SDK request/codec copy; missing historical versions cannot hide repeated native roots. Current matched341unit,83real-SDK/emulator history and79native regression PASS0skip, retained checkpoint restart/conditional cleanupPASS; native suites are healthy regression, not forced duplicate/race schedules. Same jar/export/environment reused, pending0/emulatorportsabsent, no download/reset/cloud request. Exact sources/report hashes/resources in ENVIRONMENT_INVENTORY.md. Hosted IAM/cost/cloud durability/fullV2 still OPEN; older counts below are historical distinct cohorts.
+
 ## Canonical karma-history field coverage — scoped native158/control265 closure
 
 Expanded the existing `GoogleNativeDetailTests` case without adding cases: two ordered earned/lost entries, complete owner/date/amount/running-total/provider/source/type/text/link checks, sync update after async creation, GUID/username/email reads and independent Firestore SDK `data_json` readback. Existing scalar/inventory/duplicate-selector and routing assertions remain. Source audit confirmed Import already forwards save outcome/counts through the shared result-copy helper; no provider implementation change was warranted for that finding.

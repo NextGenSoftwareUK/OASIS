@@ -25,6 +25,7 @@ public sealed class GoogleExportSelectorVersionTests
     }
     private sealed class Client:FirestoreClient
     {
+        internal bool CollectionRead,Repeated;
         internal int Reads;internal readonly Guid Owner=Guid.NewGuid(),Own=Guid.NewGuid(),Foreign=Guid.NewGuid(),OtherOwner=Guid.NewGuid();
         public override FirestoreSettings Settings=>FirestoreSettings.GetDefault();
         public override RunQueryStream RunQuery(RunQueryRequest request,CallSettings settings=null)
@@ -32,6 +33,12 @@ public sealed class GoogleExportSelectorVersionTests
             Assert.IsTrue(++Reads<20);var collection=request.StructuredQuery.From.Single().CollectionId;
             IHolonBase[] rows=collection=="avatars"?new IHolonBase[]{new Avatar{Id=Owner,Username="export-owner",Email="export@example.invalid",Version=1}}
                 :new IHolonBase[]{new Holon{Id=Own,CreatedByAvatarId=Owner,Version=3,Name="own-v3"},new Holon{Id=Foreign,CreatedByAvatarId=OtherOwner,Version=3,Name="foreign-v3"}};
+            if(CollectionRead){
+                rows=collection=="avatars"?new IHolonBase[]{new Avatar{Id=Owner,IsActive=true,Version=1}}
+                    :collection=="avatarDetails"?new IHolonBase[]{new AvatarDetail{Id=Owner,IsActive=true,Version=1,XP=321}}
+                    :new IHolonBase[]{new Holon{Id=Own,IsActive=true,Version=1}};
+                if(Repeated)rows=rows.Concat(rows.Take(1)).ToArray();
+            }
             return new Stream(rows.Select(row=>{
                 var document=new Document{Name=request.Parent+"/"+collection+"/"+row.Id,CreateTime=ProtoTime.FromDateTime(DateTime.UtcNow),UpdateTime=ProtoTime.FromDateTime(DateTime.UtcNow)};
                 document.Fields.Add("id",new Value{StringValue=row.Id.ToString()});document.Fields.Add("data_json",new Value{StringValue=OasisJson.Serialize(row)});
@@ -39,6 +46,27 @@ public sealed class GoogleExportSelectorVersionTests
             }));
         }
         public override Task<CommitResponse> CommitAsync(CommitRequest request,CallSettings settings=null)=>throw new InvalidOperationException("Read-only export must not write.");
+    }
+
+    public static IEnumerable<object[]> CollectionCases()
+    {
+        foreach(var kind in new[]{"avatar","detail","holon"})foreach(var sync in new[]{false,true})
+        foreach(var version in new[]{0,1,3})foreach(var repeated in new[]{false,true})yield return new object[]{kind,sync,version,repeated};
+    }
+
+    [DataTestMethod][DynamicData(nameof(CollectionCases),DynamicDataSourceType.Method)]
+    public async Task CollectionRejectsRepeatedIdentityBeforeVersionFiltering(string kind,bool sync,int version,bool repeated)
+    {
+        var client=new Client{CollectionRead=true,Repeated=repeated};var provider=Provider(client);
+        void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<T>> result) where T:IHolonBase
+        {
+            if(repeated){Assert.IsTrue(result.IsError,"Repeated native identity cannot become a successful or empty selected collection.");Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);Assert.AreEqual(0,result.LoadedCount);}
+            else{Assert.IsFalse(result.IsError,result.Message+result.Exception);Assert.IsNotNull(result.Result);Assert.AreEqual(version==3?0:1,result.Result.Count());Assert.AreEqual(result.Result.Count(),result.LoadedCount);}
+        }
+        if(kind=="avatar")Check(sync?provider.LoadAllAvatars(version):await provider.LoadAllAvatarsAsync(version));
+        else if(kind=="detail")Check(sync?provider.LoadAllAvatarDetails(version):await provider.LoadAllAvatarDetailsAsync(version));
+        else Check(sync?provider.LoadAllHolons(loadChildren:false,version:version):await provider.LoadAllHolonsAsync(loadChildren:false,version:version));
+        Assert.AreEqual(1,client.Reads);
     }
 
     [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
