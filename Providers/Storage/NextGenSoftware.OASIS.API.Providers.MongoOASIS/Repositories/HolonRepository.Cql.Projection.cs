@@ -12,11 +12,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 
 public partial class HolonRepository
 {
-    internal async Task<IReadOnlyList<CosmicProjectionRow>> ExecuteNativeCqlProjectionAsync(MongoCqlProjectionCommand command,
+    internal Task<IReadOnlyList<CosmicProjectionRow>> ExecuteNativeCqlProjectionAsync(MongoCqlProjectionCommand command,
         IReadOnlyList<CosmicProjectionColumn> columns, int maximumResults, int maximumPayloadBytes, CancellationToken cancellationToken)
+        => ExecuteNativeCqlSelectedRowsAsync(command, maximumResults, maximumPayloadBytes,
+            document => ReadNativeCqlProjectionRow(document, columns), cancellationToken);
+
+    internal Task<IReadOnlyList<CosmicGroupedRow>> ExecuteNativeCqlGroupedAsync<T, TKey, TResult>(MongoCqlProjectionCommand command,
+        CosmicGroupedSelection<T, TKey, TResult> query, int maximumGroups, int maximumPayloadBytes,
+        CancellationToken cancellationToken) where T : Core.Interfaces.IHolon
+        => ExecuteNativeCqlSelectedRowsAsync(command, maximumGroups, maximumPayloadBytes,
+            document => ReadNativeCqlGrouped(document, query), cancellationToken);
+
+    private async Task<IReadOnlyList<TRow>> ExecuteNativeCqlSelectedRowsAsync<TRow>(MongoCqlProjectionCommand command,
+        int maximumResults, int maximumPayloadBytes, Func<BsonDocument, TRow> decode, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (command.IsEmpty) return Array.Empty<CosmicProjectionRow>();
+        if (command.IsEmpty && !command.RequiresMembership && !command.HasTraversalEnvelope) return Array.Empty<TRow>();
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
         var elapsed = System.Diagnostics.Stopwatch.StartNew();
@@ -25,7 +36,7 @@ public partial class HolonRepository
             deadline.Token.ThrowIfCancellationRequested();
             var remaining = TimeSpan.FromSeconds(30) - elapsed.Elapsed;
             if (remaining <= TimeSpan.Zero) throw new MongoCqlGraphTimeoutException();
-            return new AggregateOptions { Collation = Collation.Simple, AllowDiskUse = false, BatchSize = 16,
+            return new AggregateOptions { Collation = Collation.Simple, AllowDiskUse = false, BatchSize = 1,
                 MaxTime = TimeSpan.FromMilliseconds(Math.Ceiling(remaining.TotalMilliseconds)) };
         }
         try
@@ -41,7 +52,7 @@ public partial class HolonRepository
             using var cursor = session == null
                 ? await _dbContext.Holon.AggregateAsync<BsonDocument>(command.Pipeline, Options(), deadline.Token).ConfigureAwait(false)
                 : await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Pipeline, Options(), deadline.Token).ConfigureAwait(false);
-            var rows = new List<CosmicProjectionRow>(); long bytes = 0;
+            var rows = new List<TRow>(); long bytes = 0;
             while (await cursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
                 foreach (var document in cursor.Current)
                 {
@@ -60,7 +71,7 @@ public partial class HolonRepository
                     if (rows.Count >= maximumResults) throw new MongoCqlLimitException();
                     bytes += document.ToBson().Length;
                     if (bytes > maximumPayloadBytes) throw new MongoCqlLimitException();
-                    rows.Add(ReadNativeCqlProjectionRow(data, columns));
+                    rows.Add(decode(data));
                 }
             deadline.Token.ThrowIfCancellationRequested();
             return rows.AsReadOnly();
