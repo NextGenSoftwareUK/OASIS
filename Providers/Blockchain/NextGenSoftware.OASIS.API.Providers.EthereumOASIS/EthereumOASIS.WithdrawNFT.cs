@@ -309,9 +309,7 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                 // NFTManager prepares public NFT metadata. Never serialize the
                 // administrative mint request (avatar/email/routing/signing controls).
                 // An omitted on-chain flag does not authorize publishing its JSON.
-                var metadataJson = Newtonsoft.Json.JsonConvert.SerializeObject(new {
-                    transaction.JSONMetaDataURL,
-                    JSONMetaData = transaction.StoreNFTMetaDataOnChain == true ? transaction.JSONMetaData : null });
+                var metadataJson = NextGenSoftware.OASIS.Providers.Shared.Evm.EvmNftMintMetadata.Serialize(transaction);
                 if (requestedCollection != null
                     && (!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(requestedCollection)
                         || string.Equals(requestedCollection, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase)))
