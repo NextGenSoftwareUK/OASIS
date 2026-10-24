@@ -279,8 +279,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 var groups=searchParams.SearchGroups.ToArray();
                 foreach(var group in groups){
                 if(group is not ISearchTextGroup textGroup)throw new NotSupportedException("Native status search requires text groups.");
-                if(textGroup.SearchAvatars || textGroup.SearchIds || textGroup.SearchProviderKeys || textGroup.AvatarSearchParams!=null || textGroup.HolonSearchParams!=null)
-                    throw new NotSupportedException("Native status search does not implement account or structured identity field search.");
+                if(textGroup.SearchIds || textGroup.SearchProviderKeys || textGroup.AvatarSearchParams!=null || textGroup.HolonSearchParams!=null)
+                    throw new NotSupportedException("Native social search does not implement structured identity field search.");
                 var searchQuery=textGroup.SearchQuery;
                 if(string.IsNullOrWhiteSpace(searchQuery))throw new ArgumentException("Search query cannot be empty.",nameof(searchParams));
                 }
@@ -294,14 +294,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     }
                 }
 
-                Dictionary<Guid,IHolon> combined=null;var totalPages=0;
+                Dictionary<Guid,IHolonBase> combined=null;var totalPages=0;
                 foreach(ISearchTextGroup group in groups){
                 var searchQuery=group.SearchQuery;
-                var holons=new List<IHolon>();var seen=new HashSet<Guid>();var exhausted=false;
+                async Task<List<IHolonBase>> ReadDomain(string domain,Func<JsonElement,IHolonBase> project){
+                var records=new List<IHolonBase>();var seen=new HashSet<Guid>();var exhausted=false;
                 // Bounded exhaustive native search: never report the first page or a truncated prefix as complete.
                 for(var page=0;page<100;page++){
                 if(++totalPages>100)throw new System.IO.InvalidDataException("Native compound search exceeded the total 100-page safety bound.");
-                var apiUrl = $"/api/v2/search?q={Uri.EscapeDataString(searchQuery)}&type=statuses&limit=40&offset="+(page*40).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var apiUrl = $"/api/v2/search?q={Uri.EscapeDataString(searchQuery)}&type={domain}&limit=40&offset="+(page*40).ToString(System.Globalization.CultureInfo.InvariantCulture)+(domain=="accounts"?"&resolve=false":"");
                 using var httpResponse = await _httpClient.GetAsync(apiUrl);
                 
                 if (httpResponse.IsSuccessStatusCode)
@@ -309,8 +310,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     var searchResult = JsonSerializer.Deserialize<JsonElement>(content);
                     
-                    if(searchResult.ValueKind!=JsonValueKind.Object || !searchResult.TryGetProperty("statuses",out var statuses) || statuses.ValueKind!=JsonValueKind.Array)
-                        throw new System.IO.InvalidDataException("Native search response requires a statuses array.");
+                    if(searchResult.ValueKind!=JsonValueKind.Object || !searchResult.TryGetProperty(domain,out var statuses) || statuses.ValueKind!=JsonValueKind.Array)
+                        throw new System.IO.InvalidDataException("Native search response requires a "+domain+" array.");
                     if(statuses.GetArrayLength()>40)throw new System.IO.InvalidDataException("Native search page exceeds requested limit.");
                     if(statuses.GetArrayLength()==0){
                         exhausted=true;break;
@@ -318,9 +319,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     {
                         foreach (var status in statuses.EnumerateArray())
                         {
-                            var holon = ParseActivityPubToHolon(status);
-                            if(holon==null || !seen.Add(holon.Id))throw new System.IO.InvalidDataException("Native search returned a missing or repeated status across pages.");
-                            holons.Add(holon);
+                            var record=project(status);
+                            if(record==null || !seen.Add(record.Id))throw new System.IO.InvalidDataException("Native search returned a missing or repeated "+domain+" identity across pages.");
+                            records.Add(record);
                         }
                     }
                 }
@@ -330,18 +331,24 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 }
                 }
                 if(!exhausted)throw new System.IO.InvalidDataException("Native search exceeded the 100-page safety bound; no partial result is published.");
-                var matches=holons.ToDictionary(value=>value.Id);
+                return records;
+                }
+                var candidates=new List<IHolonBase>();
+                if(group.SearchAvatars||!group.SearchHolons)candidates.AddRange(await ReadDomain("accounts",account=>ProjectMastodonAccount(ReadMastodonPublicProfile(account))));
+                if(group.SearchHolons||!group.SearchAvatars)candidates.AddRange(await ReadDomain("statuses",status=>ParseActivityPubToHolon(status)));
+                var matches=candidates.Where(value=>group.HolonType is HolonType.Default or HolonType.All||value.HolonType==group.HolonType).ToDictionary(value=>value.Id);
                 // Same left-to-right PreviousSearchGroupOperator semantics as StoredRecordSearch.Matches.
                 if(combined==null)combined=matches;
                 else if(group.PreviousSearchGroupOperator==SearchParamGroupOperator.And){foreach(var id in combined.Keys.Where(id=>!matches.ContainsKey(id)).ToArray())combined.Remove(id);}
                 else{foreach(var entry in matches)combined.TryAdd(entry.Key,entry.Value);}
                 }
-                var selected=combined.Values.Where(value=>(!searchParams.SearchOnlyForCurrentAvatar || value.CreatedByAvatarId==searchParams.AvatarId) && NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(value.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
+                var selected=combined.Values.Where(value=>(!searchParams.SearchOnlyForCurrentAvatar || (value is IAvatar?value.Id:value.CreatedByAvatarId)==searchParams.AvatarId) && NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(value.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
+                var avatars=selected.OfType<IAvatar>().ToList();var holons=selected.OfType<IHolon>().ToList();
                 if(loadChildren){
-                    for(var index=0;index<selected.Count;index++)selected[index]=await ReadMastodonReplyGraphAsync((Holon)selected[index],recursive,maxChildDepth);
+                    for(var index=0;index<holons.Count;index++)holons[index]=await ReadMastodonReplyGraphAsync((Holon)holons[index],recursive,maxChildDepth);
                 }
-                response.Result=new SearchResults{SearchResultHolons=selected,NumberOfResults=selected.Count};
-                response.IsLoaded=true;
+                response.Result=new SearchResults{SearchResultHolons=holons,SearchResultAvatars=avatars,NumberOfResults=selected.Count};
+                response.IsLoaded=true;response.LoadedCount=selected.Count;
                 response.Message="Native search exhausted its result pages; results are not a point-in-time snapshot.";
             }
             catch (Exception ex)
