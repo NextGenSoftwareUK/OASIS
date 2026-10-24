@@ -69,4 +69,13 @@ Evidence: TestResults/CosmicCqlDemo/v1-demo-result.json, v1-walkthrough.txt and 
 
 The compiler builds exact typed expression intent through the existing Core ordering owner. Actual provider capability admission remains mandatory. MongoDB, SQLite and Neo4j enroll key, count, extrema and integer Sum ordering. Average can be selected but ordering it currently returns CQL_CAPABILITY_UNSUPPORTED before native execution; there is no client sort or approximate substitute.
 
-Verification: **2,314 Core/linked-production unit tests pass, zero skips**, including 17 new compiler cases and four endpoint cases covering all three profiles and unsupported Average dispatch prevention. Evidence: TestResults/CosmicCurrent/http-group-order-full-current.trx and TestResults/CosmicCqlDemo/http-group-order-full.log. These are controlled endpoint tests; a new live three-provider HTTP ordering demonstration is still required. Baseline live grouping evidence above predates resultOrder. Post-group filtering/paging and exact Average ordering remain open.
+Verification: **2,314 Core/linked-production unit tests pass, zero skips**, including 17 new compiler cases and four endpoint cases covering all three profiles and unsupported Average dispatch prevention. Evidence: TestResults/CosmicCurrent/http-group-order-full-current.trx and TestResults/CosmicCqlDemo/http-group-order-full.log. These are controlled endpoint tests; live three-provider HTTP ordering demonstration evidence is recorded below. Baseline live grouping evidence above predates resultOrder. Post-group filtering/paging and exact Average ordering remain open.
+
+
+## Ordered groups live demonstration — 24 October 2026
+
+Example16 now demonstrates native grouped ordering in both readable C# and HTTP walkthroughs: group visible rows by Name, select exact Int64 Sum, order Total descending then Name ascending. Three adjacent negative totals beyond2^53 verify actual values and ordering. Browser preset **GroupBy / ordered exact totals** and grouped Swagger resultOrder fields expose the same feature. Source order/windows remain separate.
+
+The retained runner completed **48 SDK queries and48 HTTP examples** across MongoDB, SQLite and Neo4j; **228 operations settled and223 provider attempts**. Actual session96782 terminal0, integrated native test1pass/0skip. This is live demo acceptance, not a rerun of every provider suite. Evidence: TestResults/CosmicCqlDemo/ordered-group-demo-native.log, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/copy checks verified Core19F1CA8B and SharedDF5015E4. Node24.19.0 syntax check passed for the browser script. Fixture manifest/SQLite/WAL/SHM verified absent after owned cleanup; Mongo27029 and Neo17687 listeners absent.
+
+HTTP result ordering live acceptance is complete for the enrolled operations. Exact Average ordering, post-group filters/pages and the broader unchecked CQL/ORM roadmap remain open.

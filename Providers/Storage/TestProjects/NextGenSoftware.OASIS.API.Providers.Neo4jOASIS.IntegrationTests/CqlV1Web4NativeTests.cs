@@ -519,6 +519,10 @@ public sealed partial class CqlV1Web4NativeTests
                             var projectionExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlProjectionV1Request").GetProperty("example");
                             Assert.AreEqual("Int64", projectionExample.GetProperty("columns")[1].GetProperty("valueType").GetString());
+                            var groupedExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
+                                .GetProperty("CqlGroupedV1Request").GetProperty("example");
+                            Assert.AreEqual("Total", groupedExample.GetProperty("resultOrder")[0].GetProperty("alias").GetString());
+                            Assert.IsTrue(groupedExample.GetProperty("resultOrder")[0].GetProperty("descending").GetBoolean());
                         }
 
                         // These examples are the same readable C# client code developers

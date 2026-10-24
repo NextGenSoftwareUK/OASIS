@@ -242,6 +242,40 @@ public static class V1NativeQueries
         await output.WriteLineAsync("15. Native GroupBy / exact multi-aggregate reduction");
         await output.WriteLineAsync($"\n  Stock={groupSummary.Stock}, Items={groupSummary.Items}\n  Total={groupSummary.Total}\n  Mean={groupSummary.Mean}\n");
 
+        // 16. Sort selected aggregate outputs after grouping. The sums differ
+        // by one beyond 2^53, so native ordering must retain exact Int64 values.
+        // ThenBy supplies the next user sort; complete group identity breaks ties.
+        var orderedGroups = Value(visible
+            .GroupBy(h => h.Name)
+            .Select(group => new
+            {
+                Name = group.Key,
+                Total = group.Sum(h => CosmicQueryMetadata.Value<long>(h, "extremum"))
+            })
+            .OrderByDescending(group => group.Total)
+            .ThenBy(group => group.Name));
+
+        var orderedPlan = Value(CosmicGroupedPlanner.Plan(
+            orderedGroups,
+            provider,
+            new[] { new CosmicGroupedTarget(provider,
+                adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var orderedExecution = Value(await manager.ExecuteGroupedQueryAsync(orderedPlan, new[] { adapter }));
+        var orderedRows = orderedExecution.Providers.Single().Rows;
+
+        if (!orderedRows.Select(row => row.Name).SequenceEqual(new[] { "D-owned", "C-public", "B-owned" })
+            || !orderedRows.Select(row => row.Total).SequenceEqual(new[] { -9007199254740989L, -9007199254740990L, -9007199254740991L }))
+            throw new InvalidOperationException("Grouped aggregate ordering lost exact values or result order.");
+
+        completedQueries++;
+        await output.WriteLineAsync("16. Native grouped ordering / exact adjacent Int64 sums\n");
+
+        foreach (var row in orderedRows)
+            await output.WriteLineAsync($"  {row.Name}: {row.Total}");
+
+        await output.WriteLineAsync();
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(
