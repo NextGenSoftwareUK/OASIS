@@ -12,6 +12,23 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests;
 [TestClass]
 public class BigQueryCollectionTests
 {
+    public static IEnumerable<object[]> UniqueSelectorCases(){foreach(var route in Enumerable.Range(0,7))foreach(var sync in new[]{false,true})foreach(var count in new[]{0,1,2})yield return new object[]{route,sync,count};}
+    [DataTestMethod][DynamicData(nameof(UniqueSelectorCases),DynamicDataSourceType.Method)]
+    public async Task PointSelectorsRequireExactlyOneMatchingRow(int route,bool sync,int count)
+    {
+        var id=Guid.NewGuid();IHolonBase record=route<3?new Avatar{Id=id,Username="owned",Email="owned@example.invalid"}:route<6?new AvatarDetail{Id=id,Username="owned",Email="owned@example.invalid"}:new Holon{Id=id};
+        var encoded=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(record);
+        var client=new Rows{Selected=Enumerable.Repeat(encoded,count).ToArray()};var provider=new BigQueryOASIS("my-project");
+        typeof(BigQueryOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,client);
+        bool error,loaded;int loadedCount;object? value;Exception? cause;
+        if(route<3){var r=route==0?(sync?provider.LoadAvatar(id):await provider.LoadAvatarAsync(id)):route==1?(sync?provider.LoadAvatarByUsername("owned"):await provider.LoadAvatarByUsernameAsync("owned")):(sync?provider.LoadAvatarByEmail("owned@example.invalid"):await provider.LoadAvatarByEmailAsync("owned@example.invalid"));error=r.IsError;loaded=r.IsLoaded;loadedCount=r.LoadedCount;value=r.Result;cause=r.Exception;}
+        else if(route<6){var r=route==3?(sync?provider.LoadAvatarDetail(id):await provider.LoadAvatarDetailAsync(id)):route==4?(sync?provider.LoadAvatarDetailByUsername("owned"):await provider.LoadAvatarDetailByUsernameAsync("owned")):(sync?provider.LoadAvatarDetailByEmail("owned@example.invalid"):await provider.LoadAvatarDetailByEmailAsync("owned@example.invalid"));error=r.IsError;loaded=r.IsLoaded;loadedCount=r.LoadedCount;value=r.Result;cause=r.Exception;}
+        else{var r=sync?provider.LoadHolon(id,loadChildren:false):await provider.LoadHolonAsync(id,loadChildren:false);error=r.IsError;loaded=r.IsLoaded;loadedCount=r.LoadedCount;value=r.Result;cause=r.Exception;}
+        Assert.AreEqual(count!=1,error);Assert.AreEqual(count==1,loaded);Assert.AreEqual(count==1?1:0,loadedCount);
+        if(count==1)Assert.IsNotNull(value);else Assert.IsNull(value);
+        if(count==2)Assert.IsInstanceOfType<InvalidDataException>(cause);
+    }
+
     [DataTestMethod]
     [DataRow(0,false,false)][DataRow(0,false,true)][DataRow(0,true,false)][DataRow(0,true,true)]
     [DataRow(1,false,false)][DataRow(1,false,true)][DataRow(1,true,false)][DataRow(1,true,true)]
@@ -39,7 +56,7 @@ public class BigQueryCollectionTests
 
     private sealed class Rows(string? bad=null):BigQueryClient
     {
-        public string? Stored;
+        public string? Stored;public string[]? Selected;
         public override Task<BigQueryResults> ExecuteQueryAsync(string sql,IEnumerable<BigQueryParameter> parameters,QueryOptions? queryOptions=null,GetQueryResultsOptions? resultsOptions=null,CancellationToken token=default)
         {
             var job=new JobReference{ProjectId="my-project",JobId=queryOptions?.JobId??"owned-read-job"};
@@ -47,7 +64,7 @@ public class BigQueryCollectionTests
                 Stored=(string)parameters.Single(parameter=>parameter.Name=="doc").Value;
                 return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=job,NumDmlAffectedRows=1},null,new GetQueryResultsOptions()));
             }
-            var values=Stored!=null?new[]{Stored}:new[]{"{\"Id\":\""+Guid.NewGuid()+"\"}",bad};
+            var values=Selected!=null?(sql.Contains("LIMIT 1",StringComparison.Ordinal)?Selected.Take(1).ToArray():Selected):Stored!=null?new[]{Stored}:new[]{"{\"Id\":\""+Guid.NewGuid()+"\"}",bad};
             var rows=values.Select(value=>new TableRow{F=new List<TableCell>{new(){V=value}}}).ToList();
             return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=job,TotalRows=(ulong)rows.Count,Schema=new(){Fields=new List<TableFieldSchema>{new(){Name="doc",Type="STRING"}}},Rows=rows},null,new GetQueryResultsOptions()));
         }

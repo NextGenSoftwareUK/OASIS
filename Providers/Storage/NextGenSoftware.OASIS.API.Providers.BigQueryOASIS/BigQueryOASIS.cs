@@ -1017,8 +1017,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         private async Task<T?> GetDocAsync<T>(string table, string id) where T : class
         {
-            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE id = @id ORDER BY updated_at DESC LIMIT 1",StringParameter("id",id));
-            return rows.Count > 0 ? rows[0] : null;
+            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE id = @id LIMIT 2",StringParameter("id",id));
+            return UniqueRecord(rows);
+        }
+
+        private static T? UniqueRecord<T>(List<T> rows) where T : class
+        {
+            if(rows.Count>1)throw new System.IO.InvalidDataException("BigQuery point selector matched multiple stored records.");
+            return rows.Count==0?null:rows[0];
         }
 
         private sealed record BigQueryWriteAcknowledgement(string JobId,string Location);
@@ -1058,8 +1064,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         private async Task<T?> FindOneAsync<T>(string table, string field, string value) where T : class
         {
-            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value ORDER BY updated_at DESC LIMIT 1",StringParameter("value",value));
-            return rows.Count > 0 ? rows[0] : null;
+            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value LIMIT 2",StringParameter("value",value));
+            return UniqueRecord(rows);
         }
 
         private async Task<List<T>> FindAllAsync<T>(string table, string field, string value) where T : class
