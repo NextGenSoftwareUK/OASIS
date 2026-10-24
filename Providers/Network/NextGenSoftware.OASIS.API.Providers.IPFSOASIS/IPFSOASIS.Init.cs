@@ -369,7 +369,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,searchParams,holons)));
                 if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,searchParams,holons)).Select(project));
                 found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
-                result.Result=found; result.IsLoaded=true;
+                result.Result=found; MarkIpfsLoaded(result,found.NumberOfResults);
             }
             catch(Exception cause)
             {

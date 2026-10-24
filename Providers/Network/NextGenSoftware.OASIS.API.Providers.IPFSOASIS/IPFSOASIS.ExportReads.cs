@@ -32,7 +32,7 @@ public partial class IPFSOASIS
             }
             var records=await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true,version);
             result.Result=records.Where(row=>!owner.HasValue || row.CreatedByAvatarId==owner.Value || row.ParentHolonId==owner.Value).Cast<IHolon>().ToList();
-            result.IsLoaded=true;
+            MarkIpfsLoaded(result,result.Result.Count());
         }
         catch(Exception cause)
         {
