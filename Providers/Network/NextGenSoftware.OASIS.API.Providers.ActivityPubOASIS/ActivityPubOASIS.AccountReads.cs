@@ -25,10 +25,30 @@ public partial class ActivityPubOASIS
     }
     private Task<OASISResult<IAvatar>> ReadMastodonAccountAsync(string selector,bool nativeId,int version)
         => ReadMastodonProfileAsync<IAvatar>(selector,nativeId,version,profile=>{
-            var avatar=new Avatar{Id=profile.ProjectionId,Username=profile.Acct};
-            PopulatePublicProfile(avatar,profile);avatar.ProviderUsername[Core.Enums.ProviderType.ActivityPubOASIS]=profile.Acct;
-            return avatar;
+            return ProjectMastodonAccount(profile);
         });
+    private static IAvatar ProjectMastodonAccount(MastodonPublicProfile profile)
+    {
+        var avatar=new Avatar{Id=profile.ProjectionId,Username=profile.Acct};
+        PopulatePublicProfile(avatar,profile);avatar.ProviderUsername[Core.Enums.ProviderType.ActivityPubOASIS]=profile.Acct;
+        return avatar;
+    }
+    private MastodonPublicProfile ReadMastodonPublicProfile(JsonElement account,string selectedId=null)
+    {
+        string Required(string name){
+            if(account.ValueKind!=JsonValueKind.Object||!account.TryGetProperty(name,out var field)||field.ValueKind!=JsonValueKind.String||string.IsNullOrWhiteSpace(field.GetString()))
+                throw new InvalidDataException("Missing native Mastodon account field: "+name);
+            return field.GetString();
+        }
+        var id=Required("id");var username=Required("username");var acct=Required("acct");var profile=Required("url");
+        if(selectedId!=null&&!string.Equals(selectedId,id,StringComparison.Ordinal))throw new InvalidDataException("Returned native account ID differs from the requested ID.");
+        if(!Uri.TryCreate(profile,UriKind.Absolute,out var profileUri)||(profileUri.Scheme!=Uri.UriSchemeHttps&&!(profileUri.Scheme==Uri.UriSchemeHttp&&profileUri.IsLoopback)))
+            throw new InvalidDataException("Expected an absolute HTTP(S) public profile URL.");
+        var origin=new Uri(_instanceUrl).GetLeftPart(UriPartial.Authority);
+        var projectedId=MastodonProjectionId("account",id);
+        var displayName=account.TryGetProperty("display_name",out var display)&&display.ValueKind==JsonValueKind.String?display.GetString():null;
+        return new MastodonPublicProfile(projectedId,id,username,acct,profileUri.AbsoluteUri,origin,displayName);
+    }
     private Task<OASISResult<IAvatarDetail>> ReadMastodonDetailAsync(string selector,int version)
         => ReadMastodonProfileAsync<IAvatarDetail>(selector,false,version,profile=>{
             var detail=new AvatarDetail{Id=profile.ProjectionId,Username=profile.Acct};
@@ -56,20 +76,7 @@ public partial class ActivityPubOASIS
             var path=nativeId?"/api/v1/accounts/"+Uri.EscapeDataString(selected):"/api/v1/accounts/lookup?acct="+Uri.EscapeDataString(selected);
             using var response=await _httpClient.GetAsync(path);response.EnsureSuccessStatusCode();
             using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync());var account=document.RootElement;
-            string Required(string name){
-                if(account.ValueKind!=JsonValueKind.Object||!account.TryGetProperty(name,out var field)||field.ValueKind!=JsonValueKind.String||string.IsNullOrWhiteSpace(field.GetString()))
-                    throw new InvalidDataException("Missing native Mastodon account field: "+name);
-                return field.GetString();
-            }
-            var id=Required("id");var username=Required("username");var acct=Required("acct");var profile=Required("url");
-            if(nativeId&&!string.Equals(selected,id,StringComparison.Ordinal))throw new InvalidDataException("Returned native account ID differs from the requested ID.");
-            if(!Uri.TryCreate(profile,UriKind.Absolute,out var profileUri)||(profileUri.Scheme!=Uri.UriSchemeHttps&&!(profileUri.Scheme==Uri.UriSchemeHttp&&profileUri.IsLoopback)))
-                throw new InvalidDataException("Expected an absolute HTTP(S) public profile URL.");
-            var origin=new Uri(_instanceUrl).GetLeftPart(UriPartial.Authority);
-            // Stable projection identity is scoped to the observing instance's native ID, not a random or native GUID.
-            var projectedId=MastodonProjectionId("account",id);
-            var displayName=account.TryGetProperty("display_name",out var display)&&display.ValueKind==JsonValueKind.String?display.GetString():null;
-            result.Result=project(new MastodonPublicProfile(projectedId,id,username,acct,profileUri.AbsoluteUri,origin,displayName));result.LoadedCount=1;
+            result.Result=project(ReadMastodonPublicProfile(account,nativeId?selected:null));result.LoadedCount=1;
         }catch(Exception error){
             OASISErrorHandling.HandleError(ref result,"Mastodon public account read failed.",error);
             if(error is HttpRequestException http&&http.StatusCode==HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
