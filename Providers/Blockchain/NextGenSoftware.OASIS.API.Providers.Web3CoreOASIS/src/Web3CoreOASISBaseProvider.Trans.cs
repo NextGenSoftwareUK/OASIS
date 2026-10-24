@@ -158,6 +158,9 @@ public partial class Web3CoreOASISBaseProvider
                 new BigInteger(transaction.Amount),
                 transaction.MemoText ?? string.Empty
             );
+            try { NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721TransferReceipt.Verify(transactionReceipt, target,
+                transaction.FromWalletAddress, transaction.ToWalletAddress, tokenId); }
+            catch (Exception cause) { throw new Web3MutationReconciliationException(transactionReceipt?.TransactionHash, transactionReceipt, cause); }
             if (externalOwnerOf != null)
             {
                 try
