@@ -109,11 +109,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 else if (doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Avatar {id} has been deleted.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -130,11 +130,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Avatar with username '{username}' not found.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarByUsernameAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarByUsernameAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -151,11 +151,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Avatar with email '{email}' not found.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarByEmailAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarByEmailAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -169,11 +169,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Avatar>(CollAvatars);
-                result.Result = docs.FindAll(a => !a.IsDeleted);
+                CompleteRows<IAvatar>(result,docs.FindAll(a => !a.IsDeleted));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllAvatarsAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllAvatarsAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -270,11 +270,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail {id} not found.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -291,11 +291,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail '{username}' not found.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailByUsernameAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailByUsernameAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -312,11 +312,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail '{email}' not found.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailByEmailAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailByEmailAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -330,11 +330,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 var docs = await GetAllDocsAsync<AvatarDetail>(CollAvatarDetails);
-                result.Result = docs;
+                CompleteRows<IAvatarDetail>(result,docs);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllAvatarDetailsAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllAvatarDetailsAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -361,11 +361,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 else if (doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Holon {id} has been deleted.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadHolonAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadHolonAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -379,11 +379,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString());
-                result.Result = all.FindAll(h => !h.IsDeleted);
+                CompleteRows<IHolon>(result,all.FindAll(h => !h.IsDeleted));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadHolonsForParentAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadHolonsForParentAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -397,11 +397,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Holon>(CollHolons);
-                result.Result = docs.FindAll(h => !h.IsDeleted);
+                CompleteRows<IHolon>(result,docs.FindAll(h => !h.IsDeleted));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllHolonsAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllHolonsAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -964,6 +964,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         // ─── Backend helpers ─────────────────────────────────────────────────────
 
+        private static void CompleteRead<T>(OASISResult<T> result,T record)
+        {result.Result=record;result.IsLoaded=true;result.LoadedCount=1;}
+
+        private static void CompleteRows<T>(OASISResult<IEnumerable<T>> result,IEnumerable<T> rows)
+        {var selected=System.Linq.Enumerable.ToArray(rows);result.Result=selected;result.IsLoaded=true;result.LoadedCount=selected.Length;}
+
         private static string FieldColumn(string field) => field switch
         {
             "Username" => "username",
@@ -983,7 +989,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         private static (string doc, string username, string email, string parent) Shred<T>(T obj)
         {
-            var json = JsonSerializer.Serialize(obj);
+            var json = Core.Serialization.StoredRecordJson.Serialize(obj);
             string u = "", e = "", p = "";
             using var d = JsonDocument.Parse(json);
             if (d.RootElement.TryGetProperty("Username", out var uu) && uu.ValueKind == JsonValueKind.String) u = uu.GetString() ?? "";
@@ -998,12 +1004,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         {
             var list = new List<T>();
             var results = await _client!.ExecuteQueryAsync(sql, parameters,new QueryOptions{UseLegacySql=false});
-            foreach (var row in results)
+            await foreach (var row in results.GetRowsAsync())
             {
                 var raw = row["doc"]?.ToString();
-                if (string.IsNullOrEmpty(raw)) continue;
-                var item = JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (item != null) list.Add(item);
+                if (string.IsNullOrWhiteSpace(raw))throw new System.IO.InvalidDataException("BigQuery stored record row has no canonical document.");
+                var item = Core.Serialization.StoredRecordJson.DeserializeStored<T>(raw);
+                if(item==null)throw new System.IO.InvalidDataException("BigQuery stored record document must not be null.");
+                list.Add(item);
             }
             return list;
         }
@@ -1056,9 +1063,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         }
 
         private async Task<List<T>> FindAllAsync<T>(string table, string field, string value) where T : class
-            => await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value LIMIT 1000",StringParameter("value",value));
+            => await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value",StringParameter("value",value));
 
         private async Task<List<T>> GetAllDocsAsync<T>(string table) where T : class
-            => await SqlAsync<T>($"SELECT doc FROM {Table(table)} LIMIT 1000");
+            => await SqlAsync<T>($"SELECT doc FROM {Table(table)}");
     }
 }
