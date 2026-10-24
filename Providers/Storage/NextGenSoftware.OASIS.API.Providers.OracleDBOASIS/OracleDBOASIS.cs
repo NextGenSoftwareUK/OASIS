@@ -241,6 +241,8 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
         private async Task<T?> LoadIdentityByColumnAsync<T>(string table,string column,OracleDbType type,object value,bool excludeDeleted,int version) where T:class,IHolonBase
         {
             if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            if(column=="ID"?(value is not byte[] raw||raw.Length!=16||new Guid(raw)==Guid.Empty):string.IsNullOrWhiteSpace(value as string))
+                throw new ArgumentException("A nonempty Oracle record selector is required.","selector");
             // Table/column are internal constants, never caller-supplied SQL identifiers.
             var historicalIdentity=version>0&&column!="ID";
             var validateAvatar=typeof(T)==typeof(Avatar);
