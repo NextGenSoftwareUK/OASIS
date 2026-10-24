@@ -362,7 +362,7 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
         await client.DropDatabaseAsync("cosmic_cql_fixture");using var remaining=await client.ListDatabaseNamesAsync();Assert.DoesNotContain("cosmic_cql_fixture",await remaining.ToListAsync());
     }
 
-    public static IEnumerable<object[]> HistoricalCollectionCases(){foreach(var kind in Enumerable.Range(0,7))foreach(var sync in new[]{false,true})yield return new object[]{kind,sync};}
+    public static IEnumerable<object[]> HistoricalCollectionCases(){foreach(var kind in Enumerable.Range(0,8))foreach(var sync in new[]{false,true})yield return new object[]{kind,sync};}
 
     [Theory]
     [MemberData(nameof(HistoricalCollectionCases))]
@@ -375,7 +375,7 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
         const string name="cosmic_cql_fixture";var client=new MongoClient(uri);
         using var names=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await names.ToListAsync());
         var database=client.GetDatabase(name);await database.CreateCollectionAsync("CosmicOwnedFixture");
-        var provider=new Provider(uri,name);var complete=false;
+        var provider=new Provider(kind==7?uri+"&appName=OwnedHistoricalSearchFault":uri,name);var complete=false;
         try
         {
             Assert.False((await provider.ActivateProviderAsync()).IsError);
@@ -456,7 +456,7 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
                 Assert.False(found.IsError,found.Message+found.Exception);Assert.Equal(dateCase.Count,found.LoadedCount);
                 if(dateCase.Count==1){Assert.Equal(root.Id,Assert.Single(found.Result.SearchResultHolons).Id);Assert.Equal(dateCase.Date,Assert.Single(found.Result.SearchResultHolons).ModifiedDate);}
             }
-            if(kind==6)
+            if(kind>=6)
             {
                 var original=await native.Find(new BsonDocument("HolonId",root.Id.ToString("D"))).SingleAsync();
                 var batch=new List<BsonDocument>();
@@ -479,6 +479,19 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
                 Assert.False(found.IsError,found.Message+found.Exception);Assert.Equal(270,found.LoadedCount);Assert.Equal(270,found.Result.NumberOfResults);
                 Assert.All(found.Result.SearchResultHolons,row=>{Assert.Equal(1,row.Version);Assert.Equal("historical batch root",row.Name);});
                 Assert.Equal(batch.Select(row=>row["HolonId"].AsString).OrderBy(value=>value),found.Result.SearchResultHolons.Select(row=>row.Id.ToString("D")).OrderBy(value=>value));
+                if(kind==7)
+                {
+                    var admin=client.GetDatabase("admin");
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode",new BsonDocument("skip",1)},
+                        {"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},{"appName","OwnedHistoricalSearchFault"},{"errorCode",2}}}});
+                    try
+                    {
+                        var failed=sync?provider.Search(batchQuery,loadChildren:false,version:1):await provider.SearchAsync(batchQuery,loadChildren:false,version:1);
+                        Assert.True(failed.IsError);Assert.False(failed.IsLoaded);Assert.Equal(0,failed.LoadedCount);Assert.Null(failed.Result);
+                        Assert.Equal(2,Assert.IsType<MongoCommandException>(failed.Exception).Code);
+                    }
+                    finally{await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});}
+                }
                 var ids=new BsonArray(batch.Select(row=>row["_id"]));var stored=await native.Find(new BsonDocument("_id",new BsonDocument("$in",ids))).ToListAsync();Assert.Equal(270,stored.Count);
                 foreach(var row in batch)Assert.Equal(row.ToBson(),Assert.Single(stored.Where(item=>item["_id"]==row["_id"])).ToBson());
                 var deletes=batch.Select(row=>(WriteModel<BsonDocument>)new DeleteOneModel<BsonDocument>(new BsonDocument{{"_id",row["_id"]},{"$expr",new BsonDocument("$eq",new BsonArray{"$$ROOT",new BsonDocument("$literal",row)})}})).ToArray();
