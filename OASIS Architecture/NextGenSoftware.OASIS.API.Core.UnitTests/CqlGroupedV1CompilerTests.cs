@@ -69,4 +69,54 @@ public sealed class CqlGroupedV1CompilerTests
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<CqlGroupedV1Request>("{\"Actor\":\"spoof\"}"));
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(Request(), Guid.Empty, null));
     }
+
+    [Fact]
+    public void ResultOrderingUsesSelectedTypesAndPreservesIndependentSourceWindow()
+    {
+        var request = Request(); request.OrderBy = "Version"; request.Skip = 2; request.Take = 10;
+        request.ResultOrder = new[] { new CqlGroupedV1Ordering { Alias = "Rows", Descending = true },
+            new CqlGroupedV1Ordering { Alias = "Category" } };
+        var result = CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null);
+        Assert.Equal(2, result.Source.Offset); Assert.Equal(10, result.Source.Limit);
+        Assert.Equal(2, result.Orderings.Count);
+        Assert.Equal(1, result.Orderings[0].ColumnIndex); Assert.True(result.Orderings[0].Descending);
+        Assert.Equal(0, result.Orderings[1].ColumnIndex); Assert.False(result.Orderings[1].Descending);
+    }
+
+    [Theory]
+    [InlineData("category")] [InlineData("missing")] [InlineData(null)]
+    public void ResultOrderingRejectsUnselectedOrInexactAliases(string alias)
+    {
+        var request = Request(); request.ResultOrder = new[] { new CqlGroupedV1Ordering { Alias = alias } };
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null));
+    }
+
+    [Fact]
+    public void ResultOrderingRejectsNullAndExcessiveIntent()
+    {
+        var request = Request(); request.ResultOrder = null;
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null));
+        request.ResultOrder = new CqlGroupedV1Ordering[] { null };
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null));
+        request.ResultOrder = new CqlGroupedV1Ordering[33];
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null));
+    }
+
+    [Theory]
+    [InlineData("Boolean")] [InlineData("Int32")] [InlineData("Int64")]
+    [InlineData("Byte")] [InlineData("SByte")] [InlineData("Int16")]
+    [InlineData("UInt16")] [InlineData("UInt32")] [InlineData("Guid")]
+    [InlineData("DateTime")] [InlineData("HolonType")] [InlineData("ProviderType")]
+    public void ResultOrderingBindsEveryPublicMetadataDomainIncludingNullable(string type)
+    {
+        foreach (var nullable in new[] { false, true })
+        {
+            var request = Request(); request.Keys = new[] { new CqlProjectionV1Column {
+                Alias = "key", MetadataPath = new[] { "key" }, ValueType = type, Nullable = nullable } };
+            request.Columns = new[] { new CqlGroupedV1Column { Alias = "Key", KeyAlias = "key" } };
+            request.ResultOrder = new[] { new CqlGroupedV1Ordering { Alias = "Key" } };
+            var result = CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null);
+            Assert.Single(result.Orderings);
+        }
+    }
 }

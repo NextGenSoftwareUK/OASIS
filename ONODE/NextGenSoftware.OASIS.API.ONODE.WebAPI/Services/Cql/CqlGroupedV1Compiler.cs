@@ -15,6 +15,7 @@ public static partial class CqlV1Compiler
         CqlGroupedV1Request request, Guid actor, ProviderType? provider)
     {
         if (request == null || request.Keys == null || request.Keys.Length is < 1 or > 8
+            || request.ResultOrder == null || request.ResultOrder.Length > 32
             || request.Columns == null || request.Columns.Length is < 1 or > 32 || request.MaximumGroups is < 1 or > 100)
             throw new ArgumentException("Grouping requires one to8 keys, one to32 columns and one to100 output groups.");
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
@@ -54,7 +55,63 @@ public static partial class CqlV1Compiler
         }).ToArray();
         var result = grouping.SelectColumns(bindings);
         if (result.IsError) throw new ArgumentException(result.Message);
-        return result.Result;
+        var ordered = result.Result;
+        foreach (var order in request.ResultOrder)
+        {
+            if (order == null) throw new ArgumentException("Result ordering cannot contain null entries.");
+            var column = ordered.Columns.SingleOrDefault(candidate => candidate.Alias == order.Alias)
+                ?? throw new ArgumentException("Result ordering must name an exact selected output alias.");
+            ordered = BindGroupedOrdering(ordered, column.ValueType, column.Alias, order.Descending);
+        }
+        return ordered;
+    }
+
+    private static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> BindGroupedOrdering(
+        CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> query,
+        Type type, string alias, bool descending)
+    {
+        // Bind the exact selected CLR type. This constructs an expression for the
+        // shared Core owner; it never compiles or executes a selector delegate.
+        if (type == typeof(string)) return Bind<string>();
+        if (type == typeof(bool)) return Bind<bool>();
+        if (type == typeof(bool?)) return Bind<bool?>();
+        if (type == typeof(int)) return Bind<int>();
+        if (type == typeof(int?)) return Bind<int?>();
+        if (type == typeof(long)) return Bind<long>();
+        if (type == typeof(long?)) return Bind<long?>();
+        if (type == typeof(Guid)) return Bind<Guid>();
+        if (type == typeof(Guid?)) return Bind<Guid?>();
+        if (type == typeof(DateTime)) return Bind<DateTime>();
+        if (type == typeof(DateTime?)) return Bind<DateTime?>();
+        if (type == typeof(decimal)) return Bind<decimal>();
+        if (type == typeof(decimal?)) return Bind<decimal?>();
+        if (type == typeof(byte)) return Bind<byte>();
+        if (type == typeof(byte?)) return Bind<byte?>();
+        if (type == typeof(sbyte)) return Bind<sbyte>();
+        if (type == typeof(sbyte?)) return Bind<sbyte?>();
+        if (type == typeof(short)) return Bind<short>();
+        if (type == typeof(short?)) return Bind<short?>();
+        if (type == typeof(ushort)) return Bind<ushort>();
+        if (type == typeof(ushort?)) return Bind<ushort?>();
+        if (type == typeof(uint)) return Bind<uint>();
+        if (type == typeof(uint?)) return Bind<uint?>();
+        if (type == typeof(HolonType)) return Bind<HolonType>();
+        if (type == typeof(HolonType?)) return Bind<HolonType?>();
+        if (type == typeof(ProviderType)) return Bind<ProviderType>();
+        if (type == typeof(ProviderType?)) return Bind<ProviderType?>();
+        throw new ArgumentException("This grouped output domain cannot be ordered by HTTP v1.");
+
+        CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> Bind<TValue>()
+        {
+            var row = Expression.Parameter(typeof(CosmicProjectionRecord), "row");
+            var cell = Expression.Call(row, typeof(CosmicProjectionRecord).GetMethod("get_Item"), Expression.Constant(alias));
+            var selector = Expression.Lambda<Func<CosmicProjectionRecord, TValue>>(Expression.Convert(cell, typeof(TValue)), row);
+            var result = query.Orderings.Count == 0
+                ? (descending ? query.OrderByDescending(selector) : query.OrderBy(selector))
+                : (descending ? query.ThenByDescending(selector) : query.ThenBy(selector));
+            if (result.IsError) throw new ArgumentException(result.Message);
+            return result.Result;
+        }
     }
 
     private static CosmicGroupedBinding<Holon, CosmicProjectionRecord> RequiredBinding(

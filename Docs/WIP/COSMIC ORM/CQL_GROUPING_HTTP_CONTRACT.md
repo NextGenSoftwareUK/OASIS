@@ -1,6 +1,6 @@
 # CQL grouped HTTP contract
 
-24 October 2026. The protected POST route is `/api/data/query-cql/grouped`. It uses the existing CQL authorization/resource filter, authenticated actor, provider eligibility and durable physical-attempt accounting. Controlled endpoint tests pass for all three provider types; live HTTP and demo acceptance remain pending.
+24 October 2026. The protected POST route is `/api/data/query-cql/grouped`. It uses the existing CQL authorization/resource filter, authenticated actor, provider eligibility and durable physical-attempt accounting. Controlled endpoint tests pass for all three provider types; the baseline live demo acceptance is recorded below. Result ordering has separate controlled evidence below.
 
 ## Request
 
@@ -23,6 +23,10 @@
       "operation": "Average",
       "selection": { "metadataPath": ["stock"], "valueType": "Int64", "nullable": true }
     }
+  ],
+  "resultOrder": [
+    { "alias": "TotalStock", "descending": true },
+    { "alias": "Category" }
   ],
   "maximumGroups": 25
 }
@@ -57,3 +61,12 @@ The retained signed HTTP demo now passes on MongoDB, SQLite and Neo4j: **45 SDK 
 The first grouped HTTP attempt exposed missing admission-path registration. The pinned failed fixture was reconciled against194 settled operations/189 attempts and all146 owned rows per store before scoped cleanup; no reset or blind replay occurred. Core's exact CQL registry now drives hosted admission/Swagger and production tariff checks. The corrected live run completed, receipts settled, owned fixture files were removed and runner services stopped.
 
 Evidence: TestResults/CosmicCqlDemo/v1-demo-result.json, v1-walkthrough.txt and grouped-demo-native-verified.log; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Executed producer copies match Core594AAEDB and Shared8E034BFB. Reconciliation evidence: grouped-fixture-reconcile.log, neo4j-cql-v1-web4-reconcile-current.trx and cql-v1-web4-reviewed-grouped-admission-reconciliation.json. The old42/42 numeric demo result remains historical. Post-group filters/order/pages, joins, federation and other unchecked roadmap gates remain open.
+
+
+## Selected result ordering — 24 October 2026
+
+`resultOrder` is an optional array of up to 32 entries. Each entry names an exact, case-sensitive selected output `alias` and optional `descending` (default false). The first entry becomes OrderBy and subsequent entries ThenBy. It applies after native reduction; source `orderBy`, `descending`, `skip` and `take` remain independent. Complete group identity supplies final ascending ties. Empty ordering retains identity order. Null arrays/entries, unknown aliases and excessive lists fail before provider dispatch.
+
+The compiler builds exact typed expression intent through the existing Core ordering owner. Actual provider capability admission remains mandatory. MongoDB, SQLite and Neo4j enroll key, count, extrema and integer Sum ordering. Average can be selected but ordering it currently returns CQL_CAPABILITY_UNSUPPORTED before native execution; there is no client sort or approximate substitute.
+
+Verification: **2,314 Core/linked-production unit tests pass, zero skips**, including 17 new compiler cases and four endpoint cases covering all three profiles and unsupported Average dispatch prevention. Evidence: TestResults/CosmicCurrent/http-group-order-full-current.trx and TestResults/CosmicCqlDemo/http-group-order-full.log. These are controlled endpoint tests; a new live three-provider HTTP ordering demonstration is still required. Baseline live grouping evidence above predates resultOrder. Post-group filtering/paging and exact Average ordering remain open.
