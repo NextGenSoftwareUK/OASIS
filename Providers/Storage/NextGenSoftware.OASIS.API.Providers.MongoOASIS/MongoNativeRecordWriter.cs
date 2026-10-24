@@ -126,6 +126,18 @@ internal static class MongoNativeRecordWriter
         return body;
     }
 
+    internal static BsonDocument PrepareHolonMutation(IMongoCollection<Holon> collection,Holon record,BsonDocument observed)
+    {
+        RotateHolonRevision(record);
+        var body=SerializePayload(collection,record);
+        if(observed!=null)
+        {
+            RetainUnknownFields<Holon>(body,observed);
+            MongoNativeHolonHistory.Stage(body,observed);
+        }
+        return body;
+    }
+
     internal static void RetainUnknownFields<T>(BsonDocument replacement,BsonDocument observed) where T:HolonBase
     {
         var mapped=new HashSet<string>(BsonClassMap.LookupClassMap(typeof(T)).AllMemberMaps.Select(member=>member.ElementName),StringComparer.Ordinal);

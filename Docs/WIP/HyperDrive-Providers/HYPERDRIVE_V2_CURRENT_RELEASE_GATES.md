@@ -8,7 +8,7 @@
 |---|---|---|
 | Normal holon save | MongoNativeRecordWriter.SaveAsync stages archive before BSON CAS | Native concurrency, corruption and document-size rejection proofs |
 | Import/conditional/CQL/replica staging | HolonRepository.ImportAtomicAsync stages after prepareBodies in existing transaction | Native per-entry atomicity/receipt/replay/history proof; not established by normal-save tests |
-| Hosted domain upsert and soft delete | HyperDriveDomain.cs directly replaces typed Holon; no raw archive preservation | Route finalized BSON/history through one shared preparation owner inside existing transaction; preserve unknown fields and native query projection |
+| Hosted domain upsert and soft delete | HyperDriveDomain now observes raw BSON in existing transaction and uses PrepareHolonMutation for revision/projection/unknown fields/history | Two native upsert/softdelete+replay cases pass; broader rollback/concurrency/creation/limit matrices remain open |
 | Clan inventory transfer | HyperDriveAvatarGameplay.cs directly replaces typed clan Holon | Preserve observed archive and advance caller-owned logical version consistently with receipt; current code changes VersionId only |
 | Avatar and avatar-detail save | Generic native writer is used, but archive guard is typeof(T)==typeof(Holon) | Avatar/detail historical storage and selector reads remain unimplemented by this holon-only fix |
 | Positive-version point/collection/search reads | HolonRead/HolonCollectionRead select current Version; historical export helper is separate | Reuse validated revision read owner for requested roots; provider-linked descendants keep independent versions |
