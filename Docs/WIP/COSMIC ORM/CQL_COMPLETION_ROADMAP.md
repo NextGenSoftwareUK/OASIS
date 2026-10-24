@@ -1,8 +1,8 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core 2,334 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo 51 SDK queries/51 HTTP examples with 231 settled operations and 226 attempts. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core 2,343 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo 51 SDK queries/51 HTTP examples with 231 settled operations and 226 attempts. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
-Next implementation: post-group filtering and exact Average ordering; native/HTTP grouped paging and the51/51 live demo are verified on all three providers. Enrolled key/count/extrema/integer Sum ordering is verified on all three providers and through the live demo. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
+Next implementation: independent grouped filter capabilities/proof/native execution (capture verified), then exact Average ordering; native/HTTP grouped paging and the51/51 live demo are verified on all three providers. Enrolled key/count/extrema/integer Sum ordering is verified on all three providers and through the live demo. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
@@ -312,3 +312,12 @@ HTTP paging contract/controlled endpoint checkpoint24October2026:2334Core/linked
 Verification: **2,334 Core/linked-production unit tests pass, zero skips**; the fresh integrated native demo passes **51 SDK queries and51 HTTP examples**, **231 settled operations and226 physical attempts** across all three providers (actual32210terminal0, native1PASS0skip). Evidence: TestResults/CosmicCurrent/http-group-page-current.trx; TestResults/CosmicCqlDemo/http-group-page-unit.log, group-page-demo-native.log, group-page-demo-artifacts.json, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/native copies match for Core and all three providers; runner verifies Core051A0664/SharedD5273C49. Browser script passes Node24.19.0 syntax check. This is the integrated demo acceptance test, not an all-suite provider rerun.
 
 The other session completed reviewed fixture cleanup and its Mongo historical-type regressions before granting the live window. No blind reset/replay occurred. Final owned fixture marker/SQLite/WAL/SHM are absent, Mongo27029 and Neo17687 listeners absent. Post-group filtering, exact Average ordering and broader unchecked roadmap gates remain open.
+
+
+## Shared grouped filtering capture — 24 October2026
+
+Immutable ResultPredicates now capture Where over exact selected columns using the existing source expression grammar and literal snapshots. Source intent stays unchanged; no arbitrary getters/delegates execute. Provider admission and manual materialization explicitly reject filters until independent native capability/proof enrollment exists. See [filtering contract](CQL_GROUP_FILTERING_CONTRACT.md) for semantics and remaining gates.
+
+Root-cause correction: grouped ordering after result Skip/Take is now rejected with CQL_COMPOSITION_UNSUPPORTED, matching row queries. The earlier paging checkpoint's statement that ordering changes preserve windows did not preserve operator semantics; use Where/OrderBy before paging until native subquery stages exist. The shared selected-column resolver also distinguishes a one-column DTO from its scalar cell (genuine1case red, then corrected).
+
+Both Core targets build and2,343Core/linked-production tests pass0skip. Nine new filter controls cover capture/source/literal isolation, scalar/DTO/record types, field comparisons/membership, unsafe execution rejection, operator order, clause bounds, default-denied admission and manual proof publication. Evidence/SHAs in the filtering contract. Native filter profiles/validation/translations, HTTP filters/demos and exact Average ordering remain open; native filtering is not claimed complete.
