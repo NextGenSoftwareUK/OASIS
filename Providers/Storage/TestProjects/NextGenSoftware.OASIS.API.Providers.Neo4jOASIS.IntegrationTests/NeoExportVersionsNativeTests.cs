@@ -36,6 +36,16 @@ public partial class Neo4jNativeAvatarTests
                 Assert.IsFalse((await provider.SaveHolonAsync(own,saveChildren:false)).IsError);Assert.IsFalse((await provider.SaveHolonAsync(foreign,saveChildren:false)).IsError);
             }
             Assert.AreEqual(3,own.Version);var before=await Graph();await WriteNew(observed,new{sha256=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(before)))});
+            foreach(var selectedVersion in new[]{0,1}){
+                var point=sync?provider.LoadHolon(own.Id,loadChildren:false,version:selectedVersion):await provider.LoadHolonAsync(own.Id,loadChildren:false,version:selectedVersion);
+                Assert.IsFalse(point.IsError,point.Message);Assert.IsTrue(point.IsLoaded);Assert.AreEqual(1,point.LoadedCount);
+                var identity=sync?provider.LoadAvatar(avatar.Id,selectedVersion):await provider.LoadAvatarAsync(avatar.Id,selectedVersion);
+                Assert.IsFalse(identity.IsError,identity.Message);Assert.AreEqual(1,identity.LoadedCount);
+                var identities=sync?provider.LoadAllAvatars(selectedVersion):await provider.LoadAllAvatarsAsync(selectedVersion);
+                Assert.IsFalse(identities.IsError,identities.Message);Assert.AreEqual(1,identities.LoadedCount);
+                var roots=sync?provider.LoadAllHolons(loadChildren:false,version:selectedVersion):await provider.LoadAllHolonsAsync(loadChildren:false,version:selectedVersion);
+                Assert.IsFalse(roots.IsError,roots.Message);Assert.AreEqual(2,roots.LoadedCount);
+            }
             foreach(var version in new[]{-1,0,1,2,3,4}){
                 var result=email?sync?provider.ExportAllDataForAvatarByEmail(avatar.Email,version):await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email,version)
                     :sync?provider.ExportAllDataForAvatarByUsername(avatar.Username,version):await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username,version);
