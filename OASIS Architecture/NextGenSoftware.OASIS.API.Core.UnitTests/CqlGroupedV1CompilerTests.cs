@@ -119,4 +119,29 @@ public sealed class CqlGroupedV1CompilerTests
             Assert.Single(result.Orderings);
         }
     }
+
+    [Fact]
+    public void ResultPagingKeepsSourceWindowAndNativeOrderingIndependent()
+    {
+        var request = Request(); request.Skip = 3; request.Take = 20;
+        request.ResultSkip = 2; request.ResultTake = 4;
+        request.ResultOrder = new[] { new CqlGroupedV1Ordering { Alias = "Rows", Descending = true } };
+        var query = CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null);
+        Assert.Equal(3, query.Source.Offset); Assert.Equal(20, query.Source.Limit);
+        Assert.Equal(2, query.ResultOffset); Assert.Equal(4, query.ResultLimit);
+        Assert.True(Assert.Single(query.Orderings).Descending);
+        request.ResultTake = 0;
+        Assert.Equal(0, CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null).ResultLimit);
+        request.ResultTake = null;
+        Assert.Null(CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null).ResultLimit);
+    }
+
+    [Theory]
+    [InlineData(-1, 1)] [InlineData(0, -1)] [InlineData(26, 1)] [InlineData(0, 26)]
+    [InlineData(int.MaxValue, 0)] [InlineData(0, int.MaxValue)]
+    public void ResultWindowsCannotBeNegativeOrExceedIndependentProofBudget(int skip, int take)
+    {
+        var request = Request(); request.ResultSkip = skip; request.ResultTake = take;
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null));
+    }
 }

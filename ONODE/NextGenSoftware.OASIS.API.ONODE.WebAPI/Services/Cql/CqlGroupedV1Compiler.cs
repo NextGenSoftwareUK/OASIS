@@ -63,7 +63,11 @@ public static partial class CqlV1Compiler
                 ?? throw new ArgumentException("Result ordering must name an exact selected output alias.");
             ordered = BindGroupedOrdering(ordered, column.ValueType, column.Alias, order.Descending);
         }
-        return ordered;
+        var page = ordered.Skip(request.ResultSkip);
+        if (page.IsError) throw new ArgumentException(page.Message);
+        if (request.ResultTake.HasValue) page = page.Take(request.ResultTake.Value);
+        if (page.IsError) throw new ArgumentException(page.Message);
+        return page.Result;
     }
 
     private static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> BindGroupedOrdering(

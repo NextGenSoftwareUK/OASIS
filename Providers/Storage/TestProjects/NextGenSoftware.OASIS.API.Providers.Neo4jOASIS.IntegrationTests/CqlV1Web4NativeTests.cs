@@ -523,6 +523,7 @@ public sealed partial class CqlV1Web4NativeTests
                                 .GetProperty("CqlGroupedV1Request").GetProperty("example");
                             Assert.AreEqual("Total", groupedExample.GetProperty("resultOrder")[0].GetProperty("alias").GetString());
                             Assert.IsTrue(groupedExample.GetProperty("resultOrder")[0].GetProperty("descending").GetBoolean());
+                            Assert.AreEqual(1, groupedExample.GetProperty("resultTake").GetInt32());
                         }
 
                         // These examples are the same readable C# client code developers

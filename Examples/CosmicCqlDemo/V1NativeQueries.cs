@@ -276,6 +276,26 @@ public static class V1NativeQueries
 
         await output.WriteLineAsync();
 
+        // 17. Page the ordered aggregate results, independently of source rows.
+        // Complete bounded proof remains validated, including the skipped groups.
+        var groupPage = Value(orderedGroups.Skip(1).Take(1));
+
+        var pagePlan = Value(CosmicGroupedPlanner.Plan(
+            groupPage,
+            provider,
+            new[] { new CosmicGroupedTarget(provider,
+                adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var pageExecution = Value(await manager.ExecuteGroupedQueryAsync(pagePlan, new[] { adapter }));
+        var pageRow = pageExecution.Providers.Single().Rows.Single();
+
+        if (pageRow.Name != "C-public" || pageRow.Total != -9007199254740990L)
+            throw new InvalidOperationException("Grouped result page returned the wrong exact aggregate.");
+
+        completedQueries++;
+        await output.WriteLineAsync("17. Native grouped page / Skip(1).Take(1)\n");
+        await output.WriteLineAsync($"  {pageRow.Name}: {pageRow.Total}\n");
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(
