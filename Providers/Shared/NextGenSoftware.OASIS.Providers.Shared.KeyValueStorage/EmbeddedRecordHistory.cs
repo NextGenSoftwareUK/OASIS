@@ -91,12 +91,25 @@ public sealed class EmbeddedRecordHistory
     public async Task<T> ReadAsync<T>(Guid identity,JObject document,int version,Func<string,T> decode) where T : class,IHolonBase
     {
         if (version < 0) throw new ArgumentOutOfRangeException(nameof(version));
+        var (current,archive)=ReadDocument(identity,document,decode);
+        return await StoredRecordVersions.ReadAsync(identity,current,version,requested => Task.FromResult(
+            archive.TryGetValue(requested,out var stored) ? Decode(stored,identity,decode) : null));
+    }
+
+    /// <summary>Detached ascending versions for export, including current and tombstones. No graph expansion or I/O.</summary>
+    public IReadOnlyList<T> ReadAll<T>(Guid identity,JObject document,Func<string,T> decode) where T : class,IHolonBase
+    {
+        var (current,archive)=ReadDocument(identity,document,decode);
+        return archive.Values.Select(stored=>Decode(stored,identity,decode)).Concat(new[]{current}).ToArray();
+    }
+
+    private (T Current,SortedDictionary<int,JObject> Archive) ReadDocument<T>(Guid identity,JObject document,Func<string,T> decode) where T : class,IHolonBase
+    {
         ArgumentNullException.ThrowIfNull(document); ArgumentNullException.ThrowIfNull(decode);
         if (identity == Guid.Empty || document["id"]?.Type != JTokenType.String || document["id"].Value<string>() != identity.ToString())
             throw new InvalidDataException("Embedded history item identity is invalid.");
         var current = Decode(CanonicalPayload(document),identity,decode);
         var archive = ReadArchive(document,current,decode);
-        return await StoredRecordVersions.ReadAsync(identity,current,version,requested => Task.FromResult(
-            archive.TryGetValue(requested,out var stored) ? Decode(stored,identity,decode) : null));
+        return (current,archive);
     }
 }
