@@ -103,6 +103,12 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
             current.VersionId=Guid.NewGuid();current.Version=2;current.Name="current replacement";
             var second=await provider.SaveHolonAsync(current,saveChildren:false);
             Assert.False(second.IsError,second.Message+second.Exception);
+            var native=database.GetCollection<BsonDocument>("Holon");
+            var beforeBackward=Assert.Single(await native.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).ToBson();
+            current.Version=1;current.Name="rejected backwards replacement";
+            var backward=await provider.SaveHolonAsync(current,saveChildren:false);
+            Assert.True(backward.IsError);
+            Assert.Equal(beforeBackward,Assert.Single(await native.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).ToBson());
             var latest=await Export(0);
             Assert.False(latest.IsError,latest.Message+latest.Exception);
             Assert.Equal("current replacement",Assert.Single(latest.Result).Name);
