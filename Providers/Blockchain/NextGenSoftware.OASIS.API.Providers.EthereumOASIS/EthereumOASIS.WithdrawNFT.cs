@@ -352,9 +352,12 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                     return result;
                 }
 
+                try { NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721MintReceipt.Verify(receipt, nftContractAddress, mintToAddress, tokenId); }
+                catch (Exception cause) { throw new EthereumNftMutationReconciliationException(receipt?.TransactionHash, cause); }
                 result.Result.TransactionResult = receipt.TransactionHash;
                 result.Result.Web3NFT = new Web3NFT
                 {
+                    TokenId = tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     NFTTokenAddress = nftContractAddress,
                     MintTransactionHash = receipt.TransactionHash,
                     NFTMintedUsingWalletAddress = senderAccount.Address,

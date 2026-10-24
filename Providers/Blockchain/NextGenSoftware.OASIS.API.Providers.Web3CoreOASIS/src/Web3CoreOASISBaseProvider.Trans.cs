@@ -226,15 +226,22 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             string metadataJson = Newtonsoft.Json.JsonConvert.SerializeObject(transaction);
+            var recipient = transaction.SendToAddressAfterMinting;
+            var memo = transaction.MemoText;
             //string transactionHash = await _web3CoreOASIS.MintAsync(transaction.MintWalletAddress, metadataJson);
-            TransactionReceipt transactionReceipt = await _web3CoreOASIS.MintAsync(transaction.SendToAddressAfterMinting, metadataJson);
+            TransactionReceipt transactionReceipt = await _web3CoreOASIS.MintAsync(recipient, metadataJson);
+            BigInteger mintedId;
+            try { mintedId = NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721MintReceipt.Verify(transactionReceipt, _contractAddress, recipient); }
+            catch (Exception cause) { throw new Web3MutationReconciliationException(transactionReceipt?.TransactionHash, transactionReceipt, cause); }
             string transactionHash = transactionReceipt.TransactionHash;
 
             IWeb3NFTTransactionResponse response = new Web3NFTTransactionResponse
             {
                 Web3NFT = new Web3NFT()
                 {
-                    MemoText = transaction.MemoText,
+                    MemoText = memo,
+                    TokenId = mintedId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    NFTTokenAddress = _contractAddress,
                     MintTransactionHash = transactionHash
                 },
                 TransactionResult = transactionHash
