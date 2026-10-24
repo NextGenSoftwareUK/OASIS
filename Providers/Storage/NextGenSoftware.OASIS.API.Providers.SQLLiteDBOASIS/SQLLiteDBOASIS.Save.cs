@@ -232,8 +232,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
                 var filtered = allHolons.Result?.Where(h => h.CreatedByAvatarId == avatarId) ?? Enumerable.Empty<IHolon>();
-                result.Result = filtered;
-                result.IsError = false;
+                CompleteExport(result,filtered);
                 result.Message = $"Successfully exported {result.Result.Count()} holons for avatar {avatarId} from SQLite";
             }
             catch (Exception ex)
@@ -281,8 +280,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
                 var filtered = owner.Result == null ? Enumerable.Empty<IHolon>()
                     : allHolons.Result?.Where(h => h.CreatedByAvatarId == owner.Result.Id) ?? Enumerable.Empty<IHolon>();
-                result.Result = filtered;
-                result.IsError = false;
+                CompleteExport(result,filtered);
                 result.Message = $"Successfully exported {result.Result.Count()} holons for avatar {avatarUsername} from SQLite";
             }
             catch (Exception ex)
@@ -330,8 +328,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
                 var filtered = owner.Result == null ? Enumerable.Empty<IHolon>()
                     : allHolons.Result?.Where(h => h.CreatedByAvatarId == owner.Result.Id) ?? Enumerable.Empty<IHolon>();
-                result.Result = filtered;
-                result.IsError = false;
+                CompleteExport(result,filtered);
                 result.Message = $"Successfully exported {result.Result.Count()} holons for avatar {avatarEmailAddress} from SQLite";
             }
             catch (Exception ex)
@@ -339,6 +336,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from SQLite: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private static void CompleteExport(OASISResult<IEnumerable<IHolon>> result,IEnumerable<IHolon> rows)
+        {
+            var records=rows.ToList();
+            result.Result=records;result.IsError=false;result.IsLoaded=true;result.LoadedCount=records.Count;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
@@ -370,8 +373,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     result.ErrorCode = holons.ErrorCode;
                     return result;
                 }
-                result.Result = holons.Result;
-                result.IsError = false;
+                CompleteExport(result,holons.Result);
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from SQLite";
             }
             catch (Exception ex)
