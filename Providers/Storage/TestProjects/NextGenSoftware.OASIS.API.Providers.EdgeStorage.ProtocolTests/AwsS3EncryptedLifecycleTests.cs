@@ -29,6 +29,7 @@ public class AwsS3EncryptedLifecycleTests
         public int Requests, Pages;
         public bool LoseCreateAcknowledgement;
         public int Writes, Deletes;
+        public Action BeforeListReply;
         private static string Revision(string value) => "\"" + Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant() + "\"";
         private static HttpResponseMessage Failure(HttpStatusCode status, string code) => new(status)
         { Content = new StringContent($"<Error><Code>{code}</Code><Message>controlled</Message></Error>", Encoding.UTF8, "application/xml") };
@@ -55,6 +56,7 @@ public class AwsS3EncryptedLifecycleTests
                             + $"<IsTruncated>{more.ToString().ToLowerInvariant()}</IsTruncated>"
                             + string.Concat(page.Select(k => $"<Contents><Key>{SecurityElement.Escape(k)}</Key><Size>{Encoding.UTF8.GetByteCount(Objects[k])}</Size></Contents>"))
                             + (more ? $"<NextContinuationToken>{offset + page.Length}</NextContinuationToken>" : "") + "</ListBucketResult>";
+                        System.Threading.Interlocked.Exchange(ref BeforeListReply,null)?.Invoke();
                         return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(xml, Encoding.UTF8, "application/xml") };
                     }
                     Assert.IsTrue(path.StartsWith("test-bucket/" + allowedPrefix, StringComparison.Ordinal));
@@ -101,6 +103,28 @@ public class AwsS3EncryptedLifecycleTests
             }
         }
         public void Dispose() { Client.Dispose(); _http.Dispose(); Objects.Clear(); }
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task Metadata_scope_survives_signed_sdk_listing_and_preserves_encrypted_history(bool sync)
+    {
+        using var store=new Store();var key=RandomNumberGenerator.GetBytes(32);
+        try{
+            using var provider=store.Open(key);Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var first=new Holon{Id=Guid.NewGuid(),MetaData=new(){{"zone","park"}}};var other=new Holon{Id=Guid.NewGuid(),MetaData=new(){{"zone","city"}}};
+            foreach(var row in new[]{first,other}){Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);row.Description="second version";Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);}
+            var original=store.Objects.ToDictionary(pair=>pair.Key,pair=>pair.Value);var writes=store.Writes;var deletes=store.Deletes;
+            foreach(var version in new[]{0,1})foreach(var mode in new[]{NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.Any}){
+                var pairs=new Dictionary<string,string>{{"zone","park"}};store.BeforeListReply=()=>pairs["zone"]="city";
+                var read=sync?provider.LoadHolonsByMetaData(pairs,mode,loadChildren:false,version:version):await provider.LoadHolonsByMetaDataAsync(pairs,mode,loadChildren:false,version:version);
+                Assert.IsFalse(read.IsError,read.Exception?.ToString());Assert.AreEqual(1,read.LoadedCount);Assert.AreEqual(first.Id,read.Result.Single().Id);Assert.AreEqual(version==0?2:1,read.Result.Single().Version);
+                Assert.AreEqual("city",pairs["zone"]);Assert.IsNull(store.BeforeListReply);
+            }
+            Assert.AreEqual(writes,store.Writes);Assert.AreEqual(deletes,store.Deletes);Assert.AreEqual(original.Count,store.Objects.Count);foreach(var pair in original)Assert.AreEqual(pair.Value,store.Objects[pair.Key]);
+            foreach(var row in new[]{first,other}){Assert.IsFalse((await provider.DeleteHolonAsync(row.Id)).IsError);Assert.IsTrue((await provider.LoadHolonAsync(row.Id,loadChildren:false)).IsError);}
+        }finally{CryptographicOperations.ZeroMemory(key);}
     }
 
     [DataTestMethod]

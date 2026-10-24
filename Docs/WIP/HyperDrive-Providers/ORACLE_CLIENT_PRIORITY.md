@@ -1,5 +1,7 @@
 # Oracle client readiness — top priority
 
+24 October shared metadata follow-up: fresh OCI119 signed-SDK loopback tests PASS0skip13seconds with shared query-scope repair. Existing2encryptedlifecyclecases now mutatecaller metadata inside realSDK ListObjects exchange, verifycurrent/version1×Any/All originalselection/count and unchangedencryptedobjects/history/noadditionalwrites. This is not cloudOCI proof or a freshSQLrun; SQL417unit/498native below remains its distinct earlier cohort. HostedAutonomous/OCI IAM/wallet/durability/fees/fullV2 remainOPEN. Evidence/resources inSHARED_RECORD_HISTORY/inventory.
+
 ## Latest metadata read ownership verification — 24 October
 
 Current SQL cohort is **417unit/498native PASS, zero skips** (native45seconds), superseding385/496 below. Thirty-two controlled cases genuinely failed because the caller's metadata dictionary was reread after the database await. The existing public query owner now copies pairs with ordinal keys before its first database await; the shared metadata matcher, empty/null behavior, Any/All modes, versions and child projection remain unchanged. The existing generic SQL collection reader is protected virtual for one read-boundary test hook; its production managed-SDK implementation is unchanged, with no second persistence path or extra query.

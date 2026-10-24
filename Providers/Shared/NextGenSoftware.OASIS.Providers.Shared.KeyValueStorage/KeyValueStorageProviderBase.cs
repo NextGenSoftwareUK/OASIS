@@ -950,9 +950,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             if (metaKeyValuePairs.Keys.Any(string.IsNullOrWhiteSpace)) return Fail<IEnumerable<IHolon>>("Metadata keys must be nonblank.");
             if (!Enum.IsDefined(typeof(MetaKeyValuePairMatchMode), metaKeyValuePairMatchMode))
                 return Fail<IEnumerable<IHolon>>("A defined metadata match mode is required.");
+            var requested=metaKeyValuePairs.ToArray();
             bool Match(IHolon h) => metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any
-                ? metaKeyValuePairs.Any(kv => MetaMatches(h, kv.Key, kv.Value))
-                : metaKeyValuePairs.All(kv => MetaMatches(h, kv.Key, kv.Value));
+                ? requested.Any(kv => MetaMatches(h, kv.Key, kv.Value))
+                : requested.All(kv => MetaMatches(h, kv.Key, kv.Value));
             return await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version, Match, continueOnError);
         }
 
