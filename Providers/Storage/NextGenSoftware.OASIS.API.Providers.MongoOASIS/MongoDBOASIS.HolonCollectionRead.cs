@@ -82,7 +82,7 @@ public partial class MongoDBOASIS
         {
             result.IsError=true;result.Exception=cause;result.Message="Mongo holon collection read failed.";
             if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
-            else if(cause is InvalidDataException) result.ErrorCode=Core.Helpers.StorageLifecycleConflictException.ErrorCode;
+            else if(cause is InvalidDataException or FormatException) result.ErrorCode=Core.Helpers.StorageLifecycleConflictException.ErrorCode;
             else if(cause is ArgumentException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
         }
         finally

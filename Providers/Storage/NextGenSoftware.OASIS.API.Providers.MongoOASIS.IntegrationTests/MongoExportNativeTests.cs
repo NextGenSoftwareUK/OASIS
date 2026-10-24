@@ -21,6 +21,57 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 public sealed class MongoExportNativeTests(ITestOutputHelper output)
 {
     [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)]
+    public async Task PublicReadsRejectMalformedAuditWithoutMutatingStoredRecord(int kind)
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        const string name="cosmic_cql_fixture";var client=new MongoClient(uri);
+        using var names=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await names.ToListAsync());
+        var database=client.GetDatabase(name);await database.CreateCollectionAsync("CosmicOwnedFixture");
+        var provider=new Provider(uri,name);var complete=false;
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.HolonBase record=kind switch{
+                0=>new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar(),
+                1=>new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail(),
+                _=>new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon()};
+            record.HolonId=Guid.NewGuid();record.Id=ObjectId.GenerateNewId().ToString();record.Name="owned conversion record";
+            var raw=database.GetCollection<BsonDocument>(kind==0?"Avatar":kind==1?"AvatarDetail":"Holon");
+            await raw.InsertOneAsync(record.ToBsonDocument());
+            void Reject<T>(OASISResult<T> result)
+            {
+                Assert.True(result.IsError);Assert.Null(result.Result);Assert.False(result.IsLoaded);Assert.Equal(0,result.LoadedCount);
+                Assert.NotNull(result.Exception);Assert.Equal(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
+                Assert.DoesNotContain("malformed-owned-actor",result.Message);
+            }
+            foreach(var field in new[]{"CreatedByAvatarId","ModifiedByAvatarId","DeletedByAvatarId"})
+            {
+                var changed=await raw.UpdateOneAsync(FilterDefinition<BsonDocument>.Empty,Builders<BsonDocument>.Update.Set(field,"malformed-owned-actor"));Assert.Equal(1,changed.MatchedCount);
+                var before=Assert.Single(await raw.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).ToBson();
+                if(kind==0){Reject(await provider.LoadAvatarAsync(record.HolonId));Reject(await provider.LoadAllAvatarsAsync());}
+                else if(kind==1){Reject(await provider.LoadAvatarDetailAsync(record.HolonId));Reject(await provider.LoadAllAvatarDetailsAsync());}
+                else{Reject(await provider.LoadHolonAsync(record.HolonId,loadChildren:false));Reject(await provider.LoadAllHolonsAsync(loadChildren:false));}
+                Assert.Equal(before,Assert.Single(await raw.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).ToBson());
+                var restored=await raw.UpdateOneAsync(FilterDefinition<BsonDocument>.Empty,Builders<BsonDocument>.Update.Unset(field));Assert.Equal(1,restored.MatchedCount);
+            }
+            if(kind==0)Assert.False((await provider.LoadAvatarAsync(record.HolonId)).IsError);
+            else if(kind==1)Assert.False((await provider.LoadAvatarDetailAsync(record.HolonId)).IsError);
+            else Assert.False((await provider.LoadHolonAsync(record.HolonId,loadChildren:false)).IsError);
+            complete=true;
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+            if(complete)await client.DropDatabaseAsync(name);
+            else output.WriteLine("Preserved owned cosmic_cql_fixture public conversion failure evidence for reviewed reconciliation.");
+        }
+    }
+
+    [Theory]
     [InlineData(false)] [InlineData(true)]
     public async Task ClanTransferPreservesHistoryOrRejectsDeletedTarget(bool deletedTarget)
     {
