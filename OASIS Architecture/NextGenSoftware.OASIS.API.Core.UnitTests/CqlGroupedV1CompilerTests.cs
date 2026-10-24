@@ -9,6 +9,68 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public sealed class CqlGroupedV1CompilerTests
 {
+    [Fact]
+    public void ResultFiltersBindSelectedAliasesBeforePagingWithoutChangingSource()
+    {
+        var request = Request();
+        request.Skip = 2;
+        request.Take = 10;
+        request.ResultSkip = 1;
+        request.ResultTake = 2;
+        request.ResultFilters = new[]
+        {
+            new CqlGroupedV1Filter { Alias = "Rows", Operator = CqlV1Operator.GreaterThan,
+                Value = JsonSerializer.SerializeToElement("9007199254740993") },
+            new CqlGroupedV1Filter { Alias = "Category", Operator = CqlV1Operator.StartsWith,
+                Value = JsonSerializer.SerializeToElement("Coffee") }
+        };
+        var intent = CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null);
+        Assert.Equal(2, intent.ResultPredicates.Count);
+        Assert.Equal(2, intent.Source.Offset);
+        Assert.Equal(10, intent.Source.Limit);
+        Assert.Equal(1, intent.ResultOffset);
+        Assert.Equal(2, intent.ResultLimit);
+    }
+
+    [Theory]
+    [InlineData("missing", CqlV1Operator.Equal, "\"1\"")]
+    [InlineData("Rows", CqlV1Operator.Equal, "9007199254740993")]
+    [InlineData("Rows", CqlV1Operator.Equal, "\"9223372036854775808\"")]
+    [InlineData("Rows", CqlV1Operator.Contains, "\"1\"")]
+    [InlineData("Rows", CqlV1Operator.IsNull, "null")]
+    [InlineData("Mean", CqlV1Operator.Equal, "\"0.123456789012345678901234567891\"")]
+    [InlineData("Category", CqlV1Operator.Exists, "null")]
+    public void ResultFiltersRejectAmbiguousLossyAndUnsupportedIntent(string alias, CqlV1Operator operation, string json)
+    {
+        var request = Request();
+        request.ResultFilters = new[] { new CqlGroupedV1Filter { Alias = alias, Operator = operation,
+            Value = JsonSerializer.Deserialize<JsonElement>(json) } };
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null));
+    }
+
+    [Fact]
+    public void ResultFiltersRejectNullAndExcessiveLists()
+    {
+        var request = Request();
+        request.ResultFilters = null;
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null));
+        request.ResultFilters = new CqlGroupedV1Filter[33];
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null));
+        request.ResultFilters = new CqlGroupedV1Filter[] { null };
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null));
+    }
+
+    [Fact]
+    public void NullableSelectedAggregatesSupportExplicitNullTests()
+    {
+        var request = Request();
+        request.ResultFilters = new[] { new CqlGroupedV1Filter { Alias = "Mean", Operator = CqlV1Operator.IsNull } };
+        var intent = CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null);
+        Assert.Single(intent.ResultPredicates);
+        // Capture does not grant provider capabilities: Average filtering remains
+        // subject to the actual adapter's independent admission contract.
+    }
+
     private static CqlGroupedV1Request Request() => new()
     {
         Keys = new[] { new CqlProjectionV1Column { Alias = "category", Field = "Name" } },
