@@ -32,6 +32,7 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
     <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />

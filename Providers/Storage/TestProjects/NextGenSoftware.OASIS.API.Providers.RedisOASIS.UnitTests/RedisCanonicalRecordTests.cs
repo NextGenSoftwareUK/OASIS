@@ -9,8 +9,9 @@ namespace NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests;
 [TestClass]
 public class RedisCanonicalRecordTests
 {
-    private static string Encode(object value)=>(string)typeof(RedisOASIS).GetMethod("Ser",BindingFlags.Static|BindingFlags.NonPublic)!.Invoke(null,new[]{value})!;
-    private static T? Decode<T>(string value)=>(T?)typeof(RedisOASIS).GetMethod("Des",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(T)).Invoke(null,new object[]{value});
+    private static string Encode(object value)=>Core.Serialization.StoredRecordJson.Serialize(value);
+    private static T? Decode<T>(string value)=>Core.Serialization.StoredRecordJson.DeserializeStored<T>(value)
+        ??throw new System.IO.InvalidDataException("Redis stored record JSON must contain a record, not null.");
 
     [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)]
     public void ExistingCamelCaseScalarRecordsRemainReadable(int kind)
@@ -50,7 +51,6 @@ public class RedisCanonicalRecordTests
     [DataTestMethod][DataRow("null")][DataRow("{broken")][DataRow("{\"$type\":\"System.Version, System.Private.CoreLib\"}")]
     public void CorruptStoredRecordCannotDecodeAsSuccess(string json)
     {
-        var invocation=Assert.ThrowsException<TargetInvocationException>(()=>Decode<Holon>(json));
-        Assert.IsInstanceOfType(invocation.InnerException,typeof(System.IO.InvalidDataException));
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>Decode<Holon>(json));
     }
 }
