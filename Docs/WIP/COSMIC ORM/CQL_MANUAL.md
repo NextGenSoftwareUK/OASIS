@@ -887,4 +887,32 @@ Output columns carry UInt64 schema tags and invariant strings, preserving all bi
 through JavaScript clients. Numeric JSON input, signs, whitespace, fractions,
 exponents and values above UInt64.MaxValue fail compilation. Existing enum values
 retain their identities. Live three-provider examples22–23 now pass69SDK/69HTTP acceptance; [the capability matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) distinguishes that
-pending gate from the passing compiler and native evidence.
+passing gate from the compiler and native evidence.
+
+## Exact Decimal metadata — SQLite and MongoDB SDK
+
+SQLite and MongoDB support Decimal/nullable Decimal comparisons, membership,
+field comparisons, ordering, projections, Min/Max and grouped keys. SQLite passes
+1,459 native cases including 24 Decimal cases; MongoDB passes 228 native CQL and
+483 unit cases including 23/5 new cases. Neo4j/wire enrollment remains pending;
+check the actual provider capability profile.
+
+```csharp
+// Use Decimal values when saving prices; a numeric string is a different domain.
+var query = CosmicQuery<Holon>.Create()
+    .Where(row => CosmicQueryMetadata.Value<decimal>(row, "price") >= 0.10m)
+    .OrderBy(row => CosmicQueryMetadata.Value<decimal>(row, "price"))
+    .Take(10)
+    .Select(row => new
+    {
+        row.Id,
+        Price = CosmicQueryMetadata.Value<decimal>(row, "price")
+    });
+```
+
+Check the captured result, plan it against the target adapter's actual capabilities and
+execute through HolonManager as in the projection walkthrough. The provider's
+original numeric representation is normalized exactly; underflow, excess precision and floating-point
+rounding cannot change its Decimal identity. Equivalent scales share a group.
+Use `decimal?` for optional metadata. Decimal Sum/Average inputs remain outside
+this enrollment. [Domain, limits and evidence](CQL_DECIMAL_METADATA_CONTRACT.md).
