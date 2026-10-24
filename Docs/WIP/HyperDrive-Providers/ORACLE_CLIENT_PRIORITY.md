@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## 24 October — complete storage dispatch ownership checked
+
+Actual compiled interface maps cover94public storage entries plus2database version-control property entries. Targets resolve to OracleDBOASIS,reviewed shared karma/event owners or existing visibility-scoped interface defaults; no unexpected abstract/base owner found. Full419unitPASS0skip730ms,current-source Core742/Shared56/Oracle15/unit30 and provider copies verified. This is structural ownership,NOT correctness of every body/option/native operation. The first test erroneously requested IOASISNETProvider,which Oracle does not advertise; original420case report retains that fixture failure(419passed/1failed),not a provider regression. Corrected audit covers the actual two declared storage contracts; no peer-network functionality was removed or newly implemented.
+
+Final oracle-interface-final.trx672795bytes SHA2560BF88D5CC0C5385F96407285BB0ADA715D3419224AC6E7E12B60EF5E02EEF957. SQL498native and OCI127signed-loopback are separate cohorts,not rerun here. No service start,restore,download,new environment or cloud request. Hosted access/security/durability/fees,exhaustive option/fault behavior and full Oracle V2 remain OPEN.
+
 ## 24 October — strict text transport verification,127 OCI controls green
 
 Fresh complete OCI signed-SDK loopback cohort **127PASS,zero skips,10seconds**. Eight new cases cover observed/plain GET,overlong UTF8,encoded surrogate,truncated supplementary scalar and a valid tree emoji. Invalid bodies have matching native byte lengths AND MD5 yet must retain DecoderFallbackException rather than return replacement text. Existing strict decoder already satisfies this boundary: no production defect or source correction is claimed. Source/PDB/copies verified Core742/Shared56/OCI5/unit6. Fixed report oracle-object-utf8-current.trx202567bytes SHA2565FC40030D4DEF49F9AEFBE7F9CDF0027465D75671514D431664304F640EC17DA. Listener18661 absent after terminal83841exit0; no download/restore/cloud request/new environment. Inventory records reuse/lifecycle. SQL498native/417unit remains its separate earlier cohort. Live Autonomous/OCI cloud IAM/wallet/durability/fees and full V2 remain OPEN; Oracle is not100% complete.
