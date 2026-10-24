@@ -13,10 +13,7 @@ internal static class EvmErc721MintReceipt
 {
     internal static BigInteger Verify(TransactionReceipt receipt, string contract, string recipient, BigInteger? expectedId = null)
     {
-        if (receipt?.Status?.Value != BigInteger.One || receipt.BlockNumber == null
-            || receipt.TransactionHash?.Length != 66 || !receipt.TransactionHash.StartsWith("0x", StringComparison.Ordinal)
-            || !receipt.TransactionHash.Skip(2).All(Uri.IsHexDigit))
-            throw new InvalidDataException("NFT mint receipt lacks an authoritative mined outcome.");
+        EvmErc721TransferReceipt.RequireMined(receipt);
         if (!AddressUtil.Current.IsValidEthereumAddressHexFormat(contract)
             || !AddressUtil.Current.IsValidEthereumAddressHexFormat(recipient)
             || string.Equals(recipient, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase))

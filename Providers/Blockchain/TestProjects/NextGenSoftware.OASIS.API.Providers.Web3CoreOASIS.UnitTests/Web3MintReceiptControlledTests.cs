@@ -16,8 +16,9 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 [TestClass, DoNotParallelize]
 public class Web3MintReceiptControlledTests
 {
-    [DataTestMethod, DataRow(false), DataRow(true)]
-    public async Task MintRequiresExactNativeEventAndReturnsOriginalIntent(bool noOp)
+    [DataTestMethod, DataRow(false,false,false), DataRow(true,false,false),
+        DataRow(false,true,false), DataRow(true,true,false), DataRow(false,true,true)]
+    public async Task MintAndTransferRequireExactNativeEventAndOriginalIntent(bool noOp, bool transfer, bool unmined)
     {
         const string key = "1111111111111111111111111111111111111111111111111111111111111111";
         const string contract = "0x1111111111111111111111111111111111111111";
@@ -30,13 +31,18 @@ public class Web3MintReceiptControlledTests
         var provider = new PolygonOASIS.PolygonOASIS("http://127.0.0.1:1", key, contract);
         typeof(Web3CoreOASISBaseProvider).GetField("_web3CoreOASIS", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(provider, sdk);
         var request = new MintWeb3NFTRequest { SendToAddressAfterMinting = recipient, MemoText = "original mint" };
-        rpc.ExpectedData = web3.Eth.GetContract(Web3CoreOASISBaseProviderHelper.Abi, contract).GetFunction("mint")
-            .GetData(recipient, JsonConvert.SerializeObject(request));
+        var send = new SendWeb3NFTRequest { TokenAddress = contract, TokenId = ((BigInteger.One << 256)-1).ToString(),
+            FromWalletAddress = account.Address, ToWalletAddress = recipient, Amount = 1, MemoText = "original mint" };
+        var abi = web3.Eth.GetContract(Web3CoreOASISBaseProviderHelper.Abi, contract);
+        rpc.ExpectedData = transfer ? abi.GetFunction("sendNFT").GetData(account.Address,recipient,(BigInteger.One<<256)-1,"None","None",BigInteger.One,"original mint")
+            : abi.GetFunction("mint").GetData(recipient, JsonConvert.SerializeObject(request));
         rpc.Sender = account.Address; rpc.Contract = contract; rpc.Recipient = recipient; rpc.NoOp = noOp;
-        rpc.BeforeNonce = () => { request.SendToAddressAfterMinting = contract; request.MemoText = "changed after admission"; };
-        var result = await provider.MintNFTAsync(request);
+        rpc.Transfer = transfer; rpc.Unmined = unmined;
+        rpc.BeforeNonce = () => { request.SendToAddressAfterMinting = contract; request.MemoText = "changed after admission";
+            send.ToWalletAddress = contract; send.MemoText = "changed after admission"; };
+        var result = transfer ? await provider.SendNFTAsync(send) : await provider.MintNFTAsync(request);
         Assert.AreEqual(1, rpc.Submissions, "Exactly one in-memory submission, never a public RPC. " + result.Exception?.ToString() + result.Message);
-        if (noOp)
+        if (noOp || unmined)
         {
             Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsSaved); Assert.IsNull(result.Result);
             Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
@@ -56,7 +62,7 @@ public class Web3MintReceiptControlledTests
     {
         public Action? BeforeNonce;
         public string ExpectedData = "", Sender = "", Contract = "", Recipient = "", Hash = "";
-        public bool NoOp;
+        public bool NoOp, Transfer, Unmined;
         public int Submissions;
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
@@ -78,9 +84,9 @@ public class Web3MintReceiptControlledTests
                     Web3SignedPreparation.Verify(bytes, Hash, 31337, Sender, Contract, ExpectedData.HexToByteArray());
                     Submissions++; response = Hash; break;
                 case "eth_getTransactionReceipt":
-                    response = new { transactionHash = Hash, status = "0x1", blockNumber = "0x7", logs = NoOp ? Array.Empty<object>() : new object[] {
+                    response = new { transactionHash = Hash, status = "0x1", blockNumber = Unmined ? null : "0x7", logs = NoOp ? Array.Empty<object>() : new object[] {
                         new { address = Contract, topics = new[] { "0x" + Nethereum.Util.Sha3Keccack.Current.CalculateHash("Transfer(address,address,uint256)"),
-                            "0x" + new string('0',64), "0x" + Recipient.Substring(2).PadLeft(64,'0'), "0x" + new string('f',64) }, data = "0x" } } }; break;
+                            Transfer ? "0x" + Sender.Substring(2).PadLeft(64,'0') : "0x" + new string('0',64), "0x" + Recipient.Substring(2).PadLeft(64,'0'), "0x" + new string('f',64) }, data = "0x" } } }; break;
                 default: throw new InvalidOperationException("Unexpected controlled SDK RPC: " + request.Method);
             }
             var type = method.ReturnType.GetGenericArguments()[0];
