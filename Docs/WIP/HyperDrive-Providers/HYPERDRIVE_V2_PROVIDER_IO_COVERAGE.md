@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+BigQuery entrypoints24October:471controlledPASS0skip. Non-GUID key lookups share unique selection and graph options; search projects selected roots only; full exports includegraphs and owner exports restrict descendants to owner scope. Import retains partial acknowledgement/error fence.24genuine entrypoint failures/6valid plus2importred retained;no actual cloud request. Full history/graphwrites/hosted identity and snapshot consistency/fees/V2 remainOPEN. Same env/cache/output,details in audit/inventory.
+
 BigQuery graphread24October:425controlledPASS0skip. Current parent-linked children now materialized through existing shared iterative projector at GUID point/parent/all owners; reused collectionpool avoids duplicate all reads.32genuine baseline failures retained,negative-depth/initial-depth/error/cycle/no-unrequested-child tests pass. No graphwriter/history/hosted snapshot/durability/fullV2 proof; remaining alias/search/export integration explicit in audit. SameSDK/cache/env,no download.
 
 BigQuery sharedsearch24October:331controlledPASS0skip;36genuine red cases cover numeric/date/AND/implicit targets/queryownership/recursiveparent/avatarownership+metadata/sourceerrors/admission. Existing Shared.StoredRecordSearch and Core query projection replace local matcher; actual SDK collectionowners retained. No fabricated partial success on required source failure. Search history truthfully unsupported pending implementation; full native/cloud/graph/fees/V2 remainOPEN. Audit/inventory document bounds.
