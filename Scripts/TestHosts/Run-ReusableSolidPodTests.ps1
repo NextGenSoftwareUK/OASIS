@@ -9,6 +9,9 @@ $work=Join-Path $taskRoot 'TestResults/SolidCurrent'
 New-Item -ItemType Directory -Path $work -Force | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 try {
+if((Test-Path (Join-Path $work 'solid-native-current.trx')) -or (Test-Path (Join-Path $work 'solid-native-readiness.json'))){
+    throw 'Preserve the original SOLID native report/readiness evidence before another run.'
+}
 $journal=Join-Path $work 'native-pending.json'
 if(Test-Path -LiteralPath $journal){throw 'Pending original Solid fixture requires reconciliation; never replay/reset.'}
 foreach($pendingName in @('private-native-pending.json','private-acl-pending.json')){
@@ -27,6 +30,13 @@ foreach($build in @((Join-Path $taskRoot 'Providers/Network/NextGenSoftware.OASI
     & dotnet build $build --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if($LASTEXITCODE -ne 0){throw 'Current Solid producer/test build failed.'}
 }
+& (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $taskRoot -ConsumerOutput (Join-Path (Split-Path $project) 'bin/Debug/net10.0') -VerifySourceDocuments
+# A running container is not a listening server. Startup admission is shared
+# with the read-only diagnostic; never retry an authenticated/provider operation.
+$listener=& (Join-Path $PSScriptRoot 'Wait-ReusableSolidListener.ps1')
+$readinessPath=Join-Path $work 'solid-native-readiness.json'
+$readinessStream=[IO.File]::Open($readinessPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+try{$readinessBytes=[Text.Encoding]::UTF8.GetBytes(($listener|ConvertTo-Json -Depth 5));$readinessStream.Write($readinessBytes);$readinessStream.Flush($true)}finally{$readinessStream.Dispose()}
 New-Item -ItemType Directory -Path $work -Force | Out-Null
 Add-Type -AssemblyName System.Security
 $names=@('OASIS_SOLID_NATIVE_ROOT','OASIS_SOLID_NATIVE_KEY_PATH','OASIS_SOLID_NATIVE_JOURNAL');$prior=@{}
