@@ -1,5 +1,9 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## S3 SDK read-integrity baseline — 23 October 2026
+
+Four new actual SDK/SigV4/custom-handler controls pass without a production change: under the tested default checksum configuration, pinned AWSSDK.S3 3.7.502 already requests native checksum metadata and rejects a corrupt full-object SHA256 before returning GET/observed GET data. Valid Unicode bytes pass; exactly one request, no extra HEAD/retry/custom hashing. Selected current SharedS3/AwsS3 regression48/48passes0skip; this selection is not asserted equivalent to the older55scope. Alternate SDK checksum policy overrides, multipart composite semantics and real account/KMS authorization remain unproven by these tests. Exact source/copy/report hashes in ENVIRONMENT_INVENTORY.md. No cloud request, credentials, install or duplicate runtime; hosted IAM/KMS/fees/durability/fullV2 gates remain OPEN.
+
 ## Repeated native row identity guard — 23 October 2026
 
 The common DynamoDB scan/query page owner previously rejected repeated cursors but accepted a repeated logical GUID within/across pages. It now rejects the entire read with InvalidDataException, without payload/loaded success, retry or silent deduplication. The same native-ID parser is reused by canonical record decoding; AWSOASIS inherits the repair, no duplicate wrapper implementation. This does NOT make a strongly consistent scan a whole-table snapshot or establish an indexed/cost-bounded lookup.
