@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Azure Cosmos canonical collection identity — 23 October 2026
+
+New36repository controls first18red/18distinct valid; one canonical decoder now rejects repeated GUIDs before history selection, no dedup/partial publication/extra request/snapshot guarantee. Current matched391unit and66native real SDK/retained emulator PASS0skip. Forced duplicate schedules are controlled, not native;66is existing healthy-provider regression. Same retained container stopped/pending0, no reset/restore/download/cloud request; Core6D193362/Shared5BCA13FB/Cosmos117BACD5/source33 and exact reports/resources in ENVIRONMENT_INVENTORY.md. Hosted IAM/RUs/billing/durability/fullV2 remain OPEN; no dev deployment/provider100claim.
+
 ## Latest Oracle/S3 integrity gates — 23 October 2026
 
 Oracle Object Storage7f807fb:12new SDK controls first6red/6valid; single GET owner now validates native byte count and supplied optional MD5. Current119/119official-SDK signed-loopback controls PASS0skip, no hosted OCI request. Oracle Database496native/325unit remains its distinct older cohort. Live Autonomous/OCI IAM/wallet/durability/fees/fullV2 remain OPEN.
