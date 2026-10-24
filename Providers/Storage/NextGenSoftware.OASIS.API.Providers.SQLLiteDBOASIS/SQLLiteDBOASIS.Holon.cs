@@ -116,7 +116,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             var result = new OASISResult<ISearchResults>();
             try
             {
-                // SQLite accepts an explicit stored-Version filter; this does not imply archived revisions.
+                // The repository owns root revision selection; child versions remain independent.
                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(
                     searchParams,version,maxChildDepth,supportsHistory:true);
             }
@@ -143,12 +143,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var holons = new List<IHolon>();
                 var avatars = new List<IAvatar>();
                 
-                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+                // Metadata/owner-only searches use the same candidate loading and scope owner.
                 {
-                    var groups = searchParams.SearchGroups;
+                    var groups = searchParams.SearchGroups ?? new List<ISearchGroupBase>();
                     HashSet<Guid> avatarParentScope=null;
                     bool MatchesGroups(Func<ISearchGroupBase, bool> matches)
                     {
+                        if(groups.Count==0)return true;
                         var matched = matches(groups[0]);
                         foreach (var group in groups.Skip(1))
                         {
@@ -240,14 +241,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         }
                         holons.AddRange(candidates.Where(h => MatchesGroups(group =>
                             (group.HolonType == HolonType.All || group.HolonType == h.HolonType) && (group switch {
-                            ISearchNumberGroup number when ExtendedMask(number.HolonSearchParams,"Version")=>number.SearchHolons &&
+                            ISearchNumberGroup number when ExtendedMask(number.HolonSearchParams,"Version")=>(number.SearchHolons || !number.SearchAvatars) &&
                                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(h,false,number),
-                            ISearchDateGroup date when ExtendedMask(date.HolonSearchParams,"CreatedDate","ModifiedDate","DeletedDate")=>date.SearchHolons &&
+                            ISearchDateGroup date when ExtendedMask(date.HolonSearchParams,"CreatedDate","ModifiedDate","DeletedDate")=>(date.SearchHolons || !date.SearchAvatars) &&
                                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(h,false,date),
                             ISearchTextGroup text when ExtendedMask(text.HolonSearchParams,"Name","Description")=>(!text.SearchAvatars||text.SearchHolons) &&
                                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(h,false,text),
-                            ISearchNumberGroup number => number.SearchHolons && (number.HolonSearchParams?.Version ?? true) && Compare(h.Version, number),
-                            ISearchDateGroup date => date.SearchHolons && (
+                            ISearchNumberGroup number => (number.SearchHolons || !number.SearchAvatars) && (number.HolonSearchParams?.Version ?? true) && Compare(h.Version, number),
+                            ISearchDateGroup date => (date.SearchHolons || !date.SearchAvatars) && (
                                 (date.HolonSearchParams?.CreatedDate ?? true) && CompareDate(h.CreatedDate, date) ||
                                 (date.HolonSearchParams?.ModifiedDate ?? true) && CompareDate(h.ModifiedDate, date) ||
                                 date.HolonSearchParams?.DeletedDate == true && CompareDate(h.DeletedDate, date)),
@@ -271,14 +272,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     if (!avatarLoad.IsError && avatarLoad.Result != null)
                     {
                         avatars.AddRange(avatarLoad.Result.Where(a => (avatarParentScope==null || avatarParentScope.Contains(a.ParentHolonId)) && MatchesGroups(group => group switch {
-                            ISearchNumberGroup number when ExtendedMask(number.AvatarSearchParams,"Version")=>number.SearchAvatars &&
+                            ISearchNumberGroup number when ExtendedMask(number.AvatarSearchParams,"Version")=>(number.SearchAvatars || !number.SearchHolons) &&
                                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(a,true,number),
-                            ISearchDateGroup date when ExtendedMask(date.AvatarSearchParams,"CreatedDate","ModifiedDate","DeletedDate")=>date.SearchAvatars &&
+                            ISearchDateGroup date when ExtendedMask(date.AvatarSearchParams,"CreatedDate","ModifiedDate","DeletedDate")=>(date.SearchAvatars || !date.SearchHolons) &&
                                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(a,true,date),
                             ISearchTextGroup text when ExtendedMask(text.AvatarSearchParams,"Username","Email","FirstName","LastName","Title")=>(!text.SearchHolons||text.SearchAvatars) &&
                                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(a,true,text),
-                            ISearchNumberGroup number => number.SearchAvatars && (number.AvatarSearchParams?.Version ?? true) && Compare(a.Version, number),
-                            ISearchDateGroup date => date.SearchAvatars && (
+                            ISearchNumberGroup number => (number.SearchAvatars || !number.SearchHolons) && (number.AvatarSearchParams?.Version ?? true) && Compare(a.Version, number),
+                            ISearchDateGroup date => (date.SearchAvatars || !date.SearchHolons) && (
                                 (date.AvatarSearchParams?.CreatedDate ?? true) && CompareDate(a.CreatedDate, date) ||
                                 (date.AvatarSearchParams?.ModifiedDate ?? true) && CompareDate(a.ModifiedDate, date) ||
                                 date.AvatarSearchParams?.DeletedDate == true && CompareDate(a.DeletedDate, date)),
@@ -317,6 +318,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 searchResults.NumberOfResults = holons.Count + avatars.Count;
                 
                 result.Result = searchResults;
+                result.IsLoaded = true;result.LoadedCount = searchResults.NumberOfResults;
                 result.IsError = false;
                 result.Message = $"SQLite text search returned {holons.Count} holons and {avatars.Count} avatars";
             }
