@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Latest metadata read ownership verification — 24 October
+
+Current SQL cohort is **417unit/498native PASS, zero skips** (native45seconds), superseding385/496 below. Thirty-two controlled cases genuinely failed because the caller's metadata dictionary was reread after the database await. The existing public query owner now copies pairs with ordinal keys before its first database await; the shared metadata matcher, empty/null behavior, Any/All modes, versions and child projection remain unchanged. The existing generic SQL collection reader is protected virtual for one read-boundary test hook; its production managed-SDK implementation is unchanged, with no second persistence path or extra query.
+
+Two native cases await that real SQL reader before mutating the caller, then prove current/version1 and Any/All still return the original selected root/count. Independent CLOB reads prove queries did not rewrite canonical data/history. Exact-ID+CLOB conditional transactional cleanup and independent absence precede journal removal. Same retained database/SDK/environment; no download, restore, hosted request or paid action. Source/copy/PDB evidence and hashes are in ENVIRONMENT_INVENTORY.md. Database EXITED, pending0/listener11521 absent.
+
+This closes a local query-scope race, not Oracle100% readiness: hosted Autonomous Database/OCI Object Storage, wallet/IAM/security, cloud durability/fees and full provider-specific V2 remain OPEN. OCI119signed-loopback is a separate earlier cohort, not rerun or converted into cloud proof.
+
 Status clarification,24 October: the original local intermittent listener-refusal cause is resolved in the pooled-harness closure below; earlier headings saying trigger/root cause open are historical observations. Latest local SQL385unit/496native and OCI119signed-loopback results remain distinct cohorts, not fresh cloud tests. Live Autonomous/OCI access, IAM/durability/fees and full V2 remain OPEN. No new Oracle run or production configuration change is implied by this clarification.
 
 ## Latest verification — 23 October 2026
