@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Mongo avatar export scope — native verified,24 October 2026
+
+Actual9433 terminal0:8 native owner-export cases plus1 replica initialization PASS0skip on retained replica set. All4 selectors sync/async preserve canonical metadata/counts, exclude foreign creator for scoped exports, and leave exact Holon BSON unchanged. Earlier full278unit PASS is a separate build cohort; native current source/copy gate Core735/Shared55 passes. Exact reports/resources in ENVIRONMENT_INVENTORY.md. This closes current owner/payload routing only: Mongo historical/-1 export contract, hosted and fullV2 remain OPEN; no universal/provider100% or deployment claim.
+
+Source audit found owner/version arguments ignored in Part3 exports and raw native entity Cast<IHolon> instead of canonical conversion. Shared canonical export/selector helpers now filter requested CreatedByAvatarId, resolve current avatar ID and forward root Version; flags/counts and original storage errors preserved. Full278unitPASS0skip includes16dispatch controls; baseline16red reflects bypassed override/uninitialized raw repository, NOT native data-exposure proof. Native owner-isolation acceptance is still required before publication. Positive history/all-version semantics remain OPEN; controlled Version forwarding does not certify archive reads. No claim of an observed data leak or full Mongo/V2 completion.
+
 ## SQLite all-version exports — 24 October 2026
 
 Matched39maintainedunit +10focusedfile-backed native PASS0skip;8persist/reopen/currentidentity/foreign exclusion/whole-DB SHA unchanged,2corrupt64hex digest rejection. Reuses existing revision table/checksum/native revision ambiguity reader; enumerates actual stored logical versions within owned/caller read transaction. Manager owns logical Version/lineage, archive flag does not auto-increment it; test supplies1..3 accordingly. Ordinary negative reads unchanged, export-1 allowed/-2 rejected before activation. Existing deleted-row visibility retained, not cross-provider visibility equivalence. Core735/19F1CA8B Shared55/B2BE823C SQLite161/37FD0B2C source/copies verified, fixed DB/wal/shm absent. Full SQLite integration/public APIs/all-providerV2 remain OPEN.
