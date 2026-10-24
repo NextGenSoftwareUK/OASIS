@@ -180,7 +180,7 @@ public partial class SOLIDOASIS
         }
         return result;
     }
-    private async Task<OASISResult<IEnumerable<T>>> LoadPrivateRecordsAsync<T>(int version) where T:class,IHolonBase
+    private async Task<OASISResult<IEnumerable<T>>> LoadPrivateRecordsAsync<T>(int version,bool allVersions=false) where T:class,IHolonBase
     {
         var result=new OASISResult<IEnumerable<T>>();
         try{
@@ -204,6 +204,7 @@ public partial class SOLIDOASIS
             var records=new List<T>();
             foreach(var id in ids.OrderBy(value=>value)){
                 var state=await ReadPrivateRecordStateAsync<T>(id);
+                if(allVersions){records.AddRange(_privateRecords.DecodeAllVersions<T>(state.Turtle,id));continue;}
                 var record=version==0?state.Record:await _privateRecords.DecodeVersionAsync<T>(state.Turtle,id,version);
                 if(record!=null)records.Add(record);
             }
