@@ -4,6 +4,8 @@ NEAR adapter using a pinned official near-api-js SDK through a Node bridge. Nati
 
 ## Custom token mint intent
 
+Filtered search, metadata and nearby results report `LoadedCount` for returned matches/roots, not the size of underlying collections. Nearby results are materialized before publication; malformed-coordinate failures clear the result, `IsLoaded` and count. These logical counts are not native RPC usage, fees or evidence that every other read route is certified.
+
 Minting uses the maintained custom OASIS `token_mint` contract operation, not a universal NEP-141 mint API. `TokenAddress` selects an explicitly compatible contract; omission keeps the configured contract. `ToWalletAddress` selects the recipient balance owner; omission keeps the configured account. Explicit blank values are invalid, never silently substituted. The configured contract-owner signer remains unchanged and must be authorized by the selected contract.
 
 Symbol, target, recipient, exact eight-decimal units and serialized title/description/metadata/tags are captured before activation. Unsupported precision rejects before SDK activation. Caller mutation during that await cannot redirect issuance or change metadata/amount. This dispatch contract is verified by controlled process-IPC tests; it does not prove native issuance/finality/fees. The latest retained native run remains 15/19 passing with four failures requiring reconciliation; see `Docs/WIP/HyperDrive-Providers/NEAR_SIGNER_AND_RECEIPT_AUDIT.md` for current evidence and open gates.
