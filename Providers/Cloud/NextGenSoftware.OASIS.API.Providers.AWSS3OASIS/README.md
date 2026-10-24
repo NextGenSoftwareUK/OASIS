@@ -19,6 +19,13 @@ are disabled: uncertain mutation outcomes must be reconciled before replay. Nati
 per-key preconditions are not an atomic transaction across all objects in an OASIS save.
 Application history and S3 bucket versioning are separate mechanisms.
 
+Whole-object GET explicitly enables the SDK's native checksum validation, including
+when the caller uses `ResponseChecksumValidation.WHEN_REQUIRED`. It remains one GET,
+not a second HEAD or a custom checksum implementation. General-purpose SSE-KMS
+objects require the appropriate `kms:Decrypt` and key-policy permissions for checksum
+retrieval. Review those permissions and real account costs before cloud acceptance;
+compatible-service errors are not retried without checksum validation.
+
 S3 storage, requests, retrieval, KMS and network transfer can incur charges. Search
 and identity scans may require multiple LIST/GET requests. Deletes in versioned
 buckets may retain billable historical versions; an acknowledged delete does not

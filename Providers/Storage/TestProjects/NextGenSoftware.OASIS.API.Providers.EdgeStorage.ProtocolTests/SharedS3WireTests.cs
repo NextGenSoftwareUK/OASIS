@@ -16,8 +16,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
 [TestClass]
 public class SharedS3WireTests
 {
-    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
-    public async Task Full_object_checksum_is_requested_and_corrupt_bytes_are_not_published(bool observed,bool valid)
+    [DataTestMethod]
+    [DataRow(false,false,false)][DataRow(false,true,false)][DataRow(true,false,false)][DataRow(true,true,false)]
+    [DataRow(false,false,true)][DataRow(false,true,true)][DataRow(true,false,true)][DataRow(true,true,true)]
+    public async Task Full_object_checksum_is_requested_and_corrupt_bytes_are_not_published(bool observed,bool valid,bool requiredOnly)
     {
         const string body="tree 🌳";var calls=0;var requested=false;
         using var service=new FakeService((request,bytes)=>{
@@ -32,7 +34,9 @@ public class SharedS3WireTests
             return response;
         });
         using var client=new AmazonS3Client(new BasicAWSCredentials("synthetic-key","synthetic-secret"),new AmazonS3Config{
-            ServiceURL="https://s3.us-east-1.amazonaws.com",AuthenticationRegion="us-east-1",ForcePathStyle=true,MaxErrorRetry=0,HttpClientFactory=new HandlerHttpClientFactory(service)});
+            ServiceURL="https://s3.us-east-1.amazonaws.com",AuthenticationRegion="us-east-1",ForcePathStyle=true,MaxErrorRetry=0,
+            ResponseChecksumValidation=requiredOnly?ResponseChecksumValidation.WHEN_REQUIRED:ResponseChecksumValidation.WHEN_SUPPORTED,
+            HttpClientFactory=new HandlerHttpClientFactory(service)});
         var backend=new Backend(client,"test-bucket");Exception failure=null;string result=null;
         try{result=observed?(await backend.ReadObservedAsync("key"))?.Value:await backend.GetAsync("key");}catch(Exception cause){failure=cause;}
         Assert.IsTrue(requested,"Whole-record SDK reads must request the uploaded native checksum.");Assert.AreEqual(1,calls,"No automatic retry or second HEAD may establish read integrity.");
