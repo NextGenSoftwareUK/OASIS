@@ -14,6 +14,24 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 public class DynamoHistoryWriteTests
 {
     [TestMethod]
+    public Task OversizedOrdinaryRecordRejectsBeforeAnySdkRead()=>Use(new HistoryClient(),async provider=>{
+        var client=(HistoryClient)typeof(DynamoDBOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(provider)!;
+        var row=new Holon{Id=Guid.NewGuid(),Name=new string('x',400*1024)};
+        await Assert.ThrowsExceptionAsync<ArgumentException>(()=>Write(provider,Request(row)));
+        Assert.AreEqual(0,client.Reads);Assert.AreEqual(0,client.Writes);Assert.IsNull(client.Stored);Assert.AreEqual(0,row.Version);
+    });
+
+    [TestMethod]
+    public Task ArchiveGrowthRejectsBeforeDispatchAndPreservesObservedRecord()=>Use(new HistoryClient(),async provider=>{
+        var client=(HistoryClient)typeof(DynamoDBOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(provider)!;
+        var row=new Holon{Id=Guid.NewGuid(),Version=1,Name=new string('x',220*1024)};
+        client.Stored=Request(row).Item;var original=client.Stored["data_json"].S;
+        row.Name=new string('y',220*1024);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(()=>Write(provider,Request(row)));
+        Assert.AreEqual(1,client.Reads);Assert.AreEqual(0,client.Writes);Assert.AreEqual(original,client.Stored["data_json"].S);Assert.AreEqual(1,row.Version);
+    });
+
+    [TestMethod]
     public Task ConditionalHistoryWriterReturnsExactCurrentAndArchivedMetadata()=>Use(new HistoryClient(),async provider=>{
         var initial=1.0000000000000000000000000001m;var later=1.0000000000000000000000000002m;
         var row=new Holon{Id=Guid.NewGuid(),MetaData=new(){["precise"]=initial}};

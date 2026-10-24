@@ -1,7 +1,7 @@
-param([switch]$ItemSizeBoundary,[switch]$CleanupCanonicalHistory,[switch]$InspectCanonicalHistory,[switch]$CleanupSqliteKarmaHistory,[switch]$InspectSqliteKarmaHistory,[switch]$ReconcileKarmaSeed,[switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
+param([switch]$CleanupSizeAdmission,[switch]$InspectSizeAdmission,[switch]$ItemSizeBoundary,[switch]$CleanupCanonicalHistory,[switch]$InspectCanonicalHistory,[switch]$CleanupSqliteKarmaHistory,[switch]$InspectSqliteKarmaHistory,[switch]$ReconcileKarmaSeed,[switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
     [switch]$AllVersionExports,[switch]$PointReadIdentities,[switch]$IndependentExportVersions,[switch]$DuplicatePageRegression,[switch]$CleanupKarmaMutation,[switch]$InspectKarmaMutation,[switch]$CleanupKarmaSeed,[switch]$CleanupVerifiedAwsRun,[ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$VerifiedReportSha256)
 $ErrorActionPreference='Stop'
-$selectedModes=@($ItemSizeBoundary,$CleanupCanonicalHistory,$InspectCanonicalHistory,$CleanupSqliteKarmaHistory,$InspectSqliteKarmaHistory,$CleanupKarmaMutation,$InspectKarmaMutation,$CleanupKarmaSeed,$ReconcileKarmaSeed,$OrdinarySaveAcknowledgements,$OrdinarySaveLifecycle,$DetailDeletionResults,
+$selectedModes=@($CleanupSizeAdmission,$InspectSizeAdmission,$ItemSizeBoundary,$CleanupCanonicalHistory,$InspectCanonicalHistory,$CleanupSqliteKarmaHistory,$InspectSqliteKarmaHistory,$CleanupKarmaMutation,$InspectKarmaMutation,$CleanupKarmaSeed,$ReconcileKarmaSeed,$OrdinarySaveAcknowledgements,$OrdinarySaveLifecycle,$DetailDeletionResults,
     $BatchRevisions,$EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileConditionalInitial,$ConditionalGraphs,
     $ReconcileKnownReadFixture,$FullAwsSuite,$ReconcileAwsPreRead,$CleanupKnownAwsRun,$ReconcileValidationFixtures,
     $ReconcileReflectionFixtures,$CleanupVerifiedAwsRun,$IndependentExportVersions,$DuplicatePageRegression,$PointReadIdentities,$AllVersionExports).Where({$_.IsPresent})
@@ -36,7 +36,10 @@ $owned=$null;$previousEndpoint=$env:DYNAMODB_SERVICE_URL;$previousWork=$env:OASI
 $previousCleanup=$env:OASIS_AWS_CLEANUP_AUTHORITY
 try{
     $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
-    if($ReconcileConditionalInitial){
+    if($InspectSizeAdmission -or $CleanupSizeAdmission){
+        if($pending.Count -ne 9 -or (Get-FileHash -LiteralPath (Join-Path $work 'dynamo-size-boundary-full-native.trx')).Hash -ne 'B3CFB3D392E1CE8C22B584C689DC261609BC322899FB54F1BDB5543508DBCEC2'){throw 'Exactly the original size-admission failure evidence required.'}
+    }
+    elseif($ReconcileConditionalInitial){
         if($pending.Count -ne 4 -or (Get-FileHash -LiteralPath (Join-Path $work 'dynamo-conditional-native-current.trx')).Hash -ne 'C3F05D24795A1A0A0A14973110802E0A5D218837BA60EF77C475DE68A5C85EE0'){throw 'Exactly the original four conditional graph assertion fixtures required.'}
     }
     elseif($ReconcileReflectionFixtures){
@@ -192,6 +195,8 @@ try{
     if($PointReadIdentities){$reportName='dynamo-point-identities-native-current.trx'}
     if($AllVersionExports){$reportName='dynamo-all-version-export-native-current.trx'}
     if($ItemSizeBoundary){$filter='(FullyQualifiedName~DynamoHistoryNativeTests&FullyQualifiedName!~ReconcileKnown)|FullyQualifiedName~DynamoPreparationNativeTests|FullyQualifiedName~DynamoConditionalNativeTests|FullyQualifiedName~DynamoSizeBoundaryNativeTests';$reportName='dynamo-size-boundary-full-native.trx'}
+    if($InspectSizeAdmission){$filter='FullyQualifiedName~ReconcileKnownSizeAdmissionFixturesReadOnly';$reportName='dynamo-size-admission-original-inspection.trx'}
+    if($CleanupSizeAdmission){$filter='FullyQualifiedName~ReconcileKnownSizeAdmissionFixturesCleanup';$reportName='dynamo-size-admission-original-cleanup.trx'}
     if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve the original native report before another run.'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Native history test failed; preserve journal/data for reconciliation.'}
@@ -201,6 +206,11 @@ $report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.Ful
     if($OrdinarySaveLifecycle){$expected=48}
     if($OrdinarySaveAcknowledgements){$expected=12}
     if($ItemSizeBoundary){$expected=187}
+    if($CleanupSizeAdmission){$expected=1}
+    if($InspectSizeAdmission){
+        if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0 -or @(Get-ChildItem -LiteralPath $work -Filter '*.pending.json').Count -ne 9){throw 'Fresh read-only original inspection and nine preserved journals required.'}
+        return
+    }
     if($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Fresh complete native cases and cleared original journals required.'}
 }finally{
     $env:DYNAMODB_SERVICE_URL=$previousEndpoint;$env:OASIS_DYNAMO_HISTORY_WORK=$previousWork
