@@ -600,7 +600,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                 MetaData=new Dictionary<string,object>{{"search-marker",marker}}};
             var excluded=new Holon{Id=Guid.NewGuid(),Name=selected.Name,CreatedByAvatarId=Guid.NewGuid(),
                 MetaData=new Dictionary<string,object>{{"search-marker",marker}}};
-            Assert.IsFalse((await _provider.SaveHolonsAsync(new[]{selected,excluded},saveChildren:false)).IsError);
+            var saved=await _provider.SaveHolonsAsync(new[]{selected,excluded},saveChildren:false);
+            Assert.IsFalse(saved.IsError,$"Search fixture save: {saved.Message}");
             var query=new SearchParams{AvatarId=owner,SearchOnlyForCurrentAvatar=true,
                 FilterByMetaData=new Dictionary<string,string>{{"search-marker",marker}},
                 SearchGroups=new List<ISearchGroupBase>{
@@ -611,9 +612,15 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             Assert.IsFalse(result.IsError,result.Message);
             Assert.AreEqual(selected.Id,result.Result.SearchResultHolons.Single().Id);
             query.SearchOnlyForCurrentAvatar=false;
-            Assert.AreEqual(2,_provider.Search(query,loadChildren:false).Result.SearchResultHolons.Count);
+            var allOwners=_provider.Search(query,loadChildren:false);
+            Assert.IsFalse(allOwners.IsError,$"Search without owner restriction: {allOwners.Message}");
+            Assert.IsNotNull(allOwners.Result,"Successful search must return a result envelope.");
+            Assert.AreEqual(2,allOwners.Result.SearchResultHolons.Count);
             query.FilterByMetaData["search-marker"]="not-the-marker";
-            Assert.AreEqual(0,(await _provider.SearchAsync(query)).Result.NumberOfResults);
+            var unmatched=await _provider.SearchAsync(query);
+            Assert.IsFalse(unmatched.IsError,$"Search with unmatched metadata: {unmatched.Message}");
+            Assert.IsNotNull(unmatched.Result,"Successful empty search must return a result envelope.");
+            Assert.AreEqual(0,unmatched.Result.NumberOfResults);
         }
 
         [TestMethod]
@@ -624,16 +631,22 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                 MetaData=new Dictionary<string,object>{{"Latitude",0d},{"Longitude",0d}}};
             var holon=new Holon{Id=Guid.NewGuid(),Name=$"nearby-{marker}",
                 MetaData=new Dictionary<string,object>{{"Latitude",0d},{"Longitude",0d}}};
-            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
-            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            var savedAvatar=await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(savedAvatar.IsError,$"Nearby avatar fixture save: {savedAvatar.Message}");
+            var savedHolon=await _provider.SaveHolonAsync(holon);
+            Assert.IsFalse(savedHolon.IsError,$"Nearby holon fixture save: {savedHolon.Message}");
             var avatars=_provider.GetAvatarsNearMe(0,0,0);
             Assert.IsFalse(avatars.IsError,avatars.Message);
             Assert.IsTrue(avatars.Result.Any(item=>item.Id==avatar.Id));
             var holons=_provider.GetHolonsNearMe(0,0,0,HolonType.All);
             Assert.IsFalse(holons.IsError,holons.Message);
             Assert.IsTrue(holons.Result.Any(item=>item.Id==holon.Id));
-            Assert.IsFalse(_provider.GetAvatarsNearMe(1000000,0,1).Result.Any(item=>item.Id==avatar.Id));
-            Assert.IsFalse(_provider.GetHolonsNearMe(1000000,0,1,HolonType.All).Result.Any(item=>item.Id==holon.Id));
+            var distantAvatars=_provider.GetAvatarsNearMe(1000000,0,1);
+            Assert.IsFalse(distantAvatars.IsError,$"Distant avatar query: {distantAvatars.Message}");
+            Assert.IsFalse(distantAvatars.Result.Any(item=>item.Id==avatar.Id),"Avatar at zero latitude must be outside a one-unit radius at one degree latitude.");
+            var distantHolons=_provider.GetHolonsNearMe(1000000,0,1,HolonType.All);
+            Assert.IsFalse(distantHolons.IsError,$"Distant holon query: {distantHolons.Message}");
+            Assert.IsFalse(distantHolons.Result.Any(item=>item.Id==holon.Id),"Holon at zero latitude must be outside a one-unit radius at one degree latitude.");
             var corruptionAcknowledged=false;
             try
             {
