@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory,ParameterSetName='File')] [string] $SettingsPath,
     [Parameter(Mandatory,ParameterSetName='Stdin')] [switch] $SettingsFromStdin,
-    [Parameter(Mandatory)] [string] $RepositoryRoot
+    [Parameter(Mandatory)] [string] $RepositoryRoot,
+    [switch] $ReadOnlyStatus
 )
 
 $ErrorActionPreference = 'Stop'
@@ -23,8 +24,16 @@ $previous=@{}
 foreach($name in $environmentNames){$previous[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 
 try {
+    $reportName=if($ReadOnlyStatus){'near-readonly-status-current.trx'}else{'near-provider-current.trx'}
+    $reportPath=Join-Path $RepositoryRoot "TestResults/NearRuntime/$reportName"
+    if(Test-Path -LiteralPath $reportPath){throw 'Preserve the original report before rerunning; refusing evidence overwrite.'}
     foreach ($name in $environmentNames) {
         if($name -eq 'OASIS_NEAR_STORAGE_ENCRYPTION_KEY'){continue}
+        if($ReadOnlyStatus -and $name -eq 'NEAROASIS_PRIVATEKEY'){
+            # Deliberately invalid signing material: the selected status tests must not sign.
+            [Environment]::SetEnvironmentVariable($name,'read-only-no-signing-key','Process')
+            continue
+        }
         $value = $settings.$name
         if ([string]::IsNullOrWhiteSpace($value)) {
             throw "NEAR evidence setting '$name' is missing."
@@ -32,6 +41,7 @@ try {
         [Environment]::SetEnvironmentVariable($name, [string] $value, 'Process')
     }
 
+    if(!$ReadOnlyStatus){
     # Windows PowerShell 5.1 does not load the DPAPI assembly implicitly.
     Add-Type -AssemblyName System.Security
     $cache=Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'OASIS/provider-evidence/near'
@@ -44,6 +54,7 @@ try {
         if($key.Length -ne 32){throw 'Retained NEAR storage key is invalid; refusing replacement.'}
         $env:OASIS_NEAR_STORAGE_ENCRYPTION_KEY=[Convert]::ToBase64String($key)
     }finally{[Array]::Clear($key,0,$key.Length)}
+    }else{[Environment]::SetEnvironmentVariable('OASIS_NEAR_STORAGE_ENCRYPTION_KEY',$null,'Process')}
 
     $tests = Join-Path $RepositoryRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.csproj'
     $results = Join-Path $RepositoryRoot 'TestResults/NearRuntime'
@@ -55,15 +66,18 @@ try {
     }
     & (Join-Path $RepositoryRoot 'Scripts/TestHosts/Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $RepositoryRoot -ConsumerOutput (Join-Path (Split-Path $tests) 'bin/Debug/net10.0')
     $started=[DateTime]::UtcNow
-    & dotnet test $tests --no-build --no-restore --nologo --logger 'trx;LogFileName=near-provider-current.trx' --results-directory $results /m:2 /nr:false --verbosity quiet
+    $selection=@()
+    if($ReadOnlyStatus){$selection=@('--filter','FullyQualifiedName~OfficialSdk_FinalizedFailedOriginalIsFailedNotCompleted|FullyQualifiedName~RetainedUnavailableOriginalRemainsErrorAndPending')}
+    & dotnet test $tests --no-build --no-restore --nologo --logger "trx;LogFileName=$reportName" --results-directory $results /m:2 /nr:false --verbosity quiet @selection
     if ($LASTEXITCODE -ne 0) {
         throw "NEAR provider tests failed with exit code $LASTEXITCODE."
     }
-    $report=Get-Item -LiteralPath (Join-Path $results 'near-provider-current.trx')
+    $report=Get-Item -LiteralPath $reportPath
     if($report.LastWriteTimeUtc -lt $started){throw 'NEAR native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 19 -or [int]$counts.passed -ne 19 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly19 passing native NEAR cases (including checked C# writes and readonly status observation) and zero skips.'}
+    $expected=if($ReadOnlyStatus){2}else{19}
+    if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected exactly$expected passing native NEAR cases and zero skips."}
 }
 finally {
     foreach ($name in $environmentNames) {
