@@ -14,6 +14,24 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS;
 internal static class DynamoCapacityUsage
 {
     private static readonly UTF8Encoding StrictUtf8=new(false,true);
+    internal static IReadOnlyList<NativeResourceUsageObservation> CaptureTransaction(string provider,string logicalRequestId,string? nativeRequestId,
+        string region,IReadOnlyList<string> requestedTables,IReadOnlyList<ConsumedCapacity>? capacities,DateTime observedAtUtc)
+    {
+        ArgumentNullException.ThrowIfNull(requestedTables);
+        if(requestedTables.Count==0)throw new ArgumentException("Original transaction tables are required.",nameof(requestedTables));
+        if(capacities!=null&&capacities.Count!=0&&capacities.Count!=requestedTables.Count)
+            throw new InvalidDataException("Transaction capacity must preserve the original action ordering and count.");
+        var rows=new List<NativeResourceUsageObservation>();
+        for(var index=0;index<requestedTables.Count;index++){
+            var table=requestedTables[index];ArgumentException.ThrowIfNullOrWhiteSpace(table);
+            var capacity=capacities==null||capacities.Count==0?null:capacities[index];
+            if(capacities?.Count>0&&(capacity==null||capacity.TableName!=table))
+                throw new InvalidDataException("Transaction capacity table differs from its original ordered action.");
+            foreach(var row in Capture(provider,logicalRequestId,nativeRequestId,region,table,capacity,observedAtUtc))
+                rows.Add(row with {ResourceScope=row.ResourceScope+"/transaction-action/"+index.ToString(CultureInfo.InvariantCulture)});
+        }
+        return rows.AsReadOnly();
+    }
     internal static IReadOnlyList<NativeResourceUsageObservation> Capture(string provider,string logicalRequestId,string? nativeRequestId,
         string region,string table,ConsumedCapacity? capacity,DateTime observedAtUtc)
     {
