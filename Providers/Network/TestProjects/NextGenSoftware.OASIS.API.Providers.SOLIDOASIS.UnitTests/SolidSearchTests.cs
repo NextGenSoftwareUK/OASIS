@@ -7,6 +7,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests;
 
 public class SolidSearchTests
 {
+    [Theory][InlineData(false,false)][InlineData(false,true)][InlineData(true,false)][InlineData(true,true)]
+    public async Task EmptyAndFailedReadsDoNotInventLoadedRecords(bool search,bool fail)
+    {
+        var transport=new SolidRecordHttpTests.Transport{Failure=fail?"read":""};
+        using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport);Assert.False((await provider.ActivateProviderAsync()).IsError);
+        if(search){
+            var result=await provider.SearchAsync(new SearchParams{SearchOnlyForCurrentAvatar=false},loadChildren:false);
+            Assert.Equal(fail,result.IsError);Assert.Equal(!fail,result.IsLoaded);Assert.Equal(0,result.LoadedCount);
+            if(fail)Assert.Null(result.Result);else Assert.Equal(0,result.Result.NumberOfResults);
+        }else{
+            var result=await provider.LoadAllHolonsAsync(loadChildren:false);
+            Assert.Equal(fail,result.IsError);Assert.Equal(!fail,result.IsLoaded);Assert.Equal(0,result.LoadedCount);
+            if(fail)Assert.Null(result.Result);else Assert.Empty(result.Result);
+        }
+    }
     private static readonly Uri Root=new("https://pod.invalid/private/");
     private static readonly Guid Owner=Guid.Parse("09d3be1f-bdd9-4b61-bccf-6377a9f92350");
     private static byte[] Key()=>Enumerable.Range(1,32).Select(x=>(byte)x).ToArray();
@@ -32,6 +47,7 @@ public class SolidSearchTests
         var query=Query(scenario);var result=synchronous?provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
         Assert.False(result.IsError,result.Exception?.ToString());Assert.Equal(scenario==0?3:scenario==1?2:1,result.Result.NumberOfResults);
         Assert.Equal(scenario==0?1:0,result.Result.SearchResultAvatars.Count);Assert.DoesNotContain(result.Result.SearchResultHolons,row=>row.DeletedDate!=DateTime.MinValue);
+        Assert.True(result.IsLoaded);Assert.Equal(result.Result.NumberOfResults,result.LoadedCount);
     }
     [Fact]
     public async Task CanonicalNumericAndDateMasksSurviveRequestSnapshot()

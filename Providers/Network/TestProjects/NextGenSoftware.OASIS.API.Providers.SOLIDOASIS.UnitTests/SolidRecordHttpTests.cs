@@ -60,16 +60,19 @@ public class SolidRecordHttpTests
             var saved=synchronous?provider.SaveAvatar(record):await provider.SaveAvatarAsync(record);Assert.False(saved.IsError,saved.Exception?.ToString());Assert.NotEqual(Guid.Empty,record.Id);
             var read=synchronous?provider.LoadAvatar(record.Id):await provider.LoadAvatarAsync(record.Id);Assert.False(read.IsError,read.Message);
             Assert.Equal(record.Password,read.Result.Password);Assert.Equal(record.Email,read.Result.Email);
+            Assert.True(read.IsLoaded);Assert.Equal(1,read.LoadedCount);
         }else if(kind==1){
             IAvatarDetail record=new AvatarDetail{Email="private-canary@example.invalid",Username="private-canary",Description="private-canary"};
             var saved=synchronous?provider.SaveAvatarDetail(record):await provider.SaveAvatarDetailAsync(record);Assert.False(saved.IsError,saved.Exception?.ToString());Assert.NotEqual(Guid.Empty,record.Id);
             var read=synchronous?provider.LoadAvatarDetail(record.Id):await provider.LoadAvatarDetailAsync(record.Id);Assert.False(read.IsError,read.Message);
             Assert.Equal(record.Email,read.Result.Email);Assert.Equal(record.Description,read.Result.Description);
+            Assert.True(read.IsLoaded);Assert.Equal(1,read.LoadedCount);
         }else{
             IHolon record=new Holon{Name="private-canary",MetaData=new(){["private"]="private-canary"}};
             var saved=synchronous?provider.SaveHolon(record,saveChildren:false):await provider.SaveHolonAsync(record,saveChildren:false);Assert.False(saved.IsError,saved.Exception?.ToString());Assert.NotEqual(Guid.Empty,record.Id);
             var read=synchronous?provider.LoadHolon(record.Id,loadChildren:false):await provider.LoadHolonAsync(record.Id,loadChildren:false);Assert.False(read.IsError,read.Message);
             Assert.Equal(record.Name,read.Result.Name);Assert.Equal("private-canary",read.Result.MetaData["private"].ToString());
+            Assert.True(read.IsLoaded);Assert.Equal(1,read.LoadedCount);
         }
         Assert.Equal(1,transport.Writes);
     }
