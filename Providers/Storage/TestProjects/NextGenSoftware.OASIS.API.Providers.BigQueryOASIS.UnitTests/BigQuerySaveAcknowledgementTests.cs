@@ -12,6 +12,20 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests;
 [TestClass]
 public class BigQuerySaveAcknowledgementTests
 {
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task ImportSuccessRetainsActualAcknowledgedCount(bool sync,bool empty)
+    {
+        var client=new Sequence(int.MaxValue);var provider=new BigQueryOASIS("my-project");typeof(BigQueryOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,client);
+        var roots=empty?Array.Empty<Holon>():new[]{new Holon(),new Holon()};var result=sync?provider.Import(roots):await provider.ImportAsync(roots);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.Result);Assert.IsTrue(result.IsSaved);Assert.AreEqual(roots.Length,result.SavedCount);Assert.AreEqual(roots.Length,client.Calls);
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task ImportCannotLoseAcknowledgedPartialMutationFence(bool sync)
+    {
+        var client=new Sequence(2);var provider=new BigQueryOASIS("my-project");typeof(BigQueryOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,client);
+        var roots=new[]{new Holon(),new Holon(),new Holon()};var result=sync?provider.Import(roots):await provider.ImportAsync(roots);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsSaved);Assert.AreEqual(1,result.SavedCount);Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception));Assert.AreEqual(2,client.Calls);
+    }
     [DataTestMethod][DataRow(false,false,0)][DataRow(false,true,0)][DataRow(true,false,0)][DataRow(true,true,0)]
     [DataRow(false,false,5)][DataRow(false,true,5)][DataRow(true,false,5)][DataRow(true,true,5)]
     public async Task PublicHolonDeletePreservesMutationOutcome(bool key,bool sync,int outcome)

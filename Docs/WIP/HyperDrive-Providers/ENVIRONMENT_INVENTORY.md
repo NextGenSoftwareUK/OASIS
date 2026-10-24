@@ -1,5 +1,20 @@
 # Reusable environments and disk inventory
 
+2026-10-24 BigQuery entrypoint integration closure,owner HyperDrive providers:471controlledPASS0skip4seconds,terminal32258exit0. Original30entrypoint cases24genuinefail/6pass; intermediate455pass. Separate import2genuinefail then final adds10export error/admission/fullgraph controls and4healthy import controls. Existing SDK3.9.0/Core/Shared/.NET/cache/Rowsfixture/checkout/outputdirectories reused; no restore/download/new environment/runtime/cloud job/dataset/credentials or real mutation. Synthetic records/exports/partial writes memory-only,disposed at terminal. No live owned process/port. Source/PDB Core742/Shared56/provider5/unit10 and producer/consumer match; provider62E043B98FF2EF923D73CDD77137BC22418B92D6570D1EFDF2EE2453246FE1DA,unit19857F4BB2E3EAE8986AF910733D69B94F27F1F7B785CD520E825CF38A542572;Core/Shared unchanged from earlier closures.
+
+Exact reusable outputs C:/Source/OASIS/Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS/bin7081073bytes,obj990024bytes; C:/Source/OASIS/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests/bin47647887bytes,obj1241558bytes. Retain shared cache/outputs; exactbin/obj cleanup only after all consumers stop,regenerate existing cached project build under lease. No disposable runtime/database/archive introduced or deleted. Whole-drivefree71058370560bytes,not exclusive attribution.
+
+Retain fixed C:/Source/OASIS/TestResults/BigQueryCurrent/ evidence,no live dependencies; recreate same unitproject under lease,not native cloud acceptance:
+
+| File | Bytes | SHA256 | Meaning |
+|---|---:|---|---|
+| entrypoints-before.trx |59075|8DBE5A03D0E71B370A6D036C85D89DBE114DB7218255FEC8F397392E32384874|24genuinefail/6valid |
+| entrypoints-final.trx |689552|75981891713D5962DF06C7C68E8EB72C1138B593404C22E550254D0459137138|455PASS intermediate |
+| import-wrapper-before.trx |5316|999CB330A2E9D8DDEFC828494892DD4F72241DAB633A483CDD0A408A9FF86B35|2genuine partial-save wrapper failures |
+| entrypoints-complete.trx |713528|4117A8E806D35FA71FF85EE5F5F0930D4C0E21F27F670468499CD35AC6943D12|471PASS |
+
+2026-10-24 BigQuery entrypoint integration admission,owner HyperDrive providers: reuse SDK3.9.0/Core/Shared graph/query owners and Rowsfixture,existing output directories. No download/restore/environment/cloud/dataset or real mutation; aliases/search/export fixtures memory-only. Planned TestResults/BigQueryCurrent/entrypoints-before.trx and entrypoints-final.trx(sizes pending). Verify provider-key ambiguity/counts/options,selected search graphs and owner-scoped exports with no foreign descendants; retain original failures and resource closure measurements.
+
 2026-10-24 BigQuery graph-read closure,owner HyperDrive providers:425controlledPASS0skip4seconds,terminalexit0. Baseline76cases32genuinefail/44pass; intermediate407pass; final18additional admission/initial-depth/sourcefailure/no-extra-read controls. Reused pinnedSDK3.9.0/Core/Shared/.NET/cache/checkout/Rowsfixture; no restore/download/new environment/runtime/cloud query/persistent dataset or credentials. Synthetic graph/cycle/readfailures memory-only,disposed at terminal; no live owned process/port. Source/PDB Core742/Shared56/provider5/unit9 and producer/consumer match; providerB62F55AF0F46924CB85577A8ECEEA238E0199FFD96EF3E3B9B2F3D0618095DF2,unit48819254DDB8DDD79DC734B48C70BF0E3D1DA0D4EA4FFCB818BE1A1AA790456D. Core/Shared unchanged from previous closure.
 
 Exact reused C:/Source/OASIS/Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS/bin7078737bytes,obj986664bytes; C:/Source/OASIS/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests/bin47621715bytes,obj1206458bytes. Reusable/shared,retain; safe exactbin/obj cleanup only after all consumers stop,regenerate existing cached project builds under lease. No disposable database/archive/runtime introduced or removed. Whole-drivefree71059124224bytes,not exact attribution.
