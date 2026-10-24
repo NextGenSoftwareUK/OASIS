@@ -1,6 +1,6 @@
 # CQL GroupBy contract
 
-23 October 2026. Core captures, plans, validates and executes grouped intents through the V2 physical-attempt owner. Native adapters/HTTP/demos remain to implement; the full grouping requirement is still open.
+23 October 2026. Core captures, plans, validates and executes grouped intents through the V2 physical-attempt owner. SQLite native reduction is verified below; MongoDB/Neo4j native adapters, grouped HTTP/demos and post-group composition remain open.
 
 ## Key capture
 
@@ -97,7 +97,7 @@ All 15 new executor/hosted controls pass in the full **2,239-test suite, zero sk
 
 The host executes an admitted plan with `HolonManager.ExecuteGroupedQueryAsync(plan, adapters, cancellationToken)`. Native enrollment requires ICosmicQueryGroupedStorageProvider plus actual GroupedCapabilities. Remaining output bounds are rejection limits: zero is valid for an empty result but cannot authorize truncation or skipping protected scope checks. Per-provider results retain provenance and independent row sets; there is no implicit replica merge.
 
-Evidence: TestResults/CoreCurrent/cql-grouped-executor-{current,final-current}.trx; TestResults/CosmicCqlDemo/grouped-executor{,-final}.log and grouped-executor-artifacts.json. Private Core237f84b3c729cabe949ddbff0ff9fc92bff6972e is paired with the parent gitlink/manifest. No native provider advertises grouping yet. Native grouped Count/LongCount/Min/Max/Sum/Average, bounded HTTP, developer demos and later post-group composition remain required.
+Evidence: TestResults/CoreCurrent/cql-grouped-executor-{current,final-current}.trx; TestResults/CosmicCqlDemo/grouped-executor{,-final}.log and grouped-executor-artifacts.json. Private Core237f84b3c729cabe949ddbff0ff9fc92bff6972e is paired with the parent gitlink/manifest. At that historical checkpoint no native provider advertised grouping. Native grouped Count/LongCount/Min/Max/Sum/Average, bounded HTTP, developer demos and later post-group composition remain required.
 
 
 ## Native grouped numeric prerequisite — 23 October 2026
@@ -106,4 +106,15 @@ Adapters can now call `CosmicNumericScalarResults.FromParts(operation, inputType
 
 Both Core targets build; full **2,252 tests pass, zero skips**, including all13 reference vectors through the new adapter-facing entry. The first vector run lacked the JSON fixture in Core test output; the project now declares CopyToOutputDirectory, and the final run discovers/passes every vector. Evidence: TestResults/CoreCurrent/cql-group-numeric-normalizer-{current,final-current}.trx and TestResults/CosmicCqlDemo/group-numeric-normalizer{,-final}.log, group-numeric-normalizer-artifacts.json. Private Core36db020cb80e6737a3ebf7d177e95aa6026df001 is paired with the parent pin.
 
-SQLite native GroupBy baseline is captured: three new integration controls reject with the expected unsupported grouped-adapter contract before native query dispatch. They specify multiple aggregates/no hydration, source-window ordering and exact cancelling Int64 totals. The fixed fixture was removed after the run. These tests remain pending locally until native implementation; they are not enrolled as passing capability evidence. No native GroupBy adapter is advertised yet.
+SQLite native GroupBy baseline is captured: three new integration controls reject with the expected unsupported grouped-adapter contract before native query dispatch. They specify multiple aggregates/no hydration, source-window ordering and exact cancelling Int64 totals. The fixed fixture was removed after the run. That red baseline was subsequently replaced by the verified SQLite implementation below.
+
+
+## SQLite native GroupBy checkpoint - 23 October 2026
+
+SQLite now advertises the independent grouped adapter contract for Count/LongCount, Min/Max and exact Int32/Int64 Sum/Average. Reduction runs in SQL over the admitted source predicate and ordered source window; it does not hydrate holons or evaluate groups in memory. Every key and selected aggregate domain is checked, including unselected identity keys. Composite keys, NULL-first ordering, case-insensitive logical GUID equality and normalized UTC date equality follow the Core contract.
+
+The current native profile permits up to 1,000 output groups, 32 selected columns and 32 MiB of buffered proof/result data. Input participation has an explicit Int32.MaxValue work bound, independently of the output-group limit: the native sentinel detects excess and returns an error. Excess groups, payload, invalid domains and true final numeric overflow return no partial results. Exact grouped numeric normalization uses the shared Core signed-limb owner; nullable all-empty Sum is zero and Average is null.
+
+Read execution reuses SQLite's scope predicate, deadline/traversal guards and concurrency detector. Relationship scope checks run before source windows. An owned read snapshot is rolled back and its connection closed; a caller-owned serializable transaction/connection remains owned by the caller. Cancellation and subsequent reuse are covered. Inactive providers return CQL_PROVIDER_NOT_READY explicitly.
+
+Verification: **1,364 native SQLite tests passed, zero skipped**, including 19 new grouping controls. Evidence: TestResults/SQLiteCurrent/cql-grouped-full-current.trx; TestResults/CosmicCqlDemo/sqlite-group-full.log and sqlite-group-artifacts.json. Core SHA256 starts 6D193362, Shared 996EE8E6, SQLite 98D67EC2; producer and test-output copies match. The fixed fixture database, WAL and SHM are absent after teardown. This certifies this SQLite slice only: MongoDB/Neo4j native grouping, grouped HTTP/demos, post-group filters/order/pages and remaining roadmap gates are still open.

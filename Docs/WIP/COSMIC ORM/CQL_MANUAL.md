@@ -648,3 +648,36 @@ Immutable native rows now require positive input-count proof, complete typed key
 ## Grouped V2 execution owner — 23 October 2026
 
 Generic HolonManager grouped execution now preflights all actual adapters and reuses the existing prepared physical-attempt/receipt owner. Global group/payload budgets are enforced across all buffers before any DTO construction. Per-provider rows remain separate; zero remaining bounds do not skip a later empty provider's execution. Both Core targets build; full **2,239 tests pass, zero skips**, including15 new controlled executor/hosted cases. [Contract/evidence](CQL_GROUPING_CONTRACT.md). Native GroupBy, HTTP and demos are still required; no provider advertises native grouping yet.
+
+
+## SQLite native GroupBy checkpoint - 23 October 2026
+
+SQLite now advertises the independent grouped adapter contract for Count/LongCount, Min/Max and exact Int32/Int64 Sum/Average. Reduction runs in SQL over the admitted source predicate and ordered source window; it does not hydrate holons or evaluate groups in memory. Every key and selected aggregate domain is checked, including unselected identity keys. Composite keys, NULL-first ordering, case-insensitive logical GUID equality and normalized UTC date equality follow the Core contract.
+
+The current native profile permits up to 1,000 output groups, 32 selected columns and 32 MiB of buffered proof/result data. Input participation has an explicit Int32.MaxValue work bound, independently of the output-group limit: the native sentinel detects excess and returns an error. Excess groups, payload, invalid domains and true final numeric overflow return no partial results. Exact grouped numeric normalization uses the shared Core signed-limb owner; nullable all-empty Sum is zero and Average is null.
+
+Read execution reuses SQLite's scope predicate, deadline/traversal guards and concurrency detector. Relationship scope checks run before source windows. An owned read snapshot is rolled back and its connection closed; a caller-owned serializable transaction/connection remains owned by the caller. Cancellation and subsequent reuse are covered. Inactive providers return CQL_PROVIDER_NOT_READY explicitly.
+
+Verification: **1,364 native SQLite tests passed, zero skipped**, including 19 new grouping controls. Evidence: TestResults/SQLiteCurrent/cql-grouped-full-current.trx; TestResults/CosmicCqlDemo/sqlite-group-full.log and sqlite-group-artifacts.json. Core SHA256 starts 6D193362, Shared 996EE8E6, SQLite 98D67EC2; producer and test-output copies match. The fixed fixture database, WAL and SHM are absent after teardown. This certifies this SQLite slice only: MongoDB/Neo4j native grouping, grouped HTTP/demos, post-group filters/order/pages and remaining roadmap gates are still open.
+
+### SQLite grouped selection example
+
+The following expression shape is supported by the native SQLite grouped adapter. Check each OASISResult before accessing Result; build a CosmicGroupedTarget from the actual adapter QueryCapabilities and GroupedCapabilities, then pass the admitted plan to HolonManager.ExecuteGroupedQueryAsync. Grouped results retain their provider and do not implicitly merge replicas.
+
+```csharp
+// Filter the input first. Add source OrderBy/Skip/Take here when needed.
+var groups = CosmicQuery<Holon>.Create()
+    .Where(h => h.Name.StartsWith("catalogue "))
+    .GroupBy(h => CosmicQueryMetadata.Value<string>(h, "category"))
+    .Select(g => new
+    {
+        Category = g.Key,
+        Items = g.LongCount(),
+
+        // Integer inputs use exact shared normalization; Average returns Decimal.
+        TotalStock = g.Sum(h => CosmicQueryMetadata.Value<long>(h, "stock")),
+        AverageStock = g.Average(h => CosmicQueryMetadata.Value<long>(h, "stock"))
+    });
+```
+
+Grouped HTTP requests and updated three-provider grouped demo screens are not available yet. This checkpoint does not add post-group Where/OrderBy/Skip/Take.
