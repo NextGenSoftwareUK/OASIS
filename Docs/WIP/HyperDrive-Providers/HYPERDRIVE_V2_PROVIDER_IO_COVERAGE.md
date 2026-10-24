@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+BigQuery identity ambiguity24October:213controlledPASS0skip. Two shared point-query owners use LIMIT2/common unique validator; multiple rows return explicit error/no payload instead of arbitrary newest record.42new controls cover missing/single/duplicate across7selectors×sync/async;14genuine red retained. Not server uniqueness,concurrency,native cloud or fullV2 proof; audit/inventory retain boundaries.
+
 BigQuery deleted-detail24October:171controlledPASS0skip; point GUID/username/email and collection sync/async now exclude soft-deleted details using existing IsDeleted contract.8genuine red cases retained,8nondeleted controls unchanged; stored canonical content unchanged. Not native cloud/history/paired-lifecycle/fullV2 proof. Audit/inventory updated.
 
 BigQuery collection/codec24October:155controlledPASS0skip using existing official SDK3.9.0/in-memory transport,not native cloud execution. Four primary collection paths sync/async now exhaust SDK pages beyond1000 and report loaded root counts; blank documents/later-page errors fail without partial payload. Existing Core canonical codec now owns write/read interface fidelity. No new environment/download/cloud job. Hosted/IAM/encryption/history/graph/selector ambiguity/durable recovery/fees/fullV2 stayOPEN; details in BigQuery audit/inventory.
