@@ -60,9 +60,17 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
                 RequireCompletedResponse(response.httpResponseMessage,HttpStatusCode.OK,"object GET");
                 if(response.ContentRange is not null||response.IsNotModified)
                     throw new InvalidDataException("OCI whole-record GET cannot publish a ranged or not-modified response.");
+                if(response.ContentLength is not long expectedLength||expectedLength<0)
+                    throw new InvalidDataException("OCI whole-record GET requires its native object byte length.");
                 using var stream=response.InputStream??throw new InvalidDataException("OCI object response has no content stream.");
                 using var reader=new StreamReader(stream,Utf8,detectEncodingFromByteOrderMarks:false);
                 var value=await reader.ReadToEndAsync(cancellationToken);
+                if(Utf8.GetByteCount(value)!=expectedLength)
+                    throw new InvalidDataException("OCI GET body length does not match its complete object acknowledgement.");
+                // Multipart objects may omit Content-MD5. When supplied, it binds these exact bytes,
+                // unlike the opaque ETag which must not be interpreted as a checksum.
+                if(response.ContentMd5 is not null&&!string.Equals(response.ContentMd5,Convert.ToBase64String(MD5.HashData(Utf8.GetBytes(value))),StringComparison.Ordinal))
+                    throw new InvalidDataException("OCI GET body does not match its declared native MD5 checksum.");
                 if(string.IsNullOrWhiteSpace(response.ETag))
                     throw new InvalidDataException("OCI object GET must return its observed ETag and complete value.");
                 return new OracleObjectSnapshot(value,response.ETag);
