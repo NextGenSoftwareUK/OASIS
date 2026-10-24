@@ -100,90 +100,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return SaveHolonAsync(holon).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var response = new OASISResult<IHolon>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Delete holon from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/statuses/{id}";
-                
-                var httpResponse = await _httpClient.DeleteAsync(apiUrl);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = null; // Return null since holon is deleted
-                    response.Message = "Holon deleted from ActivityPub instance successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to delete holon from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting holon from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => Task.FromResult(RejectProjectionGuid<IHolon>());
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
             return DeleteHolonAsync(id).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            var response = new OASISResult<IHolon>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Delete holon by provider key from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/statuses/{providerKey}";
-                
-                var httpResponse = await _httpClient.DeleteAsync(apiUrl);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = null; // Return null since holon is deleted
-                    response.Message = "Holon deleted from ActivityPub instance successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to delete holon by provider key from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting holon by provider key from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+            => DeleteMastodonStatusAsync(providerKey);
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
