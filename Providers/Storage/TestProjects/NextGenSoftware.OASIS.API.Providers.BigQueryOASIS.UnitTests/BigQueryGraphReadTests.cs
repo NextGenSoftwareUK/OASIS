@@ -9,6 +9,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests;
 [TestClass]
 public class BigQueryGraphReadTests
 {
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task ScopedInterfaceProjectsActualProviderGraphWithoutPrivateChildren(bool sync,bool includePublic)
+    {
+        var actor=Guid.NewGuid();var root=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=actor,HolonType=HolonType.Quest};
+        var owned=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,CreatedByAvatarId=actor};
+        var visible=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,CreatedByAvatarId=Guid.NewGuid(),IsPublic=true};
+        var hidden=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,CreatedByAvatarId=Guid.NewGuid()};
+        var rows=new BigQueryCollectionTests.Rows{Selected=new[]{root,owned,visible,hidden}.Select(StoredRecordJson.Serialize).ToArray()};
+        IOASISStorageProvider provider=BigQueryCollectionTests.Create(rows);
+        var result=sync?provider.LoadAllHolons(actor,includePublic,HolonType.Quest,loadChildrenFromProvider:true)
+            :await provider.LoadAllHolonsAsync(actor,includePublic,HolonType.Quest,loadChildrenFromProvider:true);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);
+        CollectionAssert.AreEqual(includePublic?new[]{owned.Id,visible.Id}:new[]{owned.Id},result.Result.Single().Children.Select(child=>child.Id).ToArray());
+        Assert.IsNull(rows.Stored,"Visibility projection must not write storage.");
+    }
+
     [DataTestMethod][DataRow(false,0)][DataRow(true,0)][DataRow(false,1)][DataRow(true,1)][DataRow(false,2)][DataRow(true,2)]
     public async Task NegativeGraphDepthRejectsBeforeNativeRead(bool sync,int route)
     {
