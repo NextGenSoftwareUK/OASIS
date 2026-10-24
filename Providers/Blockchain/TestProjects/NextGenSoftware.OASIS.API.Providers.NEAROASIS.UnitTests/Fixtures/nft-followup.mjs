@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 // Controlled IPC boundary fixture only: no SDK, signing, network or persistence.
 const input=JSON.parse(readFileSync(0,'utf8'));
+if(input.operation==='call')input.args=JSON.parse(Buffer.from(input.argsBase64,'base64').toString('utf8'));
 let result;
 if(input.operation==='probe')result={};
 else if(input.operation==='generateKey')result={publicKey:'ed25519:fixture-public',privateKey:'ed25519:fixture-private',implicitAccountId:'1'.repeat(64)};
@@ -27,6 +28,6 @@ else throw new Error('Unexpected fixture operation; wallet followup must not pre
 if(result?.transactionHash)result.outcome={transaction_outcome:{id:result.transactionHash},
   transaction:{signer_id:input.accountId,receiver_id:input.operation==='transfer'?input.receiverId:input.targetContractId,
     actions:[input.operation==='transfer'?{Transfer:{deposit:input.amountYocto}}:{FunctionCall:{method_name:input.methodName,
-      deposit:input.depositYocto,gas:Number(input.gas),args:Buffer.from(JSON.stringify(input.args??{})).toString('base64')}}]},
+      deposit:input.depositYocto,gas:Number(input.gas),args:input.argsBase64}}]},
   final_execution_status:'FINAL',status:{SuccessValue:''}};
 process.stdout.write(JSON.stringify({ok:true,result}));

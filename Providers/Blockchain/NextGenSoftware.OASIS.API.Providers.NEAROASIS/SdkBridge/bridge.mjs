@@ -3,6 +3,7 @@ import nearSeedPhrase from "near-seed-phrase";
 import bip39 from "bip39-light";
 import { collectEntries } from "./entries-page.mjs";
 import { submitCheckedRecord } from "./checked-write.mjs";
+import { decodeCallArguments } from "./call-arguments.mjs";
 
 async function readInput() {
   const chunks = [];
@@ -102,11 +103,12 @@ async function execute(input) {
         args: input.args ?? {},
       });
     case "call": {
+      const args=decodeCallArguments(input.argsBase64);
       const account = accountFor(input, provider);
       const outcome = await account.callFunctionRaw({
         contractId: input.targetContractId ?? input.contractId,
         methodName: input.methodName,
-        args: input.args ?? {},
+        args,
         gas: BigInt(input.gas ?? teraToGas("100")),
         deposit: BigInt(input.depositYocto ?? "0"),
         waitUntil: "FINAL",

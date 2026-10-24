@@ -20,6 +20,7 @@
     <None Include="Fixtures\utf8-response.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\mint-intent.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\mutation-outcome.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\call-arguments.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\nft-followup.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\status-observation.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\record-publication.mjs" CopyToOutputDirectory="PreserveNewest" />
