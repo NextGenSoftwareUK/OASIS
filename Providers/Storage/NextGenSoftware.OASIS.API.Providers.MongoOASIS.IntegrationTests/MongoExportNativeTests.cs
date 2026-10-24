@@ -21,6 +21,55 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 public sealed class MongoExportNativeTests(ITestOutputHelper output)
 {
     [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task GameplayMutationsRetainNativeAccountFieldsAndExistingArchive(bool transfer)
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        const string name="cosmic_cql_fixture";var client=new MongoClient(uri);
+        using var names=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await names.ToListAsync());
+        var database=client.GetDatabase(name);await database.CreateCollectionAsync("CosmicOwnedFixture");
+        var provider=new Provider(uri,name);var complete=false;
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            var sourceId=Guid.NewGuid();var targetId=Guid.NewGuid();var itemId=Guid.NewGuid();
+            var typed=database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail");
+            await typed.InsertManyAsync(new[]{
+                new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail {Id=ObjectId.GenerateNewId().ToString(),HolonId=sourceId,Version=1,VersionId=Guid.NewGuid(),Inventory=new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>{new(){Id=itemId,Name="Native seed",GameSource="Our World",Quantity=3,ItemType=InventoryItemType.QuestItem}}},
+                new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail {Id=ObjectId.GenerateNewId().ToString(),HolonId=targetId,Version=1,VersionId=Guid.NewGuid()}});
+            var raw=database.GetCollection<BsonDocument>("AvatarDetail");
+            var expected=new Dictionary<ObjectId,BsonDocument>();
+            foreach(var row in await raw.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync())
+            {
+                row["UnknownAccountField"]=new BsonDocument{{"bytes",new BsonBinaryData(new byte[]{0,255,19})},{"date",new BsonDateTime(DateTime.UtcNow)}};
+                var old=row.DeepClone().AsBsonDocument;old["Version"]=0;
+                var entry=new BsonDocument{{"bson",old},{"sha256",Convert.ToHexString(SHA256.HashData(old.ToBson()))}};
+                row["OasisHolonRevisionArchive"]=new BsonDocument{{"schema",2},{"records",new BsonArray{entry}}};
+                var saved=await raw.ReplaceOneAsync(new BsonDocument("_id",row["_id"]),row);Assert.Equal(1,saved.MatchedCount);
+                expected.Add(row["_id"].AsObjectId,row.DeepClone().AsBsonDocument);
+            }
+            var payload=transfer?new HyperDriveAvatarGameplayCommand {Action=HyperDriveAvatarGameplayAction.TransferInventory,InventoryItemId=itemId,TargetAvatarId=targetId,Amount=1}
+                :new HyperDriveAvatarGameplayCommand {Action=HyperDriveAvatarGameplayAction.UpdateInventory,InventoryItemId=itemId,InventoryUpdate=new(){Id=itemId,Name="Updated seed",GameSource="Our World",Quantity=2,MaxQuantity=10,ItemType=(int)InventoryItemType.QuestItem,IsStackable=true}};
+            var command=new HostedSyncCommandItem {OperationId=Guid.NewGuid(),AvatarId=sourceId,EntityId=sourceId,EntityType=HyperDriveEntityTypes.AvatarGameplay,PayloadJson=HyperDriveJson.Serialize(payload)};
+            var applied=await provider.ApplyAvatarGameplayCommandAsync(command,default);Assert.False(applied.IsError,applied.Message+applied.Exception);
+            var after=await raw.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();Assert.Equal(2,after.Count);
+            foreach(var row in after)
+            {
+                var original=expected[row["_id"].AsObjectId];
+                Assert.Equal(original["UnknownAccountField"].AsBsonDocument.ToBson(),row["UnknownAccountField"].AsBsonDocument.ToBson());
+                Assert.Equal(original["OasisHolonRevisionArchive"].AsBsonDocument.ToBson(),row["OasisHolonRevisionArchive"].AsBsonDocument.ToBson());
+            }
+            var replay=await provider.ApplyAvatarGameplayCommandAsync(command,default);Assert.False(replay.IsError,replay.Message+replay.Exception);
+            foreach(var row in after)Assert.Equal(row.ToBson(),(await raw.Find(new BsonDocument("_id",row["_id"])).SingleAsync()).ToBson());
+            complete=true;
+        }
+        finally {await provider.DeActivateProviderAsync();if(complete)await client.DropDatabaseAsync(name);else output.WriteLine("Preserved owned gameplay native-field fixture for reviewed reconciliation.");}
+    }
+
+    [Theory]
     [InlineData(0)] [InlineData(1)] [InlineData(2)]
     public async Task PublicReadsRejectMalformedAuditWithoutMutatingStoredRecord(int kind)
     {
@@ -99,6 +148,7 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
             var rawClans=database.GetCollection<BsonDocument>("Holon");
             var marker=await rawClans.UpdateOneAsync(FilterDefinition<BsonDocument>.Empty,Builders<BsonDocument>.Update.Set("UnknownClanField","retained"));Assert.Equal(1,marker.MatchedCount);
             var rawDetails=database.GetCollection<BsonDocument>("AvatarDetail");
+            var accountMarker=await rawDetails.UpdateOneAsync(FilterDefinition<BsonDocument>.Empty,Builders<BsonDocument>.Update.Set("UnknownAccountField",new BsonDocument("native",new BsonBinaryData(new byte[]{0,255,19}))));Assert.Equal(1,accountMarker.MatchedCount);
             async Task<byte[]> ClanBytes()=>Assert.Single(await rawClans.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).ToBson();
             async Task<byte[]> SourceBytes()=>Assert.Single(await rawDetails.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).ToBson();
             var beforeClan=await ClanBytes();var beforeSource=await SourceBytes();
@@ -114,6 +164,7 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
                 Assert.False(applied.IsError,applied.Message+applied.Exception);
                 var savedSource=await details.Find(FilterDefinition<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>.Empty).SingleAsync();
                 Assert.Equal(1,Assert.Single(savedSource.Inventory).Quantity);
+                Assert.Equal(new byte[]{0,255,19},Assert.Single(await rawDetails.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync())["UnknownAccountField"]["native"].AsBsonBinaryData.Bytes);
                 var stored=Assert.Single(await rawClans.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync());
                 Assert.Equal(3,stored["Version"].AsInt32);Assert.Equal("retained",stored["UnknownClanField"].AsString);
                 var all=await provider.ExportAllAsync(-1);Assert.False(all.IsError,all.Message+all.Exception);
