@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+Firestore24October: shared flat-scalar storage-size admission replaces invented padding and adds ordinary/history-expanded/identity transaction checks. Fourteen reproduced controls now pass; full367unit/83retained-native-history/79native-regression GREEN0skip, source/artifact identities verified. Public known-oversize0commit and independent real SDK rejection both covered, unchanged original/history checked. Exact native maximum boundary,10MiB wire budget, hosted IAM/fees/fullV2 still OPEN; storage calculation is not wire size or service certification. Original failed assertion/report and exact conditional fixture reconciliation documented in FIRESTORE_RECORD_HISTORY.md and inventory. No installation/newenvironment/cloud/deployment.
+
 ## SQLite legacy search contract — 24 October 2026
 
 Fixed no-group candidate omission and successful-search loaded flags/counts in the existing SearchAsync owner. Null/empty groups now traverse the SAME candidate/parent/ownership/metadata path; numeric/date default family targets match the shared contract without changing caller input. No extra matcher, persistence path or provider wrapper. Four new real EF/SQLite file-backed sync/async tests cover grouped result flags and avatar/holon metadata hit/miss, own/global scope and omitted numeric targets (26 search invocations). All four reproduced defects in the preserved broad baseline; focused4PASS0skip1s after repair.
