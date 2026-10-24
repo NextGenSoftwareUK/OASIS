@@ -240,6 +240,10 @@ public partial class SQLLiteDBOASISIntegrationTests
     public void NativeGroupedFilterDoesNotBorrowPermissionForNormalizedAverage()
     {
         var query = CosmicQuery<Holon>.Create().GroupBy(h => h.Name).Select(g => g.Average(h => h.Version)).Where(mean => mean > 1m).Result;
-        SQLLiteDBOASIS.CqlGroupedCapabilities.Admit(query).ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
+        var capability = SQLLiteDBOASIS.CqlGroupedCapabilities;
+        capability.Admit(query).IsError.Should().BeFalse();
+        // Source/scalar permission alone still cannot grant result filtering.
+        new CosmicGroupedCapabilities(capability.KeyCapabilities, capability.AggregateCapabilities)
+            .Admit(query).ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
     }
 }
