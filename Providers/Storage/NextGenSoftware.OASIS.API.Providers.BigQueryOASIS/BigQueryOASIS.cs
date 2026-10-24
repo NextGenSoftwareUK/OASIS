@@ -359,13 +359,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                ValidateGraphDepth(maxChildDepth);
                 var doc = await GetDocAsync<Holon>(CollHolons, id.ToString());
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Holon {id} not found.");
                 else if (doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Holon {id} has been deleted.");
                 else
-                    CompleteRead(result,doc);
+                    CompleteRead(result,(await ProjectGraphRootsAsync(new[]{doc},loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider)).Single());
             }
             catch (Exception ex)
             {
@@ -382,8 +383,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                ValidateGraphDepth(maxChildDepth,curentChildDepth);
                 var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString());
-                CompleteRows<IHolon>(result,all.FindAll(h => !h.IsDeleted && (holonType == HolonType.All || h.HolonType == holonType)));
+                CompleteRows<IHolon>(result,await ProjectGraphRootsAsync(all.FindAll(h => !h.IsDeleted && (holonType == HolonType.All || h.HolonType == holonType)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true));
             }
             catch (Exception ex)
             {
@@ -400,8 +402,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                ValidateGraphDepth(maxChildDepth,curentChildDepth);
                 var docs = await GetAllDocsAsync<Holon>(CollHolons);
-                CompleteRows<IHolon>(result,docs.FindAll(h => !h.IsDeleted && (holonType == HolonType.All || h.HolonType == holonType)));
+                var active=docs.FindAll(h=>!h.IsDeleted);
+                CompleteRows<IHolon>(result,await ProjectGraphRootsAsync(active.Where(h=>holonType == HolonType.All || h.HolonType == holonType),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,providerPool:active));
             }
             catch (Exception ex)
             {
