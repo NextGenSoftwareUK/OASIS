@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$MongoAccountRetention,[switch]$MongoAccountHistory,[switch]$MongoConversionIntegrity,[switch]$MongoClanHistory,[switch]$MongoHistoricalCollectionsReconcile,[switch]$MongoHistoricalCollectionsInspect,[switch]$MongoHistoricalCollections,[switch]$MongoHistoricalPoint,[switch]$MongoDomainHistory,[switch]$MongoExportHistoryReconcile,[switch]$MongoExportHistoryInspect,[switch]$MongoExportHistory,[switch]$MongoExports,[switch]$CqlV1Demo,[switch]$CqlV1Web4Reconcile,[switch]$CqlV1Web4,[switch]$CosmicLifecycleReconcile,[switch]$CosmicCqlReconcile,[switch]$CosmicCql,[switch]$CosmicTypedQueryCommittedReconcile,[switch]$CosmicTypedQueryReconcile,[switch]$CosmicNeo4jReplicasReconcile,[switch]$CosmicNeo4jReplicas,[switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$CosmicGraphTraversal,[switch]$CosmicConditionalWrites,[switch]$CosmicConditionalReconcile,[switch]$CosmicChildReconcile,[switch]$CosmicTransferReconcile,[switch]$MongoV2,[switch]$CosmicReplicaTransfers,[switch]$CosmicReplicaTransfersReconcile,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees,[switch]$CosmosRoutingFeeRecovery,[switch]$CosmosReviewedBank,[switch]$SuiCSharpHistory,[switch]$CosmosReviewedToken,[switch]$CosmosReviewedNFT,[switch]$CosmosRoutingVersions,[ValidateSet('Fees','DeployEscrow','LockEscrow')][string]$CosmosReviewScenario='Fees')
+param([switch]$ResourceEvidence,[switch]$MongoAccountRetention,[switch]$MongoAccountHistory,[switch]$MongoConversionIntegrity,[switch]$MongoClanHistory,[switch]$MongoHistoricalCollectionsReconcile,[switch]$MongoHistoricalCollectionsInspect,[switch]$MongoHistoricalCollections,[switch]$MongoHistoricalPoint,[switch]$MongoDomainHistory,[switch]$MongoExportHistoryReconcile,[switch]$MongoExportHistoryInspect,[switch]$MongoExportHistory,[switch]$MongoExports,[switch]$CqlV1Demo,[switch]$CqlV1Web4Reconcile,[switch]$CqlV1Web4,[switch]$CosmicLifecycleReconcile,[switch]$CosmicCqlReconcile,[switch]$CosmicCql,[switch]$CosmicTypedQueryCommittedReconcile,[switch]$CosmicTypedQueryReconcile,[switch]$CosmicNeo4jReplicasReconcile,[switch]$CosmicNeo4jReplicas,[switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$CosmicGraphTraversal,[switch]$CosmicConditionalWrites,[switch]$CosmicConditionalReconcile,[switch]$CosmicChildReconcile,[switch]$CosmicTransferReconcile,[switch]$MongoV2,[switch]$CosmicReplicaTransfers,[switch]$CosmicReplicaTransfersReconcile,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees,[switch]$CosmosRoutingFeeRecovery,[switch]$CosmosReviewedBank,[switch]$SuiCSharpHistory,[switch]$CosmosReviewedToken,[switch]$CosmosReviewedNFT,[switch]$CosmosRoutingVersions,[ValidateSet('Fees','DeployEscrow','LockEscrow')][string]$CosmosReviewScenario='Fees')
 $ErrorActionPreference='Stop'
+if($ResourceEvidence -and $PSBoundParameters.Count -ne 1){throw 'Resource evidence verification requires exclusive retained usage mode.'}
 if($MongoAccountRetention){if($PSBoundParameters.Count -ne 1){throw 'Mongo account retention verification requires exclusive mode.'};$MongoExports=$true}
 if($MongoAccountHistory){if($PSBoundParameters.Count -ne 1){throw 'Mongo account history verification requires exclusive mode.'};$MongoExports=$true}
 if($MongoConversionIntegrity){if($PSBoundParameters.Count -ne 1){throw 'Mongo conversion integrity verification requires exclusive mode.'};$MongoExports=$true}
@@ -68,6 +69,9 @@ if($HederaPreparedOwners -and ($SuiMintOwner -or $ReconcileControlledMintOwner))
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 . (Join-Path $PSScriptRoot 'Limit-OwnedMongoLog.ps1')
 $work=Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent'
+if($ResourceEvidence){foreach($name in @('owned-replica-init-current.trx','usage-resource-evidence-current.trx')){
+    if(Test-Path -LiteralPath (Join-Path $work $name)){throw 'Preserve the original resource-evidence/initialization report before another run.'}
+}}
 $data=Join-Path $work 'mongo-data'
 $runtime='C:\Program Files\MongoDB\Server\8.3\bin\mongod.exe'
 if(!(Test-Path -LiteralPath $runtime -PathType Leaf)){throw 'Existing installed Mongo runtime is required; no download attempted.'}
@@ -396,13 +400,15 @@ try{
         & dotnet test $mintProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter $mintFilter --logger $mintReport --results-directory $work -v:q
     }else{
         $usageStarted=[DateTime]::UtcNow
-        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName!~OwnedReplicaInitializationTests' --logger 'trx;LogFileName=usage-real-replica-current.trx' --results-directory $work -v:q
+        $usageReportName=if($ResourceEvidence){'usage-resource-evidence-current.trx'}else{'usage-real-replica-current.trx'}
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName!~OwnedReplicaInitializationTests' --logger "trx;LogFileName=$usageReportName" --results-directory $work -v:q
         if($LASTEXITCODE -ne 0){throw 'Usage recovery regression failed.'}
-        $report=Get-Item -LiteralPath (Join-Path $work 'usage-real-replica-current.trx')
+        $report=Get-Item -LiteralPath (Join-Path $work $usageReportName)
         if($report.LastWriteTimeUtc -lt $usageStarted){throw 'Usage recovery report is stale.'}
         [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$evidence.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 312 -or [int]$counts.passed -ne 312 -or [int]$counts.notExecuted -ne 0){throw 'Expected312 passing usage recovery cases without skips.'}
+        $expectedUsage=if($ResourceEvidence){341}else{312}
+        if([int]$counts.total -ne $expectedUsage -or [int]$counts.passed -ne $expectedUsage -or [int]$counts.notExecuted -ne 0){throw "Expected$expectedUsage passing usage recovery cases without skips."}
     }
     if($LASTEXITCODE -ne 0){throw 'Usage recovery regression failed.'}
 }finally{
