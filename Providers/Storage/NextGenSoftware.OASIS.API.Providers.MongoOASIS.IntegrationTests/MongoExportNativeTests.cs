@@ -312,6 +312,18 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
             }
             var wrong=await provider.LoadHolonsByMetaDataAsync("literal.$key","$new",HolonType.Park,loadChildren:false,version:1);
             Assert.False(wrong.IsError,wrong.Message+wrong.Exception);Assert.Empty(wrong.Result);
+            foreach(var searchCase in new[]{(Text:"historical collection root",Version:1,Value:"$old",Count:1),
+                (Text:"current collection root",Version:1,Value:"$old",Count:0),(Text:"historical collection root",Version:0,Value:"$old",Count:0),
+                (Text:"current collection root",Version:2,Value:"$new",Count:1),(Text:"historical collection root",Version:1,Value:"$new",Count:0)})
+            {
+                var query=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,ParentId=ancestor.Result.Id,
+                    FilterByMetaData=new(){{"literal.$key",searchCase.Value}},MetaKeyValuePairMatchMode=MetaKeyValuePairMatchMode.All,
+                    SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery=searchCase.Text,SearchHolons=true,SearchAvatars=false,HolonType=HolonType.Park}}};
+                var found=sync?provider.Search(query,loadChildren:false,version:searchCase.Version):await provider.SearchAsync(query,loadChildren:false,version:searchCase.Version);
+                Assert.False(found.IsError,found.Message+found.Exception);Assert.True(found.IsLoaded);Assert.Equal(searchCase.Count,found.LoadedCount);
+                Assert.Equal(searchCase.Count,found.Result.SearchResultHolons.Count);
+                if(searchCase.Count==1){Assert.Equal(root.Id,Assert.Single(found.Result.SearchResultHolons).Id);Assert.Equal(searchCase.Version,Assert.Single(found.Result.SearchResultHolons).Version);}
+            }
             Assert.Equal(before,await Snapshot());complete=true;
         }
         finally
