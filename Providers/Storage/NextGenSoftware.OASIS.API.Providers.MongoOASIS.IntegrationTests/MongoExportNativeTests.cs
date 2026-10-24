@@ -20,6 +20,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public sealed class MongoExportNativeTests(ITestOutputHelper output)
 {
+    private sealed class SearchIntentBoundary(NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces.ISearchRepository inner,Action mutate)
+        :NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces.ISearchRepository
+    {
+        public OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults> Search(NextGenSoftware.OASIS.API.Core.Objects.Search.ISearchParams query,int version=0)
+        {mutate();return inner.Search(query,version);}
+        public async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults>> SearchAsync(NextGenSoftware.OASIS.API.Core.Objects.Search.ISearchParams query,int version=0)
+        {await Task.Yield();mutate();return await inner.SearchAsync(query,version);}
+    }
+
     [Theory]
     [InlineData(false,false)] [InlineData(true,false)] [InlineData(true,true)]
     public async Task GameplayMutationsRetainNativeAccountFieldsAndExistingArchive(bool transfer,bool overflow)
@@ -429,7 +438,16 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
                     Number=searchCase.Version==0?2:searchCase.Version,NumberOperator=SearchOperatorType.EqualTo,
                     PreviousSearchGroupOperator=SearchParamGroupOperator.And,SearchHolons=true,SearchAvatars=false,HolonType=HolonType.Park});
                 if(kind==3){query.SearchGroups[0].SearchHolons=false;query.SearchGroups[0].SearchAvatars=false;}
-                var found=sync?provider.Search(query,loadChildren:false,version:searchCase.Version):await provider.SearchAsync(query,loadChildren:false,version:searchCase.Version);
+                var repositoryField=typeof(Provider).GetField("_searchRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+                var originalRepository=(NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces.ISearchRepository)repositoryField.GetValue(provider)!;
+                if(kind==0)repositoryField.SetValue(provider,new SearchIntentBoundary(originalRepository,()=>{
+                    query.ParentId=Guid.NewGuid();query.FilterByMetaData["literal.$key"]="caller changed";
+                    ((NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup)query.SearchGroups[0]).SearchQuery="caller changed";
+                }));
+                OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults> found;
+                try{found=sync?provider.Search(query,loadChildren:false,version:searchCase.Version):await provider.SearchAsync(query,loadChildren:false,version:searchCase.Version);}
+                finally{repositoryField.SetValue(provider,originalRepository);}
+                if(kind==0)Assert.Equal("caller changed",query.FilterByMetaData["literal.$key"]);
                 Assert.False(found.IsError,found.Message+found.Exception);Assert.True(found.IsLoaded);Assert.Equal(searchCase.Count,found.LoadedCount);
                 Assert.Equal(searchCase.Count,found.Result.SearchResultHolons.Count);
                 if(searchCase.Count==1){Assert.Equal(root.Id,Assert.Single(found.Result.SearchResultHolons).Id);Assert.Equal(searchCase.Version,Assert.Single(found.Result.SearchResultHolons).Version);}
