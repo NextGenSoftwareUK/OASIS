@@ -1,5 +1,11 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## Collection completeness and canonical record codec — 24 October
+
+Full155 controlled tests PASS,zero skipped. Collection SQL no longer truncates at1000; the existing official SDK GetRowsAsync iterator reads1002 synthetic records across two native-shaped REST pages. All four collection families, sync/async, verify complete root counts and empty loaded results. Later-page HTTP400 preserves GoogleApiException and returns no partial payload. Blank/null stored documents fail rather than disappear silently. Point and primary collection success flags/counts now reflect actual results.
+
+The prior serializer could not read its own AvatarDetail interface properties. Both write/read owners now reuse existing Core.StoredRecordJson; paired save/load controls preserve Chakras, inventory and large metadata integer9007199254740993. This is canonical codec repair,NOT at-rest encryption or graph/history support. Original8-case baseline contained6 truncation failures and2 interface-decoder failures; expanded34-case baseline additionally covers paired roundtrip and24 invalid-row cases. Final145 then155 reports retained. Core742/Shared56/provider4/unit7 and producer/consumer/source identity verified. No real cloud job, dataset, credentials or service contacted. Exact resources/report hashes in inventory.
+
 ## Acknowledged point saves and truthful bulk outcomes — 24 October
 
 Current full **111controlledPASS,zero skips,590ms**. Three public point-save families now reuse existing Shared.StoredRecordPublicationSnapshot rather than changing caller IDs before SDK dispatch. Generated record ID/provider key remain detached until one-row DML acknowledgement matches the requested project AND exact job ID; post-ack validation preserves newer caller edits. Complete saves publish original caller identity/key with IsSaved/SavedCount1. Null sources reject before SDK access. Existing other-provider dictionary identity/entries remain intact.
@@ -26,9 +32,9 @@ Original first build failed because the existing provider tests referenced an ab
 
 - Live native BigQuery queries,DML/job acknowledgement and actual one-row/job-binding acceptance. Controlled fences do not prove server behavior or durable recovery.
 - Point caller ownership is repaired/controlled-verified above; prepared-operation integration and restart-safe attempt journaling/admission remain open.
-- Complete canonical serialization/encryption/private index fidelity,history/version selection and IsVersionControlEnabled semantics.
+- Canonical scalar/interface roundtrip is controlled-verified above; complete encryption/private index fidelity,history/version selection and IsVersionControlEnabled semantics remain open.
 - Complete graph/children/option behavior,captured multi-root intent,paired avatar/detail lifecycle and concurrency/identity uniqueness. Root bulk error/partial acknowledgement reporting is now controlled-verified,not native graph acceptance.
-- Collection helpers still have LIMIT1000 and cannot claim exhaustive collections/search/exports. Duplicate identities still select latest first row rather than reject ambiguity.
+- Collection LIMIT1000 truncation is repaired with the official SDK iterator. Full search/export/graph/option semantics remain open. Duplicate identities still select latest first row rather than reject ambiguity; indexed selectors versus canonical record identity also need validation.
 - Activation currently provisions missing dataset/tables; explicit provisioning authority,cost admission,least-privilege credentials and hosted billing evidence must precede live use.
 - Production DNA/BootLoader registration,public endpoint acceptance and full HyperDrive V2 remain open. No deployment/merge or full-provider certification from these31tests.
 

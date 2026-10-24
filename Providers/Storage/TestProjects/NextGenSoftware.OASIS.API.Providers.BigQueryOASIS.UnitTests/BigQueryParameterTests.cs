@@ -22,7 +22,7 @@ public class BigQueryParameterTests
             return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest){Content=new StringContent("{\"error\":{\"code\":400,\"message\":\"Controlled rejection before cloud dispatch.\",\"errors\":[{\"reason\":\"invalidQuery\",\"message\":\"controlled\"}]}}")};
         }
     }
-    private sealed class Factory(Wire wire):Google.Apis.Http.IHttpClientFactory
+    internal sealed class Factory(HttpMessageHandler wire):Google.Apis.Http.IHttpClientFactory
     {
         public Google.Apis.Http.ConfigurableHttpClient CreateHttpClient(Google.Apis.Http.CreateHttpClientArgs args)
         {
