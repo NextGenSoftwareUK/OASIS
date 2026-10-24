@@ -60,6 +60,7 @@ public class BigQuerySaveAcknowledgementTests
         public int Calls;
         public override Task<BigQueryResults> ExecuteQueryAsync(string sql,IEnumerable<BigQueryParameter> parameters,QueryOptions? queryOptions=null,GetQueryResultsOptions? resultsOptions=null,CancellationToken token=default)
         {
+            if(sql.TrimStart().StartsWith("SELECT",StringComparison.Ordinal))return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,TotalRows=0,JobReference=new(){ProjectId="my-project",JobId="owned-read"}},null,new GetQueryResultsOptions()));
             if(++Calls==failAt)throw new IOException("Controlled uncertain batch member.");
             return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,TotalRows=0,NumDmlAffectedRows=1,JobReference=new(){ProjectId="my-project",JobId=queryOptions!.JobId}},null,new GetQueryResultsOptions()));
         }
@@ -98,8 +99,8 @@ public class BigQuerySaveAcknowledgementTests
         public readonly IOException Failure=new("Controlled native result loss.");
         public override Task<BigQueryResults> ExecuteQueryAsync(string sql,IEnumerable<BigQueryParameter> parameters,QueryOptions? queryOptions=null,GetQueryResultsOptions? resultsOptions=null,CancellationToken token=default)
         {
-            if(sql.TrimStart().StartsWith("SELECT",StringComparison.Ordinal)&&ReadRecord!=null)
-                return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=new(){ProjectId="my-project",JobId="owned-read"},TotalRows=1,Schema=new(){Fields=new List<TableFieldSchema>{new(){Name="doc",Type="STRING"}}},Rows=new List<TableRow>{new(){F=new List<TableCell>{new(){V=ReadRecord}}}}},null,new GetQueryResultsOptions()));
+            if(sql.TrimStart().StartsWith("SELECT",StringComparison.Ordinal))
+                return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=new(){ProjectId="my-project",JobId="owned-read"},TotalRows=(ulong)(ReadRecord==null?0:1),Schema=new(){Fields=new List<TableFieldSchema>{new(){Name="doc",Type="STRING"}}},Rows=ReadRecord==null?new List<TableRow>():new List<TableRow>{new(){F=new List<TableCell>{new(){V=ReadRecord}}}}},null,new GetQueryResultsOptions()));
             Calls++;ProposedId=parameters?.SingleOrDefault(parameter=>parameter.Name=="id")?.Value?.ToString();ProposedJobId=queryOptions?.JobId;
             if(outcome==0)throw Failure;
             if(outcome==1)return Task.FromResult<BigQueryResults>(null!);
