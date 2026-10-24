@@ -1073,3 +1073,41 @@ MongoUInt64 actual41293 terminal1:478unitPASS; native205 preflight failures beca
 Read-only actual49049 terminal0: inspection249bytes SHA256 C640207F460B4F0A9F9EF804E5A0823F1583E35BD58AC3513D89517CED7EF5C1 proves exact test-marker/Avatar/AvatarDetail/Holon/CosmicHolonOutbox collections all empty. No record/receipt/outbox pending outcome; historical creator unknown, fixed fixture ownership marker recognised. Next pinned cleanup rechecks original hash +exact names+zero documents twice under global/fixture leases before dropping only cosmic_cql_fixture; preserve inspection and cleanup evidence. Services stopped by runner finally; retained runtime/data unchanged except bounded owned Mongo log tail.
 
 Actual80768 terminal1: pinned empty-fixture cleanup1PASS, then firstMongo seed transaction failed currentCore child-role validation at ConditionalHolonReceipt.Write ->HolonGraphWritePlan.Create ->ValidateChildSelectionForSave;204remaining preflight failures after retained empty DB. No CQL acceptance claim. Preserve mongo-uint64-child-role-red.trx +mongo-uint64-reconciled-final.log. Shared source owner notified with stack; no bypass/reset. Retain fixture until ownership/counts reverified after repair. No new resources; services stopped by runner finally.
+
+2026-10-24 Neo UInt64 preparation: no installs/restores/newenvironment. Reuse retained Neo4j5.26.12 oasis-neo4j image6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd/Bolt17687; fixed Neo4jCurrent fixture/read ownership and native/unit outputs. Planned205native (13new) and5newunit cases; exact schema3 rawnumber projection reused, no migration/reindex. Sizes unmeasured; owner COSMIC ORM UInt64. Build/globallease pending Oracle release; shared outputs reusable, graphfixture disposable only after known-outcome teardown.
+
+UInt64 HTTP preparation: appended enumUInt64 without renumbering; shared strict1..20digit string parser, selected/grouped type bindings and invariant UInt64 output strings.20new Core-linked wire tests prepared; reuse current CoreUnit outputs/TestResults/CosmicCurrent and SDK10.0.401/NuGet, no restore/install/newenv. Native Mongo actual11416 still finishing unit/artifact stage after205nativePASS0skip; Neo205native/5unit plus fullCore wire gate planned under one globallease after actual release. Fixed logs under CosmicCqlDemo; source outputs reusable, disposablefixtures retain existing verified teardown.
+
+
+## Three-provider UInt64/native and wire checkpoint — 24 October2026
+
+Actual99510 terminated0: fullCore/linked-production**2,474 tests**, Neo4j**205
+native CQL tests and453 provider units**, zero failures/skips. Twenty wire controls,
+13 native Neo cases and five Neo unit cases are new. The native gate covers exact
+UInt64 range/membership/order/projection, nullable grouped keys/Min/Max, field
+comparison and10 invalid-domain cases. Both existing schema3 integer values and
+exact raw wider-number text normalize to20-digit ordinal keys. No storage rewrite,
+reindex, toFloat or signed-integer conversion is introduced for these keys.
+
+Source/wire hashes stayed unchanged. Inside-lease producer/native/unit identities
+match Core9EA092FC, Shared2FD86EA9 and Neo86F7CE9C. Exact evidence:
+TestResults/Neo4jCurrent/uint64-artifacts.json, uint64-source-hashes.json,
+neo4j-cql-native-current.trx, uint64-unit-current.trx;
+TestResults/CosmicCurrent/uint64-wire-full-current.trx;
+TestResults/CosmicCqlDemo/uint64-wire-neo-final.log.
+
+Mongo acceptance11416 also passed205 native/478 units; SQLite's prior full1,435
+cohort remains scoped to its earlier binary. These are separate verified cohorts,
+not a simultaneous full regression of all three stores. The latest live demo remains
+63SDK/63HTTP UTC examples; new UInt64 live transport/examples still require their
+own gate. The additive UInt64 enum, selected/nullable binding, grouped alias
+predicates and central exact-string wire formatting pass the20 new Core controls.
+
+Core/Shared receipt repair was necessary for the current native seed path and is
+owned by the parallel provider session. Its committed dependency pin/publication
+must be reconciled before a Development deployment batch. This checkpoint remains
+on the task branch. Original joins, federation, broader Decimal/floating metadata,
+authoritative policy, interruption and final certification requirements stay open.
+See [the matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) and [UInt64 contract](CQL_UINT64_CONTRACT.md).
+
+Actual99510 terminal0 resource reconciliation: retain fixed reusable Core/Shared/Neo/native/unit outputs (sizesunmeasured), compact named logs/TRX/source/DLL hashes. Exact retained Neo container stopped in runner finally; owned17687/27029 listeners absent. FreeC69,731,119,104bytes at check; concurrent changes not solely attributed. Next build lease slot explicitly transferred to provider/Oracle session; no reacquisition until its release. No new downloads, installations, restores or environments introduced.
