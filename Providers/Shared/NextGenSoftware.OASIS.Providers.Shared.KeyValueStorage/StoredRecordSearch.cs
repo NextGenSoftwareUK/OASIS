@@ -98,8 +98,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                             match |= MatchesTextIds(json,text.SearchQuery);
                     }
                     else if(group is ISearchNumberGroup number)
+                    {
+                        var target=new JValue(number.Number);
                         match=flags.SelectMany(name=>SearchValues(json[name])).Concat(WalletValues(json,walletSelection))
-                            .Any(token=>decimal.TryParse(token.ToString(),NumberStyles.Number,CultureInfo.InvariantCulture,out var value) && CompareSearch(value.CompareTo(number.Number),number.NumberOperator));
+                            .Any(token=>StoredRecordNumericComparison.TryCompare(token,target,out var comparison) && CompareSearch(comparison,number.NumberOperator));
+                    }
                     else if(group is ISearchDateGroup date)
                         match=flags.SelectMany(name=>SearchValues(json[name])).Concat(WalletValues(json,walletSelection)).Any(token=>token.Type == JTokenType.Date
                             && CompareSearch(token.Value<DateTime>().CompareTo(date.Date),date.DateOperator));
@@ -190,9 +193,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             public override bool CanRead=>false;
             public override void WriteJson(Newtonsoft.Json.JsonWriter writer,object value,Newtonsoft.Json.JsonSerializer serializer)
             {
-                using var reader=new Newtonsoft.Json.JsonTextReader(new System.IO.StringReader(((System.Text.Json.JsonElement)value).GetRawText())) {
-                    DateParseHandling=Newtonsoft.Json.DateParseHandling.None};
-                writer.WriteToken(reader);
+                NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.CaptureRuntimeToken((System.Text.Json.JsonElement)value).WriteTo(writer);
             }
             public override object ReadJson(Newtonsoft.Json.JsonReader reader,Type type,object existing,Newtonsoft.Json.JsonSerializer serializer)
                 =>throw new NotSupportedException("Search JSON projection is write-only.");
