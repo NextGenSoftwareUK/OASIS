@@ -34,6 +34,8 @@ public partial class GoogleCloudOASIS
         if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
     }
 
+    private static bool IsReadableDetail(AvatarDetail detail)=>detail!=null && detail.IsActive && !detail.IsDeleted;
+
     private async Task<OASISResult<bool>> EnsureDetailStoreAsync(int version)
     {
         ValidateFirestoreVersion(version);
@@ -54,7 +56,7 @@ public partial class GoogleCloudOASIS
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IAvatarDetail>(ready);
             var document=await _firestoreDb.Collection("avatarDetails").Document(id.ToString()).GetSnapshotAsync();
             var detail=document.Exists ? await ReadFirestoreHistoryAsync<AvatarDetail>(document.ToDictionary(),document.Id,version):null;
-            if(detail==null || !detail.IsActive) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore detail not found.";}
+            if(!IsReadableDetail(detail)) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore detail not found.";}
             else {result.Result=detail;result.LoadedCount=1;result.IsLoaded=true;}
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
@@ -68,7 +70,7 @@ public partial class GoogleCloudOASIS
             var ready=await EnsureDetailStoreAsync(version);
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<IAvatarDetail>>(ready);
             var snapshot=await _firestoreDb.Collection("avatarDetails").GetSnapshotAsync();
-            result.Result=(await ReadFirestoreCollectionAsync<AvatarDetail>(snapshot,version)).Where(row=>row.IsActive).Cast<IAvatarDetail>().ToList();
+            result.Result=(await ReadFirestoreCollectionAsync<AvatarDetail>(snapshot,version)).Where(IsReadableDetail).Cast<IAvatarDetail>().ToList();
             result.LoadedCount=result.Result.Count();result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}

@@ -37,6 +37,27 @@ public partial class GoogleHistoryNativeTests
             if(soft){Assert.IsTrue(actual.Exists);var json=JObject.Parse(actual.GetValue<string>("data_json"));Assert.AreEqual(2,json["Version"]!.Value<int>());Assert.IsTrue(actual.GetValue<bool>("isDeleted"));
                 Assert.AreEqual(name,json[EmbeddedRecordHistory.PropertyName]!["records"]![0]!["Username"]!.Value<string>());
             }else Assert.IsFalse(actual.Exists);
+            if(soft&&mode==0){
+                // Preserve a valid canonical tombstone whose independent active flag
+                // remains true. Readers must honor deletion, not repair stored data.
+                var tombstone=JObject.Parse(actual.GetValue<string>("data_json"));tombstone["IsActive"]=true;
+                var raw=tombstone.ToString(Newtonsoft.Json.Formatting.None);
+                await detail.UpdateAsync(new Dictionary<string,object>{{"isActive",true},{"data_json",raw}},Precondition.LastUpdated(actual.UpdateTime!.Value));
+                var marked=await detail.GetSnapshotAsync();
+                foreach(var read in new[]{provider.LoadAvatarDetail(id),await provider.LoadAvatarDetailAsync(id),
+                    provider.LoadAvatarDetailByUsername(name),await provider.LoadAvatarDetailByUsernameAsync(name),
+                    provider.LoadAvatarDetailByEmail(name+"@example.invalid"),await provider.LoadAvatarDetailByEmailAsync(name+"@example.invalid")}){
+                    Assert.IsTrue(read.IsError);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,read.ErrorCode);
+                    Assert.IsNull(read.Result);Assert.IsFalse(read.IsLoaded);Assert.AreEqual(0,read.LoadedCount);
+                }
+                foreach(var listed in new[]{provider.LoadAllAvatarDetails(),await provider.LoadAllAvatarDetailsAsync()}){
+                    Assert.IsFalse(listed.IsError,listed.Message);Assert.IsFalse(listed.Result.Any(row=>row.Id==id));
+                }
+                var historical=await provider.LoadAvatarDetailAsync(id,version:1);
+                Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(321,historical.Result.XP);Assert.IsFalse(historical.Result.IsDeleted);
+                var unchanged=await detail.GetSnapshotAsync();Assert.AreEqual(marked.UpdateTime,unchanged.UpdateTime);Assert.AreEqual(raw,unchanged.GetValue<string>("data_json"));
+                Assert.AreEqual(originalAvatar,(await avatar.GetSnapshotAsync()).GetValue<string>("data_json"));actual=unchanged;
+            }
             if(actual.Exists)await detail.DeleteAsync(Precondition.LastUpdated(actual.UpdateTime!.Value));
             var original=await avatar.GetSnapshotAsync();await avatar.DeleteAsync(Precondition.LastUpdated(original.UpdateTime!.Value));
             Assert.IsFalse((await detail.GetSnapshotAsync()).Exists);Assert.IsFalse((await avatar.GetSnapshotAsync()).Exists);File.Delete(journal);
