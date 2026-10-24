@@ -859,10 +859,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             }catch(Exception cause){throw new BigQueryRecordReconciliationException(Guid.Parse(id),_projectId,jobId,location,acknowledged,cause);}
         }
 
-        private async Task DeleteDocAsync(string table, string id)
+        private async Task DeleteDocAsync(string table, string id,string? expectedDoc=null)
         {
             ValidatePointIdentity(Guid.Parse(id));
-            await ExecuteOneRowMutationAsync(_client??throw new InvalidOperationException("BigQuery client is not activated."),id,$"DELETE FROM {Table(table)} WHERE id = @id",new[]{StringParameter("id",id)});
+            var parameters=new List<BigQueryParameter>{StringParameter("id",id)};
+            if(expectedDoc!=null)parameters.Add(StringParameter("expected_doc",expectedDoc));
+            await ExecuteOneRowMutationAsync(_client??throw new InvalidOperationException("BigQuery client is not activated."),id,$"DELETE FROM {Table(table)} WHERE id = @id{(expectedDoc==null?"":" AND doc = @expected_doc")}",parameters);
         }
 
         private async Task<T?> FindOneAsync<T>(string table, string field, string value,int version=0) where T : class,IHolonBase
