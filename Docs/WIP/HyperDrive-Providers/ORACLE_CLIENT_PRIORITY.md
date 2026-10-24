@@ -1,5 +1,9 @@
 # Oracle client readiness — top priority
 
+## 24 October — strict text transport verification,127 OCI controls green
+
+Fresh complete OCI signed-SDK loopback cohort **127PASS,zero skips,10seconds**. Eight new cases cover observed/plain GET,overlong UTF8,encoded surrogate,truncated supplementary scalar and a valid tree emoji. Invalid bodies have matching native byte lengths AND MD5 yet must retain DecoderFallbackException rather than return replacement text. Existing strict decoder already satisfies this boundary: no production defect or source correction is claimed. Source/PDB/copies verified Core742/Shared56/OCI5/unit6. Fixed report oracle-object-utf8-current.trx202567bytes SHA2565FC40030D4DEF49F9AEFBE7F9CDF0027465D75671514D431664304F640EC17DA. Listener18661 absent after terminal83841exit0; no download/restore/cloud request/new environment. Inventory records reuse/lifecycle. SQL498native/417unit remains its separate earlier cohort. Live Autonomous/OCI cloud IAM/wallet/durability/fees and full V2 remain OPEN; Oracle is not100% complete.
+
 ## Published Core compatibility refresh — 24 October
 
 Fresh full local regression against published Core d61551d20fdb9c5cbcc1be2c0f744c28e96614f9 passed **498 native database tests (47 seconds) and417 unit tests**, zero skips. Current-source PE/PDB checks cover Core742/Shared56 and Oracle15/integration39/unit29 documents; exact hashes/resources are in ENVIRONMENT_INVENTORY.md. Same retained Oracle database and cached SDK, no download/restore/new environment/cloud request. Prior native evidence preserved; cleanup complete, pending0, database stopped and port11521 absent. README now correctly distinguishes supported export -1 from invalid values below -1; ordinary reads still reject negatives. No storage-code change was needed for this refresh.
