@@ -1,8 +1,9 @@
-param([switch]$IndependentExportVersions,[switch]$ReconcileScalarFixture,[switch]$InspectScalarFixture,[switch]$InspectRetainedFixture,[switch]$ReconcileRetainedRoutingFixture,[switch]$ReconcileCredentialFixture,[switch]$ReconcileRoleFixture)
+param([switch]$ReadCounts,[switch]$IndependentExportVersions,[switch]$ReconcileScalarFixture,[switch]$InspectScalarFixture,[switch]$InspectRetainedFixture,[switch]$ReconcileRetainedRoutingFixture,[switch]$ReconcileCredentialFixture,[switch]$ReconcileRoleFixture)
 $ErrorActionPreference='Stop'
 $diagnosticModes=@($ReconcileScalarFixture,$InspectScalarFixture,$InspectRetainedFixture,$ReconcileRetainedRoutingFixture,$ReconcileCredentialFixture,$ReconcileRoleFixture) | Where-Object {$_}
 if(@($diagnosticModes).Count -gt 1){throw 'Select only one explicit Cosmos DB diagnostic mode.'}
 if($IndependentExportVersions -and @($diagnosticModes).Count){throw 'Independent export regression cannot be combined with original fixture diagnostics.'}
+if($ReadCounts -and ($IndependentExportVersions -or @($diagnosticModes).Count)){throw 'Read-count regression cannot be combined with another native mode.'}
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $work=Join-Path $root 'TestResults/CosmosDBCurrent'
 $previousWork=$env:OASIS_COSMOSDB_WORK
@@ -28,6 +29,7 @@ try {
     if(!$ReconcileScalarFixture -and !$InspectScalarFixture -and !$InspectRetainedFixture -and (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Reconcile original Cosmos fixture journals before another run; do not replay or reset.'}
     $reportName=if($ReconcileScalarFixture){'cosmos-scalar-reconciliation-current.trx'}elseif($InspectScalarFixture){'cosmos-scalar-inspection-current.trx'}elseif($ReconcileRoleFixture){'cosmos-role-reconciliation-current.trx'}elseif($ReconcileCredentialFixture){'cosmos-credential-reconciliation-current.trx'}elseif($InspectRetainedFixture){'cosmos-retained-inspection-current.trx'}elseif($ReconcileRetainedRoutingFixture){'cosmos-routing-reconciliation-current.trx'}else{'cosmos-native-current.trx'}
     if($IndependentExportVersions){$reportName='cosmos-export-native-current.trx'}
+    if($ReadCounts){$reportName='cosmos-read-count-native-current.trx'}
     if(Test-Path -LiteralPath (Join-Path $work $reportName)) {throw 'Preserve and hash-verify the existing Cosmos DB report before another run; refusing to overwrite verification evidence.'}
     if(Get-NetTCPConnection -LocalPort 8082 -State Listen -ErrorAction SilentlyContinue) {throw 'Reserved Cosmos SDK outage endpoint8082 occupied.'}
     $state=(& wsl.exe -d Ubuntu -u root -- podman inspect oasis-cosmos --format '{{.State.Status}} {{.Image}}') -join ''

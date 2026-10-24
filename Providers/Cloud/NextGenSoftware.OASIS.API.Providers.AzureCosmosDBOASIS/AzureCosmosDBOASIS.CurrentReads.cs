@@ -81,7 +81,7 @@ public partial class AzureCosmosDBOASIS
         var result=await ReadCurrentKeyAsync<IHolon>(()=>holonRepository,key,0).ConfigureAwait(false);
         if(result.IsError) return result;
         var record=result.Result;
-        result.Result=null;result.IsLoaded=false;
+        result.Result=null;result.IsLoaded=false;result.LoadedCount=0;
         try
         {
             await holonRepository.DeleteIfUnchangedAsync(record);
@@ -109,7 +109,7 @@ public partial class AzureCosmosDBOASIS
             var matches=loaded.Result.Where(row=>string.Equals(field(row),selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
             if(matches.Length>1) throw new StorageIdentityAmbiguousException();
             if(matches.Length==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Cosmos record selector not found.";}
-            else {result.Result=matches[0];result.IsLoaded=true;}
+            else {result.Result=matches[0];result.IsLoaded=true;result.LoadedCount=1;}
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;}
         return result;
@@ -165,6 +165,7 @@ public partial class AzureCosmosDBOASIS
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
             result.Result=records.Where(row=>StoredRecordSearch.Matches(row,false,search,records)).ToArray();
+            result.LoadedCount=result.Result.Count();
             result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
@@ -187,6 +188,7 @@ public partial class AzureCosmosDBOASIS
             var project=HolonGraphProjection.Create(pool.Result,children,recursive,depth,initialDepth,fromProvider,
                 source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)),rootsAreChildren:true);
             result.Result=records.Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).Select(project).ToArray();
+            result.LoadedCount=result.Result.Count();
             result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
@@ -208,6 +210,7 @@ public partial class AzureCosmosDBOASIS
             var project=HolonGraphProjection.Create(pool.Result,children,recursive,depth,initialDepth,fromProvider,
                 source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
             result.Result=records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToArray();
+            result.LoadedCount=result.Result.Count();
             result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
@@ -234,7 +237,7 @@ public partial class AzureCosmosDBOASIS
                 source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
             result.Result=project(result.Result);
         }
-        catch(Exception cause) {result.Result=null;result.IsLoaded=false;OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        catch(Exception cause) {result.Result=null;result.IsLoaded=false;result.LoadedCount=0;OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
     }
 
@@ -260,6 +263,7 @@ public partial class AzureCosmosDBOASIS
             var store=repository() ?? throw new InvalidOperationException("Cosmos repository was not initialized.");
             var rows=await store.GetListAsync(version).ConfigureAwait(false) ?? throw new System.IO.InvalidDataException("Cosmos collection read returned no collection.");
             result.Result=rows.Where(row=>row.IsActive).ToArray();
+            result.LoadedCount=result.Result.Count();
             result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
@@ -327,7 +331,7 @@ public partial class AzureCosmosDBOASIS
             {
                 result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Cosmos OASIS record not found.";
             }
-            else {result.Result=row;result.IsLoaded=true;}
+            else {result.Result=row;result.IsLoaded=true;result.LoadedCount=1;}
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
