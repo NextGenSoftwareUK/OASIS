@@ -1,6 +1,14 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
-## Export version contract mismatch — 24 October 2026, OPEN
+## Native size admission — 24 October 2026
+
+Fixed a real near-limit rejection: preparation claim/recovery invented1024+256bytes/record, and conditional graph guards charged38bytes for every number. Four controlled ASCII/Unicode sync/async preparations first failed before SDK dispatch. One Dynamo/AWS inherited sizing owner now counts documented UTF8/binary/BOOL/list/map/set bytes without invented padding. Numeric payload is deliberately omitted from the **lower bound**, because [AWS documents compressed number size only approximately](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/CapacityUnitCalculations.html); SDK/service remains final boundary authority. This is not a billing/capacity estimator and cannot guarantee every invalid paid request is avoided.
+
+Matched531unitPASS0skip and187real-SDK/DynamoDB Local nativePASS0skip43s: existing171history +4preparation +8conditional cases plus4new AWS/Dynamo ASCII/Unicode near-limit claim/replay/readback/conditional-cleanup cases. The new envelope data is opaque synthetic transport input, not crypto-authentication proof. Exact source/copy identities, reports and reused resource lifecycle: ENVIRONMENT_INVENTORY.md. No installation/download/new environment/cloud call. Hosted AWS IAM/capacity/fees/durability, S3 live acceptance and full V2 remain OPEN.
+
+## Export version contract mismatch — local gate CLOSED; hosted acceptance OPEN
+
+Published3698c29cd already closes the local all-version enumeration issue. Older working-tree/pending statements below are chronological preparation notes, superseded by the paired final523unit/171native result; they are not current missing implementation. The new size-admission187-case cohort is separately recorded above, not a relabel of the old171.
 
 Final paired refresh actual60085terminal0: Shared1037/1037 and Dynamo523/523unitPASS0skip, both consumers' current-source/Core732/4ECCB543/Shared55/00AF19C5 identity gates pass, matching native171 cohort. Scoped local implementation gate verified; hosted AWS IAM/fees, public API acceptance and other providers' -1 behavior remain OPEN. This closes local Dynamo/AWS all-version enumeration, not the full provider programme.
 

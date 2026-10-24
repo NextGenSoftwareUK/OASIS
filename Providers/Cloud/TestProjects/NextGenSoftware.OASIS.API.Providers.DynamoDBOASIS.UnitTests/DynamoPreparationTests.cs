@@ -47,6 +47,40 @@ public class DynamoPreparationTests
         var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!;
         var old=(AmazonDynamoDBClient)field.GetValue(provider)!;field.SetValue(provider,client);return(provider,old);
     }
+    [DataTestMethod]
+    [DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task NativeSizedPreparationIsNotRejectedByInventedPadding(bool sync,bool unicode)
+    {
+        using var client=new Client();var(provider,old)=Setup(client);using var owned=old;
+        // Both payloads leave over 400 native bytes for this fixed S/L/M schema.
+        // The former 1024+256/record padding rejected them without an SDK call.
+        var suffix=unicode?new string('é',200*1024-256):new string('x',400*1024-512);
+        var candidate=Candidate(Guid.NewGuid(),Guid.NewGuid(),suffix);
+        var claimed=sync?provider.ClaimHolonWritePreparation(candidate):await provider.ClaimHolonWritePreparationAsync(candidate);
+        Assert.IsFalse(claimed.IsError,claimed.Message+claimed.Exception);Assert.AreEqual(1,client.Writes);
+        var recovered=await provider.ClaimHolonWritePreparationAsync(candidate);
+        Assert.IsFalse(recovered.IsError,recovered.Message+recovered.Exception);Assert.AreEqual(candidate.Records[0].Envelope,recovered.Result.Records[0].Envelope);
+        Assert.AreEqual(1,client.Writes);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task DefinitelyOversizedPreparationRejectsBeforeAnySdkRead(bool sync)
+    {
+        using var client=new Client();var(provider,old)=Setup(client);using var owned=old;
+        var candidate=Candidate(Guid.NewGuid(),Guid.NewGuid(),new string('x',400*1024));
+        var result=sync?provider.ClaimHolonWritePreparation(candidate):await provider.ClaimHolonWritePreparationAsync(candidate);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual(0,client.Reads);Assert.AreEqual(0,client.Writes);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void SmallNativeNumbersDoNotAddThirtyEightPaddingBytes(bool negative)
+    {
+        var method=typeof(DynamoDBOASIS).GetMethod("MeasureGraphItem",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var item=new Dictionary<string,AttributeValue>{{"id",new(){S=Guid.NewGuid().ToString()}},{"data",new(){S=new string('x',400*1024-60)}},{"rank",new(){N=negative?"-1":"1"}}};
+        var lower=(long)method.Invoke(null,new object[]{item})!;
+        Assert.IsTrue(lower<=400L*1024);
+        Assert.AreEqual(400L*1024-14,lower);
+    }
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public async Task FirstWinnerIsRetainedAndAnotherActorReceivesNoEnvelope(bool sync) {
         using var client=new Client();var(provider,old)=Setup(client);using var owned=old;

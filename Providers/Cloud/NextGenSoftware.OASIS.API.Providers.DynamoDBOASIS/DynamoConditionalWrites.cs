@@ -183,12 +183,8 @@ public partial class DynamoDBOASIS : IConditionalHolonStorageProvider
     }
     private static long MeasureGraphItem(Dictionary<string,AttributeValue> item)
     {
-        long size=0;
-        foreach(var pair in item) {
-            size+=Encoding.UTF8.GetByteCount(pair.Key);
-            size+=pair.Value.S!=null?Encoding.UTF8.GetByteCount(pair.Value.S):pair.Value.N!=null?38:1;
-        }
-        if(size>400L*1024)throw new ArgumentException("DynamoDB atomic graph item or receipt exceeds400KiB.");
+        var size=DynamoItemSize.MinimumBytes(item);
+        if(size>DynamoItemSize.MaximumItemBytes)throw new ArgumentException("DynamoDB atomic graph item or receipt known bytes exceed400KiB.");
         return size;
     }
     private static OASISResult<IEnumerable<IHolon>> GraphAcknowledgement(IEnumerable<IHolon> roots,ConditionalHolonOperation operation)
