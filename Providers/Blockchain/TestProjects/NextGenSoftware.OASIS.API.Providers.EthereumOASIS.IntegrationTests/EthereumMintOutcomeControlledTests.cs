@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Util;
 using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.Common;
@@ -19,15 +20,21 @@ public class EthereumMintOutcomeControlledTests
     private const string Recipient = "0x2222222222222222222222222222222222222222";
     private const string Key = "1111111111111111111111111111111111111111111111111111111111111111";
 
-    [DataTestMethod, DataRow("ack-loss"), DataRow("receipt-loss"), DataRow("foreign-receipt"), DataRow("no-op"),
-        DataRow("success"), DataRow("reverted"), DataRow("missing-status")]
-    public async Task SubmittedMintFailureRequiresReconciliationWithOriginalKnownIdentity(string mode)
+    [DataTestMethod,
+        DataRow("ack-loss","mint"), DataRow("receipt-loss","mint"), DataRow("foreign-receipt","mint"), DataRow("no-op","mint"),
+        DataRow("success","mint"), DataRow("reverted","mint"), DataRow("missing-status","mint"), DataRow("reverted-unmined","mint"),
+        DataRow("ack-loss","send"), DataRow("receipt-loss","send"), DataRow("foreign-receipt","send"), DataRow("no-op","send"),
+        DataRow("success","send"), DataRow("reverted","send"), DataRow("missing-status","send"), DataRow("reverted-unmined","send"),
+        DataRow("ack-loss","burn"), DataRow("receipt-loss","burn"), DataRow("foreign-receipt","burn"), DataRow("no-op","burn"),
+        DataRow("success","burn"), DataRow("reverted","burn"), DataRow("missing-status","burn"), DataRow("reverted-unmined","burn")]
+    public async Task NftOutcomesPreserveNativeIdentityAndReplayClassification(string mode, string operation)
     {
         using var listener = new HttpListener(); listener.Prefixes.Add(Url); listener.Start();
         using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         var provider = new MintProvider { Web3Client = new Web3(Url) };
         typeof(EthereumOASIS).GetProperty("IsProviderActivated")!.SetValue(provider, true);
-        string hash = "", token = ""; var submissions = 0;
+        string hash = "", token = new string('0',63) + "1"; var submissions = 0;
+        var sender = new Account(Key,31337).Address;
         var serving = Task.Run(async () =>
         {
             for (var i = 0; i < 16; i++)
@@ -37,6 +44,7 @@ public class EthereumMintOutcomeControlledTests
                 var method = request["method"]!.GetValue<string>(); JsonNode? response; var error = false; var terminal = false;
                 switch (method)
                 {
+                    case "eth_call": terminal = submissions > 0; response = JsonValue.Create("0x" + (submissions > 0 && mode != "no-op" ? Recipient : sender)[2..].PadLeft(64,'0')); break;
                     case "eth_estimateGas":
                         token = request["params"]![0]!["data"]!.GetValue<string>()[^64..]; response = JsonValue.Create("0x493e0"); break;
                     case "eth_getTransactionCount": response = JsonValue.Create("0x0"); break;
@@ -51,12 +59,12 @@ public class EthereumMintOutcomeControlledTests
                         response = error ? Error() : JsonValue.Create(hash); break;
                     case "eth_getTransactionReceipt":
                         Assert.AreEqual(hash, request["params"]![0]!.GetValue<string>());
-                        terminal = true; error = mode == "receipt-loss";
+                        terminal = operation != "send"; error = mode == "receipt-loss";
                         response = error ? Error() : new JsonObject { ["transactionHash"] = mode == "foreign-receipt" ? "0x" + new string('b',64) : hash,
-                            ["status"] = mode == "missing-status" ? null : mode == "reverted" ? "0x0" : "0x1", ["blockNumber"] = "0x7", ["logs"] = mode == "no-op" ? new JsonArray() : new JsonArray(new JsonObject {
+                            ["status"] = mode == "missing-status" ? null : mode.StartsWith("reverted") ? "0x0" : "0x1", ["blockNumber"] = mode == "reverted-unmined" ? null : "0x7", ["logs"] = mode == "no-op" ? new JsonArray() : new JsonArray(new JsonObject {
                                 ["address"] = Contract, ["data"] = "0x", ["topics"] = new JsonArray(
-                                    "0x" + Sha3Keccack.Current.CalculateHash("Transfer(address,address,uint256)"), "0x" + new string('0',64),
-                                    "0x" + Recipient[2..].PadLeft(64,'0'), "0x" + token) }) }; break;
+                                    "0x" + Sha3Keccack.Current.CalculateHash("Transfer(address,address,uint256)"), operation == "mint" ? "0x" + new string('0',64) : "0x" + sender[2..].PadLeft(64,'0'),
+                                    operation == "burn" ? "0x" + new string('0',64) : "0x" + Recipient[2..].PadLeft(64,'0'), "0x" + token) }) }; break;
                     default: throw new InvalidOperationException("Unexpected controlled RPC: " + method);
                 }
                 var envelope = new JsonObject { ["jsonrpc"] = "2.0", ["id"] = request["id"]!.DeepClone(), [error ? "error" : "result"] = response };
@@ -67,8 +75,15 @@ public class EthereumMintOutcomeControlledTests
             }
             Assert.Fail("Controlled RPC request bound exceeded.");
         });
-        var pending = provider.MintNFTAsync(new MintWeb3NFTRequest { MintedByAvatarId = Guid.NewGuid(), SendToAddressAfterMinting = Recipient });
-        await Task.WhenAll(pending, serving).WaitAsync(limit.Token);
+        var pending = operation == "mint"
+            ? provider.MintNFTAsync(new MintWeb3NFTRequest { MintedByAvatarId = Guid.NewGuid(), SendToAddressAfterMinting = Recipient })
+            : operation == "send" ? provider.SendNFTAsync(new SendWeb3NFTRequest { TokenAddress = Contract, FromWalletAddress = sender,
+                ToWalletAddress = Recipient, TokenId = "1", Amount = 1, OwnerPrivateKey = Key })
+            : provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = Contract, TokenId = "1", OwnerPrivateKey = Key, OwnerPublicKey = "", OwnerSeedPhrase = "" });
+        await pending.WaitAsync(limit.Token);
+        limit.Cancel();
+        try { await serving; }
+        catch (OperationCanceledException) when (limit.IsCancellationRequested) { /* Owned responder teardown after the provider completed. */ }
         var result = await pending;
         Assert.AreEqual(1, submissions);
         if (mode == "success")
