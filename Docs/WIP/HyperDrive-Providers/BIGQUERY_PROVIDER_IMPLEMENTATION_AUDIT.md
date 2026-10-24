@@ -1,5 +1,13 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## Requested selector versus canonical-record integrity — 24 October
+
+Full787controlledPASS0skip5seconds. Original32case baseline16genuinefail/16valid: GUID point,avatar/detail username/email and parent index responses could return canonical records belonging to another requested identity/scope. Existing GetDoc/FindOne/FindAll owners now use one requested-selector validator and reject mismatch as InvalidDataException with no loaded/partial payload. No filtering a corrupt index response into a seemingly healthy result. Historical selectors still evaluate the selected canonical revision rather than compare against current index fields.
+
+48additional controls cover empty GUID point/read/delete admission,blank/null identity selectors,malformed stored empty identities and the legitimate Guid.Empty parent-root collection case. Invalid requests reject before native I/O; empty parent remains allowed. Canonical record IDs must be nonempty in the shared decoder; observation/write and hard-delete point boundaries reuse the same ID admission. No source/native rewrite or new persistence/SDK path. Source/PDB Core742/Shared56/provider7/unit15 and copies verified; no fixture correction needed for this batch. All original reports retained.
+
+Scope: this validates REQUESTED selectors against canonical payloads. It is not complete unfiltered native column-projection parity,hosted index corruption injection,server uniqueness or authentication certification. Native cloud/security/fees/concurrency/limits/durability,paired lifecycle/full interfaces and fullV2 remainOPEN. No cloud job/dataset/credentials,new environment or download. Evidence/resources in inventory.
+
 ## Historical search and version-scoped exports — 24 October
 
 Full707controlledPASS0skip5seconds. Original26cases22genuinefail/4valid: historical search was unsupported,owner export ignored root Version,all-version export was absent and some invalid export values reached identity lookup. Shared search validation now enables positive historical roots; current independent holon pool supplies descendants/parent ancestry,not the root version filter. Historical avatar search also matches selected historical identity. Search still rejects negative/all-version requests before I/O; its earlier admission test now uses unsupported -1 rather than newly supported +1.
@@ -122,7 +130,7 @@ Original first build failed because the existing provider tests referenced an ab
 - Point caller ownership is repaired/controlled-verified above; prepared-operation integration and restart-safe attempt journaling/admission remain open.
 - Canonical scalar/interface roundtrip and primary version reads/archive-save/soft-delete/search/owner export/all-version export are controlled-verified above. Native history acceptance,complete encryption/private index fidelity and full interface/options validation remain open.
 - Captured multi-root graph/children writes and current parent-linked reads are controlled-verified above; complete native option/placement behavior,paired avatar/detail lifecycle and concurrency/identity uniqueness remain open. Root bulk/graph partial acknowledgement reporting is not native graph acceptance.
-- Collection LIMIT1000 truncation and ambiguous point selection are controlled-verified repairs above. Full search/export/graph/option semantics, concurrent identity uniqueness and indexed selectors versus canonical record identity still need validation.
+- Collection LIMIT1000 truncation,ambiguous point selection and requested-selector/canonical consistency are controlled-verified repairs above. Full native option/interface behavior,concurrent identity uniqueness and unfiltered native column-projection parity remain open.
 - Activation currently provisions missing dataset/tables; explicit provisioning authority,cost admission,least-privilege credentials and hosted billing evidence must precede live use.
 - Production DNA/BootLoader registration,public endpoint acceptance and full HyperDrive V2 remain open. No deployment/merge or full-provider certification from these31tests.
 

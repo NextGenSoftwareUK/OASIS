@@ -808,7 +808,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         private async Task<T?> GetDocAsync<T>(string table, string id,int version=0) where T : class,IHolonBase
         {
+            ValidatePointIdentity(Guid.Parse(id));
             var rows = await ReadRowsAsync<T>($"SELECT doc FROM {Table(table)} WHERE id = @id LIMIT 2",new[]{StringParameter("id",id)},version:version);
+            ValidateIndexedSelection(rows,"Id",id);
             return UniqueRecord(rows);
         }
 
@@ -858,19 +860,28 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         }
 
         private async Task DeleteDocAsync(string table, string id)
-            => await ExecuteOneRowMutationAsync(_client??throw new InvalidOperationException("BigQuery client is not activated."),id,$"DELETE FROM {Table(table)} WHERE id = @id",new[]{StringParameter("id",id)});
+        {
+            ValidatePointIdentity(Guid.Parse(id));
+            await ExecuteOneRowMutationAsync(_client??throw new InvalidOperationException("BigQuery client is not activated."),id,$"DELETE FROM {Table(table)} WHERE id = @id",new[]{StringParameter("id",id)});
+        }
 
         private async Task<T?> FindOneAsync<T>(string table, string field, string value,int version=0) where T : class,IHolonBase
         {
             var column=FieldColumn(field);
+            if(string.IsNullOrWhiteSpace(value))throw new ArgumentException("BigQuery identity selector must not be blank.",nameof(value));
             var rows = version==0?await ReadRowsAsync<T>($"SELECT doc FROM {Table(table)} WHERE {column} = @value LIMIT 2",new[]{StringParameter("value",value)},version:version):
                 (await GetAllDocsAsync<T>(table,version)).Where(row=>string.Equals(IndexedRecordValue(row,field),value,StringComparison.Ordinal)).ToList();
+            ValidateIndexedSelection(rows,field,value);
             return UniqueRecord(rows);
         }
 
         private async Task<List<T>> FindAllAsync<T>(string table, string field, string value,int version=0) where T : class,IHolonBase
-            => version==0?await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value",StringParameter("value",value)):
+        {
+            var rows=version==0?await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value",StringParameter("value",value)):
                 (await GetAllDocsAsync<T>(table,version)).Where(row=>string.Equals(IndexedRecordValue(row,field),value,StringComparison.Ordinal)).ToList();
+            ValidateIndexedSelection(rows,field,value);
+            return rows;
+        }
 
         private async Task<List<T>> GetAllDocsAsync<T>(string table,int version=0) where T : class,IHolonBase
             => await ReadRowsAsync<T>($"SELECT doc FROM {Table(table)}",Array.Empty<BigQueryParameter>(),version:version);
