@@ -18,12 +18,16 @@ Source checkpoint: Core now materializes the admitted graph shape. SQLite expand
 
 ## 2. Projections, aggregates and grouping
 
-[Implementation contract and native acceptance invariants](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md). Count/LongCount/Any are shipped and verified as recorded below; native SDK/HTTP projections are implemented as recorded below; non-count aggregates and grouping remain planned.
+Current verified contracts: [projection/aggregate ownership](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md), [exact numeric aggregates](CQL_NUMERIC_AGGREGATES.md), [grouping contract](CQL_GROUPING_CONTRACT.md). Historical milestones below retain their original test cohorts; current status is authoritative here.
 
-- [ ] Complete immutable result shapes and capability admission before native I/O. Count/LongCount/Any Core intent, actual-adapter readmission, detached per-provider execution and the common row/scalar attempt owner are implemented in d71eebd (full Core 1,956 passes). All3 native count/existence adapters and scalar HTTP are now verified; projection/grouped shapes remain required.
-- [ ] Implement supported Select, Count/LongCount, Any, Min/Max, Sum/Average and GroupBy shapes natively. SQLite Count/LongCount/Any pass full1,269 tests, including12new native controls; Mongo scalar count passes unit229/native76, including9new unit/12new native cases. Neo scalar now passes unit322/jointnative129, including15new controls. Count/LongCount/Any native slices are verified on all3; scalar transport now passes signed joint native129 on all3 (exact137 input each); annotated scalar demos pass27SDK/27HTTP,182settled/181attempts, scalar no-replay3stores, generatedSwaggerbothroutes and finalCore1982/demo1. Projections and remaining aggregate operations are still required.
-- [ ] Specify missing/null/empty-set semantics, overflow, precision, collation and grouping-key equality; reject unsupported shapes explicitly.
-- [ ] Apply access predicates before aggregation; publish detached DTO/scalar results without accidental tracked-entity behavior.
+- [x] Immutable detached Select and scalar shapes, actual-adapter admission and the existing generic manager/physical-attempt owner.
+- [x] Native Count/LongCount/Any, selected Min/Max and exact Int32/Int64/nullable Sum/Average on MongoDB, SQLite and Neo4j, preserving source windows, visibility and protected traversal checks.
+- [x] Bounded SDK/HTTP transport and spaced/commented demos for these supported operators: latest full Core2,155, native195,42 SDK/42 HTTP, zero skips;222 settled/217 physical attempts. GroupBy foundation subsequently passes full Core2,169.
+- [x] Empty/null/precision/overflow semantics for the enrolled scalar operations and detached selected publication. Broader scalar coverage and authoritative sharing/tenant policy remain separate unchecked requirements below.
+- [x] Immutable scalar/composite GroupBy key capture through the existing projection compiler, independent grouped-output bounds and source/access/window preservation (14 new controls).
+- [ ] Complete grouped result selection, aggregate slots, capability planning/readmission and existing attempt-owner integration before native grouping I/O.
+- [ ] Implement grouped Count/LongCount, Min/Max and exact Sum/Average natively on all three providers; prove typed key equality, nullable/missing rules, deterministic order, group/input budgets, access-before-participation and no partial publication.
+- [ ] Certify post-group filters/order/pages and multiple aggregates. Add bounded grouped HTTP, developer examples and live three-provider acceptance.
 
 ## 3. Joins and composition
 
@@ -53,7 +57,7 @@ Source checkpoint: Core now materializes the admitted graph shape. SQLite expand
 - [ ] Reconcile the resource ledger and remove owned disposable fixtures after teardown; preserve shared environments.
 - [ ] Commit/push verified task batches; integrate into Development at the agreed cadence or explicit user request.
 
-## Current continuation checkpoint — 23 October 2026
+## Historical continuation checkpoints — 23 October 2026
 
 Task branch `fix/hyperdrive-v2-providers`, current Core `cf4a5ab`; scalar milestone parent `f5f65cd75`/Core `af6aed5` is the historical baseline. Scalar HTTP and annotated demos are complete for all three priority stores: Core1982, prior jointnative129 and final dedicateddemo1 pass without skips. Fresh27SDK/27HTTP,182settled/181attempts; signed137-input counts and scalar no-replay each pass on all3. Manifest/gitlinks and192changed-document local links validate. Build slot released; no owned live CQL runtime or retained failed fixture. Existing peer Oracle failure evidence remains outside this batch.
 

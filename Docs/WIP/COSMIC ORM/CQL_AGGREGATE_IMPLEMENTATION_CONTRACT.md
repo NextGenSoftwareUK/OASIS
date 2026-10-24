@@ -1,6 +1,6 @@
 # CQL projection and aggregate implementation contract
 
-23 October 2026. Implementation contract for the second phase of the completion roadmap. All three stores now implement native Count/LongCount/Any and detached Select, with generic Core/V2 planning, actual-adapter admission and execution. Scalar HTTP and its demos are verified; projection HTTP passes fullCore2,059 and signed native three-store acceptance. Expanded projection demo/regression gates pass30SDK/30HTTP and147native cases, unskipped (195settled/190physicalattempts). Min/Max, Sum/Average and GroupBy remain acceptance requirements in this programme. Historical checkpoints below record the earlier staged gates; they do not mark the full CQL/ORM roadmap complete.
+23 October 2026. All three priority stores implement native Count/LongCount/Any, detached Select, selected Min/Max and exact integer Sum/Average. Current acceptance:2,155 Core/HTTP tests,195 native regression tests,42 SDK/42 HTTP examples, zero skips (222 settled/217 physical attempts). GroupBy key capture subsequently passes Core2,169; grouped selection/planning/native execution remain required. See [grouping contract](CQL_GROUPING_CONTRACT.md). Historical checkpoints below retain earlier staged evidence and do not mark the full CQL/ORM roadmap complete.
 
 ## Query and result ownership
 
