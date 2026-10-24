@@ -1,5 +1,7 @@
 # HyperDrive V2 current release gates
 
+SOLID export contract24October: documented -1 now enumerates encrypted histories through existing shared ReadAll codec; current avatar identity is independent of requested holon version; owner/tombstone filtering per selected version. Valid corrected baseline8negative-admission failures, fixed full353controlledPASS0skip including tombstonedcurrent4/historical1..3/foreignowner isolation/currentavatar2/selectedholon3/unchanged ciphertext. Earlier missing-activation fixture failures retained but not defect evidence. Core740/ABD06B39 Shared55/1A9956E5 SOLID13/D31B8777 current-source/copies matched. No native test/server start attempted after prior readiness policy denial; live Pod/export/fullV2 gate OPEN. Details in SOLID_PROVIDER_IMPLEMENTATION_AUDIT.md/inventory; not a point-in-time child graph or full-provider certification.
+
 S3 key-admission follow-up24October: existing shared Key owner now rejects full prefixed names above1024UTF8bytes before SDK GET/PUT/DELETE dispatch, preserving valid1024byte ASCII/Unicode names. Genuine12red controls then64selected S3 SDK-boundary/protocol regressionsPASS0skip; producer4source-doc/current-copy hash43E0224C, Core740/ABD06B39 Shared55/1A9956E5 matched. This closes one local admission gap only, not hosted/native cloud/IAM/billing/durability/fullV2. Resource/evidence hashes in inventory; no new runtime/download or service.
 
 ## Ordinary Dynamo/AWS save admission — 24 October
