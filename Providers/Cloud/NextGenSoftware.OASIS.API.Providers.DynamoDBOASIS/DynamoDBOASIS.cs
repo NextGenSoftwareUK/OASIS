@@ -614,7 +614,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var acknowledgedIds=new HashSet<Guid>();
             try {
                 var sourceGuards=new Dictionary<IHolon,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Core.Holons.Holon>>(ReferenceEqualityComparer.Instance);
-                var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,
+                var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.CreateForSave(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,
                     source=>sourceGuards.Add(source,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Core.Holons.Holon>.Capture(source)));
                 var failedParents=new HashSet<Guid>();
                 foreach(var node in plan.Nodes) {
@@ -646,6 +646,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         if(revision.HasValue)CosmicConcurrency.SetProviderRevisionId(node.Source,StorageProviderType,revision.Value);
                     }
                 }
+                if(failures.Count==0)
+                    foreach(var node in plan.Nodes)
+                        NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonChildRolePersistence.PublishAcknowledgedSelection(node);
                 result.Result=failures.Count==0 ? plan.Roots:saved; result.IsSaved=failures.Count==0;
                 if(failures.Count>0) {
                     var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);

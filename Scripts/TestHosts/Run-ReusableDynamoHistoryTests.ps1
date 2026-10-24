@@ -1,10 +1,10 @@
-param([switch]$CapacityReadOnly,[switch]$CleanupSizeAdmission,[switch]$InspectSizeAdmission,[switch]$ItemSizeBoundary,[switch]$CleanupCanonicalHistory,[switch]$InspectCanonicalHistory,[switch]$CleanupSqliteKarmaHistory,[switch]$InspectSqliteKarmaHistory,[switch]$ReconcileKarmaSeed,[switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
+param([switch]$ReconcileVisibilityCounts,[switch]$CapacityReadOnly,[switch]$CleanupSizeAdmission,[switch]$InspectSizeAdmission,[switch]$ItemSizeBoundary,[switch]$CleanupCanonicalHistory,[switch]$InspectCanonicalHistory,[switch]$CleanupSqliteKarmaHistory,[switch]$InspectSqliteKarmaHistory,[switch]$ReconcileKarmaSeed,[switch]$OrdinarySaveAcknowledgements,[switch]$OrdinarySaveLifecycle,[switch]$DetailDeletionResults,[switch]$BatchRevisions,[switch]$EncryptedProcess,[switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileConditionalInitial,[switch]$ConditionalGraphs,[switch]$ReconcileKnownReadFixture,[switch]$FullAwsSuite,[switch]$ReconcileAwsPreRead,[switch]$CleanupKnownAwsRun,[switch]$ReconcileValidationFixtures,[switch]$ReconcileReflectionFixtures,
     [switch]$AllVersionExports,[switch]$PointReadIdentities,[switch]$IndependentExportVersions,[switch]$DuplicatePageRegression,[switch]$CleanupKarmaMutation,[switch]$InspectKarmaMutation,[switch]$CleanupKarmaSeed,[switch]$CleanupVerifiedAwsRun,[ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$VerifiedReportSha256)
 $ErrorActionPreference='Stop'
 $selectedModes=@($CapacityReadOnly,$CleanupSizeAdmission,$InspectSizeAdmission,$ItemSizeBoundary,$CleanupCanonicalHistory,$InspectCanonicalHistory,$CleanupSqliteKarmaHistory,$InspectSqliteKarmaHistory,$CleanupKarmaMutation,$InspectKarmaMutation,$CleanupKarmaSeed,$ReconcileKarmaSeed,$OrdinarySaveAcknowledgements,$OrdinarySaveLifecycle,$DetailDeletionResults,
     $BatchRevisions,$EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileConditionalInitial,$ConditionalGraphs,
     $ReconcileKnownReadFixture,$FullAwsSuite,$ReconcileAwsPreRead,$CleanupKnownAwsRun,$ReconcileValidationFixtures,
-    $ReconcileReflectionFixtures,$CleanupVerifiedAwsRun,$IndependentExportVersions,$DuplicatePageRegression,$PointReadIdentities,$AllVersionExports).Where({$_.IsPresent})
+    $ReconcileReflectionFixtures,$CleanupVerifiedAwsRun,$IndependentExportVersions,$DuplicatePageRegression,$PointReadIdentities,$AllVersionExports,$ReconcileVisibilityCounts).Where({$_.IsPresent})
 if($selectedModes.Count -gt 1){throw 'Choose one explicit runner mode.'}
 if($CleanupVerifiedAwsRun -ne [bool]$VerifiedReportSha256){throw 'Verified cleanup requires its explicit original full-suite report SHA256, exclusively.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -36,7 +36,12 @@ $owned=$null;$previousEndpoint=$env:DYNAMODB_SERVICE_URL;$previousWork=$env:OASI
 $previousCleanup=$env:OASIS_AWS_CLEANUP_AUTHORITY
 try{
     $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
-    if($InspectSizeAdmission -or $CleanupSizeAdmission){
+    if($ReconcileVisibilityCounts){
+        if($pending.Count -ne 1 -or $pending[0].Name -ne 'aws-full-suite.pending.json' -or
+            (Get-FileHash $pending[0].FullName).Hash -ne '69B10E74E2162F27BDC91D23A02BD1DCDA1496F69C92F9A2241D25A9DE651017' -or
+            (Get-FileHash (Join-Path $work 'aws-full-native-current.trx')).Hash -ne 'E4A87C6BCC0B8C5DF622BED2B834DB3C5B35C351E68BAE2BCE4035EE27D12AAB'){throw 'Exactly original visibility-count assertion run required.'}
+    }
+    elseif($InspectSizeAdmission -or $CleanupSizeAdmission){
         if($pending.Count -ne 9 -or (Get-FileHash -LiteralPath (Join-Path $work 'dynamo-size-boundary-full-native.trx')).Hash -ne 'B3CFB3D392E1CE8C22B584C689DC261609BC322899FB54F1BDB5543508DBCEC2'){throw 'Exactly the original size-admission failure evidence required.'}
     }
     elseif($ReconcileConditionalInitial){
@@ -62,7 +67,7 @@ try{
         if([int]$counts.total -ne 138 -or [int]$counts.passed -ne 138 -or [int]$counts.notExecuted -ne 0 -or
             [DateTimeOffset]$verifiedTrx.TestRun.Times.start -lt [DateTimeOffset]$originalIntent.startedUtc){throw 'Complete original138/138 report newer than the pending intent required.'}
     }
-    if($CleanupCanonicalHistory -or $InspectCanonicalHistory -or $CleanupSqliteKarmaHistory -or $InspectSqliteKarmaHistory -or $CleanupKarmaMutation -or $InspectKarmaMutation -or $CleanupKarmaSeed -or $ReconcileKarmaSeed -or $FullAwsSuite -or $ReconcileAwsPreRead -or $CleanupKnownAwsRun -or $CleanupVerifiedAwsRun){
+    if($ReconcileVisibilityCounts -or $CleanupCanonicalHistory -or $InspectCanonicalHistory -or $CleanupSqliteKarmaHistory -or $InspectSqliteKarmaHistory -or $CleanupKarmaMutation -or $InspectKarmaMutation -or $CleanupKarmaSeed -or $ReconcileKarmaSeed -or $FullAwsSuite -or $ReconcileAwsPreRead -or $CleanupKnownAwsRun -or $CleanupVerifiedAwsRun){
         $project=Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests.csproj'
         # Read-only reconciliation uses the pinned Sqlite SDK directly, not either
         # storage adapter. Preserve their frozen outputs while their owners edit.
@@ -93,6 +98,15 @@ try{
             if($phase -eq 'write' -and @(Get-ChildItem -LiteralPath $work -Filter 'encrypted-process-*.pending.json').Count -ne 2){throw 'Exactly two committed process intents required before recovery.'}
         }
         if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Original process fixtures remain unresolved.'}
+        return
+    }
+    if($ReconcileVisibilityCounts){
+        $reportPath=Join-Path $work 'aws-visibility-count-reconciliation.trx'
+        if(Test-Path $reportPath){throw 'Preserve original visibility-count reconciliation evidence.'}
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~AWSNativeRunLifecycle.CleanupOnlyReviewedVisibilityCountAssertions' --logger 'trx;LogFileName=aws-visibility-count-reconciliation.trx' --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0 -or (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Original visibility-count cleanup incomplete; preserve remaining originals.'}
+        [xml]$proof=Get-Content $reportPath -Raw
+        if((Get-Item $reportPath).LastWriteTimeUtc -lt $started -or [int]$proof.TestRun.ResultSummary.Counters.total -ne 1 -or [int]$proof.TestRun.ResultSummary.Counters.passed -ne 1){throw 'Fresh single successful reconciliation required.'}
         return
     }
     if($ReconcileReflectionFixtures){
