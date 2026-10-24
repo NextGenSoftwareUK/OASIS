@@ -228,13 +228,19 @@ public partial class Web3CoreOASISBaseProvider
 
         try
         {
-            string metadataJson = Newtonsoft.Json.JsonConvert.SerializeObject(transaction);
-            var recipient = transaction.SendToAddressAfterMinting;
+            ArgumentNullException.ThrowIfNull(transaction);
+            var recipient = transaction.SendToAddressAfterMinting ?? _web3CoreOASIS.SigningAddress;
+            var collection = transaction.CollectionPublicKey ?? _contractAddress;
+            if (!AddressUtil.Current.IsValidEthereumAddressHexFormat(collection)
+                || string.Equals(collection,"0x"+new string('0',40),StringComparison.OrdinalIgnoreCase)
+                || !AddressUtil.Current.IsValidEthereumAddressHexFormat(recipient)
+                || string.Equals(recipient,"0x"+new string('0',40),StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("NFT mint requires a nonzero recipient and collection implementing the OASIS mint extension.");
+            var metadataJson = NextGenSoftware.OASIS.Providers.Shared.Evm.EvmNftMintMetadata.Serialize(transaction);
             var memo = transaction.MemoText;
-            //string transactionHash = await _web3CoreOASIS.MintAsync(transaction.MintWalletAddress, metadataJson);
-            TransactionReceipt transactionReceipt = await _web3CoreOASIS.MintAsync(recipient, metadataJson);
+            TransactionReceipt transactionReceipt = await _web3CoreOASIS.MintAsync(recipient, metadataJson, collection);
             BigInteger mintedId;
-            try { mintedId = NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721MintReceipt.Verify(transactionReceipt, _contractAddress, recipient); }
+            try { mintedId = NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721MintReceipt.Verify(transactionReceipt, collection, recipient); }
             catch (Exception cause) { throw new Web3MutationReconciliationException(transactionReceipt?.TransactionHash, transactionReceipt, cause); }
             string transactionHash = transactionReceipt.TransactionHash;
 
@@ -244,7 +250,7 @@ public partial class Web3CoreOASISBaseProvider
                 {
                     MemoText = memo,
                     TokenId = mintedId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    NFTTokenAddress = _contractAddress,
+                    NFTTokenAddress = collection,
                     MintTransactionHash = transactionHash
                 },
                 TransactionResult = transactionHash
@@ -265,6 +271,7 @@ public partial class Web3CoreOASISBaseProvider
         catch (Exception ex)
         {
             OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            if (ex is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
         }
 
         return result;

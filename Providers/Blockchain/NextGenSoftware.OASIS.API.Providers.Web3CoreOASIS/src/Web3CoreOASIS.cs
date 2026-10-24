@@ -120,6 +120,8 @@ public sealed class Web3CoreOASIS
 
     private async Task<TransactionReceipt> SendInputAndWaitForReceiptAsync(TransactionInput input)
     {
+        if (_preparation.HasCurrent && !string.Equals(input.To, _contractAddress, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Contract transaction target differs from the admitted native preparation owner.");
         await _mutationGate.WaitAsync(_preparation.CurrentToken);
         try
         {
@@ -131,10 +133,10 @@ public sealed class Web3CoreOASIS
         var bytes=signed.HexToByteArray();
         if(bytes.Length==0) throw new InvalidOperationException("EVM signer returned empty signed transaction.");
         var hash=Web3SignedPreparation.Hash(bytes);
-        Web3SignedPreparation.Verify(bytes,hash,_chainId ?? throw new InvalidOperationException("Signed EVM mutations require an explicit chain identity."),input.From,_contractAddress,input.Data.HexToByteArray(),input.Value?.Value??System.Numerics.BigInteger.Zero);
+        Web3SignedPreparation.Verify(bytes,hash,_chainId ?? throw new InvalidOperationException("Signed EVM mutations require an explicit chain identity."),input.From,input.To,input.Data.HexToByteArray(),input.Value?.Value??System.Numerics.BigInteger.Zero);
         var submission=await _preparation.PrepareCurrentAsync(()=>System.Text.Json.JsonSerializer.SerializeToElement(new {
                 transactionHash=hash,chainId=_chainId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),sender=input.From,
-                signedTransactionBase64=Convert.ToBase64String(bytes),contract=_contractAddress,calldata=input.Data}));
+                signedTransactionBase64=Convert.ToBase64String(bytes),contract=input.To,calldata=input.Data}));
         return await Web3TransactionOutcome.SubmitAndObserveAsync(
             ()=>submission.SubmitAsync(()=>_web3.Eth.Transactions.SendRawTransaction.SendRequestAsync(signed)),
             hash=>_web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(hash),
@@ -316,10 +318,15 @@ public sealed class Web3CoreOASIS
     
 
     public Task<TransactionReceipt> MintAsync(string toAddress, string metadataJson)
+        => MintAsync(toAddress, metadataJson, null);
+
+    public Task<TransactionReceipt> MintAsync(string toAddress, string metadataJson, string? collectionAddress)
     {
-        Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
+        var target = collectionAddress ?? _contractAddress;
+        Contract contract = _web3.Eth.GetContract(_abi, target);
         Function mintFunction = contract.GetFunction(Web3CoreOASISHelper.MintFuncName);
-        return SendAndWaitForReceiptAsync(mintFunction, toAddress, metadataJson);
+        return SendInputAndWaitForReceiptAsync(new TransactionInput {From=SigningAddress,To=target,
+            Gas=new HexBigInteger(3_000_000),Data=mintFunction.GetData(toAddress,metadataJson)});
     }
 
     public Task<TransactionReceipt> SendNFTAsync(
