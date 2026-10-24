@@ -116,6 +116,7 @@ public partial class SolanaOASIS
             avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=providerKey;
             result.Result=avatar;
             result.IsLoaded = true;
+            result.LoadedCount = 1;
             result.IsError = false;
         }
         catch (Exception e)
@@ -157,7 +158,7 @@ public partial class SolanaOASIS
                 mapped.Add(record);
             }
             result.Result=mapped;
-            result.IsLoaded=true;
+            result.IsLoaded=true;result.LoadedCount=mapped.Count;
         }
         catch(Exception cause) { OASISErrorHandling.HandleError(ref result,"Solana finalized collection read failed: "+cause.Message,cause); }
         return result;

@@ -45,20 +45,24 @@ public class SolanaNearbyTests
             {
                 var result=net.GetAvatarsNearMe(30000000,20000000,100);
                 Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);Assert.AreSame(provider.Avatars[0],result.Result.Single());
+                Assert.AreEqual(1,result.LoadedCount);
                 Assert.AreEqual(0,net.GetAvatarsNearMe(30000000,20000000,0).Result.Count());
                 provider.Avatars[0].MetaData["Latitude"]="NaN";
                 var invalid=net.GetAvatarsNearMe(30000000,20000000,100);
                 Assert.IsInstanceOfType(invalid.Exception,typeof(InvalidDataException));Assert.IsNull(invalid.Result);Assert.IsFalse(invalid.IsLoaded);
+                Assert.AreEqual(0,invalid.LoadedCount);
             }
             else
             {
                 var result=net.GetHolonsNearMe(30000000,20000000,100,HolonType.Park);
                 Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);Assert.AreSame(provider.Holons[0],result.Result.Single());
+                Assert.AreEqual(1,result.LoadedCount);
                 Assert.AreEqual(0,net.GetHolonsNearMe(30000000,20000000,100,HolonType.Holon).Result.Count());
                 Assert.AreEqual(0,net.GetHolonsNearMe(30000000,20000000,0,HolonType.All).Result.Count());
                 provider.Holons[0].MetaData.Remove("Longitude");
                 var invalid=net.GetHolonsNearMe(30000000,20000000,100,HolonType.All);
                 Assert.IsInstanceOfType(invalid.Exception,typeof(InvalidDataException));Assert.IsNull(invalid.Result);Assert.IsFalse(invalid.IsLoaded);
+                Assert.AreEqual(0,invalid.LoadedCount);
             }
         }
         finally {CultureInfo.CurrentCulture=prior;}

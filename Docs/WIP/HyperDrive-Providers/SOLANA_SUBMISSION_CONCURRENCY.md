@@ -1,5 +1,13 @@
 # Solana SDK submission concurrency — staged verification
 
+## Current read contracts and search history — 24 October 2026
+
+Latest **678 controlled/SDK tests PASS, zero skips,6seconds**; this is NOT new native-chain certification. Public storage point/collection, identity/service DTO, metadata/parent/search and nearby owners now report selected logical records, not zero or inherited unfiltered counts. Counts are not transaction/frame/fee/lamport metrics. A fresh50-case baseline reproduced42count failures,2unsupported historical searches and6query-mutation failures. The earlier44-case report additionally had4test-fixture null metadata errors; those were corrected and preserved, not attributed to production.
+
+Search now reuses the existing canonical request snapshot and shared history-capable validation before I/O, and delegates versions to the existing authenticated repository. Historical root selection keeps independently current descendants through the existing graph projection;2additional controlled cases prove root1/child7 and requested repository versions1then0. Existing Solnet encrypted-identity controls now assert count1; nearby controls assert filtered1/error0. No new storage format, history engine, codec, public index or native retry.
+
+Read-only devnet check24October16:25:46UTC: official genesis `EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG`, finalized slot514667749, retained public fixture balance0lamports. No faucet retry/key read/signing/broadcast or validator/ledger change. Original778byte funding journal SHA97658F3D6039336E1836266656816F5B652B075948C3FB1DD19E10EAE3307A9C independently rechecked unchanged. Zero balance does not prove original faucet nonexecution. Owner funding/native NFT/storage/interface/finality/fee/V2 gates remain OPEN. Reuse existing wallet/SDK/environment; do not erase originals or spend real-money funds. Exact reports/build identity/resources in inventory and owner actions.
+
 ## Current checkpoint — 23 October 2026
 
 The single-memo size defect described below is historical and FIXED in published3e8fb3cdd. Source has bounded chunk/commit framing; retained native reports rechecked: avatar/detail2/2, storage/token3/3 and read-only fee1/1 pass in their separate older cohorts. This is NOT a fresh current-source combined/full-interface recertification. Later sections record controlled royalty/interface/fee work; no native NFT success is established.

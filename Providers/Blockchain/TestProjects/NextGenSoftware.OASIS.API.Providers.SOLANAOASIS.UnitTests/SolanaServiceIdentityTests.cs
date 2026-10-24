@@ -57,6 +57,7 @@ public class SolanaServiceIdentityTests
             else
             {
                 Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);
+                Assert.AreEqual(1,result.LoadedCount);
                 Assert.AreEqual(id,result.Result.Id);Assert.AreEqual(2,result.Result.Version);
                 Assert.AreEqual("new",result.Result.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS]);
                 if(result.Result is SolanaAvatarDto avatar) Assert.AreEqual("stored@example.invalid",avatar.Email);
