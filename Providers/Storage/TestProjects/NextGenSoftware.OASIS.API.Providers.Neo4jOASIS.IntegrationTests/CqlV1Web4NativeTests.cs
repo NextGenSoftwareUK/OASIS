@@ -512,10 +512,10 @@ public sealed partial class CqlV1Web4NativeTests
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/projection", out _));
                             var example = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlScalarV1Request").GetProperty("example");
-                            Assert.AreEqual("Min", example.GetProperty("operation").GetString());
+                            Assert.AreEqual("Average", example.GetProperty("operation").GetString());
                             Assert.AreEqual("Int64", example.GetProperty("selection").GetProperty("valueType").GetString());
                             Assert.AreEqual("extremum", example.GetProperty("selection").GetProperty("metadataPath")[0].GetString());
-                            Assert.IsFalse(example.TryGetProperty("take", out _), "Scalar demo must not inherit a row page.");
+                            Assert.AreEqual(2, example.GetProperty("take").GetInt32(), "Average demo intentionally selects an ordered two-row window.");
                             var projectionExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlProjectionV1Request").GetProperty("example");
                             Assert.AreEqual("Int64", projectionExample.GetProperty("columns")[1].GetProperty("valueType").GetString());

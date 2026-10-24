@@ -500,7 +500,7 @@ FullCore2,059 and signed three-store acceptance pass. Neo4j DateTime metadata is
 
 ### Min/Max intent prerequisite — native execution pending
 
-Core now supports typed `source.Min(holon => ...)` and `source.Max(holon => ...)` intent through the existing scalar API. The selected path retains its exact CLR domain and the original source restrictions. Operation-specific read capabilities are required at planning and actual-adapter readmission; row/filter or count permissions cannot grant selection. Existing native adapters still declare count/existence only, so Min/Max execution is rejected until each native implementation is certified.
+Core now supports typed `source.Min(holon => ...)` and `source.Max(holon => ...)` intent through the existing scalar API. The selected path retains its exact CLR domain and the original source restrictions. Operation-specific read capabilities are required at planning and actual-adapter readmission; row/filter or count permissions cannot grant selection. All three current native adapters now support admitted Min/Max selections; the following provider sections record their verified domains.
 
 Required empty extrema report CQL_EMPTY_SEQUENCE. Nullable/string empty or all-null extrema return null; absent/null nullable leaves do not participate. Wrong stored types error. Exact negative Int64 results remain valid; native values are not converted through double. FullCore2,102 and both target builds pass for this contract. [Semantics,19reference vectors and remaining native gates](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#minmax-semantics-and-implementation-gate).
 
@@ -538,7 +538,7 @@ var result = await manager.ExecuteScalarQueryAsync(
     new ICosmicQueryStorageProvider[] { adapter });
 ```
 
-Handle each OASISResult error before using Result in application code. Max uses the same API. Negative/exact Int64 extrema are valid; wrong types and malformed participating values error. Date comparisons retain UTC ticks. Initial and expanded native controls pass as detailed in the contract; full SQLite regression passes1,318tests with zero skips (2m9s), including all33new Min/Max cases. The same SDK API now works on MongoDB: its final native CQL matrix passes 124 tests and its full provider unit suite passes 237, with zero skips, including all 33 new Min/Max cases. Neo4j now supports the same SDK API for its admitted scalar domains; HTTP selected extrema remain pending. [Native semantics/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-minmax-slice).
+Handle each OASISResult error before using Result in application code. Max uses the same API. Negative/exact Int64 extrema are valid; wrong types and malformed participating values error. Date comparisons retain UTC ticks. Initial and expanded native controls pass as detailed in the contract; full SQLite regression passes1,318tests with zero skips (2m9s), including all33new Min/Max cases. The same SDK API now works on MongoDB: its final native CQL matrix passes 124 tests and its full provider unit suite passes 237, with zero skips, including all 33 new Min/Max cases. Neo4j now supports the same SDK API for its admitted scalar domains; HTTP selected extrema are verified in the later HTTP checkpoint. [Native semantics/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-minmax-slice).
 
 
 ### MongoDB selected extrema
@@ -577,7 +577,7 @@ The selected Min/Max HTTP/demo gate is verified on allthree providers:175native 
 
 ## Integer Sum/Average Core checkpoint — 23 October 2026
 
-Immutable typed intents, operation-specific exact read admission and constant-size native accumulator normalization now pass both Core targets and all **2,141 tests, zero skips**, including24new cases. Integer Sum checks its final mathematical domain; Average returns Decimal without a binary64 intermediate. Empty/null, precision/rounding and explicit work-limit semantics are specified. **No native provider advertises Sum/Average yet**; native execution/HTTP/demos and the rest of the roadmap remain open. [Contract, examples and evidence](CQL_NUMERIC_AGGREGATES.md).
+Immutable typed intents, operation-specific exact read admission and constant-size native accumulator normalization now pass both Core targets and all **2,141 tests, zero skips**, including24new cases. Integer Sum checks its final mathematical domain; Average returns Decimal without a binary64 intermediate. Empty/null, precision/rounding and explicit work-limit semantics are specified. The initial foundation checkpoint preceded provider enrollment. All three native providers, integer numeric HTTP and demos are now verified in the current checkpoint below; broader scalar domains and the rest of the roadmap remain open. [Contract, examples and evidence](CQL_NUMERIC_AGGREGATES.md).
 
 
 ## SQLite numeric gate — 23 October 2026
@@ -612,3 +612,12 @@ The existing scalar route now accepts Sum/Average with a required typed Int32/In
 ```
 
 Use the same request shape with SQLLiteDBOASIS or Neo4jOASIS when admitted. Int64 and Decimal response values are strings; parse them with an exact numeric library when arithmetic is required, rather than JavaScript Number.
+
+
+## Numeric SDK/HTTP demos verified — 23 October 2026
+
+The fresh joint acceptance run passes **195 native regression tests, zero skips**, plus **42 SDK queries and 42 signed HTTP examples** across MongoDB, SQLite and Neo4j. Examples13–14 demonstrate an exact signed Int64 Sum and an ordered two-row Average returning Decimal text `-9007199254740990.5`. Browser presets and Swagger match the spaced/commented C# examples. The actual run recorded **222 settled operations and 217 physical attempts**; no count was inferred from earlier reports. Full endpoint unit acceptance remains **2,155 tests, zero skips**.
+
+Evidence: TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx; TestResults/CosmicCqlDemo/numeric-demo-native.log, v1-demo-result.json, v1-walkthrough.txt and numeric-demo-artifacts.json. Core, Shared and all three provider producer/native-consumer hashes agree. The retained Neo container is exited, Mongo/Bolt/demo ports have no listeners, and the readiness marker and fixed SQLite fixture are absent after acknowledged cleanup. No runtime/environment/download/restore was added.
+
+Run `Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1 -IncludeRegression` for the same bounded acceptance or `-Serve` for the browser demo. Numeric transport and these integer-domain demos are now verified. Decimal/double/UInt64 selector expansion, GroupBy, composition/federation, strict blocked-I/O interruption, Neo UTC DateTime reads and all other unchecked roadmap gates remain open.

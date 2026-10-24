@@ -262,6 +262,27 @@ public static class V1Walkthrough
                 selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" },
                 filters = scalarFilters
             }, scalar: true, valueType: "Int64", expected: "-9007199254740989");
+            // EXAMPLE 13 — Sum is exact across the complete visible input.
+            // Int64 results remain text to avoid rounding in browser clients.
+            await ShowAsync("13. Sum / exact signed total", new
+            {
+                provider,
+                operation = "Sum",
+                selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" },
+                filters = scalarFilters
+            }, scalar: true, valueType: "Int64", expected: "-27021597764222970");
+
+            // EXAMPLE 14 — Average takes an Int64 selector but returns Decimal.
+            // The first two names form the same window as the C# example.
+            await ShowAsync("14. Average / exact Decimal fraction", new
+            {
+                provider,
+                operation = "Average",
+                selection = new { metadataPath = new[] { "extremum" }, valueType = "Int64" },
+                filters = scalarFilters,
+                orderBy = "Name",
+                take = 2
+            }, scalar: true, valueType: "Decimal", expected: "-9007199254740990.5");
         }
 
         return completedRequests;
