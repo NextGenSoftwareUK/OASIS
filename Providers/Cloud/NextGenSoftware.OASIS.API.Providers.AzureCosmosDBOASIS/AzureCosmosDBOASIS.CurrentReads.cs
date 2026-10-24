@@ -129,6 +129,7 @@ public partial class AzureCosmosDBOASIS
             var project=HolonGraphProjection.Create(pool.Result,true,true,0,0,true,
                 source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
             result.Result=records.Where(row=>row.CreatedByAvatarId==owner || row.ParentHolonId==owner).Select(project).ToArray();
+            result.LoadedCount=result.Result.Count();
             result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
@@ -140,7 +141,9 @@ public partial class AzureCosmosDBOASIS
         var result=new OASISResult<IEnumerable<IHolon>>();
         try
         {
-            var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,version).ConfigureAwait(false);
+            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            // Identity history is independent of exported holon root versions.
+            var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,0).ConfigureAwait(false);
             if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
             return await ExportCurrentOwnedAsync(loaded.Result.Id,version);
         }
