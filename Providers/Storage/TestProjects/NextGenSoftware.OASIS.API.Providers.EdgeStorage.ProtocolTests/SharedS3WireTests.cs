@@ -16,6 +16,36 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
 [TestClass]
 public class SharedS3WireTests
 {
+    private sealed class UnmeasuredEmptyContent : HttpContent
+    {
+        protected override bool TryComputeLength(out long length){length=0;return false;}
+        protected override Task SerializeToStreamAsync(System.IO.Stream stream,TransportContext context)=>Task.CompletedTask;
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task Native_empty_get_requires_explicit_content_length(bool observed,bool explicitLength)
+    {
+        var calls=0;
+        using var service=new FakeService((request,bytes)=>{
+            calls++;Assert.AreEqual(HttpMethod.Get,request.Method);
+            Assert.IsTrue(request.Headers.GetValues("Authorization").Single().StartsWith("AWS4-HMAC-SHA256 ",StringComparison.Ordinal));
+            var response=new HttpResponseMessage(HttpStatusCode.OK){Content=new UnmeasuredEmptyContent()};
+            response.Headers.TryAddWithoutValidation("ETag","\"opaque-revision\"");
+            if(explicitLength)response.Content.Headers.ContentLength=0;
+            return response;
+        });
+        using var client=new AmazonS3Client(new BasicAWSCredentials("synthetic-key","synthetic-secret"),new AmazonS3Config{
+            ServiceURL="https://s3.us-east-1.amazonaws.com",AuthenticationRegion="us-east-1",ForcePathStyle=true,MaxErrorRetry=0,
+            HttpClientFactory=new HandlerHttpClientFactory(service)});
+        var backend=new Backend(client,"test-bucket");string value=null;Exception failure=null;
+        try{value=observed?(await backend.ReadObservedAsync("key"))?.Value:await backend.GetAsync("key");}
+        catch(Exception cause){failure=cause;}
+        Assert.AreEqual(1,calls);
+        if(explicitLength){Assert.IsNull(failure,failure?.ToString());Assert.AreEqual(string.Empty,value);}
+        else{Assert.IsInstanceOfType<System.IO.InvalidDataException>(failure);Assert.IsNull(value);}
+    }
+
     [DataTestMethod]
     [DataRow("../outside")][DataRow("a/../outside")][DataRow("a\\outside")][DataRow("a?b#c")]
     public async Task Object_names_remain_exact_data_under_configured_prefix(string key)
