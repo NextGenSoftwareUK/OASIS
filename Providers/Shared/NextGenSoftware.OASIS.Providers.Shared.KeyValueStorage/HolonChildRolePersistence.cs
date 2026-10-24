@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using NextGenSoftware.OASIS.API.Core.Serialization;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
@@ -10,6 +11,15 @@ public enum HolonChildRoleWriteKind { SourceSave, SourceDelete, CommittedReplica
 /// The caller supplies a persisted observation protected by its native write transaction.</summary>
 public static class HolonChildRolePersistence
 {
+    /// <summary>After all selected writes and caller publication succeeded; never on uncertain/partial outcomes.</summary>
+    public static void PublishAcknowledgedSelection(PlannedHolonWrite write)
+    {
+        ArgumentNullException.ThrowIfNull(write);
+        if(write.SelectsChildren)
+            HolonChangeTracking.RecordAcknowledgedChildSelection(write.Source,
+                write.RelationshipManifest ?? throw new InvalidDataException("Acknowledged selection omitted its captured role manifest."));
+    }
+
     public static string Resolve(PlannedHolonWrite write, HolonChildRoleWriteKind kind,
         bool persistedRecordExists, string persistedManifestJson)
     {

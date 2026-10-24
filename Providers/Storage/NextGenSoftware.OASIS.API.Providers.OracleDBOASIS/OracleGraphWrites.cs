@@ -37,7 +37,7 @@ public partial class OracleDBOASIS
     {
         var result=new OASISResult<IEnumerable<IHolon>>();var saved=new List<IHolon>();var failures=new List<Exception>();var acknowledgedIds=new HashSet<Guid>();
         try{
-            var plan=HolonGraphWritePlan.Create(roots,children,recursive,maxDepth,initialDepth);var failedParents=new HashSet<Guid>();
+            var plan=HolonGraphWritePlan.CreateForSave(roots,children,recursive,maxDepth,initialDepth);var failedParents=new HashSet<Guid>();
             var publications=new Dictionary<IHolon,StoredRecordPublicationSnapshot<Core.Holons.Holon>>(ReferenceEqualityComparer.Instance);
             foreach(var node in plan.Nodes)publications.Add(node.Source,StoredRecordPublicationSnapshot<Core.Holons.Holon>.Capture(node.Source));
             foreach(var node in plan.Nodes){
@@ -57,6 +57,8 @@ public partial class OracleDBOASIS
                     catch(Exception cause){failures.Add(cause);break;}
                 }
             }
+            if(failures.Count==0)
+                foreach(var node in plan.Nodes)HolonChildRolePersistence.PublishAcknowledgedSelection(node);
             result.Result=failures.Count==0?plan.Roots:saved;result.IsSaved=failures.Count==0;
             if(failures.Count>0){
                 var cause=failures.Count==1?failures[0]:new AggregateException(failures);

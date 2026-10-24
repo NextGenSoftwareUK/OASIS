@@ -1,5 +1,11 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## Selected caller graph admission/acknowledgement — 24 October
+
+Full860controlled tests PASS0skip8seconds against matched Core2a307fe964bde6589d99ea1790a78f763b620092 code and shared publisher. Graph writes now use common CreateForSave admission before any SDK observation, then record complete selected membership only after all native acknowledgements and unchanged-caller publication. Existing4scoped interface controls now attempt save after AcceptChanges and prove explicit rejection with unchanged SDK read count/no stored mutation. Native-source Core restrictions are reused rather than copied; structural receipt validation does not grant caller write authority. Source/PDB/copies and exact hashes in inventory.
+
+This is controlled provider/SDK transport coverage, not a hosted BigQuery job or IAM/billing/security/durability/uniqueness/fullV2 certificate. No new SDK request/retry, cloud charge, runtime/download/restore or dev deployment. Existing native/cloud release gates remain OPEN.
+
 ## AvatarDetail delete interface implemented — 24 October
 
 Full856controlledPASS0skip6seconds. Actual interface audit found six AvatarDetail delete entries still routed to IOASISStorageProvider defaults: hard delete unsupported; soft delete performed a separate load/save and lacked provider-native delete acknowledgement/count semantics. Original20cases18genuinefail/2already-protected soft lost-ack cases. BigQuery now implements GUID/username/email sync/async entries directly; compiled IOASISStorageProvider map independently confirms all six targets belong to BigQueryOASIS. This targeted map is not a claim that every interface body is certified.

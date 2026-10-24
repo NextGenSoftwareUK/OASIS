@@ -1,5 +1,19 @@
 # Oracle client readiness — top priority
 
+## Latest verified local closure — 24 October
+
+Fresh full retained Oracle/official ODP.NET23.6.0 **502/502native PASS, zero skipped,69seconds**, plus matched **419/419Oracle unit** and **127/127OCI signed-SDK loopback** tests. Shared1170/Core2474/BigQuery860/Edge114 affected regressions also pass. Core2a307fe964bde6589d99ea1790a78f763b620092 centralizes selected-save admission and complete acknowledgement tracking; Oracle ordinary graph writes use it after native success. The original scoped-save defect and candidate conditional acknowledgement regressions below are closed in this local cohort, not erased from the historical evidence.
+
+Both original failure groups were explicitly reconciled:20synthetic scoped rows, then7synthetic rows/4original operation receipts were verified and conditionally removed with independent absence before journal removal. No native mutation replay, data-volume reset or duplicate runtime. Compact evidence and all failed reports retained. Pending0, retained serverEXITED,11521/18661absent; same image/volume/SDK/cache. Final source/PDB and producer/consumer hashes match the tested cohort. No new download/restore or cloud charge.
+
+**Still not100%:** live Autonomous Database and OCI bucket access/IAM/wallet/security/durability/fees, remaining interface/adapter option gates and full Oracle V2 acceptance remain OPEN. Default OCI/AWS profiles and inspected configuration names remain absent; nondefault setup not ruled out. Task-branch publication only, no Development/master deployment. Evidence/resource closure in ENVIRONMENT_INVENTORY.md; shared contract and other-adapter migration scope in SHARED_RECORD_HISTORY.md.
+
+## 24 October — original scoped-save defect repaired; conditional receipt gate still open
+
+The original4scoped graph tests now pass against the real retained database. All20earlier synthetic failure rows were verified against expected versions/history/roles, repaired writes rejected, then removed by exact-CLOB conditional transaction with independent absence; original failure/hash evidence retained. FullShared1168 and Core2454 controls pass for the acknowledgement/admission candidate.
+
+Latest fullOracle502is **498PASS/4FAIL**, but these are DIFFERENT failures: named-role conditional save and root-only conditional deletion acknowledgement views were incorrectly treated as fully hydrated typed caller graphs by a candidate composition change. Their commits/receipts are preserved, no replay/reset. Removed that invalid grant; explicit source CreateForSave guards remain. New typed/excluded receipt tests and original-receipt reconciliation are prepared, not yet verified. Full502must be green again before publication; source changes remain uncommitted. See shared history/inventory for exact cohorts, stopped runtime and next gate. Hosted Oracle/OCI/fullV2 still OPEN; Oracle is not100%.
+
 ## OPEN native scoped-save defect — 24 October
 
 Fresh retained real Oracle/ODP.NET cohort: **498 passed, 4 failed, zero skipped, 47seconds**. The four new owner/public × sync/async interface tests correctly filter reads, but saving the scoped graph after AcceptChanges succeeds when it must reject child replacement. Independent SQLPlus reads of the exact20 journal IDs confirm root/selected child versions advanced: this is NOT a no-op or merely an assertion/reference mismatch. Hidden records still exist, but selected saves replaced parent membership; original version1 history remains. Earlier shared/Core-only claims of save protection did not cover this provider planner. **Do not merge/deploy the current candidate as fully safe.**

@@ -1,4 +1,6 @@
 param(
+    [switch]$ReconcileScopedVisibility,
+    [switch]$ReconcileAcknowledgementViews,
     [switch]$AllVersionExports,
     [switch]$PointReadSelectors,
     [switch]$IndependentExportVersions,
@@ -21,7 +23,7 @@ param(
 $selectedModes=@($PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
-    $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports).Where({$_.IsPresent}).Count
+    $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports,$ReconcileScopedVisibility,$ReconcileAcknowledgementViews).Where({$_.IsPresent}).Count
 if($selectedModes -gt 1){throw 'Choose one original reconciliation mode.'}
 if(!$InspectReadConnections -and $ReadConnectionIterations -ne 50){throw 'A custom read workload requires the explicitly read-only inspection mode.'}
 if(!$InspectReadConnections -and $ReadConnectionPath -ne 'Provider'){throw 'A native connection control requires the explicitly read-only inspection mode.'}
@@ -43,6 +45,16 @@ try{
         if($pending.Count -ne 1 -or $pending[0].Name -ne 'read-acknowledgements.pending.json'){throw 'Exactly the preserved read-ack original intent required.'}
         if((Get-FileHash (Join-Path $work 'read-acknowledgements.pending.json')).Hash -ne 'C83043A1A52487CB881ADE96B9038C328F78052CCC6DE126DCDB82D1043DA198' -or
            (Get-FileHash (Join-Path $work 'read-acknowledgements-failure.json')).Hash -ne '470441EA9F0D9062305760949A92C303574FD668AF8CAD3369586B92E87F3F68'){throw 'Original read evidence changed; inspection refused.'}
+    }
+    elseif($ReconcileAcknowledgementViews){
+        $expectedViews=@('named-child-roles-False-True.pending.json','named-child-roles-True-True.pending.json','conditional-root-delete-False.pending.json','conditional-root-delete-True.pending.json')
+        if($pending.Count -ne 4 -or @(Compare-Object ($pending.Name|Sort-Object) ($expectedViews|Sort-Object)).Count -ne 0 -or
+            (Get-FileHash (Join-Path $work 'oracle-native-current.trx')).Hash -ne '1B7B5182CB589BB700C5F2F1B3D625E133F54E72BF45B3CCB65354C2C3293911'){throw 'Exactly original acknowledgement-view failure/fixtures required.'}
+    }
+    elseif($ReconcileScopedVisibility){
+        $expectedScoped=@('scoped-visibility-False-False.pending.json','scoped-visibility-False-True.pending.json','scoped-visibility-True-False.pending.json','scoped-visibility-True-True.pending.json')
+        if($pending.Count -ne 4 -or @(Compare-Object ($pending.Name|Sort-Object) ($expectedScoped|Sort-Object)).Count -ne 0 -or
+            (Get-FileHash (Join-Path $work 'oracle-native-current.trx')).Hash -ne '0FE26BD560D687AB9FA760BD5250FF814F29A12ABFA0F35CE49A2D08CFA5D942'){throw 'Exactly original scoped visibility failure/fixtures required.'}
     }
     elseif($ReconcileKarmaAssertion){if($pending.Count -ne 1 -or $pending[0].Name -ne 'v2-karma-manager.pending.json'){throw 'Exactly the original karma assertion journal required.'}}
     elseif($ReconcileOriginal -or $ReconcileExportIdentity){if($pending.Count -ne 1 -or $pending[0].Name -ne 'canonical-records.pending.json'){throw 'Exactly the original canonical journal required.'}}
@@ -138,6 +150,8 @@ try{
     if($ReconcileKarmaProjections){$report='oracle-karma-projection-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaLeaderboardProjectionFixtures'}
     if($InspectReadConnections){$report=if($ReadConnectionPath -eq 'Native'){'oracle-read-only-native-connection-current.trx'}else{'oracle-read-only-connection-current.trx'};$filter='FullyQualifiedName~OracleReadOnlyConnectionNativeTests.CompareConnectionAdmissionWithoutReplayingOriginalWrites'}
     if($ReconcileReadOutage){$report='oracle-read-ack-outage-reconciliation-current.trx';$filter='FullyQualifiedName~OracleNativeAcceptanceTests.ReconcileKnownReadAcknowledgementConnectionOutage'}
+    if($ReconcileScopedVisibility){$report='oracle-scoped-reconciliation-current.trx';$filter='FullyQualifiedName~ReconcileKnownScopedVisibilityFixtures'}
+    if($ReconcileAcknowledgementViews){$report='oracle-acknowledgement-view-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownAcknowledgementViewFixtures'}
     if(Test-Path -LiteralPath (Join-Path $work $report)){throw 'Preserve the original native report before another run.'}
     $testStarted=[DateTime]::UtcNow
     & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter $filter --logger "trx;LogFileName=$report" --results-directory $work /m:2 /nr:false
@@ -150,8 +164,8 @@ try{
     }elseif(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
     $reportFile=Get-Item -LiteralPath (Join-Path $work $report)
     [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){12}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){64}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{498}
-    if($ReconcileReadOutage -or $ReconcileExportIdentity){$expected=1}
+    $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){12}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){64}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{502}
+    if($ReconcileReadOutage -or $ReconcileExportIdentity -or $ReconcileScopedVisibility -or $ReconcileAcknowledgementViews){$expected=1}
     if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}
     $passed=$true
 }finally{
