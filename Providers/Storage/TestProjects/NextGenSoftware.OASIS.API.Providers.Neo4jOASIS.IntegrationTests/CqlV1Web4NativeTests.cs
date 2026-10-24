@@ -102,6 +102,7 @@ public sealed partial class CqlV1Web4NativeTests
                             ["precision"] = 9007199254740993L,
                             // Adjacent UTC ticks exercise exact date filters and
                             // detached date output on every native provider.
+                            ["counter"] = ulong.MaxValue - (ulong)i,
                             ["observedAt"] = new DateTime(2026, 10, 24, 0, 0, 0, DateTimeKind.Utc).AddTicks(i),
                             // Hidden roots carry stronger extrema; signed Min/Max
                             // must apply actor visibility before native reduction.
@@ -513,6 +514,17 @@ public sealed partial class CqlV1Web4NativeTests
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql", out _));
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/scalar", out _));
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/projection", out _));
+                            // Swagger's unsigned presets must keep input bounds as strings.
+                            var unsignedProjection = paths.GetProperty("/api/data/query-cql/projection").GetProperty("post")
+                                .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")
+                                .GetProperty("examples").GetProperty("ExactUInt64").GetProperty("value");
+                            Assert.AreEqual("UInt64", unsignedProjection.GetProperty("columns")[1].GetProperty("valueType").GetString());
+                            Assert.AreEqual("18446744073709551612", unsignedProjection.GetProperty("filters")[1].GetProperty("value").GetString());
+                            var unsignedGroups = paths.GetProperty("/api/data/query-cql/grouped").GetProperty("post")
+                                .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")
+                                .GetProperty("examples").GetProperty("ExactUInt64").GetProperty("value");
+                            Assert.AreEqual("UInt64", unsignedGroups.GetProperty("keys")[0].GetProperty("valueType").GetString());
+                            Assert.AreEqual("18446744073709551614", unsignedGroups.GetProperty("resultFilters")[1].GetProperty("value").GetString());
                             var example = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlScalarV1Request").GetProperty("example");
                             Assert.AreEqual("Average", example.GetProperty("operation").GetString());

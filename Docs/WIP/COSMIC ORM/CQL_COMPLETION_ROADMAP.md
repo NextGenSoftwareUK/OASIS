@@ -1,8 +1,8 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core 2,474 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo63 SDK queries/63 HTTP examples with243 settled operations and238 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core 2,474 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo69 SDK queries/69 HTTP examples with249 settled operations and244 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
-Next implementation: live UInt64 HTTP/examples, broader scalar coverage and the expanded provider/policy certification matrix. Neo4j SDK DateTime now passes192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full MongoDB/SQLite regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
+Next implementation: broader scalar coverage and the expanded provider/policy certification matrix. Neo4j SDK DateTime now passes192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full MongoDB/SQLite regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
@@ -500,3 +500,13 @@ must be reconciled before a Development deployment batch. This checkpoint remain
 on the task branch. Original joins, federation, broader Decimal/floating metadata,
 authoritative policy, interruption and final certification requirements stay open.
 See [the matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) and [UInt64 contract](CQL_UINT64_CONTRACT.md).
+
+
+UInt64 live checkpoint24October2026: actual69794 terminal0;69SDK/69HTTP examples
+across all three providers,249 settled operations/244 attempts, zero failures/skips.
+Examples22–23, browser presets and generated Swagger named examples now match the
+published unsigned wire contract. Dedicated joint acceptance only; broader native
+cohorts retain their recorded scope. Owned fixture/services cleaned up; dependency
+and Development publication remain coordinated with the provider session.
+[Exact evidence](CQL_UINT64_CONTRACT.md#live-uint64-examples2223--24-october2026).
+Next: remaining scalar domains and unchanged joins/federation/policy/certification.

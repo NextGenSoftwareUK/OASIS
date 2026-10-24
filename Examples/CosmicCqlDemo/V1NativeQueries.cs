@@ -404,6 +404,63 @@ public static class V1NativeQueries
         foreach (var row in dateGroupRows)
             await output.WriteLineAsync($"  {row.ObservedAt:O}: {row.Items} item\n");
 
+
+        // 22. UInt64 counters exceed both JavaScript's exact integer range and
+        // signed Int64. Keep ulong literals and let the provider order the values.
+        var counterStart = ulong.MaxValue - 3UL;
+        var counterEnd = ulong.MaxValue - 1UL;
+
+        var unsignedSelection = Value(visible
+            .Where(row => CosmicQueryMetadata.Value<ulong>(row, "counter") >= counterStart
+                && CosmicQueryMetadata.Value<ulong>(row, "counter") < counterEnd)
+            .OrderBy(row => CosmicQueryMetadata.Value<ulong>(row, "counter"))
+            .Select(row => new
+            {
+                row.Name,
+                Counter = CosmicQueryMetadata.Value<ulong>(row, "counter")
+            }));
+
+        var unsignedPlan = Value(CosmicProjectionPlanner.Plan(unsignedSelection, provider,
+            new[] { new CosmicProjectionTarget(provider, adapter.QueryCapabilities,
+                projectionAdapter.ProjectionCapabilities) }));
+
+        var unsignedResult = Value(await manager.ExecuteProjectionQueryAsync(unsignedPlan, new[] { adapter }));
+        var unsignedRows = unsignedResult.Providers.Single().Rows;
+
+        if (!unsignedRows.Select(row => row.Name).SequenceEqual(new[] { "C-public", "B-owned" })
+            || !unsignedRows.Select(row => row.Counter).SequenceEqual(new[] { counterStart, counterStart + 1UL }))
+            throw new InvalidOperationException("UInt64 source ordering lost precision or visibility.");
+
+        completedQueries++;
+        await output.WriteLineAsync("22. UInt64 source range / exact unsigned ordering\n");
+        foreach (var row in unsignedRows)
+            await output.WriteLineAsync($"  {row.Name}: {row.Counter}");
+        await output.WriteLineAsync();
+
+        // 23. Filter selected unsigned group keys before the result window.
+        // Native reduction and complete proof validation still include all groups.
+        var unsignedGroups = Value(visible
+            .GroupBy(row => CosmicQueryMetadata.Value<ulong>(row, "counter"))
+            .Select(group => new { Counter = group.Key, Items = group.LongCount() })
+            .Where(row => row.Counter >= counterStart && row.Counter < counterEnd)
+            .OrderBy(row => row.Counter)
+            .Take(2));
+
+        var unsignedGroupPlan = Value(CosmicGroupedPlanner.Plan(unsignedGroups, provider,
+            new[] { new CosmicGroupedTarget(provider, adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var unsignedGroupResult = Value(await manager.ExecuteGroupedQueryAsync(unsignedGroupPlan, new[] { adapter }));
+        var unsignedGroupRows = unsignedGroupResult.Providers.Single().Rows;
+
+        if (!unsignedGroupRows.Select(row => row.Counter).SequenceEqual(new[] { counterStart, counterStart + 1UL })
+            || unsignedGroupRows.Any(row => row.Items != 1))
+            throw new InvalidOperationException("UInt64 grouped result filtering/order lost exact key identity.");
+
+        completedQueries++;
+        await output.WriteLineAsync("23. UInt64 group keys / exact selected-result filters\n");
+        foreach (var row in unsignedGroupRows)
+            await output.WriteLineAsync($"  {row.Counter}: {row.Items} item\n");
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(
