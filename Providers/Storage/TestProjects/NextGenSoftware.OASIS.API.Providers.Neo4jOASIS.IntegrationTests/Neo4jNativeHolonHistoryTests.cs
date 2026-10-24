@@ -19,7 +19,8 @@ public partial class Neo4jNativeAvatarTests
         using var raw=GraphDatabase.Driver(uri,AuthTokens.Basic("neo4j","oasis-local-test-only"));
         using var inspection=raw.AsyncSession();
         Assert.AreEqual(0L,(await(await inspection.RunAsync("MATCH (a) WHERE a:Holon OR a:OasisRecordVersion RETURN count(a) AS count")).SingleAsync())["count"].As<long>());
-        var provider=new Provider(uri,"neo4j","oasis-local-test-only"){IsVersionControlEnabled=true};
+        var readBoundary=new Neo4jReadBoundaryProxy.State();
+        var provider=new Provider(uri,"neo4j","oasis-local-test-only",()=>Neo4jReadBoundaryProxy.Wrap(GraphDatabase.Driver(uri,AuthTokens.Basic("neo4j","oasis-local-test-only")),readBoundary)){IsVersionControlEnabled=true};
         try
         {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
@@ -67,6 +68,18 @@ public partial class Neo4jNativeAvatarTests
             var metadata=synchronous?provider.LoadHolonsByMetaData("history-marker",marker,version:1):await provider.LoadHolonsByMetaDataAsync("history-marker",marker,version:1);
             Assert.IsFalse(metadata.IsError,metadata.Message);Assert.AreEqual(root.Id,metadata.Result.Single().Id);
             Assert.AreEqual(1,metadata.LoadedCount);
+            async Task<string> ReadCanonicalSnapshots()=>System.Text.Json.JsonSerializer.Serialize((await(await inspection.RunAsync("MATCH (n) WHERE n:Holon OR n:Avatar OR n:OasisRecordVersion RETURN id(n) AS id,n.SnapshotJson AS snapshot ORDER BY id(n)")).ToListAsync()).Select(row=>new{Id=row["id"],Snapshot=row["snapshot"]}));
+            var storedBeforeMetadata=await ReadCanonicalSnapshots();
+            foreach(var mode in new[]{MetaKeyValuePairMatchMode.All,MetaKeyValuePairMatchMode.Any}){
+                var pairs=new Dictionary<string,string>{{"history-marker",marker}};
+                readBoundary.AfterRead=()=>pairs["history-marker"]="changed";
+                var captured=synchronous?provider.LoadHolonsByMetaData(pairs,mode,loadChildren:false,version:1):await provider.LoadHolonsByMetaDataAsync(pairs,mode,loadChildren:false,version:1);
+                readBoundary.AfterRead=null;
+                Assert.IsFalse(captured.IsError,captured.Exception?.ToString());Assert.AreEqual(1,captured.LoadedCount);Assert.AreEqual(root.Id,captured.Result.Single().Id);
+                Assert.AreEqual("changed",pairs["history-marker"],"Caller mutation must occur after a completed native read.");
+            }
+            Assert.IsTrue(readBoundary.Observations>=2);
+            Assert.AreEqual(storedBeforeMetadata,await ReadCanonicalSnapshots(),"Metadata query reads cannot rewrite stored snapshots or archives.");
             Assert.AreEqual(2,metadata.Result.Single().Children.Single().Version);
             var children=synchronous?provider.LoadHolonsForParent(root.Id,version:1):await provider.LoadHolonsForParentAsync(root.Id,version:1);
             Assert.IsFalse(children.IsError,children.Message);Assert.AreEqual(1,children.Result.Single().Version);
