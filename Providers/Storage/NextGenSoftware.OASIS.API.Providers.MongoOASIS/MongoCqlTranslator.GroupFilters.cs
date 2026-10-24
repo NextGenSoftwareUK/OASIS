@@ -24,6 +24,7 @@ internal sealed partial class MongoCqlTranslator
         else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) value = "$inputs";
         else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max) value = "$a" + index + ".k";
         else if (column.Operation == CosmicScalarOperation.Sum) value = GroupedSumValue(index);
+        else if (column.Operation == CosmicScalarOperation.Average) value = "$cqlGroupAverage" + index;
         else throw new NotSupportedException("Exact normalized Average filtering is not enrolled.");
         return Op("$ifNull", value, Literal(BsonNull.Value));
     }
