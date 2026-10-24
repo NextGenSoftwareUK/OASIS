@@ -34,17 +34,30 @@ internal static class MongoNativeHolonHistory
         if(document.TryGetValue(Field,out var value))
         {
             if(!value.IsBsonDocument || value.AsBsonDocument.ElementCount!=2
-                || !value.AsBsonDocument.TryGetValue("schema",out var schema) || !schema.IsInt32 || schema.AsInt32!=1
+                || !value.AsBsonDocument.TryGetValue("schema",out var schema) || !schema.IsInt32 || (schema.AsInt32!=1 && schema.AsInt32!=2)
                 || !value.AsBsonDocument.TryGetValue("records",out var entries) || !entries.IsBsonArray)
                 throw new InvalidDataException("Malformed Mongo holon revision archive.");
             foreach(var entry in entries.AsBsonArray)
             {
                 if(!entry.IsBsonDocument || entry.AsBsonDocument.ElementCount!=2
-                    || !entry.AsBsonDocument.TryGetValue("json",out var json) || !json.IsString
-                    || !entry.AsBsonDocument.TryGetValue("sha256",out var digest) || !digest.IsString
-                    || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json.AsString)))!=digest.AsString)
+                    || !entry.AsBsonDocument.TryGetValue("sha256",out var digest) || !digest.IsString)
                     throw new InvalidDataException("Mongo archived holon checksum or envelope is invalid.");
-                var record=StoredRecordJson.DeserializeStoredHolon(json.AsString);
+                IHolon record;
+                if(entry.AsBsonDocument.TryGetValue("bson",out var snapshot))
+                {
+                    if(schema.AsInt32!=2 || !snapshot.IsBsonDocument || snapshot.AsBsonDocument.Contains(Field)
+                        || Convert.ToHexString(SHA256.HashData(snapshot.AsBsonDocument.ToBson()))!=digest.AsString)
+                        throw new InvalidDataException("Mongo archived BSON snapshot checksum or envelope is invalid.");
+                    record=Current(snapshot.AsBsonDocument);
+                }
+                else if(entry.AsBsonDocument.TryGetValue("json",out var json) && json.IsString)
+                {
+                    // Explicit earlier format: preserve its raw JSON, never guess BSON date types.
+                    if(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json.AsString)))!=digest.AsString)
+                        throw new InvalidDataException("Mongo archived JSON snapshot checksum is invalid.");
+                    record=StoredRecordJson.DeserializeStoredHolon(json.AsString);
+                }
+                else throw new InvalidDataException("Unknown Mongo archived snapshot format.");
                 if(record==null || record.Id!=current.Id || record.Version<0 || record.Version>current.Version)
                     throw new InvalidDataException("Mongo archived holon identity/version differs from its record.");
                 records.Add(record);
@@ -73,9 +86,10 @@ internal static class MongoNativeHolonHistory
             throw new InvalidDataException("Mongo replacement changed the archived public identity.");
         if(records.Any(record=>record.Version>proposed.Version))
             throw new InvalidDataException("Mongo replacement would move logical history backwards.");
-        replacement[Field]=new BsonDocument{{"schema",1},{"records",new BsonArray(records.Select(record=>{
-            var json=StoredRecordJson.Serialize<IHolon>(record);
-            return new BsonDocument{{"json",json},{"sha256",Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))}};
-        }))}};
+        // Retain earlier immutable entries byte-for-byte; do not reserialize them through JSON.
+        var entries=observed.TryGetValue(Field,out var archive)?archive["records"].AsBsonArray.DeepClone().AsBsonArray:new BsonArray();
+        var snapshot=observed.DeepClone().AsBsonDocument;snapshot.Remove(Field);
+        entries.Add(new BsonDocument{{"bson",snapshot},{"sha256",Convert.ToHexString(SHA256.HashData(snapshot.ToBson()))}});
+        replacement[Field]=new BsonDocument{{"schema",2},{"records",entries}};
     }
 }

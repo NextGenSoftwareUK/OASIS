@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -29,7 +30,7 @@ public partial class MongoDBOASIS
             if(parentKey!=null && !ObjectId.TryParse(parentKey,out _)) throw new ArgumentException("A native Mongo parent key is required.");
             if(metadata!=null && (metadata.Count==0 || metadata.Any(pair=>string.IsNullOrWhiteSpace(pair.Key) || pair.Value==null)))
                 throw new ArgumentException("Metadata query requires nonempty keys and nonnull values.");
-            if(children && fromProvider)
+            if(version>0 || children && fromProvider)
                 session=synchronous ? Database.MongoClient.StartSession(new ClientSessionOptions {Snapshot=true})
                     :await Database.MongoClient.StartSessionAsync(new ClientSessionOptions {Snapshot=true}).ConfigureAwait(false);
             async Task<List<NativeHolon>> Read(FilterDefinition<NativeHolon> filter,int limit=0)
@@ -45,6 +46,24 @@ public partial class MongoDBOASIS
                 if(parents.Count==0) {result.Result=Array.Empty<IHolon>();result.IsLoaded=true;return result;}
                 parent=parents[0].HolonId;
             }
+            if(version>0)
+            {
+                var raw=Database.MongoDB.GetCollection<BsonDocument>(Database.Holon.CollectionNamespace.CollectionName,Database.Holon.Settings);
+                var cursor=raw.Find(session,FilterDefinition<BsonDocument>.Empty);
+                var documents=synchronous?cursor.ToList():await cursor.ToListAsync().ConfigureAwait(false);
+                var candidates=documents.SelectMany(document=>MongoNativeHolonHistory.Read(document)).Where(row=>row.Version==version).ToList();
+                if(candidates.GroupBy(row=>row.Id).Any(group=>group.Count()>1))throw new StorageIdentityAmbiguousException();
+                candidates=candidates.Where(row=>row.DeletedDate==DateTime.MinValue && (type==HolonType.All || row.HolonType==type)
+                    && (!parent.HasValue || row.ParentHolonId==parent.Value)).ToList();
+                candidates=await MatchHistoricalMetadataAsync(candidates,metadata,match,synchronous).ConfigureAwait(false);
+                var current=children && fromProvider?documents.Select(document=>DataHelper.ConvertMongoEntityToOASISHolon(BsonSerializer.Deserialize<NativeHolon>(document),false))
+                    .Where(row=>row.DeletedDate==DateTime.MinValue).ToList():candidates;
+                if(current.GroupBy(row=>row.Id).Any(group=>group.Count()>1))throw new StorageIdentityAmbiguousException();
+                var historicalProject=HolonGraphProjection.Create(current,children,recursive,depth,initialDepth,fromProvider,
+                    row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)),rootsAreChildren:parent.HasValue);
+                result.Result=candidates.Select(historicalProject).ToList();result.IsLoaded=true;result.LoadedCount=candidates.Count;
+                return result;
+            }
             var rootsFilter=Repository.BuildHolonTypeFilter(type);
             if(parent.HasValue) rootsFilter &= Builders<NativeHolon>.Filter.Eq(row=>row.ParentHolonId,parent.Value);
             if(version!=0) rootsFilter &= Builders<NativeHolon>.Filter.Eq(row=>row.Version,version);
@@ -57,7 +76,7 @@ public partial class MongoDBOASIS
             var byId=records.ToDictionary(row=>row.Id);
             var project=HolonGraphProjection.Create(records,children,recursive,depth,initialDepth,fromProvider,
                 row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)),rootsAreChildren:parent.HasValue);
-            result.Result=roots.Select(root=>project(byId[root.HolonId])).ToList();result.IsLoaded=true;
+            result.Result=roots.Select(root=>project(byId[root.HolonId])).ToList();result.IsLoaded=true;result.LoadedCount=roots.Count;
         }
         catch(Exception cause)
         {

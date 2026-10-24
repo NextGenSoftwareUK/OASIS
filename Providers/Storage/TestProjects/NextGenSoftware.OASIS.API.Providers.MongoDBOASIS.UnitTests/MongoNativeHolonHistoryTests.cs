@@ -1,5 +1,10 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using System.Security.Cryptography;
+using System.Text;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers;
 
@@ -32,6 +37,39 @@ public sealed class MongoNativeHolonHistoryTests
         var id=Guid.NewGuid();var second=Document(id,2,"replacement");MongoNativeHolonHistory.Stage(second,Document(id,1,"original"));
         second[MongoNativeHolonHistory.Field]["records"][0]["sha256"]=new string('0',64);
         Assert.ThrowsException<System.IO.InvalidDataException>(()=>MongoNativeHolonHistory.Read(second));
+    }
+
+    [TestMethod]
+    public void ArchivePreservesNativeDateWithoutGuessingDateLookingString()
+    {
+        var id=Guid.NewGuid();var observed=Document(id,1,"original");
+        observed["MetaData"]=new BsonDocument{{"date",new BsonDateTime(new DateTime(2026,10,24,0,0,0,DateTimeKind.Utc))},{"dateText","2026-10-24T00:00:00Z"}};
+        var next=Document(id,2,"replacement");MongoNativeHolonHistory.Stage(next,observed);
+        var old=MongoNativeHolonHistory.Read(next).Single(row=>row.Version==1);
+        Assert.IsInstanceOfType(old.MetaData["date"],typeof(DateTime));
+        Assert.IsInstanceOfType(old.MetaData["dateText"],typeof(string));
+        Assert.AreEqual("2026-10-24T00:00:00Z",old.MetaData["dateText"]);
+    }
+
+    [TestMethod]
+    public void NativeSnapshotTamperingIsRejected()
+    {
+        var id=Guid.NewGuid();var next=Document(id,2,"replacement");MongoNativeHolonHistory.Stage(next,Document(id,1,"original"));
+        next[MongoNativeHolonHistory.Field]["records"][0]["bson"]["Name"]="tampered";
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>MongoNativeHolonHistory.Read(next));
+    }
+
+    [TestMethod]
+    public void EarlierJsonEntriesRemainByteExactWhenAppendingNativeSnapshot()
+    {
+        var id=Guid.NewGuid();var original=Document(id,1,"legacy");
+        var core=DataHelper.ConvertMongoEntityToOASISHolon(BsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>(original),true);
+        var json=StoredRecordJson.Serialize<IHolon>(core);
+        var entry=new BsonDocument{{"json",json},{"sha256",Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))}};
+        var observed=Document(id,2,"observed");observed[MongoNativeHolonHistory.Field]=new BsonDocument{{"schema",1},{"records",new BsonArray{entry}}};
+        var next=Document(id,3,"next");MongoNativeHolonHistory.Stage(next,observed);
+        CollectionAssert.AreEqual(entry.ToBson(),next[MongoNativeHolonHistory.Field]["records"][0].AsBsonDocument.ToBson());
+        CollectionAssert.AreEqual(new[]{1,2,3},MongoNativeHolonHistory.Read(next).Select(row=>row.Version).ToArray());
     }
 
     [TestMethod]
