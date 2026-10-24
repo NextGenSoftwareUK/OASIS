@@ -347,6 +347,63 @@ public static class V1NativeQueries
         await output.WriteLineAsync("19. Filter and order Decimal means / Select().Where().OrderBy()\n");
         await output.WriteLineAsync($"  Stock={averageRow.Stock}, Items={averageRow.Items}, Mean={averageRow.Mean}\n");
 
+        // 20. Declare UTC bounds outside the expression. Date methods are not
+        // arbitrary executable query code. These two instants differ by100ns.
+        var dateStart = new DateTime(2026, 10, 24, 0, 0, 0, DateTimeKind.Utc).AddTicks(2);
+        var dateEnd = dateStart.AddTicks(2);
+
+        var dated = Value(visible
+            .Where(row => CosmicQueryMetadata.Value<DateTime>(row, "observedAt") >= dateStart
+                && CosmicQueryMetadata.Value<DateTime>(row, "observedAt") < dateEnd)
+            .OrderBy(row => CosmicQueryMetadata.Value<DateTime>(row, "observedAt"))
+            .Take(2)
+            .Select(row => new
+            {
+                row.Name,
+                ObservedAt = CosmicQueryMetadata.Value<DateTime>(row, "observedAt")
+            }));
+
+        var datePlan = Value(CosmicProjectionPlanner.Plan(dated, provider,
+            new[] { new CosmicProjectionTarget(provider, adapter.QueryCapabilities,
+                projectionAdapter.ProjectionCapabilities) }));
+
+        var dateExecution = Value(await manager.ExecuteProjectionQueryAsync(datePlan, new[] { adapter }));
+        var dateRows = dateExecution.Providers.Single().Rows;
+
+        if (!dateRows.Select(row => row.Name).SequenceEqual(new[] { "B-owned", "C-public" })
+            || !dateRows.Select(row => row.ObservedAt).SequenceEqual(new[] { dateStart, dateStart.AddTicks(1) })
+            || dateRows.Any(row => row.ObservedAt.Kind != DateTimeKind.Utc))
+            throw new InvalidOperationException("UTC date selection lost tick precision, kind or visibility.");
+
+        completedQueries++;
+        await output.WriteLineAsync("20. UTC date range / exact detached timestamps\n");
+        foreach (var row in dateRows)
+            await output.WriteLineAsync($"  {row.Name}: {row.ObservedAt:O}");
+        await output.WriteLineAsync();
+
+        // 21. The same UTC literals can filter selected group keys. All source
+        // groups still participate in proof validation before result publication.
+        var dateGroups = Value(visible
+            .GroupBy(row => CosmicQueryMetadata.Value<DateTime>(row, "observedAt"))
+            .Select(group => new { ObservedAt = group.Key, Items = group.LongCount() })
+            .Where(row => row.ObservedAt >= dateStart && row.ObservedAt < dateEnd)
+            .OrderBy(row => row.ObservedAt)
+            .Take(2));
+
+        var dateGroupPlan = Value(CosmicGroupedPlanner.Plan(dateGroups, provider,
+            new[] { new CosmicGroupedTarget(provider, adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+        var dateGroupExecution = Value(await manager.ExecuteGroupedQueryAsync(dateGroupPlan, new[] { adapter }));
+        var dateGroupRows = dateGroupExecution.Providers.Single().Rows;
+
+        if (!dateGroupRows.Select(row => row.ObservedAt).SequenceEqual(new[] { dateStart, dateStart.AddTicks(1) })
+            || dateGroupRows.Any(row => row.Items != 1 || row.ObservedAt.Kind != DateTimeKind.Utc))
+            throw new InvalidOperationException("UTC grouped filters/order/page lost exact date identity.");
+
+        completedQueries++;
+        await output.WriteLineAsync("21. UTC grouped keys / selected date filters and ordering\n");
+        foreach (var row in dateGroupRows)
+            await output.WriteLineAsync($"  {row.ObservedAt:O}: {row.Items} item\n");
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(

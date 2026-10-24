@@ -41,9 +41,38 @@ try {
         $proof = Get-Item -LiteralPath (Join-Path $work 'v1-demo-result.json') -ErrorAction Stop
         if ($proof.LastWriteTimeUtc -lt $started) { throw 'Demo result is stale; no verification claim permitted.' }
         $report = Get-Content -LiteralPath (Join-Path $work 'v1-demo-result.json') -Raw | ConvertFrom-Json
-        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 57 -or $report.localSdkQueries -ne 57) {
+        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 63 -or $report.localSdkQueries -ne 63) {
             throw 'Three-provider demo proof is incomplete.'
         }
+
+        # Capture the tested producer/consumer identities before releasing the
+        # global build lease. Another task may rebuild Shared immediately after it.
+        $consumer = Join-Path $taskRoot 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/bin/Debug/net10.0'
+        $producers = @(
+            'OASIS Architecture/NextGenSoftware.OASIS.API.Core',
+            'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage',
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS',
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS'
+        )
+        $names = @(
+            'NextGenSoftware.OASIS.API.Core',
+            'NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage',
+            'NextGenSoftware.OASIS.API.Providers.MongoDBOASIS',
+            'NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
+            'NextGenSoftware.OASIS.API.Providers.Neo4jOASIS'
+        )
+        $identities = for ($index = 0; $index -lt $names.Count; $index++) {
+            $producer = Join-Path $taskRoot "$($producers[$index])/bin/Debug/net10.0/$($names[$index]).dll"
+            $copy = Join-Path $consumer "$($names[$index]).dll"
+            $expected = (Get-FileHash -LiteralPath $producer -Algorithm SHA256).Hash
+            if ((Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -ne $expected) {
+                throw "Demo consumer differs from tested producer: $producer"
+            }
+            @{ producer = $producer; consumer = $copy; sha256 = $expected }
+        }
+        @{ capturedUtc = [DateTime]::UtcNow.ToString('O'); buildLeaseHeld = $true; identities = @($identities) } |
+            ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $work 'v1-binary-identities.json')
 
         Write-Host "PASS: all three native providers; $($report.settledOperations) settled operations."
         Write-Host 'Owned services stopped and fixture removed. Spaced C# walkthrough output:'

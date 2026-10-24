@@ -39,7 +39,7 @@ Read the source in this order:
 Start with examples 1–3 for CQL querying. Examples 4–6 show how queried holons participate in change tracking, conditional saves and committed deltas. Example 7 demonstrates an unsupported query being rejected before provider execution.
 
 
-The current walkthrough has **nineteen** spaced/commented examples per provider: 57 SDK queries and 57 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
+The current walkthrough has **twenty-one** spaced/commented examples per provider: 63 SDK queries and 63 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
 
 Projection transport now passes fullCore2,059 controls and signed native three-store acceptance, including visibility before paging, exact large integers/null/GUID/nested values, receipts and no replay. The new10-example SDK/HTTP walkthroughs now pass their expanded30/30 verification plus broad147native regression (195settled operations/190physical attempts); consult the current [HTTP projection contract](../../Docs/WIP/COSMIC%20ORM/CQL_PROJECTION_HTTP_CONTRACT.md) for limits and verified evidence.
 
@@ -121,3 +121,23 @@ var averagePage = grouped
 The two source rows determine participation before grouping. The result retains stock7, two items and exact mean `-9007199254740990.5`. Binary64 loses the half-unit at this magnitude; the SDK uses Decimal literals, while HTTP, browser and Swagger use invariant string thresholds. Native comparisons use the same normalized Decimal that CQL publishes, including the provider's independently tested round-to-even behavior. All three providers support these grouped Average operations.
 
 The browser preset is **GroupBy / filter exact Decimal means**. Swagger prefills the same range predicate, result order and independent result limit. Fresh live acceptance passed:57 SDK queries/57 HTTP examples on all three providers, plus236 Neo4j/WEB4 native regression cases, zero failures/skips. The run records237 settled operations and232 provider attempts. Earlier54/54 evidence above retains its original scope.
+
+
+## Examples 20–21: exact UTC dates
+
+Example20 filters the `observedAt` metadata path between explicit UTC bounds and projects neighboring timestamps100ns apart. The SDK uses DateTime values with UTC kind. HTTP uses the DateTime scalar and exact Z text:
+
+```json
+{
+  "metadataPath": ["observedAt"],
+  "scalar": "DateTime",
+  "operator": "GreaterThanOrEqual",
+  "value": "2026-10-24T00:00:00.0000002Z"
+}
+```
+
+Example21 groups timestamps and applies a selected-alias range before result ordering/Take. Its result filters use `alias: "ObservedAt"`; the selected schema determines DateTime type. Both paths use the same UTC parser. Results retain `2026-10-24T00:00:00.0000002Z` and `...0000003Z`, with UTC kind in C# and DateTime-tagged exact strings over HTTP.
+
+Use browser presets **UTC dates / source range** and **UTC dates / grouped keys**. Swagger projection/grouped requests show the date shapes; scalar Average remains available in its own example. Offsets, missing timezone, invalid calendars, fractions wider than seven digits and non-string date input are rejected rather than converted or rounded. HTTP source ordering remains its existing canonical-field grammar; SDK metadata ordering and grouped selected-date ordering are explicit separate operations.
+
+Fresh acceptance passed63 SDK queries/63 signed HTTP examples across all three providers, plus256 Neo4j/WEB4 native regression cases, zero failures/skips. The run recorded243 settled operations and238 provider attempts. Producer/native-host identities were captured while the global build lease was held. Owned fixture files and services were cleaned up after successful settlement. Earlier57/57 evidence retains its original scope.
