@@ -23,8 +23,35 @@ public partial class AWSOASISIntegrationTests
         var savedDetail=synchronous?storage.SaveAvatarDetail(detail):await storage.SaveAvatarDetailAsync(detail);
         Assert.IsFalse(savedDetail.IsError,savedDetail.Message);
 
-        var byKey=synchronous?storage.LoadAvatarByProviderKey(avatar.Id.ToString()):await storage.LoadAvatarByProviderKeyAsync(avatar.Id.ToString());
+        var observations=new List<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeResourceUsageObservation>();
+        var resourceRequest="native-capacity-"+avatar.Id.ToString("N");
+        var byKey=await _provider.ObserveNativeResourceUsageAsync(resourceRequest,
+            ()=>synchronous?Task.FromResult(storage.LoadAvatarByProviderKey(avatar.Id.ToString())):storage.LoadAvatarByProviderKeyAsync(avatar.Id.ToString()),
+            (nativeOperation,evidence)=>{Assert.AreEqual("GetItem",nativeOperation);observations.AddRange(evidence);return Task.CompletedTask;});
         Assert.IsFalse(byKey.IsError,byKey.Message);Assert.IsTrue(byKey.IsLoaded);
+        Assert.IsTrue(observations.Count>0,"Public AWS read must traverse the production SDK capacity pipeline.");
+        Assert.IsTrue(observations.Any(row=>row.View=="Total"&&row.Quantity.HasValue),"Retain an actual native measurement, not an invented zero.");
+        foreach(var row in observations){
+            row.Validate("AWSOASIS",resourceRequest);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(row.NativeRequestId));
+            Assert.AreEqual("us-east-1/table/OasisAvatars",row.ResourceScope);
+        }
+        var observationDeadline=new TimeoutException("owned native observation persistence deadline");var observationCalls=0;
+        var unretained=await _provider.ObserveNativeResourceUsageAsync(resourceRequest+"-deadline",
+            ()=>synchronous?Task.FromResult(storage.LoadAvatarByProviderKey(avatar.Id.ToString())):storage.LoadAvatarByProviderKeyAsync(avatar.Id.ToString()),
+            (nativeOperation,evidence)=>{observationCalls++;Assert.AreEqual("GetItem",nativeOperation);throw observationDeadline;});
+        Assert.IsTrue(unretained.IsError);Assert.IsInstanceOfType(unretained.Exception,typeof(InvalidDataException));
+        Assert.AreSame(observationDeadline,unretained.Exception.InnerException);Assert.AreEqual(1,observationCalls);
+        Assert.IsFalse(((NextGenSoftware.OASIS.API.Core.Interfaces.IProviderTransportFailureClassifier)_provider).IsProviderTransportFailure(unretained.Exception));
+        var transactionObservations=new List<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeResourceUsageObservation>();
+        var conditionRequest=new Amazon.DynamoDBv2.Model.TransactWriteItemsRequest{TransactItems=new(){
+            new(){ConditionCheck=new(){TableName="OasisAvatars",Key=new(){{"id",new(){S=avatar.Id.ToString("D")}}},ConditionExpression="attribute_exists(#id)",ExpressionAttributeNames=new(){{"#id","id"}}}},
+            new(){ConditionCheck=new(){TableName="OasisAvatars",Key=new(){{"id",new(){S=Guid.NewGuid().ToString("D")}}},ConditionExpression="attribute_not_exists(#id)",ExpressionAttributeNames=new(){{"#id","id"}}}}}};
+        var conditionResponse=await _provider.ObserveNativeResourceUsageAsync(resourceRequest+"-conditions",()=>Client.TransactWriteItemsAsync(conditionRequest),
+            (nativeOperation,evidence)=>{Assert.AreEqual("TransactWriteItems",nativeOperation);transactionObservations.AddRange(evidence);return Task.CompletedTask;});
+        Assert.AreEqual(System.Net.HttpStatusCode.OK,conditionResponse.HttpStatusCode);
+        Assert.IsTrue(transactionObservations.Any(row=>row.View=="Total"&&row.Quantity.HasValue));
+        foreach(var row in transactionObservations){row.Validate("AWSOASIS",resourceRequest+"-conditions");Assert.IsFalse(string.IsNullOrWhiteSpace(row.NativeRequestId));}
         Assert.AreEqual(1,byKey.LoadedCount);
         Assert.AreEqual(avatar.Id,byKey.Result.Id);Assert.AreEqual("complete profile",byKey.Result.FirstName);
         var absentKey=synchronous?storage.LoadAvatarByProviderKey(Guid.NewGuid().ToString()):await storage.LoadAvatarByProviderKeyAsync(Guid.NewGuid().ToString());
