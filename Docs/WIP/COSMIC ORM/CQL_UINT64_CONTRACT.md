@@ -1,7 +1,10 @@
 # CQL UInt64 metadata
 
-24 October 2026. Core/SQLite implementation is verified. This does not declare
-MongoDB, Neo4j, HTTP transport or full scalar-matrix completion.
+24 October2026. UInt64 native support is verified on SQLite (1,435 integration),
+MongoDB (205 CQL/478 units) and Neo4j (205 CQL/453 units). The additive HTTP wire
+passes2,474 Core controls, including20 unsigned cases. New UInt64 live HTTP/demo
+acceptance remains next. Historical checkpoints below retain their original scope.
+
 
 ## Core capture
 
@@ -116,3 +119,61 @@ query acceptance can be inferred. This integration regression has been sent to i
 Core/Shared source owner; caller ownership validation must remain intact. Evidence:
 SubscriptionUsageCurrent/mongo-uint64-child-role-red.trx and
 CosmicCqlDemo/mongo-uint64-reconciled-final.log. The active goal remains incomplete.
+
+
+## MongoDB native acceptance after receipt repair
+
+Actual11416 terminated0: **205 native CQL tests and478 MongoDB units passed,
+zero failures/skips**. Fourteen new native cases verify exact boxed UInt64
+persistence, six boundary values, equality/membership/projection/grouped alias
+filters/order, adjacent maximum values and scalar extrema, plus seven invalid
+BSON domains. Five new unit cases validate numeric BSON serialization and detached
+packet rejection, including Decimal128 fractions that would round into integers.
+The empty retained fixture was hash/catalog/count checked before cleanup. The
+Core/Shared receipt fix restored seed admission without weakening caller save
+ownership. Existing strings remain strings; no automatic legacy reinterpretation.
+
+Inside-lease producer/native/unit hashes match Core9EA092FC, Shared2FD86EA9 and
+Mongo6A26450E. Exact identity/source evidence:
+TestResults/SubscriptionUsageCurrent/uint64-artifacts.json and
+uint64-receipt-fix-source-hashes.json. All captured Mongo source hashes stayed
+unchanged. Reports: mongo-cql-native-current.trx and uint64-unit-final-current.trx
+in that directory. Log: CosmicCqlDemo/mongo-uint64-receipt-fix-final.log.
+
+Neo4j UInt64 and HTTP UInt64 code are now prepared. The full Core/linked-production
+wire cohort passes2,474 cases (20 new unsigned wire controls). Source filters and
+selected/grouped results use UInt64 type names and exact invariant digit strings;
+JSON numbers, signs, whitespace, fractional/exponent text and overflow are rejected.
+Native Neo4j and live three-provider transport/demo verification are still pending.
+
+
+## Three-provider UInt64/native and wire checkpoint — 24 October2026
+
+Actual99510 terminated0: fullCore/linked-production**2,474 tests**, Neo4j**205
+native CQL tests and453 provider units**, zero failures/skips. Twenty wire controls,
+13 native Neo cases and five Neo unit cases are new. The native gate covers exact
+UInt64 range/membership/order/projection, nullable grouped keys/Min/Max, field
+comparison and10 invalid-domain cases. Both existing schema3 integer values and
+exact raw wider-number text normalize to20-digit ordinal keys. No storage rewrite,
+reindex, toFloat or signed-integer conversion is introduced for these keys.
+
+Source/wire hashes stayed unchanged. Inside-lease producer/native/unit identities
+match Core9EA092FC, Shared2FD86EA9 and Neo86F7CE9C. Exact evidence:
+TestResults/Neo4jCurrent/uint64-artifacts.json, uint64-source-hashes.json,
+neo4j-cql-native-current.trx, uint64-unit-current.trx;
+TestResults/CosmicCurrent/uint64-wire-full-current.trx;
+TestResults/CosmicCqlDemo/uint64-wire-neo-final.log.
+
+Mongo acceptance11416 also passed205 native/478 units; SQLite's prior full1,435
+cohort remains scoped to its earlier binary. These are separate verified cohorts,
+not a simultaneous full regression of all three stores. The latest live demo remains
+63SDK/63HTTP UTC examples; new UInt64 live transport/examples still require their
+own gate. The additive UInt64 enum, selected/nullable binding, grouped alias
+predicates and central exact-string wire formatting pass the20 new Core controls.
+
+Core/Shared receipt repair was necessary for the current native seed path and is
+owned by the parallel provider session. Its committed dependency pin/publication
+must be reconciled before a Development deployment batch. This checkpoint remains
+on the task branch. Original joins, federation, broader Decimal/floating metadata,
+authoritative policy, interruption and final certification requirements stay open.
+See [the matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) and [UInt64 contract](CQL_UINT64_CONTRACT.md).

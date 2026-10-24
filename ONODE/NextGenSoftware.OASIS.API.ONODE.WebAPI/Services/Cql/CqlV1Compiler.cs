@@ -18,6 +18,15 @@ public static partial class CqlV1Compiler
 
     // One wire owner for source and selected-result dates. Do not infer a
     // timezone or round input wider than DateTime's100ns resolution.
+    private static bool TryUInt64(JsonElement json, out ulong value)
+    {
+        value = 0;
+        if (json.ValueKind != JsonValueKind.String) return false;
+        var text = json.GetString();
+        return text.Length is >= 1 and <= 20 && text.All(c => c is >= '0' and <= '9')
+            && ulong.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
+    }
+
     private static bool TryUtcDate(JsonElement json, out DateTime value)
     {
         value = default;
@@ -200,7 +209,7 @@ public static partial class CqlV1Compiler
             var type = filter.Scalar switch
             {
                 CqlV1Scalar.String => typeof(string), CqlV1Scalar.Integer => typeof(long),
-                CqlV1Scalar.Boolean => typeof(bool), CqlV1Scalar.DateTime => typeof(DateTime), _ => typeof(Guid)
+                CqlV1Scalar.UInt64 => typeof(ulong), CqlV1Scalar.Boolean => typeof(bool), CqlV1Scalar.DateTime => typeof(DateTime), _ => typeof(Guid)
             };
             path = Expression.Call(typeof(CosmicQueryMetadata), "Value", new[] { type }, parameter, segments);
         }
@@ -225,6 +234,7 @@ public static partial class CqlV1Compiler
         else if (path.Type == typeof(long) && json.ValueKind == JsonValueKind.Number && json.TryGetInt64(out var number)) value = number;
         else if (path.Type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var integer)) value = integer;
         else if (path.Type == typeof(Guid) && json.ValueKind == JsonValueKind.String && Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
+        else if (path.Type == typeof(ulong) && TryUInt64(json, out var unsigned)) value = unsigned;
         else if (path.Type == typeof(DateTime) && TryUtcDate(json, out var utc)) value = utc;
         else throw new ArgumentException("Value must match the exact bounded scalar type.");
 

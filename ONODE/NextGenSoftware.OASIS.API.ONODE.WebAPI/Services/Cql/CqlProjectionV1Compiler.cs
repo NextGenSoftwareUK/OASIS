@@ -82,6 +82,7 @@ public static partial class CqlV1Compiler
             "Boolean" => MetadataSelection<bool, TResult>(alias, path, nullable, consumer),
             "Int32" => MetadataSelection<int, TResult>(alias, path, nullable, consumer),
             "Int64" => MetadataSelection<long, TResult>(alias, path, nullable, consumer),
+            "UInt64" => MetadataSelection<ulong, TResult>(alias, path, nullable, consumer),
             "Byte" => MetadataSelection<byte, TResult>(alias, path, nullable, consumer),
             "SByte" => MetadataSelection<sbyte, TResult>(alias, path, nullable, consumer),
             "Int16" => MetadataSelection<short, TResult>(alias, path, nullable, consumer),

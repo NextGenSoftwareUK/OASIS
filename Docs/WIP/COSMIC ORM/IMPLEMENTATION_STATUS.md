@@ -843,3 +843,35 @@ absent after teardown; no downloads/restores/new environments were needed.
 Next: MongoDB and Neo4j UInt64 persistence/query domains, transport/examples,
 then remaining Decimal/double coverage and the broader unchanged roadmap.
 See [the UInt64 contract](CQL_UINT64_CONTRACT.md). The full goal remains active.
+
+
+## Three-provider UInt64/native and wire checkpoint — 24 October2026
+
+Actual99510 terminated0: fullCore/linked-production**2,474 tests**, Neo4j**205
+native CQL tests and453 provider units**, zero failures/skips. Twenty wire controls,
+13 native Neo cases and five Neo unit cases are new. The native gate covers exact
+UInt64 range/membership/order/projection, nullable grouped keys/Min/Max, field
+comparison and10 invalid-domain cases. Both existing schema3 integer values and
+exact raw wider-number text normalize to20-digit ordinal keys. No storage rewrite,
+reindex, toFloat or signed-integer conversion is introduced for these keys.
+
+Source/wire hashes stayed unchanged. Inside-lease producer/native/unit identities
+match Core9EA092FC, Shared2FD86EA9 and Neo86F7CE9C. Exact evidence:
+TestResults/Neo4jCurrent/uint64-artifacts.json, uint64-source-hashes.json,
+neo4j-cql-native-current.trx, uint64-unit-current.trx;
+TestResults/CosmicCurrent/uint64-wire-full-current.trx;
+TestResults/CosmicCqlDemo/uint64-wire-neo-final.log.
+
+Mongo acceptance11416 also passed205 native/478 units; SQLite's prior full1,435
+cohort remains scoped to its earlier binary. These are separate verified cohorts,
+not a simultaneous full regression of all three stores. The latest live demo remains
+63SDK/63HTTP UTC examples; new UInt64 live transport/examples still require their
+own gate. The additive UInt64 enum, selected/nullable binding, grouped alias
+predicates and central exact-string wire formatting pass the20 new Core controls.
+
+Core/Shared receipt repair was necessary for the current native seed path and is
+owned by the parallel provider session. Its committed dependency pin/publication
+must be reconciled before a Development deployment batch. This checkpoint remains
+on the task branch. Original joins, federation, broader Decimal/floating metadata,
+authoritative policy, interruption and final certification requirements stay open.
+See [the matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) and [UInt64 contract](CQL_UINT64_CONTRACT.md).
