@@ -731,3 +731,6 @@ Immutable native rows now require positive input-count proof, complete typed key
 ## Grouped V2 execution owner — 23 October 2026
 
 Generic HolonManager grouped execution now preflights all actual adapters and reuses the existing prepared physical-attempt/receipt owner. Global group/payload budgets are enforced across all buffers before any DTO construction. Per-provider rows remain separate; zero remaining bounds do not skip a later empty provider's execution. Both Core targets build; full **2,239 tests pass, zero skips**, including15 new controlled executor/hosted cases. [Contract/evidence](CQL_GROUPING_CONTRACT.md). Native GroupBy, HTTP and demos are still required; no provider advertises native grouping yet.
+
+
+Native GroupBy continuation: SQLite's three new native controls produce the expected capability-red baseline; no grouped native adapter yet. Exact numeric packet normalization is now shared by generic scalar and adapter-facing entries, passing fullCore2,252/zero skips with13 reference controls. The Core test project now copies its reference JSON. Native SQLite/Mongo/Neo grouping, HTTP and demos remain required. [Contract/evidence](CQL_GROUPING_CONTRACT.md).
