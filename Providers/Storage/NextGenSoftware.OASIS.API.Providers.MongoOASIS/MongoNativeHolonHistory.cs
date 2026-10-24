@@ -28,9 +28,15 @@ internal static class MongoNativeHolonHistory
     }
 
     internal static IReadOnlyList<IHolon> Read(BsonDocument document,bool requireUniqueLogicalVersions=true)
+        =>Read(document,Current,StoredRecordJson.DeserializeStoredHolon,requireUniqueLogicalVersions);
+
+    // Share archive validation/staging across native families without converting
+    // account records into holons (IAvatar only implements IHolonBase).
+    internal static IReadOnlyList<T> Read<T>(BsonDocument document,Func<BsonDocument,T> decode,
+        Func<string,T> decodeLegacy,bool requireUniqueLogicalVersions=true) where T:IHolonBase
     {
-        var current=Current(document);
-        var records=new List<IHolon>();
+        var current=Validate(decode(document));
+        var records=new List<T>();
         if(document.TryGetValue(Field,out var value))
         {
             if(!value.IsBsonDocument || value.AsBsonDocument.ElementCount!=2
@@ -42,20 +48,20 @@ internal static class MongoNativeHolonHistory
                 if(!entry.IsBsonDocument || entry.AsBsonDocument.ElementCount!=2
                     || !entry.AsBsonDocument.TryGetValue("sha256",out var digest) || !digest.IsString)
                     throw new InvalidDataException("Mongo archived holon checksum or envelope is invalid.");
-                IHolon record;
+                T record;
                 if(entry.AsBsonDocument.TryGetValue("bson",out var snapshot))
                 {
                     if(schema.AsInt32!=2 || !snapshot.IsBsonDocument || snapshot.AsBsonDocument.Contains(Field)
                         || Convert.ToHexString(SHA256.HashData(snapshot.AsBsonDocument.ToBson()))!=digest.AsString)
                         throw new InvalidDataException("Mongo archived BSON snapshot checksum or envelope is invalid.");
-                    record=Current(snapshot.AsBsonDocument);
+                    record=Validate(decode(snapshot.AsBsonDocument));
                 }
                 else if(entry.AsBsonDocument.TryGetValue("json",out var json) && json.IsString)
                 {
                     // Explicit earlier format: preserve its raw JSON, never guess BSON date types.
                     if(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json.AsString)))!=digest.AsString)
                         throw new InvalidDataException("Mongo archived JSON snapshot checksum is invalid.");
-                    record=StoredRecordJson.DeserializeStoredHolon(json.AsString);
+                    record=decodeLegacy(json.AsString);
                 }
                 else throw new InvalidDataException("Unknown Mongo archived snapshot format.");
                 if(record==null || record.Id!=current.Id || record.Version<0 || record.Version>current.Version)
@@ -65,7 +71,7 @@ internal static class MongoNativeHolonHistory
         }
         records.Add(current);
         if(!requireUniqueLogicalVersions)return records;
-        var distinct=new List<IHolon>();
+        var distinct=new List<T>();
         foreach(var group in records.GroupBy(record=>record.Version))
         {
             var first=group.First();
@@ -78,10 +84,21 @@ internal static class MongoNativeHolonHistory
     }
 
     internal static void Stage(BsonDocument replacement,BsonDocument observed)
+        =>Stage(replacement,observed,Current,StoredRecordJson.DeserializeStoredHolon);
+
+    private static T Validate<T>(T record) where T:IHolonBase
+    {
+        if(record is null || record.Id==Guid.Empty || record.Version<0)
+            throw new InvalidDataException("Mongo current record identity/version is invalid.");
+        return record;
+    }
+
+    internal static void Stage<T>(BsonDocument replacement,BsonDocument observed,
+        Func<BsonDocument,T> decode,Func<string,T> decodeLegacy) where T:IHolonBase
     {
         // Validate existing evidence before allowing any replacement to overwrite it.
-        var records=Read(observed,requireUniqueLogicalVersions:false);
-        var proposed=Current(replacement);
+        var records=Read(observed,decode,decodeLegacy,requireUniqueLogicalVersions:false);
+        var proposed=Validate(decode(replacement));
         if(proposed.Id!=records[0].Id)
             throw new InvalidDataException("Mongo replacement changed the archived public identity.");
         if(records.Any(record=>record.Version>proposed.Version))
