@@ -267,7 +267,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 var doc = await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString());
-                if (doc == null)
+                if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail {id} not found.");
                 else
                     CompleteRead(result,doc);
@@ -288,7 +288,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Username", username);
-                if (doc == null)
+                if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail '{username}' not found.");
                 else
                     CompleteRead(result,doc);
@@ -309,7 +309,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Email", email);
-                if (doc == null)
+                if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail '{email}' not found.");
                 else
                     CompleteRead(result,doc);
@@ -330,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 var docs = await GetAllDocsAsync<AvatarDetail>(CollAvatarDetails);
-                CompleteRows<IAvatarDetail>(result,docs);
+                CompleteRows<IAvatarDetail>(result,docs.FindAll(detail => !detail.IsDeleted));
             }
             catch (Exception ex)
             {
