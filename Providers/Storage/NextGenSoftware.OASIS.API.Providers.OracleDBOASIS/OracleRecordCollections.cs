@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS;
 
 public partial class OracleDBOASIS
 {
-    private async Task<List<T>> ReadRecordCollectionAsync<T>(string table,int version,bool exportAllVersions=false) where T:class,IHolonBase
+    protected virtual async Task<List<T>> ReadRecordCollectionAsync<T>(string table,int version,bool exportAllVersions=false) where T:class,IHolonBase
     {
         if(version<0&&!(exportAllVersions&&version==-1))throw new ArgumentOutOfRangeException(nameof(version));
         var expected=typeof(T)==typeof(Core.Holons.Avatar)?"OASIS_AVATARS":typeof(T)==typeof(Core.Holons.AvatarDetail)?"OASIS_AVATAR_DETAILS":typeof(T)==typeof(Core.Holons.Holon)?"OASIS_HOLONS":null;
