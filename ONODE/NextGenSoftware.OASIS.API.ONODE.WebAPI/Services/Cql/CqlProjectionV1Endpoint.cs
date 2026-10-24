@@ -84,6 +84,7 @@ public static partial class CqlV1Endpoint
         if (type == typeof(Guid)) return "Guid";
         if (type == typeof(DateTime)) return "DateTime";
         if (type == typeof(long)) return "Int64";
+        if (type == typeof(decimal)) return "Decimal";
         if (type == typeof(int)) return "Int32";
         if (type == typeof(byte)) return "Byte";
         if (type == typeof(sbyte)) return "SByte";
@@ -100,6 +101,7 @@ public static partial class CqlV1Endpoint
         if (value == null || value is string || value is bool || value is byte || value is sbyte
             || value is short || value is ushort || value is int || value is uint) return value;
         if (value is long integer) return integer.ToString(CultureInfo.InvariantCulture);
+        if (value is decimal exact) return exact.ToString(CultureInfo.InvariantCulture);
         if (value is Guid guid) return guid.ToString("D");
         if (value is DateTime date && date.Kind == DateTimeKind.Utc) return date.ToString("O", CultureInfo.InvariantCulture);
         if (value is HolonType holon && Enum.IsDefined(typeof(HolonType), holon)) return holon.ToString();

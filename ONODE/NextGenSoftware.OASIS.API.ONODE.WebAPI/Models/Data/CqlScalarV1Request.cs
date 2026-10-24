@@ -23,7 +23,7 @@ public sealed class CqlScalarV1Request
 }
 
 
-/// <summary>One bounded canonical field or typed metadata path for Min/Max.</summary>
+/// <summary>One bounded canonical field or typed metadata path for Min/Max/Sum/Average.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlScalarV1Selection
 {
