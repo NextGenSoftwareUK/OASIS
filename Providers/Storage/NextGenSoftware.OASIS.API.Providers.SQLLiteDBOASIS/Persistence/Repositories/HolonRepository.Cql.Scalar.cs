@@ -30,6 +30,7 @@ public partial class HolonRepository
             var predicate = source.Predicates.Count == 0 ? "1" : string.Join(" AND ", source.Predicates.Select(translator.Translate));
             cancellationToken.ThrowIfCancellationRequested();
             var selected = plan.Query.Selector != null;
+            var numeric = plan.Query.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
             if (source.Limit == 0) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
                 : CosmicScalarResults.FromCount(plan.Query, 0);
 
@@ -40,8 +41,9 @@ public partial class HolonRepository
             translator.Parameters.Add(new SqliteParameter("$countTake", source.Limit.HasValue ? (long)source.Limit.Value : long.MaxValue));
             var sql = "SELECT CASE WHEN total <= $countOffset THEN 0 ELSE min(total - $countOffset, $countTake) END AS Value "
                 + "FROM (SELECT count(*) AS total FROM Holon WHERE " + predicate + ")";
-            if (selected) sql = translator.TranslateExtremum(plan.Query.Selector, plan.Query.Operation,
-                predicate, translator.TranslateOrdering(source.Orderings));
+            if (selected) sql = numeric
+                ? translator.TranslateNumericAggregate(plan.Query.Selector, predicate, translator.TranslateOrdering(source.Orderings))
+                : translator.TranslateExtremum(plan.Query.Selector, plan.Query.Operation, predicate, translator.TranslateOrdering(source.Orderings));
 
             using var exclusive = _dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
@@ -78,15 +80,23 @@ public partial class HolonRepository
                         await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                         {
                             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                                throw new System.IO.InvalidDataException("Native extremum envelope is missing.");
+                                throw new System.IO.InvalidDataException("Native scalar envelope is missing.");
                             budget.Check(); traversal?.Check();
                             if (reader.GetInt64(0) != 0) throw new System.IO.InvalidDataException("A participating selected value has an invalid domain.");
-                            if (reader.GetInt64(2) != 0) throw new SqliteCqlResourceException("Selected scalar exceeds its native payload budget.");
-                            var present = reader.GetInt64(1) > 0;
-                            var value = present ? DecodeProjectionCell(reader.GetValue(3), plan.Query.Selector.ValueType) : null;
-                            result = CosmicSelectedScalarResults.FromValue(plan.Query, value, present);
+                            if (numeric)
+                            {
+                                if (reader.GetInt64(4) != 0) throw new SqliteCqlResourceException("Numeric aggregation exceeds its explicit native input work bound.");
+                                result = CosmicNumericScalarResults.FromParts(plan.Query, reader.GetInt64(2), reader.GetInt64(3), reader.GetInt64(1));
+                            }
+                            else
+                            {
+                                if (reader.GetInt64(2) != 0) throw new SqliteCqlResourceException("Selected scalar exceeds its native payload budget.");
+                                var present = reader.GetInt64(1) > 0;
+                                var value = present ? DecodeProjectionCell(reader.GetValue(3), plan.Query.Selector.ValueType) : null;
+                                result = CosmicSelectedScalarResults.FromValue(plan.Query, value, present);
+                            }
                             if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                                throw new System.IO.InvalidDataException("Native extremum returned multiple envelopes.");
+                                throw new System.IO.InvalidDataException("Native scalar returned multiple envelopes.");
                         }
                     }
                     else

@@ -15,7 +15,9 @@ public partial class SQLLiteDBOASIS : ICosmicQueryScalarStorageProvider
         internal static readonly CosmicScalarCapabilities Value = new(
             new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any },
             new[] { new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
-                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities) });
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities) });
     }
 
     public CosmicScalarCapabilities ScalarCapabilities => CqlScalarCapabilities;
