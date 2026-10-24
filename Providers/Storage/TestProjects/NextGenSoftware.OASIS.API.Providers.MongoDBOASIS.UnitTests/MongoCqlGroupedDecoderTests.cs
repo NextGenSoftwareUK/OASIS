@@ -14,7 +14,7 @@ public sealed class MongoCqlGroupedDecoderTests
     {
         { "_id", new BsonDocument("k0", "coffee") },
         { "k0", new BsonDocument { { "s", 2 }, { "v", "coffee" } } },
-        { "inputs", 2L }, { "work", 2L }, { "invalid", 0L },
+        { "resultMember", true }, { "inputs", 2L }, { "work", 2L }, { "invalid", 0L },
         { "a1present", 2L },
         { "a1high", new BsonDecimal128(Decimal128.Zero) },
         { "a1low", new BsonDecimal128(new Decimal128(3L)) }
@@ -93,6 +93,19 @@ public sealed class MongoCqlGroupedDecoderTests
         packet = Packet(); packet["extra"] = 1;
         Assert.ThrowsException<InvalidDataException>(() => Read(packet));
         packet = Packet(); packet.Remove("k0");
+        Assert.ThrowsException<InvalidDataException>(() => Read(packet));
+    }
+
+    [TestMethod]
+    public void PageMarkerIsExactAndCannotRemoveOffPageDomainValidation()
+    {
+        var packet = Packet(); packet["resultMember"] = false;
+        Assert.IsFalse(Read(packet).IsResult);
+        packet["a1present"] = -1L;
+        Assert.ThrowsException<InvalidDataException>(() => Read(packet));
+        packet = Packet(); packet["resultMember"] = 1;
+        Assert.ThrowsException<InvalidDataException>(() => Read(packet));
+        packet = Packet(); packet.Remove("resultMember");
         Assert.ThrowsException<InvalidDataException>(() => Read(packet));
     }
 }

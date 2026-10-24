@@ -47,7 +47,7 @@ public partial class HolonRepository
         // Reuse the projection owner's exact domain and null-state decoder.
         var keys = ReadNativeCqlProjectionRow(new BsonDocument("cells", keyCells), query.Grouping.Key.Columns).Values.ToArray();
         var values = new object[query.Columns.Count];
-        var expectedFields = 4 + count;
+        var expectedFields = 5 + count;
         for (var index = 0; index < values.Length; index++)
         {
             var column = query.Columns[index];
@@ -95,6 +95,8 @@ public partial class HolonRepository
             else throw new InvalidDataException("Native group aggregate is unknown.");
         }
         if (document.ElementCount != expectedFields) throw new InvalidDataException("Native group has unexpected fields.");
-        return new CosmicGroupedRow(inputs, keys, values);
+        if (!document.TryGetValue("resultMember", out var member) || !member.IsBoolean)
+            throw new InvalidDataException("Native group page membership must be Boolean.");
+        return new CosmicGroupedRow(inputs, member.AsBoolean, keys, values);
     }
 }
