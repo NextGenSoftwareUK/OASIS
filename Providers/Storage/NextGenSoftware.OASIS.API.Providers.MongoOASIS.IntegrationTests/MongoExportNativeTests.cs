@@ -8,6 +8,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.Common;
 using Xunit;
 using Xunit.Abstractions;
@@ -17,6 +18,61 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public sealed class MongoExportNativeTests(ITestOutputHelper output)
 {
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task HostedDomainMutationPreservesExistingArchiveAndUnknownFields(bool softDelete)
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        const string name="cosmic_cql_fixture";var client=new MongoClient(uri);
+        using var names=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await names.ToListAsync());
+        var database=client.GetDatabase(name);await database.CreateCollectionAsync("CosmicOwnedFixture");
+        var provider=new Provider(uri,name);var complete=false;
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            var owner=Guid.NewGuid();
+            var first=await provider.SaveHolonAsync(new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=owner,Version=1,VersionId=Guid.NewGuid(),Name="original"},saveChildren:false);
+            Assert.False(first.IsError,first.Message+first.Exception);
+            var updated=first.Result;updated.Version=2;updated.VersionId=Guid.NewGuid();updated.Name="saved replacement";
+            var second=await provider.SaveHolonAsync(updated,saveChildren:false);
+            Assert.False(second.IsError,second.Message+second.Exception);
+            var native=database.GetCollection<BsonDocument>("Holon");
+            var marked=await native.UpdateOneAsync(FilterDefinition<BsonDocument>.Empty,Builders<BsonDocument>.Update.Set("FixtureUnknown","retained"));
+            Assert.True(marked.IsAcknowledged);Assert.Equal(1,marked.MatchedCount);
+            var mutation=new HostedSyncFanOutItem{OperationId=Guid.NewGuid(),AvatarId=owner,EntityId=updated.Id,EntityType=HyperDriveEntityTypes.Holon,
+                Kind=SyncOperationKind.Upsert,VersionId=Guid.NewGuid(),PayloadJson="{\"name\":\"domain replacement\"}"};
+            var applied=await provider.ApplyDomainMutationAsync(mutation,default);
+            Assert.False(applied.IsError,applied.Message+applied.Exception);
+            var beforeReplay=Assert.Single(await native.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).ToBson();
+            var replay=await provider.ApplyDomainMutationAsync(mutation,default);
+            Assert.False(replay.IsError,replay.Message+replay.Exception);Assert.True(replay.Result.AlreadyApplied);
+            Assert.Equal(beforeReplay,Assert.Single(await native.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync()).ToBson());
+            if(softDelete)
+            {
+                mutation.OperationId=Guid.NewGuid();mutation.VersionId=Guid.NewGuid();mutation.Kind=SyncOperationKind.Delete;mutation.PayloadJson=null;
+                var deleted=await provider.ApplyDomainMutationAsync(mutation,default);
+                Assert.False(deleted.IsError,deleted.Message+deleted.Exception);
+            }
+            var exported=await provider.ExportAllAsync(-1);
+            Assert.False(exported.IsError,exported.Message+exported.Exception);
+            Assert.Equal(new[]{"original","saved replacement","domain replacement"},exported.Result.OrderBy(row=>row.Version).Select(row=>row.Name));
+            var stored=Assert.Single(await native.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync());
+            Assert.Equal("retained",stored["FixtureUnknown"].AsString);
+            Assert.True(stored.Contains("CosmicCqlMembership"));
+            Assert.Equal(softDelete?4:3,stored["Version"].AsInt32);
+            complete=true;
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+            if(complete)await client.DropDatabaseAsync(name);
+            else output.WriteLine("Preserved owned cosmic_cql_fixture hosted-domain history evidence for reviewed reconciliation.");
+        }
+    }
+
     [Fact]
     public async Task ReconcileReviewedHistoricalExportFixture()
     {
