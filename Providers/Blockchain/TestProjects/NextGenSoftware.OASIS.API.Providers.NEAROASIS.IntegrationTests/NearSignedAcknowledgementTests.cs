@@ -48,6 +48,13 @@ public class NearSignedAcknowledgementTests
         Persist("before-known-burn");
         await Observe("burn",await Call("nft_burn",new{token_id=token}));
         Assert.AreEqual(JsonValueKind.Null,(await View()).ValueKind);
+        Persist("before-native-negative");
+        var rejected=await Assert.ThrowsExceptionAsync<NearMutationRejectedException>(()=>Call("oasis_signed_ack_missing_method",new{}));
+        receipts.Add(new{label="native-negative",hash=rejected.OriginalTransactionId});Persist("acknowledged-native-negative");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(rejected.OriginalTransactionId));
+        var failed=await provider.GetTransactionStatusAsync(rejected.OriginalTransactionId);
+        Assert.IsFalse(failed.IsError,failed.Message);Assert.AreEqual(BridgeTransactionStatus.Failed,failed.Result);
+        Assert.AreEqual(JsonValueKind.Null,(await View()).ValueKind);
         Persist("verified-fixture-absent");File.Move(pending,complete);
         Console.WriteLine("NEAR_SIGNED_ACK_VERIFIED "+JsonSerializer.Serialize(new{token,receipts}));
     }

@@ -1,4 +1,5 @@
-// One SDK invocation. This does not certify SDK-internal transport retries or durable pre-sign admission.
+import {submitNativeAction} from './native-mutation.mjs';
+// One SDK invocation. This does not certify provider transport retries or durable pre-sign admission.
 export async function submitCheckedRecord(provider,createAccount,input,createAction) {
   let account,action;
   try {
@@ -11,8 +12,7 @@ export async function submitCheckedRecord(provider,createAccount,input,createAct
     const error=cause instanceof Error?cause:new Error(String(cause));
     error.checkedWritePhase='before-submission';throw error;
   }
-  const outcome=await account.signAndSendTransaction({receiverId:input.contractId,
-    actions:[action],waitUntil:'FINAL',throwOnFailure:false});
+  const outcome=await submitNativeAction(account,input.contractId,action);
   // Preserve native failures as receipts, not exceptions which discard the acknowledged identity.
   // Consumers must validate FINAL/status and reconcile malformed/unknown acknowledgements.
   return {transactionHash:outcome.transaction_outcome?.id??null,
