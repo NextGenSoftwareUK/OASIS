@@ -681,3 +681,6 @@ var groups = CosmicQuery<Holon>.Create()
 ```
 
 Grouped HTTP requests and updated three-provider grouped demo screens are not available yet. This checkpoint does not add post-group Where/OrderBy/Skip/Take.
+
+
+MongoDB now supports the same grouped selection expression shape shown in the SQLite example through its own CosmicGroupedTarget and actual GroupedCapabilities. Initial live integration passes; expanded grouped boundary acceptance is pending. Use HolonManager.ExecuteGroupedQueryAsync with the admitted provider plan. Grouped HTTP and three-provider grouped demo screens remain pending.

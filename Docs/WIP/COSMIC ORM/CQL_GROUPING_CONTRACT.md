@@ -130,3 +130,19 @@ Producer build and all **248 Mongo unit tests passed, zero skips**, including th
 ## MongoDB grouped packet decoder - 23 October 2026
 
 The internal decoder now validates exact packet shape, complete typed key cells, positive input/global work proofs, required/nullable participation and aggregate domains. It reuses the projection cell decoder and shared numeric limb normalizer. Final arithmetic errors retain their original CQL code for the forthcoming adapter; malformed native data cannot masquerade as overflow. All259 Mongo unit tests pass, zero skips, including11 new decoder cases. Evidence: TestResults/MongoCurrent/cql-grouped-decoder-final-current.trx and TestResults/CosmicCqlDemo/mongo-group-decoder-final.log. The first run had258passes/1fixturefailure: the overflow packet exceeded the mathematical domain of two Int64 inputs; replacing it with exact limbs for two Int64.MaxValue values verifies the intended overflow code. Native read dispatch, bounded buffering, actual adapter enrollment and live MongoDB grouping remain open.
+
+
+## MongoDB native grouped read integration - 23 October 2026
+
+The adapter now performs independent grouped readmission and bounded dispatch. Projection and grouping share the same selected-row read owner: cancellation/deadline, native in-memory cursor budget, snapshot/membership validation, traversal envelope validation and bounded native buffering. Batch size is one to bound driver prefetch. Empty windows preserve protected scope validation while the selected branch is empty, so no selected domain contributes accidentally.
+
+Initial live grouping controls pass3/3: all aggregate families without entity hydration, source ordering/offset/limit before grouping, and excess-group failure without partial publication. The first live test draft omitted the required explicit ordinal string comparison and failed planning; the examples were corrected before dispatch. All260 Mongo unit controls pass, including an additional protected-empty-window compiler case. Full existing native CQL regression is in progress; this checkpoint does not close composite/null/date/GUID/visibility/cancellation/overflow grouped acceptance or the all-provider grouping gate.
+
+
+## MongoDB grouped native read checkpoint - 23 October 2026
+
+MongoDB now implements ICosmicQueryGroupedStorageProvider with independent grouped planning/readmission. It shares projection's bounded selected-row read owner for deadline/cancellation, snapshots, protected membership checks, traversal outcomes and buffering. Empty selected windows retain mandatory protected validation. Native cursor batch size is one. Counts and extrema reduce natively; integer Sum/Average use the existing exact Decimal128 signed-limb/shared Core normalization path. Source windows precede reduction; work and group sentinels reject excess without partial publication.
+
+Verification: producer/consumer build, **260 unit tests and 147 native CQL regression tests passed, zero skips**. The native total includes three new grouped controls: all six aggregate families without hydration, ordered source windows and excess-group rejection. Evidence: TestResults/MongoCurrent/cql-grouped-read-owner-final-current.trx, cql-grouped-native-final-current.trx, cql-grouped-native-regression-current.trx; TestResults/CosmicCqlDemo/mongo-group-{read-rebuild,native-final,native-regression}.log. Producer/consumer hashes in TestResults/MongoCurrent/grouped-native-artifacts.json: Core6D193362, Shared996EE8E6, MongoB9500284. Owned fixture absent and retained Mongo process stopped after verified identity and admin shutdown.
+
+This is initial native integration evidence. Expanded grouped composite/null/date/GUID/visibility/cancellation/overflow acceptance is still open, as are Neo4j native grouping, grouped HTTP/demos and post-group composition. The overall grouping gate remains unchecked.

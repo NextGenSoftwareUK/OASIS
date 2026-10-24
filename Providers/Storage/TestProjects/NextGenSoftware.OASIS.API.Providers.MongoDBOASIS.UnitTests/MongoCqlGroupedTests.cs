@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using MongoDB.Bson;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -48,5 +49,18 @@ public sealed class MongoCqlGroupedTests
         Assert.IsTrue(translator.CompileGrouped(selection, 0).IsEmpty);
         Assert.ThrowsException<ArgumentOutOfRangeException>(() => translator.CompileGrouped(selection, -1));
         Assert.ThrowsException<ArgumentOutOfRangeException>(() => translator.CompileGrouped(selection, 1001));
+    }
+    [TestMethod]
+    public void EmptySelectedWindowRetainsProtectedTraversalOutcomeBranch()
+    {
+        var selection = CosmicQuery<Holon>.Create()
+            .WhereAnyDescendant(h => h.Name == "visible", CosmicQueryTraversalOptions.Create(2, 10).Result)
+            .Take(0).GroupBy(h => h.Name).Select(g => g.LongCount()).Result;
+        var command = new MongoCqlTranslator().CompileGrouped(selection, 1);
+        Assert.IsTrue(command.IsEmpty);
+        Assert.IsTrue(command.RequiresMembership && command.RequiresSnapshot && command.HasTraversalEnvelope);
+        var json = command.Pipeline.ToJson();
+        Assert.IsTrue(json.Contains("$facet") && json.Contains("$invalid"));
+        Assert.IsTrue(json.Contains("$expr") && json.Contains("false"));
     }
 }
