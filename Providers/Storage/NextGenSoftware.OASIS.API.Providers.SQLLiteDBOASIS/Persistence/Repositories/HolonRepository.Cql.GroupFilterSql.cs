@@ -54,6 +54,7 @@ public partial class HolonRepository
             }
             else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max) cell.Value = "a" + index + "v";
             else throw new NotSupportedException("Unknown grouped filter operation.");
+            if (!cell.IsSum && (Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType) == typeof(decimal)) cell.DecimalKey = true;
             if (!cell.IsSum) cell.Value += GroupCollation(column.ValueType);
             return cell;
         }

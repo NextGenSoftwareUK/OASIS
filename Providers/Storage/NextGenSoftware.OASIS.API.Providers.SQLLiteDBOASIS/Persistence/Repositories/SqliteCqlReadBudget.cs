@@ -49,13 +49,31 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         {
             SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,Interval,callback,null);
             connection.CreateFunction<byte[], bool>(Utf8Function, ValidUtf8, isDeterministic: true);
+            connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, DecimalKey, isDeterministic: false);
         }
         catch
         {
+            connection.CreateFunction<byte[], bool>(Utf8Function, null);
+            connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
             SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,0,null,null);
             SQLitePCL.raw.sqlite3_limit(connection.Handle,SQLitePCL.raw.SQLITE_LIMIT_LENGTH,previousLength);
             throw;
         }
+    }
+    private string DecimalKey(string json)
+    {
+        try
+        {
+            Check();
+            if (json != null && json.Length > SqliteCqlDecimal.MaximumTokenCharacters)
+            { stopped = 3; return null; }
+            var key = SqliteCqlDecimal.Key(json);
+            Check();
+            return key;
+        }
+        catch (OperationCanceledException) { stopped = 1; return null; }
+        catch (SqliteCqlDeadlineException) { stopped = 2; return null; }
+        catch (SqliteCqlResourceException) { stopped = 3; return null; }
     }
     internal void Check()
     {
@@ -66,7 +84,11 @@ internal sealed class SqliteCqlReadBudget : IDisposable
     public void Dispose()
     {
         if(disposed)return;disposed=true;
-        try { connection.CreateFunction<byte[], bool>(Utf8Function, null); }
+        try
+        {
+            connection.CreateFunction<byte[], bool>(Utf8Function, null);
+            connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
+        }
         finally
         {
             try { SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,0,null,null); }

@@ -1149,3 +1149,15 @@ Final resources69794: freeC69,419,167,744bytes; fixed Neo4jCurrent ownedSQLite/f
 2026-10-24 Decimal metadata slice: reuse .NET10.0.401/runtime10.0.12/NuGet and existing Core bothTFM, CoreUnit, Shared, SQLite/native bin/obj outputs (sizesunmeasured). Fixed TestResults/SQLiteCurrent/integration-current.db/WAL/SHM fixture ownership and teardown reused; TestResults/CosmicCurrent and CosmicCqlDemo decimal logs/TRX. Query-scoped SQLite decimal intrinsic registered/unregistered by existing read-budget owner; no install/extension/environment. Original JSON token parsed under4096character bound; budget/cancellation surfaced even for excluded values. Core exact canonical key decoder and25? newnativecases pending measured report. OwnerCOSMIC ORM Decimal; preserve compact evidence, reusableoutputs; disposableDB teardown only after ownedcontexts/processes stop.
 
 Decimal checkpoint78228terminal0: Core2477/focusedSQLite24PASS0skip; first5258Core2476/1obsolete Decimal-key-denial red preserved decimal-codec-red-current.trx (retargetedDouble). Reused bothCoreTFM/Shared/SQLite outputs and existingfixedDB; fixture DB/WAL/SHM disposed bynativefixtures. Native/CorecompiledcheckpointC2A107EF net10,0E5E8E12 netstandard. NumericCore source frozen for provider-session Oracle502nextslot; no lease reacquisition until release. FullSQLite regressionpending; compact logs retained at namedfixedpaths, sizesunmeasured. No installs/restores/newenv.
+
+2026-10-24 Mongo Decimal preparation: reuse existing Mongo8.3.11 executable/data and fixed native fixture as inventoried above; no service started, build/restore/download performed yet. New native test source is preserved source, not disposable output. Pending full gate will reuse fixed SubscriptionUsageCurrent logs/TRX; sizes unmeasured. Shared numeric normalization and exact detached decoder changes remain unverified until native regression. Core source stays frozen for Oracle peer.
+
+SQLite Decimal full gate35989 terminal0: reused Shared/SQLite/native bin/obj,
+1,459PASS0skip. Exact source and consumer DLL hashes retained in
+TestResults/SQLiteCurrent/decimal-identities-current.json; before/after source
+snapshots match. Retain compact decimal-full-current.trx and
+TestResults/CosmicCqlDemo/decimal-sqlite-full.log (sizes unmeasured).
+Owned fixed integration-current.db/WAL/SHM absent after fixture disposal;
+no installs/downloads/restores/new environments. Free C before gate69,170,028,544
+bytes. Shared conditional candidate remains peer-owned and unverified by its
+separate Oracle replay gate. Build slot returned to peer after settled teardown.
