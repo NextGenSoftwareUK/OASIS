@@ -6,6 +6,8 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Using Include="NextGenSoftware.OASIS.Providers.TestSupport" />
+    <Compile Include="../../../Shared/TestSupport/SdkHandlerHttpClientFactory.cs" Link="Shared/SdkHandlerHttpClientFactory.cs" />
     <Compile Include="../../../Shared/TestSupport/ConditionalObjectTransportAcceptance.cs" Link="Shared/ConditionalObjectTransportAcceptance.cs" />
     <Compile Include="../../../Shared/TestSupport/NamedChildOwner.cs" Link="Shared/NamedChildOwner.cs" />
     <Compile Include="../../../Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests/AwsS3LiveTransportAcceptance.cs" Link="Shared/AwsS3LiveTransportAcceptance.cs" />

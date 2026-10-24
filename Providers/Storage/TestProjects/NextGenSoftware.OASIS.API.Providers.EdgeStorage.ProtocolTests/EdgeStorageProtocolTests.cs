@@ -101,12 +101,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
         }
     }
 
-    internal sealed class HandlerHttpClientFactory : Amazon.Runtime.HttpClientFactory
-    {
-        private readonly HttpMessageHandler _handler;
-        public HandlerHttpClientFactory(HttpMessageHandler handler) => _handler = handler;
-        public override HttpClient CreateHttpClient(Amazon.Runtime.IClientConfig clientConfig) => new(_handler, disposeHandler: false);
-    }
 
     [TestClass]
     public class TigrisS3ProtocolTests
