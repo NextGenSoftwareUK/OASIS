@@ -829,3 +829,32 @@ its schema supplies the type. Zero to seven fractional digits are accepted.
 Offsets, missing timezone, invalid calendars and excess precision fail compilation.
 See [examples20–21](../../../Examples/CosmicCqlDemo/README.md#examples-2021-exact-utc-dates)
 and [the exact transport contract](CQL_UTC_DATETIME_CONTRACT.md).
+
+
+## SQLite UInt64 metadata
+
+SQLite now supports `Value<ulong>` and `Value<ulong?>` for the full unsigned range.
+Use typed integer literals so intent and provider admission retain the domain:
+
+```csharp
+var highCounters = CosmicQuery<Holon>.Create()
+    .Where(row => CosmicQueryMetadata.Value<ulong>(row, "counter") > (ulong)long.MaxValue)
+    .OrderBy(row => CosmicQueryMetadata.Value<ulong>(row, "counter"))
+    .Select(row => new
+    {
+        row.Id,
+        Counter = CosmicQueryMetadata.Value<ulong>(row, "counter")
+    });
+```
+
+Handle the result, plan against the actual SQLite adapter and execute through
+HolonManager as in the projection walkthrough. Metadata paths require explicit
+segments: use `Value<ulong>(row, "stats", "counter")` for a nested counter.
+Captured path arrays are not part of the expression grammar.
+
+UInt64 source values above Int64.MaxValue remain exact; the native query does not
+compare a rounded floating-point extraction. Nullable values, membership,
+field-to-field comparison, Min/Max and grouped keys use the same exact domain.
+Fractional/out-of-range Decimal comparisons, UInt64 Sum/Average, MongoDB/Neo4j
+UInt64 and HTTP UInt64 transport are not enrolled by this SQLite checkpoint.
+See [the UInt64 contract](CQL_UINT64_CONTRACT.md) for verified scope and examples.
