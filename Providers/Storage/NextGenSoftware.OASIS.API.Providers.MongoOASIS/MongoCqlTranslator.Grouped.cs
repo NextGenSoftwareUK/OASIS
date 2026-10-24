@@ -105,7 +105,7 @@ internal sealed partial class MongoCqlTranslator
             else if (column.Operation == CosmicScalarOperation.Sum)
                 // Bounded Int64 input has at most29 decimal digits in total.
                 // Decimal128 arithmetic is exact here, including cancelling sums.
-                value = Op("$add", Op("$multiply", "$a" + ordering.ColumnIndex + "high", limb), "$a" + ordering.ColumnIndex + "low");
+                value = GroupedSumValue(ordering.ColumnIndex);
             else throw new NotSupportedException("Exact native ordering is not enrolled for this aggregate.");
             var alias = "cqlGroupSort" + index;
             sortFields.Add(alias, value);
@@ -118,22 +118,24 @@ internal sealed partial class MongoCqlTranslator
             selectedSort.AddRange(sort);
             sort = selectedSort;
         }
+        page.Add(new("$set", new BsonDocument("cqlGroupFilter", query.ResultPredicates.Count == 0 ? Literal(true)
+            : Op("$and", query.ResultPredicates.Select(predicate => GroupFilterPredicate(query, predicate)).ToArray()))));
         // Page membership is computed natively, while every bounded group
         // packet remains available to prove off-page domains and arithmetic.
         page.Add(new("$setWindowFields", new BsonDocument
         {
             { "sortBy", sort },
             { "output", new BsonDocument("cqlGroupPosition", new BsonDocument
-                { { "$sum", Literal(1L) }, { "window", new BsonDocument("documents", new BsonArray { "unbounded", "current" }) } }) }
+                { { "$sum", Choose("$cqlGroupFilter", Literal(1L), Literal(0L)) }, { "window", new BsonDocument("documents", new BsonArray { "unbounded", "current" }) } }) }
         }));
-        page.Add(new("$set", new BsonDocument("resultMember", Op("$and",
+        page.Add(new("$set", new BsonDocument("resultMember", Op("$and", "$cqlGroupFilter",
             Op("$gt", "$cqlGroupPosition", Literal(query.ResultOffset)),
             query.ResultLimit.HasValue
                 ? Op("$lte", "$cqlGroupPosition", Literal((long)query.ResultOffset + query.ResultLimit.Value))
                 : Literal(true)))));
         page.Add(new("$sort", sort));
         page.Add(new("$limit", maximumGroups + 1));
-        page.Add(new("$unset", new BsonArray(sortFields.Names.Concat(new[] { "cqlGroupPosition" }))));
+        page.Add(new("$unset", new BsonArray(sortFields.Names.Concat(new[] { "cqlGroupPosition", "cqlGroupFilter" }))));
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
         ValidatePipeline(source);
         var membership = query.Source.Predicates.Any(p => p is CosmicQueryAnyChild || p is CosmicQueryAnyDescendant);
