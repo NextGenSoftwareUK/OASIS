@@ -22,18 +22,19 @@ public sealed class CosmosExportSelectorVersionTests
             Avatars.Setup(r=>r.GetListAsync(3)).ReturnsAsync(new List<IAvatar>());
             var rows=new List<IHolon>{new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=Guid.NewGuid(),Version=3,IsActive=true}};
             if(!empty)rows.Add(new Holon{Id=Own,CreatedByAvatarId=Owner,Version=3,Name="own-v3",IsActive=true});
-            Holons.Setup(r=>r.GetListAsync(0)).ReturnsAsync(rows);Holons.Setup(r=>r.GetListAsync(3)).ReturnsAsync(rows);
+            Holons.Setup(r=>r.GetListAsync(0)).ReturnsAsync(rows);Holons.Setup(r=>r.GetListAsync(3)).ReturnsAsync(rows);Holons.Setup(r=>r.GetListAsync(-1)).ReturnsAsync(rows);
             typeof(AzureCosmosDBOASIS).GetField("avatarRepository",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(Provider,Avatars.Object);
             typeof(AzureCosmosDBOASIS).GetField("holonRepository",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(Provider,Holons.Object);
         }
     }
-    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
-    public async Task ExportHolonVersionDoesNotSelectAvatarHistory(bool sync,bool email)
+    [DataTestMethod][DataRow(false,false,3)][DataRow(false,true,3)][DataRow(true,false,3)][DataRow(true,true,3)]
+    [DataRow(false,false,-1)][DataRow(false,true,-1)][DataRow(true,false,-1)][DataRow(true,true,-1)]
+    public async Task ExportHolonVersionDoesNotSelectAvatarHistory(bool sync,bool email,int version)
     {
         var fixture=new Fixture();var provider=fixture.Provider;
         var result=email
-            ?sync?provider.ExportAllDataForAvatarByEmail("export@example.invalid",3):await provider.ExportAllDataForAvatarByEmailAsync("export@example.invalid",3)
-            :sync?provider.ExportAllDataForAvatarByUsername("export-owner",3):await provider.ExportAllDataForAvatarByUsernameAsync("export-owner",3);
+            ?sync?provider.ExportAllDataForAvatarByEmail("export@example.invalid",version):await provider.ExportAllDataForAvatarByEmailAsync("export@example.invalid",version)
+            :sync?provider.ExportAllDataForAvatarByUsername("export-owner",version):await provider.ExportAllDataForAvatarByUsernameAsync("export-owner",version);
         Assert.IsFalse(result.IsError,result.Message+result.Exception);Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);
         Assert.AreEqual(fixture.Own,result.Result.Single().Id);Assert.AreEqual(3,result.Result.Single().Version);
         fixture.Avatars.Verify(r=>r.GetListAsync(0),Times.Once);fixture.Avatars.Verify(r=>r.GetListAsync(3),Times.Never);
@@ -43,8 +44,8 @@ public sealed class CosmosExportSelectorVersionTests
     {
         var fixture=new Fixture();var provider=fixture.Provider;
         var result=email
-            ?sync?provider.ExportAllDataForAvatarByEmail("export@example.invalid",-1):await provider.ExportAllDataForAvatarByEmailAsync("export@example.invalid",-1)
-            :sync?provider.ExportAllDataForAvatarByUsername("export-owner",-1):await provider.ExportAllDataForAvatarByUsernameAsync("export-owner",-1);
+            ?sync?provider.ExportAllDataForAvatarByEmail("export@example.invalid",-2):await provider.ExportAllDataForAvatarByEmailAsync("export@example.invalid",-2)
+            :sync?provider.ExportAllDataForAvatarByUsername("export-owner",-2):await provider.ExportAllDataForAvatarByUsernameAsync("export-owner",-2);
         Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(result.Exception);
         Assert.AreEqual(0,fixture.Avatars.Invocations.Count);Assert.AreEqual(0,fixture.Holons.Invocations.Count);
     }

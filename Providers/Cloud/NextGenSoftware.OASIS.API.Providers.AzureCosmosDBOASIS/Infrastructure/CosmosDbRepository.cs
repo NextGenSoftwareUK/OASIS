@@ -75,14 +75,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             try
             {
-                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                // Repository-only all-version enumeration is used by exports; ordinary provider reads reject -1.
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var jsonList = await cosmosDbClient.ReadAllDocumentsAsync().ConfigureAwait(false);
                 var list = new List<T>();
                 var identities = new HashSet<Guid>();
                 foreach (var json in jsonList)
                 {
-                    var selected=DeserializeEntity(json,version:version,identities:identities);
+                    var selected=DeserializeEntity(json,version:version,identities:identities,allVersions:version==-1?list:null);
                     if(selected!=null)list.Add(selected);
                 }
                 return list;
@@ -220,7 +221,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             catch(Exception cause) {throw new CosmosMutationReconciliationException(expectedId,cause,acknowledged:true);}
         }
 
-        private T DeserializeEntity(string json,string expectedId=null,int version=0,HashSet<Guid> identities=null)
+        private T DeserializeEntity(string json,string expectedId=null,int version=0,HashSet<Guid> identities=null,List<T> allVersions=null)
         {
             try
             {
@@ -234,6 +235,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                     throw new InvalidDataException("Cosmos collection contains a repeated canonical OASIS identity.");
                 var entity=(T)OasisJson.Deserialize(json,EntityType);
                 if(entity==null || entity.Id!=logical) throw new InvalidDataException("Deserialized Cosmos identity differs from its document.");
+                if(version==-1){
+                    if(allVersions==null)throw new ArgumentException("All-version collection destination is required.");
+                    allVersions.AddRange(CosmosEmbeddedHistory.ReadAll<IHolonBase>(logical,document,text=>(IHolonBase)OasisJson.Deserialize(text,EntityType)).Cast<T>());
+                    return default;
+                }
                 if(version>0 || document[CosmosEmbeddedHistory.PropertyName]!=null)
                     entity=(T)CosmosEmbeddedHistory.ReadAsync<IHolonBase>(logical,document,version,
                         text=>(IHolonBase)OasisJson.Deserialize(text,EntityType)).GetAwaiter().GetResult();

@@ -71,6 +71,13 @@ public partial class AzureCosmosDBOASISIntegrationTests
             Assert.IsFalse(exported.IsError,exported.Exception?.ToString());Assert.IsTrue(exported.IsLoaded);Assert.AreEqual(1,exported.LoadedCount);
             var expected=version==0?3:version;Assert.AreEqual(own,exported.Result.Single().Id);Assert.AreEqual(expected,exported.Result.Single().Version);Assert.AreEqual(name+"-v"+expected,exported.Result.Single().Name);
         }
+        var allVersions=email
+            ?sync?_provider.ExportAllDataForAvatarByEmail(avatar.Email,-1):await _provider.ExportAllDataForAvatarByEmailAsync(avatar.Email,-1)
+            :sync?_provider.ExportAllDataForAvatarByUsername(avatar.Username,-1):await _provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username,-1);
+        Assert.IsFalse(allVersions.IsError,allVersions.Exception?.ToString());Assert.IsTrue(allVersions.IsLoaded);Assert.AreEqual(3,allVersions.LoadedCount);
+        var versions=allVersions.Result.ToArray();CollectionAssert.AreEqual(new[]{1,2,3},versions.Select(row=>row.Version).ToArray());
+        Assert.IsTrue(versions.All(row=>row.Id==own&&row.CreatedByAvatarId==owner));
+        for(var index=0;index<versions.Length;index++)Assert.AreEqual(name+"-v"+(index+1),versions[index].Name);
         var oldAvatar=email?await _provider.LoadAvatarByEmailAsync(name+"@example.invalid",1):await _provider.LoadAvatarByUsernameAsync(name,1);
         Assert.IsFalse(oldAvatar.IsError);Assert.AreEqual(owner,oldAvatar.Result.Id);Assert.AreEqual(1,oldAvatar.Result.Version);
         var oldExport=email?await _provider.ExportAllDataForAvatarByEmailAsync(name+"@example.invalid",1):await _provider.ExportAllDataForAvatarByUsernameAsync(name,1);

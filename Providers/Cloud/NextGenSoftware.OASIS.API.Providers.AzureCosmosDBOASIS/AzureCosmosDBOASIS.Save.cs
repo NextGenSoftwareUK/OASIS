@@ -186,10 +186,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => ExportCurrentSelectorAsync(avatarEmailAddress,true,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => await ReadCurrentHolonsAsync(HolonType.All,true,true,0,0,true,version).ConfigureAwait(false);
+            => version==-1?await ReadCurrentListAsync<IHolon>(()=>holonRepository,version,exportAllVersions:true):await ReadCurrentHolonsAsync(HolonType.All,true,true,0,0,true,version).ConfigureAwait(false);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-            => ReadCurrentHolonsAsync(HolonType.All,true,true,0,0,true,version).GetAwaiter().GetResult();
+            => ExportAllAsync(version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => await ReadCurrentMetadataAsync(metaKey==null ? null : new Dictionary<string,string> {{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).ConfigureAwait(false);

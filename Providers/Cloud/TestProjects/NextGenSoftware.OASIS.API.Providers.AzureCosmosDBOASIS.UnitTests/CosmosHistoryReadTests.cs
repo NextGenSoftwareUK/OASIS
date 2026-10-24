@@ -31,7 +31,17 @@ public class CosmosHistoryReadTests
             Assert.AreEqual(2,(await repository.GetByIdAsync(input.Id.ToString())).Version);
             Assert.IsNull(await repository.GetByIdAsync(input.Id.ToString(),3));
             Assert.AreEqual(1,repository.GetList(1).Count);Assert.AreEqual(0,repository.GetList(3).Count);
+            var allVersions=await repository.GetListAsync(-1);
+            CollectionAssert.AreEqual(new[]{1,2},allVersions.Select(row=>row.Version).ToArray());
+            Assert.IsTrue(allVersions.All(row=>row.Id==input.Id));
+            allVersions[0].Name="local detached edit";
+            Assert.AreNotEqual("local detached edit",repository.GetList(-1)[0].Name);
             Assert.AreEqual(input.Id,repository.GetByField("MetaData.history_marker","first",1).Id);
+            var entries=(JArray)second[CosmosEmbeddedHistory.PropertyName]!["records"]!;
+            entries.Add(entries[0]!.DeepClone());
+            client.Setup(c=>c.ReadAllDocumentsAsync()).ReturnsAsync(new List<string>{second.ToString()});
+            await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>repository.GetListAsync(-1));
+            entries.RemoveAt(entries.Count-1);
             second[CosmosEmbeddedHistory.PropertyName]!["schema"]=2;
             client.Setup(c=>c.ReadDocumentAsync(input.Id.ToString(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).ReturnsAsync(second.ToString());
             await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>repository.GetByIdAsync(input.Id.ToString()));

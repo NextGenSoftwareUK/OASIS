@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -17,4 +18,6 @@ public static class CosmosEmbeddedHistory
         =>Codec.StageAsync(proposed,previousDocument,decode);
     public static Task<T> ReadAsync<T>(Guid identity,JObject document,int version,Func<string,T> decode) where T:class,IHolonBase
         =>Codec.ReadAsync(identity,document,version,decode);
+    public static IReadOnlyList<T> ReadAll<T>(Guid identity,JObject document,Func<string,T> decode) where T:class,IHolonBase
+        =>Codec.ReadAll(identity,document,decode);
 }
