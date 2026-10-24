@@ -11,6 +11,8 @@ public sealed class CqlGroupedV1Request
     public string? Provider { get; set; }
     public CqlProjectionV1Column[] Keys { get; set; } = Array.Empty<CqlProjectionV1Column>();
     public CqlGroupedV1Column[] Columns { get; set; } = Array.Empty<CqlGroupedV1Column>();
+    /// <summary>Selected output aliases, applied after grouping. Source OrderBy remains independent.</summary>
+    public CqlGroupedV1Ordering[] ResultOrder { get; set; } = Array.Empty<CqlGroupedV1Ordering>();
     public int MaximumGroups { get; set; } = 25;
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
@@ -31,4 +33,12 @@ public sealed class CqlGroupedV1Column
     public string? KeyAlias { get; set; }
     public string? Operation { get; set; }
     public CqlScalarV1Selection? Selection { get; set; }
+}
+
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlGroupedV1Ordering
+{
+    public string? Alias { get; set; }
+    public bool Descending { get; set; }
 }
