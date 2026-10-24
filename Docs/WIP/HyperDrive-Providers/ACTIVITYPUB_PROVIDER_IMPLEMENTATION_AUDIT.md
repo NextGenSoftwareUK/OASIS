@@ -1,5 +1,15 @@
 # ActivityPub provider implementation audit
 
+## Native status DELETE corrected — controlled gate, 24 October
+
+Existing native-key DeleteHolon now implements [Mastodon's DELETE status contract](https://docs.joinmastodon.org/methods/statuses/#delete): requires a configured user token, sends one escaped native-ID request, accepts only200 plus an exact-ID status projection, returns that deleted projection/IsDeleted/DeletedCount1. Native service remains the authoritative owner/OAuthscope check; no extra read:accounts permission or pre-read race added. GUID deletion uses the existing explicit nonreversible-identity error, no HTTP. Local observation time populates returned DeletedDate; it is not represented as a server-supplied timestamp.
+
+Definitive4xx except408 preserves actual HttpRequestException/404notfound, no false deletion. Lost return,5xx,408,unexpected2xx or malformed/wrong-ID acknowledgement carries existing Core reconciliation capability plus original instance/statusID and original cause; empty OriginalTransactionId, no fabricated transaction receipt or automatic replay. Activation errors preserve original cause and make no DELETE. Scope relies on documented service behavior, not a promise all intermediaries prove an outcome.
+
+All17new controlled cases genuinely failed against original generated routes; corrected full200/200PASS0skip233ms. Includes synthetic successful sync/async deletion,401/403/404/429,408/500/204/lost/wrong-ID, missingtoken/invalidID/GUID and activation-cause checks. No live authenticated DELETE, posting, account setup or permission proof performed. Earlier8publicGET passes predate this mutation implementation and are NOT authenticated mutation certification. Protected user token and a specifically approved owned disposable status still required for that gate; see Actions for David.
+
+Core740/ABD06B39 Shared55/944F93E9 provider11/9B7EA3CE source/current copies verified; no restore/download/install/service/environment/native data in this batch. Baseline was delayed by peer's real Neo run/globallease; no bypass. Initial compile-only errors (incorrect test constant name and producer not yet rebuilt for new exception) corrected before baseline, not counted as regression evidence. Exact reports/resources in inventory. Full social interfaces/federation/V2 remain OPEN.
+
 ## Projection GUID point-read boundary corrected — 24 October
 
 Removed three obsolete generated avatar/avatar-detail/holon GUID loaders that sent OASIS projection GUIDs directly to Mastodon account/status endpoints and used inconsistent generic parsers. Projection IDs are one-way instance/category/native-ID hashes, not reversible native IDs. A single explicit NotSupportedException result owner now serves these overloads and existing parentGUID rejection, before activation/HTTP; native-key/account-handle/status/context implementations unchanged. No guessed reverse lookup, ephemeral identity registry, private-record publication or fictitious GUID capability added. Generic GUID-based storage remains unsupported by this public-social adapter; that limitation is NOT counted as implemented native storage.
