@@ -2,6 +2,8 @@
 
 ## Mongo historical export — confirmed native blocker,24 October 2026
 
+Follow-up implementation now stages history in normal SaveAsync CAS and ImportAtomic transaction after final body preparation, not the unknown-field copy helper; exports positive/-1 decode validated raw archives. Corrected full289unitPASS0skip/current Core735+Shared55 source/copy gate. One original membership boundary failure preserved, existing assertion unchanged. This is PARTIAL implementation: native fixed-code acceptance pending preserved-fixture reconciliation, direct domain/gameplay/hard-delete mutation owners and historical non-export reads remain open. The native failure below is not relabelled green. No dev merge/deployment.
+
 Actual8829 terminal1: real Version1 save and Version2 replacement both acknowledged; current export returns replacement, but ExportAllAsync(1) returns empty (Assert.Single at MongoExportNativeTests.cs:47). This is a reproduced missing-history contract, not SDK connectivity or fixture setup failure. Native writer uses whole-document CAS replacement without archiving old payload; provider revision rotation does not preserve history. Separate historical acceptance mode intentionally remains red until durable history is implemented across mutation owners and reads. Marked cosmic_cql_fixture retained; owned service stopped, no automatic cleanup/replay. Existing8 current-owner cases remain independently green. No dev merge/deploy or Mongo completion claim.
 
 ## Mongo avatar export scope — native verified,24 October 2026

@@ -47,6 +47,9 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
             var retained=Assert.Single(historical.Result);
             Assert.Equal("historical original",retained.Name);
             Assert.Equal(1,retained.Version);
+            var all=await provider.ExportAllAsync(-1);
+            Assert.False(all.IsError,all.Message+all.Exception);
+            Assert.Equal(new[]{1,2},all.Result.OrderBy(row=>row.Version).Select(row=>row.Version));
             complete=true;
         }
         finally

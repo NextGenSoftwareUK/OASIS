@@ -80,6 +80,7 @@ internal static class MongoNativeRecordWriter
                 }
             }
             var writer=raw.WithWriteConcern(WriteConcern.WMajority.With(journal:true));
+            if(updating && typeof(T)==typeof(Holon))MongoNativeHolonHistory.Stage(replacement,observed);
             entered=true;
             if(updating)
             {

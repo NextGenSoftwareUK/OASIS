@@ -13,6 +13,7 @@ public sealed class MongoExportOwnershipTests
         internal readonly Guid Owner=Guid.NewGuid(),Own=Guid.NewGuid(),Foreign=Guid.NewGuid();
         internal int Reads,IdentityReads,SelectedVersion;
         internal Probe():base("mongodb://127.0.0.1:1/?serverSelectionTimeoutMS=1","owned-export-controls"){IsProviderActivated=true;}
+        protected override Task<OASISResult<IEnumerable<IHolon>>> LoadMongoExportRootsAsync(int version)=>LoadAllHolonsAsync(loadChildren:false,version:version);
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type=HolonType.All,bool loadChildren=true,bool recursive=true,int maxChildDepth=0,int curentChildDepth=0,bool continueOnError=true,bool loadChildrenFromProvider=false,int version=0)
         {
             Reads++;SelectedVersion=version;
@@ -24,7 +25,7 @@ public sealed class MongoExportOwnershipTests
         public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email,int version=0)=>Identity(version);
     }
 
-    public static IEnumerable<object[]> Cases(){foreach(var selector in new[]{0,1,2,3})foreach(var sync in new[]{false,true})foreach(var version in new[]{0,3})yield return new object[]{selector,sync,version};}
+    public static IEnumerable<object[]> Cases(){foreach(var selector in new[]{0,1,2,3})foreach(var sync in new[]{false,true})foreach(var version in new[]{-1,0,3})yield return new object[]{selector,sync,version};}
     [DataTestMethod][DynamicData(nameof(Cases),DynamicDataSourceType.Method)]
     public async Task ExportScopesOwnerAndForwardsRootVersion(int selector,bool sync,int version)
     {
