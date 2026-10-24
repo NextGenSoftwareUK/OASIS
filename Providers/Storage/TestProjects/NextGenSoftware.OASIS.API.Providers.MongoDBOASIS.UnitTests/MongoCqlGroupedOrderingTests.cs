@@ -27,11 +27,16 @@ public sealed class MongoCqlGroupedOrderingTests
     }
 
     [TestMethod]
-    public void ActualProfileSeparatesExactSumFromUnenrolledRoundedAverage()
+    public void ActualProfileRequiresIndependentAverageOrderingPermission()
     {
         var source = CosmicQuery<Holon>.Create().GroupBy(h => h.Name)
             .Select(g => new { Total = g.Sum(h => h.Version), Mean = g.Average(h => h.Version) }).Result;
         Assert.IsFalse(MongoDBOASIS.CqlGroupedCapabilities.Admit(source.OrderBy(g => g.Total).Result).IsError);
-        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", MongoDBOASIS.CqlGroupedCapabilities.Admit(source.OrderBy(g => g.Mean).Result).ErrorCode);
+        var capability = MongoDBOASIS.CqlGroupedCapabilities;
+        Assert.IsFalse(capability.Admit(source.OrderBy(g => g.Mean).Result).IsError);
+        var sumOnly = new CosmicGroupedCapabilities(capability.KeyCapabilities, capability.AggregateCapabilities,
+            new CosmicGroupedOrderingCapabilities(capability.OrderingCapabilities.KeyTypes,
+                capability.OrderingCapabilities.Aggregates.Where(value => value.Operation != CosmicScalarOperation.Average).ToArray()));
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", sumOnly.Admit(source.OrderBy(g => g.Mean).Result).ErrorCode);
     }
 }

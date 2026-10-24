@@ -32,11 +32,14 @@ public sealed class MongoCqlGroupedFilterTests
         Assert.IsFalse(filter.ToJson().Contains("$toDouble")); Assert.IsTrue(filter.ToJson().Contains("$numberDecimal"));
     }
     [TestMethod]
-    public void ProfileSeparatesEnrolledSumsFromNormalizedAverage()
+    public void ProfileRequiresIndependentNormalizedAverageFilteringPermission()
     {
         var selected = CosmicQuery<Holon>.Create().GroupBy(h => h.Name)
             .Select(g => new { Total = g.Sum(h => h.Version), Mean = g.Average(h => h.Version) }).Result;
         Assert.IsFalse(MongoDBOASIS.CqlGroupedCapabilities.Admit(selected.Where(row => row.Total > 1).Result).IsError);
-        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", MongoDBOASIS.CqlGroupedCapabilities.Admit(selected.Where(row => row.Mean > 1m).Result).ErrorCode);
+        var capability = MongoDBOASIS.CqlGroupedCapabilities;
+        Assert.IsFalse(capability.Admit(selected.Where(row => row.Mean > 1m).Result).IsError);
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", new CosmicGroupedCapabilities(capability.KeyCapabilities, capability.AggregateCapabilities)
+            .Admit(selected.Where(row => row.Mean > 1m).Result).ErrorCode);
     }
 }
