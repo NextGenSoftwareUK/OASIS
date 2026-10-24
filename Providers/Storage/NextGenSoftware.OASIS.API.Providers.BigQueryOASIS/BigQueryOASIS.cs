@@ -44,11 +44,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         public BigQueryOASIS(string projectId, string dataset = "oasis")
         {
-            _projectId = projectId;
-            _dataset = dataset;
+            _projectId = ValidateSqlIdentifier(projectId,nameof(projectId));
+            _dataset = ValidateSqlIdentifier(dataset,nameof(dataset));
+            ProviderName = "BigQueryOASIS";
+            ProviderDescription = "Google BigQuery storage through the official managed client";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BigQueryOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
+
+        public string GetProviderVersion()=>typeof(BigQueryOASIS).Assembly.GetName().Version!.ToString();
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
@@ -990,10 +994,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             "Username" => "username",
             "Email" => "email",
             "ParentHolonId" => "parent_holon_id",
-            _ => field.ToLowerInvariant()
+            _ => throw new ArgumentException("Unsupported BigQuery indexed field.",nameof(field))
         };
 
-        private static string Esc(string v) => (v ?? string.Empty).Replace("'", "\'");
+        private static string ValidateSqlIdentifier(string value,string parameter)
+        {
+            if(string.IsNullOrWhiteSpace(value)||value.IndexOfAny(new[]{'`','\\'})>=0||System.Linq.Enumerable.Any(value,char.IsControl))
+                throw new ArgumentException("BigQuery identifier cannot contain SQL quoting,escape or control characters.",parameter);
+            return value;
+        }
+
+        private static BigQueryParameter StringParameter(string name,string value)=>new(name,BigQueryDbType.String,value);
 
         private static (string doc, string username, string email, string parent) Shred<T>(T obj)
         {
@@ -1008,10 +1019,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         private string Table(string t) => $"`{_projectId}.{_dataset}.{t}`";
 
-        private async Task<List<T>> SqlAsync<T>(string sql) where T : class
+        private async Task<List<T>> SqlAsync<T>(string sql,params BigQueryParameter[] parameters) where T : class
         {
             var list = new List<T>();
-            var results = await _client!.ExecuteQueryAsync(sql, parameters: null);
+            var results = await _client!.ExecuteQueryAsync(sql, parameters,new QueryOptions{UseLegacySql=false});
             foreach (var row in results)
             {
                 var raw = row["doc"]?.ToString();
@@ -1024,7 +1035,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         private async Task<T?> GetDocAsync<T>(string table, string id) where T : class
         {
-            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE id = '{Esc(id)}' ORDER BY updated_at DESC LIMIT 1");
+            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE id = @id ORDER BY updated_at DESC LIMIT 1",StringParameter("id",id));
             return rows.Count > 0 ? rows[0] : null;
         }
 
@@ -1032,27 +1043,27 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         {
             var (doc, u, e, p) = Shred(obj);
             var sql = $@"MERGE {Table(table)} t
-                USING (SELECT '{Esc(id)}' AS id, '{Esc(doc)}' AS doc, '{Esc(u)}' AS username,
-                              '{Esc(e)}' AS email, '{Esc(p)}' AS parent_holon_id) s
+                USING (SELECT @id AS id, @doc AS doc, @username AS username,
+                              @email AS email, @parent AS parent_holon_id) s
                 ON t.id = s.id
                 WHEN MATCHED THEN UPDATE SET doc = s.doc, username = s.username, email = s.email,
                                              parent_holon_id = s.parent_holon_id, updated_at = CURRENT_TIMESTAMP()
                 WHEN NOT MATCHED THEN INSERT (id, doc, username, email, parent_holon_id, updated_at)
                                       VALUES (s.id, s.doc, s.username, s.email, s.parent_holon_id, CURRENT_TIMESTAMP())";
-            await _client!.ExecuteQueryAsync(sql, parameters: null);
+            await _client!.ExecuteQueryAsync(sql,new[]{StringParameter("id",id),StringParameter("doc",doc),StringParameter("username",u),StringParameter("email",e),StringParameter("parent",p)},new QueryOptions{UseLegacySql=false});
         }
 
         private async Task DeleteDocAsync(string table, string id)
-            => await _client!.ExecuteQueryAsync($"DELETE FROM {Table(table)} WHERE id = '{Esc(id)}'", parameters: null);
+            => await _client!.ExecuteQueryAsync($"DELETE FROM {Table(table)} WHERE id = @id",new[]{StringParameter("id",id)},new QueryOptions{UseLegacySql=false});
 
         private async Task<T?> FindOneAsync<T>(string table, string field, string value) where T : class
         {
-            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = '{Esc(value)}' ORDER BY updated_at DESC LIMIT 1");
+            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value ORDER BY updated_at DESC LIMIT 1",StringParameter("value",value));
             return rows.Count > 0 ? rows[0] : null;
         }
 
         private async Task<List<T>> FindAllAsync<T>(string table, string field, string value) where T : class
-            => await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = '{Esc(value)}' LIMIT 1000");
+            => await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value LIMIT 1000",StringParameter("value",value));
 
         private async Task<List<T>> GetAllDocsAsync<T>(string table) where T : class
             => await SqlAsync<T>($"SELECT doc FROM {Table(table)} LIMIT 1000");
