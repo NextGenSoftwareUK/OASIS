@@ -44,7 +44,7 @@ public sealed class GoogleReadCountTests
     {
         public override AsyncServerStreamingCall<BatchGetDocumentsResponse> GrpcCall {get;}=new(new Reader<BatchGetDocumentsResponse>(response),Task.FromResult(new Metadata()),()=>Status.DefaultSuccess,()=>new Metadata(),()=>{});
     }
-    private sealed class Client(int kind,bool empty=false):FirestoreClient
+    private sealed class Client(int kind,bool empty=false,bool deleted=false,bool active=true):FirestoreClient
     {
         public readonly Guid Id=Guid.NewGuid(),Parent=Guid.NewGuid();public int Reads;
         public override FirestoreSettings Settings=>FirestoreSettings.GetDefault();
@@ -54,6 +54,7 @@ public sealed class GoogleReadCountTests
             IHolonBase row=recordKind==0?new Avatar{Id=Id,Username="owned-read-count",Email="owned-count@example.invalid",Version=1}:
                 recordKind==1?new AvatarDetail{Id=Id,Username="owned-read-count",Email="owned-count@example.invalid",Version=1}:new Holon{Id=Id,Version=1,ParentHolonId=Parent,CreatedByAvatarId=Id,MetaData=new(){{"owned-count","yes"}}};
             var stamp=ProtoTimestamp.FromDateTime(DateTime.UtcNow);
+            if(recordKind==1){row.IsActive=active;row.DeletedDate=deleted?new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc):DateTime.MinValue;}
             var doc=new Document{Name=name,CreateTime=stamp,UpdateTime=stamp};
             doc.Fields.Add("id",new Value{StringValue=Id.ToString()});doc.Fields.Add("data_json",new Value{StringValue=OasisJson.Serialize(row)});return doc;
         }
@@ -68,6 +69,27 @@ public sealed class GoogleReadCountTests
         }
         public override Task<CommitResponse> CommitAsync(CommitRequest request,CallSettings settings=null)=>throw new InvalidOperationException("Read acknowledgement controls must not write.");
     }
+    public static IEnumerable<object[]> DetailVisibilityCases(){foreach(var route in Enumerable.Range(0,4))foreach(var sync in new[]{false,true})foreach(var deleted in new[]{false,true})foreach(var active in new[]{false,true})foreach(var version in new[]{0,1})yield return new object[]{route,sync,deleted,active,version};}
+    [DataTestMethod][DynamicData(nameof(DetailVisibilityCases),DynamicDataSourceType.Method)]
+    public async Task DetailReadsExcludeDeletedRecordsEvenWhenActive(int route,bool sync,bool deleted,bool active,int version)
+    {
+        var client=new Client(1,deleted:deleted,active:active);
+        var provider=new GoogleCloudOASIS("owned-read-count",enableStorage:false,enableFirestore:true,enableBigQuery:false){IsProviderActivated=true};
+        typeof(GoogleCloudOASIS).GetField("_firestoreDb",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,FirestoreDb.Create("owned-read-count",client));
+        var visible=active&&!deleted;
+        if(route==3){
+            var all=sync?provider.LoadAllAvatarDetails(version):await provider.LoadAllAvatarDetailsAsync(version);
+            Assert.IsFalse(all.IsError,all.Message);Assert.IsTrue(all.IsLoaded);Assert.AreEqual(visible?1:0,all.LoadedCount);Assert.AreEqual(all.LoadedCount,all.Result.Count());
+        }else{
+            var result=route==0?(sync?provider.LoadAvatarDetail(client.Id,version):await provider.LoadAvatarDetailAsync(client.Id,version))
+                :route==1?(sync?provider.LoadAvatarDetailByUsername("owned-read-count",version):await provider.LoadAvatarDetailByUsernameAsync("owned-read-count",version))
+                :(sync?provider.LoadAvatarDetailByEmail("owned-count@example.invalid",version):await provider.LoadAvatarDetailByEmailAsync("owned-count@example.invalid",version));
+            Assert.AreEqual(!visible,result.IsError,result.Message);Assert.AreEqual(visible,result.IsLoaded);Assert.AreEqual(visible?1:0,result.LoadedCount);
+            if(visible)Assert.AreEqual(client.Id,result.Result.Id);else{Assert.IsNull(result.Result);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,result.ErrorCode);}
+        }
+        Assert.AreEqual(1,client.Reads,"Visibility filtering must not add another SDK read or perform a mutation.");
+    }
+
     public static IEnumerable<object[]> Cases(){foreach(var kind in Enumerable.Range(0,10))foreach(var sync in new[]{false,true})yield return new object[]{kind,sync};}
     [DataTestMethod][DynamicData(nameof(Cases),DynamicDataSourceType.Method)]
     public async Task SuccessfulSdkReadReportsReturnedRootCount(int kind,bool sync)

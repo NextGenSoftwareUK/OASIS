@@ -1,5 +1,13 @@
 # Firestore record history — integration in progress
 
+## 24 October — deleted detail visibility repaired and verified
+
+Current matched cohort: **435 unit,85 history-native and79 regression-native PASS,zero skips**. Sixteen of64 controlled cases first reproduced deleted details leaking through current reads when IsActive remained true. One shared detail predicate now requires non-null,active AND not deleted; ID/username/email and collection routes reuse it. No extra query,retry,codec or persistence path was added.
+
+The existing retained-emulator lifecycle fixture conditionally marks its known tombstone active,then verifies all current selectors/collections hide it while version1 remains readable. Independent native revision/payload observations prove these reads do not rewrite stored data; original avatar payload remains unchanged. Existing conditional cleanup verifies absence before journal removal. Native success uses official Firestore SDK and retained emulator1.22.0,not hosted Google Cloud. Cloud IAM/indexes/cost/durability,optional GCS/BigQuery parity and full V2 remain OPEN.
+
+Terminal81331 exit0; current-source PE/PDB checks Core742/Shared56/provider26/unit26/integration34 and provider consumer hashes match. Pending journals0,owned emulator Java process absent,ports18080–18083 absent. Same runtime/export/output/cache reused,no restore/download/new environment. Exact reports and hashes are recorded in ENVIRONMENT_INVENTORY.md; original failing evidence is retained,not relabelled green.
+
 ## 24 October — remove invented aggregate padding; native limits remain authoritative
 
 Final371unit/4atomic-native/85history-native/79regression-native PASS0skip. Two genuine controlled failures showed the local estimate rejected seven small documents with140000 obsolete fields before SDK dispatch. After removing the padded aggregate counter, the actual SDK CommitRequest serializes below10MiB. Two additional controls inject native InvalidArgument: the original cause is preserved, no mutation occurs, and no retry or success is reported. These tests do NOT certify hosted index acceptance for this large-field fixture.
