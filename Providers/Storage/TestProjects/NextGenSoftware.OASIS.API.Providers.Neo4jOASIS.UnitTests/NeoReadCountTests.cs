@@ -14,11 +14,12 @@ public class NeoReadCountTests
 {
     public class RowsProbe:DispatchProxy
     {
-        public Neo4j.Driver.INode[] Nodes=[];public int Index=-1;
-        public static T Make<T>(Neo4j.Driver.INode[] nodes) where T:class{var value=Create<T,RowsProbe>();((RowsProbe)(object)value).Nodes=nodes;return value;}
+        public Neo4j.Driver.INode[] Nodes=[];public int Index=-1;public Action? AfterRead;
+        public static T Make<T>(Neo4j.Driver.INode[] nodes,Action? afterRead=null) where T:class{var value=Create<T,RowsProbe>();var probe=(RowsProbe)(object)value;probe.Nodes=nodes;probe.AfterRead=afterRead;return value;}
+        private Task<bool> Fetch(){var more=++Index<Nodes.Length;if(!more)AfterRead?.Invoke();return Task.FromResult(more);}
         protected override object? Invoke(MethodInfo? method,object?[]? args)=>method!.Name switch{
-            "AsyncSession"=>Make<IAsyncSession>(Nodes),"RunAsync"=>Task.FromResult(Make<IResultCursor>(Nodes)),
-            "FetchAsync"=>Task.FromResult(++Index<Nodes.Length),"get_Current"=>Make<IRecord>([Nodes[Index]]),
+            "AsyncSession"=>Make<IAsyncSession>(Nodes,AfterRead),"RunAsync"=>Task.FromResult(Make<IResultCursor>(Nodes,AfterRead)),
+            "FetchAsync"=>Fetch(),"get_Current"=>Make<IRecord>([Nodes[Index]]),
             "get_Item"=>Nodes[0],"Dispose"=>null,_=>throw new InvalidOperationException(method.Name)};
     }
     public static IEnumerable<object[]> Cases(){foreach(var route in Enumerable.Range(0,9))foreach(var version in new[]{0,1})foreach(var sync in new[]{false,true})yield return new object[]{route,version,sync};}
