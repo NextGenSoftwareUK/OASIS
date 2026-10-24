@@ -69,9 +69,19 @@ public partial class GoogleCloudOASIS
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ExportCanonicalSelectedAvatarAsync(string selector,bool email,int version)
     {
-        var loaded=await ReadCanonicalAvatarSelectorAsync(selector,email,version);
-        if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
-        return await ExportCanonicalOwnedHolonsAsync(loaded.Result.Id,version);
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try{
+            ValidateFirestoreVersion(version);
+            // Resolve current identity; only exported holon roots use the requested version.
+            var loaded=await ReadCanonicalAvatarSelectorAsync(selector,email,0);
+            if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
+            return await ExportCanonicalOwnedHolonsAsync(loaded.Result.Id,version);
+        }
+        catch(Exception cause){
+            OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+            if(cause is ArgumentException)result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
+        }
+        return result;
     }
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ReadCanonicalMetadataAsync(Dictionary<string,string> pairs,MetaKeyValuePairMatchMode mode,

@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Google export-root/history invariant — 23 October 2026
+
+Full305unit/83native history/79native regression PASS0skip; new4 native cases use independent avatar2/holon3, current export aliases vs explicit avatar history, owner isolation and unchanged raw documents/revisions. Native12owned documents removed with revision-conditioned batch deletes, pending0/emulator stopped/18080absent. Core7242D6B/Shared557A6513 and Google/LocalFile/SQLite source/copies verified. No download/newenvironment/hosted request; previous failed baseline and compact exact reports retained in inventory. Scoped selector gate closed, hosted IAM/cost/CloudStorage/BigQuery/full V2 gates OPEN. AzureCosmosDB selector defect remains next independent repair. No dev deployment or provider-wide100% claim.
+
 ## AWS/Dynamo independent export root versions — 23 October 2026
 
 Full475unit/171native PASS0skip (8new native cases test both provider identities); common implementation resolves current avatar identity independently of holon Version. Explicit avatar history remains unchanged. Baseline4missing-identity failures,4negative-admission passes; after fix owner isolation and unchanged canonical/native attributes proved. Current Core109677/Shared151E/Dynamo8E684/AWSB6DA producer/consumer/PDB checks pass. Same retained DB1486848bytes, pending0, container stopped/ports18000+18001absent, no downloads/new environment/cloud requests. Scoped source/native gate closed; AWS hosted IAM/capacity/billing/cloud durability and global V2 gates remain OPEN. Exact cohort/proofs/cleanup in AWS audit and ENVIRONMENT_INVENTORY.md. No dev merge/deployment or all-AWS100% claim.
