@@ -1,6 +1,6 @@
 # CQL post-group filtering contract
 
-24 October2026. Shared capture, capability admission and proof validation are verified; native/HTTP execution is not yet enrolled.
+24 October2026. Shared capture, capability admission and proof validation are verified. SQLite native execution is enrolled for the domains recorded below; MongoDB/Neo4j and HTTP remain pending.
 
 ## Captured intent
 
@@ -14,9 +14,9 @@ Filtering or reordering after grouped Skip/Take returns CQL_COMPOSITION_UNSUPPOR
 
 ## Remaining implementation
 
-Existing grouped capability profiles keep FilteringCapabilities null and reject result predicates with CQL_CAPABILITY_UNSUPPORTED. New profiles must explicitly declare key domains, aggregate operation/result domains, exact comparisons, string operations, membership and mixed-numeric permissions. Planning and actual-adapter readmission both check them; source/ordering support cannot grant filtering. No provider currently advertises grouped filtering. Manual Materialize performs pure all-buffer filter/page proof validation, rejecting incorrect native markers; it does not dispatch providers or grant capabilities.
+Profiles without FilteringCapabilities reject result predicates with CQL_CAPABILITY_UNSUPPORTED. SQLite now declares explicit native permissions; MongoDB/Neo4j remain unenrolled. New profiles must explicitly declare key domains, aggregate operation/result domains, exact comparisons, string operations, membership and mixed-numeric permissions. Planning and actual-adapter readmission both check them; source/ordering support cannot grant filtering. SQLite enrollment and current limitations are recorded below. Manual Materialize performs pure all-buffer filter/page proof validation, rejecting incorrect native markers; it does not dispatch providers or grant capabilities.
 
-Next implement complete-proof native filtering on SQLite/MongoDB/Neo4j using the verified independent capabilities. Nonmatching groups must still undergo domain/arithmetic/work/payload validation. Result paging must count matching groups while Core independently checks native filter/page agreement. Excluded groups cannot hide final overflow, malformed data or protected traversal failures. HTTP selected-result filters and three-provider SDK/HTTP demos follow native verification. Exact Average comparison needs normalized Decimal semantics and must not substitute unrounded ratios or binary64.
+SQLite complete-proof native filtering is verified below. Next implement MongoDB/Neo4j with the same independent capabilities. Nonmatching groups must still undergo domain/arithmetic/work/payload validation. Result paging must count matching groups while Core independently checks native filter/page agreement. Excluded groups cannot hide final overflow, malformed data or protected traversal failures. HTTP selected-result filters and three-provider SDK/HTTP demos follow native verification. Exact Average comparison needs normalized Decimal semantics and must not substitute unrounded ratios or binary64.
 
 ## Evidence
 
@@ -34,3 +34,16 @@ CosmicGroupedResults validates every native row's domains, counts, source work, 
 Both Core targets build; **2,364 full Core/linked-production tests pass, zero skips**, including21 new capability/proof cases. Coverage includes independent operation/type/operator permissions, membership/mixed-literal features, actual readmission, immutable capability snapshots, filter-before-page matching, nonmatching invalid/count/duplicate/payload rejection, nullable NOT, exact Int64/Decimal boundaries, binary64 subnormals, strings/field comparisons, normalized Decimal fractions/sign, GUIDs, enums and UTC ticks. The first netstandard build caught an Enum namespace collision; System.Enum qualification fixed it before final build/tests. No native provider filtering claim is made.
 
 Evidence: TestResults/CosmicCurrent/group-filter-proof-{current,final-current}.trx (files are group-filter-proof-current.trx and group-filter-proof-final-current.trx), TestResults/CosmicCqlDemo/group-filter-proof-{build,build-final,unit,unit-final}.log. PrivateCorebb3efc493a5aacb3b84a6ee8b156ab8f453508c2; net10SHA256318DD259BD399963568FCE25A9CC0633D96F51EA19BA11E2C218417BA4802D73; netstandardSHA256F3D7C08BE674F7004D8D58491E6D156AC135FF2C5834C116468DD1A7C769EE89.
+
+
+## SQLite native grouped filters — 24 October2026
+
+SQLite now enrolls grouped Where for exact selected keys, Count/LongCount, Min/Max and Int32/Int64 Sum (including nullable domains). Supported clauses include comparisons, selected-field comparisons, AND/OR/NOT, null/Boolean tests, bounded membership and ordinal Contains/StartsWith/EndsWith. Integral mixed Decimal/finite floating-point literals use exact floor/ceiling boundaries and parameters; Decimal/double values never become approximate SQLite numeric parameters. Exact normalized Average filtering remains unsupported and fails at planning.
+
+Native predicates compute filter membership after reduction, then a cumulative matching count applies result Skip/Take. The complete ordered group buffer remains proof, so nonmatches consume group/payload budgets and cannot hide malformed values or final overflow. Core independently checks marker agreement. Sum filtering, sum ordering and integral field comparisons share normalized floor-limb arithmetic, preserving adjacent Int64 totals and negative borrowing without recombining an overflowing total. Source Int32 mixed comparisons share the same boundary owner; their prior behavior remains covered by the full suite.
+
+Verification: **1,401 full SQLite integration tests passed, zero skips**, including17new controls; the first15focused cases also pass. New controls cover multi-aggregate selection without holon hydration, filter-before-page matching ranks, Sum/Count field comparisons, nullable negation and fractional inequality, adjacent values beyond2^53, both Int64 limits, negative borrowing, subnormal/fractional numeric boundaries, numeric/string membership, literal wildcard/quote text, empty suffix versus null, Boolean/GUID/enum/UTC-tick keys, excluded malformed/overflow groups, full group budgets and explicit Average denial.
+
+Evidence: TestResults/SQLiteCurrent/group-filter-{selected,full}-current.trx and group-filter-artifacts.json; TestResults/CosmicCqlDemo/sqlite-group-filter-{build,selected,full}.log. Actual93674terminal0 focused15 and59762terminal0 full1401. Executed producer/consumer pairs match Core318DD259BD399963568FCE25A9CC0633D96F51EA19BA11E2C218417BA4802D73 and SQLite2A41618E5AB15C5AAC11D533336082959E72BF5798359D107A7223332FCE6B26 (exact paths/measured bytes in artifact report). Fixed fixture DB/WAL/SHM verified absent after teardown. No service/download/install/restore/environment was added.
+
+MongoDB/Neo4j native filters, HTTP filters/demos and exact Average semantics remain open. This certifies SQLite's enrolled grouped filters, not full CQL/ORM completion.

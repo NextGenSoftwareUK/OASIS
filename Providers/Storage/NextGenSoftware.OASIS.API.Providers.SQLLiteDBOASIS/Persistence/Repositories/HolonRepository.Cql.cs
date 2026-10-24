@@ -292,43 +292,9 @@ public partial class HolonRepository
 
         private string MixedIntegerComparison(CosmicQueryComparison comparison, string column)
         {
-            long floor = 0, ceiling = 0; var outside = 0;
-            if (comparison.Literal.Kind == CosmicQueryScalarKind.Decimal)
-            {
-                var literal = (decimal)comparison.Literal.Value;
-                if (literal < int.MinValue) outside = -1;
-                else if (literal > int.MaxValue) outside = 1;
-                else { floor = (long)decimal.Floor(literal); ceiling = (long)decimal.Ceiling(literal); }
-            }
-            else if (comparison.Literal.Kind == CosmicQueryScalarKind.Double)
-            {
-                var literal = (double)comparison.Literal.Value;
-                if (double.IsNaN(literal) || double.IsInfinity(literal)) throw new NotSupportedException("Mixed numeric literals must be finite.");
-                if (literal < int.MinValue) outside = -1;
-                else if (literal > int.MaxValue) outside = 1;
-                else { floor = (long)Math.Floor(literal); ceiling = (long)Math.Ceiling(literal); }
-            }
-            else throw new NotSupportedException("SQLite CQL mixed literals must be decimal or floating point.");
-            var operation = comparison.Operator;
-            if (outside != 0)
-            {
-                var always = operation == CosmicQueryComparisonOperator.NotEqual || (outside < 0
-                    ? operation == CosmicQueryComparisonOperator.GreaterThan || operation == CosmicQueryComparisonOperator.GreaterThanOrEqual
-                    : operation == CosmicQueryComparisonOperator.LessThan || operation == CosmicQueryComparisonOperator.LessThanOrEqual);
-                return always ? "(" + column + " IS NOT NULL)" : "0";
-            }
-            if (floor != ceiling && (operation == CosmicQueryComparisonOperator.Equal || operation == CosmicQueryComparisonOperator.NotEqual))
-                return operation == CosmicQueryComparisonOperator.Equal ? "0" : "(" + column + " IS NOT NULL)";
-            // Integer n > x iff n > floor(x); n >= x iff n >= ceil(x), with symmetric upper bounds.
-            // Only exact integer parameters reach SQLite; it never coerces the decimal/double literal.
-            var boundary = operation == CosmicQueryComparisonOperator.GreaterThanOrEqual || operation == CosmicQueryComparisonOperator.LessThan ? ceiling : floor;
-            var symbol = operation switch {
-                CosmicQueryComparisonOperator.Equal => "=", CosmicQueryComparisonOperator.NotEqual => "<>",
-                CosmicQueryComparisonOperator.GreaterThan => ">", CosmicQueryComparisonOperator.GreaterThanOrEqual => ">=",
-                CosmicQueryComparisonOperator.LessThan => "<", CosmicQueryComparisonOperator.LessThanOrEqual => "<=",
-                _ => throw new NotSupportedException("Unknown mixed numeric comparison operator.")
-            };
-            return "(COALESCE((" + column + " " + symbol + " " + Bind(boundary) + "),0))";
+            var boundary = IntegerBoundary(comparison.Literal, comparison.Operator, int.MinValue, int.MaxValue);
+            if (boundary.Constant.HasValue) return boundary.Constant.Value ? "(" + column + " IS NOT NULL)" : "0";
+            return "(COALESCE((" + column + ComparisonSymbol(comparison.Operator) + Bind(boundary.Boundary) + "),0))";
         }
 
         internal string Translate(CosmicQueryPredicate predicate)
