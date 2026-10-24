@@ -1,5 +1,11 @@
 # EVM record history: current gap and reuse map
 
+## Export identity/holon version separation — controlled only, 23 October 2026
+
+Both standalone Ethereum and shared Web3Core (Polygon/Arbitrum wrapper) exports incorrectly selected avatar history using the holon Version. They now resolve current identity first and apply Version only to exported roots; Web3 negative versions fail before identity dispatch. Ethereum preserves full identity-error envelope using existing OASISResultHelper instead of reconstructing it. Explicit avatar-history selectors unchanged; no encryption/schema/SDK/retry change. New16 routing controls:12red/4pass baseline; full124Ethereum non-native +137Web3 selected controls PASS0skip. Tests use controlled identity failures, not successful encrypted export or live-chain proof. Exact cohort/hashes/resources in inventory.
+
+Native guard still rejects unchanged827392byte/SHA1A826... routing.db with original44-operation uncertainty, no node/RPC/signing/gas/start/reset/replay/cleanup.64retention guard decisions/lifecycle ordering pass. Expanded future mixed gate300+paging+Web3 is NOT executed. Owner recovery choice now in ACTIONS-FOR-DAVID.md. Do not confuse new controlled success with resolving old chain outcomes. Successful Web3 result counters are also a remaining source-level audit gap. No dev deployment/provider-wide100% claim.
+
 ## Exact private history JSON boundaries — Ethereum104 / Web3 controlled137 green
 
 2026-10-20: two Ethereum root/embedded-child exact metadata staging regressions and one Web3 decrypted-document regression failed before change. Existing Ethereum canonical embedded-record serializer/decrypted-document reader and shared Web3 private document/non-history staging reader now reuse `OasisJson.ParseStoredObject`. No provider-specific codec/math, changed encryption format/context/key ownership, extra RPC or alternate native writer. Source caller metadata remains unchanged. Exact typed record decoding is separate Core-owned work; this closes text-to-object boundaries, not that whole path.

@@ -153,12 +153,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load avatar by username first
-                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername,version);
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}",avatarResult.Exception);
-                    result.ErrorCode=avatarResult.ErrorCode;
-                    return result;
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 }
 
                 if (avatarResult.Result != null)
@@ -200,12 +198,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load avatar by email first
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress,version);
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}",avatarResult.Exception);
-                    result.ErrorCode=avatarResult.ErrorCode;
-                    return result;
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 }
 
                 if (avatarResult.Result != null)

@@ -59,9 +59,16 @@ public partial class Web3CoreOASISBaseProvider
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ExportPrivateSelectorAsync(string selector,bool email,int version)
     {
-        var loaded=email ? await LoadAvatarByEmailAsync(selector,version):await LoadAvatarByUsernameAsync(selector,version);
-        if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
-        return await ExportPrivateOwnedAsync(loaded.Result.Id,version);
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try{
+            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            // Identity and exported holon histories have independent version counters.
+            var loaded=email ? await LoadAvatarByEmailAsync(selector,0):await LoadAvatarByUsernameAsync(selector,0);
+            if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
+            return await ExportPrivateOwnedAsync(loaded.Result.Id,version);
+        }
+        catch(Exception cause){OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
     }
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ReadPrivateParentAsync(string key,HolonType type,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version)

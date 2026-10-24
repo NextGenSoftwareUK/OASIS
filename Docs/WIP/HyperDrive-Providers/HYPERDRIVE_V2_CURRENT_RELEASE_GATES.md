@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## EVM export selector controlled gate — 23 October 2026
+
+124Ethereum non-native/137Web3 selected controls PASS0skip, including16new independent-version/negative-admission/error-envelope controls. No SDK transport, chain signing, gas or native success-path acceptance. Original routing.db unchanged827392B/hash1A826...,64retention guard controls pass and native preflight still rejects. Required future mixed300+paging+Web3 not run; owner decision in ACTIONS-FOR-DAVID.md. Core2D6B/SharedB7F/four-provider source/copies and exact proof lifecycle in inventory. Controlled dispatch gate only is closed; native interfaces, result-counter audit and full V2 remain OPEN. No new runtime/env/download or dev deployment.
+
 ## Cosmos read-counter gate — 23 October 2026
 
 Full355unit/66native PASS0skip,82new unit controls and existing4native fixtures expanded across point/list/selector/type/parent/metadata/search/nearby, empty responses and graph-root counting. Failed projection/deletion do not leak internal read counts. Native16owned docs original-ETag removed/absence verified, pending0/emulator stopped, no new environment/download/cloud request. Source/copy/PDB cohort Core2D6B/Shared6639/CosmosB752, exact failure/corrected/success proofs and lifecycle in inventory. Two initial search fixture mistakes preserved and corrected explicitly, not production-filter workarounds. Scoped common-read counters now closed; earlier counters-open notes below are historical. Hosted credentials/IAM/RU metering/billing/cloud durability/provider-wide V2 remain OPEN. No dev merge/deployment or100% claim.
