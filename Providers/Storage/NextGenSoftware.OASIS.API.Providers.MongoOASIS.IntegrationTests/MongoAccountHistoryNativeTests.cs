@@ -180,6 +180,15 @@ public sealed class MongoAccountHistoryNativeTests(ITestOutputHelper output)
             {
                 var all=synchronous?provider.LoadAllAvatars(version):await provider.LoadAllAvatarsAsync(version);Assert.False(all.IsError,all.Message+all.Exception);Assert.Equal(id,Assert.Single(all.Result).Id);Assert.Equal(1,all.LoadedCount);
                 var token=synchronous?provider.LoadAvatarByVerificationToken("retired-token",version):await provider.LoadAvatarByVerificationTokenAsync("retired-token",version);Assert.False(token.IsError,token.Message);Assert.Null(token.Result);
+                foreach(var searchCase in new[]{(Text:"old-"+label,Version:version,Count:1),(Text:"old-"+label,Version:0,Count:0),(Text:"new-"+label,Version:version,Count:0),(Text:"new-"+label,Version:version+1,Count:1)})
+                {
+                    var query=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,
+                        SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery=searchCase.Text,SearchAvatars=true,SearchHolons=false}}};
+                    var found=synchronous?provider.Search(query,loadChildren:false,version:searchCase.Version):await provider.SearchAsync(query,loadChildren:false,version:searchCase.Version);
+                    Assert.False(found.IsError,found.Message+found.Exception);Assert.True(found.IsLoaded);Assert.Equal(searchCase.Count,found.LoadedCount);
+                    Assert.Equal(searchCase.Count,found.Result.SearchResultAvatars.Count);
+                    if(searchCase.Count==1){Assert.Equal(id,Assert.Single(found.Result.SearchResultAvatars).Id);Assert.Equal(searchCase.Version,Assert.Single(found.Result.SearchResultAvatars).Version);}
+                }
             }
             var raw=database.GetCollection<BsonDocument>(family);
             var ambiguous=secondary.DeepClone().AsBsonDocument;var archived=ambiguous["OasisHolonRevisionArchive"]["records"][0]["bson"].AsBsonDocument;

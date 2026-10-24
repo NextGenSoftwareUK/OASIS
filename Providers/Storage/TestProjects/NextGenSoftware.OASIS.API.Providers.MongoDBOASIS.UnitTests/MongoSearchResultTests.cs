@@ -14,14 +14,14 @@ public class MongoSearchResultTests
 {
     private sealed class Repository(bool malformed):ISearchRepository
     {
-        public OASISResult<ISearchResults> Search(ISearchParams query)
+        public OASISResult<ISearchResults> Search(ISearchParams query,int version=0)
         {
             var found=new SearchResults();
             if(malformed)found.SearchResultHolons=null!;
             else found.SearchResultHolons.Add(new Holon{Id=Guid.NewGuid(),Name="owned"});
             return new(found){IsLoaded=true,LoadedCount=99};
         }
-        public Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams query)=>Task.FromResult(Search(query));
+        public Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams query,int version=0)=>Task.FromResult(Search(query,version));
     }
     [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
     public async Task SearchCountsDescribePublishedResultsNotRepositoryEnvelope(bool malformed,bool synchronous)
