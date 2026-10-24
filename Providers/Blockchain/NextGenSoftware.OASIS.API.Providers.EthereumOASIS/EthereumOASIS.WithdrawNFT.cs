@@ -200,6 +200,16 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
             Nethereum.RPC.Eth.DTOs.TransactionReceipt receipt = null;
             try
             {
+                // Freeze consumed intent before activation, the signing gate and owner reads yield.
+                // Signing material stays in memory; never serialize this request.
+                if (transaction != null)
+                    transaction = new SendWeb3NFTRequest
+                    {
+                        Amount = transaction.Amount, TokenId = transaction.TokenId,
+                        TokenAddress = transaction.TokenAddress, FromNFTTokenAddress = transaction.FromNFTTokenAddress,
+                        FromWalletAddress = transaction.FromWalletAddress, ToWalletAddress = transaction.ToWalletAddress,
+                        OwnerPrivateKey = transaction.OwnerPrivateKey, MemoText = transaction.MemoText
+                    };
                 if (transaction == null || transaction.Amount != 1)
                     throw new ArgumentException("ERC-721 transfer requires a request with amount exactly one.");
                 if (!BigInteger.TryParse(transaction.TokenId, System.Globalization.NumberStyles.None,
@@ -371,6 +381,14 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
             Nethereum.RPC.Eth.DTOs.TransactionReceipt receipt = null;
             try
             {
+                // Owner lookup, native submission and receipt proof must use the same admitted contract.
+                if (request != null)
+                    request = new BurnWeb3NFTRequest
+                    {
+                        TokenId = request.TokenId, NFTTokenAddress = request.NFTTokenAddress,
+                        OwnerPrivateKey = request.OwnerPrivateKey, OwnerPublicKey = request.OwnerPublicKey,
+                        OwnerSeedPhrase = request.OwnerSeedPhrase
+                    };
                 if (request == null || !BigInteger.TryParse(request.TokenId, System.Globalization.NumberStyles.None,
                     System.Globalization.CultureInfo.InvariantCulture, out var tokenId)
                     || tokenId < 0 || tokenId >= (BigInteger.One << 256))
