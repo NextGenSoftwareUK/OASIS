@@ -1,5 +1,7 @@
 # SOLID provider implementation audit
 
+24October token completion repair:4genuine failures/1validcontrol →362unitPASS0skip. Existing DPoP token owner now requiresHTTP200before caching/publication;201/202/203/206cannotdispatch resources. Next explicitrequestcanacquirenewtoken,noautomaticmutationretry. Source/copies verified,no service startup. Retained server remainsEXITED137; renewed readiness-diagnostic approval pending. Cold transport abort is distinct and stillunresolved. Details and RFC6749source in SOLID_AUTHENTICATION.md,exact resources in inventory. No native/fullprovider/V2completionclaim.
+
 ## Read acknowledgement counts repaired — 24 October
 
 Twenty existing sync/async point/metadata/parent/search cases genuinely failed new result-contract assertions. Existing point and collection success owners now set LoadedCount1/materialized root count; filtered query count uses selected roots only, not nested children; mixed search sets IsLoaded and the sum of selected avatar/holon roots. No extra HTTP request, traversal or size/fee estimate. Existing shared unique-identity lookup already returns1 and is unchanged.
