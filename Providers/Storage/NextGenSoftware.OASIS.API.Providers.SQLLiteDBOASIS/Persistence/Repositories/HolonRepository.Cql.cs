@@ -207,6 +207,7 @@ public partial class HolonRepository
                 var pattern = string.Join("-", new[] { 8, 4, 4, 4, 12 }.Select(count => string.Concat(Enumerable.Repeat(hex, count))));
                 return alias + ".type = 'text' AND length(CAST(" + alias + ".value AS BLOB)) = 36 AND " + alias + ".value GLOB '" + pattern + "'";
             }
+            if (type == typeof(decimal)) return "(" + SqliteCqlDecimal.Column(alias) + ") IS NOT NULL";
             if (type == typeof(ulong)) return SqliteCqlUInt64.Guard(alias);
             if (type == typeof(bool)) return alias + ".type IN ('true','false')";
             if (type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort)
@@ -238,6 +239,7 @@ public partial class HolonRepository
                     return comparison.Operator == CosmicQueryComparisonOperator.Equal ? alias + ".type = 'null'" : "(" + guard + ")";
                 }
                 object value = comparison.Literal.Value;
+                if ((Nullable.GetUnderlyingType(comparison.Path.ValueType) ?? comparison.Path.ValueType) == typeof(decimal)) value = CosmicNumericScalarResults.DecimalOrderKey((decimal)value);
                 if ((Nullable.GetUnderlyingType(comparison.Path.ValueType) ?? comparison.Path.ValueType) == typeof(ulong)) value = SqliteCqlUInt64.Literal(value);
                 if (comparison.Path.ScalarKind == CosmicQueryScalarKind.Boolean) value = (bool)value ? 1L : 0L;
                 if (comparison.Path.ScalarKind == CosmicQueryScalarKind.Guid) value = ((Guid)value).ToString("D");
@@ -261,6 +263,7 @@ public partial class HolonRepository
             var type = Nullable.GetUnderlyingType(declaredType) ?? declaredType;
             if (type == typeof(DateTime)) return SqliteCqlDate.Column(alias);
             if (type == typeof(ulong)) return SqliteCqlUInt64.Column(alias);
+            if (type == typeof(decimal)) return SqliteCqlDecimal.Column(alias);
             return alias + ".value" + (type == typeof(Guid) ? " COLLATE NOCASE" : type == typeof(string) ? " COLLATE BINARY" : "");
         }
 
@@ -288,6 +291,7 @@ public partial class HolonRepository
                 else if (type == typeof(DateTime)) value = SqliteCqlDate.Literal((DateTime)value);
                 else if (type == typeof(bool)) value = (bool)value ? 1L : 0L;
                 else if (type == typeof(ulong)) value = SqliteCqlUInt64.Literal(value);
+                else if (type == typeof(decimal)) value = CosmicNumericScalarResults.DecimalOrderKey((decimal)value);
                 parameters.Add(Bind(value));
             }
             var test = parameters.Count == 0 ? "0" : "COALESCE((" + column + " IN (" + string.Join(",", parameters) + ")),0)";
