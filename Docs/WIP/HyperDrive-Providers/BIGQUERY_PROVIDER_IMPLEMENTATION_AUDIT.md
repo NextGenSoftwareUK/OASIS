@@ -1,5 +1,9 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## Ambiguous point selectors rejected — 24 October
+
+Full213controlledPASS0skip3seconds.42 new cases cover seven point selectors (avatar/detail GUID,username,email;holon GUID),sync/async,zero/one/two rows. Original14ambiguous cases genuinely failed;28missing/single controls passed. Existing two query owners now request LIMIT2 rather than latest LIMIT1 and share one uniqueness validator. Multiple stored rows throw InvalidDataException with no loaded payload/count. Duplicate identical canonical records are also ambiguous; no arbitrary newest record or silently repaired data. The helpers are reused by existing read-before-delete paths,but mutation acceptance is not newly certified here. Concurrent write uniqueness/index-to-canonical selector consistency remain OPEN. No native BigQuery execution; SDK result controls honor original LIMIT1 and preserve red report. Source/PDB/copies verified,resources in inventory.
+
 ## Soft-deleted detail visibility — 24 October
 
 Full171controlledPASS0skip3seconds. Before fix,8deleted-detail cases genuinely failed while8nondeleted controls passed: GUID/username/email point reads and collection,each sync/async. AvatarDetail paths now apply the same IsDeleted boundary as existing Avatar/Holon reads; point results are not loaded and collection counts exclude tombstones. Stored canonical bytes remain unchanged. Version/history support is still OPEN; this does not claim historical retrieval or paired avatar/detail deletion correctness. First compile attempted to assign derived readonly IsDeleted; fixture corrected to actual DeletedDate before any red test ran. No production schema/codec change, native/cloud job or new environment. Core742/Shared56/provider4/unit7 and exact producer/copy verified; evidence/resources in inventory.
@@ -38,7 +42,7 @@ Original first build failed because the existing provider tests referenced an ab
 - Point caller ownership is repaired/controlled-verified above; prepared-operation integration and restart-safe attempt journaling/admission remain open.
 - Canonical scalar/interface roundtrip is controlled-verified above; complete encryption/private index fidelity,history/version selection and IsVersionControlEnabled semantics remain open.
 - Complete graph/children/option behavior,captured multi-root intent,paired avatar/detail lifecycle and concurrency/identity uniqueness. Root bulk error/partial acknowledgement reporting is now controlled-verified,not native graph acceptance.
-- Collection LIMIT1000 truncation is repaired with the official SDK iterator. Full search/export/graph/option semantics remain open. Duplicate identities still select latest first row rather than reject ambiguity; indexed selectors versus canonical record identity also need validation.
+- Collection LIMIT1000 truncation and ambiguous point selection are controlled-verified repairs above. Full search/export/graph/option semantics, concurrent identity uniqueness and indexed selectors versus canonical record identity still need validation.
 - Activation currently provisions missing dataset/tables; explicit provisioning authority,cost admission,least-privilege credentials and hosted billing evidence must precede live use.
 - Production DNA/BootLoader registration,public endpoint acceptance and full HyperDrive V2 remain open. No deployment/merge or full-provider certification from these31tests.
 
