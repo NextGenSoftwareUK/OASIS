@@ -1,5 +1,20 @@
 # Reusable environments and disk inventory
 
+2026-10-24 BigQuery delete closure,owner HyperDrive providers:261controlledPASS0skip3seconds,actual terminalexit0. Reused existingSDK3.9.0/Core/shared/.NET/output folders; no restore/download/new environment/cloud request or actual record deletion. Synthetic deletes and read records memory-only,disposed at terminal; no owned live port/process/database/archive. Current-source PDB Core742/Shared56/provider4/unit7,producer/consumer match verified; providerF08E7E4BB2DEFBC86A77C5114E7C51D6ACF4FC05E93713211C7D2BBDD6462A55,unit79B793E52C4602B03B36C6F18DFF38844CC4F127C26B54E2733E79FD5D66A6BA. Core/Shared unchanged from earlier closures.
+
+Exact reusable paths C:/Source/OASIS/Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS/bin7079609bytes,obj986512bytes; C:/Source/OASIS/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests/bin47573447bytes,obj1132742bytes. Retain shared outputs/cache; safe exactbin/obj removal only after shared consumers stop,regenerate existing project cached builds under lease. Whole-drivefree71069396992bytes,not task attribution. No artifact deletion this batch.
+
+Retain compact evidence C:/Source/OASIS/TestResults/BigQueryCurrent/,no live process dependencies; regenerate same unit project under lease,no cloud authority implied:
+
+| File | Bytes | SHA256 | Meaning |
+|---|---:|---|---|
+| delete-ack-before.trx |77161|D83D535C18FE777076E7A11B54D394700EC3AD0090442DC031C2731266DB3BEB|36genuine failures:28invalid acknowledgements,4lost reconciliation,4healthy flags |
+| delete-ack-final.trx |377264|8F839AD50179E2DD305DF1731581AF9D54ABD98CC1067C2CBA4E28CCF8617E69|249PASS intermediate |
+| delete-wrapper-before.trx |17634|05B2088D267FE30A5B0B77D91D142500B60C857869A641C19EA84C385D5B64DB|8genuine public wrapper failures |
+| delete-ack-complete.trx |395200|F9D9E452A4969D263F35B92E179B7E2DB8B6E31A163AD95CC2132FC029CEAE3E|261PASS including4missing soft-delete controls |
+
+2026-10-24 BigQuery delete acknowledgement admission,owner HyperDrive providers: reuse existing SDK3.9.0/controlled Client/Core/Shared/output paths. No restore/download/cloud/dataset/runtime/new environment; delete requests simulated exclusively in memory,no real deletion authority exercised. Planned TestResults/BigQueryCurrent/delete-ack-before.trx and delete-ack-final.trx(sizes pending). Reuse save-job reconciliation owner for native DELETE rather than independent acknowledgement logic; retain original failed evidence and measure outputs at terminal.
+
 2026-10-24 BigQuery unique-selector closure,owner HyperDrive providers:213controlledPASS0skip3seconds,terminal42083exit0. Original42focused cases14genuinefail/28pass; memory-only duplicate records,no native/cloud/credential/dataset/job or new environment/download/restore. Reused SDK3.9.0/cache/.NET/Core/shared source outputs. Current PDB/source Core742/Shared56/provider4/unit7,provider producer/consumer match; providerC683E667E78A85C64F49E8E123E54D8D68F18235A2247A820E8B2B9442BAB0F1,unitAA0EA04ECB8F28D4458B6B83601EE2989BBB37ED50578ACFC3EAD9881E942404. Core/Shared hashes unchanged below.
 
 Reused C:/Source/OASIS/Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS/bin7078381bytes,obj984260bytes; C:/Source/OASIS/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests/bin47563131bytes,obj1119558bytes. Active/reusable outputs, no remaining owned worker/port dependency. Retain shared cache/outputs; remove exact generatedbin/obj only after shared consumers stop,regenerate existing project-scoped cached build under lease. No disposable persistent dataset/archive/runtime introduced or removed. Cfree71078625280bytes,whole-drive observation only.

@@ -195,7 +195,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 if (softDelete)
                 {
                     var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
-                    if (avatar != null)
+                    if (avatar == null)throw new System.Collections.Generic.KeyNotFoundException("BigQuery avatar to delete was not found.");
+                    else
                     {
                         avatar.DeletedDate = DateTime.UtcNow;
                         await UpsertDocAsync(CollAvatars, id.ToString(), avatar);
@@ -206,10 +207,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                     await DeleteDocAsync(CollAvatars, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -230,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarByUsernameAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarByUsernameAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -251,7 +254,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarByEmailAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarByEmailAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -463,7 +466,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 if (softDelete)
                 {
                     var holon = await GetDocAsync<Holon>(CollHolons, id.ToString());
-                    if (holon != null)
+                    if (holon == null)throw new System.Collections.Generic.KeyNotFoundException("BigQuery holon to delete was not found.");
+                    else
                     {
                         holon.DeletedDate = DateTime.UtcNow;
                         await UpsertDocAsync(CollHolons, id.ToString(), holon);
@@ -474,10 +478,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                     await DeleteDocAsync(CollHolons, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteHolonAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteHolonAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -527,7 +533,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var avatar = await LoadAvatarByProviderKeyAsync(providerKey);
             if (avatar.IsError || avatar.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, avatar.Message);
+                OASISErrorHandling.HandleError(ref result, avatar.Message,avatar.Exception);
                 return result;
             }
             return await DeleteAvatarAsync(avatar.Result.Id, softDelete);
@@ -591,15 +597,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var loaded = await LoadHolonAsync(id);
             if (loaded.IsError || loaded.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, loaded.Message);
+                OASISErrorHandling.HandleError(ref result, loaded.Message,loaded.Exception);
                 return result;
             }
 
             var deleted = await DeleteHolonSoftAsync(id, true);
             if (deleted.IsError)
-                OASISErrorHandling.HandleError(ref result, deleted.Message);
+                OASISErrorHandling.HandleError(ref result, deleted.Message,deleted.Exception);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted=deleted.IsDeleted;
+                result.DeletedCount=deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -613,7 +623,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var holon = await LoadHolonAsync(providerKey);
             if (holon.IsError || holon.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, holon.Message);
+                OASISErrorHandling.HandleError(ref result, holon.Message,holon.Exception);
                 return result;
             }
             return await DeleteHolonAsync(holon.Result.Id);
@@ -1041,6 +1051,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                                       VALUES (s.id, s.doc, s.username, s.email, s.parent_holon_id, CURRENT_TIMESTAMP())";
             var client=_client??throw new InvalidOperationException("BigQuery client is not activated.");
             var parameters=new[]{StringParameter("id",id),StringParameter("doc",doc),StringParameter("username",u),StringParameter("email",e),StringParameter("parent",p)};
+            return await ExecuteOneRowMutationAsync(client,id,sql,parameters);
+        }
+
+        private async Task<BigQueryWriteAcknowledgement> ExecuteOneRowMutationAsync(BigQueryClient client,string id,string sql,IEnumerable<BigQueryParameter> parameters)
+        {
             // Supply the native job identity before dispatch so even a lost response
             // has a concrete request to reconcile. This is not a success receipt.
             var jobId="oasis-record-"+Guid.NewGuid().ToString("N");string location="";var acknowledged=false;
@@ -1051,7 +1066,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
                 if(bound)location=reference!.Location??"";
                 acknowledged=bound&&completed?.NumDmlAffectedRows==1;
                 if(!acknowledged){
-                    var invalid=new System.IO.InvalidDataException("BigQuery MERGE requires exactly one affected row and its original project/job identity.");
+                    var invalid=new System.IO.InvalidDataException("BigQuery record mutation requires exactly one affected row and its original project/job identity.");
                     if(reference!=null&&!bound){invalid.Data["UnboundProjectId"]=reference.ProjectId??"";invalid.Data["UnboundJobId"]=reference.JobId??"";}
                     throw invalid;
                 }
@@ -1060,7 +1075,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         }
 
         private async Task DeleteDocAsync(string table, string id)
-            => await _client!.ExecuteQueryAsync($"DELETE FROM {Table(table)} WHERE id = @id",new[]{StringParameter("id",id)},new QueryOptions{UseLegacySql=false});
+            => await ExecuteOneRowMutationAsync(_client??throw new InvalidOperationException("BigQuery client is not activated."),id,$"DELETE FROM {Table(table)} WHERE id = @id",new[]{StringParameter("id",id)});
 
         private async Task<T?> FindOneAsync<T>(string table, string field, string value) where T : class
         {
