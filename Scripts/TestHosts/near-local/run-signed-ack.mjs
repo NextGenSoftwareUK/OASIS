@@ -25,6 +25,7 @@ const settings={NEAROASIS_RPCENDPOINT:endpoint,NEAROASIS_NETWORKID:chain,NEAROAS
 const child=spawnSync('/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe',
   ['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',
     'C:\\Source\\OASIS\\Scripts\\TestHosts\\near-local\\run-dotnet-evidence.ps1',
-    '-SettingsFromStdin','-RepositoryRoot','C:\\Source\\OASIS','-SignedAcknowledgements'],
+    '-SettingsFromStdin','-RepositoryRoot','C:\\Source\\OASIS',
+    process.env.OASIS_NEAR_CHECKED_WRITE==='1'?'-CheckedRecordWrites':'-SignedAcknowledgements'],
   {input:JSON.stringify(settings),stdio:['pipe','inherit','inherit']});
 if(child.error||child.status!==0)throw new Error('Signed acknowledgement native verification failed; preserve original journal, no replay');

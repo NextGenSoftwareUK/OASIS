@@ -1,9 +1,10 @@
-param([switch]$InspectInterruptedRun,[switch]$InspectStorageRecords,[switch]$VerifySignedAcknowledgements)
+param([switch]$InspectInterruptedRun,[switch]$InspectStorageRecords,[switch]$VerifySignedAcknowledgements,[switch]$VerifyCheckedWrites)
 $ErrorActionPreference='Stop'
 if($InspectStorageRecords -and !$InspectInterruptedRun){throw 'Storage inspection requires explicit read-only inspection mode.'}
 if($VerifySignedAcknowledgements -and $InspectInterruptedRun){throw 'Signed verification is not read-only inspection.'}
+if($VerifyCheckedWrites -and ($InspectInterruptedRun -or $VerifySignedAcknowledgements)){throw 'Choose one explicit native verification scope.'}
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
-if(!$InspectInterruptedRun -and !$VerifySignedAcknowledgements -and (Test-Path -LiteralPath (Join-Path $root 'TestResults/NearRuntime/near-provider-current.trx'))){
+if(!$InspectInterruptedRun -and !$VerifySignedAcknowledgements -and !$VerifyCheckedWrites -and (Test-Path -LiteralPath (Join-Path $root 'TestResults/NearRuntime/near-provider-current.trx'))){
     throw 'Preserve and hash-verify the original NEAR native report before another run; no node or mutation started.'
 }
 $rootWsl=(& wsl.exe -d Ubuntu -- wslpath -a ($root -replace '\\','/')).Trim()
@@ -32,7 +33,7 @@ pending_original() {
 if test "$OASIS_NEAR_READ_ONLY_INSPECTION" != 1 && pending_original; then echo 'Original NEAR mutation evidence remains; reconcile before startup.' >&2; exit 1; fi
 test "$(sha256sum "$root/ledger/genesis.json" | cut -d' ' -f1)" = 44cd89e1518e944f19aec5e2508550f33170ee9196158ec73012fd8e203a6713
 cmp "$root/run-evidence.mjs" "$repo/Scripts/TestHosts/near-local/run-evidence.mjs"
-"$node" -e 'const c=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")),expected=process.env.OASIS_NEAR_READ_ONLY_INSPECTION==="1"||process.env.OASIS_NEAR_SIGNED_ACK==="1"?5:50;if(c.gc_num_epochs_to_keep!==expected)throw new Error("Unexpected retained NEAR retention for selected scope.")' "$root/ledger/config.json"
+"$node" -e 'const c=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")),expected=process.env.OASIS_NEAR_READ_ONLY_INSPECTION==="1"||process.env.OASIS_NEAR_SIGNED_ACK==="1"||process.env.OASIS_NEAR_CHECKED_WRITE==="1"?5:50;if(c.gc_num_epochs_to_keep!==expected)throw new Error("Unexpected retained NEAR retention for selected scope.")' "$root/ledger/config.json"
 pid=''
 cleanup() {
   code=$?
@@ -53,6 +54,7 @@ export PATH="$(dirname "$node"):$PATH"
 node_log="$root/node-current.log"
 if test "$OASIS_NEAR_READ_ONLY_INSPECTION" = 1; then node_log="$root/node-inspect-current.log"; fi
 if test "$OASIS_NEAR_SIGNED_ACK" = 1; then node_log="$root/node-signed-ack.log"; test ! -e "$node_log" || { echo 'Preserve original signed node log before another run.' >&2; exit 1; }; fi
+if test "$OASIS_NEAR_CHECKED_WRITE" = 1; then node_log="$root/node-checked-compatibility.log"; test ! -e "$node_log" || { echo 'Preserve original checked node log before another run.' >&2; exit 1; }; fi
 "$runtime" --home "$root/ledger" run --rpc-addr 127.0.0.1:3030 --network-addr 127.0.0.1:24567 >"$node_log" 2>&1 &
 pid=$!
 echo "Resumed retained NEAR node PID $pid (loopback only)."
@@ -69,7 +71,7 @@ export OASIS_NEAR_REUSABLE_CHAIN_ID=oasis-near-local
 export OASIS_NEAR_REUSABLE_CONTRACT_ID=test.near
 export OASIS_NEAR_REUSABLE_SIGNER_PATH="$root/ledger/validator_key.json"
 cd "$root"
-if test "$OASIS_NEAR_SIGNED_ACK" = 1; then
+if test "$OASIS_NEAR_SIGNED_ACK" = 1 || test "$OASIS_NEAR_CHECKED_WRITE" = 1; then
   "$node" "$repo/Scripts/TestHosts/near-local/run-signed-ack.mjs"
 elif test "$OASIS_NEAR_READ_ONLY_INSPECTION" = 1; then
   "$node" "$repo/Scripts/TestHosts/near-local/inspect-interrupted.mjs"
@@ -82,7 +84,8 @@ fi
 $inspectionValue=if($InspectInterruptedRun){'1'}else{'0'}
 $storageInspectionValue=if($InspectStorageRecords){'1'}else{'0'}
 $signedAckValue=if($VerifySignedAcknowledgements){'1'}else{'0'}
-$nearShell="export OASIS_NEAR_READ_ONLY_INSPECTION=$inspectionValue`nexport OASIS_NEAR_READ_ONLY_STORAGE=$storageInspectionValue`nexport OASIS_NEAR_SIGNED_ACK=$signedAckValue`n"+$nearShell
+$checkedWriteValue=if($VerifyCheckedWrites){'1'}else{'0'}
+$nearShell="export OASIS_NEAR_READ_ONLY_INSPECTION=$inspectionValue`nexport OASIS_NEAR_READ_ONLY_STORAGE=$storageInspectionValue`nexport OASIS_NEAR_SIGNED_ACK=$signedAckValue`nexport OASIS_NEAR_CHECKED_WRITE=$checkedWriteValue`n"+$nearShell
 $nearEncoded=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($nearShell -replace "`r`n","`n")))
 & wsl.exe -d Ubuntu -- bash -lc "printf '%s' '$nearEncoded' | base64 -d | bash"
 if($LASTEXITCODE -ne 0){throw 'Retained NEAR verification did not pass; inspect original evidence before rerunning.'}
