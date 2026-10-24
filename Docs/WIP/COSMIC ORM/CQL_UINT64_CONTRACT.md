@@ -75,3 +75,44 @@ absent after teardown; no downloads/restores/new environments were needed.
 Next: MongoDB and Neo4j UInt64 persistence/query domains, transport/examples,
 then remaining Decimal/double coverage and the broader unchanged roadmap.
 See [the UInt64 contract](CQL_UINT64_CONTRACT.md). The full goal remains active.
+
+
+## MongoDB extension — verification in progress
+
+New boxed UInt64 metadata writes now use exact BSON Decimal128 instead of the
+complex-value JSON-string path. Existing strings remain strings: without a stored
+CLR tag a numeric-looking string cannot safely be reinterpreted as UInt64.
+Migration of previously stringified counters requires explicit application schema
+and is not automatic. BSON int/long/decimal integral values in0..UInt64.MaxValue
+form the declared query domain; binary64, strings, fractions and nonfinite values
+are excluded. Projection decoding independently rejects Decimal128 rounding.
+
+The same predicate, projection, ordering, extrema and grouped owners are reused.
+Actual41293: all478 MongoDB provider units passed (five new unsigned controls).
+The205-case native gate (14 new cases) stopped on the pre-existing
+cosmic_cql_fixture database before any CQL query/write;205 preflight failures are
+not native capability acceptance. Earlier27043 stopped at a test-only NaN API
+compile mistake, since corrected to Decimal128.Parse. Reports/logs are retained in
+SubscriptionUsageCurrent/mongo-uint64-preflight-red.trx and
+CosmicCqlDemo/mongo-uint64-{test-build-red,final}.log.
+
+A bounded read-only inspection mode is prepared. It records collection rows and
+SHA256 in the existing SubscriptionUsageCurrent directory without provider
+activation or database mutation. The first inspection attempt stopped on the busy
+global build lease; the retained database remains preserved. Ownership/outcomes
+must be reconciled before the native suite can reuse the fixed namespace. Mongo
+native acceptance, Neo4j and HTTP UInt64 remain open; no complete-matrix claim.
+
+
+The read-only inspection49049 passed: exactly five empty fixture collections,
+including the test ownership marker and empty outbox. Snapshot249bytes has SHA256
+C640207F460B4F0A9F9EF804E5A0823F1583E35BD58AC3513D89517CED7EF5C1.
+Pinned cleanup under80768 passed after repeated catalog/count checks. The following
+native gate failed its first seed transaction in the concurrently changed child-role
+validation: ConditionalHolonReceipt.Write invokes HolonGraphWritePlan.Create on an
+internal acknowledged snapshot, which now requires a fully observed caller child
+selection. The other204 tests then failed the preserved-fixture preflight. No CQL
+query acceptance can be inferred. This integration regression has been sent to its
+Core/Shared source owner; caller ownership validation must remain intact. Evidence:
+SubscriptionUsageCurrent/mongo-uint64-child-role-red.trx and
+CosmicCqlDemo/mongo-uint64-reconciled-final.log. The active goal remains incomplete.

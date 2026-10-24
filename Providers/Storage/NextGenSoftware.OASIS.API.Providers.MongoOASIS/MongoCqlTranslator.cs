@@ -35,6 +35,7 @@ internal sealed partial class MongoCqlTranslator
         CosmicQueryScalarKind.Null=>BsonNull.Value,
         CosmicQueryScalarKind.String=>new BsonString((string)value.Value),
         CosmicQueryScalarKind.Boolean=>new BsonBoolean((bool)value.Value),
+        CosmicQueryScalarKind.Decimal=>new BsonDecimal128((decimal)value.Value),
         CosmicQueryScalarKind.Int64=>new BsonInt64(Convert.ToInt64(value.Value,System.Globalization.CultureInfo.InvariantCulture)),
         CosmicQueryScalarKind.Guid=>new BsonString(((Guid)value.Value).ToString("D")),
         CosmicQueryScalarKind.UtcDateTime=>new BsonInt64(((DateTime)value.Value).Ticks),
@@ -82,6 +83,16 @@ internal sealed partial class MongoCqlTranslator
         if(type==typeof(DateTime))return Op("$and",Op("$eq",Type(value),Literal("long")),
             Op("$gte",value,Literal(DateTime.MinValue.Ticks)),Op("$lte",value,Literal(DateTime.MaxValue.Ticks)));
         if(type==typeof(string)||type==typeof(Guid))return Op("$eq",Type(value),Literal("string"));
+        if(type==typeof(ulong))
+        {
+            // BSON Decimal128 and signed integers preserve this integral domain;
+            // binary64 and strings cannot supply an unsigned precision proof.
+            var numeric=Op("$in",Type(value),Literal(new BsonArray{"int","long","decimal"}));
+            return Choose(numeric,Op("$and",
+                Op("$gte",value,Literal(new BsonDecimal128(0m))),
+                Op("$lte",value,Literal(new BsonDecimal128((decimal)ulong.MaxValue))),
+                Op("$eq",value,new BsonDocument("$trunc",value))),Literal(false));
+        }
         if(type==typeof(bool))return Op("$eq",Type(value),Literal("bool"));
         if(type==typeof(byte)||type==typeof(sbyte)||type==typeof(short)||type==typeof(ushort)||type==typeof(uint)
             ||type==typeof(int)||type==typeof(long)||type.IsEnum)
