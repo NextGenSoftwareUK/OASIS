@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## SQLite -1 exports — scoped file-backed acceptance,24 October 2026
+
+39maintainedunit and10focused native file-backed cases PASS0skip, using real EF/SQLite and existing fixed integration-current.db lease/cleanup. API all/ID/current username/email exports return3logical versions after reopen, owner isolation/counts/exact names and unchanged DBbytes; corrupt archived digest rejects with no partial payload. No duplicate history system or arbitrary version range. Existing native ambiguity/checksum/lineage rules retained. Initial fixture incorrectly assumed auto-increment at provider (Core manager owns it), then corrupt fixture violated64-character schema constraint; originals retained and corrections documented, neither failure called production success. Broader integration/fault/visibility/globalV2 certification not implied; exact sources/hashes/resources in ENVIRONMENT_INVENTORY.md.
+
 ## SQLite export result metadata — 24 October 2026
 
 Scoped native-memory regression:16sync/async all/ID/username/email exports with0/1returned roots, full maintained21testsPASS0skip. Valid baseline8cases reproduced IsLoaded=false despite correct persisted/exported root. One completion helper repairs flags/counts without extra reads or provider fallback. Held named-memory connection/schema activation and provider disposal keep fixtures transient; offline restore reused existing packages only. Earlier2failed fixture runs did not reach export assertions. Exact reports/cohorts/resources in ENVIRONMENT_INVENTORY.md. This is not full SQLite integration/all-version export or globalV2 certification.
