@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## AWS/Dynamo repeated-row read gate — 23 October 2026
+
+New24 controls first16fail/8pass, common scan/query owner repaired; final same-cohort499unit/171native PASS0skip. Repeated logical GUIDs fail the whole read, no partial success/dedup/retry. Four older fixture conflicts corrected with real distinct native IDs while retaining original assertions. Native171 is existing real SDK/DynamoDB Local regression, not a forced duplicate schedule or whole-table snapshot. Source/copy/PDB Core72546E23B/Shared55B81C7C/DynamoE9FD/AWS603D; exact artifacts in inventory. Pending0/container stopped/ports absent, no restore/download/new environment/cloud call/dev deployment. Hosted IAM/capacity/billing/full relevant interfaces/full V2 remain OPEN.
+
 ## NEAR export selector controlled gate — 23 October 2026
 
 Current identity resolves independently of exported holon Version, negative/empty-owner admission before SDK, successful owner-filter counts. New20 controls/full240 unit PASS0skip; native fixture compiles only, NOT executed. Original native19 is interrupted15pass/4fail, preserved SHA AA17152..., not fresh green. Read-only same retained chain/code/1156record inventory verified; no native write/replay/reset, node stopped/config5. Original ordinary-write recovery, complete native interfaces/fees/full V2 remain OPEN. Exact scope/evidence in NEAR_IDENTITY_LOOKUP_VERIFICATION.md and inventory; no dev deployment.

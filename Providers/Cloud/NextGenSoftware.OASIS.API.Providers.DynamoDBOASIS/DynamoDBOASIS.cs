@@ -119,9 +119,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         private static T ReadStoredIdentity<T>(Dictionary<string,AttributeValue> item,int version=0) where T:class,IHolonBase
         {
-            if(!item.TryGetValue("id",out var key) || !Guid.TryParse(key.S,out var id))
-                throw new System.IO.InvalidDataException("DynamoDB native record identity is invalid.");
-            return ReadStoredIdentity<T>(item,id,version);
+            return ReadStoredIdentity<T>(item,ReadNativeItemIdentity(item),version);
         }
 
         private static string CanonicalIdentityValue(IHolonBase record,string field)

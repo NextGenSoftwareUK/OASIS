@@ -38,18 +38,30 @@ public partial class DynamoDBOASIS
     private static string ReadCursorIdentity(Dictionary<string,AttributeValue> cursor)
         =>System.Text.Json.JsonSerializer.Serialize(new SortedDictionary<string,string>(cursor.ToDictionary(pair=>pair.Key,pair=>pair.Value.S),StringComparer.Ordinal));
 
+    private static Guid ReadNativeItemIdentity(Dictionary<string,AttributeValue> item)
+    {
+        if(item==null || !item.TryGetValue("id",out var key) || !Guid.TryParse(key?.S,out var id))
+            throw new InvalidDataException("DynamoDB native record identity is invalid.");
+        return id;
+    }
+
     private static async IAsyncEnumerable<Dictionary<string,AttributeValue>> ReadNativePagesAsync(
         Func<Dictionary<string,AttributeValue>?,Task<(List<Dictionary<string,AttributeValue>> Items,Dictionary<string,AttributeValue>? Cursor)>> read,
         Dictionary<string,AttributeValue>? initialCursor=null)
     {
         var cursor=CopyReadCursor(initialCursor);var seen=new HashSet<string>(StringComparer.Ordinal);
+        var identities=new HashSet<Guid>();
         if(cursor!=null)seen.Add(ReadCursorIdentity(cursor));
         do{
             var (items,next)=await read(cursor);
             if(items==null||items.Any(item=>item==null))throw new InvalidDataException("DynamoDB page has no valid item collection.");
             var following=CopyReadCursor(next);
             if(following!=null&&!seen.Add(ReadCursorIdentity(following)))throw new InvalidDataException("DynamoDB pagination repeated its continuation key.");
-            foreach(var item in items)yield return item;
+            foreach(var item in items){
+                if(!identities.Add(ReadNativeItemIdentity(item)))
+                    throw new InvalidDataException("DynamoDB pagination repeated its record identity.");
+                yield return item;
+            }
             cursor=following;
         }while(cursor!=null);
     }
