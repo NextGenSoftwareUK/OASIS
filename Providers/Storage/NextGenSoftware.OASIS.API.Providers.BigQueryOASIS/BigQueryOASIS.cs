@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var doc = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
+                var doc = await GetDocAsync<Avatar>(CollAvatars, id.ToString(),version);
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Avatar {id} not found.");
                 else if (doc.IsDeleted)
@@ -127,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var doc = await FindOneAsync<Avatar>(CollAvatars, "Username", username);
+                var doc = await FindOneAsync<Avatar>(CollAvatars, "Username", username,version);
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Avatar with username '{username}' not found.");
                 else
@@ -148,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var doc = await FindOneAsync<Avatar>(CollAvatars, "Email", email);
+                var doc = await FindOneAsync<Avatar>(CollAvatars, "Email", email,version);
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Avatar with email '{email}' not found.");
                 else
@@ -169,7 +169,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                var docs = await GetAllDocsAsync<Avatar>(CollAvatars);
+                var docs = await GetAllDocsAsync<Avatar>(CollAvatars,version);
                 CompleteRows<IAvatar>(result,docs.FindAll(a => !a.IsDeleted));
             }
             catch (Exception ex)
@@ -270,7 +270,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var doc = await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString());
+                var doc = await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString(),version);
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail {id} not found.");
                 else
@@ -291,7 +291,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Username", username);
+                var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Username", username,version);
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail '{username}' not found.");
                 else
@@ -312,7 +312,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Email", email);
+                var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Email", email,version);
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail '{email}' not found.");
                 else
@@ -333,7 +333,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
-                var docs = await GetAllDocsAsync<AvatarDetail>(CollAvatarDetails);
+                var docs = await GetAllDocsAsync<AvatarDetail>(CollAvatarDetails,version);
                 CompleteRows<IAvatarDetail>(result,docs.FindAll(detail => !detail.IsDeleted));
             }
             catch (Exception ex)
@@ -360,7 +360,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 ValidateGraphDepth(maxChildDepth);
-                var doc = await GetDocAsync<Holon>(CollHolons, id.ToString());
+                var doc = await GetDocAsync<Holon>(CollHolons, id.ToString(),version);
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Holon {id} not found.");
                 else if (doc.IsDeleted)
@@ -384,7 +384,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 ValidateGraphDepth(maxChildDepth,curentChildDepth);
-                var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString());
+                var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString(),version);
                 CompleteRows<IHolon>(result,await ProjectGraphRootsAsync(all.FindAll(h => !h.IsDeleted && (holonType == HolonType.All || h.HolonType == holonType)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true));
             }
             catch (Exception ex)
@@ -403,9 +403,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             try
             {
                 ValidateGraphDepth(maxChildDepth,curentChildDepth);
-                var docs = await GetAllDocsAsync<Holon>(CollHolons);
+                var docs = await GetAllDocsAsync<Holon>(CollHolons,version);
                 var active=docs.FindAll(h=>!h.IsDeleted);
-                CompleteRows<IHolon>(result,await ProjectGraphRootsAsync(active.Where(h=>holonType == HolonType.All || h.HolonType == holonType),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,providerPool:active));
+                CompleteRows<IHolon>(result,await ProjectGraphRootsAsync(active.Where(h=>holonType == HolonType.All || h.HolonType == holonType),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,providerPool:version==0?active:null));
             }
             catch (Exception ex)
             {
@@ -510,10 +510,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             {
                 ValidateGraphDepth(maxChildDepth);
                 if(string.IsNullOrWhiteSpace(providerKey))throw new ArgumentException("Provider key must be nonempty.",nameof(providerKey));
-                var active=(await GetAllDocsAsync<Holon>(CollHolons)).Where(row=>!row.IsDeleted).ToList();
+                var active=(await GetAllDocsAsync<Holon>(CollHolons,version)).Where(row=>!row.IsDeleted).ToList();
                 var selected=UniqueRecord(active.Where(row=>row.ProviderUniqueStorageKey!=null&&row.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value,out var key)&&key==providerKey).ToList());
                 if(selected==null)OASISErrorHandling.HandleError(ref result,"BigQuery holon provider key was not found.");
-                else CompleteRead(result,(await ProjectGraphRootsAsync(new[]{selected},loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider,providerPool:active)).Single());
+                else CompleteRead(result,(await ProjectGraphRootsAsync(new[]{selected},loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider,providerPool:version==0?active:null)).Single());
             }
             catch(Exception ex){OASISErrorHandling.HandleError(ref result,"BigQuery holon provider-key read failed.",ex);}
             return result;
@@ -773,28 +773,29 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         private string Table(string t) => $"`{_projectId}.{_dataset}.{t}`";
 
-        private async Task<List<T>> SqlAsync<T>(string sql,params BigQueryParameter[] parameters) where T : class
+        private async Task<List<T>> SqlAsync<T>(string sql,params BigQueryParameter[] parameters) where T : class,IHolonBase
             => await ReadRowsAsync<T>(sql,parameters);
 
-        private async Task<List<T>> ReadRowsAsync<T>(string sql,IEnumerable<BigQueryParameter> parameters,Action<T,string>? observe=null) where T : class
+        private async Task<List<T>> ReadRowsAsync<T>(string sql,IEnumerable<BigQueryParameter> parameters,Action<T,string>? observe=null,int version=0) where T : class,IHolonBase
         {
+            if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
             var list = new List<T>();
             var results = await _client!.ExecuteQueryAsync(sql, parameters,new QueryOptions{UseLegacySql=false});
             await foreach (var row in results.GetRowsAsync())
             {
                 var raw = row["doc"]?.ToString();
                 if (string.IsNullOrWhiteSpace(raw))throw new System.IO.InvalidDataException("BigQuery stored record row has no canonical document.");
-                var item = Core.Serialization.StoredRecordJson.DeserializeStored<T>(raw);
-                if(item==null)throw new System.IO.InvalidDataException("BigQuery stored record document must not be null.");
+                var item = await DecodeRecordVersionAsync<T>(raw,version);
+                if(item==null)continue;
                 observe?.Invoke(item,raw);
                 list.Add(item);
             }
             return list;
         }
 
-        private async Task<T?> GetDocAsync<T>(string table, string id) where T : class
+        private async Task<T?> GetDocAsync<T>(string table, string id,int version=0) where T : class,IHolonBase
         {
-            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE id = @id LIMIT 2",StringParameter("id",id));
+            var rows = await ReadRowsAsync<T>($"SELECT doc FROM {Table(table)} WHERE id = @id LIMIT 2",new[]{StringParameter("id",id)},version:version);
             return UniqueRecord(rows);
         }
 
@@ -845,16 +846,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         private async Task DeleteDocAsync(string table, string id)
             => await ExecuteOneRowMutationAsync(_client??throw new InvalidOperationException("BigQuery client is not activated."),id,$"DELETE FROM {Table(table)} WHERE id = @id",new[]{StringParameter("id",id)});
 
-        private async Task<T?> FindOneAsync<T>(string table, string field, string value) where T : class
+        private async Task<T?> FindOneAsync<T>(string table, string field, string value,int version=0) where T : class,IHolonBase
         {
-            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value LIMIT 2",StringParameter("value",value));
+            var column=FieldColumn(field);
+            var rows = version==0?await ReadRowsAsync<T>($"SELECT doc FROM {Table(table)} WHERE {column} = @value LIMIT 2",new[]{StringParameter("value",value)},version:version):
+                (await GetAllDocsAsync<T>(table,version)).Where(row=>string.Equals(IndexedRecordValue(row,field),value,StringComparison.Ordinal)).ToList();
             return UniqueRecord(rows);
         }
 
-        private async Task<List<T>> FindAllAsync<T>(string table, string field, string value) where T : class
-            => await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value",StringParameter("value",value));
+        private async Task<List<T>> FindAllAsync<T>(string table, string field, string value,int version=0) where T : class,IHolonBase
+            => version==0?await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value",StringParameter("value",value)):
+                (await GetAllDocsAsync<T>(table,version)).Where(row=>string.Equals(IndexedRecordValue(row,field),value,StringComparison.Ordinal)).ToList();
 
-        private async Task<List<T>> GetAllDocsAsync<T>(string table) where T : class
-            => await SqlAsync<T>($"SELECT doc FROM {Table(table)}");
+        private async Task<List<T>> GetAllDocsAsync<T>(string table,int version=0) where T : class,IHolonBase
+            => await ReadRowsAsync<T>($"SELECT doc FROM {Table(table)}",Array.Empty<BigQueryParameter>(),version:version);
     }
 }
