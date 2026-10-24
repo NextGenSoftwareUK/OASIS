@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## SQLite successful-export counters — 24 October 2026
+
+One CompleteExport owner now materializes roots/sets IsLoaded/LoadedCount for all four export methods. Actual activated baseline8/8failed IsLoaded after valid native-memory writes/payload assertions; fixed full maintained21unitPASS0skip, including16sync/async empty/nonempty real SQLite cases. Earlier2fixture failures were missing activation/schema, NOT counter proof; preserved. Source/PDB/copies Core734/E4FEDC5B Shared55/E18B2EF1 SQLite161/C6237445 verified. Offline existing-cache assets restore only; no disk DB/download/new environment/extra query. Separate SQLite all-version/full integration/public API/fullV2 gates remain OPEN.
+
 ## OPEN: documented all-versions exports versus provider admission (24 October 2026)
 
 Azure Cosmos local -1 export gate verified: matched395unit/66nativePASS0skip; native4existing owner selector fixtures assert3versions and native ETag/body immutability, exact fixture cleanup/pending0/containerexited. Core734/B4B97A9B Shared55/E18B2EF1 Cosmos33/B45D3AB0 source/PDB/producer+consumers match. Reuses shared embedded codec/native identity validator, retains existing IsActive and CreatedByAvatarId-or-ParentHolonId owner semantics per version; no cross-version graph snapshot. Hosted Cosmos RU/IAM/fees/durability/public APIs and fullV2 remain OPEN.
