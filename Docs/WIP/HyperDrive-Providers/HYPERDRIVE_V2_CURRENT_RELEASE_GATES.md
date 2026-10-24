@@ -2,6 +2,20 @@
 
 ## Mongo historical export — confirmed native blocker,24 October 2026
 
+### Remaining history ownership audit (read-only during live-demo source freeze)
+
+| Path | Current authoritative implementation | Remaining gate |
+|---|---|---|
+| Normal holon save | MongoNativeRecordWriter.SaveAsync stages archive before BSON CAS | Native concurrency, corruption and document-size rejection proofs |
+| Import/conditional/CQL/replica staging | HolonRepository.ImportAtomicAsync stages after prepareBodies in existing transaction | Native per-entry atomicity/receipt/replay/history proof; not established by normal-save tests |
+| Hosted domain upsert and soft delete | HyperDriveDomain.cs directly replaces typed Holon; no raw archive preservation | Route finalized BSON/history through one shared preparation owner inside existing transaction; preserve unknown fields and native query projection |
+| Clan inventory transfer | HyperDriveAvatarGameplay.cs directly replaces typed clan Holon | Preserve observed archive and advance caller-owned logical version consistently with receipt; current code changes VersionId only |
+| Avatar and avatar-detail save | Generic native writer is used, but archive guard is typeof(T)==typeof(Holon) | Avatar/detail historical storage and selector reads remain unimplemented by this holon-only fix |
+| Positive-version point/collection/search reads | HolonRead/HolonCollectionRead select current Version; historical export helper is separate | Reuse validated revision read owner for requested roots; provider-linked descendants keep independent versions |
+| Hard delete | DeleteObservedHolonAsync removes native record, including embedded archive | Verify explicit hard-delete retention contract and receipts; do not invent recoverable history after irreversible deletion |
+
+Additional codec audit: archived identity/checksum and logical ambiguity are checked, but an archive entry with a recomputed valid checksum and a logical Version greater than its enclosing current version is not yet explicitly rejected. Add failing controls and enforce the invariant at both staging and decoding; do not infer that checksum validity proves version ordering. No source edits/builds/native operations were made during this audit window.
+
 Scoped native repair verified: actual80164 terminal0 historical8cases4selectors x sync/async PASS0skip, current0/old1/all-1 on committed Versions1/2 with independent avatarVersion1. Actual55850 terminal0 current-owner8regressionPASS0skip. Earlier1case fixed proof and reviewed hash-conditional baseline reconciliation also pass; original failure report retained. Successful synthetic fixtures cleaned, owned27029 independently absent. Native final Core735/Shared55 source/copy checks pass; metadata rebuild cohorts not conflated with earlier289unit cohort. This closes tested normal-save/export history only, NOT all mutation owners, non-export historical reads, import/native concurrency/corruption/size-failure matrices or full Mongo/V2 completion. Exact reports in ENVIRONMENT_INVENTORY.md.
 
 Follow-up implementation now stages history in normal SaveAsync CAS and ImportAtomic transaction after final body preparation, not the unknown-field copy helper; exports positive/-1 decode validated raw archives. Corrected full289unitPASS0skip/current Core735+Shared55 source/copy gate. One original membership boundary failure preserved, existing assertion unchanged. This is PARTIAL implementation: native fixed-code acceptance pending preserved-fixture reconciliation, direct domain/gameplay/hard-delete mutation owners and historical non-export reads remain open. The native failure below is not relabelled green. No dev merge/deployment.
