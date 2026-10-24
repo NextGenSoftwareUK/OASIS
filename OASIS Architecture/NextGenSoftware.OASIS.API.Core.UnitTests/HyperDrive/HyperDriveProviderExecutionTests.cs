@@ -794,10 +794,13 @@ public sealed partial class HyperDriveProviderExecutionTests
             false, false, 2, 1, false, true, 7);
 
         result.Result.Should().BeAssignableTo<IReadOnlyCollection<IHolon>>();
-        result.Result.Should().Equal(owned, publicHolon);
+        result.Result.Select(holon=>holon.Id).Should().Equal(owned.Id, publicHolon.Id);
+        result.Result.First().Should().NotBeSameAs(owned);
+        source.Result.Should().Equal(owned,publicHolon,privateHolon);
         result.IsWarning.Should().BeTrue();
         result.WarningCount.Should().Be(1);
-        result.LoadedCount.Should().Be(3);
+        result.LoadedCount.Should().Be(2);
+        source.LoadedCount.Should().Be(3);
         result.DetailedMessage.Should().Be("authoritative Holon collection detail");
         result.MetaData["provider"].Should().Be("visibility-projection");
         provider.Verify(x => x.LoadHolonsForParentAsync(owned.Id, HolonType.Quest, false, false, 2, 1,
@@ -867,7 +870,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         IOASISStorageProvider contract = provider.Object;
         var result = contract.LoadAllHolons(owner, false, HolonType.All, false, false, 0, 0, true, false, 0);
         result.IsError.Should().BeTrue(); result.ErrorCode.Should().Be("PARTIAL_PROVIDER_ERROR");
-        result.Result.Should().Equal(owned);
+        result.Result.Select(holon=>holon.Id).Should().Equal(owned.Id);
     }
 
     [Theory]
@@ -885,7 +888,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         provider.Setup(x => x.LoadAllHolons(HolonType.All, false, false, 0, 0, true, false, 0)).Returns(source);
         IOASISStorageProvider contract = provider.Object;
         var result = contract.LoadAllHolons(scoped ? owner : Guid.Empty, false, HolonType.All, false, false, 0, 0, true, false, 0);
-        result.IsWarning.Should().BeTrue(); result.Result.Should().Equal(owned);
+        result.IsWarning.Should().BeTrue(); result.Result.Select(holon=>holon.Id).Should().Equal(owned.Id);
         result.MetaData["failedHolonReadCount"].Should().Be("1");
         if (scoped)
         {
@@ -2484,7 +2487,7 @@ public sealed partial class HyperDriveProviderExecutionTests
     }
 
     [Fact]
-    public async Task BridgeManagerResolvesNftProvidersFromTheInjectedRuntime()
+    public async Task BridgeManagerResolvesInjectedProvidersButCannotWithdrawWithoutVerifiedProof()
     {
         var dna = CreateDna(HyperDriveModes.V2);
         var providerManager = new ProviderManager(null, dna);
@@ -2513,6 +2516,8 @@ public sealed partial class HyperDriveProviderExecutionTests
         providerManager.RegisterProvider(destination.Object).Should().BeTrue();
 
         var manager = new BridgeManager(null, dna, providerManager);
+        manager.GetBridgeProvider("ETH").Should().BeSameAs(source.Object);
+        manager.GetBridgeProvider("SOL").Should().BeSameAs(destination.Object);
         var result = await manager.CreateNFTBridgeOrderAsync(new CreateNFTBridgeOrderRequest
         {
             FromChain = nameof(ProviderType.EthereumOASIS),
@@ -2524,8 +2529,8 @@ public sealed partial class HyperDriveProviderExecutionTests
         });
 
         result.IsError.Should().BeTrue();
-        result.Message.Should().Contain("injected source reached");
-        sourceNft.Verify(x => x.WithdrawNFTAsync("contract", "token", "from", string.Empty), Times.Once);
+        result.Message.Should().Contain("proof verification failed");
+        sourceNft.Verify(x => x.WithdrawNFTAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]

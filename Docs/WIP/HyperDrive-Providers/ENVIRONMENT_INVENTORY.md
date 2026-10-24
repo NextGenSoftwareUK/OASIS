@@ -1,5 +1,52 @@
 # Reusable environments and disk inventory
 
+## 24 October — shared visibility repair resource closure
+
+Owner: existing HyperDrive provider task, C:/Source/OASIS, same task branch/environment/caches. No installation, dependency restore, download, worktree, container, database or ledger introduced. .NET/ODP.NET23.6.0/OCI149.0.0/BigQuery3.9.0 inherited pins reused. All test processes terminal (final batch79594exit0; Oracle batch16129exit0), loopback18661 listener absent. OCI synthetic factory config/signing files absent; fixed TestResults/OracleObjectCurrent/LiveDriverControlled retains only reusable0byte oci-live-transport.lock. Synthetic Holons/objects were memory-only; no real credential or hosted request. Core c2ab34af5bc202ca48d095b2f14e439d1cc43031 pushed, parent pin/manifest updated together. No dev/master deployment.
+
+Reused build outputs below are active/reusable shared resources, not disposable runtime copies. Exact Windows base C:/Source/OASIS/. Sizes measured after terminal; regenerate with existing project-scoped --no-restore bounded build under producer-consumer lease. Remove only after all consumers stop and required compiled evidence is superseded; no outputs deleted in this batch.
+
+| Project-relative exact directory | bin bytes | obj bytes |
+|---|---:|---:|
+| OASIS Architecture/NextGenSoftware.OASIS.API.Core |22512629|19700147|
+| OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests |96453347|5780315|
+| Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage |12840709|2053740|
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS |7114313|1023324|
+| Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests |47826199|1443031|
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS |13293669|1495890|
+| Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests |52215189|1210300|
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS |12955035|1045854|
+| Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.UnitTests |46770034|1288230|
+
+Current-source/copy verified under lease: Core743 D14F619A9B5B1D1C01FE837492A5EB454B60805C67827749A609A9D2BFFAC8B3; Shared56 CDF6DB4026AEBA9166C23725632416E07466EC3F0792C64811868139C7535640. Providers BigQuery8 5037DE33F5AD40C3317B0CFA5AF49CBF48D81A245E8E559DE372799BE6FD78BD; OracleSQL15 D05E9C25AEB728041701403F9ED7632809253F8E43CC2AF9E7C5EA43C70EC9E9; OCI5 25BE3FF696736934559BAD33B751448CE043C399658759D66A577F466698E520. Units Core156 AC50937E0D3BA38254D146175C85610C58F4D3125B378BC3E32B8530E94E9942; BigQuery16 54305120AE4EE5D276F471037EA845A2E8D62F30F7BC502E59229AEEE113B204; OracleSQL30 FD2D886A2E1926F490796CAC96065825CF07B153FBFDBAF5472B33315FF80A50; OCI6 1C010105152C1DB5D5D72F32DCEA85932446B69739826EB22AC8634590350FCB. Hashes SHA256, not live provider certification.
+
+Retained compact evidence at C:/Source/OASIS/TestResults/ProviderBuildCurrent/ (no live dependencies; regenerate with the same test projects/filters under lease). Original failures preserved; superseded successful cohorts are historical, not added to final test totals. Reports are required audit evidence, not unexplained per-run environments.
+
+| File | Outcome | Bytes | SHA256 |
+|---|---|---:|---|
+| visibility-graph-before.trx |4 genuine failures|28087|FC6218747CB2ECAAAC53563975E4191E8078F60EF0C2D89F2EFC2EF3705EB88A|
+| visibility-graph-after.trx |4PASS|8293|57446039F8F033A776DE22546DA05617D04005D13BE787E9A5929C1771E37CA0|
+| visibility-graph-expanded.trx |15PASS|25786|1F9E87BACC730F3D4C90930EA8110AC080977592AF78ABF9EF68B204444961B6|
+| visibility-core-candidate.trx |2439PASS/4FAIL, explained in shared report|4030018|E65B9A2D8BC0C478C8638AA879A9E645DA271B290CD524C47FD145260042C783|
+| visibility-core-complete.trx |2442PASS/1FAIL, name does not mean success|3942167|FB4EA73F5B210D882E75F2230A998FE7692D0A2C2ED549012ED7E876D9D2CB31|
+| visibility-core-verified.trx |2443PASS, superseded by8route controls|3938922|29F21569BEE17BC450565D63F0FB12C4222B62D234D610F2357CC07B880E6CC2|
+| visibility-core-final.trx |2451PASS0skip10s|3951810|55C8620D4E883BD71D7545EEBAED25D046F3DEEB1D10313F4F1BE04102573532|
+| visibility-bigquery-final.trx |860PASS0skip6s|1299748|033EABA8E5DFD298A66C650583491DBA0E24B42F447946DFB30E35D9D07A1702|
+| visibility-oracle-unit.trx |419PASS0skip737ms|672795|E1E9291180EBABED9DD0D45B93F4BFB96C9ECD15D96492B70C1B59D2A36D374D|
+| visibility-oci-unit.trx |127PASS0skip12s|202567|47A0936ADE00D47BB0CDBFFD546B4E613FFFADFB73A4F400717506E6C132BEA3|
+
+Free C:70,840,872,960bytes at closure, shared-machine measurement, not task-attributed consumption. No deletion or claimed reclamation. Source, cached SDKs, reusable outputs and required failure evidence retained. Hosted Oracle/OCI/BigQuery and full V2 remain open.
+
+## 24 October 2026 — shared visibility regression admission
+
+Repair admission: reuse the same Core producer bin/obj and Core.UnitTests consumer outputs/cache under the existing lease; no restore, download, runtime, database or cloud service. Core producer sizes pending. Planned fixed visibility-graph-after.trx and visibility-core-complete.trx in TestResults/ProviderBuildCurrent, compact evidence retained. New source is a shared graph projection using canonical serialization and existing role hydration; memory-only controls, no ports. Preserve original red report unchanged. Verify current source/copies before claiming success; no dev merge until the full affected gate passes.
+
+Consumer compatibility admission: rebuild/reuse existing Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS and Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests bin/obj, plus Providers/Cloud/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS and Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.UnitTests bin/obj (all beneath C:/Source/OASIS; inherited versions/caches, sizes pending). Existing ODP.NET23.6.0/OCI149.0.0 caches reused, no restore. SQL unit tests require no database start; OCI controlled SDK listener18661 only, synthetic credentials/objects, ephemeral factory files owned by existing tests. Reports visibility-oracle-unit.trx and visibility-oci-unit.trx in fixed TestResults/ProviderBuildCurrent. Retain compact evidence and shared outputs, verify listener/files cleared after terminal; no hosted/native SQL recertification claimed.
+
+Closure: same retained Core.UnitTests bin96,434,315bytes and obj5,762,243bytes; no new runtime/cache/install/environment. Build completed, actual test session88496 terminal;4genuine assertion failures, no active owned process/port. Retain TestResults/ProviderBuildCurrent/visibility-graph-before.trx28,087bytes SHA256FC6218747CB2ECAAAC53563975E4191E8078F60EF0C2D89F2EFC2EF3705EB88A. Core742/unit156 source documents verified under lease; no Core producer edit. Free C:70,853,890,048bytes after verification, shared-machine observation, not task-attributed reclamation. No deletion; memory-only fixtures ended with the test process. Test source and open repair remain in checkout, not deployed. Regenerate evidence with the same focused cached test; ensure wrapper propagates failing dotnet test exit next run.
+
+Owner: HyperDrive provider task, existing C:/Source/OASIS checkout. Reuse installed .NET SDK and existing dependency cache (versions inherited; no restore/download), existing Core.UnitTests bin/obj under C:/Source/OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/. Sizes pending measurement. Build under the existing producer-consumer lease. Planned compact evidence C:/Source/OASIS/TestResults/ProviderBuildCurrent/visibility-graph-before.trx; memory-only synthetic Holons, no database, service, port, credential or cloud access. Baseline free C: 70,849,933,312 bytes (shared-machine observation). Retain regression evidence and reusable outputs; exact bin/obj may be regenerated by cached project-scoped build once all consumers stop. No cleanup/deletion authorized by this admission.
+
 2026-10-24 BigQuery AvatarDetail lifecycle closure,owner HyperDrive providers:856controlledPASS0skip6seconds,terminal21466exit0. Original20cases18genuinefail/2valid; intermediate807pass; final49interface/idempotence/hard-purge/ambiguity/missing/admission controls. ExistingSDK3.9.0/Core/Shared/.NET/cache/checkout/outputdirectories reused,no restore/download/environment/runtime/cloud job/data/realcredentials or actual native deletion. Detail client/shadow Avatar with sameGUID are controlled memory-only records,disposed at terminal,not new database/emulator. No live owned workers/ports. Current-source PDB Core742/Shared56/provider8/unit16 and producer/consumer match; provider8321DE7391C479631ABA7E29FA59CAD5E8F02CCD3E291EFA596CBE32FA8416D9,unitC046A661BD2371D8FE7F27FA02E77F5594089D0B36EF5786B96098247A072F09. Core/Shared unchanged from earlier closures.
 
 Exact reused C:/Source/OASIS/Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS/bin7109253bytes,obj1023324bytes; C:/Source/OASIS/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests/bin47818227bytes,obj1439095bytes. Retain reusable shared outputs/cache; exactbin/obj cleanup only after consumers stop,regenerate existing project-scoped cached build under lease. No disposable persistent database/runtime/archive introduced or deleted. Whole-drivefree70865223680bytes,shared observation not task attribution. Native hosted detail delete requires observation+mutation jobs; fee/admission not certified,no spending enabled.
