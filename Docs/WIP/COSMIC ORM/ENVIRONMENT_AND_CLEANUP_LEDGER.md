@@ -884,3 +884,9 @@ SQLite grouped ordering, 2026-10-24: reuse SDK 10.0.401/runtime 10.0.12 and C:/U
 
 SQLite ordering verification complete: selected session27497 and full session89655 terminal0; 4 selected and 1,378 full tests pass, zero skips. Fixed integration-current.db/-wal/-shm verified absent; no owned service processes. Existing outputs retained reusable, compact evidence retained, exact DLL sizes/hashes in TestResults/SQLiteCurrent/group-order-artifacts.json. Before free C:72,291,946,496 bytes; final measurement pending. No install/download/restore occurred.
 Final free C:72,272,240,640 bytes; concurrent activity means the difference is not attributed solely to this task.
+
+HTTP grouped ordering 24 October 2026: owner COSMIC ORM; reuse SDK10.0.401/runtime10.0.12, C:/Users/david/.nuget/packages and existing Core.UnitTests bin/Debug/net10.0 (sizes unmeasured; shared/reusable). No restore/download/install/new environment or database/service. Planned compact TestResults/CosmicCqlDemo/http-group-order-tests.log and TestResults/CosmicCurrent/http-group-order-current.trx retained. Build/test only under global lease. Generated outputs rebuildable from existing project with no restore after owners release; no deletion planned. Verification pending.
+
+HTTP ordering actual sessions52893 and89264 terminal0: 12 selected compiler tests then2,302 full Core/linked-production pass, zero skips. No new service/database/resource; existing shared output retained. Compact TRX/log paths above retained, sizes unmeasured. Build lease released normally; no disposable database to clean.
+
+Final HTTP ordering domain expansion session94958 terminal0: 2,314 full tests pass/0skip; all public metadata domains and nullable forms covered. Same fixed log/TRX updated with final evidence. Free C:72,260,452,352 bytes, concurrent activity not solely attributable. No new dependencies/services or disposable databases.

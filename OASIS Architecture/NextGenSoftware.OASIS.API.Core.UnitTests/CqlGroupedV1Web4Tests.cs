@@ -25,7 +25,7 @@ public partial class CqlV1Web4Tests
         }
     };
 
-    private static void GroupAdapter(Source source, ProviderType provider, IReadOnlyList<CosmicGroupedRow> rows)
+    private static void GroupAdapter(Source source, ProviderType provider, IReadOnlyList<CosmicGroupedRow> rows, bool ordering = false)
     {
         var projected = new CosmicProjectionCapabilities(new[]
         {
@@ -40,7 +40,10 @@ public partial class CqlV1Web4Tests
         var adapter = source.Storage.As<ICosmicQueryGroupedStorageProvider>();
         adapter.SetupGet(a => a.QueryProviderType).Returns(provider);
         adapter.SetupGet(a => a.QueryCapabilities).Returns(Capabilities);
-        adapter.SetupGet(a => a.GroupedCapabilities).Returns(new CosmicGroupedCapabilities(projected, scalar));
+        adapter.SetupGet(a => a.GroupedCapabilities).Returns(ordering ? new CosmicGroupedCapabilities(projected, scalar,
+            new CosmicGroupedOrderingCapabilities(new[] { typeof(string) }, new[]
+            { new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, typeof(long)) }))
+            : new CosmicGroupedCapabilities(projected, scalar));
         adapter.Setup(a => a.ExecuteCosmicGroupedAsync(
             It.IsAny<CosmicGroupedPlan<Holon, CosmicProjectionRecord, CosmicProjectionRecord>>(),
             It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
@@ -74,5 +77,38 @@ public partial class CqlV1Web4Tests
         var result = await admitted.Policy.RunAsync(() => CqlV1Endpoint.ExecuteGroupedAsync(admitted.Http, request, source));
         Assert.Equal(400, Assert.IsType<ObjectResult>(result).StatusCode);
         Assert.Equal(0, source.Lookups); Assert.Equal(0, source.Managers);
+    }
+
+    [Theory]
+    [InlineData(ProviderType.MongoDBOASIS)] [InlineData(ProviderType.SQLLiteDBOASIS)] [InlineData(ProviderType.Neo4jOASIS)]
+    public async Task GroupedHttpOrdersSelectedOutputsThroughSharedAdmission(ProviderType provider)
+    {
+        var source = new Source(provider);
+        GroupAdapter(source, provider, new[] {
+            new CosmicGroupedRow(1, new object[] { "tea" }, "tea", 9007199254740993L, 1m),
+            new CosmicGroupedRow(1, new object[] { "coffee" }, "coffee", 9007199254740992L, 1m) }, ordering: true);
+        var request = GroupRequest(); request.ResultOrder = new[] {
+            new CqlGroupedV1Ordering { Alias = "Stock", Descending = true },
+            new CqlGroupedV1Ordering { Alias = "Name" } };
+        var admitted = Admission(provider);
+        var response = await admitted.Policy.RunAsync(() => CqlV1Endpoint.ExecuteGroupedAsync(admitted.Http, request, source));
+        using var document = JsonDocument.Parse(Assert.IsType<FileContentResult>(response).FileContents);
+        var rows = document.RootElement.GetProperty("result").GetProperty("rows");
+        Assert.Equal("tea", rows[0][0].GetString()); Assert.Equal("coffee", rows[1][0].GetString());
+        Assert.Single(admitted.Receipts);
+    }
+
+    [Fact]
+    public async Task GroupedHttpRejectsUnenrolledAverageOrderingBeforeDispatch()
+    {
+        var provider = ProviderType.MongoDBOASIS; var source = new Source(provider);
+        GroupAdapter(source, provider, Array.Empty<CosmicGroupedRow>(), ordering: true);
+        var request = GroupRequest(); request.ResultOrder = new[] { new CqlGroupedV1Ordering { Alias = "Mean" } };
+        var admitted = Admission(provider);
+        var response = await admitted.Policy.RunAsync(() => CqlV1Endpoint.ExecuteGroupedAsync(admitted.Http, request, source));
+        Assert.Equal(400, Assert.IsType<ObjectResult>(response).StatusCode);
+        source.Storage.As<ICosmicQueryGroupedStorageProvider>().Verify(a => a.ExecuteCosmicGroupedAsync(
+            It.IsAny<CosmicGroupedPlan<Holon, CosmicProjectionRecord, CosmicProjectionRecord>>(),
+            It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
