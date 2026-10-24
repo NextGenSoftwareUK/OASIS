@@ -18,6 +18,18 @@ public partial class BigQueryOASIS
         if(source.Version<0)throw new ArgumentOutOfRangeException(nameof(source.Version));
     }
 
+    private static void ValidatePointIdentity(Guid id)
+    {
+        if(id==Guid.Empty)throw new ArgumentException("BigQuery point operations require a nonempty record identity.",nameof(id));
+    }
+
+    private static void ValidateIndexedSelection<T>(System.Collections.Generic.IEnumerable<T> records,string field,string value)where T:IHolonBase
+    {
+        foreach(var record in records)
+            if(!string.Equals(IndexedRecordValue(record,field),value,StringComparison.Ordinal))
+                throw new InvalidDataException("BigQuery native selector differs from its canonical record.");
+    }
+
     private static async Task<T?> DecodeRecordVersionAsync<T>(string raw,int version)where T:class,IHolonBase
     {
         var (current,document)=ReadHistoryDocument<T>(raw);
@@ -31,7 +43,7 @@ public partial class BigQueryOASIS
         var document=OasisJson.ParseStoredObject(raw);
         var payload=RecordHistory.CanonicalPayload(document);
         var current=DecodeCanonical<T>(payload.ToString(Newtonsoft.Json.Formatting.None));
-        if(current==null||current.Version<0)throw new InvalidDataException("BigQuery canonical record or version is invalid.");
+        if(current==null||current.Id==Guid.Empty||current.Version<0)throw new InvalidDataException("BigQuery canonical record identity or version is invalid.");
         if(document["id"]!=null&&document["id"]!.Value<string>()!=current.Id.ToString())throw new InvalidDataException("BigQuery history envelope identity differs from its canonical record.");
         document["id"]=current.Id.ToString();
         return(current,document);
@@ -53,6 +65,7 @@ public partial class BigQueryOASIS
 
     private async Task<(T? Record,string? Raw)> ObserveRecordAsync<T>(string table,Guid id)where T:class,IHolonBase
     {
+        ValidatePointIdentity(id);
         string? original=null;
         var current=UniqueRecord(await ReadRowsAsync<T>($"SELECT doc FROM {Table(table)} WHERE id = @id LIMIT 2",new[]{StringParameter("id",id.ToString())},(_,raw)=>original=raw));
         if(current!=null&&current.Id!=id)throw new InvalidDataException("BigQuery native identity differs from its canonical record.");
@@ -91,6 +104,7 @@ public partial class BigQueryOASIS
 
     private static string? IndexedRecordValue(IHolonBase record,string field)=>field switch
     {
+        "Id"=>record.Id.ToString(),
         "Username"=>record is IAvatar avatar?avatar.Username:record is IAvatarDetail detail?detail.Username:null,
         "Email"=>record is IAvatar avatar?avatar.Email:record is IAvatarDetail detail?detail.Email:null,
         "ParentHolonId"=>record is IHolon holon?holon.ParentHolonId.ToString():null,
