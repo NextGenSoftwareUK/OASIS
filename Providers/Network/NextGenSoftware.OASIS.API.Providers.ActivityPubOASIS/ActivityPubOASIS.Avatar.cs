@@ -94,58 +94,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return DeActivateProviderAsync().Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var response = new OASISResult<IAvatar>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // ActivityPub doesn't have direct avatar concept, but we can get account info
-                // This would need to be mapped from ActivityPub account to OASIS avatar
-                // Load avatar from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/{id}";
-                
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse ActivityPub JSON and create Avatar object
-                    // Parse ActivityPub JSON and create Avatar object
-                    var avatar = ParseActivityPubToAvatar(content);
-                    if (avatar != null)
-                    {
-                        response.Result = (IAvatar)avatar;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+            => Task.FromResult(RejectProjectionGuid<IAvatar>());
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
         {
@@ -224,53 +174,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var response = new OASISResult<IAvatarDetail>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Load avatar detail from ActivityPub instance (parse as AvatarDetail, do not build from Avatar)
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/{id}";
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var avatarDetail = ParseActivityPubToAvatarDetail(content);
-                    if (avatarDetail != null)
-                    {
-                        response.Result = avatarDetail;
-                        response.IsError = false;
-                        response.Message = "Avatar detail loaded from ActivityPub successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+            => Task.FromResult(RejectProjectionGuid<IAvatarDetail>());
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
