@@ -1,5 +1,13 @@
 # MongoDB metadata UUID identity preservation
 
+## Metadata collection intent ownership — 24 October 2026
+
+The separate collection race documented below is now repaired: one ordinal dictionary copy at ReadHolonCollectionGraphAsync owns validated metadata BEFORE session creation/await. Existing native filter builder,historical aggregation,Any/All semantics and query count remain unchanged. Sixteen controlled cases first genuinely failed(value/removal/clear/add × sync/async × Any/All); they intercept only session creation and render the actual SDK filter without network. Full matched **473unit and18real retained native historical collection/search cases PASS,zero skips**,native8seconds,initialization1PASS. Earlier457unit cohort remains historical.
+
+Existing native cases now delegate to the real MongoClient session creation,then edit caller values or clear/replace its dictionary. Current/version1 × Any/All × sync/async continue selecting the original root/count and independently versioned child8. Whole stored BSON snapshots remain unchanged after reads. This is no fake/replayed native result and no additional production query. Source/PDB/copy checks Core742/Shared56/Mongo106/unit45/native47 verified. Same Mongo8.3.11replica/runtime/data,owned process/listener27029 absent after terminal42161exit0,no download/restore/new environment. Exact reports and retained data growth recorded in inventory.
+
+This closes the named metadata collection race,not all Mongo interfaces/options/concurrency/hosted-security/durability/full V2 gates. No other provider was recertified by these tests.
+
 ## Search intent ownership — 24 October 2026
 
 Mongo public search retained a caller-owned ISearchParams across activation/repository awaits. Corrected baseline16/16genuine failures covers sync/async,current/version1 and edits to ownership/parent/recursive flags,metadata,text group and group collection. The search entry point now validates,detaches using EXISTING OasisJson.Project<SearchParams>,then validates the canonical request before any await/dispatch. Native repository/query/filter/history/projection logic is unchanged; no second search engine,SDK call or retry.
