@@ -19,7 +19,9 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             new[]
             {
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
-                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities)
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities)
             });
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
@@ -35,7 +37,9 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             var source = plan.Query.Source;
             var compiled = CompileCqlSource(source);
             cancellationToken.ThrowIfCancellationRequested();
+            var numeric = plan.Query.Operation == CosmicScalarOperation.Sum || plan.Query.Operation == CosmicScalarOperation.Average;
             var selected = plan.Query.Selector != null;
+            if (source.Limit == 0 && numeric) return CosmicNumericScalarResults.FromParts(plan.Query, 0, 0, 0);
             if (source.Limit == 0) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
                 : CosmicScalarResults.FromCount(plan.Query, 0);
             if (!IsProviderActivated || _driver == null) return ScalarCqlFailure<TResult>("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
@@ -55,7 +59,8 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 + "WHEN total-$countOffset > $countTake THEN $countTake ELSE total-$countOffset END AS value,"
                 + "true AS valid,false AS traversalCycle,false AS traversalLimit } RETURN value,valid,traversalCycle,traversalLimit";
 
-            if (selected) query = CompileCqlExtremum(compiled, plan.Query);
+            if (numeric) query = CompileCqlNumeric(compiled, plan.Query);
+            else if (selected) query = CompileCqlExtremum(compiled, plan.Query);
             // ReserveProjection includes 32 bytes of envelope overhead; the
             // selected scalar itself retains the common exact 32 MiB bound.
             var budget = new NeoCqlReadBudget(selected ? CosmicProjectionResults.MaximumPayloadLimit + 32 : 1024, cancellationToken);
@@ -68,6 +73,7 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             long count = 0;
             object selectedValue = null;
             var hasSelectedValue = false;
+            NeoCqlNumericValue numericValue = null;
             while (true)
             {
                 budget.Check();
@@ -78,7 +84,11 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 if (row["traversalLimit"].As<bool>()) throw new NeoCqlLimitException("Neo4j scalar traversal exceeds its visited-node budget.");
                 if (!row["valid"].As<bool>()) throw new InvalidDataException("Neo4j scalar ownership, membership or selected-value domain is invalid.");
                 if (observed) throw new InvalidDataException("Neo4j scalar returned multiple native values.");
-                if (selected)
+                if (numeric)
+                {
+                    numericValue = DecodeCqlNumeric(row.Values);
+                }
+                else if (selected)
                 {
                     if (row["payloadLimit"].As<bool>()) throw new NeoCqlLimitException("Selected scalar exceeds its native payload bound.");
                     if (row["present"] is not long present || present < 0)
@@ -105,6 +115,7 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             if (!observed) throw new InvalidDataException("Neo4j scalar reduction did not return its empty/nonempty result.");
             await transaction.CommitAsync().ConfigureAwait(false);
             budget.Check();
+            if (numeric) return CosmicNumericScalarResults.FromParts(plan.Query, numericValue.High, numericValue.Low, numericValue.Count);
             return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, selectedValue, hasSelectedValue)
                 : CosmicScalarResults.FromCount(plan.Query, count);
         }
