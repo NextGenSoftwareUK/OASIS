@@ -4,11 +4,13 @@ param(
     [Parameter(Mandatory,ParameterSetName='Stdin')] [switch] $SettingsFromStdin,
     [Parameter(Mandatory)] [string] $RepositoryRoot,
     [switch] $ReadOnlyStatus,
-    [switch] $ReadOnlyStorage
+    [switch] $ReadOnlyStorage,
+    [switch] $SignedAcknowledgements
 )
 
 $ErrorActionPreference = 'Stop'
 if($ReadOnlyStatus -and $ReadOnlyStorage){throw 'Choose one explicit read-only scope.'}
+if($SignedAcknowledgements -and ($ReadOnlyStatus -or $ReadOnlyStorage)){throw 'Signed verification cannot use read-only mode.'}
 $settings = if($SettingsFromStdin){[Console]::In.ReadToEnd() | ConvertFrom-Json}else{Get-Content -LiteralPath $SettingsPath -Raw | ConvertFrom-Json}
 $environmentNames = @(
     'NEAROASIS_RPCENDPOINT',
@@ -26,11 +28,12 @@ $previous=@{}
 foreach($name in $environmentNames){$previous[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 
 try {
-    $reportName=if($ReadOnlyStatus){'near-readonly-status-current.trx'}elseif($ReadOnlyStorage){'near-readonly-storage-current.trx'}else{'near-provider-current.trx'}
+    $reportName=if($ReadOnlyStatus){'near-readonly-status-current.trx'}elseif($ReadOnlyStorage){'near-readonly-storage-current.trx'}elseif($SignedAcknowledgements){'near-signed-ack-current.trx'}else{'near-provider-current.trx'}
     $reportPath=Join-Path $RepositoryRoot "TestResults/NearRuntime/$reportName"
     if(Test-Path -LiteralPath $reportPath){throw 'Preserve the original report before rerunning; refusing evidence overwrite.'}
     foreach ($name in $environmentNames) {
         if($name -eq 'OASIS_NEAR_STORAGE_ENCRYPTION_KEY'){continue}
+        if($SignedAcknowledgements -and $name -eq 'NEAROASIS_FAILED_STATUS_TRANSACTIONID'){continue}
         if(($ReadOnlyStatus -or $ReadOnlyStorage) -and $name -eq 'NEAROASIS_PRIVATEKEY'){
             # Deliberately invalid signing material: the selected status tests must not sign.
             [Environment]::SetEnvironmentVariable($name,'read-only-no-signing-key','Process')
@@ -43,7 +46,7 @@ try {
         [Environment]::SetEnvironmentVariable($name, [string] $value, 'Process')
     }
 
-    if(!$ReadOnlyStatus){
+    if(!$ReadOnlyStatus -and !$SignedAcknowledgements){
     # Windows PowerShell 5.1 does not load the DPAPI assembly implicitly.
     Add-Type -AssemblyName System.Security
     $cache=Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'OASIS/provider-evidence/near'
@@ -68,9 +71,10 @@ try {
     }
     & (Join-Path $RepositoryRoot 'Scripts/TestHosts/Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $RepositoryRoot -ConsumerOutput (Join-Path (Split-Path $tests) 'bin/Debug/net10.0')
     $started=[DateTime]::UtcNow
-    $selection=@('--filter','TestCategory!=RetainedReadonlyInspection')
+    $selection=@('--filter','TestCategory!=RetainedReadonlyInspection&TestCategory!=RetainedSignedInspection')
     if($ReadOnlyStatus){$selection=@('--filter','FullyQualifiedName~OfficialSdk_FinalizedFailedOriginalIsFailedNotCompleted|FullyQualifiedName~RetainedUnavailableOriginalRemainsErrorAndPending')}
     if($ReadOnlyStorage){$selection=@('--filter','FullyQualifiedName~RetainedReadonlyStorageTests.RetainedSearchAndNearbyRecordsRemainQueryable')}
+    if($SignedAcknowledgements){$selection=@('--filter','FullyQualifiedName~NearSignedAcknowledgementTests.RealSignedCallAndSelfTransferHaveBoundFinalAcknowledgements')}
     & dotnet test $tests --no-build --no-restore --nologo --logger "trx;LogFileName=$reportName" --results-directory $results /m:2 /nr:false --verbosity quiet @selection
     if ($LASTEXITCODE -ne 0) {
         throw "NEAR provider tests failed with exit code $LASTEXITCODE."
@@ -79,7 +83,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'NEAR native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($ReadOnlyStatus){2}elseif($ReadOnlyStorage){1}else{19}
+    $expected=if($ReadOnlyStatus){2}elseif($ReadOnlyStorage -or $SignedAcknowledgements){1}else{19}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected exactly$expected passing native NEAR cases and zero skips."}
 }
 finally {
