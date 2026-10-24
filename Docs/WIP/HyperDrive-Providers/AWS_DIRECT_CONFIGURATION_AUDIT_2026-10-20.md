@@ -1,5 +1,11 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## Common observation capability verified — 24 October
+
+Core now defines optional INativeResourceUsageProvider, implemented by the existing DynamoDB/AWS adapter. Trusted hosts can consume native observations without depending on the concrete provider assembly. This is a server capability, explicitly excluded from the netstandard Unity target alongside the existing prepared-storage service contract; no fabricated default implementation was added to the storage base/interface. Both Core targets build. Verification through the common interface passed 30 focused Core tests, 635 unit/SDK tests and 138 retained native tests, zero skips; cleanup passed. Core commit d61551d20fdb9c5cbcc1be2c0f744c28e96614f9 and final hashes/resources are recorded in ENVIRONMENT_INVENTORY.md.
+
+This closes the missing common-contract portion of the gate below, not trusted host composition, admission, durable physical-attempt accounting, exposure limits, pricing, hosted DynamoDB/S3 acceptance or full V2. No billing enablement, cloud spending or dev deployment occurred.
+
 ## Scoped native capacity capture implemented — 24 October
 
 The production DynamoDB client factory now uses one official-SDK runtime-pipeline adapter. It requests `INDEXES` before marshalling for every data-request type currently dispatched by this provider: GetItem, Scan, UpdateItem, DeleteItem and TransactWriteItems. AWSOASIS inherits the same implementation; there is no second HTTP client, signer, parser, retry loop or pricing engine.

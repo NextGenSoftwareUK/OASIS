@@ -25,7 +25,8 @@ public partial class AWSOASISIntegrationTests
 
         var observations=new List<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeResourceUsageObservation>();
         var resourceRequest="native-capacity-"+avatar.Id.ToString("N");
-        var byKey=await _provider.ObserveNativeResourceUsageAsync(resourceRequest,
+        var resourceProvider=(INativeResourceUsageProvider)_provider;
+        var byKey=await resourceProvider.ObserveNativeResourceUsageAsync(resourceRequest,
             ()=>synchronous?Task.FromResult(storage.LoadAvatarByProviderKey(avatar.Id.ToString())):storage.LoadAvatarByProviderKeyAsync(avatar.Id.ToString()),
             (nativeOperation,evidence)=>{Assert.AreEqual("GetItem",nativeOperation);observations.AddRange(evidence);return Task.CompletedTask;});
         Assert.IsFalse(byKey.IsError,byKey.Message);Assert.IsTrue(byKey.IsLoaded);
@@ -37,7 +38,7 @@ public partial class AWSOASISIntegrationTests
             Assert.AreEqual("us-east-1/table/OasisAvatars",row.ResourceScope);
         }
         var observationDeadline=new TimeoutException("owned native observation persistence deadline");var observationCalls=0;
-        var unretained=await _provider.ObserveNativeResourceUsageAsync(resourceRequest+"-deadline",
+        var unretained=await resourceProvider.ObserveNativeResourceUsageAsync(resourceRequest+"-deadline",
             ()=>synchronous?Task.FromResult(storage.LoadAvatarByProviderKey(avatar.Id.ToString())):storage.LoadAvatarByProviderKeyAsync(avatar.Id.ToString()),
             (nativeOperation,evidence)=>{observationCalls++;Assert.AreEqual("GetItem",nativeOperation);throw observationDeadline;});
         Assert.IsTrue(unretained.IsError);Assert.IsInstanceOfType(unretained.Exception,typeof(InvalidDataException));
@@ -47,7 +48,7 @@ public partial class AWSOASISIntegrationTests
         var conditionRequest=new Amazon.DynamoDBv2.Model.TransactWriteItemsRequest{TransactItems=new(){
             new(){ConditionCheck=new(){TableName="OasisAvatars",Key=new(){{"id",new(){S=avatar.Id.ToString("D")}}},ConditionExpression="attribute_exists(#id)",ExpressionAttributeNames=new(){{"#id","id"}}}},
             new(){ConditionCheck=new(){TableName="OasisAvatars",Key=new(){{"id",new(){S=Guid.NewGuid().ToString("D")}}},ConditionExpression="attribute_not_exists(#id)",ExpressionAttributeNames=new(){{"#id","id"}}}}}};
-        var conditionResponse=await _provider.ObserveNativeResourceUsageAsync(resourceRequest+"-conditions",()=>Client.TransactWriteItemsAsync(conditionRequest),
+        var conditionResponse=await resourceProvider.ObserveNativeResourceUsageAsync(resourceRequest+"-conditions",()=>Client.TransactWriteItemsAsync(conditionRequest),
             (nativeOperation,evidence)=>{Assert.AreEqual("TransactWriteItems",nativeOperation);transactionObservations.AddRange(evidence);return Task.CompletedTask;});
         Assert.AreEqual(System.Net.HttpStatusCode.OK,conditionResponse.HttpStatusCode);
         Assert.IsTrue(transactionObservations.Any(row=>row.View=="Total"&&row.Quantity.HasValue));
