@@ -41,6 +41,9 @@ internal sealed partial class MongoCqlTranslator
     private static List<BsonDocument> SelectedWindow<T>(CosmicQuery<T> query, int? limit) where T : IHolon
     {
         var page = new List<BsonDocument> { new("$project", new BsonDocument("Children", 0)) };
+        // Empty source windows still permit protected traversal/membership
+        // validation, but no selected value may enter a reduction or decoder.
+        if (query.Limit == 0) page.Add(new("$match", new BsonDocument("$expr", Literal(false))));
         if (query.Orderings.Count != 0)
         {
             var wrapped = new BsonDocument { { "_id", 0 }, { "row", "$$ROOT" } };
