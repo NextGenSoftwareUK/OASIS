@@ -42,6 +42,7 @@ public class BigQueryParameterTests
         if(save)await provider.SaveAvatarAsync(new Avatar{Id=Guid.NewGuid(),Username=value});else await provider.LoadAvatarByUsernameAsync(value);
         Assert.AreEqual(1,wire.Calls);Assert.IsNotNull(wire.Payload);
         using var json=System.Text.Json.JsonDocument.Parse(wire.Payload);var query=json.RootElement.GetProperty("configuration").GetProperty("query");
+        if(save)StringAssert.StartsWith(json.RootElement.GetProperty("jobReference").GetProperty("jobId").GetString(),"oasis-record-");
         Assert.IsFalse(query.GetProperty("useLegacySql").GetBoolean());Assert.AreEqual("named",query.GetProperty("parameterMode").GetString());
         Assert.IsFalse(query.GetProperty("query").GetString()!.Contains(value,StringComparison.Ordinal));
         var name=save?"username":"value";var parameter=query.GetProperty("queryParameters").EnumerateArray().Single(row=>row.GetProperty("name").GetString()==name);
