@@ -67,7 +67,8 @@ public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // REAL Neo4j implementation for exporting all data for avatar by username
+                ValidateExportVersion(version);
+                // Identity history is independent of exported holon root versions.
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
@@ -75,7 +76,7 @@ public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
                 }
 
                 // First load the avatar to get the ID
-                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
                 if (avatarResult.IsError || avatarResult.Result == null)
                 {
                     return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
@@ -102,7 +103,8 @@ public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // REAL Neo4j implementation for exporting all data for avatar by email
+                ValidateExportVersion(version);
+                // Identity history is independent of exported holon root versions.
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
@@ -110,7 +112,7 @@ public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
                 }
 
                 // First load the avatar to get the ID
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
                 if (avatarResult.IsError || avatarResult.Result == null)
                 {
                     return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
@@ -133,7 +135,7 @@ public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => LoadAllHolonsAsync(loadChildren:false,version:version);
+            => ExportStoredHolonsAsync(version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {

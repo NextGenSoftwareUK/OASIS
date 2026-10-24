@@ -1,5 +1,13 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Neo4j independent export versions — 24 October
+
+Export Version=-1 now enumerates validated stored versions of existing roots using the existing canonical decoder/history validator. Native archive kind, ID, integer version, duplicate versions and snapshot identity/version must agree before any result is published. Deleted versions are excluded; stored child payloads do not constitute a point-in-time graph. Named exports resolve the current avatar identity independently of requested holon version; explicit avatar history remains available separately. Ordinary negative-version reads remain invalid.
+
+Eighteen contract controls first produced14failures/4valid passes;12additional archive controls cover corrupt/duplicate metadata and valid/deleted versions. Final400unit+271native PASS0skip, native92seconds. Four native cases prove avatar2/holon3, exports-1/0/1/2/3/4, sync/async username/email, foreign-owner isolation, retired aliases versus explicit history, unchanged native graph and cleanup. Older native history fixture expected retired aliases; corrected to current aliases, preserved original249PASS/22FAIL report and exact9record failure evidence, reconciled only verified synthetic data before fresh regression. Evidence/hashes/resource lifecycle in ENVIRONMENT_INVENTORY.md.
+
+No hosted Aura/cloud security/durability/fees/full V2 certification. Ordinary point/collection LoadedCount omissions remain OPEN; this change does not declare all Neo4j interfaces complete. No Core/CQL production change, download or duplicate environment.
+
 ## Neo4j search request ownership and counts — 24 October
 
 Neo4j's existing search owner kept using the caller's mutable query after asynchronous reads. Six owner/parent/metadata/nested-mask mutation scenarios × sync/async, plus4selected-count cases, reproduced **16/16 failures**. It now reuses the existing `OasisJson.Project<SearchParams>` capture before the first read and validates the detached request. Successful search LoadedCount matches NumberOfResults; an exception clears unpublished count. No new serializer, matcher, fallback, retry or additional SDK read.
