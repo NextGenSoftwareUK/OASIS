@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 // Controlled C# IPC contract only: no SDK, signing, chain or persistence.
 const input=JSON.parse(readFileSync(0,'utf8'));
+if(input.operation==='call')input.args=JSON.parse(Buffer.from(input.argsBase64,'base64').toString('utf8'));
 if(input.operation!=='call'||input.methodName!=='token_mint')throw new Error('Unexpected mint fixture operation');
 const args=input.args;
 const explicitContract=args.symbol.endsWith('-contract');
@@ -15,4 +16,4 @@ if(input.accountId!=='service.near'||input.privateKey!=='controlled-service-key'
 const hash='controlled-original-mint-transaction';
 process.stdout.write(JSON.stringify({ok:true,result:{transactionHash:hash,outcome:{transaction_outcome:{id:hash},
   transaction:{signer_id:input.accountId,receiver_id:input.targetContractId,actions:[{FunctionCall:{method_name:input.methodName,
-    deposit:input.depositYocto,gas:Number(input.gas),args:Buffer.from(JSON.stringify(input.args??{})).toString('base64')}}]},final_execution_status:'FINAL',status:{SuccessValue:''}}}}));
+    deposit:input.depositYocto,gas:Number(input.gas),args:input.argsBase64}}]},final_execution_status:'FINAL',status:{SuccessValue:''}}}}));

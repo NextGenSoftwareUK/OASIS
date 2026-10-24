@@ -8,6 +8,8 @@ Generic contract calls and native transfers accept an acknowledgement only when 
 
 Acknowledgements must contain exactly the admitted action. Transfers bind the yocto amount; calls bind method, deposit, numeric gas and decoded JSON arguments captured before awaiting the SDK. The bridge receives the explicit gas value from this request owner. Equivalent JSON arguments are compared structurally; this is not a claim of signed-byte identity or protection from every cross-language numeric serialization issue.
 
+Contract-call arguments cross the C#/Node boundary as canonical base64 of the captured UTF8 JSON, then enter the official SDK as raw bytes. The decoder validates base64, UTF8 and JSON syntax without reserializing JavaScript numbers. This preserves large integers and high-precision decimals in the outbound argument bytes; contract-side parsing and read-only view argument precision are separate concerns.
+
 Filtered search, metadata and nearby results report `LoadedCount` for returned matches/roots, not the size of underlying collections. Nearby results are materialized before publication; malformed-coordinate failures clear the result, `IsLoaded` and count. These logical counts are not native RPC usage, fees or evidence that every other read route is certified.
 
 Minting uses the maintained custom OASIS `token_mint` contract operation, not a universal NEP-141 mint API. `TokenAddress` selects an explicitly compatible contract; omission keeps the configured contract. `ToWalletAddress` selects the recipient balance owner; omission keeps the configured account. Explicit blank values are invalid, never silently substituted. The configured contract-owner signer remains unchanged and must be authorized by the selected contract.
