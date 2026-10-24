@@ -10,14 +10,17 @@ internal sealed partial class MongoCqlTranslator
     // Never use its rounded fractional quotient as the published mean. Extract
     // bounded digits, enforce Decimal's96-bit coefficient and round to even.
     internal static BsonValue GroupedAverageValue(int index)
+        => RoundedDecimalValue(GroupedSumValue(index), new BsonDocument("$toDecimal", "$a" + index + "present"));
+
+    // Shared normalization kernel. Metadata admission compares its result with
+    // the original bounded Decimal128 value; it never publishes a rounded input.
+    internal static BsonValue RoundedDecimalValue(BsonValue total, BsonValue count)
     {
         BsonValue D(decimal value) => Literal(new BsonDecimal128(new Decimal128(value)));
         BsonValue Truncate(BsonValue value) => new BsonDocument("$trunc", new BsonArray { value, Literal(0) });
         BsonValue Let(string name, BsonValue value, BsonValue body) => new BsonDocument("$let", new BsonDocument
         { { "vars", new BsonDocument(name, value) }, { "in", body } });
         var zero = D(0); var one = D(1); var ten = D(10); var maximum = D(decimal.MaxValue);
-        var count = new BsonDocument("$toDecimal", "$a" + index + "present");
-        var total = GroupedSumValue(index);
         BsonValue Round(string coefficient, string remainder) => Op("$add", coefficient,
             Choose(Op("$or", Op("$gt", Op("$multiply", remainder, D(2)), "$$denominator"),
                 Op("$and", Op("$eq", Op("$multiply", remainder, D(2)), "$$denominator"),
@@ -64,7 +67,9 @@ internal sealed partial class MongoCqlTranslator
             Op("$multiply", Choose(Op("$lt", "$$total", zero), D(-1), one),
                 Op("$divide", "$$chosen.c", Op("$arrayElemAt", Literal(powers), "$$chosen.s")))));
 
-        // Count<=2^31-1 and |total|<2^94 imply an integral quotient with at
+        // For metadata, count is one: division is exact over the entire
+        // admitted Decimal range. For grouped averages, Count<=2^31-1
+        // and |total|<2^94 imply an integral quotient with at
         // most19 digits. Its distance from a non-equal integer is >=1/count,
         // far greater than Decimal128's division error at this magnitude.
         // Truncation therefore extracts the exact integer quotient. All later

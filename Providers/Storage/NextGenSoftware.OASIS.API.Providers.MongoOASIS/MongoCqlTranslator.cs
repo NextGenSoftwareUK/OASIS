@@ -83,6 +83,14 @@ internal sealed partial class MongoCqlTranslator
         if(type==typeof(DateTime))return Op("$and",Op("$eq",Type(value),Literal("long")),
             Op("$gte",value,Literal(DateTime.MinValue.Ticks)),Op("$lte",value,Literal(DateTime.MaxValue.Ticks)));
         if(type==typeof(string)||type==typeof(Guid))return Op("$eq",Type(value),Literal("string"));
+        if(type==typeof(decimal))
+        {
+            var numeric=Op("$in",Type(value),Literal(new BsonArray{"int","long","decimal"}));
+            var bounded=Op("$and",Op("$gte",value,Literal(new BsonDecimal128(decimal.MinValue))),
+                Op("$lte",value,Literal(new BsonDecimal128(decimal.MaxValue))));
+            var normalized=RoundedDecimalValue(new BsonDocument("$toDecimal",value),Literal(new BsonDecimal128(1m)));
+            return Choose(numeric,Choose(bounded,Op("$eq",value,normalized),Literal(false)),Literal(false));
+        }
         if(type==typeof(ulong))
         {
             // BSON Decimal128 and signed integers preserve this integral domain;

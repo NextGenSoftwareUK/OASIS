@@ -123,20 +123,13 @@ public partial class HolonRepository
             return new DateTime(value.AsInt64, DateTimeKind.Utc);
         if (type == typeof(ulong) && (value.IsInt32 || value.IsInt64 || value.IsDecimal128))
         {
-            decimal number;
-            try
-            {
-                if (value.IsDecimal128 && (Decimal128.IsNaN(value.AsDecimal128) || Decimal128.IsInfinity(value.AsDecimal128)))
-                    throw new InvalidDataException("Selected UInt64 must be finite.");
-                number = value.IsDecimal128 ? Decimal128.ToDecimal(value.AsDecimal128) : (decimal)value.ToInt64();
-            }
-            catch (OverflowException cause) { throw new InvalidDataException("Selected UInt64 exceeds its exact CLR domain.", cause); }
-            if (value.IsDecimal128 && value.AsDecimal128.CompareTo(new Decimal128(number)) != 0)
-                throw new InvalidDataException("Selected UInt64 cannot round a Decimal128 fraction.");
+            var number = DecodeExactNativeDecimal(value);
             if (number >= 0m && number <= ulong.MaxValue && decimal.Truncate(number) == number)
                 return (ulong)number;
             throw new InvalidDataException("Selected UInt64 is fractional or outside its declared range.");
         }
+        if (type == typeof(decimal) && (value.IsDecimal128 || value.IsInt32 || value.IsInt64))
+            return DecodeExactNativeDecimal(value);
         if (value.IsInt32 || value.IsInt64)
         {
             var integer = value.ToInt64();
@@ -151,4 +144,19 @@ public partial class HolonRepository
         }
         throw new InvalidDataException("Selected native projection value does not match its exact CLR domain.");
     }
+    private static decimal DecodeExactNativeDecimal(BsonValue value)
+    {
+        decimal number;
+        try
+        {
+            if (value.IsDecimal128 && (Decimal128.IsNaN(value.AsDecimal128) || Decimal128.IsInfinity(value.AsDecimal128)))
+                throw new InvalidDataException("Selected Decimal must be finite.");
+            number = value.IsDecimal128 ? Decimal128.ToDecimal(value.AsDecimal128) : (decimal)value.ToInt64();
+        }
+        catch (OverflowException cause) { throw new InvalidDataException("Selected Decimal exceeds its exact CLR domain.", cause); }
+        if (value.IsDecimal128 && value.AsDecimal128.CompareTo(new Decimal128(number)) != 0)
+            throw new InvalidDataException("Selected Decimal cannot round its native packet.");
+        return number;
+    }
+
 }

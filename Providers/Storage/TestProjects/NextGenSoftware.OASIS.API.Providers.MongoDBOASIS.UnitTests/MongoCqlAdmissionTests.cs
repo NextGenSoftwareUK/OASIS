@@ -90,13 +90,13 @@ public class MongoCqlAdmissionTests
             :scenario=="cancelled"?"CQL_QUERY_CANCELLED":"CQL_PROVIDER_NOT_READY",result.ErrorCode);
     }
     [TestMethod]
-    public async Task CallerCapabilityProfileCannotEnableUnsupportedDecimalMetadataExecution()
+    public async Task CallerCapabilityProfileCannotEnableUnsupportedDoubleMetadataExecution()
     {
         var provider=new MongoDBOASIS("mongodb://127.0.0.1:1/?serverSelectionTimeoutMS=1","cql-admission-only");
-        var built=CosmicQuery<Holon>.Create().Where(h=>CosmicQueryMetadata.Value<decimal>(h,"price")>1m);
+        var built=CosmicQuery<Holon>.Create().Where(h=>CosmicQueryMetadata.Value<double>(h,"price")>1d);
         Assert.IsFalse(built.IsError,built.Message);
         var broad=new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata,Array.Empty<CosmicQueryFieldCapability>(),
-            new[]{new CosmicQueryMetadataCapability(typeof(decimal),Enum.GetValues<CosmicQueryComparisonOperator>())});
+            new[]{new CosmicQueryMetadataCapability(typeof(double),Enum.GetValues<CosmicQueryComparisonOperator>())});
         var result=await provider.ExecuteCosmicQueryAsync(Plan(built.Result,capabilities:broad));
         Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",result.ErrorCode);Assert.IsFalse(provider.IsProviderActivated);
     }
