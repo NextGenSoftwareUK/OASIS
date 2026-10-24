@@ -28,7 +28,7 @@ public partial class SolanaOASIS
             var matches=collection.Result.Where(predicate).Take(2).ToList();
             if(matches.Count>1) throw new StorageIdentityAmbiguousException();
             if(matches.Count==0) throw new KeyNotFoundException("No stored Solana record matches the requested identity.");
-            result.Result=matches[0]; result.IsLoaded=true;
+            result.Result=matches[0]; result.IsLoaded=true;result.LoadedCount=1;
         }
         catch(Exception cause)
         {

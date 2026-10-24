@@ -164,7 +164,9 @@ public partial class SolanaOASIS
             var result=new OASISResult<ISearchResults>();
             try
             {
-                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                searchParams=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
                 var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
                 var wantsAvatars=groups.Count == 0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
                 var wantsHolons=groups.Count == 0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
@@ -182,7 +184,7 @@ public partial class SolanaOASIS
                 }
                 if(wantsHolons || searchParams.ParentId != Guid.Empty)
                 {
-                    var loaded=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,false,version);
+                    var loaded=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,true,version);
                     if(loaded.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
@@ -194,7 +196,7 @@ public partial class SolanaOASIS
                 found.SearchResultAvatars.AddRange(avatars.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,holons)));
                 if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,holons)));
                 found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
-                result.Result=found; result.IsLoaded=true;
+                result.Result=found; result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
             }
             catch(Exception cause)
             {

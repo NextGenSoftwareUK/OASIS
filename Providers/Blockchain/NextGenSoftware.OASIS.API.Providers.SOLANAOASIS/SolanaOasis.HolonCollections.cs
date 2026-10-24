@@ -68,8 +68,8 @@ public partial class SolanaOASIS
                 ? Map(await _solanaRepository.GetAllAsync<SolanaHolonDto>()) : roots;
             var project=HolonGraphProjection.Create(descendants,loadChildren,recursive,maxDepth,initialDepth,fromProvider,
                 source=>OasisJson.Deserialize<Core.Holons.Holon>(OasisJson.Serialize(source)));
-            result.Result=roots.Where(select).Select(project).ToList();
-            result.IsLoaded=true;
+            var selected=roots.Where(select).Select(project).ToList();
+            result.Result=selected;result.IsLoaded=true;result.LoadedCount=selected.Count;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,"Solana finalized holon collection failed: "+cause.Message,cause);}
         return result;
