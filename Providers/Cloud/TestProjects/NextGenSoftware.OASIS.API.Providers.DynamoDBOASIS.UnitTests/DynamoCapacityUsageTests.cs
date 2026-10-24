@@ -14,6 +14,34 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 [TestClass]
 public class DynamoCapacityUsageTests
 {
+    private static IReadOnlyList<NativeResourceUsageObservation> Transaction(string[] tables,ConsumedCapacity[]? capacities)
+    {
+        var method=typeof(DynamoDBOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.DynamoCapacityUsage")!
+            .GetMethod("CaptureTransaction",BindingFlags.NonPublic|BindingFlags.Static)!;
+        try{return (IReadOnlyList<NativeResourceUsageObservation>)method.Invoke(null,new object?[]{"AWSOASIS","logical-original","sdk-original","eu-west-1",tables,capacities,new DateTime(2026,10,24,0,0,0,DateTimeKind.Utc)})!;}
+        catch(TargetInvocationException cause) when(cause.InnerException!=null){ExceptionDispatchInfo.Capture(cause.InnerException).Throw();throw;}
+    }
+    [TestMethod]
+    public void TransactionPreservesOrderedActionsIncludingRepeatedTables()
+    {
+        var rows=Transaction(new[]{"A","B","A"},new[]{new ConsumedCapacity{TableName="A",WriteCapacityUnits=0.5},new ConsumedCapacity{TableName="B",WriteCapacityUnits=2},new ConsumedCapacity{TableName="A",WriteCapacityUnits=1}});
+        Assert.AreEqual(3,rows.Count);
+        Assert.AreEqual(0.5m,rows.Single(row=>row.ResourceScope.EndsWith("/transaction-action/0",StringComparison.Ordinal)).Quantity);
+        Assert.AreEqual(1m,rows.Single(row=>row.ResourceScope.EndsWith("/transaction-action/2",StringComparison.Ordinal)).Quantity);
+    }
+    [TestMethod]
+    public void TransactionMissingTableEvidenceIsUnknownNotZero()
+    {
+        var rows=Transaction(new[]{"A","B"},null);
+        Assert.AreEqual(2,rows.Count);Assert.IsTrue(rows.All(row=>row.Quantity==null));
+    }
+    [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)]
+    public void TransactionRejectsUnboundOrDuplicateResponseTables(int mode)
+    {
+        var capacities=mode switch{0=>new[]{new ConsumedCapacity{CapacityUnits=1}},1=>new[]{new ConsumedCapacity{TableName="foreign",CapacityUnits=1}},
+            _=>new[]{new ConsumedCapacity{TableName="A",CapacityUnits=1},new ConsumedCapacity{TableName="A",CapacityUnits=2}}};
+        Assert.ThrowsException<InvalidDataException>(()=>Transaction(new[]{"A"},capacities));
+    }
     private static IReadOnlyList<NativeResourceUsageObservation> Capture(ConsumedCapacity? capacity,string? request="sdk-original")
     {
         var method=typeof(DynamoDBOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.DynamoCapacityUsage")!
@@ -21,17 +49,32 @@ public class DynamoCapacityUsageTests
         try{return (IReadOnlyList<NativeResourceUsageObservation>)method.Invoke(null,new object?[]{"AWSOASIS","logical-original",request,"eu-west-1","OasisHolons",capacity,new DateTime(2026,10,24,0,0,0,DateTimeKind.Utc)})!;}
         catch(TargetInvocationException cause) when(cause.InnerException!=null){ExceptionDispatchInfo.Capture(cause.InnerException).Throw();throw;}
     }
-    private sealed class Service(string? capacity):HttpMessageHandler
+    private sealed class Service(string? capacity,bool transaction=false):HttpMessageHandler
     {
         internal int Calls;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             Calls++;Assert.AreEqual(HttpMethod.Post,request.Method);Assert.AreEqual("dynamodb.eu-west-1.amazonaws.com",request.RequestUri!.Host);
             Assert.IsTrue(request.Headers.GetValues("Authorization").Single().StartsWith("AWS4-HMAC-SHA256 ",StringComparison.Ordinal));
-            StringAssert.Contains(await request.Content!.ReadAsStringAsync(token),"\"ReturnConsumedCapacity\":\"TOTAL\"");
-            var response=new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent("{\"Item\":{}"+(capacity==null?"":",\"ConsumedCapacity\":"+capacity)+"}",Encoding.UTF8,"application/x-amz-json-1.0")};
+            StringAssert.Contains(await request.Content!.ReadAsStringAsync(token),transaction?"\"ReturnConsumedCapacity\":\"INDEXES\"":"\"ReturnConsumedCapacity\":\"TOTAL\"");
+            Assert.AreEqual(transaction?"DynamoDB_20120810.TransactWriteItems":"DynamoDB_20120810.GetItem",request.Headers.GetValues("X-Amz-Target").Single());
+            var response=new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent("{"+(transaction?"\"ConsumedCapacity\":"+capacity:"\"Item\":{}"+(capacity==null?"":",\"ConsumedCapacity\":"+capacity))+"}",Encoding.UTF8,"application/x-amz-json-1.0")};
             response.Headers.TryAddWithoutValidation("x-amzn-RequestId","sdk-original");return response;
         }
+    }
+    [TestMethod]
+    public async Task OfficialSdkTransactionRetainsRepeatedTableActionEvidenceAndIndexViews()
+    {
+        using var service=new Service("[{\"TableName\":\"A\",\"WriteCapacityUnits\":0.5,\"GlobalSecondaryIndexes\":{\"by-name\":{\"WriteCapacityUnits\":0}}},{\"TableName\":\"A\",\"WriteCapacityUnits\":1}]",true);
+        using var client=new AmazonDynamoDBClient(new BasicAWSCredentials("synthetic-key","synthetic-secret"),new AmazonDynamoDBConfig{
+            RegionEndpoint=Amazon.RegionEndpoint.EUWest1,MaxErrorRetry=0,HttpClientFactory=new HandlerHttpClientFactory(service)});
+        var response=await client.TransactWriteItemsAsync(new TransactWriteItemsRequest{ReturnConsumedCapacity=ReturnConsumedCapacity.INDEXES,
+            TransactItems=new(){new(){Put=new(){TableName="A",Item=new(){{"id",new(){S="one"}}}}},new(){Put=new(){TableName="A",Item=new(){{"id",new(){S="two"}}}}}}});
+        var rows=Transaction(new[]{"A","A"},response.ConsumedCapacity.ToArray());
+        Assert.AreEqual(1,service.Calls);Assert.AreEqual("sdk-original",response.ResponseMetadata.RequestId);
+        Assert.AreEqual(3,rows.Count);Assert.AreEqual(2,rows.Count(row=>row.View=="Total"));
+        Assert.AreEqual(0m,rows.Single(row=>row.View=="Breakdown").Quantity);
+        Assert.AreEqual(3,rows.Select(row=>(row.ResourceScope,row.Unit,row.View)).Distinct().Count());
     }
     [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)]
     public async Task OfficialSdkWirePreservesOmittedZeroAndFractionalCapacity(int mode)
