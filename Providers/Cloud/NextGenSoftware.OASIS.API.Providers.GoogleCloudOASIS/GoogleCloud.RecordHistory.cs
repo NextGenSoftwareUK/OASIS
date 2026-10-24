@@ -40,7 +40,7 @@ public partial class GoogleCloudOASIS
         // A definite create/revision rejection is not provider unavailability. Keep the original SDK cause.
         if(cause is Core.Helpers.StorageLifecycleConflictException || cause is Grpc.Core.RpcException rpc && rpc.StatusCode is Grpc.Core.StatusCode.AlreadyExists or Grpc.Core.StatusCode.FailedPrecondition or Grpc.Core.StatusCode.NotFound or Grpc.Core.StatusCode.Aborted)
             result.ErrorCode=NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode;
-        if(cause is Grpc.Core.RpcException invalid && invalid.StatusCode==Grpc.Core.StatusCode.InvalidArgument)
+        if(cause is ArgumentException || cause is Grpc.Core.RpcException invalid && invalid.StatusCode==Grpc.Core.StatusCode.InvalidArgument)
             result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
     }
     private static IEnumerable<Guid> KnownFirestoreAcknowledgements(Exception cause)
@@ -89,6 +89,7 @@ public partial class GoogleCloudOASIS
                 throw new ArgumentException("Canonical Firestore projection must use immutable native scalar values.");
             fields.Add(pair.Key,value);
         }
+        _=FirestoreDocumentSize.Require(reference,fields);
         _=CanonicalFirestoreHistoryDocument<T>(fields,reference.Id);
         var proposed=OasisJson.DeserializeStored<T>((string)fields["data_json"]);
         if(collection is "avatars" or "avatarDetails")
@@ -101,6 +102,7 @@ public partial class GoogleCloudOASIS
             holon.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plannedHolon??new PlannedHolonWrite(holon,holon),
                 HolonChildRoleWriteKind.SourceSave,previous!=null,(observedRecord as Core.Holons.Holon)?.ChildRoleManifestJson);
         var committed=await StageFirestoreFieldsAsync(proposed,previous,reference.Id,createHistory,fields);
+        _=FirestoreDocumentSize.Require(reference,fields);
         Dictionary<FieldPath,object> replacement=null;
         if(snapshot.Exists){
             if(!snapshot.UpdateTime.HasValue || snapshot.UpdateTime.Value.Equals(default(Timestamp)))

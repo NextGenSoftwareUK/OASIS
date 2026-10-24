@@ -35,6 +35,7 @@ public partial class GoogleCloudOASIS
                     throw new StorageLifecycleConflictException("Active save conflicts with a committed related Firestore identity tombstone.");
             }
             var committed=await StageFirestoreFieldsAsync(proposed,own==null?null:DecodeFirestoreIdentityFields(own),reference.Id,history,fields);
+            _=FirestoreDocumentSize.Require(reference,fields);
             var document=new Native.Document{Name=reference.Path};
             foreach(var field in fields)document.Fields.Add(field.Key,EncodeFirestoreIdentityValue(field.Value));
             var condition=own==null?new Native.Precondition{Exists=false}:new Native.Precondition{UpdateTime=own.UpdateTime};
