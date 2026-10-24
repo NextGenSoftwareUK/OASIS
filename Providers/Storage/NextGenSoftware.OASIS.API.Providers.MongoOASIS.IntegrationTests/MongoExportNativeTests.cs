@@ -319,10 +319,23 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
                 var query=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,ParentId=ancestor.Result.Id,
                     FilterByMetaData=new(){{"literal.$key",searchCase.Value}},MetaKeyValuePairMatchMode=MetaKeyValuePairMatchMode.All,
                     SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery=searchCase.Text,SearchHolons=true,SearchAvatars=false,HolonType=HolonType.Park}}};
+                if(kind==5)query.SearchGroups.Add(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchNumberGroup{
+                    Number=searchCase.Version==0?2:searchCase.Version,NumberOperator=SearchOperatorType.EqualTo,
+                    PreviousSearchGroupOperator=SearchParamGroupOperator.And,SearchHolons=true,SearchAvatars=false,HolonType=HolonType.Park});
                 var found=sync?provider.Search(query,loadChildren:false,version:searchCase.Version):await provider.SearchAsync(query,loadChildren:false,version:searchCase.Version);
                 Assert.False(found.IsError,found.Message+found.Exception);Assert.True(found.IsLoaded);Assert.Equal(searchCase.Count,found.LoadedCount);
                 Assert.Equal(searchCase.Count,found.Result.SearchResultHolons.Count);
                 if(searchCase.Count==1){Assert.Equal(root.Id,Assert.Single(found.Result.SearchResultHolons).Id);Assert.Equal(searchCase.Version,Assert.Single(found.Result.SearchResultHolons).Version);}
+            }
+            foreach(var nullGroups in new[]{false,true})foreach(var selectedVersion in new[]{0,1,999})
+            {
+                var metadataOnly=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,ParentId=ancestor.Result.Id,SearchGroups=new(),
+                    FilterByMetaData=new(){{"literal.$key","$old"}},MetaKeyValuePairMatchMode=MetaKeyValuePairMatchMode.All};
+                if(nullGroups)metadataOnly.SearchGroups=null;
+                var found=sync?provider.Search(metadataOnly,loadChildren:false,version:selectedVersion):await provider.SearchAsync(metadataOnly,loadChildren:false,version:selectedVersion);
+                Assert.False(found.IsError,found.Message+found.Exception);Assert.True(found.IsLoaded);
+                Assert.Equal(selectedVersion==1?1:0,found.LoadedCount);
+                if(selectedVersion==1)Assert.Equal(root.Id,Assert.Single(found.Result.SearchResultHolons).Id);
             }
             Assert.Equal(before,await Snapshot());complete=true;
         }
