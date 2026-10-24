@@ -17,6 +17,7 @@ public sealed partial class OracleNativeAcceptanceTests
         var journal=Path.Combine(work,$"scoped-visibility-{sync}-{includePublic}.pending.json");
         Assert.IsFalse(File.Exists(journal));
         var actor=Guid.NewGuid();var parent=Guid.NewGuid();
+        var conditionalOperation=Guid.NewGuid();
         var root=new Holon{Id=Guid.NewGuid(),ParentHolonId=parent,CreatedByAvatarId=actor,Name="owned visibility root"};
         var owned=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=actor,Name="owned visibility child"};
         var visible=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=Guid.NewGuid(),IsPublic=true,Name="owned public visibility fixture"};
@@ -31,7 +32,7 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await verifier.OpenAsync();
             foreach(var row in rows)Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));
             using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough))
-            {await JsonSerializer.SerializeAsync(file,new{ids=rows.Select(row=>row.Id).ToArray(),actor,parent,state="before-owned-scoped-visibility-create"});file.Flush(true);}
+            {await JsonSerializer.SerializeAsync(file,new{ids=rows.Select(row=>row.Id).ToArray(),actor,parent,conditionalOperation,state="before-owned-scoped-visibility-create"});file.Flush(true);}
             var saved=await provider.SaveHolonAsync(root);
             Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);
             var originals=new List<(Guid Id,string Json)>();
@@ -47,6 +48,14 @@ public sealed partial class OracleNativeAcceptanceTests
             copy.AcceptChanges();
             var rejected=sync?provider.SaveHolon(copy):await provider.SaveHolonAsync(copy);
             Assert.IsTrue(rejected.IsError,"A scoped selection must not replace hidden stored membership.");Assert.IsFalse(rejected.IsSaved);
+            await AssertReceiptAbsent(verifier,conditionalOperation);
+            var conditions=new[]{copy}.Concat(copy.Children).Select(row=>new HolonWriteCondition(row.Id,Guid.NewGuid())).ToArray();
+            var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(conditionalOperation,actor,
+                NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OracleDBOASIS,conditions),ConditionalHolonOperation.Save,new[]{copy});
+            var conditional=sync?provider.ExecuteConditionalHolonWrite(request):await provider.ExecuteConditionalHolonWriteAsync(request);
+            Assert.IsTrue(conditional.IsError);Assert.IsFalse(conditional.IsSaved);
+            Assert.IsInstanceOfType<InvalidOperationException>(conditional.Exception,"Partial membership admission must precede native revision checks.");
+            await AssertReceiptAbsent(verifier,conditionalOperation);
             foreach(var row in originals)Assert.AreEqual(row.Json,await Read(verifier,"OASIS_HOLONS",row.Id),"Scoped reads and rejected graph saves must not alter canonical rows/history.");
             var complete=await provider.LoadHolonAsync(root.Id,loadChildrenFromProvider:true);
             Assert.IsFalse(complete.IsError,complete.Exception?.ToString());Assert.AreEqual(3,complete.Result.Children.Count);

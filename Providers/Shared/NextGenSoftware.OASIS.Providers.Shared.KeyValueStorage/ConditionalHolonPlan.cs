@@ -45,6 +45,8 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
         if(request.Operation!=ConditionalHolonOperation.Save&&request.Write.Conditions.Any(c=>!c.ExpectedRevisionId.HasValue))
             throw new ArgumentException("Conditional deletion requires existing revisions.");
         var graph=HolonGraphWritePlan.Create(request.Roots,request.SaveChildren,request.Recursive,request.MaxChildDepth,0);
+        foreach(var node in graph.Nodes.Where(node=>node.SelectsChildren))
+            HolonChangeTracking.ValidateChildSelectionForConditionalWrite(node.Source,node.RelationshipManifest);
         if(!graph.Nodes.Select(n=>n.Snapshot.Id).ToHashSet().SetEquals(request.Write.Conditions.Select(c=>c.HolonId)))
             throw new ArgumentException("Exactly one condition is required for each selected record.");
         if(request.SubmittedRelationships.Count>0)
