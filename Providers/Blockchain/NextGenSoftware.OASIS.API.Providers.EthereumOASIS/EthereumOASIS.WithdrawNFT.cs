@@ -294,12 +294,34 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
 
             try
             {
+                if (transaction == null || transaction.MintedByAvatarId == Guid.Empty)
+                    throw new ArgumentException("Mint requires a request and an authorized minter avatar.");
+                var minter = transaction.MintedByAvatarId;
+                var requestedRecipient = transaction.SendToAddressAfterMinting;
+                // Reuse the existing KeyManager/default-wallet policy, not the first key in storage.
+                var keysResult = ResolveTokenSigningKeys(minter);
+                if (keysResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, keysResult.Message, keysResult.Exception);
+                    result.ErrorCode = keysResult.ErrorCode;
+                    return result;
+                }
+                var selected = await NextGenSoftware.OASIS.Providers.Shared.Evm.EvmMintAccountSelection.SelectAsync(
+                    keysResult.Result, ChainId, () => ResolveDefaultTokenMintWalletAsync(minter));
+                if (selected.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, selected.Message, selected.Exception);
+                    result.ErrorCode = selected.ErrorCode;
+                    return result;
+                }
+                var senderAccount = selected.Result;
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProvider();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -309,21 +331,6 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                     return result;
                 }
 
-                if (transaction == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Mint request is required");
-                    return result;
-                }
-
-                // Get private key from KeyManager using MintedByAvatarId
-                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(transaction.MintedByAvatarId, Core.Enums.ProviderType.EthereumOASIS);
-                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
-                    return result;
-                }
-
-                var senderAccount = new Account(keysResult.Result[0], ChainId);
                 var web3 = CreateWeb3WithAccount(senderAccount, HostURI);
 
                 // Use contract address or default NFT contract
@@ -336,7 +343,7 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
 
                 // Generate token ID (in production, this should be managed properly)
                 var tokenId = new BigInteger(DateTime.UtcNow.Ticks);
-                var mintToAddress = transaction.SendToAddressAfterMinting ?? senderAccount.Address;
+                var mintToAddress = requestedRecipient ?? senderAccount.Address;
 
                 var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
                     senderAccount.Address,
@@ -368,6 +375,7 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                if (ex is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
             }
             return result;
         }
