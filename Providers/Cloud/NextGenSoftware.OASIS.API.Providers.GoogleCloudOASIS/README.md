@@ -2,6 +2,8 @@
 
 GoogleCloudOASIS uses the Google Cloud SDKs. Canonical OASIS avatar/detail/holon persistence uses Firestore; optional Cloud Storage and BigQuery clients are separate capabilities, not covered by Firestore-only evidence.
 
+Username/email exports resolve the current avatar identity; `version` selects exported holon roots, not the avatar's independent history. Use the current username/email even for older holons. Linked children keep independent versions. Explicit versioned avatar lookups still support historical identity fields. Negative export versions fail before identity I/O.
+
 ## Current direct verification
 
 Single-holon hard deletes also validate the SDK acknowledgement timestamp before publishing deletion success. Invalid acknowledgement retains reconciliation-required evidence even when independent inspection shows the original was deleted; do not replay it blindly. Existing server precondition conflicts remain known rejections. Transactional avatar deletion acknowledgement and durable recovery still require separate verification.
