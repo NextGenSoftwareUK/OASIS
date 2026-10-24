@@ -40,6 +40,7 @@ public partial class NEAROASIS
             matches.NumberOfResults = matches.SearchResultAvatars.Count + matches.SearchResultHolons.Count;
             result.Result = matches;
             result.IsLoaded = true;
+            result.LoadedCount = matches.NumberOfResults;
             result.Message = $"Found {matches.NumberOfResults} NEAR records.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error searching NEAR storage: {ex.Message}", ex); }
