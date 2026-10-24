@@ -76,7 +76,7 @@ public class BigQueryCollectionTests
         var expected=sources.Where(row=>!row.IsDeleted&&(type==Core.Enums.HolonType.All||row.HolonType==type)).Select(row=>row.Id).ToArray();
         Assert.IsFalse(result.IsError,result.Exception?.ToString());CollectionAssert.AreEqual(expected,result.Result.Select(row=>row.Id).ToArray());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(expected.Length,result.LoadedCount);
     }
-    private static BigQueryOASIS Create(Rows client){var provider=new BigQueryOASIS("my-project");typeof(BigQueryOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,client);return provider;}
+    internal static BigQueryOASIS Create(Rows client){var provider=new BigQueryOASIS("my-project");typeof(BigQueryOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,client);return provider;}
 
     [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
     public async Task MissingSoftDeleteIsNotReportedAsDeleted(bool holon,bool sync)
@@ -130,9 +130,9 @@ public class BigQueryCollectionTests
         Assert.AreEqual(stored,client.Stored,"Read visibility must not rewrite the stored record.");
     }
 
-    private sealed class Rows(string? bad=null):BigQueryClient
+    internal sealed class Rows(string? bad=null):BigQueryClient
     {
-        public string? Stored;public string[]? Selected;public Action? BeforeRead;
+        public string? Stored;public string[]? Selected,AvatarSelected;public Action? BeforeRead;
         public override Task<BigQueryResults> ExecuteQueryAsync(string sql,IEnumerable<BigQueryParameter> parameters,QueryOptions? queryOptions=null,GetQueryResultsOptions? resultsOptions=null,CancellationToken token=default)
         {
             var job=new JobReference{ProjectId="my-project",JobId=queryOptions?.JobId??"owned-read-job"};
@@ -141,7 +141,8 @@ public class BigQueryCollectionTests
                 return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=job,NumDmlAffectedRows=1},null,new GetQueryResultsOptions()));
             }
             BeforeRead?.Invoke();
-            var values=Selected!=null?(sql.Contains("LIMIT 1",StringComparison.Ordinal)?Selected.Take(1).ToArray():Selected):Stored!=null?new[]{Stored}:new[]{"{\"Id\":\""+Guid.NewGuid()+"\"}",bad};
+            var selected=sql.Contains(".oasis_avatars`",StringComparison.Ordinal)&&AvatarSelected!=null?AvatarSelected:Selected;
+            var values=selected!=null?(sql.Contains("LIMIT 1",StringComparison.Ordinal)?selected.Take(1).ToArray():selected):Stored!=null?new[]{Stored}:new[]{"{\"Id\":\""+Guid.NewGuid()+"\"}",bad};
             var rows=values.Select(value=>new TableRow{F=new List<TableCell>{new(){V=value}}}).ToList();
             return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=job,TotalRows=(ulong)rows.Count,Schema=new(){Fields=new List<TableFieldSchema>{new(){Name="doc",Type="STRING"}}},Rows=rows},null,new GetQueryResultsOptions()));
         }
