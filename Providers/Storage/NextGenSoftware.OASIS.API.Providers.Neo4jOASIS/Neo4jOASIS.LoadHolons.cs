@@ -141,7 +141,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 if(version>0)
                 {
                     MetadataLookupQuery(metaKeyValuePairs,metaKeyValuePairMatchMode,type);
-                    return await ReadHistoricalHolonQueryAsync(version,h=>(type==HolonType.All || h.HolonType==type) && StoredRecordSearch.MatchesMetadata(h.MetaData,metaKeyValuePairs,metaKeyValuePairMatchMode),
+                    var requested=new Dictionary<string,string>(metaKeyValuePairs,StringComparer.Ordinal);
+                    return await ReadHistoricalHolonQueryAsync(version,h=>(type==HolonType.All || h.HolonType==type) && StoredRecordSearch.MatchesMetadata(h.MetaData,requested,metaKeyValuePairMatchMode),
                         loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError);
                 }
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
