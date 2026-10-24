@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Shared typed point identity admission — 23 October 2026
+
+One common record-key owner rejects typed Guid.Empty for avatar/detail/holon read/delete before backend dispatch. New12controls reproduce10dispatch gaps+2detail rejection-envelope gaps; final1033Shared+rebuiltOCI119/selectedS352/Redis35 controlsPASS0skip. Existing parent/root empty semantics/save-newID generation preserved; no per-provider validators, extra SDK call, native gas or all-provider billing claim. Core6D193362/source731 and SharedA6AD60B7/source55 verified in all4consumers. Exact preserved failure/final reports/resources in ENVIRONMENT_INVENTORY.md. Native/cloud/broaderV2 matrices not rerun or certified, no new environment/install/download/dev deployment.
+
 ## Google Firestore canonical collection identity — 23 October 2026
 
 New36SDK/gRPC controls first18red/18valid; one async provider snapshot/history reader now rejects repeated native identities before version filtering for avatars/details/holons and child pools. No dedup/extra request/codec duplication. Matched341unit plus83history/79regression real-SDK/retained emulator PASS0skip; known checkpoint restart/conditionalcleanupPASS, pending0/portsabsent. Duplicateforcing is controlled, not native server races; no cloud IAM/cost/durability/fullV2 certificate. Core6D193362/Shared5BCA13FB/Google972198F9/source25, exact reports/lifecycle in ENVIRONMENT_INVENTORY.md. No restore/install/newenvironment/reset/dev deployment.
