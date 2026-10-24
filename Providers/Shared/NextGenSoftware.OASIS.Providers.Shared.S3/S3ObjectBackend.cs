@@ -33,7 +33,12 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     private string Key(string key)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        return _prefix + key;
+        var physical = _prefix + key;
+        // S3's key limit includes the configured prefix and counts UTF-8 bytes,
+        // not UTF-16 characters. Reject before any SDK read or mutation dispatch.
+        if (Utf8.GetByteCount(physical) > 1024)
+            throw new ArgumentException("S3 object key including its prefix exceeds 1024 UTF-8 bytes.", nameof(key));
+        return physical;
     }
     private static void Complete(HttpStatusCode actual, HttpStatusCode expected, string operation)
     {
