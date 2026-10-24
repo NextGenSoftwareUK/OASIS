@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+Firestore exact native storage-boundary follow-up24October: ASCII/Unicode1MiB accepted and independently read; +1UTF8byte conditionalupdate rejected InvalidArgument with exact original revision/content preserved. Full85nativehistory/79regressionPASS0skip, source identities verified and journals0/ownedruntime stopped. Prior367units unchanged. Local boundary concern resolved; storage-vs-wire distinction remains, hosted service/IAM/fees/fullV2 and10MiBbatch-request estimate still OPEN. See FIRESTORE_RECORD_HISTORY.md/inventory for hashes and retained original cohorts.
+
 Firestore24October: shared flat-scalar storage-size admission replaces invented padding and adds ordinary/history-expanded/identity transaction checks. Fourteen reproduced controls now pass; full367unit/83retained-native-history/79native-regression GREEN0skip, source/artifact identities verified. Public known-oversize0commit and independent real SDK rejection both covered, unchanged original/history checked. Exact native maximum boundary,10MiB wire budget, hosted IAM/fees/fullV2 still OPEN; storage calculation is not wire size or service certification. Original failed assertion/report and exact conditional fixture reconciliation documented in FIRESTORE_RECORD_HISTORY.md and inventory. No installation/newenvironment/cloud/deployment.
 
 ## SQLite legacy search contract — 24 October 2026
