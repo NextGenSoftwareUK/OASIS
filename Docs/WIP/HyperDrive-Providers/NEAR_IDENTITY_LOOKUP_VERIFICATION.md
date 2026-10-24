@@ -1,5 +1,13 @@
 # NEAR profile identity lookup verification
 
+## Export identity version separation — 23 October 2026
+
+Email/username exports now resolve current avatar identity independently of the requested holon Version. Their shared selector owner rejects negative Version before any identity dispatch and preserves the full existing identity-error envelope. GUID owner exports reject empty ID/negative Version before SDK activation and set IsLoaded/LoadedCount only after complete owner filtering. Explicit profile-history lookups are unchanged; no SDK/storage/encryption/ownership-rule rewrite or new retry.
+
+New20 controlled cases:12 selector baseline8fail/4pass; final full240 unit cases PASS0skip13s. Four actual owner-filter cases reuse the existing Node IPC fixture and encrypted C# entries reader, count two matching roots versus zero, and exclude a foreign owner. They are NOT near-api-js/native-chain proof. The other16 cover sync/async email/username routing, error envelope and preactivation admission. Prepared native assertions in the existing version fixture compile (avatar2/current identity exporting root1 and retired-alias rejection), but have NOT run. Exact source/copy/PDB and report evidence in ENVIRONMENT_INVENTORY.md.
+
+Latest retained native report is the interrupted21October cohort:19total/15pass/4fail, SHA AA17152C617B8C49D9C52E2EE7D87FE11EF43C868E6A1C52A0463955D4690EF3, not the older19/19 success below. Fresh read-only recovery inventory matches prior1156rows/hash05707c0e2a930f9c3f98e0f08dbb34512f3c0d495634077daa49c41ab09eeaa2; original report/log/chain/code/key retained, node stopped, config retention5 unchanged. This proves unchanged readable encrypted records, NOT original ordinary-write closure. Full native rerun remains gated by that original recovery review. No fresh native mutation, ledger reset/replay, public funds or deployment. All relevant interfaces/fees/full V2 remain OPEN.
+
 ## Current implementation and limits
 
 The reusable `StoredRecordIdentityLookup` selects a unique username/email match from the provider-owned versioned collection. NEAR's four avatar/avatar-detail selectors and SOLID's private profile selector use this shared implementation. Duplicate identities fail with `AmbiguousIdentity` and no selected payload; missing identities return `RecordNotFound`. Matching trims whitespace and uses ordinal case-insensitive comparison. Collection failures retain their original cause/code; malformed collections fail rather than silently selecting a record.

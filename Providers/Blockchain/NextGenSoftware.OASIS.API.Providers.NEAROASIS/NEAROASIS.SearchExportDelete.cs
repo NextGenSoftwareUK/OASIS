@@ -67,31 +67,49 @@ public partial class NEAROASIS
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
     {
-        var all = await LoadAllHolonRecordsAsync(version);
-        if (!all.IsError) all.Result = all.Result.Where(holon => holon.CreatedByAvatarId == avatarId).ToList();
-        return all;
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (avatarId == Guid.Empty) throw new ArgumentException("A nonempty export avatar identity is required.", nameof(avatarId));
+            if (version < 0) throw new ArgumentOutOfRangeException(nameof(version));
+            var all = await LoadAllHolonRecordsAsync(version);
+            if (!all.IsError)
+            {
+                all.Result = all.Result.Where(holon => holon.CreatedByAvatarId == avatarId).ToList();
+                all.IsLoaded = true; all.LoadedCount = all.Result.Count();
+            }
+            return all;
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) =>
         ExportAllDataForAvatarByIdAsync(avatarId, version).GetAwaiter().GetResult();
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
-    {
-        var avatar = await LoadAvatarByEmailAsync(email, version);
-        if (avatar.IsError || avatar.Result == null)
-            return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatar);
-        return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
-    }
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
+        => ExportAvatarSelectorAsync(email, true, version);
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0) =>
         ExportAllDataForAvatarByEmailAsync(email, version).GetAwaiter().GetResult();
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
+        => ExportAvatarSelectorAsync(username, false, version);
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExportAvatarSelectorAsync(string selector, bool email, int version)
     {
-        var avatar = await LoadAvatarByUsernameAsync(username, version);
-        if (avatar.IsError || avatar.Result == null)
-            return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatar);
-        return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (version < 0) throw new ArgumentOutOfRangeException(nameof(version));
+            // Avatar identity and exported holons have independent version counters.
+            var avatar = email ? await LoadAvatarByEmailAsync(selector, 0) : await LoadAvatarByUsernameAsync(selector, 0);
+            if (avatar.IsError || avatar.Result == null)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatar);
+            return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int version = 0) =>
