@@ -42,6 +42,16 @@ const negative=JSON.parse(readFileSync(`${retained}/failed-status-current.json`,
 const checked=JSON.parse(readFileSync(`${repo}/TestResults/NearRuntime/near-checked-sdk.complete.json`,'utf8'));
 if(negative.chain!==status.chain_id||typeof negative.hash!=='string'||typeof negative.accountId!=='string')
   throw new Error('Original negative receipt identity is invalid; no replacement permitted');
+const statusSettings={NEAROASIS_RPCENDPOINT:endpoint,NEAROASIS_NETWORKID:status.chain_id,NEAROASIS_CHAINID:status.chain_id,
+  NEAROASIS_CONTRACTADDRESS:contract,NEAROASIS_ACCOUNTID:negative.accountId,NEAROASIS_FAILED_STATUS_TRANSACTIONID:negative.hash,
+  OASIS_NEAR_NODE:'C:\\Program Files\\nodejs\\node.exe',
+  OASIS_NEAR_SDK_BRIDGE:'C:\\Source\\OASIS\\Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.NEAROASIS\\SdkBridge\\bridge.mjs'};
+const statusTests=spawnSync('/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe',
+  ['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',
+    'C:\\Source\\OASIS\\Scripts\\TestHosts\\near-local\\run-dotnet-evidence.ps1',
+    '-SettingsFromStdin','-RepositoryRoot','C:\\Source\\OASIS','-ReadOnlyStatus'],
+  {input:JSON.stringify(statusSettings),stdio:['pipe','inherit','inherit'],timeout:120000});
+if(statusTests.error||statusTests.status!==0)throw new Error('Original C# read-only status tests failed; preserve their separate report, no replay.');
 const receipt=spawnSync(process.execPath,[`${repo}/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/bridge.mjs`],
   {input:JSON.stringify({operation:'transactionStatus',rpcEndpoint:endpoint,networkId:status.chain_id,
     contractId:contract,transactionHash:negative.hash,signerAccountId:negative.accountId}),
