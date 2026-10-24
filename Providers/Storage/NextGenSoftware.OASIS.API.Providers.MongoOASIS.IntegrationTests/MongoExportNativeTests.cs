@@ -20,6 +20,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public sealed class MongoExportNativeTests(ITestOutputHelper output)
 {
+    public class SessionIntentBoundary:System.Reflection.DispatchProxy
+    {
+        private IMongoClient inner=null!;private Action mutate=null!;
+        public static IMongoClient Wrap(IMongoClient client,Action action){var proxy=Create<IMongoClient,SessionIntentBoundary>();var owner=(SessionIntentBoundary)(object)proxy;owner.inner=client;owner.mutate=action;return proxy;}
+        protected override object? Invoke(System.Reflection.MethodInfo? method,object?[]? args)
+        {
+            object? result;
+            try{result=method!.Invoke(inner,args);}
+            catch(System.Reflection.TargetInvocationException cause)when(cause.InnerException!=null){System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(cause.InnerException).Throw();throw;}
+            if(method!.Name=="StartSessionAsync")return After((Task<IClientSessionHandle>)result!);
+            if(method.Name=="StartSession")mutate();
+            return result;
+        }
+        private async Task<IClientSessionHandle> After(Task<IClientSessionHandle> pending){var session=await pending;mutate();return session;}
+    }
+
     private sealed class SearchIntentBoundary(NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces.ISearchRepository inner,Action mutate)
         :NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces.ISearchRepository
     {
@@ -418,6 +434,21 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
             Assert.False(result.IsError,result.Message+result.Exception);Assert.True(result.IsLoaded);Assert.Equal(1,result.LoadedCount);
             var selected=Assert.Single(result.Result);Assert.Equal("historical collection root",selected.Name);Assert.Equal(1,selected.Version);
             Assert.Equal(8,Assert.Single(selected.Children).Version);
+            if(kind is 4 or 5)foreach(var selectedVersion in new[]{0,1})foreach(var clear in new[]{false,true}){
+                var originalClient=provider.Database.MongoClient;var changes=0;
+                var intent=new Dictionary<string,string>{{"literal.$key",selectedVersion==1?"$old":"$new"},{"bool",selectedVersion==1?"True":"False"}};
+                provider.Database.MongoClient=SessionIntentBoundary.Wrap(originalClient,()=>{
+                    changes++;if(clear){intent.Clear();intent.Add("missing","changed");}
+                    else{intent["literal.$key"]="changed";intent["bool"]="changed";}
+                });
+                OASISResult<IEnumerable<IHolon>> stable;
+                try{stable=sync?provider.LoadHolonsByMetaData(intent,mode,HolonType.Park,loadChildrenFromProvider:true,version:selectedVersion)
+                    :await provider.LoadHolonsByMetaDataAsync(intent,mode,HolonType.Park,loadChildrenFromProvider:true,version:selectedVersion);}
+                finally{provider.Database.MongoClient=originalClient;}
+                Assert.Equal(1,changes);Assert.False(stable.IsError,stable.Message+stable.Exception);Assert.Equal(1,stable.LoadedCount);
+                var stableRoot=Assert.Single(stable.Result);Assert.Equal(root.Id,stableRoot.Id);Assert.Equal(selectedVersion==1?1:2,stableRoot.Version);
+                Assert.Equal(8,Assert.Single(stableRoot.Children).Version);
+            }
             foreach(var pair in new Dictionary<string,string>{{"number","123"},{"large","9007199254740993"},{"fraction","1.25"},{"date","2026-10-24T00:00:00.000Z"},{"nullable",""},{"compound","[1,2]"}})
             {
                 var latest=await provider.LoadHolonsByMetaDataAsync(pair.Key,pair.Value,HolonType.Park,loadChildren:false);
