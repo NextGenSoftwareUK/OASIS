@@ -22,6 +22,68 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
 
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {
+        if (context.Type.Name == "CqlGroupedV1Request")
+        {
+            // Keep keys and aggregate descriptions separate. Each aggregate
+            // selects an exact input domain; Average returns Decimal text.
+            OpenApiObject Aggregate(string alias, string operation) => new()
+            {
+                ["alias"] = new OpenApiString(alias),
+                ["operation"] = new OpenApiString(operation),
+                ["selection"] = new OpenApiObject
+                {
+                    ["metadataPath"] = new OpenApiArray { new OpenApiString("extremum") },
+                    ["valueType"] = new OpenApiString("Int64")
+                }
+            };
+
+            schema.Example = new OpenApiObject
+            {
+                ["provider"] = new OpenApiString("MongoDBOASIS"),
+                ["take"] = new OpenApiInteger(2),
+                ["maximumGroups"] = new OpenApiInteger(10),
+
+                ["keys"] = new OpenApiArray
+                {
+                    new OpenApiObject
+                    {
+                        ["alias"] = new OpenApiString("stock"),
+                        ["metadataPath"] = new OpenApiArray { new OpenApiString("stock") },
+                        ["valueType"] = new OpenApiString("Int64")
+                    }
+                },
+                ["columns"] = new OpenApiArray
+                {
+                    new OpenApiObject
+                    {
+                        ["alias"] = new OpenApiString("Stock"),
+                        ["keyAlias"] = new OpenApiString("stock")
+                    },
+                    new OpenApiObject
+                    {
+                        ["alias"] = new OpenApiString("Items"),
+                        ["operation"] = new OpenApiString("LongCount")
+                    },
+                    Aggregate("Total", "Sum"),
+                    Aggregate("Mean", "Average")
+                },
+
+                // Copy the live tag from /demo/session; never scan another
+                // session's fixture or application data for this walkthrough.
+                ["filters"] = new OpenApiArray
+                {
+                    new OpenApiObject
+                    {
+                        ["metadataPath"] = new OpenApiArray { new OpenApiString("fixture") },
+                        ["scalar"] = new OpenApiString("String"),
+                        ["operator"] = new OpenApiString("Equal"),
+                        ["value"] = new OpenApiString("REPLACE_WITH_DEMO_FIXTURE_TAG")
+                    }
+                }
+            };
+            return;
+        }
+
         if (context.Type.Name == "CqlScalarV1Request")
         {
             // Average uses an ordered two-row window over exact Int64 input.
