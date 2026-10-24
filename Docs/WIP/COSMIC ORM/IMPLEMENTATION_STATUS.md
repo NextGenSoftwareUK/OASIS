@@ -780,3 +780,34 @@ Actual session70730 terminated successfully: **236 Neo4j/WEB4 native regression 
 Core/Shared/provider/CQL wire/compiler/demo C# hashes remained unchanged during the run. Actual producer/native host DLL pairs match Core`ABD06B39...`, Shared`E78803F0...`, MongoDB`C022AAB5...`, SQLite`BDBC9D35...` and Neo4j`E1E4AE41...`. Exact paths, sizes and hashes: `TestResults/CosmicCqlDemo/group-average-demo-artifacts.json` and `group-average-demo-source-hashes.json`. Fresh result/transcript/log: `v1-demo-result.json`, `v1-walkthrough.txt`, `group-average-demo-native.log`; native report: `TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx`.
 
 Readiness/graph markers are absent; owned27029/17687/5088 listeners are absent and the retained Neo4j image is stopped. The236-case gate is Neo4j/WEB4 plus joint live acceptance, not a rerun of the entire MongoDB191-case or SQLite1409-case native suites. Those earlier cohorts retain their recorded scope. Wider scalar domains, Neo4j DateTime, joins/composition/federation, authoritative policy and remaining roadmap certification remain open.
+
+
+## UTC wire/demo acceptance — 24 October 2026
+
+Actual45734 terminated successfully: **256 Neo4j/WEB4 native regression cases,
+63 SDK queries and63 signed HTTP examples passed, zero failures/skips**. The
+joint MongoDB/SQLite/Neo4j walkthrough recorded243 settled operations and238
+provider attempts. The separate full Core/linked-production cohort passes2,424
+cases, including32 new UTC wire controls. These are distinct scopes; this does
+not rerun the entire MongoDB191-case or SQLite1409-case suite.
+
+Examples20–21 cover exact UTC source ranges/projection and selected grouped-date
+filters/order/page, preserving neighboring100ns values and UTC result tags.
+Malformed/timezone/precision wire values fail compilation. The older hosted
+DateTime-denial assertion now checks still-unenrolled Decimal. Its original
+253/256 failure is preserved; exact ownership and122 settled operations were
+verified before the retained mixed-size fixture was removed and this gate rerun.
+
+Evidence: TestResults/CosmicCurrent/utc-wire-final-current.trx;
+TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx;
+TestResults/CosmicCqlDemo/utc-demo-final-native.log, v1-demo-result.json,
+v1-walkthrough.txt and v1-binary-identities.json. Producer/native-host SHA256 pairs
+were captured inside the global lease: Core BC24B11D, Shared83968E9A,
+MongoB7A03FAA, SQLite267F7C88, Neo51EBF916. All112 checked local documentation
+links resolve. No installs/downloads/restores or new environments were needed.
+
+Fixture/readiness markers and owned27029/17687/5088 listeners are absent; retained
+Neo4j is stopped. Free C:69,475,381,248 bytes after teardown. Broader scalar types,
+joins/composition/federation, authoritative sharing/tenant policy, strict blocked
+I/O interruption and final coherent certification remain open. Full CQL/ORM
+completion is not claimed; the active goal continues.

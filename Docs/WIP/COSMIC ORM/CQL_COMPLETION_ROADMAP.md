@@ -1,8 +1,8 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core 2,392 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo 57 SDK queries/57 HTTP examples with 237 settled operations and 232 attempts. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core 2,424 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo63 SDK queries/63 HTTP examples with243 settled operations and238 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
-Next implementation: validated HTTP UTC date predicates/examples, broader scalar coverage and the expanded provider/policy certification matrix. Neo4j SDK DateTime now passes192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes236 cases. Distinct full MongoDB/SQLite regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
+Next implementation: broader scalar coverage and the expanded provider/policy certification matrix. Neo4j SDK DateTime now passes192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full MongoDB/SQLite regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
@@ -405,3 +405,34 @@ Actual session41795 terminated successfully: **192 full native CQL tests and354 
 Core/Shared/provider/native-test C# source hashes remained unchanged during the final gate. Actual producer/native/unit copies match Core`ABD06B39...`, Shared`944F93E9...` and Neo4j`2E1D6787...`. Exact paths, sizes and hashes: `TestResults/Neo4jCurrent/date-artifacts.json` and `date-final-source-hashes.json`. Reports: `neo4j-cql-native-current.trx`, `date-final-unit-current.trx`; logs: `TestResults/CosmicCqlDemo/neo-date-final-{native,unit}.log`. Initial86776 red190/2 is retained in `date-native-red-current.trx` and `neo-date-native.log`.
 
 The owned graph marker and17687 listener are absent; the exact retained Neo4j container is stopped. This is native SDK DateTime support, not a new HTTP date-predicate/demo certification. The existing HTTP DateTime selection shape can use the new provider capability; source/selected-result date predicate parsing and examples remain next. Broader scalar, policy and roadmap requirements remain open. See [the UTC contract](CQL_UTC_DATETIME_CONTRACT.md).
+
+
+## UTC wire/demo acceptance — 24 October 2026
+
+Actual45734 terminated successfully: **256 Neo4j/WEB4 native regression cases,
+63 SDK queries and63 signed HTTP examples passed, zero failures/skips**. The
+joint MongoDB/SQLite/Neo4j walkthrough recorded243 settled operations and238
+provider attempts. The separate full Core/linked-production cohort passes2,424
+cases, including32 new UTC wire controls. These are distinct scopes; this does
+not rerun the entire MongoDB191-case or SQLite1409-case suite.
+
+Examples20–21 cover exact UTC source ranges/projection and selected grouped-date
+filters/order/page, preserving neighboring100ns values and UTC result tags.
+Malformed/timezone/precision wire values fail compilation. The older hosted
+DateTime-denial assertion now checks still-unenrolled Decimal. Its original
+253/256 failure is preserved; exact ownership and122 settled operations were
+verified before the retained mixed-size fixture was removed and this gate rerun.
+
+Evidence: TestResults/CosmicCurrent/utc-wire-final-current.trx;
+TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx;
+TestResults/CosmicCqlDemo/utc-demo-final-native.log, v1-demo-result.json,
+v1-walkthrough.txt and v1-binary-identities.json. Producer/native-host SHA256 pairs
+were captured inside the global lease: Core BC24B11D, Shared83968E9A,
+MongoB7A03FAA, SQLite267F7C88, Neo51EBF916. All112 checked local documentation
+links resolve. No installs/downloads/restores or new environments were needed.
+
+Fixture/readiness markers and owned27029/17687/5088 listeners are absent; retained
+Neo4j is stopped. Free C:69,475,381,248 bytes after teardown. Broader scalar types,
+joins/composition/federation, authoritative sharing/tenant policy, strict blocked
+I/O interruption and final coherent certification remain open. Full CQL/ORM
+completion is not claimed; the active goal continues.

@@ -781,4 +781,51 @@ MongoDB now supports the same grouped Average filter/order compositions document
 
 ## UTC metadata dates
 
-Use `CosmicQueryMetadata.Value<DateTime>` or `Value<DateTime?>` for UTC metadata paths on MongoDB, SQLite and Neo4j. Precompute UTC range bounds before composing expressions. DateTime literals must carry UTC kind; arbitrary date methods in expressions are rejected. Neo4j now normalizes zero-to-seven fractional digits to fixed calendar text, preserving100ns ticks and rejecting invalid calendars/offset text without epoch-millisecond conversion. Projection/Min/Max/group results decode with UTC kind. See [the full date contract and SDK example](CQL_UTC_DATETIME_CONTRACT.md). HTTP source and result date predicates need the forthcoming validated transport extension; native enrollment does not silently widen that grammar.
+Use `CosmicQueryMetadata.Value<DateTime>` or `Value<DateTime?>` for UTC metadata paths on MongoDB, SQLite and Neo4j. Precompute UTC range bounds before composing expressions. DateTime literals must carry UTC kind; arbitrary date methods in expressions are rejected. Neo4j now normalizes zero-to-seven fractional digits to fixed calendar text, preserving100ns ticks and rejecting invalid calendars/offset text without epoch-millisecond conversion. Projection/Min/Max/group results decode with UTC kind. See [the full date contract and SDK example](CQL_UTC_DATETIME_CONTRACT.md). HTTP source and selected-result date predicates use the validated UTC transport described below. Fresh live verification is recorded in the UTC contract.
+
+
+### Filter and group exact UTC instants
+
+Compute UTC bounds before composing a query. The exclusive upper bound preserves
+adjacent 100ns instants without rounding.
+
+```csharp
+var start = new DateTime(2026, 10, 24, 0, 0, 0, DateTimeKind.Utc)
+    .AddTicks(2);
+
+var end = start.AddTicks(2);
+
+// Start with the existing actor-bound query used in the walkthrough.
+var dateRows = visible
+    .Where(row => CosmicQueryMetadata.Value<DateTime>(row, "observedAt") >= start
+        && CosmicQueryMetadata.Value<DateTime>(row, "observedAt") < end)
+    .Select(row => new
+    {
+        row.Name,
+        ObservedAt = CosmicQueryMetadata.Value<DateTime>(row, "observedAt")
+    });
+
+// Result predicates apply after grouping, before ordering and result paging.
+var dateGroups = visible
+    .GroupBy(row => CosmicQueryMetadata.Value<DateTime>(row, "observedAt"))
+    .Select(group => new
+    {
+        ObservedAt = group.Key,
+        Items = group.LongCount()
+    })
+    .Where(row => row.ObservedAt >= start && row.ObservedAt < end)
+    .OrderBy(row => row.ObservedAt)
+    .Take(2);
+```
+
+These expressions return `OASISResult` intents. Handle errors, plan against the
+actual adapter capabilities, and execute through HolonManager as demonstrated in
+[the runnable C# walkthrough](../../../Examples/CosmicCqlDemo/V1NativeQueries.cs).
+No expression executes until that explicit planning/execution step.
+
+HTTP source filters specify `scalar: "DateTime"`, `metadataPath`, an operator and
+an uppercase UTC Z string. Grouped `resultFilters` identify a selected date alias;
+its schema supplies the type. Zero to seven fractional digits are accepted.
+Offsets, missing timezone, invalid calendars and excess precision fail compilation.
+See [examples20–21](../../../Examples/CosmicCqlDemo/README.md#examples-2021-exact-utc-dates)
+and [the exact transport contract](CQL_UTC_DATETIME_CONTRACT.md).
