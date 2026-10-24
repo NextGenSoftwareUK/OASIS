@@ -73,7 +73,7 @@ public static class V1DemoPresentation
       <label>Native provider<br><select id="provider"><option>MongoDBOASIS</option><option>SQLLiteDBOASIS</option><option>Neo4jOASIS</option><option value="">Current default (SQLite)</option></select></label>
       <label>Authenticated user<br><select id="actor"><option>Alice</option><option>Bob</option><option>Visitor</option><option>Anonymous</option></select></label>
       <label>Walkthrough<br><select id="example">
-        <option value="min">Min / exact selected value</option><option value="max">Max / protected reduction</option><option value="projection">Select / detached typed columns</option><option value="longCount">LongCount / complete visible input</option><option value="count">Count / explicit window</option><option value="any">Any / private root</option>
+        <option value="min">Min / exact selected value</option><option value="max">Max / protected reduction</option><option value="sum">Sum / exact signed total</option><option value="average">Average / Decimal fraction</option><option value="projection">Select / detached typed columns</option><option value="longCount">LongCount / complete visible input</option><option value="count">Count / explicit window</option><option value="any">Any / private root</option>
         <option value="page">Visibility before paging</option><option value="nested">Nested metadata + protected OR</option>
         <option value="strings">Ordinal prefix / suffix</option><option value="null">Explicit null / existence</option>
         <option value="children">Visible child existence</option><option value="descendants">Bounded descendants</option><option value="graph">Access-bound child graph</option><option value="precision">Exact Int64 beyond 2^53</option><option value="guid">Typed GUID metadata</option>
@@ -102,6 +102,8 @@ let queryRoute = "/api/data/query-cql";
 const el = id => document.getElementById(id);
 const notes = {
   min: 'Native Min over typed Int64 metadata. Hidden roots contain long.MinValue/long.MaxValue; visibility excludes them for Alice and Visitor before reduction. Exact values remain decimal strings.',
+  sum: 'Native Sum over the complete visible input. Int64 output remains exact decimal text; no browser Number conversion.',
+  average: 'Native Average over the first two ordered names. Int64 input returns an exact Decimal fraction as text; the half-unit survives beyond binary64 precision.',
   max: 'Native Max uses the same typed selector and protected source. Choose a provider without changing query semantics; no client entity scan is used.',
   longCount: 'Native LongCount over the complete visible source: Alice 3, Bob 3, Visitor 1. Omitted take has no row-page cap. Int64 values are always decimal strings; keep them as text or BigInt.',
   count: 'Count after Skip 1 / Take 1: Alice and Bob receive Int32 1, Visitor 0. Source windows apply before the terminal.',
@@ -164,11 +166,12 @@ function preset() {
     if (name === 'count') { body.skip = 1; body.take = 1; }
     if (name === 'any') body.filters.push({ field: 'Name', operator: 'Equal', value: 'A-private' });
   }
-  if (name === 'min' || name === 'max') {
+  if (['min', 'max', 'sum', 'average'].includes(name)) {
     queryRoute += '/scalar';
-    body.operation = name === 'min' ? 'Min' : 'Max';
+    body.operation = { min: 'Min', max: 'Max', sum: 'Sum', average: 'Average' }[name];
     body.selection = { metadataPath: ['extremum'], valueType: 'Int64' };
     delete body.take;
+    if (name === 'average') { body.orderBy = 'Name'; body.take = 2; }
   }
   if (name === 'projection') {
     queryRoute += '/projection';
