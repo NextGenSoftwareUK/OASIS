@@ -684,3 +684,6 @@ Grouped HTTP requests and updated three-provider grouped demo screens are not av
 
 
 MongoDB now supports the same grouped selection expression shape shown in the SQLite example through its own CosmicGroupedTarget and actual GroupedCapabilities. Initial live integration passes; expanded grouped boundary acceptance is pending. Use HolonManager.ExecuteGroupedQueryAsync with the admitted provider plan. Grouped HTTP and three-provider grouped demo screens remain pending.
+
+
+Neo4j now executes the same typed grouped selection shape illustrated above, using its actual CosmicGroupedTarget/GroupedCapabilities and HolonManager.ExecuteGroupedQueryAsync. Native grouping exists on MongoDB, SQLite and Neo4j; select only types admitted by the actual provider. Neo4j UTC date coverage remains pending, and grouped HTTP/demo screens and post-group filtering/order/pages remain pending.

@@ -22,10 +22,12 @@ public partial class Neo4jOASIS
     // This internal compiler grants no native capability. A grouped adapter must
     // admit the intent, bound the complete packet buffer and validate every row.
     internal static NeoCqlGroupedCommand CompileCqlGrouped<T, TKey, TResult>(
-        CosmicGroupedSelection<T, TKey, TResult> query, int maximumGroups) where T : IHolon
+        CosmicGroupedSelection<T, TKey, TResult> query, int maximumGroups, int maximumPayloadBytes = CosmicProjectionResults.MaximumPayloadLimit) where T : IHolon
     {
         if (query == null || maximumGroups < 0 || maximumGroups > query.Grouping.Options.MaximumGroups)
             throw new ArgumentOutOfRangeException(nameof(maximumGroups));
+        if (maximumPayloadBytes < 0 || maximumPayloadBytes > query.Grouping.Options.MaximumPayloadBytes)
+            throw new ArgumentOutOfRangeException(nameof(maximumPayloadBytes));
         var compiled = CompileCqlSource(query.Source);
         var translator = compiled.Translator;
         var ordering = translator.TranslateOrdering(query.Source.Orderings);
@@ -83,6 +85,27 @@ public partial class Neo4jOASIS
         translator.Parameters.Add("groupTake", Math.Min(query.Source.Limit.HasValue ? (long)query.Source.Limit.Value : long.MaxValue,
             (long)CosmicNumericScalarResults.MaximumParticipatingValues + 1));
         translator.Parameters.Add("groupLimit", maximumGroups + 1);
+        translator.Parameters.Add("groupBytes", maximumPayloadBytes);
+        // Character length is a lower bound on UTF-8 bytes. Reject oversized
+        // cells before transfer; the shared read budget charges exact bytes.
+        long lowerBytes = 32 + 16 * (query.Grouping.Key.Columns.Count + query.Columns.Count);
+        var sizes = new List<string>();
+        void Charge(Type type, string value)
+        {
+            if (type == typeof(string)) sizes.Add("CASE WHEN " + value + " IS NULL THEN 16 ELSE size(" + value + ") END");
+            else lowerBytes += 16;
+        }
+        for (var i = 0; i < query.Grouping.Key.Columns.Count; i++)
+            Charge(query.Grouping.Key.Columns[i].Path.ValueType, "keys[" + i + "].v");
+        var aggregateIndex = 0;
+        foreach (var column in query.Columns)
+        {
+            var value = column.KeyIndex >= 0 ? "keys[" + column.KeyIndex + "].v" : "aggregates[" + aggregateIndex + "].value";
+            Charge(column.ValueType, value);
+            if (column.KeyIndex < 0 && column.Selector != null) aggregateIndex++;
+        }
+        var byteExpression = lowerBytes.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + string.Concat(sizes.Select(size => "+(" + size + ")"));
         const string failure = "0 AS inputs,[] AS keys,[] AS aggregates,false AS valid";
         var traversal = translator.TraversalClauses.Count == 0 ? "" : " UNION ALL " + compiled.EligibleSource
             + "WHERE " + compiled.Cycle + " OR " + compiled.TraversalLimit + " RETURN " + failure + ","
@@ -99,8 +122,12 @@ public partial class Neo4jOASIS
             + "WITH " + string.Join(",", identities) + ",count(*) AS inputs,sum(bad) AS invalid"
             + (reductions.Count == 0 ? "" : "," + string.Join(",", reductions))
             + " RETURN inputs," + keyCells + " AS keys," + packets + " AS aggregates,invalid=0 AS valid,"
-            + "false AS traversalCycle,false AS traversalLimit } RETURN inputs,keys,aggregates,valid,traversalCycle,traversalLimit "
-            + "ORDER BY valid ASC," + string.Join(",", keyNames.Select((_, i) => "CASE WHEN keys[" + i + "].v IS NULL THEN 0 ELSE 1 END ASC,keys[" + i + "].v ASC")) + " LIMIT $groupLimit";
+            + "false AS traversalCycle,false AS traversalLimit } WITH inputs,keys,aggregates,valid,traversalCycle,traversalLimit,"
+            + byteExpression + " > $groupBytes AS payloadLimit RETURN inputs,"
+            + "CASE WHEN payloadLimit THEN [] ELSE keys END AS keys,"
+            + "CASE WHEN payloadLimit THEN [] ELSE aggregates END AS aggregates,"
+            + "valid,traversalCycle,traversalLimit,payloadLimit "
+            + "ORDER BY valid ASC,payloadLimit DESC," + string.Join(",", keyNames.Select((_, i) => "CASE WHEN keys[" + i + "].v IS NULL THEN 0 ELSE 1 END ASC,keys[" + i + "].v ASC")) + " LIMIT $groupLimit";
         return new NeoCqlGroupedCommand(cypher, translator.Parameters);
     }
 }

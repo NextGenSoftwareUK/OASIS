@@ -11,7 +11,7 @@ public sealed class NeoCqlGroupedDecoderTests
 {
     private static Dictionary<string, object> Packet() => new()
     {
-        ["inputs"] = 2L, ["valid"] = true, ["traversalCycle"] = false, ["traversalLimit"] = false,
+        ["inputs"] = 2L, ["payloadLimit"] = false, ["valid"] = true, ["traversalCycle"] = false, ["traversalLimit"] = false,
         ["keys"] = new object[] { new Dictionary<string, object> { ["s"] = 2L, ["v"] = "coffee" } },
         ["aggregates"] = new object[] { new Dictionary<string, object> { ["present"] = 2L, ["high"] = 0L, ["low"] = 3L } }
     };
@@ -79,5 +79,15 @@ public sealed class NeoCqlGroupedDecoderTests
                 Mean = g.Average(h => CosmicQueryMetadata.Value<long?>(h, "stock")) }).Result;
         var row = Neo4jOASIS.DecodeCqlGrouped(packet, query);
         Assert.AreEqual(0L, row.Values[0]); Assert.IsNull(row.Values[1]);
+    }
+
+    [TestMethod]
+    public void NativePayloadRejectionCannotBecomeAMalformedKeyError()
+    {
+        var packet = Packet(); packet["payloadLimit"] = true;
+        packet["keys"] = new object[0]; packet["aggregates"] = new object[0];
+        System.Exception? failure = null;
+        try { Read(packet); } catch (System.Exception cause) { failure = cause; }
+        Assert.IsNotNull(failure); Assert.AreEqual("NeoCqlLimitException", failure.GetType().Name);
     }
 }
