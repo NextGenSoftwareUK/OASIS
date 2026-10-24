@@ -344,10 +344,13 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                 // Generate token ID (in production, this should be managed properly)
                 var tokenId = new BigInteger(DateTime.UtcNow.Ticks);
                 var mintToAddress = requestedRecipient ?? senderAccount.Address;
+                // Validate the actual configured mint extension/authorization before nonce or signing.
+                // ERC-721 itself does not standardize a mint function.
+                var mintGas = await mintFunction.EstimateGasAsync(senderAccount.Address, null, null, mintToAddress, tokenId);
 
                 var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
                     senderAccount.Address,
-                    new HexBigInteger(600000),
+                    mintGas,
                     null,
                     null,
                     mintToAddress,
