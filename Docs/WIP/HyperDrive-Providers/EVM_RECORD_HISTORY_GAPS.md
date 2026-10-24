@@ -1,5 +1,28 @@
 # EVM record history: current gap and reuse map
 
+## Shared Web3 returned-root counts repaired — controlled176, 23 October 2026
+
+The common Web3 read owners now set point counts1, materialized collection/filter/export/nearby counts to returned roots, and search envelope counts to NumberOfResults. Graph projection failure clears loaded state/count. Polygon and the Arbitrum V2 wrapper inherit this repair; no per-provider duplicate, SDK/storage/encryption rewrite, extra RPC or retry. Credential selectors already use the correctly counting shared wallet-selector helper and were not rewritten.
+
+New39 controlled cases: corrected baseline19fail/20pass, then full176 selected Web3 controls PASS0skip; Ethereum124 non-native PASS0skip. These exercise actual Nethereum ABI encoding/decoding with in-memory IClient responses and encrypted records, including empty/point/filter/export/search/nearby/ambiguous/transport/malformed-role-manifest cases. Four positive sync/async email/username exports prove avatar2/root3/current-child1 and owner isolation; this supplements the earlier failure-routing tests but remains controlled, NOT live-chain acceptance. The first baseline20fail/19pass included a bad fixture that tried to persist navigation Children (deliberately excluded by the canonical serializer); it is preserved, and the fixture now uses a genuinely persisted malformed child-role manifest. No production serializer workaround.
+
+All producer/copy/PDB identities and exact reports/resources in inventory. Original routing.db remains unchanged827392B/hash1A826..., retention64 decisions/lifecycle checks pass. No node/start/reset/replay/sign/broadcast/gas or dev deployment. Native storage/full provider interfaces/cloud fees/full V2 matrices remain OPEN. The source-level audit immediately below is historical and is superseded for these scoped counts, not for native acceptance.
+
+## Initial successful read-count audit — superseded by controlled repair above
+
+Audited at parent `a9709059742915afba37a30809830f1f4ca6923a`; implementation/test work remains OPEN. The shared Web3 owner, rather than separate Polygon/Arbitrum patches, is the repair location. `PolygonOASIS` and `ArbitrumOASIS_Web3Core` inherit it; the legacy Arbitrum class is not covered by that inheritance claim.
+
+| Existing owner | Observed gap | Required invariant / regression |
+| --- | --- | --- |
+| `CollectionReads.cs`: `ReadPrivateGuidAsync`, `ReadPrivateSelectorAsync`, provider-linked single-root branch of `ReadPrivateHolonGraphAsync` | Successful result sets `IsLoaded` without `LoadedCount` | Exactly one returned root counts as 1; absent, ambiguous, inactive or failed results count 0. |
+| `ReadPrivateCollectionAsync`, `ReadPrivateHolonsAsync`, `ExportPrivateOwnedAsync` | Materialized successful arrays have no returned-root count | Count the returned roots, not nested children or decoded candidates. Empty successful array counts 0. |
+| `ReadPrivateParentAsync`, `ReadPrivateMetadataAsync` | Narrow an existing result without recomputing its count | Recompute after filtering; do not retain a future upstream collection count. |
+| `Nearby.cs` | Returns filtered nearby roots without count | Count only matching returned roots. |
+| `SaveSearch.cs` | Sets `NumberOfResults` but not the result envelope count | Envelope count agrees with returned search results, not RPC calls, gas, or scanned records. |
+| `ReadPrivateHolonGraphAsync` projection catch | Clears payload/loaded flag but does not explicitly reset count | A projection failure must clear any successful upstream count once point counts are repaired. |
+
+This is source evidence, NOT a failing/passing runtime test or native-chain certification. Existing selector-error controls do not exercise these successful paths. Regression work must include success, empty/filter reduction, graph root-vs-descendant counts, and failed projection; use the existing real SDK ABI encode/decode boundary for controlled collection responses rather than adding a production fallback or an alternate storage implementation. Native acceptance remains blocked by the preserved original routing outbox described below. No production edit, build, test run, runtime start or data mutation occurred in this audit; the concurrent Neo4j build window was left undisturbed.
+
 ## Export identity/holon version separation — controlled only, 23 October 2026
 
 Both standalone Ethereum and shared Web3Core (Polygon/Arbitrum wrapper) exports incorrectly selected avatar history using the holon Version. They now resolve current identity first and apply Version only to exported roots; Web3 negative versions fail before identity dispatch. Ethereum preserves full identity-error envelope using existing OASISResultHelper instead of reconstructing it. Explicit avatar-history selectors unchanged; no encryption/schema/SDK/retry change. New16 routing controls:12red/4pass baseline; full124Ethereum non-native +137Web3 selected controls PASS0skip. Tests use controlled identity failures, not successful encrypted export or live-chain proof. Exact cohort/hashes/resources in inventory.

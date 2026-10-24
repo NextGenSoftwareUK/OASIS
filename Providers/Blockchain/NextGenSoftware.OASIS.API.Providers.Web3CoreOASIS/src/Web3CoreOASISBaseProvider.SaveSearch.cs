@@ -218,7 +218,7 @@ public partial class Web3CoreOASISBaseProvider
             found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,search,holons)));
             if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,search,holons)));
             found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
-            result.Result=found;result.IsLoaded=true;
+            result.Result=found;result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
