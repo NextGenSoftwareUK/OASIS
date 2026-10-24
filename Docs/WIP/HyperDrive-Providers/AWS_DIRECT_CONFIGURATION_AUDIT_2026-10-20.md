@@ -1,5 +1,11 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## Native typed numeric search — 24 October
+
+Shared search repair closes numeric-string coercion and lossy fraction/exponent handling by reusing Core's exact normalization and scalar capture. No Dynamo-specific parser or API target-type change. Fresh full AWS **136/136 native tests PASS, zero skipped,71seconds**, now including2sync/async public numeric search cases with4persisted rows each/all6operators and unchanged canonical before/after bytes. Native212108bytes SHA256 `9CBD3F4FFBE0F9BEECD33A1E669888D8B4EB6EF55009DF755DB98779AC572CD8`; exact cleanup inventory10623bytes SHA256 `7FED6976F5318E51374B9441317BA90E11CDC77F763F63B96BE9B74190D1AF59`. Baseline1/cleanup1 pass; pending0 and reserved Windows listeners absent afterward. The full-suite and current-cohort recovery gates both require136 before cleanup; previous134cohort was already clean and remains preserved separately.
+
+Matched shared1131/Dynamo583 and selected signed-SDK S3/AWS74 controls all pass0skip, plus OCI119/Google367 consumers. Core741/35AE105E Shared56/40B9F0C7 source/copies and test PDB identities checked. Details in SHARED_RECORD_HISTORY.md and inventory. This is retained DynamoDB Local and controlled-SDK evidence, not hosted account/IAM/STS/TLS/billing or full provider-specific V2 completion. No download/restore/new environment/deployment.
+
 ## DynamoDB activation observations — 24 October, native regression verified
 
 Eighteen new sync/async controls reproduced **16 failures and 2 valid controls**: an ACTIVE-looking table body could activate despite HTTP0/202/500, or a missing initial table description could be ignored before another request. The existing activation owner now uses one `RequireTableObservation` check for both the initial describe and readiness polling. Malformed observations return an error/inactive state immediately; they do not mean absence and cannot trigger provisioning. Existing schema checks and bounded CREATING/UPDATING readiness behavior remain in place. Their fixtures now explicitly model HTTP200 so the original schema/timeout assertions remain meaningful.
