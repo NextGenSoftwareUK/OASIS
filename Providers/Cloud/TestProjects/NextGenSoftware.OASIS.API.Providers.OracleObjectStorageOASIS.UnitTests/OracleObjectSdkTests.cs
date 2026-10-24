@@ -45,6 +45,26 @@ public class OracleObjectSdkTests
         =>await ExchangeClient(client=>action(new(client,"ns","bucket")),responses);
 
     [DataTestMethod]
+    [DataRow(false,0)][DataRow(true,0)][DataRow(false,1)][DataRow(true,1)]
+    [DataRow(false,2)][DataRow(true,2)][DataRow(false,3)][DataRow(true,3)]
+    public async Task CompleteChecksummedReadCannotReplaceInvalidUtf8(bool observed,int encoding)
+    {
+        // Checksums and byte counts alone do not establish valid canonical text.
+        // The last case is a valid supplementary Unicode scalar control.
+        var bytes=encoding switch{0=>new byte[]{0xC0,0xAF},1=>new byte[]{0xED,0xA0,0x80},2=>new byte[]{0xF0,0x9F,0x8C},_=>Encoding.UTF8.GetBytes("tree 🌳")};
+        await Exchange(async backend=>{
+            async Task<string?> Read()=>observed?(await backend.ReadObservedAsync("oasis/utf8-record"))?.Value:await backend.GetAsync("oasis/utf8-record");
+            if(encoding==3)Assert.AreEqual("tree 🌳",await Read());
+            else await Assert.ThrowsExceptionAsync<DecoderFallbackException>(async()=>{await Read();});
+        },async context=>{
+            context.Response.StatusCode=200;context.Response.ContentLength64=bytes.Length;
+            context.Response.Headers["ETag"]="\"utf8-revision\"";
+            context.Response.Headers["Content-MD5"]=Convert.ToBase64String(MD5.HashData(bytes));
+            await context.Response.OutputStream.WriteAsync(bytes);
+        });
+    }
+
+    [DataTestMethod]
     [DataRow(false,false,"")][DataRow(false,true,"")][DataRow(true,false,"")][DataRow(true,true,"")]
     [DataRow(false,false,"tree 🌳")][DataRow(false,true,"tree 🌳")][DataRow(true,false,"tree 🌳")][DataRow(true,true,"tree 🌳")]
     public async Task WholeRecordReadRequiresNativeByteLength(bool observed,bool declaredLength,string body)
