@@ -207,12 +207,13 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 if (loaded.IsError) return loaded;
                 result = NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<T>>(loaded);
                 result.Result = query.Select(loaded.Result, row => row.IsActive && !row.IsDeleted && (type == HolonType.All || row.HolonType == type));
-                result.IsLoaded = true;
+                MarkIpfsLoaded(result,result.Result.Count());
             }
             catch (Exception cause)
             {
                 result.Result = null;
                 result.IsLoaded = false;
+                result.LoadedCount = 0;
                 OASISErrorHandling.HandleError(ref result, cause.Message, cause);
             }
             return result;
