@@ -41,7 +41,7 @@ try {
         $proof = Get-Item -LiteralPath (Join-Path $work 'v1-demo-result.json') -ErrorAction Stop
         if ($proof.LastWriteTimeUtc -lt $started) { throw 'Demo result is stale; no verification claim permitted.' }
         $report = Get-Content -LiteralPath (Join-Path $work 'v1-demo-result.json') -Raw | ConvertFrom-Json
-        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 36 -or $report.localSdkQueries -ne 36) {
+        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 42 -or $report.localSdkQueries -ne 42) {
             throw 'Three-provider demo proof is incomplete.'
         }
 

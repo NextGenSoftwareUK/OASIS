@@ -191,6 +191,20 @@ public static class V1NativeQueries
             Value(visible.Max(h => CosmicQueryMetadata.Value<long>(h, "extremum"))),
             -9007199254740989L);
 
+        // 13. Sum returns an exact Int64 total. The selected inputs exceed
+        // JavaScript's safe-integer range, so the HTTP form returns text.
+        await ShowScalarAsync("13. Native Sum / exact signed total",
+            Value(visible.Sum(h => CosmicQueryMetadata.Value<long>(h, "extremum"))),
+            -27021597764222970L);
+
+        // 14. Apply the ordered window before Average. Integer input produces
+        // Decimal, preserving the half-unit beyond binary64 integer precision.
+        var firstTwo = Value(visible.OrderBy(h => h.Name).Take(2));
+
+        await ShowScalarAsync("14. Native Average / exact Decimal fraction",
+            Value(firstTwo.Average(h => CosmicQueryMetadata.Value<long>(h, "extremum"))),
+            -9007199254740990.5m);
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(
