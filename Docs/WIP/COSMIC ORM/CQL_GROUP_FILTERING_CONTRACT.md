@@ -1,6 +1,6 @@
 # CQL post-group filtering contract
 
-24 October2026. Shared capture, capability admission and proof validation are verified. SQLite native execution is enrolled for the domains recorded below; MongoDB/Neo4j and HTTP remain pending.
+24 October2026. Shared capture, capability admission and proof validation are verified. SQLite and MongoDB native execution are enrolled for the domains recorded below; Neo4j and HTTP remain pending.
 
 ## Captured intent
 
@@ -14,9 +14,9 @@ Filtering or reordering after grouped Skip/Take returns CQL_COMPOSITION_UNSUPPOR
 
 ## Remaining implementation
 
-Profiles without FilteringCapabilities reject result predicates with CQL_CAPABILITY_UNSUPPORTED. SQLite now declares explicit native permissions; MongoDB/Neo4j remain unenrolled. New profiles must explicitly declare key domains, aggregate operation/result domains, exact comparisons, string operations, membership and mixed-numeric permissions. Planning and actual-adapter readmission both check them; source/ordering support cannot grant filtering. SQLite enrollment and current limitations are recorded below. Manual Materialize performs pure all-buffer filter/page proof validation, rejecting incorrect native markers; it does not dispatch providers or grant capabilities.
+Profiles without FilteringCapabilities reject result predicates with CQL_CAPABILITY_UNSUPPORTED. SQLite and MongoDB declare explicit native permissions; Neo4j remains unenrolled. New profiles must explicitly declare key domains, aggregate operation/result domains, exact comparisons, string operations, membership and mixed-numeric permissions. Planning and actual-adapter readmission both check them; source/ordering support cannot grant filtering. SQLite enrollment and current limitations are recorded below. Manual Materialize performs pure all-buffer filter/page proof validation, rejecting incorrect native markers; it does not dispatch providers or grant capabilities.
 
-SQLite complete-proof native filtering is verified below. Next implement MongoDB/Neo4j with the same independent capabilities. Nonmatching groups must still undergo domain/arithmetic/work/payload validation. Result paging must count matching groups while Core independently checks native filter/page agreement. Excluded groups cannot hide final overflow, malformed data or protected traversal failures. HTTP selected-result filters and three-provider SDK/HTTP demos follow native verification. Exact Average comparison needs normalized Decimal semantics and must not substitute unrounded ratios or binary64.
+SQLite/MongoDB complete-proof native filtering is verified below. Next implement Neo4j with the same independent capabilities. Nonmatching groups must still undergo domain/arithmetic/work/payload validation. Result paging must count matching groups while Core independently checks native filter/page agreement. Excluded groups cannot hide final overflow, malformed data or protected traversal failures. HTTP selected-result filters and three-provider SDK/HTTP demos follow native verification. Exact Average comparison needs normalized Decimal semantics and must not substitute unrounded ratios or binary64.
 
 ## Evidence
 
@@ -47,3 +47,16 @@ Verification: **1,401 full SQLite integration tests passed, zero skips**, includ
 Evidence: TestResults/SQLiteCurrent/group-filter-{selected,full}-current.trx and group-filter-artifacts.json; TestResults/CosmicCqlDemo/sqlite-group-filter-{build,selected,full}.log. Actual93674terminal0 focused15 and59762terminal0 full1401. Executed producer/consumer pairs match Core318DD259BD399963568FCE25A9CC0633D96F51EA19BA11E2C218417BA4802D73 and SQLite2A41618E5AB15C5AAC11D533336082959E72BF5798359D107A7223332FCE6B26 (exact paths/measured bytes in artifact report). Fixed fixture DB/WAL/SHM verified absent after teardown. No service/download/install/restore/environment was added.
 
 MongoDB/Neo4j native filters, HTTP filters/demos and exact Average semantics remain open. This certifies SQLite's enrolled grouped filters, not full CQL/ORM completion.
+
+
+## MongoDB native grouped filters — 24 October2026
+
+MongoDB now enrolls grouped Where over selected keys, Count/LongCount, Min/Max and exact integer Sum, including nullable domains. Clauses support comparisons, selected-field comparisons, AND/OR/NOT, null/Boolean tests, bounded membership and ordinal Contains/StartsWith/EndsWith. Integer sums use the same exact Decimal128 reduction expression as grouped ordering; bounded totals fit its precision. Decimal literals retain exact Decimal128 values. Native matching ranks count only accepted groups for paging, while complete ordered proof remains subject to domain/work/group/payload checks. No $match discards reduced proof. Average filtering remains explicitly unsupported pending normalized Decimal semantics.
+
+The first full native run found one GUID mismatch: normalized grouping keys use32hex characters while ordinary GUID literals contain hyphens. Grouped filter literals now use the existing ComparableGuid owner, covering equality and membership consistently. No parallel encoding rule or fallback was added.
+
+Verification: **385 Mongo unit tests and183 full native CQL tests passed, zero skips**, including15new native cases and3new unit controls. Coverage includes complete proof, aggregate combinations, matching-rank pages, nullable negation/fractional inequality, exact adjacent Int64 values and both limits, negative borrowing, binary64 subnormals, numeric/string membership, literal wildcard/quote text, null/empty suffix semantics, Boolean/GUID/enum/UTC-tick key equality+membership, excluded malformed/overflow groups, full group limits and explicit Average denial.
+
+Evidence: TestResults/MongoCurrent/group-filter-unit-final-current.trx and group-filter-artifacts.json; TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx; TestResults/CosmicCqlDemo/mongo-group-filter-{unit-final,native-final}.log. Initial82274terminal1:182pass/1Guidred; failure evidence retained in MongoCurrent/group-filter-native-red-current.trx and mongo-group-filter-native.log. Final20476terminal0 after normalization fix and expanded key-membership assertions. Producer/native copies match Core318DD259BD399963568FCE25A9CC0633D96F51EA19BA11E2C218417BA4802D73 and MongoDD4FB0C9AA25AF7481659D33D8A1F295750D52BD31E7147291686555236AD5E0; exact paths/measured bytes in artifact report. Fixtures acknowledged cleanup; runner-owned Mongo stopped and27029 listener verified absent. Runtime/data reused, no new environment/download/restore.
+
+SQLite and MongoDB native grouped filters are verified. Neo4j filters, HTTP filters/demos and exact Average semantics remain open; full CQL/ORM completion is not claimed.
