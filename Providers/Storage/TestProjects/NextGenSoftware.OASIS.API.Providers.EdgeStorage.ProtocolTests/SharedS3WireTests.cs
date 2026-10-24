@@ -17,6 +17,23 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
 public class SharedS3WireTests
 {
     [DataTestMethod]
+    [DataRow("../outside")][DataRow("a/../outside")][DataRow("a\\outside")][DataRow("a?b#c")]
+    public async Task Object_names_remain_exact_data_under_configured_prefix(string key)
+    {
+        var calls=0;
+        using var service=new FakeService((request,bytes)=>{
+            calls++;Assert.AreEqual(HttpMethod.Get,request.Method);
+            Assert.IsTrue(request.Headers.GetValues("Authorization").Single().StartsWith("AWS4-HMAC-SHA256 ",StringComparison.Ordinal));
+            Assert.AreEqual("/test-bucket/scope/"+key,Uri.UnescapeDataString(request.RequestUri.AbsolutePath));
+            Assert.AreEqual("",request.RequestUri.Query);Assert.AreEqual("",request.RequestUri.Fragment);
+            var response=FakeService.Text("value");response.Headers.TryAddWithoutValidation("ETag","\""+Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes("value"))).ToLowerInvariant()+"\"");return response;
+        });
+        using var client=new AmazonS3Client(new BasicAWSCredentials("synthetic-key","synthetic-secret"),new AmazonS3Config{
+            ServiceURL="https://s3.us-east-1.amazonaws.com",AuthenticationRegion="us-east-1",ForcePathStyle=true,MaxErrorRetry=0,
+            HttpClientFactory=new HandlerHttpClientFactory(service)});
+        Assert.AreEqual("value",await new Backend(client,"test-bucket","scope/").GetAsync(key));Assert.AreEqual(1,calls);
+    }
+    [DataTestMethod]
     [DataRow(false,false,false)][DataRow(false,true,false)][DataRow(true,false,false)][DataRow(true,true,false)]
     [DataRow(false,false,true)][DataRow(false,true,true)][DataRow(true,false,true)][DataRow(true,true,true)]
     public async Task Full_object_checksum_is_requested_and_corrupt_bytes_are_not_published(bool observed,bool valid,bool requiredOnly)
