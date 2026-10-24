@@ -8,6 +8,12 @@ The retained provider/history runner is `Scripts/TestHosts/Run-ReusableDynamoHis
 
 Save operations require an authoritative SDK HTTP 200 acknowledgement before publishing caller IDs/provider keys. Missing/invalid responses retain mutation-reconciliation evidence; do not blindly retry them. Avatar-detail records persist the provider-specific storage key and deletion projection, like profile/holon records. Historical record APIs use the existing shared embedded-history codec: version zero selects latest, positive versions select the requested retained version, and negative versions are rejected. Enable `IsVersionControlEnabled` to create histories; disabling new history creation does not erase already retained archives. An absent version is not replaced with latest. Historical credential authentication remains explicitly disallowed; record history is not credential authority. Additional interface, concurrency, recovery and hosted-release gates remain open. Current evidence and limitations are recorded in `Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
 
+Exports additionally support `version=-1` for all validated stored versions, with
+owner/deletion filtering per version and stored archived child payloads. This is
+not a cross-version graph snapshot. Values below `-1` remain invalid; ordinary
+point/collection reads do not accept negative versions. Username/email export
+selectors use the current avatar identity independently of the holon version.
+
 ## Installation
 
 ```sh
