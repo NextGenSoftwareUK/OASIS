@@ -47,6 +47,32 @@ public class EvmErc721MintReceiptTests
         Assert.ThrowsException<InvalidDataException>(() => EvmErc721MintReceipt.Verify(receipt, Contract, Recipient));
     }
 
+    [DataTestMethod, DataRow("none"), DataRow("burn"), DataRow("from"), DataRow("to"),
+        DataRow("contract"), DataRow("id"), DataRow("topics"), DataRow("logs")]
+    public void DirectionalTransferProofBindsEveryNativeField(string defect)
+    {
+        var receipt = Receipt(BigInteger.One); var log = receipt.Logs[0];
+        log.Topics[1] = "0x" + Contract[2..].PadLeft(64,'0');
+        var to = defect == "burn" ? "0x" + new string('0',40) : Recipient;
+        if (defect == "burn") log.Topics[2] = "0x" + new string('0',64);
+        if (defect == "from") log.Topics[1] = "0x" + new string('0',64);
+        if (defect == "to") log.Topics[2] = log.Topics[1];
+        if (defect == "contract") log.Address = Recipient;
+        if (defect == "id") log.Topics[3] = "0x" + new string('0',64);
+        if (defect == "topics") log.Topics = log.Topics.Take(3).ToArray();
+        if (defect == "logs") receipt.Logs = null;
+        if (defect is "none" or "burn") EvmErc721TransferReceipt.Verify(receipt, Contract, Contract, to, BigInteger.One);
+        else Assert.ThrowsException<InvalidDataException>(() => EvmErc721TransferReceipt.Verify(receipt, Contract, Contract, to, BigInteger.One));
+    }
+
+    [DataTestMethod, DataRow("0"), DataRow("115792089237316195423570985008687907853269984665640564039457584007913129639935")]
+    public void TransferProofPreservesZeroAndMaximumNativeTokenIds(string value)
+    {
+        var id = BigInteger.Parse(value); var receipt = Receipt(id);
+        receipt.Logs[0].Topics[1] = "0x" + Contract[2..].PadLeft(64,'0');
+        EvmErc721TransferReceipt.Verify(receipt, Contract, Contract, Recipient, id);
+    }
+
     private static TransactionReceipt Receipt(BigInteger id) => new()
     {
         Status = new HexBigInteger(1), BlockNumber = new HexBigInteger(7), TransactionHash = "0x" + new string('a', 64),

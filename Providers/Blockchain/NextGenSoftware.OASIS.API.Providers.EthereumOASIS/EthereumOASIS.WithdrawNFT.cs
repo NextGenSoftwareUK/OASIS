@@ -259,7 +259,8 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                         result.Message = "ERC-721 transaction reverted.";
                         return result;
                     }
-                    if (receipt.BlockNumber == null) throw new InvalidDataException("NFT receipt has no block number.");
+                    NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721TransferReceipt.Verify(receipt,
+                        transaction.TokenAddress, transaction.FromWalletAddress, transaction.ToWalletAddress, tokenId);
                     owner = await ownerOf.CallAsync<string>(new Nethereum.RPC.Eth.DTOs.BlockParameter(receipt.BlockNumber), tokenId);
                     if (!string.Equals(owner, transaction.ToWalletAddress, StringComparison.OrdinalIgnoreCase))
                         throw new InvalidDataException("NFT receipt did not establish recipient ownership.");
@@ -453,19 +454,8 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                         result.Result = new Web3NFTTransactionResponse { TransactionResult = receipt.TransactionHash };
                         result.Message = "ERC-721 burn transaction reverted."; return result;
                     }
-                    if (receipt.BlockNumber == null) throw new InvalidDataException("NFT burn receipt has no block number.");
-                    var transferTopic = "0x" + Nethereum.Util.Sha3Keccack.Current.CalculateHash("Transfer(address,address,uint256)");
-                    var ownerTopic = "0x" + account.Address.Substring(2).PadLeft(64, '0');
-                    var zeroTopic = "0x" + new string('0', 64);
-                    var idTopic = "0x" + Convert.ToHexString(tokenId.ToByteArray(isUnsigned: true, isBigEndian: true)).PadLeft(64, '0');
-                    var burnt = receipt.Logs != null && receipt.Logs.Any(log =>
-                        string.Equals(log.Address, request.NFTTokenAddress, StringComparison.OrdinalIgnoreCase)
-                        && log.Topics is { Length: 4 } topics
-                        && string.Equals(topics[0]?.ToString(), transferTopic, StringComparison.OrdinalIgnoreCase)
-                        && string.Equals(topics[1]?.ToString(), ownerTopic, StringComparison.OrdinalIgnoreCase)
-                        && string.Equals(topics[2]?.ToString(), zeroTopic, StringComparison.OrdinalIgnoreCase)
-                        && string.Equals(topics[3]?.ToString(), idTopic, StringComparison.OrdinalIgnoreCase));
-                    if (!burnt) throw new InvalidDataException("NFT receipt lacks the exact ERC-721 owner-to-zero burn event.");
+                    NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721TransferReceipt.Verify(receipt,
+                        request.NFTTokenAddress, account.Address, "0x" + new string('0',40), tokenId);
                     result.Result = new Web3NFTTransactionResponse {
                         TransactionResult = receipt.TransactionHash,
                         Web3NFT = new Web3NFT { NFTTokenAddress = request.NFTTokenAddress,
