@@ -54,9 +54,10 @@ public partial class GoogleCloudOASIS
         try
         {
             if(owner==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
-            var loaded=await LoadAllHolonsAsync(loadChildren:false,version:version);
+            var loaded=version==-1?await ExportAllAsync(version):await LoadAllHolonsAsync(loadChildren:false,version:version);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
+            if(version==-1){result.Result=records.Where(row=>row.CreatedByAvatarId==owner).ToList();result.LoadedCount=result.Result.Count();result.IsLoaded=true;return result;}
             var current=version>0?await LoadAllHolonsAsync(loadChildren:false,version:0):loaded;
             if(current.IsError)return current;
             var project=HolonGraphProjection.Create(current.Result,true,true,0,0,true,source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
@@ -71,7 +72,7 @@ public partial class GoogleCloudOASIS
     {
         var result=new OASISResult<IEnumerable<IHolon>>();
         try{
-            ValidateFirestoreVersion(version);
+            ValidateFirestoreVersion(version==-1?0:version);
             // Resolve current identity; only exported holon roots use the requested version.
             var loaded=await ReadCanonicalAvatarSelectorAsync(selector,email,0);
             if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
