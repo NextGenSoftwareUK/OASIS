@@ -150,13 +150,14 @@ public partial class SolanaOASIS
             var loaded = load();
             if (loaded.IsError) return loaded;
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<T>>(loaded);
-            result.Result = query.Select(loaded.Result, row => row.IsActive && !row.IsDeleted && (type == HolonType.All || row.HolonType == type));
-            result.IsLoaded = true;
+            var selected=query.Select(loaded.Result, row => row.IsActive && !row.IsDeleted && (type == HolonType.All || row.HolonType == type));
+            result.Result=selected;result.IsLoaded=true;result.LoadedCount=selected.Count;
         }
         catch (Exception cause)
         {
             result.Result = null;
             result.IsLoaded = false;
+            result.LoadedCount = 0;
             OASISErrorHandling.HandleError(ref result, cause.Message, cause);
         }
         return result;

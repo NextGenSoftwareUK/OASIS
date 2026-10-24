@@ -31,7 +31,7 @@ public sealed partial class SolanaService
             if(selected.Count==0) throw new KeyNotFoundException("No authenticated Solana record matches the requested identity.");
             var entry=selected[0];
             entry.Record.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS]=entry.Signature;
-            result.Result=entry.Record;result.IsLoaded=true;
+            result.Result=entry.Record;result.IsLoaded=true;result.LoadedCount=1;
         }
         catch(Exception cause)
         {
