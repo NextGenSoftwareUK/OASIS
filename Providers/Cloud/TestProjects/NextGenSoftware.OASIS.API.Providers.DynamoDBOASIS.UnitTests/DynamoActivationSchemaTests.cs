@@ -15,7 +15,7 @@ public class DynamoActivationSchemaTests
         {
             var keys=new List<KeySchemaElement>{new(){AttributeName=kind==1?"wrong":"id",KeyType=KeyType.HASH}};
             if(kind==2)keys.Add(new(){AttributeName="extra",KeyType=KeyType.RANGE});
-            return Task.FromResult(new DescribeTableResponse{Table=new(){TableName=name,TableStatus=TableStatus.ACTIVE,KeySchema=keys,
+            return Task.FromResult(new DescribeTableResponse{HttpStatusCode=System.Net.HttpStatusCode.OK,Table=new(){TableName=name,TableStatus=TableStatus.ACTIVE,KeySchema=keys,
                 AttributeDefinitions=new(){new(){AttributeName="id",AttributeType=kind==3?ScalarAttributeType.N:ScalarAttributeType.S}}}});
         }
     }

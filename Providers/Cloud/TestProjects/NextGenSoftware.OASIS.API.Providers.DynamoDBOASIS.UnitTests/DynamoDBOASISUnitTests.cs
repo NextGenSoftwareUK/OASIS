@@ -145,6 +145,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
             Func<Task<Amazon.DynamoDBv2.Model.DescribeTableResponse>> describe=()=> {
                 observations++;
                 return Task.FromResult(new Amazon.DynamoDBv2.Model.DescribeTableResponse {
+                    HttpStatusCode=System.Net.HttpStatusCode.OK,
                     Table=new Amazon.DynamoDBv2.Model.TableDescription {TableStatus=status}});
             };
             Func<Task> delay=()=> {delays++;return Task.CompletedTask;};
