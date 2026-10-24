@@ -58,6 +58,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmNftMintMetadata.cs" Link="Shared\EvmNftMintMetadata.cs" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmErc721MintReceipt.cs" Link="Shared\EvmErc721MintReceipt.cs" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmErc721TransferReceipt.cs" Link="Shared\EvmErc721TransferReceipt.cs" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\Web3SignedPreparation.cs" Link="Shared\Web3SignedPreparation.cs" />
