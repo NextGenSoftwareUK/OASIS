@@ -15,7 +15,11 @@ public partial class MongoDBOASIS
     private async Task<OASISResult<ISearchResults>> SearchValidatedAsync(ISearchParams query,bool children,bool recursive,int depth,int version,bool synchronous)
     {
         var result=new OASISResult<ISearchResults>();
-        try {StoredRecordSearch.Validate(query,version,depth,supportsHistory:true);}
+        try {
+            StoredRecordSearch.Validate(query,version,depth,supportsHistory:true);
+            query=OasisJson.Project<SearchParams>(query);
+            StoredRecordSearch.Validate(query,version,depth,supportsHistory:true);
+        }
         catch(Exception cause) when(cause is ArgumentException or NotSupportedException)
         {
             OASISErrorHandling.HandleError(ref result,"Invalid Mongo search request: "+cause.Message,cause);
