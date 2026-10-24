@@ -86,6 +86,8 @@ public partial class Neo4jOASIS
             (long)CosmicNumericScalarResults.MaximumParticipatingValues + 1));
         translator.Parameters.Add("groupLimit", maximumGroups + 1);
         translator.Parameters.Add("groupBytes", maximumPayloadBytes);
+        translator.Parameters.Add("resultOffset", query.ResultOffset);
+        translator.Parameters.Add("resultTake", query.ResultLimit);
         // Character length is a lower bound on UTF-8 bytes. Reject oversized
         // cells before transfer; the shared read budget charges exact bytes.
         long lowerBytes = 32 + 16 * (query.Grouping.Key.Columns.Count + query.Columns.Count);
@@ -155,11 +157,25 @@ public partial class Neo4jOASIS
             + (reductions.Count == 0 ? "" : "," + string.Join(",", reductions))
             + " RETURN inputs," + keyCells + " AS keys," + packets + " AS aggregates,invalid=0 AS valid,"
             + "false AS traversalCycle,false AS traversalLimit } WITH inputs,keys,aggregates,valid,traversalCycle,traversalLimit,"
-            + byteExpression + " > $groupBytes AS payloadLimit RETURN inputs,"
+            + byteExpression + " > $groupBytes AS payloadLimit WITH inputs,"
             + "CASE WHEN payloadLimit THEN [] ELSE keys END AS keys,"
             + "CASE WHEN payloadLimit THEN [] ELSE aggregates END AS aggregates,"
             + "valid,traversalCycle,traversalLimit,payloadLimit "
             + "ORDER BY valid ASC,payloadLimit DESC," + string.Join(",", resultOrder) + " LIMIT $groupLimit";
+        const string fields = "inputs,keys,aggregates,valid,traversalCycle,traversalLimit,payloadLimit";
+        if (query.ResultOffset != 0 || query.ResultLimit.HasValue)
+        {
+            // Bound the ordered proof first, then compute native membership.
+            // Off-page packets remain mandatory proof; no source rows hydrate.
+            cypher += " WITH collect({inputs:inputs,keys:keys,aggregates:aggregates,valid:valid,"
+                + "traversalCycle:traversalCycle,traversalLimit:traversalLimit,payloadLimit:payloadLimit}) AS groupPackets"
+                + " UNWIND range(0,size(groupPackets)-1) AS groupIndex"
+                + " WITH groupPackets[groupIndex] AS packet,groupIndex RETURN "
+                + string.Join(",", fields.Split(',').Select(field => "packet." + field + " AS " + field))
+                + ",groupIndex >= $resultOffset AND ($resultTake IS NULL OR groupIndex < $resultOffset+$resultTake) AS resultMember"
+                + " ORDER BY groupIndex";
+        }
+        else cypher += " RETURN " + fields + ",true AS resultMember";
         return new NeoCqlGroupedCommand(cypher, translator.Parameters);
     }
 }

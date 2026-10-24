@@ -62,4 +62,18 @@ public sealed class NeoCqlGroupedTests
         Assert.IsFalse(command.Query.Contains(hostile));
         Assert.IsTrue(command.Parameters.Values.OfType<string>().Any());
     }
+
+    [TestMethod]
+    public void NativeResultPageRanksOnlyTheBoundedOrderedProof()
+    {
+        var query = CosmicQuery<Holon>.Create().GroupBy(h => h.Name)
+            .Select(g => g.LongCount()).Skip(2).Take(1).Result;
+        var command = Neo4jOASIS.CompileCqlGrouped(query, 10);
+        Assert.IsTrue(command.Query.IndexOf("LIMIT $groupLimit", StringComparison.Ordinal)
+            < command.Query.IndexOf("WITH collect(", StringComparison.Ordinal));
+        Assert.IsTrue(command.Query.Contains("AS resultMember"));
+        Assert.AreEqual(2, command.Parameters["resultOffset"]);
+        Assert.AreEqual(1, command.Parameters["resultTake"]);
+        Assert.AreEqual(11, command.Parameters["groupLimit"]);
+    }
 }
