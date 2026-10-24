@@ -12,6 +12,35 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests;
 [TestClass]
 public class BigQuerySaveAcknowledgementTests
 {
+    [DataTestMethod][DataRow(false,false,0)][DataRow(false,true,0)][DataRow(true,false,0)][DataRow(true,true,0)]
+    [DataRow(false,false,5)][DataRow(false,true,5)][DataRow(true,false,5)][DataRow(true,true,5)]
+    public async Task PublicHolonDeletePreservesMutationOutcome(bool key,bool sync,int outcome)
+    {
+        var id=Guid.NewGuid();var client=new Client(outcome,()=>{}){ReadRecord=Core.Serialization.StoredRecordJson.Serialize(new Holon{Id=id})};
+        var provider=new BigQueryOASIS("my-project");typeof(BigQueryOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,client);
+        var result=key?(sync?provider.DeleteHolon(id.ToString()):await provider.DeleteHolonAsync(id.ToString())):(sync?provider.DeleteHolon(id):await provider.DeleteHolonAsync(id));
+        Assert.AreEqual(outcome!=5,result.IsError);Assert.AreEqual(outcome==5,result.IsDeleted);Assert.AreEqual(outcome==5?1:0,result.DeletedCount);
+        if(outcome==0){Assert.IsNull(result.Result);Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception));}
+        else Assert.AreEqual(id,result.Result.Id);
+    }
+
+    public static IEnumerable<object[]> DeleteCases(){foreach(var holon in new[]{false,true})foreach(var sync in new[]{false,true})foreach(var outcome in new[]{0,1,2,3,4,5,7,8,9})yield return new object[]{holon,sync,outcome};}
+    [DataTestMethod][DynamicData(nameof(DeleteCases),DynamicDataSourceType.Method)]
+    public async Task HardDeleteRequiresBoundOneRowNativeAcknowledgement(bool holon,bool sync,int outcome)
+    {
+        var id=Guid.NewGuid();var client=new Client(outcome,()=>{});var provider=new BigQueryOASIS("my-project");
+        typeof(BigQueryOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,client);
+        var result=holon?(sync?provider.DeleteHolonSoft(id,false):await provider.DeleteHolonSoftAsync(id,false)):(sync?provider.DeleteAvatar(id,false):await provider.DeleteAvatarAsync(id,false));
+        Assert.AreEqual(1,client.Calls);Assert.AreEqual(outcome!=5,result.IsError);Assert.AreEqual(outcome==5,result.Result);
+        Assert.AreEqual(outcome==5,result.IsDeleted);Assert.AreEqual(outcome==5?1:0,result.DeletedCount);
+        if(outcome!=5){
+            Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception));var cause=result.Exception as BigQueryRecordReconciliationException;Assert.IsNotNull(cause);
+            Assert.AreEqual(id,cause.RecordId);Assert.AreEqual("my-project",cause.ProjectId);Assert.AreEqual(client.ProposedJobId,cause.OriginalTransactionId);
+            StringAssert.StartsWith(cause.OriginalTransactionId,"oasis-record-");Assert.IsFalse(cause.WriteAcknowledged);
+            if(outcome==0)Assert.AreSame(client.Failure,cause.InnerException);
+        }
+    }
+
     private sealed class Sequence(int failAt):BigQueryClient
     {
         public int Calls;
@@ -51,10 +80,12 @@ public class BigQuerySaveAcknowledgementTests
     }
     private sealed class Client(int outcome,Action edit):BigQueryClient
     {
-        public int Calls;public string? ProposedId,ProposedJobId;
+        public int Calls;public string? ProposedId,ProposedJobId,ReadRecord;
         public readonly IOException Failure=new("Controlled native result loss.");
         public override Task<BigQueryResults> ExecuteQueryAsync(string sql,IEnumerable<BigQueryParameter> parameters,QueryOptions? queryOptions=null,GetQueryResultsOptions? resultsOptions=null,CancellationToken token=default)
         {
+            if(sql.TrimStart().StartsWith("SELECT",StringComparison.Ordinal)&&ReadRecord!=null)
+                return Task.FromResult(new BigQueryResults(this,new GetQueryResultsResponse{JobComplete=true,JobReference=new(){ProjectId="my-project",JobId="owned-read"},TotalRows=1,Schema=new(){Fields=new List<TableFieldSchema>{new(){Name="doc",Type="STRING"}}},Rows=new List<TableRow>{new(){F=new List<TableCell>{new(){V=ReadRecord}}}}},null,new GetQueryResultsOptions()));
             Calls++;ProposedId=parameters?.SingleOrDefault(parameter=>parameter.Name=="id")?.Value?.ToString();ProposedJobId=queryOptions?.JobId;
             if(outcome==0)throw Failure;
             if(outcome==1)return Task.FromResult<BigQueryResults>(null!);

@@ -12,6 +12,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests;
 [TestClass]
 public class BigQueryCollectionTests
 {
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task MissingSoftDeleteIsNotReportedAsDeleted(bool holon,bool sync)
+    {
+        var client=new Rows{Selected=Array.Empty<string>()};var provider=new BigQueryOASIS("my-project");
+        typeof(BigQueryOASIS).GetField("_client",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,client);
+        var id=Guid.NewGuid();var result=holon?(sync?provider.DeleteHolonSoft(id):await provider.DeleteHolonSoftAsync(id)):(sync?provider.DeleteAvatar(id):await provider.DeleteAvatarAsync(id));
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsDeleted);Assert.AreEqual(0,result.DeletedCount);
+        Assert.IsInstanceOfType<KeyNotFoundException>(result.Exception);
+    }
+
     public static IEnumerable<object[]> UniqueSelectorCases(){foreach(var route in Enumerable.Range(0,7))foreach(var sync in new[]{false,true})foreach(var count in new[]{0,1,2})yield return new object[]{route,sync,count};}
     [DataTestMethod][DynamicData(nameof(UniqueSelectorCases),DynamicDataSourceType.Method)]
     public async Task PointSelectorsRequireExactlyOneMatchingRow(int route,bool sync,int count)
