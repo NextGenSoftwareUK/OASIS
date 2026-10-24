@@ -8,16 +8,21 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS;
 
 public partial class BigQueryOASIS
 {
-    private async Task<OASISResult<T>> SaveAcknowledgedRecordAsync<T>(T source,string table)where T:class,IHolonBase
+    private async Task<OASISResult<T>> SaveAcknowledgedRecordAsync<T>(T source,string table,bool observationProvided=false,string? observedRaw=null)where T:class,IHolonBase
     {
         var result=new OASISResult<T>();var acknowledged=false;var id=Guid.Empty;BigQueryWriteAcknowledgement? native=null;
         try{
+            ValidateRecordWrite(source);
             var snapshot=StoredRecordPublicationSnapshot<T>.Capture(source);var proposed=snapshot.Proposal;
             if(proposed.Id==Guid.Empty)proposed.Id=Guid.NewGuid();id=proposed.Id;
             proposed.ProviderUniqueStorageKey??=new();proposed.ProviderUniqueStorageKey[Core.Enums.ProviderType.BigQueryOASIS]=id.ToString();
-            native=await UpsertDocAsync(table,id.ToString(),proposed);acknowledged=true;result.SavedCount=1;
+            var original=observationProvided?observedRaw:(await ObserveRecordAsync<T>(table,id)).Raw;
+            var staged=await StageRecordHistoryAsync(proposed,original);
+            snapshot.ValidateUnchanged();
+            native=await UpsertDocAsync(table,id.ToString(),staged.Record,checkOriginal:true,expectedDoc:original,documentJson:staged.Document);acknowledged=true;result.SavedCount=1;
             snapshot.ValidateUnchanged();
             source.Id=id;source.ProviderUniqueStorageKey??=new();source.ProviderUniqueStorageKey[Core.Enums.ProviderType.BigQueryOASIS]=id.ToString();
+            PublishRecordVersion(source,staged.Record);
             result.Result=source;result.IsSaved=true;
         }catch(Exception cause){
             if(acknowledged)cause=new BigQueryRecordReconciliationException(id,_projectId,native!.JobId,native.Location,true,cause);
