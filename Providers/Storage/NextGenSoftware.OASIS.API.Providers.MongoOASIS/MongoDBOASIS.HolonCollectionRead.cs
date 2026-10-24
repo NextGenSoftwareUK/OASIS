@@ -30,6 +30,7 @@ public partial class MongoDBOASIS
             if(parentKey!=null && !ObjectId.TryParse(parentKey,out _)) throw new ArgumentException("A native Mongo parent key is required.");
             if(metadata!=null && (metadata.Count==0 || metadata.Any(pair=>string.IsNullOrWhiteSpace(pair.Key) || pair.Value==null)))
                 throw new ArgumentException("Metadata query requires nonempty keys and nonnull values.");
+            if(metadata!=null)metadata=new Dictionary<string,string>(metadata,StringComparer.Ordinal);
             if(version>0 || children && fromProvider)
                 session=synchronous ? Database.MongoClient.StartSession(new ClientSessionOptions {Snapshot=true})
                     :await Database.MongoClient.StartSessionAsync(new ClientSessionOptions {Snapshot=true}).ConfigureAwait(false);
