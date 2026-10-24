@@ -183,7 +183,7 @@ public sealed class MongoAccountHistoryNativeTests(ITestOutputHelper output)
                 foreach(var searchCase in new[]{(Text:"old-"+label,Version:version,Count:1),(Text:"old-"+label,Version:0,Count:0),(Text:"new-"+label,Version:version,Count:0),(Text:"new-"+label,Version:version+1,Count:1)})
                 {
                     var query=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,
-                        SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery=searchCase.Text,SearchAvatars=true,SearchHolons=false}}};
+                        SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery=searchCase.Text,SearchAvatars=false,SearchHolons=false}}};
                     var found=synchronous?provider.Search(query,loadChildren:false,version:searchCase.Version):await provider.SearchAsync(query,loadChildren:false,version:searchCase.Version);
                     Assert.False(found.IsError,found.Message+found.Exception);Assert.True(found.IsLoaded);Assert.Equal(searchCase.Count,found.LoadedCount);
                     Assert.Equal(searchCase.Count,found.Result.SearchResultAvatars.Count);

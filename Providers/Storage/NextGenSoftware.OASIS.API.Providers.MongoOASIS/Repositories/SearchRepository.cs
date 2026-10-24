@@ -98,6 +98,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 foreach (ISearchGroupBase searchGroup in searchParams.SearchGroups ?? new List<ISearchGroupBase>())
                 {
                     currentGroupType=searchGroup.HolonType;
+                    var targetAvatars=searchGroup.SearchAvatars || !searchGroup.SearchHolons;
+                    var targetHolons=searchGroup.SearchHolons || !searchGroup.SearchAvatars;
                     // Collect this group's results into temporary lists, then apply AND/OR below.
                     List<Avatar> groupAvatars = new List<Avatar>();
                     List<Holon> groupHolons = new List<Holon>();
@@ -106,7 +108,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                     if (searchTextGroup != null)
                     {
-                        if (searchTextGroup.SearchAvatars)
+                        if (targetAvatars)
                         {
                             var mask=searchTextGroup.AvatarSearchParams;
                             if(ExtendedTextMask(mask,"FirstName","LastName","Username","Email"))
@@ -139,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             }
                         }
 
-                        if (searchTextGroup.SearchHolons)
+                        if (targetHolons)
                         {
                             var filter = HolonRepository.BuildHolonTypeFilter(HolonType.All);
                             if(ExtendedTextMask(searchTextGroup.HolonSearchParams,"Name","Description"))
@@ -174,13 +176,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     var nativeComparisonFields=searchGroup is ISearchDateGroup ? new[] {"CreatedDate","ModifiedDate","DeletedDate"}:new[] {"Version"};
                     var extendedAvatar=comparison && ExtendedTextMask(searchGroup.AvatarSearchParams,nativeComparisonFields);
                     var extendedHolon=comparison && ExtendedTextMask(searchGroup.HolonSearchParams,nativeComparisonFields);
-                    if(extendedAvatar && searchGroup.SearchAvatars)
+                    if(extendedAvatar && targetAvatars)
                     {
                         var candidates=await Read(_dbContext.Avatar,Builders<Avatar>.Filter.Eq(row=>row.DeletedDate,DateTime.MinValue)).ConfigureAwait(false);
                         groupAvatars.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesSearchFields(
                             DataHelper.ConvertMongoEntityToOASISAvatar(new OASISResult<Avatar>(row),false).Result,true,searchGroup)));
                     }
-                    if(extendedHolon && searchGroup.SearchHolons)
+                    if(extendedHolon && targetHolons)
                     {
                         var candidates=await Read(_dbContext.Holon,HolonRepository.BuildHolonTypeFilter(HolonType.All)).ConfigureAwait(false);
                         groupHolons.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesSearchFields(
@@ -189,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                     if (searchDateGroup != null)
                     {
-                        if (searchDateGroup.SearchAvatars && !extendedAvatar)
+                        if (targetAvatars && !extendedAvatar)
                         {
                             if (searchDateGroup.AvatarSearchParams?.CreatedDate ?? true)
                             {
@@ -294,7 +296,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             }
                         }
 
-                        if (searchDateGroup.SearchHolons && !extendedHolon)
+                        if (targetHolons && !extendedHolon)
                         {
                             if (searchDateGroup.HolonSearchParams?.CreatedDate ?? true)
                             {
@@ -404,7 +406,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                     if (searchNumberGroup != null)
                     {
-                        if (searchNumberGroup.SearchAvatars && !extendedAvatar)
+                        if (targetAvatars && !extendedAvatar)
                         {
                             if (searchNumberGroup.AvatarSearchParams?.Version ?? true)
                             {
@@ -441,7 +443,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             }
                         }
 
-                        if (searchNumberGroup.SearchHolons && !extendedHolon)
+                        if (targetHolons && !extendedHolon)
                         {
                             if (searchNumberGroup.HolonSearchParams?.Version ?? true)
                             {

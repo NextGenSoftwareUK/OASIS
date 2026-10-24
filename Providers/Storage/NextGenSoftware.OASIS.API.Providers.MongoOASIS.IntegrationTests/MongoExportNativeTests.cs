@@ -322,6 +322,7 @@ public sealed class MongoExportNativeTests(ITestOutputHelper output)
                 if(kind==5)query.SearchGroups.Add(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchNumberGroup{
                     Number=searchCase.Version==0?2:searchCase.Version,NumberOperator=SearchOperatorType.EqualTo,
                     PreviousSearchGroupOperator=SearchParamGroupOperator.And,SearchHolons=true,SearchAvatars=false,HolonType=HolonType.Park});
+                if(kind==3){query.SearchGroups[0].SearchHolons=false;query.SearchGroups[0].SearchAvatars=false;}
                 var found=sync?provider.Search(query,loadChildren:false,version:searchCase.Version):await provider.SearchAsync(query,loadChildren:false,version:searchCase.Version);
                 Assert.False(found.IsError,found.Message+found.Exception);Assert.True(found.IsLoaded);Assert.Equal(searchCase.Count,found.LoadedCount);
                 Assert.Equal(searchCase.Count,found.Result.SearchResultHolons.Count);
