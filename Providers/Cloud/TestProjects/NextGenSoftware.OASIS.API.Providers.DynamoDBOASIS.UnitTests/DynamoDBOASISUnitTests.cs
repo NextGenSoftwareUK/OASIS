@@ -113,6 +113,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
         public async Task QueryPaginationIncludesLaterPagesAndDoesNotHideLaterFailure(bool fail)
         {
             int calls=0;
+            var pageIds=new[]{Guid.NewGuid().ToString("D"),Guid.NewGuid().ToString("D")};
             var cause=new System.IO.IOException("owned later page failure");
             Func<Amazon.DynamoDBv2.Model.QueryRequest,Task<Amazon.DynamoDBv2.Model.QueryResponse>> query=request=> {
                 calls++;
@@ -122,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
                 }
                 return Task.FromResult(new Amazon.DynamoDBv2.Model.QueryResponse {
                     HttpStatusCode=System.Net.HttpStatusCode.OK,
-                    Items=new() {new() {["id"]=new() {S="page-"+calls}}},
+                    Items=new() {new() {["id"]=new() {S=pageIds[calls-1]}}},
                     LastEvaluatedKey=calls==1 ? new() {["id"]=new() {S="cursor"}} : new()
                 });
             };
@@ -130,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
                 .GetMethod("ReadQueryItemsAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!
                 .Invoke(null,new object[] {query,new Amazon.DynamoDBv2.Model.QueryRequest {TableName="OasisHolons"}})!;
             if(fail) Assert.AreSame(cause,await Assert.ThrowsExceptionAsync<System.IO.IOException>(()=>task));
-            else {var rows=await task;Assert.AreEqual(2,rows.Count);Assert.AreEqual("page-2",rows[1]["id"].S);}
+            else {var rows=await task;Assert.AreEqual(2,rows.Count);Assert.AreEqual(pageIds[1],rows[1]["id"].S);}
             Assert.AreEqual(2,calls);
         }
 
@@ -187,10 +188,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
         public async Task IdentityQueryReadsPastDeletedPageAndRejectsLaterDuplicate(bool duplicate)
         {
             var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=Guid.NewGuid(),Username="owned-user"};
-            Dictionary<string,Amazon.DynamoDBv2.Model.AttributeValue> Row(bool deleted) => new() {
-                ["id"]=new() {S=avatar.Id.ToString()}, ["is_deleted"]=new() {BOOL=deleted},
+            Dictionary<string,Amazon.DynamoDBv2.Model.AttributeValue> Row(bool deleted,Guid id) => new() {
+                ["id"]=new() {S=id.ToString()}, ["is_deleted"]=new() {BOOL=deleted},
                 ["data_json"]=new() {S=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(
-                    new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=avatar.Id,Username=avatar.Username,
+                    new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username=avatar.Username,
                         DeletedDate=deleted ? new DateTime(2026,10,16,0,0,0,DateTimeKind.Utc):DateTime.MinValue})}
             };
             int calls=0;
@@ -200,7 +201,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
                 if(calls>1) Assert.AreEqual("next",request.ExclusiveStartKey["id"].S);
                 return Task.FromResult(new Amazon.DynamoDBv2.Model.ScanResponse {
                     HttpStatusCode=System.Net.HttpStatusCode.OK,
-                    Items=calls==1 ? new() {Row(true)} : duplicate ? new() {Row(false),Row(false)} : new() {Row(false)},
+                    Items=calls==1 ? new() {Row(true,Guid.NewGuid())} : duplicate ? new() {Row(false,avatar.Id),Row(false,Guid.NewGuid())} : new() {Row(false,avatar.Id)},
                     LastEvaluatedKey=calls==1 ? new() {["id"]=new() {S="next"}} : new()
                 });
             };
