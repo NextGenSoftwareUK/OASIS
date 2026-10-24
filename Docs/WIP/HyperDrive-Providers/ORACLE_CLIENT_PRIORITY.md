@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## 24 October — conditional admission/replay local gate closed
+
+Latest fresh full retained ODP.NET native **502/502PASS, zero skipped,71seconds**; Core2477/Shared1181alsoPASS. Core17ba4f44a75f93d9704907419dbbd8767737298c separates conditional intent validation from ordinary process-local observation authority. Known partial views still reject before native I/O, including explicit roles/AcceptChanges; exact complete copied-ack graphs can bind original receipts and subsequent revision-bound updates. Omitted/flattened stored-role controls reject without granting ordinary replacement authority. Existing native replay/update/stale/reused-ID/delete/historical replay phases all passed, not merely the memory control.
+
+Original failure reconciled1PASS: original receipt intent and complete row payloads verified, then only2unchanged synthetic rows/1receipt conditionally removed, fourunusedoperation receipts/allguards absent, independently confirmed before clearing journal. No mutation replay/reset/new runtime/download. FailedTRX preserved as oracle-native-current.trx.conditional-intent-failed-9B7A77A7; fresh801831byte nativeTRX SHA2569B70193B7EF8F9539E02DBB3D2519F361DFB9B0DAF32539686012393DEEB6C5C. Pending0; retained OracleEXITED. Task-branch publication only. Hosted Autonomous/OCI IAM/security/durability/fees and complete provider/V2 gates still OPEN: **not100%Oracle**. Historical failing candidate details below are superseded by this verified local repair.
+
 ## Conditional caller admission follow-up — 24 October, candidate not published
 
 The shared conditional transaction planner still used structural graph capture. Eight controlled cases genuinely admitted known incomplete caller graphs (stored/no manifest, before/after AcceptChanges, explicit/no roles). Switching this caller boundary to CreateForSave makes all8pass and fullShared1178PASS0skip11s; root-only controls remain permitted. Added conditional rejection/receipt-absence/CLOB-invariance checks to the SAME4native scoped fixtures, no new namespace/runtime.
