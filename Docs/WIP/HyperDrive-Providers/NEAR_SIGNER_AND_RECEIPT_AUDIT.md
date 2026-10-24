@@ -1,5 +1,15 @@
 # NEAR signer and receipt audit
 
+## Real signed acknowledgement success verified — 24 October
+
+Fresh **1/1native PASS, zero skips,4seconds** through actual Windows C# service/near-api-js7.3.1 on SAME retained near-sandbox2.6.2, with3transactions:1yocto test.near→itself transfer; fixed public synthetic NFT oasis-signed-ack-probe mint including exact Int64max argument; owner/metadata/unlocked readback then owned burn and independent absence. Every returned receipt passed the new transaction/signer/receiver/action/amount/method/argument/numeric-gas/FINALsuccess binding, then independent public status Completed. This verifies the generic signed success path and raw argument protocol on a real local chain, not merely a mocked envelope. Extra numeric argument is ignored by the NFT contract but exact bytes are checked against its native receipt; contract-side numeric interpretation is not claimed.
+
+Explicit signed test scope never runs the old full19suite or read-only mode. Fsynced pending journal is created before submissions and updated with each known receipt before readback. On failure no automatic cleanup/replay occurs; existing runner recognizes the new pending journal and retains the owned node for reconciliation. On success NFT absence precedes phaseverified-fixture-absent and pending→complete move. Fixed token avoids accumulating new NFT identities. Existing local key used only via owned stdin, no credential file/copy/log; storage DPAPI key not needed. Deployment code/genesis/retention identities verified; no new node/image/runtime/download/restore/reset/upload/public funds. Local gas consumed, not a free-mainnet/retail fee claim.
+
+Matched **322controlled/SDK-encoding PASS, zero skips,17seconds** refreshed against the SAME producer PE993736C1123CF1553D5499543CDBBE9EB7EA3623AD8ED0301F3CCE46450B76EA after commit metadata changed the assembly from the earlier cohort. Source/PDB provider18/unit34/integration8/Core742/Shared56 and consumer copies verified. Native TRX D7711AA8..., complete journal400E7CE8... and matched regression7AA87412... exact paths/hashes in inventory. Pending0, same node cleanSIGINT/allRocksDBclosed/process/listeners absent; fixed NFT removed through burn, required journal/report/log retained.
+
+This closes bounded native signed SUCCESS verification for generic calls/transfers, not all signed operations, native negative classification, forced response loss/durable pre-broadcast recovery, wallet followup persistence, ordinary put/delete, hosted auth/fees/fullinterfaces/V2. Original15/19report AA17152C... remains unchanged and its earlier failures are NOT relabelled by these separate cohorts.
+
 ## C# to real SDK argument precision repaired — 24 October
 
 Four tests using the actual retained near-api-js7.3.1 actions.functionCall encoder reproduced3precision failures/1smallinteger control PASS: Int64max, negative beyond2^53 and high-precision decimal were changed by the Node object's JSON.parse→SDK JSON.stringify boundary. Prior receipt binding detected wrong arguments only after an operation could already execute; prevention must happen before signing.
