@@ -1,5 +1,109 @@
 # Reusable environments and disk inventory
 
+## Final selected-save/acknowledgement batch — 24 October 2026
+
+Owner HyperDrive provider task, existing C:/Source/OASIS/task branch. Core2a307fe964bde6589d99ea1790a78f763b620092 committed/pushed; parent gitlink/manifest advanced together. No Development/master deployment. Reused C:/Program Files/dotnet/dotnet.exe SDK10.0.401 and C:/Users/david/.nuget/packages/ (shared/inherited, total size unmeasured), ODP.NET23.6.0, OCI149.0.0, BigQuery3.9.0 and pinned S3 SDK3.7.502; no restore/install/download/new worktree/environment. Caches/runtimes remain reusable/shared, not cleanup targets of this batch.
+
+Actual10609terminal0: Shared1170PASS; original acknowledgement-view reconciliation1PASS1s; full real Oracle502PASS0skip69s. Actual7070terminal0: final Shared1170/Core2474/BigQuery860/Oracle-unit419/OCI-loopback127/Edge-protocol114PASS0skip. Core2474includes20peer UInt64-wire cases already on the task branch, not20new cases claimed by this repair. BigQuery's4scoped cases now also prove save rejection before any additional SDK read. Oracle and OCI/S3 controlled transport counts are distinct scopes; no cloud IAM/security/fees/fullV2 certification.
+
+Cleanup verified: original scoped20rows and four journals, then acknowledgement-view7rows/4native operation receipts and four journals removed ONLY after exact identity/version/history/role/outcome inspection. Exact-ID+CLOB and operation/request-hash/result-CLOB transactions; independent absence preceded journal removal. No original mutation replay or data-volume reset. Regenerate synthetic data via native tests, not from user data. Retain compact SHA evidence and original failed reports: original795507byte .pre-scoped-visibility,807200byte .scoped-failed-0FE26BD5 and817156byte .ack-view-failed-1B7B5182 archives retain original hashes documented above. These are verified MOVES, not duplicate environments or relabelled green reports.
+
+Final native pending0, retained oasis-oracle-free independentlyEXITED;11521/18661listeners absent. OCI/S3 fixtures own only synthetic HTTP data; no hosted calls or charges. Retained Oracle volume exact WSL Ubuntu /var/lib/containers/storage/volumes/oasis-oracle-data/_data now apparent6452099415/allocated6434078720bytes, versus earlier apparent6247927639/allocated6229901312. Allocated growth204177408bytes (~194.7MiB) is retained database storage, not a new runtime/download; do not claim deleted rows instantly reclaim database files or WSL VHD space. No unsafe shrink/delete/WSL shutdown while peer tests use shared resources. Retain volume for upcoming native/V2 gates; removal requires a separate verified retention/teardown decision. Final whole-drive free69,420,060,672bytes is a shared-machine observation with concurrent work, not exact task attribution/reclamation.
+
+Validated PE/PDB/source/copy checkpoint under lease before release: Core743 SHA256DAD1283D64CF179ACFF9EDAF88514E54159478BEEE57D4B2EF028CA2075DF992, Shared56 F03CD242EAD5CDDBBA6F9B7A6144137BBAD1A00EB33C82F49EFE5CEB744B80CA. Reconciliation's earlier Shared2FD86EA9 cohort remains separate; the later producer refresh changed build metadata, and all final consumers were rebuilt/tested against finalF03. Core source was then committed without source changes; binaries identify the validated local cohort, not deployed Railway bytes. Later shared rebuilds after release may legitimately change producer hashes and are not silently added to this checkpoint.
+
+| Validated assembly | Source documents | SHA256 |
+|---|---:|---|
+| Shared.KeyValueStorage.UnitTests |77|79D521E2701075F4E71A32DCBE7455C79887656A26312E83263E8E9A8BD891C6|
+| Core.UnitTests |157|74D070A654B9836068B5534F75D3A91001B954DA4D3FA420E6603153154D3D37|
+| OracleDBOASIS.IntegrationTests |42|D54A2087895FD13F9298EB90585FFA844265E001DE0DBA20AF6753F9658CBECB|
+| BigQueryOASIS.UnitTests |16|B311B5C4E3B9F97BAAA5B4F595BF2B910F20D0D5108A3E7657F6599AD598341B|
+| OracleDBOASIS.UnitTests |30|F3906D01E5DA0A603A2C2EB7FF1F0890F2AD750A7AE1B66CBE799590A0DB609D|
+| OracleObjectStorageOASIS.UnitTests |6|00B6CA40A60254334B28140921702B74268000990B3B260811E8C10A5F7B8B53|
+| EdgeStorage.ProtocolTests |11|CE54470C5EE4061ACBEB7314A0B1E24EEF42F62D90D03CE6EBA58DC6467C9333|
+| BigQueryOASIS producer/copy |8|D60393053286644ED3B3314A548B9096E20F36321D9556C2AD1D735B31EA62B0|
+| OracleDBOASIS producer/native copy |15|58E6F64E93F785E222FFB044A93FC74E46E4A62131631BC43DBC7917EDC633E7|
+| OracleObjectStorageOASIS producer/copy |5|E252F6E3CCDE568ADAD1AB8CE729A8A4CF5EEB479A8C7140F5E1C6AC80F74471|
+| Shared.S3 producer/copy |4|9F769DA67EE58681D2450F403FBF37AB43B73BEB3ED1ECED0871B2F68E179D9D|
+
+Retained fixed evidence below, base C:/Source/OASIS/. No live process dependency. Reproduce with the existing bounded project/runner gates under lease; original failures remain forensic evidence, not disposable unknown outcomes. No generated environment or signing secret persisted by this work.
+
+| Evidence | Bytes | SHA256 |
+|---|---:|---|
+| TestResults/OracleCurrent/oracle-native-current.trx (502PASS) |801831|804A082078C03D110630E5C54ABFA63E2115EAD164AF4E85B59C5F64FFC76FD0|
+| TestResults/OracleCurrent/oracle-acknowledgement-view-reconciliation.trx |2710|95E06C64E3DB978DEE6AE9B0A0A1B3775C8CFFC92FBCBD53E3DF693263C7E726|
+| TestResults/OracleCurrent/acknowledgement-view-reconciliation-evidence.json |1661|EB6C591D946BA2CD020262DC502748350DFA69D3B79A91C5B8CED651BF5F2A4F|
+| TestResults/ProviderBuildCurrent/partial-final-shared.trx |1780977|1C9CC74951047495EE367673016A425C7DD8F4C551A01CEA477C3FDCD8D7A57F|
+| TestResults/ProviderBuildCurrent/partial-final-core.trx |3987256|3639BD7A2F9986C393EB010D8F9994A55C3708EA2C8E9EF4CD5EE47A79E62681|
+| TestResults/ProviderBuildCurrent/partial-final-bigquery.trx |1299748|CF05DA839DD9F1803895E5F7E063E6BB1840C1C9AC5A74BDC9DF47B88BC3051C|
+| TestResults/ProviderBuildCurrent/partial-final-oracle.trx |672795|6058D908EC583AD1E0E3091D106936111E6DED1DD6541EB241569B32238E5811|
+| TestResults/ProviderBuildCurrent/partial-final-oci.trx |202567|C262C59737CF15F83B158320B31016450F24FC0DD85DC30BC775F91145A006FA|
+| TestResults/ProviderBuildCurrent/partial-final-edge.trx |175030|3925B24D69830C39DD0F68498BF9B5BA8C4FEA8F19E1BA016C5666BEE02BA9C4|
+
+Reused output directories remain active/reusable across sessions. Final measured bin/obj bytes below (after release, peers may rebuild). Exact Windows base C:/Source/OASIS/. Regenerate with cached bounded builds; delete only after consumers stop and needed evidence is superseded, never delete shared SDK/cache or protected keys merely to reclaim space.
+
+| Project directory | bin | obj |
+|---|---:|---:|
+| OASIS Architecture/NextGenSoftware.OASIS.API.Core |22518299|19706841|
+| OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests |96463142|5790603|
+| Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage |12843960|2054412|
+| Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests |46681063|2226639|
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS |13297504|1496474|
+| Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests |53232860|2305372|
+| Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.UnitTests |52219024|1210300|
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS |7118136|1023896|
+| Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests |47831194|1444203|
+| Providers/Cloud/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS |12958286|1045854|
+| Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.UnitTests |46773289|1288234|
+| Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.S3 |7001999|849890|
+| Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests |52324773|1473159|
+
+No material filesystem artifacts removed beyond verified synthetic journals/fixtures described above. Other adapters still need CreateForSave caller-boundary migration/acknowledgement verification; hosted Oracle/OCI/BigQuery/AWS security/durability/fees and fullV2 remain OPEN. Global goal remains active. Necessary build coordination released the lease after exact proofs; peer-owned CQL/demo edits and unrelated Mongo-Test-Traffic docs were preserved.
+
+24October terminal10609exit0: corrected Shared1170PASS0skip11s; explicit acknowledgement-view reconciliation1PASS0skip1s; full retained Oracle502PASS0skip69s. Only7verified synthetic rows/4matching original native receipts removed by exact-CLOB/operation/hash transaction, independently absent before removing four journals. Original failed817156byte1B7B... report exact-hash MOVED to oracle-native-current.trx.ack-view-failed-1B7B5182; earlier0FE failure remains separately archived. No replay/reset/runtime replacement/download. Compact evidence and report hashes/size closure pending. Retained Oracle stopped by successful runner, original data volume preserved. No hosted/Autonomous/fullV2 claim.
+
+Final affected-consumer admission: reuse existing Core.UnitTests/Shared.UnitTests/Oracle.UnitTests/BigQuery producer+unit/OCI producer+unit and Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.S3 plus Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests bin/obj/cache. Same SDK pins, no restore/download/new environment. Controlled S3 HTTP interception only; OCI loopback18661 fixture removes itself; no cloud configuration/service. Planned fixed partial-final-{shared,core,bigquery,oracle,oci,edge}.trx under ProviderBuildCurrent, sizes pending. Rebuild consumers after final native Shared producer refresh, run full matched suites and PE/PDB/source/copy proofs under same global lease; no DLL copies or busy-lease bypass. Leave runtime/credential/source resources reusable; clean only verified owned fixtures as above.
+
+24October retained-resource measurement while Oracle stopped: WSL Ubuntu exact /var/lib/containers/storage/volumes/oasis-oracle-data/_data apparent6247927639bytes (`du -sb`), allocated6229901312bytes (`du -s -B1`); inherited active/reusable Oracle23.26volume, not a new download/duplicate or disposable failure dataset. No deletion/shrink/compaction. Retain for original receipt reconciliation/full502; volume removal would destroy the reusable database and requires separately verified teardown/retention decision, not inferred from stopped status. Default C:/Users/david/.oci/config and .aws/credentials absent; no inspected OCI_/ORACLEDBOASIS_/OASIS_ORACLE_ or AWS profile/access-key environment names, nondefault configuration not ruled out. Oracle11521/SOLID13000 listeners absent. FreeC69,967,638,528bytes, shared-machine measurement.
+
+Latest reused bin/obj measurements (C:/Source/OASIS base; peers may subsequently rebuild under lease): Core22518211/19706753; Core.UnitTests96463098/5790603; Shared.KeyValueStorage12843916/2054412; Shared.KeyValueStorage.UnitTests46678507/2223075; OracleDBOASIS13297488/1496474; OracleDBOASIS.IntegrationTests53215172/2285652bytes. Exact project paths already inventoried above, same caches/runtime/output directories; no restore/download/new environment. No active Oracle test process; newest receipt controls and recovery remain queued for next serialized slot, not declared passing.
+
+## 24 October — acknowledgement candidate evidence checkpoint
+
+Same owner/task/checkout/runtime/cache; no download/restore/install/new environment. Shared1167PASS/Core2451PASS first close all12complete-save failures. Expanded contracts then Shared1168PASS/Core2454PASS. Latest typed/excluded receipt controls and BigQuery no-extra-read save-rejection controls are prepared but NOT YET compiled/verified (global lease busy; no bypass). Keep sources local/uncommitted until gates pass; no dev/master deployment. StructuralCreate/explicitCreateForSave ownership documented in SHARED_RECORD_HISTORY. Core743/Shared56 were source/copy checked by retained native runner at their earlier compiled checkpoint; do not mistake that for latest candidate/unit PDB proof.
+
+Native original-scoped reconciliation: oracle-scoped-reconciliation-current.trx2701bytes SHA2569DC35B8ACCD1F40C691B21B9FED66E74C124BF0C67EF5C2D5FAA8E5BE857CA43,1PASS0skip2s; per-row evidence2941bytes B8D44EF4... (full hash above).20exact verified synthetic rows/fourjournals removed, independent absence before journal removal; regenerate via four native cases, original failed reports retained. No native user data or reusable runtime removed.
+
+Latest full502actual14385terminal1:498PASS/4differentFAIL71s, all4original scoped casesPASS. Current oracle-native-current.trx817156bytes SHA2561B7B5182CB589BB700C5F2F1B3D625E133F54E72BF45B3CCB65354C2C3293911. Expected acknowledgement-view reconciliation scope includes native receipts/possible current rows, not uncertain writes to replay. Original2named-role and2root-delete journals preserved; exact identities below. Owned retained Oracle stopped explicitly under environment lease, independentlyEXITED; no reset/deletion. FreeC69,923,954,688bytes after stop, shared-machine observation with concurrent provider work, not task-attributed consumption.
+
+| C:/Source/OASIS/TestResults/OracleCurrent/ journal | Bytes | SHA256 |
+|---|---:|---|
+| conditional-root-delete-False.pending.json |197|68790D4D1D398FE1FCC820D9EBF1310A7501969619051E1B3A742B89F6900F54|
+| conditional-root-delete-True.pending.json |196|79F41475A0368004F57D9A026E2F837B471CB7BC8756C1F4C503C7D31823AA1B|
+| named-child-roles-False-True.pending.json |308|BEF9636F06177252C41A25E8946A23DC1ABC05A81E9D277722CBD8656E80997F|
+| named-child-roles-True-True.pending.json |308|57F7DDBC22F1408E493704C5D843EBC64228EDC4CCF5E52221D786F802340B8C|
+
+| C:/Source/OASIS/TestResults/ProviderBuildCurrent/ retained cohort | Bytes | SHA256 |
+|---|---:|---|
+| partial-graph-shared-ack.trx (1167PASS) |1776348|36BF1A51BFAB9BA9CFBA0E103B97D9C1BF75F7F862D295AA7D37E20DA582D645|
+| partial-graph-core-ack.trx (2451PASS) |3951810|C82B626779D28044B041CF0FEA6AACD51BBE8077F566DAD1BFD381A4E4ACDDDC|
+| partial-graph-shared-contracts.trx (1168PASS) |1777873|F6A06705BDD73948CEF49DEDE918D0B18C578592928296371166E2697C16802D|
+| partial-graph-core-contracts.trx (2454PASS) |3956683|446359F2384103B573B6418F3C50208DA80620E236B94EFD19F39C7440854682|
+
+Retain compact failure/superseding evidence at fixed paths; no per-run environment. Full archive ownership/path identities remain as earlier entries; latest build-output sizes need closure measurement after actual final gate. No source-copy guard or build lease was bypassed. A short necessary coordination message requested the next Oracle slot after the other bounded provider gate; no test interruption or shared-resource cleanup was requested.
+
+24October candidate receipt-view finding/admission: original scoped4native cases nowPASS, but full502still498PASS/4FAIL71s due candidate acknowledgement composition wrongly attempting full role hydration of flattened typed/root-only DTOs after COMMIT. Failure OracleCurrent/oracle-native-current.trx817156bytes SHA2561B7B5182CB589BB700C5F2F1B3D625E133F54E72BF45B3CCB65354C2C3293911 preserved. Four new named-role/root-delete journals remain; no replay/reset/cleanup yet. Removed that incorrect grant from ConditionalHolonAcknowledgement (structural acknowledgement is not typed caller save authority), added focused typed/excluded receipt controls; no weakened source CreateForSave guard. This newer controlled test source not yet built because global lease busy. Same Oracle container explicitly stopped after failure, independentlyEXITED; retained volume intact. FreeC69,923,954,688bytes shared-machine observation, not attributed to this task alone.
+
+New explicit ReconcileAcknowledgementViews mode requires exact1B7B... failure and four exact journals, reads original native receipts/rows, validates digest/operation/request hash/identity/version/roles and transaction-lock absence, exercises pure acknowledgement composition without mutation replay. Planned fixed acknowledgement-view-reconciliation-evidence.json stores compact SHA evidence; only then exact-ID+CLOB rows and operation/hash/result-CLOB receipts may be removed in one transaction with independent absence before journal removal. Expected7rows/4receipts are assertions to verify, NOT an already-proven deletion count. Existing runtime/caches/build/environment leases only; no download/new environment/identity/record write. Failure or mismatch preserves originals. Reconciliation and fresh502native/affected regressions remain OPEN.
+
+24October original scoped reconciliation terminal56562exit0:1/1native PASS0skip2s. All20original rows matched expected exact identity/owner/public/parent/name/version/history/role data; repaired scoped saves rejected and original CLOBs remained unchanged. Removed ONLY those20synthetic rows by exact-ID+CLOB transaction, independently verified absence, then removed four pending journals. No volume reset or original write replay. Required compact per-row proof retained OracleCurrent/scoped-visibility-reconciliation-evidence.json2941bytes SHA256B8D44EF46B2D9F24ACBD6DCCCA641FD9EF4F961125E32A83334D374A93ED291A; original failedTRX retained unchanged. Same runtime stopped by successful runner. These synthetic rows can be regenerated by the four native tests; original historical failure is not rewritten as success.
+
+Full502regression admission now has pending0. Preserve failed807200byte0FE26BD5... report by exact-hash checked MOVE to oracle-native-current.trx.scoped-failed-0FE26BD5 (destination absent), keeping earlier795507byte pre-scoped report too. Reuse identical runtime/volume/cache/output/leases; no download/restore/new environment. Fixed oracle-native-current.trx becomes new full cohort, expected502/0skip, with existing fixture safeguards/conditional cleanup and stop after success. Record actual outcomes, source identities/sizes/ports/free space after terminal.
+
+24October original scoped-fixture reconciliation admission: use ONLY four named original pending journals and exact0FE26BD5... failed TRX. Existing Oracle runtime/volume/ODP.NET/environment/build leases, no replacement/download. New explicit runner mode first validates all20IDs, owner/public/parent/name/tombstone fields, exact version1/2 histories and original/current role manifests, then tests repaired rejection without successful record writes and verifies unchanged original CLOBs. Capture compact per-row ID/version/bytes/SHA evidence to fixed OracleCurrent/scoped-visibility-reconciliation-evidence.json before any cleanup. Only then remove exact20rows via original-CLOB conditional transaction, verify independent absence, delete four journals. On any mismatch/failure preserve originals and stop; no reset or original-write replay. Planned oracle-scoped-reconciliation-current.trx, size pending, full502regression still required afterward. All resources use existing inventories/paths; source/candidate uncommitted until gates pass.
+
+24October acknowledgement-publication admission: reuse Core/Core.UnitTests, Shared/Shared.UnitTests and Oracle/BigQuery producer outputs/caches in the same exact project directories inventoried above, no restore/download/runtime/database/start/new fixture. Candidate uses common post-ack role publication after successful selected writes, not local AcceptChanges as native authority. Preserve original native20row failure fixture, stopped Oracle volume and all reports. Planned fixed partial-graph-shared-ack.trx and partial-graph-core-ack.trx under existing ProviderBuildCurrent; sizes/results pending. Acquire global lease before builds; stop if busy, preserve peer Mongo/CQL/usage-recovery changes. No source commit or deployment until affected gates pass.
+
 ## 24 October — open Oracle/shared fixture closure checkpoint
 
 No production fix publication: native502=498PASS/4FAIL, common candidate guard focused4PASS/Core2451PASS, fullShared1167=1155PASS/12FAIL. Existing source/cache/environment reused, no install/restore/download. New shared fixture initially lacked System/Linq usings, corrected before genuine4red controls; compilation failures are not production test evidence. Existing producer-consumer source proof correctly refused busy lease; no bypass. Candidate complete-write observation publication remains unfinished, sources/tests preserved locally. Concurrent Mongo/CQL/usage-recovery edits belong to other work and were not touched/staged.

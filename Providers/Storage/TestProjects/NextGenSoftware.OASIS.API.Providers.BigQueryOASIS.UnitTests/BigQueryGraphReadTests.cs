@@ -16,12 +16,17 @@ public class BigQueryGraphReadTests
         var owned=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,CreatedByAvatarId=actor};
         var visible=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,CreatedByAvatarId=Guid.NewGuid(),IsPublic=true};
         var hidden=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,CreatedByAvatarId=Guid.NewGuid()};
-        var rows=new BigQueryCollectionTests.Rows{Selected=new[]{root,owned,visible,hidden}.Select(StoredRecordJson.Serialize).ToArray()};
+        var calls=0;
+        var rows=new BigQueryCollectionTests.Rows{Selected=new[]{root,owned,visible,hidden}.Select(StoredRecordJson.Serialize).ToArray(),BeforeRead=()=>calls++};
         IOASISStorageProvider provider=BigQueryCollectionTests.Create(rows);
         var result=sync?provider.LoadAllHolons(actor,includePublic,HolonType.Quest,loadChildrenFromProvider:true)
             :await provider.LoadAllHolonsAsync(actor,includePublic,HolonType.Quest,loadChildrenFromProvider:true);
         Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);
         CollectionAssert.AreEqual(includePublic?new[]{owned.Id,visible.Id}:new[]{owned.Id},result.Result.Single().Children.Select(child=>child.Id).ToArray());
+        var before=calls;var copy=(Holon)result.Result.Single();copy.AcceptChanges();
+        var rejected=sync?provider.SaveHolon(copy):await provider.SaveHolonAsync(copy);
+        Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.IsSaved);
+        Assert.AreEqual(before,calls,"Scoped membership must reject before even a native observation read.");
         Assert.IsNull(rows.Stored,"Visibility projection must not write storage.");
     }
 

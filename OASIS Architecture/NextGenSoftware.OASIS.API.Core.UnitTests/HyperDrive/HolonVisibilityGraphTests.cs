@@ -13,6 +13,37 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 public sealed class HolonVisibilityGraphTests
 {
     [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void AcknowledgementCannotUpgradeScopedSelectionEvenAfterManifestForgery(bool persisted)
+    {
+        var actor=Guid.NewGuid();var root=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=actor};
+        root.Children=new[]{new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,CreatedByAvatarId=Guid.NewGuid()}};
+        if(persisted)root.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(HolonChildCollectionState.Capture(root).CreateManifest(root.Id,child=>child.Id));
+        var result=Select(new OASISResult<IEnumerable<IHolon>>(new[]{root}),actor);
+        result.IsError.Should().BeFalse();var copy=(Holon)result.Result.Single();
+        var forged=HolonChildCollectionState.Capture(copy).CreateManifest(copy.Id,child=>child.Id);
+        copy.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(forged);copy.AcceptChanges();
+        Action acknowledge=()=>HolonChangeTracking.RecordAcknowledgedChildSelection(copy,forged);
+        acknowledge.Should().Throw<InvalidOperationException>();
+        Action save=()=>HolonChangeTracking.ValidateChildSelectionForSave(copy);
+        save.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void CompleteAcknowledgementRefreshesOnlyStoreOwnedMembershipBaseline()
+    {
+        var root=new Holon{Id=Guid.NewGuid(),Name="original scalar"};
+        root.Children=new List<IHolon>{new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id}};
+        root.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(HolonChildCollectionState.Capture(root).CreateManifest(root.Id,child=>child.Id));
+        root.AcceptChanges();root.Children.Clear();root.Name="not accepted by membership acknowledgement";
+        var committed=HolonChildCollectionState.Capture(root).CreateManifest(root.Id,child=>child.Id);
+        root.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(committed);
+        HolonChangeTracking.RecordAcknowledgedChildSelection(root,committed);
+        HolonChangeTracking.ValidateChildSelectionForSave(root);
+        HolonChangeTracking.HasChanges(root).Should().BeTrue("membership acknowledgement must not accept unrelated scalar edits");
+    }
+
+    [Theory]
     [InlineData(0,false)] [InlineData(0,true)] [InlineData(1,false)] [InlineData(1,true)]
     [InlineData(2,false)] [InlineData(2,true)] [InlineData(3,false)] [InlineData(3,true)]
     public async Task AllEightScopedDefaultsUseTheSharedGraphProjection(int route,bool asynchronous)
