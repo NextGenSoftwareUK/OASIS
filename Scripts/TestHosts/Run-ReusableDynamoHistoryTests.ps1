@@ -22,7 +22,7 @@ if($IndependentExportVersions -and (Test-Path -LiteralPath (Join-Path $work 'dyn
     throw 'Preserve the original independent-export native report before another run.'
 }
 if($FullAwsSuite){
-    foreach($reportName in @('aws-full-begin-current.trx','aws-full-native-current.trx')){
+    foreach($reportName in @('aws-full-begin-current.trx','aws-full-native-current.trx','aws-full-cleanup-current.trx')){
         if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve and hash-verify the previous full-suite reports before another native run.'}
     }
 }

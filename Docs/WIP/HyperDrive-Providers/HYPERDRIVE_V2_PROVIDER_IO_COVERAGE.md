@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+AWS provisioning24October: final614unit/138retainednative PASS0skip, baseline+cleanup1eachPASS. ExistingCreateTable owner now validates its own native acknowledgement before readiness polling: exacttable/HTTP200/description/CREATINGorACTIVE.18baseline14genuinefailures+4controls,10additionalsignedSDKJSONpipelinecontrols. Native regression does not inject malformedcreate or certify hostedprovisioning/billing. Runner cleanupTRX overwriteguard added; exact original/current evidence and disclosed priorcleanupTRXoverwrite in AWSaudit/inventory. HostedAWS/security/durability/capacitydispatch/pricing/V2 remainOPEN.
+
 ## Neo4j ordinary read counts — 24 October
 
 Latest440unit/271nativePASS0skip supersedes400/271 below. Thirty-six genuine failures proved all tested public current/version1 sync/async point/collection routes returned count0 despite1/2selected roots. Existing successful publication owners now assign selected-root counts for avatar/detail/holon point, current/history collections, parent and metadata results; filtered historical detail counts are recomputed. Nearby reports filtered results, not inherited source count, and clears count on projection error. Four additional nearby controlled cases prove sourcecount7→selected1 or error0. No new persistence engine/helper/SDKcall, Core visibility-default or peerCQL change.
