@@ -2,6 +2,8 @@
 
 ## S3 SDK read-integrity baseline — 23 October 2026
 
+Follow-up policy override now reproduced and fixed: caller ResponseChecksumValidation=WHEN_REQUIRED caused all4new cases to omit checksum admission (default4still passed). The common S3 read now explicitly sets SDK GetObjectRequest.ChecksumMode=ENABLED, preserving the official SDK validator and one GET, not adding hashing/HEAD/retry/fallback. Current selected52/52passes0skip; default-only48 is historical. General-purpose SSE-KMS access must authorize kms:Decrypt per pinned SDK XML; review account key policy/charges before cloud acceptance. Unsupported compatible services must surface their real error, not retry without integrity. No cloud billing/IAM/composite/multipart proof is implied.
+
 Four new actual SDK/SigV4/custom-handler controls pass without a production change: under the tested default checksum configuration, pinned AWSSDK.S3 3.7.502 already requests native checksum metadata and rejects a corrupt full-object SHA256 before returning GET/observed GET data. Valid Unicode bytes pass; exactly one request, no extra HEAD/retry/custom hashing. Selected current SharedS3/AwsS3 regression48/48passes0skip; this selection is not asserted equivalent to the older55scope. Alternate SDK checksum policy overrides, multipart composite semantics and real account/KMS authorization remain unproven by these tests. Exact source/copy/report hashes in ENVIRONMENT_INVENTORY.md. No cloud request, credentials, install or duplicate runtime; hosted IAM/KMS/fees/durability/fullV2 gates remain OPEN.
 
 ## Repeated native row identity guard — 23 October 2026
