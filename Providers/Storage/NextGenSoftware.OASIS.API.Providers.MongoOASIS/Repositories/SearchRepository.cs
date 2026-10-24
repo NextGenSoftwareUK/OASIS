@@ -497,6 +497,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     isFirstGroup = false;
                 }
 
+                // No predicate groups means metadata/owner/parent-only search, not no candidates.
+                if(isFirstGroup)
+                {
+                    avatars.AddRange(await Read(_dbContext.Avatar,Builders<Avatar>.Filter.Eq(row=>row.DeletedDate,DateTime.MinValue)).ConfigureAwait(false));
+                    holons.AddRange(await Read(_dbContext.Holon,HolonRepository.BuildHolonTypeFilter(HolonType.All)).ConfigureAwait(false));
+                }
                 //Make sure results are unique.
                 holons = holons
                 .GroupBy(p => new { p.Id })
