@@ -138,8 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 receipts.Add(command.OperationId, canonicalPayload);
                 detail.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey] = JsonConvert.SerializeObject(receipts);
                 detail.VersionId = Guid.NewGuid();
-                await collection.ReplaceOneAsync(session, x => x.Id == detail.Id, detail,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                await ReplaceGameplayAvatarDetailAsync(session,collection,detail,cancellationToken).ConfigureAwait(false);
                 // The domain change stream projects this document, including its receipt, as one version.
                 await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
                 return new OASISResult<HyperDriveAvatarDetailProjection>(CreateEdgeAvatarDetailProjection(detail));
@@ -188,10 +187,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             RecordReceipt(target, targetReceipts, command.OperationId, canonicalPayload);
             source.VersionId = Guid.NewGuid();
             target.VersionId = Guid.NewGuid();
-            await collection.ReplaceOneAsync(session, x => x.Id == source.Id, source,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            await collection.ReplaceOneAsync(session, x => x.Id == target.Id, target,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+            await ReplaceGameplayAvatarDetailAsync(session,collection,source,cancellationToken).ConfigureAwait(false);
+            await ReplaceGameplayAvatarDetailAsync(session,collection,target,cancellationToken).ConfigureAwait(false);
             await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
             return new OASISResult<HyperDriveAvatarDetailProjection>(CreateEdgeAvatarDetailProjection(source));
         }
@@ -268,9 +265,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             clan.Version=checked(clan.Version+1);
             clan.VersionId = Guid.NewGuid();
             var body=MongoNativeRecordWriter.PrepareHolonMutation(holonCollection,clan,observed);
-            var sourceSaved=await avatarCollection.ReplaceOneAsync(session, x => x.Id == source.Id, source,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            if(!sourceSaved.IsAcknowledged || sourceSaved.MatchedCount!=1)return GameplayRejected("The source inventory update was not acknowledged.");
+            await ReplaceGameplayAvatarDetailAsync(session,avatarCollection,source,cancellationToken).ConfigureAwait(false);
             var clanSaved=await rawClans.ReplaceOneAsync(session,new BsonDocument("_id",observed["_id"]),body,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             if(!clanSaved.IsAcknowledged || clanSaved.MatchedCount!=1)return GameplayRejected("The clan inventory update was not acknowledged.");
