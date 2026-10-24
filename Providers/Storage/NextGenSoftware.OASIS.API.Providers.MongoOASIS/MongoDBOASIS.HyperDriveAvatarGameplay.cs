@@ -137,11 +137,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }
                 receipts.Add(command.OperationId, canonicalPayload);
                 detail.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey] = JsonConvert.SerializeObject(receipts);
-                detail.VersionId = Guid.NewGuid();
                 await ReplaceGameplayAvatarDetailAsync(session,collection,detail,cancellationToken).ConfigureAwait(false);
                 // The domain change stream projects this document, including its receipt, as one version.
                 await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
                 return new OASISResult<HyperDriveAvatarDetailProjection>(CreateEdgeAvatarDetailProjection(detail));
+            }
+            catch(GameplayAccountVersionOverflowException cause)
+            {
+                return new OASISResult<HyperDriveAvatarDetailProjection> {IsError=true,ErrorCount=1,
+                    ErrorCode="AVATAR_VERSION_OVERFLOW",Exception=cause.InnerException,Message="The avatar detail version cannot be advanced."};
             }
             finally
             {
@@ -185,8 +189,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             target.Inventory.Add(moved);
             RecordReceipt(source, sourceReceipts, command.OperationId, canonicalPayload);
             RecordReceipt(target, targetReceipts, command.OperationId, canonicalPayload);
-            source.VersionId = Guid.NewGuid();
-            target.VersionId = Guid.NewGuid();
             await ReplaceGameplayAvatarDetailAsync(session,collection,source,cancellationToken).ConfigureAwait(false);
             await ReplaceGameplayAvatarDetailAsync(session,collection,target,cancellationToken).ConfigureAwait(false);
             await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
@@ -260,7 +262,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             clanReceipts.Add(command.OperationId, canonicalPayload);
             clan.MetaData[ClanManager.ClanStateMetadataKey] = JsonConvert.SerializeObject(clanState);
             clan.MetaData[HyperDriveAvatarGameplay.ClanReceiptMetadataKey] = JsonConvert.SerializeObject(clanReceipts);
-            source.VersionId = Guid.NewGuid();
             clan.PreviousVersionId=clan.VersionId;
             clan.Version=checked(clan.Version+1);
             clan.VersionId = Guid.NewGuid();

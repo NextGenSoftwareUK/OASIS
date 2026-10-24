@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## Mongo gameplay logical version chain — 24 October 2026
+
+The VersionId-only gap documented below is now repaired: the existing transactional account replacement helper verifies observed public/logical/revision identities, checked-increments Version, and sets PreviousVersionId/new VersionId once per actual gameplay mutation. Removed four separate VersionId rotations. Normal provider/replica Save paths are unchanged; receipt replays return before this boundary. A specific account-version overflow is returned as AVATAR_VERSION_OVERFLOW with its original cause, not misclassified as inventory/clan arithmetic overflow.
+
+Native7PASS0skip: update, both avatar-transfer participants and clan source version chains; byte-exact archive/unknown-field preservation and replay; target overflow after the source replacement is staged aborts the transaction and leaves both inventories, versions and receipts byte-equal to before. Domain regression remains green. Matched393unitPASS0skip, both Core740/4C58BC9D Shared55/DDDA14BD consumers verified, Mongo101/34933652 source/copies verified. Account-history retention flag, all write surfaces (including tombstones), stale caller/version admission and historical selectors remain OPEN. This is not native history retention enablement or full V2 certification.
+
 ## Mongo gameplay native account preservation — 24 October 2026
 
 Fixed four typed AvatarDetail replacements (single gameplay/inventory mutation, source+target avatar transfer, source clan transfer) that discarded unmapped BSON fields. One helper now reads raw observed state in the existing transaction snapshot, verifies physical/public identity, reuses native serialization/unknown-field retention, and requires acknowledged matched1 before commit. The same transaction still owns receipts and every participating inventory. It adds one SDK read per changed account (two for avatar transfer); request/read costs are not assumed free. No retry, separate transaction, automatic archive retention or logical-version stamping was added here.
