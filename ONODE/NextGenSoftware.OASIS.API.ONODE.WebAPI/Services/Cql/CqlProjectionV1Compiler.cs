@@ -39,13 +39,12 @@ public static partial class CqlV1Compiler
     private static CosmicProjectionSelection<Holon> ProjectionColumn(CqlProjectionV1Column column)
         => CompileSelection(column, new ProjectionSelectionConsumer());
 
-    // Both HTTP shapes bind one bounded typed expression. No delegate is compiled
+    // HTTP selection shapes bind one bounded typed expression. No delegate is compiled
     // or invoked; the Core selector compiler remains the path authority.
     internal static TResult CompileSelection<TResult>(CqlProjectionV1Column column, ISelectionConsumer<TResult> consumer)
     {
-        if (column == null || string.IsNullOrEmpty(column.Alias) || column.Alias.Length > 64
-            || !AsciiLetter(column.Alias[0]) || column.Alias.Any(c => !AsciiLetter(c) && c is not (>= '0' and <= '9') && c != '_'))
-            throw new ArgumentException("Column alias requires one to64 ASCII letters/digits/underscores, starting with a letter.");
+        if (column == null) throw new ArgumentException("A column is required.");
+        ValidateSelectionAlias(column.Alias);
         var alias = column.Alias;
         if (column.MetadataPath == null)
         {
@@ -94,6 +93,13 @@ public static partial class CqlV1Compiler
             "ProviderType" => MetadataSelection<ProviderType, TResult>(alias, path, nullable, consumer),
             _ => throw new ArgumentException("Unsupported exact metadata projection type.")
         };
+    }
+
+    internal static void ValidateSelectionAlias(string alias)
+    {
+        if (string.IsNullOrEmpty(alias) || alias.Length > 64
+            || !AsciiLetter(alias[0]) || alias.Any(c => !AsciiLetter(c) && c is not (>= '0' and <= '9') && c != '_'))
+            throw new ArgumentException("Column alias requires one to64 ASCII letters/digits/underscores, starting with a letter.");
     }
 
     private static bool AsciiLetter(char value) => value is >= 'A' and <= 'Z' or >= 'a' and <= 'z';
