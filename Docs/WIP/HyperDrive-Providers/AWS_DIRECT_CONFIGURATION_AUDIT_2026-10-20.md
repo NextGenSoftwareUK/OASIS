@@ -1,5 +1,9 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## Single metadata-query admission repair — 24 October
+
+Six sync/async null/empty/whitespace-key controls reproduced two null-key failures and four valid rejection controls. The single-key wrapper constructed Dictionary before entering the common error-result boundary, so null threw/faulted instead of returning OASISResult. It now passes a key-value array to the SAME ReadMetadataAsync owner, accepting IReadOnlyCollection; validation/snapshot/matching remain centralized and dictionary overload behavior unchanged. No fallback, duplicate SDK request or new parsing path. Full565DynamoPASS0skip2s after cached producer/unit builds0errors(26/12warnings), Core741/35AE105E Shared55/8CEA2F7F source/copies verified. These are input/result controls and full controlled regression, not new native/cloud proof. AWS inherits this Dynamo implementation. Metadata values and stored null metadata semantics unchanged. Original six-case console result2fail/4pass recorded here; no TRX requested.
+
 ## Wallet credential interface dispatch — 24 October
 
 Behavioral follow-up: four additional public/private-key sync/async calls through IOASISStorageProvider request version1 and assert explicit HYPERDRIVE_PAYLOAD_INVALID/NotSupportedException, null result, unloaded/count0, and ZERO SDK scans using a counting client. Full559unitPASS0skip2s after cached consumer build0errors/12warnings. Core741/35AE105E Shared55/8CEA2F7F source/copies matched under lease. Earlier555 full regression also passed with before/after checks. Eight new cases total: four structural plus four behavioral; no new production fix or live-cloud claim.
