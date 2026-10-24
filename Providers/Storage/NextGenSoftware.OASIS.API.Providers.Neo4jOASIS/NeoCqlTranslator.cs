@@ -40,6 +40,11 @@ internal sealed partial class NeoCqlTranslator
         var type = Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType;
         string guard;
         if (type == typeof(string)) guard = kind + "='string'";
+        else if (type == typeof(DateTime))
+        {
+            var date = NeoCqlDate.Operand(kind, value, Bind);
+            guard = date.Guard; value = date.Value;
+        }
         else if (type == typeof(bool)) guard = kind + "='boolean'";
         else if (type == typeof(Guid))
         {
@@ -69,6 +74,7 @@ internal sealed partial class NeoCqlTranslator
     internal static object Literal(CosmicQueryLiteral literal) => literal.Kind switch {
         CosmicQueryScalarKind.String or CosmicQueryScalarKind.Boolean or CosmicQueryScalarKind.Int64 => literal.Value,
         CosmicQueryScalarKind.Guid => ((Guid)literal.Value).ToString("D"),
+        CosmicQueryScalarKind.UtcDateTime => NeoCqlDate.Literal((DateTime)literal.Value),
         _ => throw new NotSupportedException("Neo4j CQL literal domain is unsupported.") };
     private static string Total(string predicate) => "coalesce((" + predicate + "),false)";
 
