@@ -39,7 +39,7 @@ Read the source in this order:
 Start with examples 1–3 for CQL querying. Examples 4–6 show how queried holons participate in change tracking, conditional saves and committed deltas. Example 7 demonstrates an unsupported query being rejected before provider execution.
 
 
-The current walkthrough has **seventeen** spaced/commented examples per provider: 51 SDK queries and 51 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
+The current walkthrough has **eighteen** spaced/commented examples per provider: 54 SDK queries and 54 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
 
 Projection transport now passes fullCore2,059 controls and signed native three-store acceptance, including visibility before paging, exact large integers/null/GUID/nested values, receipts and no replay. The new10-example SDK/HTTP walkthroughs now pass their expanded30/30 verification plus broad147native regression (195settled operations/190physical attempts); consult the current [HTTP projection contract](../../Docs/WIP/COSMIC%20ORM/CQL_PROJECTION_HTTP_CONTRACT.md) for limits and verified evidence.
 
@@ -87,3 +87,20 @@ Live verification passed on all three providers: **48 SDK queries, 48 HTTP examp
 The C# example calls `orderedGroups.Skip(1).Take(1)`. HTTP sends `resultSkip: 1` and `resultTake: 1` alongside resultOrder. All three stores should return C-public with exact total -9007199254740990. Source skip/take remain independent; complete reduced proof still consumes maximumGroups/payload limits and is validated even outside the published page. Browser preset **GroupBy / independent result page** and Swagger show these fields. Comments and blank lines separate source selection, grouping, result ordering and result paging.
 
 The expanded live walkthrough passes on all three providers: **51 SDK queries,51 HTTP examples,231 settled operations and226 provider attempts**. Example17 returns the exact expected page; Swagger paging fields and browser script syntax are verified. Owned fixtures/services are cleaned up. Prior48/48 evidence is historical.
+
+## Example 18: filter grouped totals before paging
+
+The C# walkthrough now includes a post-group predicate:
+
+```csharp
+var matchingPage = orderedGroups
+    .Where(group => group.Total > -9007199254740991L)
+    .Skip(1)
+    .Take(1);
+```
+
+`orderedGroups` is the selected, ordered group intent from example16. Resolve the returned `OASISResult` and plan/execute it through the same shared grouped owner shown in `V1NativeQueries.cs`. The predicate excludes B-owned; Skip removes D-owned from the matching groups; C-public is published with exact total -9007199254740990. Complete proof still includes excluded and off-page groups. Move source filters before GroupBy when the intent is to change aggregate participation instead.
+
+The HTTP walkthrough posts `resultFilters` to `/api/data/query-cql/grouped`, using the selected alias `Total` and invariant string `"-9007199254740991"`. Browser preset **GroupBy / filter exact totals** and Swagger show the same request grammar. Int64 result-filter values use strings so browser number parsing cannot round them. Only matching groups consume resultSkip; maximumGroups still bounds every reduced proof group.
+
+Expected expanded walkthrough: eighteen examples per provider,54 SDK queries and54 HTTP requests. Fresh live certification passed on all three providers:54 SDK/54 HTTP,234 settled operations/229 provider attempts, zero skips. Evidence: TestResults/CosmicCqlDemo/group-filter-demo-native.log, v1-demo-result.json and v1-walkthrough.txt. Earlier51/51 results above remain historical evidence.
