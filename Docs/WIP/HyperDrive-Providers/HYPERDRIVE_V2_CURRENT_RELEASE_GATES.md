@@ -1,5 +1,7 @@
 # HyperDrive V2 current release gates
 
+BigQuery graphread24October:425controlledPASS0skip. Original76cases32genuinefail/44valid; point/parent/all root owners now reuse Shared.HolonGraphProjection/current undeleted provider pool. Depth/recursion/parentedge/type-independent descendants/cycles/rootcounts verified;18additional admission/failure/no-extra-read controls. Graphwrites/history/transactional pool consistency/native cloud/remaining aliases/search-export graph integration/fullV2 OPEN. No new runtime/download; audit/inventory updated.
+
 BigQuery search24October:331controlledPASS0skip after36genuine baseline failures. Removed divergent provider matcher; existing Shared search now owns comparisons/group operators/target-owner-metadata-parent scope and canonical query snapshot. Required read failures retain original cause/no partial success; resultcounts fixed. Unsupported history explicitly rejects,not implemented. Native hosted/history/graph/durable fee/fullV2 remainOPEN; no environment/download/cloud operation. Audit/inventory updated.
 
 BigQuery metadata/type24October:295controlledPASS0skip.16genuine baseline failures/4valid controls; existing shared invariant matcher reused,single/dictionary routes unified,filter captured beforeawait,actual resultcounts and primary root-type filtering repaired. Empty/null/no-match/invalid-mode/original-failure controls pass. No native cloud/new environment/download; history/graph/fees/fullV2 remainOPEN. Audit/inventory updated.
