@@ -42,7 +42,7 @@ public class SharedS3TransportTests
         public string IfMatch, IfNoneMatch, Key, Prefix;
         public bool BadChecksum, BadStatus;
         public int Calls;
-        public GetObjectResponse Get = new() { HttpStatusCode = HttpStatusCode.OK, ETag = "opaque", ContentLength = 5, ResponseStream = new MemoryStream(Encoding.UTF8.GetBytes("value")) };
+        public GetObjectResponse Get = new() { HttpStatusCode = HttpStatusCode.OK, ETag = "opaque", ContentLength = 5, Headers = { ContentLength = 5 }, ResponseStream = new MemoryStream(Encoding.UTF8.GetBytes("value")) };
         public readonly Queue<ListObjectsV2Response> Pages = new();
         private void Called() { Calls++; if (Error != null) throw Error; }
         public override Task<GetObjectResponse> GetObjectAsync(GetObjectRequest request, CancellationToken token = default)
@@ -100,8 +100,23 @@ public class SharedS3TransportTests
     [TestMethod]
     public async Task Body_length_mismatch_cannot_publish_a_record()
     {
-        using var client = new Client(); client.Get.ContentLength = 100;
+        using var client = new Client(); client.Get.ContentLength = 100; client.Get.Headers.ContentLength = 100;
         await Assert.ThrowsExceptionAsync<InvalidDataException>(() => new Backend(client, "bucket").GetAsync("key"));
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task Empty_object_requires_explicit_zero_native_length(bool observed,bool explicitLength)
+    {
+        using var client=new Client();
+        client.Get=new GetObjectResponse{HttpStatusCode=HttpStatusCode.OK,ETag="opaque",ResponseStream=new MemoryStream()};
+        if(explicitLength){client.Get.ContentLength=0;client.Get.Headers.ContentLength=0;}
+        var backend=new Backend(client,"bucket");string value=null;Exception failure=null;
+        try{value=observed?(await backend.ReadObservedAsync("key"))?.Value:await backend.GetAsync("key");}
+        catch(Exception cause){failure=cause;}
+        Assert.AreEqual(1,client.Calls);
+        if(explicitLength){Assert.IsNull(failure,failure?.ToString());Assert.AreEqual(string.Empty,value);}
+        else{Assert.IsInstanceOfType<InvalidDataException>(failure);Assert.IsNull(value);}
     }
     [TestMethod]
     public async Task Missing_observed_revision_is_corruption()

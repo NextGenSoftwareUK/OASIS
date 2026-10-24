@@ -76,9 +76,15 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
             Complete(response.HttpStatusCode, HttpStatusCode.OK, "GET");
             if (!string.IsNullOrEmpty(response.ContentRange) || string.IsNullOrWhiteSpace(response.ETag))
                 throw new InvalidDataException("S3 GET must return a whole object and its native ETag.");
+            // AmazonWebServiceResponse.ContentLength defaults to zero even when
+            // the service omitted the header. The S3 header collection preserves
+            // absence as -1; do not invent a complete empty object from that default.
+            var nativeLength = response.Headers.ContentLength;
+            if (nativeLength < 0)
+                throw new InvalidDataException("S3 GET omitted a valid native object length.");
             using var reader = new StreamReader(response.ResponseStream ?? throw new InvalidDataException("S3 GET omitted its stream."), Utf8, false);
             var value = await reader.ReadToEndAsync(cancellationToken);
-            if (Utf8.GetByteCount(value) != response.ContentLength)
+            if (Utf8.GetByteCount(value) != nativeLength)
                 throw new InvalidDataException("S3 GET body length does not match the complete object acknowledgement.");
             return new KeyValueObservation(value, response.ETag);
         }

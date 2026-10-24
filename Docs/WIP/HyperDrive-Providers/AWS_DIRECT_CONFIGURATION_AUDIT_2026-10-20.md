@@ -1,5 +1,11 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## S3 empty-object completeness repaired — 24 October
+
+The common S3 transport previously accepted an empty body with no native Content-Length because the SDK's inherited scalar defaults to zero. Four genuine failures across deterministic SDK-boundary and actual signed SDK HTTP controls reproduced this; four explicit-zero controls already passed. ReadObservedAsync now uses the existing S3 Headers.ContentLength, which preserves missing as -1, rejects missing/negative lengths and verifies UTF8 bytes against the native value. GetAsync uses the same owner. No custom parser, extra HEAD/GET, retry or pricing/storage change.
+
+Full controlled Edge protocol suite **106/106 passed, zero skips**, including the8new controls and existing encrypted S3 lifecycle cases. Source/PDB/copy identities and preserved red/final report hashes are in ENVIRONMENT_INVENTORY.md. No live AWS request, download, restore or new environment. This closes a real read-integrity gap, not hosted S3 IAM/durability/cost acceptance or full provider/V2 certification.
+
 ## Common observation capability verified — 24 October
 
 Core now defines optional INativeResourceUsageProvider, implemented by the existing DynamoDB/AWS adapter. Trusted hosts can consume native observations without depending on the concrete provider assembly. This is a server capability, explicitly excluded from the netstandard Unity target alongside the existing prepared-storage service contract; no fabricated default implementation was added to the storage base/interface. Both Core targets build. Verification through the common interface passed 30 focused Core tests, 635 unit/SDK tests and 138 retained native tests, zero skips; cleanup passed. Core commit d61551d20fdb9c5cbcc1be2c0f744c28e96614f9 and final hashes/resources are recorded in ENVIRONMENT_INVENTORY.md.
