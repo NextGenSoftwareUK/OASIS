@@ -1,6 +1,6 @@
 # CQL GroupBy contract
 
-23 October 2026. Key and grouped-result selection capture are implemented; planning, grouped result validation/execution and native adapters are not yet enrolled. This contract preserves the full grouping requirement rather than declaring completion from capture alone.
+23 October 2026. Key and grouped-result selection capture are implemented; planning/readmission are implemented; grouped result validation/execution and native adapters are not yet enrolled. This contract preserves the full grouping requirement rather than declaring completion from capture alone.
 
 ## Key capture
 
@@ -30,11 +30,11 @@ Default group order must be deterministic by the composite key (ascending, null 
 
 Native grouped Count/LongCount, Min/Max and exact integer Sum/Average must retain their existing scalar empty/null/domain/overflow semantics inside each group. Full grouping scope includes grouped selection, multiple aggregates and explicit post-group composition. A first Count-only slice cannot close this gate. Federated groups remain per provider until explicit logical identity/conflict/merge/accounting semantics are implemented.
 
-## Current evidence and remaining gates
+## Initial key-capture evidence and remaining gates
 
 Both Core targets build (netstandard2.1/net10.0). Full Core/HTTP suite:2,169 passed, zero skips, including14 new key-capture controls. Evidence: TestResults/CoreCurrent/cql-grouping-foundation-current.trx and TestResults/CosmicCqlDemo/grouping-foundation-final.log. The first test compilation used `.Result` on the direct query factory; corrected before the passing run. Core production key capture, Shared rebuild and the unit consumer share the same new Core assembly.
 
-Still required: grouped result validation/materialization, operation-specific planning/readmission, existing physical-attempt owner integration, native MongoDB/SQLite/Neo4j reductions and fault controls, bounded HTTP description, spaced/commented examples and live three-provider acceptance. No native grouping, GroupBy transport or completion claim follows from key capture.
+Still required: grouped result validation/materialization, existing physical-attempt owner integration, native MongoDB/SQLite/Neo4j reductions and fault controls, bounded HTTP description, spaced/commented examples and live three-provider acceptance. No native grouping, GroupBy transport or completion claim follows from key capture.
 
 
 ## Grouped selection capture — verified
@@ -59,3 +59,14 @@ var selected = source
 The selection remains an immutable intent; no provider advertises GroupBy execution. `Mean` has Decimal type. It uses the CQL grouping contract rather than Enumerable.Average's Double result. Count/LongCount have no predicate overload; filter the source explicitly. Unsupported grouped arithmetic and arbitrary selector code fail capture instead of becoming a client evaluator.
 
 Evidence: TestResults/CoreCurrent/cql-grouped-selection-current.trx and cql-grouped-selection-final-current.trx; TestResults/CosmicCqlDemo/grouped-selection.log, grouped-selection-final.log and grouped-selection-artifacts.json. Private Core297b971ab628a763848c5f39a649d8c13570a128 is paired with the parent gitlink/manifest. This extends the earlier key-only checkpoint and leaves native grouping/HTTP/demos open.
+
+
+## Grouped planning/readmission — verified
+
+`CosmicGroupedCapabilities` is an independent grouping enrollment profile. It binds explicit key projection permissions, aggregate scalar permissions, group count, result width and payload ceilings. These permissions do not follow automatically from row/Select/scalar support. All key components are admitted even when the result omits them. Every aggregate uses the same internal operation/read-path admission owner as ordinary scalar queries.
+
+`CosmicGroupedPlanner.Plan` snapshots a bounded eligible target set and delegates source scope/feature planning to the existing query planner. Every selected target must admit the whole grouped shape before a plan is returned. A single-provider native call must use `CosmicGroupedPlanner.Admit` against its actual query and grouping contracts; planned/borrowed permissions cannot replace actual ones. Source windows and consistency remain present during readmission. Default/named/all-eligible scope semantics remain unchanged; no provider substitution or input-row evaluator was added.
+
+Both Core targets build and the full suite passes **2,200 tests, zero skips**, including18 new planning cases. Controls cover immutable target snapshots, omitted/composite key permissions, independent operation/read-domain checks, actual-profile/source rejection, group/width/payload bounds, invalid/duplicate target sets and an unsupported later all-eligible target. Evidence: TestResults/CoreCurrent/cql-grouped-planning-{current,final-current}.trx and TestResults/CosmicCqlDemo/grouped-planning{,-final}.log, grouped-planning-artifacts.json. Private Corea4e3e6d0a69b524d3a7b2cd0e87a9eb0dadf71f2 is paired with the parent pin.
+
+This is planning evidence, not native GroupBy execution certification. Grouped result validation/materialization, the existing physical-attempt owner, native adapters, HTTP and demos remain required. No current provider advertises grouping execution.
