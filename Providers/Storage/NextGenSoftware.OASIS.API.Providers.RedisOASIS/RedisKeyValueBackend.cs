@@ -25,6 +25,7 @@ internal sealed class RedisKeyValueBackend(
     private const string RevisionPrefix = "redis-state-v1:";
     private const string ReplaceScript = "if redis.call('GET',KEYS[1]) ~= ARGV[1] then return 0 end redis.call('SET',KEYS[1],ARGV[2]) return 1";
     private const string DeleteScript = "if redis.call('GET',KEYS[1]) ~= ARGV[1] then return 0 end return redis.call('DEL',KEYS[1])";
+    public Func<Task>? VerifyAdmission {get;init;}
 
     private string Key(string key)
     {
@@ -141,6 +142,7 @@ internal sealed class RedisKeyValueBackend(
     {
         cancellationToken.ThrowIfCancellationRequested();var db=await database();await db.PingAsync(CommandFlags.DemandMaster);
         _=await ListKeysAsync(keyPrefix,cancellationToken);
+        if(VerifyAdmission!=null)await VerifyAdmission();
     }
 }
 
