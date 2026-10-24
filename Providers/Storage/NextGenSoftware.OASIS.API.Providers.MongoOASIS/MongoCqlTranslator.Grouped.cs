@@ -91,8 +91,36 @@ internal sealed partial class MongoCqlTranslator
             { "$sum", "$inputs" },
             { "window", new BsonDocument("documents", new BsonArray { "unbounded", "unbounded" }) }
         }))));
+        var sortFields = new BsonDocument();
+        var selectedSort = new BsonDocument();
+        for (var index = 0; index < query.Orderings.Count; index++)
+        {
+            var ordering = query.Orderings[index];
+            var column = query.Columns[ordering.ColumnIndex];
+            BsonValue value;
+            if (column.KeyIndex >= 0) value = "$_id.k" + column.KeyIndex;
+            else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) value = "$inputs";
+            else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
+                value = "$a" + ordering.ColumnIndex + ".k";
+            else if (column.Operation == CosmicScalarOperation.Sum)
+                // Bounded Int64 input has at most29 decimal digits in total.
+                // Decimal128 arithmetic is exact here, including cancelling sums.
+                value = Op("$add", Op("$multiply", "$a" + ordering.ColumnIndex + "high", limb), "$a" + ordering.ColumnIndex + "low");
+            else throw new NotSupportedException("Exact native ordering is not enrolled for this aggregate.");
+            var alias = "cqlGroupSort" + index;
+            sortFields.Add(alias, value);
+            selectedSort.Add(alias, ordering.Descending ? -1 : 1);
+        }
+        if (sortFields.ElementCount != 0)
+        {
+            page.Add(new("$set", sortFields));
+            // The complete normalized identity is always the final stable tie.
+            selectedSort.AddRange(sort);
+            sort = selectedSort;
+        }
         page.Add(new("$sort", sort));
         page.Add(new("$limit", maximumGroups + 1));
+        if (sortFields.ElementCount != 0) page.Add(new("$unset", new BsonArray(sortFields.Names)));
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
         ValidatePipeline(source);
         var membership = query.Source.Predicates.Any(p => p is CosmicQueryAnyChild || p is CosmicQueryAnyDescendant);
