@@ -49,6 +49,27 @@ public partial class HolonRepository
             return string.Join(", ", sql);
         }
 
+        internal string TranslateNumericAggregate(CosmicQueryPath path, string predicate, string ordering)
+        {
+            var operand = ProjectionOperand(path, "cqlnumeric", comparable: true);
+            var optional = Nullable.GetUnderlyingType(path.ValueType) != null;
+            var invalid = optional ? "s=3" : "s<>2";
+            var maximum = CosmicNumericScalarResults.MaximumParticipatingValues;
+            var sentinel = ((long)maximum + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            // The extra input is a work-limit sentinel, never a truncated success.
+            // Even max+1 rows keep both signed limb sums within Int64. Validate
+            // all mandatory traversal scopes separately before the source page.
+            return "/* COSMIC numeric aggregate */ WITH selected AS (SELECT " + operand.State + " AS s," + operand.Value
+                + " AS v FROM Holon WHERE " + predicate + " ORDER BY " + ordering + " LIMIT $countTake OFFSET $countOffset),"
+                + " bounded AS (SELECT s,v FROM selected LIMIT " + sentinel + "),"
+                + " aggregated AS (SELECT count(*) AS inputs,COALESCE(sum(CASE WHEN " + invalid + " THEN 1 ELSE 0 END),0) AS invalid,"
+                + "COALESCE(sum(CASE WHEN s=2 THEN 1 ELSE 0 END),0) AS present,"
+                + "COALESCE(sum(CASE WHEN s=2 THEN v / 4294967296 ELSE 0 END),0) AS high,"
+                + "COALESCE(sum(CASE WHEN s=2 THEN v % 4294967296 ELSE 0 END),0) AS low FROM bounded) "
+                + "SELECT invalid,present,high,low,CASE WHEN inputs>"
+                + maximum.ToString(System.Globalization.CultureInfo.InvariantCulture) + " THEN 1 ELSE 0 END AS overWork FROM aggregated";
+        }
+
         internal string TranslateExtremum(CosmicQueryPath path, CosmicScalarOperation operation,
             string predicate, string ordering)
         {
