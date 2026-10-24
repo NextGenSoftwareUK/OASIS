@@ -93,6 +93,9 @@ public sealed class SolidPrivateRecordCodec : IDisposable
         return History.ReadAsync(expectedId,DecodeDocument<T>(turtle,expectedId),version,StoredRecordJson.DeserializeStored<T>);
     }
 
+    public System.Collections.Generic.IReadOnlyList<T> DecodeAllVersions<T>(string turtle,Guid expectedId) where T:class,IHolonBase
+        =>History.ReadAll(expectedId,DecodeDocument<T>(turtle,expectedId),StoredRecordJson.DeserializeStored<T>);
+
     private JObject DecodeDocument<T>(string turtle,Guid expectedId) where T:class,IHolonBase
     {
         var resource=Resource<T>(expectedId);

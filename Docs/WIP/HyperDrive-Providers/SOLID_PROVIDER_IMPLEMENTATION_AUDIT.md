@@ -1,5 +1,13 @@
 # SOLID provider implementation audit
 
+## All-version exports implemented — controlled gate, 24 October
+
+SOLID exports now implement documented Version=-1 using EXISTING EmbeddedRecordHistory.ReadAll via the existing authenticated encrypted RDF decoder. Same canonical identity/archive validation, no parallel parser/history format or plaintext downgrade. Ordinary point/collection negative rules unchanged. Export username/email resolves current avatar identity independently of holon Version; explicit historical avatar lookup semantics remain separate. Every selected version independently filters tombstones and CreatedByAvatarId; positive/current exports likewise hide deleted records. Stored child payloads remain stored payloads, not a point-in-time graph or transactional collection snapshot.
+
+Eight sync/async all/ID/username/email controls genuinely fail on negative-version admission after correcting missing fixture activation; initial before/current reports failing ProviderNotActivated were fixture errors, NOT valid production regressions, and retained separately. Corrected valid-baseline eight fail with ArgumentOutOfRangeException. Fixed full353/353controlledPASS0skip902ms, including current avatar2, holon1..4/current4tombstone, foreignowner2, selected historical3, no mutation/unchanged ciphertext, ordinary-1/export-2 errors. No live Pod tests dispatched: earlier readiness-measurement policy denial remains respected. Controlled success is not native server/export durability/security/fullV2 certification; those gates remain open.
+
+Core740/ABD06B39 Shared55/1A9956E5 source/copies verified; SOLID13PDB/source and producer/consumer DLLD31B8777 verified. Exact report hashes/fixture-correction chronology/resources in ENVIRONMENT_INVENTORY.md. Existing caches/output reused, no new restore/download/install/runtime/service/data/environment. No production enablement/deployment claimed.
+
 ## Cold-start failure narrowed before authentication — 24 October 2026
 
 Added explicit read-only SolidColdStartReadOnlyTests, selected independently of the six RetainedSolidPodTests. SAME pinned retained CSS container/volume/DPAPI identity, no ACL/record write or new identity. Fresh process cold start reproduces the host transport-abort on anonymous `GET /.well-known/openid-configuration`, before credential decryption/token acquisition/private ACL GET. Thus this failure is not specific to DPoP token handling; server/forwarding readiness remains a hypothesis, not yet proven root cause. Do not add provider authentication retries or relabel warm success as cold reliability.

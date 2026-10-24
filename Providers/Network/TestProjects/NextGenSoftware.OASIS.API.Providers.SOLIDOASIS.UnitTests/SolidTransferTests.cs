@@ -6,6 +6,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.UnitTests;
 
 public class SolidTransferTests
 {
+    [Theory][InlineData(0,false)][InlineData(0,true)][InlineData(1,false)][InlineData(1,true)][InlineData(2,false)][InlineData(2,true)][InlineData(3,false)][InlineData(3,true)]
+    public async Task AllVersionExportsUseCurrentIdentityAndPerVersionOwner(int selection,bool sync)
+    {
+        var transport=new SolidRecordHttpTests.Transport();var owner=Guid.NewGuid();var other=Guid.NewGuid();var id=Guid.NewGuid();
+        using var codec=new SolidPrivateRecordCodec(Root,Key());
+        IAvatar avatar=new Avatar{Id=owner,Username="current-user",Email="current@example.invalid",Version=2};
+        transport.Records[codec.Resource<IAvatar>(owner).AbsoluteUri]=codec.Encode(avatar);
+        string? previous=null;
+        foreach(var version in new[]{1,2,3,4}){
+            IHolon row=new Holon{Id=id,Version=version,CreatedByAvatarId=version==2?other:owner,Name="private-canary-"+version,
+                DeletedDate=version==4?new DateTime(2026,10,24,0,0,0,DateTimeKind.Utc):DateTime.MinValue};
+            previous=(await codec.StageVersionAsync(row,previous)).Turtle;
+        }
+        transport.Records[codec.Resource<IHolon>(id).AbsoluteUri]=previous!;
+        using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key(),transport);
+        Assert.False((await provider.ActivateProviderAsync()).IsError);
+        var result=selection switch {
+            0=>sync?provider.ExportAll(-1):await provider.ExportAllAsync(-1),
+            1=>sync?provider.ExportAllDataForAvatarById(owner,-1):await provider.ExportAllDataForAvatarByIdAsync(owner,-1),
+            2=>sync?provider.ExportAllDataForAvatarByUsername("current-user",-1):await provider.ExportAllDataForAvatarByUsernameAsync("current-user",-1),
+            _=>sync?provider.ExportAllDataForAvatarByEmail("current@example.invalid",-1):await provider.ExportAllDataForAvatarByEmailAsync("current@example.invalid",-1)};
+        Assert.False(result.IsError,result.Exception?.ToString());Assert.True(result.IsLoaded);
+        Assert.Equal(selection==0?new[]{1,2,3}:new[]{1,3},result.Result.Select(row=>row.Version));
+        Assert.Equal(selection==0?3:2,result.LoadedCount);Assert.Equal(0,transport.Writes);
+        Assert.Equal(previous,transport.Records[codec.Resource<IHolon>(id).AbsoluteUri]);
+        var selected=await provider.ExportAllDataForAvatarByUsernameAsync("current-user",3);
+        Assert.False(selected.IsError,selected.Exception?.ToString());Assert.Equal(3,Assert.Single(selected.Result).Version);
+        var invalid=await provider.ExportAllAsync(-2);Assert.True(invalid.IsError);Assert.Null(invalid.Result);
+        var ordinary=await provider.LoadAllHolonsAsync(version:-1);Assert.True(ordinary.IsError);Assert.Null(ordinary.Result);
+    }
     private static readonly Uri Root=new("https://pod.invalid/private/");
     private static byte[] Key()=>Enumerable.Range(1,32).Select(x=>(byte)x).ToArray();
     [Theory][InlineData(false)][InlineData(true)]
