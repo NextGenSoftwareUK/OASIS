@@ -14,4 +14,5 @@ if(metadata.Title!=='original title'||metadata.Description!=='original descripti
 if(input.accountId!=='service.near'||input.privateKey!=='controlled-service-key')throw new Error('Configured mint authority changed');
 const hash='controlled-original-mint-transaction';
 process.stdout.write(JSON.stringify({ok:true,result:{transactionHash:hash,outcome:{transaction_outcome:{id:hash},
-  transaction:{signer_id:input.accountId,receiver_id:input.targetContractId},final_execution_status:'FINAL',status:{SuccessValue:''}}}}));
+  transaction:{signer_id:input.accountId,receiver_id:input.targetContractId,actions:[{FunctionCall:{method_name:input.methodName,
+    deposit:input.depositYocto,gas:Number(input.gas),args:Buffer.from(JSON.stringify(input.args??{})).toString('base64')}}]},final_execution_status:'FINAL',status:{SuccessValue:''}}}}));

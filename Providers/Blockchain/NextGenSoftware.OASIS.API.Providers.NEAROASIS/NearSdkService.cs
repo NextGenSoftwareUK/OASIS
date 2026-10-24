@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Security.Cryptography;
+using System.Numerics;
+using System.Globalization;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
@@ -205,31 +207,64 @@ internal sealed class NearSdkService
         string signerAccountId = null, string signerPrivateKey = null)
     {
         EnsureWritable(signerAccountId, signerPrivateKey);
+        var intent=new MutationIntent("Transfer",CanonicalNativeAmount(amountYocto),null,default,0);
         return await InvokeMutationAsync("transfer", new
         {
             receiverId,
             amountYocto,
             accountId = signerAccountId ?? _accountId,
             privateKey = signerPrivateKey ?? _privateKey
-        },signerAccountId ?? _accountId,receiverId);
+        },signerAccountId ?? _accountId,receiverId,intent);
     }
 
     public async Task<string> CallAsync(string methodName, object args, string targetContractId = null,
         string depositYocto = "0", string signerAccountId = null, string signerPrivateKey = null)
     {
         EnsureWritable(signerAccountId, signerPrivateKey);
+        const ulong gas=100_000_000_000_000;
+        var intent=new MutationIntent("FunctionCall",CanonicalNativeAmount(depositYocto),methodName,
+            JsonSerializer.SerializeToElement(args??new{}),gas);
         return await InvokeMutationAsync("call", new
         {
             methodName,
             args,
             targetContractId = targetContractId ?? _contractId,
             depositYocto,
+            gas,
             accountId = signerAccountId ?? _accountId,
             privateKey = signerPrivateKey ?? _privateKey
-        },signerAccountId ?? _accountId,targetContractId ?? _contractId);
+        },signerAccountId ?? _accountId,targetContractId ?? _contractId,intent);
     }
 
-    private async Task<string> InvokeMutationAsync(string operation,object args,string signer,string receiver)
+    private sealed record MutationIntent(string Kind,string Deposit,string Method,JsonElement Arguments,ulong Gas);
+
+    private static string CanonicalNativeAmount(string value)
+    {
+        if(!BigInteger.TryParse(value,NumberStyles.None,CultureInfo.InvariantCulture,out var amount)||amount.Sign<0)
+            throw new ArgumentException("A nonnegative decimal native amount is required.",nameof(value));
+        return amount.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static void ValidateMutationAction(JsonElement transaction,MutationIntent intent)
+    {
+        var actions=transaction.GetProperty("actions");
+        if(actions.ValueKind!=JsonValueKind.Array||actions.GetArrayLength()!=1)
+            throw new InvalidDataException("Native mutation must contain exactly its admitted action.");
+        var action=actions[0];
+        if(action.ValueKind!=JsonValueKind.Object||action.EnumerateObject().Count()!=1||!action.TryGetProperty(intent.Kind,out var body)
+            ||body.ValueKind!=JsonValueKind.Object||body.EnumerateObject().Count()!=(intent.Kind=="Transfer"?1:4)
+            ||body.GetProperty("deposit").GetString()!=intent.Deposit)
+            throw new InvalidDataException("Native mutation action or amount differs from admitted intent.");
+        if(intent.Kind=="FunctionCall"){
+            if(body.GetProperty("method_name").GetString()!=intent.Method||body.GetProperty("gas").GetUInt64()!=intent.Gas)
+                throw new InvalidDataException("Native mutation method or gas differs from admitted intent.");
+            using var arguments=JsonDocument.Parse(Convert.FromBase64String(body.GetProperty("args").GetString()));
+            if(!JsonElement.DeepEquals(arguments.RootElement,intent.Arguments))
+                throw new InvalidDataException("Native mutation arguments differ from admitted intent.");
+        }
+    }
+
+    private async Task<string> InvokeMutationAsync(string operation,object args,string signer,string receiver,MutationIntent intent)
     {
         string hash=null;
         try{
@@ -243,6 +278,7 @@ internal sealed class NearSdkService
             var transaction=outcome.GetProperty("transaction");
             if(transaction.GetProperty("signer_id").GetString()!=signer||transaction.GetProperty("receiver_id").GetString()!=receiver)
                 throw new InvalidDataException("Native mutation signer or receiver differs from admitted intent.");
+            ValidateMutationAction(transaction,intent);
             var status=ClassifyTransactionOutcome(outcome);
             if(status=="Failed")throw new NearMutationRejectedException(hash,outcome.GetProperty("status").GetRawText());
             if(status!="Completed")throw new InvalidDataException("Native mutation execution is not FINAL.");
