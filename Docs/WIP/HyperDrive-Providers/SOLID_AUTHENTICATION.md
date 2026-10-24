@@ -1,5 +1,11 @@
 # SOLID private authentication — scoped native verification
 
+## Token completion admission — 24 October,controlled verification
+
+Token responses now require HTTP200 after existing native error handling and before caching/access-token publication. [RFC6749section5.1](https://www.rfc-editor.org/rfc/rfc6749#section-5.1) specifies200for successful token issuance. Four genuine failures showed valid-looking token JSON on201/202/203/206could dispatch a Pod mutation;200control already passed. Invalid completion now raises InvalidDataException with zero resource requests and one issuer request. Only the caller's NEXT explicit request may obtain a fresh token; no mutation/issuer replay was added. Existing nonce challenge handling and native401 errors remain unchanged.
+
+Full362controlledPASS0skip1second. Core742/Shared56/SOLID13/unit29 PE/PDB/source and provider copies verified. Red report16315bytes/9DE64B38F526BAF5CB62C1593BB26EB2929A4C6F28D09FB2C02B24F53A7E6922; final619812bytes/5BDF4F9166A820CEDEE75B267581D6C905EC11758C3368BF2A234B1801F5FF6E. No native run/server startup/download/restore/new environment. Retained server inspected EXITED137,pinned image unchanged; explicit approval requested before resuming previously denied cold-readiness diagnostic. This token-boundary repair is NOT the cold-start cause/fix or native authentication certification; original cold failure and full OIDC/hosted/V2 gates remain OPEN.
+
 ## Reused running server — native role refresh and DPoP compatibility green
 
 Existing retained server already running, no restart: expanded graph cases plus existing privateDPoP test pass6/6native, reportD93DA1CAC7AD36F99C3364A78EF5ADA3C6C0381A60A4F62947DFC36622332CB1; matching-dependency controlled330green1E1EE059248B55884D3A884F10FA3AA296A707D8C79CBF4650A37B3330228BBB. Source/copy identities, exact scope and original report preservation in SOLID_PROVIDER_IMPLEMENTATION_AUDIT.md. All pending fixture journals absent; operator-owned server left running as found. This is warm-server compatibility, not proof the earlier cold-start issue is resolved. No new identity/keys/environment/download/deployment.

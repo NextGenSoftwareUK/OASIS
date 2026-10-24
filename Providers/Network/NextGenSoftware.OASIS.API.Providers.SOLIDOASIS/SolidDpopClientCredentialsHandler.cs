@@ -106,6 +106,8 @@ public sealed class SolidDpopClientCredentialsHandler : DelegatingHandler
                 {_issuerNonce=nonce;continue;}
             }
             response.EnsureSuccessStatusCode();
+            if(response.StatusCode!=HttpStatusCode.OK)
+                throw new InvalidDataException("Solid OAuth token response requires HTTP 200 completion.");
             if(nonce!=null)_issuerNonce=nonce;
             using var json=JsonDocument.Parse(body);
             var root=json.RootElement;
