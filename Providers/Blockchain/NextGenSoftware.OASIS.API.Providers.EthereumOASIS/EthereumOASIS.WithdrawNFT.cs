@@ -248,12 +248,14 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                     if (!string.Equals(owner, account.Address, StringComparison.OrdinalIgnoreCase))
                         throw new InvalidOperationException("NFT is not owned by the signing account.");
                     dispatched = true;
-                    receipt = await contract.GetFunction("transferFrom").SendTransactionAndWaitForReceiptAsync(
-                        account.Address, new HexBigInteger(600000), null, null,
+                    receipt = await SubmitNftAsync(web3, contract.GetFunction("transferFrom"),
+                        account.Address, new HexBigInteger(600000),
                         account.Address, transaction.ToWalletAddress, tokenId);
                     if (!StorageReceiptSucceeded(receipt))
                     {
                         result.IsError = true;
+                        result.ErrorCode = "ETHEREUM_NFT_REVERTED";
+                        result.Result = new Web3NFTTransactionResponse { TransactionResult = receipt.TransactionHash };
                         result.Message = "ERC-721 transaction reverted.";
                         return result;
                     }
@@ -275,7 +277,8 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
             catch (Exception cause)
             {
                 result.IsError = true;
-                result.Exception = dispatched ? new EthereumNftMutationReconciliationException(receipt?.TransactionHash, cause) : cause;
+                result.Exception = cause is INativeMutationReconciliationRequired ? cause
+                    : dispatched ? new EthereumNftMutationReconciliationException(receipt?.TransactionHash, cause) : cause;
                 if (!dispatched && cause is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
                 result.Message = result.Exception.Message;
             }
@@ -359,19 +362,12 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                 var mintGas = await mintFunction.EstimateGasAsync(senderAccount.Address, null, null, mintToAddress, tokenId);
 
                 dispatched = true;
-                var acknowledgedHash = await mintFunction.SendTransactionAsync(
+                var receipt = await SubmitNftAsync(web3, mintFunction,
                     senderAccount.Address,
                     mintGas,
-                    null,
                     mintToAddress,
                     tokenId);
-                if (!IsStorageTransactionIdentity(acknowledgedHash))
-                    throw new InvalidDataException("NFT mint submission returned no valid native transaction identity.");
-                submittedHash = acknowledgedHash;
-                // Reuse the existing SDK polling owner, retaining submission identity independently.
-                var receipt = await PollTokenReceiptAsync(web3, submittedHash);
-                if (receipt == null || !string.Equals(receipt.TransactionHash, submittedHash, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidDataException("NFT mint receipt does not match the original submitted transaction.");
+                submittedHash = receipt.TransactionHash;
 
                 if (receipt.HasErrors() == true)
                 {
@@ -395,7 +391,8 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
             }
             catch (Exception ex)
             {
-                var cause = dispatched ? new EthereumNftMutationReconciliationException(submittedHash, ex) : ex;
+                var cause = ex is INativeMutationReconciliationRequired ? ex
+                    : dispatched ? new EthereumNftMutationReconciliationException(submittedHash, ex) : ex;
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, cause.Message), cause);
                 if (!dispatched && ex is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
             }
@@ -448,11 +445,13 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
                         throw new InvalidOperationException("NFT burn signer is not the token owner.");
                     // Explicit ERC-721 burn(uint256) extension, not an assumed GUID mapping.
                     dispatched = true;
-                    receipt = await contract.GetFunction("burn").SendTransactionAndWaitForReceiptAsync(
-                        account.Address, new HexBigInteger(600000), null, null, tokenId);
+                    receipt = await SubmitNftAsync(web3, contract.GetFunction("burn"),
+                        account.Address, new HexBigInteger(600000), tokenId);
                     if (!StorageReceiptSucceeded(receipt))
                     {
-                        result.IsError = true; result.Message = "ERC-721 burn transaction reverted."; return result;
+                        result.IsError = true; result.ErrorCode = "ETHEREUM_NFT_REVERTED";
+                        result.Result = new Web3NFTTransactionResponse { TransactionResult = receipt.TransactionHash };
+                        result.Message = "ERC-721 burn transaction reverted."; return result;
                     }
                     if (receipt.BlockNumber == null) throw new InvalidDataException("NFT burn receipt has no block number.");
                     var transferTopic = "0x" + Nethereum.Util.Sha3Keccack.Current.CalculateHash("Transfer(address,address,uint256)");
@@ -478,7 +477,8 @@ public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(stri
             catch (Exception cause)
             {
                 result.IsError = true;
-                result.Exception = dispatched ? new EthereumNftMutationReconciliationException(receipt?.TransactionHash, cause) : cause;
+                result.Exception = cause is INativeMutationReconciliationRequired ? cause
+                    : dispatched ? new EthereumNftMutationReconciliationException(receipt?.TransactionHash, cause) : cause;
                 result.Message = result.Exception.Message;
                 if (!dispatched && cause is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
             }
