@@ -26,4 +26,7 @@ public sealed class CqlV1Controller : ControllerBase
     [HttpPost("projection")]
     [RequestSizeLimit(32768)]
     public Task<IActionResult> Projection(CqlProjectionV1Request request) => CqlV1Endpoint.ExecuteProjectionAsync(HttpContext, request, providers);
+    [HttpPost("grouped")]
+    [RequestSizeLimit(32768)]
+    public Task<IActionResult> Grouped(CqlGroupedV1Request request) => CqlV1Endpoint.ExecuteGroupedAsync(HttpContext, request, providers);
 }
