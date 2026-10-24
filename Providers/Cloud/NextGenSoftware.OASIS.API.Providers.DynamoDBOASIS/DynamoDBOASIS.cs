@@ -173,7 +173,11 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 AttributeDefinitions = attrs
             };
             if (gsis != null) req.GlobalSecondaryIndexes = gsis;
-            await _client.CreateTableAsync(req);
+            var created=await _client.CreateTableAsync(req);
+            if(created?.HttpStatusCode!=System.Net.HttpStatusCode.OK||created.TableDescription==null
+                ||created.TableDescription.TableName!=tableName
+                ||created.TableDescription.TableStatus!=TableStatus.CREATING&&created.TableDescription.TableStatus!=TableStatus.ACTIVE)
+                throw new System.IO.InvalidDataException("DynamoDB table creation lacks its completed identity-bound native acknowledgement.");
             }
             var table=await WaitForTableActiveAsync(() => _client.DescribeTableAsync(tableName), () => Task.Delay(1000));
             if(table.TableName!=tableName||table.KeySchema==null||table.KeySchema.Count!=1||
