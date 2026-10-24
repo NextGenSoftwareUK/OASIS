@@ -173,7 +173,7 @@ public partial class SOLIDOASIS
             var state=await ReadPrivateRecordStateAsync<T>(id);
             result.Result=version==0?state.Record:await _privateRecords.DecodeVersionAsync<T>(state.Turtle,id,version);
             if(result.Result==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Requested SOLID record version was not found.";}
-            else result.IsLoaded=true;
+            else{result.IsLoaded=true;result.LoadedCount=1;}
         }catch(Exception error){
             OASISErrorHandling.HandleError(ref result,"SOLID private record read failed.",error);
             if(error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
@@ -208,7 +208,7 @@ public partial class SOLIDOASIS
                 var record=version==0?state.Record:await _privateRecords.DecodeVersionAsync<T>(state.Turtle,id,version);
                 if(record!=null)records.Add(record);
             }
-            result.Result=records;result.IsLoaded=true;
+            result.Result=records;result.IsLoaded=true;result.LoadedCount=records.Count;
         }catch(Exception error){OASISErrorHandling.HandleError(ref result,"SOLID private collection read failed.",error);}
         return result;
     }

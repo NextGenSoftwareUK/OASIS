@@ -39,6 +39,7 @@ public class SolidMetadataQueryTests
                 :await provider.LoadHolonsByMetaDataAsync(filter,scenario==1?MetaKeyValuePairMatchMode.All:MetaKeyValuePairMatchMode.Any,loadChildren:false));
         Assert.False(result.IsError,result.Exception?.ToString());
         Assert.Contains(result.Result,row=>row.Id==transport.Parent);Assert.Equal(scenario==2?2:1,result.Result.Count());
+        Assert.True(result.IsLoaded);Assert.Equal(result.Result.Count(),result.LoadedCount);
     }
     [Theory][InlineData(false)][InlineData(true)]
     public async Task ParentQueryProjectsProviderLinkedDescendants(bool synchronous)
@@ -48,6 +49,7 @@ public class SolidMetadataQueryTests
             :await provider.LoadHolonsForParentAsync(transport.Parent,loadChildren:true,loadChildrenFromProvider:true);
         Assert.False(result.IsError,result.Exception?.ToString());var child=Assert.Single(result.Result);Assert.Equal(transport.Child,child.Id);
         Assert.Equal(transport.Grandchild,Assert.Single(child.Children).Id);
+        Assert.True(result.IsLoaded);Assert.Equal(1,result.LoadedCount);
     }
     [Fact]
     public async Task InterfaceParentCallPreservesDistinctContinueAndProviderChildFlags()

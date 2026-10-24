@@ -1,5 +1,11 @@
 # SOLID provider implementation audit
 
+## Read acknowledgement counts repaired — 24 October
+
+Twenty existing sync/async point/metadata/parent/search cases genuinely failed new result-contract assertions. Existing point and collection success owners now set LoadedCount1/materialized root count; filtered query count uses selected roots only, not nested children; mixed search sets IsLoaded and the sum of selected avatar/holon roots. No extra HTTP request, traversal or size/fee estimate. Existing shared unique-identity lookup already returns1 and is unchanged.
+
+Full357controlledPASS0skip855ms, including four added empty/failure collection+search controls: successful empty payload IsLoadedtrue/count0; native read failure Resultnull/IsLoadedfalse/count0. Counts remain logical payload counts, not network requests or billing units. This does not establish native Pod or all-interface/V2 completion. Core740/ABD06B39 Shared55/1A9956E5 SOLID13/717BC001 source/current copies verified; no runtime/install/download/restore/new environment or server start. Exact original red/current/final reports/resources in inventory. Readiness policy denial and native export acceptance remain open.
+
 ## All-version exports implemented — controlled gate, 24 October
 
 SOLID exports now implement documented Version=-1 using EXISTING EmbeddedRecordHistory.ReadAll via the existing authenticated encrypted RDF decoder. Same canonical identity/archive validation, no parallel parser/history format or plaintext downgrade. Ordinary point/collection negative rules unchanged. Export username/email resolves current avatar identity independently of holon Version; explicit historical avatar lookup semantics remain separate. Every selected version independently filters tombstones and CreatedByAvatarId; positive/current exports likewise hide deleted records. Stored child payloads remain stored payloads, not a point-in-time graph or transactional collection snapshot.
