@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
@@ -24,7 +25,27 @@ public partial class MongoDBOASIS
             if(id.HasValue ? id.Value==Guid.Empty : !ObjectId.TryParse(key,out _)) throw new ArgumentException("Valid Mongo holon identity is required.");
             if(depth<0 || version<0) throw new ArgumentOutOfRangeException(nameof(depth),"Depth and version cannot be negative.");
             IHolon root;List<IHolon> records;
-            if(children && fromProvider)
+            if(version>0)
+            {
+                using var session=children && fromProvider
+                    ? synchronous ? Database.MongoClient.StartSession(new ClientSessionOptions{Snapshot=true})
+                        :await Database.MongoClient.StartSessionAsync(new ClientSessionOptions{Snapshot=true}).ConfigureAwait(false)
+                    :null;
+                var nativeFilter=id.HasValue?Builders<NativeHolon>.Filter.Eq(row=>row.HolonId,id.Value):Builders<NativeHolon>.Filter.Eq(row=>row.Id,key);
+                var filter=children && fromProvider?FilterDefinition<NativeHolon>.Empty:nativeFilter;
+                var rendered=filter.Render(new RenderArgs<NativeHolon>(Database.Holon.DocumentSerializer,Database.Holon.Settings.SerializerRegistry));
+                var raw=Database.MongoDB.GetCollection<BsonDocument>(Database.Holon.CollectionNamespace.CollectionName,Database.Holon.Settings);
+                var query=session==null?raw.Find(rendered):raw.Find(session,rendered);
+                if(!(children && fromProvider))query=query.Limit(2);
+                var documents=synchronous?query.ToList():await query.ToListAsync().ConfigureAwait(false);
+                var observations=documents.Select(document=>(Document:document,Native:BsonSerializer.Deserialize<NativeHolon>(document))).ToList();
+                if(observations.GroupBy(row=>row.Native.HolonId).Any(group=>group.Count()>1))throw new StorageIdentityAmbiguousException();
+                var selected=observations.SingleOrDefault(row=>id.HasValue?row.Native.HolonId==id.Value:row.Native.Id==key);
+                root=selected.Document==null?null:MongoNativeHolonHistory.Read(selected.Document).SingleOrDefault(row=>row.Version==version);
+                records=children && fromProvider?observations.Select(row=>DataHelper.ConvertMongoEntityToOASISHolon(row.Native,false)).ToList():new List<IHolon>();
+                if(root!=null){records.RemoveAll(row=>row.Id==root.Id);records.Add(root);}
+            }
+            else if(children && fromProvider)
             {
                 // One native snapshot cursor supplies BOTH root and provider-linked descendants.
                 using var session=synchronous ? Database.MongoClient.StartSession(new ClientSessionOptions {Snapshot=true})
@@ -47,7 +68,7 @@ public partial class MongoDBOASIS
             if(root==null) return new OASISResult<IHolon> {ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Holon not found."};
             var project=HolonGraphProjection.Create(records,children,recursive,depth,0,fromProvider,
                 row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
-            result.Result=project(root);result.IsLoaded=true;
+            result.Result=project(root);result.IsLoaded=true;result.LoadedCount=1;
         }
         catch(Exception cause)
         {
