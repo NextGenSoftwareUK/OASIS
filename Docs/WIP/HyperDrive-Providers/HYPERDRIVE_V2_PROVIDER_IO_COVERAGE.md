@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Shared Web3 returned-root counts — 23 October 2026, controlled scope
+
+Common Web3 owners repaired (Polygon/Arbitrum V2 wrapper), not duplicate adapters. Full176 selected Web3 +124 Ethereum non-native controls PASS0skip;39 new SDK-ABI/encrypted fixtures include positive independent-version exports, filtering, empty/error/graph counts. In-memory RPC responses are NOT live storage or cross-provider V2 proof. No new native acceptance or chain operation; preserved routing evidence and cloud/full V2 gates remain OPEN. Exact identities/resources/reports: ENVIRONMENT_INVENTORY.md.
+
 ## EVM export selector routing — 23 October 2026, controlled scope
 
 Standalone Ethereum and shared Web3Core (Polygon/Arbitrum wrappers) no longer couple identity history to exported holon Version; negative admission before identity I/O and full original-error forwarding verified.16new controls baseline12fail/4pass; full124Ethereum non-native +137Web3 selected controls PASS0skip. Exact Core2D6B/SharedB7F/four-provider source/copy/PDB cohort in inventory. No live success-path export, blockchain RPC/signing/gas or all-provider completion inferred. Original827392byte/1A826... routing.db still preserved, native runner rejects before setup,64retention guard controls pass. Future mixed gate300+paging/Web3 remains OPEN, owner authority/recovery choice documented in ACTIONS-FOR-DAVID.md. Existing successful-read counter omissions need follow-up. No download/restore/newenv/dev deployment or original replay.

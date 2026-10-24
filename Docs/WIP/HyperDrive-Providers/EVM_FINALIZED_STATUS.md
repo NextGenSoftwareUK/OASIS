@@ -1,5 +1,9 @@
 # EVM finalized transaction status — implementation in progress
 
+## Shared Web3 counts — 23 October 2026, controlled verification only
+
+Shared returned-root counters repaired for Polygon/Arbitrum V2 wrapper: new39 cases corrected baseline19fail/20pass; full176 Web3 selected and124 Ethereum non-native PASS0skip. Real SDK ABI codec with controlled RPC responses, encrypted successful exports avatar2/root3/child1, root-vs-descendant/filter/error counts. Exact source/copy/PDB/report cohort in inventory. Original routing.db unchanged;64 retention controls pass. This is NOT new finalized transaction/native-chain/gas/V2 certification; those gates remain OPEN. No environment/download/node/sign/broadcast/dev deployment.
+
 ## Latest export-selector checkpoint — 23 October 2026, no native acceptance
 
 Standalone Ethereum/shared Web3Core export selectors now resolve current identity independently of holon Version, with early negative admission and full identity-error forwarding. New16 controlled cases baseline12fail/4pass; full124Ethereum non-native +137Web3 selected controls PASS0skip. Core7242D6B/Shared55B7F554 +four provider/six project source/copy/PDB evidence and exact TRXs in ENVIRONMENT_INVENTORY.md. This is failure-routing/compatibility verification, not successful live encrypted storage, finalized transactions, gas recovery or native provider completion.

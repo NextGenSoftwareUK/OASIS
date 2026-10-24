@@ -31,7 +31,7 @@ public partial class Web3CoreOASISBaseProvider
                     throw new InvalidDataException("Stored record has invalid Latitude/Longitude degree metadata.");
                 return GeoHelper.CalculateDistance(latitude/1e6d,longitude/1e6d,latValue,lonValue)<=radius;
             }
-            result.Result=loaded.Result.Where(IsNear).ToList();result.IsLoaded=true;
+            result.Result=loaded.Result.Where(IsNear).ToList();result.IsLoaded=true;result.LoadedCount=result.Result.Count();
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;

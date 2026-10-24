@@ -29,7 +29,7 @@ public partial class Web3CoreOASISBaseProvider
                 if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(loaded);
                 var root=loaded.Result.SingleOrDefault(row=>row.Id==id);
                 if(root==null) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core holon not found.";return result;}
-                result.Result=root;result.IsLoaded=true;
+                result.Result=root;result.IsLoaded=true;result.LoadedCount=1;
                 return result;
             }
             result=await ReadPrivateGuidAsync<IHolon>(id,version,index=>_web3CoreOASIS.GetHolonByIdAsync(index),row=>DecodePrivateEntity<Holon>("holon",row,version));
@@ -38,7 +38,7 @@ public partial class Web3CoreOASISBaseProvider
                 row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
             result.Result=project(result.Result);
         }
-        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);result.Result=null;result.IsLoaded=false;}
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);result.Result=null;result.IsLoaded=false;result.LoadedCount=0;}
         return result;
     }
 
@@ -51,7 +51,7 @@ public partial class Web3CoreOASISBaseProvider
             var loaded=await ReadPrivateHolonsAsync(HolonType.All,true,true,0,0,true,version);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
-            result.Result=records.Where(row=>row.CreatedByAvatarId==owner || row.ParentHolonId==owner).ToArray();result.IsLoaded=true;
+            result.Result=records.Where(row=>row.CreatedByAvatarId==owner || row.ParentHolonId==owner).ToArray();result.IsLoaded=true;result.LoadedCount=result.Result.Count();
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -79,7 +79,7 @@ public partial class Web3CoreOASISBaseProvider
             if(!Guid.TryParse(key,out var id) || id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core parent GUID is required.",nameof(key));
             var loaded=await ReadPrivateHolonsAsync(type,children,recursive,depth,initialDepth,fromProvider,version);
             if(loaded.IsError) return loaded;
-            loaded.Result=loaded.Result.Where(row=>row.ParentHolonId==id).ToArray();return loaded;
+            loaded.Result=loaded.Result.Where(row=>row.ParentHolonId==id).ToArray();loaded.LoadedCount=loaded.Result.Count();return loaded;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -95,7 +95,7 @@ public partial class Web3CoreOASISBaseProvider
             StoredRecordSearch.Validate(search,version,depth,supportsHistory:true);
             var loaded=await ReadPrivateHolonsAsync(type,children,recursive,depth,initialDepth,fromProvider,version);
             if(loaded.IsError) return loaded;
-            var records=loaded.Result.ToList();loaded.Result=records.Where(row=>StoredRecordSearch.Matches(row,false,search,records)).ToArray();return loaded;
+            var records=loaded.Result.ToList();loaded.Result=records.Where(row=>StoredRecordSearch.Matches(row,false,search,records)).ToArray();loaded.LoadedCount=loaded.Result.Count();return loaded;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -112,7 +112,7 @@ public partial class Web3CoreOASISBaseProvider
             var matches=loaded.Result.Where(row=>string.Equals(field(row),selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
             if(matches.Length>1) throw new StorageIdentityAmbiguousException();
             if(matches.Length==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core selector not found.";}
-            else {result.Result=matches[0];result.IsLoaded=true;}
+            else {result.Result=matches[0];result.IsLoaded=true;result.LoadedCount=1;}
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;}
         return result;
@@ -140,7 +140,7 @@ public partial class Web3CoreOASISBaseProvider
             if(record==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core version not found.";return result;}
             if(record.Id!=id) throw new System.IO.InvalidDataException("Web3Core payload differs from requested full GUID.");
             if(!record.IsActive) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core record not active.";return result;}
-            result.Result=record;result.IsLoaded=true;
+            result.Result=record;result.IsLoaded=true;result.LoadedCount=1;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -154,7 +154,7 @@ public partial class Web3CoreOASISBaseProvider
             if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
             var entities=await _web3CoreOASIS.ReadCollectionAsync(kind);
-            result.Result=entities.Select(decode).Where(row=>row!=null&&row.IsActive).ToArray();result.IsLoaded=true;
+            result.Result=entities.Select(decode).Where(row=>row!=null&&row.IsActive).ToArray();result.IsLoaded=true;result.LoadedCount=result.Result.Count();
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -174,7 +174,7 @@ public partial class Web3CoreOASISBaseProvider
             var records=version==0?current:entities.Select(row=>DecodePrivateEntity<Holon>("holon",row,version)).Where(row=>row!=null&&row.IsActive).Cast<IHolon>().ToList();
             var project=HolonGraphProjection.Create(fromProvider?current:records,children,recursive,depth,initialDepth,fromProvider,
                 row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
-            result.Result=records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToArray();result.IsLoaded=true;
+            result.Result=records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToArray();result.IsLoaded=true;result.LoadedCount=result.Result.Count();
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;

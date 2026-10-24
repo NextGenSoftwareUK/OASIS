@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Shared Web3 read-count controlled gate — 23 October 2026
+
+176 Web3 selected controls +124 Ethereum non-native PASS0skip, including39 new encrypted real-SDK-ABI response cases and positive independent-version exports. Corrected baseline19 count failures; first baseline also contained one explicitly corrected fixture error. Scoped successful returned-root/filtered/search counters are repaired in the shared Polygon/Arbitrum V2 owner. Original routing.db unchanged,64 retention decisions pass. Native chain/interfaces/finalized outcomes/fees/full V2 remain OPEN; no dev merge/deployment. Current source/copy/PDB cohort Core2D6B/Shared658206, exact artifacts in inventory. Earlier counter-audit-open notes below are historical.
+
 ## EVM export selector controlled gate — 23 October 2026
 
 124Ethereum non-native/137Web3 selected controls PASS0skip, including16new independent-version/negative-admission/error-envelope controls. No SDK transport, chain signing, gas or native success-path acceptance. Original routing.db unchanged827392B/hash1A826...,64retention guard controls pass and native preflight still rejects. Required future mixed300+paging+Web3 not run; owner decision in ACTIONS-FOR-DAVID.md. Core2D6B/SharedB7F/four-provider source/copies and exact proof lifecycle in inventory. Controlled dispatch gate only is closed; native interfaces, result-counter audit and full V2 remain OPEN. No new runtime/env/download or dev deployment.
