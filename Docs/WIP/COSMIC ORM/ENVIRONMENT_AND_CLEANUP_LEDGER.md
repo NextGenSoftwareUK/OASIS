@@ -982,3 +982,46 @@ Neo UTCDateTime24October2026: COSMIC ORM reuses SDK10.0.401/runtime10.0.12/NuGet
 Neo date86776actualterminal1:190PASS/2historicalDate-denialexpectationred/0skip, all20newdatecasesPASS. No productiondatefailure found; oldunsupportedDate tests retargeted to still-unenrolledDecimal toretain actual-provider admission invariant. Retain neo-date-native.log and Neo4jCurrent/date-native-red-current.trx (copied from fixedrunnerreport, sizesunmeasured); sourcehashJSON preserved. Graphmarkerabsent/17687listenerabsent afteracknowledgedfixtureteardown, no unknownwrites. WindowreleasedtoqueuedpeerActivityPub baseline before finalnative192rerun; no producerrestartwhilehandlelive.
 
 Neo datefinal41795terminal0:192fullnativeCQL/354fullunitPASS0skip. Exactproducer/native/unit paths/measuredbytes/fullhashes retained Neo4jCurrent/date-artifacts.json; date-final-source-hashes.json includesCore/Shared/all3providers/native-testsource unchanged. CoreABD06B39/Shared944F93E9/Neo2E1D6787 match. Native/units logs/TRX above retained(sizeunmeasured), priorred190/2 preserved. No migration/newpersistentdateprojectionfields/install/download/restore/newenvironment. Graphmarkerabsent/exactimageexited/17687listenerabsent verified afteracknowledgedteardown. RunnerfreeCbefore69,878,669,312/after69,702,393,856; later69,778,780,160bytes; concurrentusage notattributed. Sharedruntime/data/cache/outputs retained reusable, source/buildwindow releasedtopeerActivityPub afterterminal/proof. OtherNeo runner mode counters adjusted+20 but not rerun in thisgate; no newHTTPdateclaim.
+
+UTC HTTP/date demos20–21 prep24October2026: COSMIC ORM reuses existing SDK10.0.401/runtime10.0.12, NuGet C:/Users/david/.nuget/packages, Node24.19.0 C:/Program Files/nodejs/node.exe and Python312 C:/Users/david/AppData/Local/Programs/Python/Python312/python.exe (sizesunmeasured/sharedreusable). No install/download/restore/newenvironment. Fixed TestResults/CosmicCqlDemo/v1-page-check.js rewritten from currentbrowser source; node --check passed, sizeunmeasured/retainedcompactevidence. Own ONODE3wirefiles held while peer Core source/producer window active; only demo/nativehost fixture/browser prep thereafter, no conflicting outputs touched. New datefixture field observedAt will exist only in existing ownedDemo DB/graph lifecycle; no fixture allocated yet. Planned63SDK/63HTTP plus existing256Neo/WEB4 nativegate, verificationpending.
+
+UTCwire tests24October2026 afterpeerCore release: reuse newCore3bebbcd/net10BC24B11D/netstandardC2897601 outputs, SDK10.0.401/runtime10.0.12/NuGet and existing Core.UnitTests bin/obj (sizesunmeasured/sharedreusable). No install/download/restore/newenv/service/DB. Globallease consumer rebuild/fullunitgate planned; fixed TestResults/CosmicCqlDemo/utc-wire-{unit-build,unit}.log and CosmicCurrent/utc-wire-current.trx retainedcompactevidence(sizeunmeasured).32new input/UTC/nullable/admission cases expected; actualcount pending. OwnRootUnitTests edits began only afteractualpeerCore49502release/publication.
+
+UTCwire18174actualterminal1:2414PASS/10test-assumptionred/0skip. Positive source tests assumedonepredicate but production correctlyretains mandatoryowner/publiclogicalpredicate plusdatepredicate; literalUTCvalues werepresent. Correctedassertions explicitlyretainthatpolicy and selectmetadata comparison; no productionparserchange. Initial utc-wire-unit.log and utc-wire-red-current.trx retained(sizeunmeasured). No DB/service/unknownoutcome. Finalfullunitrerun pending againstsameCore3bebbcd.
+
+UTCwire final30048terminal0:2424fullCoreunitsPASS0skip (2392baseline+32wire/accesscontrols), Core3bebbcd currentoutputs. Existing8-format sharedUTC parser validated; no productionfixforinitialtest-assumptionred. Planneddate livegate reusessameSDK/NuGet/Node/Python/resources above and retainedMongo8.3.11 C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe fixedSubscriptionUsageCurrent/mongo-data27029/oasisRecoveryRs plus WSLUbuntu/rootPodman oasis-neo4j5.26.12 image6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd17687. No install/download/restore/newenv. Fixed TestResults/CosmicCqlDemo/utc-demo-{native.log,source-hashes.json,artifacts.json}, v1-demo-result.json, v1-walkthrough.txt and Neo4jCurrent/neo4j-cql-v1-web4-current.trx retaincompactevidence(sizeunmeasured). FixturemetadataobservedAt disposableonlyafteracknowledgedownedteardown. SourceCSsnapshot andproducer/host checks mandatory. FreeC69,660,155,904bytes beforegate;256native+63SDK/63HTTPverificationpending.
+
+2026-10-24 UTC admission reconciliation: retained fixture SHA256 40825B94368E61714BA913B81D3CB7050A8ECCC2C3EADFA7F9CD7E6EAD3454B4; 272 journal entries, 127 distinct logical keys (five auth probes), 274 scalar acknowledgements in MongoDB/SQLite, nine Neo4j roots/children. Reuse retained MongoDB 8.3.11 on 27029 and Neo4j 5.26.12 on 17687 under build lease. Exact paths: TestResults/Neo4jCurrent/cql-v1-web4.sqlite and journaled cosmic_cql_v1_web4_storage/usage databases. Owner: COSMIC ORM UTC transport task; sizes unmeasured; preserved failure until pinned ownership and settled-outcome checks pass. Failed 253/256 TRX retained as TestResults/Neo4jCurrent/utc-hosted-red-current.trx. Free C: 69,648,633,856 bytes before reconciliation. No download, restore or new environment. Reconciliation produces reviewed snapshots; runner removes only validated SQLite sidecars after test exit.
+
+UTC fixture reconciliation actual8206 terminal0: one pinned native test plus replica initialization passed; 122 exact admitted operations settled, 146 MongoDB/SQLite rows and nine Neo4j rows verified before cleanup. Exact journal archived TestResults/Neo4jCurrent/cql-v1-web4-before-utc-admission-reconciliation.json, snapshots/outcomes in cql-v1-web4-reviewed-utc-admission-reconciliation.json, filesystem removals in cql-v1-web4-cleanup.json. Fixture marker absent; retained services stopped. Reusing same SDK/cache/services for full256 native/WEB4 and63SDK/63HTTP verification; outputs overwritten in fixed TestResults/Neo4jCurrent and CosmicCqlDemo, no restore/download. Binary evidence now captured inside the global build lease in v1-binary-identities.json.
+
+
+## UTC wire/demo acceptance — 24 October 2026
+
+Actual45734 terminated successfully: **256 Neo4j/WEB4 native regression cases,
+63 SDK queries and63 signed HTTP examples passed, zero failures/skips**. The
+joint MongoDB/SQLite/Neo4j walkthrough recorded243 settled operations and238
+provider attempts. The separate full Core/linked-production cohort passes2,424
+cases, including32 new UTC wire controls. These are distinct scopes; this does
+not rerun the entire MongoDB191-case or SQLite1409-case suite.
+
+Examples20–21 cover exact UTC source ranges/projection and selected grouped-date
+filters/order/page, preserving neighboring100ns values and UTC result tags.
+Malformed/timezone/precision wire values fail compilation. The older hosted
+DateTime-denial assertion now checks still-unenrolled Decimal. Its original
+253/256 failure is preserved; exact ownership and122 settled operations were
+verified before the retained mixed-size fixture was removed and this gate rerun.
+
+Evidence: TestResults/CosmicCurrent/utc-wire-final-current.trx;
+TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx;
+TestResults/CosmicCqlDemo/utc-demo-final-native.log, v1-demo-result.json,
+v1-walkthrough.txt and v1-binary-identities.json. Producer/native-host SHA256 pairs
+were captured inside the global lease: Core BC24B11D, Shared83968E9A,
+MongoB7A03FAA, SQLite267F7C88, Neo51EBF916. All112 checked local documentation
+links resolve. No installs/downloads/restores or new environments were needed.
+
+Fixture/readiness markers and owned27029/17687/5088 listeners are absent; retained
+Neo4j is stopped. Free C:69,475,381,248 bytes after teardown. Broader scalar types,
+joins/composition/federation, authoritative sharing/tenant policy, strict blocked
+I/O interruption and final coherent certification remain open. Full CQL/ORM
+completion is not claimed; the active goal continues.
