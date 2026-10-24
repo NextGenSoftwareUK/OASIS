@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Cosmos read-counter gate — 23 October 2026
+
+Full355unit/66native PASS0skip,82new unit controls and existing4native fixtures expanded across point/list/selector/type/parent/metadata/search/nearby, empty responses and graph-root counting. Failed projection/deletion do not leak internal read counts. Native16owned docs original-ETag removed/absence verified, pending0/emulator stopped, no new environment/download/cloud request. Source/copy/PDB cohort Core2D6B/Shared6639/CosmosB752, exact failure/corrected/success proofs and lifecycle in inventory. Two initial search fixture mistakes preserved and corrected explicitly, not production-filter workarounds. Scoped common-read counters now closed; earlier counters-open notes below are historical. Hosted credentials/IAM/RU metering/billing/cloud durability/provider-wide V2 remain OPEN. No dev merge/deployment or100% claim.
+
 ## Azure Cosmos export version/count gate — 23 October 2026
 
 Final273unit/full66native PASS0skip after6expected baseline failures. Current identity selects avatar; Version selects exported holon roots, explicit avatar history unchanged. Owned exports report root LoadedCount correctly; no RU/fee interpretation. New4 native cases preserve fullJSON/ETags, isolate existing owner relationship and conditionally clean12new docs. Pending0/emulator stopped, all reserved ports absent. Core2D6B/Shared4772/CosmosF24295 source/copies verified, same retained runtime/image, no downloads/newenvironment/cloud request. Exact evidence/lifecycle in inventory. This scoped gate is closed, but other Cosmos read-counter omissions, hosted IAM/cost/durability and provider-wide V2 remain OPEN. Prior Google section's Azure selector-next note is historical and superseded only for this scoped repair. No dev deployment/provider100% claim.

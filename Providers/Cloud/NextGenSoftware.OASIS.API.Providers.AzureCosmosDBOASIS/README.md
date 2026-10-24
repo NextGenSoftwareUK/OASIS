@@ -4,6 +4,8 @@ WEB4 OASIS API AzureCosmosDB OASIS Provider is one of the many WEB2/WEB3 provide
 
 Username/email exports resolve the current avatar identity; `version` selects exported holon roots, not independent avatar history. Use the current username/email when exporting older holons. Linked children keep independent versions. Explicit versioned avatar lookups retain historical identity fields. Negative export versions fail before identity repository reads. Owned exports report returned-root `LoadedCount`, including zero for an empty result; this count is not Cosmos request-unit usage or cost.
 
+Successful point/identity reads count one record. Collection, parent, metadata, type-filtered and nearby reads count returned roots, not scanned records or nested children; empty collections stay loaded with count zero. Search counts returned avatar/holon roots (`NumberOfResults`). Failed graph projection clears any earlier point-read count, and deletion does not publish its internal lookup as a successful read. These response annotations do not change query, persistence, history, native request charges or retry policy.
+
 Initial Release targeting OASIS API v2.3.1 (Current LIVE REST version): \
 https://api.oasisweb4.one
 
