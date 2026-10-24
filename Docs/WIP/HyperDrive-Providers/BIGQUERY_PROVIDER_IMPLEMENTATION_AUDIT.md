@@ -1,5 +1,13 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## Provider-key, search, export and import integration — 24 October
+
+Full471controlledPASS0skip4seconds. Original30entrypoint cases24genuinefail/6valid: non-GUID provider-key reads lacked loaded counts,accepted duplicate keys,lost original source errors and ignored graph options; search/export omitted requested graph data/counts. Alias selectors now reuse UniqueRecord/CompleteRead/shared projector and only project selected roots from the already-fetched active pool. Parent aliases resolve identity without unrequested parent graph reads. Search selects roots before materializing graphs,so an unrelated unselected cycle does not invalidate a healthy selection.
+
+Full exports request provider children. Owner exports filter both roots AND descendant pool by CreatedByAvatarId before projection; foreign descendants are not included merely because they link to an owned root. A role manifest requiring unavailable/foreign members will fail through existing strict shared membership validation rather than disclose or fabricate them. Empty owner rejects before I/O. Username/email resolve CURRENT avatar identity; export Version belongs to holon roots (actual history selection still OPEN). Original errors propagate through owner lookup/export boundaries.10additional controls cover full export,empty owner and source failures.
+
+Import separately reproduced2genuine partial-save wrapper failures: acknowledged count/reconciliation marker were lost. It now propagates actual SavedCount/original exception and successful IsSaved from existing bulk owner;4healthy/empty controls pass. This does NOT implement missing recursive graph writes or imply safe replay of uncertain imports. Native hosted/index/transactional consistency/history/private encryption/durable recovery/fees/fullV2 remainOPEN. Source/PDB Core742/Shared56/provider5/unit10 and copies verified; no real cloud data or mutations. Evidence/inventory retain all original reports.
+
 ## Shared parent-linked graph reads — 24 October
 
 Full425controlledPASS0skip4seconds. Original76case graph cohort32genuine failures/44valid controls: requested provider children were absent and cycles were silently returned as successful roots. Point GUID,parent GUID and all-holon collection owners now reuse existing Shared.HolonGraphProjection,not a new traversal. Adapter obtains current undeleted provider rows only when provider children are requested; all-collection reads reuse their already-fetched active pool. Root HolonType filtering does NOT incorrectly filter descendant types. Source records are canonically cloned,not mutated or persisted by reads.
