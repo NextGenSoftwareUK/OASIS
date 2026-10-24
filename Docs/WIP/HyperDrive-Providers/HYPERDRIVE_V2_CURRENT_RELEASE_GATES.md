@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## Redis transport foundation — 23 October 2026, public provider remains OPEN
+
+New native conditional key-value adapter compiles and passes one bounded real Redis8.2.2 scenario: observed-byte GET, SET-NX, stale-state CAS rejection, conditional delete, scope-bound observations, predispatch cancellation and scoped enumeration. Two synthetic keys conditionally cleaned/absent verified; intent resolved, server stopped/pending0. Existing13 compatibility controls PASS0skip, explicitly EXCLUDING12 newly reproduced public version regressions (stillred/uncommitted). Adapter is NOT wired into public RedisOASIS; no public history/interface fix, encrypted-provider/cluster/transport-loss/ABA-monotonicity/V2 certification. State comparisons are native observed bytes, not invented transaction IDs or monotonic revisions. No new SDK/runtime/environment/authkey; local cache-only graph update. Exact identities/proofs/resources in inventory. No dev deployment.
+
 ## AWS/Dynamo repeated-row read gate — 23 October 2026
 
 New24 controls first16fail/8pass, common scan/query owner repaired; final same-cohort499unit/171native PASS0skip. Repeated logical GUIDs fail the whole read, no partial success/dedup/retry. Four older fixture conflicts corrected with real distinct native IDs while retaining original assertions. Native171 is existing real SDK/DynamoDB Local regression, not a forced duplicate schedule or whole-table snapshot. Source/copy/PDB Core72546E23B/Shared55B81C7C/DynamoE9FD/AWS603D; exact artifacts in inventory. Pending0/container stopped/ports absent, no restore/download/new environment/cloud call/dev deployment. Hosted IAM/capacity/billing/full relevant interfaces/full V2 remain OPEN.
