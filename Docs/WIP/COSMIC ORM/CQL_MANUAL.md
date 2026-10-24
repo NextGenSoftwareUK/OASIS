@@ -19,6 +19,11 @@ Open [the demo guide](../../../Examples/CosmicCqlDemo/README.md), then read `V1N
 
 These commands require the already configured reusable provider environment. They do not install or download services. The current runner checks fresh actual results rather than treating an older report as success. SDK examples check `OASISResult` before planning/execution; the public endpoint binds the authenticated actor itself.
 
+Current live walkthrough:23 examples per provider,69SDK/69HTTP in total, with249
+settled operations and244 provider attempts. Examples22–23 demonstrate UInt64
+source projection and grouped result filters/order using exact digit strings.
+[Evidence and supported domains](CQL_UINT64_CONTRACT.md).
+
 ## Current operator guide
 
 | Area | Supported composition for admitted domains |
@@ -857,7 +862,7 @@ compare a rounded floating-point extraction. Nullable values, membership,
 field-to-field comparison, Min/Max and grouped keys use the same exact domain.
 Fractional/out-of-range mixed literals remain a provider admission restriction.
 UInt64 Sum/Average are not enrolled by metadata support. HTTP UInt64 compiler
-coverage passes; live transport/demo acceptance is still pending.
+coverage passes; live transport/demo acceptance passes69SDK/69HTTP examples.
 See [the UInt64 contract](CQL_UINT64_CONTRACT.md) for verified scope and examples.
 
 
@@ -881,6 +886,5 @@ keys use the same selection shape. A selected group predicate can use
 Output columns carry UInt64 schema tags and invariant strings, preserving all bits
 through JavaScript clients. Numeric JSON input, signs, whitespace, fractions,
 exponents and values above UInt64.MaxValue fail compilation. Existing enum values
-retain their identities. Live three-provider examples remain the next acceptance
-step; [the capability matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) distinguishes that
+retain their identities. Live three-provider examples22–23 now pass69SDK/69HTTP acceptance; [the capability matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) distinguishes that
 pending gate from the passing compiler and native evidence.

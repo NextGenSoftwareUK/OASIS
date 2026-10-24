@@ -463,11 +463,68 @@ public static class V1Walkthrough
                 resultOrder = new[] { new { alias = "ObservedAt", descending = false } },
                 resultTake = 2
             }, grouped: true, dateGroups: true);
+
+            // EXAMPLE 22 — Use digit strings for UInt64 request values. The
+            // projection response also uses strings, so browsers retain every bit.
+            // Source HTTP ordering is canonical Name; example23 orders UInt64 keys.
+            await ShowAsync("22. UInt64 source range / exact selected columns", new
+            {
+                provider,
+                filters = scalarFilters.Concat(new object[]
+                {
+                    new { metadataPath = new[] { "counter" }, scalar = "UInt64",
+                        @operator = "GreaterThanOrEqual", value = "18446744073709551612" },
+                    new { metadataPath = new[] { "counter" }, scalar = "UInt64",
+                        @operator = "LessThan", value = "18446744073709551614" }
+                }).ToArray(),
+                orderBy = "Name",
+                take = 2,
+                columns = new object[]
+                {
+                    new { alias = "Name", field = "Name" },
+                    new { alias = "Counter", metadataPath = new[] { "counter" }, valueType = "UInt64" }
+                }
+            }, projection: true, unsignedProjection: true);
+
+            // EXAMPLE 23 — The selected alias determines UInt64 type. Bounds
+            // remain strings; filtering happens before native group ordering/page.
+            await ShowAsync("23. UInt64 groups / exact alias filters and ordering", new
+            {
+                provider,
+                filters = scalarFilters,
+                maximumGroups = 10,
+                keys = new[] { new { alias = "counter", metadataPath = new[] { "counter" }, valueType = "UInt64" } },
+                columns = new object[]
+                {
+                    new { alias = "Counter", keyAlias = "counter" },
+                    new { alias = "Items", operation = "LongCount" }
+                },
+                resultFilters = new[]
+                {
+                    new { alias = "Counter", @operator = "GreaterThanOrEqual", value = "18446744073709551612" },
+                    new { alias = "Counter", @operator = "LessThan", value = "18446744073709551614" }
+                },
+                resultOrder = new[] { new { alias = "Counter", descending = false } },
+                resultTake = 2
+            }, grouped: true, unsignedGroups: true);
         }
 
         return completedRequests;
 
-        async Task ShowAsync(string title, object query, bool scalar = false, string? valueType = null, object? expected = null, bool projection = false, bool grouped = false, bool orderedGroups = false, bool pagedGroups = false, bool dateProjection = false, bool dateGroups = false)
+        async Task ShowAsync(
+            string title,
+            object query,
+            bool scalar = false,
+            string? valueType = null,
+            object? expected = null,
+            bool projection = false,
+            bool grouped = false,
+            bool orderedGroups = false,
+            bool pagedGroups = false,
+            bool dateProjection = false,
+            bool dateGroups = false,
+            bool unsignedProjection = false,
+            bool unsignedGroups = false)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -506,7 +563,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong scalar domain or value.");
             }
 
-            if (projection && !dateProjection)
+            if (projection && !dateProjection && !unsignedProjection)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -518,7 +575,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong selected shape or exact value.");
             }
 
-            if (grouped && !orderedGroups && !dateGroups)
+            if (grouped && !orderedGroups && !dateGroups && !unsignedGroups)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -566,6 +623,24 @@ public static class V1Walkthrough
                     || (dateGroups ? rows.Any(row => row[1].GetString() != "1")
                         : !rows.Select(row => row[0].GetString()).SequenceEqual(new[] { "B-owned", "C-public" })))
                     throw new InvalidOperationException(title + " lost exact UTC date values, shape or visibility.");
+            }
+
+
+            if (unsignedProjection || unsignedGroups)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var rows = payload.GetProperty("rows").EnumerateArray().ToArray();
+                var counterIndex = unsignedGroups ? 0 : 1;
+                var expectedCounters = unsignedGroups
+                    ? new[] { "18446744073709551612", "18446744073709551613" }
+                    : new[] { "18446744073709551613", "18446744073709551612" };
+
+                if (payload.GetProperty("version").GetString() != (unsignedGroups ? "cql-grouped-v1" : "cql-projection-v1")
+                    || payload.GetProperty("columns")[counterIndex].GetProperty("valueType").GetString() != "UInt64"
+                    || !rows.Select(row => row[counterIndex].GetString()).SequenceEqual(expectedCounters)
+                    || (unsignedGroups ? rows.Any(row => row[1].GetString() != "1")
+                        : !rows.Select(row => row[0].GetString()).SequenceEqual(new[] { "B-owned", "C-public" })))
+                    throw new InvalidOperationException(title + " lost exact unsigned values, shape or visibility.");
             }
 
             completedRequests++;

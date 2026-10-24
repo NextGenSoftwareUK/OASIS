@@ -18,6 +18,81 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
             Schema = new OpenApiSchema { Type = "string" },
             Example = new OpenApiString("swagger-demo-intent-1")
         });
+
+        // Named examples keep the existing UTC request while also exposing the
+        // UInt64 contract. Digits remain strings in Swagger's editable payload.
+        var grouped = context.MethodInfo.GetParameters().Any(p => p.ParameterType.Name == "CqlGroupedV1Request");
+        var projection = context.MethodInfo.GetParameters().Any(p => p.ParameterType.Name == "CqlProjectionV1Request");
+        if (operation.RequestBody != null && (grouped || projection))
+        {
+            foreach (var media in operation.RequestBody.Content.Values)
+            {
+                var schemaId = media.Schema.Reference?.Id;
+                if (schemaId != null && context.SchemaRepository.Schemas.TryGetValue(schemaId, out var current)
+                    && current.Example != null)
+                    media.Examples["UtcDates"] = new OpenApiExample { Summary = "Exact UTC dates", Value = current.Example };
+
+                media.Examples["ExactUInt64"] = new OpenApiExample
+                {
+                    Summary = grouped ? "UInt64 grouped keys and exact result filters" : "UInt64 source range and selected columns",
+                    Value = UnsignedExample(grouped)
+                };
+            }
+        }
+    }
+
+    private static OpenApiObject UnsignedExample(bool grouped)
+    {
+        OpenApiObject Filter(string scalar, string path, string operation, string value) => new()
+        {
+            ["metadataPath"] = new OpenApiArray { new OpenApiString(path) },
+            ["scalar"] = new OpenApiString(scalar),
+            ["operator"] = new OpenApiString(operation),
+            ["value"] = new OpenApiString(value)
+        };
+        var filters = new OpenApiArray
+        {
+            Filter("String", "fixture", "Equal", "REPLACE_WITH_DEMO_FIXTURE_TAG")
+        };
+        var body = new OpenApiObject
+        {
+            ["provider"] = new OpenApiString("MongoDBOASIS"),
+            ["filters"] = filters
+        };
+        if (grouped)
+        {
+            body["maximumGroups"] = new OpenApiInteger(10);
+            body["keys"] = new OpenApiArray
+            {
+                new OpenApiObject { ["alias"] = new OpenApiString("counter"),
+                    ["metadataPath"] = new OpenApiArray { new OpenApiString("counter") }, ["valueType"] = new OpenApiString("UInt64") }
+            };
+            body["columns"] = new OpenApiArray
+            {
+                new OpenApiObject { ["alias"] = new OpenApiString("Counter"), ["keyAlias"] = new OpenApiString("counter") },
+                new OpenApiObject { ["alias"] = new OpenApiString("Items"), ["operation"] = new OpenApiString("LongCount") }
+            };
+            body["resultFilters"] = new OpenApiArray
+            {
+                new OpenApiObject { ["alias"] = new OpenApiString("Counter"), ["operator"] = new OpenApiString("GreaterThanOrEqual"), ["value"] = new OpenApiString("18446744073709551612") },
+                new OpenApiObject { ["alias"] = new OpenApiString("Counter"), ["operator"] = new OpenApiString("LessThan"), ["value"] = new OpenApiString("18446744073709551614") }
+            };
+            body["resultOrder"] = new OpenApiArray { new OpenApiObject { ["alias"] = new OpenApiString("Counter"), ["descending"] = new OpenApiBoolean(false) } };
+            body["resultTake"] = new OpenApiInteger(2);
+        }
+        else
+        {
+            filters.Add(Filter("UInt64", "counter", "GreaterThanOrEqual", "18446744073709551612"));
+            filters.Add(Filter("UInt64", "counter", "LessThan", "18446744073709551614"));
+            body["orderBy"] = new OpenApiString("Name");
+            body["take"] = new OpenApiInteger(2);
+            body["columns"] = new OpenApiArray
+            {
+                new OpenApiObject { ["alias"] = new OpenApiString("Name"), ["field"] = new OpenApiString("Name") },
+                new OpenApiObject { ["alias"] = new OpenApiString("Counter"), ["metadataPath"] = new OpenApiArray { new OpenApiString("counter") }, ["valueType"] = new OpenApiString("UInt64") }
+            };
+        }
+        return body;
     }
 
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)

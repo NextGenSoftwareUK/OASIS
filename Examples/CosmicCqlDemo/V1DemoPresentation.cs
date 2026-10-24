@@ -73,7 +73,7 @@ public static class V1DemoPresentation
       <label>Native provider<br><select id="provider"><option>MongoDBOASIS</option><option>SQLLiteDBOASIS</option><option>Neo4jOASIS</option><option value="">Current default (SQLite)</option></select></label>
       <label>Authenticated user<br><select id="actor"><option>Alice</option><option>Bob</option><option>Visitor</option><option>Anonymous</option></select></label>
       <label>Walkthrough<br><select id="example">
-        <option value="min">Min / exact selected value</option><option value="max">Max / protected reduction</option><option value="sum">Sum / exact signed total</option><option value="average">Average / Decimal fraction</option><option value="utcSource">UTC dates / source range</option><option value="utcGroups">UTC dates / grouped keys</option><option value="groupedAverage">GroupBy / filter exact Decimal means</option><option value="groupedFilter">GroupBy / filter exact totals</option><option value="groupedPage">GroupBy / independent result page</option><option value="groupedOrder">GroupBy / ordered exact totals</option><option value="grouped">GroupBy / exact multiple aggregates</option><option value="projection">Select / detached typed columns</option><option value="longCount">LongCount / complete visible input</option><option value="count">Count / explicit window</option><option value="any">Any / private root</option>
+        <option value="min">Min / exact selected value</option><option value="max">Max / protected reduction</option><option value="sum">Sum / exact signed total</option><option value="average">Average / Decimal fraction</option><option value="unsignedSource">UInt64 / exact source range</option><option value="unsignedGroups">UInt64 / grouped keys</option><option value="utcSource">UTC dates / source range</option><option value="utcGroups">UTC dates / grouped keys</option><option value="groupedAverage">GroupBy / filter exact Decimal means</option><option value="groupedFilter">GroupBy / filter exact totals</option><option value="groupedPage">GroupBy / independent result page</option><option value="groupedOrder">GroupBy / ordered exact totals</option><option value="grouped">GroupBy / exact multiple aggregates</option><option value="projection">Select / detached typed columns</option><option value="longCount">LongCount / complete visible input</option><option value="count">Count / explicit window</option><option value="any">Any / private root</option>
         <option value="page">Visibility before paging</option><option value="nested">Nested metadata + protected OR</option>
         <option value="strings">Ordinal prefix / suffix</option><option value="null">Explicit null / existence</option>
         <option value="children">Visible child existence</option><option value="descendants">Bounded descendants</option><option value="graph">Access-bound child graph</option><option value="precision">Exact Int64 beyond 2^53</option><option value="guid">Typed GUID metadata</option>
@@ -107,6 +107,8 @@ const notes = {
   max: 'Native Max uses the same typed selector and protected source. Choose a provider without changing query semantics; no client entity scan is used.',
   longCount: 'Native LongCount over the complete visible source: Alice 3, Bob 3, Visitor 1. Omitted take has no row-page cap. Int64 values are always decimal strings; keep them as text or BigInt.',
   count: 'Count after Skip 1 / Take 1: Alice and Bob receive Int32 1, Visitor 0. Source windows apply before the terminal.',
+  unsignedSource: 'UInt64 inputs and outputs stay digit strings. These counters exceed Int64 and JavaScript integer precision; the source projection orders by Name.',
+  unsignedGroups: 'Filter exact UInt64 aliases after grouping, then order/page them natively. No Number() conversion or floating-point key is used.',
   utcSource: 'Declare DateTime source predicates with uppercase Z and0..7 fractional digits. These adjacent100ns values retain UTC kind and exact date text; offset/local/over-precision inputs are rejected.',
   utcGroups: 'Group exact UTC timestamps, then filter selected date aliases before ordering/paging. DateTime source and result literals share the same validated UTC parser.',
   groupedAverage: 'Average filters and ordering compare the normalized Decimal published by every provider. Source take2 selects participation; result filters/order/take apply afterward. Decimal thresholds use strings to preserve a half-unit fraction that binary64 loses at this magnitude.',
@@ -189,6 +191,31 @@ function preset() {
       { alias: 'optional', metadataPath: ['nullable'], valueType: 'Int64', nullable: true },
       { alias: 'city', metadataPath: ['location', 'city'], valueType: 'String' }
     ];
+  }
+  if (name === 'unsignedSource') {
+    queryRoute += '/projection';
+    body.take = 2;
+    body.filters.push(
+      metadata(['counter'], 'UInt64', 'GreaterThanOrEqual', '18446744073709551612'),
+      metadata(['counter'], 'UInt64', 'LessThan', '18446744073709551614')
+    );
+    body.columns = [
+      { alias: 'Name', field: 'Name' },
+      { alias: 'Counter', metadataPath: ['counter'], valueType: 'UInt64' }
+    ];
+  }
+  if (name === 'unsignedGroups') {
+    queryRoute += '/grouped';
+    delete body.take;
+    body.maximumGroups = 10;
+    body.keys = [{ alias: 'counter', metadataPath: ['counter'], valueType: 'UInt64' }];
+    body.columns = [{ alias: 'Counter', keyAlias: 'counter' }, { alias: 'Items', operation: 'LongCount' }];
+    body.resultFilters = [
+      { alias: 'Counter', operator: 'GreaterThanOrEqual', value: '18446744073709551612' },
+      { alias: 'Counter', operator: 'LessThan', value: '18446744073709551614' }
+    ];
+    body.resultOrder = [{ alias: 'Counter', descending: false }];
+    body.resultTake = 2;
   }
   if (name === 'utcSource') {
     queryRoute += '/projection';
