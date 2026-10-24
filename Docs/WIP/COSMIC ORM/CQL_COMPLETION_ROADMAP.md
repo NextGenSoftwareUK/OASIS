@@ -2,7 +2,7 @@
 
 24 October 2026. Current verified checkpoint: Core 2,322 unit tests; grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo 48 SDK queries/48 HTTP examples with 228 settled operations and 223 attempts. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
-Next implementation: Neo4j native post-group paging (MongoDB/SQLite verified), HTTP paging, then post-group filtering and exact Average ordering. Enrolled key/count/extrema/integer Sum ordering is verified on all three providers and through the live demo. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
+Next implementation: HTTP grouped paging and demos (native paging verified on all three providers), then post-group filtering and exact Average ordering. Enrolled key/count/extrema/integer Sum ordering is verified on all three providers and through the live demo. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
@@ -289,3 +289,14 @@ Verification: **295 Mongo unit tests and168 full native CQL tests passed, zero s
 Evidence: TestResults/MongoCurrent/group-page-unit-current.trx and group-page-artifacts.json; TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx; TestResults/CosmicCqlDemo/mongo-group-page-{unit,native}.log. Actual23680terminal0. Producer/native copies match Core051A066408A38315DD1D60353D2F44A4C6A237AB414AA894A540C874B53A7FA4 and Mongo472F71B36C5AE638E0780BBFE08C5507154EF19AE3CACBA737076600A6F3690E. Tests acknowledged fixture database cleanup; runner-owned Mongo67060 exited and27029 listener verified absent afterward. Retained data/runtime are reusable. The runner's stale CosmicCql count144 is corrected to the verified168.
 
 Neo4j paging, HTTP paging fields/demos, post-group filters and exact Average ordering remain open. This is Mongo paging certification, not full CQL/ORM completion.
+
+
+## Neo4j native grouped paging — 24 October 2026
+
+Neo4j now enrolls grouped Skip/Take. Native reduction and selected ordering precede the complete-group sentinel. For paged intent, Cypher collects only that bounded ordered proof, assigns native zero-based positions and publishes an exact Boolean resultMember. Unpaged intent streams the same strict packet shape with true membership. No source holons hydrate; every off-page proof still goes through exact domain/arithmetic decoding and shared Core validation before selected DTO construction. Protected failure branches remain before source/result windows. Full group/payload proof budgets remain independent of requested page size.
+
+Verification: **349 Neo4j unit tests and150 full native CQL tests passed, zero skips**. Six new native cases cover native selected ranks/complete proof, malformed off-page aggregate for Take0/Take1, true overflow in a skipped group, excess complete-group budget despite an empty page and independent source/result windows. Two new unit cases cover bounded native rank compilation and strict Boolean packet decoding. Existing full native access/traversal/deadline/ordering controls remain green.
+
+Evidence: TestResults/Neo4jCurrent/group-page-unit-current.trx, neo4j-cql-native-current.trx and group-page-artifacts.json; TestResults/CosmicCqlDemo/neo-group-page-{unit,native}.log. Initial globallease refusal made no build mutation; actual10167terminal0. Native producer/copies match Core051A066408A38315DD1D60353D2F44A4C6A237AB414AA894A540C874B53A7FA4 and NeoD52B4404C3A9EE9558837331ADC382CA353AF7624946D4FB64A597CE47990240; runner also verified Shared53D9BCAF75F1697788F0B08FEAFD636F8EE0BA38DBE3748721619E1F0B458F4C. Fixture teardown acknowledged; cql-graph-fixture.json verified absent and exact retained container/image exited. Runner inclusive counts advance to150/213/215/214; only150 fullCQL mode was run here, not broader modes.
+
+MongoDB, SQLite and Neo4j native paging are now verified. HTTP result-window fields/demos, post-group filtering and exact Average ordering remain open. Overall CQL/ORM completion is not claimed.

@@ -11,7 +11,7 @@ public sealed class NeoCqlGroupedDecoderTests
 {
     private static Dictionary<string, object> Packet() => new()
     {
-        ["inputs"] = 2L, ["payloadLimit"] = false, ["valid"] = true, ["traversalCycle"] = false, ["traversalLimit"] = false,
+        ["resultMember"] = true, ["inputs"] = 2L, ["payloadLimit"] = false, ["valid"] = true, ["traversalCycle"] = false, ["traversalLimit"] = false,
         ["keys"] = new object[] { new Dictionary<string, object> { ["s"] = 2L, ["v"] = "coffee" } },
         ["aggregates"] = new object[] { new Dictionary<string, object> { ["present"] = 2L, ["high"] = 0L, ["low"] = 3L } }
     };
@@ -89,5 +89,18 @@ public sealed class NeoCqlGroupedDecoderTests
         System.Exception? failure = null;
         try { Read(packet); } catch (System.Exception cause) { failure = cause; }
         Assert.IsNotNull(failure); Assert.AreEqual("NeoCqlLimitException", failure.GetType().Name);
+    }
+
+    [TestMethod]
+    public void ExactPageMarkerCannotHideMalformedOffPageProof()
+    {
+        var packet = Packet(); packet["resultMember"] = false;
+        Assert.IsFalse(Read(packet).IsResult);
+        packet["inputs"] = 0L;
+        Assert.ThrowsException<InvalidDataException>(() => Read(packet));
+        packet = Packet(); packet["resultMember"] = 1L;
+        Assert.ThrowsException<InvalidDataException>(() => Read(packet));
+        packet = Packet(); packet.Remove("resultMember");
+        Assert.ThrowsException<InvalidDataException>(() => Read(packet));
     }
 }
