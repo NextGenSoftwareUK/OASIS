@@ -184,7 +184,7 @@ public class SharedS3TransportTests
     {
         using var client = new Client();
         client.Pages.Enqueue(new() { HttpStatusCode = HttpStatusCode.OK, IsTruncated = true, NextContinuationToken = "next", S3Objects = new() { new() { Key = "scope/prefix/a" } } });
-        client.Pages.Enqueue(new() { HttpStatusCode = HttpStatusCode.OK, S3Objects = new() { new() { Key = "scope/prefix/b" } } });
+        client.Pages.Enqueue(new() { HttpStatusCode = HttpStatusCode.OK, IsTruncated = false, S3Objects = new() { new() { Key = "scope/prefix/b" } } });
         var result = await new Backend(client, "bucket", "scope/").ListKeysAsync("prefix/");
         CollectionAssert.AreEqual(new[] { "prefix/a", "prefix/b" }, new List<string>(result));
         Assert.AreEqual("scope/prefix/", client.Prefix); Assert.AreEqual(2, client.Calls);
@@ -193,14 +193,14 @@ public class SharedS3TransportTests
     public async Task Out_of_scope_listing_is_not_published()
     {
         using var client = new Client();
-        client.Pages.Enqueue(new() { HttpStatusCode = HttpStatusCode.OK, S3Objects = new() { new() { Key = "other/key" } } });
+        client.Pages.Enqueue(new() { HttpStatusCode = HttpStatusCode.OK, IsTruncated = false, S3Objects = new() { new() { Key = "other/key" } } });
         await Assert.ThrowsExceptionAsync<InvalidDataException>(() => new Backend(client, "bucket", "scope/").ListKeysAsync("prefix/"));
     }
     [TestMethod]
     public async Task Duplicate_listing_is_rejected()
     {
         using var client = new Client();
-        client.Pages.Enqueue(new() { HttpStatusCode = HttpStatusCode.OK, S3Objects = new() { new() { Key = "key" }, new() { Key = "key" } } });
+        client.Pages.Enqueue(new() { HttpStatusCode = HttpStatusCode.OK, IsTruncated = false, S3Objects = new() { new() { Key = "key" }, new() { Key = "key" } } });
         await Assert.ThrowsExceptionAsync<InvalidDataException>(() => new Backend(client, "bucket").ListKeysAsync(""));
     }
     [TestMethod]
