@@ -39,7 +39,7 @@ Read the source in this order:
 Start with examples 1–3 for CQL querying. Examples 4–6 show how queried holons participate in change tracking, conditional saves and committed deltas. Example 7 demonstrates an unsupported query being rejected before provider execution.
 
 
-The current walkthrough has **twenty-one** spaced/commented examples per provider: 63 SDK queries and 63 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
+The current walkthrough has **twenty-three** spaced/commented examples per provider: 69 SDK queries and 69 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
 
 Projection transport now passes fullCore2,059 controls and signed native three-store acceptance, including visibility before paging, exact large integers/null/GUID/nested values, receipts and no replay. The new10-example SDK/HTTP walkthroughs now pass their expanded30/30 verification plus broad147native regression (195settled operations/190physical attempts); consult the current [HTTP projection contract](../../Docs/WIP/COSMIC%20ORM/CQL_PROJECTION_HTTP_CONTRACT.md) for limits and verified evidence.
 
@@ -141,3 +141,31 @@ Example21 groups timestamps and applies a selected-alias range before result ord
 Use browser presets **UTC dates / source range** and **UTC dates / grouped keys**. Swagger projection/grouped requests show the date shapes; scalar Average remains available in its own example. Offsets, missing timezone, invalid calendars, fractions wider than seven digits and non-string date input are rejected rather than converted or rounded. HTTP source ordering remains its existing canonical-field grammar; SDK metadata ordering and grouped selected-date ordering are explicit separate operations.
 
 Fresh acceptance passed63 SDK queries/63 signed HTTP examples across all three providers, plus256 Neo4j/WEB4 native regression cases, zero failures/skips. The run recorded243 settled operations and238 provider attempts. Producer/native-host identities were captured while the global build lease was held. Owned fixture files and services were cleaned up after successful settlement. Earlier57/57 evidence retains its original scope.
+
+
+## Examples22–23: UInt64 counters beyond signed Int64
+
+Example22 selects counters in `[18446744073709551612,18446744073709551614)`.
+The C# intent uses `ulong` bounds and native counter ordering. The HTTP projection
+uses `scalar: "UInt64"`, `valueType: "UInt64"` and digit strings, ordering the two
+selected rows by canonical Name. These are explicit different ordering requests.
+The rows retain the exact counters for B-owned and C-public; no binary64 or signed
+Int64 intermediate can collapse them.
+
+Example23 groups the same counters, filters selected Counter aliases, then orders
+the groups by Counter and takes two. Both C# and HTTP return Counter values
+`18446744073709551612` and `18446744073709551613`, each with Items1. The result's
+UInt64 schema tag and invariant strings preserve every bit for JavaScript clients.
+
+Browser presets: **UInt64 / exact source range** and **UInt64 / grouped keys**.
+Swagger offers **ExactUInt64** named examples for projection and grouping, while
+retaining the UTC date schema/preset. Replace the fixture marker with the active
+demo session tag, use its Alice bearer token, and use a fresh Idempotency-Key for
+each new intent. Retain the same key if an outcome becomes uncertain.
+
+Fresh acceptance passed69SDK/69HTTP examples,249 settled operations and244 provider
+attempts across all three providers. Generated Swagger examples and native result
+checks passed. This is the dedicated joint acceptance case, not a new full269-case
+regression. The earlier63/63 UTC report retains its historical scope. Native
+UInt64 and compiler coverage are documented in
+[the contract](../../Docs/WIP/COSMIC%20ORM/CQL_UINT64_CONTRACT.md).

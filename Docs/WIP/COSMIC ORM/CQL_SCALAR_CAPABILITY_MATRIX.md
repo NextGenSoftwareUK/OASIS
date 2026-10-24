@@ -32,8 +32,8 @@ restriction where exact normalized-key translation is not enrolled.
 
 The UInt64 HTTP extension is additive and passes20 new wire controls inside the
 full2,474-case Core cohort: scalar UInt64, selected UInt64/nullable schemas and
-selected group alias predicates use exact digit strings. New live HTTP/demo
-acceptance is pending; the earlier63SDK/63HTTP date demo retains its own scope.
+selected group alias predicates use exact digit strings. Live UInt64 HTTP/demo
+acceptance passes69SDK/69HTTP examples; the earlier63/63 date demo retains its own scope.
 
 Current contracts: [UInt64](CQL_UINT64_CONTRACT.md), [UTC dates](CQL_UTC_DATETIME_CONTRACT.md),
 [numeric aggregates](CQL_NUMERIC_AGGREGATES.md), [manual](CQL_MANUAL.md),

@@ -482,3 +482,13 @@ must be reconciled before a Development deployment batch. This checkpoint remain
 on the task branch. Original joins, federation, broader Decimal/floating metadata,
 authoritative policy, interruption and final certification requirements stay open.
 See [the matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) and [UInt64 contract](CQL_UINT64_CONTRACT.md).
+
+
+UInt64 live checkpoint24October2026: actual69794 terminal0;69SDK/69HTTP examples
+across all three providers,249 settled operations/244 attempts, zero failures/skips.
+Examples22–23, browser presets and generated Swagger named examples now match the
+published unsigned wire contract. Dedicated joint acceptance only; broader native
+cohorts retain their recorded scope. Owned fixture/services cleaned up; dependency
+and Development publication remain coordinated with the provider session.
+[Exact evidence](CQL_UINT64_CONTRACT.md#live-uint64-examples2223--24-october2026).
+Next: remaining scalar domains and unchanged joins/federation/policy/certification.
