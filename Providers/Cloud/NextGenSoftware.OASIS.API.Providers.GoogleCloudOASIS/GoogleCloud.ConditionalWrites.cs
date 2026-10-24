@@ -183,17 +183,7 @@ public partial class GoogleCloudOASIS : IConditionalHolonStorageProvider
         return roots;
     }
     private static long MeasureFirestoreGraphDocument(DocumentReference reference,Dictionary<string,object> fields)
-    {
-        long size=1024+Encoding.UTF8.GetByteCount(reference.Path);
-        foreach(var pair in fields) {
-            size+=64+Encoding.UTF8.GetByteCount(pair.Key);
-            if(pair.Value is string text)size+=Encoding.UTF8.GetByteCount(text);
-            else if(pair.Value!=null&&pair.Value is not (bool or int or long or double or Timestamp))
-                throw new ArgumentException("Firestore graph fields must use the existing scalar projection.");
-        }
-        if(size>1024L*1024)throw new ArgumentException("Firestore graph document or receipt exceeds its conservative1MiB budget.");
-        return size;
-    }
+        =>FirestoreDocumentSize.Require(reference,fields);
     private static OASISResult<IEnumerable<IHolon>> FirestoreGraphAcknowledgement(IEnumerable<IHolon> roots,ConditionalHolonOperation operation)
         =>ConditionalHolonAcknowledgement.Create(roots,operation);
     private static OASISResult<IEnumerable<IHolon>> FirestoreGraphFailure(string code,string message,Exception cause)
