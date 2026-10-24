@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public MongoDbContext Database { get; set; }
         private AvatarRepository _avatarRepository = null;
         private HolonRepository _holonRepository = null;
-        private SearchRepository _searchRepository = null;
+        private Interfaces.ISearchRepository _searchRepository = null;
         private readonly IHostedMongoSyncFaultInjector _hostedSyncFaultInjector;
 
         public string ConnectionString { get; set; }

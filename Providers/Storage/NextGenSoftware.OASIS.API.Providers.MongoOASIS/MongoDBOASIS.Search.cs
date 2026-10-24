@@ -46,12 +46,12 @@ public partial class MongoDBOASIS
             found.SearchResultHolons=roots.Select(project).ToList();
             found.SearchResultAvatars=found.SearchResultAvatars.Where(row=>version==0 || row.Version==version).ToList();
             found.NumberOfResults=found.SearchResultHolons.Count+found.SearchResultAvatars.Count;
-            result.IsLoaded=true;
+            result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
         }
         catch(Exception cause)
         {
             result ??= new OASISResult<ISearchResults>();
-            result.Result=null;result.IsLoaded=false;
+            result.Result=null;result.IsLoaded=false;result.LoadedCount=0;
             OASISErrorHandling.HandleError(ref result,"Mongo search failed: "+cause.Message,cause);
         }
         return result;
