@@ -1,6 +1,6 @@
 # CQL scalar capability matrix
 
-24 October2026. This table separates stored metadata domains from aggregate result
+25 October2026. This table separates stored metadata domains from aggregate result
 types. A query must still pass actual-provider admission and execution budgets.
 Historical test cohorts are not interchangeable with a new full-suite gate.
 
@@ -97,3 +97,11 @@ with 267 settled operations and 262 provider attempts across all three providers
 Six offline browser presets and Swagger examples also pass. Earlier notes that
 Single HTTP is pending are historical. Floating Sum/Average and broader unchecked
 certification remain open. See gate 37983 in the floating contract.
+
+
+Latest Neo4j transport regression:267 native CQL tests pass on committed867182ad8,
+including 18 cold/warm cancellation/deadline cases. Six driver tests and 465 provider unit tests
+pass at their separate checkpoints. These extend transport certification rather
+than granting additional scalar operators. Current live walkthrough acceptance
+is87 SDK / 87 signed HTTP examples across three stores; older cohort counts above
+retain their original domains. See [transport evidence](CQL_DESCENDANT_CONTRACT.md).
