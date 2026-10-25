@@ -81,7 +81,7 @@ public partial class SQLLiteDBOASISIntegrationTests
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
         Expression<Func<Holon, bool>> predicate = selection switch {
-            0 => h => CosmicQueryMetadata.Value<float>(h, "x") == 1.25f,
+            0 => h => CosmicQueryMetadata.Value<ConsoleColor>(h, "x") == ConsoleColor.DarkBlue,
             1 => h => CosmicQueryMetadata.Value<DayOfWeek>(h, "x") == DayOfWeek.Monday,
             4 => h => CosmicQueryMetadata.Value<NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType>(h, "x") == NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType.Game,
             _ => h => (decimal)CosmicQueryMetadata.Value<int>(h, "x") == 1.1m
@@ -89,7 +89,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         var query = CosmicQuery<Holon>.Create().Where(predicate); query.IsError.Should().BeFalse(query.Message);
         SQLLiteDBOASIS.CqlCapabilities.Admit(query.Result).IsError.Should().BeTrue();
         var forged = new CosmicQueryCapabilities(CosmicQueryFeatures.Metadata | CosmicQueryFeatures.MixedNumericComparison,
-            new[] { typeof(float), typeof(DayOfWeek), typeof(Guid), typeof(DateTime), typeof(NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType), typeof(int) },
+            new[] { typeof(ConsoleColor), typeof(DayOfWeek), typeof(Guid), typeof(DateTime), typeof(NextGenSoftware.OASIS.API.Core.Enums.KarmaSourceType), typeof(int) },
             System.Enum.GetValues<CosmicQueryComparisonOperator>());
         var plan = CosmicQueryPlanner.Plan(query.Result, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS,
             new[] { new CosmicQueryTarget(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS, forged) });

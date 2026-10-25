@@ -187,3 +187,39 @@ artifacts. Fixed SQLite DB/journal/readiness absent; owned Mongo/Bolt/demo
 listeners absent after teardown. This certifies this Double demo slice, not a
 new full combined provider regression or complete CQL. Single and broader
 policy/join/federation/interruption/certification requirements remain open.
+
+## SQLite Single SDK enrollment verified — 24 October 2026
+
+SQLite's shared floating intrinsic now has distinct declared binary32/binary64
+entry points under the same native read-budget/cancellation owner. Single
+parses the original JSON numeric token directly with TryGetSingle, then widens
+the resulting binary32 exactly for Core's common16-character order key.
+Parsing Double then casting Single would double-round inputs just above a
+binary32 halfway boundary; the prepared native test includes such an input.
+Both types reject non-finite conversion and nonzero underflow-to-zero, while
+signed/exponent zero canonicalizes to one key.
+
+Single predicates, membership, field comparison, ordering, selected values,
+extrema and grouped filters/keys use the typed operand; detached Single packets
+must decode to an exactly representable finite binary32 value. Numeric token
+limits and deferred cancellation/deadline classification remain shared.
+No floating Sum/Average inputs or implicit Single/Double key-space mixing are
+granted. Provider-specific unsupported controls use genuinely unenrolled enums.
+
+All28 native cases pass: boundaries, nullable behavior, group identity,
+wrong domains, token budget and direct binary32 rounding. Core captures nullable
+Single keys without granting other providers support. The first gate exposed
+a separate root cause: projection capability descriptions incorrectly shared
+the32-column limit, while the complete primitive/nullable registry has33types.
+The descriptor registry now has an independent128-domain bound; query columns
+remain capped32. Two new Core cases verify independence and boundedness.
+
+Actual40087 terminal0:both configured Core builds, full2,555 linked units,
+focused28 and full1,513SQLite native tests pass0fail/skip. Sources unchanged
+inside lease; Core1191F0FB (netstandard9C1767CC), Shared43C05C54 andSQLite25CB1EFE
+match native copies; linked-unit Core copy also matches. Evidence:
+CosmicCurrent/single-sqlite-full-current.trx; SQLiteCurrent/
+single-focused-current.trx,single-full-current.trx,single-identities-current.json;
+CosmicCqlDemo/single-sqlite-full.log. Owned fixed DB/WAL/SHM absent after teardown.
+Core efad088d6e1d1fcdc0af2bfea0adf964280bfa78 published with paired parent pin.
+Mongo/Neo Single and Single HTTP/demos remain open; this is not full CQL closure.
