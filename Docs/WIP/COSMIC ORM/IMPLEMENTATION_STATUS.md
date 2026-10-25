@@ -1,7 +1,9 @@
 # COSMIC ORM implementation status
 
-Current: **25 October 2026**. Read the newest connection/deadline checkpoint at
-the end and the CQL completion roadmap for authoritative remaining work. The
+Current: **25 October 2026**. All 267 native Neo4j CQL tests now pass on committed
+867182ad8, including 18 interruption/deadline cases. Six driver tests and 465 provider unit tests
+pass at separate checkpoints. See the [transport evidence](CQL_DESCENDANT_CONTRACT.md)
+and [CQL roadmap](CQL_COMPLETION_ROADMAP.md) for exact scope and remaining work. The
 following dated sections preserve historical acceptance; they are not a claim
 that the full CQL or COSMIC ORM programme is complete.
 
@@ -884,7 +886,7 @@ See [the matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) and [UInt64 contract](CQL_UINT
 
 UInt64 live checkpoint24October2026: actual69794 terminal0;69SDK/69HTTP examples
 across all three providers,249 settled operations/244 attempts, zero failures/skips.
-Examples22–23, browser presets and generated Swagger named examples now match the
+Examples 22–23, browser presets and generated Swagger named examples now match the
 published unsigned wire contract. Dedicated joint acceptance only; broader native
 cohorts retain their recorded scope. Owned fixture/services cleaned up; dependency
 and Development publication remain coordinated with the provider session.

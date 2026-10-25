@@ -299,3 +299,30 @@ pre-ShutdownBoth connector. This new18casegate supersedes those interruption
 failures, but is NOT a freshfull267green cohort. Fullcurrent267/nativeWEB4/non-CQL
 regressions remain pending, alongside joins/federation and the rest of the
 unchecked CQL/ORM roadmap. No fullcompletionclaim; goalremainsactive.
+
+## Committed full Neo4j CQL regression — 25 October 2026
+
+Gate5299 passes all267nativeCQLtests, zero failures/skips,7m59s, on committed
+867182ad8. This includes all18cold/warm caller-cancellation and actual30second
+deadline cases. It supersedes the earlier249pass/18relayteardown failure for the
+full native CQL cohort. Driver6/provider465unit checkpoints remain recorded
+separately; no simultaneous new unit run is implied.
+
+TRX: TestResults/Neo4jCurrent/neo4j-cql-native-current.trx, SHA256
+05CD4F94E962676593FFE19BCEAFFF9EAC3628E922E804223165547976D176FA.
+Log: TestResults/CosmicCqlDemo/neo-committed-full-cql.log.
+The runner verified shipping assembly identityb646bc66d277ac07 and matching
+source-driver/provider/nativeconsumer SHA256
+6BC713F3D9C6F6771AC9C40AFA46E12160873F04FC9C01D180B9DB6A93C1E330.
+Core9F4B2979 andSharedB7271397producer/nativeconsumer hashes also agree.
+Concurrent SQLite ordinary-save count source changes are outside this Neo-only
+behavior/PDB certification; no SQLite source-identity claim is made.
+
+OwnedNeo runtime stopped; fixturejournal and listeners17687/17788/17789 absent.
+Freeafter65228353536bytes. ExistingSDK/cache/Neo volume and fixedbuildoutputs
+remain retained/reusable (individualsizesunmeasured), compactTRX/log retained.
+No download/install/newenvironment or unrelateddeletion. OwnerCOSMICORM.
+
+FreshSDK/HTTPdemo and broadernon-CQLregression acceptance remain separate gates.
+Joins, federation, remaining scalar/operator/access and grouped-certification
+requirements remain on the full roadmap. This is not full CQL/ORM completion.
