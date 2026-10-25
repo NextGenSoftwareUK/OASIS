@@ -12,7 +12,7 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 | Guid | Canonical D text identity | Supported native UUID/text identity | Canonical D text identity |
 | UTC DateTime | Exact JSON calendar text | BSON date plus exact tick companion | Exact schema3 calendar text |
 | UInt64/nullable UInt64 | Verified1,435 integration cohort incl22 new cases | Verified205 CQL/478 unit cohort incl14/5 new cases | Verified205 CQL/453 unit cohort incl13/5 new cases |
-| Decimal/nullable Decimal metadata | Verified1,459 integration cohort incl24 Decimal cases | Verified228 CQL/483 unit cohort incl23/5 new cases | Not enrolled |
+| Decimal/nullable Decimal metadata | Verified1,459 integration cohort incl24 Decimal cases | Verified228 CQL/483 unit cohort incl23/5 new cases | Verified217 CQL/455 unit cohort incl12/2 new cases |
 | Double/Single metadata selectors | Not enrolled | Not enrolled | Not enrolled |
 | Count/LongCount/Any | Native | Native | Native |
 | Min/Max | Enrolled selected scalar domains | Enrolled selected scalar domains | Enrolled selected scalar domains |
@@ -21,7 +21,7 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 
 UInt64/Decimal metadata does not grant those types as Sum/Average inputs.
 Decimal Average output does not itself grant Decimal metadata selection.
-SQLite's explicit Decimal enrollment is documented in the
+All three providers' explicit Decimal enrollment is documented in the
 [Decimal contract](CQL_DECIMAL_METADATA_CONTRACT.md). Arbitrary enum types and client functions are
 not admitted by these profiles. Provider target scope remains explicit.
 

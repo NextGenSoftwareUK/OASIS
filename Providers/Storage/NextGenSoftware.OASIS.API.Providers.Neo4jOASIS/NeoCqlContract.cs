@@ -24,7 +24,7 @@ internal static class NeoCqlContract
         var metadata = new List<CosmicQueryMetadataCapability> { new(typeof(string), equality, strings, supportsMembership: true) };
         foreach (var type in new[] { typeof(bool), typeof(bool?), typeof(int), typeof(int?), typeof(long), typeof(long?) })
             metadata.Add(new(type, type == typeof(bool) || type == typeof(bool?) ? equality : ordered, supportsMembership: true));
-        foreach(var type in new[]{typeof(byte),typeof(sbyte),typeof(short),typeof(ushort),typeof(uint),typeof(ulong),typeof(HolonType),typeof(ProviderType)})
+        foreach(var type in new[]{typeof(byte),typeof(sbyte),typeof(short),typeof(ushort),typeof(uint),typeof(ulong),typeof(decimal),typeof(HolonType),typeof(ProviderType)})
             foreach(var declared in new[]{type,typeof(Nullable<>).MakeGenericType(type)})
                 metadata.Add(new(declared,ordered,supportsMembership:true));
         foreach(var type in new[]{typeof(Guid),typeof(Guid?)}) metadata.Add(new(type,equality,supportsMembership:true));
