@@ -1,4 +1,5 @@
 param(
+    [switch]$Coverage,
     [switch]$ReconcileKarmaNullOutcome,[switch]$ReconcileKarmaReadGuard,
     [switch]$ReconcileConditionalIntent,
     [switch]$ReconcileScopedVisibility,
@@ -22,7 +23,7 @@ param(
     [switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,
     [switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions
 )
-$selectedModes=@($ReconcileKarmaReadGuard,$ReconcileKarmaNullOutcome,$PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
+$selectedModes=@($Coverage,$ReconcileKarmaReadGuard,$ReconcileKarmaNullOutcome,$PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports,$ReconcileScopedVisibility,$ReconcileAcknowledgementViews,$ReconcileConditionalIntent).Where({$_.IsPresent}).Count
@@ -42,6 +43,14 @@ $previousReadPath=$env:OASIS_ORACLE_READ_CONNECTION_PATH
 $previousReadReconciliation=$env:OASIS_ORACLE_RECONCILE_READ_OUTAGE
 $startedHere=$false;$passed=$false
 try{
+    $coverageArgs=@();$testResults=$work;$coverageOriginalHash=$null
+    if($Coverage){
+        $testResults=Join-Path $work 'NativeCoverage'
+        if(Test-Path -LiteralPath $testResults){
+            if(Get-ChildItem -LiteralPath $testResults -Force){throw 'Preserve original coverage evidence before another profiling run.'}
+        }else{New-Item -ItemType Directory -Path $testResults|Out-Null}
+        $coverageArgs=@('--collect','XPlat Code Coverage','--settings',(Join-Path $PSScriptRoot 'OracleNativeCoverage.runsettings'))
+    }
     $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
     if($ReconcileKarmaReadGuard){
         if($pending.Count -ne 1 -or $pending[0].Name -ne 'v2-karma-manager.pending.json' -or
@@ -91,6 +100,15 @@ try{
         if($LASTEXITCODE -ne 0){throw 'Cached Oracle build failed.'}
     }
     & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0' -VerifySourceDocuments
+    if($Coverage){
+        $coverageAssembly=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.dll'
+        $coverageOriginalHash=(Get-FileHash -LiteralPath $coverageAssembly).Hash
+        $coveragePdb=[IO.Path]::ChangeExtension($coverageAssembly,'.pdb')
+        $coverageOriginalPdbHash=(Get-FileHash -LiteralPath $coveragePdb).Hash
+        $coverageIdentityBytes=[Text.Encoding]::UTF8.GetBytes((@{ProviderSHA256=$coverageOriginalHash;ProviderPdbSHA256=$coverageOriginalPdbHash;CapturePhase='before-test'}|ConvertTo-Json))
+        $coverageIdentityStream=[IO.File]::Open((Join-Path $testResults 'oracle-coverage-identity.json'),[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+        try{$coverageIdentityStream.Write($coverageIdentityBytes);$coverageIdentityStream.Flush($true)}finally{$coverageIdentityStream.Dispose()}
+    }
     $state=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Status}}' oasis-oracle-free).Trim()
     if($state -eq 'exited'){
         & wsl -d Ubuntu -u root -- podman start oasis-oracle-free
@@ -172,9 +190,10 @@ try{
     if($ReconcileConditionalIntent){$report='oracle-conditional-intent-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownConditionalIntentFixture'}
     if($ReconcileKarmaNullOutcome){$report='oracle-karma-null-reconciliation-current.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaNullOutcomeWithoutReplayingMutation'}
     if($ReconcileKarmaReadGuard){$report='oracle-karma-read-guard-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaReadGuardFixture'}
-    if(Test-Path -LiteralPath (Join-Path $work $report)){throw 'Preserve the original native report before another run.'}
+    if($Coverage){$report='oracle-native-coverage-current.trx'}
+    if(Test-Path -LiteralPath (Join-Path $testResults $report)){throw 'Preserve the original native report before another run.'}
     $testStarted=[DateTime]::UtcNow
-    & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter $filter --logger "trx;LogFileName=$report" --results-directory $work /m:2 /nr:false
+    & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter $filter --logger "trx;LogFileName=$report" --results-directory $testResults /m:2 /nr:false @coverageArgs
     if($LASTEXITCODE -ne 0){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
     if($InspectReadConnections){
         $remaining=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
@@ -182,11 +201,18 @@ try{
            (Get-FileHash $remaining[0].FullName).Hash -ne 'C83043A1A52487CB881ADE96B9038C328F78052CCC6DE126DCDB82D1043DA198' -or
            (Get-FileHash (Join-Path $work 'read-acknowledgements-failure.json')).Hash -ne '470441EA9F0D9062305760949A92C303574FD668AF8CAD3369586B92E87F3F68'){throw 'Read-only inspection changed original evidence.'}
     }elseif(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
-    $reportFile=Get-Item -LiteralPath (Join-Path $work $report)
+    $reportFile=Get-Item -LiteralPath (Join-Path $testResults $report)
     [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
     $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){12}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){64}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{502}
     if($ReconcileReadOutage -or $ReconcileExportIdentity -or $ReconcileScopedVisibility -or $ReconcileAcknowledgementViews -or $ReconcileConditionalIntent -or $ReconcileKarmaNullOutcome -or $ReconcileKarmaReadGuard){$expected=1}
     if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}
+    if($Coverage){
+        if((Get-FileHash -LiteralPath $coverageAssembly).Hash -ne $coverageOriginalHash){throw 'Coverage instrumentation was not restored; preserve outputs and rebuild before reuse.'}
+        if((Get-FileHash -LiteralPath $coveragePdb).Hash -ne $coverageOriginalPdbHash){throw 'Coverage PDB instrumentation was not restored; preserve outputs and rebuild before reuse.'}
+        $coverageEvidence=& (Join-Path $PSScriptRoot 'Get-OracleCoverageEvidence.ps1') -ResultsDirectory $testResults -ReportName $report
+        if((Get-Item -LiteralPath $coverageEvidence.Coverage).LastWriteTimeUtc -lt $testStarted){throw 'Fresh coverage evidence required.'}
+        $coverageEvidence|ConvertTo-Json -Compress
+    }
     $passed=$true
 }finally{
     $env:ORACLEDBOASIS_CONNECTIONSTRING=$previousConnection;$env:OASIS_ORACLE_TEST_WORK=$previousWork;$env:OASIS_ORACLE_RESUME_CANONICAL=$previousResume;$secret=$null
