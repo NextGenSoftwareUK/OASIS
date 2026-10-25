@@ -215,12 +215,12 @@ try{
     if(Test-Path -LiteralPath (Join-Path $work $reportName)){throw 'Preserve the original native report before another run.'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Native history test failed; preserve journal/data for reconciliation.'}
-$report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($EncryptedReplay){8}elseif($PreparationClaims){4}elseif($ReconcileConditionalInitial){1}elseif($ConditionalGraphs){8}elseif($ReconcileKnownReadFixture){1}else{173}
+$report=Get-Item (Join-Path $work $reportName);[xml]$trx=Get-Content $report.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters;$expected=if($EncryptedReplay){8}elseif($PreparationClaims){4}elseif($ReconcileConditionalInitial){1}elseif($ConditionalGraphs){8}elseif($ReconcileKnownReadFixture){1}else{177}
     if($BatchRevisions){$expected=4}
     if($DetailDeletionResults){$expected=14}
     if($OrdinarySaveLifecycle){$expected=48}
     if($OrdinarySaveAcknowledgements){$expected=12}
-    if($ItemSizeBoundary){$expected=189}
+    if($ItemSizeBoundary){$expected=193}
     if($CleanupSizeAdmission){$expected=1}
     if($CapacityReadOnly){$expected=1}
     if($InspectSizeAdmission){

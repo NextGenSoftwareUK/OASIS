@@ -30,6 +30,8 @@ public sealed class AWSS3OASIS : KeyValueStorageProviderBase, IDisposable
         ProviderDescription = "AWS S3 storage with encrypted OASIS records and opaque keyed indexes";
         ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AWSS3OASIS);
         ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+        ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud));
     }
 
     protected override Task<OASISResult<IEnumerable<IAvatar>>> LoadAvatarsForCredentialSelectionAsync(int version)
