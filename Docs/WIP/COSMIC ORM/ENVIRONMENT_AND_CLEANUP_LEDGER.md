@@ -1581,3 +1581,39 @@ unmeasured). Literalvector dataset notpersisted; acknowledged fixture cleanup
 passed, owned27029listenerabsent. Runner bounded15,541,104rawlogbytes to65,385
 after shutdown; runtime/data retained. Free C67,271,426,048 after. No downloads/
 restores/new environment. NoSinglecapenrollment; Int64/Decimal128 work staysopen.
+
+## Mongo Single integer component — 24 October 2026
+
+Owner COSMIC ORM/CQL. Reuse SDK10.0.401, cached NuGet, existing Mongo8.3.11
+27029/oasisRecoveryRs fixed SubscriptionUsageCurrent/mongo-data and provider/unit/
+native bin/obj. No install/download/restore/new environment. Free C67,236,356,096
+before; sizes unmeasured. Int32/Int64 literals only;8192seeded Int64 patterns,
+1024Int32 patterns and every sign/even-odd halfway neighborhood for exponents24–62
+plus edge/foreign controls. Independent BigInteger reference rounds BEFORE float
+conversion; bounded30seconds. No vector persistence beyond existing1root fixture.
+Shared native ties-even owner reused by prior binary64 component. Expected full
+native256/unit493; actual gate pending after peer Oracle release. NoSinglecap
+enrollment until originalDecimal128 and full query owners are verified.
+
+Before the integer gate, retained exact prior native baseline
+C:/Source/OASIS/TestResults/SubscriptionUsageCurrent/
+single-binary64-native-baseline.trx450,501bytes (fixed feature evidence, not a new
+environment). Existing binary64 identity457,868bytes and log8,353bytes remain
+in place; new integer reports use distinct fixed names single-integer-* and
+CosmicCqlDemo/mongo-single-integer-full.log to preserve original cohort evidence.
+Native runner's fixed mongo-cql-native-current.trx will refresh to256cases.
+Read-only/source prep only during peer coherentOracle hold; no Core/Shared edits.
+
+9223 terminal0: full Mongo256native/493unit PASS0skip. Exact integer9700 vectors
+and previous binary64 12313 vectors pass. Source snapshots unchanged; Core0CF79D7B,
+Shared2035A9B1/Mongo99F4FF36 match native+unit copies inside lease.
+Retain C:/Source/OASIS/TestResults/SubscriptionUsageCurrent/
+{mongo-cql-native-current.trx,single-integer-full-current.trx,
+single-integer-identities-current.json} and C:/Source/OASIS/TestResults/
+CosmicCqlDemo/mongo-single-integer-full.log (sizes unmeasured).
+Retained original binary64 baseline450,501bytes SHA256
+0371FFF6BCCF41D1F7BD107EDEACA695BE04CC126E155369AB1211F6E06DF4F7.
+Literal vectors not persisted; acknowledged fixture teardown passed and owned
+27029listener absent. Runner bounded11,633,529rawlogbytes to65,375 after shutdown;
+runtime/data retained reusable. Free C67,179,864,064 after. No download/restore/
+new environment or Core/Shared source edits. Single capability remains disabled.

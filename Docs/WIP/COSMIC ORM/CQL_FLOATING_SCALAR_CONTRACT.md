@@ -252,3 +252,36 @@ Evidence: SubscriptionUsageCurrent/mongo-cql-native-current.trx,
 single-kernel-full-current.trx,single-kernel-identities-current.json;
 CosmicCqlDemo/mongo-single-kernel-full.log. Owned Mongo service stopped and
 acknowledged fixture cleanup passed. No Single query profile is enrolled.
+
+## Mongo Single integer normalization component verified — 24 October 2026
+
+Int32/Int64 dispatch is explicit by BSON type. Magnitudes up to2^24 widen
+exactly. Larger integers convert toDecimal128 before absolute value and division,
+so long.MinValue cannot overflow and no initial Double cast erases a halfway
+direction. Power-of-two spacing is an exact integer; a non-tie differs from a
+half-unit by at least2^-40, comfortably beyond34-digit quotient rounding error.
+True halves are representable exactly. The shared ties-even owner rounds units;
+the final normalized integer fits20decimal digits and has24significant binary
+bits, so its final Double widening is exact.
+
+The native test uses an independent BigInteger reference that decides rounding
+before any floating conversion. Prepared9,700vectors include8192Int64 patterns,
+1024Int32 patterns, signed/even-odd midpoint neighborhoods for exponents24–62,
+boundary values and foreign-type refusals. The earlier12,313binary64 vectors
+also rerun to verify the shared rounding refactor. No Single capability is
+enrolled; originalDecimal128 normalization and complete query gates remain open.
+
+The integer component passed all **9,700 native vectors**. The shared rounding
+refactor also preserves all **12,313 binary64 vectors**. Actual gate 9223 finished
+successfully: **256 native CQL tests and 493 Mongo unit tests**, no failures or
+skips. Source snapshots stayed unchanged. Core 0CF79D7B, Shared 2035A9B1 and Mongo
+99F4FF36 match both native and unit consumers inside the global build lease.
+
+Evidence: SubscriptionUsageCurrent/mongo-cql-native-current.trx,
+single-integer-full-current.trx and single-integer-identities-current.json;
+CosmicCqlDemo/mongo-single-integer-full.log. The original binary64 native baseline
+is retained separately as single-binary64-native-baseline.trx.
+
+This closes the integer normalization component, not Single query enrollment.
+Original Decimal128 normalization, complete predicate/projection/grouped query
+acceptance, Neo4j Single and Single HTTP/demo coverage remain open.
