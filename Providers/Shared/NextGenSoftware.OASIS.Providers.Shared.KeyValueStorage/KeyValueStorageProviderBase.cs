@@ -1134,6 +1134,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
+            if(avatarId==Guid.Empty)return Fail<IEnumerable<IHolon>>("A nonempty avatar export identity is required.",
+                new ArgumentException("A nonempty avatar identity is required.",nameof(avatarId)),"HYPERDRIVE_PAYLOAD_INVALID");
             var all = await ExportAllAsync(version);
             if(all.IsError)return all;
             var filtered=all.Result.Where(h=>h.CreatedByAvatarId==avatarId).ToList();

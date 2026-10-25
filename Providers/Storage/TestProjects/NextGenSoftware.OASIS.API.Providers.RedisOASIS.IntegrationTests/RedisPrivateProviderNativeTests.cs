@@ -81,6 +81,11 @@ public class RedisPrivateProviderNativeTests
                 var historical=await provider.LoadHolonAsync(holonId,loadChildren:false,version:1);Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(1,historical.Result.Version);Assert.IsFalse(historical.Result.IsDeleted);
                 var exportKeys=server.Keys(pattern:"*").OrderBy(value=>value.ToString(),StringComparer.Ordinal).ToArray();
                 var exportBytes=await db.StringGetAsync(exportKeys);
+                foreach(var version in new[]{-1,0,1}){
+                    var invalidExport=sync?provider.ExportAllDataForAvatarById(Guid.Empty,version):await provider.ExportAllDataForAvatarByIdAsync(Guid.Empty,version);
+                    Assert.IsTrue(invalidExport.IsError);Assert.IsNull(invalidExport.Result);Assert.IsFalse(invalidExport.IsLoaded);Assert.AreEqual(0,invalidExport.LoadedCount);
+                    Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalidExport.ErrorCode);Assert.IsInstanceOfType<ArgumentException>(invalidExport.Exception);
+                }
                 var allVersions=sync?provider.ExportAll(-1):await provider.ExportAllAsync(-1);
                 Assert.IsFalse(allVersions.IsError,allVersions.Message);Assert.IsTrue(allVersions.IsLoaded);Assert.AreEqual(1,allVersions.LoadedCount);
                 Assert.AreEqual(holonId,allVersions.Result.Single().Id);Assert.AreEqual(1,allVersions.Result.Single().Version);Assert.IsFalse(allVersions.Result.Single().IsDeleted);
