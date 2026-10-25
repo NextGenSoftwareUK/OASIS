@@ -1326,3 +1326,30 @@ Existing bin/obj/Debug/netstandard2.0 directories predate this action (23October
 13:44), uncertain historical ownership, preserved. No cleanup inferred from names.
 Final Mongo canonical producer/native tests remain pending; Core source hold is
 released for peer's narrow Google provider gate, with no Core/Shared rebuild.
+
+Mongo Single final repair prepared after canonical-ack red: BSON Double stores
+the canonical Single JSON numeric spelling, preserving exact binary32 round-trip
+and established snapshot acknowledgement identity. Ten controlled cases now
+include direct canonical save/load equivalence; full Mongo units expected493.
+Three new real Mongo save/load/root-metadata cases cover0.1/minimum subnormal/
+maximum Single; full native CQL expected231, query floating capabilities disabled.
+Next global lease will reuse pinned Mongo8.3.11/27029 replica and fixed CQL fixture,
+no new data directory/environment/download. Reuse SubscriptionUsageCurrent logs/
+TRX and floating-foundation identities; preserve red files before overwriting any
+same-named final report. Teardown remains the established acknowledged owner.
+
+42737 terminal0:493 full Mongo units/231 full native CQL PASS0skip, including3
+actual Single storage cases. Source snapshots unchanged; exact Windows paths and
+hashes captured inside global lease at C:/Source/OASIS/TestResults/CosmicCurrent/
+floating-foundation-identities.json. Native/unit pairs match CoreA733206E,
+SharedEDD11575/MongoFEA0A755; netstandard2.1 Core231C5372 retained. Retain
+SubscriptionUsageCurrent/floating-storage-full-current.trx and
+mongo-cql-native-current.trx, CosmicCqlDemo/floating-storage-native-final.log.
+Preserve earlier zero/canonical-ack reds as recorded above (sizes unmeasured).
+Owned27029 stopped; only reusable cosmic-cql-environment.lock remains. Native
+fixture disposed by its acknowledged owner, runtime/database directories reused.
+Runner bounded13,246,424-byte raw Mongo log to65,191-byte tail. Free C60,532,793,344
+after; the contemporaneous peer Oracle/pagefile/VHD growth is tracked separately
+in the shared HyperDrive-Providers inventory, not attributed to this unit/native
+slice. No new environment/download/install/restore. Reusable outputs and compact
+evidence retained; lease/source hold released for peer AWS.

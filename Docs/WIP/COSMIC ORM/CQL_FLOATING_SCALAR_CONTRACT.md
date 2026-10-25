@@ -34,13 +34,25 @@ The replacement must preserve BOTH binary32 round-trip identity and Core's
 canonical JSON snapshot value used for save acknowledgements. Blindly widening
 Single0.1 to Double changes its serialized numeric spelling from0.1 to
 0.10000000149011612, violating the second invariant. The new acknowledgement
-control reproduces this separately:9pass/1red. Producer repair and its full
-Mongo/native gate remain in progress. Both zero signs have one numeric identity;
+control reproduces this separately:9pass/1red. The repaired producer stores the
+Single's canonical round-trip numeric spelling as BSON Double, preserving both
+binary32 round-trip and snapshot value identity. Full493 Mongo units now pass;
+the full231-case native gate including3 real storage round-trips also passes.
+Both zero signs have one numeric identity;
 the storage test normalizes zero before comparing binary32 bits.
 
 Historical Single values already stored as strings stay strings. Do not infer or
 silently migrate their type. Explicit migration intent and native evidence are
 required. No legacy Hyperdrive code changes are part of this work.
+
+Actual42737 terminal0:493 full Mongo units and231 full native CQL cases pass,
+zero skips; source snapshots remain unchanged. The three new native storage
+cases verify fractional/subnormal/maximum values through actual save/load,
+numeric BSON and canonical snapshot comparison. No floating query is dispatched.
+Evidence: SubscriptionUsageCurrent/floating-storage-full-current.trx and
+mongo-cql-native-current.trx; CosmicCurrent/floating-foundation-identities.json;
+CosmicCqlDemo/floating-storage-native-final.log. Native fixtures cleaned and
+owned service stopped; no new environment/download/restore was needed.
 
 ## Remaining enrollment gates
 
