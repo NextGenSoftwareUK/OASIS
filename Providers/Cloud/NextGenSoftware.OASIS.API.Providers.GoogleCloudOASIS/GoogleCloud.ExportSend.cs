@@ -41,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
+            var acknowledgedIds=new HashSet<Guid>();
             var failures=new List<Exception>();
             try {
                 var sourceGuards=new Dictionary<IHolon,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>>(ReferenceEqualityComparer.Instance);
@@ -54,11 +55,17 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         failures.Add(new InvalidOperationException("Firestore descendant skipped because its parent failed."));
                         continue;
                     }
-                    var written=await SavePlannedHolonAsync(node);
+                    OASISResult<IHolon> written;
+                    try{written=await SavePlannedHolonAsync(node);}
+                    catch(Exception cause){
+                        if(KnownFirestoreAcknowledgements(cause).Contains(node.Snapshot.Id))acknowledgedIds.Add(node.Snapshot.Id);
+                        throw;
+                    }
                     if(written==null || (!written.IsError && (written.Result==null || !written.IsSaved)))
                         throw new GoogleFirestoreMutationReconciliationException(node.Snapshot.Id.ToString(),
                             new InvalidDataException("Firestore writer returned no complete acknowledged save; reconcile before replay."));
                     if(written.IsError) {
+                        if(KnownFirestoreAcknowledgements(written.Exception).Contains(node.Snapshot.Id))acknowledgedIds.Add(node.Snapshot.Id);
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
                         result.IsError=true;
@@ -66,6 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         if(!continueOnError || NativeMutationReconciliation.IsRequired(written.Exception)) break;
                     }
                     else {
+                        acknowledgedIds.Add(node.Snapshot.Id);
                         saved.Add(written.Result);
                         publication.ValidateUnchanged();
                         node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
@@ -84,14 +92,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 if(failures.Count>0) {
                     result.IsError=true;
                     var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
-                    result.Exception=saved.Count>0 ? new GoogleFirestorePartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                    result.Exception=saved.Count>0 ? new GoogleFirestorePartialMutationException(acknowledgedIds,cause):cause;
                 }
             }
             catch(Exception cause) {
-                result.Exception=saved.Count>0 ? new GoogleFirestorePartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                result.Exception=saved.Count>0 ? new GoogleFirestorePartialMutationException(acknowledgedIds,cause):cause;
                 result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
             }
-            result.SavedCount=saved.Select(row=>row.Id).Concat(KnownFirestoreAcknowledgements(result.Exception)).Distinct().Count();
+            result.SavedCount=acknowledgedIds.Count;
             if(result.IsError)result.ErrorCount=Math.Max(1,result.ErrorCount);
             return result;
         }
