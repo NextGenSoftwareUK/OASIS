@@ -1124,3 +1124,30 @@ unit suite55 passes. Full native/Core regression is being finalized below.
 
 MongoDB/Neo4j composition, public HTTP composition and annotated live composition
 demos remain open. Existing join demos remain a separate verified feature.
+
+## MongoDB composition pipeline compiler — 25 October 2026
+
+The Mongo compiler captures one bounded source proof pipeline and independent
+native stage-proof pipelines. Each stage retains the original protected source
+window. Source proof includes exact cells/access/ordering and native source
+count; stage transport projects only identity, rank and count. The required
+snapshot owner must validate source errors/cells before executing any stage.
+No provider interface enrollment is added at this compiler checkpoint.
+
+Selected grouped/composed predicates share one BSON owner for exact numeric,
+GUID, null, membership and Unicode string behavior. Result sorts use stable
+least-significant-first native window passes: each pass keeps prior rank as its
+tie. This handles repeated sort terms and32 selected terms without duplicate
+BSON keys or a32-field compound sort. Take(0) emits an explicit false match,
+while the source retains its overflow sentinel and protected traversal envelope.
+Generated field paths use positional slots; client aliases are not pasted into
+BSON paths. Stage pipelines are independently cloned.
+
+Window numbering reference: [MongoDB8.3 `$documentNumber`](https://www.mongodb.com/docs/v8.3/reference/operator/aggregation/documentnumber/).
+This reference does not substitute for native execution verification.
+
+**Still required:** snapshot-session decoding/execution with a shared deadline,
+all six budgets, native mutation/privacy/type/interruption controls, provider
+capability enrollment and public composition transport/demos. SQLite's verified
+native implementation remains available. Mongo compiler controls and existing
+native regression evidence are recorded below once their gates complete.
