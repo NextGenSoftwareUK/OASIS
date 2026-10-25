@@ -14,6 +14,61 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 public sealed partial class HyperDriveProviderExecutionTests
 {
     [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task OrdinaryReplicaCurrentlyLosesAcknowledgedChildSelectionAuthority(bool synchronous)
+    {
+        // Characterize the native AWS->SQLite failure without replaying its preserved fixture.
+        // A serialized manifest is data, not authority to replace selected child membership.
+        var primary = CreateActiveProvider();
+        var replica = CreateActiveProvider(ProviderType.IPFSOASIS, "selection-checking-replica");
+        var root = new Holon { Id = Guid.NewGuid() };
+        root.Children = new List<IHolon> { new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id } };
+        var membership = HolonChildCollectionState.Capture(root).CreateManifest(root.Id, child => child.Id);
+        root.ChildRoleManifestJson = NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Serialize(membership);
+        root.AcceptChanges();
+        HolonChangeTracking.ValidateChildSelectionForSave(root);
+        primary.Setup(p => p.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .Returns(new OASISResult<IHolon>(root) { IsSaved = true });
+        primary.Setup(p => p.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync(new OASISResult<IHolon>(root) { IsSaved = true });
+        var calls = 0;
+        OASISResult<IHolon> Receive(IHolon record)
+        {
+            calls++;
+            record.Should().NotBeSameAs(root);
+            record.Children.Single().Id.Should().Be(root.Children.Single().Id);
+            record.As<Holon>().ChildRoleManifestJson.Should().Be(root.ChildRoleManifestJson);
+            try
+            {
+                HolonChangeTracking.ValidateChildSelectionForSave(record);
+                return new OASISResult<IHolon>(record) { IsSaved = true };
+            }
+            catch (InvalidOperationException error)
+            {
+                return new OASISResult<IHolon> { IsError = true, Exception = error, Message = error.Message };
+            }
+        }
+        replica.Setup(p => p.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .Returns((IHolon row, bool a, bool b, int c, bool d, bool e) => Receive(row));
+        replica.Setup(p => p.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .Returns((IHolon row, bool a, bool b, int c, bool d, bool e) => Task.FromResult(Receive(row)));
+        var dna = CreateDna(HyperDriveModes.V2); dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        var manager = new ProviderManager(null, dna) { IsAutoReplicationEnabled = true };
+        manager.RegisterProvider(primary.Object); manager.RegisterProvider(replica.Object);
+        manager.SetAndReplaceAutoReplicationListForProviders(new[] {
+            new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.IPFSOASIS) });
+        var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = root,
+            SaveChildren = true, Recursive = true, PreferredProvider = ProviderType.MongoDBOASIS };
+        var router = new OASISHyperDrive(manager);
+        var result = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+        calls.Should().Be(1);
+        result.IsError.Should().BeFalse(); result.IsSaved.Should().BeTrue();
+        result.IsWarning.Should().BeTrue("ordinary replication currently drops the live child-selection evidence");
+        router.LastReplicationDiagnostic.Attempts.Single().Succeeded.Should().BeFalse();
+        HolonChangeTracking.ValidateChildSelectionForSave(root);
+    }
+
+    [Theory]
     [InlineData(false, false)] [InlineData(true, false)]
     [InlineData(false, true)] [InlineData(true, true)]
     public async Task OrdinaryReplicaCapturesDeepCommittedGraphWithoutSharingProviderMutations(bool synchronous, bool emptyDescendantIdentity)
