@@ -6,7 +6,7 @@ published through parent `f1917a001` (Core `f0290ff`). Immutable join intent is 
 
 - Single, Double, Decimal, UInt64 and UTC DateTime have certified native query
   support on MongoDB, SQLite and Neo4j within their recorded operator domains.
-- Latest separately verified cohorts: Core **2,672**, Shared **1,189**, normal
+- Latest separately verified cohorts: Core **2,704**, Shared **1,189**, normal
   SQLite **1,578 native**, MongoDB **297 native /502 unit**, Neo4j **275 native
   /477 unit** and **16 native write-outcome controls**, zero skips. Historical
   sections retain their original counts and scope; these are not one simultaneous
@@ -957,3 +957,32 @@ skips. Initial netstandard build exposed an Enum name collision; explicitly usin
 System.Enum resolved it before the verified run. No provider join enrollment,
 physical execution/receipts, raw packet validation, matching, HTTP or executable
 join demo is claimed. Those requirements and the overall join milestone remain open.
+
+## Detached native join packet validation — 25 October 2026
+
+Core now validates complete bounded left/right source proofs, independently
+reported source/pair counts and native output pairs before constructing any DTO.
+Source proofs retain logical identity, owner/public visibility, exact keys, raw
+selected cells and ordering values. Missing/right-row presence is independent of
+nullable data; published CosmicJoinResult<T>.HasRight is always available without
+exposing unselected source identities.
+
+Validation checks both input row/byte budgets, source windows, duplicate IDs,
+canonical identity/access coherence, repeated paths, exact scalar domains and
+source ordering. Native pair keys, counts, completeness and deterministic order
+must agree; no omitted/duplicated pair or unmatched row can hide existing matches.
+Core verifies key-group cardinality but never generates native join output rows.
+Snapshot requests also reject contradictory observations of the same identity.
+All input proof buffers validate even when no output pair can be returned.
+
+Output cells must agree with source/presence proofs and retain signed zero and
+decimal representation. Key equality remains logical numeric equality. The shared
+detached-shape constructor runs only after full packet validation; cancellation
+and any validation failure publish no partial result.
+
+Both frameworks build; fullCore2,704 passes (32new result controls), zero skips.
+All builds used the normal global lease after the peer's verified release. No
+provider I/O or new environment was involved. This is packet validation and
+construction only: multi-provider/global-budget execution ownership, durable
+attempts/receipts, native implementations, HTTP and executable join demos remain
+open. The future executor must validate every provider packet before any DTO.
