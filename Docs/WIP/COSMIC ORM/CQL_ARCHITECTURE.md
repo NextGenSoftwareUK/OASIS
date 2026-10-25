@@ -1093,3 +1093,34 @@ The new provider contract is exercised with controlled adapters only. **Native
 SQLite/MongoDB/Neo4j composition subqueries/proof decoders, public HTTP composition
 and executable composition demos remain required.** Existing joined demos are
 separate from this new shape. See [composition contract](CQL_COMPOSITION_CONTRACT.md).
+
+## SQLite native composition owner — 25 October 2026
+
+SQLite implements the generic composition interface. Source capture and all
+materialized result stages share one serializable read owner; an existing caller
+transaction is borrowed and never committed/disposed by the query. Read-only
+connections are supported. Both statements share the production30-second /
+instruction budget, relationship guards and900-parameter pool.
+
+Complete selected input cells are decoded/validated before native result stages
+run. A later filter or Take(0) cannot hide required-value/type errors. SQLite
+produces every stage's ordered identities and independent source/work counts;
+the adapter maps those native positions to detached source cells, without
+hydrating entities or evaluating predicates in memory. Core checks the complete
+packet before construction. Ordering keeps the prior stage's rank on ties.
+
+Grouped and composed filters share one exact native scalar/null/string SQL
+owner. Identifiers are generated from column positions; selected aliases are
+never pasted into SQL. Graph expansion sources are explicitly rejected during
+composition admission until a separate graph proof contract exists. Direct
+child predicates retain their existing protected native owner.
+
+The initial corrected native gate passes30/30, zero skips;15 scalar-domain cases
+cover exact integers, UInt64, Decimal, Double, Single, GUID, UTC ticks, Unicode,
+Boolean, enums and nullable values. Six exhausted budgets, visibility, preserved
+windows, stable ordering, caller snapshot reuse, cancellation and child matching
+are also covered. Nine compiler controls execute generated SQL; full provider
+unit suite55 passes. Full native/Core regression is being finalized below.
+
+MongoDB/Neo4j composition, public HTTP composition and annotated live composition
+demos remain open. Existing join demos remain a separate verified feature.

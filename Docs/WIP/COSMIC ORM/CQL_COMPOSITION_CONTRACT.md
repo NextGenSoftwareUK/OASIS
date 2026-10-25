@@ -1,8 +1,8 @@
 # CQL selected-result composition contract
 
 25 October 2026. Immutable capture, independent admission, complete proof
-validation and generic V2 execution are implemented; native provider execution
-is not yet enrolled. This preserves the original full roadmap scope.
+validation and generic V2 execution are implemented. SQLite native execution
+is verified; MongoDB/Neo4j native composition remains pending. This preserves the original full roadmap scope.
 
 ## Operation ownership
 
@@ -22,7 +22,7 @@ each selected window has a count between0 and10000. Failed intent propagates
 without evaluating later operations.
 
 ```csharp
-// Capture only at this checkpoint: native adapters still reject this shape.
+// Capture the pipeline, then use the composition planner/manager on SQLite.
 var selected = CosmicQuery<Holon>.Create()
     .OrderBy(holon => holon.Name)
     .Take(2)
@@ -56,9 +56,10 @@ wrong domains, unknown aliases, nested computed properties and lossy casts rejec
 - Positive/negative native evidence on all three providers, signed HTTP shape,
   spaced SDK/HTTP/browser/Swagger examples and coherent regression evidence.
 
-Current planning and raw projection materialization reject nonempty stages with
-`CQL_CAPABILITY_UNSUPPORTED`. This avoids silently ignoring the new intent or
-performing client-side evaluation while native owners are being implemented.
+Ordinary projection planning and raw projection materialization reject nonempty stages with
+`CQL_CAPABILITY_UNSUPPORTED`. Use the separate composition planner/executor: SQLite now has a native owner;
+MongoDB/Neo4j remain pending. No adapter may silently ignore selected stages or
+replace native execution with client-side evaluation.
 Post-join composition, federation and authoritative policy remain separate open
 roadmap requirements.
 
@@ -160,3 +161,50 @@ operations /283 physical attempts**, dedicated joint1/1 zero skips. Evidence:
 This is controlled composition execution plus real existing-operator regression;
 no provider advertises native composition yet. Next: native SQLite subqueries /
 proof decoding, then MongoDB and Neo4j, followed by public transport/examples.
+
+## SQLite native composition owner — 25 October 2026
+
+SQLite implements the generic composition interface. Source capture and all
+materialized result stages share one serializable read owner; an existing caller
+transaction is borrowed and never committed/disposed by the query. Read-only
+connections are supported. Both statements share the production30-second /
+instruction budget, relationship guards and900-parameter pool.
+
+Complete selected input cells are decoded/validated before native result stages
+run. A later filter or Take(0) cannot hide required-value/type errors. SQLite
+produces every stage's ordered identities and independent source/work counts;
+the adapter maps those native positions to detached source cells, without
+hydrating entities or evaluating predicates in memory. Core checks the complete
+packet before construction. Ordering keeps the prior stage's rank on ties.
+
+Grouped and composed filters share one exact native scalar/null/string SQL
+owner. Identifiers are generated from column positions; selected aliases are
+never pasted into SQL. Graph expansion sources are explicitly rejected during
+composition admission until a separate graph proof contract exists. Direct
+child predicates retain their existing protected native owner.
+
+The initial corrected native gate passes30/30, zero skips;15 scalar-domain cases
+cover exact integers, UInt64, Decimal, Double, Single, GUID, UTC ticks, Unicode,
+Boolean, enums and nullable values. Six exhausted budgets, visibility, preserved
+windows, stable ordering, caller snapshot reuse, cancellation and child matching
+are also covered. Nine compiler controls execute generated SQL; full provider
+unit suite55 passes. Full native/Core regression is being finalized below.
+
+MongoDB/Neo4j composition, public HTTP composition and annotated live composition
+demos remain open. Existing join demos remain a separate verified feature.
+
+Final SQLite composition acceptance passes **1,648/1,648 normal native integration
+tests**, **55/55 provider unit tests** and **2,877/2,877 Core/linked WEB4 tests**,
+zero skips. The native suite adds33 composition cases beyond1,615; unit SQL adds
+nine beyond46. Historical exact-fixture `Category=Reconciliation` helpers are
+excluded from normal acceptance, not skipped acceptance cases. Full native run
+is3m4s. Actual SQL-entry cancellation, read-only connections and constructor-
+throwing source entities pass alongside the initial30 cases.
+
+Both Core frameworks build. Exact owned SQLite DB/sidecars and pending markers
+are absent after teardown. Evidence: `TestResults/CosmicCqlDemo/sqlite-composition-full.log`,
+`TestResults/SQLiteCurrent/composition-owner-full.trx`,
+`TestResults/SQLiteCurrent/composition-compiler-unit.trx` and
+`TestResults/CoreCurrent/composition-graph-admission.trx`.
+This certifies the native SQLite SDK slice; MongoDB/Neo4j composition and public
+HTTP/examples remain open. Earlier93/93 demo evidence remains a separate cohort.

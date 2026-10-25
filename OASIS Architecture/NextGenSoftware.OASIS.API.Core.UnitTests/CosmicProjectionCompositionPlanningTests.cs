@@ -21,6 +21,13 @@ public class CosmicProjectionCompositionPlanningTests
         => new(provider, Rows, Columns, profile ?? Profile());
 
     [Fact]
+    public void GraphSourcesCannotBorrowFlatCompositionProofPermissions()
+    {
+        var query = CosmicQuery<Holon>.Create().WithChildren(CosmicQueryGraphOptions.Create().Result).Select(h => h.Name).Take(1).Result;
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", Profile().Admit(query).ErrorCode);
+    }
+
+    [Fact]
     public void ExplicitCompositionPlanPreservesSourceStagesAndInputBudgets()
     {
         var source = CosmicQuery<Holon>.Create().Skip(2).Take(3).Result;
