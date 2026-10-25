@@ -142,6 +142,7 @@ public partial class Neo4jOASIS
         var result = new OASISResult<IEnumerable<IHolon>>();
         var state = (NeoHolonTransactionState)conditional ?? new NeoHolonTransactionState();
         var archiveVersions = IsVersionControlEnabled;
+        var capturingSelection = false;
         try
         {
             ArgumentNullException.ThrowIfNull(holons);
@@ -149,8 +150,10 @@ public partial class Neo4jOASIS
             if (maximumDepth < 0 || initialDepth < 0) throw new ArgumentOutOfRangeException(nameof(maximumDepth));
             var roots = holons.ToList();
             if (roots.Count == 0) { result.Result = Array.Empty<IHolon>(); return result; }
-            var plan = conditional == null ? HolonGraphWritePlan.Create(roots, children, recursive, maximumDepth, initialDepth)
+            capturingSelection = true;
+            var plan = conditional == null ? HolonGraphWritePlan.CreateForSave(roots, children, recursive, maximumDepth, initialDepth)
                 : (Roots:roots,Nodes:conditional.Plan.Nodes.ToList());
+            capturingSelection = false;
             var rootSources = new HashSet<IHolon>(plan.Roots, ReferenceEqualityComparer.Instance);
             var sources = plan.Nodes.Select(node => node.Source).ToList();
             var staged = plan.Nodes.Select(node => node.Snapshot).ToList();
@@ -333,6 +336,7 @@ public partial class Neo4jOASIS
             result.IsError=true;result.ErrorCount++;result.IsSaved=false;result.Result=null;result.SavedCount=0;
             result.Exception=uncertain ? new Neo4jMutationReconciliationException(cause):cause;
             result.ErrorCode=uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED"
+                :capturingSelection ? "HYPERDRIVE_PAYLOAD_INVALID"
                 :cause is Core.Helpers.StorageLifecycleConflictException ? Core.Helpers.StorageLifecycleConflictException.ErrorCode
                 :cause is ArgumentException || cause is InvalidDataException ? "HYPERDRIVE_PAYLOAD_INVALID":"COSMIC_WRITE_FAILED";
             result.Message=result.Exception.Message;
