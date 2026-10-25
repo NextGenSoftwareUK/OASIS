@@ -1,14 +1,16 @@
 # CQL completion roadmap - MongoDB, SQLite and Neo4j
 
 Current checkpoint: **25 October 2026**. Scalar/demo acceptance is published
-through `72ea866f8`; newer transport acceptance and its remaining regression
-gates are recorded below. Full completion is **not established**.
+through `72ea866f8`; ordinary child-selection/save-state ownership hardening is
+published through parent `f1917a001` (Core `f0290ff`). Full completion is **not established**.
 
 - Single, Double, Decimal, UInt64 and UTC DateTime have certified native query
   support on MongoDB, SQLite and Neo4j within their recorded operator domains.
-- The latest linked compiler/endpoint suite passes **2,595 tests**. Separate
-  latest Single provider cohorts pass SQLite **1,516 native**, Mongo **281 native
-  and 494 unit**, and Neo4j **249 native and 459 unit** tests, with no skips.
+- Latest separately verified cohorts: Core **2,604**, Shared **1,189**, normal
+  SQLite **1,578 native**, MongoDB **297 native /502 unit**, Neo4j **275 native
+  /477 unit** and **16 native write-outcome controls**, zero skips. Historical
+  sections retain their original counts and scope; these are not one simultaneous
+  all-provider certification. The new shared custom-role contract passes eight cases per store (24 total), recorded below.
 - Fresh live acceptance passes **87 SDK and 87 signed HTTP examples**, with
   267 settled operations and 262 provider attempts. Six offline browser presets,
   Swagger examples and the standalone demo build also pass.
@@ -870,3 +872,21 @@ producer/consumer leases. Core/Shared/pinned-driver copies matched producers.
 Session66975 terminated0; fixture marker absent and reusable container exited.
 The earlier pending275 statement is superseded by this result. Cohorts remain
 separately recorded; this does not certify every custom-role/federation/join gate.
+
+## Shared custom-role ordinary-save contract — 25 October 2026
+
+One source-linked contract now verifies eight ordinary-save combinations on each
+priority store: synchronous/asynchronous, single/batch, direct provider/V2 manager.
+Two Children have deliberately descending identities, plus one typed Extras
+member. Assertions verify exact logical role names and order on caller/returned
+acknowledgements, native CQL typed round-trip, persisted values, clean accepted
+query baseline and deep tracking after a typed child edit. This covers the generic
+prepared-write bridge as well as direct native callers.
+
+All24 new cases pass: MongoDB's full297 native CQL suite (3m58), Neo4j's expanded
+16-case ordinary-role gate (8newcustom+8existing,8s) and SQLite's8 new cases (3s).
+All have zero skips and execute under explicit global build leases. Neo4j's prior
+full275 and SQLite's prior full1578 remain separate unchanged-production cohorts;
+no full283Neo/1586SQLite claim is made. No production implementation changed in
+this batch. Remaining access/grouping/joins/federation and wider ORM gates remain
+open. Fixed reusable fixtures were retired through their known-outcome owners.
