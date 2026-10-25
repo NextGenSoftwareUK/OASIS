@@ -62,9 +62,8 @@ public partial class HolonRepository
 
             var name = "a" + index;
             var present = IntegerField(name + "present");
-            var required = column.Selector.ValueType.IsValueType && Nullable.GetUnderlyingType(column.Selector.ValueType) == null;
-            if (present < 0 || present > inputs || required && present != inputs)
-                throw new InvalidDataException("Native group selected participation is invalid.");
+            var coverage = CosmicGroupedResults.ValidateParticipation(column.Selector.ValueType, inputs, present);
+            if (coverage.IsError) throw new InvalidDataException(coverage.Message);
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
                 expectedFields += 3;

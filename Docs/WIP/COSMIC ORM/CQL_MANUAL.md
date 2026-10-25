@@ -19,12 +19,15 @@ Open [the demo guide](../../../Examples/CosmicCqlDemo/README.md), then read `V1N
 
 These commands require the already configured reusable provider environment. They do not install or download services. The current runner checks fresh actual results rather than treating an older report as success. SDK examples check `OASISResult` before planning/execution; the public endpoint binds the authenticated actor itself.
 
-Current verified walkthrough: **29 examples per provider, 87 SDK and 87 signed
-HTTP queries**, with 267 settled operations and 262 provider attempts. Examples 22–23
-cover UInt64, 24–25 exact Decimal prices, 26–27 Double readings and 28–29 Single
-readings. Native types retain their declared operator domains. See the
-[Decimal contract](CQL_DECIMAL_METADATA_CONTRACT.md) and
-[floating scalar contract](CQL_FLOATING_SCALAR_CONTRACT.md).
+Current verified walkthrough: **34 examples per provider, 102 SDK and 102 signed
+HTTP queries**, with 309 settled operations and 301 provider attempts. Examples
+22–29 cover UInt64, exact Decimal prices and Double/Single readings; 30–31 show
+flat joins; 32–34 show selected-result composition, source-window ordering and
+exact selected Int64 comparisons. Native types retain their declared operator
+domains. See the [Decimal contract](CQL_DECIMAL_METADATA_CONTRACT.md),
+[floating scalar contract](CQL_FLOATING_SCALAR_CONTRACT.md),
+[join contract](CQL_JOIN_CONTRACT.md) and
+[composition HTTP contract](CQL_COMPOSITION_HTTP_CONTRACT.md).
 
 Later dated sections preserve historical milestones. Their earlier test/demo
 counts describe those checkpoints, not the current walkthrough or full roadmap
@@ -38,11 +41,13 @@ completion. The [completion roadmap](CQL_COMPLETION_ROADMAP.md) lists open work.
 | Detached results | Selected columns/DTOs; Count, LongCount, Any, Min, Max, integer Sum and Decimal Average |
 | Groups | Multiple keys/aggregates; selected-output Where, OrderBy/ThenBy and result Skip/Take; exact normalized Average comparisons on MongoDB, SQLite and Neo4j |
 | Relationships | Child/descendant predicates and bounded child graph expansion, with each provider's documented consistency |
-| HTTP | Bounded row, projection, scalar and grouped JSON requests; grouped predicates/order bind exact selected aliases |
+| Joins | Bounded same-provider flat inner/left joins with declared key domains and cardinality limits |
+| Selected composition | Ordered selected Where, OrderBy/ThenBy and Skip/Take stages; native execution preserves stage order, including windows before filters |
+| HTTP | Bounded row, projection, scalar, grouped, join and composition JSON requests; selected predicates/order bind exact aliases |
 
 Apply grouped predicates and ordering **before** result Skip/Take. Source windows select aggregate participants; result windows select reduced groups. Unsupported domain/operator combinations fail capability admission; the engine does not substitute an unbounded client scan. The HTTP grammar is narrower than the SDK expression grammar: see [the grouped contract](CQL_GROUPING_HTTP_CONTRACT.md).
 
-Joins, composition requiring post-window subqueries, federated global cursors, broader scalar domains and authoritative shared-recipient/tenant policy remain separate unfinished requirements. See [the completion roadmap](CQL_COMPLETION_ROADMAP.md) for acceptance criteria and scoped evidence; supported examples are not a claim that the full roadmap is complete.
+Expanded join certification, graph-source composition enrollment, federated global cursors, broader scalar domains and authoritative shared-recipient/tenant policy remain separate unfinished requirements. See [the completion roadmap](CQL_COMPLETION_ROADMAP.md) for acceptance criteria and scoped evidence; supported examples are not a claim that the full roadmap is complete.
 
 ## Partial typed child roles
 

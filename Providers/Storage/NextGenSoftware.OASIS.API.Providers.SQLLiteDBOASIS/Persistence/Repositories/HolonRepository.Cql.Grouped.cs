@@ -104,7 +104,7 @@ public partial class HolonRepository
                                 else if (column.Operation == CosmicScalarOperation.LongCount) values[index] = inputs;
                                 else if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
                                 {
-                                    var normalized = CosmicNumericScalarResults.FromParts(column.Operation.Value, column.Selector.ValueType,
+                                    var normalized = DecodeGroupedNumeric(column.Operation.Value, column.Selector.ValueType, inputs,
                                         reader.GetInt64(position), reader.GetInt64(position + 1), reader.GetInt64(position + 2));
                                     position += 3;
                                     if (normalized.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<object, IReadOnlyList<CosmicGroupedRow>>(normalized);
@@ -147,6 +147,15 @@ public partial class HolonRepository
         catch (NotSupportedException cause) { return GroupedCqlError("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
         catch (OperationCanceledException cause) { return GroupedCqlError("CQL_QUERY_CANCELLED", cause.Message, cause); }
         catch (Exception cause) { return GroupedCqlError("CQL_QUERY_FAILED", "SQLite grouped query failed: " + cause.Message, cause); }
+    }
+
+    internal static OASISResult<object> DecodeGroupedNumeric(CosmicScalarOperation operation, Type selectedType,
+        long inputCount, long high, long low, long present)
+    {
+        var coverage = CosmicGroupedResults.ValidateParticipation(selectedType, inputCount, present);
+        return coverage.IsError
+            ? OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, object>(coverage)
+            : CosmicNumericScalarResults.FromParts(operation, selectedType, high, low, present);
     }
 
     private static OASISResult<IReadOnlyList<CosmicGroupedRow>> GroupedCqlError(string code, string message, Exception cause = null)

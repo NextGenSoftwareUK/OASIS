@@ -1,13 +1,32 @@
 # COSMIC ORM implementation status
 
-Current: **25 October 2026**. Core/linked WEB4 passes2,877 tests, zero skips.
-Native flat joins and annotated31-example/provider C#/HTTP demos are verified
-on MongoDB, SQLite and Neo4j (93SDK/93HTTP,288settled/283attempts at their last
-recorded gate). Selected-result composition now has immutable ordered intent,
-independent admission and complete native-proof validation. SQLite native composition now passes1,648integration/55unit tests; MongoDB/Neo4j
-composition and public transport remain open. Broader
-composition/federation/policy and the full CQL/ORM roadmap remain unfinished.
-Dated sections below preserve historical acceptance and exact evidence scope.
+Current: **25 October 2026**. Native flat joins and bounded selected-result
+composition are implemented on MongoDB, SQLite and Neo4j through generic Core
+contracts, with signed HTTP transport and annotated **34-example/provider**
+C#/HTTP demos. Latest live demo: **102 SDK /102 HTTP**, 309 settled operations
+and 301 provider attempts. Full CQL/ORM completion remains unproven.
+
+Latest separate suites: Core **2,970**, Shared **1,189**, SQLite **1,651 native
+/71 unit**, MongoDB **361 native /538 unit**, Neo4j **362 full native /519 unit**. The full 362-case native suite now includes
+the previously separate composition additions. These are separate checkpoints, not
+one coherent current-source run. The newest shared participation guard passes
+Core/SQLite units and **three native SQLite corruption/reuse controls**; full
+SQLite acceptance also passes **1,651 tests, zero skips**. MongoDB native
+regression also passes **361 tests, zero skips** (5m7s). Neo4j full native
+regression passes **362 tests, zero skips** (10m24s). Fresh MongoDB/Neo4j unit
+suites also pass **538/519**, zero skips. Build-lease contract checks pass.
+
+The participation guard rejects a grouped aggregate whose present-value count
+contradicts its containing group or required selector. Core owns the invariant;
+all three provider decoders use it. This batch is verified for task-branch publication. Previous published parent
+checkpoint: `369f07354` on `fix/hyperdrive-v2-providers`; Development integration
+is not included in this batch.
+
+Remaining scope includes expanded grouped/join/relationship certification,
+authoritative sharing/tenant policy, additional scalar domains, graph-source
+composition enrollment and bounded federation. See the
+[completion roadmap](CQL_COMPLETION_ROADMAP.md). Dated sections below preserve
+historical evidence and must not override this current summary.
 
 ## 23 October — Neo4j native Select acceptance
 
