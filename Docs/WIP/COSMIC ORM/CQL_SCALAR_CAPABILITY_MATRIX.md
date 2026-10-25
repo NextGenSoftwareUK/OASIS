@@ -60,3 +60,8 @@ Request/response values are canonical invariant finite binary64 round-trip
 strings. Existing enum identities remain stable (Double appended as7).
 Live all-provider Double HTTP/demo acceptance passes81SDK/81HTTP; no Single or
 floating Sum/Average capability is granted.
+
+Mongo's newer full255native/493unit cohort includes a verified native binary64
+toSingle component with12,313vectors. Its Single row/selected/grouped query
+profiles remain unenrolled pending exactInt64/Decimal128 source normalization
+and complete query acceptance; the table's Single status remains unchanged.

@@ -1555,3 +1555,29 @@ single-registry-red evidence preserved. Core2existingfilecommit
 efad088d6e1d1fcdc0af2bfea0adf964280bfa78 pushed/remoteverified; paired parent pin
 required before publication. Source/build hold released, indexes held briefly
 for scoped parent batch only. Shared/Karma/Oracle source unchanged.
+
+## Mongo Single binary64 component — 24 October 2026
+
+Owner COSMIC ORM/CQL. Reuse SDK10.0.401, pinned NuGet cache, Mongo8.3.11
+C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe, fixed
+TestResults/SubscriptionUsageCurrent/mongo-data (27029/oasisRecoveryRs), provider/
+unit/native bin/obj and fixture cosmic_cql_fixture. No install/download/restore/
+new environment. Free C67,375,620,096 before preparation; sizes unmeasured.
+Native deterministic vectors (seed20261025;8192Double patterns+1024Single
+neighborhoods+boundaries/foreign types) are aggregation literals only, not
+persisted records, bounded30seconds. Existing acknowledged fixture cleanup
+owner retained, preserve unknown outcomes. Full native255/unit493 planned under
+global lease after peer Oracle source/build release. Retain compact TRX/log/
+identity and source evidence; no Single capability enrollment until exact
+Int64/Decimal128 source handling and complete query gates also verified.
+
+19377 terminal0:full255native CQL/493units PASS0skip; native binary64-toSingle
+kernel matches all12,313vectors. Source snapshots unchanged, producer Core3E4F8E4F/
+Shared9BF60883/Mongo9A0821EB match native+unit copies insidelease. Retain
+C:/Source/OASIS/TestResults/SubscriptionUsageCurrent/{mongo-cql-native-current.trx,
+single-kernel-full-current.trx,single-kernel-identities-current.json} and
+C:/Source/OASIS/TestResults/CosmicCqlDemo/mongo-single-kernel-full.log (sizes
+unmeasured). Literalvector dataset notpersisted; acknowledged fixture cleanup
+passed, owned27029listenerabsent. Runner bounded15,541,104rawlogbytes to65,385
+after shutdown; runtime/data retained. Free C67,271,426,048 after. No downloads/
+restores/new environment. NoSinglecapenrollment; Int64/Decimal128 work staysopen.

@@ -571,3 +571,10 @@ be tied to per-query width. Generic nullable Single grouping is admitted, while
 actual provider capabilities remain mandatory. FullCore2,555/focused28/
 fullSQLite1,513 pass with unchanged sources/matched producer/native copies.
 Mongo/Neo Single, Single wire/demos and broader certification remain open.
+
+Mongo's Single binary64 component now quantizes native BSON Double using exact
+power-of-two spacing and integer/fraction ties-to-even, without server JavaScript
+or hydrated-row filtering.12,313native vectors/full255native/493units pass.
+The full Single operand must additionally preserve originalInt64/Decimal128
+precision; converting those toDouble first is not an acceptable shortcut.
+No Single capability is granted until those domains and query owners are verified.

@@ -223,3 +223,32 @@ single-focused-current.trx,single-full-current.trx,single-identities-current.jso
 CosmicCqlDemo/single-sqlite-full.log. Owned fixed DB/WAL/SHM absent after teardown.
 Core efad088d6e1d1fcdc0af2bfea0adf964280bfa78 published with paired parent pin.
 Mongo/Neo Single and Single HTTP/demos remain open; this is not full CQL closure.
+
+## Mongo Single binary64 normalization component verified — 24 October 2026
+
+Native SingleFromNativeDouble uses exact power-of-two bin thresholds/spacing,
+bounded254-bin selection and integer/fraction ties-to-even rounding. It avoids
+decimal-place conversions of native binary64 input. Overflow-midpoint values
+and nonzero underflow reject; signed zero canonicalizes. The component requires
+actual BSON Double input and returns an invalid object state for foreign types.
+
+A deterministic native vector test is prepared:8192finite binary64 patterns,
+1024binary32 values with each exact midpoint and its adjacent binary64 neighbors,
+plus overflow/subnormal/zero/nonfinite/foreign-type controls. It compares actual
+Mongo aggregation results bit-for-bit against finite CLR binary32 conversion.
+Vectors exist only as bounded aggregation literals, not persisted records.
+
+This is one required normalization component, not Single query enrollment.
+Int64/Decimal128 source domains need exact handling: a preliminary binary64 cast
+can erase the side of a binary32 halfway threshold. Keep those requirements
+open; no Single capability is granted from binary64-only kernel evidence.
+Official Mongo arithmetic reference: [rounding and IEEE behavior](https://www.mongodb.com/docs/manual/reference/operator/aggregation/round/);
+the implementation splits binary units explicitly instead of relying on
+decimal-place round conversion. Actual19377 terminal0:full255native CQL and493Mongo units pass0fail/skip.
+All12,313native vectors pass, bit-for-bit, including8192finite Double patterns
+and1024Single neighborhoods/midpoints. Source snapshots unchanged; Core3E4F8E4F,
+Shared9BF60883 andMongo9A0821EB match both native and unit copies inside lease.
+Evidence: SubscriptionUsageCurrent/mongo-cql-native-current.trx,
+single-kernel-full-current.trx,single-kernel-identities-current.json;
+CosmicCqlDemo/mongo-single-kernel-full.log. Owned Mongo service stopped and
+acknowledged fixture cleanup passed. No Single query profile is enrolled.
