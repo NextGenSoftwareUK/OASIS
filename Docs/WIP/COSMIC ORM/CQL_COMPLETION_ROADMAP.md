@@ -2,11 +2,11 @@
 
 Current checkpoint: **25 October 2026**. Scalar/demo acceptance is published
 through `72ea866f8`; ordinary child-selection/save-state ownership hardening is
-published through parent `f1917a001` (Core `f0290ff`). Full completion is **not established**.
+published through parent `f1917a001` (Core `f0290ff`). Immutable join intent is published in parent `ec097c673` / Core `6642cc9`; native join execution remains pending. Full completion is **not established**.
 
 - Single, Double, Decimal, UInt64 and UTC DateTime have certified native query
   support on MongoDB, SQLite and Neo4j within their recorded operator domains.
-- Latest separately verified cohorts: Core **2,604**, Shared **1,189**, normal
+- Latest separately verified cohorts: Core **2,627**, Shared **1,189**, normal
   SQLite **1,578 native**, MongoDB **297 native /502 unit**, Neo4j **275 native
   /477 unit** and **16 native write-outcome controls**, zero skips. Historical
   sections retain their original counts and scope; these are not one simultaneous
