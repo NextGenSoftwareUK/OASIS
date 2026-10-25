@@ -430,6 +430,41 @@ public sealed partial class CosmicCqlNativeTests
             var root=Assert.Single(Assert.Single(read.Result.Providers).Rows);
             Assert.Equal(HolonType.Quest,Assert.Single(root.Children).HolonType);
             root.AcceptChanges();
+            // Direct provider entry points must honor the same private partial-view
+            // observation as HolonManager. Record each probe before submitting it;
+            // retain the fixture if rejection or the native after-image is uncertain.
+            var beforeOrdinary = await fixture.Records.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+            var beforeBodies = beforeOrdinary.OrderBy(row => row["_id"].ToString()).Select(row => row.ToJson()).ToArray();
+            foreach (var synchronous in new[] { false, true })
+            foreach (var batch in new[] { false, true })
+            {
+                await fixture.Database.GetCollection<BsonDocument>("CosmicOwnedFixture").InsertOneAsync(
+                    new BsonDocument { { "ordinaryPartialProbe", true }, { "root", root.Id.ToString() },
+                        { "synchronous", synchronous }, { "batch", batch } });
+                fixture.KnownOutcome = false;
+                bool error, probeSaved;
+                string code;
+                if (batch)
+                {
+                    var outcome = synchronous
+                        ? fixture.Provider.SaveHolons(new[] { root }, saveChildren: true)
+                        : await fixture.Provider.SaveHolonsAsync(new[] { root }, saveChildren: true);
+                    error = outcome.IsError; probeSaved = outcome.IsSaved; code = outcome.ErrorCode;
+                }
+                else
+                {
+                    var outcome = synchronous
+                        ? fixture.Provider.SaveHolon(root, saveChildren: true)
+                        : await fixture.Provider.SaveHolonAsync(root, saveChildren: true);
+                    error = outcome.IsError; probeSaved = outcome.IsSaved; code = outcome.ErrorCode;
+                }
+                var afterOrdinary = await fixture.Records.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+                Assert.Equal(beforeBodies, afterOrdinary.OrderBy(row => row["_id"].ToString()).Select(row => row.ToJson()).ToArray());
+                Assert.True(error);
+                Assert.False(probeSaved);
+                Assert.Equal("HYPERDRIVE_PAYLOAD_INVALID", code);
+                fixture.KnownOutcome = true;
+            }
             root.Name+=" edited";
             var version=root.Version;
             var rejected=await manager.SaveHolonAsync(root,Guid.NewGuid(),saveChildren:true,providerType:ProviderType.MongoDBOASIS);
