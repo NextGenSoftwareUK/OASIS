@@ -1630,3 +1630,5 @@ Evidence: `TestResults/CosmicCqlDemo/mongo-composition-owner-final.log`,
 Initial server-error evidence is retained separately. Further composition
 privacy/relationship and outstanding-I/O/deadline controls remain required;
 Neo4j composition and public HTTP/composition demos remain open.
+
+25 October MongoDB composition privacy/interruption certification passes **359/359 native**, zero skips (31 composition controls). Unit checkpoint remains519/519; production unchanged. See [final native evidence and remaining scope](CQL_COMPOSITION_CONTRACT.md). Neo4j composition and public composition transport/demos remain open.
