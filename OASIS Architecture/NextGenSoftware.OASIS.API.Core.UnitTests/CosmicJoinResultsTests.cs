@@ -280,4 +280,36 @@ public sealed class CosmicJoinResultsTests
             new[]{Input(R1,0d)},new[]{new CosmicJoinRow(L1,R1,"owner")});
         CosmicJoinResults.Materialize(query,packet).IsError.Should().BeFalse();
     }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void OrderingProofDistinguishesMissingAndExplicitNullBeforeIdentityTies(bool reverse)
+    {
+        var source=CosmicQuery<Holon>.Create().OrderBy(row=>CosmicQueryMetadata.Value<long>(row,"rank")).Result;
+        var query=source.Join(CosmicQuery<Holon>.Create(),row=>row.Name,row=>row.Name)
+            .Select((owner,member)=>owner.Name).Result;
+        var missing=new CosmicJoinInputRow(L2,true,Guid.Empty,new object[]{"coffee"},new object[]{"coffee"},
+            new object[]{null!},new[]{0});
+        var explicitNull=new CosmicJoinInputRow(L1,true,Guid.Empty,new object[]{"coffee"},new object[]{"coffee"},
+            new object[]{null!},new[]{1});
+        var left=reverse?new[]{explicitNull,missing}:new[]{missing,explicitNull};
+        var packet=Packet(left,new[]{Input(R1,"coffee")},
+            left.Select(row=>new CosmicJoinRow(row.Id,R1,"coffee")).ToArray());
+        var result=CosmicJoinResults.Materialize(query,packet);
+        result.IsError.Should().Be(reverse,result.Message);
+        if(reverse)result.ErrorCode.Should().Be("CQL_PROVIDER_RESULT_INVALID");
+        else result.Result.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void OrderingStateBuffersAreDetachedAndCannotContradictValues()
+    {
+        var states=new[]{2};
+        var row=new CosmicJoinInputRow(L1,true,Guid.Empty,new object[]{"coffee"},new object[]{"owner"},new object[]{1},states);
+        states[0]=0;
+        row.OrderingStates.Single().Should().Be(2);
+        var bad=new CosmicJoinInputRow(L1,true,Guid.Empty,new object[]{"coffee"},new object[]{"owner"},new object[]{1},new[]{0});
+        Invalid(Packet(new[]{bad},new[]{Input(R1,"coffee",7)},new[]{new CosmicJoinRow(L1,R1,"owner",7,true)}),
+            query:Query(orderedVersion:true));
+    }
 }

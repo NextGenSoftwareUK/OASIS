@@ -1167,3 +1167,86 @@ This checkpoint is controlled-adapter execution/accounting evidence. **No real
 provider implements or advertises native joins yet.** SQLite, MongoDB and Neo4j
 native matching/proof production, HTTP transport, executable join demos and
 remaining composition/federation/security certification are still open.
+
+## Native SQLite joins — implementation checkpoint, 25 October 2026
+
+SQLite's native join owner is verified for flat source queries (Core 2,734; normal SQLite integration 1,615; SQLite unit 46). It uses one
+serializable read transaction for both sources, their detached proofs and native
+pair matching. MongoDB and Neo4j join execution, joined HTTP requests and graph
+source joins are not enrolled by this checkpoint. Existing query APIs remain
+available on those providers.
+
+The following SDK pattern assumes an activated SQLite `provider` and a V2
+`manager`. It joins two independently filtered and bounded source windows. Here,
+`Description` identifies the sample row's role and `Name` is the matching key.
+
+```csharp
+var scope = CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS).Result;
+
+var products = CosmicQuery<Holon>.Create(scope)
+    .Where(product => product.Description == "product")
+    .OrderBy(product => product.Name)
+    .Take(20);
+
+var stock = CosmicQuery<Holon>.Create(scope)
+    .Where(item => item.Description == "stock")
+    .Take(20);
+
+// A left join keeps products even when no matching stock row exists.
+// Null keys never match. Repeated keys produce multiple matching pairs.
+var selection = products.LeftJoin(
+        stock,
+        product => product.Name,
+        item => item.Name)
+    .Select((product, item) => new
+    {
+        ProductName = product.Name,
+        StockName = item.Name,
+        HasStock = item != null
+    });
+
+if (selection.IsError)
+    throw new InvalidOperationException(selection.Message);
+
+// Plan with the actual provider's separate source and join capabilities.
+var adapter = (ICosmicQueryJoinStorageProvider)provider;
+var plan = CosmicJoinPlanner.Plan(
+    selection.Result,
+    adapter.QueryProviderType,
+    new[]
+    {
+        new CosmicJoinTarget(
+            adapter.QueryProviderType,
+            adapter.QueryCapabilities,
+            adapter.JoinCapabilities)
+    });
+
+if (plan.IsError)
+    throw new InvalidOperationException(plan.Message);
+
+var result = await manager.ExecuteJoinQueryAsync(plan.Result, new[] { provider });
+
+if (result.IsError)
+    throw new InvalidOperationException(result.Message);
+
+foreach (var row in result.Result.Providers.Single().Rows)
+{
+    // Presence is independent of nullable fields on an existing stock row.
+    Console.WriteLine($"{row.Value.ProductName}: stock row exists = {row.HasRight}");
+}
+```
+
+Use `Join` for inner matching. Composite keys use matching anonymous key shapes,
+for example `new { row.Name, Region = CosmicQueryMetadata.Value<int>(row, "region") }`
+on each side. Both key components must match; a null component prevents a match.
+For a left join, lift selected right value types, for example `(int?)item.Version`,
+so an absent right row can be represented. A present right row's required metadata
+must still have the declared type: lifting the result does not make corrupt or
+missing required source data valid.
+
+Pass explicit `CosmicJoinOptions` to bound each input, pair work, output count and
+three payload budgets. Bounds reject overflow rather than truncate a successful
+join. Inherited admission checks both source actors and all provider permissions
+before any physical attempt. Applications requiring owner/public filtering must
+bind the same authorized `CosmicQueryReadAccess` to both source queries, just as
+for ordinary CQL reads. Metadata tenant labels alone do not grant access.
