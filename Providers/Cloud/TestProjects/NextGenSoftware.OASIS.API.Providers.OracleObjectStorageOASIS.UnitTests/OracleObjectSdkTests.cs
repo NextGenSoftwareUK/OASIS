@@ -464,6 +464,7 @@ public class OracleObjectSdkTests
         using var client=Client();using var stopped=new CancellationTokenSource();
         var objects=new System.Collections.Concurrent.ConcurrentDictionary<string,string>(StringComparer.Ordinal);
         var conditionalCreates=0;var conditionalReplacements=0;var conditionalDeletes=0;
+        var sdkRequests=0;
         var nextPutStatus=200;
         Action? beforeListReply=null;
         var server=Task.Run(async()=>{
@@ -472,6 +473,7 @@ public class OracleObjectSdkTests
                 try{context=await listener.GetContextAsync().WaitAsync(stopped.Token);}
                 catch(Exception cause)when(stopped.IsCancellationRequested&&(cause is OperationCanceledException||cause is HttpListenerException||cause is ObjectDisposedException)){return;}
                 try {
+                    Interlocked.Increment(ref sdkRequests);
                     StringAssert.StartsWith(context.Request.Headers["Authorization"],"Signature ");
                     var path=context.Request.Url!.AbsolutePath;const string objectPath="/n/ns/b/bucket/o/";
                     if(context.Request.HttpMethod=="HEAD"){await Reply(context,200,"");continue;}
@@ -513,6 +515,9 @@ public class OracleObjectSdkTests
             using var provider=new OracleObjectStorageOASIS(client,"ns","bucket",()=>storageKey.ToArray()){IsVersionControlEnabled=true};
             var activated=synchronous?provider.ActivateProvider():await provider.ActivateProviderAsync();Assert.IsFalse(activated.IsError,activated.Message);
             var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar{Id=Guid.NewGuid(),Username="private-user",Email="private-user@example.invalid",IsActive=true};
+            avatar.VerificationToken="synthetic-verify";avatar.ResetToken="synthetic-reset";
+            avatar.RefreshTokens=new(){new NextGenSoftware.OASIS.API.Core.Objects.RefreshToken{Token="synthetic-refresh",Expires=DateTime.UtcNow.AddHours(1)}};
+            avatar.ProviderWallets=new(){[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OracleObjectStorageOASIS]=new(){new NextGenSoftware.OASIS.API.Core.Objects.ProviderWallet{WalletId=Guid.NewGuid(),PublicKey="synthetic-public-key",PrivateKey="synthetic-private-key"}}};
             var saved=synchronous?provider.SaveAvatar(avatar):await provider.SaveAvatarAsync(avatar);Assert.IsFalse(saved.IsError,saved.Message);Assert.AreEqual(1,avatar.Version);
             Assert.IsTrue(saved.IsSaved);Assert.AreEqual(1,saved.SavedCount);
             avatar.Description="private-update";
@@ -523,6 +528,23 @@ public class OracleObjectSdkTests
             var byEmail=synchronous?provider.LoadAvatarByEmail(avatar.Email):await provider.LoadAvatarByEmailAsync(avatar.Email);
             foreach(var found in new[]{byId,byName,byEmail}){Assert.IsFalse(found.IsError,found.Message);Assert.IsTrue(found.IsLoaded);Assert.AreEqual(1,found.LoadedCount);Assert.AreEqual(avatar.Id,found.Result.Id);Assert.AreEqual(2,found.Result.Version);}
             var historical=synchronous?provider.LoadAvatar(avatar.Id,1):await provider.LoadAvatarAsync(avatar.Id,1);Assert.IsFalse(historical.IsError,historical.Message);Assert.AreEqual(1,historical.Result.Version);Assert.IsNull(historical.Result.Description);
+            var credentialObjects=objects.OrderBy(row=>row.Key).ToArray();
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>> Credential(int method,int version)=>method switch{
+                0=>synchronous?provider.LoadAvatarByPublicKey("synthetic-public-key",version):await provider.LoadAvatarByPublicKeyAsync("synthetic-public-key",version),
+                1=>synchronous?provider.LoadAvatarByPrivateKey("synthetic-private-key",version):await provider.LoadAvatarByPrivateKeyAsync("synthetic-private-key",version),
+                2=>synchronous?provider.LoadAvatarByVerificationToken(avatar.VerificationToken,version):await provider.LoadAvatarByVerificationTokenAsync(avatar.VerificationToken,version),
+                3=>synchronous?provider.LoadAvatarByResetToken(avatar.ResetToken,version):await provider.LoadAvatarByResetTokenAsync(avatar.ResetToken,version),
+                _=>synchronous?provider.LoadAvatarByRefreshToken("synthetic-refresh",version):await provider.LoadAvatarByRefreshTokenAsync("synthetic-refresh",version)
+            };
+            for(var method=0;method<5;method++){
+                var credential=await Credential(method,0);Assert.IsFalse(credential.IsError,credential.Message);Assert.IsTrue(credential.IsLoaded);Assert.AreEqual(1,credential.LoadedCount);
+                Assert.AreEqual(avatar.Id,credential.Result.Id);Assert.AreEqual(2,credential.Result.Version);
+                var beforeInvalid=Volatile.Read(ref sdkRequests);var rejected=await Credential(method,1);
+                Assert.IsTrue(rejected.IsError);Assert.IsNull(rejected.Result);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(rejected.Exception);
+                Assert.AreEqual(beforeInvalid,Volatile.Read(ref sdkRequests),"Historical credential authority must reject before signed SDK access.");
+            }
+            CollectionAssert.AreEqual(credentialObjects,objects.OrderBy(row=>row.Key).ToArray(),"Credential scans must not repair/re-encrypt objects.");
+            foreach(var nativeValue in objects.Values)foreach(var marker in new[]{"synthetic-verify","synthetic-reset","synthetic-refresh","synthetic-public-key","synthetic-private-key"})Assert.IsFalse(nativeValue.Contains(marker,StringComparison.Ordinal));
             var isolatedKey=RandomNumberGenerator.GetBytes(32);
             try {
                 using var isolated=new OracleObjectStorageOASIS(client,"ns","bucket",()=>isolatedKey.ToArray(),keyPrefix:"isolated/");

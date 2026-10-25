@@ -1,5 +1,40 @@
 # Oracle client readiness — top priority
 
+## Interface-to-evidence map — 25 October review
+
+Latest verified option tranche: **517 native SQL (35s), 463 SQL unit, 133 OCI signed-SDK (14s), zero skips**. Separate Shared warning/privacy tranche: **1,189 controls (7s), zero skips**. SQL save fixture now covers8sync/async×single/batch×onProvider combinations with exactly3acknowledged/version1native rows, not repeated per-run setup. OCI SAME2encrypted record cases now cover current wallet/token selectors, historical rejection before any SDK request and unchanged ciphertext/no plaintext synthetic credentials. Two factory discovery controls reproduced missing Cloud registration metadata; the constructor now advertises existing Storage+Cloud capabilities while retaining its legacy primary category. Actual local ProviderManager discovery succeeds without activation/network. This is NOT hosted cloud acceptance. Source/resource/report hashes and separate binary cohorts are in ENVIRONMENT_INVENTORY.md.
+
+This replaces vague test-count-based completion reasoning, not the original provider scope. The published463unit dispatch proof enumerates **94 IOASISStorageProvider instance entries** (including overloads/sync+async) plus **2 database-property accessors**. The public static visibility helper is not a provider dispatch entry. Counts below sum to94; they are an interface inventory, NOT a percentage or proof of every combination. All named SQL tests are in the retained native suite unless labelled controlled. Historical records below retain their original scope.
+
+| Storage family | Entries | Concrete evidence / boundary |
+|---|---:|---|
+| Avatar ID/provider-key/username/email/all profiles |10| `NativeReadAcknowledgementsReportActualSuccessAndRootCounts`, canonical selectors/history, native identity-corruption and Unicode capacity matrices. |
+| Public/private wallet keys; verification/reset/refresh selectors |10| Native read acknowledgement matrix; `OracleWalletCredentialAdmissionTests` and canonical credential history rejection. OCI SAME2signed-SDK cases now cover all5current selectors and historical rejection before SDK access. These are storage lookups, NOT proof of complete login/token-expiry/authorization flows. |
+| Avatar detail ID/username/email/all |8| Native read acknowledgement/canonical round trips, standalone detail lifecycle and independent selector/version tests. |
+| Save avatar/detail |4| `NativeOrdinaryIdentitySaveCountsOnlyAcknowledgedCommit`, concurrent creator/locked history, atomic paired lifecycle/projection checks, detached caller publication and lost-ack cases. |
+| Delete avatar GUID/key/username/email |8| `NativeAvatarDeletionResultMetadataDefinesKnownOutcome`, ambiguous/corrupt selectors, repeat/missing state, paired rollback, hard/soft aliases. |
+| Delete detail GUID/username/email |6| `NativeStandaloneDetailLifecyclePreservesAvatarAndReportsLostCommit`, alias/ambiguity/corruption and missing-target matrices. |
+| Holon GUID/key/all/parent/metadata reads, including8scoped defaults |22| Native roots/current+historical metadata modes, independent child versions, three-level depth/clipping, native index corruption; Core scoped output tests plus `NativeScopedGraphProtectsPrivateBranchesAndStoredMembership`. Scoped search/export follow-ups retain stored membership authority. |
+| Save holon/single+batch |4| Three-level graph fixture expanded to8sync/async×single/batch×saveChildrenOnProvider modes; depth/recursive/root-only clipping, parent failure/independent continuation, uncertain commit stop, exact publication and role manifests. No claim of a separate server-side stored-procedure recursion engine. |
+| Delete holon GUID/key |4| Hard-delete interface aliases and V2 manager soft-delete tests; independent descendants, exact missing/repeat outcome and uncertain commits. |
+| Import |2| Canonical graph import plus `BatchAndImportStopAfterUncertainSecondCommit`; shared plan admission/publication. |
+| Export all/avatar ID/username/email |8| Native independent identity/holon versions; current/positive/all-version selectors, scoped descendant privacy, flat -1 output, empty-avatar rejection. |
+| Search |2| Native read acknowledgement/metadata/scoped selection; caller snapshot controls. Shared8new strict/partial/scoped/unscoped controls preserve errors/warnings/counts and redact unreadable identity details only for scoped results. |
+| Karma add/remove |4| Existing domain-owner forwarding8controls (`OracleKarmaDelegationTests`), native V2 ledger/detail history. Providers must not duplicate domain ledger policy. |
+| Storage error event accessors |2| Reviewed inherited base event accessors in interface dispatch proof, not a native database operation. |
+
+Additional relevant surfaces: `IOASISProvider` metadata and four activation/deactivation methods; SQL schema/catalog/least-privilege/bootstrap and factory admission, OCI signed HEAD/disposal/configuration controls. `IOASISDBStorageProvider.IsVersionControlEnabled` has native enabled/disabled-existing-history and controlled disabled-new-record coverage. SQL `IConditionalHolonStorageProvider` and `IHolonWritePreparationStorageProvider` each expose2sync/async entries: native atomic multi-root/receipt/replay/revision/race/cancellation plus separate preparation/encrypted recovery cohorts. Those advanced cohorts are not silently re-certified by every standard517 refresh.
+
+**Open acceptance boundaries (not hidden by the table):**
+
+1. Autonomous Database: approved existing service/schema, protected connection/wallet, provider-session TLS/certificate/identity/IAM and real scoped CRUD/durability evidence. The existing read-only preflight is NOT this full gate.
+2. OCI Object Storage: approved profile/region/namespace/bucket/persisted storage key, real IAM/TLS/conditional/public lifecycle/readback. Signed loopback tests are not hosted acceptance.
+3. Cloud costs/retention: request/compute/storage/egress evidence and approved limits; bucket prior versions/delete markers may retain billable data after current-object deletion. No zero-fee or full-erasure claim.
+4. Full authenticated WEB4 route and cross-provider V2 failover/replication/load-balancing programme, after native provider implementation phase as requested. Native conditional receipts do not certify those flows.
+5. Crash/power-loss behavior remains unverified; existing original encrypted stop/start proof certifies only a requested clean database restart. Optional ORM/CQL/atomic-replica/delta interfaces are not advertised by Oracle merely because the standard storage methods work.
+
+Current local option review is representative of the explicit interfaces/options above, not exhaustive testing of every input/fault/product configuration. Oracle is still NOT100% client/cloud accepted. Continue from concrete uncovered requirements; do not endlessly replace this inventory with larger test counts.
+
 ## Avatar export visibility fix — locally verified
 
 The same owned-root/foreign-descendant risk was found in current and historical avatar exports. Existing Core visibility projection is now applied to those hydrated outputs, preserving stored child membership and independent versions. Empty avatar IDs reject before reads. No new persistence/access policy or Core/Shared change. Corrected controlled baseline: **8 failures / 2 valid flat-export controls**, then final matched **463 Oracle unit / 510 native PASS, zero skips** (native31s). The first two all-version expectations were test mistakes: canonical serialization excludes navigation and all-version exports intentionally remain flat. They were corrected and original production source restored before repeating the baseline; no change to flat all-version semantics.
@@ -148,7 +183,7 @@ Current-source PE/PDB checks and producer/consumer copies verified Core744/Share
 
 **Not100%:** hosted Autonomous/OCI access/IAM/wallet/TLS/security/durability/fees and full provider/V2 acceptance remain open. The async avatar karma API's legacy null/error surface after a partial ledger/projection failure also needs explicit fault-contract coverage; this pooling repair is not that proof. Oracle remains ahead of AWS. Historical red/open candidate text below is superseded only where this checkpoint supplies evidence.
 
-## Current completion gates — 24 October, resumed Oracle-first work
+## Historical completion checkpoint — 24 October, resumed Oracle-first work
 
 **Latest native regression is RED:460PASS/42FAIL of502, zero skipped,34seconds.** New empty-ID admission controls genuinely reproduced12failures then full445units passed after the single deletion-owner fix. The native failure is a separate V2 karma-manager outcome: first two awards projected to AvatarDetail1000; original third deduction durably changed ledger to500 but AvatarManager returned null before updating AvatarDetail. Seven original settings/projection holons remain, including yearly projection at its earlier version. The second karma case and40missing-delete cases then stop on preserved original journal/scope, not42independent storage defects. Original report SHA256CF0E90401A5B5356B839B5350CA82CE63C7BB8E010B7E72513D79144FFA12F1D; original529B journal SHA25666B120080F1F2DDF7E468CCB38545131F168CA92FD019F048706EFF2B6E8B546. Original null/error cause not captured by the async legacy signature; do NOT call it an empty-delete regression or assume a transient cause. Read-only inspection verified original nine synthetic rows; no mutation replay/reset/cleanup. Oracle is not merge-ready; preserve and reconcile original outcome before another write cohort.
 
@@ -163,7 +198,7 @@ Follow-up read-only server evidence identifies TNS12516 admission failures at01:
 | Hosted durability/security/fees | Requires approved existing cloud access and cost limits in ACTIONS-FOR-DAVID.md. No provisioning or paid request authorization inferred. |
 | Full V2 failover/replication/load balancing | Separate acceptance still open; follows native provider completeness per the goal. |
 
-Oracle remains the immediate priority before AWS. This table is the current checkpoint; historical open/failing/passing cohorts below are retained evidence, not all simultaneously current. No provider-wide100% claim.
+Oracle remains the immediate priority before AWS. This table records that historical checkpoint; use the latest dated evidence and interface map above for current status. Historical open/failing/passing cohorts are retained evidence, not all simultaneously current. No provider-wide100% claim.
 
 ## 24 October — conditional admission/replay local gate closed
 

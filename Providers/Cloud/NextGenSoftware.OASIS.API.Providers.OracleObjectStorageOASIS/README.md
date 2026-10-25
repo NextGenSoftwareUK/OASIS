@@ -2,6 +2,8 @@
 
 This .NET 10 provider uses the official `OCI.DotNetSDK.Objectstorage` 149.0.0 client. The native adapter handles signed object requests, pagination and conditional revisions. Existing shared OASIS storage code owns records, identities, metadata selection, history and private-record encryption; this provider does not introduce a separate record format or encryption scheme.
 
+The provider advertises `Storage` and `Cloud` through the existing capability list, so ProviderManager cloud discovery recognizes it without activation. Its legacy primary `StorageAndNetwork` category remains unchanged. Discovery metadata does not imply network-provider interfaces, authenticated access or a successful cloud health check.
+
 ## Configuration
 
 Supply this fragment inside `OASIS.StorageProviders` in OASISDNA, replacing the non-secret example locations and names with an existing test profile and bucket:
