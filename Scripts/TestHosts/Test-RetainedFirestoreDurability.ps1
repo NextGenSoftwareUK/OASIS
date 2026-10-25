@@ -94,7 +94,7 @@ try{
             if($LASTEXITCODE){throw 'Cached native history build failed.'}
         }
     }
-    if($RunHistoryTests){& (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput (Join-Path (Split-Path $project) 'bin/Debug/net10.0')}
+    if($RunHistoryTests){& (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput (Join-Path (Split-Path $project) 'bin/Debug/net10.0') -VerifySourceDocuments}
     if($ContinueOwnedEmulatorId){
         $owned=Get-Process -Id $ContinueOwnedEmulatorId;$safeToStop=$false
         # The checkpoint was already reconciled on this exact process; never reimport/replay it.
@@ -202,7 +202,7 @@ try{
         if($report.LastWriteTimeUtc -lt $started){throw 'Stale native report.'}
         [xml]$trx=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$trx.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 85 -or [int]$counts.passed -ne 85 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly85native history/lifecycle/search/role/identity/count/export/document-boundary cases, no skips.'}
+        if([int]$counts.total -ne 87 -or [int]$counts.passed -ne 87 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly87native history/lifecycle/search/role/identity/count/export/document-boundary/partial-graph cases, no skips.'}
         if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native history originals remain; do not stop.'}
         if($RunRegressionTests){
             $started=[DateTime]::UtcNow
