@@ -7,6 +7,34 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests;
 public class PublicMastodonAccountTests
 {
     [Theory][InlineData(false)][InlineData(true)]
+    public async Task PublicStatusBatchMatchesIndependentNativeResponse(bool synchronous)
+    {
+        Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));
+        const string instance="https://mastodon.social";
+        using var client=new HttpClient{Timeout=TimeSpan.FromSeconds(15)};
+        using var accountResponse=await client.GetAsync(instance+"/api/v1/accounts/lookup?acct=Mastodon");accountResponse.EnsureSuccessStatusCode();
+        using var account=JsonDocument.Parse(await accountResponse.Content.ReadAsStringAsync());
+        using var statusesResponse=await client.GetAsync(instance+"/api/v1/accounts/"+account.RootElement.GetProperty("id").GetString()+"/statuses?limit=2");statusesResponse.EnsureSuccessStatusCode();
+        using var statuses=JsonDocument.Parse(await statusesResponse.Content.ReadAsStringAsync());
+        var ids=statuses.RootElement.EnumerateArray().Select(row=>row.GetProperty("id").GetString()!).ToArray();Assert.Equal(2,ids.Length);
+        var query=string.Join("&",ids.Select(id=>"id%5B%5D="+Uri.EscapeDataString(id)));
+        using var nativeResponse=await client.GetAsync(instance+"/api/v1/statuses?"+query);nativeResponse.EnsureSuccessStatusCode();
+        using var native=JsonDocument.Parse(await nativeResponse.Content.ReadAsStringAsync());
+        var expected=native.RootElement.EnumerateArray().ToDictionary(row=>row.GetProperty("id").GetString()!,row=>row.Clone());Assert.Equal(2,expected.Count);
+        using var provider=new ActivityPubOASIS(instance,"");
+        var result=synchronous?provider.LoadStatusBatch(ids):await provider.LoadStatusBatchAsync(ids).WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.False(result.IsError,result.Exception?.ToString());Assert.True(result.IsLoaded);Assert.Equal(expected.Count,result.LoadedCount);
+        Assert.Equal(ids.Where(expected.ContainsKey),result.Result.Select(row=>row.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]));
+        foreach(var row in result.Result){
+            var status=expected[row.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]];
+            Assert.Equal(status.GetProperty("uri").GetString(),row.MetaData["MastodonObjectUri"]);
+            Assert.Equal(status.GetProperty("content").GetString(),row.MetaData["MastodonContentHtml"]);
+            Assert.Equal(status.GetProperty("account").GetProperty("id").GetString(),row.MetaData["MastodonAuthorId"]);
+            Assert.Empty(row.Children);
+        }
+    }
+
+    [Theory][InlineData(false)][InlineData(true)]
     public async Task PublicTimelinePageMatchesIndependentNativeCursor(bool synchronous)
     {
         Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));
