@@ -275,6 +275,7 @@ public partial class AzureCosmosDBOASIS
         Func<IRepository<T>,T,Task<T>> write=null) where T:class,IHolonBase
     {
         var result=new OASISResult<T>();
+        var nativeAcknowledged=false;
         try
         {
             ArgumentNullException.ThrowIfNull(record);
@@ -287,17 +288,28 @@ public partial class AzureCosmosDBOASIS
             }
             var store=repository() ?? throw new InvalidOperationException("Cosmos repository was not initialized.");
             publication.ValidateUnchanged();
-            var saved=write==null ? await store.UpsertAsync(publication.Proposal):await write(store,publication.Proposal);
+            var requestedId=publication.Proposal.Id;
+            T saved;
+            try{saved=write==null ? await store.UpsertAsync(publication.Proposal):await write(store,publication.Proposal);}
+            catch(Exception cause)
+            {
+                nativeAcknowledged=KnownCosmosAcknowledgements(cause).Any(id=>requestedId==Guid.Empty || id==requestedId);
+                throw;
+            }
             if(saved==null) throw new CosmosMutationReconciliationException(record.Id.ToString(),new System.IO.InvalidDataException("Cosmos save returned no acknowledged record."));
-            try{publication.ValidateUnchanged();}
+            nativeAcknowledged=true;
+            try{
+                publication.ValidateUnchanged();
+                record.Id=saved.Id;record.Version=saved.Version;record.VersionId=saved.VersionId;record.PreviousVersionId=saved.PreviousVersionId;
+                if(record is Core.Holons.Holon source && saved is Core.Holons.Holon committed)source.ChildRoleManifestJson=committed.ChildRoleManifestJson;
+                record.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
+                record.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=saved.Id.ToString();
+            }
             catch(Exception cause){throw new CosmosMutationReconciliationException(saved.Id.ToString(),cause,acknowledged:true);}
-            record.Id=saved.Id;record.Version=saved.Version;record.VersionId=saved.VersionId;record.PreviousVersionId=saved.PreviousVersionId;
-            if(record is Core.Holons.Holon source && saved is Core.Holons.Holon committed)source.ChildRoleManifestJson=committed.ChildRoleManifestJson;
-            record.ProviderUniqueStorageKey ??=new Dictionary<Core.Enums.ProviderType,string>();
-            record.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=saved.Id.ToString();
             result.Result=saved;result.IsSaved=true;result.SavedCount=1;
         }
         catch(Exception cause) {
+            result.SavedCount=nativeAcknowledged?1:0;result.IsSaved=false;
             OASISErrorHandling.HandleError(ref result,cause.Message,cause);
             if(cause is StorageLifecycleConflictException || cause is Microsoft.Azure.Cosmos.CosmosException conflict
                 && conflict.StatusCode is System.Net.HttpStatusCode.Conflict or System.Net.HttpStatusCode.PreconditionFailed)
