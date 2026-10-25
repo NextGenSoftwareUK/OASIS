@@ -1250,3 +1250,25 @@ join. Inherited admission checks both source actors and all provider permissions
 before any physical attempt. Applications requiring owner/public filtering must
 bind the same authorized `CosmicQueryReadAccess` to both source queries, just as
 for ordinary CQL reads. Metadata tenant labels alone do not grant access.
+
+## MongoDB SDK flat joins — 25 October 2026
+
+MongoDB supports the same `Join` / `LeftJoin` / detached `Select` pattern shown in
+[the SQLite join example](#native-sqlite-joins--implementation-checkpoint-25-october-2026).
+Use an activated MongoDB provider, `ProviderType.MongoDBOASIS` scope and its actual
+`ICosmicQueryJoinStorageProvider` source/join capabilities when constructing the
+plan. Execute through the same generic V2 `manager.ExecuteJoinQueryAsync` method.
+Both source windows and native matching share a MongoDB snapshot. Complete source
+proofs validate before matching, and all provider packets validate before selected
+DTO construction. Results expose `HasRight` independently of nullable selected cells.
+
+Key domains include the enrolled exact Int64/UInt64, Decimal, Single/Double, UTC
+DateTime, GUID, Boolean, string, Int32, nullable and enum types. Composite key
+components must all match; any null component prevents a match. Selected required
+metadata must exist with the declared type, including rows that never match.
+Missing/null metadata ordering preserves ordinary CQL's buckets before paging.
+All seven resource allowances reject overflow; none silently truncate successful
+results. Both bound sources require the same authorized actor/policy.
+
+Native evidence: full MongoDB328/328 and unit510/510, zero skips. Graph sources,
+joined HTTP transport and Neo4j joins are not enrolled by this SDK checkpoint.
