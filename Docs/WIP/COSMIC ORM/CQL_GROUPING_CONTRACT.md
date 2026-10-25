@@ -8,6 +8,32 @@ Expanded identity/access/consistency coverage and final coherent regression
 certification remain open in the [completion roadmap](CQL_COMPLETION_ROADMAP.md).
 Dated sections below retain their original implementation-stage evidence.
 
+## Aggregate participation invariant
+
+Every emitted group has a positive input count. A selected aggregate's present
+count must lie between zero and that input count. For a required value-type
+selector, every input must participate; nullable selectors and strings may have
+fewer participating values. An unsupported selector domain is `CQL_PLAN_INVALID`;
+contradictory native counts are `CQL_DATA_INVALID`, before numeric normalization
+or result publication. `CosmicGroupedResults.ValidateParticipation` owns this
+rule for MongoDB, SQLite and Neo4j decoders.
+
+Verification on 25 October: 30 new Core cases and 16 SQLite decoder cases pass
+within full 2,970/71 unit suites. Ten SQLite contradictions reproduced the
+original defect before the fix. Three real SQLite query controls replace only
+the connection-local group COUNT aggregate, leave numeric participation intact,
+and verify rejection plus an exact clean read after connection disposal. Full SQLite regression passes **1,651 tests, zero skips** in 3m6s. Evidence:
+`TestResults/SQLiteCurrent/group-participation-full.trx`,
+`group-participation-native.trx` and `group-participation-artifacts.json`.
+Core/provider producer and native-consumer SHA256 identities agree.
+MongoDB native regression also passes **361 tests, zero skips** in 5m7s
+(`TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`). Neo4j
+full native regression passes **362 tests, zero skips** (10m24s), with fresh
+provider unit suites **538 MongoDB /519 Neo4j**. Evidence:
+`TestResults/Neo4jCurrent/neo4j-cql-native-current.trx` and each provider
+`group-participation-unit.trx`. Owned fixture markers/databases and native/relay
+ports are absent after teardown; the retained Neo4j container is stopped.
+
 ## Key capture
 
 `source.GroupBy(h => h.Name)` captures a scalar key. Composite keys use the existing detached projection shape, for example:

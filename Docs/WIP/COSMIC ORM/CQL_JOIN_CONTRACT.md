@@ -1,8 +1,16 @@
 # CQL native join implementation contract
 
-25 October 2026. Required behavior for the open join milestone. This is an
-implementation contract, not an announcement that joins are available. Current
-shipping operators remain listed in the developer manual and completion roadmap.
+25 October 2026. Bounded same-provider flat inner/left joins are implemented
+on MongoDB, SQLite and Neo4j through generic Core/HolonManager contracts. Signed
+HTTP transport, browser/Swagger bindings and annotated examples 30–31 are
+verified within the latest 102 SDK/102 HTTP demonstration. See the
+[join HTTP contract](CQL_JOIN_HTTP_CONTRACT.md) and
+[developer manual](CQL_MANUAL.md).
+
+Expanded source/consistency/policy certification, graph-source enrollment and
+distributed joins remain open. Dated implementation checkpoints below retain
+their original state and test evidence; their earlier statements that HTTP is
+pending do not describe the current shipping contract.
 
 ## Ownership and scope
 

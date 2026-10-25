@@ -1,8 +1,17 @@
 # CQL integer Sum/Average contract
 
-Current native status: exact Int32/Int64 and nullable Sum/Average are verified for SQLite (1,345 tests), MongoDB (144 native/245 unit) and Neo4j (131 native/331 unit), all zero skips. Numeric HTTP/Decimal wire and demos are next; the full roadmap remains open.
+Current status, 25 October 2026: exact Int32/Int64 and nullable Sum/Average
+are implemented on SQLite, MongoDB and Neo4j, including grouped reduction,
+selected grouped filters/order/pages, signed HTTP transport and annotated demos.
+The latest shared walkthrough passes 102 SDK/102 HTTP examples across all three
+providers; those examples include the enrolled numeric operations. Later dated
+sections retain their original, narrower test cohorts.
 
-23 October 2026. Core foundation and SQLite/MongoDB/Neo4j native execution are verified. Numeric transport and demonstrations remain required. This is part of the full aggregate roadmap, not a replacement for decimal/double/UInt64 or GroupBy coverage.
+The current grouped-participation correction passes Core 2,970, SQLite 71 unit
+and 1,651 native tests with zero skips; MongoDB/Neo4j native regressions pass
+361/362 and their unit suites pass 538/519, also zero skips. This is not full CQL completion. Decimal/Double/UInt64 input
+Sum/Average, broader certification, policy and federation remain open. Decimal
+Average output does not grant Decimal input aggregation.
 
 ## Public intent and result domains
 

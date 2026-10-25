@@ -47,11 +47,10 @@ public partial class Neo4jOASIS
                 continue;
             }
             if (position >= aggregates.Count || aggregates[position++] is not IDictionary<string, object> aggregate
-                || !aggregate.TryGetValue("present", out var rawPresent) || rawPresent is not long present
-                || present < 0 || present > inputs)
+                || !aggregate.TryGetValue("present", out var rawPresent) || rawPresent is not long present)
                 throw new InvalidDataException("Native grouped aggregate participation is invalid.");
-            var required = column.Selector.ValueType.IsValueType && Nullable.GetUnderlyingType(column.Selector.ValueType) == null;
-            if (required && present != inputs) throw new InvalidDataException("Native required aggregate has missing values.");
+            var coverage = CosmicGroupedResults.ValidateParticipation(column.Selector.ValueType, inputs, present);
+            if (coverage.IsError) throw new InvalidDataException(coverage.Message);
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
                 if (aggregate.Count != 3 || !aggregate.TryGetValue("high", out var rawHigh) || rawHigh is not long high

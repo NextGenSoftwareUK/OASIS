@@ -106,3 +106,5 @@ Local reports and fixture archives are under `TestResults/CosmicMongoCurrent/`; 
 - [Join HTTP compiler contract and remaining endpoint gates](CQL_JOIN_HTTP_CONTRACT.md) — runtime Core bindings/model/compiler verified; no HTTP route registered yet.
 
 25 October2026: bounded selected-result composition is available through SDK and `POST /api/data/query-cql/composition` on MongoDB, SQLite and Neo4j. [Request contract, limits and examples](CQL_COMPOSITION_HTTP_CONTRACT.md); [annotated34-example/provider demo](CQL_DEMO_RUNBOOK.md). Latest native walkthrough passes102SDK/102HTTP (309settled/301attempts); full CQL/ORM completion remains governed by unchecked roadmap requirements.
+
+[Federation implementation contract](CQL_FEDERATION_CONTRACT.md): pending global identity/conflict reconciliation, pages/cursors and distributed joins; not a shipping capability.
