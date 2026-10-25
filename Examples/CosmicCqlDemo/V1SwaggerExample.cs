@@ -35,18 +35,30 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                 media.Examples["ExactUInt64"] = new OpenApiExample
                 {
                     Summary = grouped ? "UInt64 grouped keys and exact result filters" : "UInt64 source range and selected columns",
-                    Value = UnsignedExample(grouped)
+                    Value = ExactNumericExample(grouped, decimalPrices: false)
+                };
+                media.Examples["ExactDecimal"] = new OpenApiExample
+                {
+                    Summary = grouped ? "Exact Decimal price groups and alias filters" : "Exact Decimal price range and selected columns",
+                    Value = ExactNumericExample(grouped, decimalPrices: true)
                 };
             }
         }
     }
 
-    private static OpenApiObject UnsignedExample(bool grouped)
+    private static OpenApiObject ExactNumericExample(bool grouped, bool decimalPrices)
     {
-        OpenApiObject Filter(string scalar, string path, string operation, string value) => new()
+        // One shape owner keeps source and selected-result examples consistent.
+        var scalar = decimalPrices ? "Decimal" : "UInt64";
+        var path = decimalPrices ? "price" : "counter";
+        var alias = decimalPrices ? "Price" : "Counter";
+        var minimum = decimalPrices ? "1.0000000000000000000000000002" : "18446744073709551612";
+        var maximum = decimalPrices ? "1.0000000000000000000000000004" : "18446744073709551614";
+
+        OpenApiObject Filter(string scalarType, string metadataKey, string operation, string value) => new()
         {
-            ["metadataPath"] = new OpenApiArray { new OpenApiString(path) },
-            ["scalar"] = new OpenApiString(scalar),
+            ["metadataPath"] = new OpenApiArray { new OpenApiString(metadataKey) },
+            ["scalar"] = new OpenApiString(scalarType),
             ["operator"] = new OpenApiString(operation),
             ["value"] = new OpenApiString(value)
         };
@@ -64,32 +76,32 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
             body["maximumGroups"] = new OpenApiInteger(10);
             body["keys"] = new OpenApiArray
             {
-                new OpenApiObject { ["alias"] = new OpenApiString("counter"),
-                    ["metadataPath"] = new OpenApiArray { new OpenApiString("counter") }, ["valueType"] = new OpenApiString("UInt64") }
+                new OpenApiObject { ["alias"] = new OpenApiString(path),
+                    ["metadataPath"] = new OpenApiArray { new OpenApiString(path) }, ["valueType"] = new OpenApiString(scalar) }
             };
             body["columns"] = new OpenApiArray
             {
-                new OpenApiObject { ["alias"] = new OpenApiString("Counter"), ["keyAlias"] = new OpenApiString("counter") },
+                new OpenApiObject { ["alias"] = new OpenApiString(alias), ["keyAlias"] = new OpenApiString(path) },
                 new OpenApiObject { ["alias"] = new OpenApiString("Items"), ["operation"] = new OpenApiString("LongCount") }
             };
             body["resultFilters"] = new OpenApiArray
             {
-                new OpenApiObject { ["alias"] = new OpenApiString("Counter"), ["operator"] = new OpenApiString("GreaterThanOrEqual"), ["value"] = new OpenApiString("18446744073709551612") },
-                new OpenApiObject { ["alias"] = new OpenApiString("Counter"), ["operator"] = new OpenApiString("LessThan"), ["value"] = new OpenApiString("18446744073709551614") }
+                new OpenApiObject { ["alias"] = new OpenApiString(alias), ["operator"] = new OpenApiString("GreaterThanOrEqual"), ["value"] = new OpenApiString(minimum) },
+                new OpenApiObject { ["alias"] = new OpenApiString(alias), ["operator"] = new OpenApiString("LessThan"), ["value"] = new OpenApiString(maximum) }
             };
-            body["resultOrder"] = new OpenApiArray { new OpenApiObject { ["alias"] = new OpenApiString("Counter"), ["descending"] = new OpenApiBoolean(false) } };
+            body["resultOrder"] = new OpenApiArray { new OpenApiObject { ["alias"] = new OpenApiString(alias), ["descending"] = new OpenApiBoolean(false) } };
             body["resultTake"] = new OpenApiInteger(2);
         }
         else
         {
-            filters.Add(Filter("UInt64", "counter", "GreaterThanOrEqual", "18446744073709551612"));
-            filters.Add(Filter("UInt64", "counter", "LessThan", "18446744073709551614"));
+            filters.Add(Filter(scalar, path, "GreaterThanOrEqual", minimum));
+            filters.Add(Filter(scalar, path, "LessThan", maximum));
             body["orderBy"] = new OpenApiString("Name");
             body["take"] = new OpenApiInteger(2);
             body["columns"] = new OpenApiArray
             {
                 new OpenApiObject { ["alias"] = new OpenApiString("Name"), ["field"] = new OpenApiString("Name") },
-                new OpenApiObject { ["alias"] = new OpenApiString("Counter"), ["metadataPath"] = new OpenApiArray { new OpenApiString("counter") }, ["valueType"] = new OpenApiString("UInt64") }
+                new OpenApiObject { ["alias"] = new OpenApiString(alias), ["metadataPath"] = new OpenApiArray { new OpenApiString(path) }, ["valueType"] = new OpenApiString(scalar) }
             };
         }
         return body;

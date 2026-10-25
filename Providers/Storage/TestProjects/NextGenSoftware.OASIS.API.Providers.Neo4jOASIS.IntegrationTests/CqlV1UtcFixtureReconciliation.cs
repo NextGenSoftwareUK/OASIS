@@ -15,9 +15,15 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed partial class CqlV1FixtureReconciliationTests
 {
     [TestMethod]
-    public async Task ReviewedUtcAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup()
+    public Task ReviewedUtcAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup()
+        => ReconcileAdmissionFixture("40825B94368E61714BA913B81D3CB7050A8ECCC2C3EADFA7F9CD7E6EAD3454B4", decimalPrices: false);
+
+    [TestMethod]
+    public Task ReviewedDecimalAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup()
+        => ReconcileAdmissionFixture("E10085F949323BD01594034C97936352E4799F2E362107ECEC5EFDE54117023A", decimalPrices: true);
+
+    private static async Task ReconcileAdmissionFixture(string hash, bool decimalPrices)
     {
-        const string hash = "40825B94368E61714BA913B81D3CB7050A8ECCC2C3EADFA7F9CD7E6EAD3454B4";
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string storageDb = "cosmic_cql_v1_web4_storage", usageDb = "cosmic_cql_v1_web4_usage";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -44,8 +50,8 @@ public sealed partial class CqlV1FixtureReconciliationTests
         CollectionAssert.AreEquivalent(providerNames.Take(2).SelectMany(p => scalarIds.Select(id => p + ":" + id.ToString("D"))).ToArray(),
             fixture.GetProperty("scalarWrites").EnumerateArray().Select(x => x.GetString()).ToArray());
 
-        // This exact failed run reached scalar seeding in MongoDB and SQLite,
-        // then the Neo4j unsupported-scalar assertion. It never reached the
+        // These pinned runs reached scalar seeding in MongoDB and SQLite,
+        // then the Neo4j scalar-admission assertion. Neither reached the
         // later oversized transport probe or the demo walkthrough.
         var journal = fixture.GetProperty("requests").EnumerateArray().ToArray();
         Assert.AreEqual(272, journal.Length);
@@ -63,6 +69,17 @@ public sealed partial class CqlV1FixtureReconciliationTests
         var operations = await mongo.GetDatabase(usageDb).GetCollection<UsageOutboxOperation>("subscription_usage_outbox_v1")
             .Find(Builders<UsageOutboxOperation>.Filter.Empty).ToListAsync();
         CollectionAssert.AreEquivalent(expected, operations.Select(x => x.Id).ToArray());
+        if (decimalPrices)
+        {
+            // The obsolete rejection probe was admitted after Decimal support.
+            // Verify its original terminal outcome; never reissue the request.
+            var last = journal.Last();
+            var operation = operations.Single(x => x.Id == OperationId(last.GetProperty("actor").GetGuid(),
+                last.GetProperty("operation").GetString()!));
+            Assert.AreEqual("failed", operation.ObservedOutcome);
+            Assert.AreEqual(1, operation.ProviderAttempts.Count);
+            Assert.AreEqual(1, operation.Receipts.Count);
+        }
         Assert.AreEqual(operations.Sum(x => x.ProviderAttempts.Count), operations.Sum(x => x.Receipts.Count));
         foreach (var operation in operations)
         {
@@ -109,6 +126,19 @@ public sealed partial class CqlV1FixtureReconciliationTests
                         if (index < 5)
                         {
                             Assert.AreEqual(tag, holon.MetaData["fixture"].ToString());
+                            if (decimalPrices)
+                            {
+                                // Compare exact JSON numeric identity, including native
+                                // Decimal128 integral scale, without rounded parsing.
+                                var observedPrice = Core.Serialization.StoredRecordJson.SerializeInput(holon.MetaData["price"]);
+                                var observedCounter = Core.Serialization.StoredRecordJson.SerializeInput(holon.MetaData["counter"]);
+                                Assert.IsTrue(Core.Serialization.StoredRecordValueEquality.Equivalent(
+                                    new Newtonsoft.Json.Linq.JValue(1m + index * 0.0000000000000000000000000001m),
+                                    new Newtonsoft.Json.Linq.JRaw(observedPrice)));
+                                Assert.IsTrue(Core.Serialization.StoredRecordValueEquality.Equivalent(
+                                    new Newtonsoft.Json.Linq.JValue(ulong.MaxValue - (ulong)index),
+                                    new Newtonsoft.Json.Linq.JRaw(observedCounter)));
+                            }
                             var extremum = index == 0 ? long.MinValue : index == 1 ? long.MaxValue : -9007199254740993L + index;
                             Assert.AreEqual(extremum, long.Parse(holon.MetaData["extremum"].ToString()!, CultureInfo.InvariantCulture));
                         }
@@ -129,8 +159,9 @@ public sealed partial class CqlV1FixtureReconciliationTests
         // No destructive action occurs until every store and durable outcome
         // has been checked and the original ownership journal is unchanged.
         Assert.AreEqual(hash, Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(manifest))));
-        await File.WriteAllBytesAsync(Path.Combine(work, "cql-v1-web4-before-utc-admission-reconciliation.json"), original);
-        await File.WriteAllTextAsync(Path.Combine(work, "cql-v1-web4-reviewed-utc-admission-reconciliation.json"),
+        var incident = decimalPrices ? "decimal" : "utc";
+        await File.WriteAllBytesAsync(Path.Combine(work, "cql-v1-web4-before-" + incident + "-admission-reconciliation.json"), original);
+        await File.WriteAllTextAsync(Path.Combine(work, "cql-v1-web4-reviewed-" + incident + "-admission-reconciliation.json"),
             JsonSerializer.Serialize(new { hash, snapshots, operations = operations.Select(x => new { x.Id, x.State, attempts = x.ProviderAttempts.Count, receipts = x.Receipts.Count }) }));
         await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = owned })).ConsumeAsync();
         await (await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids DETACH DELETE v", new { ids = owned })).ConsumeAsync();
