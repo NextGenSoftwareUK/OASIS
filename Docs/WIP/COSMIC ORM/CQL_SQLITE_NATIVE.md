@@ -153,3 +153,23 @@ SQLite exact grouped Average implementation is under native verification: query-
 
 
 SQLite normalized Average checkpoint —24October2026: actual90537terminal0,1,409 full native integration tests PASS0skip. Eight new cases cover all4integer input declarations, nullable membership and Average-field comparisons, negative/full-range values, overflow-sized numerators, exact repeating fractions, matching pages and2,048-input even/odd halfway rounding. Static negative controls retain separate capability permission checks; mixed underlying CLR fields remain rejected by shared capture. TestResults/SQLiteCurrent/average-final-current.trx and average-artifacts.json, plus CosmicCqlDemo/sqlite-average-final-{build,consumer-build,native-tests}.log retain final evidence. Exact Core4C58BC9D and SQLiteB4163A9E producer/consumer pairs match. Earlier16532test-intentred is retained separately. No new full remote-provider or HTTP Average gate is claimed; MongoDB/Neo4j remain unenrolled.
+
+## SQLite native join SQL compiler — 25 October 2026
+
+SQLite now compiles each join source's protected predicates, deterministic
+ordering and independent window into SQL, sharing the existing 900-parameter
+budget. Native INNER/LEFT JOIN emits ordered source-position pairs. Null or
+missing key components never match. Source and pair limits retain one detection
+row so a future decoder can reject overflow rather than publish truncation.
+Selected cells and ordering/key proofs reuse the existing exact projection-domain
+guards; input proofs are separate from fanout pairs to avoid repeated large cells.
+
+The provider builds and its complete **46-test unit suite passes**, including
+seven new tests running generated joins against real in-memory SQLite with the
+production UTF-8/progress/length budget owner. These establish matching, fanout,
+null semantics, source-window order and zero/one remaining pair sentinels. This
+is a separate compiler cohort, not a new full 1,578-test integration result.
+The compiler remains internal and no join capability is advertised. The next
+required work is native serializable transaction ownership, source/proof decoding,
+all seven byte/work limits and graph/traversal checks before provider enrollment.
+MongoDB/Neo4j implementation and join transport/demos remain open.

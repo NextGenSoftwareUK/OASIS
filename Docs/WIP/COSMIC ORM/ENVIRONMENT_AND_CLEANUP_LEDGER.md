@@ -2548,3 +2548,20 @@ remain reusable/shared; sizes unmeasured this checkpoint. Do not delete active
 shared build outputs. Evidence may be regenerated with the same leased bounded
 build/test command; publication uses the global lease to protect SourceLink Git
 metadata. No owned disposable database or process requires teardown in this slice.
+
+SQLite join compiler checkpoint: reuse existing SQLLiteDBOASIS worktree, SDK10.0.401/NuGet cache and fixed provider bin/obj. No restore/download/install/service/disk database. Source compiler shares one parameter budget and emits independent source windows plus native pair SQL; not yet advertised. Leased bounded provider build writes TestResults/CosmicCqlDemo/sqlite-join-build.log; output size unmeasured, reusable/shared, retain. No new disposable fixture yet.
+
+SQLite compiler verification completed: provider build zero errors; full SQLite
+unit suite 46/46, zero skips (seven new real native SQL cases). Existing SDK/cache
+and provider/unit bin/obj reused. Each test owns one Data Source=:memory:
+connection, disposed at completion; no disk database/port/process/container was
+created. Memory size unmeasured, lifecycle removed through verified completed
+await-using scope. Fixed evidence TestResults/SQLiteCurrent/sqlite-join-sql.trx
+and TestResults/CosmicCqlDemo/sqlite-join-sql-tests.log retained; reusable outputs
+shared/active. First build found inaccessible translator helpers, now internally
+shared within the private translator. First native test run exposed missing
+production UTF-8 registration in the isolated test host; production budget owner
+is now installed by the host. One later test fixture selected a null-key right
+row ahead of coffee; made its intended filtered window explicit. No production
+fallback or weaker guard introduced. Free C: 69,108,912,128 bytes measured before
+test build; no install/restore/download. Next snapshot/proof owner remains pending.

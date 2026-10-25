@@ -124,9 +124,9 @@ public partial class HolonRepository
         private readonly string _table;
         private readonly CosmicQueryReadAccess _access;
         internal CqlSqlTranslator(CosmicQueryReadAccess access=null):this("Holon",new List<SqliteParameter>(),access){}
-        private CqlSqlTranslator(string table,List<SqliteParameter> parameters,CosmicQueryReadAccess access)
+        internal CqlSqlTranslator(string table,List<SqliteParameter> parameters,CosmicQueryReadAccess access)
         { _table=table;Parameters=parameters;_access=access; }
-        private string Bind(object value)
+        internal string Bind(object value)
         {
             if (Parameters.Count >= 900) throw new CqlTranslationLimitException();
             var name = "$cql" + Parameters.Count; Parameters.Add(new SqliteParameter(name, value)); return name;
