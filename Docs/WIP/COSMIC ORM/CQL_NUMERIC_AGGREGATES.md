@@ -7,15 +7,47 @@ The latest shared walkthrough passes 102 SDK/102 HTTP examples across all three
 providers; those examples include the enrolled numeric operations. Later dated
 sections retain their original, narrower test cohorts.
 
-The current grouped-participation correction passes Core 2,970, SQLite 71 unit
+The earlier grouped-participation checkpoint passed Core 2,970, SQLite 71 unit
 and 1,651 native tests with zero skips; MongoDB/Neo4j native regressions pass
 361/362 and their unit suites pass 538/519, also zero skips. This is not full CQL completion. Decimal/Double/UInt64 input
 Sum/Average, broader certification, policy and federation remain open. Decimal
 Average output does not grant Decimal input aggregation.
 
+## UInt64 Core foundation — 25 October 2026
+
+Core capture and exact packet normalization now also understand UInt64 and
+nullable UInt64 Sum/Average. Sum retains UInt64; Average returns Decimal (nullable
+for nullable input). This foundation passes both Core frameworks and **3,006
+Core tests**, including36 new cases. It does **not** enroll native UInt64
+arithmetic on any provider or extend the HTTP numeric input contract yet.
+
+The two-argument `CosmicScalarSelectionCapability(operation, reads)` preserves
+its published signed Int32/Int64 numeric input domains, including nullable forms.
+Min/Max keep their existing exact read permissions. The additive three-argument
+constructor accepts an immutable, bounded list of exact input types. A selected
+path must satisfy both read permissions and that input list. Scalar/grouped
+planning and actual-adapter readmission use this same owner, so new Core domain
+knowledge cannot silently expand an old provider's promises.
+
+For unsigned x, split exactly as `high=x/2^32`, `low=x%2^32`. Both limbs lie in
+0..2^32-1. With at most2^31-1 participating values, each limb sum is below2^63
+and fits Int64; the complete numerator is below2^95 and fits Decimal's96-bit
+coefficient exactly. Core rejects negative/excessive/impossible packets before
+publication. Sum checks its final UInt64 range; Average retains standard Decimal
+rounding without a signed Int64 or binary64 intermediate. Empty nullable Sum is
+zero; empty nullable Average is null; required empty Average is CQL_EMPTY_SEQUENCE.
+
+Fresh provider unit suites pass **SQLite72 /Mongo539 /Neo520**, including one
+new public-profile/borrowed-plan control per provider. All three actual profiles
+still reject unsigned numeric execution, while existing UInt64 Min/Max stays
+available. Evidence: CoreCurrent/uint64-numeric-core-{red,green}.trx and each
+provider's `uint64-numeric-admission-unit.trx`; logs are under
+TestResults/CosmicCqlDemo/uint64-numeric-*. Native scalar/grouped limb generation,
+average kernels, native boundary certification and transport/demos remain next.
+
 ## Public intent and result domains
 
-Sum accepts exact Int32/Int64 selectors, including nullable forms. Its result retains that input CLR domain and is checked against its final mathematical range. Average accepts the same input domains and returns Decimal (nullable Decimal for nullable input). This deliberately differs from Enumerable's binary64 integer averages: CQL does not round large Int64 data through Double. The source query, actor, provider scope, relationships, ordering/window and consistency request are retained unchanged. Unsupported types/conversions fail during construction; row/count/Min/Max permission cannot grant numeric aggregation.
+Core Sum accepts exact Int32/Int64/UInt64 selectors, including nullable forms. Current native profiles enroll only Int32/Int64; UInt64 native arithmetic remains pending. Its result retains that input CLR domain and is checked against its final mathematical range. Core Average accepts the same input domains and returns Decimal (nullable Decimal for nullable input). This deliberately differs from Enumerable's binary64 integer averages: CQL does not round large Int64 data through Double. The source query, actor, provider scope, relationships, ordering/window and consistency request are retained unchanged. Unsupported types/conversions fail during construction; row/count/Min/Max permission cannot grant numeric aggregation.
 
 ```csharp
 var sum = source.Sum(
