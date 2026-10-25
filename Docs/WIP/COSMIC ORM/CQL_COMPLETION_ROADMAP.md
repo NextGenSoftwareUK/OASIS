@@ -2,13 +2,13 @@
 
 Current checkpoint: **25 October 2026**. Native flat inner/left joins,
 signed HTTP and bounded selected-result composition are implemented on MongoDB,
-SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK/HTTP walkthrough.
+SQLite and Neo4j. The annotated demo now has37 examples per provider in each SDK/HTTP walkthrough.
 
 - Latest separately verified cohorts: Core **3,017** (including UInt64 numeric capture/normalization and input-domain admission),
   Shared **1,189**, SQLite **1,679 native /72 unit**, MongoDB **391 native /539 unit**,
   Neo4j **391 native /520 unit**; zero skips at their recorded checkpoints.
-- The expanded live demo passes **102 SDK /102 HTTP**, **309 settled operations
-  /301 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
+- The expanded live demo passes **111 SDK /111 HTTP**, **318 settled operations
+  /310 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
 - Selected-result composition captures immutable stages and independently admits
   complete proof/work contracts, with **SQLite, MongoDB and Neo4j native SDK execution verified**. Ordinary
@@ -18,8 +18,8 @@ SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK
   their original scope; remaining certification/policy/federation gates stay open.
 
 SQLite, MongoDB and Neo4j UInt64 native scalar/grouped Sum/Average are now verified.
-Unsigned HTTP compiler/wire tests and shipping build pass; live signed numeric
-HTTP/demos remain open. Additional domains and the full policy/federation scope remain open.
+Unsigned HTTP compiler/wire tests, shipping build and live signed numeric
+HTTP/demos pass (examples35-37). Additional domains and the full policy/federation scope remain open.
 
 Historical verified batch: a shared Core participation validator now replaces
 MongoDB/Neo4j duplicated checks and fixes missing SQLite numeric group coverage

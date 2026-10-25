@@ -1,5 +1,27 @@
 # CQL UInt64 metadata
 
+## UInt64 live demo acceptance - 25 October 2026
+
+The walkthrough now has **37 examples per provider**: **111 SDK /111 signed HTTP**
+queries pass on MongoDB, SQLite and Neo4j, with318 settled operations/310 attempts.
+The joint native demo passes1/1 without skips. Source snapshots remain unchanged;
+six producer/consumer identities match under the build lease. Standalone demo
+builds and9 offline browser preset checks pass. Owned services stopped normally.
+
+Examples35-37 show exact UInt64 Sum, Decimal Average retaining the fraction
+18446744073709551612.5, and grouped mean filters/order/pages. Browser presets:
+`unsignedSum`, `unsignedAverage`, `unsignedMeanGroups`. Swagger adds named UInt64
+Sum/Average examples. These close the unsigned numeric live-demo gate, while
+other numeric input domains, sharing/tenant policy, graph-source composition and
+federation remain open.
+
+Evidence in TestResults/CosmicCqlDemo: unsigned-numeric-demo.log,
+v1-demo-result.json, v1-walkthrough.txt, v1-source-identities.json,
+v1-binary-identities.json, unsigned-numeric-demo-build.log and
+v1-decimal-ui-check.json. Native report:
+TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx.
+
+
 HTTP numeric compiler update: Core3,017 and shipping WEB4 build pass after shared
 UInt64/nullable Average binding. Sum wire values remain exact UInt64 strings;
 Average is Decimal/string or null. Live signed numeric HTTP/demo acceptance is
