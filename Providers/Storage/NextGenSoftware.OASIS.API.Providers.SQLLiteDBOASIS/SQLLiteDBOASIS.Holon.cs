@@ -313,6 +313,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         row.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
                 }
 
+                if(searchParams.SearchOnlyForCurrentAvatar)
+                {
+                    var visible=IOASISStorageProvider.ProjectVisibleHolons(new OASISResult<IEnumerable<IHolon>>{
+                        Result=holons,IsLoaded=true,LoadedCount=holons.Count},searchParams.AvatarId,false);
+                    if(visible.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(visible);
+                    holons=visible.Result.ToList();
+                }
                 searchResults.SearchResultHolons = holons;
                 searchResults.SearchResultAvatars = avatars;
                 searchResults.NumberOfResults = holons.Count + avatars.Count;

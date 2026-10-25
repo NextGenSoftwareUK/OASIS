@@ -994,13 +994,16 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         Directory.CreateDirectory(directory);
         _databasePath = Path.Combine(directory,"integration-current.db");
         _lease = new FileStream(Path.Combine(directory,"environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
-        if (File.Exists(_databasePath)) { _lease.Dispose(); throw new InvalidOperationException("Existing fixture DB requires inspection; refusing overwrite."); }
+        var pending=Path.Combine(directory,"scoped-visibility.pending.json");
+        if (File.Exists(_databasePath) || File.Exists(pending) || File.Exists(pending+".read-baseline.json")) { _lease.Dispose(); throw new InvalidOperationException("Existing fixture DB/intent requires inspection; refusing overwrite."); }
     }
 
     public void Dispose()
     {
         try
         {
+            var pending=Path.Combine(Path.GetDirectoryName(_databasePath)!,"scoped-visibility.pending.json");
+            if(File.Exists(pending)||File.Exists(pending+".read-baseline.json"))return;
             foreach (var file in new[] { _databasePath, _databasePath + "-wal", _databasePath + "-shm" })
                 if (File.Exists(file)) File.Delete(file);
         }
