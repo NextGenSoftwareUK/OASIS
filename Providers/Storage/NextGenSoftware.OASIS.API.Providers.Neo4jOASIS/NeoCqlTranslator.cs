@@ -50,6 +50,11 @@ internal sealed partial class NeoCqlTranslator
             var unsigned = NeoCqlUInt64.Operand(kind, value, Bind);
             guard = unsigned.Guard; value = unsigned.Value;
         }
+        else if (type == typeof(double))
+        {
+            var number = NeoCqlDouble.Operand(kind, value, Bind);
+            guard = number.Guard; value = number.Value;
+        }
         else if (type == typeof(decimal))
         {
             var number = NeoCqlDecimal.Operand(kind, value, Bind);
@@ -82,7 +87,7 @@ internal sealed partial class NeoCqlTranslator
         CosmicQueryComparisonOperator.LessThan => "<", CosmicQueryComparisonOperator.LessThanOrEqual => "<=",
         _ => throw new NotSupportedException("Unknown Neo4j CQL comparison.") };
     internal static object Literal(CosmicQueryLiteral literal) => literal.Kind switch {
-        CosmicQueryScalarKind.String or CosmicQueryScalarKind.Boolean or CosmicQueryScalarKind.Int64 => literal.Value,
+        CosmicQueryScalarKind.Double or CosmicQueryScalarKind.String or CosmicQueryScalarKind.Boolean or CosmicQueryScalarKind.Int64 => literal.Value,
         CosmicQueryScalarKind.Guid => ((Guid)literal.Value).ToString("D"),
         CosmicQueryScalarKind.UtcDateTime => NeoCqlDate.Literal((DateTime)literal.Value),
         _ => throw new NotSupportedException("Neo4j CQL literal domain is unsupported.") };

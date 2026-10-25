@@ -106,3 +106,19 @@ input domains remain Int32/Int64; this does not enroll floating arithmetic.
 Native tests cover predicate families, binary64 boundaries/subnormals, adjacent
 values, nullable groups and malformed/nonfinite/underflow/overflow rejection.
 Actual79326 terminal0: full254 native CQL and493 unit tests pass, zero failures/skips. The native cohort includes23 new Double cases. Evidence: TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx and double-full-current.trx; TestResults/CosmicCqlDemo/mongo-double-native.log. The reusable runner stopped its owned Mongo service and bounded the11,095,999-byte raw log to65,103 bytes. No new runtime/download/restore was needed. This gate did not capture producer/consumer identity hashes inside the lease; a matched-artifact claim is deferred to final certification. Neo Double, all Single query paths and floating HTTP/demos remain open.
+
+## Neo4j Double SDK enrollment verified — 24 October 2026
+
+The schema3 query projection keeps native Int64 integers and original JSON
+number lexemes. A shared Cypher operand admits only those numeric kinds,
+normalizes through native binary64 conversion, rejects non-finite/overflow and
+nonzero underflow, and canonicalizes signed zero. Numeric-looking stored strings
+remain outside this domain. Predicates, field comparisons, membership, ordering,
+selected values, extrema and grouped keys reuse the operand. Detached packets
+require finite native Double; they cannot supply strings, integers or Decimal
+as proof of an already-normalized selected result. Exact integer/Decimal
+queries retain their existing domains; floating Sum/Average is not enrolled.
+
+Prepared native controls cover adjacent values, nullable grouping/extrema,
+field comparison, invalid domains, maximum/subnormal values and explicit
+Int64-to-Double rounding. Actual78290 terminal0:232 full native CQL and457 units pass, zero failures/skips, including15 new native and2 new packet controls. Evidence: TestResults/Neo4jCurrent/{neo4j-cql-native-current.trx,double-full-current.trx,double-identities-current.json} and TestResults/CosmicCqlDemo/neo-double-native.log. The runner verified matching Core353753B9 and Shared86216993 across producer/consumer outputs before execution. Native consumer identities were captured inside the lease; no source-before/after snapshot was captured in this batch. The graph fixture journal and Bolt17687 listener are absent after teardown. All Single query capabilities and floating HTTP/demo enrollment remain open.
