@@ -1,5 +1,9 @@
 # Firestore record history — integration in progress
 
+## 25 October — cloud capability discovery
+
+Firestore explicitly advertises unique Storage+Cloud capabilities, preserving StorageAndNetwork primary category and nonactivation. Three-provider shared discovery helper reproduced three genuine missing-capability failures; full current Firestore472/472controlledPASS0skip4s. GoogleCurrent/cloud-discovery-current.trx SHA2565EA59DF604A5E70752D44E45329F6F1794B6C68646AB56C0B3CE8D2640CFBA9D. No persistence/SDK request/configuration change; prior87+79native refresh below retains its exact older binary cohort. Discovery is not credentials/IAM/fees/hosted/full-provider/V2 acceptance. Cross-provider scope/resources in Cosmos audit and inventory.
+
 ## 25 October — current Core/SQLite acknowledgement dependency refresh
 
 Latest matched refreshed cohort **471controlledPASS5s,87history-nativePASS8s,79regression-nativePASS26s**, zero skips, actual native3138/unit8181bothterminal0. Existing pinned Firestore1.22.0 emulator/SDK3.7.0/Java/project/export reused, no download/restore/newenvironment/cloudresource. Retained373bytecheckpoint import/readback/exactrevisionconditionalcleanupPASS before native suite; newly owned fixtures conditionallycleaned, pending0/ports18080–18083absent, ownedemulatorstopped. Producer/consumerGoogleassembly copies independently identical SHA2566E81C6FDD159C2B4DF6734322B5010DB65E843B09B7A3D6B86C844A68DA92375; nativeCore9256B0B628BDBEEC0E2E5BDFAEB99D76ECAFC6BBA662E7A18D23D2539597D63F/Shared5CECEC1380D543EFE7BC8181EA3E0669CF21516D23B94F97FC60BC65C8E42E71, source/PDB verifier760Core/56Sharedpassed. No Googleproductionchange; this refresh matters because ordinaryreplicaCorecapture/SQLiteacknowledgements changed after previous native proof.
