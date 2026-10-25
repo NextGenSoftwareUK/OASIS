@@ -13,7 +13,7 @@ without sentinel publication and later provider reuse. SQLite shares one native
 relationship-scope owner; Mongo shares its selected-window compiler; Neo4j retains
 its existing validation branches through translator relationship state.
 
-Fresh full native/unit acceptance for this batch, all zero failures/skips:
+Published empty-window native/unit acceptance, all zero failures/skips:
 
 | Provider | Native | Unit |
 |---|---:|---:|
@@ -21,17 +21,26 @@ Fresh full native/unit acceptance for this batch, all zero failures/skips:
 | MongoDB | 374 | 538 |
 | Neo4j | 372 | 519 |
 
-Separate unchanged Core **2,970** and Shared **1,189** cohorts remain recorded;
+Historical Core **2,970** and Shared **1,189** cohorts remain recorded;
 they are not a new combined run. Fresh developer demo: **34 examples per provider, 102 SDK /102 signed HTTP**,
 309 settled operations/301 attempts; joint native test1/1, zero skips. Demo source
 snapshot is unchanged and six tested producer/consumer identities agree.
 
-Previous published task checkpoint: `f865d334b`, Core `499ec8e`, on
+Published empty-window task checkpoint: `c796c33d9`, Core `499ec8e`, on
 `fix/hyperdrive-v2-providers`. This batch completed native/unit/demo verification and resource reconciliation;
 it is ready for task-branch publication. Development integration is
 not included. See the [empty-window contract](CQL_SCALAR_HTTP_CONTRACT.md#empty-windows-and-protected-scope),
 [full roadmap](CQL_COMPLETION_ROADMAP.md) and
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+New numeric foundation (Core `e8f7c64`): UInt64/nullable Sum/Average Core capture,
+exact packet normalization and explicit input-domain admission now pass dual
+framework builds and full **3,006 Core tests**. Provider unit gates pass
+**SQLite72 /Mongo539 /Neo520**; all actual native profiles still reject unsigned
+arithmetic until their scalar/grouped implementations are certified. Earlier
+native/demo cohorts above describe the published empty-window checkpoint and
+are not a new unsigned-native claim. See the
+[numeric contract](CQL_NUMERIC_AGGREGATES.md#uint64-core-foundation--25-october-2026).
 
 ## Current CQL completion gates
 
