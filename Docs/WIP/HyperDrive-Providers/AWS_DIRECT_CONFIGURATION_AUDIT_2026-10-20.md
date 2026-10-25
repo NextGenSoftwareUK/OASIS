@@ -1,5 +1,15 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## 25 October — scoped descendant privacy and cloud discovery
+
+DynamoDB/AWS scoped search and current/positive-version avatar exports now reuse the existing Core visibility projection, instead of filtering only roots and leaking foreign descendants. Stored child membership remains intact; partial projected graphs cannot replace the complete stored graph. Flat all-version exports and independent descendant versions retain their existing contracts. Controlled baseline reproduced8failures/4valid controls before this correction.
+
+DynamoDB/AWS/S3 now advertise existing Storage+Cloud capabilities, preserving legacy primary categories. Three local ProviderManager discovery controls first failed and now pass without provider activation/network. AWS inherits the capability list rather than adding a duplicate Storage entry.
+
+Verified177/177official-SDK retained DynamoDB Local native cases PASS44s/0skip, including4newDynamo/AWS×sync/async scenarios checking current/historical scoped search/export and rejected graph replacement with unchanged native JSON. Existing exact conditional cleanup removed only owned fixtures; pending0, same runtime stopped143/noOOM,18000/18001absent, same database1526784B. Separate controlled cohorts:663Dynamo units,41AWS units,114S3/Edge protocol PASS0skip; these were not silently relabelled as the later native binary cohort. Exact hashes/retained resource identities in [inventory](ENVIRONMENT_INVENTORY.md).
+
+No hosted request, install/download/new environment or fee policy change. Hosted DynamoDB/S3 IAM/KMS/security/durability/fees, other relevant options and full cross-provider HyperDrive V2 remain OPEN. This is not100%AWS certification or a fresh full138caseAWSintegration run.
+
 ## 24 October — ordinary graph admission and complete acknowledgement repaired
 
 DynamoDB/AWS ordinary graph writes now use the existing shared CreateForSave guard and PublishAcknowledgedSelection only after ALL selected node acknowledgements/caller publications succeed. Eight genuine pre-fix controls reached native reads for known partial graphs; two successful-save controls lost next-save observation. All10original red cases now pass. Two further controls prove root success followed by child failure never publishes complete observation. No new SDK calls/retries/parser/format/provider helper or atomic-ordinary-save claim.

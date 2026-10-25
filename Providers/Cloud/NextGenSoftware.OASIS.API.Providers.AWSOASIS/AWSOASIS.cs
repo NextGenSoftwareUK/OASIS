@@ -26,6 +26,5 @@ public sealed class AWSOASIS : NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         ProviderDescription = "AWS Provider - official AWSSDK.DynamoDBv2 storage integration";
         ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AWSOASIS);
         ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-        ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
 }
