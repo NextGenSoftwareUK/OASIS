@@ -464,6 +464,7 @@ public class OracleObjectSdkTests
         using var client=Client();using var stopped=new CancellationTokenSource();
         var objects=new System.Collections.Concurrent.ConcurrentDictionary<string,string>(StringComparer.Ordinal);
         var conditionalCreates=0;var conditionalReplacements=0;var conditionalDeletes=0;
+        var nextPutStatus=200;
         Action? beforeListReply=null;
         var server=Task.Run(async()=>{
             while(!stopped.IsCancellationRequested) {
@@ -481,7 +482,7 @@ public class OracleObjectSdkTests
                         await Reply(context,200,System.Text.Json.JsonSerializer.Serialize(new{objects=listing}));continue;
                     }
                     StringAssert.StartsWith(path,objectPath);var key=Uri.UnescapeDataString(path[objectPath.Length..]);
-                    StringAssert.Matches(key,new System.Text.RegularExpressions.Regex("^(?:oasis|isolated)/oasis/private/v1/[a-f0-9]{64}$"));
+                    StringAssert.Matches(key,new System.Text.RegularExpressions.Regex("^(?:oasis|isolated|oasis-provider-acceptance)/oasis/private/v1/[a-f0-9]{64}$"));
                     if(context.Request.HttpMethod=="PUT") {
                         if(context.Request.Headers["If-None-Match"]=="*"){
                             conditionalCreates++;if(objects.ContainsKey(key)){await Reply(context,412,"{\"code\":\"PreconditionFailed\",\"message\":\"controlled\"}");continue;}
@@ -490,7 +491,9 @@ public class OracleObjectSdkTests
                             conditionalReplacements++;
                             if(!objects.TryGetValue(key,out var current)||"\""+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(current)))+"\""!=expected){await Reply(context,412,"{\"code\":\"PreconditionFailed\",\"message\":\"controlled\"}");continue;}
                         }
-                        using var reader=new StreamReader(context.Request.InputStream);objects[key]=await reader.ReadToEndAsync();await Reply(context,200,"");
+                        using var reader=new StreamReader(context.Request.InputStream);objects[key]=await reader.ReadToEndAsync();
+                        var putStatus=Interlocked.Exchange(ref nextPutStatus,200);
+                        await Reply(context,putStatus,putStatus==200?"":"{\"code\":\"ServiceUnavailable\",\"message\":\"controlled stored-but-unacknowledged write\"}");
                     }else if(context.Request.HttpMethod=="GET") {
                         if(objects.TryGetValue(key,out var value)){context.Response.Headers["ETag"]="\""+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)))+"\"";await Reply(context,200,value);}
                         else await Reply(context,404,"{\"code\":\"ObjectNotFound\",\"message\":\"controlled\"}");
@@ -638,10 +641,107 @@ public class OracleObjectSdkTests
             Assert.IsFalse(importedGraph.IsError,importedGraph.Message);Assert.AreEqual(importChild.Id,importedGraph.Result.Children.Single().Id);
             foreach(var value in objects.Values)foreach(var marker in new[]{importRoot.Name,importChild.Name,importRoot.Id.ToString(),importChild.Id.ToString()})Assert.IsFalse(value.Contains(marker,StringComparison.Ordinal));
             Assert.IsTrue((await provider.LoadHolonAsync(member.Id,loadChildren:false)).IsError);Assert.IsTrue((await provider.LoadHolonAsync(owner.Id,loadChildren:false)).IsError);
+            // The exact guarded cloud-record entry point, through the SAME signed SDK
+            // and existing loopback listener. This remains controlled, not hosted proof.
+            var acceptanceWork=Path.Combine(AppContext.BaseDirectory,"TestResults","OracleProviderLifecycle");
+            Directory.CreateDirectory(acceptanceWork);
+            var foreignKey=OracleLiveProviderAcceptance.Prefix+"foreign-object";
+            const string foreignValue="must-not-be-adopted-or-deleted";
+            Assert.IsTrue(objects.TryAdd(foreignKey,foreignValue));
+            try{
+                var beforeOccupiedWrites=conditionalCreates+conditionalReplacements+conditionalDeletes;
+                var occupied=await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>
+                    OracleLiveProviderAcceptance.RunAsync(client,"ns","bucket",()=>storageKey.ToArray(),acceptanceWork));
+                StringAssert.Contains(occupied.Message,"occupied");
+                Assert.AreEqual(beforeOccupiedWrites,conditionalCreates+conditionalReplacements+conditionalDeletes);
+                Assert.AreEqual(foreignValue,objects[foreignKey]);
+            }finally{
+                Assert.AreEqual(foreignValue,objects[foreignKey]);
+                Assert.IsTrue(objects.TryRemove(foreignKey,out var removedForeign));Assert.AreEqual(foreignValue,removedForeign);
+            }
+            await OracleLiveProviderAcceptance.RunAsync(client,"ns","bucket",()=>storageKey.ToArray(),acceptanceWork);
+            var acceptanceReport=Path.Combine(acceptanceWork,"oci-live-records.current.json");
+            var proof=await File.ReadAllTextAsync(acceptanceReport);
+            using(var parsed=System.Text.Json.JsonDocument.Parse(proof)){
+                Assert.AreEqual("verified",parsed.RootElement.GetProperty("state").GetString());
+                Assert.AreEqual(9,parsed.RootElement.GetProperty("acknowledgedMutations").GetInt32());
+                Assert.AreEqual(0,parsed.RootElement.GetProperty("currentNativeObjectsRemaining").GetInt32());
+                Assert.IsFalse(parsed.RootElement.GetProperty("fullProviderVerified").GetBoolean());
+                Assert.IsFalse(parsed.RootElement.GetProperty("hyperDriveVerified").GetBoolean());
+                Assert.IsFalse(parsed.RootElement.GetProperty("bucketVersionsVerified").GetBoolean());
+                Assert.IsTrue(parsed.RootElement.GetProperty("retainedVersionsMayIncurCharges").GetBoolean());
+            }
+            Assert.IsFalse(File.Exists(Path.Combine(acceptanceWork,"oci-live-records.pending.json")));
+            Assert.IsFalse(objects.Keys.Any(key=>key.StartsWith(OracleLiveProviderAcceptance.Prefix,StringComparison.Ordinal)));
+            Console.WriteLine("Controlled record-lifecycle proof: "+proof);
+            Assert.AreEqual(proof,await File.ReadAllTextAsync(acceptanceReport));
+            File.Delete(acceptanceReport); // Exact owned proof retained inside this test's TRX.
+            var beforeUncertainCreates=conditionalCreates;var beforeUncertainReplacements=conditionalReplacements;var beforeUncertainDeletes=conditionalDeletes;
+            nextPutStatus=503;
+            var uncertain=await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>
+                OracleLiveProviderAcceptance.RunAsync(client,"ns","bucket",()=>storageKey.ToArray(),acceptanceWork));
+            Assert.IsTrue(NativeMutationReconciliation.IsRequired(uncertain),"Driver must preserve the original native uncertain-outcome cause.");
+            Assert.AreEqual(1,conditionalCreates-beforeUncertainCreates);Assert.AreEqual(beforeUncertainReplacements,conditionalReplacements);
+            Assert.AreEqual(beforeUncertainDeletes,conditionalDeletes,"Driver must not clean up an uncertain write or replay it.");
+            var pendingFile=Path.Combine(acceptanceWork,"oci-live-records.pending.json");
+            var originalIntent=await File.ReadAllTextAsync(pendingFile);
+            using(var parsed=System.Text.Json.JsonDocument.Parse(originalIntent)){
+                Assert.AreEqual("before-avatar-create",parsed.RootElement.GetProperty("state").GetString());
+                Assert.AreEqual(0,parsed.RootElement.GetProperty("acknowledgedMutations").GetInt32());
+                var originalId=parsed.RootElement.GetProperty("avatarId").GetGuid();var originalOperation=parsed.RootElement.GetProperty("operation").GetGuid();
+                var originalObjects=objects.Where(pair=>pair.Key.StartsWith(OracleLiveProviderAcceptance.Prefix,StringComparison.Ordinal)).ToArray();
+                Assert.AreEqual(1,originalObjects.Length);Assert.IsFalse(File.Exists(acceptanceReport));
+                using var privateReadback=PersistedPrivateKeyValueBackend.Create(new OracleObjectStorageBackend(client,"ns","bucket",OracleLiveProviderAcceptance.Prefix),()=>storageKey.ToArray());
+                var conditional=(IConditionalKeyValueBackend)privateReadback;
+                var logicalKey=OracleLiveProviderAcceptance.Prefix+"avatar/"+originalId.ToString("N");
+                var owned=await conditional.ReadObservedAsync(logicalKey);Assert.IsNotNull(owned);
+                var record=OasisJson.Deserialize<NextGenSoftware.OASIS.API.Core.Holons.Avatar>(owned.Value);
+                Assert.AreEqual(originalId,record.Id);Assert.AreEqual("owned-oci-"+originalOperation.ToString("N"),record.Username);Assert.AreEqual(1,record.Version);
+                CollectionAssert.AreEqual(originalObjects,objects.Where(pair=>pair.Key.StartsWith(OracleLiveProviderAcceptance.Prefix,StringComparison.Ordinal)).ToArray());
+                Console.WriteLine("Controlled uncertain record intent preserved before explicit test reconciliation: "+originalIntent);
+                // Separate exact-content test reconciliation, NEVER driver error cleanup.
+                await conditional.DeleteUnchangedAsync(logicalKey,owned.Revision);
+                Assert.IsNull(await conditional.ReadObservedAsync(logicalKey));
+                Assert.IsFalse(objects.Keys.Any(key=>key.StartsWith(OracleLiveProviderAcceptance.Prefix,StringComparison.Ordinal)));
+            }
+            Assert.AreEqual(originalIntent,await File.ReadAllTextAsync(pendingFile));File.Delete(pendingFile);
             provider.Dispose();Assert.IsFalse(provider.IsProviderActivated);
             Assert.IsTrue((await provider.ActivateProviderAsync()).IsError);
             await new OracleObjectStorageBackend(client,"ns","bucket").VerifyAsync(); // borrowed client remains caller-owned
         }finally{CryptographicOperations.ZeroMemory(storageKey);stopped.Cancel();listener.Stop();await server;}
+    }
+
+    [DataTestMethod]
+    [DataRow("oci-live-records.pending.json")][DataRow("oci-live-records.current.json")]
+    [DataRow("oci-live-records.pending.json.next")][DataRow("oci-live-records.current.json.next")]
+    public async Task RecordAcceptanceNeverLoadsKeysOrReplaysExistingEvidence(string evidenceName)
+    {
+        var work=Path.Combine(AppContext.BaseDirectory,"TestResults","OracleProviderLifecycleAdmission");Directory.CreateDirectory(work);
+        var file=Path.Combine(work,evidenceName);Assert.IsFalse(File.Exists(file));
+        const string original="owned-unresolved-record-evidence";var resolutions=0;
+        using var client=Client();
+        await File.WriteAllTextAsync(file,original);
+        try{
+            var error=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>OracleLiveProviderAcceptance.RunAsync(
+                client,"ns","bucket",()=>{resolutions++;throw new InvalidOperationException("Key must not be read.");},work));
+            StringAssert.Contains(error.Message,"original OCI record evidence");Assert.AreEqual(0,resolutions);
+            Assert.AreEqual(original,await File.ReadAllTextAsync(file));
+        }finally{
+            Assert.AreEqual(original,await File.ReadAllTextAsync(file));File.Delete(file);
+        }
+    }
+
+    [DataTestMethod][DataRow(0)][DataRow(31)]
+    public async Task RecordAcceptanceRejectsMissingOrInvalidPersistedKeyBeforeSdkAccess(int length)
+    {
+        var work=Path.Combine(AppContext.BaseDirectory,"TestResults","OracleProviderLifecycleAdmission");Directory.CreateDirectory(work);
+        var key=length==0?null:Enumerable.Repeat((byte)7,length).ToArray();
+        using var client=Client();
+        var error=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>OracleLiveProviderAcceptance.RunAsync(client,"ns","bucket",()=>key!,work));
+        StringAssert.Contains(error.Message,length==0?"persisted storage key is missing":"exactly 32 bytes");
+        if(key!=null)Assert.IsTrue(key.All(value=>value==0),"Rejected temporary key must be zeroed.");
+        Assert.IsFalse(File.Exists(Path.Combine(work,"oci-live-records.pending.json")));
+        Assert.IsFalse(File.Exists(Path.Combine(work,"oci-live-records.current.json")));
     }
 
     [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
