@@ -28,6 +28,25 @@ try {
 
     & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'CQL v1 three-provider developer demo' -Operation {
 
+        function Get-DemoSourceSnapshot {
+            $roots = @(
+                'Examples/CosmicCqlDemo',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data',
+                'OASIS Architecture/NextGenSoftware.OASIS.API.Core',
+                'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage',
+                'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS',
+                'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
+                'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS',
+                'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests'
+            )
+            @($roots | ForEach-Object {
+                Get-ChildItem -LiteralPath (Join-Path $taskRoot $_) -Recurse -File -Filter '*.cs' |
+                    Where-Object { $_.FullName -notmatch '\\(bin|obj)\\' }
+            } | Get-FileHash | Select-Object Path,Hash) | ConvertTo-Json -Compress
+        }
+        $sourceBefore = Get-DemoSourceSnapshot
+
         # Dependencies are already restored in the retained provider environment.
         # The reusable runner builds with --no-restore and verifies producer copies.
         $started = [DateTime]::UtcNow
@@ -38,10 +57,15 @@ try {
         }
         if ($LASTEXITCODE) { throw 'Native CQL v1 walkthrough failed.' }
 
+        $sourceAfter = Get-DemoSourceSnapshot
+        @{ before=$sourceBefore; after=$sourceAfter; unchanged=($sourceBefore -ceq $sourceAfter) } |
+            ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'v1-source-identities.json')
+        if ($sourceBefore -cne $sourceAfter) { throw 'Demo sources changed during verification.' }
+
         $proof = Get-Item -LiteralPath (Join-Path $work 'v1-demo-result.json') -ErrorAction Stop
         if ($proof.LastWriteTimeUtc -lt $started) { throw 'Demo result is stale; no verification claim permitted.' }
         $report = Get-Content -LiteralPath (Join-Path $work 'v1-demo-result.json') -Raw | ConvertFrom-Json
-        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 69 -or $report.localSdkQueries -ne 69) {
+        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 75 -or $report.localSdkQueries -ne 75) {
             throw 'Three-provider demo proof is incomplete.'
         }
 

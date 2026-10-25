@@ -19,10 +19,10 @@ Open [the demo guide](../../../Examples/CosmicCqlDemo/README.md), then read `V1N
 
 These commands require the already configured reusable provider environment. They do not install or download services. The current runner checks fresh actual results rather than treating an older report as success. SDK examples check `OASISResult` before planning/execution; the public endpoint binds the authenticated actor itself.
 
-Current live walkthrough:23 examples per provider,69SDK/69HTTP in total, with249
-settled operations and244 provider attempts. Examples22–23 demonstrate UInt64
-source projection and grouped result filters/order using exact digit strings.
-[Evidence and supported domains](CQL_UINT64_CONTRACT.md).
+Current live walkthrough:25 examples per provider,75SDK/75HTTP in total, with255
+settled operations and250 provider attempts. Examples22–23 demonstrate UInt64;
+examples24–25 add exact Decimal price projection and grouped result filters/order.
+[Decimal evidence and supported domains](CQL_DECIMAL_METADATA_CONTRACT.md).
 
 ## Current operator guide
 
@@ -896,7 +896,7 @@ field comparisons, ordering, projections, Min/Max and grouped keys. SQLite passe
 1,459 native cases including 24 Decimal cases; MongoDB passes 228 native CQL and
 483 unit cases including 23/5 new cases. Neo4j passes 217 native CQL and 455 unit
 cases including 12/2 new cases. Decimal wire compiler controls pass in the full
-2,500-test linked unit suite; live HTTP/demo acceptance remains pending;
+2,500-test linked unit suite; live75SDK/75HTTP three-provider acceptance passes;
 check the actual provider capability profile.
 
 ```csharp
@@ -941,4 +941,6 @@ a string. Decimal results carry the Decimal schema tag and invariant strings.
 Numeric JSON, exponents, whitespace, overflow and text that would require rounding
 are rejected. Equivalent stored numeric scales retain one mathematical identity.
 The additive Decimal enum preserves earlier scalar identities. Compiler controls
-are verified; new live three-provider demo examples are the next acceptance gate.
+are verified; examples24–25 now pass live three-provider75SDK/75HTTP acceptance.
+Browser presets and Swagger ExactDecimal show the same bounds. See the
+[Decimal evidence](CQL_DECIMAL_METADATA_CONTRACT.md#live-decimal-examples-2425--24-october-2026).

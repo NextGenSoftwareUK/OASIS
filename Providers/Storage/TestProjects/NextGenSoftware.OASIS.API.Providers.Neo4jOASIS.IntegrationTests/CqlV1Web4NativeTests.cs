@@ -103,6 +103,7 @@ public sealed partial class CqlV1Web4NativeTests
                             // Adjacent UTC ticks exercise exact date filters and
                             // detached date output on every native provider.
                             ["counter"] = ulong.MaxValue - (ulong)i,
+                            ["price"] = 1m + i * 0.0000000000000000000000000001m,
                             ["observedAt"] = new DateTime(2026, 10, 24, 0, 0, 0, DateTimeKind.Utc).AddTicks(i),
                             // Hidden roots carry stronger extrema; signed Min/Max
                             // must apply actor visibility before native reduction.
@@ -264,10 +265,10 @@ public sealed partial class CqlV1Web4NativeTests
                             Provider = provider.ToString(), Columns = new[] { new { Alias = "same", Field = "Name" }, new { Alias = "same", Field = "Id" } }
                         }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, invalidColumns.StatusCode);
                         if (provider == ProviderType.Neo4jOASIS)
-                            using (var unsupportedDecimal = await Send(new
+                            using (var unsupportedDouble = await Send(new
                             {
-                                Provider = provider.ToString(), Columns = new[] { new { Alias = "amount", MetadataPath = new[] { "amount" }, ValueType = "Decimal" } }
-                            }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, unsupportedDecimal.StatusCode);
+                                Provider = provider.ToString(), Columns = new[] { new { Alias = "amount", MetadataPath = new[] { "amount" }, ValueType = "Double" } }
+                            }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, unsupportedDouble.StatusCode);
 
                         // Scalar requests share signed admission and exact durable receipts.
                         // The fixture marker applies only to its five roots: Alice sees3,
@@ -525,6 +526,17 @@ public sealed partial class CqlV1Web4NativeTests
                                 .GetProperty("examples").GetProperty("ExactUInt64").GetProperty("value");
                             Assert.AreEqual("UInt64", unsignedGroups.GetProperty("keys")[0].GetProperty("valueType").GetString());
                             Assert.AreEqual("18446744073709551614", unsignedGroups.GetProperty("resultFilters")[1].GetProperty("value").GetString());
+                            // Swagger's decimal presets must keep input bounds as strings.
+                            var decimalProjection = paths.GetProperty("/api/data/query-cql/projection").GetProperty("post")
+                                .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")
+                                .GetProperty("examples").GetProperty("ExactDecimal").GetProperty("value");
+                            Assert.AreEqual("Decimal", decimalProjection.GetProperty("columns")[1].GetProperty("valueType").GetString());
+                            Assert.AreEqual("1.0000000000000000000000000002", decimalProjection.GetProperty("filters")[1].GetProperty("value").GetString());
+                            var decimalGroups = paths.GetProperty("/api/data/query-cql/grouped").GetProperty("post")
+                                .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")
+                                .GetProperty("examples").GetProperty("ExactDecimal").GetProperty("value");
+                            Assert.AreEqual("Decimal", decimalGroups.GetProperty("keys")[0].GetProperty("valueType").GetString());
+                            Assert.AreEqual("1.0000000000000000000000000004", decimalGroups.GetProperty("resultFilters")[1].GetProperty("value").GetString());
                             var example = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlScalarV1Request").GetProperty("example");
                             Assert.AreEqual("Average", example.GetProperty("operation").GetString());

@@ -512,7 +512,9 @@ Its selected values use the same Core exact decoder. Decimal wire compiler
 coverage passes23 new controls in the full2,500 linked-unit suite. Existing WEB4
 source/group literal parsing shares a bounded exact invariant-string owner;
 selected Decimal schema/formatting reuses the existing result owner. Core
-production code is unchanged. Live HTTP/browser/Swagger/demo acceptance remains
-pending. These are separate scoped provider cohorts, not a simultaneous
+production code is unchanged. Live SDK/HTTP/Swagger acceptance now passes75SDK/
+75HTTP examples across three stores,255 settled operations/250 attempts. Browser
+script behavior is verified offline. Source/binary proofs were captured inside
+the global build lease; broader CQL requirements remain open. These are separate scoped provider cohorts, not a simultaneous
 full regression against one producer build.
 [Contract and cohort evidence](CQL_DECIMAL_METADATA_CONTRACT.md).

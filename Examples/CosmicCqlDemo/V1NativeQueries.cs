@@ -461,6 +461,62 @@ public static class V1NativeQueries
         foreach (var row in unsignedGroupRows)
             await output.WriteLineAsync($"  {row.Counter}: {row.Items} item\n");
 
+        // 24. These prices differ by 10^-28. Use m literals so C# retains
+        // every digit, then let the provider filter/order before projection.
+        var priceStart = 1.0000000000000000000000000002m;
+        var priceEnd = 1.0000000000000000000000000004m;
+
+        var decimalSelection = Value(visible
+            .Where(row => CosmicQueryMetadata.Value<decimal>(row, "price") >= priceStart
+                && CosmicQueryMetadata.Value<decimal>(row, "price") < priceEnd)
+            .OrderBy(row => CosmicQueryMetadata.Value<decimal>(row, "price"))
+            .Select(row => new
+            {
+                row.Name,
+                Price = CosmicQueryMetadata.Value<decimal>(row, "price")
+            }));
+
+        var decimalPlan = Value(CosmicProjectionPlanner.Plan(decimalSelection, provider,
+            new[] { new CosmicProjectionTarget(provider, adapter.QueryCapabilities,
+                projectionAdapter.ProjectionCapabilities) }));
+
+        var decimalResult = Value(await manager.ExecuteProjectionQueryAsync(decimalPlan, new[] { adapter }));
+        var decimalRows = decimalResult.Providers.Single().Rows;
+
+        if (!decimalRows.Select(row => row.Name).SequenceEqual(new[] { "B-owned", "C-public" })
+            || !decimalRows.Select(row => row.Price).SequenceEqual(new[] { priceStart, priceStart + 0.0000000000000000000000000001m }))
+            throw new InvalidOperationException("Decimal source ordering lost precision or visibility.");
+
+        completedQueries++;
+        await output.WriteLineAsync("24. Decimal price range / exact price ordering\n");
+        foreach (var row in decimalRows)
+            await output.WriteLineAsync($"  {row.Name}: {row.Price}");
+        await output.WriteLineAsync();
+
+        // 25. Group by exact prices, then filter/order the selected Price alias.
+        // Native reduction and complete proof validation still include all groups.
+        var decimalGroups = Value(visible
+            .GroupBy(row => CosmicQueryMetadata.Value<decimal>(row, "price"))
+            .Select(group => new { Price = group.Key, Items = group.LongCount() })
+            .Where(row => row.Price >= priceStart && row.Price < priceEnd)
+            .OrderBy(row => row.Price)
+            .Take(2));
+
+        var decimalGroupPlan = Value(CosmicGroupedPlanner.Plan(decimalGroups, provider,
+            new[] { new CosmicGroupedTarget(provider, adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var decimalGroupResult = Value(await manager.ExecuteGroupedQueryAsync(decimalGroupPlan, new[] { adapter }));
+        var decimalGroupRows = decimalGroupResult.Providers.Single().Rows;
+
+        if (!decimalGroupRows.Select(row => row.Price).SequenceEqual(new[] { priceStart, priceStart + 0.0000000000000000000000000001m })
+            || decimalGroupRows.Any(row => row.Items != 1))
+            throw new InvalidOperationException("Decimal grouped result filtering/order lost exact key identity.");
+
+        completedQueries++;
+        await output.WriteLineAsync("25. Decimal group keys / exact selected-result filters\n");
+        foreach (var row in decimalGroupRows)
+            await output.WriteLineAsync($"  {row.Price}: {row.Items} item\n");
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(

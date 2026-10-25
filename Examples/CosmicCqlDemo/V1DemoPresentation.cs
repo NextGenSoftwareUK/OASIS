@@ -70,14 +70,46 @@ public static class V1DemoPresentation
   <div class="card">
     <h2>1. Choose a provider, identity and example</h2>
     <div class="controls">
-      <label>Native provider<br><select id="provider"><option>MongoDBOASIS</option><option>SQLLiteDBOASIS</option><option>Neo4jOASIS</option><option value="">Current default (SQLite)</option></select></label>
-      <label>Authenticated user<br><select id="actor"><option>Alice</option><option>Bob</option><option>Visitor</option><option>Anonymous</option></select></label>
+      <label>Native provider<br><select id="provider"><option>MongoDBOASIS</option>
+        <option>SQLLiteDBOASIS</option>
+        <option>Neo4jOASIS</option>
+        <option value="">Current default (SQLite)</option></select></label>
+      <label>Authenticated user<br><select id="actor"><option>Alice</option>
+        <option>Bob</option>
+        <option>Visitor</option>
+        <option>Anonymous</option></select></label>
       <label>Walkthrough<br><select id="example">
-        <option value="min">Min / exact selected value</option><option value="max">Max / protected reduction</option><option value="sum">Sum / exact signed total</option><option value="average">Average / Decimal fraction</option><option value="unsignedSource">UInt64 / exact source range</option><option value="unsignedGroups">UInt64 / grouped keys</option><option value="utcSource">UTC dates / source range</option><option value="utcGroups">UTC dates / grouped keys</option><option value="groupedAverage">GroupBy / filter exact Decimal means</option><option value="groupedFilter">GroupBy / filter exact totals</option><option value="groupedPage">GroupBy / independent result page</option><option value="groupedOrder">GroupBy / ordered exact totals</option><option value="grouped">GroupBy / exact multiple aggregates</option><option value="projection">Select / detached typed columns</option><option value="longCount">LongCount / complete visible input</option><option value="count">Count / explicit window</option><option value="any">Any / private root</option>
-        <option value="page">Visibility before paging</option><option value="nested">Nested metadata + protected OR</option>
-        <option value="strings">Ordinal prefix / suffix</option><option value="null">Explicit null / existence</option>
-        <option value="children">Visible child existence</option><option value="descendants">Bounded descendants</option><option value="graph">Access-bound child graph</option><option value="precision">Exact Int64 beyond 2^53</option><option value="guid">Typed GUID metadata</option>
-        <option value="types">Numeric strings are not integers</option><option value="boolean">Typed Boolean metadata</option><option value="invalid">Unsupported provider rejected</option>
+        <option value="min">Min / exact selected value</option>
+        <option value="max">Max / protected reduction</option>
+        <option value="sum">Sum / exact signed total</option>
+        <option value="average">Average / Decimal fraction</option>
+        <option value="decimalSource">Decimal / exact price range</option>
+        <option value="decimalGroups">Decimal / grouped prices</option>
+        <option value="unsignedSource">UInt64 / exact source range</option>
+        <option value="unsignedGroups">UInt64 / grouped keys</option>
+        <option value="utcSource">UTC dates / source range</option>
+        <option value="utcGroups">UTC dates / grouped keys</option>
+        <option value="groupedAverage">GroupBy / filter exact Decimal means</option>
+        <option value="groupedFilter">GroupBy / filter exact totals</option>
+        <option value="groupedPage">GroupBy / independent result page</option>
+        <option value="groupedOrder">GroupBy / ordered exact totals</option>
+        <option value="grouped">GroupBy / exact multiple aggregates</option>
+        <option value="projection">Select / detached typed columns</option>
+        <option value="longCount">LongCount / complete visible input</option>
+        <option value="count">Count / explicit window</option>
+        <option value="any">Any / private root</option>
+        <option value="page">Visibility before paging</option>
+        <option value="nested">Nested metadata + protected OR</option>
+        <option value="strings">Ordinal prefix / suffix</option>
+        <option value="null">Explicit null / existence</option>
+        <option value="children">Visible child existence</option>
+        <option value="descendants">Bounded descendants</option>
+        <option value="graph">Access-bound child graph</option>
+        <option value="precision">Exact Int64 beyond 2^53</option>
+        <option value="guid">Typed GUID metadata</option>
+        <option value="types">Numeric strings are not integers</option>
+        <option value="boolean">Typed Boolean metadata</option>
+        <option value="invalid">Unsupported provider rejected</option>
       </select></label>
     </div>
     <p id="explanation"></p>
@@ -107,6 +139,8 @@ const notes = {
   max: 'Native Max uses the same typed selector and protected source. Choose a provider without changing query semantics; no client entity scan is used.',
   longCount: 'Native LongCount over the complete visible source: Alice 3, Bob 3, Visitor 1. Omitted take has no row-page cap. Int64 values are always decimal strings; keep them as text or BigInt.',
   count: 'Count after Skip 1 / Take 1: Alice and Bob receive Int32 1, Visitor 0. Source windows apply before the terminal.',
+  decimalSource: 'Exact Decimal prices differ by 10^-28. Both request bounds and selected prices are strings; source rows are ordered by Name.',
+  decimalGroups: 'Group exact Decimal prices, then filter/order selected Price aliases before paging. No floating-point conversion is used.',
   unsignedSource: 'UInt64 inputs and outputs stay digit strings. These counters exceed Int64 and JavaScript integer precision; the source projection orders by Name.',
   unsignedGroups: 'Filter exact UInt64 aliases after grouping, then order/page them natively. No Number() conversion or floating-point key is used.',
   utcSource: 'Declare DateTime source predicates with uppercase Z and0..7 fractional digits. These adjacent100ns values retain UTC kind and exact date text; offset/local/over-precision inputs are rejected.',
@@ -215,6 +249,31 @@ function preset() {
       { alias: 'Counter', operator: 'LessThan', value: '18446744073709551614' }
     ];
     body.resultOrder = [{ alias: 'Counter', descending: false }];
+    body.resultTake = 2;
+  }
+  if (name === 'decimalSource') {
+    queryRoute += '/projection';
+    body.take = 2;
+    body.filters.push(
+      metadata(['price'], 'Decimal', 'GreaterThanOrEqual', '1.0000000000000000000000000002'),
+      metadata(['price'], 'Decimal', 'LessThan', '1.0000000000000000000000000004')
+    );
+    body.columns = [
+      { alias: 'Name', field: 'Name' },
+      { alias: 'Price', metadataPath: ['price'], valueType: 'Decimal' }
+    ];
+  }
+  if (name === 'decimalGroups') {
+    queryRoute += '/grouped';
+    delete body.take;
+    body.maximumGroups = 10;
+    body.keys = [{ alias: 'price', metadataPath: ['price'], valueType: 'Decimal' }];
+    body.columns = [{ alias: 'Price', keyAlias: 'price' }, { alias: 'Items', operation: 'LongCount' }];
+    body.resultFilters = [
+      { alias: 'Price', operator: 'GreaterThanOrEqual', value: '1.0000000000000000000000000002' },
+      { alias: 'Price', operator: 'LessThan', value: '1.0000000000000000000000000004' }
+    ];
+    body.resultOrder = [{ alias: 'Price', descending: false }];
     body.resultTake = 2;
   }
   if (name === 'utcSource') {
