@@ -1,19 +1,19 @@
 # CQL completion roadmap - MongoDB, SQLite and Neo4j
 
 Current checkpoint: **25 October 2026**. Native flat inner/left joins,
-signed HTTP and annotated31-example/provider demos are implemented on MongoDB,
-SQLite and Neo4j. Latest published demo baseline is `b1c2ae263`.
+signed HTTP and bounded selected-result composition are implemented on MongoDB,
+SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK/HTTP walkthrough.
 
-- Latest separately verified cohorts: Core **2,877** (composition including graph-source admission guard),
+- Latest separately verified cohorts: Core **2,940** (composition including HTTP/admission controls),
   Shared **1,189**, SQLite **1,648 native /55 unit**, MongoDB **359 native /519 unit**,
   Neo4j **352 native /519 unit**; zero skips at their recorded checkpoints.
-- The expanded live demo passes **93 SDK /93 HTTP**, **288 settled operations
-  /283 attempts**. Six join browser presets pass offline, generated Swagger
+- The expanded live demo passes **102 SDK /102 HTTP**, **309 settled operations
+  /301 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
 - Selected-result composition captures immutable stages and independently admits
   complete proof/work contracts, with **SQLite, MongoDB and Neo4j native SDK execution verified**. Ordinary
-  projection execution rejects composed stages. Further composition certification
-  and public composition transport remain next.
+  projection execution rejects composed stages. Bounded public composition transport
+  is verified; broader certification and graph-source enrollment remain open.
 - Full CQL/ORM completion remains unproven. Historical checkpoints below retain
   their original scope; remaining certification/policy/federation gates stay open.
 
@@ -58,7 +58,7 @@ acceptance below remains open.
 
 - [x] Add bounded same-provider flat inner/left joins with defined key domains, null semantics and cardinality limits; native SDK, signed HTTP and93/93 annotated demos now verified on all three providers.
 - [ ] Complete remaining expanded join source/consistency/policy certification and any declared graph-source enrollment.
-- [ ] Implement selected post-projection/post-window composition through native subqueries, preserving operation order.
+- [x] Implement bounded flat selected post-projection/post-window composition through native subqueries, preserving operation order. Generic SDK and signed HTTP/native demos now pass on all three providers; graph-source enrollment remains explicitly unsupported.
 - [ ] Cross-provider joins require an explicit bounded distributed plan/accounting contract. No implicit client scan or fallback evaluator.
 
 ## 4. Federated results and continuity
@@ -1620,3 +1620,37 @@ composition and annotated live composition demos are next after certification;
 full CQL/ORM roadmap completion remains unproven.
 
 25 October Neo4j focused composition certification passes **42/42 native**, zero skips, including privacy, zero-budget and cold/warm in-flight cancellation/deadline recovery on the same provider. Prior full352 native/519unit evidence is separate; full362 has not been rerun. See [contract and native evidence](CQL_COMPOSITION_CONTRACT.md). Public HTTP composition and annotated demos are next.
+
+## HTTP composition and annotated demos — 25 October2026
+
+`POST /api/data/query-cql/composition` now uses the generic Core/HolonManager
+composition planner/proof barrier on MongoDB, SQLite and Neo4j. The exact route
+registry requires authenticated actor-bound admission and query tariffs. Stage
+order is explicit; nested provider/graph overrides and ambiguous stage fields
+are rejected before dispatch. Grouped/composed filters and ordering share one
+selected-value binding owner, and projection/composition share exact wire output.
+
+Final gates pass **2,940/2,940 Core/linked WEB4 tests**, zero skips (63new), both
+Core frameworks, **102 SDK /102 signed HTTP demo examples**, and the dedicated
+joint native test1/1. The live fixture settles **309 operations /301 provider
+attempts**. New native controls verify owner/visitor visibility, stage order,
+exact Int64 output, repeated-key denial without replay, and malformed-stage MVC
+rejection with zero attempts/receipts. Twenty offline browser presets and replay/
+exact JSON checks pass; the standalone demo builds with zero errors. Source
+identity snapshots remained unchanged throughout the final native gate.
+
+Examples32–34 in `V1NativeQueries.cs` and `V1Walkthrough.cs` demonstrate source
+paging versus result paging, filter/window order and exact selected Int64 values.
+The browser and Swagger offer matching composition requests. See the
+[HTTP contract and examples](CQL_COMPOSITION_HTTP_CONTRACT.md).
+Evidence: `TestResults/CosmicCqlDemo/composition-http-core-final.log`,
+`TestResults/CoreCurrent/composition-http-current.trx`,
+`TestResults/CosmicCqlDemo/composition-http-native-final.log`,
+`TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx`,
+`TestResults/CosmicCqlDemo/v1-demo-result.json` and
+`TestResults/CosmicCqlDemo/composition-browser-presets.log`.
+
+This closes bounded flat selected-result composition across SDK/HTTP on the
+three providers. Graph-source composition is explicitly unadmitted. Broader
+CQL relationship/join/group/scalar certification, authoritative tenant/sharing
+policy, federation and the remaining ORM roadmap still require work.

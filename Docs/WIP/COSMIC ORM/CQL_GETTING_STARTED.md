@@ -185,3 +185,5 @@ Executable native examples live in Providers/Storage/TestProjects/NextGenSoftwar
 
 
 Optional child graphs now use WithReadAccess + WithChildren in the SDK, or the bounded graph object on the same authenticated HTTP route. The three native adapters enforce access before child limits; public DTOs omit hidden membership/provider state. See the manual/HTTP contract for shape, consistency, budgets and safe root-only edits, and example4 in the C#/HTTP demos.
+
+25 October2026: bounded selected-result composition is available through SDK and `POST /api/data/query-cql/composition` on MongoDB, SQLite and Neo4j. [Request contract, limits and examples](CQL_COMPOSITION_HTTP_CONTRACT.md); [annotated34-example/provider demo](CQL_DEMO_RUNBOOK.md). Latest native walkthrough passes102SDK/102HTTP (309settled/301attempts); full CQL/ORM completion remains governed by unchecked roadmap requirements.

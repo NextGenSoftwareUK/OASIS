@@ -33,4 +33,8 @@ public sealed class CqlV1Controller : ControllerBase
     [HttpPost("join")]
     [RequestSizeLimit(32768)]
     public Task<IActionResult> Join(CqlJoinV1Request request) => CqlV1Endpoint.ExecuteJoinAsync(HttpContext, request, providers);
+
+    [HttpPost("composition")]
+    [RequestSizeLimit(32768)]
+    public Task<IActionResult> Composition(CqlCompositionV1Request request) => CqlV1Endpoint.ExecuteCompositionAsync(HttpContext, request, providers);
 }

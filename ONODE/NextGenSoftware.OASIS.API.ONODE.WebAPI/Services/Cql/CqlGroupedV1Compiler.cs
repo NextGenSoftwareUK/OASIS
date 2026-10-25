@@ -76,124 +76,29 @@ public static partial class CqlV1Compiler
     }
 
     private static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> BindGroupedFilter(
-        CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> query,
-        CqlGroupedV1Filter filter)
+        CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> query, CqlGroupedV1Filter filter)
     {
-        if (filter == null || !Enum.IsDefined(filter.Operator) || filter.Operator == CqlV1Operator.Exists)
-            throw new ArgumentException("A defined grouped comparison is required; selected aliases always exist.");
+        if (filter == null) throw new ArgumentException("A selected filter is required.");
         var column = query.Columns.SingleOrDefault(candidate => candidate.Alias == filter.Alias)
             ?? throw new ArgumentException("Result filtering must name an exact selected output alias.");
-        var row = Expression.Parameter(typeof(CosmicProjectionRecord), "row");
-        var cell = Expression.Call(row, typeof(CosmicProjectionRecord).GetMethod("get_Item"), Expression.Constant(column.Alias));
-        var path = Expression.Convert(cell, column.ValueType);
-        var type = Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType;
-        var json = filter.Value;
-        object value;
-        if (filter.Operator == CqlV1Operator.IsNull)
-        {
-            if (json.ValueKind != JsonValueKind.Undefined)
-                throw new ArgumentException("IsNull does not accept Value.");
-            value = null;
-        }
-        else if (json.ValueKind == JsonValueKind.Null) value = null;
-        else if (type == typeof(string) && json.ValueKind == JsonValueKind.String && json.GetString().Length <= 512)
-            value = json.GetString();
-        else if (type == typeof(bool) && json.ValueKind is JsonValueKind.True or JsonValueKind.False)
-            value = json.GetBoolean();
-        // Int64 and Decimal use invariant strings to preserve precision through JavaScript clients.
-        else if (type == typeof(long) && json.ValueKind == JsonValueKind.String &&
-            long.TryParse(json.GetString(), NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var integer)) value = integer;
-        else if (type == typeof(float) && TrySingle(json, out var finiteSingle)) value = finiteSingle;
-        else if (type == typeof(double) && TryDouble(json, out var finiteDouble)) value = finiteDouble;
-        else if (type == typeof(decimal) && TryDecimal(json, out var number)) value = number;
-        else if (type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var count)) value = count;
-        else if (type == typeof(Guid) && json.ValueKind == JsonValueKind.String &&
-            Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
-        else if (type == typeof(ulong) && TryUInt64(json, out var unsigned)) value = unsigned;
-        else if (type == typeof(DateTime) && TryUtcDate(json, out var utc)) value = utc;
-        else throw new ArgumentException("Value must match the exact grouped scalar type; Int64, UInt64, Decimal, Double and Single require invariant strings.");
-        if (value == null && type == column.ValueType && type.IsValueType)
-            throw new ArgumentException("This grouped column cannot be null.");
-        Expression literal = value == null ? Expression.Constant(null, column.ValueType)
-            : Expression.Constant(value, type);
-        if (literal.Type != path.Type) literal = Expression.Convert(literal, path.Type);
-        Expression predicate;
-        if (filter.Operator is CqlV1Operator.Contains or CqlV1Operator.StartsWith or CqlV1Operator.EndsWith)
-        {
-            if (type != typeof(string) || value == null)
-                throw new ArgumentException("String operations require a non-null string literal.");
-            var method = typeof(string).GetMethod(filter.Operator.ToString(), new[] { typeof(string), typeof(StringComparison) });
-            predicate = Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
-        }
-        else
-        {
-            var operation = filter.Operator switch
-            {
-                CqlV1Operator.Equal or CqlV1Operator.IsNull => ExpressionType.Equal,
-                CqlV1Operator.NotEqual => ExpressionType.NotEqual,
-                CqlV1Operator.GreaterThan => ExpressionType.GreaterThan,
-                CqlV1Operator.GreaterThanOrEqual => ExpressionType.GreaterThanOrEqual,
-                CqlV1Operator.LessThan => ExpressionType.LessThan,
-                CqlV1Operator.LessThanOrEqual => ExpressionType.LessThanOrEqual,
-                _ => throw new ArgumentException("Unsupported grouped filter operation.")
-            };
-            try { predicate = Expression.MakeBinary(operation, path, literal); }
-            catch (InvalidOperationException exception) { throw new ArgumentException("The selected type does not support this comparison.", exception); }
-        }
-        var filtered = query.Where(Expression.Lambda<Func<CosmicProjectionRecord, bool>>(predicate, row));
+        var filtered = query.Where(CompileSelectedFilter(column.ValueType, column.Alias, filter.Operator, filter.Value));
         if (filtered.IsError) throw new ArgumentException(filtered.Message);
         return filtered.Result;
     }
 
     private static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> BindGroupedOrdering(
-        CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> query,
-        Type type, string alias, bool descending)
-    {
-        // Bind the exact selected CLR type. This constructs an expression for the
-        // shared Core owner; it never compiles or executes a selector delegate.
-        if (type == typeof(string)) return Bind<string>();
-        if (type == typeof(bool)) return Bind<bool>();
-        if (type == typeof(bool?)) return Bind<bool?>();
-        if (type == typeof(int)) return Bind<int>();
-        if (type == typeof(int?)) return Bind<int?>();
-        if (type == typeof(long)) return Bind<long>();
-        if (type == typeof(long?)) return Bind<long?>();
-        if (type == typeof(ulong)) return Bind<ulong>();
-        if (type == typeof(ulong?)) return Bind<ulong?>();
-        if (type == typeof(Guid)) return Bind<Guid>();
-        if (type == typeof(Guid?)) return Bind<Guid?>();
-        if (type == typeof(DateTime)) return Bind<DateTime>();
-        if (type == typeof(DateTime?)) return Bind<DateTime?>();
-        if (type == typeof(float)) return Bind<float>();
-        if (type == typeof(float?)) return Bind<float?>();
-        if (type == typeof(double)) return Bind<double>();
-        if (type == typeof(double?)) return Bind<double?>();
-        if (type == typeof(decimal)) return Bind<decimal>();
-        if (type == typeof(decimal?)) return Bind<decimal?>();
-        if (type == typeof(byte)) return Bind<byte>();
-        if (type == typeof(byte?)) return Bind<byte?>();
-        if (type == typeof(sbyte)) return Bind<sbyte>();
-        if (type == typeof(sbyte?)) return Bind<sbyte?>();
-        if (type == typeof(short)) return Bind<short>();
-        if (type == typeof(short?)) return Bind<short?>();
-        if (type == typeof(ushort)) return Bind<ushort>();
-        if (type == typeof(ushort?)) return Bind<ushort?>();
-        if (type == typeof(uint)) return Bind<uint>();
-        if (type == typeof(uint?)) return Bind<uint?>();
-        if (type == typeof(HolonType)) return Bind<HolonType>();
-        if (type == typeof(HolonType?)) return Bind<HolonType?>();
-        if (type == typeof(ProviderType)) return Bind<ProviderType>();
-        if (type == typeof(ProviderType?)) return Bind<ProviderType?>();
-        throw new ArgumentException("This grouped output domain cannot be ordered by HTTP v1.");
+        CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> query, Type type, string alias, bool descending)
+        => BindSelectedOrdering(type, alias, descending, query.Orderings.Count > 0, new GroupedOrderingConsumer(query));
 
-        CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> Bind<TValue>()
+    private sealed class GroupedOrderingConsumer : ISelectedOrderingConsumer<CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord>>
+    {
+        private readonly CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> query;
+        internal GroupedOrderingConsumer(CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> query) { this.query = query; }
+        public CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> Bind<TValue>(
+            Expression<Func<CosmicProjectionRecord, TValue>> selector, bool descending, bool append)
         {
-            var row = Expression.Parameter(typeof(CosmicProjectionRecord), "row");
-            var cell = Expression.Call(row, typeof(CosmicProjectionRecord).GetMethod("get_Item"), Expression.Constant(alias));
-            var selector = Expression.Lambda<Func<CosmicProjectionRecord, TValue>>(Expression.Convert(cell, typeof(TValue)), row);
-            var result = query.Orderings.Count == 0
-                ? (descending ? query.OrderByDescending(selector) : query.OrderBy(selector))
-                : (descending ? query.ThenByDescending(selector) : query.ThenBy(selector));
+            var result = append ? (descending ? query.ThenByDescending(selector) : query.ThenBy(selector))
+                : (descending ? query.OrderByDescending(selector) : query.OrderBy(selector));
             if (result.IsError) throw new ArgumentException(result.Message);
             return result.Result;
         }
