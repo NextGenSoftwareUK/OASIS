@@ -139,24 +139,29 @@ public partial class HolonRepository
         }
         private string TranslateGroupPredicate<T, TKey, TResult>(CosmicGroupedSelection<T, TKey, TResult> query,
             CosmicQueryPredicate predicate) where T : IHolon
+            => TranslateSelectedPredicate(predicate, path => GroupCell(query, path));
+
+        // Grouped and composed outputs share exact scalar/null/string semantics.
+        private string TranslateSelectedPredicate(CosmicQueryPredicate predicate,
+            Func<CosmicQueryPath, GroupFilterCell> resolve)
         {
             if (predicate is CosmicQueryBoolean boolean) return boolean.Value ? "1" : "0";
             if (predicate is CosmicQueryLogical logical)
-                return "(" + TranslateGroupPredicate(query, logical.Left) + (logical.IsAnd ? " AND " : " OR ") + TranslateGroupPredicate(query, logical.Right) + ")";
-            if (predicate is CosmicQueryNot not) return "(NOT " + TranslateGroupPredicate(query, not.Operand) + ")";
+                return "(" + TranslateSelectedPredicate(logical.Left, resolve) + (logical.IsAnd ? " AND " : " OR ") + TranslateSelectedPredicate(logical.Right, resolve) + ")";
+            if (predicate is CosmicQueryNot not) return "(NOT " + TranslateSelectedPredicate(not.Operand, resolve) + ")";
             if (predicate is CosmicQueryComparison comparison)
-                return GroupLiteralComparison(GroupCell(query, comparison.Path), comparison.Path, comparison.Literal, comparison.Operator);
+                return GroupLiteralComparison(resolve(comparison.Path), comparison.Path, comparison.Literal, comparison.Operator);
             if (predicate is CosmicQueryFieldComparison fields)
-                return GroupComparison(GroupCell(query, fields.Left), GroupCell(query, fields.Right), fields.Operator);
+                return GroupComparison(resolve(fields.Left), resolve(fields.Right), fields.Operator);
             if (predicate is CosmicQueryMembership membership)
             {
-                var cell = GroupCell(query, membership.Path);
+                var cell = resolve(membership.Path);
                 return membership.Values.Count == 0 ? "0" : "(" + string.Join(" OR ", membership.Values.Select(literal =>
                     GroupLiteralComparison(cell, membership.Path, literal, CosmicQueryComparisonOperator.Equal))) + ")";
             }
             if (predicate is CosmicQueryStringMatch match)
             {
-                var cell = GroupCell(query, match.Path); var literal = Bind(match.Value);
+                var cell = resolve(match.Path); var literal = Bind(match.Value);
                 var raw = match.Operator == CosmicQueryStringOperator.Contains ? "instr(" + cell.Value + "," + literal + ")>0"
                     : match.Operator == CosmicQueryStringOperator.StartsWith ? "substr(" + cell.Value + ",1,length(" + literal + "))=" + literal + " COLLATE BINARY"
                     : match.Operator == CosmicQueryStringOperator.EndsWith ? "(length(" + literal + ")=0 OR substr(" + cell.Value + ",-length(" + literal + "))=" + literal + " COLLATE BINARY)"

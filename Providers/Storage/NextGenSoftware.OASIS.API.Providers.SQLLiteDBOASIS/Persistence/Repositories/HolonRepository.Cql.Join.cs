@@ -179,7 +179,7 @@ public partial class HolonRepository
     private static void Reserve(object value, ref long bytes, int maximum)
     {
         bytes = checked(bytes + 16 + (value is string text ? ProjectionUtf8.GetByteCount(text) : 16));
-        if (bytes > maximum) throw new SqliteCqlResourceException("Native join exceeds its remaining byte budget.");
+        if (bytes > maximum) throw new SqliteCqlResourceException("Native detached cells exceed their remaining byte budget.");
     }
 
     private static OASISResult<CosmicJoinPacket> JoinCqlError(string code, string message, Exception cause = null)
