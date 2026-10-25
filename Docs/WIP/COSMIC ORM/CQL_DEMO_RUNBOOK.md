@@ -7,7 +7,7 @@
 .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -Serve
 ```
 
-The first command runs 69 annotated SDK queries and69 HTTP examples (23 per provider) on MongoDB, SQLite and Neo4j. With Serve, open **http://127.0.0.1:5088/demo** once `TestResults/CosmicCqlDemo/v1-session.json` appears. Transcript: `v1-walkthrough.txt`; result: `v1-demo-result.json`. Swagger `/swagger` is prefilled, authorized as synthetic Alice and documents Idempotency-Key.
+The first command runs 75 annotated SDK queries and75 HTTP examples (25 per provider) on MongoDB, SQLite and Neo4j. With Serve, open **http://127.0.0.1:5088/demo** once `TestResults/CosmicCqlDemo/v1-session.json` appears. Transcript: `v1-walkthrough.txt`; result: `v1-demo-result.json`. Swagger `/swagger` is prefilled, authorized as synthetic Alice and documents Idempotency-Key.
 
 The dedicated runner reuses restored dependencies and rejects stale reports. Example5 demonstrates independent visible-child existence on each provider; the browser Visible child existence preset compares Alice and Visitor. Fresh23October evidence: Core1799/joint96/demo1 allpass,15SDK/15HTTP,131settled synthetic operations.
 
@@ -21,7 +21,8 @@ The dedicated runner reuses restored dependencies and rejects stale reports. Exa
 6. Execute Swagger's example. Change Idempotency-Key for a new intent/provider. Swagger defaults to Alice.
 7. Choose **LongCount / complete visible input**: Alice gets the Int64 string `"3"` on all three stores. Show Count after Skip1/Take1 (Int32 `1`) and Any against A-private (Boolean `false` for Alice). The JSON route label changes to `/api/data/query-cql/scalar`; no implicit row Take is applied. Repeat keeps the original route and key.
 8. Choose **UInt64 / exact source range**, then **UInt64 / grouped keys**. Bounds and output values remain strings beyond Int64/JavaScript precision; grouped results order18446744073709551612 before18446744073709551613. Swagger includes **ExactUInt64** named examples alongside UTC dates.
-9. **Finish demo & clean up** waits, verifies settlement, stops services and removes only owned fixtures.
+9. Choose **Decimal / exact price range**, then **Decimal / grouped prices**. B-owned and C-public differ by10^-28: both digits survive native queries and HTTP string output. Swagger **ExactDecimal** shows the same source and selected-alias bounds. Examples24–25 have matching commented C# SDK and HTTP code. The expanded live75/75 gate now passes on all three providers, with255 settled operations/250 attempts.
+10. **Finish demo & clean up** waits, verifies settlement, stops services and removes only owned fixtures.
 
 Shipping CQL/JWT/admission code runs over real providers and a Mongo outbox. Avatar-directory/reservation authority are controlled synthetic fixtures; no production account/charge. Tokens last one hour and are not recorded in transcripts/readiness/ledger. Run one leased demo at a time. Interrupted/failed fixtures require inspection, not reset/replay.
 

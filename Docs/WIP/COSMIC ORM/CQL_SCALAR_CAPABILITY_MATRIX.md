@@ -45,5 +45,6 @@ Current contracts: [UInt64](CQL_UINT64_CONTRACT.md), [UTC dates](CQL_UTC_DATETIM
 
 Decimal source predicates, selected/nullable schemas and grouped alias literals
 pass23 new wire controls inside the full2,500 linked-unit cohort. Request/result
-values use exact invariant strings. Live Decimal HTTP/browser/Swagger/demo
-acceptance remains pending; this does not grant Decimal Sum/Average inputs.
+values use exact invariant strings. Live Decimal HTTP/SDK/Swagger
+acceptance passes75SDK/75HTTP examples on all three providers; browser script
+behavior passes the reusable offline check (no interactive browser run claimed); this does not grant Decimal Sum/Average inputs.

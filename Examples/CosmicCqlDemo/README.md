@@ -7,7 +7,7 @@
 .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -Serve
 ```
 
-Console runs **fourteen C# SDK queries and fourteen C# HTTP examples** on all three native databases. Serve then opens **http://127.0.0.1:5088/demo** after `TestResults/CosmicCqlDemo/v1-session.json` appears. Switch provider, user and example; edit spaced JSON and inspect formatted results/settlement. Repeat a key to show no replay.
+Console runs **25 C# SDK queries and 25 C# HTTP examples per provider (75 of each total)** on all three native databases. Serve then opens **http://127.0.0.1:5088/demo** after `TestResults/CosmicCqlDemo/v1-session.json` appears. Switch provider, user and example; edit spaced JSON and inspect formatted results/settlement. Repeat a key to show no replay.
 
 Swagger `/swagger` has a prefilled v1 request, synthetic Alice authorization and an editable required Idempotency-Key. Use a new key for a new intent. **Finish demo & clean up** awaits requests, checks settlement and removes owned data. Reuses the retained native environment; failed fixtures remain for inspection. Synthetic tokens last one hour; no production account or charge.
 
@@ -39,7 +39,7 @@ Read the source in this order:
 Start with examples 1–3 for CQL querying. Examples 4–6 show how queried holons participate in change tracking, conditional saves and committed deltas. Example 7 demonstrates an unsupported query being rejected before provider execution.
 
 
-The current walkthrough has **twenty-three** spaced/commented examples per provider: 69 SDK queries and 69 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
+The current walkthrough has **twenty-five** spaced/commented examples per provider: 75 SDK queries and 75 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
 
 Projection transport now passes fullCore2,059 controls and signed native three-store acceptance, including visibility before paging, exact large integers/null/GUID/nested values, receipts and no replay. The new10-example SDK/HTTP walkthroughs now pass their expanded30/30 verification plus broad147native regression (195settled operations/190physical attempts); consult the current [HTTP projection contract](../../Docs/WIP/COSMIC%20ORM/CQL_PROJECTION_HTTP_CONTRACT.md) for limits and verified evidence.
 
@@ -169,3 +169,40 @@ checks passed. This is the dedicated joint acceptance case, not a new full269-ca
 regression. The earlier63/63 UTC report retains its historical scope. Native
 UInt64 and compiler coverage are documented in
 [the contract](../../Docs/WIP/COSMIC%20ORM/CQL_UINT64_CONTRACT.md).
+
+
+## Examples 24–25: Decimal prices with exact fractions
+
+The fixture stores `price = 1m + i * 0.0000000000000000000000000001m`.
+Examples 24–25 select B-owned/C-public prices
+`1.0000000000000000000000000002` and
+`1.0000000000000000000000000003`.
+
+Example 24 filters/orders exact Decimal metadata and projects Name/Price.
+Example 25 groups by price, filters the selected Price alias, orders it and takes
+two groups. C# uses `decimal` and `m` literals; HTTP uses `Decimal` type tags and
+string bounds. Both routes use HolonManager and actual provider admission.
+
+Browser presets: **Decimal / exact price range** and **Decimal / grouped prices**.
+Swagger named example: **ExactDecimal** on projection and grouping. Existing UTC
+and UInt64 examples remain available. Decimal Sum/Average inputs are outside this
+metadata enrollment.
+
+The expanded live gate passes: **75 SDK queries and75 signed HTTP examples**,
+255 settled operations and250 provider attempts, zero failures/skips. Compiler coverage passes
+2,500 linked unit tests; native Decimal cohorts are recorded separately in the
+[Decimal contract](../../Docs/WIP/COSMIC%20ORM/CQL_DECIMAL_METADATA_CONTRACT.md).
+The reusable offline UI check is `node Scripts/TestHosts/Test-CqlV1DemoPresentation.cjs`;
+it tests script behavior without browser interaction or network calls.
+
+
+Current evidence: `TestResults/CosmicCqlDemo/v1-demo-result.json`,
+`v1-walkthrough.txt`, `v1-binary-identities.json`,
+`v1-source-identities.json` and `decimal-demo-native.log`.
+Source snapshots were unchanged; producer/consumer identities were captured
+inside the global build lease. The standalone demo project also builds without
+restore. Owned fixtures/readiness files were removed and retained services
+stopped. The initial obsolete Decimal-rejection control was changed to Double;
+its original outcomes were verified before exact cleanup, with failure evidence
+preserved. This is joint demo acceptance, not a new full native regression of all
+three providers.

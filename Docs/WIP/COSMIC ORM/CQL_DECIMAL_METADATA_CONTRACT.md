@@ -3,7 +3,7 @@
 24 October2026. Core codec/capture verified; SQLite implementation has passed its
 full1,459-case native gate, including24 Decimal cases. MongoDB passes228 native
 CQL and483 unit cases, including23/5 new cases. Neo4j passes217 native CQL/455
-units, including12/2 new cases. Live wire/examples remain open. This does not imply Decimal Sum/Average input
+units, including12/2 new cases. Live wire/examples now pass75SDK/75HTTP acceptance. This does not imply Decimal Sum/Average input
 enrollment; the existing numeric aggregate input contract stays Int32/Int64.
 
 ## One exact value domain
@@ -84,7 +84,8 @@ Mongo2CDF3D68 match across native/unit consumers. Evidence:
 TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx,
 decimal-unit-current.trx and decimal-identities-current.json; final log:
 TestResults/CosmicCqlDemo/decimal-mongo-full.log. Owned fixture/services cleaned;
-no new runtime/install/restore. Neo4j and wire/demo Decimal enrollment remain open.
+no new runtime/install/restore. At that checkpoint Neo4j and wire/demo Decimal
+enrollment remained open; subsequent verified gates are recorded below.
 
 ## Neo4j native implementation and verification
 
@@ -105,7 +106,7 @@ TestResults/CosmicCqlDemo/decimal-neo-full.log. Owned retained service is exited
 current fixture teardown completed, historical reviewed evidence is preserved.
 HTTP/demo enrollment remains open.
 
-## HTTP compiler verified; live acceptance pending
+## HTTP compiler and live acceptance verified
 
 WEB4 adds Decimal after UInt64 in the existing scalar enum, preserving existing
 identities. Source predicates, selected Decimal/nullable Decimal and grouped alias
@@ -117,4 +118,29 @@ linked Core unit tests, including23 new controls, zero skips. Source snapshots
 unchanged; CoreC65FBD5F/unitDC44A998 tested together. No Core production source
 changes. Evidence: TestResults/CosmicCurrent/decimal-wire-full-current.trx and
 decimal-wire-identities-current.json; log: CosmicCqlDemo/decimal-wire-full.log.
-Live HTTP/browser/Swagger/demo examples remain pending.
+Live HTTP/SDK/Swagger acceptance now passes75SDK/75HTTP examples across all three providers. Browser script behavior passes the reusable offline check; no interactive browser run is claimed.
+
+
+## Live Decimal examples 24–25 — 24 October 2026
+
+Actual43322 terminal0 passes75 SDK queries and75 signed HTTP examples across
+MongoDB, SQLite and Neo4j, zero failures/skips. The exact adjacent prices
+1.0000000000000000000000000002/3 survive source filters, projection, group identity,
+selected-result filters/order/page and string transport. Swagger ExactDecimal
+named examples are checked by the native host. Existing date/UInt64 examples
+continue to pass.
+
+The run settles255 synthetic operations with250 provider attempts. Source
+snapshots remain unchanged; producer/consumer DLL pairs were checked inside the
+global lease. Evidence in TestResults/CosmicCqlDemo: v1-demo-result.json,
+v1-walkthrough.txt, v1-binary-identities.json, v1-source-identities.json and
+decimal-demo-native.log. Native TRX: Neo4jCurrent/neo4j-cql-v1-demo-current.trx.
+Standalone Example build and Node24.19.0 offline two-preset/lexical check pass.
+Owned fixture/readiness files are absent; retained services stopped.
+
+The first run exposed an obsolete unsupported-Decimal probe. Only that control
+was retargeted to still-unsupported Double. Exact pinned original receipt/data
+reconciliation verified301 owned records and122 settled outcomes/119 receipts
+before cleanup, without replay. Its failure and cleanup evidence are preserved
+in decimal-demo-first-red.trx and reviewed-decimal-admission-reconciliation JSON.
+This closes Decimal live-demo acceptance, not the wider CQL/COSMIC ORM roadmap.

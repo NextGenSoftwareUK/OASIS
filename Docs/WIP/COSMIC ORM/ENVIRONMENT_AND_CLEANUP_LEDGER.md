@@ -1226,3 +1226,77 @@ with decimal-wire-full-current.trx and CosmicCqlDemo/decimal-wire-full.log
 (sizes unmeasured). Free C69,563,281,408 after. No service/install/download/restore;
 Core production unchanged. Preserve reusable outputs and compact evidence. Slot
 released; live three-provider Decimal demo remains next, on the same environment.
+
+Decimal live demo preparation: reuse Examples/CosmicCqlDemo existing assets/cache
+and bin/obj, retained Mongo8.3.11/Neo5.26.12 and fixed SQLite WEB4 fixture from
+the prior69/69 acceptance. New price dataset is part of the same five owned roots
+per provider, with exact1+i*10^-28 metadata; no additional environment/database.
+Planned75SDK/75HTTP uses Run-CosmicCqlV1Demo.ps1's single global lease, fixed
+TestResults/CosmicCqlDemo report/transcript/binary identities plus new
+v1-source-identities.json (sizes unmeasured). Before/after C# source hashes are
+captured inside that lease. Existing Example project assets confirmed reusable;
+no install/download/restore. Preserve acknowledged evidence/reusable outputs;
+remove only runner-owned fixture/readiness files after settled teardown. Compile
+the standalone Example project with existing assets after the live gate.
+
+Offline Decimal UI verification reuses C:/Program Files/nodejs/node.exe24.19.0.
+Owned fixed C:/Source/OASIS/TestResults/CosmicCqlDemo/decimal-ui-check.cjs and
+v1-decimal-ui-check.json are compact script/evidence (sizes unmeasured). Node VM
+loads the actual page script with stub DOM and blocked network, checks both new
+presets/string bounds/schema/lexical formatting; no browser interaction claimed.
+Retain JSON evidence; script is disposable after verification and reproducible
+from this task's checks. No package/npm restore, service, runtime download or
+environment is introduced.
+
+The verified temporary Node check was promoted, after exact source/destination
+validation and no existing destination, to reusable source
+C:/Source/OASIS/Scripts/TestHosts/Test-CqlV1DemoPresentation.cjs. Original
+TestResults/CosmicCqlDemo/decimal-ui-check.cjs is moved/absent, not duplicated;
+retain script as source and v1-decimal-ui-check.json as compact evidence. Re-run
+with the same installed Node executable from C:/Source/OASIS; no dependencies.
+
+Decimal demo76790 terminal1: old Neo HTTP fixture expected Decimal projection
+to reject400; enrollment admits it and the required absent amount yields503.
+Retained joint fixture remains before-http-request,9 root/child IDs,137 scalar
+IDs,274 Mongo/SQLite scalar writes and272 journal requests. Immutable manifest
+SHA256E10085F949323BD01594034C97936352E4799F2E362107ECEC5EFDE54117023A.
+Preserve exact original TRX/log as Neo4jCurrent/decimal-demo-first-red.trx and
+CosmicCqlDemo/decimal-demo-first-red.log; existing prior69/69 report remains stale.
+Owned services stopped; no reset/replay. Retarget only obsolete control to Double.
+Extend the existing hash-pinned reviewed-admission cleanup owner for this explicit
+incident, preserving UTC evidence separately, and verify every native row/outcome
+before deletion. Counts/digest are evidence, not permission to skip the checks.
+Cleanup/retry waits for peer Cosmos lease release; fixed runtimes/data reused.
+
+Reviewed cleanup67957 first stopped before mutation: the native unsigned value
+was exact Decimal128 text18446744073709551615.0, not integer-only text. Original
+journal digest remainedE100...7023A. Preserve decimal-demo-reconcile-first-red.trx
+and matching log. Fixed the cleanup assertion using existing Core exact numeric
+identity, including fractional-scale representations, without rounded parsing.
+45898 terminal0 reconciliation1PASS: every owned row and settled operation was
+verified, including the original failed operation's one attempt/receipt, then
+existing cleanup owner removed only acknowledged fixtures/synthetic databases.
+Retain cql-v1-web4-before-decimal-admission-reconciliation.json and
+cql-v1-web4-reviewed-decimal-admission-reconciliation.json plus exact cleanup
+report; historical UTC incident evidence remains unchanged. Services stopped
+between nonnested leases. Fresh demo43322 now uses same retained environment.
+
+Live demo43322 terminal0:75SDK/75signedHTTP across Mongo/SQLite/Neo;255 settled
+synthetic operations/250 provider attempts,0fail/skip. Unchanged source snapshots
+and exact producer/native pairs were captured INSIDE the build lease:
+CoreC65FBD5F/Shared5528E44B/Mongo0863A862/SQLite9D0007CB/Neo723DD8C6.
+Retain C:/Source/OASIS/TestResults/CosmicCqlDemo/{v1-demo-result.json,
+v1-walkthrough.txt,v1-binary-identities.json,v1-source-identities.json,
+decimal-demo-native.log,v1-decimal-ui-check.json} and Neo4jCurrent native TRX.
+Sizes unmeasured; compact evidence retained, no credential/token capture.
+Original reviewed cleanup verified301 owned records/122 settled operations,
+119attempts=119receipts; removed1,015,808-byte owned SQLite fixture after teardown.
+Its exact report is preserved separately as decimal-demo-reconciled-cleanup.json.
+Fresh runner likewise removed only its1,015,808-byte SQLite fixture after settled
+teardown; current fixture/readiness absent, owned Mongo27029/Neo17687 stopped,
+oasis-neo4j exited. Historical evidence preserved; no reset/replay/newenvironment.
+Standalone Example project built with existing assets in a subsequent nonnested
+lease (0errors); retain decimal-standalone-build.log. Node offline2preset/lexical
+check passes; promoted reusable source script retained. Free C69,434,904,576 after
+both gates. Reusable bin/obj/runtimes/data retained, no download/install/restore.
+Lease/source hold released for peer Cosmos; own changes await scoped publication.
