@@ -1353,3 +1353,26 @@ after; the contemporaneous peer Oracle/pagefile/VHD growth is tracked separately
 in the shared HyperDrive-Providers inventory, not attributed to this unit/native
 slice. No new environment/download/install/restore. Reusable outputs and compact
 evidence retained; lease/source hold released for peer AWS.
+
+SQLite Double preparation: reuse Coreac source/TFMs and existing Shared/SQLite/
+native/CoreUnit bin/obj, .NET10.0.401/runtime10.0.12, fixed SQLiteCurrent fixture.
+No install/download/restore/new environment. Twenty-six native cases prepared;
+Core nullable Double grouping capture added after peer AWS31621 source release.
+Query-scoped native intrinsic shares the existing read-budget token/cancellation
+owner. Planned fullCore2,507/focused26/fullSQLite1,485 gates use fixed
+CosmicCurrent/SQLiteCurrent TRX and CosmicCqlDemo/double-sqlite logs; sizes
+unmeasured. Retain compact identity/evidence, reuse outputs and dispose only owned
+acknowledged fixture DB/WAL/SHM. Mongo/Neo/Single/wire floating remain unenrolled.
+
+40902 terminal0:CorebothTFMs/full2,507/focused26/fullSQLite1,485 PASS0skip.
+Source snapshots unchanged; exact source/binary paths and hashes captured inside
+global lease in C:/Source/OASIS/TestResults/SQLiteCurrent/double-identities-current.json.
+Core57A3770B net10/B55827E8 netstandard2.1, Shared6D182110, SQLite02B743C3;
+native/provider copies match. Retain double-focused-current.trx,
+double-full-current.trx, CosmicCurrent/double-sqlite-core-current.trx and
+CosmicCqlDemo/double-sqlite-full.log (sizes unmeasured). Fixed SQLite DB/WAL/SHM
+are absent; no process/service/download/restore/new environment introduced.
+Free C68,240,822,272 after. Core existing-file group capture edit committed as
+2aae112400c57570a13b0968d099249b2ba8b0f6; compiled Core source count remains744
+(the earlier745 message was a count mistake, not a new file). Source/lease hold
+released while paired parent gitlink/manifest and SQLite publication complete.

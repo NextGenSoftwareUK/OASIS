@@ -199,7 +199,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         profile.RestrictsCanonicalFields.Should().BeTrue();
         var unsupported = new Expression<Func<Holon, bool>>[] {
             h => h.CustomKey == "key", h => h.IsDeleted,
-            h => CosmicQueryMetadata.Value<double>(h, "score") > 2d
+            h => CosmicQueryMetadata.Value<float>(h, "score") > 2f
         };
         foreach (var predicate in unsupported)
         {

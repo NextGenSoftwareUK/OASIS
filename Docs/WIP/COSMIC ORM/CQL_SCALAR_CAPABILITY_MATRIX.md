@@ -13,15 +13,16 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 | UTC DateTime | Exact JSON calendar text | BSON date plus exact tick companion | Exact schema3 calendar text |
 | UInt64/nullable UInt64 | Verified1,435 integration cohort incl22 new cases | Verified205 CQL/478 unit cohort incl14/5 new cases | Verified205 CQL/453 unit cohort incl13/5 new cases |
 | Decimal/nullable Decimal metadata | Verified1,459 integration cohort incl24 Decimal cases | Verified228 CQL/483 unit cohort incl23/5 new cases | Verified217 CQL/455 unit cohort incl12/2 new cases |
-| Double/Single metadata selectors | Not enrolled | Not enrolled | Not enrolled |
+| Double/nullable Double metadata | Verified1,485 full integration cohort incl26 Double cases | Not enrolled | Not enrolled |
+| Single metadata selectors | Not enrolled | Not enrolled | Not enrolled |
 | Count/LongCount/Any | Native | Native | Native |
 | Min/Max | Enrolled selected scalar domains | Enrolled selected scalar domains | Enrolled selected scalar domains |
 | Sum/Average inputs | Int32/Int64, nullable allowed | Int32/Int64, nullable allowed | Int32/Int64, nullable allowed |
 | Average result, selected filters/order | Exact Decimal normalization | Exact Decimal normalization | Exact Decimal normalization |
 
 The [floating foundation contract](CQL_FLOATING_SCALAR_CONTRACT.md) records the
-shared finite bit-key codec and Mongo Single persistence prerequisites. They do
-not enable Double/Single selectors or expand these capability claims.
+shared finite bit-key codec and Mongo Single persistence prerequisites. SQLite Double enrollment now passes its full native gate; Mongo/Neo Double
+and all Single query profiles remain unenrolled.
 
 UInt64/Decimal metadata does not grant those types as Sum/Average inputs.
 Decimal Average output does not itself grant Decimal metadata selection.

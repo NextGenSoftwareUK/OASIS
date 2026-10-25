@@ -1,12 +1,13 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core-linked 2,506 unit tests including23 Decimal wire controls and6 finite floating-key facts and full SQLite 1,459 native tests, including24 exact Decimal metadata cases. Decimal wire/demo acceptance passes75SDK/75HTTP; see [Decimal contract/evidence](CQL_DECIMAL_METADATA_CONTRACT.md). Earlier distinct cohorts include grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo75 SDK queries/75 HTTP examples with255 settled operations and250 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core-linked 2,507 unit tests and full SQLite1,485 native tests, including26 finite Double cases plus earlier exact Decimal/UInt64 coverage. Decimal wire/demo acceptance passes75SDK/75HTTP; see [Decimal contract/evidence](CQL_DECIMAL_METADATA_CONTRACT.md). Earlier distinct cohorts include grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo75 SDK queries/75 HTTP examples with255 settled operations and250 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
 Next implementation: remaining scalar coverage and the expanded provider/policy certification matrix. MongoDB Decimal now passes228 native CQL/483 units; SQLite passes1,459 full native cases; Neo4j Decimal passes217 native CQL/455 units. Neo4j SDK DateTime previously passed192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full provider regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Floating continuation: Core's finite binary64/binary32 key foundation passes both
-configured targets and the full2,506-unit suite, including six new facts and8,192
-finite random bit patterns. Provider Double/Single capabilities remain disabled;
+configured targets and the full2,507-unit suite, including finite-key facts and8,192
+finite random bit patterns. SQLite Double SDK queries pass1,485 full native cases; Mongo/Neo Double and all
+Single query capabilities remain disabled;
 Mongo Single numeric persistence/acknowledgement repair passes493 units and231
 native CQL cases, including3 new actual save/load cases; no floating query
 capability is enabled yet. See the
