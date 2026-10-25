@@ -105,8 +105,7 @@ public partial class Neo4jNativeCqlTests
             fixture.Known=!saved.IsError;Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);
             var read=await fixture.Provider.ExecuteCosmicQueryAsync(DescendantPlan(fixture,nodes:3,name:"target"));
             Assert.IsFalse(read.IsError,read.Message+read.Exception);Assert.AreEqual(0,read.Result.Count);
-        },configure:root=>root.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
-            new HolonChildRoleManifest(1,root.Id,new[]{new HolonChildRole("Children",root.Children.Select(child=>child.Id))})));
+        }); // Ordinary save captures the selected roles; JSON assignment cannot grant observation.
 
     [TestMethod]
     public Task NativeDescendantIndependentClausesPreserveExactInt64Metadata()
