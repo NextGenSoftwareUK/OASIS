@@ -634,3 +634,18 @@ Native cold/warm paused-response tests pass10/10 for all four query shapes;
 provider unit tests pass465/465. Full native regression and additional connection
 phase/deadline certification remain separate gates. See the descendant contract
 for exact evidence and the driver project's README for patch provenance.
+
+
+### Connection creation follow-on
+
+The internal host-resolver contract now carries the connection owner token through
+DNS and cache waits. TCP connect and TLS authentication use the native .NET10
+cancellation APIs. Socket and stream publication share the shutdown gate, so a
+closed owner cannot publish a later transport. Explicit TCP shutdown precedes
+disposal, preserving the prior teardown contract. The shipping public assembly
+identity is checked independently of producer/consumer hashes.
+
+The follow-on gate passes18native cancellation/deadline cases,6driver controls
+and465provider unit tests. Full current native regression certification remains
+separate; the descendant contract records the earlier reset failure and exact
+retest evidence.
