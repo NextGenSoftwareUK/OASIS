@@ -92,3 +92,36 @@ were preserved. Original red and reconciliation evidence remain in TestResults.
 
 This closes this admission batch, not ordinary role acknowledgement or all CQL.
 Eight separate new acknowledgement cases are prepared but not included in267.
+
+## Neo4j ordinary role acknowledgement candidate — 25 October 2026
+
+Parent86e95daeb publishes the verified ordinary partial-selection admission fix.
+The follow-on candidate copies canonical stored roles to ordinary callers only
+after a confirmed commit and after all parent identities publish. It then records
+the selected observation through the shared ownership API. Manager-prepared
+transport records retain their manager acknowledgement owner. Root-only saves
+restore stored role metadata without upgrading partial selection authority.
+
+Eight focused native cases first failed with caller role JSON remaining null,
+then all eight passed after the fix. Existing16 native outcome controls now also
+verify committed role observation and untouched caller roles after rollback or
+uncertain commit; all16pass. Refreshed fullunit477 passes, zero skips. These are
+separate cohorts, not full275 native acceptance. The expanded275 CQL suite is
+currently running under an explicit whole-runner global producer/consumer lease.
+Candidate source/tests remain uncommitted until that final gate is verified.
+
+Lease audit: raw Neo4j/Mongo reusable runners have environment leases but no
+internal global build lease. Historical raw native runs retain their actual
+results but must not be described as globally serialized. Invoke the entire raw
+runner with Invoke-WithProviderBuildLease.ps1 once; the three-provider demo already
+wraps itself and must not be nested. See resource ledger for exact run evidence.
+
+### Final Neo4j acknowledgement verification
+
+The candidate above is now verified by full native CQL275/275 (8m21), focused
+roles8/8, strengthened native outcomes16/16 and refreshed units477/477, zero skips.
+The final275 and outcomes/unit batches ran under explicit whole-runner global
+producer/consumer leases. Core/Shared/pinned-driver copies matched producers.
+Session66975 terminated0; fixture marker absent and reusable container exited.
+The earlier pending275 statement is superseded by this result. Cohorts remain
+separately recorded; this does not certify every custom-role/federation/join gate.
