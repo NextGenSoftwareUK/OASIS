@@ -1,6 +1,12 @@
 # CQL GroupBy contract
 
-23 October 2026. Core captures, plans, validates and executes grouped intents through the V2 physical-attempt owner. SQLite native reduction and MongoDB native integration/boundaries are verified below; Neo4j native grouping, grouped HTTP/demos and post-group composition remain open.
+25 October 2026. Core captures, plans, validates and executes grouped intents
+through the V2 physical-attempt owner. MongoDB, SQLite and Neo4j implement native
+grouping for their enrolled domains, including selected-result filtering,
+ordering and paging. Bounded HTTP transport and annotated demos are verified.
+Expanded identity/access/consistency coverage and final coherent regression
+certification remain open in the [completion roadmap](CQL_COMPLETION_ROADMAP.md).
+Dated sections below retain their original implementation-stage evidence.
 
 ## Key capture
 
@@ -16,7 +22,8 @@ var grouped = source.GroupBy(h => new
 
 Construction performs no I/O and invokes no selected getters, arbitrary methods, DTO constructors or setters. It reuses the projection compiler. Keys contain one to eight exact scalar columns. Source scope, trusted actor, predicates, relationships, ordering/window, graph shape and consistency are retained unchanged. Failed source results propagate their original error.
 
-`CosmicGroupingOptions.Create` admits one to 10,000 groups (default1,000) and one to32MiB of detached output (default32MiB). These are output bounds, not an input truncation permission. Native execution requires independent input-work/memory/time budgets and an explicit excess-work error. No adapter currently advertises grouping.
+`CosmicGroupingOptions.Create` admits one to 10,000 groups (default1,000) and one to32MiB of detached output (default32MiB). These are output bounds, not an input truncation permission. Native execution requires independent input-work/memory/time budgets and an explicit excess-work error. Each adapter must explicitly admit its grouped key and aggregate capabilities;
+row, projection or scalar enrollment cannot grant grouping.
 
 ## Native identity and execution requirements
 

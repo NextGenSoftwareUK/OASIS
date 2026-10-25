@@ -1,6 +1,6 @@
 # CQL developer manual
 
-24 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
+25 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
 
 ## Start with the developer demo
 
@@ -19,10 +19,16 @@ Open [the demo guide](../../../Examples/CosmicCqlDemo/README.md), then read `V1N
 
 These commands require the already configured reusable provider environment. They do not install or download services. The current runner checks fresh actual results rather than treating an older report as success. SDK examples check `OASISResult` before planning/execution; the public endpoint binds the authenticated actor itself.
 
-Current live walkthrough:25 examples per provider,75SDK/75HTTP in total, with255
-settled operations and250 provider attempts. Examples22–23 demonstrate UInt64;
-examples24–25 add exact Decimal price projection and grouped result filters/order.
-[Decimal evidence and supported domains](CQL_DECIMAL_METADATA_CONTRACT.md).
+Current verified walkthrough: **29 examples per provider, 87 SDK and 87 signed
+HTTP queries**, with 267 settled operations and 262 provider attempts. Examples 22–23
+cover UInt64, 24–25 exact Decimal prices, 26–27 Double readings and 28–29 Single
+readings. Native types retain their declared operator domains. See the
+[Decimal contract](CQL_DECIMAL_METADATA_CONTRACT.md) and
+[floating scalar contract](CQL_FLOATING_SCALAR_CONTRACT.md).
+
+Later dated sections preserve historical milestones. Their earlier test/demo
+counts describe those checkpoints, not the current walkthrough or full roadmap
+completion. The [completion roadmap](CQL_COMPLETION_ROADMAP.md) lists open work.
 
 ## Current operator guide
 
@@ -121,7 +127,7 @@ if (snapshot.IsError)
 
 Roots are depth zero. Depth one includes immediate children; zero means recursion within the explicit node/payload budgets. `recursive: false` reads immediate children only. `WithoutChildren()` restores leaf shape. Node and byte limits apply to the whole selected graph; exceeding them rejects the query rather than truncating it. Filtered/depth-boundary results retain omitted membership and cannot replace unobserved relationships on a child-selecting save. Use `saveChildren: false` for root-only edits.
 
-SQLite reads roots/children from one deferred Serializable snapshot. Existing caller transactions must also be Serializable and remain caller-owned. MongoDB uses one snapshot session across root/child commands; the tested environment is Mongo8.3.11 replica set with driver3.12.0. Neo4j uses one read-committed native transaction; committed child updates between commands may be visible, so this is not a repeatable snapshot. Neo4j now leases an exclusive reusable read transport: caller cancellation closes that transport and joins teardown before reuse. Eighteen cold/warm paused-Bolt controls cover caller cancellation and the shipping30-second deadline for rows, projections, scalar and grouped reads. Six driver tests cover cancellation during DNS/cache waits and TLS negotiation, plus the shipping assembly identity. Full current native regression recertification is tracked separately. Bounded authenticated HTTP graph transport is implemented for all three providers; use the graph/access examples and capability checks described below. [Graph details and evidence](CQL_GRAPH_LOADING.md).
+SQLite reads roots/children from one deferred Serializable snapshot. Existing caller transactions must also be Serializable and remain caller-owned. MongoDB uses one snapshot session across root/child commands; the tested environment is Mongo8.3.11 replica set with driver3.12.0. Neo4j uses one read-committed native transaction; committed child updates between commands may be visible, so this is not a repeatable snapshot. Neo4j now leases an exclusive reusable read transport: caller cancellation closes that transport and joins teardown before reuse. Eighteen cold/warm paused-Bolt controls cover caller cancellation and the shipping 30-second deadline for rows, projections, scalar and grouped reads. Six driver tests cover cancellation during DNS/cache waits and TLS negotiation, plus the shipping assembly identity. Full current native regression recertification is tracked separately. Bounded authenticated HTTP graph transport is implemented for all three providers; use the graph/access examples and capability checks described below. [Graph details and evidence](CQL_GRAPH_LOADING.md).
 
 ## Run a demonstration
 
