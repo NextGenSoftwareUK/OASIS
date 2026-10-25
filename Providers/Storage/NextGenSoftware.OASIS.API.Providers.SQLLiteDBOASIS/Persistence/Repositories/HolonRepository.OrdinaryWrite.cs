@@ -37,7 +37,7 @@ public partial class HolonRepository
             _dbContext.SaveChanges();
             var acknowledged=CommittedGraph(graph);
             commitEntered=true;enlisted.Commit();
-            result=new OASISResult<IEnumerable<IHolon>>(acknowledged){IsSaved=true};known=true;
+            result=new OASISResult<IEnumerable<IHolon>>(acknowledged){IsSaved=true,SavedCount=graph.Models.Count};known=true;
             graph.Publish();
         }
         catch(Exception cause){Record(cause);}
