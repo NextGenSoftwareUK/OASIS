@@ -220,10 +220,10 @@ public partial class Neo4jNativeCqlTests
         }, configure: root => { root.MetaData["nested"] = new Dictionary<string, object> { ["count"] = long.MaxValue }; root.MetaData["wide"] = 256; });
 
     [TestMethod]
-    public Task NativeProjectionUnsupportedDoubleDoesNotReachTheDriver()
+    public Task NativeProjectionUnsupportedSingleDoesNotReachTheDriver()
         => WithNativeGraph(async fixture =>
         {
-            var query = CosmicQuery<Holon>.Create().Select(h => CosmicQueryMetadata.Value<double>(h, "amount")).Result;
+            var query = CosmicQuery<Holon>.Create().Select(h => CosmicQueryMetadata.Value<float>(h, "amount")).Result;
             var planned = CosmicProjectionPlanner.Plan(query, Core.Enums.ProviderType.Neo4jOASIS,
                 new[] { new CosmicProjectionTarget(Core.Enums.ProviderType.Neo4jOASIS, Provider.CqlCapabilities, Provider.CqlProjectionCapabilities) });
             Assert.IsTrue(planned.IsError); Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", planned.ErrorCode);

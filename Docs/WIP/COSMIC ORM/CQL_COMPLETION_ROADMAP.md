@@ -6,7 +6,7 @@ Next implementation: remaining scalar coverage and the expanded provider/policy 
 
 Floating continuation: Core's finite binary64/binary32 key foundation passes both
 configured targets and the full2,507-unit suite, including finite-key facts and8,192
-finite random bit patterns. SQLite Double SDK queries pass1,485 full native cases; Mongo Double now passes254 native CQL/493 unit cases; Neo Double and all
+finite random bit patterns. SQLite Double SDK queries pass1,485 full native cases; Mongo Double passes254 native CQL/493 units and Neo Double232 native CQL/457 units; all
 Single query capabilities remain disabled;
 Mongo Single numeric persistence/acknowledgement repair passes493 units and231
 native CQL cases, including3 new actual save/load cases; the newer254-case cohort also verifies
