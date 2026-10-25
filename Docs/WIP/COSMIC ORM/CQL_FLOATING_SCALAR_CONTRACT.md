@@ -122,3 +122,27 @@ queries retain their existing domains; floating Sum/Average is not enrolled.
 Prepared native controls cover adjacent values, nullable grouping/extrema,
 field comparison, invalid domains, maximum/subnormal values and explicit
 Int64-to-Double rounding. Actual78290 terminal0:232 full native CQL and457 units pass, zero failures/skips, including15 new native and2 new packet controls. Evidence: TestResults/Neo4jCurrent/{neo4j-cql-native-current.trx,double-full-current.trx,double-identities-current.json} and TestResults/CosmicCqlDemo/neo-double-native.log. The runner verified matching Core353753B9 and Shared86216993 across producer/consumer outputs before execution. Native consumer identities were captured inside the lease; no source-before/after snapshot was captured in this batch. The graph fixture journal and Bolt17687 listener are absent after teardown. All Single query capabilities and floating HTTP/demo enrollment remain open.
+
+## Double HTTP contract — linked-unit verification
+
+The additive Double scalar enum identity is7; previous identities0–6 remain
+unchanged. Source filters, selected/nullable metadata and grouped selected-alias
+filters bind Double. Literal values must be canonical invariant finite .NET
+binary64 round-trip strings,1–24 characters, verified by parse/re-encode
+equality. Examples:0,0.1,5E-324,1.7976931348623157E+308. Noncanonical spelling,
+rounding, underflow, overflow, NaN, infinity and JSON numeric tokens reject
+before dispatch. Use value.ToString("R", CultureInfo.InvariantCulture) to encode
+a finite SDK value; canonicalize signed zero to0.
+
+Selected, extrema and grouped Double outputs use valueType Double and canonical
+round-trip strings. Nonfinite provider packets cannot become successful JSON.
+This shares the existing manager/admission/receipt and output owners; it grants
+no Double Sum/Average input capability.
+
+Actual2067 terminal0:full2,542 linked-unit tests pass0fail/skip, including35 new
+wire/endpoint controls. Evidence: TestResults/CosmicCurrent/
+double-wire-full-current.trx and double-wire-identities-current.json;
+TestResults/CosmicCqlDemo/double-wire-full.log. The native HTTP unknown-type
+control now uses NotAScalar so additive Double enrollment cannot invalidate it.
+Live all-provider Double HTTP/demo acceptance remains pending; Single remains
+unenrolled.
