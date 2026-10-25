@@ -49,3 +49,27 @@ Next: actual SQLite/MongoDB/Neo4j native digits/reductions and final group
 keys; provider source/privacy/window/consistency/interruption/error certification;
 explicit HTTP enrollment and signed three-provider demos. No adapter may advertise
 floating Sum/Average merely because the shared normalizer exists.
+
+## SQLite native packet component
+
+The scoped native aggregate/key callbacks pass11 focused tests plus74 full
+provider units. They run within SQLite execution under the existing read-budget
+callback; no manager source-row scan or holon construction is used. Each active
+group owns a distinct state; no reference seed is shared across groups/queries.
+This bounds aggregate state per group, not all SQLite sort/working memory.
+
+The ephemeral result BLOB is version1, type1(Single)/2(Double), then a signed
+little-endian Int64 participating count and ten/seventy signed little-endian
+Int64 sums: exactly90/570bytes. Shape/version/type/count are checked before fixed
+allocation. Core must normalize every packet to validate limb and full-numerator
+proofs, including groups outside the result page. It is not a persisted schema.
+
+Required/nullable Sum/Average key modes are explicit. Typed errors are retained
+across SQL filters; budget exceptions preserve their original cause. Registration
+requires an open owned connection, and disposal is idempotent. Connections and
+parameter datasets are in-memory in these tests and disposed after each case.
+
+Remaining: integrate this component into both query compilers/read owners,
+retain original source/access/traversal and complete raw proofs, certify native
+scalar/grouped cases, then explicitly enroll provider capabilities. MongoDB,
+Neo4j and HTTP floating arithmetic remain pending independently.
