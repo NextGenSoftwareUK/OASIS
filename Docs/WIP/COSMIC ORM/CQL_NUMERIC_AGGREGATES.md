@@ -1,5 +1,21 @@
 # CQL numeric Sum/Average contract
 
+## Floating aggregate capture - 25 October 2026
+
+Full Core **3,098 tests** pass without failures/skips; both Core targets build.
+Eight new cases verify required/nullable Single/Double Average overloads, Sum,
+explicit input admission versus legacy read-only permissions, typed empty sums,
+rejection of integer-packet substitution and scalar/grouped publication without
+Decimal conversion. Nonfinite and wrong-type values still reject. Existing
+unsupported-domain tests now use DateTime/TimeSpan/Boolean instead of newly
+supported floating capture.
+
+The shared layer captures immutable floating intents and preserves their declared
+result type. The native/HTTP capability profiles remain unchanged: this does not
+enable floating Sum/Average on an adapter. SQLite, MongoDB and Neo4j native
+translations, group keys, acceptance and explicit HTTP/demo enrollment remain next.
+See [the contract](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
 ## Finite floating aggregate foundation - 25 October 2026
 
 Full Core **3,090 tests** pass without failures/skips; both netstandard2.1/net10.0

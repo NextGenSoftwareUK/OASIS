@@ -1,7 +1,7 @@
 # CQL finite floating aggregate contract
 
 25 October 2026. Shared normalization passes the full3,090-test Core suite and both Core targets
-(netstandard2.1/net10.0); query capture, native provider
+(netstandard2.1/net10.0); query capture/grouping also passes full3,098 tests. Native provider
 translation/enrollment and HTTP/demos are not implemented by this component.
 Existing floating metadata filters/projection/extrema remain separate features.
 
@@ -43,8 +43,9 @@ shape/count/work/type violations and maximum participation. All11 new controls
 pass without failures/skips within full3,090 acceptance. Evidence:
 TestResults/CosmicCqlDemo/floating-aggregate-core.log and floating-aggregate-core.trx.
 
-Next: expression capture/result typing, immutable grouped selection and explicit
-capabilities; actual SQLite/MongoDB/Neo4j native digits/reductions and final group
+Capture/result typing, immutable grouped selection and explicit capability
+declarations are now implemented. Legacy read permissions remain unchanged.
+Next: actual SQLite/MongoDB/Neo4j native digits/reductions and final group
 keys; provider source/privacy/window/consistency/interruption/error certification;
 explicit HTTP enrollment and signed three-provider demos. No adapter may advertise
 floating Sum/Average merely because the shared normalizer exists.
