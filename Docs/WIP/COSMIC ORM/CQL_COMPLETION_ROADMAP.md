@@ -4,15 +4,16 @@ Current checkpoint: **25 October 2026**. Native flat inner/left joins,
 signed HTTP and annotated31-example/provider demos are implemented on MongoDB,
 SQLite and Neo4j. Latest published demo baseline is `b1c2ae263`.
 
-- Latest separately verified cohorts: Core **2,799** (composition capture),
+- Latest separately verified cohorts: Core **2,841** (composition capture/admission/proof),
   Shared **1,189**, SQLite **1,615 native**, MongoDB **328 native /510 unit**,
   Neo4j **320 native /492 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **93 SDK /93 HTTP**, **288 settled operations
   /283 attempts**. Six join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
-- Selected-result composition now captures immutable stages but has **no native
-  enrollment yet**. Providers reject composed stages before execution. Native
-  proof/work ownership and provider subqueries are next.
+- Selected-result composition captures immutable stages and independently admits
+  complete proof/work contracts, with **no native enrollment yet**. Ordinary
+  projection execution rejects composed stages. Generic execution and provider
+  subquery/proof owners are next.
 - Full CQL/ORM completion remains unproven. Historical checkpoints below retain
   their original scope; remaining certification/policy/federation gates stay open.
 
@@ -1336,3 +1337,49 @@ certify native execution of the new composed stages. Evidence:
 `TestResults/CosmicCqlDemo/projection-composition-demo-regression.log` and
 `TestResults/CoreCurrent/projection-composition-current.trx`. Owned fixtures are
 removed and test services stopped normally.
+
+## Composition admission and complete proof — 25 October 2026
+
+Core adds separate `CosmicProjectionCompositionCapabilities` and target/plan/
+actual-readmission owners. Source permissions, projection columns, selected
+filter operators/domains, ordering domains and paging stages are independently
+required. Every selected provider preflights; actual provider identity and its
+current capabilities must match again before native execution. Capabilities and
+eligible-target snapshots are frozen. Ordinary projection permissions still
+cannot authorize composed execution.
+
+Complete composition packets carry all participating input cells/access/source
+ordering, native identity membership for every result stage, final native rows
+and explicit source/cumulative-stage counts. Core validates all input before a
+later filter/page can hide malformed or private data. It checks every stage's
+native membership/order, stable ties from the previous stage, exact final
+source payloads and count agreement before constructing any DTO. The verifier
+uses shared scalar predicate semantics; it rejects a wrong native result and
+never publishes reference-computed replacement rows. Joined payload validation
+shares exact cell identity, including signed zero and Decimal representation.
+
+Input rows/bytes, cumulative stage-row participation, stage proof bytes and
+published rows/bytes have independent limits. Cancellation is checked through
+cell validation, stage evaluation, stable ordering and publication. The generic
+multi-provider executor must retain all-buffer validation before construction.
+
+Both Core frameworks build; full Core/linked WEB4 passes **2,841/2,841**, zero
+skips:21 admission and21 proof controls beyond2,799. Tests cover independent
+stage/operator/type permission, actual downgrade/foreign identity, source/column
+permissions, snapshot isolation from caller mutation, full off-page validation,
+filter/window order, stable sort ties, changed identities/payload, private data,
+nullable/runtime outputs, signed zero/Decimal bits, independent budgets and
+cancellation without DTO construction.
+
+**Still open:** generic physical-attempt execution/remaining global budgets,
+native SQLite/MongoDB/Neo4j subqueries and proof decoding, HTTP composition and
+annotated demos. No native provider advertises this new execution shape yet.
+Existing ordinary queries and join demos remain supported.
+
+Final unchanged-operator regression on the new Core producer passes **93 SDK /
+93 HTTP**, **288 settled /283 physical attempts**, dedicated joint1/1 zero
+skips. This exercises existing grouped filters and join payloads through their
+new shared admission/verification helpers. It does not claim native composed
+subqueries execute. Evidence: `TestResults/CosmicCqlDemo/composition-proof-final.log`,
+`TestResults/CoreCurrent/composition-proof-current.trx` and
+`TestResults/CosmicCqlDemo/composition-proof-demo-regression.log`.
