@@ -50,6 +50,46 @@ public static class CqlCustomRoleGraph
         owner.IsPublic=true;owner.Children[0].IsPublic=true;extra.IsPublic=false;
     }
 
+    public static void ConfigureOrdinary(Holon source)
+    {
+        Configure(source);
+        // Force a collection order opposite to database identity sorting.
+        source.Children[0].Id=Guid.Parse("ffffffff-ffff-ffff-ffff-fffffffffffe");
+        source.Children[1].Id=Guid.Parse("00000000-0000-0000-0000-000000000001");
+    }
+
+    public static async Task VerifyOrdinaryAsync(HolonManager manager,ICosmicQueryStorageProvider adapter,
+        CqlRoleOwner source,Func<Task<IHolon>> save)
+    {
+        var children=source.Children.Select(child=>child.Id).ToArray();
+        var extras=source.Extras.Select(child=>child.Id).ToArray();
+        var expected=HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(1,source.Id,new[] {
+            new HolonChildRole("Children",children),new HolonChildRole("Extras",extras)}));
+        source.Description="ordinary typed ownership write";
+        var acknowledged=await save();
+        if(source.ChildRoleManifestJson!=expected || (acknowledged as Holon)?.ChildRoleManifestJson!=expected)
+            throw new InvalidDataException("Ordinary acknowledgement lost logical custom roles or collection order.");
+        HolonChangeTracking.ValidateChildSelectionForSave(source);
+        var id=source.Id;
+        var query=CosmicQuery<CqlRoleOwner>.Create().Where(row=>row.Id==id)
+            .WithChildren(CosmicQueryGraphOptions.Create().Result);
+        if(query.IsError)throw new InvalidDataException(query.Message);
+        var plan=CosmicQueryPlanner.Plan(query.Result,adapter.QueryProviderType,
+            new[]{new CosmicQueryTarget(adapter.QueryProviderType,adapter.QueryCapabilities)});
+        if(plan.IsError)throw new InvalidDataException(plan.Message);
+        var read=await manager.ExecuteQueryAsync(plan.Result,new[]{adapter});
+        if(read.IsError)throw new InvalidDataException(read.Message,read.Exception);
+        var owner=read.Result.Providers.Single().Rows.Single();
+        if(owner.Description!=source.Description || owner.ChildRoleManifestJson!=expected
+            || !owner.Children.Select(child=>child.Id).SequenceEqual(children)
+            || !owner.Extras.Select(child=>child.Id).SequenceEqual(extras)
+            || owner.Extras.Single().Label!="stored typed extra" || HolonChangeTracking.HasChanges(owner))
+            throw new InvalidDataException("Native typed query did not preserve committed custom roles, order, values and clean baseline.");
+        owner.Extras.Single().Label="changed after query";
+        if(!HolonChangeTracking.HasChanges(owner))
+            throw new InvalidDataException("The typed custom child edit was not tracked through its owner.");
+    }
+
     public static async Task VerifyAsync(HolonManager manager,ICosmicQueryStorageProvider adapter,
         Holon source,bool accessBound)
     {
