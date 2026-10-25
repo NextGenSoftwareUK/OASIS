@@ -36,15 +36,19 @@ public partial class SQLLiteDBOASISIntegrationTests
         var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=old.Id,Name="match",IsPublic=true};
         child.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="moved grandchild",IsPublic=true});
         old.Children.Add(child);
-        old.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
+        var oldManifest=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
             1,old.Id,new[]{new HolonChildRole("Children",new[]{child.Id})}));
-        next.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
+        var nextManifest=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
             1,next.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>())}));
         (await provider.SaveHolonAsync(old)).IsError.Should().BeFalse();
         (await provider.SaveHolonAsync(next)).IsError.Should().BeFalse();
         using(var context=new DataContext(TestConnectionString))
         {
-            var childId=child.Id.ToString("D");var nextId=next.Id.ToString("D");
+            var childId=child.Id.ToString("D");var nextId=next.Id.ToString("D");var oldId=old.Id.ToString("D");
+            // This fixture deliberately controls STORED membership. Serialized caller
+            // membership is not authority for an ordinary child-replacing save.
+            (await context.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET PersistentValueJson=json_set(PersistentValueJson,'$.ChildRoleManifestJson',{oldManifest}) WHERE Id={oldId}")).Should().Be(1);
+            (await context.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET PersistentValueJson=json_set(PersistentValueJson,'$.ChildRoleManifestJson',{nextManifest}) WHERE Id={nextId}")).Should().Be(1);
             await context.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET ParentHolonId={nextId} WHERE Id={childId}");
             if(!declaredNewOwner)await context.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET PersistentValueJson=json_remove(PersistentValueJson,'$.ChildRoleManifestJson') WHERE Id={nextId}");
         }
@@ -99,9 +103,11 @@ public partial class SQLLiteDBOASISIntegrationTests
             var root=roots[index];
             root.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,Name=index==3?"no":"match",
                 IsPublic=index is 1 or 3,CreatedByAvatarId=index==2?actor:other});
-            root.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
+            var manifest=Core.Serialization.HolonChildRoleManifestJson.Serialize(new HolonChildRoleManifest(
                 1,root.Id,new[]{new HolonChildRole("Children",root.Children.Select(child=>child.Id))}));
             var saved=await provider.SaveHolonAsync(root);saved.IsError.Should().BeFalse(saved.Message+saved.Exception);
+            using var fixture=new DataContext(TestConnectionString);var id=root.Id.ToString("D");
+            (await fixture.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET PersistentValueJson=json_set(PersistentValueJson,'$.ChildRoleManifestJson',{manifest}) WHERE Id={id}")).Should().Be(1);
         }
         // A physical parent link outside the canonical role membership cannot
         // turn D into a matching parent. No hidden child can make A match.
