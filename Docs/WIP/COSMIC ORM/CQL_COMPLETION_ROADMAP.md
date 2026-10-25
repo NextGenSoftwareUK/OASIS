@@ -559,3 +559,12 @@ Source snapshots unchanged; Core/Shared/Mongo producer copies match both native
 and unit consumers. This does not enable Single queries: exactInt64/Decimal128
 source normalization and complete native query acceptance remain required.
 Neo Single, Single HTTP/demos and all broader unchecked gates remain open.
+
+## Mongo Single integer component — 24 October 2026
+
+Exact integer normalization passes 9,700 native vectors against an independent
+BigInteger reference, including signed halfway neighborhoods. The shared
+rounding refactor retains all 12,313 binary64 vectors. Full Mongo native 256 and
+unit 493 suites pass with no failures/skips, unchanged sources and matching
+producer/native/unit binaries. Original Decimal128 normalization and full Single
+query acceptance remain open; no Single capability has been enabled.

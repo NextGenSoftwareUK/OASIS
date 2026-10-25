@@ -65,3 +65,8 @@ Mongo's newer full255native/493unit cohort includes a verified native binary64
 toSingle component with12,313vectors. Its Single row/selected/grouped query
 profiles remain unenrolled pending exactInt64/Decimal128 source normalization
 and complete query acceptance; the table's Single status remains unchanged.
+
+Mongo's latest full cohort passes 256 native CQL tests and 493 unit tests,
+including verified binary64 and exact integer Single components (12,313 and
+9,700 vectors respectively). Mongo Single query capability remains **not
+enrolled** until original Decimal128 and complete query execution are verified.
