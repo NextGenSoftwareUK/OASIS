@@ -61,16 +61,16 @@ public partial class Neo4jNativeCqlTests
 
 
     [TestMethod]
-    public Task NativeMinMaxCannotBorrowSingleReadCapability()
+    public Task NativeMinMaxCannotBorrowConsoleColorReadCapability()
         => WithNativeGraph(async fixture =>
         {
             var id = fixture.Root.Id;
             var query = CosmicQuery<Holon>.Create().Where(h => h.Id == id)
-                .Min(h => CosmicQueryMetadata.Value<float>(h, "amount")).Result;
+                .Min(h => CosmicQueryMetadata.Value<ConsoleColor>(h, "amount")).Result;
             var claims = new CosmicScalarCapabilities(Array.Empty<CosmicScalarOperation>(), new[]
             {
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Min,
-                    new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(), new[] { typeof(float) }))
+                    new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(), new[] { typeof(ConsoleColor) }))
             });
             var planned = CosmicScalarPlanner.Plan(query, Core.Enums.ProviderType.Neo4jOASIS,
                 new[] { new CosmicScalarTarget(Core.Enums.ProviderType.Neo4jOASIS, Provider.CqlCapabilities, claims) });

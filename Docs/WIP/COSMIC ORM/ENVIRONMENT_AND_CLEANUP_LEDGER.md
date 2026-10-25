@@ -1754,3 +1754,62 @@ FreeC66,495,197,184before/66,279,866,368after fullgate. No restore/install/
 download/newenvironment. Fixed reports/log retained, sizesunmeasured. Shared
 bin/obj/runtime/cache retained reusable; fixture cleanup uses existing owner.
 Singlequerycapability remainsdisabled. Globallease/sourceholdreleased.
+
+## Neo Single query integration preparation — 25 October 2026
+
+OwnerCOSMIC ORM/CQL. Existing Neo5.26.12WSL/Podman/runtime/SDK/package/output
+environment reused; sourceonly preparation now, no new installs/restore/service.
+Candidatefloat/nullableprofile locally enrolled for forthcomingnativegate only.
+Existing Doublequerycases adapted into15Single nativecases;2packetunitcases
+require exact widened finitebinary32 and canonicalzero. Unsupportedtype control
+retargetedConsoleColor. Expected248native/459unit; noacceptance/publishclaimyet.
+Preserve originallexeme component209vectors in fullsuite. Fixedfuture evidence
+Neo4jCurrent/single-query-* and CosmicCqlDemo/neo-single-query-full.log, sizes
+unmeasured. Fixtureowned by existingWithNativeGraph acknowledgedteardown.
+
+Added16th nativeSinglequerycase for promotedDouble membership/grouped filter
+precision:0.1d must not match normalized0.1f. Expectednextgate249native/459units,
+superseding earlier248count. Sourceonly whileOracleownslease; no builds/tests
+or new resourceallocation in thisstep. Candidate changes unverified/unpublished.
+46503 acquired normalgloballease afterOraclecleanrestartrelease. Fullcandidate
+NeoSinglequery cohort active249native/459unit. Fixedreuse17687/containerimage/
+fixture/SDK/cache/binobj asrecorded; no restore/install/download/newenvironment.
+Reports Neo4jCurrent/single-query-full-current.trx, single-query-identities-current.json,
+neo4j-cql-native-current.trx and CosmicCqlDemo/neo-single-query-full.log; sizes
+unmeasured. Original kernel evidence retained separately. Outcome pending.
+
+46503terminal1:249nativeexecuted,248passed/1failed/0skip. NewSinglequerycases
+pass; older NativeMinMaxCannotBorrowSingleReadCapability expectedunsupported
+Single, nowreturnsCQL_DATA_INVALID becauseSingleisenrolled. Retargetednegative
+borrowedcapabilitytesttoConsoleColor; admissioninvariantunchanged. Unitsnotrun.
+Preserve Neo4jCurrent/single-query-red-current.trx andoriginalfull.log. Container
+exited afterrunnerfinally; knownfixtureownerteardownrunsafterassertionfailure.
+Nextfull249native/459unit retry uses samefixedenvironment, correctedlogname.
+
+7204terminal1:all249nativePASS0skip; units458pass/1fail of459. Remainingolder
+UnsupportedDomainsRejectDuringSharedAdmission stillusedfloat. Retargetedto
+ConsoleColor; no productioncodechange. Preserved single-query-native-green-
+before-unit-fix.trx andsingle-query-unit-red-current.trx, originalcorrectedlog.
+Nativefixturejournalabsent, retainedcontainerstoppedbyrunner. Finalproofstage
+wasnotreachedbecauseunitsfailed; nextfullcohortwillcapturefreshsource/binary
+proof. Reuseexistingresources, no reinstalls/resets. Reportsizesunmeasured.
+
+## Single HTTP source preparation — 25 October 2026
+
+OwnerCOSMIC ORM/CQL. ONODE wire/compiler/endpoint files and two linkedrootunit
+files prepared duringNeo76459nativegate; these are outside its frozen source
+roots and no build/output mutation occurred. Singleenumappended8, existingIDs
+preserved. Canonicalfinitebinary32stringparse/format, selectednullable schema,
+groupaliasliterals/orderbinding. New tests cloned/adapted fromDoublewire/endpoint
+controls; notexecutedyet. These HTTP changes are not covered byNeo nativegate
+and mustreceive own Core/endpoint/liveHTTP verification. No runtime/download/
+restore/newenvironment. Existingrootunitbin/obj/cache tobereused underlease.
+
+76459terminal0:249native/459unitPASS0skip. Sourcecohortunchanged; CoreE5145A09/
+Shared95DAA150/Neo6C2CD2FF matchnative+unitconsumers. Fixedgraphfixturejournal
+absent; containerexitedafterteardown. FreeC64,712,171,520after. Finalreports/log
+fixed single-query-* /neo-single-query-final.log retained; sizesunmeasured.
+No downloads/restores/installs/newenvironments. Reusable SDK/cache/runtime/binobj
+retained; source/buildholdreleased. HTTP sourceprep explicitlyoutsideNeo gate
+and unpublished pendingseparatetests. RedTRXSHA256
+4EA2C135FA94DCD181B4E12FA4E59054479E00ED0B41991080C103E2D532A92B.

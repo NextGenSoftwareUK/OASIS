@@ -357,3 +357,28 @@ single-kernel-identities-current.json and TestResults/CosmicCqlDemo/
 neo-single-kernel-full.log. This verifies the conversion component only.
 NeoSingle query admission, complete native query integration and Single
 transport/demos remain open, as do all broader unchecked roadmap requirements.
+
+## Neo Single query gate — 25 October 2026
+
+Gate76459 passes249native/459unit cases, zero failures/skips. Sixteen new native
+query cases exercise range/membership/order, nullable group keys/filtering,
+Min/Max, field comparison, invalid data domains, original JSON number/integer
+boundaries and promoted Double literal/membership precision. Two new detached
+packet controls require exact widened finite binary32 and canonical zero.
+Original209vector native midpoint component remains in the full suite.
+Single/nullable Single metadata query capabilities are now enrolled in Neo4j.
+Floating Sum/Average are not enrolled by this checkpoint.
+
+Earlier46503 failed one obsolete native unsupported-Single control;7204 then
+passed all249native but failed one obsolete unit unsupported-Single control.
+Both negative controls now use unsupported ConsoleColor, retaining provider
+admission checks. Production Single code needed no change between these gates.
+Red reports remain separate from the final verified cohort.
+
+Source snapshots unchanged; CoreE5145A09/Shared95DAA150/Neo6C2CD2FF producer
+identities match native and unit copies. Fixed cql-graph-fixture.json absent,
+container exited after teardown. Evidence: TestResults/Neo4jCurrent/
+neo4j-cql-native-current.trx, single-query-full-current.trx,
+single-query-identities-current.json and TestResults/CosmicCqlDemo/
+neo-single-query-final.log. Single HTTP/compiler/demo changes are separate
+unverified preparation; all broader unchecked roadmap acceptance remains open.

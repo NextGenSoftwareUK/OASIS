@@ -147,6 +147,13 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
             CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var utc)) return utc;
         if (type == typeof(ulong) && value is string unsigned
             && ulong.TryParse(unsigned, NumberStyles.None, CultureInfo.InvariantCulture, out var unsignedValue)) return unsignedValue;
+        if (type == typeof(float) && value is double widened)
+        {
+            var single = (float)widened;
+            if (!float.IsNaN(single) && !float.IsInfinity(single) && (double)single == widened)
+                return single == 0f ? 0f : single;
+            throw new InvalidDataException("Native Single packet is not an exact widened binary32 value.");
+        }
         if (type == typeof(double) && value is double number && !double.IsNaN(number) && !double.IsInfinity(number))
             return number == 0d ? 0d : number;
         if (type == typeof(decimal) && value is string decimalKey)
