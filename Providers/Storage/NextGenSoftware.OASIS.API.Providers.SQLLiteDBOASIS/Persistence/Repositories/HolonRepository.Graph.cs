@@ -57,6 +57,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             var records = graph.Models.Select(GetHolonFromEntity).ToDictionary(record => record.Id);
             foreach (var pair in graph.ChildIds)
                 records[pair.Key].Children=pair.Value.Select(id=>records[id]).ToList();
+            // These unpublished DTOs are the exact selected committed graph,
+            // not the caller objects observed by PreparedGraph.Publish. Retain
+            // complete membership only where the captured materialization proves
+            // it; depth frontiers/unknown typed roles remain restricted.
+            foreach (var record in records.Values) ObserveLoadedChildRoles(record);
             return graph.Nodes.Where(node => graph.RootIds.Contains(node.Snapshot.Id.ToString()))
                 .Select(node => records[node.Snapshot.Id]).ToList();
         }
