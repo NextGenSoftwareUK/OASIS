@@ -34,11 +34,39 @@ public sealed class ConditionalHolonRecordTests
             token.ThrowIfCancellationRequested();if(!Rows.TryGetValue(key,out var row)||row.Revision!=revision)throw new StorageLifecycleConflictException("controlled delete conflict");
             Rows.Remove(key);Mutations++;AfterMutation?.Invoke(key);return Task.CompletedTask;
         }
-        public Task<string> GetAsync(string key,CancellationToken token=default)=>throw new InvalidOperationException("save must retain its native observation");
+        public Func<string,string> PointRead;
+        public Task<string> GetAsync(string key,CancellationToken token=default)=>PointRead==null
+            ?throw new InvalidOperationException("save must retain its native observation")
+            :Task.FromResult(PointRead(key));
         public Task PutAsync(string key,string value,CancellationToken token=default)=>throw new InvalidOperationException("unconditional overwrite forbidden in this schedule");
         public Task DeleteAsync(string key,CancellationToken token=default)=>throw new InvalidOperationException("not used by this save schedule");
         public Task<IReadOnlyList<string>> ListKeysAsync(string prefix,CancellationToken token=default)=>Task.FromResult<IReadOnlyList<string>>(Rows.Keys.Where(key=>key.StartsWith(prefix,StringComparison.Ordinal)).ToArray());
         public Task VerifyAsync(CancellationToken token=default)=>Task.CompletedTask;
+    }
+
+    public static IEnumerable<object[]> AvatarSelectorRaces()
+    {foreach(var sync in new[]{false,true})foreach(var email in new[]{false,true})foreach(var soft in new[]{false,true})foreach(var rename in new[]{false,true})yield return new object[]{sync,email,soft,rename};}
+
+    [DataTestMethod][DynamicData(nameof(AvatarSelectorRaces),DynamicDataSourceType.Method)]
+    public async Task AvatarAliasDeletionMustNotAdoptAChangedCanonicalObservation(bool sync,bool email,bool soft,bool rename)
+    {
+        var id=Guid.NewGuid();var key=$"oasis/avatar/{id:N}";var detailKey=$"oasis/avatardetail/{id:N}";
+        var store=new Store();var original=new Avatar{Id=id,Username="owned",Email="owned@example.invalid",IsActive=true,FirstName="original",Version=1};
+        store.Seed(key,OasisJson.Serialize<IAvatar>(original));store.Seed(detailKey,OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,IsActive=true,XP=123}));
+        var selector=email?original.Email:original.Username;
+        var encoded=Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(selector)).TrimEnd('=').Replace('+','-').Replace('/','_');
+        store.Seed($"oasis/avatar-{(email?"email":"username")}/{encoded}",id.ToString());
+        var winner=OasisJson.Serialize<IAvatar>(new Avatar{Id=id,Username=rename?"changed":original.Username,Email=rename?"changed@example.invalid":original.Email,FirstName="independent winner",IsActive=true,Version=2});
+        var originalDetail=store.Rows[detailKey];
+        store.PointRead=read=>{var selected=store.Rows.TryGetValue(read,out var row)?row.Value:null;
+            if(read==key){store.PointRead=other=>store.Rows.TryGetValue(other,out var next)?next.Value:null;store.Seed(key,winner);}return selected;};
+        var provider=new TestProvider(store){IsVersionControlEnabled=true};
+        var result=email?sync?provider.DeleteAvatarByEmail(selector,soft):await provider.DeleteAvatarByEmailAsync(selector,soft)
+            :sync?provider.DeleteAvatarByUsername(selector,soft):await provider.DeleteAvatarByUsernameAsync(selector,soft);
+        Assert.IsTrue(result.IsError,"Deletion must not replace its original selected record with a newer GUID read.");
+        Assert.IsFalse(result.IsDeleted);Assert.IsFalse(result.Result);Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
+        Assert.IsInstanceOfType<StorageLifecycleConflictException>(result.Exception);Assert.AreEqual(0,store.Mutations);
+        Assert.AreEqual(winner,store.Rows[key].Value);Assert.AreSame(originalDetail,store.Rows[detailKey]);
     }
 
     [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(true,true)]
