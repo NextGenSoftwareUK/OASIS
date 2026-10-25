@@ -15,9 +15,9 @@ public sealed partial class HyperDriveProviderExecutionTests
 {
     [Theory]
     [InlineData(false)] [InlineData(true)]
-    public async Task OrdinaryReplicaCurrentlyLosesAcknowledgedChildSelectionAuthority(bool synchronous)
+    public async Task OrdinaryReplicaRetainsAcknowledgedChildSelectionAuthority(bool synchronous)
     {
-        // Characterize the native AWS->SQLite failure without replaying its preserved fixture.
+        // Exercise the native AWS->SQLite handoff without replaying its preserved fixture.
         // A serialized manifest is data, not authority to replace selected child membership.
         var primary = CreateActiveProvider();
         var replica = CreateActiveProvider(ProviderType.IPFSOASIS, "selection-checking-replica");
@@ -38,6 +38,9 @@ public sealed partial class HyperDriveProviderExecutionTests
             record.Should().NotBeSameAs(root);
             record.Children.Single().Id.Should().Be(root.Children.Single().Id);
             record.As<Holon>().ChildRoleManifestJson.Should().Be(root.ChildRoleManifestJson);
+            var cold = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(record);
+            Action copiedAdmission = () => HolonChangeTracking.ValidateChildSelectionForSave(cold);
+            copiedAdmission.Should().Throw<InvalidOperationException>();
             try
             {
                 HolonChangeTracking.ValidateChildSelectionForSave(record);
@@ -63,8 +66,8 @@ public sealed partial class HyperDriveProviderExecutionTests
         var result = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
         calls.Should().Be(1);
         result.IsError.Should().BeFalse(); result.IsSaved.Should().BeTrue();
-        result.IsWarning.Should().BeTrue("ordinary replication currently drops the live child-selection evidence");
-        router.LastReplicationDiagnostic.Attempts.Single().Succeeded.Should().BeFalse();
+        result.IsWarning.Should().BeFalse();
+        router.LastReplicationDiagnostic.Attempts.Single().Succeeded.Should().BeTrue();
         HolonChangeTracking.ValidateChildSelectionForSave(root);
     }
 
