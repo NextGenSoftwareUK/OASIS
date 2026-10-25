@@ -67,6 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
+            var acknowledgedIds=new HashSet<Guid>();
             var failures=new List<Exception>();
             try {
                 var sourceGuards=new Dictionary<IHolon,StoredRecordPublicationSnapshot<IHolon>>(ReferenceEqualityComparer.Instance);
@@ -80,11 +81,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         failures.Add(new InvalidOperationException("Cosmos DB descendant skipped because its parent failed."));
                         continue;
                     }
-                    var written=await SavePlannedHolonAsync(node);
+                    OASISResult<IHolon> written;
+                    try{written=await SavePlannedHolonAsync(node);}
+                    catch(Exception cause)
+                    {
+                        if(KnownCosmosAcknowledgements(cause).Contains(node.Snapshot.Id))acknowledgedIds.Add(node.Snapshot.Id);
+                        throw;
+                    }
                     if(written==null || !written.IsError && (!written.IsSaved || written.Result==null))
                         throw new CosmosMutationReconciliationException(node.Snapshot.Id.ToString(),
                             new System.IO.InvalidDataException("Cosmos DB planned write returned no complete authoritative acknowledgement."));
                     if(written.IsError || written.Result==null) {
+                        if(KnownCosmosAcknowledgements(written.Exception).Contains(node.Snapshot.Id))acknowledgedIds.Add(node.Snapshot.Id);
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
                         result.IsError=true;
@@ -92,6 +100,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         if(!continueOnError || NativeMutationReconciliation.IsRequired(written.Exception)) break;
                     }
                     else {
+                        acknowledgedIds.Add(node.Snapshot.Id);
                         saved.Add(written.Result);
                         publication.ValidateUnchanged();
                         node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
@@ -109,14 +118,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 if(failures.Count>0) {
                     result.IsError=true;
                     var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
-                    result.Exception=saved.Count>0 ? new CosmosPartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                    result.Exception=saved.Count>0 ? new CosmosPartialMutationException(acknowledgedIds,cause):cause;
                 }
             }
             catch(Exception cause) {
-                result.Exception=saved.Count>0 ? new CosmosPartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                result.Exception=saved.Count>0 ? new CosmosPartialMutationException(acknowledgedIds,cause):cause;
                 result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
             }
-            result.SavedCount=saved.Count;
+            result.SavedCount=acknowledgedIds.Count;
             return result;
         }
 
