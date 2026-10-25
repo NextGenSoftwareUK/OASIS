@@ -1257,3 +1257,36 @@ route list includes `/join`. Evidence:
 Neo4j, durable receipt/replay checks, annotated SDK/HTTP/browser/Swagger join
 examples and final regression certification. This endpoint implementation is
 not yet a claim of production transport certification or full CQL completion.
+
+## Signed native join HTTP acceptance — 25 October 2026
+
+The authorized join action passes the real-Kestrel signed-JWT acceptance flow
+on MongoDB, SQLite and Neo4j: **1/1, zero skips**. Fifteen joins and fifteen
+replay probes cover inner/left selection, unmatched presence/null values, exact
+Int64 strings, owner/visitor visibility and hidden right inputs sharing matching
+stock keys. Every join has one durable attempt and receipt; replay returns409
+without another dispatch. The full flow reconciles **195 settled operations /
+190 physical attempts**, including existing row/scalar/projection regressions.
+This does not add joins to the interactive87-example demo or close the broader
+join certification matrix.
+
+Mongo's compiler now explicitly retains null right-ordering fields after an
+unmatched lookup. Decoder shape validation remains strict. The original frozen
+failure passes with the producer fix; exact ownership and durable settlement
+checks precede teardown. A later test-only wire assertion was corrected to the
+existing column-described exact string representation. Original red reports
+are retained separately.
+
+Evidence: `TestResults/CosmicCqlDemo/join-http-native-final.log`,
+`TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx` and
+`TestResults/Neo4jCurrent/cql-v1-web4-native-evidence.json`. Owned fixtures were
+removed and ports27029/17687 verified absent after teardown. No new environment.
+Annotated interactive join demos, composition, federation, extended scalar/
+policy coverage and remaining final certification gates stay open.
+
+Final Mongo regression after the ordering-proof fix passes **510/510 provider
+units** and **328/328 native CQL tests**, zero skips. The native run takes4m29s;
+no additional producer changes followed the signed three-provider HTTP gate.
+Reports: `TestResults/SubscriptionUsageCurrent/join-null-order-unit.trx` and
+`TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`.
+Interactive join examples and the broader roadmap remain open.
