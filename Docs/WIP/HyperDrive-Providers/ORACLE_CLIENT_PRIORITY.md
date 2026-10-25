@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Post-acknowledgement duplicate-key classification — 25 October
+
+Native24case baseline reproduced4failures: a real SDK ORA1exception injected after a DISTINCT successful avatar/detail commit was downgraded to a known create conflict. Existing12899controls remained passing. The generic canonical writer now permits known duplicate-key classification only before DML acknowledgement; after acknowledgement the original error/recordID remain inside `OracleLifecycleReconciliationException`. This prevents a misleading failure classification that could otherwise encourage replay of an already committed operation. No retry/fallback/second writer added.
+
+Focused native24/24PASS1s, then full521/521nativePASS32s and463/463unitsPASS898ms, zero skips. Each fault test independently observes the committed original canonical payload before exact conditional teardown/absence and only then checks error classification. Source/PDB/dependency checks passed; pendingjournals0 and same retained database explicitly stopped. This is native local commit-fault evidence, not evidence that Oracle itself normally produces ORA1after commit, and not hosted acceptance. Same retained environment, no download/restore/new schema/cloud request. Exact red/green reports and resource lifecycle: [inventory](ENVIRONMENT_INVENTORY.md).
+
 ## Guarded SQL provider acceptance entry point
 
 The existing read-only preflight command now has an explicit bounded record mode. It uses the actual SQL provider with schema provisioning forbidden and reuses the same approved database/schema/session/service/TCPS validator, canonical object identities and retained evidence directory. It does NOT run the local trigger/DDL fault suite against a hosted service.
@@ -103,7 +109,7 @@ Scope is deliberately narrow: [Oracle's NETWORK_PROTOCOL context](https://docs.o
 
 Final source/copy proof Core744/E5145A09, Shared56/B175DCFC, Oracle15/native50/unit32; identical provider copies5CB5D5BD. Native report325E8B10, pure973293A7, unitA22B0986; full hashes/lifecycle in ENVIRONMENT_INVENTORY.md. Runtime stopped143/OOMfalse, pending0/11521absent. Only0B reusable preflight lock remains; no report/atomic-next/native fixture left. PowerShell syntax, public method binding and3approval/target/config guards PASS without real cloud access. OCI133 remains its distinct earlier cohort, not silently recertified by this SQL sweep. No Development/master deployment.
 
-**Next local durability gate:** the existing encrypted two-process write/recovery proof does not restart the database between its phases. Reuse that SAME retained runtime/fixture for an explicitly owned clean stop/start between acknowledged write and recovery, preserve exact original receipts/preparations/payload hashes and require0new recovery commits. This is still pending and would establish clean-restart persistence, not crash/power-loss or hosted durability. Hosted database/OCI IAM/wallet/security/CRUD/cost and remaining options/full V2 gates remain open. Oracle remains first priority, then AWS; no provider-wide completion percentage is established.
+**Historical next-step note — now closed locally:** the clean stop/start between acknowledged write and recovery was subsequently implemented and passed with original receipts/preparations/payload hashes unchanged and0new recovery commits. See [Clean requested-stop/start persistence verified](#clean-requested-stopstart-persistence-verified--25-october-utc) above. Do not rerun/rebuild an environment merely because this older section once called that gate pending. Crash/power-loss and hosted durability remain unverified. Hosted database/OCI IAM/wallet/security/CRUD/cost and full V2 gates remain open. Oracle remains first priority, then AWS; no provider-wide completion percentage is established.
 
 ## OCI public record acceptance entry point verified locally — 25 October UTC
 
