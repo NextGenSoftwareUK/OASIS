@@ -72,7 +72,7 @@ public partial class Neo4jNativeAvatarTests
                 Assert.IsFalse(NativeMutationReconciliation.IsRequired(cause));
                 Assert.AreEqual(0,faults.Rollbacks);Assert.AreEqual(1,faults.Commits);
                 foreach(var item in selected)
-                {Assert.AreNotEqual(Guid.Empty,item.Id);Assert.IsFalse(item.IsNewHolon);Assert.AreEqual(item.Id.ToString(),item.ProviderUniqueStorageKey[ProviderType.Neo4jOASIS]);}
+                {Assert.AreNotEqual(Guid.Empty,item.Id);Assert.IsFalse(item.IsNewHolon);Assert.AreEqual(item.Id.ToString(),item.ProviderUniqueStorageKey[ProviderType.Neo4jOASIS]);Assert.IsNotNull(item.ChildRoleManifestJson);HolonChangeTracking.ValidateChildSelectionForSave(item);}
                 Assert.AreEqual(root.Id,child.ParentHolonId);
                 Assert.AreEqual(child.Id,acknowledgements.Single(item=>item.Id==root.Id).Children.Single().Id);
             }
@@ -82,7 +82,7 @@ public partial class Neo4jNativeAvatarTests
                 Assert.AreEqual(mode!="rollback",NativeMutationReconciliation.IsRequired(cause));
                 Assert.AreEqual(mode=="commitLost" ? 1:0,faults.Commits);Assert.AreEqual(mode=="commitLost" ? 0:1,faults.Rollbacks);
                 foreach(var item in selected)
-                {Assert.AreEqual(Guid.Empty,item.Id);Assert.IsTrue(item.IsNewHolon);Assert.IsFalse(item.ProviderUniqueStorageKey.ContainsKey(ProviderType.Neo4jOASIS));}
+                {Assert.AreEqual(Guid.Empty,item.Id);Assert.IsTrue(item.IsNewHolon);Assert.IsFalse(item.ProviderUniqueStorageKey.ContainsKey(ProviderType.Neo4jOASIS));Assert.IsNull(item.ChildRoleManifestJson);}
                 Assert.AreEqual(Guid.Empty,child.ParentHolonId);
                 if(mode=="commitLost")Assert.AreSame(faults.Commit,cause.InnerException);
                 else
