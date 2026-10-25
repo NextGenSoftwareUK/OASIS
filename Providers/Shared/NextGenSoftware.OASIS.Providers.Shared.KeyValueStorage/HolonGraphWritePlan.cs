@@ -74,7 +74,14 @@ public static class HolonGraphWritePlan
         {
             var node=nodes[index];
             if(memberships.TryGetValue(node.Snapshot.Id,out var membership))
-                nodes[index]=node with { RelationshipManifest=membership.CreateManifest(node.Snapshot.Id,child=>plannedIds[child]) };
+            {
+                var manifest=mutation && HolonChangeTracking.TryGetPreparedChildSelection(node.Source,out var prepared)
+                    ? prepared:membership.CreateManifest(node.Snapshot.Id,child=>plannedIds[child]);
+                if(manifest.ParentId!=node.Snapshot.Id || !new HashSet<Guid>(manifest.Roles.SelectMany(role=>role.ChildIds))
+                    .SetEquals(node.SelectedChildIds))
+                    throw new ArgumentException("Captured logical roles differ from the selected native graph.");
+                nodes[index]=node with { RelationshipManifest=manifest };
+            }
             OasisJson.Serialize(node.Snapshot);
         }
         return (roots,nodes);

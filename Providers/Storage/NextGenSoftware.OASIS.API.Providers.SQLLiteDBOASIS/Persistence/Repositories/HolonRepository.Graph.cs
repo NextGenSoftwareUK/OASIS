@@ -14,7 +14,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             public void Publish()
             {
-                foreach(var node in Nodes) {node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;}
+                var prepared=new HashSet<IHolon>(System.Collections.Generic.ReferenceEqualityComparer.Instance);
+                // Publish every captured edge before validating any role owner.
+                // This method runs only after the native commit acknowledges.
+                foreach(var node in Nodes)
+                {
+                    if(NextGenSoftware.OASIS.API.Core.Holons.HolonChangeTracking.TryGetPreparedChildSelection(node.Source,out _))
+                        prepared.Add(node.Source);
+                    node.Source.Id=node.Snapshot.Id;
+                    node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                    if(!prepared.Contains(node.Source) && node.Source is NextGenSoftware.OASIS.API.Core.Holons.Holon source)
+                        source.ChildRoleManifestJson=node.Snapshot.ChildRoleManifestJson;
+                }
+                foreach(var node in Nodes)
+                    if(!prepared.Contains(node.Source) && node.Source is NextGenSoftware.OASIS.API.Core.Holons.Holon)
+                        NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonChildRolePersistence.PublishAcknowledgedSelection(node);
             }
         }
 
@@ -57,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             while(pending.Count>0)
             {
                 var (parent,source,depth,exit)=pending.Pop();
-                if(exit.HasValue){path.Remove(exit.Value);continue;}
+                if(exit.HasValue){ObserveLoadedChildRoles(parent);path.Remove(exit.Value);continue;}
                 var current=parent;
                 if(source!=null)
                 {
@@ -65,12 +79,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if(!path.Add(current.Id))throw new InvalidOperationException("Persisted graph contains a cycle.");
                     parent.Children.Add(current);
                 }
-                pending.Push((null,null,0,current.Id));
+                pending.Push((current,null,depth,current.Id));
                 if((maxDepth!=0 && depth>=maxDepth) || (!recursive && depth>initialDepth))continue;
                 var selected=children[current.Id.ToString()].ToArray();
                 for(var index=selected.Length-1;index>=0;index--)pending.Push((current,selected[index],depth+1,null));
             }
             return root;
+        }
+
+        private static void ObserveLoadedChildRoles(IHolon owner)
+        {
+            if(owner is not NextGenSoftware.OASIS.API.Core.Holons.Holon stored || stored.ChildRoleManifestJson==null)return;
+            var manifest=NextGenSoftware.OASIS.API.Core.Serialization.HolonChildRoleManifestJson.Deserialize(stored.ChildRoleManifestJson);
+            var members=owner.Children.ToDictionary(child=>child.Id);
+            // Raw provider views cannot hydrate an unknown typed role. Nor can a
+            // depth frontier, missing member or partial view grant replacement.
+            if(manifest.Roles.Count!=1 || manifest.Roles[0].Name!=nameof(IHolon.Children)
+                || manifest.Roles[0].ChildIds.Count!=members.Count
+                || manifest.Roles[0].ChildIds.Any(id=>!members.ContainsKey(id))
+                || members.Values.Any(child=>child.ParentHolonId!=owner.Id))
+            {
+                NextGenSoftware.OASIS.API.Core.Holons.HolonChangeTracking.MarkIncompleteChildSelection(owner);
+                return;
+            }
+            var hydrated=NextGenSoftware.OASIS.API.Core.Holons.HolonChildRoleHydration.ApplyFullySelected(
+                owner,manifest,id=>members[id]);
+            if(hydrated.IsError)throw hydrated.Exception ?? new InvalidOperationException(hydrated.Message);
         }
 
         private static void ValidateReadTraversal(int maximumDepth, int initialDepth = 0)
