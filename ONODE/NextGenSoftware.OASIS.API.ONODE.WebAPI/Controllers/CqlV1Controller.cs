@@ -29,4 +29,8 @@ public sealed class CqlV1Controller : ControllerBase
     [HttpPost("grouped")]
     [RequestSizeLimit(32768)]
     public Task<IActionResult> Grouped(CqlGroupedV1Request request) => CqlV1Endpoint.ExecuteGroupedAsync(HttpContext, request, providers);
+
+    [HttpPost("join")]
+    [RequestSizeLimit(32768)]
+    public Task<IActionResult> Join(CqlJoinV1Request request) => CqlV1Endpoint.ExecuteJoinAsync(HttpContext, request, providers);
 }
