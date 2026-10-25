@@ -13,6 +13,47 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 public sealed partial class AWSNativeRunLifecycle
 {
     [TestMethod]
+    public async Task ReadOnlyInspectCurrentCaptureFailureDynamo()
+    {
+        static string Hash(string path)=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
+        var report=Path.Combine(Work(),"aws-full-native-current.trx");
+        var intent=Path.Combine(Work(),"aws-full-suite.pending.json");
+        var db=Path.Combine(AppContext.BaseDirectory,"TestResults","AWSRoutingFiles","delete-routing.db");
+        var sqliteProof=Path.Combine(Work(),"aws-current-capture-sqlite-inspection.json");
+        void Originals()
+        {
+            Assert.AreEqual("4828E3BDD2A815802DF0584FFDDF7B8923FE73C928A1B44D6E2553FC9CB80B1B",Hash(report));
+            Assert.AreEqual("4318BC3C95825DB4C68329819B6B0CB7DF4E5A03EFBEB51F344A1E9233975C42",Hash(intent));
+            Assert.AreEqual("91CDEEECC747759105DA3D0426A72E80DADBA91DFA0C1F2215AB54B85BC95692",Hash(db));
+            Assert.AreEqual("399A9D55D67DB13C57F3D2342E92EB259D986566C09DB6DBD690526FF90AAEBE",Hash(sqliteProof));
+            Assert.IsFalse(File.Exists(db+"-wal"));Assert.IsFalse(File.Exists(db+"-shm"));
+        }
+        Originals();
+        using var prior=JsonDocument.Parse(File.ReadAllBytes(sqliteProof));
+        var sqliteIds=prior.RootElement.GetProperty("rows").EnumerateArray().Select(row=>row.GetProperty("Id").GetGuid()).ToHashSet();
+        Assert.AreEqual(3,sqliteIds.Count);
+        using var client=Client();var inventory=new List<object>();var matching=new List<Guid>();var nativeGraphs=new List<Guid>();
+        foreach(var table in Tables)
+            foreach(var row in await Rows(client,table))
+            {
+                var id=Guid.Parse(row["id"].S);var json=row["data_json"].S;
+                using var body=JsonDocument.Parse(json);Assert.AreEqual(id,body.RootElement.GetProperty("Id").GetGuid());
+                if(table=="OasisHolons")
+                {
+                    if(sqliteIds.Contains(id))matching.Add(id);
+                    if(body.RootElement.TryGetProperty("Name",out var name)&&name.GetString() is "owned-v2-graph-root" or "owned-v2-graph-child" or "owned-v2-graph-leaf")nativeGraphs.Add(id);
+                }
+                inventory.Add(new{table,id,sha256=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))});
+            }
+        Originals();
+        await DurableJson(Path.Combine(Work(),"aws-current-capture-dynamo-inspection.json"),new {
+            state="current-native-read-only-inspected",readOnly=true,sourceReportSha256=Hash(report),sourceIntentSha256=Hash(intent),
+            sqliteSha256=Hash(db),sqliteInspectionSha256=Hash(sqliteProof),allRows=inventory,
+            matchingSqliteIds=matching,nativeGraphIds=nativeGraphs,replayedWrites=0,originalInnerExceptionRetained=false });
+        Originals();
+    }
+
+    [TestMethod]
     public async Task ReadOnlyInspectCurrentCaptureFailureSqlite()
     {
         var report=Path.Combine(Work(),"aws-full-native-current.trx");
@@ -46,25 +87,33 @@ public sealed partial class AWSNativeRunLifecycle
 
     [TestMethod]
     public async Task CleanupOnlyHashVerifiedGeneratedGraphFailure()
+        => await CleanupReviewedGraphFailure(false);
+
+    [TestMethod]
+    public async Task CleanupOnlyHashVerifiedCurrentCaptureFailure()
+        => await CleanupReviewedGraphFailure(true);
+
+    private async Task CleanupReviewedGraphFailure(bool current)
     {
-        Assert.AreEqual("reviewed-generated-graph-original", Environment.GetEnvironmentVariable("OASIS_AWS_CLEANUP_AUTHORITY"));
+        Assert.AreEqual(current ? "reviewed-current-capture-original" : "reviewed-generated-graph-original", Environment.GetEnvironmentVariable("OASIS_AWS_CLEANUP_AUTHORITY"));
         static string Hash(string file) => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(file)));
         var report = Path.Combine(Work(), "aws-full-native-current.trx");
         var intent = Path.Combine(Work(), "aws-full-suite.pending.json");
-        var proofPath = Path.Combine(Work(), "aws-generated-graph-original-inspection.json");
+        var proofPath = Path.Combine(Work(), current ? "aws-current-capture-dynamo-inspection.json" : "aws-generated-graph-original-inspection.json");
+        var prefix = current ? "aws-current-capture-reviewed-cleanup" : "aws-generated-graph-reviewed-cleanup";
         var db = Path.Combine(AppContext.BaseDirectory, "TestResults", "AWSRoutingFiles", "delete-routing.db");
         void ValidateOriginals()
         {
-            Assert.AreEqual("45C6CCE6C2A3790191AC14AEE4DB3EC3AA36BE50DC2A5CA166131B3E43BEA342", Hash(report));
-            Assert.AreEqual("4811A1E4A6862AFAE74043EE5F1FDBC09BA9F6C775E83C1DC8CFB3E44F58133D", Hash(intent));
-            Assert.AreEqual("579A9B90435B848CFF14DB1311D509CEE4273088CD8D8A187139D4D8A880BF1C", Hash(proofPath));
-            Assert.AreEqual("7CC5887614B5ACE36E6D79F5D0A2A0C96DE45D41B14CDCC2B87A4E7AB0B5DA9D", Hash(db));
+            Assert.AreEqual(current ? "4828E3BDD2A815802DF0584FFDDF7B8923FE73C928A1B44D6E2553FC9CB80B1B" : "45C6CCE6C2A3790191AC14AEE4DB3EC3AA36BE50DC2A5CA166131B3E43BEA342", Hash(report));
+            Assert.AreEqual(current ? "4318BC3C95825DB4C68329819B6B0CB7DF4E5A03EFBEB51F344A1E9233975C42" : "4811A1E4A6862AFAE74043EE5F1FDBC09BA9F6C775E83C1DC8CFB3E44F58133D", Hash(intent));
+            Assert.AreEqual(current ? "A72C4A949CB9D4DD8111231525DC7DC4688B740CC0ACEE2AEC39FBCDC0992E99" : "579A9B90435B848CFF14DB1311D509CEE4273088CD8D8A187139D4D8A880BF1C", Hash(proofPath));
+            Assert.AreEqual(current ? "91CDEEECC747759105DA3D0426A72E80DADBA91DFA0C1F2215AB54B85BC95692" : "7CC5887614B5ACE36E6D79F5D0A2A0C96DE45D41B14CDCC2B87A4E7AB0B5DA9D", Hash(db));
             Assert.IsFalse(File.Exists(db + "-wal")); Assert.IsFalse(File.Exists(db + "-shm"));
         }
         ValidateOriginals();
         using (var native = new DataContext($"Data Source={db};Mode=ReadOnly;Pooling=False"))
         {
-            Assert.AreEqual(0, native.Holons.AsNoTracking().Count());
+            Assert.AreEqual(current ? 3 : 0, native.Holons.AsNoTracking().Count());
             Assert.AreEqual(0, native.Avatars.AsNoTracking().Count());
             Assert.AreEqual(0, native.AvatarDetails.AsNoTracking().Count());
         }
@@ -73,7 +122,7 @@ public sealed partial class AWSNativeRunLifecycle
         var expected = proof.RootElement.GetProperty("allRows").EnumerateArray().ToDictionary(
             row => (row.GetProperty("table").GetString()!, row.GetProperty("id").GetGuid().ToString()),
             row => row.GetProperty("sha256").GetString()!);
-        Assert.AreEqual(83, expected.Count);
+        Assert.AreEqual(current ? 80 : 83, expected.Count);
         using var client = Client();
         var observed = new List<(string Table, string Id, string Json)>();
         foreach (var table in Tables)
@@ -88,7 +137,7 @@ public sealed partial class AWSNativeRunLifecycle
         ValidateOriginals();
         // Persist the reviewed exact set BEFORE conditional deletion. Failure or
         // an uncertain acknowledgement preserves this journal and forbids replay.
-        await DurableJson(Path.Combine(Work(), "aws-generated-graph-reviewed-cleanup.json"), new {
+        await DurableJson(Path.Combine(Work(), prefix + ".json"), new {
             state = "reviewed-original-cleanup-started", sourceProofSha256 = Hash(proofPath),
             sqliteSha256 = Hash(db), rows = expected.Select(row => new { table = row.Key.Item1, id = row.Key.Item2, sha256 = row.Value }) });
         foreach (var row in observed)
@@ -105,7 +154,7 @@ public sealed partial class AWSNativeRunLifecycle
         ValidateOriginals();
         File.Delete(db); Assert.IsFalse(File.Exists(db));
         File.Delete(intent); Assert.IsFalse(File.Exists(intent));
-        await DurableJson(Path.Combine(Work(), "aws-generated-graph-reviewed-cleanup-complete.json"), new {
+        await DurableJson(Path.Combine(Work(), prefix + "-complete.json"), new {
             state = "verified-owned-originals-absent", rowsDeleted = observed.Count, sqliteRemoved = true,
             sourceReportSha256 = Hash(report), sourceProofSha256 = Hash(proofPath), replayedWrites = 0 });
     }
