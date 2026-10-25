@@ -55,10 +55,13 @@ Both scalar and grouped planning/readmission use this same check. Min/Max retain
 their existing read-domain permissions unless explicitly restricted.
 
 The UInt64 Core foundation captures exact unsigned Sum/Average and validates
-bounded unsigned accumulator packets. Actual MongoDB/SQLite/Neo4j profiles still
-deny unsigned arithmetic; their read/Min/Max support is independent. Native limb
-translation, grouped average kernels and end-to-end certification precede provider
-and HTTP enrollment. [Contract](CQL_NUMERIC_AGGREGATES.md#uint64-core-foundation--25-october-2026).
+bounded unsigned accumulator packets. SQLite native unsigned arithmetic is
+verified (1,679 native/72 unit); MongoDB explicit enrollment passes391 full
+native/539 unit cases (17 new unsigned native controls). Neo4j still denies unsigned
+arithmetic. Read/Min/Max permissions remain independent; numeric HTTP/demo
+enrollment requires separate certification. SQLite shares its exact integer chunk
+lowering; MongoDB reuses Decimal128-to-limb reduction and exact mean normalization.
+Shared grouped result validation preserves the declared unsigned bounds. [Contract](CQL_NUMERIC_AGGREGATES.md#uint64-core-foundation--25-october-2026).
 
 ## Layers and ownership
 

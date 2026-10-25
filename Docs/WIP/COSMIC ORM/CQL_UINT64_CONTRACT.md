@@ -1,5 +1,13 @@
 # CQL UInt64 metadata
 
+25October numeric update: SQLite unsigned Sum/Average now passes1,679 native/72
+unit; MongoDB passes391 native/539 unit (17new unsigned native controls), all zero
+failures/skips. Both enroll exact scalar/grouped arithmetic through existing
+generic owners. Core3,008 passes. Neo4j unsigned arithmetic and unsigned numeric
+HTTP/demo enrollment remain pending; prior read/projection HTTP support is distinct.
+See [numeric contract](CQL_NUMERIC_AGGREGATES.md).
+
+
 ## SQLite unsigned numeric implementation — 25 October 2026
 
 SQLite now explicitly enrolls UInt64/nullable Sum and Average for native scalar
