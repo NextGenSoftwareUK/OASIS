@@ -125,7 +125,7 @@ public partial class HolonRepository
             {
                 var scalarType = Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType;
                 var key = scalarType == typeof(float)
-                    ? CosmicFloatingScalarResults.SingleOrderKey(Convert.ToSingle(value, System.Globalization.CultureInfo.InvariantCulture))
+                    ? CosmicFloatingScalarResults.DoubleOrderKey(Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture))
                     : scalarType == typeof(double)
                     ? CosmicFloatingScalarResults.DoubleOrderKey(Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture))
                     : CosmicNumericScalarResults.DecimalOrderKey((decimal)value);
