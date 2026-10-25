@@ -28,6 +28,7 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlGroupedV1Endpoint.cs" Link="Production/CqlGroupedV1Endpoint.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlJoinV1Request.cs" Link="Production/CqlJoinV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlJoinV1Compiler.cs" Link="Production/CqlJoinV1Compiler.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlJoinV1Endpoint.cs" Link="Production/CqlJoinV1Endpoint.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlGroupedV1Request.cs" Link="Production/CqlGroupedV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlGroupedV1Compiler.cs" Link="Production/CqlGroupedV1Compiler.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlScalarSelectionCompiler.cs" Link="Production/CqlScalarSelectionCompiler.cs" />
