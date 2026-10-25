@@ -104,7 +104,7 @@ implementation; current results remain separate per provider.
 ## 5. Scalar coverage and authoritative policy
 
 Decimal Core capture/scaled-limb normalization and SQLite native arithmetic are
-verified (1,702native/72unit). MongoDB/Neo4j Decimal lowering/enrollment remains open.
+verified (1,702native/72unit). MongoDB native Decimal integration passes23 focused native controls and550 units; full416 native acceptance passes without failures or skips. Neo4j Decimal lowering/enrollment remains open.
 See [contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md). UInt64 native/HTTP/demo gates
 are complete, while this broader scalar requirement stays unchecked.
 

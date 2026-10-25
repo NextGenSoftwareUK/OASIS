@@ -17,7 +17,7 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 | Single/nullable Single metadata selectors | Verified 1,516 full native cohort, including 31 Single cases | Verified 281 native / 494 unit cohort, including 24 Single query cases | Verified 249 native / 459 unit cohort, including 16 Single query cases |
 | Count/LongCount/Any | Native | Native | Native |
 | Min/Max | Enrolled selected scalar domains | Enrolled selected scalar domains | Enrolled selected scalar domains |
-| Sum/Average inputs | Int32/Int64/UInt64/Decimal, nullable allowed | Int32/Int64/UInt64, nullable allowed | Int32/Int64/UInt64, nullable allowed |
+| Sum/Average inputs | Int32/Int64/UInt64/Decimal, nullable allowed | Int32/Int64/UInt64; Decimal, nullable allowed | Int32/Int64/UInt64, nullable allowed |
 | Average result, selected filters/order | Exact Decimal normalization | Exact Decimal normalization | Exact Decimal normalization |
 
 The [floating foundation contract](CQL_FLOATING_SCALAR_CONTRACT.md) records the
@@ -26,7 +26,7 @@ Single SDK and HTTP/demo acceptance are verified on SQLite, Mongo and Neo; Doubl
 
 UInt64 arithmetic is explicitly enrolled and verified on all three stores, including
 111SDK/111signedHTTP demos. SQLite Decimal arithmetic is explicitly enrolled (1,702native/72unit), while
-MongoDB/Neo4j Decimal arithmetic remains unenrolled. The
+MongoDB Decimal arithmetic passes23 focused native tests and550 units, with full416 native acceptance passing without failures or skips. Neo4j Decimal arithmetic remains unenrolled. The
 [scaled-packet contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md) defines exact reduction
 and rounding. Decimal HTTP arithmetic remains outside published v1 enrollment.
 Decimal Average output does not itself grant Decimal metadata selection.

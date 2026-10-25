@@ -1,8 +1,8 @@
 # CQL developer manual
 
-## SQLite Decimal arithmetic SDK availability
+## SQLite and MongoDB Decimal arithmetic SDK availability
 
-SQLite now supports exact Decimal/nullable Sum and Average, including grouped
+SQLite and MongoDB support exact Decimal/nullable Sum and Average, including grouped
 result filters/order/pages. From an already scoped and authorized `source`:
 
 ```csharp
@@ -13,10 +13,11 @@ var mean = source.Average(holon =>
     CosmicQueryMetadata.Value<decimal?>(holon, "price"));
 ```
 
-Plan and execute through HolonManager with the actual SQLite capabilities, as in
-the scalar examples below. The native reduction preserves28 decimal places and
+Plan and execute through HolonManager with the actual provider capabilities, as in
+the scalar examples below. The native reduction preserves 28 decimal places and
 rounds once at final publication; a mathematical Sum outside Decimal range fails.
-MongoDB/Neo4j Decimal arithmetic and Decimal HTTP inputs are not enrolled yet.
+MongoDB acceptance passes 416 native tests and 550 unit tests without failures
+or skips. Neo4j Decimal arithmetic and Decimal HTTP inputs remain unenrolled.
 [Exact semantics and evidence](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
 
 
@@ -1085,7 +1086,7 @@ var readings = CosmicQuery<Holon>.Create()
     .Select(row => CosmicQueryMetadata.Value<float>(row, "reading"));
 ```
 
-Handle the OASISResult, plan with the actual SQLite capabilities, and execute
+Handle the OASISResult, plan with the actual provider capabilities, and execute
 through HolonManager as in the projection examples. Nullable float?, grouped
 keys/filter/order and selected Min/Max are supported. Binary32 rounding happens
 directly from the stored numeric token; a binary64 intermediate cannot change a
