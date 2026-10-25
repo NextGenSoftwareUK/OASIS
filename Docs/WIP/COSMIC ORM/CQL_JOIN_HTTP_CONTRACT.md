@@ -42,3 +42,26 @@ isolation are covered. Core runtime named bindings reuse the common join owner.
 
 SDK flat joins are already available on all three stores. This compiler checkpoint
 does not claim the planned HTTP endpoint exists or close the full CQL roadmap.
+
+## Join HTTP endpoint implementation — 25 October 2026
+
+`POST /api/data/query-cql/join` is implemented in the authorized production
+controller. It reuses prepared admission, tariff/provider eligibility, actual
+adapter capability planning and the generic V2 join execution/receipt owner.
+The shared exact route registry now includes the join leaf. Results expose
+bounded column descriptors, exact scalar wire values and independent `hasRight`
+presence. Escaped JSON output is checked against the existing response byte cap.
+
+Full Core/linked WEB4 tests pass **2,785/2,785**, zero skips. The first test run
+found four mock packets missing the compiler's automatic ID ordering tie-break;
+fixtures were corrected without weakening production validation. Original red
+and final green TRX evidence are retained under `TestResults/CoreCurrent`.
+The linked native HTTP host now includes the join model/compiler/endpoint and
+builds with **zero errors**; existing warnings remain. Its browser authorization
+route list includes `/join`. Evidence:
+`TestResults/CosmicCqlDemo/join-http-host-build.log`.
+
+**Still required:** signed native HTTP join acceptance on MongoDB, SQLite and
+Neo4j, durable receipt/replay checks, annotated SDK/HTTP/browser/Swagger join
+examples and final regression certification. This endpoint implementation is
+not yet a claim of production transport certification or full CQL completion.
