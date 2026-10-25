@@ -8,6 +8,24 @@ public partial class SQLLiteDBOASISIntegrationTests
 {
     [Theory]
     [InlineData(false)] [InlineData(true)]
+    public async Task AcknowledgedDepthFrontierCannotAuthorizeMissingDescendants(bool synchronous)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var root=new Holon();var child=new Holon();var leaf=new Holon();
+        root.Children.Add(child);child.Children.Add(leaf);
+        (await provider.SaveHolonAsync(root)).IsSaved.Should().BeTrue();
+        var saved=synchronous ? provider.SaveHolon(root,maxChildDepth:1)
+            :await provider.SaveHolonAsync(root,maxChildDepth:1);
+        saved.IsError.Should().BeFalse(saved.Message);saved.IsSaved.Should().BeTrue();
+        HolonChangeTracking.ValidateChildSelectionForSave(saved.Result);
+        var frontier=saved.Result.Children.Single();frontier.Children.Should().BeEmpty();
+        Action admit=()=>HolonChangeTracking.ValidateChildSelectionForSave(frontier);
+        admit.Should().Throw<InvalidOperationException>();
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
     public async Task AcknowledgedGraphPublishesMatchingLogicalAndNativeIdentities(bool synchronous)
     {
         using var provider=new SQLLiteDBOASIS(TestConnectionString);
@@ -15,8 +33,22 @@ public partial class SQLLiteDBOASISIntegrationTests
         foreach(var batch in new[] {false,true})
         {
             var root=new Holon();var child=new Holon();root.Children=new List<IHolon> {child};
-            if(batch) (synchronous ? provider.SaveHolons(new[] {root}):await provider.SaveHolonsAsync(new[] {root})).IsSaved.Should().BeTrue();
-            else (synchronous ? provider.SaveHolon(root):await provider.SaveHolonAsync(root)).IsSaved.Should().BeTrue();
+            IHolon acknowledged;
+            if(batch)
+            {
+                var saved=synchronous ? provider.SaveHolons(new[] {root}):await provider.SaveHolonsAsync(new[] {root});
+                saved.IsSaved.Should().BeTrue();acknowledged=saved.Result.Single();
+            }
+            else
+            {
+                var saved=synchronous ? provider.SaveHolon(root):await provider.SaveHolonAsync(root);
+                saved.IsSaved.Should().BeTrue();acknowledged=saved.Result;
+            }
+            Action admitAcknowledgement=()=>HolonChangeTracking.ValidateChildSelectionForSave(acknowledged);
+            admitAcknowledgement.Should().NotThrow("a complete native acknowledgement must retain its selected membership observation");
+            var cold=Core.Serialization.StoredRecordJson.Project<Holon>(acknowledged);
+            Action admitSerialized=()=>HolonChangeTracking.ValidateChildSelectionForSave(cold);
+            admitSerialized.Should().Throw<InvalidOperationException>();
             root.Id.Should().NotBeEmpty();child.Id.Should().NotBeEmpty();child.ParentHolonId.Should().Be(root.Id);
             foreach(var source in new[] {root,child})
             {
