@@ -37,6 +37,32 @@ public sealed class OracleSearchVisibilityTests
     }
 
     [DataTestMethod]
+    [DataRow(false,0)][DataRow(true,0)][DataRow(false,1)][DataRow(true,1)][DataRow(false,-1)][DataRow(true,-1)]
+    public async Task AvatarExportRequiresAnActualAvatarIdentityBeforeAnyRead(bool synchronous,int version)
+    {
+        var provider=new Probe();
+        var result=synchronous?provider.ExportAllDataForAvatarById(Guid.Empty,version):await provider.ExportAllDataForAvatarByIdAsync(Guid.Empty,version);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual(0,provider.Reads);
+        Assert.IsInstanceOfType<ArgumentException>(result.Exception);Assert.AreEqual("avatarId",((ArgumentException)result.Exception).ParamName);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,1)][DataRow(true,1)][DataRow(false,-1)][DataRow(true,-1)]
+    public async Task AvatarExportMustNotPublishForeignDescendants(bool synchronous,int version)
+    {
+        var provider=new Probe();var original=StoredRecordJson.Serialize(provider.Historical);
+        var result=synchronous?provider.ExportAllDataForAvatarById(provider.Actor,version):await provider.ExportAllDataForAvatarByIdAsync(provider.Actor,version);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);
+        var root=(Holon)result.Result.Single();
+        CollectionAssert.AreEqual(version==-1?Array.Empty<Guid>():new[]{provider.Owned.Id},root.Children.Select(row=>row.Id).ToArray());
+        Assert.AreEqual(provider.Root.ChildRoleManifestJson,root.ChildRoleManifestJson);
+        Assert.AreEqual(original,StoredRecordJson.Serialize(provider.Historical));
+        root.AcceptChanges();
+        var rejected=await provider.SaveHolonAsync(root);
+        Assert.IsTrue(rejected.IsError);Assert.IsInstanceOfType<InvalidOperationException>(rejected.Exception);
+    }
+
+    [DataTestMethod]
     [DataRow(false,0,false)][DataRow(false,0,true)][DataRow(false,1,false)][DataRow(false,1,true)]
     [DataRow(true,0,false)][DataRow(true,0,true)][DataRow(true,1,false)][DataRow(true,1,true)]
     public async Task CurrentAvatarSearchMustFilterWholeDetachedGraphWithoutChangingStoreObservation(bool synchronous,int version,bool loadChildren)
