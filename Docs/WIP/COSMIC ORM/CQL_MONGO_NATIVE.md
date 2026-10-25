@@ -138,3 +138,29 @@ SQLite and MongoDB native grouped filters are verified. Neo4j filters, HTTP filt
 Actual test session62749 terminated successfully: **191 native CQL tests and427 provider unit tests passed, zero failures/skips**. Eight new native cases include524 packet-level comparisons against Core, count and Int64 limits, both signs, repeating fractions, halfway-even/odd rounding, coefficient-overflow rounding, all four integer input declarations, nullable membership/field comparisons, exact ordering and matching-group pages. Native normalization does not use server JavaScript or a binary64 intermediate.
 
 Evidence: `TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`, `TestResults/MongoCurrent/average-final-unit-current.trx` and `average-artifacts.json`; logs under `TestResults/CosmicCqlDemo/mongo-average-{native,final-unit}.log`. Actual producer/native/unit copies match Core SHA256 `4C58BC9D...`, Shared `D6AFCA32...` and Mongo `CB31EA51...`; the artifact report contains exact paths, sizes and full hashes. The runner stopped owned27029 and acknowledged fixture teardown; retained runtime/data remain reusable. This certifies native Average comparisons for MongoDB. New live HTTP Average examples and Neo4j support remain outstanding; it is not full CQL/ORM completion.
+
+## MongoDB native join compiler — 25 October 2026
+
+MongoDB now compiles bounded independent left/right proof pipelines and a native
+`$lookup` matching pipeline. Both source commands require one shared snapshot.
+Right-source filtering/order/window run before key matching. Normalized typed
+comparison keys reuse existing GUID/UTC/scalar owners; missing/null components
+cannot match. Inner and left matching retain their distinct unmatched behavior.
+Source and pair count windows report bounded cardinality; detection rows preserve
+zero/one remaining allowances without turning overflow into truncated success.
+Deterministic native pair ordering follows both source orders and logical IDs.
+
+Proof pipelines preserve the existing protected traversal error branch outside
+source paging. Matching can unwrap only successful rows after the future native
+owner has validated both complete proof streams in that same snapshot. Pair
+pipelines own deep copies of source stages. Metadata names and data remain
+literal BSON values; no script or client-side matching is generated.
+
+Provider and unit consumer builds pass; the complete MongoDB unit suite passes
+**510/510**, zero skips, including eight new compiler controls. Evidence:
+`TestResults/CosmicCqlDemo/mongo-join-compiler-tests.log` and
+`TestResults/CosmicMongoCurrent/join-compiler-unit.trx`. This is compiler evidence
+only: **MongoDB does not yet implement or advertise native joins**. A single
+snapshot/deadline/native-attempt owner, bounded typed proof decoding and positive/
+negative native integration gates are next. Existing MongoDB native 297 remains
+a separate earlier cohort. No Mongo service, database or new environment was used.

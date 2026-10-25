@@ -2586,3 +2586,18 @@ Short publication lease protects Core/parent SourceLink Git state; scoped commit
 preserves unrelated Mongo-Test-Traffic documents and peer save/import changes.
 
 Retained final evidence sizes: CoreCurrent/join-ordering-current.trx 4,386,158 bytes; SQLiteCurrent/sqlite-join-normal-full.trx 2,970,228 bytes; SQLiteCurrent/sqlite-join-unit.trx 70,289 bytes; CosmicCqlDemo/sqlite-join-certification.log 350,846 bytes. Reusable fixed paths, no per-run directory. Required evidence retained; regenerable with recorded leased build/test batch.
+
+Mongo join compiler slice: reuse existing Mongo provider/unit worktree, SDK10.0.401/runtime10.0.12, local NuGet cache and fixed provider/unit bin/obj. No restore/download/install or Mongo service/database used in this compiler gate. Compile-only source/pair pipelines preserve windows/native lookup and explicit snapshot commands; provider enrollment remains pending. Normal global lease producer+consumer/unit tests; fixed TestResults/CosmicCqlDemo/mongo-join-compiler.log and TestResults/CosmicMongoCurrent/join-compiler-unit.trx retained, sizes pending. Reusable outputs shared/active, no disposable DB/process created.
+
+Mongo compiler gate completed: provider build passed; full unit510/510 passed,
+zero skips (eight new compiler controls). First test-consumer compile exposed a
+mixed raw/result query test call; captured the existing query Result explicitly.
+First unit gate508/510 exposed a test assumption of one limit across the combined
+pipeline; the pair sentinel is correctly the final limit after its source limit.
+Corrected that assertion and reran the full suite without changing production
+semantics. No native database/service/install/download/restore introduced. Fixed
+logs/reports and reusable bin/obj retained, sizes recorded below; cleanup of
+shared outputs requires verified inactive ownership. Native snapshot/proof owner
+and runtime certification remain pending. Existing peer resources untouched.
+
+Retained Mongo compiler evidence: TestResults/CosmicMongoCurrent/join-compiler-unit.trx 770,769 bytes; TestResults/CosmicCqlDemo/mongo-join-compiler-tests.log 16,006 bytes. Fixed paths reused; no new DB/service/port dependency. Required compact evidence preserved; regenerable via recorded leased no-restore producer/consumer unit gate.

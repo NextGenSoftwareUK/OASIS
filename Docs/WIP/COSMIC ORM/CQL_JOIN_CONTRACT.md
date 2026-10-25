@@ -286,3 +286,29 @@ The fixed SQLite database/WAL/SHM and pending fixture markers are absent after
 terminal teardown. No dependencies or new environment were installed/restored.
 This publishes SQLite SDK flat joins only; the remaining join gates above remain
 open. Existing MongoDB/Neo4j suites are separate earlier cohorts.
+
+## MongoDB native join compiler — 25 October 2026
+
+MongoDB now compiles bounded independent left/right proof pipelines and a native
+`$lookup` matching pipeline. Both source commands require one shared snapshot.
+Right-source filtering/order/window run before key matching. Normalized typed
+comparison keys reuse existing GUID/UTC/scalar owners; missing/null components
+cannot match. Inner and left matching retain their distinct unmatched behavior.
+Source and pair count windows report bounded cardinality; detection rows preserve
+zero/one remaining allowances without turning overflow into truncated success.
+Deterministic native pair ordering follows both source orders and logical IDs.
+
+Proof pipelines preserve the existing protected traversal error branch outside
+source paging. Matching can unwrap only successful rows after the future native
+owner has validated both complete proof streams in that same snapshot. Pair
+pipelines own deep copies of source stages. Metadata names and data remain
+literal BSON values; no script or client-side matching is generated.
+
+Provider and unit consumer builds pass; the complete MongoDB unit suite passes
+**510/510**, zero skips, including eight new compiler controls. Evidence:
+`TestResults/CosmicCqlDemo/mongo-join-compiler-tests.log` and
+`TestResults/CosmicMongoCurrent/join-compiler-unit.trx`. This is compiler evidence
+only: **MongoDB does not yet implement or advertise native joins**. A single
+snapshot/deadline/native-attempt owner, bounded typed proof decoding and positive/
+negative native integration gates are next. Existing MongoDB native 297 remains
+a separate earlier cohort. No Mongo service, database or new environment was used.
