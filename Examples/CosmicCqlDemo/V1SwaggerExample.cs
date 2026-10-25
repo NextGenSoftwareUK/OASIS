@@ -119,6 +119,39 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
 
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {
+        if (context.Type.Name == "CqlCompositionV1Request")
+        {
+            schema.Example = new OpenApiObject
+            {
+                ["provider"] = new OpenApiString("MongoDBOASIS"),
+                ["source"] = new OpenApiObject
+                {
+                    ["filters"] = new OpenApiArray { new OpenApiObject
+                    {
+                        ["metadataPath"] = new OpenApiArray { new OpenApiString("fixture") },
+                        ["scalar"] = new OpenApiString("String"), ["operator"] = new OpenApiString("Equal"),
+                        ["value"] = new OpenApiString("REPLACE_WITH_DEMO_FIXTURE_TAG")
+                    } },
+                    ["orderBy"] = new OpenApiString("Name"), ["skip"] = new OpenApiInteger(1), ["take"] = new OpenApiInteger(2),
+                    ["columns"] = new OpenApiArray
+                    {
+                        new OpenApiObject { ["alias"] = new OpenApiString("Name"), ["field"] = new OpenApiString("Name") },
+                        new OpenApiObject { ["alias"] = new OpenApiString("Precision"),
+                            ["metadataPath"] = new OpenApiArray { new OpenApiString("precision") }, ["valueType"] = new OpenApiString("Int64") }
+                    }
+                },
+                ["stages"] = new OpenApiArray
+                {
+                    new OpenApiObject { ["operation"] = new OpenApiString("Where"), ["filters"] = new OpenApiArray
+                    {
+                        new OpenApiObject { ["alias"] = new OpenApiString("Name"), ["operator"] = new OpenApiString("NotEqual"), ["value"] = new OpenApiString("C-public") }
+                    } },
+                    new OpenApiObject { ["operation"] = new OpenApiString("Take"), ["count"] = new OpenApiInteger(1) }
+                }
+            };
+            return;
+        }
+
         if (context.Type.Name == "CqlJoinV1Request")
         {
             // Copy the live /demo/session tag into BOTH independent sources.
