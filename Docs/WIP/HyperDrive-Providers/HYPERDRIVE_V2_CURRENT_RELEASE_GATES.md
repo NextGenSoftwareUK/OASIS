@@ -6200,3 +6200,7 @@ Fresh SAME-runtime localAWS SDK acceptance **138/138PASS0skips75s**, begin1PASS/
 
 BroaderSQLite1704normalintegrationPASS; unfilteredreportalso contains2reconciliation-onlylockrefusals and remainsred (donotcallaggregateallgreen). Core637controlledregressionsPASS. These gates do NOT imply hostedAWS/S3/Oraclecloud/fullprovider/globalV2 certification. Existing cloudaccess/security/cost/interfacegates remain OPEN.
 
+## 2026-10-25 S3 controlled SDK depth gate refreshed
+
+FullEdge/S3protocol138/138PASS0skips2s; includes12new sync/async single/batch save-depth0/1/2 characterization cases overofficialSDKcontrolledHTTP. Existingwriterroot-one contract preserved (1rootonly,2root+child), unselectedcallerIDsremainunpublished; no productionchange or globaldepthnormalizationclaim. Report TestResults/S3Current/depth-contract-current.trx211949bytes SHAB918B0A88B9D37617C49556ED10B2D86DFEB032CD0927B1660F939FF230D48BE. Controlleddriverfixturescleared, zero-byte reusablelockonly. HostedAWScredentials/bucket/persistedkey absent in inspectedenv/defaultpaths; liveS3IAM/KMS/TLS/recovery/cost/retainedversions and broaderV2remainOPEN. Samecache/output/environment reused,no download/newservice/deployment.
+
