@@ -1300,3 +1300,29 @@ lease (0errors); retain decimal-standalone-build.log. Node offline2preset/lexica
 check passes; promoted reusable source script retained. Free C69,434,904,576 after
 both gates. Reusable bin/obj/runtimes/data retained, no download/install/restore.
 Lease/source hold released for peer Cosmos; own changes await scoped publication.
+
+Floating scalar foundation preparation: reuse existing Core bothTFM/CoreUnit and
+Mongo producer/unit bin/obj, SDK10.0.401/runtime10.0.12/NuGet caches. No installs,
+restores, service or database required for finite bit-key/serialization controls.
+Nine Mongo Single storage controls prepared against current serializer before
+fix; bounded baseline and final unit gates will use SubscriptionUsageCurrent TRX
+and CosmicCqlDemo floating logs (sizes unmeasured). Preserve compact failure/final
+evidence and reusable outputs. Future provider enrollment remains separate.
+
+Core floating checkpoint: both configured TFMs netstandard2.1/net10.0 build;
+floating-codec-full-current.trx records2,506PASS0skip. Six facts cover8,192 finite
+random IEEE patterns plus boundaries/strict decoding. Core744 source is frozen,
+new codec committed asac696f6f6012ce6f41ba14be64a2196e68da9c03 for peer Google
+source/PDB verification. Mongo baseline21806:6RED/3PASS; initial widened fix then
+30536Core2506PASS/Mongo491PASS1RED(normalized zero assertion), original report
+retained. New canonical-ack baseline78783:9PASS1RED, proving widened binary64
+spelling changes the snapshot numeric value. All remain storage-only unit gates,
+no native service/database. Preserve floating-storage-red-current.trx,
+floating-ack-red-current.trx and logs. No floating query capability claimed.
+
+The first build command mistakenly requested netstandard2.0 (NETSDK1005); no
+restore/download followed. Corrected runner reads actual project TargetFrameworks.
+Existing bin/obj/Debug/netstandard2.0 directories predate this action (23October
+13:44), uncertain historical ownership, preserved. No cleanup inferred from names.
+Final Mongo canonical producer/native tests remain pending; Core source hold is
+released for peer's narrow Google provider gate, with no Core/Shared rebuild.
