@@ -47,6 +47,8 @@ public partial class OracleDBOASIS
                 publications[node.Source].ValidateUnchanged();
                 var selectedId=node.Snapshot.Id;
                 var written=await SavePlannedHolonAsync(node);
+                if(written==null)
+                    throw new OracleLifecycleReconciliationException(selectedId,new System.IO.InvalidDataException("Oracle node save returned no acknowledgement; reconcile before replay."));
                 if(written.SavedCount==1)acknowledgedIds.Add(selectedId);
                 if(written.IsError||!written.IsSaved||written.Result==null){
                     var cause=written.Exception??new OracleLifecycleReconciliationException(selectedId,new System.IO.InvalidDataException("Oracle node save returned no complete save acknowledgement."));failures.Add(cause);failedParents.Add(node.Snapshot.Id);
