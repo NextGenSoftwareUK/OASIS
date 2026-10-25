@@ -99,9 +99,24 @@ public partial class HolonRepository
                                 else if (column.Operation == CosmicScalarOperation.LongCount) values[index] = inputs;
                                 else if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
                                 {
-                                    var normalized = DecodeGroupedNumeric(column.Operation.Value, column.Selector.ValueType, inputs,
-                                        reader.GetInt64(position), reader.GetInt64(position + 1), reader.GetInt64(position + 2));
-                                    position += 3;
+                                    OASISResult<object> normalized;
+                                    if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                                    {
+                                        var words = Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount)
+                                            .Select(part => reader.GetInt64(position + part)).ToArray();
+                                        var present = reader.GetInt64(position + CosmicDecimalScalarResults.LimbCount);
+                                        var coverage = CosmicGroupedResults.ValidateParticipation(column.Selector.ValueType, inputs, present);
+                                        normalized = coverage.IsError
+                                            ? OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, object>(coverage)
+                                            : CosmicDecimalScalarResults.FromParts(column.Operation.Value, column.Selector.ValueType, words, present);
+                                        position += CosmicDecimalScalarResults.LimbCount + 1;
+                                    }
+                                    else
+                                    {
+                                        normalized = DecodeGroupedNumeric(column.Operation.Value, column.Selector.ValueType, inputs,
+                                            reader.GetInt64(position), reader.GetInt64(position + 1), reader.GetInt64(position + 2));
+                                        position += 3;
+                                    }
                                     if (normalized.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<object, IReadOnlyList<CosmicGroupedRow>>(normalized);
                                     values[index] = normalized.Result;
                                 }

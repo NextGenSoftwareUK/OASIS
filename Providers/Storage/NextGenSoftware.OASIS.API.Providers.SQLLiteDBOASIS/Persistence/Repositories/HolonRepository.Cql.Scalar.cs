@@ -82,8 +82,13 @@ public partial class HolonRepository
                             if (reader.GetInt64(0) != 0) throw new System.IO.InvalidDataException("A participating selected value has an invalid domain.");
                             if (numeric)
                             {
-                                if (reader.GetInt64(4) != 0) throw new SqliteCqlResourceException("Numeric aggregation exceeds its explicit native input work bound.");
-                                result = CosmicNumericScalarResults.FromParts(plan.Query, reader.GetInt64(2), reader.GetInt64(3), reader.GetInt64(1));
+                                var decimalInput = (Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) ?? plan.Query.Selector.ValueType) == typeof(decimal);
+                                if (reader.GetInt64(decimalInput ? 9 : 4) != 0)
+                                    throw new SqliteCqlResourceException("Numeric aggregation exceeds its explicit native input work bound.");
+                                result = decimalInput
+                                    ? CosmicDecimalScalarResults.FromParts(plan.Query,
+                                        Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount).Select(index => reader.GetInt64(2 + index)).ToArray(), reader.GetInt64(1))
+                                    : CosmicNumericScalarResults.FromParts(plan.Query, reader.GetInt64(2), reader.GetInt64(3), reader.GetInt64(1));
                             }
                             else
                             {
