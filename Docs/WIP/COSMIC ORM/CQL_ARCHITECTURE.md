@@ -518,3 +518,12 @@ script behavior is verified offline. Source/binary proofs were captured inside
 the global build lease; broader CQL requirements remain open. These are separate scoped provider cohorts, not a simultaneous
 full regression against one producer build.
 [Contract and cohort evidence](CQL_DECIMAL_METADATA_CONTRACT.md).
+
+Floating scalar preparation has one Core finite IEEE key owner, with strict
+Single decoding and a canonical zero identity. Mongo Single storage now preserves
+both numeric binary32 round-trip and the canonical JSON acknowledgement value;
+complex-value string encoding is not used for this primitive. Core2,506 units,
+Mongo493 units/231 native CQL cases pass, including3 new native storage cases.
+This does not enroll Double/Single query capabilities. Native value-domain and
+normalization/admission work remains in the
+[floating contract](CQL_FLOATING_SCALAR_CONTRACT.md).
