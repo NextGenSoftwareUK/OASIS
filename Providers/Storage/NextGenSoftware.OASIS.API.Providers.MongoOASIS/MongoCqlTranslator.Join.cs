@@ -77,7 +77,12 @@ internal sealed partial class MongoCqlTranslator
             for (var index = 0; index < source.Orderings.Count; index++)
             {
                 var name = prefix + index;
-                projection.Add(name, (matched ? "$matched.o" : "$o") + index);
+                // $project omits a missing lookup path on an unmatched left row.
+                // Preserve the fixed pair proof shape with explicit null ordering
+                // cells; the decoder must not guess which absent fields were intended.
+                projection.Add(name, matched
+                    ? Op("$ifNull", "$matched.o" + index, Literal(BsonNull.Value))
+                    : (BsonValue)("$o" + index));
                 var direction = source.Orderings[index].Descending ? -1 : 1;
                 sort.Add(name + ".rank", direction); sort.Add(name + ".value", direction);
             }

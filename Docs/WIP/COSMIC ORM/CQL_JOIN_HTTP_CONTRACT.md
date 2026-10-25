@@ -1,11 +1,12 @@
-# CQL join HTTP contract — compiler checkpoint
+# CQL join HTTP contract
 
-Date:25 October2026. Status: **request model/compiler verified; route not registered**.
-This preserves the full remaining transport acceptance scope.
+Date:25 October2026. Status: **endpoint implemented; signed native acceptance
+passes on MongoDB, SQLite and Neo4j**. Latest evidence is below; earlier dated
+compiler sections preserve prerequisite history.
 
 ## Intent
 
-The proposed `POST /api/data/query-cql/join` request selects one host-eligible
+The `POST /api/data/query-cql/join` request selects one host-eligible
 provider (or its current default), an `Inner`/`Left` kind, independent `Left`/`Right`
 source filters/order/windows,1–8 typed key pairs and1–32 selected columns.
 `CqlJoinV1Request` and nested objects reject unknown members. Actors and provider
@@ -30,7 +31,7 @@ Both actor/provider bindings, independent windows/budgets, required versus lifte
 right paths, malformed/ambiguous shapes, unknown JSON members and mutable request
 isolation are covered. Core runtime named bindings reuse the common join owner.
 
-## Required before exposure
+## Historical compiler checkpoint: required before exposure
 
 - Register one authorized controller/endpoint action and exact query-route/tariff leaf.
 - Reuse existing prepared admission/provider eligibility and physical query-attempt owner.
@@ -65,3 +66,36 @@ route list includes `/join`. Evidence:
 Neo4j, durable receipt/replay checks, annotated SDK/HTTP/browser/Swagger join
 examples and final regression certification. This endpoint implementation is
 not yet a claim of production transport certification or full CQL completion.
+
+## Signed native join HTTP acceptance — 25 October 2026
+
+The authorized join action passes the real-Kestrel signed-JWT acceptance flow
+on MongoDB, SQLite and Neo4j: **1/1, zero skips**. Fifteen joins and fifteen
+replay probes cover inner/left selection, unmatched presence/null values, exact
+Int64 strings, owner/visitor visibility and hidden right inputs sharing matching
+stock keys. Every join has one durable attempt and receipt; replay returns409
+without another dispatch. The full flow reconciles **195 settled operations /
+190 physical attempts**, including existing row/scalar/projection regressions.
+This does not add joins to the interactive87-example demo or close the broader
+join certification matrix.
+
+Mongo's compiler now explicitly retains null right-ordering fields after an
+unmatched lookup. Decoder shape validation remains strict. The original frozen
+failure passes with the producer fix; exact ownership and durable settlement
+checks precede teardown. A later test-only wire assertion was corrected to the
+existing column-described exact string representation. Original red reports
+are retained separately.
+
+Evidence: `TestResults/CosmicCqlDemo/join-http-native-final.log`,
+`TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx` and
+`TestResults/Neo4jCurrent/cql-v1-web4-native-evidence.json`. Owned fixtures were
+removed and ports27029/17687 verified absent after teardown. No new environment.
+Annotated interactive join demos, composition, federation, extended scalar/
+policy coverage and remaining final certification gates stay open.
+
+Final Mongo regression after the ordering-proof fix passes **510/510 provider
+units** and **328/328 native CQL tests**, zero skips. The native run takes4m29s;
+no additional producer changes followed the signed three-provider HTTP gate.
+Reports: `TestResults/SubscriptionUsageCurrent/join-null-order-unit.trx` and
+`TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`.
+Interactive join examples and the broader roadmap remain open.

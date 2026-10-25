@@ -30,6 +30,10 @@ public sealed class MongoCqlJoinTests
         Assert.IsTrue(firstLimit<joinFilter,"The selected right window must precede key matching.");
         Assert.AreEqual(outer,command.Pairs.Single(stage=>stage.Contains("$unwind"))["$unwind"]["preserveNullAndEmptyArrays"].AsBoolean);
         Assert.AreEqual("Holon",lookup["from"].AsString);
+        var pairProjection=command.Pairs.Last(stage=>stage.Contains("$project"))["$project"].AsBsonDocument;
+        Assert.AreEqual("$matched.o0",pairProjection["r0"]["$ifNull"][0].AsString);
+        Assert.IsTrue(pairProjection["r0"]["$ifNull"][1]["$literal"].IsBsonNull,
+            "Unmatched ordered right inputs must retain an explicit null pair-proof field.");
         var finalOrder=command.Pairs.Last()["$sort"].AsBsonDocument;
         Assert.AreEqual(1,finalOrder["left"].ToInt32());
         Assert.AreEqual(-1,finalOrder["r0.rank"].ToInt32());

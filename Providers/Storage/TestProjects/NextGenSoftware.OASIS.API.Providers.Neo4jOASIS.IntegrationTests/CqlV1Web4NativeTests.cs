@@ -162,11 +162,11 @@ public sealed partial class CqlV1Web4NativeTests
                     var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
                     using var client = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
 
-                    async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null,bool expectContinue = false,bool scalar = false,bool projection = false)
+                    async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null,bool expectContinue = false,bool scalar = false,bool projection = false,bool join = false)
                     {
                         var operation = operationKey ?? Guid.NewGuid().ToString("D");
                         await Journal("before-http-request", new { actor, operation });
-                        using var request = new HttpRequestMessage(HttpMethod.Post, projection ? "/api/data/query-cql/projection" : scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql")
+                        using var request = new HttpRequestMessage(HttpMethod.Post, join ? "/api/data/query-cql/join" : projection ? "/api/data/query-cql/projection" : scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql")
                         {
                             Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
                         };
@@ -214,6 +214,81 @@ public sealed partial class CqlV1Web4NativeTests
                     foreach (var provider in providers.Keys)
                     {
                         var fixture = new { MetadataPath = new[] { "fixture" }, Operator = "Equal", Scalar = "String", Value = tag };
+                        // Independent source windows must apply the signed actor on BOTH
+                        // sides. A left join preserves absent right rows; an inner join
+                        // publishes only the public matching row. No extra seed data needed.
+                        async Task Joined(Guid actor, string kind, int expectedRows, bool hiddenRight = false)
+                        {
+                            var logical = Guid.NewGuid().ToString("D");
+                            object keySelection = hiddenRight
+                                ? new { MetadataPath = new[] { "stock" }, ValueType = "Int64" }
+                                : new { Field = "Name" };
+                            var body = new
+                            {
+                                Provider = provider.ToString(), Kind = kind,
+                                Left = new { Filters = new[] { fixture } },
+                                Right = new { Filters = new object[] { fixture,
+                                    new { Field = "Name", Operator = "Equal", Value = hiddenRight ? "A-private" : "C-public" } } },
+                                Keys = new[] { new { Alias = "key", Left = keySelection, Right = keySelection } },
+                                Columns = new object[]
+                                {
+                                    new { Alias = "name", Source = "Left", Selection = new { Field = "Name" } },
+                                    new { Alias = "precision", Source = "Right", AllowMissing = true,
+                                        Selection = new { MetadataPath = new[] { "precision" }, ValueType = "Int64" } },
+                                    new { Alias = "present", Source = "RightPresence" }
+                                }
+                            };
+
+                            using var response = await Send(body, actor, logical, join: true);
+                            var text = await response.Content.ReadAsStringAsync();
+                            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                            var operationId = response.Headers.GetValues("X-OASIS-Operation-Id").Single();
+                            var operation = await outbox.GetAsync(operationId, CancellationToken.None);
+                            Assert.AreEqual("settled", operation.State);
+                            Assert.AreEqual(1, operation.ProviderAttempts.Count);
+                            Assert.AreEqual(1, operation.Receipts.Count);
+                            Assert.AreEqual(0.002m, operation.Receipts.Single().ActualCostUsd);
+                            Assert.AreEqual(operation.ProviderAttempts.Single().ClientRequestId,
+                                operation.Receipts.Single().ClientRequestId);
+
+                            using var json = JsonDocument.Parse(text);
+                            var result = json.RootElement.GetProperty("result");
+                            Assert.AreEqual("cql-join-v1", result.GetProperty("version").GetString());
+                            Assert.AreEqual(provider.ToString(), result.GetProperty("provider").GetString());
+                            var rows = result.GetProperty("rows").EnumerateArray().ToArray();
+                            Assert.AreEqual(expectedRows, rows.Length);
+                            Assert.AreEqual(hiddenRight ? 0 : 1, rows.Count(row => row.GetProperty("hasRight").GetBoolean()));
+                            foreach (var row in rows)
+                            {
+                                var values = row.GetProperty("values");
+                                var present = row.GetProperty("hasRight").GetBoolean();
+                                Assert.AreEqual(present, values[2].GetBoolean());
+                                if (present)
+                                {
+                                    Assert.AreEqual("C-public", values[0].GetString());
+                                    Assert.AreEqual("9007199254740993", values[1].GetString());
+                                }
+                                else Assert.AreEqual(JsonValueKind.Null, values[1].ValueKind);
+                            }
+
+                            // Reusing a logical operation must never cause another native
+                            // join, even though the first request has already settled.
+                            using var replay = await Send(body, actor, logical, join: true);
+                            Assert.AreEqual(HttpStatusCode.Conflict, replay.StatusCode);
+                            var retained = await outbox.GetAsync(operationId, CancellationToken.None);
+                            Assert.AreEqual(1, retained.ProviderAttempts.Count);
+                            Assert.AreEqual(1, retained.Receipts.Count);
+                        }
+
+                        await Joined(alice, "Left", 3);
+                        await Joined(alice, "Inner", 1);
+                        await Joined(outsider, "Left", 1);
+
+                        // All visible left rows share stock=7 with the hidden right
+                        // root. Any right-side policy leak would create matches.
+                        await Joined(alice, "Left", 3, hiddenRight: true);
+                        await Joined(outsider, "Left", 1, hiddenRight: true);
+
                         // Native selection must apply visibility before paging and return
                         // exact scalar cells, without hydrating source entities.
                         async Task Projection(Guid actor, int skip, bool replay)

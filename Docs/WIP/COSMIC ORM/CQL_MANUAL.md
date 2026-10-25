@@ -1362,3 +1362,59 @@ route list includes `/join`. Evidence:
 Neo4j, durable receipt/replay checks, annotated SDK/HTTP/browser/Swagger join
 examples and final regression certification. This endpoint implementation is
 not yet a claim of production transport certification or full CQL completion.
+
+## Bounded join HTTP request
+
+Send `POST /api/data/query-cql/join` with a signed bearer token and a new
+`Idempotency-Key` header. The host binds the actor to both source windows.
+The example below uses the native acceptance fixture; replace `YOUR_FIXTURE_TAG`
+with your own dataset marker. Choose `MongoDBOASIS`, `SQLLiteDBOASIS` or
+`Neo4jOASIS` explicitly.
+
+```json
+{
+  "provider": "MongoDBOASIS",
+  "kind": "Left",
+  "left": {
+    "filters": [
+      { "metadataPath": ["fixture"], "scalar": "String", "operator": "Equal", "value": "YOUR_FIXTURE_TAG" }
+    ]
+  },
+  "right": {
+    "filters": [
+      { "metadataPath": ["fixture"], "scalar": "String", "operator": "Equal", "value": "YOUR_FIXTURE_TAG" },
+      { "field": "Name", "operator": "Equal", "value": "C-public" }
+    ]
+  },
+  "keys": [
+    { "alias": "name", "left": { "field": "Name" }, "right": { "field": "Name" } }
+  ],
+  "columns": [
+    { "alias": "name", "source": "Left", "selection": { "field": "Name" } },
+    {
+      "alias": "precision",
+      "source": "Right",
+      "allowMissing": true,
+      "selection": { "metadataPath": ["precision"], "valueType": "Int64" }
+    },
+    { "alias": "present", "source": "RightPresence" }
+  ],
+  "maximumLeftRows": 100,
+  "maximumRightRows": 100,
+  "maximumPairs": 1000,
+  "maximumResults": 25
+}
+```
+
+`Left` retains an unmatched left row with `hasRight: false` and a null right
+value. `Inner` publishes matching pairs only. Each input has independent filters,
+order and window; limits reject overflow rather than truncate results.
+`allowMissing` permits an absent right row without making its stored value
+optional. `hasRight` distinguishes absent rows from nullable data in present rows.
+
+The response has `version: "cql-join-v1"`, column type descriptors and ordered
+`rows[].values` arrays. Exact Int64 values are strings such as
+`"9007199254740993"`; their declared type comes from the column descriptor.
+Repeating the same operation key returns409 without a second physical attempt.
+See [transport acceptance status](CQL_JOIN_HTTP_CONTRACT.md) before treating a
+pending verification slice as certified.
