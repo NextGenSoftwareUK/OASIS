@@ -1409,3 +1409,39 @@ are absent after teardown. Evidence: `TestResults/CosmicCqlDemo/sqlite-compositi
 `TestResults/CoreCurrent/composition-graph-admission.trx`.
 This certifies the native SQLite SDK slice; MongoDB/Neo4j composition and public
 HTTP/examples remain open. Earlier93/93 demo evidence remains a separate cohort.
+
+## MongoDB composition pipeline compiler — 25 October 2026
+
+The Mongo compiler captures one bounded source proof pipeline and independent
+native stage-proof pipelines. Each stage retains the original protected source
+window. Source proof includes exact cells/access/ordering and native source
+count; stage transport projects only identity, rank and count. The required
+snapshot owner must validate source errors/cells before executing any stage.
+No provider interface enrollment is added at this compiler checkpoint.
+
+Selected grouped/composed predicates share one BSON owner for exact numeric,
+GUID, null, membership and Unicode string behavior. Result sorts use stable
+least-significant-first native window passes: each pass keeps prior rank as its
+tie. This handles repeated sort terms and32 selected terms without duplicate
+BSON keys or a32-field compound sort. Take(0) emits an explicit false match,
+while the source retains its overflow sentinel and protected traversal envelope.
+Generated field paths use positional slots; client aliases are not pasted into
+BSON paths. Stage pipelines are independently cloned.
+
+Window numbering reference: [MongoDB8.3 `$documentNumber`](https://www.mongodb.com/docs/v8.3/reference/operator/aggregation/documentnumber/).
+This reference does not substitute for native execution verification.
+
+**Still required:** snapshot-session decoding/execution with a shared deadline,
+all six budgets, native mutation/privacy/type/interruption controls, provider
+capability enrollment and public composition transport/demos. SQLite's verified
+native implementation remains available. Mongo compiler controls and existing
+native regression evidence are recorded below once their gates complete.
+
+Mongo compiler checkpoint final: **519/519 provider unit tests**, zero skips,
+including nine new composition controls. The unchanged-operator native Mongo
+CQL suite passes **328/328**, zero skips, after the shared predicate refactor.
+Evidence: `TestResults/CosmicCqlDemo/mongo-composition-compiler-final.log`,
+`TestResults/CosmicCqlDemo/mongo-composition-compiler-native.log` and
+`TestResults/SubscriptionUsageCurrent/composition-compiler-unit.trx`.
+This does not certify new composition pipelines against MongoDB yet: the
+snapshot execution/decoding owner and native composition controls are next.

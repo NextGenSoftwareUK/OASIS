@@ -48,21 +48,26 @@ internal sealed partial class MongoCqlTranslator
     }
     private static BsonValue GroupFilterPredicate<T, TKey, TResult>(CosmicGroupedSelection<T, TKey, TResult> query,
         CosmicQueryPredicate predicate) where T : IHolon
+        => SelectedFilterPredicate(predicate, path => GroupFilterValue(query, path));
+
+    // Reuse exact null, numeric, GUID and Unicode predicate semantics for all
+    // selected-result shapes. Only the native selected-column binding differs.
+    private static BsonValue SelectedFilterPredicate(CosmicQueryPredicate predicate, Func<CosmicQueryPath, BsonValue> resolve)
     {
         if (predicate is CosmicQueryBoolean boolean) return Literal(boolean.Value);
         if (predicate is CosmicQueryLogical logical)
-            return Op(logical.IsAnd ? "$and" : "$or", GroupFilterPredicate(query, logical.Left), GroupFilterPredicate(query, logical.Right));
-        if (predicate is CosmicQueryNot not) return Op("$not", GroupFilterPredicate(query, not.Operand));
+            return Op(logical.IsAnd ? "$and" : "$or", SelectedFilterPredicate(logical.Left, resolve), SelectedFilterPredicate(logical.Right, resolve));
+        if (predicate is CosmicQueryNot not) return Op("$not", SelectedFilterPredicate(not.Operand, resolve));
         if (predicate is CosmicQueryComparison comparison)
-            return GroupFilterComparison(GroupFilterValue(query, comparison.Path), GroupFilterConstant(comparison.Literal), comparison.Operator);
+            return GroupFilterComparison(resolve(comparison.Path), GroupFilterConstant(comparison.Literal), comparison.Operator);
         if (predicate is CosmicQueryFieldComparison fields)
-            return GroupFilterComparison(GroupFilterValue(query, fields.Left), GroupFilterValue(query, fields.Right), fields.Operator);
+            return GroupFilterComparison(resolve(fields.Left), resolve(fields.Right), fields.Operator);
         if (predicate is CosmicQueryMembership membership)
             return membership.Values.Count == 0 ? Literal(false) : Op("$or", membership.Values.Select(literal =>
-                GroupFilterComparison(GroupFilterValue(query, membership.Path), GroupFilterConstant(literal), CosmicQueryComparisonOperator.Equal)).ToArray());
+                GroupFilterComparison(resolve(membership.Path), GroupFilterConstant(literal), CosmicQueryComparisonOperator.Equal)).ToArray());
         if (predicate is CosmicQueryStringMatch match)
         {
-            var value = GroupFilterValue(query, match.Path); var text = Literal(match.Value);
+            var value = resolve(match.Path); var text = Literal(match.Value);
             BsonValue test;
             if (match.Operator is CosmicQueryStringOperator.Contains or CosmicQueryStringOperator.StartsWith)
                 test = Op(match.Operator == CosmicQueryStringOperator.Contains ? "$gte" : "$eq", Op("$indexOfCP", value, text), Literal(0));
