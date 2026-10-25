@@ -671,3 +671,24 @@ checkpoint only: join result selection, capabilities, physical planning/attempts
 native implementations, signed HTTP and demos remain unimplemented. No native
 provider advertises join support, and row/projection execution cannot execute a
 join intent. The unchecked join milestone remains open.
+
+## Detached join selection capture — 25 October 2026
+
+Join intent now supports `Select((left,right) => ...)` for scalar, anonymous and
+flat DTO descriptions, reusing the shared detached-shape compiler. Columns retain
+their source side, raw path/domain and output CLR type. Explicit `right != null`
+and `right == null` selections capture row presence independently of nullable data.
+User-overloaded comparisons do not become native presence tests.
+
+Left-join right-side value types must represent absence. An identical scalar may
+be lifted to Nullable<T>; numeric widening cannot be hidden inside that lift.
+Reference/nullable fields remain distinct from missing-row presence. Computation,
+entities, nested/collection output, duplicate aliases and over32columns reject.
+No selected constructor, setter, getter or application method runs during capture.
+
+FullCore2,645 passes (18new selection controls), zero skips; both frameworks build.
+This is result-description capture only. Future join packets must carry validated
+right-row presence/identity independently of selected nullable values, and all raw
+buffers must validate before shared DTO construction. Join capability/planning,
+physical attempt ownership, native matching on three stores, output validation,
+HTTP and executable demos remain open. No native join support is advertised.
