@@ -192,8 +192,7 @@ public partial class Neo4jNativeCqlTests
             }
             await global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyMovedSubtreeAsync(
                 fixture.Provider,fixture.Root.Id,other.Id,declaredEmpty,"owned CQL grandchild");
-        },configure:root=>root.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
-            new HolonChildRoleManifest(1,root.Id,new[]{new HolonChildRole("Children",root.Children.Select(child=>child.Id))})));
+        }); // Native ordinary save captures this complete logical selection.
 
     [DataTestMethod]
     [DataRow(true,true)] [DataRow(false,true)]
@@ -267,6 +266,48 @@ public partial class Neo4jNativeCqlTests
             var root=read.Result.Providers.Single().Rows.Single();
             Assert.AreEqual(HolonType.Quest,root.Children.Single().HolonType);
             root.AcceptChanges();
+            // A native provider call must respect the same partial-view ownership.
+            // Compare every owned record and parent edge, not just the root result.
+            async Task<string[]> NativeState()
+            {
+                using var session = fixture.Driver.AsyncSession();
+                var ids = fixture.Ids.Select(id => id.ToString()).ToArray();
+                var nodes = await (await session.RunAsync(
+                    "MATCH (h:Holon) WHERE h.Id IN $ids RETURN h ORDER BY h.Id", new { ids })).ToListAsync();
+                var edges = await (await session.RunAsync(
+                    "MATCH (p:Holon)-[r:HAS_CHILD]->(c:Holon) WHERE p.Id IN $ids OR c.Id IN $ids "
+                    + "RETURN p.Id AS parent,c.Id AS child,properties(r) AS fields ORDER BY parent,child", new { ids })).ToListAsync();
+                return nodes.Select(row => JsonSerializer.Serialize(new SortedDictionary<string,object>(
+                        row["h"].As<Neo4j.Driver.INode>().Properties.ToDictionary(pair => pair.Key, pair => pair.Value))))
+                    .Concat(edges.Select(row => JsonSerializer.Serialize(new { parent = row["parent"].As<string>(),
+                        child = row["child"].As<string>(), fields = row["fields"] }))).ToArray();
+            }
+            var beforeOrdinary = await NativeState();
+            foreach (var synchronous in new[] { false, true })
+            foreach (var batch in new[] { false, true })
+            {
+                await fixture.Record($"before-ordinary-partial-probe-sync-{synchronous}-batch-{batch}");
+                fixture.Known = false;
+                bool error, probeSaved;
+                string code;
+                if (batch)
+                {
+                    var outcome = synchronous ? fixture.Provider.SaveHolons(new[] { root }, saveChildren: true)
+                        : await fixture.Provider.SaveHolonsAsync(new[] { root }, saveChildren: true);
+                    error = outcome.IsError; probeSaved = outcome.IsSaved; code = outcome.ErrorCode;
+                }
+                else
+                {
+                    var outcome = synchronous ? fixture.Provider.SaveHolon(root, saveChildren: true)
+                        : await fixture.Provider.SaveHolonAsync(root, saveChildren: true);
+                    error = outcome.IsError; probeSaved = outcome.IsSaved; code = outcome.ErrorCode;
+                }
+                CollectionAssert.AreEqual(beforeOrdinary, await NativeState());
+                Assert.IsTrue(error);
+                Assert.IsFalse(probeSaved);
+                Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID", code);
+                fixture.Known = true;
+            }
             root.Name+=" edited";var version=root.Version;
             var rejected=await manager.SaveHolonAsync(root,Guid.NewGuid(),saveChildren:true,providerType:ProviderType.Neo4jOASIS);
             Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.IsSaved);Assert.AreEqual(version,root.Version);
@@ -338,8 +379,7 @@ public partial class Neo4jNativeCqlTests
             Assert.IsFalse(plan.IsError,plan.Message);
             var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
             Assert.IsFalse(read.IsError,read.Message+read.Exception);Assert.AreEqual(0,read.Result.Count);
-        },configure:root=>root.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
-            new HolonChildRoleManifest(1,root.Id,new[]{new HolonChildRole("Children",root.Children.Select(child=>child.Id))})));
+        }); // Native ordinary save captures this complete logical selection.
 
     [TestMethod]
     public Task NativeMembershipProjectionUpgradePreservesCanonicalSnapshot()
