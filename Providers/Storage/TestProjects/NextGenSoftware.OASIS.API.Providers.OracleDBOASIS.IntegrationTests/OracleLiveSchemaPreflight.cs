@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 public static class OracleLiveSchemaPreflight
 {
     internal sealed record Target(string Database, string Schema, string SessionUser, string Service, string Protocol);
-    private sealed class ExistingSchemaOwner(string connection) : OracleDBOASIS(connection)
+    internal class ExistingSchemaOwner(string connection) : OracleDBOASIS(connection)
     {
         internal int ProvisionCalls;
         protected override Task ProvisionStorageSchemaAsync(OracleConnection connection)
@@ -42,6 +42,25 @@ public static class OracleLiveSchemaPreflight
             throw new InvalidDataException("Hosted Oracle preflight requires observed TCPS; local TCP is not hosted TLS acceptance.");
     }
 
+    internal static async Task<Target> ReadTargetAsync(OracleConnection native)
+    {
+        await using var command = new OracleCommand("SELECT SYS_CONTEXT('USERENV','DB_UNIQUE_NAME'),SYS_CONTEXT('USERENV','CURRENT_SCHEMA'),SYS_CONTEXT('USERENV','SESSION_USER'),SYS_CONTEXT('USERENV','SERVICE_NAME'),SYS_CONTEXT('USERENV','NETWORK_PROTOCOL') FROM DUAL", native) { CommandTimeout = 10 };
+        await using var reader = await command.ExecuteReaderAsync();
+        if (!await reader.ReadAsync()) throw new InvalidDataException("Oracle session target metadata is absent.");
+        var target = new Target(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetString(4));
+        if (await reader.ReadAsync()) throw new InvalidDataException("Oracle session target metadata is ambiguous.");
+        return target;
+    }
+
+    internal static async Task<string[]> ReadCanonicalObjectsAsync(OracleConnection native)
+    {
+        await using var command = new OracleCommand("SELECT OBJECT_NAME,OBJECT_ID FROM USER_OBJECTS WHERE OBJECT_TYPE='TABLE' AND OBJECT_NAME IN ('OASIS_AVATARS','OASIS_AVATAR_DETAILS','OASIS_HOLONS','OASIS_WRITE_RECEIPTS','OASIS_WRITE_OPERATION_LOCKS','OASIS_WRITE_PREPARATIONS') ORDER BY OBJECT_NAME", native) { CommandTimeout = 10 };
+        await using var rows = await command.ExecuteReaderAsync(); var result = new List<string>();
+        while (await rows.ReadAsync()) result.Add(rows.GetString(0) + ":" + rows.GetDecimal(1).ToString(System.Globalization.CultureInfo.InvariantCulture));
+        if (result.Count != 6) throw new InvalidDataException("All six existing canonical tables are required; no provisioning is allowed.");
+        return result.ToArray();
+    }
+
     private static async Task RunAsync(string connection, string expectedDatabase, string expectedSchema, string expectedService, string work, bool requireTcps)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedDatabase);
@@ -58,24 +77,9 @@ public static class OracleLiveSchemaPreflight
         await using var lease = new FileStream(Path.Combine(work, "oracle-schema-preflight.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         RefuseExisting();
         await using var native = new OracleConnection(connection); await native.OpenAsync();
-        await using var targetCommand = new OracleCommand("SELECT SYS_CONTEXT('USERENV','DB_UNIQUE_NAME'),SYS_CONTEXT('USERENV','CURRENT_SCHEMA'),SYS_CONTEXT('USERENV','SESSION_USER'),SYS_CONTEXT('USERENV','SERVICE_NAME'),SYS_CONTEXT('USERENV','NETWORK_PROTOCOL') FROM DUAL", native) { CommandTimeout = 10 };
-        Target target;
-        await using (var reader = await targetCommand.ExecuteReaderAsync())
-        {
-            if (!await reader.ReadAsync()) throw new InvalidDataException("Oracle session target metadata is absent.");
-            target = new(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetString(4));
-            if (await reader.ReadAsync()) throw new InvalidDataException("Oracle session target metadata is ambiguous.");
-        }
+        var target = await ReadTargetAsync(native);
         ValidateTarget(target, expectedDatabase, expectedSchema, expectedService, requireTcps);
-        async Task<string[]> Objects()
-        {
-            await using var command = new OracleCommand("SELECT OBJECT_NAME,OBJECT_ID FROM USER_OBJECTS WHERE OBJECT_TYPE='TABLE' AND OBJECT_NAME IN ('OASIS_AVATARS','OASIS_AVATAR_DETAILS','OASIS_HOLONS','OASIS_WRITE_RECEIPTS','OASIS_WRITE_OPERATION_LOCKS','OASIS_WRITE_PREPARATIONS') ORDER BY OBJECT_NAME", native) { CommandTimeout = 10 };
-            await using var rows = await command.ExecuteReaderAsync(); var result = new List<string>();
-            while (await rows.ReadAsync()) result.Add(rows.GetString(0) + ":" + rows.GetDecimal(1).ToString(System.Globalization.CultureInfo.InvariantCulture));
-            if (result.Count != 6) throw new InvalidDataException("All six existing canonical tables are required; no provisioning is allowed.");
-            return result.ToArray();
-        }
-        var before = await Objects();
+        var before = await ReadCanonicalObjectsAsync(native);
         var provider = new ExistingSchemaOwner(connection);
         try
         {
@@ -83,7 +87,7 @@ public static class OracleLiveSchemaPreflight
             if (active.IsError) throw new InvalidDataException("Existing-schema production validation failed; no repair is permitted.", active.Exception);
             if (!active.Result || !provider.IsProviderActivated || provider.ProvisionCalls != 0)
                 throw new InvalidDataException("Read-only preflight did not activate solely through existing-schema validation.");
-            var after = await Objects();
+            var after = await ReadCanonicalObjectsAsync(native);
             if (!before.SequenceEqual(after)) throw new InvalidDataException("Canonical table identities changed during read-only validation.");
             await using (var file = new FileStream(next, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
