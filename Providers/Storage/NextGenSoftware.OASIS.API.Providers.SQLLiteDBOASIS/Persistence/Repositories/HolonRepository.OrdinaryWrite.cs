@@ -19,7 +19,7 @@ public partial class HolonRepository
         void Record(Exception cause)=>failure=failure==null ? cause:new AggregateException(failure,cause);
         try
         {
-            graph=PrepareGraph(roots,children,recursive,depth,initialDepth);
+            graph=PrepareGraph(roots,children,recursive,depth,initialDepth,callerSave:true);
             if(_dbContext.Database.CurrentTransaction!=null || _dbContext.ChangeTracker.HasChanges())
                 throw new InvalidOperationException("An ordinary graph save must own its transaction and cannot commit unrelated pending changes.");
             admitted=true;

@@ -18,10 +18,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
         }
 
-        private PreparedGraph PrepareGraph(IEnumerable<IHolon> roots,bool saveChildren,bool recursive,int maxDepth,int initialDepth=0)
+        private PreparedGraph PrepareGraph(IEnumerable<IHolon> roots,bool saveChildren,bool recursive,int maxDepth,int initialDepth=0,bool callerSave=false)
         {
-            var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(roots,saveChildren,recursive,maxDepth,initialDepth,
-                source=>Context.DataContext.ValidateDeletionUtc(source.DeletedDate));
+            Action<IHolon> validate=source=>Context.DataContext.ValidateDeletionUtc(source.DeletedDate);
+            // Fresh caller writes require selection authority; receipt/replica checks remain structural.
+            var plan=callerSave
+                ? NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.CreateForSave(roots,saveChildren,recursive,maxDepth,initialDepth,validate)
+                : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(roots,saveChildren,recursive,maxDepth,initialDepth,validate);
             var models=plan.Nodes.Select(node=> {
                 // Preserve SQLite's own full mapping and UTC validation; use shared detached planning for identity/edges.
                 var model=CreateHolonModel(node.Snapshot,node.Snapshot.Id);
