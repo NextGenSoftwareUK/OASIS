@@ -3,6 +3,7 @@ param(
     [switch]$BootstrapSchema,
     [switch]$Coverage,
     [switch]$RestartDatabaseBetweenPhases,
+    [switch]$AbruptStopDatabaseBetweenPhases,
     [switch]$ReconcileKarmaNullOutcome,[switch]$ReconcileKarmaReadGuard,
     [switch]$ReconcileConditionalIntent,
     [switch]$ReconcileScopedVisibility,[switch]$ReconcileExportVisibility,
@@ -32,6 +33,7 @@ $selectedModes=@($BootstrapSchema,$Coverage,$ReconcileKarmaReadGuard,$ReconcileK
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports,$ReconcileScopedVisibility,$ReconcileAcknowledgementViews,$ReconcileConditionalIntent).Where({$_.IsPresent}).Count
 if($selectedModes -gt 1){throw 'Choose one original reconciliation mode.'}
 if($RestartDatabaseBetweenPhases -and !$EncryptedProcess){throw 'Database restart requires the explicit encrypted two-process mode.'}
+if($AbruptStopDatabaseBetweenPhases -and !$RestartDatabaseBetweenPhases){throw 'Abrupt stop requires the explicit owned encrypted database restart mode.'}
 if(!$InspectReadConnections -and $ReadConnectionIterations -ne 50){throw 'A custom read workload requires the explicitly read-only inspection mode.'}
 if(!$InspectReadConnections -and $ReadConnectionPath -ne 'Provider'){throw 'A native connection control requires the explicitly read-only inspection mode.'}
 $ErrorActionPreference='Stop'
@@ -69,6 +71,13 @@ function Assert-OracleProcessWriterOwnership {
     param([bool]$StartedHere,[string]$ExpectedContainerId,[object]$Actual)
     if(!$StartedHere -or $Actual.ContainerId -ne $ExpectedContainerId -or $Actual.Status -ne 'running'){
         throw 'Restart runtime ownership changed before writer admission; no new write or restart is permitted.'
+    }
+}
+function Assert-OracleProcessStopped {
+    param([string]$ExpectedContainerId,[bool]$Abrupt,[object]$Actual)
+    $expectedCodes=if($Abrupt){@(137)}else{@(0,143)}
+    if($Actual.ContainerId -ne $ExpectedContainerId -or $Actual.Status -ne 'exited' -or $Actual.OomKilled -or $Actual.ExitCode -notin $expectedCodes){
+        throw 'Requested stop mode not observed; preserve original outcomes, no automatic restart.'
     }
 }
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -224,12 +233,17 @@ try{
                 }
                 $oracleRestartPending=Join-Path $work 'oracle-encrypted-process-restart.pending.json'
                 $oracleRestartReport=Join-Path $work 'oracle-encrypted-process-restart.current.json'
-                $oracleRestartProof=[ordered]@{state='before-requested-graceful-stop';before=$oracleBeforeStop;image=$image;volume='oasis-oracle-data';port='127.0.0.1:11521';writerProcess=$oracleWriterIds[0];originalIntents=$oracleProcessIntents;originalEvidence=$oracleOriginalEvidence;recoveryVerified=$false;crashPowerLossVerified=$false;hostedVerified=$false;fullProviderVerified=$false;hyperDriveRoutingVerified=$false}
+                $oracleStopMode=if($AbruptStopDatabaseBetweenPhases){'SIGKILL-process'}else{'requested-graceful-stop'}
+                $oracleRestartProof=[ordered]@{state='before-requested-stop';stopMode=$oracleStopMode;before=$oracleBeforeStop;image=$image;volume='oasis-oracle-data';port='127.0.0.1:11521';writerProcess=$oracleWriterIds[0];originalIntents=$oracleProcessIntents;originalEvidence=$oracleOriginalEvidence;recoveryVerified=$false;processCrashRecoveryVerified=$false;crashPowerLossVerified=$false;hostedVerified=$false;fullProviderVerified=$false;hyperDriveRoutingVerified=$false}
                 $oracleIntentHash=Write-OracleProcessBoundary -Path $oracleRestartPending -Value $oracleRestartProof
-                & wsl -d Ubuntu -u root -- podman stop --time 30 oasis-oracle-free
+                if($AbruptStopDatabaseBetweenPhases){
+                    & wsl -d Ubuntu -u root -- podman kill --signal KILL oasis-oracle-free
+                }else{
+                    & wsl -d Ubuntu -u root -- podman stop --time 30 oasis-oracle-free
+                }
                 if($LASTEXITCODE -ne 0){throw 'Oracle stop outcome requires inspection; do not start/replay automatically.'}
                 $oracleStopped=Get-OracleProcessRuntimeState
-                if($oracleStopped.ContainerId -ne $oracleBeforeStop.ContainerId -or $oracleStopped.Status -ne 'exited' -or $oracleStopped.OomKilled -or $oracleStopped.ExitCode -notin @(0,143)){throw 'Requested graceful stop not observed; preserve original outcomes, no automatic restart.'}
+                Assert-OracleProcessStopped -ExpectedContainerId $oracleBeforeStop.ContainerId -Abrupt $AbruptStopDatabaseBetweenPhases.IsPresent -Actual $oracleStopped
                 if((Get-FileHash -LiteralPath $oracleRestartPending).Hash -ne $oracleIntentHash){throw 'Original restart intent changed.'}
                 $oracleRestartProof['state']='requested-stop-observed';$oracleRestartProof['stopped']=$oracleStopped
                 $oracleIntentHash=Write-OracleProcessBoundary -Path $oracleRestartPending -Value $oracleRestartProof -Replace
@@ -262,6 +276,7 @@ try{
             }
             if((Get-FileHash -LiteralPath $oracleRestartReport).Hash -ne $oracleReadyHash){throw 'Original restart-ready proof changed.'}
             $oracleRestartProof['state']='restart-and-original-recovery-verified';$oracleRestartProof['recoveryVerified']=$true
+            $oracleRestartProof['processCrashRecoveryVerified']=$AbruptStopDatabaseBetweenPhases.IsPresent
             $oracleRestartProof['recoveryReportHash']=(Get-FileHash -LiteralPath (Join-Path $work 'oracle-encrypted-process-recover.trx')).Hash
             $oracleRestartProof['recoveryProofHashes']=$oracleRecoveryProofs;$oracleRestartProof['completedUtc']=[DateTime]::UtcNow.ToString('O')
             [void](Write-OracleProcessBoundary -Path $oracleRestartReport -Value $oracleRestartProof -Replace)

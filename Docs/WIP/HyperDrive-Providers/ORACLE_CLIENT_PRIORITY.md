@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Abrupt process recovery — prepared, not executed
+
+The existing encrypted two-process runner now has an explicit `-AbruptStopDatabaseBetweenPhases` option, which requires both `-EncryptedProcess` and `-RestartDatabaseBetweenPhases`. Native execution is awaiting user approval. Do not infer successful abrupt recovery from the existing clean-stop proof or the 569 standard native tests.
+
+The same initially stopped, exact retained container must be started by the invocation. The writer process must finish and its original operation/record/preparation/receipt evidence is hash-fenced before stopping. Abrupt mode requests SIGKILL and requires observed exit137 without OOM before restarting the SAME image/volume/container; graceful mode still requires exit0/143. Unknown states stop without automatic replay/reset. Recovery must independently prove original native hashes, zero operation commits and no schema provisioning using the existing verifier. `processCrashRecoveryVerified` is published only after that recovery completes. `crashPowerLossVerified` stays false: process termination is not host power loss or hosted durability.
+
+`Scripts/TestHosts/Test-OracleProcessRestartPolicy.ps1` exercises only the runner's pure ownership/stop-mode functions: **16 controls PASS**, no runtime/database calls. The incomplete-mode command rejects before environment access. Existing clean-restart evidence must be preserved before native execution; no fresh runtime, copied database or extra installation is needed. Hosted Oracle/OCI access remains independently pending.
+
 ## Integrity failures under continuation options — 25 October 2026
 
 The existing native corruption matrix now explicitly exercises both `continueOnError` values for point, all-holon and parent reads, sync/async and current/historical roots. Four corruptions cover canonical/index deletion disagreement (including tombstones), type mismatch and parent mismatch. Export routes have no continuation option and remain single cases rather than inflated duplicates. All **112 integrity cases PASS**, within full **569/569 native PASS, 35s, zero skips**.
