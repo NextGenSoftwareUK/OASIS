@@ -14,7 +14,7 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 | UInt64/nullable UInt64 | Verified1,435 integration cohort incl22 new cases | Verified205 CQL/478 unit cohort incl14/5 new cases | Verified205 CQL/453 unit cohort incl13/5 new cases |
 | Decimal/nullable Decimal metadata | Verified1,459 integration cohort incl24 Decimal cases | Verified228 CQL/483 unit cohort incl23/5 new cases | Verified217 CQL/455 unit cohort incl12/2 new cases |
 | Double/nullable Double metadata | Verified1,485 full integration cohort incl26 Double cases | Verified254 native CQL/493 units incl23 new Double cases | Verified232 native CQL/457 units incl15/2 new Double cases |
-| Single/nullable Single metadata selectors | Verified 1,516 full native cohort, including 31 Single cases | Verified 281 native / 494 unit cohort, including 24 Single query cases | Not enrolled |
+| Single/nullable Single metadata selectors | Verified 1,516 full native cohort, including 31 Single cases | Verified 281 native / 494 unit cohort, including 24 Single query cases | Verified 249 native / 459 unit cohort, including 16 Single query cases |
 | Count/LongCount/Any | Native | Native | Native |
 | Min/Max | Enrolled selected scalar domains | Enrolled selected scalar domains | Enrolled selected scalar domains |
 | Sum/Average inputs | Int32/Int64, nullable allowed | Int32/Int64, nullable allowed | Int32/Int64, nullable allowed |
@@ -22,7 +22,7 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 
 The [floating foundation contract](CQL_FLOATING_SCALAR_CONTRACT.md) records the
 shared finite bit-key codec and Mongo Single persistence prerequisites. Double SDK enrollment passes full native gates on all three providers.
-SQLite and Mongo Single SDK are verified; Neo Single and Single HTTP remain open; Double HTTP/demo acceptance now passes81SDK/81HTTP on all three providers.
+Single SDK is verified on SQLite, Mongo and Neo; Single HTTP remains open; Double HTTP/demo acceptance now passes81SDK/81HTTP on all three providers.
 
 UInt64/Decimal metadata does not grant those types as Sum/Average inputs.
 Decimal Average output does not itself grant Decimal metadata selection.
@@ -86,3 +86,7 @@ selected values, nullable group keys, grouped filtering and extrema now run
 natively. Gate33648 passes281native/494unit cases, zero failures/skips, with
 unchanged sources and matching producer/consumer identities. Neo Single, Single
 HTTP/demos and floating Sum/Average remain outside this acceptance.
+
+NeoSinglequery enrollment now passes249native/459units, with16newnativequery
+cases plus original209midpoint vectors. SingleHTTP/demos are still pending.
+See the floating contract for exact scope and final76459 evidence.
