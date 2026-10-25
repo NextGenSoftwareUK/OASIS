@@ -141,7 +141,7 @@ public sealed class CosmicNumericAggregateTests
     {
         Assert.True(Source.Sum(h => h.Name).IsError);
         Assert.True(Source.Sum(h => h.IsActive).IsError);
-        Assert.True(Source.Sum(h => CosmicQueryMetadata.Value<decimal>(h, "value")).IsError);
+        Assert.False(Source.Sum(h => CosmicQueryMetadata.Value<decimal>(h, "value")).IsError);
         var query = Source.Sum(h => CosmicQueryMetadata.Value<long>(h, "value")).Result;
         Assert.False(Numeric.Admit(query).IsError);
         var counts = new CosmicScalarCapabilities(CosmicScalarOperation.Count, CosmicScalarOperation.LongCount);

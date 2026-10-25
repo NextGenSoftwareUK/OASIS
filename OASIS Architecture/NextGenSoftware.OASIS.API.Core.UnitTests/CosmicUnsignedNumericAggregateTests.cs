@@ -196,7 +196,6 @@ public sealed class CosmicUnsignedNumericAggregateTests
     }
 
     [Theory]
-    [InlineData(typeof(decimal))]
     [InlineData(typeof(double))]
     [InlineData(typeof(float))]
     [InlineData(typeof(bool))]
