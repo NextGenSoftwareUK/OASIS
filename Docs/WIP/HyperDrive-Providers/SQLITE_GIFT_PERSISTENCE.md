@@ -1,4 +1,23 @@
-# SQLite gift persistence and schema verification
+# SQLite storage verification, gifts and schema
+
+## Scoped graph privacy and ordinary-save admission — 25 October
+
+Real SQLite tests reproduced two independent defects:
+
+1. Scoped search and all three avatar export selectors filtered owned roots but exposed hydrated foreign descendants. Eight failing cases and four valid flat-query controls established the baseline.
+2. Once visibility was corrected, the ordinary graph writer accepted a save of the filtered graph. Its graph preparation used structural `HolonGraphWritePlan.Create`, which deliberately does not establish caller mutation authority.
+
+Scoped queries now reuse Core's `IOASISStorageProvider.ProjectVisibleHolons`, preserving independent descendant versions and stored membership. The existing common export completion method applies it for hydrated current/positive-version avatar exports; unscoped and flat all-version exports retain their contracts. Empty avatar IDs reject before activation. Ordinary writes alone select existing `CreateForSave`; structural receipt/replica validation remains separate. No second visibility policy, serializer, native writer, retry or workaround was added.
+
+Focused **14/14 native cases passed**, followed by **39/39 unit tests** and the corrected broader **1,530/1,530 native regression (188 seconds)**, all zero skips. The native gate excludes only the explicit historical reconciliation category; it does not count that one-off as a normal passing test. Coverage includes sync/async, current/root-version3, search/export/flat controls, avatar ID/username/email, owned child-version7, foreign private/public descendants and an owned leaf under a hidden branch. Reads and rejected saves leave database/WAL bytes unchanged; `AcceptChanges` cannot grant replacement authority to a filtered graph. Fixed database/journal/intent/baseline paths are absent after teardown.
+
+Compatibility boundary: supplying serialized `ChildRoleManifestJson` alone is not ordinary replacement authority. Three existing CQL fixtures relied on that shortcut to seed stored membership; the initial broad run was1527PASS/3setupFAIL. Those fixtures now write their deliberately controlled stored manifests through bound native SQL after ordinary graph creation; all reparenting/visibility/paging assertions remain unchanged. This is test setup, not a production workaround or permission to bypass the ordinary-save guard. Conditional/replay authority must keep its own expected-revision/receipt contract.
+
+The second defect's original database and durable intent were preserved rather than overwritten. Explicit hash-fenced read-only reconciliation verified the same five holon identities/versions/parent edges and avatar, recorded compact evidence and retired only that owned synthetic database. The pre-partial-save byte hash was not persisted, so reconciliation does **not** claim those earlier bytes were unchanged or certify arbitrary corruption recovery. Exact evidence/resources: [inventory](ENVIRONMENT_INVENTORY.md).
+
+This does not certify every conditional caller-admission/replay combination, post-acknowledgement publication race, public WEB4 endpoint, other provider or complete HyperDrive V2 matrix. Keep those gates open; scoped local tests are not provider-wide100%.
+
+Artifact identity: the frozen native/unit provider copies match. Core744, Shared56, SQLite166, native117 and unit4 source documents were audited against the PE-bound PDBs. Concurrent parent commit97b15db6c regenerated Shared/SQLite informational-version attributes while the frozen binaries retained44ac44524. A read-only audit reconstructed **only** that attribute from each frozen assembly and required the resulting whole source-file SHA256 to equal its original PDB checksum; all other source bytes match. This is a separately documented frozen cohort, not a claim that it matches the newest producer binary or that the default strict verifier passed unchanged. No DLL copying, metadata/file editing or test replay was used to hide the distinction. Exact hashes are in the resource ledger.
 
 Updated 2026-10-19. Scoped provider work, not full SQLite/HyperDrive V2 certification.
 
