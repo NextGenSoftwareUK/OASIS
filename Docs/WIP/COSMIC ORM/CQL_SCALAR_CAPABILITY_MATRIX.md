@@ -22,7 +22,7 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 
 The [floating foundation contract](CQL_FLOATING_SCALAR_CONTRACT.md) records the
 shared finite bit-key codec and Mongo Single persistence prerequisites. Double SDK enrollment passes full native gates on all three providers.
-Single SDK is verified on SQLite, Mongo and Neo; Single HTTP remains open; Double HTTP/demo acceptance now passes81SDK/81HTTP on all three providers.
+Single SDK and HTTP/demo acceptance are verified on SQLite, Mongo and Neo; Double HTTP/demo acceptance now passes81SDK/81HTTP on all three providers.
 
 UInt64/Decimal metadata does not grant those types as Sum/Average inputs.
 Decimal Average output does not itself grant Decimal metadata selection.
@@ -77,7 +77,7 @@ are verified; full Mongo Single query capability remains disabled pending native
 query integration. SQLite's promotion correction passes full 1,516 native tests
 and Core 2,558 tests; widened Double thresholds are never narrowed to Single.
 
-## Mongo Single query enrollment — 24 October 2026
+## Mongo Single query enrollment â€” 24 October 2026
 
 Supersedes the historical component-only checkpoints above. Original BSON
 Double, Int32/Int64 and Decimal128 dispatch to their certified binary32 owners.
@@ -90,3 +90,10 @@ HTTP/demos and floating Sum/Average remain outside this acceptance.
 NeoSinglequery enrollment now passes249native/459units, with16newnativequery
 cases plus original209midpoint vectors. SingleHTTP/demos are still pending.
 See the floating contract for exact scope and final76459 evidence.
+
+Single HTTP/compiler/endpoint coverage passes 2,595 linked tests, including 37
+new controls. The fresh live gate passes 87 SDK and 87 signed HTTP examples,
+with 267 settled operations and 262 provider attempts across all three providers.
+Six offline browser presets and Swagger examples also pass. Earlier notes that
+Single HTTP is pending are historical. Floating Sum/Average and broader unchecked
+certification remain open. See gate 37983 in the floating contract.

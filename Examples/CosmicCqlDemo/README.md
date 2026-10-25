@@ -218,3 +218,38 @@ exact decimal prices; Double is appropriate for binary64 measurements.
 
 Browser presets Double / exact reading range and Double / grouped readings,
 plus Swagger FiniteDouble examples, use the same bounds. Live acceptance passes81SDK/81signedHTTP,261settled operations/256attempts, zero failures/skips across all three providers. Source snapshots unchanged and all five binary pairs match. Four offline browser presets and standalone cached demo build pass.
+
+## Examples 28–29: Single readings
+
+Use `float` and `f` literals when the declared measurement domain is binary32.
+The fixture stores a separate `singleReading` field with adjacent Single values.
+Example 28 selects B-owned and C-public; example 29 groups those readings, then
+filters and orders the selected alias before taking two groups.
+
+```csharp
+var minimum = 1.0000002f;
+var maximum = 1.0000005f;
+
+var readings = visible
+    .Where(row =>
+        CosmicQueryMetadata.Value<float>(row, "singleReading") >= minimum &&
+        CosmicQueryMetadata.Value<float>(row, "singleReading") < maximum)
+    .OrderBy(row => CosmicQueryMetadata.Value<float>(row, "singleReading"))
+    .Select(row => new
+    {
+        row.Name,
+        Reading = CosmicQueryMetadata.Value<float>(row, "singleReading")
+    });
+```
+
+The complete executable examples include provider planning, error handling and
+result checks. HTTP uses `Single` type tags and canonical strings such as
+`"1.0000002"` and `"1.0000004"`. Browser presets are **Single / binary32 reading
+range** and **Single / grouped binary32 readings**; Swagger exposes **FiniteSingle**.
+
+Compiler/endpoint acceptance passes **2,595 tests**. All six browser presets pass
+an offline check. Fresh live acceptance passes **87 SDK and 87 signed HTTP
+examples**, with **267 settled operations and 262 provider attempts** across all
+three providers. Sources stayed unchanged and all five binary pairs matched.
+Owned fixtures and listeners were removed after teardown. This is a dedicated
+live demo gate; the full provider regression suites retain their separate scope.
