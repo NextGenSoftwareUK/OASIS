@@ -1294,3 +1294,5 @@ This closes bounded flat selected-result composition across SDK/HTTP on the
 three providers. Graph-source composition is explicitly unadmitted. Broader
 CQL relationship/join/group/scalar certification, authoritative tenant/sharing
 policy, federation and the remaining ORM roadmap still require work.
+
+25 October Mongo grouped native decoding now validates the comparable identity used by grouping/order/filter/page against each typed key or Min/Max payload. One decoder helper owns logical equality and the single normalized GUID comparable form, separately from payload-bit identity. Unit538/native361 pass unskipped; [evidence](CQL_GROUPING_CONTRACT.md). No capability expansion follows from this repair.
