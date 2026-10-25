@@ -944,3 +944,27 @@ The additive Decimal enum preserves earlier scalar identities. Compiler controls
 are verified; examples24–25 now pass live three-provider75SDK/75HTTP acceptance.
 Browser presets and Swagger ExactDecimal show the same bounds. See the
 [Decimal evidence](CQL_DECIMAL_METADATA_CONTRACT.md#live-decimal-examples-2425--24-october-2026).
+
+
+## Finite Double metadata — SQLite SDK
+
+SQLite supports `double`/`double?` comparisons, membership, field comparisons,
+ordering, projection, Min/Max and grouped keys. It passes26 focused Double cases
+inside the full1,485-case native regression; fullCore2,507 also passes.
+
+```csharp
+// Double means a finite binary64 interpretation of the stored numeric value.
+var readings = CosmicQuery<Holon>.Create()
+    .Where(row => CosmicQueryMetadata.Value<double>(row, "reading") >= 0.1d)
+    .OrderBy(row => CosmicQueryMetadata.Value<double>(row, "reading"))
+    .Take(10)
+    .Select(row => CosmicQueryMetadata.Value<double>(row, "reading"));
+```
+
+Check the result, plan against the actual SQLite capabilities and execute through
+HolonManager as in the earlier projection examples. Binary64 rounding is part of
+this declared type; exact integer/decimal queries retain their corresponding
+Int64/UInt64/Decimal domains. Nonzero underflow cannot match zero; overflow and
+foreign JSON types reject required selection. Single, other providers' Double
+profiles and floating HTTP/demo enrollment remain pending.
+[Domain, budgets and evidence](CQL_FLOATING_SCALAR_CONTRACT.md).

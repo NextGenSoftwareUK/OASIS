@@ -527,3 +527,12 @@ Mongo493 units/231 native CQL cases pass, including3 new native storage cases.
 This does not enroll Double/Single query capabilities. Native value-domain and
 normalization/admission work remains in the
 [floating contract](CQL_FLOATING_SCALAR_CONTRACT.md).
+
+
+SQLite Double metadata now normalizes original JSON numeric tokens under the
+existing query-scoped read-budget owner. Predicates, membership, field comparison,
+ordering, selected values, extrema and group keys use one finite binary64 key.
+Grouped normalized numeric cells retain their actual CLR type; Decimal and Double
+key spaces cannot be compared as if interchangeable. FullCore2,507/focused26/
+fullSQLite1,485 pass, source and producer/consumer identities unchanged inside the
+lease. Mongo/Neo Double, Single queries and floating transport remain open.
