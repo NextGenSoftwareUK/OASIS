@@ -895,7 +895,8 @@ MongoDB, SQLite and Neo4j support Decimal/nullable Decimal comparisons, membersh
 field comparisons, ordering, projections, Min/Max and grouped keys. SQLite passes
 1,459 native cases including 24 Decimal cases; MongoDB passes 228 native CQL and
 483 unit cases including 23/5 new cases. Neo4j passes 217 native CQL and 455 unit
-cases including 12/2 new cases. HTTP/demo enrollment remains pending;
+cases including 12/2 new cases. Decimal wire compiler controls pass in the full
+2,500-test linked unit suite; live HTTP/demo acceptance remains pending;
 check the actual provider capability profile.
 
 ```csharp
@@ -917,3 +918,27 @@ original numeric representation is normalized exactly; underflow, excess precisi
 rounding cannot change its Decimal identity. Equivalent scales share a group.
 Use `decimal?` for optional metadata. Decimal Sum/Average inputs remain outside
 this enrollment. [Domain, limits and evidence](CQL_DECIMAL_METADATA_CONTRACT.md).
+
+
+### Decimal HTTP shapes
+
+Use an exact invariant string for a metadata predicate:
+
+```json
+{
+  "metadataPath": ["price"],
+  "scalar": "Decimal",
+  "operator": "GreaterThanOrEqual",
+  "value": "1.0000000000000000000000000001"
+}
+```
+
+Select it with `{"alias":"Price","metadataPath":["price"],"valueType":"Decimal"}`.
+Add `nullable:true` for optional selected metadata. Group keys use the same
+selection; a selected group filter identifies its alias and keeps its value as
+a string. Decimal results carry the Decimal schema tag and invariant strings.
+
+Numeric JSON, exponents, whitespace, overflow and text that would require rounding
+are rejected. Equivalent stored numeric scales retain one mathematical identity.
+The additive Decimal enum preserves earlier scalar identities. Compiler controls
+are verified; new live three-provider demo examples are the next acceptance gate.

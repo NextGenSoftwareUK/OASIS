@@ -104,3 +104,17 @@ decimal-unit-current.trx and decimal-identities-current.json; log:
 TestResults/CosmicCqlDemo/decimal-neo-full.log. Owned retained service is exited;
 current fixture teardown completed, historical reviewed evidence is preserved.
 HTTP/demo enrollment remains open.
+
+## HTTP compiler verified; live acceptance pending
+
+WEB4 adds Decimal after UInt64 in the existing scalar enum, preserving existing
+identities. Source predicates, selected Decimal/nullable Decimal and grouped alias
+predicates share a bounded invariant string parser. Parsing must reproduce the
+original string exactly, preventing Decimal.TryParse rounding, exponent coercion,
+whitespace and numeric JSON from changing value identity. Existing Decimal result
+schema/string formatting is reused. Actual9594 terminal0 passes the full2,500
+linked Core unit tests, including23 new controls, zero skips. Source snapshots
+unchanged; CoreC65FBD5F/unitDC44A998 tested together. No Core production source
+changes. Evidence: TestResults/CosmicCurrent/decimal-wire-full-current.trx and
+decimal-wire-identities-current.json; log: CosmicCqlDemo/decimal-wire-full.log.
+Live HTTP/browser/Swagger/demo examples remain pending.

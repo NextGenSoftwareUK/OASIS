@@ -103,10 +103,7 @@ public static partial class CqlV1Compiler
         // Int64 and Decimal use invariant strings to preserve precision through JavaScript clients.
         else if (type == typeof(long) && json.ValueKind == JsonValueKind.String &&
             long.TryParse(json.GetString(), NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var integer)) value = integer;
-        else if (type == typeof(decimal) && json.ValueKind == JsonValueKind.String &&
-            decimal.TryParse(json.GetString(), NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
-                CultureInfo.InvariantCulture, out var number) &&
-            number.ToString(CultureInfo.InvariantCulture) == json.GetString()) value = number;
+        else if (type == typeof(decimal) && TryDecimal(json, out var number)) value = number;
         else if (type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var count)) value = count;
         else if (type == typeof(Guid) && json.ValueKind == JsonValueKind.String &&
             Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
