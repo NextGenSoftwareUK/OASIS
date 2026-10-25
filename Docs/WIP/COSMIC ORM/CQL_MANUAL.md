@@ -1134,3 +1134,7 @@ output requires further capability support. Native execution remains pending.
 ### Join planning status
 
 Core can now preflight a captured join selection against an already authorized eligible provider snapshot. Join permissions are independent of ordinary query/projection permissions; the actual native adapter must re-admit both source queries and the join contract. This stage performs no storage operation. Do not fabricate capability grants in application or HTTP input. Native matching, packet validation, execution/accounting and join HTTP routes remain pending. Multi-provider source windows retain the existing federation restriction.
+
+### Join result validation status
+
+The shared join packet validator now distinguishes matched nullable values from an unmatched right row. Its published wrapper provides Value and HasRight even when a selection does not include a presence column. It verifies native source/pair counts, identities, exact scalar cells, access and budgets before constructing DTOs. This is not a storage query API: native join adapters and the execution/accounting pipeline remain pending.
