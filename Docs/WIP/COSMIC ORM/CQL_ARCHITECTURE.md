@@ -508,7 +508,11 @@ native Decimal128 admission/decoder passes228 CQL cases and483 provider units.
 Neo4j now derives the same keys natively from existing schema3 numeric text,
 using coefficient/scale/exponent string operations and guarded integer scale
 arithmetic. Full217 native CQL/455 units pass, including2,067 kernel vectors.
-Its selected values use the same Core exact decoder. Decimal HTTP/demo enrollment
-remains pending. These are separate scoped provider cohorts, not a simultaneous
+Its selected values use the same Core exact decoder. Decimal wire compiler
+coverage passes23 new controls in the full2,500 linked-unit suite. Existing WEB4
+source/group literal parsing shares a bounded exact invariant-string owner;
+selected Decimal schema/formatting reuses the existing result owner. Core
+production code is unchanged. Live HTTP/browser/Swagger/demo acceptance remains
+pending. These are separate scoped provider cohorts, not a simultaneous
 full regression against one producer build.
 [Contract and cohort evidence](CQL_DECIMAL_METADATA_CONTRACT.md).
