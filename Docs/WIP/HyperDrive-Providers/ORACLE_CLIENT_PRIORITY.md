@@ -1,5 +1,19 @@
 # Oracle client readiness — top priority
 
+## Acknowledged-total fault contract repaired — 25 October UTC
+
+Private Core `4ff1d7d12eab33d7b2c92df60299411cd00c6738` is published. The existing ledger mutation owner now passes its exact acknowledged total privately to the high-level karma record/avatar projection; four redundant postcommit GetKarma reads are removed. No public API signature change, new storage, cache fallback, retry, compensation or duplicated provider implementation. Public ordinary balance reads still use storage; existing rejection and optional-projection warning behavior remains covered.
+
+Eight controlled sync/async/add/remove/direct/facade cases genuinely failed before repair. First full Core2550 and final linked Core2552 pass, zero skips; final includes the peer's two prepared CQL controls, not staged as part of this change. Both reports retained. Full real ODP.NET Oracle502PASS29s, zero skips, including SAME2strengthened native karma cases: a test-host guard rejects redundant ledger reads only while the high-level operation is active, while independent verification reads remain native. Initial guard mistakenly included the fixture's own verification read; preserved A3386A63 report and exact nine-row reconciliation1PASS433ms document that TEST failure, not a production regression. Original intent retired unchanged; no award replay/reset.
+
+Matched Oracle445unitPASS853ms; Core netstandard2.1 buildPASS0errors. Current source/PDB and producer/consumer copies verified (Core744/net10,712/netstandard; Shared56; root linked unit177; Oracle15/unit32/native45). Final nativeTRX BC5EFFE55E28877DD576F81C5F65756316D486CF5B192987AC2C98A1B8EDBC53. Oracle stopped143/OOMfalse, pending0/11521absent; existing environment/SDK reused, no restore/download/cloud request. Dependency manifest must pair the published Core SHA with its parent gitlink. Earlier OCI127 remains its distinct cohort, not recertified by these SQL/Core gates.
+
+This closes the redundant postcommit-read defect, not every possible partial-ledger/projection outage or hosted Oracle/V2 gate. Cloud access/security/durability/fees and complete-provider acceptance remain open; Oracle is not100%.
+
+## Active fault-contract follow-up — acknowledged ledger total
+
+The high-level shared KarmaManager currently performs a redundant GetKarma read AFTER its own ledger mutation has acknowledged persistence. The native failure showed why that read is not needed to decide whether the award/deduction committed: a subsequent refusal can erase the returned record while the ledger has already changed. Planned correction: pass the exact acknowledged `newTotal` privately from the existing mutation owner to the high-level record/avatar projection; do not reread storage, consult cached balances, retry, issue a second write or change public method signatures. Ordinary GetKarma reads remain storage-backed; rejected/unacknowledged writes must not publish totals or alter the avatar projection. Existing optional projection warnings must remain warnings rather than fake complete projection success. Controlled sync/async/add/remove/facade tests will deny the redundant postcommit read and verify one ledger mutation plus the exact original acknowledged total. Implementation/native acceptance not yet established for this follow-up; awaiting the live peer demo producer/source gate before edits.
+
 ## Latest verified Oracle-first checkpoint — 25 October UTC
 
 Full **502/502 retained native PASS (29seconds),445/445 SQL unit PASS,127/127 OCI signed-SDK loopback PASS,2/2 proxy-pool controls PASS**, zero skipped. Original failure below is reconciled, not erased: exact original nine synthetic payloads were hash-verified and conditionally removed in one transaction; independent reads proved absence; original529B intent retired unchanged. Reconciliation1PASS439ms. FailedTRX preserved as `.karma-null-failed-CF0E9040`.
