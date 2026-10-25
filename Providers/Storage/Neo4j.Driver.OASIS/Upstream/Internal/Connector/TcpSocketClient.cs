@@ -33,6 +33,10 @@ namespace Neo4j.Driver.Internal.Connector
     {
         private Socket _client;
         private Stream _stream;
+        private readonly object _connectionGate = new object();
+        private readonly CancellationTokenSource _disconnect = new CancellationTokenSource();
+        private readonly CancellationToken _disconnectToken;
+        private int _disconnected;
 
         private readonly IHostResolver _resolver;
         private readonly bool _ipv6Enabled;
@@ -51,6 +55,7 @@ namespace Neo4j.Driver.Internal.Connector
             Throw.ArgumentNullException.IfNull(socketSettings.EncryptionManager,
                 nameof(SocketSettings.EncryptionManager));
 
+            _disconnectToken = _disconnect.Token;
             _logger = logger;
             _resolver = socketSettings.HostResolver;
             _encryptionManager = socketSettings.EncryptionManager;
@@ -61,144 +66,142 @@ namespace Neo4j.Driver.Internal.Connector
 
         public async Task ConnectAsync(Uri uri)
         {
-            await ConnectSocketAsync(uri).ConfigureAwait(false);
-
-            _stream = new NetworkStream(_client);
+            var client = await ConnectSocketAsync(uri).ConfigureAwait(false);
+            Stream stream;
+            lock (_connectionGate)
+            {
+                _disconnectToken.ThrowIfCancellationRequested();
+                _stream = stream = new NetworkStream(client);
+            }
             if (_encryptionManager.UseTls)
             {
                 try
                 {
-                    var sslStream = CreateSecureStream(uri);
-
-                    await sslStream
-                        .AuthenticateAsClientAsync(uri.Host, null, Tls12, false).ConfigureAwait(false);
-
-                    _stream = sslStream;
+                    SslStream sslStream;
+                    lock (_connectionGate)
+                    {
+                        _disconnectToken.ThrowIfCancellationRequested();
+                        _stream = sslStream = CreateSecureStream(uri, stream);
+                    }
+                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                    {
+                        TargetHost = uri.Host,
+                        EnabledSslProtocols = Tls12,
+                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck
+                    }, _disconnectToken).ConfigureAwait(false);
                 }
+                catch (OperationCanceledException) when (_disconnectToken.IsCancellationRequested) { throw; }
                 catch (Exception e)
                 {
                     throw new SecurityException($"Failed to establish encrypted connection with server {uri}.", e);
                 }
             }
+            _disconnectToken.ThrowIfCancellationRequested();
         }
 
-        private async Task ConnectSocketAsync(Uri uri)
+        private async Task<Socket> ConnectSocketAsync(Uri uri)
         {
+            _disconnectToken.ThrowIfCancellationRequested();
             var innerErrors = new List<Exception>();
-            var addresses = await _resolver.ResolveAsync(uri.Host).ConfigureAwait(false);
-
+            var addresses = await _resolver.ResolveAsync(uri.Host, _disconnectToken).ConfigureAwait(false);
+            _disconnectToken.ThrowIfCancellationRequested();
             foreach (var address in addresses)
             {
+                _disconnectToken.ThrowIfCancellationRequested();
                 try
                 {
-                    await ConnectSocketAsync(address, uri.Port).ConfigureAwait(false);
-
-                    return;
+                    return await ConnectSocketAsync(address, uri.Port).ConfigureAwait(false);
                 }
+                catch (OperationCanceledException) when (_disconnectToken.IsCancellationRequested) { throw; }
                 catch (Exception e)
                 {
-                    var actualException = e;
-                    if (actualException is AggregateException)
-                    {
-                        actualException = ((AggregateException) actualException).GetBaseException();
-                    }
-
+                    var actualException = e is AggregateException aggregate ? aggregate.GetBaseException() : e;
                     innerErrors.Add(new IOException(
                         $"Failed to connect to server '{uri}' via IP address '{address}': {actualException.Message}",
                         actualException));
                 }
             }
-
-            // all failed
             throw new IOException(
                 $"Failed to connect to server '{uri}' via IP addresses'{addresses.ToContentString()}' at port '{uri.Port}'.",
                 new AggregateException(innerErrors));
         }
 
-        internal async Task ConnectSocketAsync(IPAddress address, int port)
+        internal async Task<Socket> ConnectSocketAsync(IPAddress address, int port)
         {
-            InitClient();
-
-#if NET46
-            var connectTask = Task.Factory.FromAsync(_client.BeginConnect, _client.EndConnect, address, port, null);
-#else
-            var connectTask = _client.ConnectAsync(address, port);
-#endif
-            var finishedTask = await Task.WhenAny(connectTask, Task.Delay(_connectionTimeout)).ConfigureAwait(false);
-            if (connectTask != finishedTask) // timed out
+            var client = InitClient();
+            using var attempt = CancellationTokenSource.CreateLinkedTokenSource(_disconnectToken);
+            attempt.CancelAfter(_connectionTimeout);
+            try
             {
-                try
-                {
-                    // close client immediately when failed to connect within timeout
-                    await DisconnectAsync().ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    _logger?.Error(e, $"Failed to close connect to the server {address}:{port}" +
-                                      $" after connection timed out {_connectionTimeout.TotalMilliseconds}ms.");
-                }
-
-                throw new OperationCanceledException(
-                    $"Failed to connect to server {address}:{port} within {_connectionTimeout.TotalMilliseconds}ms.");
+                // Native cancellation joins connect completion; no detached connect task
+                // can later reopen a connection after its owner has shut down.
+                await client.ConnectAsync(address, port, attempt.Token).ConfigureAwait(false);
+                _disconnectToken.ThrowIfCancellationRequested();
+                return client;
             }
-
-            await connectTask.ConfigureAwait(false);
+            catch
+            {
+                lock (_connectionGate)
+                {
+                    if (ReferenceEquals(_client, client)) _client = null;
+                }
+                client.Dispose();
+                throw;
+            }
         }
 
         public virtual Task DisconnectAsync()
         {
-            if (_client != null)
+            if (Interlocked.Exchange(ref _disconnected, 1) != 0) return Task.CompletedTask;
+            try { _disconnect.Cancel(); }
+            finally
             {
-                if (_client.Connected)
+                Socket client;
+                Stream stream;
+                lock (_connectionGate)
                 {
-#if NET452
-                    return Task.Factory.FromAsync(_client.BeginDisconnect, _client.EndDisconnect, false, null)
-                        .ContinueWith(
-                            t =>
-                            {
-                                _client.Dispose();
-                                _stream?.Dispose();
-
-                                _client = null;
-                                _stream = null;
-
-                                return Task.CompletedTask;
-                            }).Unwrap();
-#else
-                    _client.Shutdown(SocketShutdown.Both);
-#endif
+                    client = _client;
+                    stream = _stream;
+                    _client = null;
+                    _stream = null;
                 }
-
-                _client.Dispose();
-
-                _client = null;
-                _stream = null;
+                // Preserve the transport's shutdown handshake before disposal.
+                // Disposing a socket with unread Bolt bytes can send TCP RST.
+                try
+                {
+                    if (client?.Connected == true) client.Shutdown(SocketShutdown.Both);
+                }
+                finally
+                {
+                    try { stream?.Dispose(); }
+                    finally
+                    {
+                        client?.Dispose();
+                        _disconnect.Dispose();
+                    }
+                }
             }
-
             return Task.CompletedTask;
         }
 
-        private void InitClient()
+        private Socket InitClient()
         {
-            if (_ipv6Enabled)
+            lock (_connectionGate)
             {
-                _client = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp)
-                {
-                    DualMode = true
-                };
+                _disconnectToken.ThrowIfCancellationRequested();
+                var client = _ipv6Enabled
+                    ? new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp) { DualMode = true }
+                    : new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                client.NoDelay = true;
+                client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, _socketKeepAliveEnabled);
+                _client = client;
+                return client;
             }
-            else
-            {
-                _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            }
-
-            _client.NoDelay = true;
-            _client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, _socketKeepAliveEnabled);
         }
 
-        private SslStream CreateSecureStream(Uri uri)
+        private SslStream CreateSecureStream(Uri uri, Stream stream)
         {
-            return new SslStream(_stream, true,
+            return new SslStream(stream, true,
                 (sender, certificate, chain, errors) =>
                 {
                     if (errors.HasFlag(SslPolicyErrors.RemoteCertificateNotAvailable))

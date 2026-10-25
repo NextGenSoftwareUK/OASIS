@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver.Internal.Connector
@@ -56,11 +57,12 @@ namespace Neo4j.Driver.Internal.Connector
             return result;
         }
 
-        public async Task<IPAddress[]> ResolveAsync(string hostname)
+        public async Task<IPAddress[]> ResolveAsync(string hostname, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (TryParseIpAddress(hostname, out var result) == false)
             {
-                result = await _resolver.ResolveAsync(hostname).ConfigureAwait(false);
+                result = await _resolver.ResolveAsync(hostname, cancellationToken).ConfigureAwait(false);
                 result = result.OrderBy(x => x, _addressComparer).ToArray();
             }
 

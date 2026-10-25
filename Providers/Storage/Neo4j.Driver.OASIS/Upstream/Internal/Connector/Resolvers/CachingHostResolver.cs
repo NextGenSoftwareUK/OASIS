@@ -70,16 +70,18 @@ namespace Neo4j.Driver.Internal.Connector
             return entry.Addresses;
         }
 
-        public async Task<IPAddress[]> ResolveAsync(string hostname)
+        public async Task<IPAddress[]> ResolveAsync(string hostname, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!TryGetCached(hostname, out var entry))
             {
-                await _lock.WaitAsync().ConfigureAwait(false);
+                await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
                     if (!TryGetCached(hostname, out entry))
                     {
-                        var resolved = await _resolver.ResolveAsync(hostname).ConfigureAwait(false);
+                        var resolved = await _resolver.ResolveAsync(hostname, cancellationToken).ConfigureAwait(false);
+                        cancellationToken.ThrowIfCancellationRequested();
 
                         entry = new CacheEntry()
                         {

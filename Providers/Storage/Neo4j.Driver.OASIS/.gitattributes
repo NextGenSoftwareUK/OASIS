@@ -3,6 +3,7 @@ Upstream/** -text -whitespace
 LICENSE -text
 NOTICE -text
 IdentityPubKey.snk -text
+CompatibilityPublicKey.snk -text
 *.csproj text eol=lf
 *.props text eol=lf
 *.json text eol=lf
