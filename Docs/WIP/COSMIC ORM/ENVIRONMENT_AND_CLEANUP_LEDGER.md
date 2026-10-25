@@ -1376,3 +1376,28 @@ Free C68,240,822,272 after. Core existing-file group capture edit committed as
 2aae112400c57570a13b0968d099249b2ba8b0f6; compiled Core source count remains744
 (the earlier745 message was a count mistake, not a new file). Source/lease hold
 released while paired parent gitlink/manifest and SQLite publication complete.
+
+## Mongo Double native continuation — 24 October 2026
+
+Owner: COSMIC ORM/CQL session. Reusing SDK10.0.401, NuGet cache,
+Mongo8.3.11 at C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe,
+C:/Source/OASIS/TestResults/SubscriptionUsageCurrent/mongo-data (27029,
+oasisRecoveryRs), existing provider/unit/native bin/obj outputs, and global build
+lease. No download/install/restore/new environment planned. Sizes unmeasured;
+free C before68,197,097,472 bytes. Fixed fixture cosmic_cql_fixture and
+cosmic-cql-environment.lock retain existing acknowledged teardown owner.
+Retain compact TRX/log/identity evidence; shared runtime/cache/data directory
+remain reusable, never delete unknown outcomes or unrelated system Mongo27017.
+Native build and test result pending. New source test data is fixture-owned.
+
+79326 terminal0:254 native CQL/493 Mongo units PASS0skip;23 new native Double
+cases. Reused outputs only, no restore/download/install. Native fixture cleanup
+passed; owned Mongo27029 listener absent after runner teardown. Existing
+cosmic-cql-environment.lock is a reusable coordination file, not an active-service
+claim. Runner bounded owned raw Mongo log11,095,999 bytes to65,103 bytes after
+shutdown; data/runtime retained reusable. Free C after68,229,201,920 bytes.
+Retain TestResults/SubscriptionUsageCurrent/{mongo-cql-native-current.trx,
+double-full-current.trx} and TestResults/CosmicCqlDemo/mongo-double-native.log
+(sizes unmeasured). No in-lease producer/consumer hash snapshot was captured in
+this gate, so no matched-artifact certification is claimed. Lease released for
+peer Oracle priority; no Core/Shared source changes.

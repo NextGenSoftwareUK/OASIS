@@ -965,6 +965,6 @@ Check the result, plan against the actual SQLite capabilities and execute throug
 HolonManager as in the earlier projection examples. Binary64 rounding is part of
 this declared type; exact integer/decimal queries retain their corresponding
 Int64/UInt64/Decimal domains. Nonzero underflow cannot match zero; overflow and
-foreign JSON types reject required selection. Single, other providers' Double
-profiles and floating HTTP/demo enrollment remain pending.
+foreign JSON types reject required selection. The same SDK Double shape is now supported by MongoDB with its actual provider
+capabilities. Single, Neo4j Double and floating HTTP/demo enrollment remain pending.
 [Domain, budgets and evidence](CQL_FLOATING_SCALAR_CONTRACT.md).

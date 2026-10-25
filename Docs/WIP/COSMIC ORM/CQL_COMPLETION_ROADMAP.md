@@ -6,11 +6,11 @@ Next implementation: remaining scalar coverage and the expanded provider/policy 
 
 Floating continuation: Core's finite binary64/binary32 key foundation passes both
 configured targets and the full2,507-unit suite, including finite-key facts and8,192
-finite random bit patterns. SQLite Double SDK queries pass1,485 full native cases; Mongo/Neo Double and all
+finite random bit patterns. SQLite Double SDK queries pass1,485 full native cases; Mongo Double now passes254 native CQL/493 unit cases; Neo Double and all
 Single query capabilities remain disabled;
 Mongo Single numeric persistence/acknowledgement repair passes493 units and231
-native CQL cases, including3 new actual save/load cases; no floating query
-capability is enabled yet. See the
+native CQL cases, including3 new actual save/load cases; the newer254-case cohort also verifies
+Double query enrollment. See the
 [floating contract and remaining gates](CQL_FLOATING_SCALAR_CONTRACT.md).
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
