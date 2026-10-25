@@ -1,24 +1,41 @@
 #Requires -Version 7.0
-param([switch]$CleanupReviewedOriginal,[switch]$InspectCurrentCaptureSqlite)
+param([switch]$CleanupReviewedOriginal,[switch]$InspectCurrentCaptureSqlite,[switch]$InspectCurrentCaptureDynamo,[switch]$CleanupCurrentCapture)
 $ErrorActionPreference='Stop'
 $awsInspectRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $awsInspectWork=Join-Path $awsInspectRoot 'TestResults/DynamoHistoryCurrent'
 $awsInspectProject=Join-Path $awsInspectRoot 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests.csproj'
-if($InspectCurrentCaptureSqlite){
-    if($CleanupReviewedOriginal){throw 'Choose exactly one inspection/cleanup mode.'}
-    foreach($name in @('aws-current-capture-sqlite-inspection.json','aws-current-capture-sqlite-inspection.trx')){
+if($InspectCurrentCaptureSqlite -or $InspectCurrentCaptureDynamo -or $CleanupCurrentCapture){
+    if($CleanupReviewedOriginal -or @($InspectCurrentCaptureSqlite,$InspectCurrentCaptureDynamo,$CleanupCurrentCapture).Where({$_.IsPresent}).Count -ne 1){throw 'Choose exactly one inspection/cleanup mode.'}
+    $currentKind=if($InspectCurrentCaptureDynamo){'dynamo'}else{'sqlite'}
+    $currentPrefix=if($CleanupCurrentCapture){'aws-current-capture-reviewed-cleanup'}else{"aws-current-capture-$currentKind-inspection"}
+    foreach($name in @("$currentPrefix.json","$currentPrefix.trx","$currentPrefix-complete.json")){
         if(Test-Path (Join-Path $awsInspectWork $name)){throw 'Preserve current original inspection; no overwrite.'}
     }
     & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'Read-only current AWS SQLite acknowledgement inspection' -Operation {
         $lease=[IO.File]::Open('C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\environment.lock',[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
         $previous=$env:OASIS_DYNAMO_HISTORY_WORK
+        $previousEndpoint=$env:DYNAMODB_SERVICE_URL;$previousCleanup=$env:OASIS_AWS_CLEANUP_AUTHORITY;$currentOwned=$null
         try{
             & dotnet build $awsInspectProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
             if($LASTEXITCODE -ne 0){throw 'Cached read-only inspector build failed.'}
             $env:OASIS_DYNAMO_HISTORY_WORK=$awsInspectWork
-            & dotnet test $awsInspectProject --no-build --no-restore --filter 'FullyQualifiedName~AWSNativeRunLifecycle.ReadOnlyInspectCurrentCaptureFailureSqlite' --logger 'trx;LogFileName=aws-current-capture-sqlite-inspection.trx' --results-directory $awsInspectWork
+            $currentMethod='ReadOnlyInspectCurrentCaptureFailureSqlite'
+            if($InspectCurrentCaptureDynamo -or $CleanupCurrentCapture){
+                $currentOwned=& (Join-Path $PSScriptRoot 'Use-ReusableDynamoContainer.ps1')
+                $env:DYNAMODB_SERVICE_URL='http://127.0.0.1:18000'
+                $currentMethod='ReadOnlyInspectCurrentCaptureFailureDynamo'
+                if($CleanupCurrentCapture){
+                    $currentMethod='CleanupOnlyHashVerifiedCurrentCaptureFailure'
+                    $env:OASIS_AWS_CLEANUP_AUTHORITY='reviewed-current-capture-original'
+                }
+            }
+            & dotnet test $awsInspectProject --no-build --no-restore --filter "FullyQualifiedName~AWSNativeRunLifecycle.$currentMethod" --logger "trx;LogFileName=$currentPrefix.trx" --results-directory $awsInspectWork
             if($LASTEXITCODE -ne 0){throw 'Read-only current original inspection failed; preserve originals.'}
-        }finally{$env:OASIS_DYNAMO_HISTORY_WORK=$previous;$lease.Dispose()}
+        }finally{
+            $env:OASIS_DYNAMO_HISTORY_WORK=$previous;$env:DYNAMODB_SERVICE_URL=$previousEndpoint
+            $env:OASIS_AWS_CLEANUP_AUTHORITY=$previousCleanup
+            try{if($currentOwned){& (Join-Path $PSScriptRoot 'Use-ReusableDynamoContainer.ps1') -Stop}}finally{$lease.Dispose()}
+        }
     }
     return
 }
