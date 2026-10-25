@@ -6,7 +6,7 @@ published through parent `f1917a001` (Core `f0290ff`). Immutable join intent is 
 
 - Single, Double, Decimal, UInt64 and UTC DateTime have certified native query
   support on MongoDB, SQLite and Neo4j within their recorded operator domains.
-- Latest separately verified cohorts: Core **2,645**, Shared **1,189**, normal
+- Latest separately verified cohorts: Core **2,672**, Shared **1,189**, normal
   SQLite **1,578 native**, MongoDB **297 native /502 unit**, Neo4j **275 native
   /477 unit** and **16 native write-outcome controls**, zero skips. Historical
   sections retain their original counts and scope; these are not one simultaneous
@@ -933,3 +933,27 @@ right-row presence/identity independently of selected nullable values, and all r
 buffers must validate before shared DTO construction. Join capability/planning,
 physical attempt ownership, native matching on three stores, output validation,
 HTTP and executable demos remain open. No native join support is advertised.
+
+## Join capability admission and planning — 25 October 2026
+
+Core now has independent join kind, exact key-path equality, output-path and work
+limit permissions. Ordinary predicate/projection support cannot enroll a native
+join by itself. Graph-source validation and one common snapshot for both sources
+require separate explicit promises; independent source snapshots do not suffice.
+
+The planner captures the authorized eligible target list once, then reuses the
+existing source planner independently for both original queries. It retains both
+windows, filters, access predicates and graph requests. It admits every selected
+target before returning a plan. The existing multi-provider source-window
+restriction remains until a distributed paging contract is implemented.
+
+Native readmission checks one matching provider against its actual query and join
+contracts, including both sources, rather than trusting planned claims. Exact
+nullable metadata domains, key/output widths, all seven work/byte budgets and
+Take(0) cannot bypass admission. No provider discovery or native I/O occurs.
+
+Both Core frameworks build; fullCore2,672 passes (27new planning controls), zero
+skips. Initial netstandard build exposed an Enum name collision; explicitly using
+System.Enum resolved it before the verified run. No provider join enrollment,
+physical execution/receipts, raw packet validation, matching, HTTP or executable
+join demo is claimed. Those requirements and the overall join milestone remain open.
