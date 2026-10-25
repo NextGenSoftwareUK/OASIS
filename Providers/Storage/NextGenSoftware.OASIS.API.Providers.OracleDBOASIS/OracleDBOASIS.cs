@@ -552,6 +552,11 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                     found.SearchResultAvatars.AddRange(avatars.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,holons)));
                 }
                 if(wantsHolons)found.SearchResultHolons.AddRange(await ProjectHolonRootsAsync(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,holons)),loadChildren,recursive,maxChildDepth,0,true));
+                if(searchParams.SearchOnlyForCurrentAvatar){
+                    var visible=IOASISStorageProvider.ProjectVisibleHolons(new OASISResult<IEnumerable<IHolon>>{Result=found.SearchResultHolons,IsLoaded=true},searchParams.AvatarId,false);
+                    if(visible.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(visible);
+                    found.SearchResultHolons=visible.Result.ToList();
+                }
                 found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;RecordLoaded<ISearchResults>(result,found,found.NumberOfResults);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
