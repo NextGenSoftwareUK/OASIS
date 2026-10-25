@@ -35,30 +35,12 @@ internal sealed partial class MongoCqlTranslator
 
     internal MongoCqlCommand CompileExecution<T>(CosmicQuery<T> query,int maximumResults) where T:IHolon
     {
-        var pipeline=CompileSource(query,out var traverses);
-        var source=pipeline;pipeline=new List<BsonDocument>();
-        pipeline.Add(new("$project",new BsonDocument("Children",0)));
-        if(query.Orderings.Count!=0)
-        {
-            // Wrap the complete row so computed sort keys cannot overwrite any
-            // persisted property, including documents with hostile field names.
-            var projection=new BsonDocument{{"_id",0},{"row","$$ROOT"}};
-            var sort=new BsonDocument();
-            for(var i=0;i<query.Orderings.Count;i++)
-            {
-                var ordering=query.Orderings[i];var key="s"+i;var direction=ordering.Descending?-1:1;
-                projection.Add(key,OrderingKey(ordering.Path,"cqlsort"+i));
-                sort.Add(key+".rank",direction);sort.Add(key+".value",direction);
-            }
-            sort.Add("row.HolonId",1);
-            pipeline.Add(new("$project",projection));pipeline.Add(new("$sort",sort));
-        }
-        else pipeline.Add(new("$sort",new BsonDocument("HolonId",1)));
-        if(query.Offset!=0)pipeline.Add(new("$skip",query.Offset));
-        var resultBudget=query.GraphOptions==null?maximumResults:Math.Min(maximumResults,query.GraphOptions.MaximumNodes);
-        var fetch=query.Limit.HasValue?Math.Min(query.Limit.Value,resultBudget+1):resultBudget+1;
-        pipeline.Add(new("$limit",Math.Max(1,fetch)));
-        if(query.Orderings.Count!=0)pipeline.Add(new("$replaceRoot",new BsonDocument("newRoot","$row")));
+        var source = CompileSource(query, out var traverses);
+        var resultBudget = query.GraphOptions == null ? maximumResults : Math.Min(maximumResults, query.GraphOptions.MaximumNodes);
+        var fetch = query.Limit.HasValue ? Math.Min(query.Limit.Value, resultBudget + 1) : resultBudget + 1;
+        // Share the selected-window owner: Take(0) suppresses rows while the
+        // outer source still produces protected traversal error envelopes.
+        var pipeline = SelectedWindow(query, fetch);
         if(traverses)FinishDescendantEnvelope(source,pipeline);else source.AddRange(pipeline);
         pipeline=source;
         ValidatePipeline(pipeline);

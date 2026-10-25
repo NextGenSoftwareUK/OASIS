@@ -1,14 +1,51 @@
 # CQL scalar HTTP contract
 
-Current verification:2,117Core/HTTP tests and175combined native regression tests pass with zero skips; fresh12-example walkthroughs pass36SDK/36HTTP on allthree stores,216settled operations/211physical attempts. The verified selected-extrema gate below supersedes earlier historical checkpoints.
+Current status, 25 October 2026: all seven scalar operations below are
+implemented on MongoDB, SQLite and Neo4j. The latest shared walkthrough passes
+102 SDK/102 signed HTTP examples across those providers. Later dated test counts
+retain their original scope; the [completion roadmap](CQL_COMPLETION_ROADMAP.md)
+tracks current cohorts and remaining work. The new empty-window correctness
+batch is described separately below.
 
 ## Source and window ownership
 
-`POST /api/data/query-cql/scalar` accepts explicit `Count`, `LongCount`, `Any`, `Min` or `Max` intent (default `LongCount`). Its result discriminator is `cql-scalar-v1`. Reuse the bounded root/direct-child/descendant filter vocabulary and the same immutable Core compiler. Do not accept executable expressions, plans, actor IDs, tenant grants, adapter profiles or arbitrary fields.
+`POST /api/data/query-cql/scalar` accepts explicit `Count`, `LongCount`, `Any`, `Min`, `Max`, `Sum` or `Average` intent (default `LongCount`). Its result discriminator is `cql-scalar-v1`. Reuse the bounded root/direct-child/descendant filter vocabulary and the same immutable Core compiler. Do not accept executable expressions, plans, actor IDs, tenant grants, adapter profiles or arbitrary fields.
 
-The scalar request has nullable `take`, default **unbounded**, with explicit bounded Skip and optional Take preserving Core window algebra. The existing `CqlV1Request.Take` defaults to25; wrapping that DTO unchanged would silently count at most25 roots. Fix this at the shared source-compilation boundary rather than stripping/overwriting a window after construction. Preserve the row DTO's default25 and its existing validation. Count/existence empty input/window semantics remain zero/false. Min/Max require one bounded Selection: canonical field or typed metadata path. Missing/null nullable/string inputs are ignored; empty nullable/string results are null and empty required results report CQL_EMPTY_SEQUENCE. Wrong participating domains error even if another value would win.
+The scalar request has nullable `take`, default **unbounded**, with explicit bounded Skip and optional Take preserving Core window algebra. The existing `CqlV1Request.Take` defaults to25; wrapping that DTO unchanged would silently count at most25 roots. Fix this at the shared source-compilation boundary rather than stripping/overwriting a window after construction. Preserve the row DTO's default25 and its existing validation. Count/existence empty input/window semantics remain zero/false. Min/Max require one bounded Selection: canonical field or typed metadata path. Missing/null nullable/string inputs are ignored; empty nullable/string results are null and empty required results report CQL_EMPTY_SEQUENCE. Wrong participating domains error even if another value would win. Sum/Average require an exact Int32/Int64 selection (nullable allowed); Average returns Decimal. See the [numeric contract](CQL_NUMERIC_AGGREGATES.md).
 
 Graph output does not participate in a scalar count. If graph/consistency intent is accepted, preserve requested snapshot admission and independent relationship budgets; never hydrate children or lower input to the graph publication cap. Native instruction, memory and cancellation/deadline bounds still apply.
+
+## Empty windows and protected scope
+
+`Take(0)` defines an empty scalar input, but cannot suppress mandatory native
+relationship/traversal validation. A protected descendant limit or cycle error
+must win over Count/LongCount/Any zero/false, empty Min/Max and numeric empty-input
+semantics. Cancellation is checked before any empty-result optimization.
+
+25 October correction in progress: SQLite and Neo4j each reproduced seven
+scalar failures plus three row/graph/projection failures. MongoDB reproduced nine
+of ten cases; its projection reader already preserved protected validation. The
+new shared shape fixture also verifies valid empty input publishes no sentinel
+row and a later ordinary query succeeds.
+
+SQLite now restricts every empty shortcut to unprotected queries. Rows,
+projections, selected scalars and groups share one mandatory native relationship
+scope read, with consistent snapshot ownership before paging. Neo4j uses its
+translator's relationship flag to preserve the existing native validation
+branches for rows, projections and scalars. MongoDB's shared scalar reader and
+row/graph readers retain protected work; row generation reuses the existing
+selected-window compiler so zero output cannot expose a sentinel row.
+
+Verification so far: the scalar-only checkpoint passes full SQLite **1,658
+native /71 unit** and Neo4j **369 native /519 unit**, zero skips. The broader
+root fix passes **10 SQLite, 3 Neo4j and 10 MongoDB focused native cases**,
+zero skips. Full refreshed SQLite acceptance passes **1,661 native /71 unit**,
+zero skips; MongoDB also passes **374 native /538 unit** and Neo4j
+**372 native /519 unit**, zero failures/skips. Thirty new native controls are
+included across the stores. Fresh **102 SDK /102 signed HTTP** demo and joint
+native test **1/1** also pass, with309settled/301attempts, unchanged source inputs
+and six matching producer/consumer identities. Owned fixtures/services are
+cleaned; task-branch publication follows. Earlier full-suite results do not certify these later changes.
 
 ## Exact result representation
 

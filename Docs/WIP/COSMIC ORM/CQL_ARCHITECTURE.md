@@ -14,6 +14,36 @@ Immutable graph options distinguish ProviderDefault from ProviderSnapshot. Snaps
 
 CosmicQueryReadAccess owns the existing WEB4 owner/public rule as immutable actor/predicate data. It is inserted ahead of business predicates and native paging; composition preserves the binding without duplicating it. WEB4 constructs it from its authenticated/admitted actor and reuses the same output rule. Core rejects an access actor different from the inherited execution and rejects foreign detached rows before typed publication. SDK creation is a restriction, not authentication or credentials. Visibility-bound graphs require GraphReadAccess alongside GraphExpansion at planning and actual-adapter readmission; the three native readers, detached capture and typed selection owners enforce it. Arbitrary metadata sharing/role labels cannot grant access.
 
+## Protected scope precedes empty result windows
+
+A zero source window changes publication, not the validity of protected native
+relationship work. Empty shortcuts are eligible only when the compiled source
+has no protected relationship/traversal requirement. Native error envelopes and
+scope validation stay outside the result-page branch. The same rule applies to
+rows, graph roots, projections and scalars; no manager reload or client scan is
+introduced.
+
+SQLite shares a native relationship-scope preflight across rows, projections,
+selected scalars and groups. When scope and result require separate commands,
+one serializable read owner spans both. Caller transactions must satisfy that
+contract and remain caller-owned. A protected row query therefore may execute a
+scope-count command before its paged read, including when the page is empty.
+This bounded work is intentional; the existing cumulative deadline/instruction
+owner still governs it.
+
+Neo4j's translator records relationship participation, so its existing validation
+branches still execute when the result LIMIT is zero. Its read-committed contract
+is unchanged. MongoDB retains protected scalar/row/graph execution and the
+snapshot needed for membership validation even for a zero page. Its row compiler
+reuses the selected-window owner: a zero page filters rows while the outer source
+retains traversal error frames, preventing a sentinel row from being published.
+
+Multiple native commands within one admitted query remain one V2 physical query
+attempt, with the existing receipt owner. Command count, result count and billable
+attempt count must not be conflated. Current positive/negative native evidence
+and pending full regressions are tracked in the
+[empty-window contract](CQL_SCALAR_HTTP_CONTRACT.md#empty-windows-and-protected-scope).
+
 ## Layers and ownership
 
 ```mermaid

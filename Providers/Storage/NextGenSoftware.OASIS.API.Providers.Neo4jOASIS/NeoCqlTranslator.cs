@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 internal sealed partial class NeoCqlTranslator
 {
     internal readonly Dictionary<string, object> Parameters;
+    internal bool HasRelationship { get; private set; }
     private readonly string _node;
     private readonly string _projection;
     private readonly CosmicQueryReadAccess _access;
@@ -123,9 +124,12 @@ internal sealed partial class NeoCqlTranslator
     {
         switch (predicate)
         {
-            case CosmicQueryAnyDescendant descendant:return TranslateDescendant(descendant);
+            case CosmicQueryAnyDescendant descendant:
+                HasRelationship = true;
+                return TranslateDescendant(descendant);
             case CosmicQueryAnyChild child:
             {
+                HasRelationship = true;
                 var suffix=Parameters.Count.ToString(CultureInfo.InvariantCulture);
                 var node="rh"+suffix;var projection="rp"+suffix;
                 var inner=new NeoCqlTranslator(node,projection,Parameters,_access);
