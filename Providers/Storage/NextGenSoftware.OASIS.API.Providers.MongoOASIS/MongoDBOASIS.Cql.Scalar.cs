@@ -21,9 +21,9 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?) }),
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?) })
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) })
             });
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
@@ -43,8 +43,10 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
             if (plan.Query.Operation == CosmicScalarOperation.Sum || plan.Query.Operation == CosmicScalarOperation.Average)
             {
                 var numeric = await repository.ExecuteNativeCqlNumericAsync(translator.CompileNumeric(plan.Query),
-                    cancellationToken).ConfigureAwait(false);
-                return CosmicNumericScalarResults.FromParts(plan.Query, numeric.High, numeric.Low, numeric.Count);
+                    plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false);
+                return numeric.DecimalParts != null
+                    ? CosmicDecimalScalarResults.FromParts(plan.Query, numeric.DecimalParts, numeric.Count)
+                    : CosmicNumericScalarResults.FromParts(plan.Query, numeric.High, numeric.Low, numeric.Count);
             }
             if (plan.Query.Selector != null)
             {

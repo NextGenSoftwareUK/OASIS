@@ -12,6 +12,14 @@ internal sealed partial class MongoCqlTranslator
         => Op("$add", Op("$multiply", "$a" + index + "high",
             Literal(new BsonDecimal128(new Decimal128(CosmicNumericScalarResults.LimbBase)))), "$a" + index + "low");
 
+    private static BsonValue GroupedDecimalValue(int index, bool average)
+        => DecimalAggregateValue(new BsonArray(Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount)
+            .Select(part => (BsonValue)("$a" + index + "d" + part))), "$a" + index + "present", average);
+
+    private static BsonValue GroupedSumValue(CosmicGroupedColumn column, int index)
+        => (Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal)
+            ? (BsonValue)("$cqlDecimalSum" + index) : GroupedSumValue(index);
+
     private static BsonValue GroupFilterValue<T, TKey, TResult>(CosmicGroupedSelection<T, TKey, TResult> query,
         CosmicQueryPath path) where T : IHolon
     {
@@ -23,7 +31,7 @@ internal sealed partial class MongoCqlTranslator
         if (column.KeyIndex >= 0) value = "$_id.k" + column.KeyIndex;
         else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) value = "$inputs";
         else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max) value = "$a" + index + ".k";
-        else if (column.Operation == CosmicScalarOperation.Sum) value = GroupedSumValue(index);
+        else if (column.Operation == CosmicScalarOperation.Sum) value = GroupedSumValue(column, index);
         else if (column.Operation == CosmicScalarOperation.Average) value = "$cqlGroupAverage" + index;
         else throw new NotSupportedException("Exact normalized Average filtering is not enrolled.");
         return Op("$ifNull", value, Literal(BsonNull.Value));

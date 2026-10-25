@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.Common;
 using System;
 using System.IO;
 using System.Linq;
@@ -66,12 +67,28 @@ public partial class HolonRepository
             if (coverage.IsError) throw new InvalidDataException(coverage.Message);
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
-                expectedFields += 3;
-                if (!document.TryGetValue(name + "high", out var high) || !high.IsDecimal128
-                    || !document.TryGetValue(name + "low", out var low) || !low.IsDecimal128)
-                    throw new InvalidDataException("Native group numeric limbs must be exact Decimal128 values.");
-                var normalized = CosmicNumericScalarResults.FromParts(column.Operation.Value,
-                    column.Selector.ValueType, Limb(high), Limb(low), present);
+                OASISResult<object> normalized;
+                if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                {
+                    expectedFields += CosmicDecimalScalarResults.LimbCount + 1;
+                    var parts = new long[CosmicDecimalScalarResults.LimbCount];
+                    for (var part = 0; part < parts.Length; part++)
+                    {
+                        if (!document.TryGetValue(name + "d" + part, out var word) || !word.IsDecimal128)
+                            throw new InvalidDataException("Native Decimal group requires seven exact Decimal128 limb sums.");
+                        parts[part] = Limb(word);
+                    }
+                    normalized = CosmicDecimalScalarResults.FromParts(column.Operation.Value, column.Selector.ValueType, parts, present);
+                }
+                else
+                {
+                    expectedFields += 3;
+                    if (!document.TryGetValue(name + "high", out var high) || !high.IsDecimal128
+                        || !document.TryGetValue(name + "low", out var low) || !low.IsDecimal128)
+                        throw new InvalidDataException("Native group numeric limbs must be exact Decimal128 values.");
+                    normalized = CosmicNumericScalarResults.FromParts(column.Operation.Value,
+                        column.Selector.ValueType, Limb(high), Limb(low), present);
+                }
                 if (normalized.IsError) throw new MongoCqlGroupedException(normalized.ErrorCode, normalized.Message);
                 values[index] = normalized.Result;
             }

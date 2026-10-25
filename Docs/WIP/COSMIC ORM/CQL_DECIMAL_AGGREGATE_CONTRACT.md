@@ -1,5 +1,28 @@
 # CQL Decimal aggregate contract
 
+## MongoDB Decimal native acceptance - 25 October 2026
+
+Native scalar and grouped Decimal/nullable Sum/Average are implemented. The
+focused query gate passes **23/23**, and full MongoDB units pass **550/550**,
+with no skips. The full **416/416 native CQL regression passes**, with no failures or skips.
+This certifies native SDK arithmetic; HTTP Decimal inputs remain unenrolled.
+
+Seven signed base1e9 sums preserve the exact scaled28 numerator. Grouped
+comparison/order values use eight-word carry normalization, bounded long division
+and discarded-digit/sticky tracking to round once to a legal Decimal coefficient.
+Only the final at-most29-significant-digit coefficient is recombined into
+Decimal128. Raw packet validation still rejects malformed participation and
+out-of-range sums, including groups omitted by result paging. No entity scan,
+binary floating conversion or server JavaScript is introduced.
+
+The 23 native controls cover nullable/empty inputs, signs, large cancellation,
+overflow versus valid means, mixed integer/Decimal groups, selected filters,
+ordering/paging, source windows, privacy, cancellation/reuse,137 inputs independent
+of graph publication limits, original stored precision and double-round boundaries.
+Separate native component acceptance covers2 tests:2,114 scaled input vectors
+and138 final-normalization packets. HTTP Decimal enrollment, live Decimal demos
+and Neo4j Decimal arithmetic remain pending.
+
 ## SQLite native implementation - 25 October 2026
 
 SQLite now enrolls native Decimal/nullable Sum/Average. The existing exact
@@ -22,9 +45,8 @@ must not expand implicitly just because an SDK adapter gains a new capability.
 
 
 25 October 2026. Core Decimal/nullable Sum and Average capture, explicit input
-permissions and exact packet normalization are implemented. Native SQLite,
-MongoDB and Neo4j Decimal arithmetic remains unenrolled pending translation and
-certification. Metadata read/Min/Max permissions do not grant arithmetic.
+permissions and exact packet normalization are implemented. Native SQLite and MongoDB Decimal arithmetic are certified at the checkpoints
+above. Neo4j remains unenrolled pending translation and certification. Metadata read/Min/Max permissions do not grant arithmetic.
 
 ## Exact reduction packet
 
@@ -61,7 +83,8 @@ order. It must be identical across all enrolled native providers.
 Core scalar/grouped capture recognizes Decimal input. Native enrollment requires
 an explicit Decimal input list and matching grouped result permissions. Existing
 two-argument numeric permissions retain signed integer inputs; actual provider
-profiles currently declare only Int32/Int64/UInt64 and nullable forms. Borrowed
+SQLite/MongoDB profiles declare Int32/Int64/UInt64/Decimal and nullable forms;
+Neo4j still declares only the integer inputs. Borrowed
 caller claims cannot enroll Decimal on the actual adapter. HTTP Average binding
 and live demos are separate gates after native acceptance.
 
@@ -126,7 +149,7 @@ tests pass. No native Decimal query capability is advertised. The focused runner
 mode is `-CosmicCqlDecimalKernel` (one test); a later full CQL run expects392 after
 this added case. Earlier391-native evidence retains its original scope.
 
-Remaining grouped normalization algorithm:
+Implemented MongoDB grouped normalization algorithm:
 
 1. Normalize seven signed limb sums right-to-left with nonnegative remainders
    and a floor carry. Prefix the final carry, forming eight words. The carry sign
@@ -152,5 +175,6 @@ Remaining grouped normalization algorithm:
    Empty nullable averages produce null. Source access, snapshot, traversal and
    deadlines remain under the existing read owner.
 
-Scalar and grouped profiles currently share numeric input permissions. Complete
-both native paths and final-value/proof agreement before enabling Decimal.
+Scalar and grouped profiles share explicit numeric input permissions. Both native
+paths and final-value/proof agreement now pass full416 native and550 unit gates.
+The earlier component-only checkpoints above retain their historical scope.
