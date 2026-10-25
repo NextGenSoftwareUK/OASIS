@@ -1,5 +1,25 @@
 # Oracle client readiness — top priority
 
+## Clean requested-stop/start persistence verified — 25 October UTC
+
+Fresh gate **2writer PASS2s +2recovery PASS2s +9pure recovery guards PASS21ms**, zero skips. This closes the next LOCAL clean-restart gate recorded below, not crash/power-loss or hosted durability.
+
+| Phase | Authoritative evidence |
+|---|---|
+| Commit | WriterPID24496 committed both encrypted sync/async fixtures, each with native preparation+graph/receipt acknowledgement. Original operation/actor/root/child IDs and native root/child/receipt/preparation hashes retained. |
+| Requested stop | SAME container e8861e29..., pinned image358b3246..., SAME oasis-oracle-data volume; observed exited143/OOMfalse, no SIGKILL. Writer host terminal before stop. |
+| Actual restart | StartedAt changed from `2026-10-24T23:08:18.559602578-05:00` to `2026-10-24T23:08:48.006686464-05:00`; same ID/image/volume/loopback11521, healthy before reader dispatch. No clone/snapshot/reset/new runtime. |
+| Recover | Different readerPID42640 verifies original native hashes BEFORE activation/manager dispatch and again before cleanup; original versions/revisions unchanged, old key-a preparation recovered while key-b active, **0new recovery-operation commits/0schema provisioning**. |
+| Teardown | Exact-content original8synthetic rows removed in owned conditional cleanup transactions; independent absence for original root/child/receipt/preparation/operation guards. These cleanup commits are NOT included in0recovery-operation commits. Final runtime stopped143/OOMfalse, pending/atomic-next0,11521absent. |
+
+Existing command now supports explicit owned boundary: acquire normal global producer lease around `Run-ReusableOracleTests.ps1 -EncryptedProcess -RestartDatabaseBetweenPhases`. It refuses an initially running/unowned runtime, incompatible mode, ALL original write/recover/written/verified/restart evidence before any new writer, and changed original proof. Durable stop intent precedes stop; requested-stop evidence precedes start; partial restart-ready report remains unverified until original recovery completes. Unknown/forced-stop outcomes retain intent and do not automatically reset/restart/replay. Snapshot checks fence missing/changed originals BEFORE manager Save; process TEST owner refuses all schema repair/provisioning. Synthetic key resolver is reused; no hosted KMS claim. Restart report explicitly leaves crashPowerLoss/hosted/fullProvider/HyperDriveRouting false.
+
+The first90119 attempt passed9pure guards but failed its WSL pipe-delimited runtime query BEFORE database start/write. Repaired that argument-marshalling root cause with canonical container-ID/native JSON reads, not fallback/retry. Original six prior process files were exact-hash MOVED `.pre-clean-restart`, not copied/overwritten; original9pure report likewise preserved before final-owner verification. Successful86375 proof is separate from that admission failure and previous nonrestart process cohort.
+
+Final source/copies Core744/E5145A09, rebuiltShared56/0DD3A39F, Oracle15/native51; same provider copiesB2AB5E22. Restart report2238B/B5931BDD..., writeDFD1E1B9...,recover7E2157A4...,pure74C706A5...; full hashes/resource identities in ENVIRONMENT_INVENTORY.md. SAME volume mount `/var/lib/containers/storage/volumes/oasis-oracle-data/_data` measured **6,657,478,487logical bytes both before/after**; no new database allocation/copy/download/restore. Reused integration output1093632B; compact evidence retained. No production provider/Core/Shared source changes or Development/master deployment. Native510/unit445/OCI133/preflight10/bootstrap/protected suites retain their separate earlier cohorts; this4case durability proof does not silently recertify them.
+
+**Remaining:** authorized Autonomous/OCI hosted identity/IAM/wallet/certificate/session binding/CRUD/durability/cost acceptance, requirement-to-interface/option evidence completion review and full V2 routing/failover/replication/load balancing in the global provider programme. Cloud access checklist is unchanged in ACTIONS-FOR-DAVID.md. No claim of Oracle100% or a provider-wide completion percentage.
+
 ## Hosted existing-schema read-only preflight verified locally — 25 October UTC
 
 Fresh coherent **510native PASS35s/445unit PASS800ms/10pure target-policy PASS39ms**, zero skips, against the current published Core4b2d6b7 sources/parentd874cda31. SAME2restricted-schema native cases now exercise the exact preflight implementation using retained OASIS_PRIV_TEST: production schema validation activates with0provisioning calls, all six canonical table identities remain unchanged, original owned CRUD rows remain absent, and actual local TCP is explicitly rejected by hosted TCPS policy. The local proof is labelled LOCAL/non-TLS/CRUD-unverified and emitted into TRX before exact-content file removal. No cloud test or new database/schema/runtime/download/restore.
