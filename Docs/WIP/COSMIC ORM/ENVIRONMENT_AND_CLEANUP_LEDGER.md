@@ -2363,3 +2363,80 @@ beforeDBreads; byte-streamXMLreaderfixedthenreconciliationpassed. Currentfresh
 demo87SDK/87HTTPstillpendingSQLiteordinaryrolepersistence/rootfixturefix.
 SQLitecount/snapshot44e5ff5c9handoffcomplete; thissessionownsSQLroles+Mongoordinary
 selection guard audit. No production fixclaim before red/green native tests.
+
+25 October SQLite ordinary-role regression source created:
+C:/Source/OASIS/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/OrdinaryRolePersistenceTests.cs.
+Six sync/async native cases cover captured custom roles/order, root-only stored
+membership preservation, acknowledged source observation and rollback nonpublication.
+Uses existing .NET10/xUnit/cache, fixed SQLiteCurrent/integration-current.db and
+its existing environment.lock + scoped-visibility.pending.json durable intent.
+No install/download/newenvironment. Intent retired only after acknowledged writes
+and independent native identity/child checks, or verified definite rollback/empty
+store. Unknown outcomes preserve fixture. Owned trigger RejectOwnedRole lives
+only in test DB; class teardown removes exactDB/WAL/SHM after proof. SharedSDK/cache
+reusable; compactTRX/log retained. OwnerCOSMICORM, sizesunmeasured. Planned redgate
+before any production change; all originaldemo failure resources alreadyremoved.
+
+25 October SQLite ordinary-role red/green: originalunwrittenDDLsetupfailedbecause
+tableisHolon(singular); strictreadonlyinspection verifiedall46tablesempty and
+originalintentC731F18E...AEA9B5E72/failureF65AC0EC...FC234E7. Preserved original
+TRX/617byteintent and proof inSQLiteCurrent/ordinary-role-unwritten-*; removed
+only692224byteownedDB +617byteintent underexclusivefixturelease. WAL/SHMabsent.
+Correctedtriggerthenred36274/83692cohort:4semanticFAIL/2rollbackPASS,0skip;
+TRXSHA256409E31F393C1724BD92C501D7C75A9A4E26DB737B06D668C033B4970C81047EA.
+Productionordinarywriter nowresolvescaptured/protectedstoredrolemanifestinside
+itsimmediatetransaction; postcommitpublishesallparentedges beforeacknowledged
+roleobservation. Green20765:6nativePASS2s0skip;
+TRXSHA2567378A7C06BACA0CCC57DAA599AB1DD67FFA5515CCD7DAB41DA1257AB11DB1A58.
+FixedDBandpendingabsentafterterminal. SameSDK/cache/provider/nativeoutputs
+reused; no install/download/newenvironment. Full1576native +39unit gatespending.
+
+25 October currentordinary-rolework remainsLOCAL/uncommittedpending genericmanager
+handofffix. Focused8nativePASS0skip; fullinitial1578=1560PASS/18FAIL (2historical
+reconcileadmission,2legacy-representationfixtures,14manager/typefailures). Followup
+16manager/read=6PASS/10FAIL, no fixtureleft. Last8casegate64308PASS2s includes
+complete native read/save and partial-depth rejection. CurrentTRX A4E08EB8...E2ABA8;
+SQLproducer/nativeconsumer7987C371...13B1C09agree. SamefixedSQLiteDB/intent/SDK/cache/
+binobjresourcesreused, no install/download/newenvironment. InitialDDLtable-name
+failure safelyreconciled all46tablesempty; archiveTRX/intent/proofand692224byteDB/
+617byteintentcleanup recordedinordinary-role-unwritten-* underSQLiteCurrent.
+Rootnextowner is CoreHolonSavePlan stagedphysicalChildren vs capturedlogicalroles;
+noCore/Shared source changeyet. SeeSQLITE_ORDINARY_ROLE_OWNERSHIP.md. NoSQLite
+fullgreen/commit/deploymentclaim; freshdemo stillpending. Broadergoal remainsactive.
+
+25 October generic prepared-role boundary candidate: Coreprivate3sources modified
+(HolonSavePlan, HolonChildRoleObservation, HolonChangeTracking), Sharedgraphplanner
+andSQLiteordinarypublication updated. NewparentCoreunitfile adds9ownershipcontrols
+coveringtypedroles, serialized-copy rejection,5mutations,partialmarkersanddisposal.
+ReusesCoredualTFMnetstandard2.1/net10.0 assets andexistingSDK/cache/buildoutputs.
+No restore/download/install/newenvironment. FullCoreandSQLitefocusedgate next,
+under normalsharedlease withboundedworkers. Sources/outputretained active/reusable,
+sizesunmeasured; fixedTRX/logfiles retained. No privateCorecommit/gitlinkadvanceyet.
+Planneddescriptor readonly/privateboundexactstagedidentity/edges/members/observation;
+knownpartialviewsneverupgraded, serializedmetadataisnotauthority. Outcomepending.
+
+25 October gate8491 PASS: CorebothTFMsbuild,2604Coretests (9newownershipcases),
+22focusedSQLmanager/nativecases,0skips. Genericpreparedrecordevidence is bound to
+liveprivateplan/stagedobject, immutableidentity/storedobservation andexactchild
+references/order/IDs/parents; partialmarkersandserializedcopiescannotacquireit.
+Sharedmutationplanner preserveslogicalrolesinstead ofrecapturingflattenedtransport.
+SQLiteleavesprepared-cloneackpublicationtoCore; ordinarydirectcallersretainnative
+postcommitpublication. Gate85783 PASS:1189Sharedtests0skip +SQLtestconsumerbuild.
+NextfullnormalSQL1578excludeshistoricalSQLiteScopedGraphReconciliationcases whose
+originalfixturesareabsent. Legacy-formatfixtureexplicitlyremovesstoredrootmanifest
+withboundnativeSQLafterlegitimateSave; assertionsunchanged. Demo seed no longer
+fabricatesstoredmetadata. No freshdemo/fullSQLclaimyet. SameSDK/cache/fixedoutputs,
+no restore/install/download/newenvironment. Coreprivate3sources/Shared+SQLcandidate
+stilluncommitted; dependencygitlink/manifestunchangedpendingverifiedpublication.
+
+25 October fullnormalSQL45296PASS:1578native0skip3m5, excludingonly2historical
+original-fixtureSQLiteScopedGraphReconciliationcases. NoDB/intentleft. Core2604+
+Shared1189 checkpointsalsoPASS. Freshdemo30428understandardlease usescorrected
+logical-onlyseed (noforgedstoredmanifest), sameMongo27029/Neo17687/SQLitejointDB,
+sixproducer/copychecksandexpandedcs/csproj/props/publickeysourcefence. No new
+install/download/restore/environment. Fixedlogprepared-role-live-demo.log/current
+v1-*evidence paths reused, prior87proofhashespreserved. Runtime/fixturesownedby
+reusablerunner, compactevidence retained; source/SDK/cache/buildoutputsreusable,
+sizesunmeasured. Coreprivate3filesandparentbatchstilluncommitted; no deployment.
+
+Demo session 30428 terminated successfully (exit 0): 87 SDK/87 signed HTTP, 267 settled/262 attempts, six matching binary pairs, source snapshot unchanged. Fixed owned demo SQLite/fixture and SQLite integration database absent after teardown. Reused existing environments; no downloads/installations. Compact reports and reusable build outputs retained at the previously inventoried paths. Prepared-role boundary now verified by Core2604/Shared1189/SQLite1578 plus live demo; original red evidence preserved.

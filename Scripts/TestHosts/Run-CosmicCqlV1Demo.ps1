@@ -38,11 +38,15 @@ try {
                 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS',
                 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
                 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS',
+                'Providers/Storage/Neo4j.Driver.OASIS',
                 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests'
             )
             @($roots | ForEach-Object {
-                Get-ChildItem -LiteralPath (Join-Path $taskRoot $_) -Recurse -File -Filter '*.cs' |
-                    Where-Object { $_.FullName -notmatch '\\(bin|obj)\\' }
+                Get-ChildItem -LiteralPath (Join-Path $taskRoot $_) -Recurse -File |
+                    Where-Object {
+                        $_.FullName -notmatch '\\(bin|obj)\\' -and
+                        ($_.Extension -in '.cs', '.csproj', '.props', '.snk' -or $_.Name -eq 'windowsZones.xml')
+                    }
             } | Get-FileHash | Select-Object Path,Hash) | ConvertTo-Json -Compress
         }
         $sourceBefore = Get-DemoSourceSnapshot
@@ -77,14 +81,16 @@ try {
             'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage',
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS',
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
-            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS'
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS',
+            'Providers/Storage/Neo4j.Driver.OASIS'
         )
         $names = @(
             'NextGenSoftware.OASIS.API.Core',
             'NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage',
             'NextGenSoftware.OASIS.API.Providers.MongoDBOASIS',
             'NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
-            'NextGenSoftware.OASIS.API.Providers.Neo4jOASIS'
+            'NextGenSoftware.OASIS.API.Providers.Neo4jOASIS',
+            'Neo4j.Driver'
         )
         $identities = for ($index = 0; $index -lt $names.Count; $index++) {
             $producer = Join-Path $taskRoot "$($producers[$index])/bin/Debug/net10.0/$($names[$index]).dll"
