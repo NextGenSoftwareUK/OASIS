@@ -1,5 +1,19 @@
 # CQL Decimal aggregate contract
 
+## Neo4j Decimal query integration - 25 October 2026
+
+Scalar and grouped Decimal/nullable Sum/Average pass **23 focused native tests**,
+with no failures or skips. Exact native group keys support filters, ordering and
+paging; raw seven-word packets are validated before typed publication, including
+off-page errors. Tests cover large cancellation, overflow versus valid means,
+nullable/empty inputs, mixed packets, source windows, privacy, cancellation/reuse,
+stored JSON precision, double-round boundaries and 137 inputs independent of graph
+publication limits. Neo4j retains its declared provider-default read-committed
+consistency; this does not introduce snapshot support.
+
+Full acceptance passes **416 native /529 unit tests**, without failures or
+skips. Decimal HTTP/demo enrollment remains open.
+
 ## MongoDB Decimal native acceptance - 25 October 2026
 
 Native scalar and grouped Decimal/nullable Sum/Average are implemented. The
@@ -45,8 +59,8 @@ must not expand implicitly just because an SDK adapter gains a new capability.
 
 
 25 October 2026. Core Decimal/nullable Sum and Average capture, explicit input
-permissions and exact packet normalization are implemented. Native SQLite and MongoDB Decimal arithmetic are certified at the checkpoints
-above. Neo4j remains unenrolled pending translation and certification. Metadata read/Min/Max permissions do not grant arithmetic.
+permissions and exact packet normalization are implemented. Native SQLite, MongoDB and Neo4j Decimal arithmetic are certified at the
+checkpoints above. Metadata read/Min/Max permissions do not grant arithmetic.
 
 ## Exact reduction packet
 
@@ -84,7 +98,7 @@ Core scalar/grouped capture recognizes Decimal input. Native enrollment requires
 an explicit Decimal input list and matching grouped result permissions. Existing
 two-argument numeric permissions retain signed integer inputs; actual provider
 SQLite/MongoDB profiles declare Int32/Int64/UInt64/Decimal and nullable forms;
-Neo4j still declares only the integer inputs. Borrowed
+Neo4j now declares the same explicit Decimal input domains. Borrowed
 caller claims cannot enroll Decimal on the actual adapter. HTTP Average binding
 and live demos are separate gates after native acceptance.
 

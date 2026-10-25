@@ -14,6 +14,13 @@ public partial class Neo4jOASIS
         internal long High { get; }
         internal long Low { get; }
         internal long Count { get; }
+        internal long[] DecimalParts { get; }
+
+        internal NeoCqlNumericValue(long[] parts, long count)
+        {
+            DecimalParts = (long[])parts.Clone();
+            Count = count;
+        }
 
         internal NeoCqlNumericValue(long high, long low, long count)
         {
@@ -23,20 +30,35 @@ public partial class Neo4jOASIS
         }
     }
 
-    internal static NeoCqlNumericValue DecodeCqlNumeric(IReadOnlyDictionary<string, object> row)
+    internal static NeoCqlNumericValue DecodeCqlNumeric(IReadOnlyDictionary<string, object> row, bool decimalInput = false, bool required = false)
+
     {
-        if (row.Count != 7 || !row.TryGetValue("high", out var high) || high is not long highInteger
-            || !row.TryGetValue("low", out var low) || low is not long lowInteger
-            || !row.TryGetValue("present", out var present) || present is not long count
+        if (row.Count != (decimalInput ? 6 : 7) || !row.TryGetValue("present", out var present) || present is not long count
             || !row.TryGetValue("inputs", out var inputs) || inputs is not long work
             || !row.TryGetValue("valid", out var valid) || valid is not bool
             || !row.TryGetValue("traversalCycle", out var cycle) || cycle is not bool
             || !row.TryGetValue("traversalLimit", out var limit) || limit is not bool
-            || count < 0 || work < 0 || count > work)
+            || count < 0 || work < 0 || count > work || required && count != work)
             throw new InvalidDataException("Neo4j numeric reduction requires exact integer limbs and consistent counts.");
         if (work > CosmicNumericScalarResults.MaximumParticipatingValues)
             throw new NeoCqlLimitException("Neo4j numeric reduction exceeds its input-work budget.");
+        if (decimalInput)
+        {
+            if (!row.TryGetValue("parts", out var rawParts)) throw new InvalidDataException("Missing Decimal limbs.");
+            return new NeoCqlNumericValue(ReadDecimalAggregateParts(rawParts), count);
+        }
+        if (!row.TryGetValue("high", out var high) || high is not long highInteger
+            || !row.TryGetValue("low", out var low) || low is not long lowInteger)
+            throw new InvalidDataException("Integer reduction requires exact Int64 limbs.");
         return new NeoCqlNumericValue(highInteger, lowInteger, count);
+    }
+
+    private static long[] ReadDecimalAggregateParts(object raw)
+    {
+        if (raw is not IReadOnlyList<object> parts || parts.Count != CosmicDecimalScalarResults.LimbCount
+            || parts.Any(part => part is not long))
+            throw new InvalidDataException("Decimal reduction requires seven exact Int64 limb sums.");
+        return parts.Cast<long>().ToArray();
     }
 
     private static (string High, string Low) IntegralParts(Type declared, string value)
@@ -63,7 +85,14 @@ public partial class Neo4jOASIS
             throw new NotSupportedException("An admitted integer numeric aggregate is required.");
         var translator = compiled.Translator;
         var cell = translator.TranslateProjectionPath(query.Selector);
-        var parts = IntegralParts(query.Selector.ValueType, "selectedValue");
+        var decimalInput = (Nullable.GetUnderlyingType(query.Selector.ValueType) ?? query.Selector.ValueType) == typeof(decimal);
+        var parts = decimalInput ? default : IntegralParts(query.Selector.ValueType, "selectedValue");
+        var fields = decimalInput ? "parts,present,inputs" : "high,low,present,inputs";
+        var reductions = decimalInput
+            ? string.Join(",", Enumerable.Range(0, 7).Select(index => "sum(decimalParts[" + index + "]) AS d" + index))
+            : "sum(CASE WHEN selectedState=2 THEN " + parts.High + " ELSE 0 END) AS high,"
+                + "sum(CASE WHEN selectedState=2 THEN " + parts.Low + " ELSE 0 END) AS low";
+        var reduced = decimalInput ? "[d0,d1,d2,d3,d4,d5,d6] AS parts,present,inputs" : fields;
         var keys = translator.TranslateOrdering(query.Source.Orderings);
         var aliases = keys.Select((_, index) => "cqlNumericSort" + index).ToArray();
         var keyValues = string.Concat(keys.Select((key, index) => "," + key.Expression + " AS " + aliases[index]));
@@ -74,7 +103,7 @@ public partial class Neo4jOASIS
         translator.Parameters.Add("numericTake", Math.Min(query.Source.Limit.HasValue ? (long)query.Source.Limit.Value : long.MaxValue,
             (long)CosmicNumericScalarResults.MaximumParticipatingValues + 1));
         var invalid = Nullable.GetUnderlyingType(query.Selector.ValueType) == null ? "selectedState <> 2" : "selectedState = 3";
-        const string zeros = "0 AS high,0 AS low,0 AS present,0 AS inputs";
+        var zeros = (decimalInput ? "[0,0,0,0,0,0,0] AS parts" : "0 AS high,0 AS low") + ",0 AS present,0 AS inputs";
         var traversal = translator.TraversalClauses.Count == 0 ? "" : " UNION ALL " + compiled.EligibleSource
             + "WHERE " + compiled.Cycle + " OR " + compiled.TraversalLimit
             + " RETURN " + zeros + ",false AS valid," + compiled.Cycle + " AS traversalCycle,"
@@ -88,11 +117,10 @@ public partial class Neo4jOASIS
             + ") AND NOT(" + compiled.Cycle + " OR " + compiled.TraversalLimit + ") "
             + "WITH h,p" + keyValues + " ORDER BY " + order + " SKIP $numericOffset LIMIT $numericTake "
             + "WITH " + cell.State + " AS selectedState," + cell.Value + " AS selectedValue "
+            + (decimalInput ? "WITH *,CASE WHEN selectedState=2 THEN " + DecimalAggregateParts("selectedValue") + " ELSE [0,0,0,0,0,0,0] END AS decimalParts " : "")
             + "WITH count(*) AS inputs,sum(CASE WHEN " + invalid + " THEN 1 ELSE 0 END) AS invalid,"
             + "sum(CASE WHEN selectedState=2 THEN 1 ELSE 0 END) AS present,"
-            + "sum(CASE WHEN selectedState=2 THEN " + parts.High + " ELSE 0 END) AS high,"
-            + "sum(CASE WHEN selectedState=2 THEN " + parts.Low + " ELSE 0 END) AS low "
-            + "RETURN high,low,present,inputs,invalid=0 AS valid,false AS traversalCycle,false AS traversalLimit } "
-            + "RETURN high,low,present,inputs,valid,traversalCycle,traversalLimit";
+            + reductions + " RETURN " + reduced + ",invalid=0 AS valid,false AS traversalCycle,false AS traversalLimit } "
+            + "RETURN " + fields + ",valid,traversalCycle,traversalLimit";
     }
 }

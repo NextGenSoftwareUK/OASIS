@@ -25,13 +25,13 @@ public sealed class CqlUnsignedNumericAdmissionTests
         Assert.IsFalse(grouped.IsError, grouped.Message);
         Assert.IsFalse(Provider.CqlGroupedCapabilities.Admit(grouped.Result).IsError);
 
-        // Decimal capture/normalization alone cannot upgrade a native profile.
+        // Both native Decimal reduction paths are explicitly enrolled.
         var decimalSum = source.Sum(h => CosmicQueryMetadata.Value<decimal>(h, "price"));
         Assert.IsFalse(decimalSum.IsError, decimalSum.Message);
-        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Provider.CqlScalarCapabilities.Admit(decimalSum.Result).ErrorCode);
+        Assert.IsFalse(Provider.CqlScalarCapabilities.Admit(decimalSum.Result).IsError);
         var decimalGroups = source.GroupBy(h => h.Name).Select(g => g.Sum(h => CosmicQueryMetadata.Value<decimal>(h, "price")));
         Assert.IsFalse(decimalGroups.IsError, decimalGroups.Message);
-        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Provider.CqlGroupedCapabilities.Admit(decimalGroups.Result).ErrorCode);
+        Assert.IsFalse(Provider.CqlGroupedCapabilities.Admit(decimalGroups.Result).IsError);
 
 
         // Broad read permission alone still cannot enroll unsigned arithmetic.
@@ -40,6 +40,7 @@ public sealed class CqlUnsignedNumericAdmissionTests
             new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, Provider.CqlProjectionCapabilities)
         });
         Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", legacySigned.Admit(sum.Result).ErrorCode);
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", legacySigned.Admit(decimalSum.Result).ErrorCode);
 
         // Actual-adapter readmission remains authoritative over a caller's profile.
         var claimed = new CosmicScalarCapabilities(Array.Empty<CosmicScalarOperation>(), new[]
