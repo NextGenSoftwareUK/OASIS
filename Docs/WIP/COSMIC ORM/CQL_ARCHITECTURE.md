@@ -1151,3 +1151,34 @@ all six budgets, native mutation/privacy/type/interruption controls, provider
 capability enrollment and public composition transport/demos. SQLite's verified
 native implementation remains available. Mongo compiler controls and existing
 native regression evidence are recorded below once their gates complete.
+
+## MongoDB composition rank producer correction — 25 October2026
+
+Native testing found that `$documentNumber` rejects compound sortBy. The rank
+producer now uses `$sum: 1` with a `documents: [unbounded,current]` window.
+This retains the complete native source/selected ordering and prior-rank ties;
+there is no client sorting or fallback. The initial338-case native run passed335
+and failed the3 ordered composition controls with the exact server error.
+The corrected expanded353-case native gate is in progress, including12 exact
+selected-domain filter/sort controls,2 required-value/Take0 controls and a
+concurrent source/stage mutation control. The execution owner uses one snapshot,
+one deadline and all six remaining budgets. Final acceptance is recorded after
+that gate; public composition transport and Neo4j composition remain open.
+
+Mongo window contract: [setWindowFields documents windows](https://www.mongodb.com/docs/manual/reference/operator/aggregation/setwindowfields/).
+
+MongoDB snapshot composition acceptance: **353/353 native CQL tests** (25 new
+composition controls) and **519/519 provider unit tests**, zero skips. The native
+run took4m39s. This verifies stage order, repeated-key stability, all six budgets,
+pre-cancellation/reuse,12 exact scalar filter/sort domains, required-value errors
+outside Take0 and concurrent mutation between source/stage reads. All source and
+stage commands share one snapshot/session/deadline; cumulative native document
+counts retain compound tie ordering. No entity hydration or fallback evaluation.
+
+Evidence: `TestResults/CosmicCqlDemo/mongo-composition-owner-final.log`,
+`TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`,
+`TestResults/CosmicCqlDemo/mongo-composition-owner-unit.log` and
+`TestResults/SubscriptionUsageCurrent/composition-owner-unit.trx`.
+Initial server-error evidence is retained separately. Further composition
+privacy/relationship and outstanding-I/O/deadline controls remain required;
+Neo4j composition and public HTTP/composition demos remain open.

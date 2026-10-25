@@ -1535,9 +1535,9 @@ SQLite/MongoDB/Neo4j composition subqueries/proof decoders, public HTTP composit
 and executable composition demos remain required.** Existing joined demos are
 separate from this new shape. See [composition contract](CQL_COMPOSITION_CONTRACT.md).
 
-## SQLite SDK: filter and page after Select
+## SQLite and MongoDB SDK: filter and page after Select
 
-The selected-result pipeline runs natively on SQLite. The20-row source window
+The selected-result pipeline runs natively on SQLite and MongoDB. The20-row source window
 is applied before the selected stock filter. Every selected source row must have
 valid Int64 `stock` metadata, including rows removed by a later filter/page.
 
@@ -1590,8 +1590,10 @@ foreach (var row in result.Result.Providers.Single().Rows)
     Console.WriteLine($"{row.Label}: {row.Stock}");
 ```
 
-Use HyperDrive V2. MongoDB/Neo4j and the public HTTP composition description are
-not enrolled yet. Limits on source rows/bytes, cumulative stage work, proof bytes
+Use HyperDrive V2. For MongoDB, change the named scope to
+`ProviderType.MongoDBOASIS` and cast the activated MongoDB provider instead of
+`sqliteProvider`; the planner and manager calls are identical. Neo4j and public
+HTTP composition are not enrolled yet. Limits on source rows/bytes, cumulative stage work, proof bytes
 and output are independent rejection limits; they never silently truncate data.
 [Contract and verification status](CQL_COMPOSITION_CONTRACT.md).
 
@@ -1610,3 +1612,21 @@ are absent after teardown. Evidence: `TestResults/CosmicCqlDemo/sqlite-compositi
 `TestResults/CoreCurrent/composition-graph-admission.trx`.
 This certifies the native SQLite SDK slice; MongoDB/Neo4j composition and public
 HTTP/examples remain open. Earlier93/93 demo evidence remains a separate cohort.
+
+## MongoDB SDK composition verification — 25 October2026
+
+MongoDB snapshot composition acceptance: **353/353 native CQL tests** (25 new
+composition controls) and **519/519 provider unit tests**, zero skips. The native
+run took4m39s. This verifies stage order, repeated-key stability, all six budgets,
+pre-cancellation/reuse,12 exact scalar filter/sort domains, required-value errors
+outside Take0 and concurrent mutation between source/stage reads. All source and
+stage commands share one snapshot/session/deadline; cumulative native document
+counts retain compound tie ordering. No entity hydration or fallback evaluation.
+
+Evidence: `TestResults/CosmicCqlDemo/mongo-composition-owner-final.log`,
+`TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`,
+`TestResults/CosmicCqlDemo/mongo-composition-owner-unit.log` and
+`TestResults/SubscriptionUsageCurrent/composition-owner-unit.trx`.
+Initial server-error evidence is retained separately. Further composition
+privacy/relationship and outstanding-I/O/deadline controls remain required;
+Neo4j composition and public HTTP/composition demos remain open.
