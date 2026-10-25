@@ -5,7 +5,7 @@ signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK/HTTP walkthrough.
 
 - Latest separately verified cohorts: Core **2,970** (composition, HTTP/admission and grouped participation controls),
-  Shared **1,189**, SQLite **1,651 native /71 unit**, MongoDB **361 native /538 unit**,
+  Shared **1,189**, SQLite **1,651 native /71 unit**, MongoDB **364 native /538 unit**,
   Neo4j **362 native /519 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **102 SDK /102 HTTP**, **309 settled operations
   /301 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
@@ -24,6 +24,11 @@ Core 2,970/SQLite 71 units and three actual native SQLite corruption/reuse cases
 pass. Full SQLite acceptance now passes **1,651 tests, zero skips**; MongoDB/Neo4j
 native regressions pass **361/362 tests**, zero skips; fresh provider units pass
 **538/519**. Task-branch publication follows this complete verification batch.
+
+MongoDB grouped ownership follow-up: full native **364/364**, zero skips,
+5m35s. Three new tests certify snapshot membership/keys/values through concurrent
+reparenting/writes, actual-I/O cancellation, one cumulative deadline and clean
+provider reuse. Broader grouped policy/scalar certification remains open.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 

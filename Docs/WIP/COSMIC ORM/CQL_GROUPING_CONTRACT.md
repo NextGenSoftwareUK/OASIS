@@ -34,6 +34,23 @@ provider unit suites **538 MongoDB /519 Neo4j**. Evidence:
 `group-participation-unit.trx`. Owned fixture markers/databases and native/relay
 ports are absent after teardown; the retained Neo4j container is stopped.
 
+## MongoDB grouped ownership certified — 25 October 2026
+
+The full native MongoDB CQL suite passes **364 tests, zero skips**, in 5m35s.
+Three new controls close the specific grouped snapshot/interruption gap. After a
+real native scope read establishes its snapshot, concurrent reparenting and a
+root key/value write cannot change that query's original membership, key or Sum.
+A subsequent grouped read observes the committed reparent and returns no group.
+Actual aggregate-I/O cancellation and the cumulative deadline return no grouped
+buffer; captured command budgets decrease rather than restarting the allowance.
+Both interruption cases prove a fresh grouped query succeeds on the same provider.
+
+Source: `CosmicCqlNativeTests.GroupedOwnership.cs` in the Mongo integration
+project. Every owned failpoint is disabled and the pending read joined before
+fixture cleanup. Evidence: `TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`
+and `TestResults/CosmicCqlDemo/mongo-group-ownership-native.log`. This test-only
+batch does not change production code or close the broader policy/scalar matrix.
+
 ## Key capture
 
 `source.GroupBy(h => h.Name)` captures a scalar key. Composite keys use the existing detached projection shape, for example:
