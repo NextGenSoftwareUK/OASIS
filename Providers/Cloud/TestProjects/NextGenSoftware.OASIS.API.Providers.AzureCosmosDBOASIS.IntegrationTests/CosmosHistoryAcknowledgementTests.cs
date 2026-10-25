@@ -59,6 +59,7 @@ public partial class AzureCosmosDBOASISIntegrationTests
             Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception));
             var uncertain=result.Exception as CosmosMutationReconciliationException;Assert.IsNotNull(uncertain);
             Assert.AreEqual(root.Id.ToString(),uncertain.DocumentId);Assert.AreEqual(mode!="transport",uncertain.Acknowledged);
+            Assert.AreEqual(mode=="transport"?0:1,result.SavedCount,"Count confirmed native acknowledgements, never inferred outcomes after a lost transport response.");
             Assert.AreEqual(1,handler.ReplaceCalls,"Never repeat the original native mutation.");Assert.IsNull(childJson,"Uncertain parent must stop descendant dispatch.");
             Assert.AreEqual(1,root.Version);Assert.AreEqual(firstVersionId,root.VersionId);Assert.AreEqual(0,child.Version);
         } finally {field.SetValue(_provider,healthy);if(!inspected)_ownsDatabase=false;}
