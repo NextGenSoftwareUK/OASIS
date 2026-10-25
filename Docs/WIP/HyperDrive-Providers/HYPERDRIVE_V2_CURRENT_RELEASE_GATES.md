@@ -6204,3 +6204,7 @@ BroaderSQLite1704normalintegrationPASS; unfilteredreportalso contains2reconcilia
 
 FullEdge/S3protocol138/138PASS0skips2s; includes12new sync/async single/batch save-depth0/1/2 characterization cases overofficialSDKcontrolledHTTP. Existingwriterroot-one contract preserved (1rootonly,2root+child), unselectedcallerIDsremainunpublished; no productionchange or globaldepthnormalizationclaim. Report TestResults/S3Current/depth-contract-current.trx211949bytes SHAB918B0A88B9D37617C49556ED10B2D86DFEB032CD0927B1660F939FF230D48BE. Controlleddriverfixturescleared, zero-byte reusablelockonly. HostedAWScredentials/bucket/persistedkey absent in inspectedenv/defaultpaths; liveS3IAM/KMS/TLS/recovery/cost/retainedversions and broaderV2remainOPEN. Samecache/output/environment reused,no download/newservice/deployment.
 
+## 2026-10-25 Firestore current-dependency native refresh
+
+Matched471controlled/87history-native/79regression-nativePASS0skips5s/8s/26s after Core+SQLiteackrepairs; checkpointimport/read/exactrevisioncleanupPASS, ownedsyntheticfixturescleaned,pending0/emulatorstopped/ports18080–18083closed. Provider+unit+integrationDLLSHAall6E81C6FDD159C2B4DF6734322B5010DB65E843B09B7A3D6B86C844A68DA92375; Core9256B0.../Shared5CECEC...source/PDB/copiesverified. Samepinnedruntime/export/cache/output,no download/restore/newenvironment/devdeployment. Exact3currentreporthashes/sizesandpreservedpriorcohort in FIRESTORE_RECORD_HISTORY.md/inventory. This is localSDKregression, not hostedGoogleIAM/index/security/pricing/durability/GCS/BigQuery/fullprovider/V2completion.
+
