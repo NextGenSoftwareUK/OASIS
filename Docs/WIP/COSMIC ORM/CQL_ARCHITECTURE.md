@@ -1001,3 +1001,23 @@ log `join-demo-native.log`. The earlier87/87 cohort remains historical.
 
 Owned fixtures are removed and test ports stopped. Broader composition,
 federation, expanded policy/scalar and final certification gates remain open.
+
+## Selected-result composition capture — 25 October 2026
+
+Core captures immutable `Where`, selected ordering/ThenBy and Skip/Take stages
+without rewriting the original source window, access or graph. Grouping and
+projection share one selected-column alias resolver. Runtime records keep exact
+alias domains, scalar selections bind their single selected value, and capture
+invokes no DTO or arbitrary application code. Stages/windows remain in order;
+ThenBy extends only the immediately preceding sort. Stage count is bounded32.
+
+Dual Core frameworks build; full Core/linked WEB4 passes **2,799/2,799**, zero
+skips (14 new controls). Tests cover window/filter order, source retention,
+frozen literals, exact runtime aliases, rejected code/conversions, stage/window
+limits, zero windows, error propagation and no borrowed native admission.
+
+**Native execution is still pending:** ordinary provider projection permissions
+and ordinary raw buffers reject composed stages. No provider silently ignores
+them or evaluates selected predicates in memory. Next is the native proof/work
+contract and SQLite/MongoDB/Neo4j owners, then signed HTTP/demos. This is capture
+progress, not completed composition. [Contract](CQL_COMPOSITION_CONTRACT.md).
