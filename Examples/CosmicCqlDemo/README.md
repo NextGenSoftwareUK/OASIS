@@ -1,8 +1,28 @@
 # COSMIC CQL demo
 
-## Latest: exact unsigned arithmetic on all three stores
+## Decimal arithmetic walkthrough
 
-The current walkthrough has37 examples/provider and passes111 SDK/111 signed HTTP
+The current walkthrough contains **40 examples per provider**, with matching C#
+and signed HTTP requests for MongoDB, SQLite and Neo4j. Live verification passes **120 SDK /120 signed HTTP** queries, with327settled
+operations/319attempts. All six binary identities match and source snapshots stay
+unchanged; owned services stop normally.
+
+Start with [V1NativeQueries.cs](V1NativeQueries.cs) for spaced, commented C# and
+[V1Walkthrough.cs](V1Walkthrough.cs) for the matching HTTP requests.
+
+- **38 — Decimal Sum:** total two visible prices without losing the last digit.
+- **39 — Decimal Average:** round a halfway result once, using ties-to-even.
+- **40 — Decimal groups:** filter/order exact totals and rounded means, then page.
+
+Browser presets: `decimalSum`, `decimalAverage`, `decimalNumericGroups`.
+Swagger examples: `DecimalSum`, `DecimalAverage`, `DecimalTotalsAndMeans`.
+Exact thresholds and Decimal responses use strings so JavaScript keeps every
+digit. The standalone demo build and all 12 offline preset checks pass. Use the existing runner below to
+verify the complete native SDK and signed HTTP walkthrough.
+
+## Previous checkpoint: exact unsigned arithmetic on all three stores
+
+That checkpoint has37 examples/provider and passes111 SDK/111 signed HTTP
 queries on MongoDB, SQLite and Neo4j (318settled operations/310attempts).
 Start with [V1NativeQueries.cs](V1NativeQueries.cs) for spaced, commented C#;
 [V1Walkthrough.cs](V1Walkthrough.cs) shows matching HTTP requests.
@@ -26,7 +46,7 @@ Standalone build and9 offline UI checks pass. Earlier sections are historical.
 .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -Serve
 ```
 
-Console runs **27 C# SDK queries and 27 C# HTTP examples per provider (81 of each total)** on all three native databases. Serve then opens **http://127.0.0.1:5088/demo** after `TestResults/CosmicCqlDemo/v1-session.json` appears. Switch provider, user and example; edit spaced JSON and inspect formatted results/settlement. Repeat a key to show no replay.
+The walkthrough contains **40 C# SDK queries and 40 C# HTTP examples per provider (120 of each total)** on all three native databases. Serve then opens **http://127.0.0.1:5088/demo** after `TestResults/CosmicCqlDemo/v1-session.json` appears. Switch provider, user and example; edit spaced JSON and inspect formatted results/settlement. Repeat a key to show no replay.
 
 Swagger `/swagger` has a prefilled v1 request, synthetic Alice authorization and an editable required Idempotency-Key. Use a new key for a new intent. **Finish demo & clean up** awaits requests, checks settlement and removes owned data. Reuses the retained native environment; failed fixtures remain for inspection. Synthetic tokens last one hour; no production account or charge.
 

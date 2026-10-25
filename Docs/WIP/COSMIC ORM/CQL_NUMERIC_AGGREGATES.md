@@ -1,5 +1,10 @@
 # CQL integer Sum/Average contract
 
+Native Decimal/nullable Sum/Average and live signed HTTP are certified on all
+three priority stores. The latest demo passes120SDK/120HTTP queries, including
+examples38-40; see [demo acceptance](CQL_DEMO_RUNBOOK.md). Dated implementation
+checkpoints below retain their historical scope and restrictions at that time.
+
 ## Neo4j Decimal query checkpoint - 25 October 2026
 
 Scalar/grouped Decimal Sum/Average integration passes 23 focused native tests

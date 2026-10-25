@@ -2,13 +2,13 @@
 
 Current checkpoint: **25 October 2026**. Native flat inner/left joins,
 signed HTTP and bounded selected-result composition are implemented on MongoDB,
-SQLite and Neo4j. The annotated demo now has37 examples per provider in each SDK/HTTP walkthrough.
+SQLite and Neo4j. The annotated demo now has40 examples per provider in each SDK/HTTP walkthrough.
 
-- Latest separately verified cohorts: Core **3,048** (including UInt64 numeric capture/normalization and input-domain admission),
+- Latest separately verified cohorts: Core **3,079** (including UInt64 numeric capture/normalization and input-domain admission),
   Shared **1,189**, SQLite **1,702 native /72 unit**, MongoDB **416 native /550 unit**,
   Neo4j **416 native /529 unit**; zero skips at their recorded checkpoints.
-- The expanded live demo passes **111 SDK /111 HTTP**, **318 settled operations
-  /310 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
+- The expanded live demo passes **120 SDK /120 HTTP**, **327 settled operations
+  /319 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
 - Selected-result composition captures immutable stages and independently admits
   complete proof/work contracts, with **SQLite, MongoDB and Neo4j native SDK execution verified**. Ordinary
@@ -104,7 +104,7 @@ implementation; current results remain separate per provider.
 ## 5. Scalar coverage and authoritative policy
 
 Decimal Core capture/scaled-limb normalization and SQLite native arithmetic are
-verified (1,702native/72unit). MongoDB native Decimal integration passes23 focused native controls and550 units; full416 native acceptance passes without failures or skips. Neo4j Decimal query integration passes23 focused native cases/full529 units; full416 native acceptance passes without failures or skips. Decimal HTTP/demo enrollment remains open.
+verified (1,702native/72unit). MongoDB native Decimal integration passes23 focused native controls and550 units; full416 native acceptance passes without failures or skips. Neo4j Decimal query integration passes23 focused native cases/full529 units; full416 native acceptance passes without failures or skips. Decimal HTTP/compiler/wire and live120SDK/120HTTP demo acceptance now pass.
 See [contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md). UInt64 native/HTTP/demo gates
 are complete, while this broader scalar requirement stays unchecked.
 

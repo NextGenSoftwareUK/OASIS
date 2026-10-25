@@ -18,7 +18,7 @@ the scalar examples below. The native reduction preserves 28 decimal places and
 rounds once at final publication; a mathematical Sum outside Decimal range fails.
 MongoDB acceptance passes 416 native/550 unit tests; Neo4j passes 416 native/529
 unit tests, all without failures or skips. Decimal HTTP compiler/wire tests and
-the shipping WEB4 build pass; live signed Decimal demo acceptance remains pending.
+the shipping WEB4 build pass; live signed Decimal acceptance passes120SDK/120HTTP examples across all three stores.
 [Exact semantics and evidence](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
 
 The scalar HTTP request body uses the same explicit type:
@@ -36,7 +36,7 @@ The scalar HTTP request body uses the same explicit type:
 Use `Average` for the mean and add `"nullable": true` to the selection when
 missing/null prices should be ignored. Decimal values in responses are tagged
 text, preserving precision for JavaScript clients. Grouped Sum/Average selections
-use the same declaration. Live signed Decimal examples are the next demo gate.
+use the same declaration. Live signed Decimal examples38-40 pass on all three stores.
 
 
 
@@ -68,7 +68,7 @@ Use the same signing/admission headers as the existing scalar examples. A Sum
 response uses `valueType: "UInt64"` and an invariant string value; an Average
 response uses `valueType: "Decimal"`. Grouped columns use the same selection and
 operation description. The compiler/wire unit gate, shipping API build and live signed demo pass:
-111SDK/111HTTP examples across all three stores, including numeric examples35-37. See the
+120SDK/120HTTP examples across all three stores, including numeric examples35-40. See the
 [numeric contract](CQL_NUMERIC_AGGREGATES.md) for boundaries and evidence.
 
 
