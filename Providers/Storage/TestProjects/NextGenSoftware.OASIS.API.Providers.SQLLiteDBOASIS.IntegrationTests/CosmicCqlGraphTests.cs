@@ -285,6 +285,14 @@ public partial class SQLLiteDBOASISIntegrationTests
             CreateNativeGraph(source), providerType: ProviderType.SQLLiteDBOASIS)
             : await provider.SaveHolonAsync(source);
         seeded.IsError.Should().BeFalse(seeded.Message + seeded.Exception);
+        if(!manifested)
+        {
+            // Ordinary writes now persist their captured roles. Deliberately seed
+            // the old parent-link representation without weakening the save owner.
+            using var legacy = new DataContext(TestConnectionString);
+            legacy.Database.ExecuteSqlRaw("UPDATE Holon SET PersistentValueJson=json_remove(PersistentValueJson,'$.ChildRoleManifestJson') WHERE Id={0}",
+                source.Id.ToString("D")).Should().Be(1);
+        }
         var hidden = source.Children.Single(child => child.HolonType == HolonType.Cafe).Id;
         ICosmicQueryStorageProvider adapter = provider;
         var baseline=await provider.ExecuteCosmicQueryAsync(NativeGraphPlan(source,CosmicQueryGraphOptions.Create().Result));

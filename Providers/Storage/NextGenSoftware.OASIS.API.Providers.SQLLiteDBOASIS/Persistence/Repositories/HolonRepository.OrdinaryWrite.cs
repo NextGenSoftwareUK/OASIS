@@ -1,10 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Serialization;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
@@ -32,8 +39,12 @@ public partial class HolonRepository
             ValidateSaveLifecycle(graph.Models,observed);
             var history=_versionControlEnabled();
             for(var index=0;index<graph.Models.Count;index++)
+            {
+                observed.TryGetValue(graph.Models[index].Id,out var previous);
+                ResolveOrdinaryRoleManifest(graph.Nodes[index],graph.Models[index],previous);
                 graph.Models[index]=AddOrUpdateHolon(graph.Models[index],false,
-                    history ? previous=>ArchiveHolonRevision(connection,native,previous):null);
+                    history ? prior=>ArchiveHolonRevision(connection,native,prior):null);
+            }
             _dbContext.SaveChanges();
             var acknowledged=CommittedGraph(graph);
             commitEntered=true;enlisted.Commit();
@@ -59,5 +70,29 @@ public partial class HolonRepository
             }
         }
         return result;
+    }
+
+    private static void ResolveOrdinaryRoleManifest(PlannedHolonWrite write,HolonModel model,HolonModel previous)
+    {
+        var field=nameof(Holon.ChildRoleManifestJson);
+        string storedManifest=null;
+        if(previous!=null)
+        {
+            var stored=OasisJson.ParseStoredObject(previous.PersistentValueJson).Property(field);
+            if(stored!=null)
+            {
+                if(stored.Value.Type!=JTokenType.String)
+                    throw new InvalidDataException("Stored child-role observation must be canonical manifest JSON.");
+                storedManifest=(string)stored.Value;
+            }
+        }
+        // The immediate transaction protects this observation. Selected writes
+        // capture logical roles; root-only writes preserve the existing owner.
+        var resolved=HolonChildRolePersistence.Resolve(write,HolonChildRoleWriteKind.SourceSave,
+            previous!=null,storedManifest);
+        var values=OasisJson.ParseStoredObject(model.PersistentValueJson);
+        if(resolved==null)values.Remove(field);else values[field]=resolved;
+        model.PersistentValueJson=values.ToString(Formatting.None);
+        write.Snapshot.ChildRoleManifestJson=resolved;
     }
 }
