@@ -60,6 +60,11 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             var found=new SearchResults();
             found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,search,holons)));
             if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,search,holons)));
+            if(search.SearchOnlyForCurrentAvatar){
+                var visible=IOASISStorageProvider.ProjectVisibleHolons(new OASISResult<IEnumerable<IHolon>>{Result=found.SearchResultHolons,IsLoaded=true},search.AvatarId,false);
+                if(visible.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(visible);
+                found.SearchResultHolons=visible.Result.ToList();
+            }
             found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
             result.Result=found;result.LoadedCount=found.NumberOfResults;result.IsLoaded=true;
         }
