@@ -5,7 +5,7 @@ signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK/HTTP walkthrough.
 
 - Latest separately verified cohorts: Core **2,940** (composition including HTTP/admission controls),
-  Shared **1,189**, SQLite **1,648 native /55 unit**, MongoDB **359 native /519 unit**,
+  Shared **1,189**, SQLite **1,648 native /55 unit**, MongoDB **361 native /538 unit**,
   Neo4j **352 native /519 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **102 SDK /102 HTTP**, **309 settled operations
   /301 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
@@ -1654,3 +1654,5 @@ This closes bounded flat selected-result composition across SDK/HTTP on the
 three providers. Graph-source composition is explicitly unadmitted. Broader
 CQL relationship/join/group/scalar certification, authoritative tenant/sharing
 policy, federation and the remaining ORM roadmap still require work.
+
+25 October Mongo grouped identity consistency repair passes538unit/361native, zero skips. Native comparable grouping/extremum fields now must agree with decoded typed values, including off-page rows. [Root cause and red/green evidence](CQL_GROUPING_CONTRACT.md). Expanded all-provider grouping/policy gates remain open.
