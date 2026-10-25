@@ -719,3 +719,9 @@ Repair reuses SQLite's existing ObserveLoadedChildRoles on the unpublished retur
 
 AWS generated-graph assertions now include the attempted primary and complete exception text in future failure output, so another failure can preserve its actual cause rather than only a generic message. This does not recover the prior omitted exception and does not authorize replay. Shared buildlease handed back to peer after bounded test; no dev merge/deployment.
 
+## 2026-10-25 broader SQLite acknowledgement regression
+
+Existing frozen current SQLite integration output ran against the SAME fixed native fixture: **1704normal integration cases PASS,0skips** in3m15s. Overall unfiltered report is deliberately retained as **1704PASS/2FAIL/1706total**, not described as green: two one-off Category=Reconciliation inspectors were accidentally included and both refused the normal fixture's environment.lock before reading/deleting any original. Individual report errors confirm precisely those2diagnostic test names; no normal integration failure. Future normal suite selection must exclude `Category=Reconciliation` (dotnet test --filter 'Category!=Reconciliation'); no need to fabricate a green report or rerun successful writes to hide selection error.
+
+Actual46374terminal1; TestResults/SQLiteCurrent/sqlite-ack-full-current.trx SHA2568A22F0FEF2D24FA33A42A6A91B03553E8B1C49F2FBC7B90EA2F7A308A98F0273. integration-current.db and pendingintents independentlyabsentafterfixture teardown. Producerlease handed to queued peer and next builds held. Prepared source-only `Inspect-AwsGraphReplicationFailure.ps1 -InspectCurrentCaptureSqlite` plus exact-hash read-only inspector for NEW4828E3.../4318BC.../91CDEE... originals; not compiled/executed yet while peerbuildslotpending. It does not startDynamoDB or mutate records. NeworiginalAWSacceptance stillOPEN, no productionmerge/deployment/globalcompletion.
+
