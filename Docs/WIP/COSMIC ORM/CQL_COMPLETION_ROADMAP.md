@@ -611,3 +611,23 @@ Shared7BC991A8 andMongo7759FD3B match native and unit consumers; source snapshot
 unchanged. Owned fixture cleanup passed and27029listener absent after teardown.
 Neo Single, Single HTTP/demo integration and every unchecked broader roadmap
 requirement remain open. This cohort does not certify joins or federation.
+
+## Neo Single exact lexeme component — 25 October 2026
+
+Gate48304 passes233native/457unit cases, no failures/skips. New native209vector
+component compares original schema3 JSON numeric text against exact binary32
+midpoints with31bounded native search iterations. Base10^8limb arithmetic keeps
+25bitcoefficient products exact inInt64, avoiding decimal-to-Double double
+rounding. Original significant digits/scientific order decide midpoint sides
+and ties-to-even; only the final exact binary32 value widens toDouble.
+Grammar/4096token bounds, nonzero underflow, overflow and finite checks reject
+invalid values. Native vectors cover signed even/odd midpoint neighbors across
+8exponentbands, finite extremes and malformed/oversized inputs.
+
+Sourcesunchanged; CoreE5145A09/SharedB97E6093/Neo74C00065 producer copies match
+native+unit consumers. Evidence: TestResults/Neo4jCurrent/
+neo4j-cql-native-current.trx, single-kernel-full-current.trx,
+single-kernel-identities-current.json and TestResults/CosmicCqlDemo/
+neo-single-kernel-full.log. This verifies the conversion component only.
+NeoSingle query admission, complete native query integration and Single
+transport/demos remain open, as do all broader unchecked roadmap requirements.
