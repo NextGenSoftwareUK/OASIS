@@ -86,7 +86,15 @@ public class RedisPrivateProviderNativeTests
                 Assert.AreEqual(holonId,allVersions.Result.Single().Id);Assert.AreEqual(1,allVersions.Result.Single().Version);Assert.IsFalse(allVersions.Result.Single().IsDeleted);
                 CollectionAssert.AreEqual(exportBytes,await db.StringGetAsync(exportKeys),"Archive export must not rewrite private records or unrelated keys.");
                 var hardHolon=sync?provider.DeleteHolonSoft(holonId,false):await provider.DeleteHolonSoftAsync(holonId,false);Assert.IsFalse(hardHolon.IsError,hardHolon.Message);Assert.IsTrue(hardHolon.Result);
-                var deleted=sync?provider.DeleteAvatar(id,false):await provider.DeleteAvatarAsync(id,false);Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsTrue(deleted.IsDeleted);
+                // Exercise the alias-selected shared deletion core against native encrypted records,
+                // not just its direct-GUID entry point. Identity is case-insensitive.
+                var deleted=sync?provider.DeleteAvatarByUsername(username.ToUpperInvariant(),false)
+                    :await provider.DeleteAvatarByEmailAsync(profile.Email.ToUpperInvariant(),false);
+                Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsTrue(deleted.IsDeleted);
+                Assert.IsNull((await provider.LoadAvatarAsync(id)).Result);Assert.IsNull((await provider.LoadAvatarAsync(id,1)).Result);
+                Assert.IsNull((await provider.LoadAvatarDetailAsync(id)).Result);
+                Assert.IsNull((await provider.LoadAvatarByUsernameAsync(username)).Result);
+                Assert.IsNull((await provider.LoadAvatarByEmailAsync(profile.Email)).Result);
                 Assert.AreEqual(sentinelValue,await db.StringGetAsync(sentinel),"Provider cleanup must preserve unrelated namespace data.");
                 Assert.AreEqual(1L,await server.DatabaseSizeAsync(db.Database),"Only the independent sentinel may remain after public cleanup.");
                 var cleanup=db.CreateTransaction();cleanup.AddCondition(Condition.StringEqual(sentinel,sentinelValue));
