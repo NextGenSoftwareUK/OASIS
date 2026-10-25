@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param()
+param([switch]$RequireCleanShutdown)
 $ErrorActionPreference='Stop'
 $taskSolidRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $taskSolidWork=Join-Path $taskSolidRoot 'TestResults/SolidCurrent'
@@ -22,8 +22,11 @@ try{
     $taskSolidContainer=($taskSolidRaw|ConvertFrom-Json)[0]
     $taskSolidBinding=@($taskSolidContainer.HostConfig.PortBindings.'13000/tcp')
     $taskSolidMounts=@($taskSolidContainer.Mounts)
+    $taskSolidInitRequested=$taskSolidContainer.Config.CreateCommand -contains '--init'
+    if($RequireCleanShutdown -and !$taskSolidInitRequested){throw 'Approved init definition required for shutdown verification.'}
+    $taskSolidAllowedState=$taskSolidContainer.State.Status -eq 'exited' -or ($RequireCleanShutdown -and $taskSolidContainer.State.Status -in @('created','configured'))
     if($taskSolidContainer.Image -ne '58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a' -or
-        $taskSolidContainer.State.Status -ne 'exited' -or $taskSolidBinding.Count -ne 1 -or
+        !$taskSolidAllowedState -or $taskSolidBinding.Count -ne 1 -or
         $taskSolidBinding[0].HostIp -ne '127.0.0.1' -or $taskSolidBinding[0].HostPort -ne '13000' -or
         $taskSolidMounts.Count -ne 1 -or $taskSolidMounts[0].Name -ne 'oasis-solid-data' -or $taskSolidMounts[0].Destination -ne '/data' -or
         ($taskSolidContainer.Config.Entrypoint -join ' ') -ne 'node bin/server.js'){
@@ -36,6 +39,9 @@ try{
     & wsl -d Ubuntu -u root -- podman start oasis-solid
     if($LASTEXITCODE -ne 0){throw 'Retained SOLID start failed.'}
     $taskSolidStarted=$true
+    $taskSolidEvidence.initRequested=$taskSolidInitRequested
+    $taskSolidEvidence.processes=@(& wsl -d Ubuntu -u root -- podman top oasis-solid pid comm)
+    if($LASTEXITCODE -ne 0){throw 'Runtime process observation failed.'}
     $taskSolidObserved=& (Join-Path $PSScriptRoot 'Wait-ReusableSolidListener.ps1')
     $taskSolidEvidence.socketReadyMs=$taskSolidTimer.ElapsedMilliseconds
     foreach($taskSolidSample in $taskSolidObserved.Samples){$taskSolidSamples.Add($taskSolidSample)}
@@ -59,6 +65,9 @@ try{
             $taskSolidBytes=[Text.Encoding]::UTF8.GetBytes(($taskSolidEvidence|ConvertTo-Json -Depth 6))
             $taskSolidStream=[IO.File]::Open($taskSolidReport,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
             try{$taskSolidStream.Write($taskSolidBytes);$taskSolidStream.Flush($true)}finally{$taskSolidStream.Dispose()}
+            if($RequireCleanShutdown -and ($taskSolidEvidence.stopExit -ne 0 -or $taskSolidEvidence.finalState -notmatch '^exited (0|143) false$')){
+                throw 'SOLID did not stop with normal exit/SIGTERM; preserved shutdown evidence is not a pass.'
+            }
         }
     }finally{$taskSolidLease.Dispose()}
 }

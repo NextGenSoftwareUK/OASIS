@@ -10,6 +10,11 @@ public sealed partial class OracleNativeAcceptanceTests
     private const string RestrictedSchema="OASIS_PRIV_TEST";
     private sealed record RestrictedSchemaIdentity(string User,int UserId,string Database,string Container,string Tablespace);
 
+    internal static string RestrictedTestConnectionString(OracleConnectionStringBuilder settings)
+        =>new OracleConnectionStringBuilder{UserID=RestrictedSchema,ProxyUserId=settings.UserID,
+            ProxyPassword=settings.Password,DataSource=settings.DataSource,Pooling=true,
+            MinPoolSize=0,MaxPoolSize=16,ConnectionTimeout=10}.ConnectionString;
+
     private static async Task<string> RestrictedConnectionAsync(OracleConnection admin,string work)
     {
         // An opened connection may redact its password; use the protected runner environment,
@@ -29,8 +34,7 @@ public sealed partial class OracleNativeAcceptanceTests
         Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(tablespace,"^[A-Z][A-Z0-9_$#]{0,127}$"),"Review unusual tablespace identifier before DDL.");
         Assert.AreEqual(1,Convert.ToInt32(await Scalar($"SELECT COUNT(*) FROM DBA_TABLESPACES WHERE TABLESPACE_NAME='{tablespace}' AND CONTENTS='PERMANENT' AND STATUS='ONLINE'")));
         var exists=Convert.ToInt32(await Scalar("SELECT COUNT(*) FROM DBA_USERS WHERE USERNAME='OASIS_PRIV_TEST'"));
-        var proxy=new OracleConnectionStringBuilder{UserID=RestrictedSchema,ProxyUserId=settings.UserID,
-            ProxyPassword=settings.Password,DataSource=settings.DataSource,Pooling=false,ConnectionTimeout=10}.ConnectionString;
+        var proxy=RestrictedTestConnectionString(settings);
         if(File.Exists(marker))
         {
             var identity=JsonSerializer.Deserialize<RestrictedSchemaIdentity>(await File.ReadAllTextAsync(marker))!;

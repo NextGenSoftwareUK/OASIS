@@ -15,6 +15,7 @@ public partial class OracleDBOASIS
     {
         var result=new OASISResult<IHolon>();var dispatched=false;
         try{
+            if(id==Guid.Empty)throw new ArgumentException("A nonempty holon deletion ID is required.",nameof(id));
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync();
             await using var transaction=(OracleTransaction)await connection.BeginTransactionAsync();
             Holon row;string original;
@@ -39,6 +40,7 @@ public partial class OracleDBOASIS
         }catch(Exception cause){
             result.Exception=dispatched?new OracleLifecycleReconciliationException(id,cause):cause;
             OASISErrorHandling.HandleError(ref result,"Oracle holon lifecycle operation failed; inspect the original exception.");
+            if(id==Guid.Empty&&cause is ArgumentException)result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
         }
         return result;
     }
