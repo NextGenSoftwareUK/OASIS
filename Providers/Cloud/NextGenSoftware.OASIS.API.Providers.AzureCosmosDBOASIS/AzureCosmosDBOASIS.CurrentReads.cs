@@ -93,13 +93,13 @@ public partial class AzureCosmosDBOASIS
         return result;
     }
 
-    private async Task<OASISResult<T>> ReadCurrentSelectorAsync<T>(Func<IRepository<T>> repository,string selector,Func<T,string> field,int version) where T:IHolonBase
+    private async Task<OASISResult<T>> ReadCurrentSelectorAsync<T>(Func<IRepository<T>> repository,string selector,Func<T,string> field,int version,bool includeInactive=false) where T:IHolonBase
     {
         var result=new OASISResult<T>();
         try
         {
             if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonempty Cosmos identity selector is required.",nameof(selector));
-            var loaded=await ReadCurrentListAsync(repository,version).ConfigureAwait(false);
+            var loaded=await ReadCurrentListAsync(repository,version,includeInactive:includeInactive).ConfigureAwait(false);
             if(loaded.IsError)
             {
                 result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,T>(loaded);
@@ -249,7 +249,7 @@ public partial class AzureCosmosDBOASIS
         OASISErrorHandling.HandleError(ref result,cause.Message,cause);return Task.FromResult(result);
     }
 
-    private async Task<OASISResult<IEnumerable<T>>> ReadCurrentListAsync<T>(Func<IRepository<T>> repository,int version,bool exportAllVersions=false) where T:IHolonBase
+    private async Task<OASISResult<IEnumerable<T>>> ReadCurrentListAsync<T>(Func<IRepository<T>> repository,int version,bool exportAllVersions=false,bool includeInactive=false) where T:IHolonBase
     {
         var result=new OASISResult<IEnumerable<T>>();
         try
@@ -263,7 +263,9 @@ public partial class AzureCosmosDBOASIS
             }
             var store=repository() ?? throw new InvalidOperationException("Cosmos repository was not initialized.");
             var rows=await store.GetListAsync(version).ConfigureAwait(false) ?? throw new System.IO.InvalidDataException("Cosmos collection read returned no collection.");
-            result.Result=rows.Where(row=>row.IsActive).ToArray();
+            // Only explicit private lifecycle selectors include retired records.
+            // Ordinary reads/exports retain their existing visibility policy.
+            result.Result=rows.Where(row=>includeInactive || row.IsActive).ToArray();
             result.LoadedCount=result.Result.Count();
             result.IsLoaded=true;
         }

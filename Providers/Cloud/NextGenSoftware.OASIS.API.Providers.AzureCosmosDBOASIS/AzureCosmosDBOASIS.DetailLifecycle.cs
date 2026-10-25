@@ -11,13 +11,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 public partial class AzureCosmosDBOASIS
 {
     public OASISResult<bool> DeleteAvatarDetail(Guid id,bool softDelete=true)=>DeleteAvatarDetailAsync(id,softDelete).GetAwaiter().GetResult();
-    public async Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id,bool softDelete=true)
+    public Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id,bool softDelete=true)
+        => DeleteAvatarDetailCoreAsync(id,softDelete);
+
+    private async Task<OASISResult<bool>> DeleteAvatarDetailCoreAsync(Guid id,bool softDelete,IAvatarDetail original=null)
     {
         var result=new OASISResult<bool>();
         try {
             if(id==Guid.Empty)throw new ArgumentException("A nonempty Cosmos AvatarDetail identity is required.");
             if(!IsProviderActivated){var active=await ActivateProviderAsync();if(active.IsError)return active;if(!active.Result)throw new InvalidOperationException("Cosmos activation did not acknowledge readiness.");}
-            var original=await avatarDetailRepository.GetByIdAsync(id.ToString());
+            original ??= await avatarDetailRepository.GetByIdAsync(id.ToString());
             if(original==null)return new OASISResult<bool>{IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Cosmos AvatarDetail not found."};
             if(softDelete){
                 if(original.IsActive||!original.IsDeleted){var proposal=OasisJson.Project<AvatarDetail>(original);proposal.IsActive=false;if(!proposal.IsDeleted)proposal.DeletedDate=DateTime.UtcNow;
@@ -33,9 +36,11 @@ public partial class AzureCosmosDBOASIS
     }
     private async Task<OASISResult<bool>> DeleteDetailSelectorAsync(string selector,bool email,bool soft)
     {
-        var loaded=await ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,selector,row=>email?row.Email:row.Username,0).ConfigureAwait(false);
+        var loaded=await ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,selector,row=>email?row.Email:row.Username,0,includeInactive:true).ConfigureAwait(false);
         if(loaded.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatarDetail,bool>(loaded);
-        return await DeleteAvatarDetailAsync(loaded.Result.Id,soft);
+        // Bind the conditional mutation to the exact alias observation; a fresh
+        // point read here would silently accept a concurrent rename.
+        return await DeleteAvatarDetailCoreAsync(loaded.Result.Id,soft,loaded.Result);
     }
     public Task<OASISResult<bool>> DeleteAvatarDetailByUsernameAsync(string username,bool softDelete=true)=>DeleteDetailSelectorAsync(username,false,softDelete);
     public OASISResult<bool> DeleteAvatarDetailByUsername(string username,bool softDelete=true)=>DeleteAvatarDetailByUsernameAsync(username,softDelete).GetAwaiter().GetResult();
