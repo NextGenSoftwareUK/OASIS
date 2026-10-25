@@ -2795,3 +2795,14 @@ C:\Source\OASIS\TestResults\SubscriptionUsageCurrent\composition-owner-unit.trx 
 C:\Source\OASIS\TestResults\SubscriptionUsageCurrent\mongo-composition-document-number-original-red.trx | 616361 bytes | retained COSMIC ORM test evidence; regenerate with leased reusable runner/unit gate.
 
 Final owned27029 listener absent; free C66,428,665,856bytes. Reusable Mongo data/runtime and shared build outputs retained; no unrelated resources removed.
+
+25 October Mongo composition privacy/interruption certification: reuse .NET10.0.401, existing provider/integration outputs/assets, Mongo8.3.11 replica27029 and fixed TestResults/SubscriptionUsageCurrent/mongo-data. No restore/install/download/new environment. Six new controls cover direct/descendant private/public matching, source visibility before paging, outstanding cancellation and shared30-second native deadline. Test-only failCommand on owned instance, monitored client appName CosmicCqlGraph, always disabled in finally and pending operation joined. Run expected359 native, log TestResults/CosmicCqlDemo/mongo-composition-privacy-interruption.log plus existing mongo-cql-native-current.trx (sizes initially unmeasured). Existing acknowledged fixture teardown owns disposable data; runtime/data environment reusable, evidence retained.
+
+Initial privacy/interruption consumer build rejected missing explicit descendant traversal options; corrected test to bounded depth2/nodes10. No native acceptance started, runner19446 terminal1; owned instance teardown completed. Original build log retained mongo-composition-privacy-interruption.log; corrected log mongo-composition-privacy-interruption-final.log. Same reusable resources, no new setup.
+
+Mongo privacy/interruption final359/359 native zero skips,5m4s; runner42875 terminal0 after owned failpoint reset/pending-task join and exact acknowledged fixture teardown. Owned log16,673,803bytes bounded to65,215byte tail; reusable data/runtime retained. No installs/restores/downloads/new environments. Required original build-failure and green evidence retained; regenerate through same leased raw runner.
+C:\Source\OASIS\TestResults\CosmicCqlDemo\mongo-composition-privacy-interruption.log | 1264 bytes | retained COSMIC ORM evidence, no active process dependency.
+C:\Source\OASIS\TestResults\CosmicCqlDemo\mongo-composition-privacy-interruption-final.log | 1518 bytes | retained COSMIC ORM evidence, no active process dependency.
+C:\Source\OASIS\TestResults\SubscriptionUsageCurrent\mongo-cql-native-current.trx | 628294 bytes | retained COSMIC ORM evidence, no active process dependency.
+
+Final owned27029 listener absent; free C66,429,648,896bytes. Retained reusable resources and required evidence; no unrelated cleanup. Observed deadline aggregate maxTimeMS budgets30000,18997.

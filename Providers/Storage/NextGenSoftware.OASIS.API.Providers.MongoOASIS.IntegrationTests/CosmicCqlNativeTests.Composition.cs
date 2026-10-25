@@ -189,4 +189,107 @@ public sealed partial class CosmicCqlNativeTests
                 if (pending != null) await pending;
             }
         }, width: 0, configure: root => root.Name = "coffee");
+
+    [Theory]
+    [InlineData(false, false)] [InlineData(false, true)]
+    [InlineData(true, false)] [InlineData(true, true)]
+    public Task NativeCompositionRelationshipMatchingHonorsChildVisibility(bool descendants, bool publicMatch)
+    {
+        var actor = Guid.NewGuid();
+        var other = Guid.NewGuid();
+        return WithMongoGraph(async fixture =>
+        {
+            var id = fixture.Root.Id;
+            var publicId = fixture.Root.Children.Last().Id;
+            fixture.KnownOutcome = false;
+            var hidden = await fixture.Records.UpdateManyAsync(new BsonDocument("HolonId", new BsonDocument("$ne", id.ToString("D"))),
+                new BsonDocument("$set", new BsonDocument { { "CreatedByAvatarId", other.ToString("D") }, { "IsPublic", false } }));
+            fixture.KnownOutcome = true;
+            Assert.Equal(3, hidden.MatchedCount);
+            fixture.KnownOutcome = false;
+            var published = await fixture.Records.UpdateOneAsync(new BsonDocument("HolonId", publicId.ToString("D")),
+                new BsonDocument("$set", new BsonDocument("IsPublic", true)));
+            fixture.KnownOutcome = true;
+            Assert.Equal(1, published.MatchedCount);
+
+            var source = CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
+                .Where(h => h.Id == id).Result;
+            var label = publicMatch ? "public" : "secret";
+            var related = descendants ? source.WhereAnyDescendant(child => child.Name == label, CosmicQueryTraversalOptions.Create(2, 10).Result)
+                : source.WhereAnyChild(child => child.Name == label);
+            var query = related.Select(h => h.Name).Take(1).Result;
+            var result = await Manager(fixture.Provider).ExecuteProjectionCompositionQueryAsync(
+                CompositionPlan(query), new[] { fixture.Provider });
+            Assert.False(result.IsError, result.Message + result.Exception);
+            Assert.Equal(publicMatch ? 1 : 0, result.Result.Providers.Single().Rows.Count);
+
+            // Root paging also applies after visibility and before result stages.
+            var visibleChild = CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
+                .Where(h => h.ParentHolonId == id).OrderBy(h => h.Name).Take(1).Select(h => h.Id).Take(1).Result;
+            var childRead = await Manager(fixture.Provider).ExecuteProjectionCompositionQueryAsync(
+                CompositionPlan(visibleChild), new[] { fixture.Provider });
+            Assert.False(childRead.IsError, childRead.Message + childRead.Exception);
+            Assert.Equal(publicId, childRead.Result.Providers.Single().Rows.Single());
+        }, actor: actor, configure: root =>
+        {
+            root.Children.First().Name = "secret";
+            root.Children.Last().Name = "public";
+            root.Children.First().Children.Single().Name = "secret";
+        });
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public Task NativeCompositionInterruptsOutstandingIoAndUsesOneDeadline(bool expire)=>WithMongoGraph(async fixture=>
+    {
+        var id=fixture.Root.Id;var source=CosmicQuery<Holon>.Create().Where(h=>h.Id==id).Result;
+        var query=source.Select(h=>h.Name).Take(1).Where(name=>name!=null).Result;var plan=CompositionPlan(query);
+        var budgets=new System.Collections.Concurrent.ConcurrentQueue<long>();
+        var settings=MongoClientSettings.FromConnectionString(fixture.Provider.ConnectionString);
+        settings.MaxConnectionPoolSize=30;
+        settings.ClusterConfigurator=cluster=>cluster.Subscribe<MongoDB.Driver.Core.Events.CommandStartedEvent>(command=>
+        {
+            if(command.CommandName=="aggregate")budgets.Enqueue(command.Command["maxTimeMS"].ToInt64());
+        });
+        var monitored=new MongoClient(settings);
+        fixture.Provider.Database.MongoClient=monitored;
+        fixture.Provider.Database.MongoDB=monitored.GetDatabase(fixture.Provider.DBName);
+        var admin=fixture.Client.GetDatabase("admin");
+        var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","alwaysOn"},
+            {"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},{"appName","CosmicCqlGraph"},
+                {"blockConnection",true},{"blockTimeMS",expire?11000:3000}}}});
+        using var cancellation=new CancellationTokenSource();
+        Task<NextGenSoftware.OASIS.Common.OASISResult<CosmicProjectionCompositionPacket>>? pending=null;BsonDocument? disabled=null;
+        try
+        {
+            pending=fixture.Provider.ExecuteCosmicProjectionCompositionAsync(plan,new CosmicProjectionCompositionExecutionLimits(10,10000,100,10000,10,10000),cancellation.Token);
+            if(!expire)
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"waitForFailPoint","failCommand"},
+                    {"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",10000}});
+                cancellation.Cancel();
+            }
+            var read=await pending;Assert.Equal(expire?"CQL_QUERY_TIMEOUT":"CQL_QUERY_CANCELLED",read.ErrorCode);
+            Assert.Null(read.Result);Assert.False(read.IsLoaded);
+        }
+        finally
+        {
+            disabled=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+            if(pending!=null)await pending;
+        }
+        if(expire)
+        {
+            // MongoDB may enforce its native time budget before a third command
+            // starts. Observe the actual wire budget rather than assuming when
+            // its clock expires: a fresh per-command allowance would fail this.
+            var observed=budgets.ToArray();
+            output.WriteLine("Native composition aggregate maxTimeMS budgets: "+string.Join(",",observed));
+            Assert.True(observed.Length>=2);
+            Assert.All(observed,value=>Assert.InRange(value,1L,30000L));
+            for(var index=1;index<observed.Length;index++)Assert.True(observed[index]<observed[index-1]);
+            Assert.True(disabled["count"].ToInt64()>=configured["count"].ToInt64()+2);
+        }
+        var fresh=await Manager(fixture.Provider).ExecuteProjectionCompositionQueryAsync(plan,new[]{fixture.Provider});
+        Assert.False(fresh.IsError,fresh.Message+fresh.Exception);Assert.Single(fresh.Result.Providers.Single().Rows);
+    },width:0);
 }
