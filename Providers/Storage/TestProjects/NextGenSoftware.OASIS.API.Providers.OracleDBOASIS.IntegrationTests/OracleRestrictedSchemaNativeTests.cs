@@ -110,6 +110,28 @@ public sealed partial class OracleNativeAcceptanceTests
             foreach(var row in new[]{("OASIS_AVATARS",id),("OASIS_AVATAR_DETAILS",id),("OASIS_HOLONS",holonId)})Assert.IsNull(await Read(native,row.Item1,row.Item2));
             Assert.AreEqual(objectIds,(string)(await Scalar("SELECT LISTAGG(OBJECT_ID,',') WITHIN GROUP(ORDER BY OBJECT_NAME) FROM USER_OBJECTS WHERE OBJECT_TYPE='TABLE'"))!);
             File.Delete(journal);
+            // Reuse the retained least-privilege schema to exercise the exact
+            // hosted preflight implementation. Local TCP is explicitly NOT TLS proof.
+            var database=(string)(await Scalar("SELECT SYS_CONTEXT('USERENV','DB_UNIQUE_NAME') FROM DUAL"))!;
+            var service=(string)(await Scalar("SELECT SYS_CONTEXT('USERENV','SERVICE_NAME') FROM DUAL"))!;
+            await OracleLiveSchemaPreflight.RunLocalControlAsync(connection,database,RestrictedSchema,service,work);
+            var proofPath=Path.Combine(work,"oracle-schema-preflight.current.json");
+            var proof=await File.ReadAllTextAsync(proofPath);
+            using(var parsed=JsonDocument.Parse(proof)){
+                Assert.AreEqual("verified-read-only",parsed.RootElement.GetProperty("state").GetString());
+                Assert.IsFalse(parsed.RootElement.GetProperty("tcpsRequired").GetBoolean());
+                Assert.IsFalse(parsed.RootElement.GetProperty("crudVerified").GetBoolean());
+                Assert.IsFalse(parsed.RootElement.GetProperty("fullProviderVerified").GetBoolean());
+                Assert.AreEqual(0,parsed.RootElement.GetProperty("provisioningCalls").GetInt32());
+                var target=parsed.RootElement.GetProperty("target");
+                Assert.AreEqual("tcp",target.GetProperty("Protocol").GetString()!.ToLowerInvariant());
+                Assert.ThrowsException<InvalidDataException>(()=>OracleLiveSchemaPreflight.ValidateTarget(
+                    new(database,RestrictedSchema,RestrictedSchema,service,target.GetProperty("Protocol").GetString()!),database,RestrictedSchema,service,true));
+            }
+            Assert.AreEqual(objectIds,(string)(await Scalar("SELECT LISTAGG(OBJECT_ID,',') WITHIN GROUP(ORDER BY OBJECT_NAME) FROM USER_OBJECTS WHERE OBJECT_TYPE='TABLE'"))!);
+            foreach(var row in new[]{("OASIS_AVATARS",id),("OASIS_AVATAR_DETAILS",id),("OASIS_HOLONS",holonId)})Assert.IsNull(await Read(native,row.Item1,row.Item2));
+            Console.WriteLine("LOCAL read-only schema preflight proof, not hosted TLS: "+proof);
+            Assert.AreEqual(proof,await File.ReadAllTextAsync(proofPath));File.Delete(proofPath);
         }
         finally{await provider.DeActivateProviderAsync();}
     }
